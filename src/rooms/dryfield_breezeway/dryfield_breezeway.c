@@ -527,7 +527,7 @@ s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return ret;
 }
 
-/// `GpMsgEntry` handler for message 0x13EE, the room's own progress gate. It
+/// `TaskMessageEntry` handler for message 0x13EE, the room's own progress gate. It
 /// answers message 0x17 by writing 1 or 2 into the outgoing record's `room`
 /// from the room's progress nibble 0x47, and - when the message id still reads
 /// 0x17 on a second look - hands the room's event request (flag nibble 0x37,
@@ -615,7 +615,7 @@ s32 func_dryfield_breezeway_8017DBA4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// `GpMsgEntry` handler for message 0x13EF, the room's hotspot gate: sub-id 1
+/// `TaskMessageEntry` handler for message 0x13EF, the room's hotspot gate: sub-id 1
 /// arms the room's own task the first time it is seen, latching nibble 0x5D so
 /// a repeat visit does nothing. Only the incoming record is read - the handler
 /// answers 0 and never edits the outgoing copy.

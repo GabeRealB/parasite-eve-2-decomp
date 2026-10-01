@@ -18,8 +18,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-extern GpMsgEntry D_acropolis_fountain_8017E764[];
-extern TaskDesc   D_acropolis_fountain_8017E78C[];
+extern TaskMessageEntry D_acropolis_fountain_8017E764[];
+extern TaskDesc         D_acropolis_fountain_8017E78C[];
 
 static void func_acropolis_fountain_8017D960(Task* arg0);
 static void func_acropolis_fountain_8017D9BC(Task* task);
@@ -36,12 +36,12 @@ s32  func_acropolis_fountain_8017D77C(Task*, s32, s32, s32);
 s32  func_acropolis_fountain_8017D7F4(Task*, s32, s32, s32);
 void func_acropolis_fountain_8017D868(Task*);
 
-GpMsgEntry D_acropolis_fountain_8017E764[5] = {
+TaskMessageEntry D_acropolis_fountain_8017E764[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fountain_8017D604 },
     { 5104, func_acropolis_fountain_8017D77C },
     { 5105, func_acropolis_fountain_8017D774 },
     { 5106, func_acropolis_fountain_8017D7F4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_acropolis_fountain_8017E78C[2] = {

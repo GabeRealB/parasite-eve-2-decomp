@@ -12,7 +12,7 @@
 
 extern TaskDesc gRoomEventTaskDesc;
 
-extern GpMsgEntry D_dryfield_night_motel_balcony_80182804[6];
+extern TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6];
 
 extern SVECTOR D_dryfield_night_motel_balcony_80182C60[2];
 

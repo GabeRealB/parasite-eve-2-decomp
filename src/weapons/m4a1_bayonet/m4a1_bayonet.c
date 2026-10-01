@@ -144,7 +144,7 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
         alive = phase < ROOM_EFFECT_CONTROL_CANCEL_MIN;
     }
     if (!alive) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }
 

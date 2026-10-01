@@ -126,7 +126,7 @@ void func_plasma_8012EF34(Task* arg0)
             return;
         case 1:
             if (mem->scale < 9) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (gRoomEffectState->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
@@ -162,7 +162,7 @@ void func_plasma_8012EF34(Task* arg0)
             return;
         case 2:
             if (mem->scale < 9) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (gRoomEffectState->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
@@ -202,7 +202,7 @@ void func_plasma_8012EF34(Task* arg0)
     }
     return;
 release:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Draws textured band `arg2` (0..2) of the plasma ring around `arg1`: sixteen

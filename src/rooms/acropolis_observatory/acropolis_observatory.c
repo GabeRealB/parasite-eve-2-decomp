@@ -4,6 +4,7 @@
 
 #include "acropolis_observatory_private.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
 
@@ -18,7 +19,7 @@
 #include "main/task_types.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_acropolis_observatory_8017E7B8[];
+extern TaskMessageEntry D_acropolis_observatory_8017E7B8[];
 
 /// Set once the room task has spawned the streamed scene for this visit.
 extern s32 D_acropolis_observatory_8017E7D8;
@@ -27,11 +28,11 @@ s32 func_acropolis_observatory_8017D618(Task*, s32, RoomEventMsg*, RoomEventMsg*
 s32 func_acropolis_observatory_8017D7BC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_acropolis_observatory_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-GpMsgEntry D_acropolis_observatory_8017E7B8[4] = {
+TaskMessageEntry D_acropolis_observatory_8017E7B8[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_observatory_8017D618 },
     { 5105, func_acropolis_observatory_8017D7BC },
-    { 5103, func_acropolis_observatory_8017D7C4 },
-    { 0x7FFFFFFF, NULL },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_observatory_8017D7C4 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 D_acropolis_observatory_8017E7D8;

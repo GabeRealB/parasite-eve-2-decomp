@@ -66,9 +66,9 @@
 #include "../../shared/room_events.h"
 
 /// The room's message table, installed by its first task state.
-extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];
-extern EvsCommand D_shelter_b2_septic_tank_80183004[];
-extern EvsCommand D_shelter_b2_septic_tank_8018310C[];
+extern TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[];
+extern EvsCommand       D_shelter_b2_septic_tank_80183004[];
+extern EvsCommand       D_shelter_b2_septic_tank_8018310C[];
 
 /// Tasks the room's first task state spawns.
 extern TaskDesc D_shelter_b2_septic_tank_801832C0[];
@@ -147,12 +147,12 @@ AnimationSet D_shelter_b2_septic_tank_80182F18 = {
 
 TaskDesc D_shelter_b2_septic_tank_80182F40 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b2_septic_tank_80182F4C[5] = {
+TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_septic_tank_8017D7B4 },
     { 5105, func_shelter_b2_septic_tank_8017D7AC },
-    { 5103, func_shelter_b2_septic_tank_8017D90C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_septic_tank_8017D90C },
     { 5104, func_shelter_b2_septic_tank_8017D904 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_shelter_b2_septic_tank_80182F74[1] = {

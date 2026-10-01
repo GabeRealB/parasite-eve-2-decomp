@@ -2208,11 +2208,12 @@ void Gp_FadeWaveTask(Task* arg0)
     }
 }
 
-void Gp_ReleaseState1CMem(void* arg0, Task* arg1)
+void effectKillTask(void* effectWork, Task* task)
 {
+    // Retire the counted work before teardown dispatches child exit handlers.
     gRoomEffectState->effectCount--;
-    memFree(arg0);
-    taskKill(arg1);
+    memFree(effectWork);
+    taskKill(task);
 }
 
 static void Gp_KillState1CTask(Task* arg0)

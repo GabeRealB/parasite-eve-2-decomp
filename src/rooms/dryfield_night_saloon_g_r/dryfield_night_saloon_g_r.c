@@ -93,8 +93,8 @@ STATIC_ASSERT_SIZEOF(DryfieldNightSaloonGRStorage8FA4, 8);
 
 extern DryfieldNightSaloonGRStorage8FA4 D_dryfield_night_saloon_g_r_80188FA4;
 
-extern GpMsgEntry D_dryfield_night_saloon_g_r_8017F918[];
-extern TaskDesc   D_dryfield_night_saloon_g_r_8017F940[];
+extern TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[];
+extern TaskDesc         D_dryfield_night_saloon_g_r_8017F940[];
 
 /// Cutscene script blobs handed to `func_800E8614` / `func_800E8634`.
 extern EvsCommand D_dryfield_night_saloon_g_r_801848DC[];
@@ -230,12 +230,12 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
+TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
     { 5105, func_dryfield_night_saloon_g_r_8017DD7C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_saloon_g_r_8017DE68 },
     { 5104, func_dryfield_night_saloon_g_r_8017DD84 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_saloon_g_r_8017F940[1] = {

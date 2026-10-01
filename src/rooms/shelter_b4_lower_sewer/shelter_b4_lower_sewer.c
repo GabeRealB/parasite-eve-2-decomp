@@ -10,6 +10,7 @@
 #include "shelter_b4_lower_sewer_private.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/coord.h"
@@ -49,7 +50,7 @@ typedef struct {
     s16 z;
 } _SurfaceScratch;
 
-extern GpMsgEntry D_shelter_b4_lower_sewer_80181E44[];
+extern TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[];
 
 extern TaskDesc D_shelter_b4_lower_sewer_80181E70[];
 extern _Surface D_shelter_b4_lower_sewer_80181E7C[];
@@ -64,12 +65,12 @@ s32  func_shelter_b4_lower_sewer_8017D654(Task*, s32, TaskMessageArg, TaskMessag
 s32  func_shelter_b4_lower_sewer_8017D65C(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_shelter_b4_lower_sewer_8017E2D4(Task*);
 
-GpMsgEntry D_shelter_b4_lower_sewer_80181E44[5] = {
+TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_lower_sewer_8017D610 },
     { 5105, func_shelter_b4_lower_sewer_8017D608 },
-    { 5103, func_shelter_b4_lower_sewer_8017D65C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_lower_sewer_8017D65C },
     { 5104, func_shelter_b4_lower_sewer_8017D654 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s16 D_shelter_b4_lower_sewer_80181E6C = -1700;

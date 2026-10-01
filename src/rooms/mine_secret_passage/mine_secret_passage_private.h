@@ -9,7 +9,7 @@
 
 #include "rooms/room_common.h"
 
-extern GpMsgEntry D_mine_secret_passage_80180E8C[6];
+extern TaskMessageEntry D_mine_secret_passage_80180E8C[6];
 
 extern TaskDesc D_mine_secret_passage_80180EBC;
 

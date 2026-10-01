@@ -24,7 +24,7 @@
 #include "mapui/map_dryfield.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_dryfield_motel_room_2_8017D6BC[];
+extern TaskMessageEntry D_dryfield_motel_room_2_8017D6BC[];
 
 s32 func_dryfield_motel_room_2_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_room_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -38,12 +38,12 @@ extern WorldCollisionTrigger D_dryfield_motel_room_2_8017FF78[6];
 
 extern WorldCoordRoomLights D_dryfield_motel_room_2_80180398[1];
 
-GpMsgEntry D_dryfield_motel_room_2_8017D6BC[5] = {
+TaskMessageEntry D_dryfield_motel_room_2_8017D6BC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_2_8017D5D8 },
     { 5105, func_dryfield_motel_room_2_8017D5D0 },
-    { 5103, func_dryfield_motel_room_2_8017D608 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_2_8017D608 },
     { 5104, func_dryfield_motel_room_2_8017D600 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8* D_dryfield_motel_room_2_8017D6E4[1] = {

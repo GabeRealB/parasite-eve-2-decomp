@@ -25,7 +25,7 @@ extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskDesc D_dryfield_factory_801826BC[2];
 
-extern GpMsgEntry D_dryfield_factory_801826D4[6];
+extern TaskMessageEntry D_dryfield_factory_801826D4[6];
 
 extern WorldCollisionGrid D_dryfield_factory_80186C68;
 

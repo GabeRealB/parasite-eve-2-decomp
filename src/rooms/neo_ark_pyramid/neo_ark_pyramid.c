@@ -56,7 +56,7 @@ extern TaskDesc D_neo_ark_pyramid_8017FC0C;
 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF
 /// and 0x13F0, closed by a 0x7FFFFFFF entry.
-extern GpMsgEntry D_neo_ark_pyramid_8017FBE4[];
+extern TaskMessageEntry D_neo_ark_pyramid_8017FBE4[];
 
 /// The two points on the spawner's parent coordinate that the ribbon task
 /// trails: the first entry places the effect, the second (reached here both
@@ -84,12 +84,12 @@ extern WorldCollisionTrigger D_neo_ark_pyramid_801812B0[6];
 extern WorldCollisionTrigger D_neo_ark_pyramid_80181478[7];
 extern WorldCoordRoomLights  D_neo_ark_pyramid_80181298[1];
 
-GpMsgEntry D_neo_ark_pyramid_8017FBE4[5] = {
+TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
     { 5105, func_neo_ark_pyramid_8017D9F0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pyramid_8017DA44 },
     { 5104, func_neo_ark_pyramid_8017DA3C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_neo_ark_pyramid_8017FC0C = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_pyramid_8017D600, { .value = 0 } };

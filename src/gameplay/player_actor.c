@@ -1310,7 +1310,7 @@ void Gp_EffSprTask46(Task* arg0)
     coord = body->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
         return;
@@ -1358,7 +1358,7 @@ void Gp_EffSprTask46(Task* arg0)
             Gp_DrawEffSprite46(coord, mem->scale, mem->period, mem->step);
             mem->period -= 4;
             if (mem->period < 4) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
             }
             break;
         case 4:
@@ -1497,7 +1497,7 @@ void Gp_EffSprTask81(Task* arg0)
     coord  = body->coord;
     parent = mem->parent;
     if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
 
@@ -1578,7 +1578,7 @@ void Gp_EffSprTask81(Task* arg0)
             }
             break;
         case 4:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             break;
     }
 }
@@ -1604,7 +1604,7 @@ void Gp_EffSprTask55(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     } else {
         Gp_UpdateCoord(coord);
         block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
@@ -1701,7 +1701,7 @@ void Gp_EffSprTask55(Task* arg0)
         mem->move.vy       += 6;
         mem->age++;
         if (mem->age > mem->period * 8 - 1) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }
@@ -1727,7 +1727,7 @@ void Gp_EffSprTask42(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     } else {
         Gp_UpdateCoord(coord);
         block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
@@ -1821,7 +1821,7 @@ void Gp_EffSprTask42(Task* arg0)
         mem->move.vy       += 6;
         mem->age++;
         if (mem->age > mem->period * 8 - 1) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }
@@ -1866,7 +1866,7 @@ void func_800F91AC(Task* arg0)
             goto spawn;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
     return;
 spawn:
     width = mem->scale;
@@ -1925,7 +1925,7 @@ void Gp_EffCtlTask9B(Task* arg0)
             goto spawn;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
     return;
 spawn:
     spawned = Gp_SpawnEff(0x60055, coord, 0x12200, 0);
@@ -1958,7 +1958,7 @@ void Gp_EffSprTask30(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -2003,7 +2003,7 @@ void Gp_EffSprTask30(Task* arg0)
             return;
         case 1:
             if (mem->age >= 0x51) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             mem->pos.vz += mem->period;
@@ -2086,7 +2086,7 @@ void Gp_EffSprTask30(Task* arg0)
                     if (mem->scale < 8) {
                         Gp_DrawEffQuadT29(coord, mem->period, mem->scale, 0);
                     } else {
-                        Gp_ReleaseState1CMem(mem, arg0);
+                        effectKillTask(mem, arg0);
                     }
                 } else {
                     u16 rnd;
@@ -2110,7 +2110,7 @@ void Gp_EffSprTask30(Task* arg0)
             Gp_UpdateCoord(coord);
             if (mem->age >= 0x33) {
                 if (mem->angle < 0x10) {
-                    Gp_ReleaseState1CMem(mem, arg0);
+                    effectKillTask(mem, arg0);
                     return;
                 }
                 color[0] = color[1] = color[2] = mem->angle;
@@ -2128,7 +2128,7 @@ void Gp_EffSprTask30(Task* arg0)
                     if (mem->scale < 8) {
                         Gp_DrawEffQuadT29(coord, mem->period, mem->scale, 0);
                     } else {
-                        Gp_ReleaseState1CMem(mem, arg0);
+                        effectKillTask(mem, arg0);
                     }
                 } else {
                     u16 rnd;
@@ -2367,7 +2367,7 @@ void func_800FAA14(Task* arg0)
         if (arg0->spawnArg1.value != 0) {
             SndEvt_EnqueueType7(arg0->spawnArg1.value, 1);
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     if (Gp_StateC08.field_2 >= 9) {
@@ -2505,7 +2505,7 @@ draw:
     func_800EB6E8(coord, mem->age, mem->angle | 0x1000,
                   mem->period | 0x1000);
     if (arg0->state == 4) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -2646,7 +2646,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
     }
     return;
 kill:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffCtlTaskC1(Task* arg0)
@@ -2664,7 +2664,7 @@ void Gp_EffCtlTaskC1(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -2692,7 +2692,7 @@ void Gp_EffCtlTaskC1(Task* arg0)
     mem->scale = scale;
     mem->angle = angle;
     if ((s16)scale < 9) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -2709,7 +2709,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     if (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING ||
         ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -2744,7 +2744,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
 
     if (Gp_StateC08.field_12 == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ENERGY_SHOT_AURA) ||
         gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
 
@@ -2869,7 +2869,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
     }
     return;
 kill:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffCtlTaskAC(Task* arg0)
@@ -2931,7 +2931,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     }
 kill:
     SndEvt_EnqueueType7(0x23, 1);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
     return;
 continue_fx:
     saved = mem->step;
@@ -2995,7 +2995,7 @@ void Gp_EffCtlTask0E(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -3036,7 +3036,7 @@ void Gp_EffCtlTask0E(Task* arg0)
         return;
     }
     gRoomEffectState->screenFxFlags &= ~ROOM_EFFECT_SCREEN_BURST_GUARD;
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_PulseState1C80(void)
@@ -3072,7 +3072,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             SndEvt_EnqueueType7(0xFF0D, 1);
             gRoomEffectState->rumbleCount = 0;
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -3116,7 +3116,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
                     SndEvt_EnqueueType7(0xFF0D, 1);
                     gRoomEffectState->rumbleCount = 0;
                 }
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
             }
             break;
     }
@@ -3196,7 +3196,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
         return;
     }
 kill:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
     return;
 do_fcd00:
     func_800FCD00(arg0);
@@ -3375,7 +3375,7 @@ void Gp_EffSprTaskA7(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     if (arg0->state == 0) {
@@ -3455,7 +3455,7 @@ void Gp_EffSprTaskA7(Task* arg0)
     coord->coord.t[1]  += step;
     mem->age++;
     if (mem->age > n * 8 - 1) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -3632,7 +3632,7 @@ void Gp_EffCtlTask7F(Task* arg0)
     }
     if (mem->age >= mem->period) {
     release:
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     span            = mem->scale >> 1;
@@ -3684,7 +3684,7 @@ void Gp_EffCtlTaskE3(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     } else {
         if (arg0->state == 0) {
             coord->parent       = mem->parent;
@@ -3704,7 +3704,7 @@ void Gp_EffCtlTaskE3(Task* arg0)
         }
         mem->age++;
         if (mem->age >= mem->period) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         } else {
             Gp_SpawnEff(0x60070, coord, (mem->scale >> 2) + 0x80021400, &mem->move);
         }
@@ -3828,7 +3828,7 @@ void Gp_EffSprTask80(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffSprTask8D(Task* arg0)
@@ -3934,7 +3934,7 @@ void Gp_EffSprTask8D(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffSprTask3F(Task* arg0)
@@ -4041,7 +4041,7 @@ void Gp_EffSprTask3F(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void func_800FF710(Task* arg0)
@@ -4069,7 +4069,7 @@ void func_800FF710(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     } else {
         if (arg0->state == 0) {
             one = ONE;
@@ -4106,7 +4106,7 @@ void func_800FF710(Task* arg0)
             return;
         }
         if (mem->age >= mem->period) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
         }
         v    = mem->scale;
@@ -4234,7 +4234,7 @@ void Gp_EffSprTaskE0(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffSprTaskE1(Task* arg0)
@@ -4335,7 +4335,7 @@ void Gp_EffSprTaskE1(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffSprTaskE2(Task* arg0)
@@ -4391,7 +4391,7 @@ void Gp_EffSprTaskE2(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks

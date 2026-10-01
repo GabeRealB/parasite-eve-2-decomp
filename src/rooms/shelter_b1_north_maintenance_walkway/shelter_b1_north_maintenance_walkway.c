@@ -8,6 +8,7 @@
 #include "shelter_b1_north_maintenance_walkway_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -40,8 +41,8 @@ extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C_value __asm__("D_shelter_b1_north_maintenance_walkway_80185B7C");
 
-extern GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
-extern TaskDesc   D_shelter_b1_north_maintenance_walkway_80184AAC[];
+extern TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
+extern TaskDesc         D_shelter_b1_north_maintenance_walkway_80184AAC[];
 
 extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[];
 extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B08[];
@@ -60,12 +61,12 @@ s32  func_shelter_b1_north_maintenance_walkway_8017DA44(Task*, s32, TaskMessageA
 
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
+TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
     { 5105, func_shelter_b1_north_maintenance_walkway_8017DA34 },
-    { 5103, func_shelter_b1_north_maintenance_walkway_8017DA44 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_north_maintenance_walkway_8017DA44 },
     { 5104, func_shelter_b1_north_maintenance_walkway_8017DA3C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184AAC[1] = {

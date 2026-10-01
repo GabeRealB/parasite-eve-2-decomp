@@ -101,13 +101,13 @@ TmdSource D_dryfield_night_motel_loft_8017EAF8 = {
     D_dryfield_night_motel_loft_8017E950,
 };
 
-GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
-    { 5102, roomVariantMotelBalconyMsg },
+TaskMessageEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
     { 5105, func_dryfield_night_motel_loft_8017D5F8 },
-    { 5103, func_dryfield_night_motel_loft_8017D6BC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_loft_8017D6BC },
     { 5104, func_dryfield_night_motel_loft_8017D67C },
     { 5106, func_dryfield_night_motel_loft_8017D6C4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_motel_loft_8017EB4C[1] = {
@@ -647,7 +647,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
         }
     } else {
     release:
-        Gp_ReleaseState1CMem(w, task);
+        effectKillTask(w, task);
     }
 }
 

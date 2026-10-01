@@ -359,7 +359,7 @@ static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, 
 
 static void func_800B28E0(Task* task);
 
-static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
+static void _animationBlendTranslationRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
 static void _animationBlendPackedRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
@@ -2070,70 +2070,6 @@ static void _animationBlendRotation(const _AnimationBlendRequest* request, GfxCo
     }
 }
 
-/// Blends encoding 1, writing a local transform and optionally a compact pose.
-static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
-{
-    _AnimationBlendScratch*    scratch;
-    const AnimationPackedPose* encodedPose;
-    s32                        currentWeight;
-
-    if (slot->timeSpan != 0) {
-        scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
-        if (request->currentPose.bytes != request->nextPose.bytes) {
-            // Store the scaled remaining time, then replace it with the truncated quotient.
-            currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
-            scratch->currentWeight = currentWeight;
-            currentWeight          = currentWeight / slot->timeSpan;
-            scratch->currentWeight = currentWeight;
-            scratch->nextWeight    = ONE - currentWeight;
-        } else {
-            scratch->currentWeight = 0;
-            scratch->nextWeight    = ONE;
-        }
-        // The compact translation occupies six bytes; the GTE load reads three halfwords.
-        gte_lddp(scratch->currentWeight);
-        gte_ldsv(request->currentPose.translationRotation);
-        gte_gpf12();
-        gte_lddp(scratch->nextWeight);
-        gte_ldsv(request->nextPose.translationRotation);
-        gte_gpl12();
-        gte_stsv(&scratch->translation);
-        if (request->unpackedDestination == NULL) {
-            coord->coord.t[0]   = scratch->translation.vx;
-            coord->coord.t[1]   = scratch->translation.vy;
-            coord->coord.t[2]   = scratch->translation.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        } else {
-            request->unpackedDestination->translation.vx = scratch->translation.vx;
-            request->unpackedDestination->translation.vy = scratch->translation.vy;
-            request->unpackedDestination->translation.vz = scratch->translation.vz;
-        }
-        // Decode full-resolution angles before the shared rotation blend.
-        encodedPose                 = request->currentPose.translationRotation;
-        scratch->currentRotation.vx = encodedPose->rotationX;
-        scratch->currentRotation.vy = encodedPose->rotationY;
-        scratch->currentRotation.vz = encodedPose->rotationZ;
-        encodedPose                 = request->nextPose.translationRotation;
-        scratch->nextRotation.vx    = encodedPose->rotationX;
-        scratch->nextRotation.vy    = encodedPose->rotationY;
-        scratch->nextRotation.vz    = encodedPose->rotationZ;
-        _animationBlendRotation(request, coord, slot, scratch);
-        encodedPose = request->encodedDestination.translationRotation;
-        if (encodedPose != NULL) {
-            AnimationPackedPose* destinationPose;
-
-            destinationPose               = request->encodedDestination.translationRotation;
-            destinationPose->translationX = scratch->translation.vx;
-            destinationPose->translationY = scratch->translation.vy;
-            destinationPose->translationZ = scratch->translation.vz;
-            destinationPose->rotationX    = scratch->nextRotation.vx;
-            destinationPose->rotationY    = scratch->nextRotation.vy;
-            destinationPose->rotationZ    = scratch->nextRotation.vz;
-        }
-        SCRATCH_STACK_RELEASE_BLOCK(_AnimationBlendScratch);
-    }
-}
-
 /// Initializes complementary pose-endpoint weights in 1/4096 units.
 ///
 /// Distinct endpoint addresses use `(timeLeft << ANIMATION_BLEND_FRACTION_BITS)
@@ -2158,6 +2094,79 @@ static inline void _animationSetBlendWeights(const _AnimationBlendRequest* reque
     } else {
         scratch->currentWeight = 0;
         scratch->nextWeight    = ONE;
+    }
+}
+
+/// Blends one model part's encoding-1 translation and Euler rotation.
+///
+/// Both borrowed endpoints must address a complete, word-aligned
+/// `AnimationPackedPose`: signed translation in model integer units and
+/// Euler angles in 4096 units per turn. For a normalized segment, `timeLeft`
+/// is in 0..`timeSpan`, in sixteenths of a frame; its fraction of `timeSpan`
+/// weights the current endpoint in Q12. Identical endpoint addresses select
+/// the next endpoint with full weight. Zero `timeSpan` returns without
+/// reading either pose, reserving scratch space or writing any output.
+///
+/// A null unpacked destination updates `coord`'s local translation and rotation
+/// and marks its composition stale. Otherwise the unpacked destination receives
+/// both components and `coord` is unused. Translation writes preserve that
+/// destination's pad; rotation copies the full `SVECTOR`, including the scratch
+/// vector's untouched pad. An unpacked destination must be separate from the
+/// encoded pose storage. `_animationBlendRotation` blends bank angles directly
+/// or composes the slot's cached relative rotation for buffered endpoints,
+/// refreshing it when requested on entry to a buffered transition.
+///
+/// The independent optional encoded destination must hold a writable,
+/// word-aligned 12-byte pose. It may alias either endpoint: both translations
+/// and rotations are decoded before the six output halfwords are written.
+/// All objects are borrowed for this call. The initialized scratch stack must
+/// fit one `_AnimationBlendScratch` and nested matrix conversion workspace;
+/// the reservation is released before returning. GTE registers are clobbered.
+static void _animationBlendTranslationRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
+{
+    _AnimationBlendScratch*    scratch;
+    const AnimationPackedPose* encodedPose;
+
+    if (slot->timeSpan != 0) {
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
+        _animationSetBlendWeights(request, slot, scratch);
+        // The compact translation occupies six bytes; the GTE load reads three halfwords.
+        gte_LoadAverageShort12(request->currentPose.translationRotation, request->nextPose.translationRotation,
+                               scratch->currentWeight, scratch->nextWeight, &scratch->translation);
+        if (request->unpackedDestination == NULL) {
+            coord->coord.t[0]   = scratch->translation.vx;
+            coord->coord.t[1]   = scratch->translation.vy;
+            coord->coord.t[2]   = scratch->translation.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        } else {
+            request->unpackedDestination->translation.vx = scratch->translation.vx;
+            request->unpackedDestination->translation.vy = scratch->translation.vy;
+            request->unpackedDestination->translation.vz = scratch->translation.vz;
+        }
+        // Decode full-resolution angles before the shared rotation blend.
+        encodedPose                 = request->currentPose.translationRotation;
+        scratch->currentRotation.vx = encodedPose->rotationX;
+        scratch->currentRotation.vy = encodedPose->rotationY;
+        scratch->currentRotation.vz = encodedPose->rotationZ;
+        encodedPose                 = request->nextPose.translationRotation;
+        scratch->nextRotation.vx    = encodedPose->rotationX;
+        scratch->nextRotation.vy    = encodedPose->rotationY;
+        scratch->nextRotation.vz    = encodedPose->rotationZ;
+        _animationBlendRotation(request, coord, slot, scratch);
+        // Write the compact result only after consuming both endpoints, allowing in-place output.
+        encodedPose = request->encodedDestination.translationRotation;
+        if (encodedPose != NULL) {
+            AnimationPackedPose* destinationPose;
+
+            destinationPose               = request->encodedDestination.translationRotation;
+            destinationPose->translationX = scratch->translation.vx;
+            destinationPose->translationY = scratch->translation.vy;
+            destinationPose->translationZ = scratch->translation.vz;
+            destinationPose->rotationX    = scratch->nextRotation.vx;
+            destinationPose->rotationY    = scratch->nextRotation.vy;
+            destinationPose->rotationZ    = scratch->nextRotation.vz;
+        }
+        SCRATCH_STACK_RELEASE_BLOCK(_AnimationBlendScratch);
     }
 }
 

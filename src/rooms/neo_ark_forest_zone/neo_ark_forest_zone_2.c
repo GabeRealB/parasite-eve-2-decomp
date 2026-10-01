@@ -96,7 +96,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(NeoArkForestZone2MsgEntry, 8);
 
 extern NeoArkForestZone2MsgEntry gRoamerMsgTableA[];
-extern GpMsgEntry                gRoamerMsgTableB[];
+extern TaskMessageEntry          gRoamerMsgTableB[];
 
 /// Spawn placements of the first and the second arming task, indexed by the
 /// placement request minus one.
@@ -174,13 +174,13 @@ AnimationSet D_neo_ark_forest_zone_80181D94 = {
 
 TaskDesc D_neo_ark_forest_zone_80181DBC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_neo_ark_forest_zone_80181DC8[6] = {
-    { 5102, func_neo_ark_forest_zone_8017D7E4 },
+TaskMessageEntry D_neo_ark_forest_zone_80181DC8[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_forest_zone_8017D7E4 },
     { 5105, func_neo_ark_forest_zone_8017D7DC },
-    { 5103, func_neo_ark_forest_zone_8017D958 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_forest_zone_8017D958 },
     { 5104, func_neo_ark_forest_zone_8017D950 },
     { 5108, func_neo_ark_forest_zone_8017DA14 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_neo_ark_forest_zone_80181DF8[2] = {
@@ -565,11 +565,11 @@ NeoArkForestZoneSpawnPos gRoamerSpawnPointsA[7] = {
 
 s16 gRoamerPrevBattleRefs = 0;
 
-GpMsgEntry gRoamerMsgTableB[4] = {
-    { 5103, func_neo_ark_forest_zone_801814B0 },
+TaskMessageEntry gRoamerMsgTableB[4] = {
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_forest_zone_801814B0 },
     { 5108, func_neo_ark_forest_zone_80181494 },
     { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 NeoArkForestZoneSpawnPos D_neo_ark_forest_zone_80182DE8[5] = {

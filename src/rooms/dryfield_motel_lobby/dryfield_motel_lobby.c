@@ -97,7 +97,7 @@ static UiList Telephone_Data_80181CF4;
 
 /// The room's message table, which `func_dryfield_motel_lobby_8017F44C`
 /// installs on the room task.
-extern GpMsgEntry D_dryfield_motel_lobby_8017F810[];
+extern TaskMessageEntry D_dryfield_motel_lobby_8017F810[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xAD\x1A"
 #include "../../shared/telephone.h"
@@ -116,12 +116,12 @@ s32                          func_dryfield_motel_lobby_8017F444(Task*, s32, Task
 
 #include "../../shared/telephone_data.inc.c"
 
-GpMsgEntry D_dryfield_motel_lobby_8017F810[5] = {
+TaskMessageEntry D_dryfield_motel_lobby_8017F810[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_lobby_8017F414 },
     { 5105, func_dryfield_motel_lobby_8017F40C },
-    { 5103, func_dryfield_motel_lobby_8017F444 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_lobby_8017F444 },
     { 5104, func_dryfield_motel_lobby_8017F43C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 GpRoomObjRec D_dryfield_motel_lobby_8017F838[1] = {

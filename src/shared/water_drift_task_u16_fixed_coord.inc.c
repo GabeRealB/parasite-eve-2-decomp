@@ -31,7 +31,7 @@ void waterDriftTaskU16FixedCoord(Task* task)
             waterDrawTileU16(coord, (u16)work->index, work->scale);
         }
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -124,7 +124,7 @@ void waterDriftTaskU16FixedCoord(Task* task)
     if ((work->age % work->period) == 0) {
         work->index++;
         if (work->index >= 8) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }

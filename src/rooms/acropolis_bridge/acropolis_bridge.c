@@ -202,29 +202,29 @@ STATIC_ASSERT_SIZEOF(AcropolisBridgeMessageEntry, 8);
 // No separate references identify them; their role (including padding) is unresolved.
 extern u16 D_acropolis_bridge_801917A4[2];
 
-extern GpMsgEntry D_acropolis_bridge_80188E4C[];
-extern TaskDesc   D_acropolis_bridge_80188E7C[];
-extern EvsCommand D_acropolis_bridge_80188EBC[];
-extern EvsCommand D_acropolis_bridge_8018912C[];
-extern TaskDesc   D_acropolis_bridge_80189234;
-extern SVECTOR    D_acropolis_bridge_80189240[];
-extern TaskDesc   D_acropolis_bridge_80189830;
+extern TaskMessageEntry D_acropolis_bridge_80188E4C[];
+extern TaskDesc         D_acropolis_bridge_80188E7C[];
+extern EvsCommand       D_acropolis_bridge_80188EBC[];
+extern EvsCommand       D_acropolis_bridge_8018912C[];
+extern TaskDesc         D_acropolis_bridge_80189234;
+extern SVECTOR          D_acropolis_bridge_80189240[];
+extern TaskDesc         D_acropolis_bridge_80189830;
 
 /// Three 16-entry rows, one per digit of the bridge code, mapping a nibble to
 /// the SPRT command that renders it. Entries above 9 hold the row's blank
 /// sentinel.
 extern u8 D_acropolis_bridge_801898CC[3][16];
 
-extern GpMsgEntry D_acropolis_bridge_801898FC[];
-extern SVECTOR    D_acropolis_bridge_8018991C[7];
-extern SVECTOR    D_acropolis_bridge_80189954[7];
-extern SVECTOR    D_acropolis_bridge_8018998C[12];
-extern u16        D_acropolis_bridge_801899EC[8];
-extern u16        D_acropolis_bridge_801899FC[16];
-extern u16        D_acropolis_bridge_80189A1C[12];
-extern SVECTOR    D_acropolis_bridge_80189A34[2];
-extern SVECTOR    D_acropolis_bridge_80189A44;
-extern SVECTOR    D_acropolis_bridge_80189A4C;
+extern TaskMessageEntry D_acropolis_bridge_801898FC[];
+extern SVECTOR          D_acropolis_bridge_8018991C[7];
+extern SVECTOR          D_acropolis_bridge_80189954[7];
+extern SVECTOR          D_acropolis_bridge_8018998C[12];
+extern u16              D_acropolis_bridge_801899EC[8];
+extern u16              D_acropolis_bridge_801899FC[16];
+extern u16              D_acropolis_bridge_80189A1C[12];
+extern SVECTOR          D_acropolis_bridge_80189A34[2];
+extern SVECTOR          D_acropolis_bridge_80189A44;
+extern SVECTOR          D_acropolis_bridge_80189A4C;
 
 /// The two 0x18-byte script work blocks `Gp_SpawnScript18` copies from when the
 /// bridge cutscene starts.
@@ -416,13 +416,13 @@ TmdSource D_acropolis_bridge_80188E28[1] = {
     { 0, 5480, 0, 1, D_acropolis_bridge_80187E00, D_acropolis_bridge_80187E04, &D_acropolis_bridge_80187E04[171], D_acropolis_bridge_80187DDC, D_acropolis_bridge_8018835C },
 };
 
-GpMsgEntry D_acropolis_bridge_80188E4C[6] = {
+TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_bridge_8017D6F4 },
     { 5104, func_acropolis_bridge_8017D7F8 },
-    { 5103, func_acropolis_bridge_8017D868 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_bridge_8017D868 },
     { 5105, func_acropolis_bridge_8017D7F0 },
     { 5106, func_acropolis_bridge_8017D870 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_acropolis_bridge_80188E7C[3] = {
@@ -696,9 +696,9 @@ u8 D_acropolis_bridge_801898CC[3][16] = {
     { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 31, 31, 31, 31, 31, 31 },
 };
 
-GpMsgEntry D_acropolis_bridge_801898FC[2] = {
+TaskMessageEntry D_acropolis_bridge_801898FC[2] = {
     { 3104, func_acropolis_bridge_801820A0 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AcropolisBridgeQuadCorner D_acropolis_bridge_8018990C[4] = {
@@ -3711,7 +3711,7 @@ void func_acropolis_bridge_80180320(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// The mid variant of the bridge's falling dust streak: the same one-pixel
@@ -3786,7 +3786,7 @@ void func_acropolis_bridge_8018063C(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// The narrow variant of the bridge's falling dust streak: the same one-pixel
@@ -3860,7 +3860,7 @@ void func_acropolis_bridge_8018099C(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// The tallest variant of the bridge's falling dust streak: the same one-pixel
@@ -3934,7 +3934,7 @@ void func_acropolis_bridge_80180CC0(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// One falling dust streak on the bridge, drawn as a `DR_MOVE` that smears a
@@ -3998,7 +3998,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// One frame of the bridge's twinkling dust spark: the task coordinate's
@@ -4104,7 +4104,7 @@ void func_acropolis_bridge_801812F4(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// The bridge's dust cloud: one semi-transparent `POLY_FT4` billboard placed at
@@ -4186,7 +4186,7 @@ void func_acropolis_bridge_801819C8(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(AcropolisBridgeQuadScratch);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// One frame of a glow sprite: a camera-facing, semi-transparent `POLY_FT4`
@@ -4257,7 +4257,7 @@ void func_acropolis_bridge_80181D28(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -4369,7 +4369,7 @@ void func_acropolis_bridge_80182394(Task* task)
     SCRATCH_POP_BYTES_AT(scratch, 0xC);
     work->age++;
     if (work->age >= 0x1F || coord->coord.t[1] >= -0x1D) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }
 
@@ -4383,7 +4383,7 @@ void func_acropolis_bridge_80182694(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_acropolis_bridge_801827EC(coord, work->angle, work->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     } else {
         work->age++;
@@ -4402,7 +4402,7 @@ void func_acropolis_bridge_80182694(Task* task)
                 if (work->scale >= 3) {
                     work->scale -= 2;
                 } else {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
                 break;
         }

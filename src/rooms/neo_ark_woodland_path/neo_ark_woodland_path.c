@@ -46,7 +46,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 /// The room's message table, parked in the entry task by
 /// `func_neo_ark_woodland_path_8017E944`.
-extern GpMsgEntry D_neo_ark_woodland_path_80181650[];
+extern TaskMessageEntry D_neo_ark_woodland_path_80181650[];
 
 extern Task* D_neo_ark_woodland_path_80181680;
 
@@ -66,13 +66,13 @@ TaskDesc D_neo_ark_woodland_path_80181638 = { { { TASK_BODY_NONE, 192 } }, water
 
 TaskDesc D_neo_ark_woodland_path_80181644 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
-GpMsgEntry D_neo_ark_woodland_path_80181650[6] = {
+TaskMessageEntry D_neo_ark_woodland_path_80181650[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_woodland_path_8017E890 },
     { 5105, func_neo_ark_woodland_path_8017E888 },
-    { 5103, func_neo_ark_woodland_path_8017E8DC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_woodland_path_8017E8DC },
     { 5104, func_neo_ark_woodland_path_8017E8D4 },
     { 5108, func_neo_ark_woodland_path_8017E910 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 Task* D_neo_ark_woodland_path_80181680 = NULL;

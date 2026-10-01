@@ -136,17 +136,8 @@ extern Actor103700Rise Actor03700_D0802C[];
 extern EnemyParams Actor03700_D07F0C;
 
 /// Animation data `func_800B3F84` loads, and the task's `field_24` table.
-extern AnimationSet* Actor03700_D080E4[6];
-// Typed callback views for the task message dispatcher.
-typedef struct {
-    s32 id;
-    union {
-        TaskMessageHandler call0;
-    } handler;
-} Actor03700RecoveredMsgEntry;
-STATIC_ASSERT_SIZEOF(Actor03700RecoveredMsgEntry, 8);
-
-extern Actor03700RecoveredMsgEntry Actor03700_D08108[2];
+extern AnimationSet*    Actor03700_D080E4[6];
+extern TaskMessageEntry Actor03700_D08108[2];
 
 /// Animation-set table handed to the player as the 0x3FF payload's `source.sets`.
 extern AnimationSet* Actor03700_D080FC[];
@@ -672,9 +663,9 @@ AnimationSet* Actor03700_D080FC[3] = {
     &Actor03700_D07EE0,
 };
 
-Actor03700RecoveredMsgEntry Actor03700_D08108[2] = {
-    { 2014, { .call0 = Actor03700_Fn034F8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+TaskMessageEntry Actor03700_D08108[2] = {
+    { 2014, Actor03700_Fn034F8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static inline void Actor03700_BobInline(Task* task, s32 arg1, s32 arg2);

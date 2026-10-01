@@ -65,7 +65,7 @@ extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C;
 extern EvsCommand           D_acropolis_east_elevator_hall_80185D54[];
 extern EvsCommand           D_acropolis_east_elevator_hall_801860B4[];
 extern EvsCommand           D_acropolis_east_elevator_hall_8018621C[];
-extern GpMsgEntry           D_acropolis_east_elevator_hall_801862F4[];
+extern TaskMessageEntry     D_acropolis_east_elevator_hall_801862F4[];
 extern s32                  D_acropolis_east_elevator_hall_8018631C;
 
 /// Name word handed to `func_80724608`: `"Player"`, followed by one
@@ -313,12 +313,12 @@ EvsCommand D_acropolis_east_elevator_hall_8018621C[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpMsgEntry D_acropolis_east_elevator_hall_801862F4[5] = {
+TaskMessageEntry D_acropolis_east_elevator_hall_801862F4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_east_elevator_hall_8017F348 },
     { 5104, func_acropolis_east_elevator_hall_8017F420 },
     { 5105, func_acropolis_east_elevator_hall_8017F370 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_east_elevator_hall_8017F378 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 D_acropolis_east_elevator_hall_8018631C = 0;
@@ -824,5 +824,5 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
         gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, ((RoomMoteScratch*)(head - 0xC))->otz);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0xC);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }

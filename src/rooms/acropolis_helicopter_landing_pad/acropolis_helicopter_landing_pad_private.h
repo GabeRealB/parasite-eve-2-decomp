@@ -46,7 +46,7 @@ extern SVECTOR ActorContact_ScratchPosition;
 
 extern RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90;
 
-extern GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5];
+extern TaskMessageEntry D_acropolis_helicopter_landing_pad_80183710[5];
 
 extern ActorTransform D_acropolis_helicopter_landing_pad_801837B0;
 

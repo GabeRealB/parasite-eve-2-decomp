@@ -86,10 +86,10 @@ typedef struct {
     s16  strength;
 } _DryfieldWaterHoleSplash;
 
-/// The room's message table, the `GpMsgEntry` list the room task publishes in
+/// The room's message table, the `TaskMessageEntry` list the room task publishes in
 /// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF, 0x13F0
 /// and 0x13F2.
-extern GpMsgEntry D_dryfield_water_hole_8017FC5C[];
+extern TaskMessageEntry D_dryfield_water_hole_8017FC5C[];
 /// Descriptor of the room's water task, spawned by the room task's entry tick.
 /// Its callback is `func_dryfield_water_hole_8017DFA0`.
 extern TaskDesc D_dryfield_water_hole_8017FC8C[];
@@ -129,13 +129,13 @@ void func_dryfield_water_hole_8017DFA0(Task*);
 extern DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
 extern WorldCoordPointLight              D_dryfield_water_hole_80181FA0[6];
 
-GpMsgEntry D_dryfield_water_hole_8017FC5C[6] = {
+TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_hole_8017D5F0 },
     { 5105, func_dryfield_water_hole_8017D5E8 },
-    { 5103, func_dryfield_water_hole_8017D784 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_hole_8017D784 },
     { 5104, func_dryfield_water_hole_8017D73C },
     { 5106, func_dryfield_water_hole_8017D78C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_water_hole_8017FC8C[1] = {

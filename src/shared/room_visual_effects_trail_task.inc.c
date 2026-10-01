@@ -98,7 +98,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             }
             RoomFx_DrawTwinTrail(coords, &coords[8], work->age & 7, 0x123);
             if (work->age == task->spawnArg1.value && work->age != 0) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }

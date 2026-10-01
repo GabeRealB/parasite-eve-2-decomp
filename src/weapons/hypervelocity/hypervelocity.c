@@ -366,7 +366,7 @@ void func_hypervelocity_8011D830(Task* task)
             if (task->state != 0) {
                 Gp_UnlinkObj(&beam->obj);
             }
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -485,7 +485,7 @@ void func_hypervelocity_8011D830(Task* task)
             }
             if (work->age >= 0x15) {
                 Gp_UnlinkObj(&beam->obj);
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
                 return;
             }
             Gp_ClearRec18Occupied(beam->rec);
@@ -499,7 +499,7 @@ void func_hypervelocity_8011D830(Task* task)
             func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
             if (work->angle < 0x80) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
                 return;
             }
             Gp_SpawnEff(0x600E0, coord, 0x400, NULL);
@@ -875,7 +875,7 @@ static void func_hypervelocity_8011F11C(Task* task)
     if (obj != NULL) {
         Gp_UnlinkObj(obj);
     }
-    Gp_ReleaseState1CMem(mem, task);
+    effectKillTask(mem, task);
 }
 
 void func_hypervelocity_8011F168(Task* arg0)
@@ -893,7 +893,7 @@ void func_hypervelocity_8011F168(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
 
@@ -912,7 +912,7 @@ void func_hypervelocity_8011F168(Task* arg0)
     val         = mem->scale - 0x10;
     mem->scale  = val;
     if (val < 0x10) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -931,7 +931,7 @@ void func_hypervelocity_8011F270(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
 
@@ -950,7 +950,7 @@ void func_hypervelocity_8011F270(Task* arg0)
     val         = mem->scale - 8;
     mem->scale  = val;
     if (val < 6) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 

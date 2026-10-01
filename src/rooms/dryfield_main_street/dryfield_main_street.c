@@ -98,7 +98,7 @@ extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc gMainStreetPlayTimeTaskDesc;
 
 /// Message table the room entry task installs at `Task::msgTable`.
-extern GpMsgEntry D_dryfield_main_street_80180EA0[];
+extern TaskMessageEntry D_dryfield_main_street_80180EA0[];
 
 /// Payload of message 0x7DA the room entry task sends to pointer slot 4.
 extern s32 D_dryfield_main_street_80180ED0;
@@ -183,13 +183,13 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, mainStreetPlayTimeTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_main_street_80180EA0[6] = {
+TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
     { 5105, func_dryfield_main_street_8017E054 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_main_street_8017E05C },
     { 5104, mainStreetTalkMsg },
     { 5106, mainStreetCapSoundCue },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 D_dryfield_main_street_80180ED0 = 514;

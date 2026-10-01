@@ -91,7 +91,7 @@ extern TaskDesc         D_shelter_b1_main_corridor_80183098;
 extern RoomFadeStorage gRoomEventFade;
 
 /// The room's message table, which its tasks answer from.
-extern GpMsgEntry D_shelter_b1_main_corridor_801830A4[];
+extern TaskMessageEntry D_shelter_b1_main_corridor_801830A4[];
 
 /// Points the per-view drawing places its capsules and sprites at.
 extern SVECTOR D_shelter_b1_main_corridor_801830D4[];
@@ -116,13 +116,13 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskDesc D_shelter_b1_main_corridor_80183098 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b1_main_corridor_801830A4[6] = {
+TaskMessageEntry D_shelter_b1_main_corridor_801830A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_main_corridor_8017DA8C },
     { 5105, func_shelter_b1_main_corridor_8017DCEC },
-    { 5103, func_shelter_b1_main_corridor_8017DCFC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_main_corridor_8017DCFC },
     { 5104, func_shelter_b1_main_corridor_8017DCF4 },
     { 5106, func_shelter_b1_main_corridor_8017DD04 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_b1_main_corridor_801830D4[8] = {

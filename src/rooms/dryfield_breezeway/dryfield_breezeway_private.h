@@ -16,7 +16,7 @@ extern Task* D_dryfield_breezeway_801843C0;
 
 extern TaskDesc gRoomEventTaskDesc;
 
-extern GpMsgEntry D_dryfield_breezeway_80181DE0[6];
+extern TaskMessageEntry D_dryfield_breezeway_80181DE0[6];
 
 extern TaskDesc D_dryfield_breezeway_80181E10[2];
 

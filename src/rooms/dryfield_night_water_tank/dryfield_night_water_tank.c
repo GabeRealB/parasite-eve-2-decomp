@@ -54,7 +54,7 @@ extern s32 D_80138570;
 /// Message table of the night water-tank room, 0x13EE..0x13F1 with the
 /// 0x7FFFFFFF terminator: `func_dryfield_night_water_tank_8017D714`,
 /// `..._8017D70C`, `..._8017D76C` and `..._8017D73C`.
-extern GpMsgEntry D_dryfield_night_water_tank_8017DFE8[];
+extern TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[];
 
 /// Task descriptor tables spawned by the room entry task, each one entry and
 /// the 0xFFFF terminator: `8017E010` runs the exit task
@@ -133,12 +133,12 @@ EvsCommand D_dryfield_night_water_tank_8017DEE0[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpMsgEntry D_dryfield_night_water_tank_8017DFE8[5] = {
+TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_tank_8017D714 },
     { 5105, func_dryfield_night_water_tank_8017D70C },
-    { 5103, func_dryfield_night_water_tank_8017D76C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_tank_8017D76C },
     { 5104, func_dryfield_night_water_tank_8017D73C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_water_tank_8017E010[2] = {

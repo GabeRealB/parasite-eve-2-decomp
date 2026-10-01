@@ -68,7 +68,7 @@ extern s8 D_shelter_1f_bulwark_80180ECC[4];
 extern s8 D_shelter_1f_bulwark_80180ECC_value __asm__("D_shelter_1f_bulwark_80180ECC");
 
 extern TaskDesc         D_shelter_1f_bulwark_80180320;
-extern GpMsgEntry       D_shelter_1f_bulwark_8018032C[];
+extern TaskMessageEntry D_shelter_1f_bulwark_8018032C[];
 extern TaskDesc         D_shelter_1f_bulwark_80180354;
 extern TaskDesc         D_shelter_1f_bulwark_80180360[];
 extern SVECTOR          D_shelter_1f_bulwark_80180378[];
@@ -97,12 +97,12 @@ void func_shelter_1f_bulwark_8017DE04(Task*);
 
 TaskDesc D_shelter_1f_bulwark_80180320 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_1f_bulwark_8018032C[5] = {
+TaskMessageEntry D_shelter_1f_bulwark_8018032C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_bulwark_8017D7B4 },
     { 5105, func_shelter_1f_bulwark_8017DBBC },
-    { 5103, func_shelter_1f_bulwark_8017DBCC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_bulwark_8017DBCC },
     { 5104, func_shelter_1f_bulwark_8017DBC4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_1f_bulwark_80180354 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_bulwark_8017DA60, { .value = 0 } };

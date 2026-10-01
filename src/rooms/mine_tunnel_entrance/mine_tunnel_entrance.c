@@ -41,7 +41,7 @@
 #include "../../shared/glow_draw.h"
 
 /// The room's message table, which the room task answers messages with.
-extern GpMsgEntry D_mine_tunnel_entrance_8017DAF0[];
+extern TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[];
 
 /// The tunnel's per-view quad positions, one `SVECTOR` per position, 8 bytes
 /// apart. The runs overlap: `DB18[5]`, `DB30[2]` and `DB38[1]` are all the
@@ -77,12 +77,12 @@ extern WorldCoordRoomLights       D_mine_tunnel_entrance_8017ECD4[1];
 
 extern TaskDesc D_8014D8A4;
 
-GpMsgEntry D_mine_tunnel_entrance_8017DAF0[5] = {
+TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_entrance_8017D5F0 },
     { 5105, func_mine_tunnel_entrance_8017D5E8 },
-    { 5103, func_mine_tunnel_entrance_8017D63C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_tunnel_entrance_8017D63C },
     { 5104, func_mine_tunnel_entrance_8017D634 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_mine_tunnel_entrance_8017DB18[3] = {

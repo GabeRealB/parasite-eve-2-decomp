@@ -99,5 +99,5 @@ void ofudaEffectTask(Task* arg0)
     }
     return;
 kill:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }

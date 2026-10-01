@@ -56,7 +56,7 @@ extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's message table, published in `Task::msgTable` by the entry task
 /// (ids 0x13EE-0x13F2).
-extern GpMsgEntry D_dryfield_parking_lot_8017DC04[];
+extern TaskMessageEntry D_dryfield_parking_lot_8017DC04[];
 
 /// Per-view values `func_dryfield_parking_lot_8017DBAC` publishes, indexed by
 /// camera view index minus one.
@@ -83,13 +83,13 @@ s32                          func_dryfield_parking_lot_8017DB00(Task*, s32, Task
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_parking_lot_8017DC04[6] = {
+TaskMessageEntry D_dryfield_parking_lot_8017DC04[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_parking_lot_8017D8BC },
     { 5105, func_dryfield_parking_lot_8017DAF0 },
-    { 5103, func_dryfield_parking_lot_8017DB00 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_parking_lot_8017DB00 },
     { 5104, func_dryfield_parking_lot_8017DAF8 },
     { 5106, func_dryfield_parking_lot_8017DAA0 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u16 D_dryfield_parking_lot_8017DC34[8] = {

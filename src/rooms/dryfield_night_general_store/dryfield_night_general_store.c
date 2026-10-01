@@ -5,6 +5,7 @@
 #include "dryfield_night_general_store_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
@@ -35,7 +36,7 @@ extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc gStoreTaskDescs[];
 
 /// The room's message table, installed by the room task's entry state.
-extern GpMsgEntry D_dryfield_night_general_store_8017E7BC[];
+extern TaskMessageEntry D_dryfield_night_general_store_8017E7BC[];
 
 static void func_dryfield_night_general_store_8017DE34(Task* arg0);
 static void func_dryfield_night_general_store_8017DE80(Task* task);
@@ -52,13 +53,13 @@ TaskDesc gStoreTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_dryfield_night_general_store_8017E7BC[6] = {
+TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
     { 5105, func_dryfield_night_general_store_8017DE24 },
-    { 5103, func_dryfield_night_general_store_8017DE2C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_general_store_8017DE2C },
     { 5104, storeActionMsg },
     { 5106, func_dryfield_night_general_store_8017DDF0 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 #include "../../shared/room_event_gate.inc.c"

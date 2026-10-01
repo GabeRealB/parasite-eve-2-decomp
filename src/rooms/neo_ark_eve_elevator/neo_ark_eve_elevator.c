@@ -23,7 +23,7 @@
 #include "mapui/map_neo_ark.h"
 
 /// The room's message table, which state 0 of its event task installs.
-extern GpMsgEntry D_neo_ark_eve_elevator_8017D724[];
+extern TaskMessageEntry D_neo_ark_eve_elevator_8017D724[];
 
 static void func_neo_ark_eve_elevator_8017D678(Task* task);
 static void func_neo_ark_eve_elevator_8017D6BC(Task* task);
@@ -46,12 +46,12 @@ extern WorldCollisionGrid    D_neo_ark_eve_elevator_8017DA2C[1];
 extern WorldCollisionTrigger D_neo_ark_eve_elevator_8017DBC8[1];
 extern WorldCoordRoomLights  D_neo_ark_eve_elevator_8017DBB0[1];
 
-GpMsgEntry D_neo_ark_eve_elevator_8017D724[5] = {
+TaskMessageEntry D_neo_ark_eve_elevator_8017D724[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_eve_elevator_8017D5D8 },
     { 5105, func_neo_ark_eve_elevator_8017D5D0 },
-    { 5103, func_neo_ark_eve_elevator_8017D670 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_eve_elevator_8017D670 },
     { 5104, func_neo_ark_eve_elevator_8017D668 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 GpRoomObjRec D_neo_ark_eve_elevator_8017D74C[1] = {

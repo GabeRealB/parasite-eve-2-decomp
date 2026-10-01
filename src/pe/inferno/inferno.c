@@ -195,7 +195,7 @@ void func_inferno_8012EF88(Task* arg0)
             return;
     }
 release:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Full-screen wash quad drawn by the inferno cast: an unshaded `POLY_F4`
@@ -369,7 +369,7 @@ void func_inferno_8012F530(Task* arg0)
             return;
     }
 release:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Draws the lifted ring of the inferno's ground fan, the twin of

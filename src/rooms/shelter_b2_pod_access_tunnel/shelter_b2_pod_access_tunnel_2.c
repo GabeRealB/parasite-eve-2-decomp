@@ -76,13 +76,13 @@ extern WorldCoordRoomLights  D_shelter_b2_pod_access_tunnel_80184FC0[1];
 
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
-    { 5102, func_shelter_b2_pod_access_tunnel_8017D7C4 },
+TaskMessageEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_pod_access_tunnel_8017D7C4 },
     { 5105, func_shelter_b2_pod_access_tunnel_8017DB28 },
-    { 5103, func_shelter_b2_pod_access_tunnel_8017DB70 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_pod_access_tunnel_8017DB70 },
     { 5104, func_shelter_b2_pod_access_tunnel_8017DB30 },
     { 5106, func_shelter_b2_pod_access_tunnel_8017DB78 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC = { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_pod_access_tunnel_8017D9A8, { .value = 0 } };

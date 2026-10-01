@@ -68,7 +68,7 @@ extern RoomEventActiveBytes gRoomEventActive;
 extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's message table.
-extern GpMsgEntry D_dryfield_motel_balcony_8018227C[];
+extern TaskMessageEntry D_dryfield_motel_balcony_8018227C[];
 
 /// Per-tint channel shifts for the halo task, indexed by the tint the spawn
 /// argument selects.
@@ -98,13 +98,13 @@ s32 func_dryfield_motel_balcony_8017DB7C(Task*, s32, TaskMessageArg, TaskMessage
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_motel_balcony_8018227C[6] = {
+TaskMessageEntry D_dryfield_motel_balcony_8018227C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
     { 5105, func_dryfield_motel_balcony_8017DB6C },
-    { 5103, func_dryfield_motel_balcony_8017DB7C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_balcony_8017DB7C },
     { 5104, func_dryfield_motel_balcony_8017DB74 },
     { 5106, roomVariantMotelBalconySoundMsg },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0xF3BC }

@@ -274,7 +274,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Flashes a screen-filling `POLY_F4` over the whole 320x240 frame, offset by
@@ -452,7 +452,7 @@ void func_apobiosis_8012FE10(Task* arg0)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// One textured shard of the apobiosis burst. Projects `arg0`'s world

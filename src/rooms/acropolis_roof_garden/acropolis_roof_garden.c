@@ -69,13 +69,13 @@ typedef struct RgSpriteLevels {
 } RgSpriteLevels;
 
 /// Messages the room task answers, terminated by id 0x7FFFFFFF.
-extern GpMsgEntry D_acropolis_roof_garden_80183BDC[];
-extern Task*      D_acropolis_roof_garden_80183C0C;
-extern TaskDesc   D_acropolis_roof_garden_80183C10[];
-extern EvsCommand D_acropolis_roof_garden_80183D74[];
-extern EvsCommand D_acropolis_roof_garden_80184194[];
-extern s32        D_acropolis_roof_garden_8018432C;
-extern EvsCommand D_acropolis_roof_garden_80184B08[];
+extern TaskMessageEntry D_acropolis_roof_garden_80183BDC[];
+extern Task*            D_acropolis_roof_garden_80183C0C;
+extern TaskDesc         D_acropolis_roof_garden_80183C10[];
+extern EvsCommand       D_acropolis_roof_garden_80183D74[];
+extern EvsCommand       D_acropolis_roof_garden_80184194[];
+extern s32              D_acropolis_roof_garden_8018432C;
+extern EvsCommand       D_acropolis_roof_garden_80184B08[];
 
 /// Ten spawn offsets for the roof garden's ambient effects, indexed 0..9 by
 /// the effect task's first-frame burst.
@@ -214,13 +214,13 @@ AnimationSet D_acropolis_roof_garden_80183BB4 = {
     { NULL, D_acropolis_roof_garden_801836E4, NULL, NULL, D_acropolis_roof_garden_8018372C, NULL, NULL, NULL },
 };
 
-GpMsgEntry D_acropolis_roof_garden_80183BDC[6] = {
+TaskMessageEntry D_acropolis_roof_garden_80183BDC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_roof_garden_8017D71C },
-    { 5103, func_acropolis_roof_garden_8017D7A0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_roof_garden_8017D7A0 },
     { 5104, func_acropolis_roof_garden_8017D8AC },
     { 5105, func_acropolis_roof_garden_8017D798 },
     { 5106, func_acropolis_roof_garden_8017D868 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 Task* D_acropolis_roof_garden_80183C0C = NULL;
@@ -1456,7 +1456,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 #include "../../shared/falling_leaves_task.inc.c"

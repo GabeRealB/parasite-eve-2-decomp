@@ -84,7 +84,7 @@ STATIC_ASSERT_SIZEOF(Actor310600Work, 0x538);
 /// setup entry it is spawned from is `func_actor_310600_80161E64`.
 extern TaskDesc D_actor_310600_801796A4[];
 
-/// The overlay's `GpMsgEntry` table, parked in `Task::msgTable`.
+/// The overlay's `TaskMessageEntry` table, parked in `Task::msgTable`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {

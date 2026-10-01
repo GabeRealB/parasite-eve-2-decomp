@@ -223,7 +223,7 @@ static inline void RoomFx_OrangeBurst2Task(Task* arg0)
         mem->scale -= 0x18;
         if (mem->scale < 0x18) {
         kill:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }

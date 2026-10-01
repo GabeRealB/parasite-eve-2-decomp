@@ -30,10 +30,10 @@
 #include "mapui/map_neo_ark.h"
 
 /// The room's message table, installed on its event task in state 0.
-extern GpMsgEntry D_shelter_1f_guardroom_8017DA30[];
-extern TaskDesc   D_shelter_1f_guardroom_8017DA60;
-extern TaskDesc   D_shelter_1f_guardroom_8017DA6C;
-extern Task*      D_shelter_1f_guardroom_8017E014;
+extern TaskMessageEntry D_shelter_1f_guardroom_8017DA30[];
+extern TaskDesc         D_shelter_1f_guardroom_8017DA60;
+extern TaskDesc         D_shelter_1f_guardroom_8017DA6C;
+extern Task*            D_shelter_1f_guardroom_8017E014;
 
 static void func_shelter_1f_guardroom_8017D824(Task* arg0);
 static void func_shelter_1f_guardroom_8017D878(Task* task);
@@ -61,13 +61,13 @@ s32                               func_shelter_1f_guardroom_8017D7F0(Task*, s32,
 void                              func_shelter_1f_guardroom_8017D5E8(Task*);
 void                              func_shelter_1f_guardroom_8017D8D8(Task*);
 
-GpMsgEntry D_shelter_1f_guardroom_8017DA30[6] = {
+TaskMessageEntry D_shelter_1f_guardroom_8017DA30[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_guardroom_8017D744 },
     { 5105, func_shelter_1f_guardroom_8017D73C },
-    { 5103, func_shelter_1f_guardroom_8017D7E8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_guardroom_8017D7E8 },
     { 5104, func_shelter_1f_guardroom_8017D788 },
     { 5106, func_shelter_1f_guardroom_8017D7F0 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_1f_guardroom_8017DA60 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_guardroom_8017D5E8, { .value = 0 } };

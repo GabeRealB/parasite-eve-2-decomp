@@ -1146,7 +1146,7 @@ void func_actor_510900_80131F24(Task* arg0)
             base->framesLeft = 0;
         }
         if (arg0->spawnArg1.value == 4) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -1414,7 +1414,7 @@ void func_actor_510900_80131F24(Task* arg0)
             }
             break;
         case 4:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             break;
     }
 }
@@ -1534,7 +1534,7 @@ void func_actor_510900_80132D4C(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void func_actor_510900_801332EC(Task* arg0)
@@ -1630,7 +1630,7 @@ void func_actor_510900_801332EC(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void func_actor_510900_8013371C(Task* arg0)
@@ -1730,7 +1730,7 @@ void func_actor_510900_8013371C(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void func_actor_510900_80133C84(Task* arg0)
@@ -1823,7 +1823,7 @@ void func_actor_510900_80133C84(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void func_actor_510900_801340E8(Task* arg0)
@@ -1842,7 +1842,7 @@ void func_actor_510900_801340E8(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     ext   = &base->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        Gp_ReleaseState1CMem(eff, arg0);
+        effectKillTask(eff, arg0);
         return;
     }
     mat                 = (GfxRotationWords*)&coord->coord;
@@ -1873,7 +1873,7 @@ void func_actor_510900_801340E8(Task* arg0)
     ext->head.color.b = 0x400;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &cam->coord);
     cam->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_ReleaseState1CMem(eff, arg0);
+    effectKillTask(eff, arg0);
 }
 
 /// One frame of the trail effect: the coordinate drifts by a per-effect random
@@ -1898,7 +1898,7 @@ void func_actor_510900_80134284(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (mode != ROOM_EFFECT_CONTROL_RUNNING) {
         if (mode >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(eff, arg0);
+            effectKillTask(eff, arg0);
         }
         return;
     }
@@ -1968,7 +1968,7 @@ void func_actor_510900_80134284(Task* arg0)
     count         = eff->age + 1;
     eff->age      = count;
     if (count > eff->scale * 16 - 1) {
-        Gp_ReleaseState1CMem(eff, arg0);
+        effectKillTask(eff, arg0);
     }
 }
 
@@ -1983,7 +1983,7 @@ void func_actor_510900_801346D4(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (mode != ROOM_EFFECT_CONTROL_RUNNING) {
         if (mode >= ROOM_EFFECT_CONTROL_CANCEL_MIN || arg0->state == 4) {
-            Gp_ReleaseState1CMem(eff, arg0);
+            effectKillTask(eff, arg0);
         }
         return;
     }
@@ -2014,7 +2014,7 @@ void func_actor_510900_801346D4(Task* arg0)
             }
             break;
         case 4:
-            Gp_ReleaseState1CMem(eff, arg0);
+            effectKillTask(eff, arg0);
             break;
     }
 }
@@ -2036,7 +2036,7 @@ void func_actor_510900_8013482C(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (mode != ROOM_EFFECT_CONTROL_RUNNING) {
         if (mode >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(eff, arg0);
+            effectKillTask(eff, arg0);
         }
         return;
     }
@@ -2111,7 +2111,7 @@ void func_actor_510900_8013482C(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     eff->scale         += eff->step;
     if (eff->age > eff->period * 11 - 1) {
-        Gp_ReleaseState1CMem(eff, arg0);
+        effectKillTask(eff, arg0);
     }
 }
 

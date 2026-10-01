@@ -22,7 +22,7 @@ static inline void waterRippleTask(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         waterDrawSplash(coord, work->angle, work->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     } else {
         Gp_UpdateCoord(coord);
@@ -39,7 +39,7 @@ static inline void waterRippleTask(Task* task)
         waterDrawSplash(coord, work->angle, work->scale);
         work->scale -= 2;
         if (work->scale < 2) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }

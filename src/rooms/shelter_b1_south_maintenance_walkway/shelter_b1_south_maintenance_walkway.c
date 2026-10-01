@@ -67,7 +67,7 @@ extern s8 D_shelter_b1_south_maintenance_walkway_80183644_value __asm__("D_shelt
 extern TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC;
 
 /// The room's message table.
-extern GpMsgEntry D_shelter_b1_south_maintenance_walkway_80182308[];
+extern TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[];
 
 /// Points the room task draws its glows and discs at, depending on the view:
 /// ten pairs of glow end points followed by the centre of the red disc.
@@ -93,12 +93,12 @@ s32                          func_shelter_b1_south_maintenance_walkway_8017D9E0(
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b1_south_maintenance_walkway_80182308[5] = {
+TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_south_maintenance_walkway_8017D790 },
     { 5105, func_shelter_b1_south_maintenance_walkway_8017D9D0 },
-    { 5103, func_shelter_b1_south_maintenance_walkway_8017D9E0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_south_maintenance_walkway_8017D9E0 },
     { 5104, func_shelter_b1_south_maintenance_walkway_8017D9D8 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[21] = {

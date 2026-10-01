@@ -1286,10 +1286,7 @@ extern s32 gGolemPawnRookBurstCue;
 static __inline__ void _actor05700TintSpawn(Enemy* spawned, Enemy* ctx);
 static void            Actor05700_Fn03CC4(Enemy* ctx, Task* actor);
 
-/// This package's golemPawnRookTakeHits is the library's hit tick.
-#define golemPawnRookHitTick golemPawnRookTakeHits
 #include "../../shared/golem_pawn_rook_hit_tick.inc.c"
-#undef golemPawnRookHitTick
 
 #include "../../shared/golem_pawn_rook_approach.inc.c"
 

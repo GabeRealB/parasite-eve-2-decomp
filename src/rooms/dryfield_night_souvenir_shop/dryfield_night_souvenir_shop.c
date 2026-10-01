@@ -38,7 +38,7 @@
 #include "../../shared/glow_draw.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_dryfield_night_souvenir_shop_8017E03C[];
+extern TaskMessageEntry D_dryfield_night_souvenir_shop_8017E03C[];
 
 /// Prism corners in the space of the coordinate drawn under, eight per prism:
 /// the lit ring, then the far ring. The room draws the prisms at `[0..7]` and
@@ -56,12 +56,12 @@ extern WorldCollisionTrigger      D_dryfield_night_souvenir_shop_8017F248[12];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_souvenir_shop_8017F228[4];
 extern WorldCoordRoomLights       D_dryfield_night_souvenir_shop_8017F178[1];
 
-GpMsgEntry D_dryfield_night_souvenir_shop_8017E03C[5] = {
+TaskMessageEntry D_dryfield_night_souvenir_shop_8017E03C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_souvenir_shop_8017D5D8 },
     { 5105, func_dryfield_night_souvenir_shop_8017D5D0 },
-    { 5103, func_dryfield_night_souvenir_shop_8017D608 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_souvenir_shop_8017D608 },
     { 5104, func_dryfield_night_souvenir_shop_8017D600 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR gGlowPrismCorners[16] = {

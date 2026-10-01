@@ -7,7 +7,7 @@
 
 #include "main/task_types.h"
 
-extern GpMsgEntry D_neo_ark_garden_801813B0[5];
+extern TaskMessageEntry D_neo_ark_garden_801813B0[5];
 
 // Callbacks referenced by the overlay's shared data tables.
 

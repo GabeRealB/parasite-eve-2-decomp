@@ -90,13 +90,13 @@ AnimationSet D_dryfield_night_parking_lot_8017EC2C = {
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6] = {
-    { 5102, func_dryfield_night_parking_lot_8017D8D0 },
+TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_parking_lot_8017D8D0 },
     { 5105, func_dryfield_night_parking_lot_8017DB04 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_parking_lot_8017DB34 },
     { 5104, func_dryfield_night_parking_lot_8017DB0C },
     { 5106, func_dryfield_night_parking_lot_8017DAB4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_dryfield_night_parking_lot_8017EC90[2] = {

@@ -68,7 +68,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         SndEvt_EnqueueType7(0xE03F0001, 1);
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     age      = (u16)mem->age + 1;
@@ -117,7 +117,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
         slot->inner -= 0x190;
     }
     if (mem->age >= 9) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 

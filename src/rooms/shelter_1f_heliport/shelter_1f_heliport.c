@@ -183,7 +183,7 @@ extern TaskDesc D_shelter_1f_heliport_80181194;
 extern TaskDesc D_shelter_1f_heliport_801811C8;
 
 /// Message handlers the room's controller task installs in pointer slot 7.
-extern GpMsgEntry D_shelter_1f_heliport_801811A0[];
+extern TaskMessageEntry D_shelter_1f_heliport_801811A0[];
 
 extern u8 D_shelter_1f_heliport_801811D4[][4];
 
@@ -236,12 +236,12 @@ TaskDesc D_shelter_1f_heliport_80181188 = { { { TASK_BODY_NONE, 192 } }, Shop_Se
 
 TaskDesc D_shelter_1f_heliport_80181194 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_1f_heliport_801811A0[5] = {
+TaskMessageEntry D_shelter_1f_heliport_801811A0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_801800A0 },
     { 5105, func_shelter_1f_heliport_80180334 },
-    { 5103, func_shelter_1f_heliport_801804BC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_heliport_801804BC },
     { 5104, func_shelter_1f_heliport_8018041C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_1f_heliport_801811C8 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_heliport_80180594, { .value = 0 } };

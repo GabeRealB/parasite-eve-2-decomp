@@ -570,7 +570,7 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// Draws band `arg2` of the effect as sixteen semi-transparent `POLY_FT4`
@@ -756,7 +756,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// Projects `coord`'s world position through `GsWSMATRIX` into a scratch block
@@ -961,7 +961,7 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// Draws one Gouraud triangle as a fan blade about `arg2`. `arg0`'s world
@@ -1039,7 +1039,7 @@ void func_shelter_b2_pod_bottom_80180898(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
             return;
         }
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1070,7 +1070,7 @@ void func_shelter_b2_pod_bottom_80180898(Task* task)
         Gp_DrawFxQuad(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> 16) % 6) << 12));
         return;
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// Draws a flat white disc of radius `radius` in `coord`'s local XY plane,
@@ -1173,7 +1173,7 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
             func_shelter_b2_pod_bottom_8018101C(coord, 0x100, (rnd >> 16) & 0x777, 0x10);
             return;
         }
-        Gp_ReleaseState1CMem(work, arg0);
+        effectKillTask(work, arg0);
         return;
     }
     work->age++;
@@ -1185,7 +1185,7 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
     }
     func_shelter_b2_pod_bottom_8018101C(coord, 0x100, 0xCCC, (u16)((0x10 - work->age) * 2));
     if (work->age >= 0x10) {
-        Gp_ReleaseState1CMem(work, arg0);
+        effectKillTask(work, arg0);
     }
 }
 
@@ -1368,7 +1368,7 @@ void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
     work  = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        Gp_ReleaseState1CMem(work, arg0);
+        effectKillTask(work, arg0);
         return;
     }
     work->age++;
@@ -1385,7 +1385,7 @@ void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
                 y            = work->scale - 0x18;
                 work->scale  = y;
                 if (y < 0x18) {
-                    Gp_ReleaseState1CMem(work, arg0);
+                    effectKillTask(work, arg0);
                 }
             } else {
                 work->age--;

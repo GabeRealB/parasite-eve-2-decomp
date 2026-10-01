@@ -37,7 +37,7 @@
 #include "../../shared/room_variants.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_dryfield_night_motel_room_4_8017DA48[];
+extern TaskMessageEntry D_dryfield_night_motel_room_4_8017DA48[];
 
 /// The room's sprite points for views 2, 3 and 5: three `SVECTOR`s.
 extern SVECTOR D_dryfield_night_motel_room_4_8017DA70[];
@@ -56,12 +56,12 @@ extern WorldCollisionTrigger D_dryfield_night_motel_room_4_8017FBD0[8];
 extern WorldCollisionTrigger D_dryfield_night_motel_room_4_8017FE30[7];
 extern WorldCoordRoomLights  D_dryfield_night_motel_room_4_801802A8[1];
 
-GpMsgEntry D_dryfield_night_motel_room_4_8017DA48[5] = {
+TaskMessageEntry D_dryfield_night_motel_room_4_8017DA48[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
     { 5105, func_dryfield_night_motel_room_4_8017D5D0 },
-    { 5103, func_dryfield_night_motel_room_4_8017D668 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_4_8017D668 },
     { 5104, func_dryfield_night_motel_room_4_8017D660 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_night_motel_room_4_8017DA70[3] = {

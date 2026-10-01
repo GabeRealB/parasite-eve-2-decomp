@@ -62,7 +62,7 @@ extern RoomLatchedEvent gRoomEventLatched;
 extern RoomFadeStorage gRoomEventFade;
 
 /// The room's message table, which the room setup task installs.
-extern GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[];
+extern TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[];
 
 /// The coordinate trail's two spawn offsets: `[0]` places the object's own
 /// frame and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]`
@@ -82,12 +82,12 @@ s32                               func_neo_ark_savanna_zone_8017D900(Task*, s32,
 
 TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
+TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_savanna_zone_8017D77C },
     { 5105, func_neo_ark_savanna_zone_8017D8F0 },
-    { 5103, func_neo_ark_savanna_zone_8017D900 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_savanna_zone_8017D900 },
     { 5104, func_neo_ark_savanna_zone_8017D8F8 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"

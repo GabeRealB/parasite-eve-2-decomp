@@ -161,9 +161,9 @@ static UiObjectDesc   Shop_Data_80181BD8;
 static UiObjectDesc   Shop_Data_80181BF4;
 static UiObjectDesc   Shop_Data_80181C10;
 
-/// The room's own `GpMsgEntry[]` - the message table `func_dryfield_night_garage_8017FF2C`
+/// The room's own `TaskMessageEntry[]` - the message table `func_dryfield_night_garage_8017FF2C`
 /// publishes in `Task::msgTable`. It terminates with id 0x7FFFFFFF.
-extern GpMsgEntry D_dryfield_night_garage_80181C38[];
+extern TaskMessageEntry D_dryfield_night_garage_80181C38[];
 
 /// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
 /// payload of the 0x3E8 message.
@@ -196,13 +196,13 @@ s32 func_dryfield_night_garage_801803A4(Task*, s32, TaskMessageArg, TaskMessageA
 
 TaskDesc D_dryfield_night_garage_80181C2C = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_garage_80181C38[6] = {
+TaskMessageEntry D_dryfield_night_garage_80181C38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_garage_80180360 },
     { 5105, func_dryfield_night_garage_80180358 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_garage_801800C8 },
     { 5104, func_dryfield_night_garage_801803A4 },
     { 5106, func_dryfield_night_garage_80180300 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPlayRequest D_dryfield_night_garage_80181C68 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

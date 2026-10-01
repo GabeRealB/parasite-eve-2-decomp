@@ -140,9 +140,9 @@ typedef struct {
 
 extern TaskDesc D_8014D8A4;
 
-extern TaskDesc   D_mine_mesa_801818F8;
-extern GpMsgEntry D_mine_mesa_80181904[];
-extern TaskDesc   D_mine_mesa_80181990[];
+extern TaskDesc         D_mine_mesa_801818F8;
+extern TaskMessageEntry D_mine_mesa_80181904[];
+extern TaskDesc         D_mine_mesa_80181990[];
 
 /// The mesa's run: one `SVECTOR` position per frame, sent as an `ActorTransform`.
 extern SVECTOR D_mine_mesa_80184184[];
@@ -173,7 +173,7 @@ extern SVECTOR D_mine_mesa_80186508[];
 
 extern _MineMesaWall       D_mine_mesa_80189A9C[4];
 extern _MineMesaSpawnPoint D_mine_mesa_80189AFC[];
-extern GpMsgEntry          D_mine_mesa_80189B1C[2];
+extern TaskMessageEntry    D_mine_mesa_80189B1C[2];
 extern TaskDesc            D_mine_mesa_80189B2C;
 extern RoomFadeStorage     gRoomEventFade;
 extern Task*               D_mine_mesa_80189B4C;
@@ -292,13 +292,13 @@ s32 func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
 
 TaskDesc D_mine_mesa_801818F8 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_mine_mesa_80181904[6] = {
+TaskMessageEntry D_mine_mesa_80181904[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_mesa_8017D8F8 },
     { 5105, func_mine_mesa_8017D8F0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_mesa_8017DABC },
     { 5104, func_mine_mesa_8017DA7C },
     { 5108, func_mine_mesa_8017DBC4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 D_mine_mesa_80181934[11] = {
@@ -2537,9 +2537,9 @@ _MineMesaSpawnPoint D_mine_mesa_80189AFC[4] = {
     { 0x490C, 0, 5300, -1200 },
 };
 
-GpMsgEntry D_mine_mesa_80189B1C[2] = {
+TaskMessageEntry D_mine_mesa_80189B1C[2] = {
     { 5108, func_mine_mesa_80181800 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_mine_mesa_80189B2C = { { { TASK_BODY_NONE, 32 } }, func_mine_mesa_80181894, { .value = 0 } };
@@ -2623,7 +2623,7 @@ static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
     return 1;
 }
 
-/// Handler id 0x13EE of this room's copy of the `GpMsgEntry` table
+/// Handler id 0x13EE of this room's copy of the `TaskMessageEntry` table
 /// `D_mine_mesa_80181904`: copies the requested location to `dst` and forwards
 /// both to `func_map_shelter_80179A04`. A stage-3 request latches the outgoing location and
 /// the event parameters below into the room's pending event and starts the
@@ -3576,7 +3576,7 @@ static void func_mine_mesa_801817BC(void)
     func_mine_mesa_801811C4(offset);
 }
 
-/// Message 0x13F4 handler, the only entry of the room's `GpMsgEntry` table
+/// Message 0x13F4 handler, the only entry of the room's `TaskMessageEntry` table
 /// `D_mine_mesa_80189B1C`. Once the enemy parked in slot `slot` of
 /// `D_mine_mesa_80189B74` is dead (`field_40` is its HP) the slot is emptied and
 /// the room's remaining-enemy countdown ticks down. Always consumes the message.

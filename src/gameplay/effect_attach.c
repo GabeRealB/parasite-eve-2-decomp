@@ -213,5 +213,5 @@ void Gp_EffAttachTask37(Task* arg0)
     }
     return;
 release:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }

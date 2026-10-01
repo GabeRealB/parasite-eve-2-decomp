@@ -24,7 +24,7 @@
 #include "main/task_types.h"
 
 /// The room's message table, installed on its entry task.
-extern GpMsgEntry D_acropolis_forked_road_80180F14[];
+extern TaskMessageEntry D_acropolis_forked_road_80180F14[];
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -50,12 +50,12 @@ s32 func_acropolis_forked_road_8017D850(Task*, s32, TaskMessageArg, TaskMessageA
 s32 func_acropolis_forked_road_8017D858(Task*, s32, s32, TaskMessageArg);
 s32 func_acropolis_forked_road_8017D8A8(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
-GpMsgEntry D_acropolis_forked_road_80180F14[5] = {
+TaskMessageEntry D_acropolis_forked_road_80180F14[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_forked_road_8017D5EC },
     { 5105, func_acropolis_forked_road_8017D850 },
     { 5104, func_acropolis_forked_road_8017D858 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_forked_road_8017D8A8 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AcropolisForkedRoadStorage0F3C D_acropolis_forked_road_80180F3C = { 0, { 0 } };

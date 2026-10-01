@@ -49,7 +49,7 @@ extern s32 D_801378D0;
 extern s32 D_801380F8;
 
 /// The room's message table, installed on the room entry task.
-extern GpMsgEntry D_shelter_b2_elevator_8017DFA0[];
+extern TaskMessageEntry D_shelter_b2_elevator_8017DFA0[];
 
 /// The room's spawnable tasks: two elevator cars, then the exit task.
 extern TaskDesc D_shelter_b2_elevator_8017DF70[];
@@ -131,14 +131,14 @@ TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_shelter_b2_elevator_8017DFA0[7] = {
+TaskMessageEntry D_shelter_b2_elevator_8017DFA0[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_8017DA64 },
     { 5105, func_shelter_b2_elevator_8017DA5C },
-    { 5103, func_shelter_b2_elevator_8017DAB0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_elevator_8017DAB0 },
     { 5104, func_shelter_b2_elevator_8017DAA8 },
     { 5100, func_shelter_b2_elevator_8017DAB8 },
     { 5101, func_shelter_b2_elevator_8017DAE0 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8* D_shelter_b2_elevator_8017DFD8[1] = {

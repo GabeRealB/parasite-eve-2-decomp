@@ -63,7 +63,7 @@ void mainStreetPuffTask(Task* task)
     if ((work->age % work->period) == 0) {
         work->index++;
         if (work->index >= 0xA) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }

@@ -39,7 +39,7 @@ extern EvsCommand D_neo_ark_r26_8017DA74[];
 extern EvsCommand D_neo_ark_r26_8017DFCC[];
 
 /// Room message handler table installed into `Task::msgTable`.
-extern GpMsgEntry D_neo_ark_r26_8017E0A4[];
+extern TaskMessageEntry D_neo_ark_r26_8017E0A4[];
 
 s32 func_neo_ark_r26_8017D648(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_r26_8017D650(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -200,12 +200,12 @@ EvsCommand D_neo_ark_r26_8017DFCC[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpMsgEntry D_neo_ark_r26_8017E0A4[5] = {
+TaskMessageEntry D_neo_ark_r26_8017E0A4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r26_8017D650 },
     { 5105, func_neo_ark_r26_8017D648 },
-    { 5103, func_neo_ark_r26_8017D69C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_r26_8017D69C },
     { 5104, func_neo_ark_r26_8017D694 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 GpRoomObjRec D_neo_ark_r26_8017E0CC[1] = {

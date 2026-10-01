@@ -24,14 +24,16 @@
 #include "mapui/map_dryfield_full.h"
 #include "../../shared/glow_draw.h"
 
-// One live spotlight is followed by retained exporter data in whole
-// spotlight-sized slots. Its original role is unresolved; keep the bytes
-// without treating stale pointer-looking words as live C pointers.
+/// The night motel room 1 cone-light array and adjacent data of unproven purpose.
+///
+/// Room lighting borrows only `coneLights`, mutating its transform and
+/// attenuation while the overlay is loaded. The remaining bytes are outside
+/// the light count; their original type and relationship to the light are unproven.
 typedef struct {
-    WorldCoordSpotLight active[1];
-    u8                  retained[324];
-} DryfieldNightMotelRoom1SpotLightStorage;
-STATIC_ASSERT_SIZEOF(DryfieldNightMotelRoom1SpotLightStorage, 432);
+    WorldCoordSpotLight coneLights[1];   // One mutable cone light, contributing in every view
+    u8                  unknown_6C[324]; // Uninterpreted bytes; purpose and internal boundaries unproven
+} _DryfieldNightMotelRoom1SpotLightStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldNightMotelRoom1SpotLightStorage, 432);
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc.
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA54[];
@@ -43,8 +45,8 @@ extern WorldCollisionTrigger D_dryfield_night_motel_room_1_8017FF04[8];
 extern WorldCollisionTrigger D_dryfield_night_motel_room_1_801804AC[7];
 extern WorldCoordRoomLights  D_dryfield_night_motel_room_1_80180494[1];
 
-extern DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4;
-extern WorldCoordPointLight                    D_dryfield_night_motel_room_1_80180164[4];
+extern _DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4;
+extern WorldCoordPointLight                     D_dryfield_night_motel_room_1_80180164[4];
 
 SVECTOR D_dryfield_night_motel_room_1_8017DA54[1] = {
     { 1920, -970, 470, 0 },
@@ -594,7 +596,7 @@ WorldCoordPointLight D_dryfield_night_motel_room_1_80180164[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2510, -1531, 2650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1100, 1200, 1200 }, { 0, 0 } }, 572, 5081 },
 };
 
-DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4 = {
+_DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4 = {
     {
         { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4102, 0, -2 }, { -2, 0, 4102 }, { 0, 4101, 0 } }, { 2512, -2274, 2403 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1311, 1269, 1208 }, { 0, 0 } }, { -1, 4095, 0, 0 }, 2320, 3500, 932 },
     },
@@ -927,7 +929,7 @@ DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4 =
 };
 
 WorldCoordRoomLights D_dryfield_night_motel_room_1_80180494[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_room_1_80180164), D_dryfield_night_motel_room_1_80180164, ARRAY_SIZE(D_dryfield_night_motel_room_1_801802E4.active), D_dryfield_night_motel_room_1_801802E4.active },
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_room_1_80180164), D_dryfield_night_motel_room_1_80180164, ARRAY_SIZE(D_dryfield_night_motel_room_1_801802E4.coneLights), D_dryfield_night_motel_room_1_801802E4.coneLights },
 };
 
 WorldCollisionTrigger D_dryfield_night_motel_room_1_801804AC[7] = {

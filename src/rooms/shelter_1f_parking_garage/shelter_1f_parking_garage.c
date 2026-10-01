@@ -62,12 +62,12 @@ extern u8 D_shelter_1f_parking_garage_80181984[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern u8 D_shelter_1f_parking_garage_80181984_value __asm__("D_shelter_1f_parking_garage_80181984");
 
-extern TaskDesc   D_shelter_1f_parking_garage_80180BA0;
-extern TaskDesc   D_shelter_1f_parking_garage_80180BAC;
-extern GpMsgEntry D_shelter_1f_parking_garage_80180BB8[];
-extern TaskDesc   D_shelter_1f_parking_garage_80180BE0;
-extern SVECTOR    D_shelter_1f_parking_garage_80180BFC[];
-extern SVECTOR    D_shelter_1f_parking_garage_80180C4C[];
+extern TaskDesc         D_shelter_1f_parking_garage_80180BA0;
+extern TaskDesc         D_shelter_1f_parking_garage_80180BAC;
+extern TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[];
+extern TaskDesc         D_shelter_1f_parking_garage_80180BE0;
+extern SVECTOR          D_shelter_1f_parking_garage_80180BFC[];
+extern SVECTOR          D_shelter_1f_parking_garage_80180C4C[];
 
 /// Offsets from the parent coordinate of the two trail heads the smoke-trail
 /// task follows. The second is also reached under its own name.
@@ -97,12 +97,12 @@ TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, ro
 
 TaskDesc D_shelter_1f_parking_garage_80180BAC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_1f_parking_garage_80180BB8[5] = {
+TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_parking_garage_8017DCF4 },
     { 5105, func_shelter_1f_parking_garage_8017DCEC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_parking_garage_8017DE4C },
     { 5104, func_shelter_1f_parking_garage_8017DE44 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_1f_parking_garage_80180BE0 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_parking_garage_8017DAF0, { .value = 0 } };

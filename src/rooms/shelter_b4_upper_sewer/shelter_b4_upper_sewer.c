@@ -85,9 +85,9 @@ typedef struct ShelterB4UpperSewerSurface {
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_shelter_b4_upper_sewer_80188D2C[4];
 
-extern EvsCommand D_shelter_b4_upper_sewer_80186318[];
-extern TaskDesc   D_shelter_b4_upper_sewer_80186300[];
-extern GpMsgEntry D_shelter_b4_upper_sewer_801862D0[];
+extern EvsCommand       D_shelter_b4_upper_sewer_80186318[];
+extern TaskDesc         D_shelter_b4_upper_sewer_80186300[];
+extern TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[];
 
 extern TaskDesc D_shelter_b4_upper_sewer_8018643C[];
 /// Save location filled from the outgoing location just before a table task is
@@ -145,13 +145,13 @@ void func_shelter_b4_upper_sewer_8017DB94(void);
 
 extern TaskDesc D_80147E48;
 
-GpMsgEntry D_shelter_b4_upper_sewer_801862D0[6] = {
+TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_upper_sewer_8017D9C4 },
     { 5105, func_shelter_b4_upper_sewer_8017D9BC },
-    { 5103, func_shelter_b4_upper_sewer_8017DB50 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_upper_sewer_8017DB50 },
     { 5104, func_shelter_b4_upper_sewer_8017DAB0 },
     { 5106, func_shelter_b4_upper_sewer_8017DB58 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b4_upper_sewer_80186300[2] = {

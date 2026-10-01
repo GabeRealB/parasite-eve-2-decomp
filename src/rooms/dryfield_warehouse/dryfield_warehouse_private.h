@@ -29,7 +29,7 @@ extern Task* D_dryfield_warehouse_801821C0;
 
 extern s16 D_dryfield_warehouse_801821C4;
 
-extern GpMsgEntry D_dryfield_warehouse_8017F554[3];
+extern TaskMessageEntry D_dryfield_warehouse_8017F554[3];
 
 extern TaskDesc D_dryfield_warehouse_8017F56C[2];
 

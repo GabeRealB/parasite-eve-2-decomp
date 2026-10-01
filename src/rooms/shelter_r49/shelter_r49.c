@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -14,7 +15,7 @@
 
 #include "mapui/map_shelter.h"
 
-extern GpMsgEntry D_shelter_r49_8017D9D8[];
+extern TaskMessageEntry D_shelter_r49_8017D9D8[];
 
 extern s32 D_80133560;
 extern s32 D_80133860;
@@ -32,12 +33,12 @@ s32 func_shelter_r49_8017D5F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_r49_8017D638(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_r49_8017D640(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-GpMsgEntry D_shelter_r49_8017D9D8[5] = {
+TaskMessageEntry D_shelter_r49_8017D9D8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r49_8017D5F4 },
     { 5105, func_shelter_r49_8017D5EC },
-    { 5103, func_shelter_r49_8017D640 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r49_8017D640 },
     { 5104, func_shelter_r49_8017D638 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.

@@ -1197,10 +1197,7 @@ extern Actor05600Storage8114 gGolemPawnRookImpactSound;
 
 static void Actor05600_Fn03924(Enemy* ctx, Task* actor);
 
-/// This package's golemPawnRookTakeHits is the library's hit tick.
-#define golemPawnRookHitTick golemPawnRookTakeHits
 #include "../../shared/golem_pawn_rook_hit_tick.inc.c"
-#undef golemPawnRookHitTick
 
 #include "../../shared/golem_pawn_rook_approach.inc.c"
 

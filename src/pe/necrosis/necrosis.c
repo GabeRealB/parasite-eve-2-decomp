@@ -214,7 +214,7 @@ void func_necrosis_8012EF34(Task* arg0)
             tick = (s16)tick;
             if ((D_necrosis_801306BC[mem->index].field_2 + 0x10) < tick) {
             release:
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
             }
             break;
     }
@@ -245,7 +245,7 @@ void func_necrosis_8012F52C(Task* arg0)
     func_necrosis_8012F6EC(coord, mem->age % 6, mem->scale, mem->angle);
     mem->scale = mem->scale - mem->step;
     if (mem->scale < mem->step) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     if (mem->age % 3 == 0) {
@@ -382,7 +382,7 @@ void func_necrosis_8012FAF8(Task* arg0)
                                        mem->scale);
                 return;
             }
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
         case 2:
             coord->coord.t[0]  += mem->move.vx;
@@ -397,7 +397,7 @@ void func_necrosis_8012FAF8(Task* arg0)
                                        mem->scale);
                 return;
             }
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
     }
 }

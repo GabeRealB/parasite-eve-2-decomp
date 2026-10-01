@@ -1,7 +1,7 @@
 #ifndef SRC_ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_PRIVATE_H
 #define SRC_ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_PRIVATE_H
 
-#include "common.h"
+#include "types.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/evs.h"
@@ -10,14 +10,6 @@
 #include "gameplay/room.h"
 
 #include "main/task_types.h"
-
-// Retained exporter slots follow the active spotlights. Their contents
-// include stale/incomplete addresses; preserve them as bytes pending review.
-typedef struct {
-    WorldCoordSpotLight active[1];
-    u8                  retained[756];
-} DryfieldNightDilapidatedHouseSpotLightStorage;
-STATIC_ASSERT_SIZEOF(DryfieldNightDilapidatedHouseSpotLightStorage, 864);
 
 /// The room's two-entry task descriptor table: entry 0 starts the streamed
 /// sequence, entry 1 is the task that plays it.
@@ -33,7 +25,7 @@ extern WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12
 
 extern TaskDesc gRoomEventTaskDesc;
 
-extern GpMsgEntry D_dryfield_night_dilapidated_house_8017E700[5];
+extern TaskMessageEntry D_dryfield_night_dilapidated_house_8017E700[5];
 
 extern EvsCommand D_dryfield_night_dilapidated_house_801868F4[88];
 
@@ -41,7 +33,7 @@ extern EvsCommand D_dryfield_night_dilapidated_house_80187134[16];
 
 extern WorldCoordPointLight D_dryfield_night_dilapidated_house_80189500[8];
 
-extern DryfieldNightDilapidatedHouseSpotLightStorage D_dryfield_night_dilapidated_house_80189800;
+extern WorldCoordSpotLight D_dryfield_night_dilapidated_house_80189800[1];
 
 // Callbacks referenced by the overlay's shared data tables.
 

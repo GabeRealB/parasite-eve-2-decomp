@@ -131,7 +131,7 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
             func_shelter_b1_pod_service_gantry_8017E400(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -225,7 +225,7 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 12) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;
@@ -245,7 +245,7 @@ void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 10) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;
@@ -643,7 +643,7 @@ void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
             return;
         }
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -674,7 +674,7 @@ void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
         Gp_DrawFxQuad(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> 16) % 6) << 12));
         return;
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0)

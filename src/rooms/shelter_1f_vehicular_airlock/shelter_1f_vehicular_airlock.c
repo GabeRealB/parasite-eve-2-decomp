@@ -65,7 +65,7 @@ extern s8 D_shelter_1f_vehicular_airlock_80182AB0_value __asm__("D_shelter_1f_ve
 extern TaskDesc D_shelter_1f_vehicular_airlock_80182028;
 
 /// The room's message table, which its cap scripts index.
-extern GpMsgEntry D_shelter_1f_vehicular_airlock_80182034[];
+extern TaskMessageEntry D_shelter_1f_vehicular_airlock_80182034[];
 
 extern SVECTOR D_shelter_1f_vehicular_airlock_8018205C[];
 extern SVECTOR D_shelter_1f_vehicular_airlock_8018206C[];
@@ -132,12 +132,12 @@ TmdSource D_shelter_1f_vehicular_airlock_80182004 = {
 
 TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
+TaskMessageEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_vehicular_airlock_8017D7DC },
     { 5105, func_shelter_1f_vehicular_airlock_8017D988 },
-    { 5103, func_shelter_1f_vehicular_airlock_8017D9F4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_vehicular_airlock_8017D9F4 },
     { 5104, func_shelter_1f_vehicular_airlock_8017D990 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_1f_vehicular_airlock_8018205C[2] = {

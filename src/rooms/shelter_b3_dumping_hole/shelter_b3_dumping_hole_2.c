@@ -4232,7 +4232,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
             }
             return;
         }
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
         return;
     }
     work->age++;
@@ -4324,7 +4324,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
     if ((work->age % work->period) == 0) {
         work->index++;
         if (work->index >= 8) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }
@@ -4345,7 +4345,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -4386,7 +4386,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
             arg0->spawnArg1.value = 3;
             return;
         case 3:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
     }
 }

@@ -9,6 +9,7 @@
 #include "gte.h"
 #include "types.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/effects.h"
@@ -37,7 +38,7 @@
 #include "../../shared/glow_draw.h"
 
 /// The room's message table, installed on its task by state 0.
-extern GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[];
+extern TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[];
 
 extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181E9C[];
 extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[];
@@ -51,12 +52,12 @@ s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task*, s32, RoomEventMsg
 s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
+TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_access_tunnel_8017D5EC },
     { 5105, func_shelter_b1_control_room_access_tunnel_8017D5E4 },
-    { 5103, func_shelter_b1_control_room_access_tunnel_8017D638 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_control_room_access_tunnel_8017D638 },
     { 5104, func_shelter_b1_control_room_access_tunnel_8017D630 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_b1_control_room_access_tunnel_80181E9C[2] = {

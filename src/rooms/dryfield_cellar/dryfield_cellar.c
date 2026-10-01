@@ -42,7 +42,7 @@
 #include "../../shared/glow_draw.h"
 
 /// The room's message table, installed on the room entry task.
-extern GpMsgEntry D_dryfield_cellar_8017DB8C[];
+extern TaskMessageEntry D_dryfield_cellar_8017DB8C[];
 
 /// The cellar's glow points, one pair per camera view that shows them: view 2
 /// draws the pair at the first address and view 3 the pair at the second.
@@ -63,13 +63,13 @@ extern WorldCollisionTrigger D_dryfield_cellar_80180384[10];
 extern WorldCoordRoomLights  D_dryfield_cellar_80180898[1];
 extern WorldCoordRoomLights  D_dryfield_cellar_80180A90[1];
 
-GpMsgEntry D_dryfield_cellar_8017DB8C[6] = {
+TaskMessageEntry D_dryfield_cellar_8017DB8C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_cellar_8017D634 },
     { 5105, func_dryfield_cellar_8017D62C },
-    { 5103, func_dryfield_cellar_8017D6F4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_cellar_8017D6F4 },
     { 5104, func_dryfield_cellar_8017D5D0 },
     { 5106, func_dryfield_cellar_8017D6FC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_cellar_8017DBBC[2] = {

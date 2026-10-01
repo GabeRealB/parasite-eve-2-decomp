@@ -142,7 +142,7 @@ extern SpriteSource   D_acropolis_cafeteria_8018BB1C[12];
 extern SpriteSource   D_acropolis_cafeteria_8018BC74[75];
 
 WorldCoordRoomLights D_acropolis_cafeteria_8018AA18[1] = {
-    { 0, NULL, ARRAY_SIZE(D_acropolis_cafeteria_80189E24), D_acropolis_cafeteria_80189E24, ARRAY_SIZE(D_acropolis_cafeteria_8018A3C4.active), D_acropolis_cafeteria_8018A3C4.active },
+    { 0, NULL, ARRAY_SIZE(D_acropolis_cafeteria_80189E24), D_acropolis_cafeteria_80189E24, ARRAY_SIZE(D_acropolis_cafeteria_8018A3C4.liveLights), D_acropolis_cafeteria_8018A3C4.liveLights },
 };
 
 SpriteBatch D_acropolis_cafeteria_8018AA30[2] = {
@@ -1050,7 +1050,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
     work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (D_acropolis_cafeteria_80184CFC == 0) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
         return;
     }
     mode = gGameSession->location.loc.view;
@@ -1190,7 +1190,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             }
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 void func_acropolis_cafeteria_8017F390(Task* task)
@@ -1211,7 +1211,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     state = gRoomEffectState->effectControl;
     coord = obj->coords;
     if (state >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
         return;
     }
     if (state != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -1328,7 +1328,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     coord->coord.t[2]  += work->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->period < coord->coord.t[0]) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }
 

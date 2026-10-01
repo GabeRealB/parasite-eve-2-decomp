@@ -50,7 +50,7 @@ static inline void RoomFx_MoteTask(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     } else {
         work->age++;
@@ -96,7 +96,7 @@ static inline void RoomFx_MoteTask(Task* task)
                         work->scale += 0x20;
                     }
                 } else {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
                 break;
             case 2:
@@ -112,7 +112,7 @@ static inline void RoomFx_MoteTask(Task* task)
                         work->scale -= 0x10;
                     }
                 } else {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
                 break;
         }

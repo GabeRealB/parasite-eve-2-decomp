@@ -12,6 +12,7 @@ u16 D_shelter_b3_garbage_incinerator_801855DC;
 #include "shelter_b3_garbage_incinerator_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
 
@@ -27,9 +28,9 @@ u16 D_shelter_b3_garbage_incinerator_801855DC;
 
 #include "mapui/map_shelter.h"
 
-extern TaskDesc   D_8016BFE0;
-extern TaskDesc   D_801449F4;
-extern GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[];
+extern TaskDesc         D_8016BFE0;
+extern TaskDesc         D_801449F4;
+extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[];
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_801855CC;
 
@@ -53,14 +54,14 @@ s32  func_shelter_b3_garbage_incinerator_8017D9BC(Task*, s32, RoomEventMsg*, Roo
 s32  func_shelter_b3_garbage_incinerator_8017DA74(Task*, s32, s32, TaskMessageArg);
 s32  func_shelter_b3_garbage_incinerator_8017DB2C(Task*, s32, s32, TaskMessageArg);
 
-GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
+TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_garbage_incinerator_8017D840 },
     { 5105, func_shelter_b3_garbage_incinerator_8017D838 },
-    { 5103, func_shelter_b3_garbage_incinerator_8017D9BC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_garbage_incinerator_8017D9BC },
     { 5104, func_shelter_b3_garbage_incinerator_8017D9B4 },
     { 5108, func_shelter_b3_garbage_incinerator_8017DA74 },
     { 5106, func_shelter_b3_garbage_incinerator_8017DB2C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b3_garbage_incinerator_801855CC = { { { TASK_BODY_NONE, 32 } }, func_shelter_b3_garbage_incinerator_8017D6EC, { .value = 0 } };

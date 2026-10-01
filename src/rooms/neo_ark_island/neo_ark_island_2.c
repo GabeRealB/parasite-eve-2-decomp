@@ -48,13 +48,13 @@ TaskDesc D_neo_ark_island_80181B30 = { { { TASK_BODY_NONE, 192 } }, waterRefract
 
 TaskDesc D_neo_ark_island_80181B3C = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
-GpMsgEntry D_neo_ark_island_80181B48[6] = {
-    { 5102, func_neo_ark_island_8017E968 },
+TaskMessageEntry D_neo_ark_island_80181B48[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_island_8017E968 },
     { 5105, func_neo_ark_island_8017E960 },
-    { 5103, func_neo_ark_island_8017EA2C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_island_8017EA2C },
     { 5104, func_neo_ark_island_8017EA24 },
     { 5106, func_neo_ark_island_8017EA34 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_neo_ark_island_80181B78 = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_island_8017E844, { .value = 0 } };

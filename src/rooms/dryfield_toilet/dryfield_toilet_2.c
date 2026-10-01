@@ -2550,7 +2550,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void func_dryfield_toilet_8017DEF4(Task* arg0)
@@ -2663,7 +2663,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void func_dryfield_toilet_8017E64C(Task* arg0)

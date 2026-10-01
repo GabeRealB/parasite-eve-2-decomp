@@ -49,7 +49,7 @@ extern void func_80131E70(void);
 extern void func_80131E24(void);
 
 /// The room's message table, installed on the room task.
-extern GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
+extern TaskMessageEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
 
 extern s16                D_shelter_b1_golem_freezer_1_8017E6D0[3];
 extern WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E714;
@@ -65,12 +65,12 @@ s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task*, s32, RoomEventMsg*, RoomEven
 s32 func_shelter_b1_golem_freezer_1_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_golem_freezer_1_8017D624(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
-GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
+TaskMessageEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_golem_freezer_1_8017D5D8 },
     { 5105, func_shelter_b1_golem_freezer_1_8017D5D0 },
-    { 5103, func_shelter_b1_golem_freezer_1_8017D624 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_golem_freezer_1_8017D624 },
     { 5104, func_shelter_b1_golem_freezer_1_8017D61C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s16 D_shelter_b1_golem_freezer_1_8017E6D0[3] = {
@@ -585,7 +585,7 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
     if ((work->age % work->period) == 0) {
         work->index++;
         if (work->index >= 0xA) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }

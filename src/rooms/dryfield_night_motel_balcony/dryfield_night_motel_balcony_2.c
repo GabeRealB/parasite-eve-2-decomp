@@ -8,6 +8,7 @@
 
 #include "dryfield_night_motel_balcony_private.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/display.h"
@@ -34,13 +35,13 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_motel_balcony_80182804[6] = {
-    { 5102, roomVariantMotelBalconyDoorsMsg },
+TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
     { 5105, func_dryfield_night_motel_balcony_8017DC18 },
-    { 5103, func_dryfield_night_motel_balcony_8017DC28 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_balcony_8017DC28 },
     { 5104, func_dryfield_night_motel_balcony_8017DC20 },
     { 5106, roomVariantMotelBalconySoundMsg },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_motel_balcony_80182834[2] = {

@@ -25,7 +25,7 @@ void effectSpriteDriftTaskAimed(Task* task)
             effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -131,7 +131,7 @@ void effectSpriteDriftTaskAimed(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 12) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;
@@ -151,7 +151,7 @@ void effectSpriteDriftTaskAimed(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 10) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;

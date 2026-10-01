@@ -13,17 +13,21 @@
 
 #include "main/task_types.h"
 
-// Retained exporter slots follow the active spotlights. Their contents
-// include stale/incomplete addresses; preserve them as bytes pending review.
+/// The cafeteria's live cone light followed by fourteen inactive record slots.
+///
+/// `liveLights` is the complete array borrowed by the room's light collection.
+/// Coordinates and attenuation remain writable while this overlay is loaded.
+/// `inactiveSlots` preserves unused representations at the spotlight stride;
+/// their remaining payload's role is unproven.
 typedef struct {
-    WorldCoordSpotLight active[1];
-    u8                  retained[1512];
+    WorldCoordSpotLight liveLights[1];                                  // Cone light used by the room's lighting descriptor.
+    u8                  inactiveSlots[14][sizeof(WorldCoordSpotLight)]; // Opaque inactive records, excluded from the live count.
 } AcropolisCafeteriaSpotLightStorage;
 STATIC_ASSERT_SIZEOF(AcropolisCafeteriaSpotLightStorage, 1620);
 
 extern TaskDesc D_acropolis_cafeteria_80184178[];
 
-extern GpMsgEntry D_acropolis_cafeteria_80184CEC[2];
+extern TaskMessageEntry D_acropolis_cafeteria_80184CEC[2];
 
 extern s32 D_acropolis_cafeteria_80184CFC;
 

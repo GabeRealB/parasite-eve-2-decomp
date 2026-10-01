@@ -321,11 +321,11 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_dryfield_trailer_coach_80184FA0[4] = {
+TaskMessageEntry D_dryfield_trailer_coach_80184FA0[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_trailer_coach_80182580 },
     { 5105, func_dryfield_trailer_coach_80182578 },
     { 5104, func_dryfield_trailer_coach_801825A8 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_trailer_coach_80184FC0[2] = {
@@ -1542,7 +1542,7 @@ extern RoomCutsceneRec D_dryfield_trailer_coach_80189C9C;
 
 static void func_dryfield_trailer_coach_801827D0(Task* arg0);
 
-extern GpMsgEntry D_dryfield_trailer_coach_80184FA0[];
+extern TaskMessageEntry D_dryfield_trailer_coach_80184FA0[];
 
 extern EvsCommand D_dryfield_trailer_coach_801853F4[];
 

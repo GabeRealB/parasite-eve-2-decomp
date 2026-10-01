@@ -10,6 +10,7 @@
 
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -107,7 +108,7 @@ static UiList       Telephone_Data_80181CF4;
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// Message table of the room's message task.
-extern GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[];
+extern TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x14\xCF"
 #include "../../shared/telephone.h"
@@ -126,13 +127,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
+TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_incinerator_control_room_8017FA8C },
     { 5105, func_shelter_b3_incinerator_control_room_8017FA84 },
-    { 5103, func_shelter_b3_incinerator_control_room_8017FBE0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_incinerator_control_room_8017FBE0 },
     { 5104, func_shelter_b3_incinerator_control_room_8017FB20 },
     { 5106, func_shelter_b3_incinerator_control_room_8017FBE8 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task);

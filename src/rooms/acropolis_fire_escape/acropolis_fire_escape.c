@@ -145,7 +145,7 @@ static UiList       Telephone_Data_80181CF4;
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// Message table of the room's message task.
-extern GpMsgEntry D_acropolis_fire_escape_80181D3C[];
+extern TaskMessageEntry D_acropolis_fire_escape_80181D3C[];
 
 /// Task table holding the room's ambient-sound task.
 extern TaskDesc D_acropolis_fire_escape_80181D64[];
@@ -207,12 +207,12 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_acropolis_fire_escape_80181D3C[5] = {
+TaskMessageEntry D_acropolis_fire_escape_80181D3C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fire_escape_8017FD98 },
     { 5105, func_acropolis_fire_escape_8017FE40 },
     { 5104, func_acropolis_fire_escape_8017F9F8 },
     { 5106, func_acropolis_fire_escape_8017FE48 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_acropolis_fire_escape_80181D64[2] = {
@@ -931,7 +931,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
 /// longer rays; otherwise a flat diamond of two `POLY_G4`s, with two crossed
 /// `LINE_G3` streaks when bit 28 is set. Every primitive takes the
 /// semi-transparent tpage of `gpuSetPrimitiveBlendMode`. Finally `spawnArg2` goes to
-/// `Gp_ReleaseState1CMem`.
+/// `effectKillTask`.
 void func_acropolis_fire_escape_80180B20(Task* task)
 {
     AcropolisFireEscapeGlowScratch* blk;
@@ -1123,5 +1123,5 @@ void func_acropolis_fire_escape_80180B20(Task* task)
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(AcropolisFireEscapeGlowScratch);
-    Gp_ReleaseState1CMem(mem, task);
+    effectKillTask(mem, task);
 }

@@ -3,6 +3,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
 
@@ -16,7 +17,7 @@
 
 /// Message table the room task installs on itself: ids 0x13EE-0x13F2 mapped
 /// to the room's handlers, closed by id 0x7FFFFFFF.
-extern GpMsgEntry D_shelter_b1_storeroom_80184968[];
+extern TaskMessageEntry D_shelter_b1_storeroom_80184968[];
 
 static void func_shelter_b1_storeroom_8017D740(Task* task);
 static void func_shelter_b1_storeroom_8017D78C(Task* task);
@@ -33,13 +34,13 @@ s32 func_shelter_b1_storeroom_8017D6E0(Task*, s32, TaskMessageArg, TaskMessageAr
 s32 func_shelter_b1_storeroom_8017D6E8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_storeroom_8017D6F0(Task*, s32, s32, TaskMessageArg);
 
-GpMsgEntry D_shelter_b1_storeroom_80184968[6] = {
+TaskMessageEntry D_shelter_b1_storeroom_80184968[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_storeroom_8017D604 },
     { 5105, func_shelter_b1_storeroom_8017D5FC },
-    { 5103, func_shelter_b1_storeroom_8017D6E8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_storeroom_8017D6E8 },
     { 5104, func_shelter_b1_storeroom_8017D6E0 },
     { 5106, func_shelter_b1_storeroom_8017D6F0 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 func_shelter_b1_storeroom_8017D5FC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

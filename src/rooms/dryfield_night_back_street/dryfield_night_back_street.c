@@ -55,7 +55,7 @@
 #define D_dryfield_night_back_street_8018038C (D_dryfield_night_back_street_8018034C + 8)
 
 /// The room's message table, installed on the room entry task.
-extern GpMsgEntry D_dryfield_night_back_street_80180324[];
+extern TaskMessageEntry D_dryfield_night_back_street_80180324[];
 
 // Indexed views below share one contiguous table.
 s32 func_dryfield_night_back_street_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -71,12 +71,12 @@ extern WorldCoordRoomLights       D_dryfield_night_back_street_80181470[1];
 
 extern TaskDesc D_8014D8A4;
 
-GpMsgEntry D_dryfield_night_back_street_80180324[5] = {
+TaskMessageEntry D_dryfield_night_back_street_80180324[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_back_street_8017D5D0 },
     { 5105, func_dryfield_night_back_street_8017D724 },
-    { 5103, func_dryfield_night_back_street_8017D734 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_back_street_8017D734 },
     { 5104, func_dryfield_night_back_street_8017D72C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_night_back_street_8018034C[10] = {

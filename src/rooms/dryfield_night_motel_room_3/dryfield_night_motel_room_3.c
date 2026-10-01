@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/gameflag.h"
@@ -11,18 +12,18 @@
 #include "../../shared/room_variants.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_dryfield_night_motel_room_3_8017DA5C[];
+extern TaskMessageEntry D_dryfield_night_motel_room_3_8017DA5C[];
 
 s32 func_dryfield_night_motel_room_3_8017D5F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_motel_room_3_8017D684(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_motel_room_3_8017D68C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-GpMsgEntry D_dryfield_night_motel_room_3_8017DA5C[5] = {
+TaskMessageEntry D_dryfield_night_motel_room_3_8017DA5C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
     { 5105, func_dryfield_night_motel_room_3_8017D5F4 },
-    { 5103, func_dryfield_night_motel_room_3_8017D68C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_3_8017D68C },
     { 5104, func_dryfield_night_motel_room_3_8017D684 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_dryfield_night_motel_room_3_8017D694(Task* task);

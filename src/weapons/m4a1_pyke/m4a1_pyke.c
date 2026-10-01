@@ -190,7 +190,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     task->spawnArg1.value = 0;
                     break;
                 case 5:
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                     break;
             }
             break;
@@ -237,7 +237,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
         if (task->state != 0) {
             Gp_UnlinkObj(&beam->obj);
         }
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
         return;
     }
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -307,7 +307,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             }
             if (Gp_CountRec18Hi(beam->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&beam->obj);
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
                 return;
             }
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
@@ -322,7 +322,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             }
             if (work->age >= 0x15) {
                 Gp_UnlinkObj(&beam->obj);
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
                 return;
             }
             Gp_ClearRec18Occupied(beam->rec);
@@ -338,7 +338,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
                               (work->age >> 1) + 1, work->scale,
                               work->angle);
             if (work->age >= 0x15) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }
@@ -432,7 +432,7 @@ static void func_m4a1_pyke_8011E4AC(Task* task)
     if (obj != NULL) {
         Gp_UnlinkObj(obj);
     }
-    Gp_ReleaseState1CMem(mem, task);
+    effectKillTask(mem, task);
 }
 
 /// Per-frame firing state machine for the M4A1 Pyke. State 0 arms the shot and

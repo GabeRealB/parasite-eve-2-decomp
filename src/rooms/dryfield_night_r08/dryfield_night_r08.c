@@ -19,19 +19,19 @@ extern s32 D_80133898;
 extern s32 D_801341E0;
 /// The room's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
-extern GpMsgEntry D_dryfield_night_r08_80180544[];
+extern TaskMessageEntry D_dryfield_night_r08_80180544[];
 
 s32 func_dryfield_night_r08_8017D5F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_r08_8017D5F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_r08_8017D620(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_r08_8017D628(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-GpMsgEntry D_dryfield_night_r08_80180544[5] = {
+TaskMessageEntry D_dryfield_night_r08_80180544[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_r08_8017D5F8 },
     { 5105, func_dryfield_night_r08_8017D5F0 },
-    { 5103, func_dryfield_night_r08_8017D628 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_r08_8017D628 },
     { 5104, func_dryfield_night_r08_8017D620 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_dryfield_night_r08_8017D630(Task* arg0);

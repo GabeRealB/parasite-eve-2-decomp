@@ -117,7 +117,7 @@ s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, TaskMessageArg arg2
     return 0;
 }
 
-/// Handler id 0x13EE of the room's `GpMsgEntry` table
+/// Handler id 0x13EE of the room's `TaskMessageEntry` table
 /// `D_mine_secret_passage_80180E8C`: copies the
 /// requested `RoomEventMsg` to `dst` and forwards both to `func_map_shelter_80179A04`. A
 /// area-9 request latches the outgoing location's three bytes into the room's
@@ -151,7 +151,7 @@ s32 func_mine_secret_passage_8017D890(Task* task, s32 msgId, TaskMessageArg arg2
     return 0;
 }
 
-/// Handler id 0x13F2 of the room's `GpMsgEntry` table
+/// Handler id 0x13F2 of the room's `TaskMessageEntry` table
 /// `D_mine_secret_passage_80180E8C`: cues sound event 0x16 when the message's
 /// `arg2` is 3. No `Task` is spawned, so the room owns this cue rather than a
 /// child task.

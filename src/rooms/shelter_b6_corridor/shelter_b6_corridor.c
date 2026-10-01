@@ -67,7 +67,7 @@
 extern s32 gScreenWaveRamp;
 
 /// The room task's message records.
-extern GpMsgEntry D_shelter_b6_corridor_8017EF24[];
+extern TaskMessageEntry D_shelter_b6_corridor_8017EF24[];
 
 extern EvsCommand D_shelter_b6_corridor_8017F354[];
 extern EvsCommand D_shelter_b6_corridor_8017F684[];
@@ -131,13 +131,13 @@ TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
 
 s32 gScreenWaveRamp = 256;
 
-GpMsgEntry D_shelter_b6_corridor_8017EF24[6] = {
+TaskMessageEntry D_shelter_b6_corridor_8017EF24[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_corridor_8017DEB0 },
     { 5105, func_shelter_b6_corridor_8017DEA8 },
-    { 5103, func_shelter_b6_corridor_8017E020 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_corridor_8017E020 },
     { 5104, func_shelter_b6_corridor_8017DF48 },
     { 5108, func_shelter_b6_corridor_8017E028 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPackedPose D_shelter_b6_corridor_8017EF54[6] = {
@@ -757,7 +757,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     mem->scale -= 0x18;
     if (mem->scale < 0x18) {
     release:
-        Gp_ReleaseState1CMem(mem, task);
+        effectKillTask(mem, task);
     }
 }
 

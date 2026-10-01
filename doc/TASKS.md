@@ -399,9 +399,10 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 
 Message tables use an id word followed by a handler address, but their handler
 parameter counts, payload types and return types vary. `Gp_DispatchMsg` reads
-through a const `GpMsgEntry` view and supplies four ABI words. A caller must use
+through a const `TaskMessageEntry` view and supplies four ABI words. A caller must use
 an id supported by the receiver or a table with the dispatcher's
-`0x7FFFFFFF` terminator; some installed tables have no such terminating entry.
+`TASK_MESSAGE_TABLE_END` (`0x7FFFFFFF`) terminator; some installed tables have no
+such terminating entry. The reserved end ID must never be dispatched.
 The task borrows the table and never releases it.
 
 `Game_SetPtrSlot` / `gameGetTaskSlot` (`GameSession::ptrSlots`) provides 16

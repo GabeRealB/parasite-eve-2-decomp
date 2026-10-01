@@ -74,13 +74,13 @@ extern WorldCoordRoomLights  D_shelter_b1_elevator_hall_80184270[1];
 
 TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
-    { 5102, func_shelter_b1_elevator_hall_8017D810 },
+TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_elevator_hall_8017D810 },
     { 5105, func_shelter_b1_elevator_hall_8017DB54 },
-    { 5103, func_shelter_b1_elevator_hall_8017DB64 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_elevator_hall_8017DB64 },
     { 5104, func_shelter_b1_elevator_hall_8017DB5C },
     { 5106, func_shelter_b1_elevator_hall_8017DB6C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b1_elevator_hall_80182CE8 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_elevator_hall_8017D99C, { .value = 0 } };

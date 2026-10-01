@@ -60,7 +60,7 @@ extern EvsCommand gDrivewayBlackoutTail[];
 extern TaskDesc gRoomEventStagedTaskDesc;
 extern TaskDesc gDrivewayCutsceneTasks[];
 
-extern GpMsgEntry D_dryfield_driveway_8017E754[];
+extern TaskMessageEntry D_dryfield_driveway_8017E754[];
 
 extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
@@ -178,13 +178,13 @@ EvsCommand gDrivewayBlackoutTail[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpMsgEntry D_dryfield_driveway_8017E754[6] = {
+TaskMessageEntry D_dryfield_driveway_8017E754[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
     { 5105, func_dryfield_driveway_8017DCC0 },
-    { 5103, func_dryfield_driveway_8017DDB8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_driveway_8017DDB8 },
     { 5104, func_dryfield_driveway_8017DDB0 },
     { 5106, drivewayScriptSound },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 GpRoomObjRec D_dryfield_driveway_8017E784[2] = {

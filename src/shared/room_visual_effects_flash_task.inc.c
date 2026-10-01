@@ -14,7 +14,7 @@ static inline void RoomFx_FlashTask(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     } else {
         Gp_UpdateCoord(coord);
@@ -60,7 +60,7 @@ static inline void RoomFx_FlashTask(Task* arg0)
                 }
                 /* fallthrough */
             case 3:
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 break;
         }
     }

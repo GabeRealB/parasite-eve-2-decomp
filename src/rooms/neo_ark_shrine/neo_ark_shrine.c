@@ -36,7 +36,7 @@
 #include "../../shared/action_prompt.h"
 
 /// Message table installed at `Task::msgTable` by the room task's state 0.
-extern GpMsgEntry D_neo_ark_shrine_80181E34[];
+extern TaskMessageEntry D_neo_ark_shrine_80181E34[];
 
 extern TaskDesc D_neo_ark_shrine_80181E5C[];
 
@@ -60,12 +60,12 @@ s32  func_neo_ark_shrine_8017D740(Task*, s32, s32, TaskMessageArg);
 s32  func_neo_ark_shrine_8017D7F0(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 void func_neo_ark_shrine_8017D84C(Task*);
 
-GpMsgEntry D_neo_ark_shrine_80181E34[5] = {
+TaskMessageEntry D_neo_ark_shrine_80181E34[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_shrine_8017D6AC },
     { 5105, func_neo_ark_shrine_8017D6A4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_shrine_8017D7F0 },
     { 5104, func_neo_ark_shrine_8017D740 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_neo_ark_shrine_80181E5C[2] = {

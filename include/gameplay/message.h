@@ -103,11 +103,29 @@ STATIC_ASSERT_SIZEOF(TaskMessageArg, 4);
 /// types in either payload position under GCC's function-type compatibility rules.
 typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 
-typedef struct _GpMsgEntry {
-    /* 0x0 */ s32                id;
-    /* 0x4 */ TaskMessageHandler handler;
-} GpMsgEntry;
-STATIC_ASSERT_SIZEOF(GpMsgEntry, 8);
+/// Ends a task-message table; this reserved ID must never be dispatched.
+enum {
+    TASK_MESSAGE_TABLE_END = 0x7FFFFFFF,
+};
+
+/// Maps a receiver-specific message ID to a synchronous task-message callback.
+///
+/// Tables installed in `Task::msgTable` are borrowed and read only during
+/// dispatch. Keep the table and its callbacks live while the task can receive
+/// messages. Entries are searched in order, and the first matching ID wins.
+/// End the table with `{ TASK_MESSAGE_TABLE_END, NULL }` so unsupported IDs
+/// return zero. Never send the reserved end ID: equality is tested before the
+/// end marker, so it would select the null callback.
+///
+/// Every other entry requires a non-null `TaskMessageHandler`. The message ID
+/// and receiver select the argument interpretations and signed result; the
+/// entry itself owns no payload storage. Each record is eight bytes, aligned
+/// to four bytes, with one signed ID word followed by one callback address.
+typedef struct {
+    s32                messageId; // Receiver-specific ID, or TASK_MESSAGE_TABLE_END
+    TaskMessageHandler handler;   // Callback for this ID (NULL only at the end marker)
+} TaskMessageEntry;
+STATIC_ASSERT_SIZEOF(TaskMessageEntry, 8);
 
 /// 0x10-byte spawn argument for `Gp_SpawnAlly` / `Gp_SpawnPlayer`. `field_0`
 /// is copied to `GameActor.rotation.vy`; `field_4` / `field_8` / `field_C` are

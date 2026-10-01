@@ -18,8 +18,8 @@
 
 #include "mapui/map_neo_ark.h"
 
-extern TaskDesc   D_80135E78;
-extern GpMsgEntry D_shelter_b6_growth_room_8017F16C[];
+extern TaskDesc         D_80135E78;
+extern TaskMessageEntry D_shelter_b6_growth_room_8017F16C[];
 
 extern u8 D_80136110[];
 extern u8 D_80136308[];
@@ -32,12 +32,12 @@ s32 func_shelter_b6_growth_room_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg
 s32 func_shelter_b6_growth_room_8017D634(Task*, s32, s32, TaskMessageArg);
 s32 func_shelter_b6_growth_room_8017D6C8(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
-GpMsgEntry D_shelter_b6_growth_room_8017F16C[5] = {
+TaskMessageEntry D_shelter_b6_growth_room_8017F16C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_growth_room_8017D5F0 },
     { 5105, func_shelter_b6_growth_room_8017D5E8 },
-    { 5103, func_shelter_b6_growth_room_8017D6C8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_growth_room_8017D6C8 },
     { 5104, func_shelter_b6_growth_room_8017D634 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_shelter_b6_growth_room_8017D71C(Task* arg0);

@@ -22,7 +22,7 @@ void effectSpriteDebrisTask(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -115,7 +115,7 @@ void effectSpriteDebrisTask(Task* task)
     if ((work->age % work->period) == 0) {
         work->index++;
         if (work->index >= 8) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }

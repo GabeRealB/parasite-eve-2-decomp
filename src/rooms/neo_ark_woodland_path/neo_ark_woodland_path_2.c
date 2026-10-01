@@ -12,6 +12,7 @@
 
 #include "neo_ark_woodland_path_private.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
@@ -101,7 +102,7 @@ extern u8 gRoamerArmCountsB[];
 /// `Task::msgTable`: a placement request (0x13EF,
 /// `func_neo_ark_woodland_path_80181568`), a countdown bump (0x13F4) and the
 /// 0x7DB command handler `roamerAmbushMsg`.
-extern GpMsgEntry gRoamerMsgTableB[];
+extern TaskMessageEntry gRoamerMsgTableB[];
 
 /// The same gate for the arm-state one step earlier: `func_...80180568` tests
 /// it against zero and `func_...801806D8` reads the slot's count from it. One
@@ -264,11 +265,11 @@ NeoArkWoodlandPathSpawnPos gRoamerSpawnPointsA[7] = {
 
 s16 gRoamerPrevBattleRefs = 0;
 
-GpMsgEntry gRoamerMsgTableB[4] = {
-    { 5103, func_neo_ark_woodland_path_80181568 },
+TaskMessageEntry gRoamerMsgTableB[4] = {
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_woodland_path_80181568 },
     { 5108, func_neo_ark_woodland_path_8018154C },
     { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_80184A14[5] = {

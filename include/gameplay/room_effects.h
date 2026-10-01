@@ -102,7 +102,20 @@ void Gp_DrawBand(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* arg3);
 
-void Gp_ReleaseState1CMem(void* arg0, Task* arg1);
+/// Ends one counted effect by freeing its work and performing default task teardown.
+///
+/// `task` must be live and counted in the initialized `gRoomEffectState`. Call
+/// once per effect. `effectWork` is an effect-specific allocation, normally held
+/// in `Task::spawnArg2`; it must be `NULL` or the original pointer to a live
+/// primary-heap block. The count decreases even when `effectWork` is `NULL`.
+///
+/// Release nested resources and unlink external nodes first. `effectWork` must
+/// not also be owned through `Task::work`, which default teardown frees separately.
+/// The work is released before child exit handlers run. This calls `taskKill`
+/// directly, bypassing this task's replacement `exitCallback`; its teardown
+/// requirements and deferred or immediate body/task release rules apply.
+/// The spawn-argument pointer is left unchanged after release.
+void effectKillTask(void* effectWork, Task* task);
 
 void Gp_PulseState1C(void);
 

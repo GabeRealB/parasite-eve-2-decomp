@@ -298,7 +298,7 @@ void Gp_EffCtlTask2B(Task* arg0)
         }
         count = mem->age;
         if (mem->scale < count) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }
@@ -362,7 +362,7 @@ void Gp_EffCtlTask6A(Task* arg0)
             slot->inner -= 0x190;
         }
         if (mem->age >= 5) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }
@@ -433,7 +433,7 @@ void Gp_EffCtlTask6B(Task* arg0)
         }
         count = mem->age;
         if (mem->scale < count) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }
@@ -622,7 +622,7 @@ void func_800ED42C(Task* arg0)
         }
         count = mem->age;
         if (mem->scale < count) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }
@@ -724,7 +724,7 @@ void Gp_EffCtlTask6C(Task* arg0)
         }
         count = mem->age;
         if (mem->scale < count) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }
@@ -809,7 +809,7 @@ void Gp_EffSprTask34(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffSprTask72(Task* arg0)
@@ -893,7 +893,7 @@ void Gp_EffSprTask72(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffLineTaskA3(Task* arg0)
@@ -992,7 +992,7 @@ void Gp_EffLineTaskA3(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 static void Gp_DrawEffSprite6C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -1154,7 +1154,7 @@ void Gp_EffSprTask35(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffSprTask6F(Task* arg0)
@@ -1260,7 +1260,7 @@ void Gp_EffSprTask6F(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffModelTask(Task* arg0)
@@ -1553,7 +1553,7 @@ void Gp_EffModelTask(Task* arg0)
     }
     return;
 release:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffCtlTask6E(Task* arg0)
@@ -1594,7 +1594,7 @@ void Gp_EffCtlTask6E(Task* arg0)
     Gp_SpawnEff(0x60091, coord, arg0->spawnArg1.value, 0);
     mem->age++;
     if (mem->age > mem->scale - 1) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -1623,7 +1623,7 @@ void Gp_EffCtlTask6D(Task* arg0)
         Gp_SpawnEff(0x60036, coord, 9, 0);
     }
 
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffTileTaskA4(Task* arg0)
@@ -1702,7 +1702,7 @@ void Gp_EffTileTaskA4(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x14);
     mem->age++;
     if (mem->age >= 8) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -1744,7 +1744,7 @@ void Gp_EffCtlTask3B(Task* arg0)
     } else if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
@@ -1956,7 +1956,7 @@ void Gp_EffSprTask5C(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void func_800F289C(Task* arg0)
@@ -2139,7 +2139,7 @@ void func_800F289C(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 void Gp_EffSprTask76(Task* arg0)
@@ -2214,7 +2214,7 @@ void Gp_EffSprTask76(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
     mem->age++;
     if (mem->age >= 4) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -2343,7 +2343,7 @@ void Gp_EffSprTask7C(Task* arg0)
     mem->age++;
     if (mem->age >= 0x1F) {
     release:
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     if (Gp_TraceGroundCoord(coord, &hit) == 1) {
@@ -2601,7 +2601,7 @@ void func_800F4308(Task* arg0)
     }
 release:
     if (cond == 0) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -2702,7 +2702,7 @@ void Gp_EffLineTask92(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x20);
     mem->age++;
     if (mem->age > mem->scale * 8 - 1) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -2736,7 +2736,7 @@ void Gp_EffPolyTask9C(Task* arg0)
             return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
@@ -2929,7 +2929,7 @@ void Gp_EffSprTask9E(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x38);
     mem->age++;
     if (mem->angle < mem->age) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -2949,7 +2949,7 @@ void Gp_EffSprTask54(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -3041,7 +3041,7 @@ void Gp_EffSprTask54(Task* arg0)
         step                = mem->age + 1;
         mem->age            = step;
         if (step > (mem->period * 8) - 1) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }

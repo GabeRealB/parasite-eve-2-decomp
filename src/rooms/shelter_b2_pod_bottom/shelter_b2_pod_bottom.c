@@ -33,9 +33,9 @@
 
 void func_80162B0C(s32);
 
-extern u8         D_80165F48;
-extern u8         D_80166848;
-extern GpMsgEntry D_shelter_b2_pod_bottom_80181C6C[];
+extern u8               D_80165F48;
+extern u8               D_80166848;
+extern TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[];
 
 static void func_shelter_b2_pod_bottom_8017D648(Task* arg0);
 static void func_shelter_b2_pod_bottom_8017D6F8(Task* task);
@@ -55,12 +55,12 @@ extern WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20];
 
 extern WorldCoordRoomLights D_shelter_b2_pod_bottom_80186F90[1];
 
-GpMsgEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
+TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_pod_bottom_8017D5F4 },
     { 5105, func_shelter_b2_pod_bottom_8017D5EC },
-    { 5103, func_shelter_b2_pod_bottom_8017D640 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_pod_bottom_8017D640 },
     { 5104, func_shelter_b2_pod_bottom_8017D638 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 RoomRingShape D_shelter_b2_pod_bottom_80181C94[3] = {

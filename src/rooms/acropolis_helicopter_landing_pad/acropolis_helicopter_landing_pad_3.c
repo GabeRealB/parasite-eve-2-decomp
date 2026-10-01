@@ -118,12 +118,12 @@ extern WorldCollisionGrid D_acropolis_helicopter_landing_pad_80185998[1];
 
 extern WorldCollisionTrigger D_acropolis_helicopter_landing_pad_801859BC[16];
 
-GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
+TaskMessageEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_helicopter_landing_pad_8017E3F0 },
     { 5105, func_acropolis_helicopter_landing_pad_8017E49C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_helicopter_landing_pad_8017E4A4 },
     { 5104, func_acropolis_helicopter_landing_pad_8017E570 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 PadScriptCmd D_acropolis_helicopter_landing_pad_80183738[4] = {
@@ -987,7 +987,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -1095,7 +1095,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             n                   = mem->age + 1;
             mem->age            = n;
             if (n > mem->step * 6 - 1) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
             }
         }
     }
@@ -1127,7 +1127,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (arg0->state == 2) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -1201,7 +1201,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             }
             break;
         case 2:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             break;
     }
 }
@@ -1374,7 +1374,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (arg0->state == 3) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING && arg0->state < 3) {
@@ -1410,7 +1410,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
             }
             break;
         case 3:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             break;
     }
 }
@@ -1447,7 +1447,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -1546,7 +1546,7 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             mem->age++;
             if (mem->age > mem->step * 6 - 1) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
             }
         }
     }

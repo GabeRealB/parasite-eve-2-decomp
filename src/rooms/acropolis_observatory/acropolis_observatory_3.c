@@ -1066,7 +1066,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(AobFlareScratch);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Re-spawns the observatory's ambient effects for the current camera view,

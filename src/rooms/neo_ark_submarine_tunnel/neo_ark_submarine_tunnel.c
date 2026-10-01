@@ -63,7 +63,7 @@ extern TaskDesc D_neo_ark_submarine_tunnel_80181A34[];
 extern s32 gScreenWaveRamp;
 
 /// Message handlers this room's task answers, installed into pointer slot 7.
-extern GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[];
+extern TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[];
 
 /// The tunnel's own script blob and the byte recording which of its scenes has
 /// already been staged.
@@ -141,12 +141,12 @@ TaskDesc D_neo_ark_submarine_tunnel_80181A34[2] = {
 
 s32 gScreenWaveRamp = 256;
 
-GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
+TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_submarine_tunnel_8017F284 },
     { 5105, func_neo_ark_submarine_tunnel_8017F27C },
-    { 5103, func_neo_ark_submarine_tunnel_8017F064 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_submarine_tunnel_8017F064 },
     { 5104, func_neo_ark_submarine_tunnel_8017F2C8 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_neo_ark_submarine_tunnel_80181A78[2] = {

@@ -30,9 +30,9 @@
 #include "mapui/map_neo_ark.h"
 
 /// Room message handler table installed into `Task::msgTable`.
-extern GpMsgEntry D_neo_ark_r31_8017D9F4[];
-extern s32        D_80133F90;
-extern s32        D_80134470;
+extern TaskMessageEntry D_neo_ark_r31_8017D9F4[];
+extern s32              D_80133F90;
+extern s32              D_80134470;
 
 s32  func_neo_ark_r31_8017D8B0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_r31_8017D8B8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -42,12 +42,12 @@ void func_neo_ark_r31_8017D5D0(Task*);
 
 TaskDesc D_neo_ark_r31_8017D9E8 = { { { TASK_BODY_NONE, 192 } }, func_neo_ark_r31_8017D5D0, { .value = 0 } };
 
-GpMsgEntry D_neo_ark_r31_8017D9F4[5] = {
+TaskMessageEntry D_neo_ark_r31_8017D9F4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r31_8017D8B8 },
     { 5105, func_neo_ark_r31_8017D8B0 },
-    { 5103, func_neo_ark_r31_8017D904 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_r31_8017D904 },
     { 5104, func_neo_ark_r31_8017D8FC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8* D_neo_ark_r31_8017DA1C[1] = {

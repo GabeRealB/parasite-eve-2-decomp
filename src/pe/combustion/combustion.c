@@ -141,7 +141,7 @@ void func_combustion_8012EF34(Task* arg0)
             if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
                 (mem->age > D_combustion_80130980[mem->index].field_6)) {
             release:
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             gfxRotMatrixY(&coord->coord, -(arg0->spawnArg1.value * 80), 0);
@@ -215,7 +215,7 @@ void func_combustion_8012F2BC(Task* arg0)
                 func_combustion_801305F8(coord, mem->age, mem->scale);
             }
             if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             spawnRng1       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -237,7 +237,7 @@ void func_combustion_8012F2BC(Task* arg0)
                 func_combustion_80130184(coord, mem->age, mem->scale * 4, 0);
             }
             if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             spawnRng2       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -392,7 +392,7 @@ void func_combustion_8012F888(Task* arg0)
                     return;
                 }
             } else {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             break;
@@ -408,7 +408,7 @@ void func_combustion_8012F888(Task* arg0)
                 func_combustion_8012FF0C(coord, frame, mem->angle);
                 return;
             }
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
         case 3:
             step                = mem->move.vy;
@@ -422,7 +422,7 @@ void func_combustion_8012F888(Task* arg0)
                 func_combustion_8012F5EC(coord, frame, mem->angle);
                 return;
             }
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
     }
 }
@@ -638,7 +638,7 @@ void func_combustion_801308E0(Task* arg0)
     GfxCoord* coord;
 
     if (arg0->state != 0) {
-        Gp_ReleaseState1CMem(arg0->spawnArg2.pointer, arg0);
+        effectKillTask(arg0->spawnArg2.pointer, arg0);
         return;
     }
     coord = arg0->extra.coordBody->coord;

@@ -88,7 +88,7 @@ void func_healing_8012EF34(Task* arg0)
         if (arg0->state == 0) {
             state->field_6 |= 8;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
 
@@ -181,7 +181,7 @@ void func_healing_8012EF34(Task* arg0)
             if (mem->period < 0x1F) {
                 return;
             }
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
         default:
             return;
@@ -233,7 +233,7 @@ void func_healing_8012F494(Task* arg0)
                     return;
                 }
             } else {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             break;
@@ -293,7 +293,7 @@ void func_healing_8012F5E4(Task* arg0)
             }
         }
     } else {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 

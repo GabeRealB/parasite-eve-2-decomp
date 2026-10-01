@@ -89,7 +89,7 @@ typedef struct _ShelterB4WaterSupplySplash {
 extern TaskDesc D_shelter_b4_water_supply_801825E4;
 
 /// The room's message table, installed by the room task's first state.
-extern GpMsgEntry D_shelter_b4_water_supply_801825F0[];
+extern TaskMessageEntry D_shelter_b4_water_supply_801825F0[];
 
 /// Task table spawned by `func_shelter_b4_water_supply_8017DA30` once the
 /// valve script has run.
@@ -151,13 +151,13 @@ extern TaskDesc D_80147E48;
 
 TaskDesc D_shelter_b4_water_supply_801825E4 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b4_water_supply_801825F0[6] = {
+TaskMessageEntry D_shelter_b4_water_supply_801825F0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_water_supply_8017D978 },
     { 5105, func_shelter_b4_water_supply_8017D970 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_water_supply_8017DA30 },
     { 5104, func_shelter_b4_water_supply_8017DA28 },
     { 5106, func_shelter_b4_water_supply_8017DAE4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b4_water_supply_80182620[2] = {

@@ -44,7 +44,7 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0, closed by a 0x7FFFFFFF entry.
-extern GpMsgEntry D_dryfield_night_warehouse_8017E830[];
+extern TaskMessageEntry D_dryfield_night_warehouse_8017E830[];
 
 /// Ring centres in the space of the coordinate drawn under, one per circle.
 extern SVECTOR gGlowPrismCorners[];
@@ -62,12 +62,12 @@ extern WorldCollisionTrigger      D_dryfield_night_warehouse_8017F84C[10];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_warehouse_8017F824[5];
 extern WorldCoordRoomLights       D_dryfield_night_warehouse_8017F6DC[1];
 
-GpMsgEntry D_dryfield_night_warehouse_8017E830[5] = {
+TaskMessageEntry D_dryfield_night_warehouse_8017E830[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_warehouse_8017D5D8 },
     { 5105, func_dryfield_night_warehouse_8017D5D0 },
-    { 5103, func_dryfield_night_warehouse_8017D608 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_warehouse_8017D608 },
     { 5104, func_dryfield_night_warehouse_8017D600 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR gGlowPrismCorners[16] = {

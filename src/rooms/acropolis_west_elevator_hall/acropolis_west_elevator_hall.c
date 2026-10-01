@@ -62,12 +62,12 @@ typedef struct {
     /* 0x0 */ s32 field_0;
 } AwehElevatorState;
 
-extern TaskDesc   D_acropolis_west_elevator_hall_80184568[];
-extern EvsCommand D_acropolis_west_elevator_hall_80184620[];
-extern EvsCommand D_acropolis_west_elevator_hall_80184890[];
-extern s32        D_acropolis_west_elevator_hall_801849C8;
-extern GpMsgEntry D_acropolis_west_elevator_hall_801849CC[];
-extern GpMsgEntry D_acropolis_west_elevator_hall_801849F4[];
+extern TaskDesc         D_acropolis_west_elevator_hall_80184568[];
+extern EvsCommand       D_acropolis_west_elevator_hall_80184620[];
+extern EvsCommand       D_acropolis_west_elevator_hall_80184890[];
+extern s32              D_acropolis_west_elevator_hall_801849C8;
+extern TaskMessageEntry D_acropolis_west_elevator_hall_801849CC[];
+extern TaskMessageEntry D_acropolis_west_elevator_hall_801849F4[];
 
 /// Index of the mirror model's coordinate part each held-object reflection is
 /// parented to, by the reflection's `spawnArg1`.
@@ -313,17 +313,17 @@ EvsCommand D_acropolis_west_elevator_hall_80184890[13] = {
 
 s32 D_acropolis_west_elevator_hall_801849C8 = 0;
 
-GpMsgEntry D_acropolis_west_elevator_hall_801849CC[5] = {
+TaskMessageEntry D_acropolis_west_elevator_hall_801849CC[5] = {
     { 5100, func_acropolis_west_elevator_hall_8017F470 },
     { 5101, func_acropolis_west_elevator_hall_8017F498 },
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_west_elevator_hall_8017F4C0 },
     { 5105, func_acropolis_west_elevator_hall_8017F560 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GpMsgEntry D_acropolis_west_elevator_hall_801849F4[2] = {
+TaskMessageEntry D_acropolis_west_elevator_hall_801849F4[2] = {
     { 3100, func_acropolis_west_elevator_hall_80180274 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u16 D_acropolis_west_elevator_hall_80184A04[256] = { 0 };
@@ -1181,7 +1181,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
                                &D_acropolis_west_elevator_hall_80184E04.colors[i]);
         }
         Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }
 
@@ -1235,7 +1235,7 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
         }
     }
 
-    Gp_ReleaseState1CMem(mem, task);
+    effectKillTask(mem, task);
 }
 
 /// Draws one frame of the hall's soft light billboard and then retires the
@@ -1299,7 +1299,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x14);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 s32 func_acropolis_west_elevator_hall_80180274(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

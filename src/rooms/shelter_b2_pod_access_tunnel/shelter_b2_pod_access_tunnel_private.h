@@ -9,7 +9,7 @@
 
 extern TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0;
 
-extern GpMsgEntry D_shelter_b2_pod_access_tunnel_80183BCC[6];
+extern TaskMessageEntry D_shelter_b2_pod_access_tunnel_80183BCC[6];
 
 extern TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC;
 

@@ -144,7 +144,7 @@ extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
 
 /// Message table of the room's message task.
-extern GpMsgEntry D_shelter_b2_laboratory_80182A38[];
+extern TaskMessageEntry D_shelter_b2_laboratory_80182A38[];
 
 /// Task spawned by `func_shelter_b2_laboratory_80180290` and polled until it
 /// dies.
@@ -259,13 +259,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b2_laboratory_80182A38[6] = {
+TaskMessageEntry D_shelter_b2_laboratory_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_laboratory_801800FC },
     { 5105, func_shelter_b2_laboratory_801800F4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_laboratory_801801D0 },
     { 5104, func_shelter_b2_laboratory_8017FD18 },
     { 5106, func_shelter_b2_laboratory_8018025C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 Task* D_shelter_b2_laboratory_80182A68 = NULL;

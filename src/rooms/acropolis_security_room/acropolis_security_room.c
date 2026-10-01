@@ -100,7 +100,7 @@ STATIC_ASSERT_SIZEOF(AsrMonitorWork, 0xA);
 /// handler table is `D_acropolis_security_room_8017D63C` -- allocates it with
 /// `memCalloc(0x10, 0)` and stores it straight into the `Task::work` slot,
 /// so the size below is the allocation and not a guess; the same function
-/// parks the family's `GpMsgEntry[]` in `Task::msgTable`. The overlay's other
+/// parks the family's `TaskMessageEntry[]` in `Task::msgTable`. The overlay's other
 /// two allocators (`memCalloc(0xA)` in `func_acropolis_security_room_8017D9DC`
 /// and `memCalloc(4)` in `func_acropolis_security_room_80180368`) belong to
 /// other task families and to a different block.
@@ -214,7 +214,7 @@ extern s16 D_acropolis_security_room_801826B4[];
 /// `func_acropolis_security_room_8017F9C8`.
 extern TaskDesc D_acropolis_security_room_801826C0[];
 /// The script's message table, parked in `Task::msgTable`.
-extern GpMsgEntry D_acropolis_security_room_801826CC[];
+extern TaskMessageEntry D_acropolis_security_room_801826CC[];
 
 /// The script's hotspot table, terminated by an entry whose `id` is -1.
 extern OverlayHotspot D_acropolis_security_room_801826DC[];
@@ -379,9 +379,9 @@ TaskDesc D_acropolis_security_room_801826C0[1] = {
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_security_room_8017F9C8, { .value = 0 } },
 };
 
-GpMsgEntry D_acropolis_security_room_801826CC[2] = {
+TaskMessageEntry D_acropolis_security_room_801826CC[2] = {
     { 5105, func_acropolis_security_room_8017FE24 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 OverlayHotspot D_acropolis_security_room_801826DC[3] = {
@@ -2836,7 +2836,7 @@ static void func_acropolis_security_room_8017FD64(s32 flags)
     }
 }
 
-/// `GpMsgEntry` handler for message 0x13F1, the "can this key item be used
+/// `TaskMessageEntry` handler for message 0x13F1, the "can this key item be used
 /// here?" query `Gp_UseKeyItemRow` sends to slot 7. `item` is the key item the
 /// player highlighted; the three ids this room accepts each select a sub-step
 /// of the cap script, recorded in the state block's `field_0` for
@@ -3323,7 +3323,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     prim->y3    = y;
     prim->y2    = y;
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Draws a rotating textured quad and updates its drift until it settles.
@@ -3459,7 +3459,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
 
     mem->age = mem->age + 1;
     if (gGameSession->location.loc.view != 0xF) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -3532,7 +3532,7 @@ void func_acropolis_security_room_801817A4(Task* task)
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(AsrFlashScratch);
-    Gp_ReleaseState1CMem(mem, task);
+    effectKillTask(mem, task);
 }
 
 #include "../../shared/actor_contacts_push_contact.inc.c"

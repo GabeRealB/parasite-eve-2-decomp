@@ -50,8 +50,8 @@
 #include "../../shared/room_visual_effects.h"
 
 /// The room's message table, installed on the room entry task.
-extern GpMsgEntry D_dryfield_back_street_8017F964[];
-extern TaskDesc   D_dryfield_back_street_8017F98C[];
+extern TaskMessageEntry D_dryfield_back_street_8017F964[];
+extern TaskDesc         D_dryfield_back_street_8017F98C[];
 
 /// Volume last asked of the back street's ambience, or 0 when none is playing.
 /// Written by `func_dryfield_back_street_8017D5D0` and cleared by state 0 of the
@@ -74,12 +74,12 @@ extern WorldCoordRoomLights  D_dryfield_back_street_80180FF8[1];
 
 extern TaskDesc D_8014D8A4;
 
-GpMsgEntry D_dryfield_back_street_8017F964[5] = {
+TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_back_street_8017D748 },
     { 5105, func_dryfield_back_street_8017D89C },
-    { 5103, func_dryfield_back_street_8017D8AC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_back_street_8017D8AC },
     { 5104, func_dryfield_back_street_8017D8A4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_back_street_8017F98C[2] = {

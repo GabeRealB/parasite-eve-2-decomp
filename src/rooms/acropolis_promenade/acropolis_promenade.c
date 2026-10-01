@@ -2006,7 +2006,7 @@ void func_acropolis_promenade_8017E394(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// One frame of the promenade's twinkling star: two semi-transparent
@@ -2119,7 +2119,7 @@ void func_acropolis_promenade_8017E634(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// Draws one frame of the promenade's ground glow: a semi-transparent textured
@@ -2210,7 +2210,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x24);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// Glow sprite task: queues one camera-facing, semi-transparent `POLY_FT4`
@@ -2285,7 +2285,7 @@ void func_acropolis_promenade_8017F0BC(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"

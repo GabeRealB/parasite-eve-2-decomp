@@ -80,7 +80,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 extern TaskDesc D_neo_ark_pavilion_80183864;
 
 /// The room's message table.
-extern GpMsgEntry D_neo_ark_pavilion_80183870[];
+extern TaskMessageEntry D_neo_ark_pavilion_80183870[];
 
 /// Offsets from the parent coordinate of the two points whose trails
 /// `func_neo_ark_pavilion_80180714` records.
@@ -117,12 +117,12 @@ TaskDesc D_neo_ark_pavilion_80183858 = { { { TASK_BODY_NONE, 192 } }, waterDisto
 
 TaskDesc D_neo_ark_pavilion_80183864 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_neo_ark_pavilion_80183870[5] = {
+TaskMessageEntry D_neo_ark_pavilion_80183870[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pavilion_8017E9F4 },
     { 5105, func_neo_ark_pavilion_8017E9EC },
-    { 5103, func_neo_ark_pavilion_8017EB78 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pavilion_8017EB78 },
     { 5104, func_neo_ark_pavilion_8017EB3C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"

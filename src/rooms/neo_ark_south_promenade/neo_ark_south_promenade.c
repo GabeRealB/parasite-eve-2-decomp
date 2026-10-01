@@ -44,7 +44,7 @@
 #include "../../shared/room_visual_effects.h"
 
 /// The room's message table, which the message-driven task installs.
-extern GpMsgEntry D_neo_ark_south_promenade_8017F6B4[];
+extern TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[];
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
 /// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
@@ -70,12 +70,12 @@ extern WorldCollisionTrigger D_neo_ark_south_promenade_801804E8[6];
 extern WorldCollisionTrigger D_neo_ark_south_promenade_801806B0[6];
 extern WorldCoordRoomLights  D_neo_ark_south_promenade_801804D0[1];
 
-GpMsgEntry D_neo_ark_south_promenade_8017F6B4[5] = {
+TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_south_promenade_8017D5D8 },
     { 5105, func_neo_ark_south_promenade_8017D5D0 },
-    { 5103, func_neo_ark_south_promenade_8017D624 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_south_promenade_8017D624 },
     { 5104, func_neo_ark_south_promenade_8017D61C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"

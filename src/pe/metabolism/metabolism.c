@@ -93,7 +93,7 @@ void func_metabolism_8012EF34(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
 
@@ -206,7 +206,7 @@ void func_metabolism_8012EF34(Task* arg0)
             }
             return;
         case 3:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
     }
 }
@@ -264,7 +264,7 @@ void func_metabolism_8012F5A0(Task* arg0)
                     return;
                 }
             } else {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             break;
@@ -285,7 +285,7 @@ void func_metabolism_8012F5A0(Task* arg0)
                     return;
                 }
             } else {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             break;

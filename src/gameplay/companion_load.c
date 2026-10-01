@@ -431,21 +431,21 @@ void Gp_FlashWhiteTask(Task* task)
 
 s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    const GpMsgEntry* temp;
-    const GpMsgEntry* entry;
+    const TaskMessageEntry* temp;
+    const TaskMessageEntry* entry;
 
     temp = arg0->msgTable;
     if (temp == NULL) {
         return 0;
     }
     entry = temp;
-    if (entry->id != arg1) {
+    if (entry->messageId != arg1) {
         do {
-            if (entry->id == 0x7FFFFFFF) {
+            if (entry->messageId == TASK_MESSAGE_TABLE_END) {
                 return 0;
             }
             entry++;
-        } while (entry->id != arg1);
+        } while (entry->messageId != arg1);
     }
     return entry->handler(arg0, arg1, arg2, arg3);
 }

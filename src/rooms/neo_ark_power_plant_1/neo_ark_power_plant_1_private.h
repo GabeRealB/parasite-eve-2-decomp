@@ -9,7 +9,7 @@
 
 #include "main/task_types.h"
 
-extern GpMsgEntry D_neo_ark_power_plant_1_8017EB18[5];
+extern TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5];
 
 extern EvsCommand D_neo_ark_power_plant_1_8017EB7C[24];
 

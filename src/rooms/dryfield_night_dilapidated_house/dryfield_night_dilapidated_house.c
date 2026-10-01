@@ -46,7 +46,7 @@ extern RoomEventReq gRoomEventReq;
 /// event task; every call clears it first.
 
 WorldCoordRoomLights D_dryfield_night_dilapidated_house_80189B60[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80189500), D_dryfield_night_dilapidated_house_80189500, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80189800.active), D_dryfield_night_dilapidated_house_80189800.active },
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80189500), D_dryfield_night_dilapidated_house_80189500, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80189800), D_dryfield_night_dilapidated_house_80189800 },
 };
 
 WorldCollisionTrigger D_dryfield_night_dilapidated_house_80189B78[12] = {

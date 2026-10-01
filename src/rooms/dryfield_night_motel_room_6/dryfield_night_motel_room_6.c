@@ -135,7 +135,7 @@ static u8 Reflection_Data_8017FC8C[];
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The room's message table, installed on the room entry task.
-extern GpMsgEntry D_dryfield_night_motel_room_6_80182EB0[];
+extern TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[];
 
 /// Task table whose entries run the story task
 /// `func_dryfield_night_motel_room_6_8018189C`.
@@ -199,13 +199,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
+TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
     { 5105, func_dryfield_night_motel_room_6_80181B74 },
-    { 5103, func_dryfield_night_motel_room_6_80181BF8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_6_80181BF8 },
     { 5104, func_dryfield_night_motel_room_6_8018175C },
     { 5106, func_dryfield_night_motel_room_6_80181C00 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_motel_room_6_80182EE0 = { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_motel_room_6_8018189C, { .value = 0 } };

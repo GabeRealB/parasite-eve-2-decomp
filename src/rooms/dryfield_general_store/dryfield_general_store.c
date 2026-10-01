@@ -70,13 +70,13 @@ extern u8 gStoreRoom;
 /// task 0x31 when the script's CAP event key asks for it.
 extern ScreenFade gStoreFade;
 
-extern GpMsgEntry D_dryfield_general_store_8017E188[];
-extern s32        D_dryfield_general_store_8017E1B8;
-extern TaskDesc   D_dryfield_general_store_8017E4C0;
-extern s32        D_dryfield_general_store_8017E55C;
-extern s32        D_dryfield_general_store_8017E560;
-extern s32        D_dryfield_general_store_8017E564;
-extern EvsCommand D_dryfield_general_store_8017E568[];
+extern TaskMessageEntry D_dryfield_general_store_8017E188[];
+extern s32              D_dryfield_general_store_8017E1B8;
+extern TaskDesc         D_dryfield_general_store_8017E4C0;
+extern s32              D_dryfield_general_store_8017E55C;
+extern s32              D_dryfield_general_store_8017E560;
+extern s32              D_dryfield_general_store_8017E564;
+extern EvsCommand       D_dryfield_general_store_8017E568[];
 
 static void func_dryfield_general_store_8017DEAC(Task* arg0);
 static void func_dryfield_general_store_8017DF4C(Task* task);
@@ -110,13 +110,13 @@ TaskDesc gStoreTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_dryfield_general_store_8017E188[6] = {
+TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
     { 5105, func_dryfield_general_store_8017DDF4 },
     { 5104, storeActionMsg },
     { 5106, func_dryfield_general_store_8017DDC0 },
-    { 5103, func_dryfield_general_store_8017DDFC },
-    { 0x7FFFFFFF, NULL },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_general_store_8017DDFC },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 D_dryfield_general_store_8017E1B8 = 0x90302;

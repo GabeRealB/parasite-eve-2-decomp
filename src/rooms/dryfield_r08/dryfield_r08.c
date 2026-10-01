@@ -578,7 +578,7 @@ void func_dryfield_r08_8017D8B4(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_dryfield_r08_8017DEFC(coord, work->index, work->scale, work->angle);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -672,7 +672,7 @@ void func_dryfield_r08_8017D8B4(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 12) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;
@@ -692,7 +692,7 @@ void func_dryfield_r08_8017D8B4(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 10) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;

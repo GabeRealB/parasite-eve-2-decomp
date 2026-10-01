@@ -35,7 +35,7 @@ static inline void waterDriftTaskU16(Task* task)
             }
             return;
         }
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
         return;
     }
     Gp_UpdateCoord(coord);
@@ -128,7 +128,7 @@ static inline void waterDriftTaskU16(Task* task)
     if ((work->age % work->period) == 0) {
         work->index++;
         if (work->index >= 8) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }
