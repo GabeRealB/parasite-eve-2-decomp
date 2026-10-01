@@ -365,8 +365,6 @@ extern AnimationSet D_actor_401800_80151C0C;
 extern AnimationSet D_actor_401800_8015256C;
 
 extern TmdSource D_actor_401800_80143918;
-s32              func_actor_401800_8013DDEC(Task*);
-s32              func_actor_401800_8013DF3C(Task*);
 s32              func_actor_401800_8013DF80(Task*, s32, u16*);
 void             func_actor_401800_8013DCB4(void);
 void             func_actor_401800_8013E68C(Task*);
@@ -1301,9 +1299,9 @@ Actor401800MessageEntry D_actor_401800_80155A80[8] = {
     { 2015, { .call5 = func_actor_401800_8013DCB4 } },
     { 2003, { .call1 = oddStrangerPlayMessage } },
     { 2005, { .call3 = actorMsgSetVisibility } },
-    { 2006, { .call0 = func_actor_401800_8013DDEC } },
+    { 2006, { .call0 = actorMsgIsPresent } },
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
-    { 2014, { .call0 = func_actor_401800_8013DF3C } },
+    { 2014, { .call0 = actorMsgReleaseHold } },
     { 2011, { .call4 = func_actor_401800_8013DF80 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -4156,42 +4154,11 @@ static const GpEnemyTaskFuncTable3 D_actor_401800_80132064 = { {
 
 #include "../../shared/actor_messages_visibility.inc.c"
 
-/// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
-/// if the model carries bit 0x80 or lacks bit 2, and 1 otherwise.
-s32 func_actor_401800_8013DDEC(Task* task)
-{
-    u16 flags;
-
-    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
-        flags = task->extra.tmd->flags;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            return 0;
-        }
-        if (flags & 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_is_present.inc.c"
 
 #include "../../shared/actor_messages_place_yaw.inc.c"
 
-/// Leaves state 0xD: to 0xE while the player has HP left, to 0x16 once it is
-/// gone. Any other state is left alone.
-s32 func_actor_401800_8013DF3C(Task* task)
-{
-    Actor401800Work* work = (Actor401800Work*)task->work;
-    PlayerStatus*    cfg  = &gPlayerStatus;
-
-    if (work->field_0 == 0xD) {
-        if (cfg->hp > 0) {
-            work->field_0 = 0xE;
-        } else {
-            work->field_0 = 0x16;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_release_hold.inc.c"
 
 /// Room request handler: copies the request's three leading bytes into the work
 /// block, then dispatches on the request's room id and state pair.

@@ -1292,17 +1292,15 @@ SVECTOR D_actor_401000_80154F30[12] = {
 };
 
 void func_actor_401000_8013D68C(void);
-s32  func_actor_401000_8013D7C4(Task*);
-s32  func_actor_401000_8013D914(Task*);
 s32  func_actor_401000_8013D958(Task*, s32, u16*);
 
 Actor401000MessageEntry D_actor_401000_80154F90[8] = {
     { 2015, { .call5 = func_actor_401000_8013D68C } },
     { 2003, { .call1 = oddStrangerPlayMessage } },
     { 2005, { .call3 = actorMsgSetVisibility } },
-    { 2006, { .call0 = func_actor_401000_8013D7C4 } },
+    { 2006, { .call0 = actorMsgIsPresent } },
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
-    { 2014, { .call0 = func_actor_401000_8013D914 } },
+    { 2014, { .call0 = actorMsgReleaseHold } },
     { 2011, { .call4 = func_actor_401000_8013D958 } },
     { 2147483647, { .call0 = NULL } },
 };
@@ -4270,42 +4268,11 @@ static const GpEnemyTaskFuncTable3 D_actor_401000_8013207C = { {
 
 #include "../../shared/actor_messages_visibility.inc.c"
 
-/// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
-/// if the model carries bit 0x80 or lacks bit 2, and 1 otherwise.
-s32 func_actor_401000_8013D7C4(Task* task)
-{
-    u16 flags;
-
-    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
-        flags = task->extra.tmd->flags;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            return 0;
-        }
-        if (flags & 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_is_present.inc.c"
 
 #include "../../shared/actor_messages_place_yaw.inc.c"
 
-/// Leaves state 0xD: to 0xE while the player has HP left, to 0x16 once it is
-/// gone. Any other state is left alone.
-s32 func_actor_401000_8013D914(Task* task)
-{
-    Actor401000Work* work = (Actor401000Work*)task->work;
-    PlayerStatus*    cfg  = &gPlayerStatus;
-
-    if (work->field_0 == 0xD) {
-        if (cfg->hp > 0) {
-            work->field_0 = 0xE;
-        } else {
-            work->field_0 = 0x16;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_release_hold.inc.c"
 
 /// Message 0x301 / 0x1002 handler: copies the payload's three leading bytes
 /// into `field_C18`, then keys the actor's state off the message id and sub-id

@@ -341,9 +341,7 @@ extern AnimationSet D_actor_401300_80158024;
 extern TmdSource    D_actor_401300_80147290;
 s32                 func_actor_401300_80132554(Task*, s32, Actor401300Event*);
 s32                 func_actor_401300_80141494(Task*, s32, AnimationPlayRequest*);
-s32                 func_actor_401300_801415C4(Task*);
 s32                 func_actor_401300_80141614(Task*, s32, ActorTransform* placement);
-s32                 func_actor_401300_80141714(Task*);
 void                func_actor_401300_8014148C(void);
 void                func_actor_401300_80141F2C(Task*);
 
@@ -1245,9 +1243,9 @@ Actor401300MessageEntry D_actor_401300_80158988[8] = {
     { 2015, { .call5 = func_actor_401300_8014148C } },
     { 2003, { .call2 = func_actor_401300_80141494 } },
     { 2005, { .call4 = actorMsgSetVisibility } },
-    { 2006, { .call0 = func_actor_401300_801415C4 } },
+    { 2006, { .call0 = actorMsgIsPresent } },
     { 2004, { .call3 = func_actor_401300_80141614 } },
-    { 2014, { .call0 = func_actor_401300_80141714 } },
+    { 2014, { .call0 = actorMsgReleaseHold } },
     { 2011, { .call1 = func_actor_401300_80132554 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -5768,23 +5766,7 @@ s32 func_actor_401300_80141494(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 
 #include "../../shared/actor_messages_visibility.inc.c"
 
-/// Returns 1 while the actor's enemy still has HP. Once it is down, returns 0
-/// if the model carries bit 0x80 or bit 2, and 1 otherwise.
-s32 func_actor_401300_801415C4(Task* task)
-{
-    u16 flags;
-
-    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
-        flags = task->extra.tmd->flags;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            return 0;
-        }
-        if (flags & 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_is_present.inc.c"
 
 /// Places the model's root coordinate from `placement`: sets its translation,
 /// applies the X, Y and Z rotations in turn, and caches the resulting heading
@@ -5811,22 +5793,7 @@ s32 func_actor_401300_80141614(Task* task, s32 arg1, ActorTransform* placement)
     return 1;
 }
 
-/// Leaves state 0xD: to 0xE while the player has HP left, to 0x16 once it is
-/// gone. Any other state is left alone.
-s32 func_actor_401300_80141714(Task* task)
-{
-    Actor401300Work* work = (Actor401300Work*)task->work;
-    PlayerStatus*    cfg  = &gPlayerStatus;
-
-    if (work->field_0 == 0xD) {
-        if (cfg->hp > 0) {
-            work->field_0 = 0xE;
-        } else {
-            work->field_0 = 0x16;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_release_hold.inc.c"
 
 static void func_actor_401300_80141758(Task* task)
 {

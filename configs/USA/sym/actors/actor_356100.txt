@@ -37,3 +37,5 @@ ActorContact_PushContact = 0x80162AEC; // type:func
 ActorContact_Push = 0x80162C90; // type:func
 actorMsgPlaceRecordYaw = 0x80169F74; // type:func
 actorMsgSetVisibility = 0x80169E64; // type:func
+actorMsgIsPresent = 0x80169F24; // type:func
+actorMsgReleaseHold = 0x8016A074; // type:func

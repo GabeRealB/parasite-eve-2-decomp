@@ -192,3 +192,5 @@ detectPlayerOutOfReach = 0x8013267C; // type:func
 actorMsgSetVisibility = 0x80141504; // type:func
 ActorContact_TurnJoint = 0x801320A4; // type:func
 ActorContact_PushContact = 0x801323B0; // type:func
+actorMsgIsPresent = 0x801415C4; // type:func
+actorMsgReleaseHold = 0x80141714; // type:func

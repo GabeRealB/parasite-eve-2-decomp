@@ -254,8 +254,6 @@ STATIC_ASSERT_SIZEOF(Actor356100MessageEntry, 8);
 
 extern TmdSource D_actor_356100_8016FC74;
 s32              func_actor_356100_80169E5C(void);
-s32              func_actor_356100_80169F24(Task*);
-s32              func_actor_356100_8016A074(Task*);
 s32              func_actor_356100_8016A0B8(Task*, s32, Actor356100Event*);
 void             func_actor_356100_8016A910(Task*);
 
@@ -679,9 +677,9 @@ AnimationPlayRequest D_actor_356100_80173244 = { { .sets = D_actor_356100_801732
 Actor356100MessageEntry D_actor_356100_80173258[7] = {
     { 2003, { .call0 = func_actor_356100_80169E5C } },
     { 2005, { .call4 = actorMsgSetVisibility } },
-    { 2006, { .call1 = func_actor_356100_80169F24 } },
+    { 2006, { .call1 = actorMsgIsPresent } },
     { 2004, { .call3 = actorMsgPlaceRecordYaw } },
-    { 2014, { .call1 = func_actor_356100_8016A074 } },
+    { 2014, { .call1 = actorMsgReleaseHold } },
     { 2011, { .call2 = func_actor_356100_8016A0B8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -3071,43 +3069,11 @@ s32 func_actor_356100_80169E5C(void)
 
 #include "../../shared/actor_messages_visibility.inc.c"
 
-/// Whether the actor should keep acting: 1 while its enemy still has HP;
-/// once it is down, 0 when active drawing is excluded or the model has
-/// flag 2 set, 1 otherwise.
-s32 func_actor_356100_80169F24(Task* task)
-{
-    u16 flags;
-
-    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
-        flags = task->extra.tmd->flags;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            return 0;
-        }
-        if (flags & 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_is_present.inc.c"
 
 #include "../../shared/actor_messages_place_yaw.inc.c"
 
-/// Moves the actor out of state 0xD: to 0xE while the player has HP left,
-/// to 0x16 once it has run out.
-s32 func_actor_356100_8016A074(Task* task)
-{
-    Actor356100Work* work = (Actor356100Work*)task->work;
-    PlayerStatus*    cfg  = &gPlayerStatus;
-
-    if (work->field_0 == 0xD) {
-        if (cfg->hp > 0) {
-            work->field_0 = 0xE;
-        } else {
-            work->field_0 = 0x16;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_release_hold.inc.c"
 
 s32 func_actor_356100_8016A0B8(Task* arg0, s32 arg1, Actor356100Event* arg2)
 {

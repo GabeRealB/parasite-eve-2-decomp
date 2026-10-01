@@ -184,3 +184,5 @@ oddStrangerTickBlended = 0x80132A84; // type:func
 oddStrangerDrive = 0x80132EF0; // type:func
 oddStrangerPlayMessage = 0x8013D694; // type:func
 oddStrangerAnimEvent = 0x80132BB0; // type:func
+actorMsgIsPresent = 0x8013D7C4; // type:func
+actorMsgReleaseHold = 0x8013D914; // type:func
