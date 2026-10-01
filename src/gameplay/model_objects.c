@@ -218,14 +218,21 @@ static inline void _tmdStoreFlatTriangleFacing(const POLY_F3* packet, s32* facin
     gte_stopz(facingArea);
 }
 
-/// Stores the signed screen-space area of a flat quad's first triangle.
+/// Stores the signed double area for a flat quad's first facing test.
 ///
-/// Reads word-aligned packed XY pairs 0..2 from `packet`, in signed pixel
-/// coordinates. `facingArea` addresses one word-aligned writable s32 and
-/// receives NCLIP's signed double area in square pixels; positive values
-/// accept this half. Leaves vertices 0..2 in SXY0..SXY2, so pushing vertex 3
-/// next tests vertices 1..3. All coordinate reads precede the result store;
-/// the buffers may overlap. Performs no projection and clobbers MAC0/FLAG.
+/// `packet` supplies projected vertices 0..2 as word-aligned packed XY pairs:
+/// signed 16-bit X in the low half and Y in the high half, both in pixels.
+/// Reads only those three pairs (12 bytes), not the header or vertex 3.
+/// `facingArea` addresses one word-aligned writable s32 and receives MAC0's
+/// signed 32-bit NCLIP result in square pixels; overflow is not checked.
+/// Positive results accept the quad's facing; zero or negative results require
+/// the caller's second-triangle test.
+///
+/// Leaves vertices 0..2 in SXY0..SXY2. Preserve that FIFO until pushing vertex 3
+/// to test vertices 1..3, whose accepted winding is negative. No prior GTE
+/// setup is required. Performs no projection or clipping and clobbers MAC0/FLAG.
+/// All coordinate reads precede the result store, so the buffers may overlap.
+/// Both pointers are borrowed for this call and are not retained.
 static inline void _tmdStoreFlatQuadFirstTriangleFacing(const POLY_F4* packet, s32* facingArea)
 {
     gte_ldSXYP(*(const u32*)&packet->x0);
