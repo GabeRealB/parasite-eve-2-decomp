@@ -429,23 +429,23 @@ void             func_actor_400600_8013A3B8(Task*);
 void             func_actor_400600_8013A3C0(Task*);
 
 TmdBone D_actor_400600_8013CC18[18] = {
-#include "assets/actor_400600_model_0FB74_skeleton.inc"
+#include "assets/zebra_stalker_body_skeleton.inc"
 };
 
 u32 D_actor_400600_8013CEA0[18] = {
-#include "assets/actor_400600_model_0FB74_partVerts.inc"
+#include "assets/zebra_stalker_body_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_8013CEE8[258] = {
-#include "assets/actor_400600_model_0FB74_verts.inc"
+#include "assets/zebra_stalker_body_verts.inc"
 };
 
 SVECTOR D_actor_400600_8013D6F8[290] = {
-#include "assets/actor_400600_model_0FB74_normals.inc"
+#include "assets/zebra_stalker_body_normals.inc"
 };
 
 u32 D_actor_400600_8013E008[3683] = {
-#include "assets/actor_400600_model_0FB74_stream.inc"
+#include "assets/zebra_stalker_body_stream.inc"
 };
 
 TmdSource D_actor_400600_80141994 = {
@@ -461,23 +461,23 @@ TmdSource D_actor_400600_80141994 = {
 };
 
 TmdBone D_actor_400600_801419B8[1] = {
-#include "assets/actor_400600_model_103EC_skeleton.inc"
+#include "assets/zebra_stalker_burst_head_skeleton.inc"
 };
 
 u32 D_actor_400600_801419DC[1] = {
-#include "assets/actor_400600_model_103EC_partVerts.inc"
+#include "assets/zebra_stalker_burst_head_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_801419E0[37] = {
-#include "assets/actor_400600_model_103EC_verts.inc"
+#include "assets/zebra_stalker_burst_head_verts.inc"
 };
 
 SVECTOR D_actor_400600_80141B08[45] = {
-#include "assets/actor_400600_model_103EC_normals.inc"
+#include "assets/zebra_stalker_burst_head_normals.inc"
 };
 
 u32 D_actor_400600_80141C70[359] = {
-#include "assets/actor_400600_model_103EC_stream.inc"
+#include "assets/zebra_stalker_burst_head_stream.inc"
 };
 
 TmdSource D_actor_400600_8014220C = {
@@ -493,23 +493,23 @@ TmdSource D_actor_400600_8014220C = {
 };
 
 TmdBone D_actor_400600_80142230[1] = {
-#include "assets/actor_400600_model_11140_skeleton.inc"
+#include "assets/stalker_ivory_zebra_burst_torso_skeleton.inc"
 };
 
 u32 D_actor_400600_80142254[1] = {
-#include "assets/actor_400600_model_11140_partVerts.inc"
+#include "assets/stalker_ivory_zebra_burst_torso_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_80142258[55] = {
-#include "assets/actor_400600_model_11140_verts.inc"
+#include "assets/stalker_ivory_zebra_burst_torso_verts.inc"
 };
 
 SVECTOR D_actor_400600_80142410[62] = {
-#include "assets/actor_400600_model_11140_normals.inc"
+#include "assets/stalker_ivory_zebra_burst_torso_normals.inc"
 };
 
 u32 D_actor_400600_80142600[600] = {
-#include "assets/actor_400600_model_11140_stream.inc"
+#include "assets/stalker_ivory_zebra_burst_torso_stream.inc"
 };
 
 TmdSource D_actor_400600_80142F60 = {
@@ -525,23 +525,23 @@ TmdSource D_actor_400600_80142F60 = {
 };
 
 TmdBone D_actor_400600_80142F84[1] = {
-#include "assets/actor_400600_model_117E4_skeleton.inc"
+#include "assets/stalker_ivory_zebra_effect_skeleton.inc"
 };
 
 u32 D_actor_400600_80142FA8[1] = {
-#include "assets/actor_400600_model_117E4_partVerts.inc"
+#include "assets/stalker_ivory_zebra_effect_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_80142FAC[27] = {
-#include "assets/actor_400600_model_117E4_verts.inc"
+#include "assets/stalker_ivory_zebra_effect_verts.inc"
 };
 
 SVECTOR D_actor_400600_80143084[34] = {
-#include "assets/actor_400600_model_117E4_normals.inc"
+#include "assets/stalker_ivory_zebra_effect_normals.inc"
 };
 
 u32 D_actor_400600_80143194[284] = {
-#include "assets/actor_400600_model_117E4_stream.inc"
+#include "assets/stalker_ivory_zebra_effect_stream.inc"
 };
 
 TmdSource D_actor_400600_80143604 = {
@@ -557,23 +557,23 @@ TmdSource D_actor_400600_80143604 = {
 };
 
 TmdBone D_actor_400600_80143628[1] = {
-#include "assets/actor_400600_model_11D04_skeleton.inc"
+#include "assets/stalker_ivory_zebra_burst_hand_left_skeleton.inc"
 };
 
 u32 D_actor_400600_8014364C[1] = {
-#include "assets/actor_400600_model_11D04_partVerts.inc"
+#include "assets/stalker_ivory_zebra_burst_hand_left_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_80143650[23] = {
-#include "assets/actor_400600_model_11D04_verts.inc"
+#include "assets/stalker_ivory_zebra_burst_hand_left_verts.inc"
 };
 
 SVECTOR D_actor_400600_80143708[26] = {
-#include "assets/actor_400600_model_11D04_normals.inc"
+#include "assets/stalker_ivory_zebra_burst_hand_left_normals.inc"
 };
 
 u32 D_actor_400600_801437D8[211] = {
-#include "assets/actor_400600_model_11D04_stream.inc"
+#include "assets/stalker_ivory_zebra_burst_hand_left_stream.inc"
 };
 
 TmdSource D_actor_400600_80143B24 = {
@@ -589,23 +589,23 @@ TmdSource D_actor_400600_80143B24 = {
 };
 
 TmdBone D_actor_400600_80143B48[1] = {
-#include "assets/actor_400600_model_1223C_skeleton.inc"
+#include "assets/zebra_stalker_burst_hand_right_skeleton.inc"
 };
 
 u32 D_actor_400600_80143B6C[1] = {
-#include "assets/actor_400600_model_1223C_partVerts.inc"
+#include "assets/zebra_stalker_burst_hand_right_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_80143B70[23] = {
-#include "assets/actor_400600_model_1223C_verts.inc"
+#include "assets/zebra_stalker_burst_hand_right_verts.inc"
 };
 
 SVECTOR D_actor_400600_80143C28[29] = {
-#include "assets/actor_400600_model_1223C_normals.inc"
+#include "assets/zebra_stalker_burst_hand_right_normals.inc"
 };
 
 u32 D_actor_400600_80143D10[211] = {
-#include "assets/actor_400600_model_1223C_stream.inc"
+#include "assets/zebra_stalker_burst_hand_right_stream.inc"
 };
 
 TmdSource D_actor_400600_8014405C = {
@@ -621,23 +621,23 @@ TmdSource D_actor_400600_8014405C = {
 };
 
 TmdBone D_actor_400600_80144080[1] = {
-#include "assets/actor_400600_model_126D8_skeleton.inc"
+#include "assets/zebra_stalker_burst_foot_left_skeleton.inc"
 };
 
 u32 D_actor_400600_801440A4[1] = {
-#include "assets/actor_400600_model_126D8_partVerts.inc"
+#include "assets/zebra_stalker_burst_foot_left_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_801440A8[19] = {
-#include "assets/actor_400600_model_126D8_verts.inc"
+#include "assets/zebra_stalker_burst_foot_left_verts.inc"
 };
 
 SVECTOR D_actor_400600_80144140[25] = {
-#include "assets/actor_400600_model_126D8_normals.inc"
+#include "assets/zebra_stalker_burst_foot_left_normals.inc"
 };
 
 u32 D_actor_400600_80144208[188] = {
-#include "assets/actor_400600_model_126D8_stream.inc"
+#include "assets/zebra_stalker_burst_foot_left_stream.inc"
 };
 
 TmdSource D_actor_400600_801444F8 = {
@@ -653,23 +653,23 @@ TmdSource D_actor_400600_801444F8 = {
 };
 
 TmdBone D_actor_400600_8014451C[1] = {
-#include "assets/actor_400600_model_12B74_skeleton.inc"
+#include "assets/stalker_ivory_zebra_burst_foot_right_skeleton.inc"
 };
 
 u32 D_actor_400600_80144540[1] = {
-#include "assets/actor_400600_model_12B74_partVerts.inc"
+#include "assets/stalker_ivory_zebra_burst_foot_right_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_80144544[19] = {
-#include "assets/actor_400600_model_12B74_verts.inc"
+#include "assets/stalker_ivory_zebra_burst_foot_right_verts.inc"
 };
 
 SVECTOR D_actor_400600_801445DC[25] = {
-#include "assets/actor_400600_model_12B74_normals.inc"
+#include "assets/stalker_ivory_zebra_burst_foot_right_normals.inc"
 };
 
 u32 D_actor_400600_801446A4[188] = {
-#include "assets/actor_400600_model_12B74_stream.inc"
+#include "assets/stalker_ivory_zebra_burst_foot_right_stream.inc"
 };
 
 TmdSource D_actor_400600_80144994 = {
@@ -685,23 +685,23 @@ TmdSource D_actor_400600_80144994 = {
 };
 
 TmdBone D_actor_400600_801449B8[1] = {
-#include "assets/actor_400600_model_12DEC_skeleton.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_actor_400600_skeleton.inc"
 };
 
 u32 D_actor_400600_801449DC[1] = {
-#include "assets/actor_400600_model_12DEC_partVerts.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_actor_400600_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_801449E0[10] = {
-#include "assets/actor_400600_model_12DEC_verts.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_actor_400600_verts.inc"
 };
 
 SVECTOR D_actor_400600_80144A30[17] = {
-#include "assets/actor_400600_model_12DEC_normals.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_actor_400600_normals.inc"
 };
 
 u32 D_actor_400600_80144AB8[85] = {
-#include "assets/actor_400600_model_12DEC_stream.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_actor_400600_stream.inc"
 };
 
 TmdSource D_actor_400600_80144C0C = {
@@ -717,23 +717,23 @@ TmdSource D_actor_400600_80144C0C = {
 };
 
 TmdBone D_actor_400600_80144C30[1] = {
-#include "assets/actor_400600_model_13064_skeleton.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_13064_skeleton.inc"
 };
 
 u32 D_actor_400600_80144C54[1] = {
-#include "assets/actor_400600_model_13064_partVerts.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_13064_partVerts.inc"
 };
 
 SVECTOR D_actor_400600_80144C58[10] = {
-#include "assets/actor_400600_model_13064_verts.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_13064_verts.inc"
 };
 
 SVECTOR D_actor_400600_80144CA8[17] = {
-#include "assets/actor_400600_model_13064_normals.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_13064_normals.inc"
 };
 
 u32 D_actor_400600_80144D30[85] = {
-#include "assets/actor_400600_model_13064_stream.inc"
+#include "assets/stalker_gray_ivory_zebra_burst_arm_left_13064_stream.inc"
 };
 
 TmdSource D_actor_400600_80144E84 = {

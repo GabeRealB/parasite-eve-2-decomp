@@ -208,23 +208,23 @@ TaskDesc D_actor_303600_80162E98[4] = {
 };
 
 TmdBone D_actor_303600_80162EC8[1] = {
-#include "assets/actor_303600_model_07284_skeleton.inc"
+#include "assets/actor_303600_model_02DD0_skeleton.inc"
 };
 
 u32 D_actor_303600_80162EEC[1] = {
-#include "assets/actor_303600_model_07284_partVerts.inc"
+#include "assets/actor_303600_model_02DD0_partVerts.inc"
 };
 
 SVECTOR D_actor_303600_80162EF0[458] = {
-#include "assets/actor_303600_model_07284_verts.inc"
+#include "assets/actor_303600_model_02DD0_verts.inc"
 };
 
 SVECTOR D_actor_303600_80163D40[470] = {
-#include "assets/actor_303600_model_07284_normals.inc"
+#include "assets/actor_303600_model_02DD0_normals.inc"
 };
 
 u32 D_actor_303600_80164BF0[4397] = {
-#include "assets/actor_303600_model_07284_stream.inc"
+#include "assets/actor_303600_model_02DD0_stream.inc"
 };
 
 TmdSource D_actor_303600_801690A4 = {
@@ -328,19 +328,19 @@ AnimationSet D_actor_303600_80169C7C = {
 };
 
 TmdBone D_actor_303600_80169CA4[1] = {
-#include "assets/actor_303600_model_085C4_skeleton.inc"
+#include "assets/actor_303600_model_0814C_skeleton.inc"
 };
 
 u32 D_actor_303600_80169CC8[1] = {
-#include "assets/actor_303600_model_085C4_partVerts.inc"
+#include "assets/actor_303600_model_0814C_partVerts.inc"
 };
 
 SVECTOR D_actor_303600_80169CCC[84] = {
-#include "assets/actor_303600_model_085C4_verts.inc"
+#include "assets/actor_303600_model_0814C_verts.inc"
 };
 
 u32 D_actor_303600_80169F6C[286] = {
-#include "assets/actor_303600_model_085C4_stream.inc"
+#include "assets/actor_303600_model_0814C_stream.inc"
 };
 
 TmdSource D_actor_303600_8016A3E4 = {

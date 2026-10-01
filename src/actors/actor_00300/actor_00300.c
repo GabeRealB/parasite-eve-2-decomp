@@ -276,23 +276,23 @@ void                Actor00300_Fn05138(Task*);
 void                Actor00300_Fn0521C(Task*);
 
 TmdBone Actor00300_D054B4[19] = {
-#include "assets/actor_100300_model_09E84_skeleton.inc"
+#include "assets/stinger_brain_puppet_body_skeleton.inc"
 };
 
 u32 Actor00300_D05760[19] = {
-#include "assets/actor_100300_model_09E84_partVerts.inc"
+#include "assets/stinger_brain_puppet_body_partVerts.inc"
 };
 
 SVECTOR Actor00300_D057AC[250] = {
-#include "assets/actor_100300_model_09E84_verts.inc"
+#include "assets/stinger_brain_puppet_body_verts.inc"
 };
 
 SVECTOR Actor00300_D05F7C[257] = {
-#include "assets/actor_100300_model_09E84_normals.inc"
+#include "assets/stinger_brain_puppet_body_normals.inc"
 };
 
 u32 Actor00300_D06784[3520] = {
-#include "assets/actor_100300_model_09E84_stream.inc"
+#include "assets/stinger_brain_puppet_body_stream.inc"
 };
 
 TmdSource Actor00300_D09E84 = {
@@ -308,23 +308,23 @@ TmdSource Actor00300_D09E84 = {
 };
 
 TmdBone Actor00300_D09EA8[1] = {
-#include "assets/actor_100300_model_0A120_skeleton.inc"
+#include "assets/actor_100300_model_09FA0_skeleton.inc"
 };
 
 u32 Actor00300_D09ECC[1] = {
-#include "assets/actor_100300_model_0A120_partVerts.inc"
+#include "assets/actor_100300_model_09FA0_partVerts.inc"
 };
 
 SVECTOR Actor00300_D09ED0[13] = {
-#include "assets/actor_100300_model_0A120_verts.inc"
+#include "assets/actor_100300_model_09FA0_verts.inc"
 };
 
 SVECTOR Actor00300_D09F38[13] = {
-#include "assets/actor_100300_model_0A120_normals.inc"
+#include "assets/actor_100300_model_09FA0_normals.inc"
 };
 
 u32 Actor00300_D09FA0[96] = {
-#include "assets/actor_100300_model_0A120_stream.inc"
+#include "assets/actor_100300_model_09FA0_stream.inc"
 };
 
 TmdSource Actor00300_D0A120 = {
@@ -340,23 +340,23 @@ TmdSource Actor00300_D0A120 = {
 };
 
 TmdBone Actor00300_D0A144[1] = {
-#include "assets/actor_100300_model_0AA18_skeleton.inc"
+#include "assets/brain_stinger_burst_head_skeleton.inc"
 };
 
 u32 Actor00300_D0A168[1] = {
-#include "assets/actor_100300_model_0AA18_partVerts.inc"
+#include "assets/brain_stinger_burst_head_partVerts.inc"
 };
 
 SVECTOR Actor00300_D0A16C[40] = {
-#include "assets/actor_100300_model_0AA18_verts.inc"
+#include "assets/brain_stinger_burst_head_verts.inc"
 };
 
 SVECTOR Actor00300_D0A2AC[40] = {
-#include "assets/actor_100300_model_0AA18_normals.inc"
+#include "assets/brain_stinger_burst_head_normals.inc"
 };
 
 u32 Actor00300_D0A3EC[395] = {
-#include "assets/actor_100300_model_0AA18_stream.inc"
+#include "assets/brain_stinger_burst_head_stream.inc"
 };
 
 TmdSource Actor00300_D0AA18 = {
@@ -372,23 +372,23 @@ TmdSource Actor00300_D0AA18 = {
 };
 
 TmdBone Actor00300_D0AA3C[1] = {
-#include "assets/actor_100300_model_0AECC_skeleton.inc"
+#include "assets/actor_100300_model_0ABC4_skeleton.inc"
 };
 
 u32 Actor00300_D0AA60[1] = {
-#include "assets/actor_100300_model_0AECC_partVerts.inc"
+#include "assets/actor_100300_model_0ABC4_partVerts.inc"
 };
 
 SVECTOR Actor00300_D0AA64[22] = {
-#include "assets/actor_100300_model_0AECC_verts.inc"
+#include "assets/actor_100300_model_0ABC4_verts.inc"
 };
 
 SVECTOR Actor00300_D0AB14[22] = {
-#include "assets/actor_100300_model_0AECC_normals.inc"
+#include "assets/actor_100300_model_0ABC4_normals.inc"
 };
 
 u32 Actor00300_D0ABC4[194] = {
-#include "assets/actor_100300_model_0AECC_stream.inc"
+#include "assets/actor_100300_model_0ABC4_stream.inc"
 };
 
 TmdSource Actor00300_D0AECC = {
@@ -404,23 +404,23 @@ TmdSource Actor00300_D0AECC = {
 };
 
 TmdBone Actor00300_D0AEF0[1] = {
-#include "assets/actor_100300_model_0B640_skeleton.inc"
+#include "assets/actor_100300_model_0B128_skeleton.inc"
 };
 
 u32 Actor00300_D0AF14[1] = {
-#include "assets/actor_100300_model_0B640_partVerts.inc"
+#include "assets/actor_100300_model_0B128_partVerts.inc"
 };
 
 SVECTOR Actor00300_D0AF18[33] = {
-#include "assets/actor_100300_model_0B640_verts.inc"
+#include "assets/actor_100300_model_0B128_verts.inc"
 };
 
 SVECTOR Actor00300_D0B020[33] = {
-#include "assets/actor_100300_model_0B640_normals.inc"
+#include "assets/actor_100300_model_0B128_normals.inc"
 };
 
 u32 Actor00300_D0B128[326] = {
-#include "assets/actor_100300_model_0B640_stream.inc"
+#include "assets/actor_100300_model_0B128_stream.inc"
 };
 
 TmdSource Actor00300_D0B640 = {
@@ -436,23 +436,23 @@ TmdSource Actor00300_D0B640 = {
 };
 
 TmdBone Actor00300_D0B664[1] = {
-#include "assets/actor_100300_model_0BE44_skeleton.inc"
+#include "assets/actor_100300_model_0B8AC_skeleton.inc"
 };
 
 u32 Actor00300_D0B688[1] = {
-#include "assets/actor_100300_model_0BE44_partVerts.inc"
+#include "assets/actor_100300_model_0B8AC_partVerts.inc"
 };
 
 SVECTOR Actor00300_D0B68C[34] = {
-#include "assets/actor_100300_model_0BE44_verts.inc"
+#include "assets/actor_100300_model_0B8AC_verts.inc"
 };
 
 SVECTOR Actor00300_D0B79C[34] = {
-#include "assets/actor_100300_model_0BE44_normals.inc"
+#include "assets/actor_100300_model_0B8AC_normals.inc"
 };
 
 u32 Actor00300_D0B8AC[358] = {
-#include "assets/actor_100300_model_0BE44_stream.inc"
+#include "assets/actor_100300_model_0B8AC_stream.inc"
 };
 
 TmdSource Actor00300_D0BE44 = {
@@ -468,23 +468,23 @@ TmdSource Actor00300_D0BE44 = {
 };
 
 TmdBone Actor00300_D0BE68[1] = {
-#include "assets/actor_100300_model_0C2C4_skeleton.inc"
+#include "assets/actor_100300_model_0BFC0_skeleton.inc"
 };
 
 u32 Actor00300_D0BE8C[1] = {
-#include "assets/actor_100300_model_0C2C4_partVerts.inc"
+#include "assets/actor_100300_model_0BFC0_partVerts.inc"
 };
 
 SVECTOR Actor00300_D0BE90[19] = {
-#include "assets/actor_100300_model_0C2C4_verts.inc"
+#include "assets/actor_100300_model_0BFC0_verts.inc"
 };
 
 SVECTOR Actor00300_D0BF28[19] = {
-#include "assets/actor_100300_model_0C2C4_normals.inc"
+#include "assets/actor_100300_model_0BFC0_normals.inc"
 };
 
 u32 Actor00300_D0BFC0[193] = {
-#include "assets/actor_100300_model_0C2C4_stream.inc"
+#include "assets/actor_100300_model_0BFC0_stream.inc"
 };
 
 TmdSource Actor00300_D0C2C4 = {

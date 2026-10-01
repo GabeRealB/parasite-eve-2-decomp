@@ -395,23 +395,23 @@ DamageAttack Actor01100_D074F8[6] = { { 0, 0 }, { 10, 0 }, { 10, 0 }, { 30, 7 },
 EnemyParams Actor01100_D07510 = { Actor01100_D074F8, 450, 204, 152, 6, 200, 5, 100, 10 };
 
 TmdBone Actor01100_D07520[21] = {
-#include "assets/actor_101100_model_0CB28_skeleton.inc"
+#include "assets/brute_mossback_body_skeleton.inc"
 };
 
 u32 Actor01100_D07814[21] = {
-#include "assets/actor_101100_model_0CB28_partVerts.inc"
+#include "assets/brute_mossback_body_partVerts.inc"
 };
 
 SVECTOR Actor01100_D07868[303] = {
-#include "assets/actor_101100_model_0CB28_verts.inc"
+#include "assets/brute_mossback_body_verts.inc"
 };
 
 SVECTOR Actor01100_D081E0[303] = {
-#include "assets/actor_101100_model_0CB28_normals.inc"
+#include "assets/brute_mossback_body_normals.inc"
 };
 
 u32 Actor01100_D08B58[4084] = {
-#include "assets/actor_101100_model_0CB28_stream.inc"
+#include "assets/brute_mossback_body_stream.inc"
 };
 
 TmdSource Actor01100_D0CB28 = {
@@ -427,23 +427,23 @@ TmdSource Actor01100_D0CB28 = {
 };
 
 TmdBone Actor01100_D0CB4C[1] = {
-#include "assets/actor_101100_model_0D04C_skeleton.inc"
+#include "assets/brute_mossback_burst_leg_skeleton.inc"
 };
 
 u32 Actor01100_D0CB70[1] = {
-#include "assets/actor_101100_model_0D04C_partVerts.inc"
+#include "assets/brute_mossback_burst_leg_partVerts.inc"
 };
 
 SVECTOR Actor01100_D0CB74[24] = {
-#include "assets/actor_101100_model_0D04C_verts.inc"
+#include "assets/brute_mossback_burst_leg_verts.inc"
 };
 
 SVECTOR Actor01100_D0CC34[25] = {
-#include "assets/actor_101100_model_0D04C_normals.inc"
+#include "assets/brute_mossback_burst_leg_normals.inc"
 };
 
 u32 Actor01100_D0CCFC[212] = {
-#include "assets/actor_101100_model_0D04C_stream.inc"
+#include "assets/brute_mossback_burst_leg_stream.inc"
 };
 
 TmdSource Actor01100_D0D04C = {
@@ -459,23 +459,23 @@ TmdSource Actor01100_D0D04C = {
 };
 
 TmdBone Actor01100_D0D070[1] = {
-#include "assets/actor_101100_model_0D8F4_skeleton.inc"
+#include "assets/brute_mossback_burst_arm_skeleton.inc"
 };
 
 u32 Actor01100_D0D094[1] = {
-#include "assets/actor_101100_model_0D8F4_partVerts.inc"
+#include "assets/brute_mossback_burst_arm_partVerts.inc"
 };
 
 SVECTOR Actor01100_D0D098[38] = {
-#include "assets/actor_101100_model_0D8F4_verts.inc"
+#include "assets/brute_mossback_burst_arm_verts.inc"
 };
 
 SVECTOR Actor01100_D0D1C8[49] = {
-#include "assets/actor_101100_model_0D8F4_normals.inc"
+#include "assets/brute_mossback_burst_arm_normals.inc"
 };
 
 u32 Actor01100_D0D350[361] = {
-#include "assets/actor_101100_model_0D8F4_stream.inc"
+#include "assets/brute_mossback_burst_arm_stream.inc"
 };
 
 TmdSource Actor01100_D0D8F4 = {
@@ -491,23 +491,23 @@ TmdSource Actor01100_D0D8F4 = {
 };
 
 TmdBone Actor01100_D0D918[1] = {
-#include "assets/actor_101100_model_0E4DC_skeleton.inc"
+#include "assets/brute_mossback_burst_head_skeleton.inc"
 };
 
 u32 Actor01100_D0D93C[1] = {
-#include "assets/actor_101100_model_0E4DC_partVerts.inc"
+#include "assets/brute_mossback_burst_head_partVerts.inc"
 };
 
 SVECTOR Actor01100_D0D940[59] = {
-#include "assets/actor_101100_model_0E4DC_verts.inc"
+#include "assets/brute_mossback_burst_head_verts.inc"
 };
 
 SVECTOR Actor01100_D0DB18[66] = {
-#include "assets/actor_101100_model_0E4DC_normals.inc"
+#include "assets/brute_mossback_burst_head_normals.inc"
 };
 
 u32 Actor01100_D0DD28[493] = {
-#include "assets/actor_101100_model_0E4DC_stream.inc"
+#include "assets/brute_mossback_burst_head_stream.inc"
 };
 
 TmdSource Actor01100_D0E4DC = {

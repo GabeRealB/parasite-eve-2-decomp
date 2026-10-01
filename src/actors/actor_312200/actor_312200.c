@@ -160,23 +160,23 @@ s32              func_actor_312200_801636CC(Task*, s32, ActorCommand* msg);
 void             func_actor_312200_80163854(Task*);
 
 TmdBone D_actor_312200_801638B0[19] = {
-#include "assets/actor_312200_model_06328_skeleton.inc"
+#include "assets/swat_member_1_body_skeleton.inc"
 };
 
 u32 D_actor_312200_80163B5C[19] = {
-#include "assets/actor_312200_model_06328_partVerts.inc"
+#include "assets/swat_member_1_body_partVerts.inc"
 };
 
 SVECTOR D_actor_312200_80163BA8[296] = {
-#include "assets/actor_312200_model_06328_verts.inc"
+#include "assets/swat_member_1_body_verts.inc"
 };
 
 SVECTOR D_actor_312200_801644E8[294] = {
-#include "assets/actor_312200_model_06328_normals.inc"
+#include "assets/swat_member_1_body_normals.inc"
 };
 
 u32 D_actor_312200_80164E18[3276] = {
-#include "assets/actor_312200_model_06328_stream.inc"
+#include "assets/swat_member_1_body_stream.inc"
 };
 
 TmdSource D_actor_312200_80168148 = {

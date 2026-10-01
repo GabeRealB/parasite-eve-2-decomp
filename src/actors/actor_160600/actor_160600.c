@@ -734,23 +734,23 @@ EvsCommand D_actor_160600_80136258[16] = {
 };
 
 TmdBone D_actor_160600_801363D8[20] = {
-#include "assets/actor_160600_model_09C7C_skeleton.inc"
+#include "assets/soldier_a_body_skeleton.inc"
 };
 
 u32 D_actor_160600_801366A8[20] = {
-#include "assets/actor_160600_model_09C7C_partVerts.inc"
+#include "assets/soldier_a_body_partVerts.inc"
 };
 
 SVECTOR D_actor_160600_801366F8[363] = {
-#include "assets/actor_160600_model_09C7C_verts.inc"
+#include "assets/soldier_a_body_verts.inc"
 };
 
 SVECTOR D_actor_160600_80137250[360] = {
-#include "assets/actor_160600_model_09C7C_normals.inc"
+#include "assets/soldier_a_body_normals.inc"
 };
 
 u32 D_actor_160600_80137D90[3907] = {
-#include "assets/actor_160600_model_09C7C_stream.inc"
+#include "assets/soldier_a_body_stream.inc"
 };
 
 TmdSource D_actor_160600_8013BA9C = {

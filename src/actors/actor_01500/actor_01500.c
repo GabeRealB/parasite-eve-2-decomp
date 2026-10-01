@@ -176,23 +176,23 @@ static const GpEnemyTaskFuncTable3 Actor01500_D00004 = {
 static void Actor01500_Fn02428(Task*);
 
 TmdBone Actor01500_D02D28[7] = {
-#include "assets/actor_101500_model_0428C_skeleton.inc"
+#include "assets/mind_suckler_body_skeleton.inc"
 };
 
 u32 Actor01500_D02E24[7] = {
-#include "assets/actor_101500_model_0428C_partVerts.inc"
+#include "assets/mind_suckler_body_partVerts.inc"
 };
 
 SVECTOR Actor01500_D02E40[90] = {
-#include "assets/actor_101500_model_0428C_verts.inc"
+#include "assets/mind_suckler_body_verts.inc"
 };
 
 SVECTOR Actor01500_D03110[96] = {
-#include "assets/actor_101500_model_0428C_normals.inc"
+#include "assets/mind_suckler_body_normals.inc"
 };
 
 u32 Actor01500_D03410[927] = {
-#include "assets/actor_101500_model_0428C_stream.inc"
+#include "assets/mind_suckler_body_stream.inc"
 };
 
 TmdSource Actor01500_D0428C = {
@@ -208,23 +208,23 @@ TmdSource Actor01500_D0428C = {
 };
 
 TmdBone Actor01500_D042B0[1] = {
-#include "assets/actor_101500_model_0458C_skeleton.inc"
+#include "assets/mind_suckler_burst_head_skeleton.inc"
 };
 
 u32 Actor01500_D042D4[1] = {
-#include "assets/actor_101500_model_0458C_partVerts.inc"
+#include "assets/mind_suckler_burst_head_partVerts.inc"
 };
 
 SVECTOR Actor01500_D042D8[13] = {
-#include "assets/actor_101500_model_0458C_verts.inc"
+#include "assets/mind_suckler_burst_head_verts.inc"
 };
 
 SVECTOR Actor01500_D04340[13] = {
-#include "assets/actor_101500_model_0458C_normals.inc"
+#include "assets/mind_suckler_burst_head_normals.inc"
 };
 
 u32 Actor01500_D043A8[121] = {
-#include "assets/actor_101500_model_0458C_stream.inc"
+#include "assets/mind_suckler_burst_head_stream.inc"
 };
 
 TmdSource Actor01500_D0458C = {
@@ -240,23 +240,23 @@ TmdSource Actor01500_D0458C = {
 };
 
 TmdBone Actor01500_D045B0[1] = {
-#include "assets/actor_101500_model_046D0_skeleton.inc"
+#include "assets/mind_suckler_burst_wing_skeleton.inc"
 };
 
 u32 Actor01500_D045D4[1] = {
-#include "assets/actor_101500_model_046D0_partVerts.inc"
+#include "assets/mind_suckler_burst_wing_partVerts.inc"
 };
 
 SVECTOR Actor01500_D045D8[5] = {
-#include "assets/actor_101500_model_046D0_verts.inc"
+#include "assets/mind_suckler_burst_wing_verts.inc"
 };
 
 SVECTOR Actor01500_D04600[5] = {
-#include "assets/actor_101500_model_046D0_normals.inc"
+#include "assets/mind_suckler_burst_wing_normals.inc"
 };
 
 u32 Actor01500_D04628[42] = {
-#include "assets/actor_101500_model_046D0_stream.inc"
+#include "assets/mind_suckler_burst_wing_stream.inc"
 };
 
 TmdSource Actor01500_D046D0 = {
@@ -272,23 +272,23 @@ TmdSource Actor01500_D046D0 = {
 };
 
 TmdBone Actor01500_D046F4[1] = {
-#include "assets/actor_101500_model_048BC_skeleton.inc"
+#include "assets/mind_suckler_burst_stinger_skeleton.inc"
 };
 
 u32 Actor01500_D04718[1] = {
-#include "assets/actor_101500_model_048BC_partVerts.inc"
+#include "assets/mind_suckler_burst_stinger_partVerts.inc"
 };
 
 SVECTOR Actor01500_D0471C[9] = {
-#include "assets/actor_101500_model_048BC_verts.inc"
+#include "assets/mind_suckler_burst_stinger_verts.inc"
 };
 
 SVECTOR Actor01500_D04764[9] = {
-#include "assets/actor_101500_model_048BC_normals.inc"
+#include "assets/mind_suckler_burst_stinger_normals.inc"
 };
 
 u32 Actor01500_D047AC[68] = {
-#include "assets/actor_101500_model_048BC_stream.inc"
+#include "assets/mind_suckler_burst_stinger_stream.inc"
 };
 
 TmdSource Actor01500_D048BC = {
@@ -304,23 +304,23 @@ TmdSource Actor01500_D048BC = {
 };
 
 TmdBone Actor01500_D048E0[1] = {
-#include "assets/actor_101500_model_04A94_skeleton.inc"
+#include "assets/mind_suckler_burst_tail_skeleton.inc"
 };
 
 u32 Actor01500_D04904[1] = {
-#include "assets/actor_101500_model_04A94_partVerts.inc"
+#include "assets/mind_suckler_burst_tail_partVerts.inc"
 };
 
 SVECTOR Actor01500_D04908[9] = {
-#include "assets/actor_101500_model_04A94_verts.inc"
+#include "assets/mind_suckler_burst_tail_verts.inc"
 };
 
 SVECTOR Actor01500_D04950[9] = {
-#include "assets/actor_101500_model_04A94_normals.inc"
+#include "assets/mind_suckler_burst_tail_normals.inc"
 };
 
 u32 Actor01500_D04998[63] = {
-#include "assets/actor_101500_model_04A94_stream.inc"
+#include "assets/mind_suckler_burst_tail_stream.inc"
 };
 
 TmdSource Actor01500_D04A94 = {

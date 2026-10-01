@@ -192,23 +192,23 @@ static void Actor03700_Fn02FA8(Task*);
 s32 Actor03700_Fn034F8(Task*, s32, s32, s32);
 
 TmdBone Actor03700_D03638[6] = {
-#include "assets/actor_103700_model_04200_skeleton.inc"
+#include "assets/bat_body_skeleton.inc"
 };
 
 u32 Actor03700_D03710[6] = {
-#include "assets/actor_103700_model_04200_partVerts.inc"
+#include "assets/bat_body_partVerts.inc"
 };
 
 SVECTOR Actor03700_D03728[74] = {
-#include "assets/actor_103700_model_04200_verts.inc"
+#include "assets/bat_body_verts.inc"
 };
 
 SVECTOR Actor03700_D03978[61] = {
-#include "assets/actor_103700_model_04200_normals.inc"
+#include "assets/bat_body_normals.inc"
 };
 
 u32 Actor03700_D03B60[424] = {
-#include "assets/actor_103700_model_04200_stream.inc"
+#include "assets/bat_body_stream.inc"
 };
 
 TmdSource Actor03700_D04200 = {
@@ -224,23 +224,23 @@ TmdSource Actor03700_D04200 = {
 };
 
 TmdBone Actor03700_D04224[1] = {
-#include "assets/actor_103700_model_043FC_skeleton.inc"
+#include "assets/bat_burst_wing_right_skeleton.inc"
 };
 
 u32 Actor03700_D04248[1] = {
-#include "assets/actor_103700_model_043FC_partVerts.inc"
+#include "assets/bat_burst_wing_right_partVerts.inc"
 };
 
 SVECTOR Actor03700_D0424C[16] = {
-#include "assets/actor_103700_model_043FC_verts.inc"
+#include "assets/bat_burst_wing_right_verts.inc"
 };
 
 SVECTOR Actor03700_D042CC[11] = {
-#include "assets/actor_103700_model_043FC_normals.inc"
+#include "assets/bat_burst_wing_right_normals.inc"
 };
 
 u32 Actor03700_D04324[54] = {
-#include "assets/actor_103700_model_043FC_stream.inc"
+#include "assets/bat_burst_wing_right_stream.inc"
 };
 
 TmdSource Actor03700_D043FC = {
@@ -256,23 +256,23 @@ TmdSource Actor03700_D043FC = {
 };
 
 TmdBone Actor03700_D04420[1] = {
-#include "assets/actor_103700_model_04600_skeleton.inc"
+#include "assets/bat_burst_wing_left_skeleton.inc"
 };
 
 u32 Actor03700_D04444[1] = {
-#include "assets/actor_103700_model_04600_partVerts.inc"
+#include "assets/bat_burst_wing_left_partVerts.inc"
 };
 
 SVECTOR Actor03700_D04448[16] = {
-#include "assets/actor_103700_model_04600_verts.inc"
+#include "assets/bat_burst_wing_left_verts.inc"
 };
 
 SVECTOR Actor03700_D044C8[12] = {
-#include "assets/actor_103700_model_04600_normals.inc"
+#include "assets/bat_burst_wing_left_normals.inc"
 };
 
 u32 Actor03700_D04528[54] = {
-#include "assets/actor_103700_model_04600_stream.inc"
+#include "assets/bat_burst_wing_left_stream.inc"
 };
 
 TmdSource Actor03700_D04600 = {

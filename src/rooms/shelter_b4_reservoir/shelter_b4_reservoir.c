@@ -217,19 +217,19 @@ TaskDesc D_shelter_b4_reservoir_80184724[2] = {
 s32 gScreenWaveRamp = 256;
 
 TmdBone D_shelter_b4_reservoir_80184740[1] = {
-#include "assets/shelter_b4_reservoir_model_072D8_skeleton.inc"
+#include "assets/shelter_b4_reservoir_model_07220_skeleton.inc"
 };
 
 u32 D_shelter_b4_reservoir_80184764[1] = {
-#include "assets/shelter_b4_reservoir_model_072D8_partVerts.inc"
+#include "assets/shelter_b4_reservoir_model_07220_partVerts.inc"
 };
 
 SVECTOR D_shelter_b4_reservoir_80184768[15] = {
-#include "assets/shelter_b4_reservoir_model_072D8_verts.inc"
+#include "assets/shelter_b4_reservoir_model_07220_verts.inc"
 };
 
 u32 D_shelter_b4_reservoir_801847E0[46] = {
-#include "assets/shelter_b4_reservoir_model_072D8_stream.inc"
+#include "assets/shelter_b4_reservoir_model_07220_stream.inc"
 };
 
 TmdSource D_shelter_b4_reservoir_80184898 = {

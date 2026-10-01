@@ -1031,23 +1031,23 @@ Actor503500UVec D_actor_503500_801715DC = { 0 };
 Actor503500UVec D_actor_503500_801715E4 = { 0, 500, 6000, 0 };
 
 TmdBone D_actor_503500_801715EC[19] = {
-#include "assets/actor_503500_model_43FA8_skeleton.inc"
+#include "assets/actor_361100_model_06038_skeleton.inc"
 };
 
 u32 D_actor_503500_80171898[19] = {
-#include "assets/actor_503500_model_43FA8_partVerts.inc"
+#include "assets/actor_361100_model_06038_partVerts.inc"
 };
 
 SVECTOR D_actor_503500_801718E4[258] = {
-#include "assets/actor_503500_model_43FA8_verts.inc"
+#include "assets/actor_361100_model_06038_verts.inc"
 };
 
 SVECTOR D_actor_503500_801720F4[270] = {
-#include "assets/actor_503500_model_43FA8_normals.inc"
+#include "assets/actor_361100_model_06038_normals.inc"
 };
 
 u32 D_actor_503500_80172964[3353] = {
-#include "assets/actor_503500_model_43FA8_stream.inc"
+#include "assets/actor_361100_model_06038_stream.inc"
 };
 
 TmdSource D_actor_503500_80175DC8 = {

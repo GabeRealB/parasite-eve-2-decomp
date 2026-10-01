@@ -103,23 +103,23 @@ s32 func_actor_341700_8016CEB4(Task*, s32, ActorCommand* cmd);
 #include "../../shared/actor_contacts.h"
 
 TmdBone D_actor_341700_80174DC4[11] = {
-#include "assets/actor_341700_model_14118_skeleton.inc"
+#include "assets/actor_341700_model_13558_skeleton.inc"
 };
 
 u32 D_actor_341700_80174F50[11] = {
-#include "assets/actor_341700_model_14118_partVerts.inc"
+#include "assets/actor_341700_model_13558_partVerts.inc"
 };
 
 SVECTOR D_actor_341700_80174F7C[81] = {
-#include "assets/actor_341700_model_14118_verts.inc"
+#include "assets/actor_341700_model_13558_verts.inc"
 };
 
 SVECTOR D_actor_341700_80175204[46] = {
-#include "assets/actor_341700_model_14118_normals.inc"
+#include "assets/actor_341700_model_13558_normals.inc"
 };
 
 u32 D_actor_341700_80175374[753] = {
-#include "assets/actor_341700_model_14118_stream.inc"
+#include "assets/actor_341700_model_13558_stream.inc"
 };
 
 TmdSource D_actor_341700_80175F38 = {

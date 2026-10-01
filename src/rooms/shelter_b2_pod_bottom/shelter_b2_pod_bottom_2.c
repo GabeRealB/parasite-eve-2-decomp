@@ -60,23 +60,23 @@ static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 ar
 static s16 D_shelter_b2_pod_bottom_801887F0[8];
 
 TmdBone D_shelter_b2_pod_bottom_801876D0[1] = {
-#include "assets/shelter_b2_pod_bottom_model_0A550_skeleton.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A2A0_skeleton.inc"
 };
 
 u32 D_shelter_b2_pod_bottom_801876F4[1] = {
-#include "assets/shelter_b2_pod_bottom_model_0A550_partVerts.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A2A0_partVerts.inc"
 };
 
 SVECTOR D_shelter_b2_pod_bottom_801876F8[16] = {
-#include "assets/shelter_b2_pod_bottom_model_0A550_verts.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A2A0_verts.inc"
 };
 
 SVECTOR D_shelter_b2_pod_bottom_80187778[29] = {
-#include "assets/shelter_b2_pod_bottom_model_0A550_normals.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A2A0_normals.inc"
 };
 
 u32 D_shelter_b2_pod_bottom_80187860[172] = {
-#include "assets/shelter_b2_pod_bottom_model_0A550_stream.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A2A0_stream.inc"
 };
 
 TmdSource D_shelter_b2_pod_bottom_80187B10 = {
@@ -92,23 +92,23 @@ TmdSource D_shelter_b2_pod_bottom_80187B10 = {
 };
 
 TmdBone D_shelter_b2_pod_bottom_80187B34[1] = {
-#include "assets/shelter_b2_pod_bottom_model_0A854_skeleton.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A68C_skeleton.inc"
 };
 
 u32 D_shelter_b2_pod_bottom_80187B58[1] = {
-#include "assets/shelter_b2_pod_bottom_model_0A854_partVerts.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A68C_partVerts.inc"
 };
 
 SVECTOR D_shelter_b2_pod_bottom_80187B5C[11] = {
-#include "assets/shelter_b2_pod_bottom_model_0A854_verts.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A68C_verts.inc"
 };
 
 SVECTOR D_shelter_b2_pod_bottom_80187BB4[19] = {
-#include "assets/shelter_b2_pod_bottom_model_0A854_normals.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A68C_normals.inc"
 };
 
 u32 D_shelter_b2_pod_bottom_80187C4C[114] = {
-#include "assets/shelter_b2_pod_bottom_model_0A854_stream.inc"
+#include "assets/shelter_b2_pod_bottom_model_0A68C_stream.inc"
 };
 
 TmdSource D_shelter_b2_pod_bottom_80187E14 = {
@@ -124,23 +124,23 @@ TmdSource D_shelter_b2_pod_bottom_80187E14 = {
 };
 
 TmdBone D_shelter_b2_pod_bottom_80187E38[1] = {
-#include "assets/shelter_b2_pod_bottom_model_0ACA4_skeleton.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AA08_skeleton.inc"
 };
 
 u32 D_shelter_b2_pod_bottom_80187E5C[1] = {
-#include "assets/shelter_b2_pod_bottom_model_0ACA4_partVerts.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AA08_partVerts.inc"
 };
 
 SVECTOR D_shelter_b2_pod_bottom_80187E60[16] = {
-#include "assets/shelter_b2_pod_bottom_model_0ACA4_verts.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AA08_verts.inc"
 };
 
 SVECTOR D_shelter_b2_pod_bottom_80187EE0[29] = {
-#include "assets/shelter_b2_pod_bottom_model_0ACA4_normals.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AA08_normals.inc"
 };
 
 u32 D_shelter_b2_pod_bottom_80187FC8[167] = {
-#include "assets/shelter_b2_pod_bottom_model_0ACA4_stream.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AA08_stream.inc"
 };
 
 TmdSource D_shelter_b2_pod_bottom_80188264 = {
@@ -156,23 +156,23 @@ TmdSource D_shelter_b2_pod_bottom_80188264 = {
 };
 
 TmdBone D_shelter_b2_pod_bottom_80188288[1] = {
-#include "assets/shelter_b2_pod_bottom_model_0B08C_skeleton.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AE48_skeleton.inc"
 };
 
 u32 D_shelter_b2_pod_bottom_801882AC[1] = {
-#include "assets/shelter_b2_pod_bottom_model_0B08C_partVerts.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AE48_partVerts.inc"
 };
 
 SVECTOR D_shelter_b2_pod_bottom_801882B0[15] = {
-#include "assets/shelter_b2_pod_bottom_model_0B08C_verts.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AE48_verts.inc"
 };
 
 SVECTOR D_shelter_b2_pod_bottom_80188328[28] = {
-#include "assets/shelter_b2_pod_bottom_model_0B08C_normals.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AE48_normals.inc"
 };
 
 u32 D_shelter_b2_pod_bottom_80188408[145] = {
-#include "assets/shelter_b2_pod_bottom_model_0B08C_stream.inc"
+#include "assets/shelter_b2_pod_bottom_model_0AE48_stream.inc"
 };
 
 TmdSource D_shelter_b2_pod_bottom_8018864C = {

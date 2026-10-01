@@ -271,19 +271,19 @@ EvsCommand D_dryfield_junk_yard_8017E658[11] = {
 };
 
 TmdBone D_dryfield_junk_yard_8017E760[1] = {
-#include "assets/dryfield_junk_yard_model_01720_skeleton.inc"
+#include "assets/dryfield_junk_yard_model_01378_skeleton.inc"
 };
 
 u32 D_dryfield_junk_yard_8017E784[1] = {
-#include "assets/dryfield_junk_yard_model_01720_partVerts.inc"
+#include "assets/dryfield_junk_yard_model_01378_partVerts.inc"
 };
 
 SVECTOR D_dryfield_junk_yard_8017E788[54] = {
-#include "assets/dryfield_junk_yard_model_01720_verts.inc"
+#include "assets/dryfield_junk_yard_model_01378_verts.inc"
 };
 
 u32 D_dryfield_junk_yard_8017E938[234] = {
-#include "assets/dryfield_junk_yard_model_01720_stream.inc"
+#include "assets/dryfield_junk_yard_model_01378_stream.inc"
 };
 
 TmdSource D_dryfield_junk_yard_8017ECE0 = {

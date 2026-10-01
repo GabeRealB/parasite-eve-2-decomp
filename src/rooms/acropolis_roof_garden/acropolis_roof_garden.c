@@ -861,23 +861,23 @@ WorldCollisionSurfaceProperties* D_acropolis_roof_garden_80186DB0[8] = {
 };
 
 TmdBone D_acropolis_roof_garden_80186DD0[1] = {
-#include "assets/acropolis_roof_garden_model_098B0_skeleton.inc"
+#include "assets/acropolis_roof_garden_model_09868_skeleton.inc"
 };
 
 u32 D_acropolis_roof_garden_80186DF4[1] = {
-#include "assets/acropolis_roof_garden_model_098B0_partVerts.inc"
+#include "assets/acropolis_roof_garden_model_09868_partVerts.inc"
 };
 
 SVECTOR D_acropolis_roof_garden_80186DF8[4] = {
-#include "assets/acropolis_roof_garden_model_098B0_verts.inc"
+#include "assets/acropolis_roof_garden_model_09868_verts.inc"
 };
 
 SVECTOR D_acropolis_roof_garden_80186E18[2] = {
-#include "assets/acropolis_roof_garden_model_098B0_normals.inc"
+#include "assets/acropolis_roof_garden_model_09868_normals.inc"
 };
 
 u32 D_acropolis_roof_garden_80186E28[18] = {
-#include "assets/acropolis_roof_garden_model_098B0_stream.inc"
+#include "assets/acropolis_roof_garden_model_09868_stream.inc"
 };
 
 TmdSource D_acropolis_roof_garden_80186E70 = {

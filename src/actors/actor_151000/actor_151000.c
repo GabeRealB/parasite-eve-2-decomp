@@ -270,23 +270,23 @@ EvsCommand D_actor_151000_80133954[15] = {
 };
 
 TmdBone D_actor_151000_80133ABC[19] = {
-#include "assets/actor_151000_model_07450_skeleton.inc"
+#include "assets/aya_brea_body_skeleton.inc"
 };
 
 u32 D_actor_151000_80133D68[19] = {
-#include "assets/actor_151000_model_07450_partVerts.inc"
+#include "assets/aya_brea_body_partVerts.inc"
 };
 
 SVECTOR D_actor_151000_80133DB4[365] = {
-#include "assets/actor_151000_model_07450_verts.inc"
+#include "assets/aya_brea_body_verts.inc"
 };
 
 SVECTOR D_actor_151000_8013491C[385] = {
-#include "assets/actor_151000_model_07450_normals.inc"
+#include "assets/aya_brea_body_normals.inc"
 };
 
 u32 D_actor_151000_80135524[3923] = {
-#include "assets/actor_151000_model_07450_stream.inc"
+#include "assets/aya_brea_body_stream.inc"
 };
 
 TmdSource D_actor_151000_80139270 = {

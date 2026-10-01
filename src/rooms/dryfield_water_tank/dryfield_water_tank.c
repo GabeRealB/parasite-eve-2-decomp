@@ -410,23 +410,23 @@ EvsCommand D_dryfield_water_tank_801859DC[14] = {
 };
 
 TmdBone D_dryfield_water_tank_80185B2C[1] = {
-#include "assets/dryfield_water_tank_model_092C0_skeleton.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_skeleton.inc"
 };
 
 u32 D_dryfield_water_tank_80185B50[1] = {
-#include "assets/dryfield_water_tank_model_092C0_partVerts.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_partVerts.inc"
 };
 
 SVECTOR D_dryfield_water_tank_80185B54[84] = {
-#include "assets/dryfield_water_tank_model_092C0_verts.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_verts.inc"
 };
 
 SVECTOR D_dryfield_water_tank_80185DF4[72] = {
-#include "assets/dryfield_water_tank_model_092C0_normals.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_normals.inc"
 };
 
 u32 D_dryfield_water_tank_80186034[531] = {
-#include "assets/dryfield_water_tank_model_092C0_stream.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_stream.inc"
 };
 
 TmdSource D_dryfield_water_tank_80186880 = {

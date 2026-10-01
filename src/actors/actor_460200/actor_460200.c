@@ -932,23 +932,23 @@ EvsCommand D_actor_460200_80138070[3] = {
 };
 
 TmdBone D_actor_460200_801380B8[20] = {
-#include "assets/actor_460200_model_0B95C_skeleton.inc"
+#include "assets/soldier_a_body_skeleton.inc"
 };
 
 u32 D_actor_460200_80138388[20] = {
-#include "assets/actor_460200_model_0B95C_partVerts.inc"
+#include "assets/soldier_a_body_partVerts.inc"
 };
 
 SVECTOR D_actor_460200_801383D8[363] = {
-#include "assets/actor_460200_model_0B95C_verts.inc"
+#include "assets/soldier_a_body_verts.inc"
 };
 
 SVECTOR D_actor_460200_80138F30[360] = {
-#include "assets/actor_460200_model_0B95C_normals.inc"
+#include "assets/soldier_a_body_normals.inc"
 };
 
 u32 D_actor_460200_80139A70[3907] = {
-#include "assets/actor_460200_model_0B95C_stream.inc"
+#include "assets/soldier_a_body_stream.inc"
 };
 
 TmdSource D_actor_460200_8013D77C = {
@@ -1339,23 +1339,23 @@ u8 gPacedWalkEffectParts[12] = {
 };
 
 TmdBone D_actor_460200_8013FCD8[1] = {
-#include "assets/actor_460200_model_0E8D8_skeleton.inc"
+#include "assets/soldier_b_rifle_skeleton.inc"
 };
 
 u32 D_actor_460200_8013FCFC[1] = {
-#include "assets/actor_460200_model_0E8D8_partVerts.inc"
+#include "assets/soldier_b_rifle_partVerts.inc"
 };
 
 SVECTOR D_actor_460200_8013FD00[58] = {
-#include "assets/actor_460200_model_0E8D8_verts.inc"
+#include "assets/soldier_b_rifle_verts.inc"
 };
 
 SVECTOR D_actor_460200_8013FED0[58] = {
-#include "assets/actor_460200_model_0E8D8_normals.inc"
+#include "assets/soldier_b_rifle_normals.inc"
 };
 
 u32 D_actor_460200_801400A0[406] = {
-#include "assets/actor_460200_model_0E8D8_stream.inc"
+#include "assets/soldier_b_rifle_stream.inc"
 };
 
 TmdSource D_actor_460200_801406F8 = {
@@ -1371,23 +1371,23 @@ TmdSource D_actor_460200_801406F8 = {
 };
 
 TmdBone D_actor_460200_8014071C[20] = {
-#include "assets/actor_460200_model_14008_skeleton.inc"
+#include "assets/soldier_b_body_skeleton.inc"
 };
 
 u32 D_actor_460200_801409EC[20] = {
-#include "assets/actor_460200_model_14008_partVerts.inc"
+#include "assets/soldier_b_body_partVerts.inc"
 };
 
 SVECTOR D_actor_460200_80140A3C[366] = {
-#include "assets/actor_460200_model_14008_verts.inc"
+#include "assets/soldier_b_body_verts.inc"
 };
 
 SVECTOR D_actor_460200_801415AC[363] = {
-#include "assets/actor_460200_model_14008_normals.inc"
+#include "assets/soldier_b_body_normals.inc"
 };
 
 u32 D_actor_460200_80142104[3913] = {
-#include "assets/actor_460200_model_14008_stream.inc"
+#include "assets/soldier_b_body_stream.inc"
 };
 
 TmdSource D_actor_460200_80145E28 = {
@@ -1710,23 +1710,23 @@ u8 gStrideWalkAnimParams[48] = {
 };
 
 TmdBone D_actor_460200_80148160[20] = {
-#include "assets/actor_460200_model_1BD74_skeleton.inc"
+#include "assets/soldier_c_body_skeleton.inc"
 };
 
 u32 D_actor_460200_80148430[20] = {
-#include "assets/actor_460200_model_1BD74_partVerts.inc"
+#include "assets/soldier_c_body_partVerts.inc"
 };
 
 SVECTOR D_actor_460200_80148480[373] = {
-#include "assets/actor_460200_model_1BD74_verts.inc"
+#include "assets/soldier_c_body_verts.inc"
 };
 
 SVECTOR D_actor_460200_80149028[398] = {
-#include "assets/actor_460200_model_1BD74_normals.inc"
+#include "assets/soldier_c_body_normals.inc"
 };
 
 u32 D_actor_460200_80149C98[4031] = {
-#include "assets/actor_460200_model_1BD74_stream.inc"
+#include "assets/soldier_c_body_stream.inc"
 };
 
 TmdSource D_actor_460200_8014DB94 = {

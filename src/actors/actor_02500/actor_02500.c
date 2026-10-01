@@ -183,23 +183,23 @@ void                Actor02500_Fn01E04(Task*);
 void                Actor02500_Fn02574(Task*);
 
 TmdBone Actor02500_D02914[5] = {
-#include "assets/actor_102500_model_03F20_skeleton.inc"
+#include "assets/scorpion_body_skeleton.inc"
 };
 
 u32 Actor02500_D029C8[5] = {
-#include "assets/actor_102500_model_03F20_partVerts.inc"
+#include "assets/scorpion_body_partVerts.inc"
 };
 
 SVECTOR Actor02500_D029DC[93] = {
-#include "assets/actor_102500_model_03F20_verts.inc"
+#include "assets/scorpion_body_verts.inc"
 };
 
 SVECTOR Actor02500_D02CC4[93] = {
-#include "assets/actor_102500_model_03F20_normals.inc"
+#include "assets/scorpion_body_normals.inc"
 };
 
 u32 Actor02500_D02FAC[989] = {
-#include "assets/actor_102500_model_03F20_stream.inc"
+#include "assets/scorpion_body_stream.inc"
 };
 
 TmdSource Actor02500_D03F20 = {
@@ -215,23 +215,23 @@ TmdSource Actor02500_D03F20 = {
 };
 
 TmdBone Actor02500_D03F44[1] = {
-#include "assets/actor_102500_model_04448_skeleton.inc"
+#include "assets/scorpion_burst_head_skeleton.inc"
 };
 
 u32 Actor02500_D03F68[1] = {
-#include "assets/actor_102500_model_04448_partVerts.inc"
+#include "assets/scorpion_burst_head_partVerts.inc"
 };
 
 SVECTOR Actor02500_D03F6C[22] = {
-#include "assets/actor_102500_model_04448_verts.inc"
+#include "assets/scorpion_burst_head_verts.inc"
 };
 
 SVECTOR Actor02500_D0401C[22] = {
-#include "assets/actor_102500_model_04448_normals.inc"
+#include "assets/scorpion_burst_head_normals.inc"
 };
 
 u32 Actor02500_D040CC[223] = {
-#include "assets/actor_102500_model_04448_stream.inc"
+#include "assets/scorpion_burst_head_stream.inc"
 };
 
 TmdSource Actor02500_D04448 = {
@@ -247,23 +247,23 @@ TmdSource Actor02500_D04448 = {
 };
 
 TmdBone Actor02500_D0446C[1] = {
-#include "assets/actor_102500_model_0478C_skeleton.inc"
+#include "assets/scorpion_burst_pincer_2_skeleton.inc"
 };
 
 u32 Actor02500_D04490[1] = {
-#include "assets/actor_102500_model_0478C_partVerts.inc"
+#include "assets/scorpion_burst_pincer_2_partVerts.inc"
 };
 
 SVECTOR Actor02500_D04494[15] = {
-#include "assets/actor_102500_model_0478C_verts.inc"
+#include "assets/scorpion_burst_pincer_2_verts.inc"
 };
 
 SVECTOR Actor02500_D0450C[15] = {
-#include "assets/actor_102500_model_0478C_normals.inc"
+#include "assets/scorpion_burst_pincer_2_normals.inc"
 };
 
 u32 Actor02500_D04584[130] = {
-#include "assets/actor_102500_model_0478C_stream.inc"
+#include "assets/scorpion_burst_pincer_2_stream.inc"
 };
 
 TmdSource Actor02500_D0478C = {
@@ -279,23 +279,23 @@ TmdSource Actor02500_D0478C = {
 };
 
 TmdBone Actor02500_D047B0[1] = {
-#include "assets/actor_102500_model_04AD0_skeleton.inc"
+#include "assets/scorpion_burst_pincer_1_skeleton.inc"
 };
 
 u32 Actor02500_D047D4[1] = {
-#include "assets/actor_102500_model_04AD0_partVerts.inc"
+#include "assets/scorpion_burst_pincer_1_partVerts.inc"
 };
 
 SVECTOR Actor02500_D047D8[15] = {
-#include "assets/actor_102500_model_04AD0_verts.inc"
+#include "assets/scorpion_burst_pincer_1_verts.inc"
 };
 
 SVECTOR Actor02500_D04850[15] = {
-#include "assets/actor_102500_model_04AD0_normals.inc"
+#include "assets/scorpion_burst_pincer_1_normals.inc"
 };
 
 u32 Actor02500_D048C8[130] = {
-#include "assets/actor_102500_model_04AD0_stream.inc"
+#include "assets/scorpion_burst_pincer_1_stream.inc"
 };
 
 TmdSource Actor02500_D04AD0 = {

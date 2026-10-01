@@ -161,23 +161,23 @@ s16 gGolemPawnRookAnimBlendFrames[32] = {
 };
 
 TmdBone Actor02300_D03F84[19] = {
-#include "assets/actor_102300_model_08E50_skeleton.inc"
+#include "assets/rook_golem_body_skeleton.inc"
 };
 
 u32 Actor02300_D04230[19] = {
-#include "assets/actor_102300_model_08E50_partVerts.inc"
+#include "assets/rook_golem_body_partVerts.inc"
 };
 
 SVECTOR Actor02300_D0427C[328] = {
-#include "assets/actor_102300_model_08E50_verts.inc"
+#include "assets/rook_golem_body_verts.inc"
 };
 
 SVECTOR Actor02300_D04CBC[344] = {
-#include "assets/actor_102300_model_08E50_normals.inc"
+#include "assets/rook_golem_body_normals.inc"
 };
 
 u32 Actor02300_D0577C[3509] = {
-#include "assets/actor_102300_model_08E50_stream.inc"
+#include "assets/rook_golem_body_stream.inc"
 };
 
 TmdSource Actor02300_D08E50 = {
@@ -193,23 +193,23 @@ TmdSource Actor02300_D08E50 = {
 };
 
 TmdBone Actor02300_D08E74[1] = {
-#include "assets/actor_102300_model_09394_skeleton.inc"
+#include "assets/golem_pawn_rook_beam_sword_skeleton.inc"
 };
 
 u32 Actor02300_D08E98[1] = {
-#include "assets/actor_102300_model_09394_partVerts.inc"
+#include "assets/golem_pawn_rook_beam_sword_partVerts.inc"
 };
 
 SVECTOR Actor02300_D08E9C[29] = {
-#include "assets/actor_102300_model_09394_verts.inc"
+#include "assets/golem_pawn_rook_beam_sword_verts.inc"
 };
 
 SVECTOR Actor02300_D08F84[24] = {
-#include "assets/actor_102300_model_09394_normals.inc"
+#include "assets/golem_pawn_rook_beam_sword_normals.inc"
 };
 
 u32 Actor02300_D09044[212] = {
-#include "assets/actor_102300_model_09394_stream.inc"
+#include "assets/golem_pawn_rook_beam_sword_stream.inc"
 };
 
 TmdSource Actor02300_D09394 = {
@@ -225,23 +225,23 @@ TmdSource Actor02300_D09394 = {
 };
 
 TmdBone Actor02300_D093B8[1] = {
-#include "assets/actor_102300_model_096BC_skeleton.inc"
+#include "assets/rook_golem_shield_skeleton.inc"
 };
 
 u32 Actor02300_D093DC[1] = {
-#include "assets/actor_102300_model_096BC_partVerts.inc"
+#include "assets/rook_golem_shield_partVerts.inc"
 };
 
 SVECTOR Actor02300_D093E0[16] = {
-#include "assets/actor_102300_model_096BC_verts.inc"
+#include "assets/rook_golem_shield_verts.inc"
 };
 
 SVECTOR Actor02300_D09460[20] = {
-#include "assets/actor_102300_model_096BC_normals.inc"
+#include "assets/rook_golem_shield_normals.inc"
 };
 
 u32 Actor02300_D09500[111] = {
-#include "assets/actor_102300_model_096BC_stream.inc"
+#include "assets/rook_golem_shield_stream.inc"
 };
 
 TmdSource Actor02300_D096BC = {

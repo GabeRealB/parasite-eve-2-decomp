@@ -162,23 +162,23 @@ void             func_actor_310100_801631B0(Task*);
 void             func_actor_310100_801632B0(Task*);
 
 TmdBone D_actor_310100_801633BC[19] = {
-#include "assets/actor_310100_model_06DE0_skeleton.inc"
+#include "assets/police_officer_1_body_skeleton.inc"
 };
 
 u32 D_actor_310100_80163668[19] = {
-#include "assets/actor_310100_model_06DE0_partVerts.inc"
+#include "assets/police_officer_1_body_partVerts.inc"
 };
 
 SVECTOR D_actor_310100_801636B4[351] = {
-#include "assets/actor_310100_model_06DE0_verts.inc"
+#include "assets/police_officer_1_body_verts.inc"
 };
 
 SVECTOR D_actor_310100_801641AC[426] = {
-#include "assets/actor_310100_model_06DE0_normals.inc"
+#include "assets/police_officer_1_body_normals.inc"
 };
 
 u32 D_actor_310100_80164EFC[3905] = {
-#include "assets/actor_310100_model_06DE0_stream.inc"
+#include "assets/police_officer_1_body_stream.inc"
 };
 
 TmdSource D_actor_310100_80168C00 = {
@@ -194,23 +194,23 @@ TmdSource D_actor_310100_80168C00 = {
 };
 
 TmdBone D_actor_310100_80168C24[19] = {
-#include "assets/actor_310100_model_0B66C_skeleton.inc"
+#include "assets/police_officer_1_culled_body_skeleton.inc"
 };
 
 u32 D_actor_310100_80168ED0[19] = {
-#include "assets/actor_310100_model_0B66C_partVerts.inc"
+#include "assets/police_officer_1_culled_body_partVerts.inc"
 };
 
 SVECTOR D_actor_310100_80168F1C[333] = {
-#include "assets/actor_310100_model_0B66C_verts.inc"
+#include "assets/police_officer_1_culled_body_verts.inc"
 };
 
 SVECTOR D_actor_310100_80169984[361] = {
-#include "assets/actor_310100_model_0B66C_normals.inc"
+#include "assets/police_officer_1_culled_body_normals.inc"
 };
 
 u32 D_actor_310100_8016A4CC[3056] = {
-#include "assets/actor_310100_model_0B66C_stream.inc"
+#include "assets/police_officer_1_culled_body_stream.inc"
 };
 
 TmdSource D_actor_310100_8016D48C = {
@@ -226,23 +226,23 @@ TmdSource D_actor_310100_8016D48C = {
 };
 
 TmdBone D_actor_310100_8016D4B0[19] = {
-#include "assets/actor_310100_model_11290_skeleton.inc"
+#include "assets/police_officer_2_body_skeleton.inc"
 };
 
 u32 D_actor_310100_8016D75C[19] = {
-#include "assets/actor_310100_model_11290_partVerts.inc"
+#include "assets/police_officer_2_body_partVerts.inc"
 };
 
 SVECTOR D_actor_310100_8016D7A8[361] = {
-#include "assets/actor_310100_model_11290_verts.inc"
+#include "assets/police_officer_2_body_verts.inc"
 };
 
 SVECTOR D_actor_310100_8016E2F0[434] = {
-#include "assets/actor_310100_model_11290_normals.inc"
+#include "assets/police_officer_2_body_normals.inc"
 };
 
 u32 D_actor_310100_8016F080[4108] = {
-#include "assets/actor_310100_model_11290_stream.inc"
+#include "assets/police_officer_2_body_stream.inc"
 };
 
 TmdSource D_actor_310100_801730B0 = {
@@ -258,23 +258,23 @@ TmdSource D_actor_310100_801730B0 = {
 };
 
 TmdBone D_actor_310100_801730D4[19] = {
-#include "assets/actor_310100_model_15B8C_skeleton.inc"
+#include "assets/police_officer_2_culled_body_skeleton.inc"
 };
 
 u32 D_actor_310100_80173380[19] = {
-#include "assets/actor_310100_model_15B8C_partVerts.inc"
+#include "assets/police_officer_2_culled_body_partVerts.inc"
 };
 
 SVECTOR D_actor_310100_801733CC[321] = {
-#include "assets/actor_310100_model_15B8C_verts.inc"
+#include "assets/police_officer_2_culled_body_verts.inc"
 };
 
 SVECTOR D_actor_310100_80173DD4[389] = {
-#include "assets/actor_310100_model_15B8C_normals.inc"
+#include "assets/police_officer_2_culled_body_normals.inc"
 };
 
 u32 D_actor_310100_801749FC[3052] = {
-#include "assets/actor_310100_model_15B8C_stream.inc"
+#include "assets/police_officer_2_culled_body_stream.inc"
 };
 
 TmdSource D_actor_310100_801779AC = {

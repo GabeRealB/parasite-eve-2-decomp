@@ -266,19 +266,19 @@ EvsCommand D_mist_parking_80186EFC[12] = {
 };
 
 TmdBone D_mist_parking_8018701C[1] = {
-#include "assets/mist_parking_model_09CD4_skeleton.inc"
+#include "assets/mist_parking_model_09B9C_skeleton.inc"
 };
 
 u32 D_mist_parking_80187040[1] = {
-#include "assets/mist_parking_model_09CD4_partVerts.inc"
+#include "assets/mist_parking_model_09B9C_partVerts.inc"
 };
 
 SVECTOR D_mist_parking_80187044[35] = {
-#include "assets/mist_parking_model_09CD4_verts.inc"
+#include "assets/mist_parking_model_09B9C_verts.inc"
 };
 
 u32 D_mist_parking_8018715C[78] = {
-#include "assets/mist_parking_model_09CD4_stream.inc"
+#include "assets/mist_parking_model_09B9C_stream.inc"
 };
 
 TmdSource D_mist_parking_80187294 = {

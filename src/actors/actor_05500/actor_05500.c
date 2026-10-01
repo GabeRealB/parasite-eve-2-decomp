@@ -159,23 +159,23 @@ void                Actor05500_Fn03DD8(Task*);
 void                Actor05500_Fn03F88(Task*);
 
 TmdBone Actor05500_D03FE4[8] = {
-#include "assets/actor_105500_model_05774_skeleton.inc"
+#include "assets/caterpillar_maggot_body_skeleton.inc"
 };
 
 u32 Actor05500_D04104[8] = {
-#include "assets/actor_105500_model_05774_partVerts.inc"
+#include "assets/caterpillar_maggot_body_partVerts.inc"
 };
 
 SVECTOR Actor05500_D04124[101] = {
-#include "assets/actor_105500_model_05774_verts.inc"
+#include "assets/caterpillar_maggot_body_verts.inc"
 };
 
 SVECTOR Actor05500_D0444C[107] = {
-#include "assets/actor_105500_model_05774_normals.inc"
+#include "assets/caterpillar_maggot_body_normals.inc"
 };
 
 u32 Actor05500_D047A4[1012] = {
-#include "assets/actor_105500_model_05774_stream.inc"
+#include "assets/caterpillar_maggot_body_stream.inc"
 };
 
 TmdSource Actor05500_D05774 = {
@@ -191,23 +191,23 @@ TmdSource Actor05500_D05774 = {
 };
 
 TmdBone Actor05500_D05798[1] = {
-#include "assets/actor_105500_model_05F18_skeleton.inc"
+#include "assets/caterpillar_maggot_burst_head_skeleton.inc"
 };
 
 u32 Actor05500_D057BC[1] = {
-#include "assets/actor_105500_model_05F18_partVerts.inc"
+#include "assets/caterpillar_maggot_burst_head_partVerts.inc"
 };
 
 SVECTOR Actor05500_D057C0[40] = {
-#include "assets/actor_105500_model_05F18_verts.inc"
+#include "assets/caterpillar_maggot_burst_head_verts.inc"
 };
 
 SVECTOR Actor05500_D05900[40] = {
-#include "assets/actor_105500_model_05F18_normals.inc"
+#include "assets/caterpillar_maggot_burst_head_normals.inc"
 };
 
 u32 Actor05500_D05A40[310] = {
-#include "assets/actor_105500_model_05F18_stream.inc"
+#include "assets/caterpillar_maggot_burst_head_stream.inc"
 };
 
 TmdSource gMaggotCaterpillarHuskModel = {

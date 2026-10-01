@@ -331,23 +331,23 @@ TaskDesc D_dryfield_breezeway_801820B0[2] = {
 TaskDesc D_dryfield_breezeway_801820C8 = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
 
 TmdBone D_dryfield_breezeway_801820D4[1] = {
-#include "assets/dryfield_breezeway_model_057DC_skeleton.inc"
+#include "assets/dryfield_breezeway_model_04E8C_skeleton.inc"
 };
 
 u32 D_dryfield_breezeway_801820F8[1] = {
-#include "assets/dryfield_breezeway_model_057DC_partVerts.inc"
+#include "assets/dryfield_breezeway_model_04E8C_partVerts.inc"
 };
 
 SVECTOR D_dryfield_breezeway_801820FC[88] = {
-#include "assets/dryfield_breezeway_model_057DC_verts.inc"
+#include "assets/dryfield_breezeway_model_04E8C_verts.inc"
 };
 
 SVECTOR D_dryfield_breezeway_801823BC[18] = {
-#include "assets/dryfield_breezeway_model_057DC_normals.inc"
+#include "assets/dryfield_breezeway_model_04E8C_normals.inc"
 };
 
 u32 D_dryfield_breezeway_8018244C[596] = {
-#include "assets/dryfield_breezeway_model_057DC_stream.inc"
+#include "assets/dryfield_breezeway_model_04E8C_stream.inc"
 };
 
 TmdSource D_dryfield_breezeway_80182D9C = {

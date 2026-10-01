@@ -185,23 +185,23 @@ PadScriptVibrationSegment D_actor_223600_8014CFE8[3] = {
 };
 
 TmdBone D_actor_223600_8014CFF4[6] = {
-#include "assets/actor_223600_model_04840_skeleton.inc"
+#include "assets/blood_suckler_body_skeleton.inc"
 };
 
 u32 D_actor_223600_8014D0CC[6] = {
-#include "assets/actor_223600_model_04840_partVerts.inc"
+#include "assets/blood_suckler_body_partVerts.inc"
 };
 
 SVECTOR D_actor_223600_8014D0E4[94] = {
-#include "assets/actor_223600_model_04840_verts.inc"
+#include "assets/blood_suckler_body_verts.inc"
 };
 
 SVECTOR D_actor_223600_8014D3D4[94] = {
-#include "assets/actor_223600_model_04840_normals.inc"
+#include "assets/blood_suckler_body_normals.inc"
 };
 
 u32 D_actor_223600_8014D6C4[999] = {
-#include "assets/actor_223600_model_04840_stream.inc"
+#include "assets/blood_suckler_body_stream.inc"
 };
 
 TmdSource D_actor_223600_8014E660 = {

@@ -59,23 +59,23 @@ extern AnimationSet* gMothAnimSets[2];
 extern ActorSpriteUv gMothBurstUvs[];
 
 TmdBone D_actor_300700_80165490[4] = {
-#include "assets/actor_300700_model_03CA4_skeleton.inc"
+#include "assets/moth_body_skeleton.inc"
 };
 
 u32 D_actor_300700_80165520[4] = {
-#include "assets/actor_300700_model_03CA4_partVerts.inc"
+#include "assets/moth_body_partVerts.inc"
 };
 
 SVECTOR D_actor_300700_80165530[26] = {
-#include "assets/actor_300700_model_03CA4_verts.inc"
+#include "assets/moth_body_verts.inc"
 };
 
 SVECTOR D_actor_300700_80165600[20] = {
-#include "assets/actor_300700_model_03CA4_normals.inc"
+#include "assets/moth_body_normals.inc"
 };
 
 u32 D_actor_300700_801656A0[265] = {
-#include "assets/actor_300700_model_03CA4_stream.inc"
+#include "assets/moth_body_stream.inc"
 };
 
 TmdSource D_actor_300700_80165AC4 = {
@@ -146,23 +146,23 @@ ActorSpriteUv gMothBurstUvs[8] = {
 };
 
 TmdBone D_actor_300700_80165BBC[7] = {
-#include "assets/actor_300700_model_055E0_skeleton.inc"
+#include "assets/rat_body_skeleton.inc"
 };
 
 u32 D_actor_300700_80165CB8[7] = {
-#include "assets/actor_300700_model_055E0_partVerts.inc"
+#include "assets/rat_body_partVerts.inc"
 };
 
 SVECTOR D_actor_300700_80165CD4[78] = {
-#include "assets/actor_300700_model_055E0_verts.inc"
+#include "assets/rat_body_verts.inc"
 };
 
 SVECTOR D_actor_300700_80165F44[113] = {
-#include "assets/actor_300700_model_055E0_normals.inc"
+#include "assets/rat_body_normals.inc"
 };
 
 u32 D_actor_300700_801662CC[1101] = {
-#include "assets/actor_300700_model_055E0_stream.inc"
+#include "assets/rat_body_stream.inc"
 };
 
 TmdSource D_actor_300700_80167400 = {

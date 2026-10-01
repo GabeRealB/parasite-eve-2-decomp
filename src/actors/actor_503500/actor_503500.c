@@ -88,19 +88,19 @@ PadScriptCmd D_actor_503500_801468A8[2] = {
 PadScriptVibrationSegment D_actor_503500_801468B0[2] = { { 0, 0, 2, 0 }, { 156, 106, 2, 1 } };
 
 TmdBone D_actor_503500_801468B8[1] = {
-#include "assets/actor_503500_model_154F4_skeleton.inc"
+#include "assets/actor_503500_model_14DA0_skeleton.inc"
 };
 
 u32 D_actor_503500_801468DC[1] = {
-#include "assets/actor_503500_model_154F4_partVerts.inc"
+#include "assets/actor_503500_model_14DA0_partVerts.inc"
 };
 
 SVECTOR D_actor_503500_801468E0[92] = {
-#include "assets/actor_503500_model_154F4_verts.inc"
+#include "assets/actor_503500_model_14DA0_verts.inc"
 };
 
 u32 D_actor_503500_80146BC0[469] = {
-#include "assets/actor_503500_model_154F4_stream.inc"
+#include "assets/actor_503500_model_14DA0_stream.inc"
 };
 
 TmdSource D_actor_503500_80147314 = {
@@ -116,19 +116,19 @@ TmdSource D_actor_503500_80147314 = {
 };
 
 TmdBone D_actor_503500_80147338[1] = {
-#include "assets/actor_503500_model_15F4C_skeleton.inc"
+#include "assets/actor_503500_model_15820_skeleton.inc"
 };
 
 u32 D_actor_503500_8014735C[1] = {
-#include "assets/actor_503500_model_15F4C_partVerts.inc"
+#include "assets/actor_503500_model_15820_partVerts.inc"
 };
 
 SVECTOR D_actor_503500_80147360[92] = {
-#include "assets/actor_503500_model_15F4C_verts.inc"
+#include "assets/actor_503500_model_15820_verts.inc"
 };
 
 u32 D_actor_503500_80147640[459] = {
-#include "assets/actor_503500_model_15F4C_stream.inc"
+#include "assets/actor_503500_model_15820_stream.inc"
 };
 
 TmdSource D_actor_503500_80147D6C = {

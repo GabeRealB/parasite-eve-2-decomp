@@ -193,23 +193,23 @@ extern WorldCoordRoomLights       D_mine_forked_tunnel_80184F38[1];
 void                              func_mine_forked_tunnel_8017E2B4(void);
 
 TmdBone D_mine_forked_tunnel_8017E828[1] = {
-#include "assets/mine_forked_tunnel_model_031F4_skeleton.inc"
+#include "assets/mine_forked_tunnel_model_01B48_skeleton.inc"
 };
 
 u32 D_mine_forked_tunnel_8017E84C[1] = {
-#include "assets/mine_forked_tunnel_model_031F4_partVerts.inc"
+#include "assets/mine_forked_tunnel_model_01B48_partVerts.inc"
 };
 
 SVECTOR D_mine_forked_tunnel_8017E850[223] = {
-#include "assets/mine_forked_tunnel_model_031F4_verts.inc"
+#include "assets/mine_forked_tunnel_model_01B48_verts.inc"
 };
 
 SVECTOR D_mine_forked_tunnel_8017EF48[56] = {
-#include "assets/mine_forked_tunnel_model_031F4_normals.inc"
+#include "assets/mine_forked_tunnel_model_01B48_normals.inc"
 };
 
 u32 D_mine_forked_tunnel_8017F108[1451] = {
-#include "assets/mine_forked_tunnel_model_031F4_stream.inc"
+#include "assets/mine_forked_tunnel_model_01B48_stream.inc"
 };
 
 TmdSource D_mine_forked_tunnel_801807B4 = {
@@ -225,23 +225,23 @@ TmdSource D_mine_forked_tunnel_801807B4 = {
 };
 
 TmdBone D_mine_forked_tunnel_801807D8[1] = {
-#include "assets/mine_forked_tunnel_model_034E0_skeleton.inc"
+#include "assets/mine_forked_tunnel_model_03340_skeleton.inc"
 };
 
 u32 D_mine_forked_tunnel_801807FC[1] = {
-#include "assets/mine_forked_tunnel_model_034E0_partVerts.inc"
+#include "assets/mine_forked_tunnel_model_03340_partVerts.inc"
 };
 
 SVECTOR D_mine_forked_tunnel_80180800[20] = {
-#include "assets/mine_forked_tunnel_model_034E0_verts.inc"
+#include "assets/mine_forked_tunnel_model_03340_verts.inc"
 };
 
 SVECTOR D_mine_forked_tunnel_801808A0[12] = {
-#include "assets/mine_forked_tunnel_model_034E0_normals.inc"
+#include "assets/mine_forked_tunnel_model_03340_normals.inc"
 };
 
 u32 D_mine_forked_tunnel_80180900[104] = {
-#include "assets/mine_forked_tunnel_model_034E0_stream.inc"
+#include "assets/mine_forked_tunnel_model_03340_stream.inc"
 };
 
 TmdSource D_mine_forked_tunnel_80180AA0 = {

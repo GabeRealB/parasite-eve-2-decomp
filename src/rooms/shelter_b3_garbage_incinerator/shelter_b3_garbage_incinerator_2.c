@@ -194,23 +194,23 @@ void func_shelter_b3_garbage_incinerator_8017FA3C(void);
 TaskDesc D_shelter_b3_garbage_incinerator_801855E0 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_8017DCD4, { .value = 0 } };
 
 TmdBone D_shelter_b3_garbage_incinerator_801855EC[1] = {
-#include "assets/shelter_b3_garbage_incinerator_model_0855C_skeleton.inc"
+#include "assets/shelter_b3_garbage_incinerator_model_081E4_skeleton.inc"
 };
 
 u32 D_shelter_b3_garbage_incinerator_80185610[1] = {
-#include "assets/shelter_b3_garbage_incinerator_model_0855C_partVerts.inc"
+#include "assets/shelter_b3_garbage_incinerator_model_081E4_partVerts.inc"
 };
 
 SVECTOR D_shelter_b3_garbage_incinerator_80185614[49] = {
-#include "assets/shelter_b3_garbage_incinerator_model_0855C_verts.inc"
+#include "assets/shelter_b3_garbage_incinerator_model_081E4_verts.inc"
 };
 
 SVECTOR D_shelter_b3_garbage_incinerator_8018579C[1] = {
-#include "assets/shelter_b3_garbage_incinerator_model_0855C_normals.inc"
+#include "assets/shelter_b3_garbage_incinerator_model_081E4_normals.inc"
 };
 
 u32 D_shelter_b3_garbage_incinerator_801857A4[222] = {
-#include "assets/shelter_b3_garbage_incinerator_model_0855C_stream.inc"
+#include "assets/shelter_b3_garbage_incinerator_model_081E4_stream.inc"
 };
 
 TmdSource D_shelter_b3_garbage_incinerator_80185B1C = {

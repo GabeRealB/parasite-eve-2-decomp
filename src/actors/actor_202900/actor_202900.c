@@ -103,23 +103,23 @@ AnimationSet D_actor_202900_8014FEB8 = {
 };
 
 TmdBone D_actor_202900_8014FEE0[19] = {
-#include "assets/actor_202900_model_0BB88_skeleton.inc"
+#include "assets/anmc_woman_cafeteria_body_skeleton.inc"
 };
 
 u32 D_actor_202900_8015018C[19] = {
-#include "assets/actor_202900_model_0BB88_partVerts.inc"
+#include "assets/anmc_woman_cafeteria_body_partVerts.inc"
 };
 
 SVECTOR D_actor_202900_801501D8[377] = {
-#include "assets/actor_202900_model_0BB88_verts.inc"
+#include "assets/anmc_woman_cafeteria_body_verts.inc"
 };
 
 SVECTOR D_actor_202900_80150DA0[406] = {
-#include "assets/actor_202900_model_0BB88_normals.inc"
+#include "assets/anmc_woman_cafeteria_body_normals.inc"
 };
 
 u32 D_actor_202900_80151A50[4054] = {
-#include "assets/actor_202900_model_0BB88_stream.inc"
+#include "assets/anmc_woman_cafeteria_body_stream.inc"
 };
 
 TmdSource D_actor_202900_801559A8 = {
@@ -135,23 +135,23 @@ TmdSource D_actor_202900_801559A8 = {
 };
 
 TmdBone D_actor_202900_801559CC[1] = {
-#include "assets/actor_202900_model_0BD28_skeleton.inc"
+#include "assets/actor_202900_model_0BC44_skeleton.inc"
 };
 
 u32 D_actor_202900_801559F0[1] = {
-#include "assets/actor_202900_model_0BD28_partVerts.inc"
+#include "assets/actor_202900_model_0BC44_partVerts.inc"
 };
 
 SVECTOR D_actor_202900_801559F4[6] = {
-#include "assets/actor_202900_model_0BD28_verts.inc"
+#include "assets/actor_202900_model_0BC44_verts.inc"
 };
 
 SVECTOR D_actor_202900_80155A24[8] = {
-#include "assets/actor_202900_model_0BD28_normals.inc"
+#include "assets/actor_202900_model_0BC44_normals.inc"
 };
 
 u32 D_actor_202900_80155A64[57] = {
-#include "assets/actor_202900_model_0BD28_stream.inc"
+#include "assets/actor_202900_model_0BC44_stream.inc"
 };
 
 TmdSource D_actor_202900_80155B48 = {

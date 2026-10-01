@@ -249,22 +249,34 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
     return out
 
 
-def model_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
+def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]:
     """Typed initializer inputs for model payloads owned by C translation units."""
     from tools.gen_model_inc import components
+    from tools.gen_model_inc import include_names
     from tools.gen_overlay_configs import declared_models
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
+    models = [m for m in declared_models(manifest) if m["in_c"]]
+    raw_of = lambda package: ASSETS_DIR / version / "pe2pkg" / f"{package}.pe2pkg"
+    cache: dict[str, bytes] = {}
+    def read(package: str) -> bytes:
+        if package not in cache:
+            cache[package] = raw_of(package).read_bytes()
+        return cache[package]
+    # The include set is named by the asset manifest, so a model carried by
+    # several packages is one set of files under one name.
+    names = include_names(models, read)
     out = []
-    for model in declared_models(manifest):
-        if not model["in_c"]:
+    seen: set[str] = set()
+    for model in models:
+        name = names[(model["package"], model["source"])]
+        if name in seen:
             continue
-        raw = ASSETS_DIR / version / "pe2pkg" / f"{model['package']}.pe2pkg"
-        parts = components(raw.read_bytes(), model["load"], model["source"])
-        prefix = f"{model['package']}_model_{model['source']:05X}"
-        outputs = [BUILD_DIR / "include" / "assets" / f"{prefix}_{part['name']}.inc"
+        seen.add(name)
+        parts = components(read(model["package"]), model["load"], model["source"])
+        outputs = [BUILD_DIR / "include" / "assets" / f"{name}_{part['name']}.inc"
                    for part in parts]
-        out.append((raw, outputs, model["load"], model["source"]))
+        out.append((raw_of(model["package"]), outputs, model["load"], model["source"], name))
     return out
 
 
@@ -1147,7 +1159,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "model-inc",
         description="model-inc $in $source",
-        command=f"{PYTHON} {GEN_MODEL_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'}",
+        command=f"{PYTHON} {GEN_MODEL_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'} $name",
     )
     ninja_rules_file.rule(
         "collision-inc",
@@ -1185,12 +1197,13 @@ def ninja_build(
                 variables={"width": str(width)},
             )
         ASSET_INC_OUTPUTS.append(str(inc))
-    for raw, outputs, load, source in model_includes(version):
+    for raw, outputs, load, source, name in model_includes(version):
         for writer in asset_writers:
             writer.build(
                 outputs=[str(inc) for inc in outputs], rule="model-inc", inputs=str(raw),
-                implicit=[str(GEN_MODEL_INC), str(TOOLS_DIR / "peassets" / "pkg_model.py")],
-                variables={"load": hex(load), "source": hex(source)},
+                implicit=[str(GEN_MODEL_INC), str(TOOLS_DIR / "peassets" / "pkg_model.py"),
+                          str(TOOLS_DIR / "peassets" / "asset_data.py")],
+                variables={"load": hex(load), "source": hex(source), "name": name},
             )
         ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)
     for raw, outputs, load, source, pieces in collision_includes(version):

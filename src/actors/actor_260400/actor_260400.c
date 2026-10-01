@@ -817,23 +817,23 @@ AnimationSet D_actor_260400_8014F294 = {
 };
 
 TmdBone D_actor_260400_8014F2BC[1] = {
-#include "assets/actor_260400_model_059D0_skeleton.inc"
+#include "assets/rupert_broderick_hurt_mongoose_skeleton.inc"
 };
 
 u32 D_actor_260400_8014F2E0[1] = {
-#include "assets/actor_260400_model_059D0_partVerts.inc"
+#include "assets/rupert_broderick_hurt_mongoose_partVerts.inc"
 };
 
 SVECTOR D_actor_260400_8014F2E4[28] = {
-#include "assets/actor_260400_model_059D0_verts.inc"
+#include "assets/rupert_broderick_hurt_mongoose_verts.inc"
 };
 
 SVECTOR D_actor_260400_8014F3C4[28] = {
-#include "assets/actor_260400_model_059D0_normals.inc"
+#include "assets/rupert_broderick_hurt_mongoose_normals.inc"
 };
 
 u32 D_actor_260400_8014F4A4[211] = {
-#include "assets/actor_260400_model_059D0_stream.inc"
+#include "assets/rupert_broderick_hurt_mongoose_stream.inc"
 };
 
 TmdSource D_actor_260400_8014F7F0 = {
@@ -849,23 +849,23 @@ TmdSource D_actor_260400_8014F7F0 = {
 };
 
 TmdBone D_actor_260400_8014F814[20] = {
-#include "assets/actor_260400_model_0ADA0_skeleton.inc"
+#include "assets/rupert_broderick_hurt_body_skeleton.inc"
 };
 
 u32 D_actor_260400_8014FAE4[20] = {
-#include "assets/actor_260400_model_0ADA0_partVerts.inc"
+#include "assets/rupert_broderick_hurt_body_partVerts.inc"
 };
 
 SVECTOR D_actor_260400_8014FB34[343] = {
-#include "assets/actor_260400_model_0ADA0_verts.inc"
+#include "assets/rupert_broderick_hurt_body_verts.inc"
 };
 
 SVECTOR D_actor_260400_801505EC[334] = {
-#include "assets/actor_260400_model_0ADA0_normals.inc"
+#include "assets/rupert_broderick_hurt_body_normals.inc"
 };
 
 u32 D_actor_260400_8015105C[3801] = {
-#include "assets/actor_260400_model_0ADA0_stream.inc"
+#include "assets/rupert_broderick_hurt_body_stream.inc"
 };
 
 TmdSource D_actor_260400_80154BC0 = {

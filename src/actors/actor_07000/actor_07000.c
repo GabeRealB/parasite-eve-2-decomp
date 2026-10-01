@@ -325,23 +325,23 @@ PadScriptVibrationSegment Actor07000_D06944[3] = {
 };
 
 TmdBone Actor07000_D06950[3] = {
-#include "assets/actor_107000_model_079C8_skeleton.inc"
+#include "assets/sucklerceph_body_skeleton.inc"
 };
 
 u32 Actor07000_D069BC[3] = {
-#include "assets/actor_107000_model_079C8_partVerts.inc"
+#include "assets/sucklerceph_body_partVerts.inc"
 };
 
 SVECTOR Actor07000_D069C8[68] = {
-#include "assets/actor_107000_model_079C8_verts.inc"
+#include "assets/sucklerceph_body_verts.inc"
 };
 
 SVECTOR Actor07000_D06BE8[68] = {
-#include "assets/actor_107000_model_079C8_normals.inc"
+#include "assets/sucklerceph_body_normals.inc"
 };
 
 u32 Actor07000_D06E08[752] = {
-#include "assets/actor_107000_model_079C8_stream.inc"
+#include "assets/sucklerceph_body_stream.inc"
 };
 
 TmdSource Actor07000_D079C8 = {
@@ -450,23 +450,23 @@ DamageAttack Actor07000_D08078[2] = {
 EnemyParams Actor07000_D08080 = { Actor07000_D08078, 120, 12, 36, 1, 250, 20, 100, 0 };
 
 TmdBone Actor07000_D08090[7] = {
-#include "assets/actor_107000_model_0A6C8_skeleton.inc"
+#include "assets/actor_107000_model_08BB4_skeleton.inc"
 };
 
 u32 Actor07000_D0818C[7] = {
-#include "assets/actor_107000_model_0A6C8_partVerts.inc"
+#include "assets/actor_107000_model_08BB4_partVerts.inc"
 };
 
 SVECTOR Actor07000_D081A8[131] = {
-#include "assets/actor_107000_model_0A6C8_verts.inc"
+#include "assets/actor_107000_model_08BB4_verts.inc"
 };
 
 SVECTOR Actor07000_D085C0[190] = {
-#include "assets/actor_107000_model_0A6C8_normals.inc"
+#include "assets/actor_107000_model_08BB4_normals.inc"
 };
 
 u32 Actor07000_D08BB0[1734] = {
-#include "assets/actor_107000_model_0A6C8_stream.inc"
+#include "assets/actor_107000_model_08BB4_stream.inc"
 };
 
 TmdSource Actor07000_D0A6C8 = {
@@ -482,23 +482,23 @@ TmdSource Actor07000_D0A6C8 = {
 };
 
 TmdBone Actor07000_D0A6EC[1] = {
-#include "assets/actor_107000_model_0AB40_skeleton.inc"
+#include "assets/slouch_burst_leg_skeleton.inc"
 };
 
 u32 Actor07000_D0A710[1] = {
-#include "assets/actor_107000_model_0AB40_partVerts.inc"
+#include "assets/slouch_burst_leg_partVerts.inc"
 };
 
 SVECTOR Actor07000_D0A714[17] = {
-#include "assets/actor_107000_model_0AB40_verts.inc"
+#include "assets/slouch_burst_leg_verts.inc"
 };
 
 SVECTOR Actor07000_D0A79C[27] = {
-#include "assets/actor_107000_model_0AB40_normals.inc"
+#include "assets/slouch_burst_leg_normals.inc"
 };
 
 u32 Actor07000_D0A874[179] = {
-#include "assets/actor_107000_model_0AB40_stream.inc"
+#include "assets/slouch_burst_leg_stream.inc"
 };
 
 TmdSource Actor07000_D0AB40 = {
@@ -514,23 +514,23 @@ TmdSource Actor07000_D0AB40 = {
 };
 
 TmdBone Actor07000_D0AB64[1] = {
-#include "assets/actor_107000_model_0B194_skeleton.inc"
+#include "assets/slouch_burst_arm_skeleton.inc"
 };
 
 u32 Actor07000_D0AB88[1] = {
-#include "assets/actor_107000_model_0B194_partVerts.inc"
+#include "assets/slouch_burst_arm_partVerts.inc"
 };
 
 SVECTOR Actor07000_D0AB8C[27] = {
-#include "assets/actor_107000_model_0B194_verts.inc"
+#include "assets/slouch_burst_arm_verts.inc"
 };
 
 SVECTOR Actor07000_D0AC64[29] = {
-#include "assets/actor_107000_model_0B194_normals.inc"
+#include "assets/slouch_burst_arm_normals.inc"
 };
 
 u32 Actor07000_D0AD4C[274] = {
-#include "assets/actor_107000_model_0B194_stream.inc"
+#include "assets/slouch_burst_arm_stream.inc"
 };
 
 TmdSource Actor07000_D0B194 = {
@@ -546,23 +546,23 @@ TmdSource Actor07000_D0B194 = {
 };
 
 TmdBone Actor07000_D0B1B8[1] = {
-#include "assets/actor_107000_model_0B730_skeleton.inc"
+#include "assets/slouch_poison_skeleton.inc"
 };
 
 u32 Actor07000_D0B1DC[1] = {
-#include "assets/actor_107000_model_0B730_partVerts.inc"
+#include "assets/slouch_poison_partVerts.inc"
 };
 
 SVECTOR Actor07000_D0B1E0[26] = {
-#include "assets/actor_107000_model_0B730_verts.inc"
+#include "assets/slouch_poison_verts.inc"
 };
 
 SVECTOR Actor07000_D0B2B0[28] = {
-#include "assets/actor_107000_model_0B730_normals.inc"
+#include "assets/slouch_poison_normals.inc"
 };
 
 u32 Actor07000_D0B390[232] = {
-#include "assets/actor_107000_model_0B730_stream.inc"
+#include "assets/slouch_poison_stream.inc"
 };
 
 TmdSource Actor07000_D0B730 = {

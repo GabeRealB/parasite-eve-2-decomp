@@ -171,23 +171,23 @@ s16* D_dryfield_night_water_tank_8017E088[1] = {
 WorldCollisionGrid D_dryfield_night_water_tank_8017E08C = { NULL, D_dryfield_night_water_tank_8017E028, D_dryfield_night_water_tank_8017E038, D_dryfield_night_water_tank_8017E068, D_dryfield_night_water_tank_8017E088, -1016, 2444, 1, 1, 4000, 2 };
 
 TmdBone D_dryfield_night_water_tank_8017E0B0[1] = {
-#include "assets/dryfield_night_water_tank_model_01844_skeleton.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_skeleton.inc"
 };
 
 u32 D_dryfield_night_water_tank_8017E0D4[1] = {
-#include "assets/dryfield_night_water_tank_model_01844_partVerts.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_partVerts.inc"
 };
 
 SVECTOR D_dryfield_night_water_tank_8017E0D8[84] = {
-#include "assets/dryfield_night_water_tank_model_01844_verts.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_verts.inc"
 };
 
 SVECTOR D_dryfield_night_water_tank_8017E378[72] = {
-#include "assets/dryfield_night_water_tank_model_01844_normals.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_normals.inc"
 };
 
 u32 D_dryfield_night_water_tank_8017E5B8[531] = {
-#include "assets/dryfield_night_water_tank_model_01844_stream.inc"
+#include "assets/dryfield_night_water_tank_model_00FF8_stream.inc"
 };
 
 TmdSource D_dryfield_night_water_tank_8017EE04 = {

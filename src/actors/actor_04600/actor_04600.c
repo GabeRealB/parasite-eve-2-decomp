@@ -120,23 +120,23 @@ PadScriptVibrationSegment gSucklercephBurstScriptB[3] = {
 };
 
 TmdBone Actor04600_D04188[3] = {
-#include "assets/actor_104600_model_05200_skeleton.inc"
+#include "assets/sucklerceph_body_skeleton.inc"
 };
 
 u32 Actor04600_D041F4[3] = {
-#include "assets/actor_104600_model_05200_partVerts.inc"
+#include "assets/sucklerceph_body_partVerts.inc"
 };
 
 SVECTOR Actor04600_D04200[68] = {
-#include "assets/actor_104600_model_05200_verts.inc"
+#include "assets/sucklerceph_body_verts.inc"
 };
 
 SVECTOR Actor04600_D04420[68] = {
-#include "assets/actor_104600_model_05200_normals.inc"
+#include "assets/sucklerceph_body_normals.inc"
 };
 
 u32 Actor04600_D04640[752] = {
-#include "assets/actor_104600_model_05200_stream.inc"
+#include "assets/sucklerceph_body_stream.inc"
 };
 
 TmdSource Actor04600_D05200 = {
@@ -242,23 +242,23 @@ DamageAttack Actor04600_D058B0[1] = { 0 };
 EnemyParams gSkullStalkerParams = { Actor04600_D058B0, 1, 2, 32, 1, 100, 20, 100, 99 };
 
 TmdBone Actor04600_D058C4[3] = {
-#include "assets/actor_104600_model_061C0_skeleton.inc"
+#include "assets/skull_stalker_body_skeleton.inc"
 };
 
 u32 Actor04600_D05930[3] = {
-#include "assets/actor_104600_model_061C0_partVerts.inc"
+#include "assets/skull_stalker_body_partVerts.inc"
 };
 
 SVECTOR Actor04600_D0593C[37] = {
-#include "assets/actor_104600_model_061C0_verts.inc"
+#include "assets/skull_stalker_body_verts.inc"
 };
 
 SVECTOR Actor04600_D05A64[47] = {
-#include "assets/actor_104600_model_061C0_normals.inc"
+#include "assets/skull_stalker_body_normals.inc"
 };
 
 u32 Actor04600_D05BDC[377] = {
-#include "assets/actor_104600_model_061C0_stream.inc"
+#include "assets/skull_stalker_body_stream.inc"
 };
 
 TmdSource Actor04600_D061C0 = {

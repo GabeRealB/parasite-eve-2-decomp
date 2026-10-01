@@ -57,23 +57,23 @@ s32              func_actor_110700_801320D8(Task*, s32, s32);
 void             func_actor_110700_80131E24(Task*);
 
 TmdBone D_actor_110700_80132120[19] = {
-#include "assets/actor_110700_model_059A8_skeleton.inc"
+#include "assets/no9_golem_akropolis_body_skeleton.inc"
 };
 
 u32 D_actor_110700_801323CC[19] = {
-#include "assets/actor_110700_model_059A8_partVerts.inc"
+#include "assets/no9_golem_akropolis_body_partVerts.inc"
 };
 
 SVECTOR D_actor_110700_80132418[358] = {
-#include "assets/actor_110700_model_059A8_verts.inc"
+#include "assets/no9_golem_akropolis_body_verts.inc"
 };
 
 SVECTOR D_actor_110700_80132F48[356] = {
-#include "assets/actor_110700_model_059A8_normals.inc"
+#include "assets/no9_golem_akropolis_body_normals.inc"
 };
 
 u32 D_actor_110700_80133A68[3928] = {
-#include "assets/actor_110700_model_059A8_stream.inc"
+#include "assets/no9_golem_akropolis_body_stream.inc"
 };
 
 TmdSource D_actor_110700_801377C8 = {

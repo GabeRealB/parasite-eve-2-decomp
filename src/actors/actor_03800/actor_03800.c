@@ -201,23 +201,23 @@ extern TmdSource    Actor03800_D043A0;
 static void         Actor03800_Fn0315C(Task*);
 
 TmdBone Actor03800_D038D0[6] = {
-#include "assets/actor_103800_model_043A0_skeleton.inc"
+#include "assets/black_beetle_body_skeleton.inc"
 };
 
 u32 Actor03800_D039A8[6] = {
-#include "assets/actor_103800_model_043A0_partVerts.inc"
+#include "assets/black_beetle_body_partVerts.inc"
 };
 
 SVECTOR Actor03800_D039C0[33] = {
-#include "assets/actor_103800_model_043A0_verts.inc"
+#include "assets/black_beetle_body_verts.inc"
 };
 
 SVECTOR Actor03800_D03AC8[42] = {
-#include "assets/actor_103800_model_043A0_normals.inc"
+#include "assets/black_beetle_body_normals.inc"
 };
 
 u32 Actor03800_D03C18[482] = {
-#include "assets/actor_103800_model_043A0_stream.inc"
+#include "assets/black_beetle_body_stream.inc"
 };
 
 TmdSource Actor03800_D043A0 = {
@@ -233,23 +233,23 @@ TmdSource Actor03800_D043A0 = {
 };
 
 TmdBone Actor03800_D043C4[1] = {
-#include "assets/actor_103800_model_0459C_skeleton.inc"
+#include "assets/black_beetle_effect_1_skeleton.inc"
 };
 
 u32 Actor03800_D043E8[1] = {
-#include "assets/actor_103800_model_0459C_partVerts.inc"
+#include "assets/black_beetle_effect_1_partVerts.inc"
 };
 
 SVECTOR Actor03800_D043EC[8] = {
-#include "assets/actor_103800_model_0459C_verts.inc"
+#include "assets/black_beetle_effect_1_verts.inc"
 };
 
 SVECTOR Actor03800_D0442C[8] = {
-#include "assets/actor_103800_model_0459C_normals.inc"
+#include "assets/black_beetle_effect_1_normals.inc"
 };
 
 u32 Actor03800_D0446C[76] = {
-#include "assets/actor_103800_model_0459C_stream.inc"
+#include "assets/black_beetle_effect_1_stream.inc"
 };
 
 TmdSource Actor03800_D0459C = {
@@ -265,23 +265,23 @@ TmdSource Actor03800_D0459C = {
 };
 
 TmdBone Actor03800_D045C0[1] = {
-#include "assets/actor_103800_model_046A0_skeleton.inc"
+#include "assets/black_beetle_effect_2_skeleton.inc"
 };
 
 u32 Actor03800_D045E4[1] = {
-#include "assets/actor_103800_model_046A0_partVerts.inc"
+#include "assets/black_beetle_effect_2_partVerts.inc"
 };
 
 SVECTOR Actor03800_D045E8[4] = {
-#include "assets/actor_103800_model_046A0_verts.inc"
+#include "assets/black_beetle_effect_2_verts.inc"
 };
 
 SVECTOR Actor03800_D04608[4] = {
-#include "assets/actor_103800_model_046A0_normals.inc"
+#include "assets/black_beetle_effect_2_normals.inc"
 };
 
 u32 Actor03800_D04628[30] = {
-#include "assets/actor_103800_model_046A0_stream.inc"
+#include "assets/black_beetle_effect_2_stream.inc"
 };
 
 TmdSource Actor03800_D046A0 = {
@@ -297,23 +297,23 @@ TmdSource Actor03800_D046A0 = {
 };
 
 TmdBone Actor03800_D046C4[1] = {
-#include "assets/actor_103800_model_047A4_skeleton.inc"
+#include "assets/black_beetle_effect_3_skeleton.inc"
 };
 
 u32 Actor03800_D046E8[1] = {
-#include "assets/actor_103800_model_047A4_partVerts.inc"
+#include "assets/black_beetle_effect_3_partVerts.inc"
 };
 
 SVECTOR Actor03800_D046EC[4] = {
-#include "assets/actor_103800_model_047A4_verts.inc"
+#include "assets/black_beetle_effect_3_verts.inc"
 };
 
 SVECTOR Actor03800_D0470C[4] = {
-#include "assets/actor_103800_model_047A4_normals.inc"
+#include "assets/black_beetle_effect_3_normals.inc"
 };
 
 u32 Actor03800_D0472C[30] = {
-#include "assets/actor_103800_model_047A4_stream.inc"
+#include "assets/black_beetle_effect_3_stream.inc"
 };
 
 TmdSource Actor03800_D047A4 = {
@@ -329,23 +329,23 @@ TmdSource Actor03800_D047A4 = {
 };
 
 TmdBone Actor03800_D047C8[1] = {
-#include "assets/actor_103800_model_04868_skeleton.inc"
+#include "assets/black_beetle_effect_4_skeleton.inc"
 };
 
 u32 Actor03800_D047EC[1] = {
-#include "assets/actor_103800_model_04868_partVerts.inc"
+#include "assets/black_beetle_effect_4_partVerts.inc"
 };
 
 SVECTOR Actor03800_D047F0[4] = {
-#include "assets/actor_103800_model_04868_verts.inc"
+#include "assets/black_beetle_effect_4_verts.inc"
 };
 
 SVECTOR Actor03800_D04810[2] = {
-#include "assets/actor_103800_model_04868_normals.inc"
+#include "assets/black_beetle_effect_4_normals.inc"
 };
 
 u32 Actor03800_D04820[18] = {
-#include "assets/actor_103800_model_04868_stream.inc"
+#include "assets/black_beetle_effect_4_stream.inc"
 };
 
 TmdSource Actor03800_D04868 = {
@@ -361,23 +361,23 @@ TmdSource Actor03800_D04868 = {
 };
 
 TmdBone Actor03800_D0488C[1] = {
-#include "assets/actor_103800_model_0492C_skeleton.inc"
+#include "assets/black_beetle_effect_5_skeleton.inc"
 };
 
 u32 Actor03800_D048B0[1] = {
-#include "assets/actor_103800_model_0492C_partVerts.inc"
+#include "assets/black_beetle_effect_5_partVerts.inc"
 };
 
 SVECTOR Actor03800_D048B4[4] = {
-#include "assets/actor_103800_model_0492C_verts.inc"
+#include "assets/black_beetle_effect_5_verts.inc"
 };
 
 SVECTOR Actor03800_D048D4[2] = {
-#include "assets/actor_103800_model_0492C_normals.inc"
+#include "assets/black_beetle_effect_5_normals.inc"
 };
 
 u32 Actor03800_D048E4[18] = {
-#include "assets/actor_103800_model_0492C_stream.inc"
+#include "assets/black_beetle_effect_5_stream.inc"
 };
 
 TmdSource Actor03800_D0492C = {

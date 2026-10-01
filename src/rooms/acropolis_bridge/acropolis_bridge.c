@@ -397,19 +397,19 @@ void                                func_acropolis_bridge_80187D04(Task*);
 void                                func_acropolis_bridge_80187D80(Task*);
 
 TmdBone D_acropolis_bridge_80187DDC[1] = {
-#include "assets/acropolis_bridge_model_0B868_skeleton.inc"
+#include "assets/acropolis_bridge_model_0AD9C_skeleton.inc"
 };
 
 u32 D_acropolis_bridge_80187E00[1] = {
-#include "assets/acropolis_bridge_model_0B868_partVerts.inc"
+#include "assets/acropolis_bridge_model_0AD9C_partVerts.inc"
 };
 
 SVECTOR D_acropolis_bridge_80187E04[171] = {
-#include "assets/acropolis_bridge_model_0B868_verts.inc"
+#include "assets/acropolis_bridge_model_0AD9C_verts.inc"
 };
 
 u32 D_acropolis_bridge_8018835C[691] = {
-#include "assets/acropolis_bridge_model_0B868_stream.inc"
+#include "assets/acropolis_bridge_model_0AD9C_stream.inc"
 };
 
 TmdSource D_acropolis_bridge_80188E28[1] = {
@@ -2334,23 +2334,23 @@ DamageAttack D_acropolis_bridge_80190C54[2] = {
 EnemyParams D_acropolis_bridge_80190C5C = { D_acropolis_bridge_80190C54, 80, 6, 36, 1, 100, 0, 100, 0 };
 
 TmdBone D_acropolis_bridge_80190C6C[4] = {
-#include "assets/acropolis_bridge_model_13BDC_skeleton.inc"
+#include "assets/acropolis_bridge_model_13870_skeleton.inc"
 };
 
 u32 D_acropolis_bridge_80190CFC[4] = {
-#include "assets/acropolis_bridge_model_13BDC_partVerts.inc"
+#include "assets/acropolis_bridge_model_13870_partVerts.inc"
 };
 
 SVECTOR D_acropolis_bridge_80190D0C[18] = {
-#include "assets/acropolis_bridge_model_13BDC_verts.inc"
+#include "assets/acropolis_bridge_model_13870_verts.inc"
 };
 
 SVECTOR D_acropolis_bridge_80190D9C[18] = {
-#include "assets/acropolis_bridge_model_13BDC_normals.inc"
+#include "assets/acropolis_bridge_model_13870_normals.inc"
 };
 
 u32 D_acropolis_bridge_80190E2C[220] = {
-#include "assets/acropolis_bridge_model_13BDC_stream.inc"
+#include "assets/acropolis_bridge_model_13870_stream.inc"
 };
 
 TmdSource D_acropolis_bridge_8019119C = {

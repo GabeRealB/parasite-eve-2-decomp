@@ -251,19 +251,19 @@ s32                 func_actor_141000_80133FA8(Task*, s32, s32);
 void                func_actor_141000_801338C0(Task*);
 
 TmdBone D_actor_141000_801340BC[1] = {
-#include "assets/actor_141000_model_023E4_skeleton.inc"
+#include "assets/actor_141000_model_0230C_skeleton.inc"
 };
 
 u32 D_actor_141000_801340E0[1] = {
-#include "assets/actor_141000_model_023E4_partVerts.inc"
+#include "assets/actor_141000_model_0230C_partVerts.inc"
 };
 
 SVECTOR D_actor_141000_801340E4[9] = {
-#include "assets/actor_141000_model_023E4_verts.inc"
+#include "assets/actor_141000_model_0230C_verts.inc"
 };
 
 u32 D_actor_141000_8013412C[54] = {
-#include "assets/actor_141000_model_023E4_stream.inc"
+#include "assets/actor_141000_model_0230C_stream.inc"
 };
 
 TmdSource D_actor_141000_80134204 = {
@@ -540,23 +540,23 @@ TaskDesc D_actor_141000_801348D8[3] = {
 };
 
 TmdBone D_actor_141000_801348FC[19] = {
-#include "assets/actor_141000_model_08290_skeleton.inc"
+#include "assets/aya_brea_body_skeleton.inc"
 };
 
 u32 D_actor_141000_80134BA8[19] = {
-#include "assets/actor_141000_model_08290_partVerts.inc"
+#include "assets/aya_brea_body_partVerts.inc"
 };
 
 SVECTOR D_actor_141000_80134BF4[365] = {
-#include "assets/actor_141000_model_08290_verts.inc"
+#include "assets/aya_brea_body_verts.inc"
 };
 
 SVECTOR D_actor_141000_8013575C[385] = {
-#include "assets/actor_141000_model_08290_normals.inc"
+#include "assets/aya_brea_body_normals.inc"
 };
 
 u32 D_actor_141000_80136364[3923] = {
-#include "assets/actor_141000_model_08290_stream.inc"
+#include "assets/aya_brea_body_stream.inc"
 };
 
 TmdSource D_actor_141000_8013A0B0 = {

@@ -1520,23 +1520,23 @@ GpAreaApplyRec D_acropolis_sanctuary_80186418[11] = {
 };
 
 TmdBone D_acropolis_sanctuary_80186444[3] = {
-#include "assets/acropolis_sanctuary_model_09448_skeleton.inc"
+#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
 u32 D_acropolis_sanctuary_801864B0[3] = {
-#include "assets/acropolis_sanctuary_model_09448_partVerts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
 SVECTOR D_acropolis_sanctuary_801864BC[56] = {
-#include "assets/acropolis_sanctuary_model_09448_verts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
 SVECTOR D_acropolis_sanctuary_8018667C[6] = {
-#include "assets/acropolis_sanctuary_model_09448_normals.inc"
+#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
 u32 D_acropolis_sanctuary_801866AC[215] = {
-#include "assets/acropolis_sanctuary_model_09448_stream.inc"
+#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
 TmdSource D_acropolis_sanctuary_80186A08 = {
@@ -1552,23 +1552,23 @@ TmdSource D_acropolis_sanctuary_80186A08 = {
 };
 
 TmdBone D_acropolis_sanctuary_80186A2C[1] = {
-#include "assets/acropolis_sanctuary_model_096A8_skeleton.inc"
+#include "assets/acropolis_sanctuary_model_09584_skeleton.inc"
 };
 
 u32 D_acropolis_sanctuary_80186A50[1] = {
-#include "assets/acropolis_sanctuary_model_096A8_partVerts.inc"
+#include "assets/acropolis_sanctuary_model_09584_partVerts.inc"
 };
 
 SVECTOR D_acropolis_sanctuary_80186A54[19] = {
-#include "assets/acropolis_sanctuary_model_096A8_verts.inc"
+#include "assets/acropolis_sanctuary_model_09584_verts.inc"
 };
 
 SVECTOR D_acropolis_sanctuary_80186AEC[11] = {
-#include "assets/acropolis_sanctuary_model_096A8_normals.inc"
+#include "assets/acropolis_sanctuary_model_09584_normals.inc"
 };
 
 u32 D_acropolis_sanctuary_80186B44[73] = {
-#include "assets/acropolis_sanctuary_model_096A8_stream.inc"
+#include "assets/acropolis_sanctuary_model_09584_stream.inc"
 };
 
 TmdSource D_acropolis_sanctuary_80186C68 = {

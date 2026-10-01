@@ -483,23 +483,23 @@ s16 gGolemPawnRookAnimBlendFrames[32] = {
 };
 
 TmdBone Actor02000_D037C4[19] = {
-#include "assets/actor_102000_model_08AA8_skeleton.inc"
+#include "assets/pawn_golem_body_skeleton.inc"
 };
 
 u32 Actor02000_D03A70[19] = {
-#include "assets/actor_102000_model_08AA8_partVerts.inc"
+#include "assets/pawn_golem_body_partVerts.inc"
 };
 
 SVECTOR Actor02000_D03ABC[339] = {
-#include "assets/actor_102000_model_08AA8_verts.inc"
+#include "assets/pawn_golem_body_verts.inc"
 };
 
 SVECTOR Actor02000_D04554[346] = {
-#include "assets/actor_102000_model_08AA8_normals.inc"
+#include "assets/pawn_golem_body_normals.inc"
 };
 
 u32 Actor02000_D05024[3745] = {
-#include "assets/actor_102000_model_08AA8_stream.inc"
+#include "assets/pawn_golem_body_stream.inc"
 };
 
 TmdSource Actor02000_D08AA8 = {
@@ -515,23 +515,23 @@ TmdSource Actor02000_D08AA8 = {
 };
 
 TmdBone Actor02000_D08ACC[1] = {
-#include "assets/actor_102000_model_08FEC_skeleton.inc"
+#include "assets/golem_pawn_rook_beam_sword_skeleton.inc"
 };
 
 u32 Actor02000_D08AF0[1] = {
-#include "assets/actor_102000_model_08FEC_partVerts.inc"
+#include "assets/golem_pawn_rook_beam_sword_partVerts.inc"
 };
 
 SVECTOR Actor02000_D08AF4[29] = {
-#include "assets/actor_102000_model_08FEC_verts.inc"
+#include "assets/golem_pawn_rook_beam_sword_verts.inc"
 };
 
 SVECTOR Actor02000_D08BDC[24] = {
-#include "assets/actor_102000_model_08FEC_normals.inc"
+#include "assets/golem_pawn_rook_beam_sword_normals.inc"
 };
 
 u32 Actor02000_D08C9C[212] = {
-#include "assets/actor_102000_model_08FEC_stream.inc"
+#include "assets/golem_pawn_rook_beam_sword_stream.inc"
 };
 
 TmdSource Actor02000_D08FEC = {

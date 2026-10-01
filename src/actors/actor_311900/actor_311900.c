@@ -84,23 +84,23 @@ void             func_actor_311900_8016222C(Task*);
 void             func_actor_311900_8016249C(Task*);
 
 TmdBone D_actor_311900_801628B0[20] = {
-#include "assets/actor_311900_model_06964_skeleton.inc"
+#include "assets/rupert_broderick_body_1_skeleton.inc"
 };
 
 u32 D_actor_311900_80162B80[20] = {
-#include "assets/actor_311900_model_06964_partVerts.inc"
+#include "assets/rupert_broderick_body_1_partVerts.inc"
 };
 
 SVECTOR D_actor_311900_80162BD0[386] = {
-#include "assets/actor_311900_model_06964_verts.inc"
+#include "assets/rupert_broderick_body_1_verts.inc"
 };
 
 SVECTOR D_actor_311900_801637E0[385] = {
-#include "assets/actor_311900_model_06964_normals.inc"
+#include "assets/rupert_broderick_body_1_normals.inc"
 };
 
 u32 D_actor_311900_801643E8[4327] = {
-#include "assets/actor_311900_model_06964_stream.inc"
+#include "assets/rupert_broderick_body_1_stream.inc"
 };
 
 TmdSource D_actor_311900_80168784 = {
@@ -116,23 +116,23 @@ TmdSource D_actor_311900_80168784 = {
 };
 
 TmdBone D_actor_311900_801687A8[20] = {
-#include "assets/actor_311900_model_0C12C_skeleton.inc"
+#include "assets/swat_member_2_body_skeleton.inc"
 };
 
 u32 D_actor_311900_80168A78[20] = {
-#include "assets/actor_311900_model_0C12C_partVerts.inc"
+#include "assets/swat_member_2_body_partVerts.inc"
 };
 
 SVECTOR D_actor_311900_80168AC8[360] = {
-#include "assets/actor_311900_model_0C12C_verts.inc"
+#include "assets/swat_member_2_body_verts.inc"
 };
 
 SVECTOR D_actor_311900_80169608[358] = {
-#include "assets/actor_311900_model_0C12C_normals.inc"
+#include "assets/swat_member_2_body_normals.inc"
 };
 
 u32 D_actor_311900_8016A138[3973] = {
-#include "assets/actor_311900_model_0C12C_stream.inc"
+#include "assets/swat_member_2_body_stream.inc"
 };
 
 TmdSource D_actor_311900_8016DF4C = {

@@ -169,23 +169,23 @@ void             Actor02400_Fn02DB0(Task*);
 void             Actor02400_Fn03358(Task*);
 
 TmdBone Actor02400_D03448[4] = {
-#include "assets/actor_102400_model_04580_skeleton.inc"
+#include "assets/amoeba_green_red_body_skeleton.inc"
 };
 
 u32 Actor02400_D034D8[4] = {
-#include "assets/actor_102400_model_04580_partVerts.inc"
+#include "assets/amoeba_green_red_body_partVerts.inc"
 };
 
 SVECTOR Actor02400_D034E8[87] = {
-#include "assets/actor_102400_model_04580_verts.inc"
+#include "assets/amoeba_green_red_body_verts.inc"
 };
 
 SVECTOR Actor02400_D037A0[58] = {
-#include "assets/actor_102400_model_04580_normals.inc"
+#include "assets/amoeba_green_red_body_normals.inc"
 };
 
 u32 Actor02400_D03970[772] = {
-#include "assets/actor_102400_model_04580_stream.inc"
+#include "assets/amoeba_green_red_body_stream.inc"
 };
 
 TmdSource Actor02400_D04580 = {

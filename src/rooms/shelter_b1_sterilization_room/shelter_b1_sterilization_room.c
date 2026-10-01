@@ -193,23 +193,23 @@ void                func_shelter_b1_sterilization_room_801811E0(Task*);
 #include "../../shared/telephone_data.inc.c"
 
 TmdBone D_shelter_b1_sterilization_room_80184834[3] = {
-#include "assets/shelter_b1_sterilization_room_model_07838_skeleton.inc"
+#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
 u32 D_shelter_b1_sterilization_room_801848A0[3] = {
-#include "assets/shelter_b1_sterilization_room_model_07838_partVerts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
 SVECTOR D_shelter_b1_sterilization_room_801848AC[56] = {
-#include "assets/shelter_b1_sterilization_room_model_07838_verts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
 SVECTOR D_shelter_b1_sterilization_room_80184A6C[6] = {
-#include "assets/shelter_b1_sterilization_room_model_07838_normals.inc"
+#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
 u32 D_shelter_b1_sterilization_room_80184A9C[215] = {
-#include "assets/shelter_b1_sterilization_room_model_07838_stream.inc"
+#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
 TmdSource D_shelter_b1_sterilization_room_80184DF8 = {

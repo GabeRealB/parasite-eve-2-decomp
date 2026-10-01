@@ -69,19 +69,19 @@ void func_shelter_b2_elevator_8017D70C(Task*);
 void func_shelter_b2_elevator_8017D888(Task*);
 
 TmdBone D_shelter_b2_elevator_8017DB78[1] = {
-#include "assets/shelter_b2_elevator_model_00790_skeleton.inc"
+#include "assets/shelter_b2_elevator_model_00688_skeleton.inc"
 };
 
 u32 D_shelter_b2_elevator_8017DB9C[1] = {
-#include "assets/shelter_b2_elevator_model_00790_partVerts.inc"
+#include "assets/shelter_b2_elevator_model_00688_partVerts.inc"
 };
 
 SVECTOR D_shelter_b2_elevator_8017DBA0[21] = {
-#include "assets/shelter_b2_elevator_model_00790_verts.inc"
+#include "assets/shelter_b2_elevator_model_00688_verts.inc"
 };
 
 u32 D_shelter_b2_elevator_8017DC48[66] = {
-#include "assets/shelter_b2_elevator_model_00790_stream.inc"
+#include "assets/shelter_b2_elevator_model_00688_stream.inc"
 };
 
 TmdSource D_shelter_b2_elevator_8017DD50 = {
@@ -97,19 +97,19 @@ TmdSource D_shelter_b2_elevator_8017DD50 = {
 };
 
 TmdBone D_shelter_b2_elevator_8017DD74[1] = {
-#include "assets/shelter_b2_elevator_model_0098C_skeleton.inc"
+#include "assets/shelter_b2_elevator_model_00884_skeleton.inc"
 };
 
 u32 D_shelter_b2_elevator_8017DD98[1] = {
-#include "assets/shelter_b2_elevator_model_0098C_partVerts.inc"
+#include "assets/shelter_b2_elevator_model_00884_partVerts.inc"
 };
 
 SVECTOR D_shelter_b2_elevator_8017DD9C[21] = {
-#include "assets/shelter_b2_elevator_model_0098C_verts.inc"
+#include "assets/shelter_b2_elevator_model_00884_verts.inc"
 };
 
 u32 D_shelter_b2_elevator_8017DE44[66] = {
-#include "assets/shelter_b2_elevator_model_0098C_stream.inc"
+#include "assets/shelter_b2_elevator_model_00884_stream.inc"
 };
 
 TmdSource D_shelter_b2_elevator_8017DF4C = {

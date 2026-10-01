@@ -42,19 +42,19 @@ extern u32     D_shelter_b2_breeding_room_801803A0[1];
 extern u32     D_shelter_b2_breeding_room_801803C4[11];
 
 TmdBone D_shelter_b2_breeding_room_8018037C[1] = {
-#include "assets/shelter_b2_breeding_room_model_02E30_skeleton.inc"
+#include "assets/shelter_b2_breeding_room_model_02E04_skeleton.inc"
 };
 
 u32 D_shelter_b2_breeding_room_801803A0[1] = {
-#include "assets/shelter_b2_breeding_room_model_02E30_partVerts.inc"
+#include "assets/shelter_b2_breeding_room_model_02E04_partVerts.inc"
 };
 
 SVECTOR D_shelter_b2_breeding_room_801803A4[4] = {
-#include "assets/shelter_b2_breeding_room_model_02E30_verts.inc"
+#include "assets/shelter_b2_breeding_room_model_02E04_verts.inc"
 };
 
 u32 D_shelter_b2_breeding_room_801803C4[11] = {
-#include "assets/shelter_b2_breeding_room_model_02E30_stream.inc"
+#include "assets/shelter_b2_breeding_room_model_02E04_stream.inc"
 };
 
 TmdSource D_shelter_b2_breeding_room_801803F0 = { 0, 40, 0, 1, D_shelter_b2_breeding_room_801803A0, D_shelter_b2_breeding_room_801803A4, &D_shelter_b2_breeding_room_801803A4[4], D_shelter_b2_breeding_room_8018037C, D_shelter_b2_breeding_room_801803C4 };

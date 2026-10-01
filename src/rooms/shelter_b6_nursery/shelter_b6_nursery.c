@@ -278,23 +278,23 @@ SVECTOR D_shelter_b6_nursery_8018504C[7] = {
 };
 
 TmdBone D_shelter_b6_nursery_80185084[1] = {
-#include "assets/shelter_b6_nursery_model_07D10_skeleton.inc"
+#include "assets/shelter_b6_nursery_model_07BAC_skeleton.inc"
 };
 
 u32 D_shelter_b6_nursery_801850A8[1] = {
-#include "assets/shelter_b6_nursery_model_07D10_partVerts.inc"
+#include "assets/shelter_b6_nursery_model_07BAC_partVerts.inc"
 };
 
 SVECTOR D_shelter_b6_nursery_801850AC[12] = {
-#include "assets/shelter_b6_nursery_model_07D10_verts.inc"
+#include "assets/shelter_b6_nursery_model_07BAC_verts.inc"
 };
 
 SVECTOR D_shelter_b6_nursery_8018510C[12] = {
-#include "assets/shelter_b6_nursery_model_07D10_normals.inc"
+#include "assets/shelter_b6_nursery_model_07BAC_normals.inc"
 };
 
 u32 D_shelter_b6_nursery_8018516C[89] = {
-#include "assets/shelter_b6_nursery_model_07D10_stream.inc"
+#include "assets/shelter_b6_nursery_model_07BAC_stream.inc"
 };
 
 TmdSource D_shelter_b6_nursery_801852D0 = {

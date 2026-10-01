@@ -152,19 +152,19 @@ TaskDesc D_dryfield_water_tank_8017F34C[2] = {
 };
 
 TmdBone D_dryfield_water_tank_8017F364[1] = {
-#include "assets/dryfield_water_tank_model_0277C_skeleton.inc"
+#include "assets/dryfield_water_tank_model_020D4_skeleton.inc"
 };
 
 u32 D_dryfield_water_tank_8017F388[1] = {
-#include "assets/dryfield_water_tank_model_0277C_partVerts.inc"
+#include "assets/dryfield_water_tank_model_020D4_partVerts.inc"
 };
 
 SVECTOR D_dryfield_water_tank_8017F38C[97] = {
-#include "assets/dryfield_water_tank_model_0277C_verts.inc"
+#include "assets/dryfield_water_tank_model_020D4_verts.inc"
 };
 
 u32 D_dryfield_water_tank_8017F694[426] = {
-#include "assets/dryfield_water_tank_model_0277C_stream.inc"
+#include "assets/dryfield_water_tank_model_020D4_stream.inc"
 };
 
 TmdSource D_dryfield_water_tank_8017FD3C = {

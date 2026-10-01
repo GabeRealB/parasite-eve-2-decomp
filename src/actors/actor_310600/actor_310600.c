@@ -194,23 +194,23 @@ AnimationSet D_actor_310600_801668FC = {
 };
 
 TmdBone D_actor_310600_80166924[20] = {
-#include "assets/actor_310600_model_0A9D8_skeleton.inc"
+#include "assets/rupert_broderick_body_1_skeleton.inc"
 };
 
 u32 D_actor_310600_80166BF4[20] = {
-#include "assets/actor_310600_model_0A9D8_partVerts.inc"
+#include "assets/rupert_broderick_body_1_partVerts.inc"
 };
 
 SVECTOR D_actor_310600_80166C44[386] = {
-#include "assets/actor_310600_model_0A9D8_verts.inc"
+#include "assets/rupert_broderick_body_1_verts.inc"
 };
 
 SVECTOR D_actor_310600_80167854[385] = {
-#include "assets/actor_310600_model_0A9D8_normals.inc"
+#include "assets/rupert_broderick_body_1_normals.inc"
 };
 
 u32 D_actor_310600_8016845C[4327] = {
-#include "assets/actor_310600_model_0A9D8_stream.inc"
+#include "assets/rupert_broderick_body_1_stream.inc"
 };
 
 TmdSource D_actor_310600_8016C7F8 = {
@@ -226,23 +226,23 @@ TmdSource D_actor_310600_8016C7F8 = {
 };
 
 TmdBone D_actor_310600_8016C81C[1] = {
-#include "assets/actor_310600_model_0AF30_skeleton.inc"
+#include "assets/rupert_broderick_mongoose_skeleton.inc"
 };
 
 u32 D_actor_310600_8016C840[1] = {
-#include "assets/actor_310600_model_0AF30_partVerts.inc"
+#include "assets/rupert_broderick_mongoose_partVerts.inc"
 };
 
 SVECTOR D_actor_310600_8016C844[28] = {
-#include "assets/actor_310600_model_0AF30_verts.inc"
+#include "assets/rupert_broderick_mongoose_verts.inc"
 };
 
 SVECTOR D_actor_310600_8016C924[28] = {
-#include "assets/actor_310600_model_0AF30_normals.inc"
+#include "assets/rupert_broderick_mongoose_normals.inc"
 };
 
 u32 D_actor_310600_8016CA04[211] = {
-#include "assets/actor_310600_model_0AF30_stream.inc"
+#include "assets/rupert_broderick_mongoose_stream.inc"
 };
 
 TmdSource D_actor_310600_8016CD50 = {

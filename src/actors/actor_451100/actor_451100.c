@@ -504,23 +504,23 @@ EvsCommand D_actor_451100_80136108[7] = {
 };
 
 TmdBone D_actor_451100_801361B0[19] = {
-#include "assets/actor_451100_model_09B44_skeleton.inc"
+#include "assets/aya_brea_body_skeleton.inc"
 };
 
 u32 D_actor_451100_8013645C[19] = {
-#include "assets/actor_451100_model_09B44_partVerts.inc"
+#include "assets/aya_brea_body_partVerts.inc"
 };
 
 SVECTOR D_actor_451100_801364A8[365] = {
-#include "assets/actor_451100_model_09B44_verts.inc"
+#include "assets/aya_brea_body_verts.inc"
 };
 
 SVECTOR D_actor_451100_80137010[385] = {
-#include "assets/actor_451100_model_09B44_normals.inc"
+#include "assets/aya_brea_body_normals.inc"
 };
 
 u32 D_actor_451100_80137C18[3923] = {
-#include "assets/actor_451100_model_09B44_stream.inc"
+#include "assets/aya_brea_body_stream.inc"
 };
 
 TmdSource D_actor_451100_8013B964 = {
@@ -941,23 +941,23 @@ AnimationSet* D_actor_451100_8013F740[37] = {
 };
 
 TmdBone D_actor_451100_8013F7D4[19] = {
-#include "assets/actor_451100_model_14240_skeleton.inc"
+#include "assets/no9_golem_dryfield_body_skeleton.inc"
 };
 
 u32 D_actor_451100_8013FA80[19] = {
-#include "assets/actor_451100_model_14240_partVerts.inc"
+#include "assets/no9_golem_dryfield_body_partVerts.inc"
 };
 
 SVECTOR D_actor_451100_8013FACC[432] = {
-#include "assets/actor_451100_model_14240_verts.inc"
+#include "assets/no9_golem_dryfield_body_verts.inc"
 };
 
 SVECTOR D_actor_451100_8014084C[444] = {
-#include "assets/actor_451100_model_14240_normals.inc"
+#include "assets/no9_golem_dryfield_body_normals.inc"
 };
 
 u32 D_actor_451100_8014162C[4749] = {
-#include "assets/actor_451100_model_14240_stream.inc"
+#include "assets/no9_golem_dryfield_body_stream.inc"
 };
 
 TmdSource D_actor_451100_80146060 = {
@@ -973,23 +973,23 @@ TmdSource D_actor_451100_80146060 = {
 };
 
 TmdBone D_actor_451100_80146084[1] = {
-#include "assets/actor_451100_model_144F8_skeleton.inc"
+#include "assets/actor_451100_model_1436C_skeleton.inc"
 };
 
 u32 D_actor_451100_801460A8[1] = {
-#include "assets/actor_451100_model_144F8_partVerts.inc"
+#include "assets/actor_451100_model_1436C_partVerts.inc"
 };
 
 SVECTOR D_actor_451100_801460AC[14] = {
-#include "assets/actor_451100_model_144F8_verts.inc"
+#include "assets/actor_451100_model_1436C_verts.inc"
 };
 
 SVECTOR D_actor_451100_8014611C[14] = {
-#include "assets/actor_451100_model_144F8_normals.inc"
+#include "assets/actor_451100_model_1436C_normals.inc"
 };
 
 u32 D_actor_451100_8014618C[99] = {
-#include "assets/actor_451100_model_144F8_stream.inc"
+#include "assets/actor_451100_model_1436C_stream.inc"
 };
 
 TmdSource D_actor_451100_80146318 = {

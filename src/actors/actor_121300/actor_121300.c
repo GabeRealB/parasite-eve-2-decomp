@@ -239,23 +239,23 @@ void             func_actor_121300_80134384(void);
 void             func_actor_121300_801343A4(void);
 
 TmdBone D_actor_121300_801343CC[19] = {
-#include "assets/actor_121300_model_07D60_skeleton.inc"
+#include "assets/aya_brea_body_skeleton.inc"
 };
 
 u32 D_actor_121300_80134678[19] = {
-#include "assets/actor_121300_model_07D60_partVerts.inc"
+#include "assets/aya_brea_body_partVerts.inc"
 };
 
 SVECTOR D_actor_121300_801346C4[365] = {
-#include "assets/actor_121300_model_07D60_verts.inc"
+#include "assets/aya_brea_body_verts.inc"
 };
 
 SVECTOR D_actor_121300_8013522C[385] = {
-#include "assets/actor_121300_model_07D60_normals.inc"
+#include "assets/aya_brea_body_normals.inc"
 };
 
 u32 D_actor_121300_80135E34[3923] = {
-#include "assets/actor_121300_model_07D60_stream.inc"
+#include "assets/aya_brea_body_stream.inc"
 };
 
 TmdSource D_actor_121300_80139B80 = {
@@ -271,23 +271,23 @@ TmdSource D_actor_121300_80139B80 = {
 };
 
 TmdBone D_actor_121300_80139BA4[1] = {
-#include "assets/actor_121300_model_07FC4_skeleton.inc"
+#include "assets/actor_121300_model_07E84_skeleton.inc"
 };
 
 u32 D_actor_121300_80139BC8[1] = {
-#include "assets/actor_121300_model_07FC4_partVerts.inc"
+#include "assets/actor_121300_model_07E84_partVerts.inc"
 };
 
 SVECTOR D_actor_121300_80139BCC[10] = {
-#include "assets/actor_121300_model_07FC4_verts.inc"
+#include "assets/actor_121300_model_07E84_verts.inc"
 };
 
 SVECTOR D_actor_121300_80139C1C[17] = {
-#include "assets/actor_121300_model_07FC4_normals.inc"
+#include "assets/actor_121300_model_07E84_normals.inc"
 };
 
 u32 D_actor_121300_80139CA4[80] = {
-#include "assets/actor_121300_model_07FC4_stream.inc"
+#include "assets/actor_121300_model_07E84_stream.inc"
 };
 
 TmdSource D_actor_121300_80139DE4 = {
@@ -303,23 +303,23 @@ TmdSource D_actor_121300_80139DE4 = {
 };
 
 TmdBone D_actor_121300_80139E08[1] = {
-#include "assets/actor_121300_model_08230_skeleton.inc"
+#include "assets/actor_121300_model_080F0_skeleton.inc"
 };
 
 u32 D_actor_121300_80139E2C[1] = {
-#include "assets/actor_121300_model_08230_partVerts.inc"
+#include "assets/actor_121300_model_080F0_partVerts.inc"
 };
 
 SVECTOR D_actor_121300_80139E30[10] = {
-#include "assets/actor_121300_model_08230_verts.inc"
+#include "assets/actor_121300_model_080F0_verts.inc"
 };
 
 SVECTOR D_actor_121300_80139E80[18] = {
-#include "assets/actor_121300_model_08230_normals.inc"
+#include "assets/actor_121300_model_080F0_normals.inc"
 };
 
 u32 D_actor_121300_80139F10[80] = {
-#include "assets/actor_121300_model_08230_stream.inc"
+#include "assets/actor_121300_model_080F0_stream.inc"
 };
 
 TmdSource D_actor_121300_8013A050 = {
@@ -335,23 +335,23 @@ TmdSource D_actor_121300_8013A050 = {
 };
 
 TmdBone D_actor_121300_8013A074[1] = {
-#include "assets/actor_121300_model_0848C_skeleton.inc"
+#include "assets/actor_121300_model_0834C_skeleton.inc"
 };
 
 u32 D_actor_121300_8013A098[1] = {
-#include "assets/actor_121300_model_0848C_partVerts.inc"
+#include "assets/actor_121300_model_0834C_partVerts.inc"
 };
 
 SVECTOR D_actor_121300_8013A09C[10] = {
-#include "assets/actor_121300_model_0848C_verts.inc"
+#include "assets/actor_121300_model_0834C_verts.inc"
 };
 
 SVECTOR D_actor_121300_8013A0EC[16] = {
-#include "assets/actor_121300_model_0848C_normals.inc"
+#include "assets/actor_121300_model_0834C_normals.inc"
 };
 
 u32 D_actor_121300_8013A16C[80] = {
-#include "assets/actor_121300_model_0848C_stream.inc"
+#include "assets/actor_121300_model_0834C_stream.inc"
 };
 
 TmdSource D_actor_121300_8013A2AC = {
@@ -367,23 +367,23 @@ TmdSource D_actor_121300_8013A2AC = {
 };
 
 TmdBone D_actor_121300_8013A2D0[1] = {
-#include "assets/actor_121300_model_08674_skeleton.inc"
+#include "assets/actor_121300_model_08580_skeleton.inc"
 };
 
 u32 D_actor_121300_8013A2F4[1] = {
-#include "assets/actor_121300_model_08674_partVerts.inc"
+#include "assets/actor_121300_model_08580_partVerts.inc"
 };
 
 SVECTOR D_actor_121300_8013A2F8[8] = {
-#include "assets/actor_121300_model_08674_verts.inc"
+#include "assets/actor_121300_model_08580_verts.inc"
 };
 
 SVECTOR D_actor_121300_8013A338[13] = {
-#include "assets/actor_121300_model_08674_normals.inc"
+#include "assets/actor_121300_model_08580_normals.inc"
 };
 
 u32 D_actor_121300_8013A3A0[61] = {
-#include "assets/actor_121300_model_08674_stream.inc"
+#include "assets/actor_121300_model_08580_stream.inc"
 };
 
 TmdSource D_actor_121300_8013A494 = {
@@ -399,23 +399,23 @@ TmdSource D_actor_121300_8013A494 = {
 };
 
 TmdBone D_actor_121300_8013A4B8[1] = {
-#include "assets/actor_121300_model_0885C_skeleton.inc"
+#include "assets/actor_121300_model_08768_skeleton.inc"
 };
 
 u32 D_actor_121300_8013A4DC[1] = {
-#include "assets/actor_121300_model_0885C_partVerts.inc"
+#include "assets/actor_121300_model_08768_partVerts.inc"
 };
 
 SVECTOR D_actor_121300_8013A4E0[8] = {
-#include "assets/actor_121300_model_0885C_verts.inc"
+#include "assets/actor_121300_model_08768_verts.inc"
 };
 
 SVECTOR D_actor_121300_8013A520[13] = {
-#include "assets/actor_121300_model_0885C_normals.inc"
+#include "assets/actor_121300_model_08768_normals.inc"
 };
 
 u32 D_actor_121300_8013A588[61] = {
-#include "assets/actor_121300_model_0885C_stream.inc"
+#include "assets/actor_121300_model_08768_stream.inc"
 };
 
 TmdSource D_actor_121300_8013A67C = {

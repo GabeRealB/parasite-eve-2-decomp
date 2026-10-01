@@ -181,23 +181,23 @@ static const TaskFuncTable4 gMadChaserDangleSteps = { {
 extern TmdSource D_actor_341700_80171864;
 
 TmdBone D_actor_341700_8016D388[1] = {
-#include "assets/actor_341700_model_0C050_skeleton.inc"
+#include "assets/mad_chaser_burst_head_skeleton.inc"
 };
 
 u32 D_actor_341700_8016D3AC[1] = {
-#include "assets/actor_341700_model_0C050_partVerts.inc"
+#include "assets/mad_chaser_burst_head_partVerts.inc"
 };
 
 SVECTOR D_actor_341700_8016D3B0[48] = {
-#include "assets/actor_341700_model_0C050_verts.inc"
+#include "assets/mad_chaser_burst_head_verts.inc"
 };
 
 SVECTOR D_actor_341700_8016D530[53] = {
-#include "assets/actor_341700_model_0C050_normals.inc"
+#include "assets/mad_chaser_burst_head_normals.inc"
 };
 
 u32 D_actor_341700_8016D6D8[486] = {
-#include "assets/actor_341700_model_0C050_stream.inc"
+#include "assets/mad_chaser_burst_head_stream.inc"
 };
 
 TmdSource gMadChaserChunkModel0 = {
@@ -213,23 +213,23 @@ TmdSource gMadChaserChunkModel0 = {
 };
 
 TmdBone D_actor_341700_8016DE94[1] = {
-#include "assets/actor_341700_model_0C6F4_skeleton.inc"
+#include "assets/mad_chaser_burst_arm_skeleton.inc"
 };
 
 u32 D_actor_341700_8016DEB8[1] = {
-#include "assets/actor_341700_model_0C6F4_partVerts.inc"
+#include "assets/mad_chaser_burst_arm_partVerts.inc"
 };
 
 SVECTOR D_actor_341700_8016DEBC[28] = {
-#include "assets/actor_341700_model_0C6F4_verts.inc"
+#include "assets/mad_chaser_burst_arm_verts.inc"
 };
 
 SVECTOR D_actor_341700_8016DF9C[37] = {
-#include "assets/actor_341700_model_0C6F4_normals.inc"
+#include "assets/mad_chaser_burst_arm_normals.inc"
 };
 
 u32 D_actor_341700_8016E0C4[276] = {
-#include "assets/actor_341700_model_0C6F4_stream.inc"
+#include "assets/mad_chaser_burst_arm_stream.inc"
 };
 
 TmdSource gMadChaserChunkModel1 = {
@@ -245,23 +245,23 @@ TmdSource gMadChaserChunkModel1 = {
 };
 
 TmdBone D_actor_341700_8016E538[1] = {
-#include "assets/actor_341700_model_0CC64_skeleton.inc"
+#include "assets/mad_chaser_burst_tail_skeleton.inc"
 };
 
 u32 D_actor_341700_8016E55C[1] = {
-#include "assets/actor_341700_model_0CC64_partVerts.inc"
+#include "assets/mad_chaser_burst_tail_partVerts.inc"
 };
 
 SVECTOR D_actor_341700_8016E560[25] = {
-#include "assets/actor_341700_model_0CC64_verts.inc"
+#include "assets/mad_chaser_burst_tail_verts.inc"
 };
 
 SVECTOR D_actor_341700_8016E628[32] = {
-#include "assets/actor_341700_model_0CC64_normals.inc"
+#include "assets/mad_chaser_burst_tail_normals.inc"
 };
 
 u32 D_actor_341700_8016E728[215] = {
-#include "assets/actor_341700_model_0CC64_stream.inc"
+#include "assets/mad_chaser_burst_tail_stream.inc"
 };
 
 TmdSource gMadChaserChunkModel2 = {
@@ -277,23 +277,23 @@ TmdSource gMadChaserChunkModel2 = {
 };
 
 TmdBone D_actor_341700_8016EAA8[9] = {
-#include "assets/actor_341700_model_0FA44_skeleton.inc"
+#include "assets/mad_chaser_body_skeleton.inc"
 };
 
 u32 D_actor_341700_8016EBEC[9] = {
-#include "assets/actor_341700_model_0FA44_partVerts.inc"
+#include "assets/mad_chaser_body_partVerts.inc"
 };
 
 SVECTOR D_actor_341700_8016EC10[160] = {
-#include "assets/actor_341700_model_0FA44_verts.inc"
+#include "assets/mad_chaser_body_verts.inc"
 };
 
 SVECTOR D_actor_341700_8016F110[206] = {
-#include "assets/actor_341700_model_0FA44_normals.inc"
+#include "assets/mad_chaser_body_normals.inc"
 };
 
 u32 D_actor_341700_8016F780[2105] = {
-#include "assets/actor_341700_model_0FA44_stream.inc"
+#include "assets/mad_chaser_body_stream.inc"
 };
 
 TmdSource D_actor_341700_80171864 = {

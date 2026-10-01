@@ -71,23 +71,23 @@ extern TmdSource D_actor_111800_80138004;
 void             func_actor_111800_8013251C(Task*);
 
 TmdBone D_actor_111800_801329C4[19] = {
-#include "assets/actor_111800_model_061E4_skeleton.inc"
+#include "assets/grinning_stranger_body_skeleton.inc"
 };
 
 u32 D_actor_111800_80132C70[19] = {
-#include "assets/actor_111800_model_061E4_partVerts.inc"
+#include "assets/grinning_stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_111800_80132CBC[306] = {
-#include "assets/actor_111800_model_061E4_verts.inc"
+#include "assets/grinning_stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_111800_8013364C[365] = {
-#include "assets/actor_111800_model_061E4_normals.inc"
+#include "assets/grinning_stranger_body_normals.inc"
 };
 
 u32 D_actor_111800_801341B4[3988] = {
-#include "assets/actor_111800_model_061E4_stream.inc"
+#include "assets/grinning_stranger_body_stream.inc"
 };
 
 TmdSource D_actor_111800_80138004 = {

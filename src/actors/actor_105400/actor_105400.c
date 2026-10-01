@@ -110,23 +110,23 @@ SVECTOR gGeneratorHitEffectOffsets[2] = {
 };
 
 TmdBone D_actor_105400_80133A50[10] = {
-#include "assets/actor_105400_model_0A64C_skeleton.inc"
+#include "assets/proto_generator_body_skeleton.inc"
 };
 
 u32 D_actor_105400_80133BB8[10] = {
-#include "assets/actor_105400_model_0A64C_partVerts.inc"
+#include "assets/proto_generator_body_partVerts.inc"
 };
 
 SVECTOR D_actor_105400_80133BE0[603] = {
-#include "assets/actor_105400_model_0A64C_verts.inc"
+#include "assets/proto_generator_body_verts.inc"
 };
 
 SVECTOR D_actor_105400_80134EB8[641] = {
-#include "assets/actor_105400_model_0A64C_normals.inc"
+#include "assets/proto_generator_body_normals.inc"
 };
 
 u32 D_actor_105400_801362C0[6251] = {
-#include "assets/actor_105400_model_0A64C_stream.inc"
+#include "assets/proto_generator_body_stream.inc"
 };
 
 TmdSource D_actor_105400_8013C46C = {

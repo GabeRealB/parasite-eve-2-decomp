@@ -145,23 +145,23 @@ extern AnimationSet D_actor_800200_8016EF88;
 extern AnimationSet D_actor_800200_8016F1E0;
 
 TmdBone D_actor_800200_80166174[19] = {
-#include "assets/actor_800200_model_080AC_skeleton.inc"
+#include "assets/flint_body_skeleton.inc"
 };
 
 u32 D_actor_800200_80166420[19] = {
-#include "assets/actor_800200_model_080AC_partVerts.inc"
+#include "assets/flint_body_partVerts.inc"
 };
 
 SVECTOR D_actor_800200_8016646C[238] = {
-#include "assets/actor_800200_model_080AC_verts.inc"
+#include "assets/flint_body_verts.inc"
 };
 
 SVECTOR D_actor_800200_80166BDC[238] = {
-#include "assets/actor_800200_model_080AC_normals.inc"
+#include "assets/flint_body_normals.inc"
 };
 
 u32 D_actor_800200_8016734C[2784] = {
-#include "assets/actor_800200_model_080AC_stream.inc"
+#include "assets/flint_body_stream.inc"
 };
 
 TmdSource D_actor_800200_80169ECC = {

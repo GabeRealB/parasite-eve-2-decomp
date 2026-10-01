@@ -225,23 +225,23 @@ TaskDesc D_actor_403600_801421A0[4] = {
 };
 
 TmdBone D_actor_403600_801421D0[20] = {
-#include "assets/actor_403600_model_179F8_skeleton.inc"
+#include "assets/eve_body_skeleton.inc"
 };
 
 u32 D_actor_403600_801424A0[20] = {
-#include "assets/actor_403600_model_179F8_partVerts.inc"
+#include "assets/eve_body_partVerts.inc"
 };
 
 SVECTOR D_actor_403600_801424F0[458] = {
-#include "assets/actor_403600_model_179F8_verts.inc"
+#include "assets/eve_body_verts.inc"
 };
 
 SVECTOR D_actor_403600_80143340[453] = {
-#include "assets/actor_403600_model_179F8_normals.inc"
+#include "assets/eve_body_normals.inc"
 };
 
 u32 D_actor_403600_80144168[5548] = {
-#include "assets/actor_403600_model_179F8_stream.inc"
+#include "assets/eve_body_stream.inc"
 };
 
 TmdSource D_actor_403600_80149818 = {
@@ -257,23 +257,23 @@ TmdSource D_actor_403600_80149818 = {
 };
 
 TmdBone D_actor_403600_8014983C[20] = {
-#include "assets/actor_403600_model_1F058_skeleton.inc"
+#include "assets/actor_403600_model_199B8_skeleton.inc"
 };
 
 u32 D_actor_403600_80149B0C[20] = {
-#include "assets/actor_403600_model_1F058_partVerts.inc"
+#include "assets/actor_403600_model_199B8_partVerts.inc"
 };
 
 SVECTOR D_actor_403600_80149B5C[458] = {
-#include "assets/actor_403600_model_1F058_verts.inc"
+#include "assets/actor_403600_model_199B8_verts.inc"
 };
 
 SVECTOR D_actor_403600_8014A9AC[453] = {
-#include "assets/actor_403600_model_1F058_normals.inc"
+#include "assets/actor_403600_model_199B8_normals.inc"
 };
 
 u32 D_actor_403600_8014B7D4[5545] = {
-#include "assets/actor_403600_model_1F058_stream.inc"
+#include "assets/actor_403600_model_199B8_stream.inc"
 };
 
 TmdSource D_actor_403600_80150E78 = {

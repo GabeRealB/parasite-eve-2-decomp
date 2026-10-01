@@ -240,23 +240,23 @@ ActorSpawnParamRow Actor01900_D0AC64[3] = {
 };
 
 TmdBone Actor01900_D0AC88[19] = {
-#include "assets/actor_101900_model_102C8_skeleton.inc"
+#include "assets/grinning_stranger_body_skeleton.inc"
 };
 
 u32 Actor01900_D0AF34[19] = {
-#include "assets/actor_101900_model_102C8_partVerts.inc"
+#include "assets/grinning_stranger_body_partVerts.inc"
 };
 
 SVECTOR Actor01900_D0AF80[306] = {
-#include "assets/actor_101900_model_102C8_verts.inc"
+#include "assets/grinning_stranger_body_verts.inc"
 };
 
 SVECTOR Actor01900_D0B910[365] = {
-#include "assets/actor_101900_model_102C8_normals.inc"
+#include "assets/grinning_stranger_body_normals.inc"
 };
 
 u32 Actor01900_D0C478[3988] = {
-#include "assets/actor_101900_model_102C8_stream.inc"
+#include "assets/grinning_stranger_body_stream.inc"
 };
 
 TmdSource Actor01900_D102C8 = {
@@ -272,23 +272,23 @@ TmdSource Actor01900_D102C8 = {
 };
 
 TmdBone Actor01900_D102EC[3] = {
-#include "assets/actor_101900_model_10B68_skeleton.inc"
+#include "assets/stranger_grinning_odd_burst_hand_skeleton.inc"
 };
 
 u32 Actor01900_D10358[3] = {
-#include "assets/actor_101900_model_10B68_partVerts.inc"
+#include "assets/stranger_grinning_odd_burst_hand_partVerts.inc"
 };
 
 SVECTOR Actor01900_D10364[33] = {
-#include "assets/actor_101900_model_10B68_verts.inc"
+#include "assets/stranger_grinning_odd_burst_hand_verts.inc"
 };
 
 SVECTOR Actor01900_D1046C[45] = {
-#include "assets/actor_101900_model_10B68_normals.inc"
+#include "assets/stranger_grinning_odd_burst_hand_normals.inc"
 };
 
 u32 Actor01900_D105D4[357] = {
-#include "assets/actor_101900_model_10B68_stream.inc"
+#include "assets/stranger_grinning_odd_burst_hand_stream.inc"
 };
 
 TmdSource Actor01900_D10B68 = {

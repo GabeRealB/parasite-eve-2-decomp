@@ -277,23 +277,23 @@ Actor356100TintRow D_actor_356100_8016A994[3] = {
 };
 
 TmdBone D_actor_356100_8016A9AC[21] = {
-#include "assets/actor_356100_model_0DE54_skeleton.inc"
+#include "assets/horned_stranger_body_skeleton.inc"
 };
 
 u32 D_actor_356100_8016ACA0[21] = {
-#include "assets/actor_356100_model_0DE54_partVerts.inc"
+#include "assets/horned_stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_356100_8016ACF4[293] = {
-#include "assets/actor_356100_model_0DE54_verts.inc"
+#include "assets/horned_stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_356100_8016B61C[363] = {
-#include "assets/actor_356100_model_0DE54_normals.inc"
+#include "assets/horned_stranger_body_normals.inc"
 };
 
 u32 D_actor_356100_8016C174[3776] = {
-#include "assets/actor_356100_model_0DE54_stream.inc"
+#include "assets/horned_stranger_body_stream.inc"
 };
 
 TmdSource D_actor_356100_8016FC74 = {

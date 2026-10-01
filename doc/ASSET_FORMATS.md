@@ -829,6 +829,16 @@ that shares it, and the viewer's overlay tree shows it there too. It is
 hand-written and preserved across `dump_asset_db.py` regeneration, the same way
 extra `ASSETS` fields are.
 
+The generated initializers a C unit includes for a model it owns
+(`build/include/assets/<name>_{skeleton,partVerts,verts,normals,stream}.inc`)
+take the same name, so a source reads `desert_chaser_body_stream.inc` and every
+package carrying the mesh shares one set of files. A model missing from the
+manifest stops the build until `dump_asset_db.py` adds it. A handful of streams
+are shared by meshes whose vertices differ (the Gray, Ivory and Zebra Stalkers'
+burst arms); the first keeps the name and each further one adds its package,
+or its record offset within one package (`tools/gen_model_inc.py`,
+`include_names`).
+
 572 streams are located across 212 packages; SHA-1 dedup in the store collapses
 them to **298 unique** files, so 274 are meshes shared between packages. (Both
 figures dropped once the scanner stopped accepting zero padding as a stream —

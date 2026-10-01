@@ -107,23 +107,23 @@ s32                 func_actor_113000_80132474(Task*, s32, s32);
 void                func_actor_113000_80131F38(Task*);
 
 TmdBone D_actor_113000_80132534[20] = {
-#include "assets/actor_113000_model_05AC0_skeleton.inc"
+#include "assets/rupert_broderick_hurt_body_skeleton.inc"
 };
 
 u32 D_actor_113000_80132804[20] = {
-#include "assets/actor_113000_model_05AC0_partVerts.inc"
+#include "assets/rupert_broderick_hurt_body_partVerts.inc"
 };
 
 SVECTOR D_actor_113000_80132854[343] = {
-#include "assets/actor_113000_model_05AC0_verts.inc"
+#include "assets/rupert_broderick_hurt_body_verts.inc"
 };
 
 SVECTOR D_actor_113000_8013330C[334] = {
-#include "assets/actor_113000_model_05AC0_normals.inc"
+#include "assets/rupert_broderick_hurt_body_normals.inc"
 };
 
 u32 D_actor_113000_80133D7C[3801] = {
-#include "assets/actor_113000_model_05AC0_stream.inc"
+#include "assets/rupert_broderick_hurt_body_stream.inc"
 };
 
 TmdSource D_actor_113000_801378E0 = {

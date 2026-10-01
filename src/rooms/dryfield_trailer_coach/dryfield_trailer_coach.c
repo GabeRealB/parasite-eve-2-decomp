@@ -238,23 +238,23 @@ void                                       func_dryfield_trailer_coach_80182850(
 TaskDesc D_dryfield_trailer_coach_80183F84 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
 TmdBone D_dryfield_trailer_coach_80183F90[3] = {
-#include "assets/dryfield_trailer_coach_model_06F94_skeleton.inc"
+#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
 u32 D_dryfield_trailer_coach_80183FFC[3] = {
-#include "assets/dryfield_trailer_coach_model_06F94_partVerts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
 SVECTOR D_dryfield_trailer_coach_80184008[56] = {
-#include "assets/dryfield_trailer_coach_model_06F94_verts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
 SVECTOR D_dryfield_trailer_coach_801841C8[6] = {
-#include "assets/dryfield_trailer_coach_model_06F94_normals.inc"
+#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
 u32 D_dryfield_trailer_coach_801841F8[215] = {
-#include "assets/dryfield_trailer_coach_model_06F94_stream.inc"
+#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
 TmdSource D_dryfield_trailer_coach_80184554 = {

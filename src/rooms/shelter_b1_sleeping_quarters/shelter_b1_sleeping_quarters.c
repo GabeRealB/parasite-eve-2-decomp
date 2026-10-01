@@ -38,19 +38,19 @@ extern TmdBone D_shelter_b1_sleeping_quarters_801802E4[1];
 extern u32     D_shelter_b1_sleeping_quarters_801803BC[78];
 
 TmdBone D_shelter_b1_sleeping_quarters_801802E4[1] = {
-#include "assets/shelter_b1_sleeping_quarters_model_02F34_skeleton.inc"
+#include "assets/shelter_b1_sleeping_quarters_model_02DFC_skeleton.inc"
 };
 
 u32 D_shelter_b1_sleeping_quarters_80180308[1] = {
-#include "assets/shelter_b1_sleeping_quarters_model_02F34_partVerts.inc"
+#include "assets/shelter_b1_sleeping_quarters_model_02DFC_partVerts.inc"
 };
 
 SVECTOR D_shelter_b1_sleeping_quarters_8018030C[22] = {
-#include "assets/shelter_b1_sleeping_quarters_model_02F34_verts.inc"
+#include "assets/shelter_b1_sleeping_quarters_model_02DFC_verts.inc"
 };
 
 u32 D_shelter_b1_sleeping_quarters_801803BC[78] = {
-#include "assets/shelter_b1_sleeping_quarters_model_02F34_stream.inc"
+#include "assets/shelter_b1_sleeping_quarters_model_02DFC_stream.inc"
 
 };
 

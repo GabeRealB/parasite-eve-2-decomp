@@ -164,19 +164,19 @@ static inline TaskDesc* Reflection_GetTasks(void)
 }
 
 TmdBone D_acropolis_west_elevator_hall_801802C0[1] = {
-#include "assets/acropolis_west_elevator_hall_model_02F4C_skeleton.inc"
+#include "assets/acropolis_west_elevator_hall_model_02DE8_skeleton.inc"
 };
 
 u32 D_acropolis_west_elevator_hall_801802E4[1] = {
-#include "assets/acropolis_west_elevator_hall_model_02F4C_partVerts.inc"
+#include "assets/acropolis_west_elevator_hall_model_02DE8_partVerts.inc"
 };
 
 SVECTOR D_acropolis_west_elevator_hall_801802E8[24] = {
-#include "assets/acropolis_west_elevator_hall_model_02F4C_verts.inc"
+#include "assets/acropolis_west_elevator_hall_model_02DE8_verts.inc"
 };
 
 u32 D_acropolis_west_elevator_hall_801803A8[89] = {
-#include "assets/acropolis_west_elevator_hall_model_02F4C_stream.inc"
+#include "assets/acropolis_west_elevator_hall_model_02DE8_stream.inc"
 };
 
 TmdSource D_acropolis_west_elevator_hall_8018050C = {
@@ -192,19 +192,19 @@ TmdSource D_acropolis_west_elevator_hall_8018050C = {
 };
 
 TmdBone D_acropolis_west_elevator_hall_80180530[1] = {
-#include "assets/acropolis_west_elevator_hall_model_031BC_skeleton.inc"
+#include "assets/acropolis_west_elevator_hall_model_03058_skeleton.inc"
 };
 
 u32 D_acropolis_west_elevator_hall_80180554[1] = {
-#include "assets/acropolis_west_elevator_hall_model_031BC_partVerts.inc"
+#include "assets/acropolis_west_elevator_hall_model_03058_partVerts.inc"
 };
 
 SVECTOR D_acropolis_west_elevator_hall_80180558[24] = {
-#include "assets/acropolis_west_elevator_hall_model_031BC_verts.inc"
+#include "assets/acropolis_west_elevator_hall_model_03058_verts.inc"
 };
 
 u32 D_acropolis_west_elevator_hall_80180618[89] = {
-#include "assets/acropolis_west_elevator_hall_model_031BC_stream.inc"
+#include "assets/acropolis_west_elevator_hall_model_03058_stream.inc"
 };
 
 TmdSource D_acropolis_west_elevator_hall_8018077C = {

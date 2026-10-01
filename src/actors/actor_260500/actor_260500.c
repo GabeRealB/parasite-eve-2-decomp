@@ -1306,23 +1306,23 @@ AnimationSet D_actor_260500_80154118 = {
 };
 
 TmdBone D_actor_260500_80154140[19] = {
-#include "assets/actor_260500_model_0FF38_skeleton.inc"
+#include "assets/jodie_bouquet_body_2_skeleton.inc"
 };
 
 u32 D_actor_260500_801543EC[19] = {
-#include "assets/actor_260500_model_0FF38_partVerts.inc"
+#include "assets/jodie_bouquet_body_2_partVerts.inc"
 };
 
 SVECTOR D_actor_260500_80154438[369] = {
-#include "assets/actor_260500_model_0FF38_verts.inc"
+#include "assets/jodie_bouquet_body_2_verts.inc"
 };
 
 SVECTOR D_actor_260500_80154FC0[369] = {
-#include "assets/actor_260500_model_0FF38_normals.inc"
+#include "assets/jodie_bouquet_body_2_normals.inc"
 };
 
 u32 D_actor_260500_80155B48[4228] = {
-#include "assets/actor_260500_model_0FF38_stream.inc"
+#include "assets/jodie_bouquet_body_2_stream.inc"
 };
 
 TmdSource D_actor_260500_80159D58 = {

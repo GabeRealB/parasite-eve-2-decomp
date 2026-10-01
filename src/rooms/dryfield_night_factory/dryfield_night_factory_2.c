@@ -78,23 +78,23 @@ extern SVECTOR                D_dryfield_night_factory_801870E0[170];
 extern s16*                   D_dryfield_night_factory_80187BD0[8];
 
 TmdBone D_dryfield_night_factory_801826BC[1] = {
-#include "assets/dryfield_night_factory_model_091A8_skeleton.inc"
+#include "assets/dryfield_factory_model_06604_skeleton.inc"
 };
 
 u32 D_dryfield_night_factory_801826E0[1] = {
-#include "assets/dryfield_night_factory_model_091A8_partVerts.inc"
+#include "assets/dryfield_factory_model_06604_partVerts.inc"
 };
 
 SVECTOR D_dryfield_night_factory_801826E4[306] = {
-#include "assets/dryfield_night_factory_model_091A8_verts.inc"
+#include "assets/dryfield_factory_model_06604_verts.inc"
 };
 
 SVECTOR D_dryfield_night_factory_80183074[353] = {
-#include "assets/dryfield_night_factory_model_091A8_normals.inc"
+#include "assets/dryfield_factory_model_06604_normals.inc"
 };
 
 u32 D_dryfield_night_factory_80183B7C[2811] = {
-#include "assets/dryfield_night_factory_model_091A8_stream.inc"
+#include "assets/dryfield_factory_model_06604_stream.inc"
 };
 
 TmdSource D_dryfield_night_factory_80186768 = {
@@ -110,23 +110,23 @@ TmdSource D_dryfield_night_factory_80186768 = {
 };
 
 TmdBone D_dryfield_night_factory_8018678C[1] = {
-#include "assets/dryfield_night_factory_model_095C8_skeleton.inc"
+#include "assets/dryfield_factory_model_093E4_skeleton.inc"
 };
 
 u32 D_dryfield_night_factory_801867B0[1] = {
-#include "assets/dryfield_night_factory_model_095C8_partVerts.inc"
+#include "assets/dryfield_factory_model_093E4_partVerts.inc"
 };
 
 SVECTOR D_dryfield_night_factory_801867B4[25] = {
-#include "assets/dryfield_night_factory_model_095C8_verts.inc"
+#include "assets/dryfield_factory_model_093E4_verts.inc"
 };
 
 SVECTOR D_dryfield_night_factory_8018687C[28] = {
-#include "assets/dryfield_night_factory_model_095C8_normals.inc"
+#include "assets/dryfield_factory_model_093E4_normals.inc"
 };
 
 u32 D_dryfield_night_factory_8018695C[139] = {
-#include "assets/dryfield_night_factory_model_095C8_stream.inc"
+#include "assets/dryfield_factory_model_093E4_stream.inc"
 };
 
 TmdSource D_dryfield_night_factory_80186B88 = {

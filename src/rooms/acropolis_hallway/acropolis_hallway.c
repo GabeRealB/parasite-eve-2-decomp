@@ -265,19 +265,19 @@ WorldCollisionSurfaceProperties* D_acropolis_hallway_8017ED40[8] = {
 };
 
 TmdBone D_acropolis_hallway_8017ED60[1] = {
-#include "assets/acropolis_hallway_model_0229C_skeleton.inc"
+#include "assets/acropolis_hallway_model_01AE0_skeleton.inc"
 };
 
 u32 D_acropolis_hallway_8017ED84[1] = {
-#include "assets/acropolis_hallway_model_0229C_partVerts.inc"
+#include "assets/acropolis_hallway_model_01AE0_partVerts.inc"
 };
 
 SVECTOR D_acropolis_hallway_8017ED88[99] = {
-#include "assets/acropolis_hallway_model_0229C_verts.inc"
+#include "assets/acropolis_hallway_model_01AE0_verts.inc"
 };
 
 u32 D_acropolis_hallway_8017F0A0[495] = {
-#include "assets/acropolis_hallway_model_0229C_stream.inc"
+#include "assets/acropolis_hallway_model_01AE0_stream.inc"
 };
 
 TmdSource D_acropolis_hallway_8017F85C = {
@@ -293,23 +293,23 @@ TmdSource D_acropolis_hallway_8017F85C = {
 };
 
 TmdBone D_acropolis_hallway_8017F880[1] = {
-#include "assets/acropolis_hallway_model_02468_skeleton.inc"
+#include "assets/acropolis_hallway_model_023C0_skeleton.inc"
 };
 
 u32 D_acropolis_hallway_8017F8A4[1] = {
-#include "assets/acropolis_hallway_model_02468_partVerts.inc"
+#include "assets/acropolis_hallway_model_023C0_partVerts.inc"
 };
 
 SVECTOR D_acropolis_hallway_8017F8A8[21] = {
-#include "assets/acropolis_hallway_model_02468_verts.inc"
+#include "assets/acropolis_hallway_model_023C0_verts.inc"
 };
 
 SVECTOR D_acropolis_hallway_8017F950[6] = {
-#include "assets/acropolis_hallway_model_02468_normals.inc"
+#include "assets/acropolis_hallway_model_023C0_normals.inc"
 };
 
 u32 D_acropolis_hallway_8017F980[42] = {
-#include "assets/acropolis_hallway_model_02468_stream.inc"
+#include "assets/acropolis_hallway_model_023C0_stream.inc"
 };
 
 TmdSource D_acropolis_hallway_8017FA28 = {

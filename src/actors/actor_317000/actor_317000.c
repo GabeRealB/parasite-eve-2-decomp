@@ -112,23 +112,23 @@ s32              func_actor_317000_80162CA0(Task*, s32, ActorCommand* msg);
 void             func_actor_317000_80162624(Task*);
 
 TmdBone D_actor_317000_80162D64[19] = {
-#include "assets/actor_317000_model_06584_skeleton.inc"
+#include "assets/grinning_stranger_body_skeleton.inc"
 };
 
 u32 D_actor_317000_80163010[19] = {
-#include "assets/actor_317000_model_06584_partVerts.inc"
+#include "assets/grinning_stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_317000_8016305C[306] = {
-#include "assets/actor_317000_model_06584_verts.inc"
+#include "assets/grinning_stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_317000_801639EC[365] = {
-#include "assets/actor_317000_model_06584_normals.inc"
+#include "assets/grinning_stranger_body_normals.inc"
 };
 
 u32 D_actor_317000_80164554[3988] = {
-#include "assets/actor_317000_model_06584_stream.inc"
+#include "assets/grinning_stranger_body_stream.inc"
 };
 
 TmdSource D_actor_317000_801683A4 = {

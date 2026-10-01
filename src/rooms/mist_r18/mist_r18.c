@@ -210,23 +210,23 @@ void                func_mist_r18_8017EA98(Task*);
 void                func_mist_r18_8017EC98(Task*);
 
 TmdBone D_mist_r18_8017EDBC[1] = {
-#include "assets/mist_r18_model_01AA4_skeleton.inc"
+#include "assets/actor_213000_model_072AC_skeleton.inc"
 };
 
 u32 D_mist_r18_8017EDE0[1] = {
-#include "assets/mist_r18_model_01AA4_partVerts.inc"
+#include "assets/actor_213000_model_072AC_partVerts.inc"
 };
 
 SVECTOR D_mist_r18_8017EDE4[14] = {
-#include "assets/mist_r18_model_01AA4_verts.inc"
+#include "assets/actor_213000_model_072AC_verts.inc"
 };
 
 SVECTOR D_mist_r18_8017EE54[17] = {
-#include "assets/mist_r18_model_01AA4_normals.inc"
+#include "assets/actor_213000_model_072AC_normals.inc"
 };
 
 u32 D_mist_r18_8017EEDC[98] = {
-#include "assets/mist_r18_model_01AA4_stream.inc"
+#include "assets/actor_213000_model_072AC_stream.inc"
 };
 
 TmdSource D_mist_r18_8017F064 = {
@@ -242,19 +242,19 @@ TmdSource D_mist_r18_8017F064 = {
 };
 
 TmdBone D_mist_r18_8017F088[1] = {
-#include "assets/mist_r18_model_01C9C_skeleton.inc"
+#include "assets/actor_213000_prop_skeleton.inc"
 };
 
 u32 D_mist_r18_8017F0AC[1] = {
-#include "assets/mist_r18_model_01C9C_partVerts.inc"
+#include "assets/actor_213000_prop_partVerts.inc"
 };
 
 SVECTOR D_mist_r18_8017F0B0[14] = {
-#include "assets/mist_r18_model_01C9C_verts.inc"
+#include "assets/actor_213000_prop_verts.inc"
 };
 
 u32 D_mist_r18_8017F120[79] = {
-#include "assets/mist_r18_model_01C9C_stream.inc"
+#include "assets/actor_213000_prop_stream.inc"
 };
 
 TmdSource D_mist_r18_8017F25C = {

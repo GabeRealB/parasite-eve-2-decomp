@@ -97,23 +97,23 @@ void             func_actor_213100_80149FE4(Task*);
 void             func_actor_213100_8014A0C0(Task*);
 
 TmdBone D_actor_213100_8014A500[19] = {
-#include "assets/actor_213100_model_063C4_skeleton.inc"
+#include "assets/jodie_bouquet_body_1_skeleton.inc"
 };
 
 u32 D_actor_213100_8014A7AC[19] = {
-#include "assets/actor_213100_model_063C4_partVerts.inc"
+#include "assets/jodie_bouquet_body_1_partVerts.inc"
 };
 
 SVECTOR D_actor_213100_8014A7F8[394] = {
-#include "assets/actor_213100_model_063C4_verts.inc"
+#include "assets/jodie_bouquet_body_1_verts.inc"
 };
 
 SVECTOR D_actor_213100_8014B448[394] = {
-#include "assets/actor_213100_model_063C4_normals.inc"
+#include "assets/jodie_bouquet_body_1_normals.inc"
 };
 
 u32 D_actor_213100_8014C098[4179] = {
-#include "assets/actor_213100_model_063C4_stream.inc"
+#include "assets/jodie_bouquet_body_1_stream.inc"
 };
 
 TmdSource D_actor_213100_801501E4 = {
@@ -129,19 +129,19 @@ TmdSource D_actor_213100_801501E4 = {
 };
 
 TmdBone D_actor_213100_80150208[1] = {
-#include "assets/actor_213100_model_065BC_skeleton.inc"
+#include "assets/actor_213000_prop_skeleton.inc"
 };
 
 u32 D_actor_213100_8015022C[1] = {
-#include "assets/actor_213100_model_065BC_partVerts.inc"
+#include "assets/actor_213000_prop_partVerts.inc"
 };
 
 SVECTOR D_actor_213100_80150230[14] = {
-#include "assets/actor_213100_model_065BC_verts.inc"
+#include "assets/actor_213000_prop_verts.inc"
 };
 
 u32 D_actor_213100_801502A0[79] = {
-#include "assets/actor_213100_model_065BC_stream.inc"
+#include "assets/actor_213000_prop_stream.inc"
 };
 
 TmdSource D_actor_213100_801503DC = {

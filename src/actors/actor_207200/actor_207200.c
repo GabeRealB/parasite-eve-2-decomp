@@ -55,23 +55,23 @@ DamageAttack D_actor_207200_8014DBB8[1] = { 0 };
 EnemyParams gSkullStalkerParams = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99 };
 
 TmdBone D_actor_207200_8014DBCC[3] = {
-#include "assets/actor_207200_model_046A8_skeleton.inc"
+#include "assets/skull_stalker_body_skeleton.inc"
 };
 
 u32 D_actor_207200_8014DC38[3] = {
-#include "assets/actor_207200_model_046A8_partVerts.inc"
+#include "assets/skull_stalker_body_partVerts.inc"
 };
 
 SVECTOR D_actor_207200_8014DC44[37] = {
-#include "assets/actor_207200_model_046A8_verts.inc"
+#include "assets/skull_stalker_body_verts.inc"
 };
 
 SVECTOR D_actor_207200_8014DD6C[47] = {
-#include "assets/actor_207200_model_046A8_normals.inc"
+#include "assets/skull_stalker_body_normals.inc"
 };
 
 u32 D_actor_207200_8014DEE4[377] = {
-#include "assets/actor_207200_model_046A8_stream.inc"
+#include "assets/skull_stalker_body_stream.inc"
 };
 
 TmdSource D_actor_207200_8014E4C8 = {

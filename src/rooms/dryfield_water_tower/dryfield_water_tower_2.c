@@ -434,19 +434,19 @@ TaskDesc D_dryfield_water_tower_801803D8[2] = {
 };
 
 TmdBone D_dryfield_water_tower_801803F0[1] = {
-#include "assets/dryfield_water_tower_model_03808_skeleton.inc"
+#include "assets/dryfield_water_tank_model_020D4_skeleton.inc"
 };
 
 u32 D_dryfield_water_tower_80180414[1] = {
-#include "assets/dryfield_water_tower_model_03808_partVerts.inc"
+#include "assets/dryfield_water_tank_model_020D4_partVerts.inc"
 };
 
 SVECTOR D_dryfield_water_tower_80180418[97] = {
-#include "assets/dryfield_water_tower_model_03808_verts.inc"
+#include "assets/dryfield_water_tank_model_020D4_verts.inc"
 };
 
 u32 D_dryfield_water_tower_80180720[426] = {
-#include "assets/dryfield_water_tower_model_03808_stream.inc"
+#include "assets/dryfield_water_tank_model_020D4_stream.inc"
 };
 
 TmdSource D_dryfield_water_tower_80180DC8 = {
@@ -462,19 +462,19 @@ TmdSource D_dryfield_water_tower_80180DC8 = {
 };
 
 TmdBone D_dryfield_water_tower_80180DEC[1] = {
-#include "assets/dryfield_water_tower_model_0445C_skeleton.inc"
+#include "assets/dryfield_water_tower_model_03D14_skeleton.inc"
 };
 
 u32 D_dryfield_water_tower_80180E10[1] = {
-#include "assets/dryfield_water_tower_model_0445C_partVerts.inc"
+#include "assets/dryfield_water_tower_model_03D14_partVerts.inc"
 };
 
 SVECTOR D_dryfield_water_tower_80180E14[152] = {
-#include "assets/dryfield_water_tower_model_0445C_verts.inc"
+#include "assets/dryfield_water_tower_model_03D14_verts.inc"
 };
 
 u32 D_dryfield_water_tower_801812D4[466] = {
-#include "assets/dryfield_water_tower_model_0445C_stream.inc"
+#include "assets/dryfield_water_tower_model_03D14_stream.inc"
 };
 
 TmdSource D_dryfield_water_tower_80181A1C = {

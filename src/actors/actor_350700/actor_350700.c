@@ -141,23 +141,23 @@ s32  func_actor_350700_80162AF4(Task*, s32, ActorCommand* msg);
 void func_actor_350700_80162398(Task*);
 
 TmdBone D_actor_350700_80163964[19] = {
-#include "assets/actor_350700_model_068A8_skeleton.inc"
+#include "assets/eve_brea_masked_body_skeleton.inc"
 };
 
 u32 D_actor_350700_80163C10[19] = {
-#include "assets/actor_350700_model_068A8_partVerts.inc"
+#include "assets/eve_brea_masked_body_partVerts.inc"
 };
 
 SVECTOR D_actor_350700_80163C5C[312] = {
-#include "assets/actor_350700_model_068A8_verts.inc"
+#include "assets/eve_brea_masked_body_verts.inc"
 };
 
 SVECTOR D_actor_350700_8016461C[338] = {
-#include "assets/actor_350700_model_068A8_normals.inc"
+#include "assets/eve_brea_masked_body_normals.inc"
 };
 
 u32 D_actor_350700_801650AC[3463] = {
-#include "assets/actor_350700_model_068A8_stream.inc"
+#include "assets/eve_brea_masked_body_stream.inc"
 };
 
 TmdSource D_actor_350700_801686C8 = {
@@ -284,23 +284,23 @@ Actor350700MsgEntry gReverseWalkMessages[6] = {
 };
 
 TmdBone D_actor_350700_80169D4C[20] = {
-#include "assets/actor_350700_model_0CA4C_skeleton.inc"
+#include "assets/kyle_madigan_body_skeleton.inc"
 };
 
 u32 D_actor_350700_8016A01C[20] = {
-#include "assets/actor_350700_model_0CA4C_partVerts.inc"
+#include "assets/kyle_madigan_body_partVerts.inc"
 };
 
 SVECTOR D_actor_350700_8016A06C[300] = {
-#include "assets/actor_350700_model_0CA4C_verts.inc"
+#include "assets/kyle_madigan_body_verts.inc"
 };
 
 SVECTOR D_actor_350700_8016A9CC[298] = {
-#include "assets/actor_350700_model_0CA4C_normals.inc"
+#include "assets/kyle_madigan_body_normals.inc"
 };
 
 u32 D_actor_350700_8016B31C[3412] = {
-#include "assets/actor_350700_model_0CA4C_stream.inc"
+#include "assets/kyle_madigan_body_stream.inc"
 };
 
 TmdSource D_actor_350700_8016E86C = {
@@ -316,23 +316,23 @@ TmdSource D_actor_350700_8016E86C = {
 };
 
 TmdBone D_actor_350700_8016E890[1] = {
-#include "assets/actor_350700_model_0CEA0_skeleton.inc"
+#include "assets/kyle_madigan_hand_right_skeleton.inc"
 };
 
 u32 D_actor_350700_8016E8B4[1] = {
-#include "assets/actor_350700_model_0CEA0_partVerts.inc"
+#include "assets/kyle_madigan_hand_right_partVerts.inc"
 };
 
 SVECTOR D_actor_350700_8016E8B8[23] = {
-#include "assets/actor_350700_model_0CEA0_verts.inc"
+#include "assets/kyle_madigan_hand_right_verts.inc"
 };
 
 SVECTOR D_actor_350700_8016E970[23] = {
-#include "assets/actor_350700_model_0CEA0_normals.inc"
+#include "assets/kyle_madigan_hand_right_normals.inc"
 };
 
 u32 D_actor_350700_8016EA28[166] = {
-#include "assets/actor_350700_model_0CEA0_stream.inc"
+#include "assets/kyle_madigan_hand_right_stream.inc"
 };
 
 TmdSource D_actor_350700_8016ECC0 = {
@@ -348,23 +348,23 @@ TmdSource D_actor_350700_8016ECC0 = {
 };
 
 TmdBone D_actor_350700_8016ECE4[1] = {
-#include "assets/actor_350700_model_0D390_skeleton.inc"
+#include "assets/kyle_madigan_hand_left_skeleton.inc"
 };
 
 u32 D_actor_350700_8016ED08[1] = {
-#include "assets/actor_350700_model_0D390_partVerts.inc"
+#include "assets/kyle_madigan_hand_left_partVerts.inc"
 };
 
 SVECTOR D_actor_350700_8016ED0C[27] = {
-#include "assets/actor_350700_model_0D390_verts.inc"
+#include "assets/kyle_madigan_hand_left_verts.inc"
 };
 
 SVECTOR D_actor_350700_8016EDE4[27] = {
-#include "assets/actor_350700_model_0D390_normals.inc"
+#include "assets/kyle_madigan_hand_left_normals.inc"
 };
 
 u32 D_actor_350700_8016EEBC[189] = {
-#include "assets/actor_350700_model_0D390_stream.inc"
+#include "assets/kyle_madigan_hand_left_stream.inc"
 };
 
 TmdSource D_actor_350700_8016F1B0 = {
@@ -380,23 +380,23 @@ TmdSource D_actor_350700_8016F1B0 = {
 };
 
 TmdBone D_actor_350700_8016F1D4[1] = {
-#include "assets/actor_350700_model_0D7D4_skeleton.inc"
+#include "assets/kyle_madigan_gun_skeleton.inc"
 };
 
 u32 D_actor_350700_8016F1F8[1] = {
-#include "assets/actor_350700_model_0D7D4_partVerts.inc"
+#include "assets/kyle_madigan_gun_partVerts.inc"
 };
 
 SVECTOR D_actor_350700_8016F1FC[22] = {
-#include "assets/actor_350700_model_0D7D4_verts.inc"
+#include "assets/kyle_madigan_gun_verts.inc"
 };
 
 SVECTOR D_actor_350700_8016F2AC[24] = {
-#include "assets/actor_350700_model_0D7D4_normals.inc"
+#include "assets/kyle_madigan_gun_normals.inc"
 };
 
 u32 D_actor_350700_8016F36C[162] = {
-#include "assets/actor_350700_model_0D7D4_stream.inc"
+#include "assets/kyle_madigan_gun_stream.inc"
 };
 
 TmdSource D_actor_350700_8016F5F4 = {

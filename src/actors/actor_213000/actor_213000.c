@@ -95,23 +95,23 @@ void             func_actor_213000_8014A520(Task*);
 void             func_actor_213000_8014A578(Task*);
 
 TmdBone D_actor_213000_8014AA4C[20] = {
-#include "assets/actor_213000_model_067B0_skeleton.inc"
+#include "assets/eric_baldwin_body_skeleton.inc"
 };
 
 u32 D_actor_213000_8014AD1C[20] = {
-#include "assets/actor_213000_model_067B0_partVerts.inc"
+#include "assets/eric_baldwin_body_partVerts.inc"
 };
 
 SVECTOR D_actor_213000_8014AD6C[338] = {
-#include "assets/actor_213000_model_067B0_verts.inc"
+#include "assets/eric_baldwin_body_verts.inc"
 };
 
 SVECTOR D_actor_213000_8014B7FC[413] = {
-#include "assets/actor_213000_model_067B0_normals.inc"
+#include "assets/eric_baldwin_body_normals.inc"
 };
 
 u32 D_actor_213000_8014C4E4[4155] = {
-#include "assets/actor_213000_model_067B0_stream.inc"
+#include "assets/eric_baldwin_body_stream.inc"
 };
 
 TmdSource D_actor_213000_801505D0 = {
@@ -127,23 +127,23 @@ TmdSource D_actor_213000_801505D0 = {
 };
 
 TmdBone D_actor_213000_801505F4[3] = {
-#include "assets/actor_213000_model_06DE4_skeleton.inc"
+#include "assets/actor_213000_model_06A10_skeleton.inc"
 };
 
 u32 D_actor_213000_80150660[3] = {
-#include "assets/actor_213000_model_06DE4_partVerts.inc"
+#include "assets/actor_213000_model_06A10_partVerts.inc"
 };
 
 SVECTOR D_actor_213000_8015066C[28] = {
-#include "assets/actor_213000_model_06DE4_verts.inc"
+#include "assets/actor_213000_model_06A10_verts.inc"
 };
 
 SVECTOR D_actor_213000_8015074C[28] = {
-#include "assets/actor_213000_model_06DE4_normals.inc"
+#include "assets/actor_213000_model_06A10_normals.inc"
 };
 
 u32 D_actor_213000_8015082C[246] = {
-#include "assets/actor_213000_model_06DE4_stream.inc"
+#include "assets/actor_213000_model_06A10_stream.inc"
 };
 
 TmdSource D_actor_213000_80150C04 = {
@@ -159,23 +159,23 @@ TmdSource D_actor_213000_80150C04 = {
 };
 
 TmdBone D_actor_213000_80150C28[1] = {
-#include "assets/actor_213000_model_07168_skeleton.inc"
+#include "assets/eric_baldwin_hand_right_skeleton.inc"
 };
 
 u32 D_actor_213000_80150C4C[1] = {
-#include "assets/actor_213000_model_07168_partVerts.inc"
+#include "assets/eric_baldwin_hand_right_partVerts.inc"
 };
 
 SVECTOR D_actor_213000_80150C50[19] = {
-#include "assets/actor_213000_model_07168_verts.inc"
+#include "assets/eric_baldwin_hand_right_verts.inc"
 };
 
 SVECTOR D_actor_213000_80150CE8[19] = {
-#include "assets/actor_213000_model_07168_normals.inc"
+#include "assets/eric_baldwin_hand_right_normals.inc"
 };
 
 u32 D_actor_213000_80150D80[130] = {
-#include "assets/actor_213000_model_07168_stream.inc"
+#include "assets/eric_baldwin_hand_right_stream.inc"
 };
 
 TmdSource D_actor_213000_80150F88 = {
@@ -191,23 +191,23 @@ TmdSource D_actor_213000_80150F88 = {
 };
 
 TmdBone D_actor_213000_80150FAC[1] = {
-#include "assets/actor_213000_model_07434_skeleton.inc"
+#include "assets/actor_213000_model_072AC_skeleton.inc"
 };
 
 u32 D_actor_213000_80150FD0[1] = {
-#include "assets/actor_213000_model_07434_partVerts.inc"
+#include "assets/actor_213000_model_072AC_partVerts.inc"
 };
 
 SVECTOR D_actor_213000_80150FD4[14] = {
-#include "assets/actor_213000_model_07434_verts.inc"
+#include "assets/actor_213000_model_072AC_verts.inc"
 };
 
 SVECTOR D_actor_213000_80151044[17] = {
-#include "assets/actor_213000_model_07434_normals.inc"
+#include "assets/actor_213000_model_072AC_normals.inc"
 };
 
 u32 D_actor_213000_801510CC[98] = {
-#include "assets/actor_213000_model_07434_stream.inc"
+#include "assets/actor_213000_model_072AC_stream.inc"
 };
 
 TmdSource D_actor_213000_80151254 = {
@@ -223,19 +223,19 @@ TmdSource D_actor_213000_80151254 = {
 };
 
 TmdBone D_actor_213000_80151278[1] = {
-#include "assets/actor_213000_model_0762C_skeleton.inc"
+#include "assets/actor_213000_prop_skeleton.inc"
 };
 
 u32 D_actor_213000_8015129C[1] = {
-#include "assets/actor_213000_model_0762C_partVerts.inc"
+#include "assets/actor_213000_prop_partVerts.inc"
 };
 
 SVECTOR D_actor_213000_801512A0[14] = {
-#include "assets/actor_213000_model_0762C_verts.inc"
+#include "assets/actor_213000_prop_verts.inc"
 };
 
 u32 D_actor_213000_80151310[79] = {
-#include "assets/actor_213000_model_0762C_stream.inc"
+#include "assets/actor_213000_prop_stream.inc"
 };
 
 TmdSource D_actor_213000_8015144C = {

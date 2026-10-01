@@ -181,23 +181,23 @@ AnimationSet D_actor_210600_80153E70 = {
 };
 
 TmdBone D_actor_210600_80153E98[19] = {
-#include "assets/actor_210600_model_0F6B8_skeleton.inc"
+#include "assets/grinning_stranger_body_skeleton.inc"
 };
 
 u32 D_actor_210600_80154144[19] = {
-#include "assets/actor_210600_model_0F6B8_partVerts.inc"
+#include "assets/grinning_stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_210600_80154190[306] = {
-#include "assets/actor_210600_model_0F6B8_verts.inc"
+#include "assets/grinning_stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_210600_80154B20[365] = {
-#include "assets/actor_210600_model_0F6B8_normals.inc"
+#include "assets/grinning_stranger_body_normals.inc"
 };
 
 u32 D_actor_210600_80155688[3988] = {
-#include "assets/actor_210600_model_0F6B8_stream.inc"
+#include "assets/grinning_stranger_body_stream.inc"
 };
 
 TmdSource D_actor_210600_801594D8 = {

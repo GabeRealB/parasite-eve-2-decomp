@@ -234,23 +234,23 @@ s16 D_actor_521100_8015F8CC[4] = {
 };
 
 TmdBone D_actor_521100_8015F8D4[19] = {
-#include "assets/actor_521100_model_3309C_skeleton.inc"
+#include "assets/anmc_woman_2_body_skeleton.inc"
 };
 
 u32 D_actor_521100_8015FB80[19] = {
-#include "assets/actor_521100_model_3309C_partVerts.inc"
+#include "assets/anmc_woman_2_body_partVerts.inc"
 };
 
 SVECTOR D_actor_521100_8015FBCC[344] = {
-#include "assets/actor_521100_model_3309C_verts.inc"
+#include "assets/anmc_woman_2_body_verts.inc"
 };
 
 SVECTOR D_actor_521100_8016068C[337] = {
-#include "assets/actor_521100_model_3309C_normals.inc"
+#include "assets/anmc_woman_2_body_normals.inc"
 };
 
 u32 D_actor_521100_80161114[3946] = {
-#include "assets/actor_521100_model_3309C_stream.inc"
+#include "assets/anmc_woman_2_body_stream.inc"
 };
 
 TmdSource D_actor_521100_80164EBC = {

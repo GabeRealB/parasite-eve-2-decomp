@@ -82,23 +82,23 @@ static const GpEnemyTaskFuncTable3 gRatStateHandlers = {
 };
 
 TmdBone Actor00700_D03670[7] = {
-#include "assets/actor_100700_model_04EB4_skeleton.inc"
+#include "assets/rat_body_skeleton.inc"
 };
 
 u32 Actor00700_D0376C[7] = {
-#include "assets/actor_100700_model_04EB4_partVerts.inc"
+#include "assets/rat_body_partVerts.inc"
 };
 
 SVECTOR Actor00700_D03788[78] = {
-#include "assets/actor_100700_model_04EB4_verts.inc"
+#include "assets/rat_body_verts.inc"
 };
 
 SVECTOR Actor00700_D039F8[113] = {
-#include "assets/actor_100700_model_04EB4_normals.inc"
+#include "assets/rat_body_normals.inc"
 };
 
 u32 Actor00700_D03D80[1101] = {
-#include "assets/actor_100700_model_04EB4_stream.inc"
+#include "assets/rat_body_stream.inc"
 };
 
 TmdSource Actor00700_D04EB4 = {
@@ -440,23 +440,23 @@ s16 gRatAnimBlend[12] = {
 };
 
 TmdBone Actor00700_D06EB0[4] = {
-#include "assets/actor_100700_model_074E4_skeleton.inc"
+#include "assets/moth_body_skeleton.inc"
 };
 
 u32 Actor00700_D06F40[4] = {
-#include "assets/actor_100700_model_074E4_partVerts.inc"
+#include "assets/moth_body_partVerts.inc"
 };
 
 SVECTOR Actor00700_D06F50[26] = {
-#include "assets/actor_100700_model_074E4_verts.inc"
+#include "assets/moth_body_verts.inc"
 };
 
 SVECTOR Actor00700_D07020[20] = {
-#include "assets/actor_100700_model_074E4_normals.inc"
+#include "assets/moth_body_normals.inc"
 };
 
 u32 Actor00700_D070C0[265] = {
-#include "assets/actor_100700_model_074E4_stream.inc"
+#include "assets/moth_body_stream.inc"
 };
 
 TmdSource Actor00700_D074E4 = {

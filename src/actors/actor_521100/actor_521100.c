@@ -368,23 +368,23 @@ AnimationSet D_actor_521100_8013AFE0 = {
 };
 
 TmdBone D_actor_521100_8013B008[19] = {
-#include "assets/actor_521100_model_0FA74_skeleton.inc"
+#include "assets/no9_golem_dryfield_body_skeleton.inc"
 };
 
 u32 D_actor_521100_8013B2B4[19] = {
-#include "assets/actor_521100_model_0FA74_partVerts.inc"
+#include "assets/no9_golem_dryfield_body_partVerts.inc"
 };
 
 SVECTOR D_actor_521100_8013B300[432] = {
-#include "assets/actor_521100_model_0FA74_verts.inc"
+#include "assets/no9_golem_dryfield_body_verts.inc"
 };
 
 SVECTOR D_actor_521100_8013C080[444] = {
-#include "assets/actor_521100_model_0FA74_normals.inc"
+#include "assets/no9_golem_dryfield_body_normals.inc"
 };
 
 u32 D_actor_521100_8013CE60[4749] = {
-#include "assets/actor_521100_model_0FA74_stream.inc"
+#include "assets/no9_golem_dryfield_body_stream.inc"
 };
 
 TmdSource D_actor_521100_80141894 = {
@@ -400,23 +400,23 @@ TmdSource D_actor_521100_80141894 = {
 };
 
 TmdBone D_actor_521100_801418B8[1] = {
-#include "assets/actor_521100_model_10278_skeleton.inc"
+#include "assets/no9_golem_dryfield_gunblade_skeleton.inc"
 };
 
 u32 D_actor_521100_801418DC[1] = {
-#include "assets/actor_521100_model_10278_partVerts.inc"
+#include "assets/no9_golem_dryfield_gunblade_partVerts.inc"
 };
 
 SVECTOR D_actor_521100_801418E0[43] = {
-#include "assets/actor_521100_model_10278_verts.inc"
+#include "assets/no9_golem_dryfield_gunblade_verts.inc"
 };
 
 SVECTOR D_actor_521100_80141A38[41] = {
-#include "assets/actor_521100_model_10278_normals.inc"
+#include "assets/no9_golem_dryfield_gunblade_normals.inc"
 };
 
 u32 D_actor_521100_80141B80[326] = {
-#include "assets/actor_521100_model_10278_stream.inc"
+#include "assets/no9_golem_dryfield_gunblade_stream.inc"
 };
 
 TmdSource D_actor_521100_80142098 = {

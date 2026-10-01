@@ -201,23 +201,23 @@ ActorSpawnParamRow D_actor_401800_8013E700[3] = {
 };
 
 TmdBone D_actor_401800_8013E724[19] = {
-#include "assets/actor_401800_model_11AF8_skeleton.inc"
+#include "assets/odd_stranger_body_skeleton.inc"
 };
 
 u32 D_actor_401800_8013E9D0[19] = {
-#include "assets/actor_401800_model_11AF8_partVerts.inc"
+#include "assets/odd_stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_401800_8013EA1C[295] = {
-#include "assets/actor_401800_model_11AF8_verts.inc"
+#include "assets/odd_stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_401800_8013F354[335] = {
-#include "assets/actor_401800_model_11AF8_normals.inc"
+#include "assets/odd_stranger_body_normals.inc"
 };
 
 u32 D_actor_401800_8013FDCC[3795] = {
-#include "assets/actor_401800_model_11AF8_stream.inc"
+#include "assets/odd_stranger_body_stream.inc"
 };
 
 TmdSource D_actor_401800_80143918 = {
@@ -233,23 +233,23 @@ TmdSource D_actor_401800_80143918 = {
 };
 
 TmdBone D_actor_401800_8014393C[1] = {
-#include "assets/actor_401800_model_1207C_skeleton.inc"
+#include "assets/actor_401800_model_11D14_skeleton.inc"
 };
 
 u32 D_actor_401800_80143960[1] = {
-#include "assets/actor_401800_model_1207C_partVerts.inc"
+#include "assets/actor_401800_model_11D14_partVerts.inc"
 };
 
 SVECTOR D_actor_401800_80143964[24] = {
-#include "assets/actor_401800_model_1207C_verts.inc"
+#include "assets/actor_401800_model_11D14_verts.inc"
 };
 
 SVECTOR D_actor_401800_80143A24[34] = {
-#include "assets/actor_401800_model_1207C_normals.inc"
+#include "assets/actor_401800_model_11D14_normals.inc"
 };
 
 u32 D_actor_401800_80143B34[218] = {
-#include "assets/actor_401800_model_1207C_stream.inc"
+#include "assets/actor_401800_model_11D14_stream.inc"
 };
 
 TmdSource gOddStrangerBurstModelA = {
@@ -265,23 +265,23 @@ TmdSource gOddStrangerBurstModelA = {
 };
 
 TmdBone D_actor_401800_80143EC0[1] = {
-#include "assets/actor_401800_model_12614_skeleton.inc"
+#include "assets/actor_401800_model_12280_skeleton.inc"
 };
 
 u32 D_actor_401800_80143EE4[1] = {
-#include "assets/actor_401800_model_12614_partVerts.inc"
+#include "assets/actor_401800_model_12280_partVerts.inc"
 };
 
 SVECTOR D_actor_401800_80143EE8[22] = {
-#include "assets/actor_401800_model_12614_verts.inc"
+#include "assets/actor_401800_model_12280_verts.inc"
 };
 
 SVECTOR D_actor_401800_80143F98[33] = {
-#include "assets/actor_401800_model_12614_normals.inc"
+#include "assets/actor_401800_model_12280_normals.inc"
 };
 
 u32 D_actor_401800_801440A0[229] = {
-#include "assets/actor_401800_model_12614_stream.inc"
+#include "assets/actor_401800_model_12280_stream.inc"
 };
 
 TmdSource D_actor_401800_80144434 = {
@@ -297,23 +297,23 @@ TmdSource D_actor_401800_80144434 = {
 };
 
 TmdBone D_actor_401800_80144458[1] = {
-#include "assets/actor_401800_model_13104_skeleton.inc"
+#include "assets/actor_401800_model_129F8_skeleton.inc"
 };
 
 u32 D_actor_401800_8014447C[1] = {
-#include "assets/actor_401800_model_13104_partVerts.inc"
+#include "assets/actor_401800_model_129F8_partVerts.inc"
 };
 
 SVECTOR D_actor_401800_80144480[47] = {
-#include "assets/actor_401800_model_13104_verts.inc"
+#include "assets/actor_401800_model_129F8_verts.inc"
 };
 
 SVECTOR D_actor_401800_801445F8[68] = {
-#include "assets/actor_401800_model_13104_normals.inc"
+#include "assets/actor_401800_model_129F8_normals.inc"
 };
 
 u32 D_actor_401800_80144818[451] = {
-#include "assets/actor_401800_model_13104_stream.inc"
+#include "assets/actor_401800_model_129F8_stream.inc"
 };
 
 TmdSource gOddStrangerBurstModelC = {

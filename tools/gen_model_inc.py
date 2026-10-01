@@ -69,18 +69,52 @@ def initializer(data: bytes, component: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def include_names(models: list[dict], read) -> dict[tuple[str, int], str]:
+    """(package, record) -> the name its generated includes carry.
+
+    The name is the model's entry in the asset manifest. That entry is keyed by
+    the display stream's SHA-1, and a few streams are shared by meshes whose
+    vertices differ; the first such mesh keeps the name and each further one
+    adds its package (or, within one package, its record offset).
+    """
+    import hashlib
+    names: dict[tuple[str, int], str] = {}
+    variants: dict[str, dict[str, str]] = {}
+    packages: dict[str, set[str]] = {}
+    for m in models:
+        data = read(m["package"])
+        base = pkg_model.catalogue_name(data, m["load"], m["source"])
+        if base is None:
+            raise SystemExit(f"{m['package']}: model at 0x{m['source']:X} is not in the asset manifest; "
+                             "run tools/peassets/dump_asset_db.py")
+        content = hashlib.sha1(b"".join(data[p["offset"]:p["offset"] + p["size"]]
+                                         for p in components(data, m["load"], m["source"]))).hexdigest()
+        seen = variants.setdefault(base, {})
+        if content not in seen:
+            if not seen:
+                seen[content] = base
+            elif m["package"] in packages.setdefault(base, set()):
+                seen[content] = f"{base}_{m['source']:05X}"
+            else:
+                seen[content] = f"{base}_{m['package']}"
+        packages.setdefault(base, set()).add(m["package"])
+        names[(m["package"], m["source"])] = seen[content]
+    return names
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("package", type=Path)
     parser.add_argument("load", type=lambda s: int(s, 0))
     parser.add_argument("source", type=lambda s: int(s, 0))
     parser.add_argument("output", type=Path)
+    parser.add_argument("name", help="the model's name in the asset manifest")
     args = parser.parse_args()
     data = args.package.read_bytes()
     parts = components(data, args.load, args.source)
     args.output.mkdir(parents=True, exist_ok=True)
     for part in parts:
-        name = f"{args.package.stem}_model_{args.source:05X}_{part['name']}.inc"
+        name = f"{args.name}_{part['name']}.inc"
         content = f"/* Generated from {args.package.as_posix()}; model at 0x{args.source:X}. */\n"
         (args.output / name).write_text(content + initializer(data, part))
 

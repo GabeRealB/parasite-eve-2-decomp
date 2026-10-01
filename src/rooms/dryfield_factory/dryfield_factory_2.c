@@ -92,23 +92,23 @@ TaskMessageEntry gFactoryMsgTable[6] = {
 };
 
 TmdBone D_dryfield_factory_80182704[1] = {
-#include "assets/dryfield_factory_model_091F0_skeleton.inc"
+#include "assets/dryfield_factory_model_06604_skeleton.inc"
 };
 
 u32 D_dryfield_factory_80182728[1] = {
-#include "assets/dryfield_factory_model_091F0_partVerts.inc"
+#include "assets/dryfield_factory_model_06604_partVerts.inc"
 };
 
 SVECTOR D_dryfield_factory_8018272C[306] = {
-#include "assets/dryfield_factory_model_091F0_verts.inc"
+#include "assets/dryfield_factory_model_06604_verts.inc"
 };
 
 SVECTOR D_dryfield_factory_801830BC[353] = {
-#include "assets/dryfield_factory_model_091F0_normals.inc"
+#include "assets/dryfield_factory_model_06604_normals.inc"
 };
 
 u32 D_dryfield_factory_80183BC4[2811] = {
-#include "assets/dryfield_factory_model_091F0_stream.inc"
+#include "assets/dryfield_factory_model_06604_stream.inc"
 };
 
 TmdSource D_dryfield_factory_801867B0 = {
@@ -124,23 +124,23 @@ TmdSource D_dryfield_factory_801867B0 = {
 };
 
 TmdBone D_dryfield_factory_801867D4[1] = {
-#include "assets/dryfield_factory_model_09610_skeleton.inc"
+#include "assets/dryfield_factory_model_093E4_skeleton.inc"
 };
 
 u32 D_dryfield_factory_801867F8[1] = {
-#include "assets/dryfield_factory_model_09610_partVerts.inc"
+#include "assets/dryfield_factory_model_093E4_partVerts.inc"
 };
 
 SVECTOR D_dryfield_factory_801867FC[25] = {
-#include "assets/dryfield_factory_model_09610_verts.inc"
+#include "assets/dryfield_factory_model_093E4_verts.inc"
 };
 
 SVECTOR D_dryfield_factory_801868C4[28] = {
-#include "assets/dryfield_factory_model_09610_normals.inc"
+#include "assets/dryfield_factory_model_093E4_normals.inc"
 };
 
 u32 D_dryfield_factory_801869A4[139] = {
-#include "assets/dryfield_factory_model_09610_stream.inc"
+#include "assets/dryfield_factory_model_093E4_stream.inc"
 };
 
 TmdSource D_dryfield_factory_80186BD0 = {

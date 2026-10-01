@@ -358,23 +358,23 @@ EvsCommand D_actor_535700_801341E0[9] = {
 };
 
 TmdBone D_actor_535700_801342B8[19] = {
-#include "assets/actor_535700_model_07C4C_skeleton.inc"
+#include "assets/aya_brea_body_skeleton.inc"
 };
 
 u32 D_actor_535700_80134564[19] = {
-#include "assets/actor_535700_model_07C4C_partVerts.inc"
+#include "assets/aya_brea_body_partVerts.inc"
 };
 
 SVECTOR D_actor_535700_801345B0[365] = {
-#include "assets/actor_535700_model_07C4C_verts.inc"
+#include "assets/aya_brea_body_verts.inc"
 };
 
 SVECTOR D_actor_535700_80135118[385] = {
-#include "assets/actor_535700_model_07C4C_normals.inc"
+#include "assets/aya_brea_body_normals.inc"
 };
 
 u32 D_actor_535700_80135D20[3923] = {
-#include "assets/actor_535700_model_07C4C_stream.inc"
+#include "assets/aya_brea_body_stream.inc"
 };
 
 TmdSource D_actor_535700_80139A6C = {
@@ -898,23 +898,23 @@ u8 gFootstepWalkAnims[140] = {
 };
 
 TmdBone D_actor_535700_8013DB74[19] = {
-#include "assets/actor_535700_model_11038_skeleton.inc"
+#include "assets/pawn_golem_body_skeleton.inc"
 };
 
 u32 D_actor_535700_8013DE20[19] = {
-#include "assets/actor_535700_model_11038_partVerts.inc"
+#include "assets/pawn_golem_body_partVerts.inc"
 };
 
 SVECTOR D_actor_535700_8013DE6C[339] = {
-#include "assets/actor_535700_model_11038_verts.inc"
+#include "assets/pawn_golem_body_verts.inc"
 };
 
 SVECTOR D_actor_535700_8013E904[346] = {
-#include "assets/actor_535700_model_11038_normals.inc"
+#include "assets/pawn_golem_body_normals.inc"
 };
 
 u32 D_actor_535700_8013F3D4[3745] = {
-#include "assets/actor_535700_model_11038_stream.inc"
+#include "assets/pawn_golem_body_stream.inc"
 };
 
 TmdSource D_actor_535700_80142E58 = {
@@ -930,23 +930,23 @@ TmdSource D_actor_535700_80142E58 = {
 };
 
 TmdBone D_actor_535700_80142E7C[1] = {
-#include "assets/actor_535700_model_1157C_skeleton.inc"
+#include "assets/golem_pawn_rook_beam_sword_skeleton.inc"
 };
 
 u32 D_actor_535700_80142EA0[1] = {
-#include "assets/actor_535700_model_1157C_partVerts.inc"
+#include "assets/golem_pawn_rook_beam_sword_partVerts.inc"
 };
 
 SVECTOR D_actor_535700_80142EA4[29] = {
-#include "assets/actor_535700_model_1157C_verts.inc"
+#include "assets/golem_pawn_rook_beam_sword_verts.inc"
 };
 
 SVECTOR D_actor_535700_80142F8C[24] = {
-#include "assets/actor_535700_model_1157C_normals.inc"
+#include "assets/golem_pawn_rook_beam_sword_normals.inc"
 };
 
 u32 D_actor_535700_8014304C[212] = {
-#include "assets/actor_535700_model_1157C_stream.inc"
+#include "assets/golem_pawn_rook_beam_sword_stream.inc"
 };
 
 TmdSource D_actor_535700_8014339C = {

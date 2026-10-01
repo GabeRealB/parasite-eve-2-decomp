@@ -74,19 +74,19 @@ static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, 
 extern WorldCollisionGrid D_dryfield_night_motel_loft_8017F120;
 
 TmdBone D_dryfield_night_motel_loft_8017E888[1] = {
-#include "assets/dryfield_night_motel_loft_model_01538_skeleton.inc"
+#include "assets/actor_135400_model_071AC_skeleton.inc"
 };
 
 u32 D_dryfield_night_motel_loft_8017E8AC[1] = {
-#include "assets/dryfield_night_motel_loft_model_01538_partVerts.inc"
+#include "assets/actor_135400_model_071AC_partVerts.inc"
 };
 
 SVECTOR D_dryfield_night_motel_loft_8017E8B0[20] = {
-#include "assets/dryfield_night_motel_loft_model_01538_verts.inc"
+#include "assets/actor_135400_model_071AC_verts.inc"
 };
 
 u32 D_dryfield_night_motel_loft_8017E950[106] = {
-#include "assets/dryfield_night_motel_loft_model_01538_stream.inc"
+#include "assets/actor_135400_model_071AC_stream.inc"
 };
 
 TmdSource D_dryfield_night_motel_loft_8017EAF8 = {

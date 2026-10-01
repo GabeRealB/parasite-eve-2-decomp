@@ -709,23 +709,23 @@ EvsCommand D_dryfield_dilapidated_house_80185788[4] = {
 Task* D_dryfield_dilapidated_house_801857E8 = NULL;
 
 TmdBone D_dryfield_dilapidated_house_801857EC[1] = {
-#include "assets/dryfield_dilapidated_house_model_08A40_skeleton.inc"
+#include "assets/dryfield_dilapidated_house_model_08794_skeleton.inc"
 };
 
 u32 D_dryfield_dilapidated_house_80185810[1] = {
-#include "assets/dryfield_dilapidated_house_model_08A40_partVerts.inc"
+#include "assets/dryfield_dilapidated_house_model_08794_partVerts.inc"
 };
 
 SVECTOR D_dryfield_dilapidated_house_80185814[40] = {
-#include "assets/dryfield_dilapidated_house_model_08A40_verts.inc"
+#include "assets/dryfield_dilapidated_house_model_08794_verts.inc"
 };
 
 SVECTOR D_dryfield_dilapidated_house_80185954[128] = {
-#include "assets/dryfield_dilapidated_house_model_08A40_normals.inc"
+#include "assets/dryfield_dilapidated_house_model_08794_normals.inc"
 };
 
 u32 D_dryfield_dilapidated_house_80185D54[171] = {
-#include "assets/dryfield_dilapidated_house_model_08A40_stream.inc"
+#include "assets/dryfield_dilapidated_house_model_08794_stream.inc"
 };
 
 TmdSource D_dryfield_dilapidated_house_80186000 = {
@@ -741,23 +741,23 @@ TmdSource D_dryfield_dilapidated_house_80186000 = {
 };
 
 TmdBone D_dryfield_dilapidated_house_80186024[1] = {
-#include "assets/dryfield_dilapidated_house_model_08FB8_skeleton.inc"
+#include "assets/dryfield_dilapidated_house_model_08D0C_skeleton.inc"
 };
 
 u32 D_dryfield_dilapidated_house_80186048[1] = {
-#include "assets/dryfield_dilapidated_house_model_08FB8_partVerts.inc"
+#include "assets/dryfield_dilapidated_house_model_08D0C_partVerts.inc"
 };
 
 SVECTOR D_dryfield_dilapidated_house_8018604C[40] = {
-#include "assets/dryfield_dilapidated_house_model_08FB8_verts.inc"
+#include "assets/dryfield_dilapidated_house_model_08D0C_verts.inc"
 };
 
 SVECTOR D_dryfield_dilapidated_house_8018618C[40] = {
-#include "assets/dryfield_dilapidated_house_model_08FB8_normals.inc"
+#include "assets/dryfield_dilapidated_house_model_08D0C_normals.inc"
 };
 
 u32 D_dryfield_dilapidated_house_801862CC[171] = {
-#include "assets/dryfield_dilapidated_house_model_08FB8_stream.inc"
+#include "assets/dryfield_dilapidated_house_model_08D0C_stream.inc"
 };
 
 TmdSource D_dryfield_dilapidated_house_80186578 = {

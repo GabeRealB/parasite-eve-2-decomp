@@ -174,23 +174,23 @@ s32 func_actor_113100_801331E8(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_113100_801333B8(Task*, s32, ActorCommand* msg);
 
 TmdBone D_actor_113100_8013346C[20] = {
-#include "assets/actor_113100_model_07844_skeleton.inc"
+#include "assets/pierce_carradine_body_skeleton.inc"
 };
 
 u32 D_actor_113100_8013373C[20] = {
-#include "assets/actor_113100_model_07844_partVerts.inc"
+#include "assets/pierce_carradine_body_partVerts.inc"
 };
 
 SVECTOR D_actor_113100_8013378C[390] = {
-#include "assets/actor_113100_model_07844_verts.inc"
+#include "assets/pierce_carradine_body_verts.inc"
 };
 
 SVECTOR D_actor_113100_801343BC[407] = {
-#include "assets/actor_113100_model_07844_normals.inc"
+#include "assets/pierce_carradine_body_normals.inc"
 };
 
 u32 D_actor_113100_80135074[4476] = {
-#include "assets/actor_113100_model_07844_stream.inc"
+#include "assets/pierce_carradine_body_stream.inc"
 };
 
 TmdSource D_actor_113100_80139664 = {
@@ -206,23 +206,23 @@ TmdSource D_actor_113100_80139664 = {
 };
 
 TmdBone D_actor_113100_80139688[1] = {
-#include "assets/actor_113100_model_07A40_skeleton.inc"
+#include "assets/actor_113100_model_07960_skeleton.inc"
 };
 
 u32 D_actor_113100_801396AC[1] = {
-#include "assets/actor_113100_model_07A40_partVerts.inc"
+#include "assets/actor_113100_model_07960_partVerts.inc"
 };
 
 SVECTOR D_actor_113100_801396B0[14] = {
-#include "assets/actor_113100_model_07A40_verts.inc"
+#include "assets/actor_113100_model_07960_verts.inc"
 };
 
 SVECTOR D_actor_113100_80139720[12] = {
-#include "assets/actor_113100_model_07A40_normals.inc"
+#include "assets/actor_113100_model_07960_normals.inc"
 };
 
 u32 D_actor_113100_80139780[56] = {
-#include "assets/actor_113100_model_07A40_stream.inc"
+#include "assets/actor_113100_model_07960_stream.inc"
 };
 
 TmdSource D_actor_113100_80139860 = {
@@ -238,23 +238,23 @@ TmdSource D_actor_113100_80139860 = {
 };
 
 TmdBone D_actor_113100_80139884[1] = {
-#include "assets/actor_113100_model_07AE8_skeleton.inc"
+#include "assets/actor_113100_model_07AB4_skeleton.inc"
 };
 
 u32 D_actor_113100_801398A8[1] = {
-#include "assets/actor_113100_model_07AE8_partVerts.inc"
+#include "assets/actor_113100_model_07AB4_partVerts.inc"
 };
 
 SVECTOR D_actor_113100_801398AC[4] = {
-#include "assets/actor_113100_model_07AE8_verts.inc"
+#include "assets/actor_113100_model_07AB4_verts.inc"
 };
 
 SVECTOR D_actor_113100_801398CC[1] = {
-#include "assets/actor_113100_model_07AE8_normals.inc"
+#include "assets/actor_113100_model_07AB4_normals.inc"
 };
 
 u32 D_actor_113100_801398D4[13] = {
-#include "assets/actor_113100_model_07AE8_stream.inc"
+#include "assets/actor_113100_model_07AB4_stream.inc"
 };
 
 TmdSource D_actor_113100_80139908 = {
@@ -270,19 +270,19 @@ TmdSource D_actor_113100_80139908 = {
 };
 
 TmdBone D_actor_113100_8013992C[1] = {
-#include "assets/actor_113100_model_07D78_skeleton.inc"
+#include "assets/actor_113100_model_07BC4_skeleton.inc"
 };
 
 u32 D_actor_113100_80139950[1] = {
-#include "assets/actor_113100_model_07D78_partVerts.inc"
+#include "assets/actor_113100_model_07BC4_partVerts.inc"
 };
 
 SVECTOR D_actor_113100_80139954[18] = {
-#include "assets/actor_113100_model_07D78_verts.inc"
+#include "assets/actor_113100_model_07BC4_verts.inc"
 };
 
 u32 D_actor_113100_801399E4[109] = {
-#include "assets/actor_113100_model_07D78_stream.inc"
+#include "assets/actor_113100_model_07BC4_stream.inc"
 };
 
 TmdSource D_actor_113100_80139B98 = {

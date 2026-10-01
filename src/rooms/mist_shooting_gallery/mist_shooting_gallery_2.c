@@ -609,23 +609,23 @@ MistShootingGallerySpawn* D_mist_shooting_gallery_8018690C = D_mist_shooting_gal
 MistShootingGallerySpawn* D_mist_shooting_gallery_80186910 = D_mist_shooting_gallery_80186540;
 
 TmdBone D_mist_shooting_gallery_80186914[1] = {
-#include "assets/mist_shooting_gallery_model_09520_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_093FC_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_80186938[1] = {
-#include "assets/mist_shooting_gallery_model_09520_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_093FC_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_8018693C[10] = {
-#include "assets/mist_shooting_gallery_model_09520_verts.inc"
+#include "assets/mist_shooting_gallery_model_093FC_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_8018698C[6] = {
-#include "assets/mist_shooting_gallery_model_09520_normals.inc"
+#include "assets/mist_shooting_gallery_model_093FC_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_801869BC[73] = {
-#include "assets/mist_shooting_gallery_model_09520_stream.inc"
+#include "assets/mist_shooting_gallery_model_093FC_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80186AE0 = {
@@ -641,23 +641,23 @@ TmdSource D_mist_shooting_gallery_80186AE0 = {
 };
 
 TmdBone D_mist_shooting_gallery_80186B04[1] = {
-#include "assets/mist_shooting_gallery_model_09710_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_095EC_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_80186B28[1] = {
-#include "assets/mist_shooting_gallery_model_09710_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_095EC_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80186B2C[10] = {
-#include "assets/mist_shooting_gallery_model_09710_verts.inc"
+#include "assets/mist_shooting_gallery_model_095EC_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80186B7C[6] = {
-#include "assets/mist_shooting_gallery_model_09710_normals.inc"
+#include "assets/mist_shooting_gallery_model_095EC_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80186BAC[73] = {
-#include "assets/mist_shooting_gallery_model_09710_stream.inc"
+#include "assets/mist_shooting_gallery_model_095EC_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80186CD0 = {
@@ -673,23 +673,23 @@ TmdSource D_mist_shooting_gallery_80186CD0 = {
 };
 
 TmdBone D_mist_shooting_gallery_80186CF4[1] = {
-#include "assets/mist_shooting_gallery_model_09900_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_097DC_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_80186D18[1] = {
-#include "assets/mist_shooting_gallery_model_09900_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_097DC_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80186D1C[10] = {
-#include "assets/mist_shooting_gallery_model_09900_verts.inc"
+#include "assets/mist_shooting_gallery_model_097DC_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80186D6C[6] = {
-#include "assets/mist_shooting_gallery_model_09900_normals.inc"
+#include "assets/mist_shooting_gallery_model_097DC_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80186D9C[73] = {
-#include "assets/mist_shooting_gallery_model_09900_stream.inc"
+#include "assets/mist_shooting_gallery_model_097DC_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80186EC0 = {
@@ -705,23 +705,23 @@ TmdSource D_mist_shooting_gallery_80186EC0 = {
 };
 
 TmdBone D_mist_shooting_gallery_80186EE4[1] = {
-#include "assets/mist_shooting_gallery_model_09AF0_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_099CC_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_80186F08[1] = {
-#include "assets/mist_shooting_gallery_model_09AF0_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_099CC_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80186F0C[10] = {
-#include "assets/mist_shooting_gallery_model_09AF0_verts.inc"
+#include "assets/mist_shooting_gallery_model_099CC_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80186F5C[6] = {
-#include "assets/mist_shooting_gallery_model_09AF0_normals.inc"
+#include "assets/mist_shooting_gallery_model_099CC_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80186F8C[73] = {
-#include "assets/mist_shooting_gallery_model_09AF0_stream.inc"
+#include "assets/mist_shooting_gallery_model_099CC_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_801870B0 = {
@@ -737,23 +737,23 @@ TmdSource D_mist_shooting_gallery_801870B0 = {
 };
 
 TmdBone D_mist_shooting_gallery_801870D4[1] = {
-#include "assets/mist_shooting_gallery_model_09CE0_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_09BBC_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801870F8[1] = {
-#include "assets/mist_shooting_gallery_model_09CE0_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_09BBC_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801870FC[10] = {
-#include "assets/mist_shooting_gallery_model_09CE0_verts.inc"
+#include "assets/mist_shooting_gallery_model_09BBC_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_8018714C[6] = {
-#include "assets/mist_shooting_gallery_model_09CE0_normals.inc"
+#include "assets/mist_shooting_gallery_model_09BBC_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_8018717C[73] = {
-#include "assets/mist_shooting_gallery_model_09CE0_stream.inc"
+#include "assets/mist_shooting_gallery_model_09BBC_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_801872A0 = {
@@ -769,23 +769,23 @@ TmdSource D_mist_shooting_gallery_801872A0 = {
 };
 
 TmdBone D_mist_shooting_gallery_801872C4[1] = {
-#include "assets/mist_shooting_gallery_model_09ED0_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_09DAC_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801872E8[1] = {
-#include "assets/mist_shooting_gallery_model_09ED0_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_09DAC_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801872EC[10] = {
-#include "assets/mist_shooting_gallery_model_09ED0_verts.inc"
+#include "assets/mist_shooting_gallery_model_09DAC_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_8018733C[6] = {
-#include "assets/mist_shooting_gallery_model_09ED0_normals.inc"
+#include "assets/mist_shooting_gallery_model_09DAC_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_8018736C[73] = {
-#include "assets/mist_shooting_gallery_model_09ED0_stream.inc"
+#include "assets/mist_shooting_gallery_model_09DAC_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80187490 = {
@@ -801,23 +801,23 @@ TmdSource D_mist_shooting_gallery_80187490 = {
 };
 
 TmdBone D_mist_shooting_gallery_801874B4[1] = {
-#include "assets/mist_shooting_gallery_model_0A0C0_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_09F9C_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801874D8[1] = {
-#include "assets/mist_shooting_gallery_model_0A0C0_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_09F9C_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801874DC[10] = {
-#include "assets/mist_shooting_gallery_model_0A0C0_verts.inc"
+#include "assets/mist_shooting_gallery_model_09F9C_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_8018752C[6] = {
-#include "assets/mist_shooting_gallery_model_0A0C0_normals.inc"
+#include "assets/mist_shooting_gallery_model_09F9C_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_8018755C[73] = {
-#include "assets/mist_shooting_gallery_model_0A0C0_stream.inc"
+#include "assets/mist_shooting_gallery_model_09F9C_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80187680 = {
@@ -833,23 +833,23 @@ TmdSource D_mist_shooting_gallery_80187680 = {
 };
 
 TmdBone D_mist_shooting_gallery_801876A4[1] = {
-#include "assets/mist_shooting_gallery_model_0A2B0_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0A18C_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801876C8[1] = {
-#include "assets/mist_shooting_gallery_model_0A2B0_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0A18C_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801876CC[10] = {
-#include "assets/mist_shooting_gallery_model_0A2B0_verts.inc"
+#include "assets/mist_shooting_gallery_model_0A18C_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_8018771C[6] = {
-#include "assets/mist_shooting_gallery_model_0A2B0_normals.inc"
+#include "assets/mist_shooting_gallery_model_0A18C_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_8018774C[73] = {
-#include "assets/mist_shooting_gallery_model_0A2B0_stream.inc"
+#include "assets/mist_shooting_gallery_model_0A18C_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80187870 = {
@@ -865,23 +865,23 @@ TmdSource D_mist_shooting_gallery_80187870 = {
 };
 
 TmdBone D_mist_shooting_gallery_80187894[1] = {
-#include "assets/mist_shooting_gallery_model_0A4A0_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0A37C_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801878B8[1] = {
-#include "assets/mist_shooting_gallery_model_0A4A0_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0A37C_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801878BC[10] = {
-#include "assets/mist_shooting_gallery_model_0A4A0_verts.inc"
+#include "assets/mist_shooting_gallery_model_0A37C_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_8018790C[6] = {
-#include "assets/mist_shooting_gallery_model_0A4A0_normals.inc"
+#include "assets/mist_shooting_gallery_model_0A37C_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_8018793C[73] = {
-#include "assets/mist_shooting_gallery_model_0A4A0_stream.inc"
+#include "assets/mist_shooting_gallery_model_0A37C_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80187A60 = {
@@ -897,23 +897,23 @@ TmdSource D_mist_shooting_gallery_80187A60 = {
 };
 
 TmdBone D_mist_shooting_gallery_80187A84[1] = {
-#include "assets/mist_shooting_gallery_model_0A690_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0A56C_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_80187AA8[1] = {
-#include "assets/mist_shooting_gallery_model_0A690_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0A56C_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80187AAC[10] = {
-#include "assets/mist_shooting_gallery_model_0A690_verts.inc"
+#include "assets/mist_shooting_gallery_model_0A56C_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80187AFC[6] = {
-#include "assets/mist_shooting_gallery_model_0A690_normals.inc"
+#include "assets/mist_shooting_gallery_model_0A56C_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80187B2C[73] = {
-#include "assets/mist_shooting_gallery_model_0A690_stream.inc"
+#include "assets/mist_shooting_gallery_model_0A56C_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80187C50 = {
@@ -929,23 +929,23 @@ TmdSource D_mist_shooting_gallery_80187C50 = {
 };
 
 TmdBone D_mist_shooting_gallery_80187C74[1] = {
-#include "assets/mist_shooting_gallery_model_0AA74_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0A81C_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_80187C98[1] = {
-#include "assets/mist_shooting_gallery_model_0AA74_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0A81C_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80187C9C[24] = {
-#include "assets/mist_shooting_gallery_model_0AA74_verts.inc"
+#include "assets/mist_shooting_gallery_model_0A81C_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80187D5C[16] = {
-#include "assets/mist_shooting_gallery_model_0AA74_normals.inc"
+#include "assets/mist_shooting_gallery_model_0A81C_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80187DDC[150] = {
-#include "assets/mist_shooting_gallery_model_0AA74_stream.inc"
+#include "assets/mist_shooting_gallery_model_0A81C_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80188034 = {
@@ -961,23 +961,23 @@ TmdSource D_mist_shooting_gallery_80188034 = {
 };
 
 TmdBone D_mist_shooting_gallery_80188058[1] = {
-#include "assets/mist_shooting_gallery_model_0ABD8_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0AB30_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_8018807C[1] = {
-#include "assets/mist_shooting_gallery_model_0ABD8_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0AB30_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188080[8] = {
-#include "assets/mist_shooting_gallery_model_0ABD8_verts.inc"
+#include "assets/mist_shooting_gallery_model_0AB30_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801880C0[6] = {
-#include "assets/mist_shooting_gallery_model_0ABD8_normals.inc"
+#include "assets/mist_shooting_gallery_model_0AB30_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_801880F0[42] = {
-#include "assets/mist_shooting_gallery_model_0ABD8_stream.inc"
+#include "assets/mist_shooting_gallery_model_0AB30_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80188198 = {
@@ -993,23 +993,23 @@ TmdSource D_mist_shooting_gallery_80188198 = {
 };
 
 TmdBone D_mist_shooting_gallery_801881BC[1] = {
-#include "assets/mist_shooting_gallery_model_0AD3C_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0AC94_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801881E0[1] = {
-#include "assets/mist_shooting_gallery_model_0AD3C_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0AC94_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801881E4[8] = {
-#include "assets/mist_shooting_gallery_model_0AD3C_verts.inc"
+#include "assets/mist_shooting_gallery_model_0AC94_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188224[6] = {
-#include "assets/mist_shooting_gallery_model_0AD3C_normals.inc"
+#include "assets/mist_shooting_gallery_model_0AC94_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80188254[42] = {
-#include "assets/mist_shooting_gallery_model_0AD3C_stream.inc"
+#include "assets/mist_shooting_gallery_model_0AC94_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_801882FC = {
@@ -1025,23 +1025,23 @@ TmdSource D_mist_shooting_gallery_801882FC = {
 };
 
 TmdBone D_mist_shooting_gallery_80188320[1] = {
-#include "assets/mist_shooting_gallery_model_0AEA0_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0ADF8_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_80188344[1] = {
-#include "assets/mist_shooting_gallery_model_0AEA0_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0ADF8_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188348[8] = {
-#include "assets/mist_shooting_gallery_model_0AEA0_verts.inc"
+#include "assets/mist_shooting_gallery_model_0ADF8_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188388[6] = {
-#include "assets/mist_shooting_gallery_model_0AEA0_normals.inc"
+#include "assets/mist_shooting_gallery_model_0ADF8_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_801883B8[42] = {
-#include "assets/mist_shooting_gallery_model_0AEA0_stream.inc"
+#include "assets/mist_shooting_gallery_model_0ADF8_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80188460 = {
@@ -1057,23 +1057,23 @@ TmdSource D_mist_shooting_gallery_80188460 = {
 };
 
 TmdBone D_mist_shooting_gallery_80188484[1] = {
-#include "assets/mist_shooting_gallery_model_0B004_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0AF5C_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801884A8[1] = {
-#include "assets/mist_shooting_gallery_model_0B004_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0AF5C_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801884AC[8] = {
-#include "assets/mist_shooting_gallery_model_0B004_verts.inc"
+#include "assets/mist_shooting_gallery_model_0AF5C_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801884EC[6] = {
-#include "assets/mist_shooting_gallery_model_0B004_normals.inc"
+#include "assets/mist_shooting_gallery_model_0AF5C_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_8018851C[42] = {
-#include "assets/mist_shooting_gallery_model_0B004_stream.inc"
+#include "assets/mist_shooting_gallery_model_0AF5C_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_801885C4 = {
@@ -1089,23 +1089,23 @@ TmdSource D_mist_shooting_gallery_801885C4 = {
 };
 
 TmdBone D_mist_shooting_gallery_801885E8[1] = {
-#include "assets/mist_shooting_gallery_model_0B1F4_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0B0D0_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_8018860C[1] = {
-#include "assets/mist_shooting_gallery_model_0B1F4_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0B0D0_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188610[10] = {
-#include "assets/mist_shooting_gallery_model_0B1F4_verts.inc"
+#include "assets/mist_shooting_gallery_model_0B0D0_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188660[6] = {
-#include "assets/mist_shooting_gallery_model_0B1F4_normals.inc"
+#include "assets/mist_shooting_gallery_model_0B0D0_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80188690[73] = {
-#include "assets/mist_shooting_gallery_model_0B1F4_stream.inc"
+#include "assets/mist_shooting_gallery_model_0B0D0_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_801887B4 = {
@@ -1121,23 +1121,23 @@ TmdSource D_mist_shooting_gallery_801887B4 = {
 };
 
 TmdBone D_mist_shooting_gallery_801887D8[1] = {
-#include "assets/mist_shooting_gallery_model_0B3E4_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0B2C0_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801887FC[1] = {
-#include "assets/mist_shooting_gallery_model_0B3E4_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0B2C0_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188800[10] = {
-#include "assets/mist_shooting_gallery_model_0B3E4_verts.inc"
+#include "assets/mist_shooting_gallery_model_0B2C0_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188850[6] = {
-#include "assets/mist_shooting_gallery_model_0B3E4_normals.inc"
+#include "assets/mist_shooting_gallery_model_0B2C0_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80188880[73] = {
-#include "assets/mist_shooting_gallery_model_0B3E4_stream.inc"
+#include "assets/mist_shooting_gallery_model_0B2C0_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_801889A4 = {
@@ -1153,23 +1153,23 @@ TmdSource D_mist_shooting_gallery_801889A4 = {
 };
 
 TmdBone D_mist_shooting_gallery_801889C8[1] = {
-#include "assets/mist_shooting_gallery_model_0B5D4_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0B4B0_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_801889EC[1] = {
-#include "assets/mist_shooting_gallery_model_0B5D4_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0B4B0_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_801889F0[10] = {
-#include "assets/mist_shooting_gallery_model_0B5D4_verts.inc"
+#include "assets/mist_shooting_gallery_model_0B4B0_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188A40[6] = {
-#include "assets/mist_shooting_gallery_model_0B5D4_normals.inc"
+#include "assets/mist_shooting_gallery_model_0B4B0_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80188A70[73] = {
-#include "assets/mist_shooting_gallery_model_0B5D4_stream.inc"
+#include "assets/mist_shooting_gallery_model_0B4B0_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80188B94 = {
@@ -1185,23 +1185,23 @@ TmdSource D_mist_shooting_gallery_80188B94 = {
 };
 
 TmdBone D_mist_shooting_gallery_80188BB8[1] = {
-#include "assets/mist_shooting_gallery_model_0B7C4_skeleton.inc"
+#include "assets/mist_shooting_gallery_model_0B6A0_skeleton.inc"
 };
 
 u32 D_mist_shooting_gallery_80188BDC[1] = {
-#include "assets/mist_shooting_gallery_model_0B7C4_partVerts.inc"
+#include "assets/mist_shooting_gallery_model_0B6A0_partVerts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188BE0[10] = {
-#include "assets/mist_shooting_gallery_model_0B7C4_verts.inc"
+#include "assets/mist_shooting_gallery_model_0B6A0_verts.inc"
 };
 
 SVECTOR D_mist_shooting_gallery_80188C30[6] = {
-#include "assets/mist_shooting_gallery_model_0B7C4_normals.inc"
+#include "assets/mist_shooting_gallery_model_0B6A0_normals.inc"
 };
 
 u32 D_mist_shooting_gallery_80188C60[73] = {
-#include "assets/mist_shooting_gallery_model_0B7C4_stream.inc"
+#include "assets/mist_shooting_gallery_model_0B6A0_stream.inc"
 };
 
 TmdSource D_mist_shooting_gallery_80188D84 = {

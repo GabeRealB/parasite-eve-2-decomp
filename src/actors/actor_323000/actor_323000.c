@@ -153,23 +153,23 @@ s16 D_actor_323000_80164D64[16] = {
 };
 
 TmdBone D_actor_323000_80164D84[18] = {
-#include "assets/actor_323000_model_07A50_skeleton.inc"
+#include "assets/desert_chaser_body_skeleton.inc"
 };
 
 u32 D_actor_323000_8016500C[18] = {
-#include "assets/actor_323000_model_07A50_partVerts.inc"
+#include "assets/desert_chaser_body_partVerts.inc"
 };
 
 SVECTOR D_actor_323000_80165054[266] = {
-#include "assets/actor_323000_model_07A50_verts.inc"
+#include "assets/desert_chaser_body_verts.inc"
 };
 
 SVECTOR D_actor_323000_801658A4[324] = {
-#include "assets/actor_323000_model_07A50_normals.inc"
+#include "assets/desert_chaser_body_normals.inc"
 };
 
 u32 D_actor_323000_801662C4[3435] = {
-#include "assets/actor_323000_model_07A50_stream.inc"
+#include "assets/desert_chaser_body_stream.inc"
 };
 
 TmdSource D_actor_323000_80169870 = {

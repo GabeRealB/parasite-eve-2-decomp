@@ -103,19 +103,19 @@ extern WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4];
 extern WorldCoordRoomLights       D_shelter_1f_vehicular_airlock_801826FC[1];
 
 TmdBone D_shelter_1f_vehicular_airlock_80180C50[1] = {
-#include "assets/shelter_1f_vehicular_airlock_model_04A44_skeleton.inc"
+#include "assets/shelter_1f_vehicular_airlock_model_03A58_skeleton.inc"
 };
 
 u32 D_shelter_1f_vehicular_airlock_80180C74[1] = {
-#include "assets/shelter_1f_vehicular_airlock_model_04A44_partVerts.inc"
+#include "assets/shelter_1f_vehicular_airlock_model_03A58_partVerts.inc"
 };
 
 SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116] = {
-#include "assets/shelter_1f_vehicular_airlock_model_04A44_verts.inc"
+#include "assets/shelter_1f_vehicular_airlock_model_03A58_verts.inc"
 };
 
 u32 D_shelter_1f_vehicular_airlock_80181018[1019] = {
-#include "assets/shelter_1f_vehicular_airlock_model_04A44_stream.inc"
+#include "assets/shelter_1f_vehicular_airlock_model_03A58_stream.inc"
 };
 
 TmdSource D_shelter_1f_vehicular_airlock_80182004 = {

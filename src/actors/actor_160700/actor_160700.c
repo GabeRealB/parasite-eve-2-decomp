@@ -793,23 +793,23 @@ EvsCommand D_actor_160700_80136414[10] = {
 };
 
 TmdBone D_actor_160700_80136504[20] = {
-#include "assets/actor_160700_model_0A8DC_skeleton.inc"
+#include "assets/pierce_carradine_body_skeleton.inc"
 };
 
 u32 D_actor_160700_801367D4[20] = {
-#include "assets/actor_160700_model_0A8DC_partVerts.inc"
+#include "assets/pierce_carradine_body_partVerts.inc"
 };
 
 SVECTOR D_actor_160700_80136824[390] = {
-#include "assets/actor_160700_model_0A8DC_verts.inc"
+#include "assets/pierce_carradine_body_verts.inc"
 };
 
 SVECTOR D_actor_160700_80137454[407] = {
-#include "assets/actor_160700_model_0A8DC_normals.inc"
+#include "assets/pierce_carradine_body_normals.inc"
 };
 
 u32 D_actor_160700_8013810C[4476] = {
-#include "assets/actor_160700_model_0A8DC_stream.inc"
+#include "assets/pierce_carradine_body_stream.inc"
 };
 
 TmdSource D_actor_160700_8013C6FC = {
@@ -825,23 +825,23 @@ TmdSource D_actor_160700_8013C6FC = {
 };
 
 TmdBone D_actor_160700_8013C720[1] = {
-#include "assets/actor_160700_model_0AAD8_skeleton.inc"
+#include "assets/actor_113100_model_07960_skeleton.inc"
 };
 
 u32 D_actor_160700_8013C744[1] = {
-#include "assets/actor_160700_model_0AAD8_partVerts.inc"
+#include "assets/actor_113100_model_07960_partVerts.inc"
 };
 
 SVECTOR D_actor_160700_8013C748[14] = {
-#include "assets/actor_160700_model_0AAD8_verts.inc"
+#include "assets/actor_113100_model_07960_verts.inc"
 };
 
 SVECTOR D_actor_160700_8013C7B8[12] = {
-#include "assets/actor_160700_model_0AAD8_normals.inc"
+#include "assets/actor_113100_model_07960_normals.inc"
 };
 
 u32 D_actor_160700_8013C818[56] = {
-#include "assets/actor_160700_model_0AAD8_stream.inc"
+#include "assets/actor_113100_model_07960_stream.inc"
 };
 
 TmdSource D_actor_160700_8013C8F8 = {

@@ -500,23 +500,23 @@ u16 D_actor_110600_80138F34[18] = {
 };
 
 TmdBone D_actor_110600_80138F58[19] = {
-#include "assets/actor_110600_model_0C67C_skeleton.inc"
+#include "assets/stranger_boss_lesser_odd_body_skeleton.inc"
 };
 
 u32 D_actor_110600_80139204[19] = {
-#include "assets/actor_110600_model_0C67C_partVerts.inc"
+#include "assets/stranger_boss_lesser_odd_body_partVerts.inc"
 };
 
 SVECTOR D_actor_110600_80139250[311] = {
-#include "assets/actor_110600_model_0C67C_verts.inc"
+#include "assets/stranger_boss_lesser_odd_body_verts.inc"
 };
 
 SVECTOR D_actor_110600_80139C08[309] = {
-#include "assets/actor_110600_model_0C67C_normals.inc"
+#include "assets/stranger_boss_lesser_odd_body_normals.inc"
 };
 
 u32 D_actor_110600_8013A5B0[4027] = {
-#include "assets/actor_110600_model_0C67C_stream.inc"
+#include "assets/stranger_boss_lesser_odd_body_stream.inc"
 };
 
 TmdSource D_actor_110600_8013E49C = {

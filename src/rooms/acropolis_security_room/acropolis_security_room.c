@@ -1859,23 +1859,23 @@ WorldCollisionSurfaceProperties* D_acropolis_security_room_80184FA0[8] = {
 };
 
 TmdBone D_acropolis_security_room_80184FC0[3] = {
-#include "assets/acropolis_security_room_model_07FC4_skeleton.inc"
+#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
 u32 D_acropolis_security_room_8018502C[3] = {
-#include "assets/acropolis_security_room_model_07FC4_partVerts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
 SVECTOR D_acropolis_security_room_80185038[56] = {
-#include "assets/acropolis_security_room_model_07FC4_verts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
 SVECTOR D_acropolis_security_room_801851F8[6] = {
-#include "assets/acropolis_security_room_model_07FC4_normals.inc"
+#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
 u32 D_acropolis_security_room_80185228[215] = {
-#include "assets/acropolis_security_room_model_07FC4_stream.inc"
+#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
 TmdSource D_acropolis_security_room_80185584 = {

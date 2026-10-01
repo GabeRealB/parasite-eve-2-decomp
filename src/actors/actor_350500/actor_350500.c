@@ -80,23 +80,23 @@ s32              func_actor_350500_80162ABC(Task*, s32, ActorCommand* msg);
 void             func_actor_350500_80162360(Task*);
 
 TmdBone D_actor_350500_80162AF8[19] = {
-#include "assets/actor_350500_model_05A3C_skeleton.inc"
+#include "assets/eve_brea_masked_body_skeleton.inc"
 };
 
 u32 D_actor_350500_80162DA4[19] = {
-#include "assets/actor_350500_model_05A3C_partVerts.inc"
+#include "assets/eve_brea_masked_body_partVerts.inc"
 };
 
 SVECTOR D_actor_350500_80162DF0[312] = {
-#include "assets/actor_350500_model_05A3C_verts.inc"
+#include "assets/eve_brea_masked_body_verts.inc"
 };
 
 SVECTOR D_actor_350500_801637B0[338] = {
-#include "assets/actor_350500_model_05A3C_normals.inc"
+#include "assets/eve_brea_masked_body_normals.inc"
 };
 
 u32 D_actor_350500_80164240[3463] = {
-#include "assets/actor_350500_model_05A3C_stream.inc"
+#include "assets/eve_brea_masked_body_stream.inc"
 };
 
 TmdSource D_actor_350500_8016785C = {

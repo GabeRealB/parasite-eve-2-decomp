@@ -253,6 +253,26 @@ def declared_records(repo_root: Path) -> dict[str, tuple[int, list[int]]]:
     return out
 
 
+_MODEL_NAMES: dict[str, str] | None = None
+
+
+def catalogue_name(data: bytes, load: int, source: int) -> str | None:
+    """The asset manifest's name for the model whose `TmdSource` record is at `source`.
+
+    Keyed by the stream's SHA-1, like every other catalogued asset, so the name
+    is the same in every package that carries the model.
+    """
+    global _MODEL_NAMES
+    if _MODEL_NAMES is None:
+        try:
+            from .asset_data import ASSETS
+        except ImportError:
+            from asset_data import ASSETS
+        _MODEL_NAMES = {rec["sha1"]: aid for aid, rec in ASSETS.items() if rec.get("type") == "model" and rec.get("sha1")}
+    src = read_source(data, load, source)
+    return _MODEL_NAMES.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
+
+
 def model_name(stream: bytes) -> str | None:
     """Catalogued name for a model stream, keyed by its SHA-1.
 

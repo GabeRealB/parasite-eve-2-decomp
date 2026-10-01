@@ -173,19 +173,19 @@ void                func_acropolis_promenade_8017D930(void);
 void                func_acropolis_promenade_8017D988(Task*);
 
 TmdBone D_acropolis_promenade_8017FE04[1] = {
-#include "assets/acropolis_promenade_model_03890_skeleton.inc"
+#include "assets/acropolis_bridge_model_0AD9C_skeleton.inc"
 };
 
 u32 D_acropolis_promenade_8017FE28[1] = {
-#include "assets/acropolis_promenade_model_03890_partVerts.inc"
+#include "assets/acropolis_bridge_model_0AD9C_partVerts.inc"
 };
 
 SVECTOR D_acropolis_promenade_8017FE2C[171] = {
-#include "assets/acropolis_promenade_model_03890_verts.inc"
+#include "assets/acropolis_bridge_model_0AD9C_verts.inc"
 };
 
 u32 D_acropolis_promenade_80180384[691] = {
-#include "assets/acropolis_promenade_model_03890_stream.inc"
+#include "assets/acropolis_bridge_model_0AD9C_stream.inc"
 };
 
 TmdSource D_acropolis_promenade_80180E50 = {

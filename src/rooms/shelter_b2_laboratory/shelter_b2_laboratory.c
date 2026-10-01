@@ -220,23 +220,23 @@ extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186460[1];
 #include "../../shared/telephone_data.inc.c"
 
 TmdBone D_shelter_b2_laboratory_80182420[3] = {
-#include "assets/shelter_b2_laboratory_model_05424_skeleton.inc"
+#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
 u32 D_shelter_b2_laboratory_8018248C[3] = {
-#include "assets/shelter_b2_laboratory_model_05424_partVerts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
 SVECTOR D_shelter_b2_laboratory_80182498[56] = {
-#include "assets/shelter_b2_laboratory_model_05424_verts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
 SVECTOR D_shelter_b2_laboratory_80182658[6] = {
-#include "assets/shelter_b2_laboratory_model_05424_normals.inc"
+#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
 u32 D_shelter_b2_laboratory_80182688[215] = {
-#include "assets/shelter_b2_laboratory_model_05424_stream.inc"
+#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
 TmdSource D_shelter_b2_laboratory_801829E4 = {

@@ -179,23 +179,23 @@ PadScriptVibrationSegment Actor01200_D04050[3] = {
 };
 
 TmdBone Actor01200_D0405C[6] = {
-#include "assets/actor_101200_model_05934_skeleton.inc"
+#include "assets/bone_suckler_body_skeleton.inc"
 };
 
 u32 Actor01200_D04134[6] = {
-#include "assets/actor_101200_model_05934_partVerts.inc"
+#include "assets/bone_suckler_body_partVerts.inc"
 };
 
 SVECTOR Actor01200_D0414C[102] = {
-#include "assets/actor_101200_model_05934_verts.inc"
+#include "assets/bone_suckler_body_verts.inc"
 };
 
 SVECTOR Actor01200_D0447C[139] = {
-#include "assets/actor_101200_model_05934_normals.inc"
+#include "assets/bone_suckler_body_normals.inc"
 };
 
 u32 Actor01200_D048D4[1048] = {
-#include "assets/actor_101200_model_05934_stream.inc"
+#include "assets/bone_suckler_body_stream.inc"
 };
 
 TmdSource Actor01200_D05934 = {

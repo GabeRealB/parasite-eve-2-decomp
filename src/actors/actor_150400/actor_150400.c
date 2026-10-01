@@ -83,19 +83,19 @@ void func_actor_150400_80131F6C(void);
 void func_actor_150400_80131F9C(s32);
 
 TmdBone D_actor_150400_8013292C[1] = {
-#include "assets/actor_150400_model_00EAC_skeleton.inc"
+#include "assets/actor_150400_model_00C44_skeleton.inc"
 };
 
 u32 D_actor_150400_80132950[1] = {
-#include "assets/actor_150400_model_00EAC_partVerts.inc"
+#include "assets/actor_150400_model_00C44_partVerts.inc"
 };
 
 SVECTOR D_actor_150400_80132954[34] = {
-#include "assets/actor_150400_model_00EAC_verts.inc"
+#include "assets/actor_150400_model_00C44_verts.inc"
 };
 
 u32 D_actor_150400_80132A64[154] = {
-#include "assets/actor_150400_model_00EAC_stream.inc"
+#include "assets/actor_150400_model_00C44_stream.inc"
 };
 
 TmdSource D_actor_150400_80132CCC = {
@@ -178,23 +178,23 @@ EvsCommand D_actor_150400_80133088[14] = {
 };
 
 TmdBone D_actor_150400_801331D8[19] = {
-#include "assets/actor_150400_model_07C44_skeleton.inc"
+#include "assets/no9_golem_dryfield_body_skeleton.inc"
 };
 
 u32 D_actor_150400_80133484[19] = {
-#include "assets/actor_150400_model_07C44_partVerts.inc"
+#include "assets/no9_golem_dryfield_body_partVerts.inc"
 };
 
 SVECTOR D_actor_150400_801334D0[432] = {
-#include "assets/actor_150400_model_07C44_verts.inc"
+#include "assets/no9_golem_dryfield_body_verts.inc"
 };
 
 SVECTOR D_actor_150400_80134250[444] = {
-#include "assets/actor_150400_model_07C44_normals.inc"
+#include "assets/no9_golem_dryfield_body_normals.inc"
 };
 
 u32 D_actor_150400_80135030[4749] = {
-#include "assets/actor_150400_model_07C44_stream.inc"
+#include "assets/no9_golem_dryfield_body_stream.inc"
 };
 
 TmdSource D_actor_150400_80139A64 = {
@@ -298,23 +298,23 @@ AnimationSet D_actor_150400_8013C358 = {
 };
 
 TmdBone D_actor_150400_8013C380[1] = {
-#include "assets/actor_150400_model_0AA80_skeleton.inc"
+#include "assets/golem_pawn_rook_beam_sword_skeleton.inc"
 };
 
 u32 D_actor_150400_8013C3A4[1] = {
-#include "assets/actor_150400_model_0AA80_partVerts.inc"
+#include "assets/golem_pawn_rook_beam_sword_partVerts.inc"
 };
 
 SVECTOR D_actor_150400_8013C3A8[29] = {
-#include "assets/actor_150400_model_0AA80_verts.inc"
+#include "assets/golem_pawn_rook_beam_sword_verts.inc"
 };
 
 SVECTOR D_actor_150400_8013C490[24] = {
-#include "assets/actor_150400_model_0AA80_normals.inc"
+#include "assets/golem_pawn_rook_beam_sword_normals.inc"
 };
 
 u32 D_actor_150400_8013C550[212] = {
-#include "assets/actor_150400_model_0AA80_stream.inc"
+#include "assets/golem_pawn_rook_beam_sword_stream.inc"
 };
 
 TmdSource D_actor_150400_8013C8A0 = {

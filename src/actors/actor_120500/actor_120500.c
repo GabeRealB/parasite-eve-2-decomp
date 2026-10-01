@@ -138,23 +138,23 @@ void             func_actor_120500_8013241C(Task*);
 void             func_actor_120500_80132A04(Task*, s32, s32);
 
 TmdBone D_actor_120500_80132B0C[20] = {
-#include "assets/actor_120500_model_0580C_skeleton.inc"
+#include "assets/kyle_madigan_body_skeleton.inc"
 };
 
 u32 D_actor_120500_80132DDC[20] = {
-#include "assets/actor_120500_model_0580C_partVerts.inc"
+#include "assets/kyle_madigan_body_partVerts.inc"
 };
 
 SVECTOR D_actor_120500_80132E2C[300] = {
-#include "assets/actor_120500_model_0580C_verts.inc"
+#include "assets/kyle_madigan_body_verts.inc"
 };
 
 SVECTOR D_actor_120500_8013378C[298] = {
-#include "assets/actor_120500_model_0580C_normals.inc"
+#include "assets/kyle_madigan_body_normals.inc"
 };
 
 u32 D_actor_120500_801340DC[3412] = {
-#include "assets/actor_120500_model_0580C_stream.inc"
+#include "assets/kyle_madigan_body_stream.inc"
 };
 
 TmdSource D_actor_120500_8013762C = {

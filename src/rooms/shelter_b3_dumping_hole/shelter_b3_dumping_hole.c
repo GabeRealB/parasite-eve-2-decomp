@@ -54,23 +54,23 @@ s32 func_shelter_b3_dumping_hole_8017D870(void);
 extern AnimationSet D_shelter_b3_dumping_hole_80188074;
 
 TmdBone D_shelter_b3_dumping_hole_80186F8C[3] = {
-#include "assets/shelter_b3_dumping_hole_model_09F90_skeleton.inc"
+#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
 u32 D_shelter_b3_dumping_hole_80186FF8[3] = {
-#include "assets/shelter_b3_dumping_hole_model_09F90_partVerts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
 SVECTOR D_shelter_b3_dumping_hole_80187004[56] = {
-#include "assets/shelter_b3_dumping_hole_model_09F90_verts.inc"
+#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
 };
 
 SVECTOR D_shelter_b3_dumping_hole_801871C4[6] = {
-#include "assets/shelter_b3_dumping_hole_model_09F90_normals.inc"
+#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
 };
 
 u32 D_shelter_b3_dumping_hole_801871F4[215] = {
-#include "assets/shelter_b3_dumping_hole_model_09F90_stream.inc"
+#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
 };
 
 TmdSource D_shelter_b3_dumping_hole_80187550 = {
@@ -95,23 +95,23 @@ ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
 };
 
 TmdBone D_shelter_b3_dumping_hole_801875A4[1] = {
-#include "assets/shelter_b3_dumping_hole_model_0A234_skeleton.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A0CC_skeleton.inc"
 };
 
 u32 D_shelter_b3_dumping_hole_801875C8[1] = {
-#include "assets/shelter_b3_dumping_hole_model_0A234_partVerts.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A0CC_partVerts.inc"
 };
 
 SVECTOR D_shelter_b3_dumping_hole_801875CC[9] = {
-#include "assets/shelter_b3_dumping_hole_model_0A234_verts.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A0CC_verts.inc"
 };
 
 SVECTOR D_shelter_b3_dumping_hole_80187614[15] = {
-#include "assets/shelter_b3_dumping_hole_model_0A234_normals.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A0CC_normals.inc"
 };
 
 u32 D_shelter_b3_dumping_hole_8018768C[90] = {
-#include "assets/shelter_b3_dumping_hole_model_0A234_stream.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A0CC_stream.inc"
 };
 
 TmdSource D_shelter_b3_dumping_hole_801877F4 = {
@@ -127,23 +127,23 @@ TmdSource D_shelter_b3_dumping_hole_801877F4 = {
 };
 
 TmdBone D_shelter_b3_dumping_hole_80187818[1] = {
-#include "assets/shelter_b3_dumping_hole_model_0A4B0_skeleton.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A348_skeleton.inc"
 };
 
 u32 D_shelter_b3_dumping_hole_8018783C[1] = {
-#include "assets/shelter_b3_dumping_hole_model_0A4B0_partVerts.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A348_partVerts.inc"
 };
 
 SVECTOR D_shelter_b3_dumping_hole_80187840[9] = {
-#include "assets/shelter_b3_dumping_hole_model_0A4B0_verts.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A348_verts.inc"
 };
 
 SVECTOR D_shelter_b3_dumping_hole_80187888[16] = {
-#include "assets/shelter_b3_dumping_hole_model_0A4B0_normals.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A348_normals.inc"
 };
 
 u32 D_shelter_b3_dumping_hole_80187908[90] = {
-#include "assets/shelter_b3_dumping_hole_model_0A4B0_stream.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A348_stream.inc"
 };
 
 TmdSource D_shelter_b3_dumping_hole_80187A70 = {
@@ -159,23 +159,23 @@ TmdSource D_shelter_b3_dumping_hole_80187A70 = {
 };
 
 TmdBone D_shelter_b3_dumping_hole_80187A94[1] = {
-#include "assets/shelter_b3_dumping_hole_model_0A7B4_skeleton.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A5EC_skeleton.inc"
 };
 
 u32 D_shelter_b3_dumping_hole_80187AB8[1] = {
-#include "assets/shelter_b3_dumping_hole_model_0A7B4_partVerts.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A5EC_partVerts.inc"
 };
 
 SVECTOR D_shelter_b3_dumping_hole_80187ABC[11] = {
-#include "assets/shelter_b3_dumping_hole_model_0A7B4_verts.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A5EC_verts.inc"
 };
 
 SVECTOR D_shelter_b3_dumping_hole_80187B14[19] = {
-#include "assets/shelter_b3_dumping_hole_model_0A7B4_normals.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A5EC_normals.inc"
 };
 
 u32 D_shelter_b3_dumping_hole_80187BAC[114] = {
-#include "assets/shelter_b3_dumping_hole_model_0A7B4_stream.inc"
+#include "assets/shelter_b3_dumping_hole_model_0A5EC_stream.inc"
 };
 
 TmdSource D_shelter_b3_dumping_hole_80187D74 = {

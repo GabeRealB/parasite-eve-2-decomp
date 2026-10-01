@@ -423,23 +423,23 @@ EnemyParams Actor00100_D0BDA4 = { Actor00100_D0BD90, 200, 75, 50, 4, 100, 10, 10
 Actor00100PoseSrc Actor00100_D0BDB4 = { { { 60, 36, 10, 150 }, { 40, 26, 10, 120 }, { 20, 18, 10, 120 }, { 60, 60, 10, 150 } } };
 
 TmdBone Actor00100_D0BDD4[18] = {
-#include "assets/actor_400100_model_108C0_skeleton.inc"
+#include "assets/desert_chaser_body_skeleton.inc"
 };
 
 u32 Actor00100_D0C05C[18] = {
-#include "assets/actor_400100_model_108C0_partVerts.inc"
+#include "assets/desert_chaser_body_partVerts.inc"
 };
 
 SVECTOR Actor00100_D0C0A4[266] = {
-#include "assets/actor_400100_model_108C0_verts.inc"
+#include "assets/desert_chaser_body_verts.inc"
 };
 
 SVECTOR Actor00100_D0C8F4[324] = {
-#include "assets/actor_400100_model_108C0_normals.inc"
+#include "assets/desert_chaser_body_normals.inc"
 };
 
 u32 Actor00100_D0D314[3435] = {
-#include "assets/actor_400100_model_108C0_stream.inc"
+#include "assets/desert_chaser_body_stream.inc"
 };
 
 TmdSource Actor00100_D108C0 = {
@@ -455,23 +455,23 @@ TmdSource Actor00100_D108C0 = {
 };
 
 TmdBone Actor00100_D108E4[1] = {
-#include "assets/actor_400100_model_10D60_skeleton.inc"
+#include "assets/desert_chaser_burst_leg_right_skeleton.inc"
 };
 
 u32 Actor00100_D10908[1] = {
-#include "assets/actor_400100_model_10D60_partVerts.inc"
+#include "assets/desert_chaser_burst_leg_right_partVerts.inc"
 };
 
 SVECTOR Actor00100_D1090C[21] = {
-#include "assets/actor_400100_model_10D60_verts.inc"
+#include "assets/desert_chaser_burst_leg_right_verts.inc"
 };
 
 SVECTOR Actor00100_D109B4[1] = {
-#include "assets/actor_400100_model_10D60_normals.inc"
+#include "assets/desert_chaser_burst_leg_right_normals.inc"
 };
 
 u32 Actor00100_D109BC[233] = {
-#include "assets/actor_400100_model_10D60_stream.inc"
+#include "assets/desert_chaser_burst_leg_right_stream.inc"
 };
 
 TmdSource Actor00100_D10D60 = {
@@ -487,23 +487,23 @@ TmdSource Actor00100_D10D60 = {
 };
 
 TmdBone Actor00100_D10D84[1] = {
-#include "assets/actor_400100_model_11234_skeleton.inc"
+#include "assets/desert_chaser_burst_leg_left_skeleton.inc"
 };
 
 u32 Actor00100_D10DA8[1] = {
-#include "assets/actor_400100_model_11234_partVerts.inc"
+#include "assets/desert_chaser_burst_leg_left_partVerts.inc"
 };
 
 SVECTOR Actor00100_D10DAC[23] = {
-#include "assets/actor_400100_model_11234_verts.inc"
+#include "assets/desert_chaser_burst_leg_left_verts.inc"
 };
 
 SVECTOR Actor00100_D10E64[1] = {
-#include "assets/actor_400100_model_11234_normals.inc"
+#include "assets/desert_chaser_burst_leg_left_normals.inc"
 };
 
 u32 Actor00100_D10E6C[242] = {
-#include "assets/actor_400100_model_11234_stream.inc"
+#include "assets/desert_chaser_burst_leg_left_stream.inc"
 };
 
 TmdSource Actor00100_D11234 = {
@@ -519,23 +519,23 @@ TmdSource Actor00100_D11234 = {
 };
 
 TmdBone Actor00100_D11258[1] = {
-#include "assets/actor_400100_model_11F90_skeleton.inc"
+#include "assets/desert_chaser_burst_head_skeleton.inc"
 };
 
 u32 Actor00100_D1127C[1] = {
-#include "assets/actor_400100_model_11F90_partVerts.inc"
+#include "assets/desert_chaser_burst_head_partVerts.inc"
 };
 
 SVECTOR Actor00100_D11280[59] = {
-#include "assets/actor_400100_model_11F90_verts.inc"
+#include "assets/desert_chaser_burst_head_verts.inc"
 };
 
 SVECTOR Actor00100_D11458[81] = {
-#include "assets/actor_400100_model_11F90_normals.inc"
+#include "assets/desert_chaser_burst_head_normals.inc"
 };
 
 u32 Actor00100_D116E0[556] = {
-#include "assets/actor_400100_model_11F90_stream.inc"
+#include "assets/desert_chaser_burst_head_stream.inc"
 };
 
 TmdSource Actor00100_D11F90 = {
@@ -551,23 +551,23 @@ TmdSource Actor00100_D11F90 = {
 };
 
 TmdBone Actor00100_D11FB4[1] = {
-#include "assets/actor_400100_model_12470_skeleton.inc"
+#include "assets/desert_chaser_burst_torso_skeleton.inc"
 };
 
 u32 Actor00100_D11FD8[1] = {
-#include "assets/actor_400100_model_12470_partVerts.inc"
+#include "assets/desert_chaser_burst_torso_partVerts.inc"
 };
 
 SVECTOR Actor00100_D11FDC[19] = {
-#include "assets/actor_400100_model_12470_verts.inc"
+#include "assets/desert_chaser_burst_torso_verts.inc"
 };
 
 SVECTOR Actor00100_D12074[31] = {
-#include "assets/actor_400100_model_12470_normals.inc"
+#include "assets/desert_chaser_burst_torso_normals.inc"
 };
 
 u32 Actor00100_D1216C[193] = {
-#include "assets/actor_400100_model_12470_stream.inc"
+#include "assets/desert_chaser_burst_torso_stream.inc"
 };
 
 TmdSource Actor00100_D12470 = {

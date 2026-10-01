@@ -96,23 +96,23 @@ Actor510900SprClut D_actor_510900_8013C48C[12] = {
 };
 
 TmdBone D_actor_510900_8013C4BC[19] = {
-#include "assets/actor_510900_model_0FD44_skeleton.inc"
+#include "assets/no9_golem_akropolis_body_skeleton.inc"
 };
 
 u32 D_actor_510900_8013C768[19] = {
-#include "assets/actor_510900_model_0FD44_partVerts.inc"
+#include "assets/no9_golem_akropolis_body_partVerts.inc"
 };
 
 SVECTOR D_actor_510900_8013C7B4[358] = {
-#include "assets/actor_510900_model_0FD44_verts.inc"
+#include "assets/no9_golem_akropolis_body_verts.inc"
 };
 
 SVECTOR D_actor_510900_8013D2E4[356] = {
-#include "assets/actor_510900_model_0FD44_normals.inc"
+#include "assets/no9_golem_akropolis_body_normals.inc"
 };
 
 u32 D_actor_510900_8013DE04[3928] = {
-#include "assets/actor_510900_model_0FD44_stream.inc"
+#include "assets/no9_golem_akropolis_body_stream.inc"
 };
 
 TmdSource D_actor_510900_80141B64 = {
@@ -128,23 +128,23 @@ TmdSource D_actor_510900_80141B64 = {
 };
 
 TmdBone D_actor_510900_80141B88[1] = {
-#include "assets/actor_510900_model_0FFE8_skeleton.inc"
+#include "assets/actor_510900_model_0FE60_skeleton.inc"
 };
 
 u32 D_actor_510900_80141BAC[1] = {
-#include "assets/actor_510900_model_0FFE8_partVerts.inc"
+#include "assets/actor_510900_model_0FE60_partVerts.inc"
 };
 
 SVECTOR D_actor_510900_80141BB0[14] = {
-#include "assets/actor_510900_model_0FFE8_verts.inc"
+#include "assets/actor_510900_model_0FE60_verts.inc"
 };
 
 SVECTOR D_actor_510900_80141C20[12] = {
-#include "assets/actor_510900_model_0FFE8_normals.inc"
+#include "assets/actor_510900_model_0FE60_normals.inc"
 };
 
 u32 D_actor_510900_80141C80[98] = {
-#include "assets/actor_510900_model_0FFE8_stream.inc"
+#include "assets/actor_510900_model_0FE60_stream.inc"
 };
 
 TmdSource D_actor_510900_80141E08 = {
@@ -160,23 +160,23 @@ TmdSource D_actor_510900_80141E08 = {
 };
 
 TmdBone D_actor_510900_80141E2C[1] = {
-#include "assets/actor_510900_model_10304_skeleton.inc"
+#include "assets/no9_golem_akropolis_prop_skeleton.inc"
 };
 
 u32 D_actor_510900_80141E50[1] = {
-#include "assets/actor_510900_model_10304_partVerts.inc"
+#include "assets/no9_golem_akropolis_prop_partVerts.inc"
 };
 
 SVECTOR D_actor_510900_80141E54[14] = {
-#include "assets/actor_510900_model_10304_verts.inc"
+#include "assets/no9_golem_akropolis_prop_verts.inc"
 };
 
 SVECTOR D_actor_510900_80141EC4[19] = {
-#include "assets/actor_510900_model_10304_normals.inc"
+#include "assets/no9_golem_akropolis_prop_normals.inc"
 };
 
 u32 D_actor_510900_80141F5C[114] = {
-#include "assets/actor_510900_model_10304_stream.inc"
+#include "assets/no9_golem_akropolis_prop_stream.inc"
 };
 
 TmdSource D_actor_510900_80142124 = {
@@ -192,23 +192,23 @@ TmdSource D_actor_510900_80142124 = {
 };
 
 TmdBone D_actor_510900_80142148[1] = {
-#include "assets/actor_510900_model_10660_skeleton.inc"
+#include "assets/actor_510900_model_10468_skeleton.inc"
 };
 
 u32 D_actor_510900_8014216C[1] = {
-#include "assets/actor_510900_model_10660_partVerts.inc"
+#include "assets/actor_510900_model_10468_partVerts.inc"
 };
 
 SVECTOR D_actor_510900_80142170[18] = {
-#include "assets/actor_510900_model_10660_verts.inc"
+#include "assets/actor_510900_model_10468_verts.inc"
 };
 
 SVECTOR D_actor_510900_80142200[17] = {
-#include "assets/actor_510900_model_10660_normals.inc"
+#include "assets/actor_510900_model_10468_normals.inc"
 };
 
 u32 D_actor_510900_80142288[126] = {
-#include "assets/actor_510900_model_10660_stream.inc"
+#include "assets/actor_510900_model_10468_stream.inc"
 };
 
 TmdSource D_actor_510900_80142480 = {
@@ -224,23 +224,23 @@ TmdSource D_actor_510900_80142480 = {
 };
 
 TmdBone D_actor_510900_801424A4[1] = {
-#include "assets/actor_510900_model_1098C_skeleton.inc"
+#include "assets/golem_no9_pawn_rook_grenade_skeleton.inc"
 };
 
 u32 D_actor_510900_801424C8[1] = {
-#include "assets/actor_510900_model_1098C_partVerts.inc"
+#include "assets/golem_no9_pawn_rook_grenade_partVerts.inc"
 };
 
 SVECTOR D_actor_510900_801424CC[12] = {
-#include "assets/actor_510900_model_1098C_verts.inc"
+#include "assets/golem_no9_pawn_rook_grenade_verts.inc"
 };
 
 SVECTOR D_actor_510900_8014252C[28] = {
-#include "assets/actor_510900_model_1098C_normals.inc"
+#include "assets/golem_no9_pawn_rook_grenade_normals.inc"
 };
 
 u32 D_actor_510900_8014260C[104] = {
-#include "assets/actor_510900_model_1098C_stream.inc"
+#include "assets/golem_no9_pawn_rook_grenade_stream.inc"
 };
 
 TmdSource D_actor_510900_801427AC = {
@@ -256,23 +256,23 @@ TmdSource D_actor_510900_801427AC = {
 };
 
 TmdBone D_actor_510900_801427D0[11] = {
-#include "assets/actor_510900_model_1131C_skeleton.inc"
+#include "assets/actor_510900_model_10C8C_skeleton.inc"
 };
 
 u32 D_actor_510900_8014295C[11] = {
-#include "assets/actor_510900_model_1131C_partVerts.inc"
+#include "assets/actor_510900_model_10C8C_partVerts.inc"
 };
 
 SVECTOR D_actor_510900_80142988[33] = {
-#include "assets/actor_510900_model_1131C_verts.inc"
+#include "assets/actor_510900_model_10C8C_verts.inc"
 };
 
 SVECTOR D_actor_510900_80142A90[3] = {
-#include "assets/actor_510900_model_1131C_normals.inc"
+#include "assets/actor_510900_model_10C8C_normals.inc"
 };
 
 u32 D_actor_510900_80142AA8[421] = {
-#include "assets/actor_510900_model_1131C_stream.inc"
+#include "assets/actor_510900_model_10C8C_stream.inc"
 };
 
 TmdSource D_actor_510900_8014313C = {

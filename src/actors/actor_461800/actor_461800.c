@@ -247,23 +247,23 @@ EvsCommand D_actor_461800_80134470[8] = {
 };
 
 TmdBone D_actor_461800_80134530[20] = {
-#include "assets/actor_461800_model_07230_skeleton.inc"
+#include "assets/kyle_madigan_body_skeleton.inc"
 };
 
 u32 D_actor_461800_80134800[20] = {
-#include "assets/actor_461800_model_07230_partVerts.inc"
+#include "assets/kyle_madigan_body_partVerts.inc"
 };
 
 SVECTOR D_actor_461800_80134850[300] = {
-#include "assets/actor_461800_model_07230_verts.inc"
+#include "assets/kyle_madigan_body_verts.inc"
 };
 
 SVECTOR D_actor_461800_801351B0[298] = {
-#include "assets/actor_461800_model_07230_normals.inc"
+#include "assets/kyle_madigan_body_normals.inc"
 };
 
 u32 D_actor_461800_80135B00[3412] = {
-#include "assets/actor_461800_model_07230_stream.inc"
+#include "assets/kyle_madigan_body_stream.inc"
 };
 
 TmdSource D_actor_461800_80139050 = {
@@ -279,23 +279,23 @@ TmdSource D_actor_461800_80139050 = {
 };
 
 TmdBone D_actor_461800_80139074[1] = {
-#include "assets/actor_461800_model_075F8_skeleton.inc"
+#include "assets/actor_461800_hand_right_skeleton.inc"
 };
 
 u32 D_actor_461800_80139098[1] = {
-#include "assets/actor_461800_model_075F8_partVerts.inc"
+#include "assets/actor_461800_hand_right_partVerts.inc"
 };
 
 SVECTOR D_actor_461800_8013909C[18] = {
-#include "assets/actor_461800_model_075F8_verts.inc"
+#include "assets/actor_461800_hand_right_verts.inc"
 };
 
 SVECTOR D_actor_461800_8013912C[18] = {
-#include "assets/actor_461800_model_075F8_normals.inc"
+#include "assets/actor_461800_hand_right_normals.inc"
 };
 
 u32 D_actor_461800_801391BC[151] = {
-#include "assets/actor_461800_model_075F8_stream.inc"
+#include "assets/actor_461800_hand_right_stream.inc"
 };
 
 TmdSource D_actor_461800_80139418 = {
@@ -311,23 +311,23 @@ TmdSource D_actor_461800_80139418 = {
 };
 
 TmdBone D_actor_461800_8013943C[1] = {
-#include "assets/actor_461800_model_07AE8_skeleton.inc"
+#include "assets/actor_461800_hand_left_skeleton.inc"
 };
 
 u32 D_actor_461800_80139460[1] = {
-#include "assets/actor_461800_model_07AE8_partVerts.inc"
+#include "assets/actor_461800_hand_left_partVerts.inc"
 };
 
 SVECTOR D_actor_461800_80139464[27] = {
-#include "assets/actor_461800_model_07AE8_verts.inc"
+#include "assets/actor_461800_hand_left_verts.inc"
 };
 
 SVECTOR D_actor_461800_8013953C[27] = {
-#include "assets/actor_461800_model_07AE8_normals.inc"
+#include "assets/actor_461800_hand_left_normals.inc"
 };
 
 u32 D_actor_461800_80139614[189] = {
-#include "assets/actor_461800_model_07AE8_stream.inc"
+#include "assets/actor_461800_hand_left_stream.inc"
 };
 
 TmdSource D_actor_461800_80139908 = {
@@ -435,23 +435,23 @@ AnimationSet* D_actor_461800_80139FB0[6] = {
 };
 
 TmdBone D_actor_461800_80139FC8[19] = {
-#include "assets/actor_461800_model_0D95C_skeleton.inc"
+#include "assets/aya_brea_body_skeleton.inc"
 };
 
 u32 D_actor_461800_8013A274[19] = {
-#include "assets/actor_461800_model_0D95C_partVerts.inc"
+#include "assets/aya_brea_body_partVerts.inc"
 };
 
 SVECTOR D_actor_461800_8013A2C0[365] = {
-#include "assets/actor_461800_model_0D95C_verts.inc"
+#include "assets/aya_brea_body_verts.inc"
 };
 
 SVECTOR D_actor_461800_8013AE28[385] = {
-#include "assets/actor_461800_model_0D95C_normals.inc"
+#include "assets/aya_brea_body_normals.inc"
 };
 
 u32 D_actor_461800_8013BA30[3923] = {
-#include "assets/actor_461800_model_0D95C_stream.inc"
+#include "assets/aya_brea_body_stream.inc"
 };
 
 TmdSource D_actor_461800_8013F77C = {

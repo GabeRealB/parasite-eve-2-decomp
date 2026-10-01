@@ -165,23 +165,23 @@ void func_actor_207200_8014D280(Task*);
 EnemyParams D_actor_207200_8014E7D4 = { D_actor_207200_8014E7CC, 250, 15, 48, 1, 50, 10, 0, 0 };
 
 TmdBone D_actor_207200_8014E7E4[7] = {
-#include "assets/actor_207200_model_06BE4_skeleton.inc"
+#include "assets/creeping_stranger_body_skeleton.inc"
 };
 
 u32 D_actor_207200_8014E8E0[7] = {
-#include "assets/actor_207200_model_06BE4_partVerts.inc"
+#include "assets/creeping_stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_207200_8014E8FC[125] = {
-#include "assets/actor_207200_model_06BE4_verts.inc"
+#include "assets/creeping_stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_207200_8014ECE4[136] = {
-#include "assets/actor_207200_model_06BE4_normals.inc"
+#include "assets/creeping_stranger_body_normals.inc"
 };
 
 u32 D_actor_207200_8014F124[1592] = {
-#include "assets/actor_207200_model_06BE4_stream.inc"
+#include "assets/creeping_stranger_body_stream.inc"
 };
 
 TmdSource D_actor_207200_80150A04 = {
@@ -197,23 +197,23 @@ TmdSource D_actor_207200_80150A04 = {
 };
 
 TmdBone D_actor_207200_80150A28[1] = {
-#include "assets/actor_207200_model_06DAC_skeleton.inc"
+#include "assets/creeping_stranger_burst_leg_skeleton.inc"
 };
 
 u32 D_actor_207200_80150A4C[1] = {
-#include "assets/actor_207200_model_06DAC_partVerts.inc"
+#include "assets/creeping_stranger_burst_leg_partVerts.inc"
 };
 
 SVECTOR D_actor_207200_80150A50[8] = {
-#include "assets/actor_207200_model_06DAC_verts.inc"
+#include "assets/creeping_stranger_burst_leg_verts.inc"
 };
 
 SVECTOR D_actor_207200_80150A90[9] = {
-#include "assets/actor_207200_model_06DAC_normals.inc"
+#include "assets/creeping_stranger_burst_leg_normals.inc"
 };
 
 u32 D_actor_207200_80150AD8[61] = {
-#include "assets/actor_207200_model_06DAC_stream.inc"
+#include "assets/creeping_stranger_burst_leg_stream.inc"
 };
 
 TmdSource D_actor_207200_80150BCC = {
@@ -229,23 +229,23 @@ TmdSource D_actor_207200_80150BCC = {
 };
 
 TmdBone D_actor_207200_80150BF0[1] = {
-#include "assets/actor_207200_model_07254_skeleton.inc"
+#include "assets/creeping_stranger_burst_arm_skeleton.inc"
 };
 
 u32 D_actor_207200_80150C14[1] = {
-#include "assets/actor_207200_model_07254_partVerts.inc"
+#include "assets/creeping_stranger_burst_arm_partVerts.inc"
 };
 
 SVECTOR D_actor_207200_80150C18[20] = {
-#include "assets/actor_207200_model_07254_verts.inc"
+#include "assets/creeping_stranger_burst_arm_verts.inc"
 };
 
 SVECTOR D_actor_207200_80150CB8[22] = {
-#include "assets/actor_207200_model_07254_normals.inc"
+#include "assets/creeping_stranger_burst_arm_normals.inc"
 };
 
 u32 D_actor_207200_80150D68[195] = {
-#include "assets/actor_207200_model_07254_stream.inc"
+#include "assets/creeping_stranger_burst_arm_stream.inc"
 };
 
 TmdSource D_actor_207200_80151074 = {
@@ -261,23 +261,23 @@ TmdSource D_actor_207200_80151074 = {
 };
 
 TmdBone D_actor_207200_80151098[1] = {
-#include "assets/actor_207200_model_079D8_skeleton.inc"
+#include "assets/creeping_stranger_burst_head_skeleton.inc"
 };
 
 u32 D_actor_207200_801510BC[1] = {
-#include "assets/actor_207200_model_079D8_partVerts.inc"
+#include "assets/creeping_stranger_burst_head_partVerts.inc"
 };
 
 SVECTOR D_actor_207200_801510C0[33] = {
-#include "assets/actor_207200_model_079D8_verts.inc"
+#include "assets/creeping_stranger_burst_head_verts.inc"
 };
 
 SVECTOR D_actor_207200_801511C8[40] = {
-#include "assets/actor_207200_model_079D8_normals.inc"
+#include "assets/creeping_stranger_burst_head_normals.inc"
 };
 
 u32 D_actor_207200_80151308[316] = {
-#include "assets/actor_207200_model_079D8_stream.inc"
+#include "assets/creeping_stranger_burst_head_stream.inc"
 };
 
 TmdSource D_actor_207200_801517F8 = {

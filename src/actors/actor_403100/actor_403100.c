@@ -404,23 +404,23 @@ void             func_actor_403100_8013E0FC(Task*);
 extern u_long D_actor_403100_80153774[1950];
 
 TmdBone D_actor_403100_8013F7C4[15] = {
-#include "assets/actor_403100_model_157D0_skeleton.inc"
+#include "assets/burner_body_skeleton.inc"
 };
 
 u32 D_actor_403100_8013F9E0[15] = {
-#include "assets/actor_403100_model_157D0_partVerts.inc"
+#include "assets/burner_body_partVerts.inc"
 };
 
 SVECTOR D_actor_403100_8013FA1C[524] = {
-#include "assets/actor_403100_model_157D0_verts.inc"
+#include "assets/burner_body_verts.inc"
 };
 
 SVECTOR D_actor_403100_80140A7C[543] = {
-#include "assets/actor_403100_model_157D0_normals.inc"
+#include "assets/burner_body_normals.inc"
 };
 
 u32 D_actor_403100_80141B74[5791] = {
-#include "assets/actor_403100_model_157D0_stream.inc"
+#include "assets/burner_body_stream.inc"
 };
 
 TmdSource D_actor_403100_801475F0 = {

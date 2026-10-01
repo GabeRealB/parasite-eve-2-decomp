@@ -414,23 +414,23 @@ void                Actor01600_Fn066E8(Task*);
 extern AnimationSet* Actor01600_D127C8[4];
 
 TmdBone Actor01600_D07114[9] = {
-#include "assets/actor_101600_model_08F74_skeleton.inc"
+#include "assets/scavenger_body_skeleton.inc"
 };
 
 u32 Actor01600_D07258[9] = {
-#include "assets/actor_101600_model_08F74_partVerts.inc"
+#include "assets/scavenger_body_partVerts.inc"
 };
 
 SVECTOR Actor01600_D0727C[132] = {
-#include "assets/actor_101600_model_08F74_verts.inc"
+#include "assets/scavenger_body_verts.inc"
 };
 
 SVECTOR Actor01600_D0769C[133] = {
-#include "assets/actor_101600_model_08F74_normals.inc"
+#include "assets/scavenger_body_normals.inc"
 };
 
 u32 Actor01600_D07AC4[1324] = {
-#include "assets/actor_101600_model_08F74_stream.inc"
+#include "assets/scavenger_body_stream.inc"
 };
 
 TmdSource Actor01600_D08F74 = {
@@ -446,23 +446,23 @@ TmdSource Actor01600_D08F74 = {
 };
 
 TmdBone Actor01600_D08F98[1] = {
-#include "assets/actor_101600_model_0973C_skeleton.inc"
+#include "assets/scavenger_burst_head_skeleton.inc"
 };
 
 u32 Actor01600_D08FBC[1] = {
-#include "assets/actor_101600_model_0973C_partVerts.inc"
+#include "assets/scavenger_burst_head_partVerts.inc"
 };
 
 SVECTOR Actor01600_D08FC0[41] = {
-#include "assets/actor_101600_model_0973C_verts.inc"
+#include "assets/scavenger_burst_head_verts.inc"
 };
 
 SVECTOR Actor01600_D09108[41] = {
-#include "assets/actor_101600_model_0973C_normals.inc"
+#include "assets/scavenger_burst_head_normals.inc"
 };
 
 u32 Actor01600_D09250[315] = {
-#include "assets/actor_101600_model_0973C_stream.inc"
+#include "assets/scavenger_burst_head_stream.inc"
 };
 
 TmdSource Actor01600_D0973C = {
@@ -478,23 +478,23 @@ TmdSource Actor01600_D0973C = {
 };
 
 TmdBone Actor01600_D09760[1] = {
-#include "assets/actor_101600_model_09CFC_skeleton.inc"
+#include "assets/scavenger_burst_leg_skeleton.inc"
 };
 
 u32 Actor01600_D09784[1] = {
-#include "assets/actor_101600_model_09CFC_partVerts.inc"
+#include "assets/scavenger_burst_leg_partVerts.inc"
 };
 
 SVECTOR Actor01600_D09788[27] = {
-#include "assets/actor_101600_model_09CFC_verts.inc"
+#include "assets/scavenger_burst_leg_verts.inc"
 };
 
 SVECTOR Actor01600_D09860[27] = {
-#include "assets/actor_101600_model_09CFC_normals.inc"
+#include "assets/scavenger_burst_leg_normals.inc"
 };
 
 u32 Actor01600_D09938[241] = {
-#include "assets/actor_101600_model_09CFC_stream.inc"
+#include "assets/scavenger_burst_leg_stream.inc"
 };
 
 TmdSource Actor01600_D09CFC = {
@@ -510,23 +510,23 @@ TmdSource Actor01600_D09CFC = {
 };
 
 TmdBone Actor01600_D09D20[1] = {
-#include "assets/actor_101600_model_09EE0_skeleton.inc"
+#include "assets/scavenger_burst_ear_skeleton.inc"
 };
 
 u32 Actor01600_D09D44[1] = {
-#include "assets/actor_101600_model_09EE0_partVerts.inc"
+#include "assets/scavenger_burst_ear_partVerts.inc"
 };
 
 SVECTOR Actor01600_D09D48[8] = {
-#include "assets/actor_101600_model_09EE0_verts.inc"
+#include "assets/scavenger_burst_ear_verts.inc"
 };
 
 SVECTOR Actor01600_D09D88[8] = {
-#include "assets/actor_101600_model_09EE0_normals.inc"
+#include "assets/scavenger_burst_ear_normals.inc"
 };
 
 u32 Actor01600_D09DC8[70] = {
-#include "assets/actor_101600_model_09EE0_stream.inc"
+#include "assets/scavenger_burst_ear_stream.inc"
 };
 
 TmdSource Actor01600_D09EE0 = {

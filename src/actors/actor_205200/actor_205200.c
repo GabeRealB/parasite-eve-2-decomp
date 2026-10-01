@@ -206,23 +206,23 @@ Actor205200MessageEntry D_actor_205200_8014CA78[2] = {
 };
 
 TmdBone D_actor_205200_8014CA88[19] = {
-#include "assets/actor_205200_model_079CC_skeleton.inc"
+#include "assets/eve_brea_masked_body_skeleton.inc"
 };
 
 u32 D_actor_205200_8014CD34[19] = {
-#include "assets/actor_205200_model_079CC_partVerts.inc"
+#include "assets/eve_brea_masked_body_partVerts.inc"
 };
 
 SVECTOR D_actor_205200_8014CD80[312] = {
-#include "assets/actor_205200_model_079CC_verts.inc"
+#include "assets/eve_brea_masked_body_verts.inc"
 };
 
 SVECTOR D_actor_205200_8014D740[338] = {
-#include "assets/actor_205200_model_079CC_normals.inc"
+#include "assets/eve_brea_masked_body_normals.inc"
 };
 
 u32 D_actor_205200_8014E1D0[3463] = {
-#include "assets/actor_205200_model_079CC_stream.inc"
+#include "assets/eve_brea_masked_body_stream.inc"
 };
 
 TmdSource D_actor_205200_801517EC = {

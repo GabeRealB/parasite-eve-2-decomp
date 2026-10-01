@@ -132,23 +132,23 @@ ActorTransform D_acropolis_helicopter_landing_pad_80182394 = { { -5340, 120, -19
 ActorTransform D_acropolis_helicopter_landing_pad_801823AC = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
 
 TmdBone D_acropolis_helicopter_landing_pad_801823C4[1] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0612C_skeleton.inc"
+#include "assets/acropolis_helicopter_landing_pad_model_0547C_skeleton.inc"
 };
 
 u32 D_acropolis_helicopter_landing_pad_801823E8[1] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0612C_partVerts.inc"
+#include "assets/acropolis_helicopter_landing_pad_model_0547C_partVerts.inc"
 };
 
 SVECTOR D_acropolis_helicopter_landing_pad_801823EC[191] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0612C_verts.inc"
+#include "assets/acropolis_helicopter_landing_pad_model_0547C_verts.inc"
 };
 
 SVECTOR D_acropolis_helicopter_landing_pad_801829E4[11] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0612C_normals.inc"
+#include "assets/acropolis_helicopter_landing_pad_model_0547C_normals.inc"
 };
 
 u32 D_acropolis_helicopter_landing_pad_80182A3C[812] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0612C_stream.inc"
+#include "assets/acropolis_helicopter_landing_pad_model_0547C_stream.inc"
 };
 
 TmdSource D_acropolis_helicopter_landing_pad_801836EC = {

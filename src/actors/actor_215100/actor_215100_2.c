@@ -1149,23 +1149,23 @@ static TaskDesc D_actor_215100_801544F0[1] = {
 #include "../../shared/cap_captions_schedule.inc.c"
 
 TmdBone D_actor_215100_801545EC[20] = {
-#include "assets/actor_215100_model_109C4_skeleton.inc"
+#include "assets/pierce_carradine_body_skeleton.inc"
 };
 
 u32 D_actor_215100_801548BC[20] = {
-#include "assets/actor_215100_model_109C4_partVerts.inc"
+#include "assets/pierce_carradine_body_partVerts.inc"
 };
 
 SVECTOR D_actor_215100_8015490C[390] = {
-#include "assets/actor_215100_model_109C4_verts.inc"
+#include "assets/pierce_carradine_body_verts.inc"
 };
 
 SVECTOR D_actor_215100_8015553C[407] = {
-#include "assets/actor_215100_model_109C4_normals.inc"
+#include "assets/pierce_carradine_body_normals.inc"
 };
 
 u32 D_actor_215100_801561F4[4476] = {
-#include "assets/actor_215100_model_109C4_stream.inc"
+#include "assets/pierce_carradine_body_stream.inc"
 };
 
 TmdSource D_actor_215100_8015A7E4 = {
@@ -1181,23 +1181,23 @@ TmdSource D_actor_215100_8015A7E4 = {
 };
 
 TmdBone D_actor_215100_8015A808[1] = {
-#include "assets/actor_215100_model_10BC0_skeleton.inc"
+#include "assets/actor_113100_model_07960_skeleton.inc"
 };
 
 u32 D_actor_215100_8015A82C[1] = {
-#include "assets/actor_215100_model_10BC0_partVerts.inc"
+#include "assets/actor_113100_model_07960_partVerts.inc"
 };
 
 SVECTOR D_actor_215100_8015A830[14] = {
-#include "assets/actor_215100_model_10BC0_verts.inc"
+#include "assets/actor_113100_model_07960_verts.inc"
 };
 
 SVECTOR D_actor_215100_8015A8A0[12] = {
-#include "assets/actor_215100_model_10BC0_normals.inc"
+#include "assets/actor_113100_model_07960_normals.inc"
 };
 
 u32 D_actor_215100_8015A900[56] = {
-#include "assets/actor_215100_model_10BC0_stream.inc"
+#include "assets/actor_113100_model_07960_stream.inc"
 };
 
 TmdSource D_actor_215100_8015A9E0 = {

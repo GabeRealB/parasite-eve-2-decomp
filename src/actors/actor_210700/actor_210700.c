@@ -309,23 +309,23 @@ AnimationSet D_actor_210700_80150608 = {
 };
 
 TmdBone D_actor_210700_80150630[20] = {
-#include "assets/actor_210700_model_0C6E4_skeleton.inc"
+#include "assets/rupert_broderick_body_1_skeleton.inc"
 };
 
 u32 D_actor_210700_80150900[20] = {
-#include "assets/actor_210700_model_0C6E4_partVerts.inc"
+#include "assets/rupert_broderick_body_1_partVerts.inc"
 };
 
 SVECTOR D_actor_210700_80150950[386] = {
-#include "assets/actor_210700_model_0C6E4_verts.inc"
+#include "assets/rupert_broderick_body_1_verts.inc"
 };
 
 SVECTOR D_actor_210700_80151560[385] = {
-#include "assets/actor_210700_model_0C6E4_normals.inc"
+#include "assets/rupert_broderick_body_1_normals.inc"
 };
 
 u32 D_actor_210700_80152168[4327] = {
-#include "assets/actor_210700_model_0C6E4_stream.inc"
+#include "assets/rupert_broderick_body_1_stream.inc"
 };
 
 TmdSource D_actor_210700_80156504 = {

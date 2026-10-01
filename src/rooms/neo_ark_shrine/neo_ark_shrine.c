@@ -76,19 +76,19 @@ TaskDesc D_neo_ark_shrine_80181E5C[2] = {
 s32 D_neo_ark_shrine_80181E74 = 2;
 
 TmdBone D_neo_ark_shrine_80181E78[1] = {
-#include "assets/neo_ark_shrine_model_04B90_skeleton.inc"
+#include "assets/neo_ark_shrine_model_049E8_skeleton.inc"
 };
 
 u32 D_neo_ark_shrine_80181E9C[1] = {
-#include "assets/neo_ark_shrine_model_04B90_partVerts.inc"
+#include "assets/neo_ark_shrine_model_049E8_partVerts.inc"
 };
 
 SVECTOR D_neo_ark_shrine_80181EA0[33] = {
-#include "assets/neo_ark_shrine_model_04B90_verts.inc"
+#include "assets/neo_ark_shrine_model_049E8_verts.inc"
 };
 
 u32 D_neo_ark_shrine_80181FA8[106] = {
-#include "assets/neo_ark_shrine_model_04B90_stream.inc"
+#include "assets/neo_ark_shrine_model_049E8_stream.inc"
 };
 
 TmdSource D_neo_ark_shrine_80182150 = {
@@ -104,19 +104,19 @@ TmdSource D_neo_ark_shrine_80182150 = {
 };
 
 TmdBone D_neo_ark_shrine_80182174[1] = {
-#include "assets/neo_ark_shrine_model_04E20_skeleton.inc"
+#include "assets/neo_ark_shrine_model_04C6C_skeleton.inc"
 };
 
 u32 D_neo_ark_shrine_80182198[1] = {
-#include "assets/neo_ark_shrine_model_04E20_partVerts.inc"
+#include "assets/neo_ark_shrine_model_04C6C_partVerts.inc"
 };
 
 SVECTOR D_neo_ark_shrine_8018219C[18] = {
-#include "assets/neo_ark_shrine_model_04E20_verts.inc"
+#include "assets/neo_ark_shrine_model_04C6C_verts.inc"
 };
 
 u32 D_neo_ark_shrine_8018222C[109] = {
-#include "assets/neo_ark_shrine_model_04E20_stream.inc"
+#include "assets/neo_ark_shrine_model_04C6C_stream.inc"
 };
 
 TmdSource D_neo_ark_shrine_801823E0 = {

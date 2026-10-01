@@ -155,23 +155,23 @@ DamageAttack D_actor_123200_80134204[1] = {
 EnemyParams D_actor_123200_80134208 = { D_actor_123200_80134204, 1, 6, 20, 3, 100, 0, 100, 0 };
 
 TmdBone D_actor_123200_80134218[6] = {
-#include "assets/actor_123200_model_03CD0_skeleton.inc"
+#include "assets/bone_suckler_body_skeleton.inc"
 };
 
 u32 D_actor_123200_801342F0[6] = {
-#include "assets/actor_123200_model_03CD0_partVerts.inc"
+#include "assets/bone_suckler_body_partVerts.inc"
 };
 
 SVECTOR D_actor_123200_80134308[102] = {
-#include "assets/actor_123200_model_03CD0_verts.inc"
+#include "assets/bone_suckler_body_verts.inc"
 };
 
 SVECTOR D_actor_123200_80134638[139] = {
-#include "assets/actor_123200_model_03CD0_normals.inc"
+#include "assets/bone_suckler_body_normals.inc"
 };
 
 u32 D_actor_123200_80134A90[1048] = {
-#include "assets/actor_123200_model_03CD0_stream.inc"
+#include "assets/bone_suckler_body_stream.inc"
 };
 
 TmdSource D_actor_123200_80135AF0 = {

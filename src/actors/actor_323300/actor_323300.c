@@ -182,23 +182,23 @@ extern AnimationSet D_actor_323300_80174A38;
 extern AnimationSet* D_actor_323300_80174A60[4];
 
 TmdBone D_actor_323300_801638AC[19] = {
-#include "assets/actor_323300_model_073E0_skeleton.inc"
+#include "assets/anmc_woman_1_body_skeleton.inc"
 };
 
 u32 D_actor_323300_80163B58[19] = {
-#include "assets/actor_323300_model_073E0_partVerts.inc"
+#include "assets/anmc_woman_1_body_partVerts.inc"
 };
 
 SVECTOR D_actor_323300_80163BA4[325] = {
-#include "assets/actor_323300_model_073E0_verts.inc"
+#include "assets/anmc_woman_1_body_verts.inc"
 };
 
 SVECTOR D_actor_323300_801645CC[384] = {
-#include "assets/actor_323300_model_073E0_normals.inc"
+#include "assets/anmc_woman_1_body_normals.inc"
 };
 
 u32 D_actor_323300_801651CC[4109] = {
-#include "assets/actor_323300_model_073E0_stream.inc"
+#include "assets/anmc_woman_1_body_stream.inc"
 };
 
 TmdSource D_actor_323300_80169200 = {
@@ -214,23 +214,23 @@ TmdSource D_actor_323300_80169200 = {
 };
 
 TmdBone D_actor_323300_80169224[19] = {
-#include "assets/actor_323300_model_0F46C_skeleton.inc"
+#include "assets/lesser_stranger_body_skeleton.inc"
 };
 
 u32 D_actor_323300_801694D0[19] = {
-#include "assets/actor_323300_model_0F46C_partVerts.inc"
+#include "assets/lesser_stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_323300_8016951C[325] = {
-#include "assets/actor_323300_model_0F46C_verts.inc"
+#include "assets/lesser_stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_323300_80169F44[1604] = {
-#include "assets/actor_323300_model_0F46C_normals.inc"
+#include "assets/lesser_stranger_body_normals.inc"
 };
 
 u32 D_actor_323300_8016D164[4170] = {
-#include "assets/actor_323300_model_0F46C_stream.inc"
+#include "assets/lesser_stranger_body_stream.inc"
 };
 
 TmdSource D_actor_323300_8017128C = {

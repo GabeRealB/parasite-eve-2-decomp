@@ -255,23 +255,23 @@ static const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
 } };
 
 TmdBone Actor02100_D036BC[3] = {
-#include "assets/actor_102100_model_03D40_skeleton.inc"
+#include "assets/watcher_body_skeleton.inc"
 };
 
 u32 Actor02100_D03728[3] = {
-#include "assets/actor_102100_model_03D40_partVerts.inc"
+#include "assets/watcher_body_partVerts.inc"
 };
 
 SVECTOR Actor02100_D03734[40] = {
-#include "assets/actor_102100_model_03D40_verts.inc"
+#include "assets/watcher_body_verts.inc"
 };
 
 SVECTOR Actor02100_D03874[32] = {
-#include "assets/actor_102100_model_03D40_normals.inc"
+#include "assets/watcher_body_normals.inc"
 };
 
 u32 Actor02100_D03974[243] = {
-#include "assets/actor_102100_model_03D40_stream.inc"
+#include "assets/watcher_body_stream.inc"
 };
 
 TmdSource Actor02100_D03D40 = {

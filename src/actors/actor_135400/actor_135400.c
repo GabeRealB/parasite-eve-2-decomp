@@ -203,23 +203,23 @@ void func_actor_135400_801324D4(Task*);
 void func_actor_135400_801325A8(Task*);
 
 TmdBone D_actor_135400_80132F9C[20] = {
-#include "assets/actor_135400_model_06BE8_skeleton.inc"
+#include "assets/gary_douglas_body_skeleton.inc"
 };
 
 u32 D_actor_135400_8013326C[20] = {
-#include "assets/actor_135400_model_06BE8_partVerts.inc"
+#include "assets/gary_douglas_body_partVerts.inc"
 };
 
 SVECTOR D_actor_135400_801332BC[364] = {
-#include "assets/actor_135400_model_06BE8_verts.inc"
+#include "assets/gary_douglas_body_verts.inc"
 };
 
 SVECTOR D_actor_135400_80133E1C[354] = {
-#include "assets/actor_135400_model_06BE8_normals.inc"
+#include "assets/gary_douglas_body_normals.inc"
 };
 
 u32 D_actor_135400_8013492C[4151] = {
-#include "assets/actor_135400_model_06BE8_stream.inc"
+#include "assets/gary_douglas_body_stream.inc"
 };
 
 TmdSource D_actor_135400_80138A08 = {
@@ -235,23 +235,23 @@ TmdSource D_actor_135400_80138A08 = {
 };
 
 TmdBone D_actor_135400_80138A2C[1] = {
-#include "assets/actor_135400_model_070C0_skeleton.inc"
+#include "assets/gary_douglas_head_hat_skeleton.inc"
 };
 
 u32 D_actor_135400_80138A50[1] = {
-#include "assets/actor_135400_model_070C0_partVerts.inc"
+#include "assets/gary_douglas_head_hat_partVerts.inc"
 };
 
 SVECTOR D_actor_135400_80138A54[21] = {
-#include "assets/actor_135400_model_070C0_verts.inc"
+#include "assets/gary_douglas_head_hat_verts.inc"
 };
 
 SVECTOR D_actor_135400_80138AFC[21] = {
-#include "assets/actor_135400_model_070C0_normals.inc"
+#include "assets/gary_douglas_head_hat_normals.inc"
 };
 
 u32 D_actor_135400_80138BA4[207] = {
-#include "assets/actor_135400_model_070C0_stream.inc"
+#include "assets/gary_douglas_head_hat_stream.inc"
 };
 
 TmdSource D_actor_135400_80138EE0 = {
@@ -267,19 +267,19 @@ TmdSource D_actor_135400_80138EE0 = {
 };
 
 TmdBone D_actor_135400_80138F04[1] = {
-#include "assets/actor_135400_model_07354_skeleton.inc"
+#include "assets/actor_135400_model_071AC_skeleton.inc"
 };
 
 u32 D_actor_135400_80138F28[1] = {
-#include "assets/actor_135400_model_07354_partVerts.inc"
+#include "assets/actor_135400_model_071AC_partVerts.inc"
 };
 
 SVECTOR D_actor_135400_80138F2C[20] = {
-#include "assets/actor_135400_model_07354_verts.inc"
+#include "assets/actor_135400_model_071AC_verts.inc"
 };
 
 u32 D_actor_135400_80138FCC[106] = {
-#include "assets/actor_135400_model_07354_stream.inc"
+#include "assets/actor_135400_model_071AC_stream.inc"
 };
 
 TmdSource D_actor_135400_80139174 = {
@@ -409,23 +409,23 @@ _Actor135400MessageEntry D_actor_135400_8013A4D0[5] = {
 };
 
 TmdBone D_actor_135400_8013A4F8[19] = {
-#include "assets/actor_135400_model_0C430_skeleton.inc"
+#include "assets/flint_body_skeleton.inc"
 };
 
 u32 D_actor_135400_8013A7A4[19] = {
-#include "assets/actor_135400_model_0C430_partVerts.inc"
+#include "assets/flint_body_partVerts.inc"
 };
 
 SVECTOR D_actor_135400_8013A7F0[238] = {
-#include "assets/actor_135400_model_0C430_verts.inc"
+#include "assets/flint_body_verts.inc"
 };
 
 SVECTOR D_actor_135400_8013AF60[238] = {
-#include "assets/actor_135400_model_0C430_normals.inc"
+#include "assets/flint_body_normals.inc"
 };
 
 u32 D_actor_135400_8013B6D0[2784] = {
-#include "assets/actor_135400_model_0C430_stream.inc"
+#include "assets/flint_body_stream.inc"
 };
 
 TmdSource D_actor_135400_8013E250 = {

@@ -356,23 +356,23 @@ AnimationSet D_actor_420700_80135BF8 = {
 };
 
 TmdBone D_actor_420700_80135C20[20] = {
-#include "assets/actor_420700_model_0986C_skeleton.inc"
+#include "assets/gary_douglas_body_skeleton.inc"
 };
 
 u32 D_actor_420700_80135EF0[20] = {
-#include "assets/actor_420700_model_0986C_partVerts.inc"
+#include "assets/gary_douglas_body_partVerts.inc"
 };
 
 SVECTOR D_actor_420700_80135F40[364] = {
-#include "assets/actor_420700_model_0986C_verts.inc"
+#include "assets/gary_douglas_body_verts.inc"
 };
 
 SVECTOR D_actor_420700_80136AA0[354] = {
-#include "assets/actor_420700_model_0986C_normals.inc"
+#include "assets/gary_douglas_body_normals.inc"
 };
 
 u32 D_actor_420700_801375B0[4151] = {
-#include "assets/actor_420700_model_0986C_stream.inc"
+#include "assets/gary_douglas_body_stream.inc"
 };
 
 TmdSource D_actor_420700_8013B68C = {
@@ -388,23 +388,23 @@ TmdSource D_actor_420700_8013B68C = {
 };
 
 TmdBone D_actor_420700_8013B6B0[1] = {
-#include "assets/actor_420700_model_09D44_skeleton.inc"
+#include "assets/gary_douglas_head_hat_skeleton.inc"
 };
 
 u32 D_actor_420700_8013B6D4[1] = {
-#include "assets/actor_420700_model_09D44_partVerts.inc"
+#include "assets/gary_douglas_head_hat_partVerts.inc"
 };
 
 SVECTOR D_actor_420700_8013B6D8[21] = {
-#include "assets/actor_420700_model_09D44_verts.inc"
+#include "assets/gary_douglas_head_hat_verts.inc"
 };
 
 SVECTOR D_actor_420700_8013B780[21] = {
-#include "assets/actor_420700_model_09D44_normals.inc"
+#include "assets/gary_douglas_head_hat_normals.inc"
 };
 
 u32 D_actor_420700_8013B828[207] = {
-#include "assets/actor_420700_model_09D44_stream.inc"
+#include "assets/gary_douglas_head_hat_stream.inc"
 };
 
 TmdSource D_actor_420700_8013BB64 = {
@@ -420,23 +420,23 @@ TmdSource D_actor_420700_8013BB64 = {
 };
 
 TmdBone D_actor_420700_8013BB88[1] = {
-#include "assets/actor_420700_model_0A208_skeleton.inc"
+#include "assets/gary_douglas_shotgun_skeleton.inc"
 };
 
 u32 D_actor_420700_8013BBAC[1] = {
-#include "assets/actor_420700_model_0A208_partVerts.inc"
+#include "assets/gary_douglas_shotgun_partVerts.inc"
 };
 
 SVECTOR D_actor_420700_8013BBB0[26] = {
-#include "assets/actor_420700_model_0A208_verts.inc"
+#include "assets/gary_douglas_shotgun_verts.inc"
 };
 
 SVECTOR D_actor_420700_8013BC80[26] = {
-#include "assets/actor_420700_model_0A208_normals.inc"
+#include "assets/gary_douglas_shotgun_normals.inc"
 };
 
 u32 D_actor_420700_8013BD50[182] = {
-#include "assets/actor_420700_model_0A208_stream.inc"
+#include "assets/gary_douglas_shotgun_stream.inc"
 };
 
 TmdSource D_actor_420700_8013C028 = {

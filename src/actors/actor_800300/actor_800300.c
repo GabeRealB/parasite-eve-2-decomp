@@ -102,23 +102,23 @@ extern AnimationSet D_actor_800300_8016C818;
 extern AnimationSet D_actor_800300_8016CB70;
 
 TmdBone D_actor_800300_801630A0[19] = {
-#include "assets/actor_800300_model_06A3C_skeleton.inc"
+#include "assets/actor_800300_model_02CF4_skeleton.inc"
 };
 
 u32 D_actor_800300_8016334C[19] = {
-#include "assets/actor_800300_model_06A3C_partVerts.inc"
+#include "assets/actor_800300_model_02CF4_partVerts.inc"
 };
 
 SVECTOR D_actor_800300_80163398[365] = {
-#include "assets/actor_800300_model_06A3C_verts.inc"
+#include "assets/actor_800300_model_02CF4_verts.inc"
 };
 
 SVECTOR D_actor_800300_80163F00[386] = {
-#include "assets/actor_800300_model_06A3C_normals.inc"
+#include "assets/actor_800300_model_02CF4_normals.inc"
 };
 
 u32 D_actor_800300_80164B10[3923] = {
-#include "assets/actor_800300_model_06A3C_stream.inc"
+#include "assets/actor_800300_model_02CF4_stream.inc"
 };
 
 TmdSource D_actor_800300_8016885C = {

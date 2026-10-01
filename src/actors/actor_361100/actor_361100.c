@@ -675,23 +675,23 @@ PadScriptCmd D_actor_361100_80166AD0[2] = {
 PadScriptVibrationSegment D_actor_361100_80166AD8 = { 255, 255, 1, 1 };
 
 TmdBone D_actor_361100_80166ADC[19] = {
-#include "assets/actor_361100_model_09498_skeleton.inc"
+#include "assets/actor_361100_model_06038_skeleton.inc"
 };
 
 u32 D_actor_361100_80166D88[19] = {
-#include "assets/actor_361100_model_09498_partVerts.inc"
+#include "assets/actor_361100_model_06038_partVerts.inc"
 };
 
 SVECTOR D_actor_361100_80166DD4[258] = {
-#include "assets/actor_361100_model_09498_verts.inc"
+#include "assets/actor_361100_model_06038_verts.inc"
 };
 
 SVECTOR D_actor_361100_801675E4[270] = {
-#include "assets/actor_361100_model_09498_normals.inc"
+#include "assets/actor_361100_model_06038_normals.inc"
 };
 
 u32 D_actor_361100_80167E54[3353] = {
-#include "assets/actor_361100_model_09498_stream.inc"
+#include "assets/actor_361100_model_06038_stream.inc"
 };
 
 TmdSource D_actor_361100_8016B2B8 = {
@@ -794,23 +794,23 @@ Actor361100MsgEntry D_actor_361100_8016BAF0[5] = {
 };
 
 TmdBone D_actor_361100_8016BB18[19] = {
-#include "assets/actor_361100_model_0F4AC_skeleton.inc"
+#include "assets/aya_brea_body_skeleton.inc"
 };
 
 u32 D_actor_361100_8016BDC4[19] = {
-#include "assets/actor_361100_model_0F4AC_partVerts.inc"
+#include "assets/aya_brea_body_partVerts.inc"
 };
 
 SVECTOR D_actor_361100_8016BE10[365] = {
-#include "assets/actor_361100_model_0F4AC_verts.inc"
+#include "assets/aya_brea_body_verts.inc"
 };
 
 SVECTOR D_actor_361100_8016C978[385] = {
-#include "assets/actor_361100_model_0F4AC_normals.inc"
+#include "assets/aya_brea_body_normals.inc"
 };
 
 u32 D_actor_361100_8016D580[3923] = {
-#include "assets/actor_361100_model_0F4AC_stream.inc"
+#include "assets/aya_brea_body_stream.inc"
 };
 
 TmdSource D_actor_361100_801712CC = {
