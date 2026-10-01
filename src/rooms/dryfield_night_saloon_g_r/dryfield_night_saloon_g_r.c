@@ -1781,35 +1781,35 @@ GpAreaVariant D_dryfield_night_saloon_g_r_80188EE4[13] = {
     { NULL, NULL },
 };
 
-s32 D_dryfield_night_saloon_g_r_80188F4C[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_saloon_g_r_80188F4C = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_night_saloon_g_r_80188F58[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_saloon_g_r_80188F58 = {
     0x10000001,
     0x10000003,
     0x10000001,
 };
 
-GpRoomParamRec D_dryfield_night_saloon_g_r_80188F64[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_saloon_g_r_80188F64[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_saloon_g_r_80188F6C[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_saloon_g_r_80188F4C },
+WorldCollisionSurfaceProperties D_dryfield_night_saloon_g_r_80188F6C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_saloon_g_r_80188F4C },
 };
 
-GpRoomParamRec D_dryfield_night_saloon_g_r_80188F74[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_saloon_g_r_80188F58 },
+WorldCollisionSurfaceProperties D_dryfield_night_saloon_g_r_80188F74[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_saloon_g_r_80188F58 },
 };
 
-GpRoomParamRec D_dryfield_night_saloon_g_r_80188F7C[1] = {
-    { 0, 1, 0, 0, D_dryfield_night_saloon_g_r_80188F58 },
+WorldCollisionSurfaceProperties D_dryfield_night_saloon_g_r_80188F7C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_saloon_g_r_80188F58 },
 };
 
-GpRoomParamRec* D_dryfield_night_saloon_g_r_80188F84[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_saloon_g_r_80188F84[8] = {
     D_dryfield_night_saloon_g_r_80188F64,
     D_dryfield_night_saloon_g_r_80188F6C,
     D_dryfield_night_saloon_g_r_80188F74,

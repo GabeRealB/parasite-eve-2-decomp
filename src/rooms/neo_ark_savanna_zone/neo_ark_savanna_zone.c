@@ -369,33 +369,33 @@ WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5] = {
     { .color = { 422, 394, 324, 395 } },
 };
 
-s32 D_neo_ark_savanna_zone_80180930[3] = {
+WorldCollisionFootstepSounds D_neo_ark_savanna_zone_80180930 = {
     0x10000039,
     0x1000003B,
     0x10000039,
 };
 
-s32 D_neo_ark_savanna_zone_8018093C[3] = {
+WorldCollisionFootstepSounds D_neo_ark_savanna_zone_8018093C = {
     0x10000031,
     0x10000033,
     0x10000031,
 };
 
-GpRoomParamRec D_neo_ark_savanna_zone_80180948[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_savanna_zone_80180948[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_savanna_zone_80180950[1] = { 0 };
+WorldCollisionSurfaceProperties D_neo_ark_savanna_zone_80180950[1] = { 0 };
 
-GpRoomParamRec D_neo_ark_savanna_zone_80180958[1] = {
-    { 0, 0, 1, 0, D_neo_ark_savanna_zone_80180930 },
+WorldCollisionSurfaceProperties D_neo_ark_savanna_zone_80180958[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_savanna_zone_80180930 },
 };
 
-GpRoomParamRec D_neo_ark_savanna_zone_80180960[1] = {
-    { 0, 0, 1, 0, D_neo_ark_savanna_zone_8018093C },
+WorldCollisionSurfaceProperties D_neo_ark_savanna_zone_80180960[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_savanna_zone_8018093C },
 };
 
-GpRoomParamRec* D_neo_ark_savanna_zone_80180968[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_savanna_zone_80180968[8] = {
     D_neo_ark_savanna_zone_80180948,
     D_neo_ark_savanna_zone_80180950,
     D_neo_ark_savanna_zone_80180958,

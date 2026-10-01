@@ -168,35 +168,35 @@ GpRoomCoordSet D_dryfield_motel_room_5_8017E56C[1] = {
     { 0, NULL, 12, D_dryfield_motel_room_5_8017E0EC, 0, NULL },
 };
 
-s32 D_dryfield_motel_room_5_8017E584[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_5_8017E584 = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_motel_room_5_8017E590[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_5_8017E590 = {
     0x10000001,
     0x10000003,
     0x10000001,
 };
 
-GpRoomParamRec D_dryfield_motel_room_5_8017E59C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_5_8017E59C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_motel_room_5_8017E5A4[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_5_8017E584 },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_5_8017E5A4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_5_8017E584 },
 };
 
-GpRoomParamRec D_dryfield_motel_room_5_8017E5AC[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_5_8017E590 },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_5_8017E5AC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_5_8017E590 },
 };
 
-GpRoomParamRec D_dryfield_motel_room_5_8017E5B4[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_5_8017E5B4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_dryfield_motel_room_5_8017E5BC[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_motel_room_5_8017E5BC[8] = {
     D_dryfield_motel_room_5_8017E59C,
     D_dryfield_motel_room_5_8017E5A4,
     D_dryfield_motel_room_5_8017E5AC,

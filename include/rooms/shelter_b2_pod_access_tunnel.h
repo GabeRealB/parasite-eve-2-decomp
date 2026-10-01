@@ -28,7 +28,7 @@ extern GpViewRec D_shelter_b2_pod_access_tunnel_801841D8[];
 
 extern GpSprtRec D_shelter_b2_pod_access_tunnel_80184C6C[];
 
-extern GpRoomParamRec* D_shelter_b2_pod_access_tunnel_801856D8[];
+extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_access_tunnel_801856D8[];
 
 void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task);
 

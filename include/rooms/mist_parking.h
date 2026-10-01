@@ -30,7 +30,7 @@ extern GpViewRec D_mist_parking_80192228[];
 
 extern GpSprtRec D_mist_parking_8019399C[];
 
-extern GpRoomParamRec* D_mist_parking_801952F0[];
+extern WorldCollisionSurfaceProperties* D_mist_parking_801952F0[];
 
 void func_mist_parking_80183BAC(s32 arg0);
 

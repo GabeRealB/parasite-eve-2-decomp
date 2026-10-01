@@ -30,7 +30,7 @@ extern GpViewRec D_shelter_1f_heliport_80181998[];
 
 extern GpSprtRec D_shelter_1f_heliport_80181EC0[];
 
-extern GpRoomParamRec* D_shelter_1f_heliport_80182C78[];
+extern WorldCollisionSurfaceProperties* D_shelter_1f_heliport_80182C78[];
 
 void func_shelter_1f_heliport_80180768(Task* task);
 

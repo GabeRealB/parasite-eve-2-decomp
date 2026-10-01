@@ -28,7 +28,7 @@ extern GpViewRec D_shelter_1f_parking_garage_8018100C[];
 
 extern GpSprtRec D_shelter_1f_parking_garage_80181430[];
 
-extern GpRoomParamRec* D_shelter_1f_parking_garage_80181954[];
+extern WorldCollisionSurfaceProperties* D_shelter_1f_parking_garage_80181954[];
 
 /// Task entries the Neo Ark map UI overlay's stage tables name: each room's
 /// entry task, started for its location, and the enemy descriptors' tasks.

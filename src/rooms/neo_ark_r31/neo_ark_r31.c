@@ -124,11 +124,11 @@ s32 D_neo_ark_r31_8017DC20[3] = {
     0x10000011,
 };
 
-GpRoomParamRec D_neo_ark_r31_8017DC2C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_r31_8017DC2C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_neo_ark_r31_8017DC34[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[8] = {
     D_neo_ark_r31_8017DC2C,
     D_neo_ark_r31_8017DC2C,
     D_neo_ark_r31_8017DC2C,

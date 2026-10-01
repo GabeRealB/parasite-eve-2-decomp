@@ -33,7 +33,7 @@ extern GpSprtRec D_acropolis_sanctuary_801860C8[];
 
 extern GpViewRec D_acropolis_sanctuary_80186188[];
 
-extern GpRoomParamRec* D_acropolis_sanctuary_801863F8[];
+extern WorldCollisionSurfaceProperties* D_acropolis_sanctuary_801863F8[];
 
 void func_acropolis_sanctuary_8017E00C(Task* task);
 

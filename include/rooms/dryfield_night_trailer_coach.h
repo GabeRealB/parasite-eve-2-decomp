@@ -33,7 +33,7 @@ extern GpViewRec D_dryfield_night_trailer_coach_80189A44[];
 
 extern GpSprtRec D_dryfield_night_trailer_coach_8018B64C[];
 
-extern GpRoomParamRec* D_dryfield_night_trailer_coach_8018C1E8[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_trailer_coach_8018C1E8[];
 
 void func_dryfield_night_trailer_coach_8018138C(Task* task);
 

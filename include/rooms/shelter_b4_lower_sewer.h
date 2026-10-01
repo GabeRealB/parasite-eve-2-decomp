@@ -43,7 +43,7 @@ extern GpObj4A D_shelter_b4_lower_sewer_80183444[];
 
 extern GpObj4A D_shelter_b4_lower_sewer_801837D4[];
 
-extern GpRoomParamRec* D_shelter_b4_lower_sewer_80183DF4[];
+extern WorldCollisionSurfaceProperties* D_shelter_b4_lower_sewer_80183DF4[];
 
 void func_shelter_b4_lower_sewer_8017D6D4(Task* task);
 

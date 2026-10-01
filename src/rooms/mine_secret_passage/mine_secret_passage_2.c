@@ -606,35 +606,35 @@ WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_mine_secret_passage_801833E8[3] = {
+WorldCollisionFootstepSounds D_mine_secret_passage_801833E8 = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-s32 D_mine_secret_passage_801833F4[3] = {
+WorldCollisionFootstepSounds D_mine_secret_passage_801833F4 = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-GpRoomParamRec D_mine_secret_passage_80183400[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_secret_passage_80183400[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_secret_passage_80183408[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_secret_passage_80183408[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_secret_passage_80183410[1] = {
-    { 0, 0, 1, 0, D_mine_secret_passage_801833E8 },
+WorldCollisionSurfaceProperties D_mine_secret_passage_80183410[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_secret_passage_801833E8 },
 };
 
-GpRoomParamRec D_mine_secret_passage_80183418[1] = {
-    { 0, 0, 1, 0, D_mine_secret_passage_801833F4 },
+WorldCollisionSurfaceProperties D_mine_secret_passage_80183418[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_secret_passage_801833F4 },
 };
 
-GpRoomParamRec* D_mine_secret_passage_80183420[8] = {
+WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[8] = {
     D_mine_secret_passage_80183400,
     D_mine_secret_passage_80183408,
     D_mine_secret_passage_80183410,

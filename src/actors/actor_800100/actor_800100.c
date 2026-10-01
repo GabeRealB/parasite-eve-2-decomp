@@ -3506,7 +3506,7 @@ static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg
             if (dist < minDist) {
                 func_800E0FEC(rec, &block->delta, 1, &idx);
                 idx = func_800E1ACC((u8*)&idx);
-                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->field_2 != 0) {
+                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     minDist = dist;
                     bestIdx = i;
                 }

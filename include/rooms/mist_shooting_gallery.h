@@ -66,7 +66,7 @@ extern GpViewRec D_mist_shooting_gallery_8018998C[];
 
 extern GpSprtRec D_mist_shooting_gallery_8018BD10[];
 
-extern GpRoomParamRec* D_mist_shooting_gallery_8018E09C[];
+extern WorldCollisionSurfaceProperties* D_mist_shooting_gallery_8018E09C[];
 
 void func_mist_shooting_gallery_80180390(s32 arg0);
 

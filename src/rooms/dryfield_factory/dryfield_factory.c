@@ -644,35 +644,35 @@ WorldCoordRoomAmbientEntry D_dryfield_factory_8018A2A4[20] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_dryfield_factory_8018A344[3] = {
+WorldCollisionFootstepSounds D_dryfield_factory_8018A344 = {
     0x10000051,
     0x10000053,
     0x10000051,
 };
 
-s32 D_dryfield_factory_8018A350[3] = {
+WorldCollisionFootstepSounds D_dryfield_factory_8018A350 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-GpRoomParamRec D_dryfield_factory_8018A35C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_factory_8018A35C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_factory_8018A364[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_factory_8018A364[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_factory_8018A36C[1] = {
-    { 0, 0, 1, 0, D_dryfield_factory_8018A344 },
+WorldCollisionSurfaceProperties D_dryfield_factory_8018A36C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_factory_8018A344 },
 };
 
-GpRoomParamRec D_dryfield_factory_8018A374[1] = {
-    { 0, 0, 1, 0, D_dryfield_factory_8018A350 },
+WorldCollisionSurfaceProperties D_dryfield_factory_8018A374[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_factory_8018A350 },
 };
 
-GpRoomParamRec* D_dryfield_factory_8018A37C[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_factory_8018A37C[8] = {
     D_dryfield_factory_8018A35C,
     D_dryfield_factory_8018A364,
     D_dryfield_factory_8018A36C,

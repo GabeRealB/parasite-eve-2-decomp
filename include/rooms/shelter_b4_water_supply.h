@@ -39,7 +39,7 @@ extern GpObj3A D_shelter_b4_water_supply_80184D04[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b4_water_supply_80184D7C[];
 
-extern GpRoomParamRec* D_shelter_b4_water_supply_80184E14[];
+extern WorldCollisionSurfaceProperties* D_shelter_b4_water_supply_80184E14[];
 
 void func_shelter_b4_water_supply_8017DDA4(Task* task);
 

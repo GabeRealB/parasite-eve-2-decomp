@@ -1522,41 +1522,41 @@ GpObj3A D_neo_ark_observatory_801878D4[4] = {
     { NULL, NULL, { 0x291F, -1504, 0x349F, 0 }, { { 4013, 2688, 166, 0 }, { -4012, 2688, -165, 0 }, { 4013, -2688, 166, 0 }, { -4012, -2688, -165, 0 } }, { 169, 0, -4111, 0 }, { -34, 18 }, 129, 0 },
 };
 
-s32 D_neo_ark_observatory_801879C4[3] = {
+WorldCollisionFootstepSounds D_neo_ark_observatory_801879C4 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-s32 D_neo_ark_observatory_801879D0[3] = {
+WorldCollisionFootstepSounds D_neo_ark_observatory_801879D0 = {
     0x10000041,
     0x10000043,
     0x10000055,
 };
 
-s32 D_neo_ark_observatory_801879DC[3] = {
+WorldCollisionFootstepSounds D_neo_ark_observatory_801879DC = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-GpRoomParamRec D_neo_ark_observatory_801879E8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_observatory_801879E8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_observatory_801879F0[1] = {
-    { 0, 0, 1, 0, D_neo_ark_observatory_801879C4 },
+WorldCollisionSurfaceProperties D_neo_ark_observatory_801879F0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_observatory_801879C4 },
 };
 
-GpRoomParamRec D_neo_ark_observatory_801879F8[1] = {
-    { 0, 0, 1, 0, D_neo_ark_observatory_801879D0 },
+WorldCollisionSurfaceProperties D_neo_ark_observatory_801879F8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_observatory_801879D0 },
 };
 
-GpRoomParamRec D_neo_ark_observatory_80187A00[1] = {
-    { 0, 0, 1, 0, D_neo_ark_observatory_801879DC },
+WorldCollisionSurfaceProperties D_neo_ark_observatory_80187A00[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_observatory_801879DC },
 };
 
-GpRoomParamRec* D_neo_ark_observatory_80187A08[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_observatory_80187A08[8] = {
     D_neo_ark_observatory_801879E8,
     D_neo_ark_observatory_801879F0,
     D_neo_ark_observatory_801879F8,

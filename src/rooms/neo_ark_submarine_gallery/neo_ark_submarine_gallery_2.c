@@ -64,9 +64,9 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1);
 // Indexed views below share one contiguous table.
 extern TaskDesc D_80147E48;
 
-extern GpRoomParamRec D_neo_ark_submarine_gallery_801858D4[1];
-extern GpRoomParamRec D_neo_ark_submarine_gallery_801858DC[1];
-extern GpRoomParamRec D_neo_ark_submarine_gallery_801858E4[1];
+extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858D4[1];
+extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858DC[1];
+extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858E4[1];
 
 TaskDesc D_neo_ark_submarine_gallery_8018186C = { 0, 192, waterRefractionTask, { .model = NULL } };
 
@@ -902,25 +902,25 @@ GpAreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
     { NULL, NULL },
 };
 
-s32 D_neo_ark_submarine_gallery_801858C8[3] = {
+WorldCollisionFootstepSounds D_neo_ark_submarine_gallery_801858C8 = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_neo_ark_submarine_gallery_801858D4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858D4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_submarine_gallery_801858DC[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858DC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_submarine_gallery_801858E4[1] = {
-    { 0, 0, 1, 0, D_neo_ark_submarine_gallery_801858C8 },
+WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858E4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_submarine_gallery_801858C8 },
 };
 
-GpRoomParamRec* D_neo_ark_submarine_gallery_801858EC[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[8] = {
     D_neo_ark_submarine_gallery_801858D4,
     D_neo_ark_submarine_gallery_801858D4,
     D_neo_ark_submarine_gallery_801858D4,

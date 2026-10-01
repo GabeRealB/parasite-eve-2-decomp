@@ -43,7 +43,7 @@ extern GpObj4A D_shelter_b2_septic_tank_80186A54[];
 
 extern GpObj4A D_shelter_b2_septic_tank_80186C1C[];
 
-extern GpRoomParamRec* D_shelter_b2_septic_tank_80187014[];
+extern WorldCollisionSurfaceProperties* D_shelter_b2_septic_tank_80187014[];
 
 void func_shelter_b2_septic_tank_8017DB10(Task* task);
 

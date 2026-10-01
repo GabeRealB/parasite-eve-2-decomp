@@ -147,21 +147,21 @@ GpObj4C D_neo_ark_eve_elevator_8017DBC8[1] = {
     { NULL, NULL, NULL, { -240, -48, 48, 0 }, { { -304, 0, -976, 0 }, { 304, 0, -976, 0 }, { -304, 0, 976, 0 }, { 304, 0, 976, 0 } }, { 0, 4109, 0, 0 }, { -4096, 0, 0, 0 }, 1021, 0, 24, 17, 130, 0 },
 };
 
-s32 D_neo_ark_eve_elevator_8017DC14[3] = {
+WorldCollisionFootstepSounds D_neo_ark_eve_elevator_8017DC14 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_neo_ark_eve_elevator_8017DC20[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_eve_elevator_8017DC20[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_eve_elevator_8017DC28[1] = {
-    { 0, 0, 1, 0, D_neo_ark_eve_elevator_8017DC14 },
+WorldCollisionSurfaceProperties D_neo_ark_eve_elevator_8017DC28[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_eve_elevator_8017DC14 },
 };
 
-GpRoomParamRec* D_neo_ark_eve_elevator_8017DC30[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_eve_elevator_8017DC30[8] = {
     D_neo_ark_eve_elevator_8017DC20,
     D_neo_ark_eve_elevator_8017DC28,
     D_neo_ark_eve_elevator_8017DC20,

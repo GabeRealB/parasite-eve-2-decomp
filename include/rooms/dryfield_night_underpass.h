@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_night_underpass_8017E6F8[];
 
 extern GpSprtRec D_dryfield_night_underpass_8017F420[];
 
-extern GpRoomParamRec* D_dryfield_night_underpass_80180374[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_underpass_80180374[];
 
 void func_dryfield_night_underpass_8017DC3C(Task* unused);
 

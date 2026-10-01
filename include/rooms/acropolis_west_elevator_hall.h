@@ -25,7 +25,7 @@ extern GpSprtRec D_acropolis_west_elevator_hall_80186408[];
 
 extern GpViewRec D_acropolis_west_elevator_hall_801869FC[];
 
-extern GpRoomParamRec* D_acropolis_west_elevator_hall_80186AC4[];
+extern WorldCollisionSurfaceProperties* D_acropolis_west_elevator_hall_80186AC4[];
 
 void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0);
 

@@ -30,7 +30,7 @@ extern GpSprtRec D_acropolis_bridge_8018FFA4[];
 
 extern GpViewRec D_acropolis_bridge_80190A24[];
 
-extern GpRoomParamRec* D_acropolis_bridge_80190C34[];
+extern WorldCollisionSurfaceProperties* D_acropolis_bridge_80190C34[];
 
 void func_acropolis_bridge_8017F868(Task* task);
 

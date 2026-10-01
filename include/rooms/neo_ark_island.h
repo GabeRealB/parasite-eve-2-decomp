@@ -42,7 +42,7 @@ extern GpViewRec D_neo_ark_island_801826EC[];
 
 extern GpSprtRec D_neo_ark_island_80183B14[];
 
-extern GpRoomParamRec* D_neo_ark_island_80183FE8[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_island_80183FE8[];
 
 void func_neo_ark_island_8017FB2C(Task* arg0);
 

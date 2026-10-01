@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_pyramid_801802E8[];
 
 extern GpSprtRec D_neo_ark_pyramid_80180E18[];
 
-extern GpRoomParamRec* D_neo_ark_pyramid_80181884[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_pyramid_80181884[];
 
 void func_neo_ark_pyramid_8017DC50(Task* task);
 

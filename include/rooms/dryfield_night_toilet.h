@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_night_toilet_8017DDAC[];
 
 extern GpSprtRec D_dryfield_night_toilet_8017EC40[];
 
-extern GpRoomParamRec* D_dryfield_night_toilet_8017F3D8[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_toilet_8017F3D8[];
 
 void func_dryfield_night_toilet_8017D9F8(Task* unused);
 

@@ -819,25 +819,25 @@ GpAreaVariant D_dryfield_night_junk_yard_801843F0[22] = {
     { D_map_dryfield_full_8017C8E8, D_dryfield_night_junk_yard_801843CC },
 };
 
-s32 D_dryfield_night_junk_yard_801844A0[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_junk_yard_801844A0 = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-GpRoomParamRec D_dryfield_night_junk_yard_801844AC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_junk_yard_801844AC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_junk_yard_801844B4[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_junk_yard_801844A0 },
+WorldCollisionSurfaceProperties D_dryfield_night_junk_yard_801844B4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_junk_yard_801844A0 },
 };
 
-GpRoomParamRec D_dryfield_night_junk_yard_801844BC[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_junk_yard_801844BC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_dryfield_night_junk_yard_801844C4[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_junk_yard_801844C4[8] = {
     D_dryfield_night_junk_yard_801844AC,
     D_dryfield_night_junk_yard_801844B4,
     D_dryfield_night_junk_yard_801844BC,

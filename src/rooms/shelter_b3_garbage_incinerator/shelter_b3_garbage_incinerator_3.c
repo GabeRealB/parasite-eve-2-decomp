@@ -1760,35 +1760,35 @@ GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1] = {
     { NULL, NULL, { 4624, -2864, -5504, 0 }, { { -5200, 3888, 0, 0 }, { 5200, 3888, 0, 0 }, { -5200, -3888, 0, 0 }, { 5200, -3888, 0, 0 } }, { 0, 0, 4116, 0 }, { 76, 25 }, 129, 0 },
 };
 
-s32 D_shelter_b3_garbage_incinerator_8018FB14[3] = {
+WorldCollisionFootstepSounds D_shelter_b3_garbage_incinerator_8018FB14 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-s32 D_shelter_b3_garbage_incinerator_8018FB20[3] = {
+WorldCollisionFootstepSounds D_shelter_b3_garbage_incinerator_8018FB20 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-GpRoomParamRec D_shelter_b3_garbage_incinerator_8018FB2C[1] = {
-    { 0, 0, 1, 0, D_shelter_b3_garbage_incinerator_8018FB20 },
+WorldCollisionSurfaceProperties D_shelter_b3_garbage_incinerator_8018FB2C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_garbage_incinerator_8018FB20 },
 };
 
-GpRoomParamRec D_shelter_b3_garbage_incinerator_8018FB34[1] = {
-    { 0, 1, 0, 0, D_shelter_b3_garbage_incinerator_8018FB20 },
+WorldCollisionSurfaceProperties D_shelter_b3_garbage_incinerator_8018FB34[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_garbage_incinerator_8018FB20 },
 };
 
-GpRoomParamRec D_shelter_b3_garbage_incinerator_8018FB3C[1] = {
-    { 0, 0, 1, 0, D_shelter_b3_garbage_incinerator_8018FB14 },
+WorldCollisionSurfaceProperties D_shelter_b3_garbage_incinerator_8018FB3C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_garbage_incinerator_8018FB14 },
 };
 
-GpRoomParamRec D_shelter_b3_garbage_incinerator_8018FB44[1] = {
-    { 0, 0, 1, 0, D_shelter_b3_garbage_incinerator_8018FB14 },
+WorldCollisionSurfaceProperties D_shelter_b3_garbage_incinerator_8018FB44[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_garbage_incinerator_8018FB14 },
 };
 
-GpRoomParamRec* D_shelter_b3_garbage_incinerator_8018FB4C[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b3_garbage_incinerator_8018FB4C[8] = {
     D_shelter_b3_garbage_incinerator_8018FB2C,
     D_shelter_b3_garbage_incinerator_8018FB34,
     D_shelter_b3_garbage_incinerator_8018FB2C,

@@ -28,7 +28,7 @@ extern GpViewRec D_mine_cavern_80189840[];
 
 extern GpSprtRec D_mine_cavern_8018CD10[];
 
-extern GpRoomParamRec* D_mine_cavern_8018E30C[];
+extern WorldCollisionSurfaceProperties* D_mine_cavern_8018E30C[];
 
 void func_mine_cavern_80180320(Task* task);
 

@@ -648,21 +648,21 @@ GpObj3A D_shelter_b2_north_maintenance_walkway_80186308[1] = {
     { NULL, NULL, { -1216, -1328, -1008, 0 }, { { -1824, 2576, -3632, 0 }, { 1824, 2576, 3632, 0 }, { -1824, -2576, -3632, 0 }, { 1824, -2576, 3632, 0 } }, { -3673, 0, 1844, 0 }, { -62, 18 }, 129, 0 },
 };
 
-s32 D_shelter_b2_north_maintenance_walkway_80186344[3] = {
+WorldCollisionFootstepSounds D_shelter_b2_north_maintenance_walkway_80186344 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_shelter_b2_north_maintenance_walkway_80186350[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_north_maintenance_walkway_80186350[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_north_maintenance_walkway_80186358[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_north_maintenance_walkway_80186344 },
+WorldCollisionSurfaceProperties D_shelter_b2_north_maintenance_walkway_80186358[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_north_maintenance_walkway_80186344 },
 };
 
-GpRoomParamRec* D_shelter_b2_north_maintenance_walkway_80186360[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b2_north_maintenance_walkway_80186360[8] = {
     D_shelter_b2_north_maintenance_walkway_80186350,
     D_shelter_b2_north_maintenance_walkway_80186358,
     D_shelter_b2_north_maintenance_walkway_80186350,

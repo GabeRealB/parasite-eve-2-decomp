@@ -875,31 +875,31 @@ WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_shelter_b1_sterilization_room_8018C2E4[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_sterilization_room_8018C2E4 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-s32 D_shelter_b1_sterilization_room_8018C2F0[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_sterilization_room_8018C2F0 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_shelter_b1_sterilization_room_8018C2FC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_sterilization_room_8018C2FC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b1_sterilization_room_8018C304[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_sterilization_room_8018C2E4 },
+WorldCollisionSurfaceProperties D_shelter_b1_sterilization_room_8018C304[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_sterilization_room_8018C2E4 },
 };
 
-GpRoomParamRec D_shelter_b1_sterilization_room_8018C30C[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_sterilization_room_8018C2F0 },
+WorldCollisionSurfaceProperties D_shelter_b1_sterilization_room_8018C30C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_sterilization_room_8018C2F0 },
 };
 
-GpRoomParamRec* D_shelter_b1_sterilization_room_8018C314[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b1_sterilization_room_8018C314[8] = {
     D_shelter_b1_sterilization_room_8018C2FC,
     D_shelter_b1_sterilization_room_8018C304,
     D_shelter_b1_sterilization_room_8018C30C,

@@ -836,7 +836,7 @@ static u8** D_map_akropolis_8017AC18[20] = {
 
 GpViewIndexTbl D_map_akropolis_8017AC68 = { D_map_akropolis_8017AC18 };
 
-GpRoomParamRec** D_map_akropolis_8017AC6C[20] = {
+WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
     D_acropolis_square_80188868,
     D_acropolis_east_elevator_hall_80187B74,
     D_acropolis_patio_8018703C,

@@ -746,45 +746,45 @@ GpAreaApplyRec D_acropolis_cafeteria_8018C9D4[3] = {
     { 255, 0, 0, 0 },
 };
 
-s32 D_acropolis_cafeteria_8018C9E0[3] = {
+WorldCollisionFootstepSounds D_acropolis_cafeteria_8018C9E0 = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-s32 D_acropolis_cafeteria_8018C9EC[3] = {
+WorldCollisionFootstepSounds D_acropolis_cafeteria_8018C9EC = {
     0x10000011,
     0x10000013,
     0x10000011,
 };
 
-s32 D_acropolis_cafeteria_8018C9F8[3] = {
+WorldCollisionFootstepSounds D_acropolis_cafeteria_8018C9F8 = {
     0x10000001,
     0x10000003,
     0x10000005,
 };
 
-GpRoomParamRec D_acropolis_cafeteria_8018CA04[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA04[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_cafeteria_8018CA0C[1] = {
-    { 0, 0, 1, 0, D_acropolis_cafeteria_8018C9E0 },
+WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA0C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_cafeteria_8018C9E0 },
 };
 
-GpRoomParamRec D_acropolis_cafeteria_8018CA14[1] = {
-    { 0, 0, 1, 0, D_acropolis_cafeteria_8018C9EC },
+WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA14[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_cafeteria_8018C9EC },
 };
 
-GpRoomParamRec D_acropolis_cafeteria_8018CA1C[1] = {
-    { 0, 0, 1, 0, D_acropolis_cafeteria_8018C9F8 },
+WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA1C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_cafeteria_8018C9F8 },
 };
 
-GpRoomParamRec D_acropolis_cafeteria_8018CA24[1] = {
-    { 0, 1, 0, 0, D_acropolis_cafeteria_8018C9F8 },
+WorldCollisionSurfaceProperties D_acropolis_cafeteria_8018CA24[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_cafeteria_8018C9F8 },
 };
 
-GpRoomParamRec* D_acropolis_cafeteria_8018CA2C[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_cafeteria_8018CA2C[8] = {
     D_acropolis_cafeteria_8018CA04,
     D_acropolis_cafeteria_8018CA0C,
     D_acropolis_cafeteria_8018CA14,

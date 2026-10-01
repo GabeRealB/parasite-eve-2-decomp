@@ -427,21 +427,21 @@ GpRoomCoordSet D_dryfield_motel_lobby_80181010[1] = {
     { 0, NULL, 5, D_dryfield_motel_lobby_80180E30, 0, NULL },
 };
 
-s32 D_dryfield_motel_lobby_80181028[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_lobby_80181028 = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-GpRoomParamRec D_dryfield_motel_lobby_80181034[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_lobby_80181034[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_motel_lobby_8018103C[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_lobby_80181028 },
+WorldCollisionSurfaceProperties D_dryfield_motel_lobby_8018103C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_lobby_80181028 },
 };
 
-GpRoomParamRec* D_dryfield_motel_lobby_80181044[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_motel_lobby_80181044[8] = {
     D_dryfield_motel_lobby_80181034,
     D_dryfield_motel_lobby_8018103C,
     D_dryfield_motel_lobby_80181034,

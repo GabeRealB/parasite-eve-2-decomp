@@ -73,7 +73,7 @@ extern GpViewIndexTbl D_map_neo_ark_8017ADB0;
 
 extern GpSprtTbl D_map_neo_ark_8017AE38;
 
-extern GpRoomParamRec** D_map_neo_ark_8017AE3C[];
+extern WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[];
 
 /// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
 /// records point at them, one list per location; one location's list runs on

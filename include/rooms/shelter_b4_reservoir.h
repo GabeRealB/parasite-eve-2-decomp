@@ -42,7 +42,7 @@ extern GpViewRec D_shelter_b4_reservoir_80185ADC[];
 
 extern GpSprtRec D_shelter_b4_reservoir_80186730[];
 
-extern GpRoomParamRec* D_shelter_b4_reservoir_80187480[];
+extern WorldCollisionSurfaceProperties* D_shelter_b4_reservoir_80187480[];
 
 void func_shelter_b4_reservoir_8017E88C(Task* task);
 

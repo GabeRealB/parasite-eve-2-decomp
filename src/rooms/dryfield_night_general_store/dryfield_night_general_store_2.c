@@ -1402,31 +1402,31 @@ WorldCoordRoomAmbientEntry D_dryfield_night_general_store_801857DC[17] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_dryfield_night_general_store_80185864[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_general_store_80185864 = {
     0x10000051,
     0x10000053,
     0x10000054,
 };
 
-s32 D_dryfield_night_general_store_80185870[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_general_store_80185870 = {
     0x10000031,
     0x10000033,
     0x10000031,
 };
 
-GpRoomParamRec D_dryfield_night_general_store_8018587C[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_general_store_80185864 },
+WorldCollisionSurfaceProperties D_dryfield_night_general_store_8018587C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_general_store_80185864 },
 };
 
-GpRoomParamRec D_dryfield_night_general_store_80185884[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_general_store_80185864 },
+WorldCollisionSurfaceProperties D_dryfield_night_general_store_80185884[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_general_store_80185864 },
 };
 
-GpRoomParamRec D_dryfield_night_general_store_8018588C[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_general_store_80185870 },
+WorldCollisionSurfaceProperties D_dryfield_night_general_store_8018588C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_general_store_80185870 },
 };
 
-GpRoomParamRec* D_dryfield_night_general_store_80185894[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_general_store_80185894[8] = {
     D_dryfield_night_general_store_8018587C,
     D_dryfield_night_general_store_80185884,
     D_dryfield_night_general_store_8018588C,

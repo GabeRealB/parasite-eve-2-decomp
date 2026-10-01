@@ -1833,21 +1833,21 @@ GpAreaApplyRec D_acropolis_security_room_80184F80[1] = {
     { 255, 0, 0, 0 },
 };
 
-s32 D_acropolis_security_room_80184F84[3] = {
+WorldCollisionFootstepSounds D_acropolis_security_room_80184F84 = {
     0x10000009,
     0x1000000B,
     0x10000009,
 };
 
-GpRoomParamRec D_acropolis_security_room_80184F90[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_security_room_80184F90[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_security_room_80184F98[1] = {
-    { 0, 0, 1, 0, D_acropolis_security_room_80184F84 },
+WorldCollisionSurfaceProperties D_acropolis_security_room_80184F98[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_security_room_80184F84 },
 };
 
-GpRoomParamRec* D_acropolis_security_room_80184FA0[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_security_room_80184FA0[8] = {
     D_acropolis_security_room_80184F90,
     D_acropolis_security_room_80184F90,
     D_acropolis_security_room_80184F90,

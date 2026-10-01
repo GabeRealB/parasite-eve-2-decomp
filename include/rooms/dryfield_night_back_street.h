@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_night_back_street_80180B58[];
 
 extern GpSprtRec D_dryfield_night_back_street_80180D34[];
 
-extern GpRoomParamRec* D_dryfield_night_back_street_8018161C[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_back_street_8018161C[];
 
 void func_dryfield_night_back_street_8017E390(Task* task);
 

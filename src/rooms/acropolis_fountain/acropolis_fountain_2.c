@@ -1215,33 +1215,33 @@ GpViewRec D_acropolis_fountain_80183864[21] = {
     { { { { 3977, 0, 977 }, { 620, 3162, -2527 }, { -754, 2602, 3071 } }, { -4174, 1018, 7732 } }, 246 },
 };
 
-s32 D_acropolis_fountain_80183B58[3] = {
+WorldCollisionFootstepSounds D_acropolis_fountain_80183B58 = {
     0x10000011,
     0x10000013,
     0x10000011,
 };
 
-s32 D_acropolis_fountain_80183B64[3] = {
+WorldCollisionFootstepSounds D_acropolis_fountain_80183B64 = {
     0x10000039,
     0x1000003B,
     0x10000039,
 };
 
-GpRoomParamRec D_acropolis_fountain_80183B70[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_fountain_80183B70[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_fountain_80183B78[1] = { 0 };
+WorldCollisionSurfaceProperties D_acropolis_fountain_80183B78[1] = { 0 };
 
-GpRoomParamRec D_acropolis_fountain_80183B80[1] = {
-    { 0, 0, 1, 0, D_acropolis_fountain_80183B58 },
+WorldCollisionSurfaceProperties D_acropolis_fountain_80183B80[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fountain_80183B58 },
 };
 
-GpRoomParamRec D_acropolis_fountain_80183B88[1] = {
-    { 1, 0, 1, 0, D_acropolis_fountain_80183B64 },
+WorldCollisionSurfaceProperties D_acropolis_fountain_80183B88[1] = {
+    { 1, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fountain_80183B64 },
 };
 
-GpRoomParamRec* D_acropolis_fountain_80183B90[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_fountain_80183B90[8] = {
     D_acropolis_fountain_80183B70,
     D_acropolis_fountain_80183B70,
     D_acropolis_fountain_80183B78,

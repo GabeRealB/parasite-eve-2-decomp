@@ -28,7 +28,7 @@ extern GpViewRec D_shelter_b1_storeroom_801850FC[];
 
 extern GpSprtRec D_shelter_b1_storeroom_80186090[];
 
-extern GpRoomParamRec* D_shelter_b1_storeroom_80186DEC[];
+extern WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[];
 
 void func_shelter_b1_storeroom_8017D794(Task* task);
 

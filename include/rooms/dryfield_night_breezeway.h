@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_night_breezeway_8017EBE8[];
 
 extern GpSprtRec D_dryfield_night_breezeway_8017FD10[];
 
-extern GpRoomParamRec* D_dryfield_night_breezeway_801804B8[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_breezeway_801804B8[];
 
 void func_dryfield_night_breezeway_8017E5BC(Task* unused);
 

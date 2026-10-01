@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_power_plant_1_801800B4[];
 
 extern GpSprtRec D_neo_ark_power_plant_1_801814F0[];
 
-extern GpRoomParamRec* D_neo_ark_power_plant_1_80181BE0[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_power_plant_1_80181BE0[];
 
 void func_neo_ark_power_plant_1_8017E524(s32 arg0);
 

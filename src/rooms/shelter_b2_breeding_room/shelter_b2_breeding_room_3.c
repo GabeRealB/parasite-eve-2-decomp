@@ -819,45 +819,45 @@ GpObj3A D_shelter_b2_breeding_room_8018467C[5] = {
     { NULL, NULL, { 0x30A0, -1152, 2880, 0 }, { { 1111, 2688, -29, 0 }, { -1110, 2688, 29, 0 }, { 1111, -2688, -29, 0 }, { -1110, -2688, 29, 0 } }, { -109, 0, -4108, 0 }, { 91, 11 }, 129, 0 },
 };
 
-s32 D_shelter_b2_breeding_room_801847A8[3] = {
+WorldCollisionFootstepSounds D_shelter_b2_breeding_room_801847A8 = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-s32 D_shelter_b2_breeding_room_801847B4[3] = {
+WorldCollisionFootstepSounds D_shelter_b2_breeding_room_801847B4 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-s32 D_shelter_b2_breeding_room_801847C0[3] = {
+WorldCollisionFootstepSounds D_shelter_b2_breeding_room_801847C0 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_shelter_b2_breeding_room_801847CC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847CC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_breeding_room_801847D4[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_breeding_room_801847A8 },
+WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847D4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_breeding_room_801847A8 },
 };
 
-GpRoomParamRec D_shelter_b2_breeding_room_801847DC[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847DC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_breeding_room_801847E4[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_breeding_room_801847B4 },
+WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847E4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_breeding_room_801847B4 },
 };
 
-GpRoomParamRec D_shelter_b2_breeding_room_801847EC[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_breeding_room_801847C0 },
+WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847EC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_breeding_room_801847C0 },
 };
 
-GpRoomParamRec* D_shelter_b2_breeding_room_801847F4[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b2_breeding_room_801847F4[8] = {
     D_shelter_b2_breeding_room_801847CC,
     D_shelter_b2_breeding_room_801847D4,
     D_shelter_b2_breeding_room_801847DC,

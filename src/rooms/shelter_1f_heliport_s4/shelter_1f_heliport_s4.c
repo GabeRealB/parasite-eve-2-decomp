@@ -146,11 +146,11 @@ s32 D_shelter_1f_heliport_s4_8017E04C[3] = {
     0x10000011,
 };
 
-GpRoomParamRec D_shelter_1f_heliport_s4_8017E058[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_1f_heliport_s4_8017E058[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_shelter_1f_heliport_s4_8017E060[8] = {
+WorldCollisionSurfaceProperties* D_shelter_1f_heliport_s4_8017E060[8] = {
     D_shelter_1f_heliport_s4_8017E058,
     D_shelter_1f_heliport_s4_8017E058,
     D_shelter_1f_heliport_s4_8017E058,

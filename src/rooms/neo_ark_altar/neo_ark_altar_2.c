@@ -421,25 +421,25 @@ GpObj4C D_neo_ark_altar_8017FF08[4] = {
     { NULL, NULL, NULL, { 0x2FC0, -4256, -7552, 0 }, { { 416, 14, -974, 0 }, { 416, -13, 975, 0 }, { -416, 14, -974, 0 }, { -416, -13, 975, 0 } }, { 0, 4099, 51, 0 }, { -4096, 0, 0, 0 }, 1055, 5, 1, 0, 130, 0 },
 };
 
-s32 D_neo_ark_altar_80180038[3] = {
+WorldCollisionFootstepSounds D_neo_ark_altar_80180038 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-GpRoomParamRec D_neo_ark_altar_80180044[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_altar_80180044[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_altar_8018004C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_altar_8018004C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_altar_80180054[1] = {
-    { 0, 0, 1, 0, D_neo_ark_altar_80180038 },
+WorldCollisionSurfaceProperties D_neo_ark_altar_80180054[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_altar_80180038 },
 };
 
-GpRoomParamRec* D_neo_ark_altar_8018005C[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_altar_8018005C[8] = {
     D_neo_ark_altar_80180044,
     D_neo_ark_altar_8018004C,
     D_neo_ark_altar_80180044,

@@ -1575,41 +1575,41 @@ ShelterR47SpotLightStorage D_shelter_r47_8018A1F0 = {
 
 GpRoomCoordSet D_shelter_r47_8018A5BC = { 0, NULL, 9, D_shelter_r47_80189E90, 2, D_shelter_r47_8018A1F0.active };
 
-s32 D_shelter_r47_8018A5D4[3] = {
+WorldCollisionFootstepSounds D_shelter_r47_8018A5D4 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-s32 D_shelter_r47_8018A5E0[3] = {
+WorldCollisionFootstepSounds D_shelter_r47_8018A5E0 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-s32 D_shelter_r47_8018A5EC[3] = {
+WorldCollisionFootstepSounds D_shelter_r47_8018A5EC = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-GpRoomParamRec D_shelter_r47_8018A5F8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_r47_8018A5F8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_r47_8018A600[1] = {
-    { 0, 0, 1, 0, D_shelter_r47_8018A5EC },
+WorldCollisionSurfaceProperties D_shelter_r47_8018A600[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r47_8018A5EC },
 };
 
-GpRoomParamRec D_shelter_r47_8018A608[1] = {
-    { 0, 0, 1, 0, D_shelter_r47_8018A5D4 },
+WorldCollisionSurfaceProperties D_shelter_r47_8018A608[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r47_8018A5D4 },
 };
 
-GpRoomParamRec D_shelter_r47_8018A610[1] = {
-    { 0, 0, 1, 0, D_shelter_r47_8018A5E0 },
+WorldCollisionSurfaceProperties D_shelter_r47_8018A610[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r47_8018A5E0 },
 };
 
-GpRoomParamRec* D_shelter_r47_8018A618[8] = {
+WorldCollisionSurfaceProperties* D_shelter_r47_8018A618[8] = {
     D_shelter_r47_8018A5F8,
     D_shelter_r47_8018A600,
     D_shelter_r47_8018A608,

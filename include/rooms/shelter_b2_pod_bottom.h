@@ -37,7 +37,7 @@ extern GpViewRec D_shelter_b2_pod_bottom_80182B80[];
 
 extern GpSprtRec D_shelter_b2_pod_bottom_80185904[];
 
-extern GpRoomParamRec* D_shelter_b2_pod_bottom_80188770[];
+extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_bottom_80188770[];
 
 void func_shelter_b2_pod_bottom_8017D708(Task* task);
 

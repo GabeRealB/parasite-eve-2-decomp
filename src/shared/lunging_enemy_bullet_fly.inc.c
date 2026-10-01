@@ -4,7 +4,7 @@
 /// 1 of `Actor05600_D0008C`. `Gp_StateF0.actorControl` overrides it: 0 shows the child and
 /// runs the tick, 1 only refreshes its colour, 2 hides it. The tick moves the
 /// child along its own Y axis, spawns a puff every fourth frame and ends the
-/// flight on a body contact, a room face without the `field_1` flag, or after
+/// flight on a body contact, a surface that blocks probes, or after
 /// 0x5A frames: the burst effect and cue play, the child hides and advances
 /// to state 2, and a kind-1 body contact also starts a pad rumble.
 void lungerBulletFly(Enemy* arg0, Task* arg1)
@@ -59,7 +59,7 @@ void lungerBulletFly(Enemy* arg0, Task* arg1)
 
     if (work->recD0[0].key.value != 0) {
         idx = func_800E1B24(work->recD0[0].key.value);
-        if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->field_1 == 0) {
+        if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             found = 1;
         }
         Gp_ClearRec18Occupied(work->recD0);

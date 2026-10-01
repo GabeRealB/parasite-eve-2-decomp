@@ -28,7 +28,7 @@ extern GpViewRec D_shelter_1f_bulwark_8018066C[];
 
 extern GpSprtRec D_shelter_1f_bulwark_801807B0[];
 
-extern GpRoomParamRec* D_shelter_1f_bulwark_80180E9C[];
+extern WorldCollisionSurfaceProperties* D_shelter_1f_bulwark_80180E9C[];
 
 void func_shelter_1f_bulwark_8017DC20(Task* task);
 

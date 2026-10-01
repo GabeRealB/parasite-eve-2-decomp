@@ -549,45 +549,45 @@ GpAreaVariant D_shelter_r36_8017FA40[11] = {
     { NULL, NULL },
 };
 
-s32 D_shelter_r36_8017FA98[3] = {
+WorldCollisionFootstepSounds D_shelter_r36_8017FA98 = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-s32 D_shelter_r36_8017FAA4[3] = {
+WorldCollisionFootstepSounds D_shelter_r36_8017FAA4 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-s32 D_shelter_r36_8017FAB0[3] = {
+WorldCollisionFootstepSounds D_shelter_r36_8017FAB0 = {
     0x10000051,
     0x10000053,
     0x10000051,
 };
 
-GpRoomParamRec D_shelter_r36_8017FABC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_r36_8017FABC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_r36_8017FAC4[1] = {
-    { 0, 0, 1, 0, D_shelter_r36_8017FA98 },
+WorldCollisionSurfaceProperties D_shelter_r36_8017FAC4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r36_8017FA98 },
 };
 
-GpRoomParamRec D_shelter_r36_8017FACC[1] = {
-    { 0, 0, 1, 0, D_shelter_r36_8017FAA4 },
+WorldCollisionSurfaceProperties D_shelter_r36_8017FACC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r36_8017FAA4 },
 };
 
-GpRoomParamRec D_shelter_r36_8017FAD4[1] = {
-    { 0, 0, 1, 0, D_shelter_r36_8017FAB0 },
+WorldCollisionSurfaceProperties D_shelter_r36_8017FAD4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r36_8017FAB0 },
 };
 
-GpRoomParamRec D_shelter_r36_8017FADC[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_r36_8017FADC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_shelter_r36_8017FAE4[8] = {
+WorldCollisionSurfaceProperties* D_shelter_r36_8017FAE4[8] = {
     D_shelter_r36_8017FABC,
     D_shelter_r36_8017FADC,
     D_shelter_r36_8017FACC,

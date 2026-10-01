@@ -47,7 +47,7 @@ extern GpSprtRec D_acropolis_cafeteria_8018C48C[];
 
 extern GpViewRec D_acropolis_cafeteria_8018C5AC[];
 
-extern GpRoomParamRec* D_acropolis_cafeteria_8018CA2C[];
+extern WorldCollisionSurfaceProperties* D_acropolis_cafeteria_8018CA2C[];
 
 void func_acropolis_cafeteria_8017E708(Task* task);
 

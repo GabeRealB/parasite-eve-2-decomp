@@ -858,21 +858,21 @@ PadScriptVibrationSegment D_acropolis_observatory_801834B8[2] = {
     { 60, 60, 1, 0 },
 };
 
-s32 D_acropolis_observatory_801834C0[3] = {
+WorldCollisionFootstepSounds D_acropolis_observatory_801834C0 = {
     0x10000011,
     0x10000013,
     0x10000011,
 };
 
-GpRoomParamRec D_acropolis_observatory_801834CC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_observatory_801834CC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_observatory_801834D4[1] = {
-    { 0, 0, 1, 0, D_acropolis_observatory_801834C0 },
+WorldCollisionSurfaceProperties D_acropolis_observatory_801834D4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_observatory_801834C0 },
 };
 
-GpRoomParamRec* D_acropolis_observatory_801834DC[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[8] = {
     D_acropolis_observatory_801834CC,
     D_acropolis_observatory_801834D4,
     D_acropolis_observatory_801834CC,

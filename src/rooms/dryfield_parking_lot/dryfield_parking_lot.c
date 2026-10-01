@@ -392,49 +392,49 @@ GpAreaVariant D_dryfield_parking_lot_8017FA74[13] = {
     { NULL, NULL },
 };
 
-s32 D_dryfield_parking_lot_8017FADC[3] = {
+WorldCollisionFootstepSounds D_dryfield_parking_lot_8017FADC = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-s32 D_dryfield_parking_lot_8017FAE8[3] = {
+WorldCollisionFootstepSounds D_dryfield_parking_lot_8017FAE8 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-s32 D_dryfield_parking_lot_8017FAF4[3] = {
+WorldCollisionFootstepSounds D_dryfield_parking_lot_8017FAF4 = {
     0x10000051,
     0x10000053,
     0x10000055,
 };
 
-GpRoomParamRec D_dryfield_parking_lot_8017FB00[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB00[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_parking_lot_8017FB08[1] = {
-    { 0, 0, 1, 0, D_dryfield_parking_lot_8017FADC },
+WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB08[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_parking_lot_8017FADC },
 };
 
-GpRoomParamRec D_dryfield_parking_lot_8017FB10[1] = {
-    { 0, 0, 1, 0, D_dryfield_parking_lot_8017FAE8 },
+WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB10[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_parking_lot_8017FAE8 },
 };
 
-GpRoomParamRec D_dryfield_parking_lot_8017FB18[1] = {
-    { 0, 0, 1, 0, D_dryfield_parking_lot_8017FAF4 },
+WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB18[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_parking_lot_8017FAF4 },
 };
 
-GpRoomParamRec D_dryfield_parking_lot_8017FB20[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB20[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_parking_lot_8017FB28[1] = {
-    { 0, 0, 1, 0, D_dryfield_parking_lot_8017FADC },
+WorldCollisionSurfaceProperties D_dryfield_parking_lot_8017FB28[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_parking_lot_8017FADC },
 };
 
-GpRoomParamRec* D_dryfield_parking_lot_8017FB30[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_parking_lot_8017FB30[8] = {
     D_dryfield_parking_lot_8017FB00,
     D_dryfield_parking_lot_8017FB20,
     D_dryfield_parking_lot_8017FB10,

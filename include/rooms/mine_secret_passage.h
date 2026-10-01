@@ -28,7 +28,7 @@ extern GpViewRec D_mine_secret_passage_80181604[];
 
 extern GpSprtRec D_mine_secret_passage_80182994[];
 
-extern GpRoomParamRec* D_mine_secret_passage_80183420[];
+extern WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[];
 
 void func_mine_secret_passage_8017F948(Task* arg0);
 

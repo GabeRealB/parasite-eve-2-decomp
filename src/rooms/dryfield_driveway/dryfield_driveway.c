@@ -577,25 +577,25 @@ GpObj4C D_dryfield_driveway_801802F8[11] = {
     { NULL, NULL, NULL, { -1504, -64, 2400, 0 }, { { -1744, 0, -1760, 0 }, { 1712, 0, -1760, 0 }, { -1744, 0, 1120, 0 }, { 1712, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 2468, 5, 255, 0, 132, 0 },
 };
 
-s32 D_dryfield_driveway_8018063C[3] = {
+WorldCollisionFootstepSounds D_dryfield_driveway_8018063C = {
     0x1000001D,
     0x1000001F,
     0x1000001D,
 };
 
-GpRoomParamRec D_dryfield_driveway_80180648[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_driveway_80180648[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_driveway_80180650[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_driveway_80180650[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_driveway_80180658[1] = {
-    { 0, 0, 1, 0, D_dryfield_driveway_8018063C },
+WorldCollisionSurfaceProperties D_dryfield_driveway_80180658[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_driveway_8018063C },
 };
 
-GpRoomParamRec* D_dryfield_driveway_80180660[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_driveway_80180660[8] = {
     D_dryfield_driveway_80180648,
     D_dryfield_driveway_80180650,
     D_dryfield_driveway_80180658,

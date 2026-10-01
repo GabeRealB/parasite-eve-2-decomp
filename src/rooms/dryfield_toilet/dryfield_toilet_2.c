@@ -2475,25 +2475,25 @@ SVECTOR D_dryfield_toilet_801833A8[1605] = {
 
 ToiletMorphTarget D_dryfield_toilet_801865D0 = { D_dryfield_toilet_80182980, D_dryfield_toilet_801833A8, D_dryfield_toilet_8018662C, D_dryfield_toilet_8018705C, 325, 1604, 0, 325 };
 
-s32 D_dryfield_toilet_801865E8[3] = {
+WorldCollisionFootstepSounds D_dryfield_toilet_801865E8 = {
     0x10000001,
     0x10000003,
     0x10000001,
 };
 
-GpRoomParamRec D_dryfield_toilet_801865F4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_toilet_801865F4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_toilet_801865FC[1] = {
-    { 0, 0, 1, 0, D_dryfield_toilet_801865E8 },
+WorldCollisionSurfaceProperties D_dryfield_toilet_801865FC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_toilet_801865E8 },
 };
 
-GpRoomParamRec D_dryfield_toilet_80186604[1] = {
-    { 0, 1, 0, 0, D_dryfield_toilet_801865E8 },
+WorldCollisionSurfaceProperties D_dryfield_toilet_80186604[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_toilet_801865E8 },
 };
 
-GpRoomParamRec* D_dryfield_toilet_8018660C[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_toilet_8018660C[8] = {
     D_dryfield_toilet_801865F4,
     D_dryfield_toilet_801865FC,
     D_dryfield_toilet_80186604,

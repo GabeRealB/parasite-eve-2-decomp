@@ -1289,39 +1289,39 @@ WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_dryfield_water_hole_8018286C[3] = {
+WorldCollisionFootstepSounds D_dryfield_water_hole_8018286C = {
     0x10000025,
     0x10000027,
     0x10000029,
 };
 
-s32 D_dryfield_water_hole_80182878[3] = {
+WorldCollisionFootstepSounds D_dryfield_water_hole_80182878 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-GpRoomParamRec D_dryfield_water_hole_80182884[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_water_hole_80182884[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_water_hole_8018288C[1] = {
-    { 0, 0, 1, 0, D_dryfield_water_hole_8018286C },
+WorldCollisionSurfaceProperties D_dryfield_water_hole_8018288C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_hole_8018286C },
 };
 
-GpRoomParamRec D_dryfield_water_hole_80182894[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_water_hole_80182894[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_water_hole_8018289C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_water_hole_8018289C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_water_hole_801828A4[1] = {
-    { 0, 0, 1, 0, D_dryfield_water_hole_80182878 },
+WorldCollisionSurfaceProperties D_dryfield_water_hole_801828A4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_hole_80182878 },
 };
 
-GpRoomParamRec* D_dryfield_water_hole_801828AC[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_water_hole_801828AC[8] = {
     D_dryfield_water_hole_80182884,
     D_dryfield_water_hole_80182884,
     D_dryfield_water_hole_80182894,

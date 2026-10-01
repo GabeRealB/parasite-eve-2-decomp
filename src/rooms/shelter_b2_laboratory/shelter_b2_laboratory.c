@@ -214,9 +214,9 @@ void func_shelter_b2_laboratory_8017FEB8(Task*);
 void func_shelter_b2_laboratory_80180290(Task*);
 void func_shelter_b2_laboratory_80180350(Task*);
 
-extern GpRoomParamRec D_shelter_b2_laboratory_80186450[1];
-extern GpRoomParamRec D_shelter_b2_laboratory_80186458[1];
-extern GpRoomParamRec D_shelter_b2_laboratory_80186460[1];
+extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186450[1];
+extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186458[1];
+extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186460[1];
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -989,31 +989,31 @@ WorldCoordRoomAmbientEntry D_shelter_b2_laboratory_801863B8[16] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_shelter_b2_laboratory_80186438[3] = {
+WorldCollisionFootstepSounds D_shelter_b2_laboratory_80186438 = {
     0x10000009,
     0x1000000B,
     0x10000009,
 };
 
-s32 D_shelter_b2_laboratory_80186444[3] = {
+WorldCollisionFootstepSounds D_shelter_b2_laboratory_80186444 = {
     0x10000061,
     0x10000063,
     0x10000061,
 };
 
-GpRoomParamRec D_shelter_b2_laboratory_80186450[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186450[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_laboratory_80186458[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_laboratory_80186438 },
+WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186458[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_laboratory_80186438 },
 };
 
-GpRoomParamRec D_shelter_b2_laboratory_80186460[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_laboratory_80186444 },
+WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186460[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_laboratory_80186444 },
 };
 
-GpRoomParamRec* D_shelter_b2_laboratory_80186468[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b2_laboratory_80186468[8] = {
     D_shelter_b2_laboratory_80186450,
     D_shelter_b2_laboratory_80186458,
     D_shelter_b2_laboratory_80186460,

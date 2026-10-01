@@ -707,25 +707,25 @@ GpAreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22] = {
     { NULL, NULL },
 };
 
-s32 D_shelter_b1_sleeping_quarters_8018408C[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_sleeping_quarters_8018408C = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_shelter_b1_sleeping_quarters_80184098[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_sleeping_quarters_80184098[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b1_sleeping_quarters_801840A0[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_sleeping_quarters_801840A0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b1_sleeping_quarters_801840A8[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_sleeping_quarters_8018408C },
+WorldCollisionSurfaceProperties D_shelter_b1_sleeping_quarters_801840A8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_sleeping_quarters_8018408C },
 };
 
-GpRoomParamRec* D_shelter_b1_sleeping_quarters_801840B0[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b1_sleeping_quarters_801840B0[8] = {
     D_shelter_b1_sleeping_quarters_80184098,
     D_shelter_b1_sleeping_quarters_801840A0,
     D_shelter_b1_sleeping_quarters_801840A8,

@@ -5,6 +5,7 @@
 
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
+#include "gameplay/room.h"
 
 #include "main/task_types.h"
 
@@ -18,9 +19,9 @@ extern EvsCommand D_neo_ark_power_plant_1_8017EEE4[13];
 
 extern s32 D_neo_ark_power_plant_1_8017F01C;
 
-extern s32 D_neo_ark_power_plant_1_80181B9C[3];
+extern WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181B9C;
 
-extern s32 D_neo_ark_power_plant_1_80181BA8[3];
+extern WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181BA8;
 
 // Callbacks referenced by the overlay's shared data tables.
 s32 func_neo_ark_power_plant_1_8017D7AC(Task*, s32, TaskMessageArg, TaskMessageArg);

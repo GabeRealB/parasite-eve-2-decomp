@@ -517,35 +517,35 @@ GpAreaVariant D_neo_ark_island_80183F48[13] = {
     { NULL, NULL },
 };
 
-s32 D_neo_ark_island_80183FB0[3] = {
+WorldCollisionFootstepSounds D_neo_ark_island_80183FB0 = {
     0x10000039,
     0x1000003B,
     0x10000039,
 };
 
-s32 D_neo_ark_island_80183FBC[3] = {
+WorldCollisionFootstepSounds D_neo_ark_island_80183FBC = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_neo_ark_island_80183FC8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_island_80183FC8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_island_80183FD0[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_island_80183FD0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_island_80183FD8[1] = {
-    { 0, 0, 1, 0, D_neo_ark_island_80183FB0 },
+WorldCollisionSurfaceProperties D_neo_ark_island_80183FD8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_island_80183FB0 },
 };
 
-GpRoomParamRec D_neo_ark_island_80183FE0[1] = {
-    { 0, 0, 1, 0, D_neo_ark_island_80183FBC },
+WorldCollisionSurfaceProperties D_neo_ark_island_80183FE0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_island_80183FBC },
 };
 
-GpRoomParamRec* D_neo_ark_island_80183FE8[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_island_80183FE8[8] = {
     D_neo_ark_island_80183FC8,
     D_neo_ark_island_80183FD0,
     D_neo_ark_island_80183FC8,

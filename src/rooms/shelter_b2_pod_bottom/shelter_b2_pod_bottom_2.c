@@ -211,29 +211,29 @@ WorldCoordRoomAmbientEntry D_shelter_b2_pod_bottom_801886BC[17] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_shelter_b2_pod_bottom_80188744[3] = {
+WorldCollisionFootstepSounds D_shelter_b2_pod_bottom_80188744 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-GpRoomParamRec D_shelter_b2_pod_bottom_80188750[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_pod_bottom_80188750[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_pod_bottom_80188758[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_pod_bottom_80188744 },
+WorldCollisionSurfaceProperties D_shelter_b2_pod_bottom_80188758[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_pod_bottom_80188744 },
 };
 
-GpRoomParamRec D_shelter_b2_pod_bottom_80188760[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_pod_bottom_80188760[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_pod_bottom_80188768[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_pod_bottom_80188744 },
+WorldCollisionSurfaceProperties D_shelter_b2_pod_bottom_80188768[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_pod_bottom_80188744 },
 };
 
-GpRoomParamRec* D_shelter_b2_pod_bottom_80188770[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b2_pod_bottom_80188770[8] = {
     D_shelter_b2_pod_bottom_80188750,
     D_shelter_b2_pod_bottom_80188758,
     D_shelter_b2_pod_bottom_80188760,

@@ -58,11 +58,11 @@ s32 func_neo_ark_woodland_path_8017E8D4(Task*, s32, TaskMessageArg, TaskMessageA
 s32 func_neo_ark_woodland_path_8017E8DC(Task*, s32, s32, s32);
 s32 func_neo_ark_woodland_path_8017E910(Task*, s32, s32, s32);
 
-extern GpRoomParamRec D_neo_ark_woodland_path_801848E8[1];
-extern GpRoomParamRec D_neo_ark_woodland_path_801848F0[1];
-extern GpRoomParamRec D_neo_ark_woodland_path_801848F8[1];
-extern GpRoomParamRec D_neo_ark_woodland_path_80184900[1];
-extern GpRoomParamRec D_neo_ark_woodland_path_80184908[1];
+extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848E8[1];
+extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F0[1];
+extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F8[1];
+extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184900[1];
+extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184908[1];
 
 TaskDesc D_neo_ark_woodland_path_80181638 = { 0, 192, waterRefractionTask, { .model = NULL } };
 
@@ -714,45 +714,45 @@ GpObj3A D_neo_ark_woodland_path_801847D4[4] = {
     { NULL, NULL, { 3136, -1568, -7872, 0 }, { { -6656, 3616, 2240, 0 }, { 6656, 3616, -2240, 0 }, { -6656, -3616, 2240, 0 }, { 6656, -3616, -2240, 0 } }, { 1308, 0, 3889, 0 }, { -38, 30 }, 129, 0 },
 };
 
-s32 D_neo_ark_woodland_path_801848C4[3] = {
+WorldCollisionFootstepSounds D_neo_ark_woodland_path_801848C4 = {
     0x10000039,
     0x1000003B,
     0x10000039,
 };
 
-s32 D_neo_ark_woodland_path_801848D0[3] = {
+WorldCollisionFootstepSounds D_neo_ark_woodland_path_801848D0 = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_neo_ark_woodland_path_801848DC[3] = {
+WorldCollisionFootstepSounds D_neo_ark_woodland_path_801848DC = {
     0x10000025,
     0x10000027,
     0x10000029,
 };
 
-GpRoomParamRec D_neo_ark_woodland_path_801848E8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848E8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_woodland_path_801848F0[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_woodland_path_801848F8[1] = {
-    { 0, 0, 1, 0, D_neo_ark_woodland_path_801848D0 },
+WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_woodland_path_801848D0 },
 };
 
-GpRoomParamRec D_neo_ark_woodland_path_80184900[1] = {
-    { 0, 0, 1, 0, D_neo_ark_woodland_path_801848DC },
+WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184900[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_woodland_path_801848DC },
 };
 
-GpRoomParamRec D_neo_ark_woodland_path_80184908[1] = {
-    { 0, 0, 1, 0, D_neo_ark_woodland_path_801848C4 },
+WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184908[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_woodland_path_801848C4 },
 };
 
-GpRoomParamRec* D_neo_ark_woodland_path_80184910[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_woodland_path_80184910[8] = {
     D_neo_ark_woodland_path_801848E8,
     D_neo_ark_woodland_path_801848F0,
     D_neo_ark_woodland_path_801848F8,

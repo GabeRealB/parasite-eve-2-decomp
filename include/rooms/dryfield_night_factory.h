@@ -33,7 +33,7 @@ extern GpViewRec D_dryfield_night_factory_80187C14[];
 
 extern GpSprtRec D_dryfield_night_factory_80189A24[];
 
-extern GpRoomParamRec* D_dryfield_night_factory_8018A79C[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[];
 
 void func_dryfield_night_factory_801825F0(Task* task);
 

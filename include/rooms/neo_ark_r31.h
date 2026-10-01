@@ -30,7 +30,7 @@ extern GpSprtRec D_neo_ark_r31_8017DAF8[];
 
 extern GpRoomCoordSet D_neo_ark_r31_8017DB7C;
 
-extern GpRoomParamRec* D_neo_ark_r31_8017DC34[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[];
 
 void func_neo_ark_r31_8017D990(Task* task);
 

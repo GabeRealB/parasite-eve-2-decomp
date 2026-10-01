@@ -30,13 +30,13 @@ GpSprtRec D_dryfield_r04_8017E280[2] = {
     { { .empty = D_dryfield_r04_8017E270 }, D_dryfield_r04_8017E270, NULL },
 };
 
-/// Three base sound ids, of the kind `GpRoomParamRec.field_4` points at. The
-/// room's parameter record does not use them.
+/// Three sound IDs with the layout of `WorldCollisionFootstepSounds`.
+/// The room's surface-property record does not reference them.
 static s32 D_dryfield_r04_8017E298[3] = { 0x10000011, 0x10000013, 0x10000011 };
 
-static GpRoomParamRec D_dryfield_r04_8017E2A4 = { 0, 0, 1, 0, NULL };
+static WorldCollisionSurfaceProperties D_dryfield_r04_8017E2A4 = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL };
 
-GpRoomParamRec* D_dryfield_r04_8017E2AC[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_r04_8017E2AC[8] = {
     &D_dryfield_r04_8017E2A4,
     &D_dryfield_r04_8017E2A4,
     &D_dryfield_r04_8017E2A4,

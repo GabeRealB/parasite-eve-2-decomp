@@ -28,7 +28,7 @@ extern GpSprtRec D_acropolis_observatory_80183300[];
 
 extern GpViewRec D_acropolis_observatory_80183360[];
 
-extern GpRoomParamRec* D_acropolis_observatory_801834DC[];
+extern WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[];
 
 void func_acropolis_observatory_8017E6F8(Task* task);
 

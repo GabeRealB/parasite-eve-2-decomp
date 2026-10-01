@@ -35,7 +35,7 @@ extern GpObj3A D_shelter_b1_pod_access_tunnel_8018487C[];
 
 extern GpObj4A D_shelter_b1_pod_access_tunnel_801848B8[];
 
-extern GpRoomParamRec* D_shelter_b1_pod_access_tunnel_80184CDC[];
+extern WorldCollisionSurfaceProperties* D_shelter_b1_pod_access_tunnel_80184CDC[];
 
 void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task);
 

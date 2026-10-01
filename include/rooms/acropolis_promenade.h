@@ -28,7 +28,7 @@ extern GpSprtRec D_acropolis_promenade_80185FB4[];
 
 extern GpViewRec D_acropolis_promenade_80186050[];
 
-extern GpRoomParamRec* D_acropolis_promenade_801862B0[];
+extern WorldCollisionSurfaceProperties* D_acropolis_promenade_801862B0[];
 
 void func_acropolis_promenade_8017E03C(Task* task);
 

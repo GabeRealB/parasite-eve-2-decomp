@@ -35,7 +35,7 @@ extern GpObj4A D_shelter_b1_golem_freezer_1_8017EFAC[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b1_golem_freezer_1_8017F234[];
 
-extern GpRoomParamRec* D_shelter_b1_golem_freezer_1_8017F290[];
+extern WorldCollisionSurfaceProperties* D_shelter_b1_golem_freezer_1_8017F290[];
 
 void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task);
 

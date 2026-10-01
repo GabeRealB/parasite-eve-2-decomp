@@ -35,7 +35,7 @@ extern GpObj4A D_shelter_b1_armory_80184B14[];
 
 extern GpObj4A D_shelter_b1_armory_80184E0C[];
 
-extern GpRoomParamRec* D_shelter_b1_armory_80185554[];
+extern WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[];
 
 void func_shelter_b1_armory_8018078C(Task* task);
 

@@ -1608,25 +1608,25 @@ WorldCoordRoomAmbientEntry D_shelter_b1_underground_parking_8018D638[25] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_shelter_b1_underground_parking_8018D700[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_underground_parking_8018D700 = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_shelter_b1_underground_parking_8018D70C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_underground_parking_8018D70C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b1_underground_parking_8018D714[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_underground_parking_8018D700 },
+WorldCollisionSurfaceProperties D_shelter_b1_underground_parking_8018D714[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_underground_parking_8018D700 },
 };
 
-GpRoomParamRec D_shelter_b1_underground_parking_8018D71C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_underground_parking_8018D71C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_shelter_b1_underground_parking_8018D724[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b1_underground_parking_8018D724[8] = {
     D_shelter_b1_underground_parking_8018D70C,
     D_shelter_b1_underground_parking_8018D714,
     D_shelter_b1_underground_parking_8018D71C,

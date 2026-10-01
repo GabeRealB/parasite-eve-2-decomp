@@ -280,25 +280,25 @@ GpRoomCoordSet D_dryfield_back_street_80180FF8[1] = {
     { 0, NULL, 14, D_dryfield_back_street_80180AB8, 0, NULL },
 };
 
-s32 D_dryfield_back_street_80181010[3] = {
+WorldCollisionFootstepSounds D_dryfield_back_street_80181010 = {
     0x1000001D,
     0x1000001F,
     0x1000001D,
 };
 
-GpRoomParamRec D_dryfield_back_street_8018101C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_back_street_8018101C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_back_street_80181024[1] = {
-    { 0, 0, 1, 0, D_dryfield_back_street_80181010 },
+WorldCollisionSurfaceProperties D_dryfield_back_street_80181024[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_back_street_80181010 },
 };
 
-GpRoomParamRec D_dryfield_back_street_8018102C[1] = {
-    { 0, 1, 0, 0, D_dryfield_back_street_80181010 },
+WorldCollisionSurfaceProperties D_dryfield_back_street_8018102C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_back_street_80181010 },
 };
 
-GpRoomParamRec* D_dryfield_back_street_80181034[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_back_street_80181034[8] = {
     D_dryfield_back_street_8018101C,
     D_dryfield_back_street_80181024,
     D_dryfield_back_street_8018102C,

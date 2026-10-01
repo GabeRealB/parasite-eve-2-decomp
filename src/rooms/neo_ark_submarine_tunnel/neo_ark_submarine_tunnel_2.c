@@ -1240,21 +1240,21 @@ GpObj3A D_neo_ark_submarine_tunnel_8018781C[3] = {
     { NULL, NULL, { 0, 1920, -832, 0 }, { { -0x2720, -1459, 208, 0 }, { 0x2720, -1459, 208, 0 }, { -0x2720, 1458, -209, 0 }, { 0x2720, 1458, -209, 0 } }, { 0, -580, -4055, 0 }, { 100, 39 }, 129, 0 },
 };
 
-s32 D_neo_ark_submarine_tunnel_801878D0[3] = {
+WorldCollisionFootstepSounds D_neo_ark_submarine_tunnel_801878D0 = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_neo_ark_submarine_tunnel_801878DC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_submarine_tunnel_801878DC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_submarine_tunnel_801878E4[1] = {
-    { 0, 0, 1, 0, D_neo_ark_submarine_tunnel_801878D0 },
+WorldCollisionSurfaceProperties D_neo_ark_submarine_tunnel_801878E4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_submarine_tunnel_801878D0 },
 };
 
-GpRoomParamRec* D_neo_ark_submarine_tunnel_801878EC[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_submarine_tunnel_801878EC[8] = {
     D_neo_ark_submarine_tunnel_801878DC,
     D_neo_ark_submarine_tunnel_801878DC,
     D_neo_ark_submarine_tunnel_801878DC,

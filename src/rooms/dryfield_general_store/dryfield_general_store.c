@@ -1518,21 +1518,21 @@ GpAreaVariant D_dryfield_general_store_80185654[13] = {
     { NULL, NULL },
 };
 
-s32 D_dryfield_general_store_801856BC[3] = {
+WorldCollisionFootstepSounds D_dryfield_general_store_801856BC = {
     0x10000051,
     0x10000053,
     0x10000054,
 };
 
-GpRoomParamRec D_dryfield_general_store_801856C8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_general_store_801856C8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_general_store_801856D0[1] = {
-    { 0, 0, 1, 0, D_dryfield_general_store_801856BC },
+WorldCollisionSurfaceProperties D_dryfield_general_store_801856D0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_general_store_801856BC },
 };
 
-GpRoomParamRec* D_dryfield_general_store_801856D8[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_general_store_801856D8[8] = {
     D_dryfield_general_store_801856C8,
     D_dryfield_general_store_801856D0,
     D_dryfield_general_store_801856C8,

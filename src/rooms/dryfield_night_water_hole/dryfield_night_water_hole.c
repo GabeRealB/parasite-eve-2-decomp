@@ -95,8 +95,8 @@ STATIC_ASSERT_SIZEOF(DnwhUtilParam, 0x6);
 /// installs in the room's parameter table, `Gp_RoomParamTables[stage][room]`,
 /// and the slot it goes in.
 typedef struct DnwhParamOverride {
-    /* 0x0 */ GpRoomParamRec* rec;
-    /* 0x4 */ s32             index;
+    /* 0x0 */ WorldCollisionSurfaceProperties* rec;
+    /* 0x4 */ s32                              index;
 } DnwhParamOverride;
 STATIC_ASSERT_SIZEOF(DnwhParamOverride, 0x8);
 
@@ -182,11 +182,11 @@ extern GpRoomCoordSet             D_dryfield_night_water_hole_801833A0[1];
 
 extern AnimationSet* D_dryfield_night_water_hole_80180620[1];
 
-extern GpRoomParamRec D_dryfield_night_water_hole_801835A0[1];
-extern GpRoomParamRec D_dryfield_night_water_hole_801835A8[1];
-extern GpRoomParamRec D_dryfield_night_water_hole_801835B0[1];
-extern GpRoomParamRec D_dryfield_night_water_hole_801835B8[1];
-extern GpRoomParamRec D_dryfield_night_water_hole_801835C0[1];
+extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835A0[1];
+extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835A8[1];
+extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835B0[1];
+extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835B8[1];
+extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835C0[1];
 
 s32 func_dryfield_night_water_hole_8017DAD4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_water_hole_8017DADC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -1000,44 +1000,44 @@ WorldCoordRoomAmbientEntry D_dryfield_night_water_hole_80183528[12] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_dryfield_night_water_hole_80183588[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_water_hole_80183588 = {
     0x10000025,
     0x10000027,
     0x10000029,
 };
 
-s32 D_dryfield_night_water_hole_80183594[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_water_hole_80183594 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-GpRoomParamRec D_dryfield_night_water_hole_801835A0[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835A0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_water_hole_801835A8[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_hole_80183588 },
+WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835A8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_hole_80183588 },
 };
 
-GpRoomParamRec D_dryfield_night_water_hole_801835B0[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_hole_80183588 },
+WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835B0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_hole_80183588 },
 };
 
-GpRoomParamRec D_dryfield_night_water_hole_801835B8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835B8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_water_hole_801835C0[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_hole_80183594 },
+WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835C0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_hole_80183594 },
 };
 
-GpRoomParamRec D_dryfield_night_water_hole_801835C8[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_hole_80183594 },
+WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835C8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_hole_80183594 },
 };
 
-GpRoomParamRec D_dryfield_night_water_hole_801835D0[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_hole_80183594 },
+WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835D0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_hole_80183594 },
 };
 
 DnwhParamOverride D_dryfield_night_water_hole_801835D8[4] = {
@@ -1047,7 +1047,7 @@ DnwhParamOverride D_dryfield_night_water_hole_801835D8[4] = {
     { NULL, 0 },
 };
 
-GpRoomParamRec* D_dryfield_night_water_hole_801835F8[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_water_hole_801835F8[8] = {
     D_dryfield_night_water_hole_801835A0,
     D_dryfield_night_water_hole_801835A8,
     D_dryfield_night_water_hole_801835B0,
@@ -1271,20 +1271,19 @@ void func_dryfield_night_water_hole_8017DE30(Task* task)
 }
 
 /// Applies the override list `func_dryfield_night_water_hole_8017D958` holds:
-/// each entry replaces the room's parameter slot, both the `GpRoomParamRec`
-/// pointer and the byte `Gp_LoadRoomParams` would have copied into
-/// `Gp_RoomParams` out of it. The list ends at the first NULL record.
+/// each entry replaces a surface-class record and its cached `suppressPushback`
+/// flag in `Gp_RoomParams`. The list ends at the first NULL record.
 static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
 {
-    GameLocationKey* sess;
-    s32              i;
-    GpRoomParamRec** recs;
+    GameLocationKey*                  sess;
+    s32                               i;
+    WorldCollisionSurfaceProperties** surfaceProperties;
 
     sess = &gGameSession->location.loc;
     for (i = 0; list[i].rec != 0; i++) {
-        recs                         = Gp_RoomParamTables[sess->stage - 1][sess->area - 1];
-        recs[list[i].index]          = list[i].rec;
-        Gp_RoomParams[list[i].index] = recs[list[i].index]->field_3;
+        surfaceProperties                = Gp_RoomParamTables[sess->stage - 1][sess->area - 1];
+        surfaceProperties[list[i].index] = list[i].rec;
+        Gp_RoomParams[list[i].index]     = surfaceProperties[list[i].index]->suppressPushback;
     }
 }
 

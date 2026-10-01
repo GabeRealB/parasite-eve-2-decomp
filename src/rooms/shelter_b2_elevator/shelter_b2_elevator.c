@@ -321,15 +321,15 @@ s32 D_shelter_b2_elevator_8017E9BC[3] = {
     0x10000059,
 };
 
-GpRoomParamRec D_shelter_b2_elevator_8017E9C8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_elevator_8017E9C8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_elevator_8017E9D0[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_elevator_8017E9D0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_shelter_b2_elevator_8017E9D8[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b2_elevator_8017E9D8[8] = {
     D_shelter_b2_elevator_8017E9C8,
     D_shelter_b2_elevator_8017E9D0,
     D_shelter_b2_elevator_8017E9C8,

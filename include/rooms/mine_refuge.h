@@ -28,7 +28,7 @@ extern GpViewRec D_mine_refuge_80181BC8[];
 
 extern GpSprtRec D_mine_refuge_8018264C[];
 
-extern GpRoomParamRec* D_mine_refuge_80182AB4[];
+extern WorldCollisionSurfaceProperties* D_mine_refuge_80182AB4[];
 
 void func_mine_refuge_8017EA78(Task* task);
 

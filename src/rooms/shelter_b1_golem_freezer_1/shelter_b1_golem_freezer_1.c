@@ -323,21 +323,21 @@ WorldCoordRoomAmbientEntry D_shelter_b1_golem_freezer_1_8017F234[8] = {
     { .color = { 797, 1115, 1678, 1066 } },
 };
 
-s32 D_shelter_b1_golem_freezer_1_8017F274[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_golem_freezer_1_8017F274 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-GpRoomParamRec D_shelter_b1_golem_freezer_1_8017F280[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_golem_freezer_1_8017F280[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b1_golem_freezer_1_8017F288[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_golem_freezer_1_8017F274 },
+WorldCollisionSurfaceProperties D_shelter_b1_golem_freezer_1_8017F288[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_golem_freezer_1_8017F274 },
 };
 
-GpRoomParamRec* D_shelter_b1_golem_freezer_1_8017F290[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b1_golem_freezer_1_8017F290[8] = {
     D_shelter_b1_golem_freezer_1_8017F280,
     D_shelter_b1_golem_freezer_1_8017F288,
     D_shelter_b1_golem_freezer_1_8017F280,

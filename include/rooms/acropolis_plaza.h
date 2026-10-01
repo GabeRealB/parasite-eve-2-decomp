@@ -100,7 +100,7 @@ extern GpSprtRec D_acropolis_plaza_80198A08[];
 
 extern GpWarpRec D_acropolis_plaza_80198A68[];
 
-extern GpRoomParamRec* D_acropolis_plaza_80199F28[];
+extern WorldCollisionSurfaceProperties* D_acropolis_plaza_80199F28[];
 
 extern GpAreaVariant D_acropolis_plaza_80199390[3];
 

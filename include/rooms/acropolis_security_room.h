@@ -31,7 +31,7 @@ extern GpSprtRec D_acropolis_security_room_80184C50[];
 
 extern GpViewRec D_acropolis_security_room_80184D10[];
 
-extern GpRoomParamRec* D_acropolis_security_room_80184FA0[];
+extern WorldCollisionSurfaceProperties* D_acropolis_security_room_80184FA0[];
 
 void func_acropolis_security_room_801805A4(Task* task);
 

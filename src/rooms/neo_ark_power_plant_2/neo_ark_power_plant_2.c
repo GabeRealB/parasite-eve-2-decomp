@@ -712,45 +712,45 @@ WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_neo_ark_power_plant_2_80182F04[3] = {
+WorldCollisionFootstepSounds D_neo_ark_power_plant_2_80182F04 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-s32 D_neo_ark_power_plant_2_80182F10[3] = {
+WorldCollisionFootstepSounds D_neo_ark_power_plant_2_80182F10 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-s32 D_neo_ark_power_plant_2_80182F1C[3] = {
+WorldCollisionFootstepSounds D_neo_ark_power_plant_2_80182F1C = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_neo_ark_power_plant_2_80182F28[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F28[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_power_plant_2_80182F30[1] = {
-    { 0, 0, 1, 0, D_neo_ark_power_plant_2_80182F10 },
+WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F30[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_power_plant_2_80182F10 },
 };
 
-GpRoomParamRec D_neo_ark_power_plant_2_80182F38[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F38[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_power_plant_2_80182F40[1] = {
-    { 0, 0, 1, 0, D_neo_ark_power_plant_2_80182F04 },
+WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F40[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_power_plant_2_80182F04 },
 };
 
-GpRoomParamRec D_neo_ark_power_plant_2_80182F48[1] = {
-    { 0, 0, 1, 0, D_neo_ark_power_plant_2_80182F1C },
+WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F48[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_power_plant_2_80182F1C },
 };
 
-GpRoomParamRec* D_neo_ark_power_plant_2_80182F50[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_power_plant_2_80182F50[8] = {
     D_neo_ark_power_plant_2_80182F28,
     D_neo_ark_power_plant_2_80182F28,
     D_neo_ark_power_plant_2_80182F30,

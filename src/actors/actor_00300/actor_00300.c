@@ -3043,7 +3043,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
             id = work->rec70.key.value;
             if (id != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
                                              [gGameSession->location.loc.area - 1][func_800E1B24(id)]
-                                                 ->field_1 == 0) {
+                                                 ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
                 expired = 1;
             }
             Gp_ClearRec18Occupied(&work->rec70);

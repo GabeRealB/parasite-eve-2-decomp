@@ -887,25 +887,25 @@ GpAreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { D_map_dryfield_full_8017C1B8, D_dryfield_night_water_tower_80182B38 },
 };
 
-s32 D_dryfield_night_water_tower_80182C0C[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_water_tower_80182C0C = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-GpRoomParamRec D_dryfield_night_water_tower_80182C18[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_tower_80182C0C },
+WorldCollisionSurfaceProperties D_dryfield_night_water_tower_80182C18[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_tower_80182C0C },
 };
 
-GpRoomParamRec D_dryfield_night_water_tower_80182C20[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_water_tower_80182C20[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_water_tower_80182C28[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_tower_80182C0C },
+WorldCollisionSurfaceProperties D_dryfield_night_water_tower_80182C28[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_tower_80182C0C },
 };
 
-GpRoomParamRec* D_dryfield_night_water_tower_80182C30[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_water_tower_80182C30[8] = {
     D_dryfield_night_water_tower_80182C18,
     D_dryfield_night_water_tower_80182C20,
     D_dryfield_night_water_tower_80182C28,

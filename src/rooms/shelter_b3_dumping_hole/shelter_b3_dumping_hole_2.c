@@ -1922,25 +1922,25 @@ WorldCoordRoomAmbientEntry D_shelter_b3_dumping_hole_8018F32C[38] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_shelter_b3_dumping_hole_8018F45C[3] = {
+WorldCollisionFootstepSounds D_shelter_b3_dumping_hole_8018F45C = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-GpRoomParamRec D_shelter_b3_dumping_hole_8018F468[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b3_dumping_hole_8018F468[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b3_dumping_hole_8018F470[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b3_dumping_hole_8018F470[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b3_dumping_hole_8018F478[1] = {
-    { 0, 0, 1, 0, D_shelter_b3_dumping_hole_8018F45C },
+WorldCollisionSurfaceProperties D_shelter_b3_dumping_hole_8018F478[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_dumping_hole_8018F45C },
 };
 
-GpRoomParamRec* D_shelter_b3_dumping_hole_8018F480[9] = {
+WorldCollisionSurfaceProperties* D_shelter_b3_dumping_hole_8018F480[9] = {
     D_shelter_b3_dumping_hole_8018F468,
     D_shelter_b3_dumping_hole_8018F468,
     D_shelter_b3_dumping_hole_8018F468,

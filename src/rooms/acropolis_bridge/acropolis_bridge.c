@@ -381,20 +381,20 @@ STATIC_ASSERT_SIZEOF(AcropolisBridgeStorage1780, 20);
 
 extern AcropolisBridgeStorage1780 D_acropolis_bridge_80191780;
 
-extern s32 D_acropolis_bridge_80190BE8[3];
-extern s32 D_acropolis_bridge_80190BF4[3];
-s32        func_acropolis_bridge_801856E0(Task*, s32, ActorCommand* msg);
-s32        func_acropolis_bridge_80187BD0(Task*, s32, s32);
-void       func_acropolis_bridge_80185F28(Task*);
-void       func_acropolis_bridge_801861A0(Task*);
-void       func_acropolis_bridge_801863A8(Task*);
-void       func_acropolis_bridge_80186618(Task*);
-void       func_acropolis_bridge_80186BBC(Task*);
-void       func_acropolis_bridge_80187078(Task*);
-void       func_acropolis_bridge_80187310(Task*);
-void       func_acropolis_bridge_801874DC(Task*);
-void       func_acropolis_bridge_80187D04(Task*);
-void       func_acropolis_bridge_80187D80(Task*);
+extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BE8;
+extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BF4;
+s32                                 func_acropolis_bridge_801856E0(Task*, s32, ActorCommand* msg);
+s32                                 func_acropolis_bridge_80187BD0(Task*, s32, s32);
+void                                func_acropolis_bridge_80185F28(Task*);
+void                                func_acropolis_bridge_801861A0(Task*);
+void                                func_acropolis_bridge_801863A8(Task*);
+void                                func_acropolis_bridge_80186618(Task*);
+void                                func_acropolis_bridge_80186BBC(Task*);
+void                                func_acropolis_bridge_80187078(Task*);
+void                                func_acropolis_bridge_80187310(Task*);
+void                                func_acropolis_bridge_801874DC(Task*);
+void                                func_acropolis_bridge_80187D04(Task*);
+void                                func_acropolis_bridge_80187D80(Task*);
 
 TmdBone D_acropolis_bridge_80187DDC[1] = {
 #include "assets/acropolis_bridge_model_0B868_skeleton.inc"
@@ -2071,13 +2071,13 @@ PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5] = {
     { 0, 0, 8, 0 },
 };
 
-s32 D_acropolis_bridge_80190BE8[3] = {
+WorldCollisionFootstepSounds D_acropolis_bridge_80190BE8 = {
     0x10000025,
     0x10000027,
     0x10000025,
 };
 
-s32 D_acropolis_bridge_80190BF4[3] = {
+WorldCollisionFootstepSounds D_acropolis_bridge_80190BF4 = {
     0x10000015,
     0x10000017,
     0x10000019,
@@ -2089,27 +2089,27 @@ s32 D_acropolis_bridge_80190C00[3] = {
     0x10000025,
 };
 
-GpRoomParamRec D_acropolis_bridge_80190C0C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_bridge_80190C0C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_bridge_80190C14[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_bridge_80190C14[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_bridge_80190C1C[1] = {
-    { 0, 0, 1, 0, D_acropolis_bridge_80190BE8 },
+WorldCollisionSurfaceProperties D_acropolis_bridge_80190C1C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_bridge_80190BE8 },
 };
 
-GpRoomParamRec D_acropolis_bridge_80190C24[1] = {
-    { 0, 0, 1, 0, D_acropolis_bridge_80190BF4 },
+WorldCollisionSurfaceProperties D_acropolis_bridge_80190C24[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_bridge_80190BF4 },
 };
 
-GpRoomParamRec D_acropolis_bridge_80190C2C[1] = {
-    { 1, 1, 1, 1, NULL },
+WorldCollisionSurfaceProperties D_acropolis_bridge_80190C2C[1] = {
+    { 1, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_acropolis_bridge_80190C34[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_bridge_80190C34[8] = {
     D_acropolis_bridge_80190C0C,
     D_acropolis_bridge_80190C14,
     D_acropolis_bridge_80190C1C,

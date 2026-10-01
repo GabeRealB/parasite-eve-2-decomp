@@ -1455,61 +1455,61 @@ PadScriptVibrationSegment D_acropolis_promenade_8018623C[2] = {
     { 60, 60, 1, 0 },
 };
 
-s32 D_acropolis_promenade_80186244[3] = {
+WorldCollisionFootstepSounds D_acropolis_promenade_80186244 = {
     0x10000009,
     0x1000000B,
     0x10000009,
 };
 
-s32 D_acropolis_promenade_80186250[3] = {
+WorldCollisionFootstepSounds D_acropolis_promenade_80186250 = {
     0x10000031,
     0x10000033,
     0x10000031,
 };
 
-s32 D_acropolis_promenade_8018625C[3] = {
+WorldCollisionFootstepSounds D_acropolis_promenade_8018625C = {
     0x10000025,
     0x10000027,
     0x10000025,
 };
 
-s32 D_acropolis_promenade_80186268[3] = {
+WorldCollisionFootstepSounds D_acropolis_promenade_80186268 = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-s32 D_acropolis_promenade_80186274[3] = {
+WorldCollisionFootstepSounds D_acropolis_promenade_80186274 = {
     0x10000025,
     0x10000027,
     0x10000025,
 };
 
-GpRoomParamRec D_acropolis_promenade_80186280[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_promenade_80186280[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_promenade_80186288[1] = {
-    { 0, 0, 1, 0, D_acropolis_promenade_80186244 },
+WorldCollisionSurfaceProperties D_acropolis_promenade_80186288[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_promenade_80186244 },
 };
 
-GpRoomParamRec D_acropolis_promenade_80186290[1] = {
-    { 0, 0, 1, 0, D_acropolis_promenade_80186250 },
+WorldCollisionSurfaceProperties D_acropolis_promenade_80186290[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_promenade_80186250 },
 };
 
-GpRoomParamRec D_acropolis_promenade_80186298[1] = {
-    { 0, 0, 1, 0, D_acropolis_promenade_8018625C },
+WorldCollisionSurfaceProperties D_acropolis_promenade_80186298[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_promenade_8018625C },
 };
 
-GpRoomParamRec D_acropolis_promenade_801862A0[1] = {
-    { 0, 0, 1, 0, D_acropolis_promenade_80186268 },
+WorldCollisionSurfaceProperties D_acropolis_promenade_801862A0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_promenade_80186268 },
 };
 
-GpRoomParamRec D_acropolis_promenade_801862A8[1] = {
-    { 1, 1, 1, 1, D_acropolis_promenade_80186274 },
+WorldCollisionSurfaceProperties D_acropolis_promenade_801862A8[1] = {
+    { 1, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK, &D_acropolis_promenade_80186274 },
 };
 
-GpRoomParamRec* D_acropolis_promenade_801862B0[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_promenade_801862B0[8] = {
     D_acropolis_promenade_80186280,
     D_acropolis_promenade_80186288,
     D_acropolis_promenade_80186290,

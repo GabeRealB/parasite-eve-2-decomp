@@ -30,7 +30,7 @@ extern GpViewRec D_neo_ark_garden_801816E8[];
 
 extern GpSprtRec D_neo_ark_garden_80182540[];
 
-extern GpRoomParamRec* D_neo_ark_garden_80182BD8[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[];
 
 void func_neo_ark_garden_8017EA9C(Task* task);
 

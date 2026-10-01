@@ -39,7 +39,7 @@ extern GpSprtRec D_acropolis_helicopter_landing_pad_80187824[];
 
 extern GpViewRec D_acropolis_helicopter_landing_pad_80187968[];
 
-extern GpRoomParamRec* D_acropolis_helicopter_landing_pad_80187DC8[];
+extern WorldCollisionSurfaceProperties* D_acropolis_helicopter_landing_pad_80187DC8[];
 
 void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord);
 

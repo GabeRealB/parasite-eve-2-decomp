@@ -177,35 +177,35 @@ GpRoomCoordSet D_dryfield_motel_room_3_8017E4D4[1] = {
     { 0, NULL, 4, D_dryfield_motel_room_3_8017E354, 0, NULL },
 };
 
-s32 D_dryfield_motel_room_3_8017E4EC[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_3_8017E4EC = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_motel_room_3_8017E4F8[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_3_8017E4F8 = {
     0x10000001,
     0x10000003,
     0x10000001,
 };
 
-GpRoomParamRec D_dryfield_motel_room_3_8017E504[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_3_8017E504[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_motel_room_3_8017E50C[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_3_8017E4EC },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_3_8017E50C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_3_8017E4EC },
 };
 
-GpRoomParamRec D_dryfield_motel_room_3_8017E514[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_3_8017E4F8 },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_3_8017E514[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_3_8017E4F8 },
 };
 
-GpRoomParamRec D_dryfield_motel_room_3_8017E51C[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_3_8017E51C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_dryfield_motel_room_3_8017E524[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_motel_room_3_8017E524[8] = {
     D_dryfield_motel_room_3_8017E504,
     D_dryfield_motel_room_3_8017E50C,
     D_dryfield_motel_room_3_8017E514,

@@ -28,7 +28,7 @@ extern GpViewRec D_mine_mesa_80187030[];
 
 extern GpSprtRec D_mine_mesa_80188744[];
 
-extern GpRoomParamRec* D_mine_mesa_80189A60[];
+extern WorldCollisionSurfaceProperties* D_mine_mesa_80189A60[];
 
 void func_mine_mesa_801811C4(s32 height);
 

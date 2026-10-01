@@ -31,7 +31,7 @@ extern GpSprtRec D_acropolis_hallway_8017EC2C[];
 
 extern GpViewRec D_acropolis_hallway_8017EC68[];
 
-extern GpRoomParamRec* D_acropolis_hallway_8017ED40[];
+extern WorldCollisionSurfaceProperties* D_acropolis_hallway_8017ED40[];
 
 void func_acropolis_hallway_8017D828(Task* unused);
 

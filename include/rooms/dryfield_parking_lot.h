@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_parking_lot_8017E900[];
 
 extern GpSprtRec D_dryfield_parking_lot_8017F054[];
 
-extern GpRoomParamRec* D_dryfield_parking_lot_8017FB30[];
+extern WorldCollisionSurfaceProperties* D_dryfield_parking_lot_8017FB30[];
 
 void func_dryfield_parking_lot_8017DBAC(Task* unused);
 

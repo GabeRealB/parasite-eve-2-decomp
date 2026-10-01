@@ -45,7 +45,7 @@ extern GpObj4A D_shelter_b4_upper_sewer_801886F4[];
 
 extern GpObj3A D_shelter_b4_upper_sewer_80188BFC[];
 
-extern GpRoomParamRec* D_shelter_b4_upper_sewer_80188CFC[];
+extern WorldCollisionSurfaceProperties* D_shelter_b4_upper_sewer_80188CFC[];
 
 void func_shelter_b4_upper_sewer_8017DC30(Task* task);
 

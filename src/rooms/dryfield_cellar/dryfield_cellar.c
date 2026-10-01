@@ -716,17 +716,17 @@ GpAreaVariant D_dryfield_cellar_80180ACC[12] = {
     { NULL, NULL },
 };
 
-s32 D_dryfield_cellar_80180B2C[3] = {
+WorldCollisionFootstepSounds D_dryfield_cellar_80180B2C = {
     0x10000051,
     0x10000053,
     0x10000055,
 };
 
-GpRoomParamRec D_dryfield_cellar_80180B38[1] = {
-    { 0, 0, 1, 0, D_dryfield_cellar_80180B2C },
+WorldCollisionSurfaceProperties D_dryfield_cellar_80180B38[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_cellar_80180B2C },
 };
 
-GpRoomParamRec* D_dryfield_cellar_80180B40[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[8] = {
     D_dryfield_cellar_80180B38,
     D_dryfield_cellar_80180B38,
     D_dryfield_cellar_80180B38,

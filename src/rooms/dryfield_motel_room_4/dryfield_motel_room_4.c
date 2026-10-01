@@ -161,35 +161,35 @@ GpRoomCoordSet D_dryfield_motel_room_4_8017E420[1] = {
     { 0, NULL, 5, D_dryfield_motel_room_4_8017E240, 0, NULL },
 };
 
-s32 D_dryfield_motel_room_4_8017E438[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_4_8017E438 = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_motel_room_4_8017E444[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_4_8017E444 = {
     0x10000001,
     0x10000003,
     0x10000001,
 };
 
-GpRoomParamRec D_dryfield_motel_room_4_8017E450[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_4_8017E450[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_motel_room_4_8017E458[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_4_8017E438 },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_4_8017E458[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_4_8017E438 },
 };
 
-GpRoomParamRec D_dryfield_motel_room_4_8017E460[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_4_8017E444 },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_4_8017E460[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_4_8017E444 },
 };
 
-GpRoomParamRec D_dryfield_motel_room_4_8017E468[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_4_8017E468[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_dryfield_motel_room_4_8017E470[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_motel_room_4_8017E470[8] = {
     D_dryfield_motel_room_4_8017E450,
     D_dryfield_motel_room_4_8017E458,
     D_dryfield_motel_room_4_8017E460,

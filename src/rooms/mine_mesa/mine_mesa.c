@@ -2474,33 +2474,33 @@ GpObj3A D_mine_mesa_801899B4[2] = {
     { NULL, NULL, { 6207, -136, 4015, 0 }, { { -2297, 1160, -913, 0 }, { 2298, 1160, 914, 0 }, { -2297, -1160, -913, 0 }, { 2298, -1160, 914, 0 } }, { -1518, 0, 3815, 0 }, { -95, 10 }, 129, 0 },
 };
 
-s32 D_mine_mesa_80189A2C[3] = {
+WorldCollisionFootstepSounds D_mine_mesa_80189A2C = {
     0x10000039,
     0x1000003B,
     0x10000039,
 };
 
-GpRoomParamRec D_mine_mesa_80189A38[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_mesa_80189A38[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_mesa_80189A40[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_mesa_80189A40[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_mesa_80189A48[1] = {
-    { 0, 0, 1, 0, D_mine_mesa_80189A2C },
+WorldCollisionSurfaceProperties D_mine_mesa_80189A48[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_mesa_80189A2C },
 };
 
-GpRoomParamRec D_mine_mesa_80189A50[1] = {
-    { 0, 1, 0, 0, D_mine_mesa_80189A2C },
+WorldCollisionSurfaceProperties D_mine_mesa_80189A50[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_mesa_80189A2C },
 };
 
-GpRoomParamRec D_mine_mesa_80189A58[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_mesa_80189A58[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_mine_mesa_80189A60[8] = {
+WorldCollisionSurfaceProperties* D_mine_mesa_80189A60[8] = {
     D_mine_mesa_80189A38,
     D_mine_mesa_80189A40,
     D_mine_mesa_80189A48,

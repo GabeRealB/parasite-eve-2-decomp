@@ -832,25 +832,25 @@ GpObj3A D_acropolis_roof_garden_80186D14[2] = {
     { NULL, NULL, { -4576, -496, -4400, 0 }, { { -576, 928, 0, 0 }, { 576, 928, 0, 0 }, { -576, -928, 0, 0 }, { 576, -928, 0, 0 } }, { 0, 0, 4111, 0 }, { 62, 4 }, 129, 0 },
 };
 
-s32 D_acropolis_roof_garden_80186D8C[3] = {
+WorldCollisionFootstepSounds D_acropolis_roof_garden_80186D8C = {
     0x1000001D,
     0x1000001F,
     0x1000001D,
 };
 
-GpRoomParamRec D_acropolis_roof_garden_80186D98[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_roof_garden_80186D98[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_roof_garden_80186DA0[1] = {
-    { 0, 0, 1, 0, D_acropolis_roof_garden_80186D8C },
+WorldCollisionSurfaceProperties D_acropolis_roof_garden_80186DA0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_roof_garden_80186D8C },
 };
 
-GpRoomParamRec D_acropolis_roof_garden_80186DA8[1] = {
-    { 0, 0, 1, 0, D_acropolis_roof_garden_80186D8C },
+WorldCollisionSurfaceProperties D_acropolis_roof_garden_80186DA8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_roof_garden_80186D8C },
 };
 
-GpRoomParamRec* D_acropolis_roof_garden_80186DB0[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_roof_garden_80186DB0[8] = {
     D_acropolis_roof_garden_80186D98,
     D_acropolis_roof_garden_80186DA0,
     D_acropolis_roof_garden_80186DA8,

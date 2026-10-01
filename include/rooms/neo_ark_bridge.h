@@ -47,7 +47,7 @@ extern GpObj4A D_neo_ark_bridge_80184724[];
 
 extern GpObj4A D_neo_ark_bridge_80184AB8[];
 
-extern GpRoomParamRec* D_neo_ark_bridge_80184BD4[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[];
 
 void func_neo_ark_bridge_8017E954(Task* arg0);
 

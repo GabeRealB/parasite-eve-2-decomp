@@ -1442,21 +1442,21 @@ WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_mine_forked_tunnel_801855A4[3] = {
+WorldCollisionFootstepSounds D_mine_forked_tunnel_801855A4 = {
     0x1000001D,
     0x1000001F,
     0x1000001D,
 };
 
-GpRoomParamRec D_mine_forked_tunnel_801855B0[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_forked_tunnel_801855B0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_forked_tunnel_801855B8[1] = {
-    { 0, 0, 1, 0, D_mine_forked_tunnel_801855A4 },
+WorldCollisionSurfaceProperties D_mine_forked_tunnel_801855B8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_forked_tunnel_801855A4 },
 };
 
-GpRoomParamRec* D_mine_forked_tunnel_801855C0[8] = {
+WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[8] = {
     D_mine_forked_tunnel_801855B0,
     D_mine_forked_tunnel_801855B8,
     D_mine_forked_tunnel_801855B0,

@@ -120619,9 +120619,9 @@ not cosmetic: it moves the walk pointer into `$a1` and the session pointer into
 
 ```c
 for (i = 0; list[i].rec != 0; i++) {              /* not  for (p = list; p->rec; p++) */
-    recs = Gp_RoomParamTables[sess->field_3 - 1][sess->field_2 - 1];
-    recs[list[i].index] = list[i].rec;
-    Gp_RoomParams[list[i].index] = recs[list[i].index]->field_3;
+    surfaceProperties = Gp_RoomParamTables[sess->field_3 - 1][sess->field_2 - 1];
+    surfaceProperties[list[i].index] = list[i].rec;
+    Gp_RoomParams[list[i].index] = surfaceProperties[list[i].index]->suppressPushback;
 }
 ```
 

@@ -28,7 +28,7 @@ extern GpViewRec D_shelter_1f_airlock_8017E85C[];
 
 extern GpSprtRec D_shelter_1f_airlock_8017F07C[];
 
-extern GpRoomParamRec* D_shelter_1f_airlock_8017F84C[];
+extern WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[];
 
 void func_shelter_1f_airlock_8017D678(Task* task);
 

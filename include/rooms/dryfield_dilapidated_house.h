@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_dilapidated_house_80187308[];
 
 extern GpSprtRec D_dryfield_dilapidated_house_80188C0C[];
 
-extern GpRoomParamRec* D_dryfield_dilapidated_house_80189A80[];
+extern WorldCollisionSurfaceProperties* D_dryfield_dilapidated_house_80189A80[];
 
 void func_dryfield_dilapidated_house_80183BF8(Task* arg0);
 

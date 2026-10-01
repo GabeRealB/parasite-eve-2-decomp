@@ -474,21 +474,21 @@ GpAreaVariant D_dryfield_breezeway_801842F8[13] = {
     { NULL, NULL },
 };
 
-s32 D_dryfield_breezeway_80184360[3] = {
+WorldCollisionFootstepSounds D_dryfield_breezeway_80184360 = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-GpRoomParamRec D_dryfield_breezeway_8018436C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_breezeway_8018436C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_breezeway_80184374[1] = {
-    { 0, 0, 1, 0, D_dryfield_breezeway_80184360 },
+WorldCollisionSurfaceProperties D_dryfield_breezeway_80184374[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_breezeway_80184360 },
 };
 
-GpRoomParamRec* D_dryfield_breezeway_8018437C[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_breezeway_8018437C[8] = {
     D_dryfield_breezeway_8018436C,
     D_dryfield_breezeway_80184374,
     D_dryfield_breezeway_8018436C,

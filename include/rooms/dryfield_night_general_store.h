@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_night_general_store_8017F4A8[];
 
 extern GpSprtRec D_dryfield_night_general_store_80184278[];
 
-extern GpRoomParamRec* D_dryfield_night_general_store_80185894[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_general_store_80185894[];
 
 void func_dryfield_night_general_store_8017E6C8(Task* unused);
 

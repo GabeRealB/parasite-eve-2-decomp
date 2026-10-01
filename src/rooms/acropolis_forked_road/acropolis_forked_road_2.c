@@ -1168,25 +1168,25 @@ PadScriptVibrationSegment D_acropolis_forked_road_80185070[2] = {
     { 60, 60, 1, 0 },
 };
 
-s32 D_acropolis_forked_road_80185078[3] = {
+WorldCollisionFootstepSounds D_acropolis_forked_road_80185078 = {
     0x10000011,
     0x10000013,
     0x10000011,
 };
 
-GpRoomParamRec D_acropolis_forked_road_80185084[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_forked_road_80185084[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_forked_road_8018508C[1] = { 0 };
+WorldCollisionSurfaceProperties D_acropolis_forked_road_8018508C[1] = { 0 };
 
-GpRoomParamRec D_acropolis_forked_road_80185094[1] = { 0 };
+WorldCollisionSurfaceProperties D_acropolis_forked_road_80185094[1] = { 0 };
 
-GpRoomParamRec D_acropolis_forked_road_8018509C[1] = {
-    { 0, 0, 1, 0, D_acropolis_forked_road_80185078 },
+WorldCollisionSurfaceProperties D_acropolis_forked_road_8018509C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_forked_road_80185078 },
 };
 
-GpRoomParamRec* D_acropolis_forked_road_801850A4[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_forked_road_801850A4[8] = {
     D_acropolis_forked_road_80185084,
     D_acropolis_forked_road_80185084,
     D_acropolis_forked_road_8018508C,

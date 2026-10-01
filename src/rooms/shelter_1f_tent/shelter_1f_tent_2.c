@@ -521,21 +521,21 @@ GpAreaVariant D_shelter_1f_tent_80184230[13] = {
     { NULL, NULL },
 };
 
-s32 D_shelter_1f_tent_80184298[3] = {
+WorldCollisionFootstepSounds D_shelter_1f_tent_80184298 = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-GpRoomParamRec D_shelter_1f_tent_801842A4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_1f_tent_801842A4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_1f_tent_801842AC[1] = {
-    { 0, 0, 1, 0, D_shelter_1f_tent_80184298 },
+WorldCollisionSurfaceProperties D_shelter_1f_tent_801842AC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_tent_80184298 },
 };
 
-GpRoomParamRec* D_shelter_1f_tent_801842B4[8] = {
+WorldCollisionSurfaceProperties* D_shelter_1f_tent_801842B4[8] = {
     D_shelter_1f_tent_801842A4,
     D_shelter_1f_tent_801842AC,
     D_shelter_1f_tent_801842A4,

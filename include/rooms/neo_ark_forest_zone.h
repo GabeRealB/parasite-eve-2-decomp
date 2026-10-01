@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_forest_zone_80182298[];
 
 extern GpSprtRec D_neo_ark_forest_zone_80182594[];
 
-extern GpRoomParamRec* D_neo_ark_forest_zone_80182CE4[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_forest_zone_80182CE4[];
 
 void func_neo_ark_forest_zone_8017E3C0(Task* arg0);
 

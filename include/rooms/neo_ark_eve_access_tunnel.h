@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_eve_access_tunnel_8017F080[];
 
 extern GpSprtRec D_neo_ark_eve_access_tunnel_801800A0[];
 
-extern GpRoomParamRec* D_neo_ark_eve_access_tunnel_80180780[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_eve_access_tunnel_80180780[];
 
 /// Sets the tunnel's view flags: `arg0` picks the run to write (0 the single
 /// view `field_1C` carries, 1 the `field_28` / `field_34` pair) and `arg1`

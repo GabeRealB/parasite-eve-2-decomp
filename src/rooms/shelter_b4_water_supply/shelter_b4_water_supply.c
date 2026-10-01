@@ -731,35 +731,35 @@ WorldCoordRoomAmbientEntry D_shelter_b4_water_supply_80184D7C[12] = {
     { .color = { 420, 480, 498, 459 } },
 };
 
-s32 D_shelter_b4_water_supply_80184DDC[3] = {
+WorldCollisionFootstepSounds D_shelter_b4_water_supply_80184DDC = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-s32 D_shelter_b4_water_supply_80184DE8[3] = {
+WorldCollisionFootstepSounds D_shelter_b4_water_supply_80184DE8 = {
     0x10000025,
     0x10000027,
     0x10000029,
 };
 
-GpRoomParamRec D_shelter_b4_water_supply_80184DF4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b4_water_supply_80184DF4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b4_water_supply_80184DFC[1] = {
-    { 0, 0, 1, 0, D_shelter_b4_water_supply_80184DDC },
+WorldCollisionSurfaceProperties D_shelter_b4_water_supply_80184DFC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_water_supply_80184DDC },
 };
 
-GpRoomParamRec D_shelter_b4_water_supply_80184E04[1] = {
-    { 0, 0, 1, 0, D_shelter_b4_water_supply_80184DE8 },
+WorldCollisionSurfaceProperties D_shelter_b4_water_supply_80184E04[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_water_supply_80184DE8 },
 };
 
-GpRoomParamRec D_shelter_b4_water_supply_80184E0C[1] = {
-    { 0, 1, 0, 0, D_shelter_b4_water_supply_80184DDC },
+WorldCollisionSurfaceProperties D_shelter_b4_water_supply_80184E0C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_water_supply_80184DDC },
 };
 
-GpRoomParamRec* D_shelter_b4_water_supply_80184E14[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b4_water_supply_80184E14[8] = {
     D_shelter_b4_water_supply_80184DF4,
     D_shelter_b4_water_supply_80184DFC,
     D_shelter_b4_water_supply_80184E04,

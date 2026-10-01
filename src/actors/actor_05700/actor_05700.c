@@ -2353,7 +2353,7 @@ static void Actor05700_Fn035FC(Enemy* arg0, Task* arg1)
 
     if (work->recD0[0].key.value != 0) {
         idx = func_800E1B24(work->recD0[0].key.value);
-        if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->field_1 == 0) {
+        if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             found = 1;
         }
         Gp_ClearRec18Occupied(work->recD0);

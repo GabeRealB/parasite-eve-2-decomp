@@ -1471,31 +1471,31 @@ GpViewRec D_acropolis_sanctuary_80186188[16] = {
     { { { { 1261, 0, -3896 }, { 704, 4028, 228 }, { 3832, -740, 1240 } }, { 0x310A, 4285, 8624 } }, 207 },
 };
 
-s32 D_acropolis_sanctuary_801863C8[3] = {
+WorldCollisionFootstepSounds D_acropolis_sanctuary_801863C8 = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-s32 D_acropolis_sanctuary_801863D4[3] = {
+WorldCollisionFootstepSounds D_acropolis_sanctuary_801863D4 = {
     0x10000011,
     0x10000013,
     0x10000011,
 };
 
-GpRoomParamRec D_acropolis_sanctuary_801863E0[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_sanctuary_801863E0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_sanctuary_801863E8[1] = {
-    { 0, 0, 1, 0, D_acropolis_sanctuary_801863C8 },
+WorldCollisionSurfaceProperties D_acropolis_sanctuary_801863E8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_sanctuary_801863C8 },
 };
 
-GpRoomParamRec D_acropolis_sanctuary_801863F0[1] = {
-    { 0, 0, 1, 0, D_acropolis_sanctuary_801863D4 },
+WorldCollisionSurfaceProperties D_acropolis_sanctuary_801863F0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_sanctuary_801863D4 },
 };
 
-GpRoomParamRec* D_acropolis_sanctuary_801863F8[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_sanctuary_801863F8[8] = {
     D_acropolis_sanctuary_801863E0,
     D_acropolis_sanctuary_801863E8,
     D_acropolis_sanctuary_801863F0,

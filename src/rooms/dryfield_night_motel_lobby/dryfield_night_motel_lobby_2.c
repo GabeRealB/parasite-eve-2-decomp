@@ -492,31 +492,31 @@ WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_dryfield_night_motel_lobby_8018445C[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_motel_lobby_8018445C = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-s32 D_dryfield_night_motel_lobby_80184468[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_motel_lobby_80184468 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-GpRoomParamRec D_dryfield_night_motel_lobby_80184474[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_motel_lobby_8018445C },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_lobby_80184474[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_lobby_8018445C },
 };
 
-GpRoomParamRec D_dryfield_night_motel_lobby_8018447C[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_motel_lobby_8018445C },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_lobby_8018447C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_lobby_8018445C },
 };
 
-GpRoomParamRec D_dryfield_night_motel_lobby_80184484[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_motel_lobby_80184468 },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_lobby_80184484[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_lobby_80184468 },
 };
 
-GpRoomParamRec* D_dryfield_night_motel_lobby_8018448C[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_motel_lobby_8018448C[8] = {
     D_dryfield_night_motel_lobby_80184474,
     D_dryfield_night_motel_lobby_8018447C,
     D_dryfield_night_motel_lobby_80184484,

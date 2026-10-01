@@ -38,7 +38,7 @@ extern GpObj3A D_shelter_b1_sleeping_quarters_801837A4[];
 
 extern GpObj4A D_shelter_b1_sleeping_quarters_801838D0[];
 
-extern GpRoomParamRec* D_shelter_b1_sleeping_quarters_801840B0[];
+extern WorldCollisionSurfaceProperties* D_shelter_b1_sleeping_quarters_801840B0[];
 
 void func_shelter_b1_sleeping_quarters_8017D608(Task* task);
 

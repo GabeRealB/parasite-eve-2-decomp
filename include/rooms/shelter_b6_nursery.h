@@ -38,7 +38,7 @@ extern GpObj4A D_shelter_b6_nursery_8018750C[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b6_nursery_8018789C[];
 
-extern GpRoomParamRec* D_shelter_b6_nursery_80187958[];
+extern WorldCollisionSurfaceProperties* D_shelter_b6_nursery_80187958[];
 
 void func_shelter_b6_nursery_8017FF9C(Task* task);
 

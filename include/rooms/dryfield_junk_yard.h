@@ -32,7 +32,7 @@ extern GpViewRec D_dryfield_junk_yard_8017F5C0[];
 
 extern GpSprtRec D_dryfield_junk_yard_80180C28[];
 
-extern GpRoomParamRec* D_dryfield_junk_yard_80181C28[];
+extern WorldCollisionSurfaceProperties* D_dryfield_junk_yard_80181C28[];
 
 void func_dryfield_junk_yard_8017DD0C(Task* unused);
 

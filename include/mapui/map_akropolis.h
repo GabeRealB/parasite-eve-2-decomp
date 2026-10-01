@@ -74,7 +74,7 @@ extern GpViewTbl D_map_akropolis_8017AC14;
 
 extern GpViewIndexTbl D_map_akropolis_8017AC68;
 
-extern GpRoomParamRec** D_map_akropolis_8017AC6C[];
+extern WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[];
 
 /// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
 /// records point at them, one list per location.

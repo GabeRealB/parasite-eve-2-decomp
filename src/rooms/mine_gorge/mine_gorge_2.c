@@ -1031,39 +1031,39 @@ WorldCoordRoomAmbientEntry D_mine_gorge_801835A4[12] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_mine_gorge_80183604[3] = {
+WorldCollisionFootstepSounds D_mine_gorge_80183604 = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-s32 D_mine_gorge_80183610[3] = {
+WorldCollisionFootstepSounds D_mine_gorge_80183610 = {
     0x10000045,
     0x10000047,
     0x10000045,
 };
 
-GpRoomParamRec D_mine_gorge_8018361C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_gorge_8018361C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_gorge_80183624[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_gorge_80183624[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_gorge_8018362C[1] = {
-    { 0, 0, 1, 0, D_mine_gorge_80183610 },
+WorldCollisionSurfaceProperties D_mine_gorge_8018362C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_gorge_80183610 },
 };
 
-GpRoomParamRec D_mine_gorge_80183634[1] = {
-    { 0, 0, 1, 0, D_mine_gorge_80183604 },
+WorldCollisionSurfaceProperties D_mine_gorge_80183634[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_gorge_80183604 },
 };
 
-GpRoomParamRec D_mine_gorge_8018363C[1] = {
-    { 0, 1, 0, 0, D_mine_gorge_80183610 },
+WorldCollisionSurfaceProperties D_mine_gorge_8018363C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_gorge_80183610 },
 };
 
-GpRoomParamRec* D_mine_gorge_80183644[8] = {
+WorldCollisionSurfaceProperties* D_mine_gorge_80183644[8] = {
     D_mine_gorge_8018361C,
     D_mine_gorge_80183624,
     D_mine_gorge_8018362C,

@@ -28,7 +28,7 @@ extern GpRoomCoordSet D_shelter_r37_8017DD44;
 
 extern GpObj4A D_shelter_r37_8017DD5C[];
 
-extern GpRoomParamRec* D_shelter_r37_8017DED8[];
+extern WorldCollisionSurfaceProperties* D_shelter_r37_8017DED8[];
 
 void func_shelter_r37_8017D678(Task* task);
 

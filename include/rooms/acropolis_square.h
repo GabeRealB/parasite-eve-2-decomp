@@ -32,7 +32,7 @@ extern GpSprtRec D_acropolis_square_8018857C[];
 
 extern GpViewRec D_acropolis_square_80188630[];
 
-extern GpRoomParamRec* D_acropolis_square_80188868[];
+extern WorldCollisionSurfaceProperties* D_acropolis_square_80188868[];
 
 s32 func_acropolis_square_80182360(s32 unused);
 

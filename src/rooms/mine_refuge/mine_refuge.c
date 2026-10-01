@@ -505,21 +505,21 @@ WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_mine_refuge_80182A98[3] = {
+WorldCollisionFootstepSounds D_mine_refuge_80182A98 = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-GpRoomParamRec D_mine_refuge_80182AA4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_refuge_80182AA4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_refuge_80182AAC[1] = {
-    { 0, 0, 1, 0, D_mine_refuge_80182A98 },
+WorldCollisionSurfaceProperties D_mine_refuge_80182AAC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_refuge_80182A98 },
 };
 
-GpRoomParamRec* D_mine_refuge_80182AB4[8] = {
+WorldCollisionSurfaceProperties* D_mine_refuge_80182AB4[8] = {
     D_mine_refuge_80182AA4,
     D_mine_refuge_80182AAC,
     D_mine_refuge_80182AA4,

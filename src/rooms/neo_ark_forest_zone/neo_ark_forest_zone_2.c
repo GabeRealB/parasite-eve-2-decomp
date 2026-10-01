@@ -458,21 +458,21 @@ GpObj4C D_neo_ark_forest_zone_801829D0[10] = {
     { NULL, NULL, NULL, { 1024, -64, -1120, 0 }, { { 9328, 0, -400, 0 }, { 9296, 0, 400, 0 }, { -9296, 0, -400, 0 }, { -9328, 0, 400, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4095, 0 }, 9328, 2, 4, 0, 130, 0 },
 };
 
-s32 D_neo_ark_forest_zone_80182CC8[3] = {
+WorldCollisionFootstepSounds D_neo_ark_forest_zone_80182CC8 = {
     0x10000039,
     0x1000003B,
     0x10000039,
 };
 
-GpRoomParamRec D_neo_ark_forest_zone_80182CD4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_forest_zone_80182CD4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_forest_zone_80182CDC[1] = {
-    { 0, 0, 1, 0, D_neo_ark_forest_zone_80182CC8 },
+WorldCollisionSurfaceProperties D_neo_ark_forest_zone_80182CDC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_forest_zone_80182CC8 },
 };
 
-GpRoomParamRec* D_neo_ark_forest_zone_80182CE4[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_forest_zone_80182CE4[8] = {
     D_neo_ark_forest_zone_80182CD4,
     D_neo_ark_forest_zone_80182CDC,
     D_neo_ark_forest_zone_80182CD4,

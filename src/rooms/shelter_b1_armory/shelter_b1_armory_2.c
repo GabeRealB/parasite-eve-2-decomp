@@ -502,21 +502,21 @@ GpObj4C D_shelter_b1_armory_80184E0C[23] = {
 
 GpAreaVariant D_shelter_b1_armory_801854E0[11] = { 0 };
 
-s32 D_shelter_b1_armory_80185538[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_armory_80185538 = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_shelter_b1_armory_80185544[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_armory_80185544[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b1_armory_8018554C[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_armory_80185538 },
+WorldCollisionSurfaceProperties D_shelter_b1_armory_8018554C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_armory_80185538 },
 };
 
-GpRoomParamRec* D_shelter_b1_armory_80185554[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[8] = {
     D_shelter_b1_armory_80185544,
     D_shelter_b1_armory_8018554C,
     D_shelter_b1_armory_80185544,

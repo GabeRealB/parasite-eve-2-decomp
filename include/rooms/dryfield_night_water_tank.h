@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_night_water_tank_8017F4D4[];
 
 extern GpSprtRec D_dryfield_night_water_tank_801801CC[];
 
-extern GpRoomParamRec* D_dryfield_night_water_tank_80180890[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_water_tank_80180890[];
 
 void func_dryfield_night_water_tank_8017DD8C(Task* unused);
 

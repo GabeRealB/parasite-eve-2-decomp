@@ -39,7 +39,7 @@ extern WorldCoordRoomAmbientEntry D_neo_ark_woodland_path_8018477C[];
 
 extern GpObj3A D_neo_ark_woodland_path_801847D4[];
 
-extern GpRoomParamRec* D_neo_ark_woodland_path_80184910[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_woodland_path_80184910[];
 
 void func_neo_ark_woodland_path_8017F4A0(Task* task);
 

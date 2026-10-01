@@ -53,19 +53,43 @@ typedef struct _GpRoomCoordRec {
 } GpRoomCoordRec;
 STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
 
-/// Record in the 8-entry arrays pointed to by `Gp_RoomParamTables`.
-/// `Gp_LoadRoomParams` copies `field_3` into `Gp_RoomParams[]`. Nearby helpers
-/// also load `field_1` (`func_800DDDF8`, `func_800DE7CC`) and `field_2`
-/// (`Gp_PickNearestRec18` keeps a slot only when this is nonzero). `field_4`
-/// points to three base sound ids used by `func_80105ED4`, or is NULL.
-typedef struct _GpRoomParamRec {
-    /* 0x0 */ u8   field_0;
-    /* 0x1 */ u8   field_1;
-    /* 0x2 */ u8   field_2;
-    /* 0x3 */ u8   field_3;
-    /* 0x4 */ s32* field_4;
-} GpRoomParamRec;
-STATIC_ASSERT_SIZEOF(GpRoomParamRec, 8);
+/// Independent policies stored in the surface record's three flag bytes.
+enum {
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES          = 0,
+    WORLD_COLLISION_SURFACE_PASS_PROBES           = 1,
+    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS = 0,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS  = 1,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK        = 0,
+    WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK     = 1
+};
+
+/// Base sound IDs for alternating footstep cues on one collision surface.
+///
+/// A zero base is silent. Standard playback adds one for the other foot's cue
+/// and 100 for a companion. The loaded room overlay owns the storage; surface
+/// records borrow it without modifying it.
+typedef struct {
+    s32 walk;         // Default base, including backward steps and walking.
+    s32 run;          // Running base (movementMode 3, except the scripted jump state).
+    s32 scriptedJump; // Scripted jump cue base (actor mode 2, state 3).
+} WorldCollisionFootstepSounds;
+STATIC_ASSERT_SIZEOF(WorldCollisionFootstepSounds, 12);
+
+/// Collision and footstep properties of one room-local surface class.
+///
+/// `Gp_RoomParamTables` selects the loaded room overlay's records by stage - 1,
+/// area - 1, then surface class (0..7). Grid faces and grid-contact keys carry
+/// that class; actors retain it for footstep cues. Records and their sound
+/// tables remain borrowed only while the room overlay is loaded.
+/// `suppressPushback` is also cached in `Gp_RoomParams` for collision response.
+typedef struct {
+    u8                                  field_0;             // Stored as 0 or 1; no reader established, role unproven.
+    u8                                  probePassThrough;    // Probe/projectile passage (0 blocks, 1 passes).
+    u8                                  weaponImpactEnabled; // Surface hit effects and grenade detonation (0 disabled, 1 enabled).
+    u8                                  suppressPushback;    // Pushback from grid contacts (0 apply, 1 suppress).
+    const WorldCollisionFootstepSounds* footstepSounds;      // Borrowed cue bases, or NULL for no surface footstep cues.
+} WorldCollisionSurfaceProperties;
+STATIC_ASSERT_SIZEOF(WorldCollisionSurfaceProperties, 8);
 
 /// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
 /// Indexed 1-based by `GameSession.location.loc.room` / `GameLocationKey.room`.

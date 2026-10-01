@@ -792,7 +792,7 @@ static GpSprtRec* D_map_dryfield_8017AC00[38] = {
 
 GpSprtTbl D_map_dryfield_8017AC98 = { D_map_dryfield_8017AC00 };
 
-GpRoomParamRec** D_map_dryfield_8017AC9C[38] = {
+WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[38] = {
     D_dryfield_gas_station_80184BAC,
     D_dryfield_main_street_801855EC,
     D_dryfield_general_store_801856D8,

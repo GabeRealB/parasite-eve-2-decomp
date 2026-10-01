@@ -659,35 +659,35 @@ GpAreaVariant D_dryfield_night_underpass_801802DC[12] = {
     { D_map_dryfield_full_8017D038, D_dryfield_night_underpass_801802C4 },
 };
 
-s32 D_dryfield_night_underpass_8018033C[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_underpass_8018033C = {
     0x10000039,
     0x1000003B,
     0x10000039,
 };
 
-s32 D_dryfield_night_underpass_80180348[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_underpass_80180348 = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-GpRoomParamRec D_dryfield_night_underpass_80180354[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_underpass_80180354[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_underpass_8018035C[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_underpass_8018033C },
+WorldCollisionSurfaceProperties D_dryfield_night_underpass_8018035C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_underpass_8018033C },
 };
 
-GpRoomParamRec D_dryfield_night_underpass_80180364[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_underpass_8018033C },
+WorldCollisionSurfaceProperties D_dryfield_night_underpass_80180364[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_underpass_8018033C },
 };
 
-GpRoomParamRec D_dryfield_night_underpass_8018036C[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_underpass_80180348 },
+WorldCollisionSurfaceProperties D_dryfield_night_underpass_8018036C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_underpass_80180348 },
 };
 
-GpRoomParamRec* D_dryfield_night_underpass_80180374[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_underpass_80180374[8] = {
     D_dryfield_night_underpass_80180354,
     D_dryfield_night_underpass_80180354,
     D_dryfield_night_underpass_80180364,

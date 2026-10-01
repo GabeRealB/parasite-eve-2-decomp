@@ -36,7 +36,7 @@ extern GpObj4A D_shelter_b2_elevator_8017E858[];
 
 extern GpObj4A D_shelter_b2_elevator_8017E8F0[];
 
-extern GpRoomParamRec* D_shelter_b2_elevator_8017E9D8[];
+extern WorldCollisionSurfaceProperties* D_shelter_b2_elevator_8017E9D8[];
 
 void func_shelter_b2_elevator_8017DB18(Task* task);
 

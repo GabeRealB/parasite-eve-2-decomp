@@ -1090,17 +1090,17 @@ GpRoomCoordSet D_mist_r18_80186E44[1] = {
     { 0, NULL, 5, D_mist_r18_80186C64, 0, NULL },
 };
 
-s32 D_mist_r18_80186E5C[3] = {
+WorldCollisionFootstepSounds D_mist_r18_80186E5C = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-GpRoomParamRec D_mist_r18_80186E68[1] = {
-    { 0, 0, 1, 0, D_mist_r18_80186E5C },
+WorldCollisionSurfaceProperties D_mist_r18_80186E68[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mist_r18_80186E5C },
 };
 
-GpRoomParamRec* D_mist_r18_80186E70[8] = {
+WorldCollisionSurfaceProperties* D_mist_r18_80186E70[8] = {
     D_mist_r18_80186E68,
     D_mist_r18_80186E68,
     D_mist_r18_80186E68,

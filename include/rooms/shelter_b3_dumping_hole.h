@@ -49,7 +49,7 @@ extern WorldCoordRoomAmbientEntry D_shelter_b3_dumping_hole_8018F1FC[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b3_dumping_hole_8018F32C[];
 
-extern GpRoomParamRec* D_shelter_b3_dumping_hole_8018F480[];
+extern WorldCollisionSurfaceProperties* D_shelter_b3_dumping_hole_8018F480[];
 
 void func_shelter_b3_dumping_hole_8017D9A8(Task* task);
 

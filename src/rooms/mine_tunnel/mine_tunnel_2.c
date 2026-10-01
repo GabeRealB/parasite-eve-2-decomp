@@ -512,21 +512,21 @@ GpObj3A D_mine_tunnel_8018025C[3] = {
     { NULL, NULL, { 0x2C80, 0, 640, 0 }, { { -392, -1024, 946, 0 }, { 391, -1024, -946, 0 }, { -392, 1024, 946, 0 }, { 391, 1024, -946, 0 } }, { -3784, 0, -1568, 0 }, { -88, 5 }, 129, 0 },
 };
 
-s32 D_mine_tunnel_80180310[3] = {
+WorldCollisionFootstepSounds D_mine_tunnel_80180310 = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-GpRoomParamRec D_mine_tunnel_8018031C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_tunnel_8018031C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_tunnel_80180324[1] = {
-    { 0, 0, 1, 0, D_mine_tunnel_80180310 },
+WorldCollisionSurfaceProperties D_mine_tunnel_80180324[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_tunnel_80180310 },
 };
 
-GpRoomParamRec* D_mine_tunnel_8018032C[8] = {
+WorldCollisionSurfaceProperties* D_mine_tunnel_8018032C[8] = {
     D_mine_tunnel_8018031C,
     D_mine_tunnel_80180324,
     D_mine_tunnel_8018031C,

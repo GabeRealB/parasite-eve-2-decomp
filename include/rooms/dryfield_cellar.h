@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_cellar_8017DF78[];
 
 extern GpSprtRec D_dryfield_cellar_8017FE40[];
 
-extern GpRoomParamRec* D_dryfield_cellar_80180B40[];
+extern WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[];
 
 void func_dryfield_cellar_8017DAEC(Task* arg0);
 

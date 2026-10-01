@@ -171,35 +171,35 @@ GpObj4C D_dryfield_night_factory_8018A168[19] = {
 
 GpAreaVariant D_dryfield_night_factory_8018A70C[11] = { 0 };
 
-s32 D_dryfield_night_factory_8018A764[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_factory_8018A764 = {
     0x10000051,
     0x10000053,
     0x10000051,
 };
 
-s32 D_dryfield_night_factory_8018A770[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_factory_8018A770 = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_dryfield_night_factory_8018A77C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A77C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_factory_8018A784[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A784[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_factory_8018A78C[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_factory_8018A764 },
+WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A78C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_factory_8018A764 },
 };
 
-GpRoomParamRec D_dryfield_night_factory_8018A794[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_factory_8018A770 },
+WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A794[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_factory_8018A770 },
 };
 
-GpRoomParamRec* D_dryfield_night_factory_8018A79C[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[8] = {
     D_dryfield_night_factory_8018A77C,
     D_dryfield_night_factory_8018A784,
     D_dryfield_night_factory_8018A78C,

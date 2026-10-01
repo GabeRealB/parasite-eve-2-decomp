@@ -27,10 +27,10 @@ void Gp_LoadWaitDispatch(Task* task);
 void Gp_SetupSprtDisplay(Task* task);
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-/// Each entry is an array of `GpRoomParamRec**`, indexed by `field_6 - 1`.
-/// Each of those is an 8-entry array of `GpRoomParamRec*` copied into
-/// `Gp_RoomParams` by `Gp_LoadRoomParams`.
-extern GpRoomParamRec*** Gp_RoomParamTables[];
+/// Each entry is an array of `WorldCollisionSurfaceProperties**`, indexed by area - 1.
+/// Each room has eight surface-class pointers; `Gp_LoadRoomParams` copies only
+/// their `suppressPushback` flags into `Gp_RoomParams`.
+extern WorldCollisionSurfaceProperties*** Gp_RoomParamTables[];
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern GpSprtTbl* Gp_SprtTables[];

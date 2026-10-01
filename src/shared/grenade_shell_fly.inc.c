@@ -2,7 +2,7 @@
 
 /// Flight state of the projectile. Detonates when the shot
 /// has touched world geometry (`rec0` with 0x30000), when a wall record it hit
-/// is solid, or when the flight timer runs past 0xDFFFF; otherwise it steps
+/// enables weapon impacts, or when the flight timer runs past 0xDFFFF; otherwise it steps
 /// the projectile by `dir / field_88.halves.integer`, lets gravity pull `dir.vy` down,
 /// and trails smoke every `field_8C` frames — a divisor that grows by one
 /// every seven frames up to four, so the trail thins as the grenade slows.
@@ -13,18 +13,18 @@
 /// `0x40660002` clip instead.
 void grenadeShellFly(Task* arg0)
 {
-    WeaponGrenadeScratch*  blk;
-    WeaponGrenadeWork*     work;
-    GfxCoord*              coord;
-    WorldCollisionContact* rec;
-    GpRoomParamRec*        param;
-    u8*                    head;
-    s32                    idx;
-    s32                    count;
-    s32                    clip;
-    s32                    step;
-    s32                    sfxarg;
-    s32                    sfxbase;
+    WeaponGrenadeScratch*            blk;
+    WeaponGrenadeWork*               work;
+    GfxCoord*                        coord;
+    WorldCollisionContact*           rec;
+    WorldCollisionSurfaceProperties* surface;
+    u8*                              head;
+    s32                              idx;
+    s32                              count;
+    s32                              clip;
+    s32                              step;
+    s32                              sfxarg;
+    s32                              sfxbase;
 
     work  = (WeaponGrenadeWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -79,9 +79,9 @@ check:
     /* `func_800E1ACC` writes through `&idx` as well as returning it, so the
        index is re-read from the slot instead of kept in the return register. */
     SOFT_COMPILER_BARRIER();
-    param = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
-    if (param->field_1 == 0) {
-        if (param->field_2 != 0) {
+    surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
+    if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
+        if (surface->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
             goto explode;
         }
         arg0->state = 3;

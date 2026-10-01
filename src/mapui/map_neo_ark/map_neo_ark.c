@@ -847,7 +847,7 @@ static GpSprtRec* D_map_neo_ark_8017ADB4[33] = {
 
 GpSprtTbl D_map_neo_ark_8017AE38 = { D_map_neo_ark_8017ADB4 };
 
-GpRoomParamRec** D_map_neo_ark_8017AE3C[33] = {
+WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     D_shelter_1f_parking_garage_80181954,
     D_shelter_1f_vehicular_airlock_80182A80,
     D_shelter_1f_bulwark_80180E9C,

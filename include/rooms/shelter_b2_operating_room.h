@@ -37,7 +37,7 @@ extern GpObj4A D_shelter_b2_operating_room_80183ADC[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b2_operating_room_80184184[];
 
-extern GpRoomParamRec* D_shelter_b2_operating_room_801841F4[];
+extern WorldCollisionSurfaceProperties* D_shelter_b2_operating_room_801841F4[];
 
 void func_shelter_b2_operating_room_8017DD60(Task* task);
 

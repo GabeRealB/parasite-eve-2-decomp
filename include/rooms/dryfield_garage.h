@@ -41,7 +41,7 @@ extern GpViewRec D_dryfield_garage_8017E670[];
 
 extern GpSprtRec D_dryfield_garage_8017F5E8[];
 
-extern GpRoomParamRec* D_dryfield_garage_801801E4[];
+extern WorldCollisionSurfaceProperties* D_dryfield_garage_801801E4[];
 
 void func_dryfield_garage_8017DC68(Task* unused);
 

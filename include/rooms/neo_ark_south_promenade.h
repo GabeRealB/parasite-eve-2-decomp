@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_south_promenade_8017FDB0[];
 
 extern GpSprtRec D_neo_ark_south_promenade_801803E4[];
 
-extern GpRoomParamRec* D_neo_ark_south_promenade_801809AC[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_south_promenade_801809AC[];
 
 void func_neo_ark_south_promenade_8017E184(Task* task);
 

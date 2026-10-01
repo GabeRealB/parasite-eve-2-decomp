@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_night_junk_yard_801811DC[];
 
 extern GpSprtRec D_dryfield_night_junk_yard_80183700[];
 
-extern GpRoomParamRec* D_dryfield_night_junk_yard_801844C4[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_junk_yard_801844C4[];
 
 void func_dryfield_night_junk_yard_8017D9B8(u8 arg0);
 

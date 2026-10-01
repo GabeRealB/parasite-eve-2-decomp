@@ -747,7 +747,7 @@ static GpSprtRec* D_map_dryfield_full_8017AB14[38] = {
 
 GpSprtTbl D_map_dryfield_full_8017ABAC = { D_map_dryfield_full_8017AB14 };
 
-GpRoomParamRec** D_map_dryfield_full_8017ABB0[38] = {
+WorldCollisionSurfaceProperties** D_map_dryfield_full_8017ABB0[38] = {
     D_dryfield_night_gas_station_80190780,
     D_dryfield_night_main_street_80188B84,
     D_dryfield_night_general_store_80185894,

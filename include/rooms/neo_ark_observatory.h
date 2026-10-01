@@ -30,7 +30,7 @@ extern GpViewRec D_neo_ark_observatory_80181FC8[];
 
 extern GpSprtRec D_neo_ark_observatory_801860E8[];
 
-extern GpRoomParamRec* D_neo_ark_observatory_80187A08[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_observatory_80187A08[];
 
 void func_neo_ark_observatory_80180DAC(s32 arg0);
 

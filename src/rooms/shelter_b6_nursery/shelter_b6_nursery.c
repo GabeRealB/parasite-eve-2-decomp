@@ -840,21 +840,21 @@ WorldCoordRoomAmbientEntry D_shelter_b6_nursery_8018789C[20] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_shelter_b6_nursery_8018793C[3] = {
+WorldCollisionFootstepSounds D_shelter_b6_nursery_8018793C = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-GpRoomParamRec D_shelter_b6_nursery_80187948[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b6_nursery_80187948[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b6_nursery_80187950[1] = {
-    { 0, 0, 1, 0, D_shelter_b6_nursery_8018793C },
+WorldCollisionSurfaceProperties D_shelter_b6_nursery_80187950[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_nursery_8018793C },
 };
 
-GpRoomParamRec* D_shelter_b6_nursery_80187958[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b6_nursery_80187958[8] = {
     D_shelter_b6_nursery_80187948,
     D_shelter_b6_nursery_80187950,
     D_shelter_b6_nursery_80187948,

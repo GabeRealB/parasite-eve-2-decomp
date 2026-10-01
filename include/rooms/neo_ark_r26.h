@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_r26_8017E1C0[];
 
 extern GpSprtRec D_neo_ark_r26_8017E898[];
 
-extern GpRoomParamRec* D_neo_ark_r26_8017EA30[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_r26_8017EA30[];
 
 void func_neo_ark_r26_8017D778(Task* unused);
 

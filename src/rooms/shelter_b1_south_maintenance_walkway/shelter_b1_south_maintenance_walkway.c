@@ -400,21 +400,21 @@ GpAreaVariant D_shelter_b1_south_maintenance_walkway_80183598[12] = {
     { D_shelter_b1_south_maintenance_walkway_80183558, D_shelter_b1_south_maintenance_walkway_801833B4 },
 };
 
-s32 D_shelter_b1_south_maintenance_walkway_801835F8[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_south_maintenance_walkway_801835F8 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_shelter_b1_south_maintenance_walkway_80183604[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_south_maintenance_walkway_80183604[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b1_south_maintenance_walkway_8018360C[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_south_maintenance_walkway_801835F8 },
+WorldCollisionSurfaceProperties D_shelter_b1_south_maintenance_walkway_8018360C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_south_maintenance_walkway_801835F8 },
 };
 
-GpRoomParamRec* D_shelter_b1_south_maintenance_walkway_80183614[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b1_south_maintenance_walkway_80183614[8] = {
     D_shelter_b1_south_maintenance_walkway_80183604,
     D_shelter_b1_south_maintenance_walkway_8018360C,
     D_shelter_b1_south_maintenance_walkway_80183604,

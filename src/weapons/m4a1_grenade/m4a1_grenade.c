@@ -286,22 +286,22 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
 /// something, when it crosses a room record that blocks it, or when the 16.16
 /// flight timer runs past 0xFFFFF. `rec0` collects the solid hits, `rec1` the
 /// room-boundary ones; whichever table has a `0x100000` record is handed to
-/// `func_800E0FEC` / `func_800E1ACC` to name the room parameter it crossed.
-/// A record with `field_1` set is a doorway, which only detonates the grenade
-/// in the one scripted case (room 0x14, floors 2 and 3); one with `field_1`
-/// clear detonates on `field_2` and otherwise hands the task to state 3.
+/// `func_800E0FEC` / `func_800E1ACC` to select the surface properties it crossed.
+/// A surface with `probePassThrough` set only detonates the grenade in the
+/// one scripted case (area 0x14, stages 2 and 3). A blocking surface detonates
+/// it when `weaponImpactEnabled` is set, otherwise handing the task to state 3.
 static void func_m4a1_grenade_8011D994(Task* arg0)
 {
-    M4a1GrenadeScratch*  blk;
-    WeaponGrenadeWork*   work;
-    GfxCoord*            coord;
-    EquipmentWeaponLoad* slot;
-    GpRoomParamRec*      param;
-    s32                  idx;
-    s32                  clip;
-    s32                  step;
-    s32                  sfxbase;
-    s32                  sfxarg;
+    M4a1GrenadeScratch*              blk;
+    WeaponGrenadeWork*               work;
+    GfxCoord*                        coord;
+    EquipmentWeaponLoad*             slot;
+    WorldCollisionSurfaceProperties* surface;
+    s32                              idx;
+    s32                              clip;
+    s32                              step;
+    s32                              sfxbase;
+    s32                              sfxarg;
 
     work                = (WeaponGrenadeWork*)arg0->work;
     coord               = arg0->extra.tmd->coords;
@@ -336,9 +336,9 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     func_800E0FEC(work->rec1, &blk->delta, 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
 check:
-    param = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
-    if (param->field_1 == 0) {
-        if (param->field_2 != 0) {
+    surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
+    if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
+        if (surface->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
             goto explode;
         }
         arg0->state = 3;

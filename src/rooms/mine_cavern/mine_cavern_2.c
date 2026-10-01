@@ -2118,25 +2118,25 @@ GpAreaVariant D_mine_cavern_8018E238[22] = {
     { NULL, NULL },
 };
 
-s32 D_mine_cavern_8018E2E8[3] = {
+WorldCollisionFootstepSounds D_mine_cavern_8018E2E8 = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-GpRoomParamRec D_mine_cavern_8018E2F4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_cavern_8018E2F4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_cavern_8018E2FC[1] = {
-    { 0, 0, 1, 0, D_mine_cavern_8018E2E8 },
+WorldCollisionSurfaceProperties D_mine_cavern_8018E2FC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_cavern_8018E2E8 },
 };
 
-GpRoomParamRec D_mine_cavern_8018E304[1] = {
-    { 0, 1, 1, 0, D_mine_cavern_8018E2E8 },
+WorldCollisionSurfaceProperties D_mine_cavern_8018E304[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_cavern_8018E2E8 },
 };
 
-GpRoomParamRec* D_mine_cavern_8018E30C[8] = {
+WorldCollisionSurfaceProperties* D_mine_cavern_8018E30C[8] = {
     D_mine_cavern_8018E2F4,
     D_mine_cavern_8018E2FC,
     D_mine_cavern_8018E304,

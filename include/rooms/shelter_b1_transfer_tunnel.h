@@ -33,7 +33,7 @@ extern GpObj4A D_shelter_b1_transfer_tunnel_80182DA8[];
 
 extern GpObj4A D_shelter_b1_transfer_tunnel_80182ED8[];
 
-extern GpRoomParamRec* D_shelter_b1_transfer_tunnel_80183184[];
+extern WorldCollisionSurfaceProperties* D_shelter_b1_transfer_tunnel_80183184[];
 
 void func_shelter_b1_transfer_tunnel_8017D678(Task* task);
 

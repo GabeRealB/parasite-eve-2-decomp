@@ -28,7 +28,7 @@ extern GpViewRec D_mine_tunnel_entrance_8017E0E4[];
 
 extern GpSprtRec D_mine_tunnel_entrance_8017EA4C[];
 
-extern GpRoomParamRec* D_mine_tunnel_entrance_8017F3E8[];
+extern WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[];
 
 void func_mine_tunnel_entrance_8017D720(Task* unused);
 

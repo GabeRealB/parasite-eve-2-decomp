@@ -1222,7 +1222,7 @@ static GpSprtRec* D_map_shelter_8017B54C[49] = {
 
 GpSprtTbl D_map_shelter_8017B610 = { D_map_shelter_8017B54C };
 
-GpRoomParamRec** D_map_shelter_8017B614[49] = {
+WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_mine_mesa_80189A60,
     D_mine_cavern_8018E30C,
     D_mine_tunnel_entrance_8017F3E8,

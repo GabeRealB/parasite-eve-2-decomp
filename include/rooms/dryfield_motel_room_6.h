@@ -30,7 +30,7 @@ extern GpViewRec D_dryfield_motel_room_6_80183840[];
 
 extern GpSprtRec D_dryfield_motel_room_6_801856CC[];
 
-extern GpRoomParamRec* D_dryfield_motel_room_6_80186808[];
+extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_6_80186808[];
 
 void func_dryfield_motel_room_6_8017EA58(Task* task);
 

@@ -688,17 +688,17 @@ GpAreaVariant D_dryfield_night_cellar_80180780[12] = {
     { D_map_dryfield_full_8017CEA8, D_dryfield_night_cellar_8018075C },
 };
 
-s32 D_dryfield_night_cellar_801807E0[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_cellar_801807E0 = {
     0x10000051,
     0x10000053,
     0x10000051,
 };
 
-GpRoomParamRec D_dryfield_night_cellar_801807EC[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_cellar_801807E0 },
+WorldCollisionSurfaceProperties D_dryfield_night_cellar_801807EC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_cellar_801807E0 },
 };
 
-GpRoomParamRec* D_dryfield_night_cellar_801807F4[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_cellar_801807F4[8] = {
     D_dryfield_night_cellar_801807EC,
     D_dryfield_night_cellar_801807EC,
     D_dryfield_night_cellar_801807EC,

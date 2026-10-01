@@ -555,45 +555,45 @@ GpObj3A D_dryfield_night_water_tank_801807CC[2] = {
     { NULL, NULL, { 0, -0x35A0, 0, 0 }, { { 0, 2560, 1840, 0 }, { 0, 2560, -1840, 0 }, { 0, -2560, 1840, 0 }, { 0, -2560, -1840, 0 } }, { 4113, 0, 0, 0 }, { 73, 12 }, 129, 0 },
 };
 
-s32 D_dryfield_night_water_tank_80180844[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_water_tank_80180844 = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_night_water_tank_80180850[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_water_tank_80180850 = {
     0x10000045,
     0x10000047,
     0x10000045,
 };
 
-s32 D_dryfield_night_water_tank_8018085C[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_water_tank_8018085C = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-GpRoomParamRec D_dryfield_night_water_tank_80180868[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_water_tank_80180868[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_water_tank_80180870[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_water_tank_80180870[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_water_tank_80180878[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_tank_80180844 },
+WorldCollisionSurfaceProperties D_dryfield_night_water_tank_80180878[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_tank_80180844 },
 };
 
-GpRoomParamRec D_dryfield_night_water_tank_80180880[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_tank_80180850 },
+WorldCollisionSurfaceProperties D_dryfield_night_water_tank_80180880[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_tank_80180850 },
 };
 
-GpRoomParamRec D_dryfield_night_water_tank_80180888[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_water_tank_8018085C },
+WorldCollisionSurfaceProperties D_dryfield_night_water_tank_80180888[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_water_tank_8018085C },
 };
 
-GpRoomParamRec* D_dryfield_night_water_tank_80180890[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_water_tank_80180890[8] = {
     D_dryfield_night_water_tank_80180868,
     D_dryfield_night_water_tank_80180870,
     D_dryfield_night_water_tank_80180868,

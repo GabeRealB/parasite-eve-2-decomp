@@ -231,15 +231,15 @@ s32 D_dryfield_motel_loft_8017E62C[3] = {
     0x10000035,
 };
 
-GpRoomParamRec D_dryfield_motel_loft_8017E638[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_loft_8017E638[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_motel_loft_8017E640[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_loft_8017E640[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_dryfield_motel_loft_8017E648[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_motel_loft_8017E648[8] = {
     D_dryfield_motel_loft_8017E638,
     D_dryfield_motel_loft_8017E640,
     D_dryfield_motel_loft_8017E638,

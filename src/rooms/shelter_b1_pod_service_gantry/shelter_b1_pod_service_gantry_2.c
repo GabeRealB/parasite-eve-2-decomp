@@ -68,11 +68,11 @@ s32 D_shelter_b1_pod_service_gantry_8018250C[3] = {
     0x10000011,
 };
 
-GpRoomParamRec D_shelter_b1_pod_service_gantry_80182518[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_pod_service_gantry_80182518[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_shelter_b1_pod_service_gantry_80182520[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b1_pod_service_gantry_80182520[8] = {
     D_shelter_b1_pod_service_gantry_80182518,
     D_shelter_b1_pod_service_gantry_80182518,
     D_shelter_b1_pod_service_gantry_80182518,

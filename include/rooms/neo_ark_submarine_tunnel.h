@@ -40,7 +40,7 @@ extern GpViewRec D_neo_ark_submarine_tunnel_80182500[];
 
 extern GpSprtRec D_neo_ark_submarine_tunnel_80186B78[];
 
-extern GpRoomParamRec* D_neo_ark_submarine_tunnel_801878EC[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_tunnel_801878EC[];
 
 void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0);
 

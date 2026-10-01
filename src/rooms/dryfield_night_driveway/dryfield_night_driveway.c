@@ -897,25 +897,25 @@ WorldCoordRoomAmbientEntry D_dryfield_night_driveway_80182074[11] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_dryfield_night_driveway_801820CC[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_driveway_801820CC = {
     0x1000001D,
     0x1000001F,
     0x1000001D,
 };
 
-GpRoomParamRec D_dryfield_night_driveway_801820D8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_driveway_801820D8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_driveway_801820E0[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_driveway_801820E0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_driveway_801820E8[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_driveway_801820CC },
+WorldCollisionSurfaceProperties D_dryfield_night_driveway_801820E8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_driveway_801820CC },
 };
 
-GpRoomParamRec* D_dryfield_night_driveway_801820F0[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_driveway_801820F0[8] = {
     D_dryfield_night_driveway_801820D8,
     D_dryfield_night_driveway_801820E0,
     D_dryfield_night_driveway_801820E8,

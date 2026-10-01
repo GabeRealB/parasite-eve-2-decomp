@@ -317,31 +317,31 @@ WorldCoordRoomAmbientEntry D_shelter_b6_growth_room_80180730[9] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_shelter_b6_growth_room_80180778[3] = {
+WorldCollisionFootstepSounds D_shelter_b6_growth_room_80180778 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-s32 D_shelter_b6_growth_room_80180784[3] = {
+WorldCollisionFootstepSounds D_shelter_b6_growth_room_80180784 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_shelter_b6_growth_room_80180790[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b6_growth_room_80180790[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b6_growth_room_80180798[1] = {
-    { 0, 0, 1, 0, D_shelter_b6_growth_room_80180778 },
+WorldCollisionSurfaceProperties D_shelter_b6_growth_room_80180798[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_growth_room_80180778 },
 };
 
-GpRoomParamRec D_shelter_b6_growth_room_801807A0[1] = {
-    { 0, 0, 1, 0, D_shelter_b6_growth_room_80180784 },
+WorldCollisionSurfaceProperties D_shelter_b6_growth_room_801807A0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_growth_room_80180784 },
 };
 
-GpRoomParamRec* D_shelter_b6_growth_room_801807A8[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b6_growth_room_801807A8[8] = {
     D_shelter_b6_growth_room_80180790,
     D_shelter_b6_growth_room_80180798,
     D_shelter_b6_growth_room_801807A0,

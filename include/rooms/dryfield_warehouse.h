@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_warehouse_8018105C[];
 
 extern GpSprtRec D_dryfield_warehouse_80181638[];
 
-extern GpRoomParamRec* D_dryfield_warehouse_80182194[];
+extern WorldCollisionSurfaceProperties* D_dryfield_warehouse_80182194[];
 
 void func_dryfield_warehouse_8017F494(Task* arg0);
 

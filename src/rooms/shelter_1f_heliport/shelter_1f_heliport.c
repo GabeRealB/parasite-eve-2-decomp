@@ -564,21 +564,21 @@ GpAreaVariant D_shelter_1f_heliport_80182BF4[13] = {
     { NULL, NULL },
 };
 
-s32 D_shelter_1f_heliport_80182C5C[3] = {
+WorldCollisionFootstepSounds D_shelter_1f_heliport_80182C5C = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-GpRoomParamRec D_shelter_1f_heliport_80182C68[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_1f_heliport_80182C68[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_1f_heliport_80182C70[1] = {
-    { 0, 0, 1, 0, D_shelter_1f_heliport_80182C5C },
+WorldCollisionSurfaceProperties D_shelter_1f_heliport_80182C70[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_heliport_80182C5C },
 };
 
-GpRoomParamRec* D_shelter_1f_heliport_80182C78[8] = {
+WorldCollisionSurfaceProperties* D_shelter_1f_heliport_80182C78[8] = {
     D_shelter_1f_heliport_80182C68,
     D_shelter_1f_heliport_80182C70,
     D_shelter_1f_heliport_80182C68,

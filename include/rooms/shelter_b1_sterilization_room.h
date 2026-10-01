@@ -31,7 +31,7 @@ extern GpViewRec D_shelter_b1_sterilization_room_80189E68[];
 
 extern GpSprtRec D_shelter_b1_sterilization_room_8018B00C[];
 
-extern GpRoomParamRec* D_shelter_b1_sterilization_room_8018C314[];
+extern WorldCollisionSurfaceProperties* D_shelter_b1_sterilization_room_8018C314[];
 
 void func_shelter_b1_sterilization_room_80180518(Task* task);
 

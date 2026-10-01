@@ -416,21 +416,21 @@ WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_neo_ark_r26_8017EA14[3] = {
+WorldCollisionFootstepSounds D_neo_ark_r26_8017EA14 = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-GpRoomParamRec D_neo_ark_r26_8017EA20[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_r26_8017EA20[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_r26_8017EA28[1] = {
-    { 0, 0, 1, 0, D_neo_ark_r26_8017EA14 },
+WorldCollisionSurfaceProperties D_neo_ark_r26_8017EA28[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_r26_8017EA14 },
 };
 
-GpRoomParamRec* D_neo_ark_r26_8017EA30[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_r26_8017EA30[8] = {
     D_neo_ark_r26_8017EA20,
     D_neo_ark_r26_8017EA28,
     D_neo_ark_r26_8017EA20,

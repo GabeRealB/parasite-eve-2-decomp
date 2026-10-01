@@ -630,19 +630,19 @@ GpViewRec D_acropolis_east_elevator_hall_80187A5C[7] = {
     { { { { -869, 0, 4002 }, { 3549, 1892, 771 }, { -1849, 3632, -401 } }, { -5320, 2510, 990 } }, 230 },
 };
 
-s32 D_acropolis_east_elevator_hall_80187B58[3] = {
+WorldCollisionFootstepSounds D_acropolis_east_elevator_hall_80187B58 = {
     0x10000011,
     0x10000013,
     0x10000011,
 };
 
-GpRoomParamRec D_acropolis_east_elevator_hall_80187B64[1] = {
-    { 0, 0, 1, 0, D_acropolis_east_elevator_hall_80187B58 },
+WorldCollisionSurfaceProperties D_acropolis_east_elevator_hall_80187B64[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_east_elevator_hall_80187B58 },
 };
 
-GpRoomParamRec D_acropolis_east_elevator_hall_80187B6C[1] = { 0 };
+WorldCollisionSurfaceProperties D_acropolis_east_elevator_hall_80187B6C[1] = { 0 };
 
-GpRoomParamRec* D_acropolis_east_elevator_hall_80187B74[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[8] = {
     D_acropolis_east_elevator_hall_80187B64,
     D_acropolis_east_elevator_hall_80187B6C,
     D_acropolis_east_elevator_hall_80187B64,

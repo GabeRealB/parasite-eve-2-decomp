@@ -1725,41 +1725,41 @@ GpAreaVariant D_dryfield_motel_room_6_80186764[12] = {
     { NULL, NULL },
 };
 
-s32 D_dryfield_motel_room_6_801867C4[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_6_801867C4 = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-s32 D_dryfield_motel_room_6_801867D0[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_6_801867D0 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-s32 D_dryfield_motel_room_6_801867DC[3] = {
+WorldCollisionFootstepSounds D_dryfield_motel_room_6_801867DC = {
     0x10000001,
     0x10000003,
     0x10000001,
 };
 
-GpRoomParamRec D_dryfield_motel_room_6_801867E8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_6_801867E8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_motel_room_6_801867F0[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_6_801867C4 },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_6_801867F0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_6_801867C4 },
 };
 
-GpRoomParamRec D_dryfield_motel_room_6_801867F8[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_6_801867D0 },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_6_801867F8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_6_801867D0 },
 };
 
-GpRoomParamRec D_dryfield_motel_room_6_80186800[1] = {
-    { 0, 0, 1, 0, D_dryfield_motel_room_6_801867DC },
+WorldCollisionSurfaceProperties D_dryfield_motel_room_6_80186800[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_room_6_801867DC },
 };
 
-GpRoomParamRec* D_dryfield_motel_room_6_80186808[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_motel_room_6_80186808[8] = {
     D_dryfield_motel_room_6_801867E8,
     D_dryfield_motel_room_6_801867F0,
     D_dryfield_motel_room_6_801867F8,

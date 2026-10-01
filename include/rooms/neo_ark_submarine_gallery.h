@@ -54,7 +54,7 @@ extern GpObj4A D_neo_ark_submarine_gallery_8018529C[];
 
 extern GpObj4A D_neo_ark_submarine_gallery_801854FC[];
 
-extern GpRoomParamRec* D_neo_ark_submarine_gallery_801858EC[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[];
 
 void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0);
 

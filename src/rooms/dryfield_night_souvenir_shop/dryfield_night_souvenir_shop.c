@@ -352,39 +352,39 @@ GpAreaVariant D_dryfield_night_souvenir_shop_8017F62C[12] = {
     { D_map_dryfield_full_8017B358, D_dryfield_night_souvenir_shop_8017F608 },
 };
 
-s32 D_dryfield_night_souvenir_shop_8017F68C[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_souvenir_shop_8017F68C = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_night_souvenir_shop_8017F698[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_souvenir_shop_8017F698 = {
     0x10000031,
     0x10000033,
     0x10000031,
 };
 
-GpRoomParamRec D_dryfield_night_souvenir_shop_8017F6A4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_souvenir_shop_8017F6A4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_souvenir_shop_8017F6AC[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_souvenir_shop_8017F6AC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_souvenir_shop_8017F6B4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_souvenir_shop_8017F6B4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_souvenir_shop_8017F6BC[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_souvenir_shop_8017F68C },
+WorldCollisionSurfaceProperties D_dryfield_night_souvenir_shop_8017F6BC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_souvenir_shop_8017F68C },
 };
 
-GpRoomParamRec D_dryfield_night_souvenir_shop_8017F6C4[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_souvenir_shop_8017F698 },
+WorldCollisionSurfaceProperties D_dryfield_night_souvenir_shop_8017F6C4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_souvenir_shop_8017F698 },
 };
 
-GpRoomParamRec* D_dryfield_night_souvenir_shop_8017F6CC[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_souvenir_shop_8017F6CC[8] = {
     D_dryfield_night_souvenir_shop_8017F6A4,
     D_dryfield_night_souvenir_shop_8017F6BC,
     D_dryfield_night_souvenir_shop_8017F6C4,

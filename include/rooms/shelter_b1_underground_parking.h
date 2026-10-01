@@ -39,7 +39,7 @@ extern GpViewRec D_shelter_b1_underground_parking_80189778[];
 
 extern GpSprtRec D_shelter_b1_underground_parking_8018AB9C[];
 
-extern GpRoomParamRec* D_shelter_b1_underground_parking_8018D724[];
+extern WorldCollisionSurfaceProperties* D_shelter_b1_underground_parking_8018D724[];
 
 void func_shelter_b1_underground_parking_801838B4(Task* task);
 

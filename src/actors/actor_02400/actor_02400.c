@@ -1344,7 +1344,6 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
 {
     Actor02400ChildWork* work;
     GfxCoord*            coord;
-    GpRoomParamRec*      param;
     s32                  rec;
     s32                  spawn;
     u16                  timer;
@@ -1369,7 +1368,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
             if ((rec != 0) &&
                 (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
                                    [func_800E1B24(rec)]
-                                       ->field_1 == 0)) {
+                                       ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES)) {
                 spawn = 1;
             }
             Gp_ClearRec18Occupied(&work->field_90);

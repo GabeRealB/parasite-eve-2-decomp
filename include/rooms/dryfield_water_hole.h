@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_water_hole_80180284[];
 
 extern GpSprtRec D_dryfield_water_hole_80181634[];
 
-extern GpRoomParamRec* D_dryfield_water_hole_801828AC[];
+extern WorldCollisionSurfaceProperties* D_dryfield_water_hole_801828AC[];
 
 void func_dryfield_water_hole_8017EC90(Task* task);
 

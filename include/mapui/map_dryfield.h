@@ -71,7 +71,7 @@ extern GpViewIndexTbl D_map_dryfield_8017ABFC;
 
 extern GpSprtTbl D_map_dryfield_8017AC98;
 
-extern GpRoomParamRec** D_map_dryfield_8017AC9C[];
+extern WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[];
 
 /// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
 /// records point at them, one list per location.

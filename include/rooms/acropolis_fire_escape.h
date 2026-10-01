@@ -38,7 +38,7 @@ extern GpSprtRec D_acropolis_fire_escape_80182E18[];
 
 extern GpViewRec D_acropolis_fire_escape_80182E90[];
 
-extern GpRoomParamRec* D_acropolis_fire_escape_80183020[];
+extern WorldCollisionSurfaceProperties* D_acropolis_fire_escape_80183020[];
 
 void func_acropolis_fire_escape_80180B20(Task* task);
 

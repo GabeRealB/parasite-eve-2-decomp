@@ -28,7 +28,7 @@ extern GpViewRec D_mist_r18_8018671C[];
 
 extern GpSprtRec D_mist_r18_80186B60[];
 
-extern GpRoomParamRec* D_mist_r18_80186E70[];
+extern WorldCollisionSurfaceProperties* D_mist_r18_80186E70[];
 
 void func_mist_r18_8017ED64(Task* task);
 

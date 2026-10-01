@@ -298,21 +298,21 @@ GpAreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {
     { NULL, NULL },
 };
 
-s32 D_shelter_1f_vehicular_airlock_80182A64[3] = {
+WorldCollisionFootstepSounds D_shelter_1f_vehicular_airlock_80182A64 = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-GpRoomParamRec D_shelter_1f_vehicular_airlock_80182A70[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_1f_vehicular_airlock_80182A70[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_1f_vehicular_airlock_80182A78[1] = {
-    { 0, 0, 1, 0, D_shelter_1f_vehicular_airlock_80182A64 },
+WorldCollisionSurfaceProperties D_shelter_1f_vehicular_airlock_80182A78[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_vehicular_airlock_80182A64 },
 };
 
-GpRoomParamRec* D_shelter_1f_vehicular_airlock_80182A80[8] = {
+WorldCollisionSurfaceProperties* D_shelter_1f_vehicular_airlock_80182A80[8] = {
     D_shelter_1f_vehicular_airlock_80182A70,
     D_shelter_1f_vehicular_airlock_80182A78,
     D_shelter_1f_vehicular_airlock_80182A70,

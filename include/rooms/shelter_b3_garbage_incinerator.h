@@ -43,7 +43,7 @@ extern GpViewRec D_shelter_b3_garbage_incinerator_801883AC[];
 
 extern GpSprtRec D_shelter_b3_garbage_incinerator_8018D100[];
 
-extern GpRoomParamRec* D_shelter_b3_garbage_incinerator_8018FB4C[];
+extern WorldCollisionSurfaceProperties* D_shelter_b3_garbage_incinerator_8018FB4C[];
 
 void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task);
 

@@ -328,39 +328,39 @@ GpAreaVariant D_dryfield_souvenir_shop_8017F598[13] = {
     { NULL, NULL },
 };
 
-s32 D_dryfield_souvenir_shop_8017F600[3] = {
+WorldCollisionFootstepSounds D_dryfield_souvenir_shop_8017F600 = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_souvenir_shop_8017F60C[3] = {
+WorldCollisionFootstepSounds D_dryfield_souvenir_shop_8017F60C = {
     0x10000031,
     0x10000033,
     0x10000031,
 };
 
-GpRoomParamRec D_dryfield_souvenir_shop_8017F618[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_souvenir_shop_8017F618[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_souvenir_shop_8017F620[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_souvenir_shop_8017F620[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_souvenir_shop_8017F628[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_souvenir_shop_8017F628[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_souvenir_shop_8017F630[1] = {
-    { 0, 0, 1, 0, D_dryfield_souvenir_shop_8017F600 },
+WorldCollisionSurfaceProperties D_dryfield_souvenir_shop_8017F630[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_souvenir_shop_8017F600 },
 };
 
-GpRoomParamRec D_dryfield_souvenir_shop_8017F638[1] = {
-    { 0, 0, 1, 0, D_dryfield_souvenir_shop_8017F60C },
+WorldCollisionSurfaceProperties D_dryfield_souvenir_shop_8017F638[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_souvenir_shop_8017F60C },
 };
 
-GpRoomParamRec* D_dryfield_souvenir_shop_8017F640[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_souvenir_shop_8017F640[8] = {
     D_dryfield_souvenir_shop_8017F618,
     D_dryfield_souvenir_shop_8017F630,
     D_dryfield_souvenir_shop_8017F638,

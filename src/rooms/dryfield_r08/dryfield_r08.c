@@ -467,11 +467,11 @@ s32 D_dryfield_r08_80180BF0[3] = {
     0x10000011,
 };
 
-GpRoomParamRec D_dryfield_r08_80180BFC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_r08_80180BFC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_dryfield_r08_80180C04[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_r08_80180C04[8] = {
     D_dryfield_r08_80180BFC,
     D_dryfield_r08_80180BFC,
     D_dryfield_r08_80180BFC,

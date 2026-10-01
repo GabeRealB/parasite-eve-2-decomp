@@ -28,7 +28,7 @@ extern GpViewRec D_mine_gorge_8017FA14[];
 
 extern GpSprtRec D_mine_gorge_801827F8[];
 
-extern GpRoomParamRec* D_mine_gorge_80183644[];
+extern WorldCollisionSurfaceProperties* D_mine_gorge_80183644[];
 
 void func_mine_gorge_8017D9F8(Task* unused);
 

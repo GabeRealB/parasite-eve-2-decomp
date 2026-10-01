@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_g_r_kitchen_8017EEE4[];
 
 extern GpSprtRec D_dryfield_g_r_kitchen_8017F014[];
 
-extern GpRoomParamRec* D_dryfield_g_r_kitchen_8017F53C[];
+extern WorldCollisionSurfaceProperties* D_dryfield_g_r_kitchen_8017F53C[];
 
 void func_dryfield_g_r_kitchen_8017EB04(Task* arg0);
 

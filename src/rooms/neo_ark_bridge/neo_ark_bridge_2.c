@@ -669,35 +669,35 @@ GpObj4C D_neo_ark_bridge_80184AB8[3] = {
     { NULL, NULL, NULL, { -480, -64, -1472, 0 }, { { -544, 0, -1904, 0 }, { 544, 0, -1904, 0 }, { -544, 0, 1904, 0 }, { 544, 0, 1904, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1978, 2, 1, 0, 130, 0 },
 };
 
-s32 D_neo_ark_bridge_80184B9C[3] = {
+WorldCollisionFootstepSounds D_neo_ark_bridge_80184B9C = {
     0x1000000D,
     0x1000000F,
     0x1000000D,
 };
 
-s32 D_neo_ark_bridge_80184BA8[3] = {
+WorldCollisionFootstepSounds D_neo_ark_bridge_80184BA8 = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_neo_ark_bridge_80184BB4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_bridge_80184BB4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_bridge_80184BBC[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_bridge_80184BBC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_bridge_80184BC4[1] = {
-    { 0, 0, 1, 0, D_neo_ark_bridge_80184B9C },
+WorldCollisionSurfaceProperties D_neo_ark_bridge_80184BC4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_bridge_80184B9C },
 };
 
-GpRoomParamRec D_neo_ark_bridge_80184BCC[1] = {
-    { 0, 0, 1, 0, D_neo_ark_bridge_80184BA8 },
+WorldCollisionSurfaceProperties D_neo_ark_bridge_80184BCC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_bridge_80184BA8 },
 };
 
-GpRoomParamRec* D_neo_ark_bridge_80184BD4[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[8] = {
     D_neo_ark_bridge_80184BB4,
     D_neo_ark_bridge_80184BBC,
     D_neo_ark_bridge_80184BB4,

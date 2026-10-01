@@ -468,31 +468,31 @@ GpAreaVariant D_shelter_b1_elevator_hall_80184940[12] = {
     { D_shelter_b1_elevator_hall_80184910, D_shelter_b1_elevator_hall_801847CC },
 };
 
-s32 D_shelter_b1_elevator_hall_801849A0[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_elevator_hall_801849A0 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-s32 D_shelter_b1_elevator_hall_801849AC[3] = {
+WorldCollisionFootstepSounds D_shelter_b1_elevator_hall_801849AC = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_shelter_b1_elevator_hall_801849B8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b1_elevator_hall_801849B8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b1_elevator_hall_801849C0[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_elevator_hall_801849A0 },
+WorldCollisionSurfaceProperties D_shelter_b1_elevator_hall_801849C0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_elevator_hall_801849A0 },
 };
 
-GpRoomParamRec D_shelter_b1_elevator_hall_801849C8[1] = {
-    { 0, 0, 1, 0, D_shelter_b1_elevator_hall_801849AC },
+WorldCollisionSurfaceProperties D_shelter_b1_elevator_hall_801849C8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_elevator_hall_801849AC },
 };
 
-GpRoomParamRec* D_shelter_b1_elevator_hall_801849D0[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b1_elevator_hall_801849D0[8] = {
     D_shelter_b1_elevator_hall_801849B8,
     D_shelter_b1_elevator_hall_801849C0,
     D_shelter_b1_elevator_hall_801849C8,

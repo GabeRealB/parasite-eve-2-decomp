@@ -560,21 +560,21 @@ WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16] = {
     { .color = { 560, 560, 560, 560 } },
 };
 
-s32 D_dryfield_garage_801801C8[3] = {
+WorldCollisionFootstepSounds D_dryfield_garage_801801C8 = {
     0x10000051,
     0x10000053,
     0x10000051,
 };
 
-GpRoomParamRec D_dryfield_garage_801801D4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_garage_801801D4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_garage_801801DC[1] = {
-    { 0, 0, 1, 0, D_dryfield_garage_801801C8 },
+WorldCollisionSurfaceProperties D_dryfield_garage_801801DC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_garage_801801C8 },
 };
 
-GpRoomParamRec* D_dryfield_garage_801801E4[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_garage_801801E4[8] = {
     D_dryfield_garage_801801D4,
     D_dryfield_garage_801801DC,
     D_dryfield_garage_801801D4,

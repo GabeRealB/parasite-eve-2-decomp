@@ -126,31 +126,31 @@ WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12] = {
     { .color = { 250, 250, 500, 281 } },
 };
 
-s32 D_dryfield_night_dilapidated_house_8018A0B4[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_dilapidated_house_8018A0B4 = {
     0x10000045,
     0x10000047,
     0x10000045,
 };
 
-s32 D_dryfield_night_dilapidated_house_8018A0C0[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_dilapidated_house_8018A0C0 = {
     0x1000004D,
     0x1000004F,
     0x1000004D,
 };
 
-GpRoomParamRec D_dryfield_night_dilapidated_house_8018A0CC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_dilapidated_house_8018A0CC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_dilapidated_house_8018A0D4[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_dilapidated_house_8018A0B4 },
+WorldCollisionSurfaceProperties D_dryfield_night_dilapidated_house_8018A0D4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_dilapidated_house_8018A0B4 },
 };
 
-GpRoomParamRec D_dryfield_night_dilapidated_house_8018A0DC[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_dilapidated_house_8018A0C0 },
+WorldCollisionSurfaceProperties D_dryfield_night_dilapidated_house_8018A0DC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_dilapidated_house_8018A0C0 },
 };
 
-GpRoomParamRec* D_dryfield_night_dilapidated_house_8018A0E4[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_dilapidated_house_8018A0E4[8] = {
     D_dryfield_night_dilapidated_house_8018A0CC,
     D_dryfield_night_dilapidated_house_8018A0D4,
     D_dryfield_night_dilapidated_house_8018A0DC,

@@ -92,21 +92,21 @@ GpAreaVariant D_neo_ark_garden_80182B54[13] = {
     { NULL, NULL },
 };
 
-s32 D_neo_ark_garden_80182BBC[3] = {
+WorldCollisionFootstepSounds D_neo_ark_garden_80182BBC = {
     0x1000000D,
     0x1000000F,
     0x1000000D,
 };
 
-GpRoomParamRec D_neo_ark_garden_80182BC8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_garden_80182BC8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_garden_80182BD0[1] = {
-    { 0, 0, 1, 0, D_neo_ark_garden_80182BBC },
+WorldCollisionSurfaceProperties D_neo_ark_garden_80182BD0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_garden_80182BBC },
 };
 
-GpRoomParamRec* D_neo_ark_garden_80182BD8[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[8] = {
     D_neo_ark_garden_80182BC8,
     D_neo_ark_garden_80182BC8,
     D_neo_ark_garden_80182BC8,

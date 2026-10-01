@@ -1132,25 +1132,25 @@ GpAreaVariant D_shelter_b2_septic_tank_80186F40[22] = {
     { D_shelter_b2_septic_tank_80186F00, D_shelter_b2_septic_tank_80186DDC },
 };
 
-s32 D_shelter_b2_septic_tank_80186FF0[3] = {
+WorldCollisionFootstepSounds D_shelter_b2_septic_tank_80186FF0 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-GpRoomParamRec D_shelter_b2_septic_tank_80186FFC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_septic_tank_80186FFC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_septic_tank_80187004[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b2_septic_tank_80187004[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b2_septic_tank_8018700C[1] = {
-    { 0, 0, 1, 0, D_shelter_b2_septic_tank_80186FF0 },
+WorldCollisionSurfaceProperties D_shelter_b2_septic_tank_8018700C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_septic_tank_80186FF0 },
 };
 
-GpRoomParamRec* D_shelter_b2_septic_tank_80187014[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b2_septic_tank_80187014[8] = {
     D_shelter_b2_septic_tank_80186FFC,
     D_shelter_b2_septic_tank_80187004,
     D_shelter_b2_septic_tank_8018700C,

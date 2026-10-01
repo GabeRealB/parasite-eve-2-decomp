@@ -455,25 +455,25 @@ WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_mine_tunnel_entrance_8017F3C4[3] = {
+WorldCollisionFootstepSounds D_mine_tunnel_entrance_8017F3C4 = {
     0x1000001D,
     0x1000001F,
     0x1000001D,
 };
 
-GpRoomParamRec D_mine_tunnel_entrance_8017F3D0[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_tunnel_entrance_8017F3D0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_tunnel_entrance_8017F3D8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mine_tunnel_entrance_8017F3D8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mine_tunnel_entrance_8017F3E0[1] = {
-    { 0, 0, 1, 0, D_mine_tunnel_entrance_8017F3C4 },
+WorldCollisionSurfaceProperties D_mine_tunnel_entrance_8017F3E0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_tunnel_entrance_8017F3C4 },
 };
 
-GpRoomParamRec* D_mine_tunnel_entrance_8017F3E8[8] = {
+WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[8] = {
     D_mine_tunnel_entrance_8017F3D0,
     D_mine_tunnel_entrance_8017F3D8,
     D_mine_tunnel_entrance_8017F3E0,

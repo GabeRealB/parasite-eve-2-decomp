@@ -824,35 +824,35 @@ GpAreaVariant D_dryfield_night_motel_room_5_80181190[13] = {
     { NULL, NULL },
 };
 
-s32 D_dryfield_night_motel_room_5_801811F8[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_motel_room_5_801811F8 = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_night_motel_room_5_80181204[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_motel_room_5_80181204 = {
     0x10000001,
     0x10000003,
     0x10000001,
 };
 
-GpRoomParamRec D_dryfield_night_motel_room_5_80181210[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_room_5_80181210[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_motel_room_5_80181218[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_motel_room_5_801811F8 },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_room_5_80181218[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_room_5_801811F8 },
 };
 
-GpRoomParamRec D_dryfield_night_motel_room_5_80181220[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_motel_room_5_80181204 },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_room_5_80181220[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_room_5_80181204 },
 };
 
-GpRoomParamRec D_dryfield_night_motel_room_5_80181228[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_room_5_80181228[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_dryfield_night_motel_room_5_80181230[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_5_80181230[8] = {
     D_dryfield_night_motel_room_5_80181210,
     D_dryfield_night_motel_room_5_80181218,
     D_dryfield_night_motel_room_5_80181220,

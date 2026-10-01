@@ -37,7 +37,7 @@ extern GpObj4A D_shelter_b3_incinerator_control_room_801827E4[];
 
 extern GpObj3A D_shelter_b3_incinerator_control_room_801829AC[];
 
-extern GpRoomParamRec* D_shelter_b3_incinerator_control_room_80182A20[];
+extern WorldCollisionSurfaceProperties* D_shelter_b3_incinerator_control_room_80182A20[];
 
 void func_shelter_b3_incinerator_control_room_8017FCB8(Task* task);
 

@@ -447,39 +447,39 @@ GpObj3A D_neo_ark_pyramid_80181790[3] = {
     { NULL, NULL, { 1536, -1984, -5744, 0 }, { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, { 0, -4110, 0, 0 }, { -76, 33 }, 129, 0 },
 };
 
-s32 D_neo_ark_pyramid_80181844[3] = {
+WorldCollisionFootstepSounds D_neo_ark_pyramid_80181844 = {
     0x10000039,
     0x1000003B,
     0x10000039,
 };
 
-s32 D_neo_ark_pyramid_80181850[3] = {
+WorldCollisionFootstepSounds D_neo_ark_pyramid_80181850 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-GpRoomParamRec D_neo_ark_pyramid_8018185C[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_pyramid_8018185C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_pyramid_80181864[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_pyramid_80181864[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_pyramid_8018186C[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_pyramid_8018186C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_pyramid_80181874[1] = {
-    { 0, 0, 1, 0, D_neo_ark_pyramid_80181844 },
+WorldCollisionSurfaceProperties D_neo_ark_pyramid_80181874[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_pyramid_80181844 },
 };
 
-GpRoomParamRec D_neo_ark_pyramid_8018187C[1] = {
-    { 0, 0, 1, 0, D_neo_ark_pyramid_80181850 },
+WorldCollisionSurfaceProperties D_neo_ark_pyramid_8018187C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_pyramid_80181850 },
 };
 
-GpRoomParamRec* D_neo_ark_pyramid_80181884[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_pyramid_80181884[8] = {
     D_neo_ark_pyramid_8018185C,
     D_neo_ark_pyramid_80181864,
     D_neo_ark_pyramid_8018186C,

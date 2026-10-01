@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_night_warehouse_8017EF2C[];
 
 extern GpSprtRec D_dryfield_night_warehouse_8017F46C[];
 
-extern GpRoomParamRec* D_dryfield_night_warehouse_8017FC24[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_warehouse_8017FC24[];
 
 void func_dryfield_night_warehouse_8017E778(Task* arg0);
 

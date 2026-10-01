@@ -891,45 +891,45 @@ WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_dryfield_water_tank_80188CB0[3] = {
+WorldCollisionFootstepSounds D_dryfield_water_tank_80188CB0 = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_water_tank_80188CBC[3] = {
+WorldCollisionFootstepSounds D_dryfield_water_tank_80188CBC = {
     0x10000045,
     0x10000047,
     0x10000045,
 };
 
-s32 D_dryfield_water_tank_80188CC8[3] = {
+WorldCollisionFootstepSounds D_dryfield_water_tank_80188CC8 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-GpRoomParamRec D_dryfield_water_tank_80188CD4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CD4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_water_tank_80188CDC[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CDC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_water_tank_80188CE4[1] = {
-    { 0, 0, 1, 0, D_dryfield_water_tank_80188CB0 },
+WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CE4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_tank_80188CB0 },
 };
 
-GpRoomParamRec D_dryfield_water_tank_80188CEC[1] = {
-    { 0, 0, 1, 0, D_dryfield_water_tank_80188CBC },
+WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CEC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_tank_80188CBC },
 };
 
-GpRoomParamRec D_dryfield_water_tank_80188CF4[1] = {
-    { 0, 0, 1, 0, D_dryfield_water_tank_80188CC8 },
+WorldCollisionSurfaceProperties D_dryfield_water_tank_80188CF4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_water_tank_80188CC8 },
 };
 
-GpRoomParamRec* D_dryfield_water_tank_80188CFC[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_water_tank_80188CFC[8] = {
     D_dryfield_water_tank_80188CD4,
     D_dryfield_water_tank_80188CDC,
     D_dryfield_water_tank_80188CD4,

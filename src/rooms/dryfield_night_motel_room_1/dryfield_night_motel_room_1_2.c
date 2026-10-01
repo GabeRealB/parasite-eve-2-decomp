@@ -986,35 +986,35 @@ GpAreaVariant D_dryfield_night_motel_room_1_8018075C[22] = {
     { D_map_dryfield_full_8017B798, D_dryfield_night_motel_room_1_80180744 },
 };
 
-s32 D_dryfield_night_motel_room_1_8018080C[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_motel_room_1_8018080C = {
     0x10000035,
     0x10000037,
     0x10000035,
 };
 
-s32 D_dryfield_night_motel_room_1_80180818[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_motel_room_1_80180818 = {
     0x10000001,
     0x10000003,
     0x10000001,
 };
 
-GpRoomParamRec D_dryfield_night_motel_room_1_80180824[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_room_1_80180824[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_motel_room_1_8018082C[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_motel_room_1_8018080C },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_room_1_8018082C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_room_1_8018080C },
 };
 
-GpRoomParamRec D_dryfield_night_motel_room_1_80180834[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_motel_room_1_80180818 },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_room_1_80180834[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_motel_room_1_80180818 },
 };
 
-GpRoomParamRec D_dryfield_night_motel_room_1_8018083C[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_motel_room_1_8018083C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_dryfield_night_motel_room_1_80180844[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_1_80180844[8] = {
     D_dryfield_night_motel_room_1_80180824,
     D_dryfield_night_motel_room_1_8018082C,
     D_dryfield_night_motel_room_1_80180834,

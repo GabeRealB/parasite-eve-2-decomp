@@ -1468,21 +1468,21 @@ WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8] = {
     { .color = { 450, 450, 450, 450 } },
 };
 
-s32 D_dryfield_junk_yard_80181C0C[3] = {
+WorldCollisionFootstepSounds D_dryfield_junk_yard_80181C0C = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-GpRoomParamRec D_dryfield_junk_yard_80181C18[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_junk_yard_80181C18[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_junk_yard_80181C20[1] = {
-    { 0, 0, 1, 0, D_dryfield_junk_yard_80181C0C },
+WorldCollisionSurfaceProperties D_dryfield_junk_yard_80181C20[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_junk_yard_80181C0C },
 };
 
-GpRoomParamRec* D_dryfield_junk_yard_80181C28[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_junk_yard_80181C28[8] = {
     D_dryfield_junk_yard_80181C18,
     D_dryfield_junk_yard_80181C20,
     D_dryfield_junk_yard_80181C18,

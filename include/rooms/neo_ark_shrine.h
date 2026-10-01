@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_shrine_801836BC[];
 
 extern GpSprtRec D_neo_ark_shrine_80185280[];
 
-extern GpRoomParamRec* D_neo_ark_shrine_80186844[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_shrine_80186844[];
 
 void func_neo_ark_shrine_8017F8DC(Task* task);
 

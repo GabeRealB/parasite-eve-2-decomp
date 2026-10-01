@@ -28,7 +28,7 @@ extern GpViewRec D_dryfield_driveway_8017EE2C[];
 
 extern GpSprtRec D_dryfield_driveway_8017FC44[];
 
-extern GpRoomParamRec* D_dryfield_driveway_80180660[];
+extern WorldCollisionSurfaceProperties* D_dryfield_driveway_80180660[];
 
 void func_dryfield_driveway_8017DE6C(Task* unused);
 

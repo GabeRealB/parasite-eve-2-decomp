@@ -70,7 +70,7 @@ extern GpViewIndexTbl D_map_shelter_8017B548;
 
 extern GpSprtTbl D_map_shelter_8017B610;
 
-extern GpRoomParamRec** D_map_shelter_8017B614[];
+extern WorldCollisionSurfaceProperties** D_map_shelter_8017B614[];
 
 /// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items granted by
 /// location, each ended by a key of -1.

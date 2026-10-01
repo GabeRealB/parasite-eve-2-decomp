@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_savanna_zone_8017FBF4[];
 
 extern GpSprtRec D_neo_ark_savanna_zone_801803F4[];
 
-extern GpRoomParamRec* D_neo_ark_savanna_zone_80180968[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_savanna_zone_80180968[];
 
 void func_neo_ark_savanna_zone_8017D9AC(Task* arg0);
 

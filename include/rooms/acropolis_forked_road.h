@@ -28,7 +28,7 @@ extern GpSprtRec D_acropolis_forked_road_801844E0[];
 
 extern GpViewRec D_acropolis_forked_road_80184E88[];
 
-extern GpRoomParamRec* D_acropolis_forked_road_801850A4[];
+extern WorldCollisionSurfaceProperties* D_acropolis_forked_road_801850A4[];
 
 void func_acropolis_forked_road_8017E298(Task* task);
 

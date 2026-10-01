@@ -25,7 +25,7 @@ extern GpViewRec D_neo_ark_eve_elevator_8017DA50[];
 
 extern GpSprtRec D_neo_ark_eve_elevator_8017DB20[];
 
-extern GpRoomParamRec* D_neo_ark_eve_elevator_8017DC30[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_eve_elevator_8017DC30[];
 
 void func_neo_ark_eve_elevator_8017D71C(Task* unused);
 

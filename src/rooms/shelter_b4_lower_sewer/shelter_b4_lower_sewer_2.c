@@ -455,45 +455,45 @@ GpAreaVariant D_shelter_b4_lower_sewer_80183D48[12] = {
     { D_shelter_b4_lower_sewer_80183D08, D_shelter_b4_lower_sewer_80183BF4 },
 };
 
-s32 D_shelter_b4_lower_sewer_80183DA8[3] = {
+WorldCollisionFootstepSounds D_shelter_b4_lower_sewer_80183DA8 = {
     0x10000041,
     0x10000043,
     0x10000055,
 };
 
-s32 D_shelter_b4_lower_sewer_80183DB4[3] = {
+WorldCollisionFootstepSounds D_shelter_b4_lower_sewer_80183DB4 = {
     0x1000003D,
     0x1000003F,
     0x1000003D,
 };
 
-s32 D_shelter_b4_lower_sewer_80183DC0[3] = {
+WorldCollisionFootstepSounds D_shelter_b4_lower_sewer_80183DC0 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-GpRoomParamRec D_shelter_b4_lower_sewer_80183DCC[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DCC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b4_lower_sewer_80183DD4[1] = {
-    { 0, 1, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DD4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b4_lower_sewer_80183DDC[1] = {
-    { 0, 0, 1, 0, D_shelter_b4_lower_sewer_80183DB4 },
+WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DDC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_lower_sewer_80183DB4 },
 };
 
-GpRoomParamRec D_shelter_b4_lower_sewer_80183DE4[1] = {
-    { 0, 0, 1, 0, D_shelter_b4_lower_sewer_80183DC0 },
+WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DE4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_lower_sewer_80183DC0 },
 };
 
-GpRoomParamRec D_shelter_b4_lower_sewer_80183DEC[1] = {
-    { 0, 0, 1, 0, D_shelter_b4_lower_sewer_80183DA8 },
+WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DEC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_lower_sewer_80183DA8 },
 };
 
-GpRoomParamRec* D_shelter_b4_lower_sewer_80183DF4[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b4_lower_sewer_80183DF4[8] = {
     D_shelter_b4_lower_sewer_80183DCC,
     D_shelter_b4_lower_sewer_80183DD4,
     D_shelter_b4_lower_sewer_80183DDC,

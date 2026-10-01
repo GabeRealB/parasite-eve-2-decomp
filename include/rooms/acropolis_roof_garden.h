@@ -31,7 +31,7 @@ extern GpSprtRec D_acropolis_roof_garden_80186648[];
 
 extern GpViewRec D_acropolis_roof_garden_80186BF4[];
 
-extern GpRoomParamRec* D_acropolis_roof_garden_80186DB0[];
+extern WorldCollisionSurfaceProperties* D_acropolis_roof_garden_80186DB0[];
 
 void func_acropolis_roof_garden_8017DCDC(Task* task);
 

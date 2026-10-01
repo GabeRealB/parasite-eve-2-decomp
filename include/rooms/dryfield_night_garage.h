@@ -32,7 +32,7 @@ extern GpViewRec D_dryfield_night_garage_801843F8[];
 
 extern GpSprtRec D_dryfield_night_garage_80186258[];
 
-extern GpRoomParamRec* D_dryfield_night_garage_801875B8[];
+extern WorldCollisionSurfaceProperties* D_dryfield_night_garage_801875B8[];
 
 void func_dryfield_night_garage_80180414(s32 arg0);
 

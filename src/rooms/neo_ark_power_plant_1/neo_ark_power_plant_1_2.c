@@ -729,13 +729,13 @@ GpObj3A D_neo_ark_power_plant_1_80181B60[1] = {
     { NULL, NULL, { 2080, -2432, -5472, 0 }, { { 384, 3456, 2880, 0 }, { -384, 3456, -2880, 0 }, { 384, -3456, 2880, 0 }, { -384, -3456, -2880, 0 } }, { 4075, 0, -544, 0 }, { -116, 17 }, 129, 0 },
 };
 
-s32 D_neo_ark_power_plant_1_80181B9C[3] = {
+WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181B9C = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-s32 D_neo_ark_power_plant_1_80181BA8[3] = {
+WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181BA8 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,

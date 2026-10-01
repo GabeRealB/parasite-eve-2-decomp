@@ -290,35 +290,35 @@ GpObj3A D_shelter_b3_incinerator_control_room_801829AC[1] = {
     { NULL, NULL, { -1312, -95, 368, 0 }, { { -2752, 4576, -2416, 0 }, { 2752, 4576, 2416, 0 }, { -2752, -4576, -2416, 0 }, { 2752, -4576, 2416, 0 } }, { -2705, 0, 3080, 0 }, { -28, 22 }, 129, 0 },
 };
 
-s32 D_shelter_b3_incinerator_control_room_801829E8[3] = {
+WorldCollisionFootstepSounds D_shelter_b3_incinerator_control_room_801829E8 = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-s32 D_shelter_b3_incinerator_control_room_801829F4[3] = {
+WorldCollisionFootstepSounds D_shelter_b3_incinerator_control_room_801829F4 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-GpRoomParamRec D_shelter_b3_incinerator_control_room_80182A00[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b3_incinerator_control_room_80182A00[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b3_incinerator_control_room_80182A08[1] = {
-    { 0, 0, 1, 0, D_shelter_b3_incinerator_control_room_801829E8 },
+WorldCollisionSurfaceProperties D_shelter_b3_incinerator_control_room_80182A08[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_incinerator_control_room_801829E8 },
 };
 
-GpRoomParamRec D_shelter_b3_incinerator_control_room_80182A10[1] = {
-    { 0, 0, 1, 0, D_shelter_b3_incinerator_control_room_801829F4 },
+WorldCollisionSurfaceProperties D_shelter_b3_incinerator_control_room_80182A10[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_incinerator_control_room_801829F4 },
 };
 
-GpRoomParamRec D_shelter_b3_incinerator_control_room_80182A18[1] = {
-    { 0, 0, 0, 0, D_shelter_b3_incinerator_control_room_801829E8 },
+WorldCollisionSurfaceProperties D_shelter_b3_incinerator_control_room_80182A18[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_incinerator_control_room_801829E8 },
 };
 
-GpRoomParamRec* D_shelter_b3_incinerator_control_room_80182A20[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b3_incinerator_control_room_80182A20[8] = {
     D_shelter_b3_incinerator_control_room_80182A00,
     D_shelter_b3_incinerator_control_room_80182A08,
     D_shelter_b3_incinerator_control_room_80182A10,

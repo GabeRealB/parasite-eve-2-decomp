@@ -387,25 +387,25 @@ GpObj3A D_neo_ark_eve_access_tunnel_80180720[1] = {
     { NULL, NULL, { -3712, -1376, 3440, 0 }, { { -1664, 2368, 1296, 0 }, { 1664, 2368, -1296, 0 }, { -1664, -2368, 1296, 0 }, { 1664, -2368, -1296, 0 } }, { 2527, 0, 3244, 0 }, { 94, 12 }, 129, 0 },
 };
 
-s32 D_neo_ark_eve_access_tunnel_8018075C[3] = {
+WorldCollisionFootstepSounds D_neo_ark_eve_access_tunnel_8018075C = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-GpRoomParamRec D_neo_ark_eve_access_tunnel_80180768[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_eve_access_tunnel_80180768[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_eve_access_tunnel_80180770[1] = {
-    { 0, 0, 1, 0, D_neo_ark_eve_access_tunnel_8018075C },
+WorldCollisionSurfaceProperties D_neo_ark_eve_access_tunnel_80180770[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_eve_access_tunnel_8018075C },
 };
 
-GpRoomParamRec D_neo_ark_eve_access_tunnel_80180778[1] = {
-    { 0, 0, 1, 0, D_neo_ark_eve_access_tunnel_8018075C },
+WorldCollisionSurfaceProperties D_neo_ark_eve_access_tunnel_80180778[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_eve_access_tunnel_8018075C },
 };
 
-GpRoomParamRec* D_neo_ark_eve_access_tunnel_80180780[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_eve_access_tunnel_80180780[8] = {
     D_neo_ark_eve_access_tunnel_80180768,
     D_neo_ark_eve_access_tunnel_80180770,
     D_neo_ark_eve_access_tunnel_80180778,

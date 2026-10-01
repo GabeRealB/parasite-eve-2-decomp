@@ -671,43 +671,43 @@ PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D78[2] = {
     { 150, 100, 25, 1 },
 };
 
-s32 D_acropolis_helicopter_landing_pad_80187D80[3] = {
+WorldCollisionFootstepSounds D_acropolis_helicopter_landing_pad_80187D80 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-s32 D_acropolis_helicopter_landing_pad_80187D8C[3] = {
+WorldCollisionFootstepSounds D_acropolis_helicopter_landing_pad_80187D8C = {
     0x1000000D,
     0x1000000F,
     0x1000000D,
 };
 
-GpRoomParamRec D_acropolis_helicopter_landing_pad_80187D98[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187D98[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_acropolis_helicopter_landing_pad_80187DA0[1] = {
-    { 0, 0, 1, 0, D_acropolis_helicopter_landing_pad_80187D8C },
+WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DA0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_helicopter_landing_pad_80187D8C },
 };
 
-GpRoomParamRec D_acropolis_helicopter_landing_pad_80187DA8[1] = {
-    { 0, 0, 1, 0, D_acropolis_helicopter_landing_pad_80187D80 },
+WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DA8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_helicopter_landing_pad_80187D80 },
 };
 
-GpRoomParamRec D_acropolis_helicopter_landing_pad_80187DB0[1] = {
-    { 0, 1, 0, 0, D_acropolis_helicopter_landing_pad_80187D80 },
+WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DB0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_helicopter_landing_pad_80187D80 },
 };
 
-GpRoomParamRec D_acropolis_helicopter_landing_pad_80187DB8[1] = {
-    { 0, 1, 0, 0, D_acropolis_helicopter_landing_pad_80187D80 },
+WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DB8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_helicopter_landing_pad_80187D80 },
 };
 
-GpRoomParamRec D_acropolis_helicopter_landing_pad_80187DC0[1] = {
-    { 0, 0, 0, 0, NULL },
+WorldCollisionSurfaceProperties D_acropolis_helicopter_landing_pad_80187DC0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec* D_acropolis_helicopter_landing_pad_80187DC8[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_helicopter_landing_pad_80187DC8[8] = {
     D_acropolis_helicopter_landing_pad_80187D98,
     D_acropolis_helicopter_landing_pad_80187D98,
     D_acropolis_helicopter_landing_pad_80187DA0,

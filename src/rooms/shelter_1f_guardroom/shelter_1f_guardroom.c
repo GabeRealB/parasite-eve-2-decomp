@@ -182,21 +182,21 @@ WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4] = {
     { .color = { 300, 300, 300, 300 } },
 };
 
-s32 D_shelter_1f_guardroom_8017DFD8[3] = {
+WorldCollisionFootstepSounds D_shelter_1f_guardroom_8017DFD8 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-GpRoomParamRec D_shelter_1f_guardroom_8017DFE4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_1f_guardroom_8017DFE4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_1f_guardroom_8017DFEC[1] = {
-    { 0, 0, 1, 0, D_shelter_1f_guardroom_8017DFD8 },
+WorldCollisionSurfaceProperties D_shelter_1f_guardroom_8017DFEC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_guardroom_8017DFD8 },
 };
 
-GpRoomParamRec* D_shelter_1f_guardroom_8017DFF4[8] = {
+WorldCollisionSurfaceProperties* D_shelter_1f_guardroom_8017DFF4[8] = {
     D_shelter_1f_guardroom_8017DFE4,
     D_shelter_1f_guardroom_8017DFEC,
     D_shelter_1f_guardroom_8017DFE4,

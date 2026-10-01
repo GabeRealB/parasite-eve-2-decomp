@@ -476,31 +476,31 @@ WorldCoordRoomAmbientEntry D_shelter_b6_corridor_801804E8[6] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_shelter_b6_corridor_80180518[3] = {
+WorldCollisionFootstepSounds D_shelter_b6_corridor_80180518 = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-s32 D_shelter_b6_corridor_80180524[3] = {
+WorldCollisionFootstepSounds D_shelter_b6_corridor_80180524 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
 };
 
-GpRoomParamRec D_shelter_b6_corridor_80180530[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_b6_corridor_80180530[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_b6_corridor_80180538[1] = {
-    { 0, 0, 1, 0, D_shelter_b6_corridor_80180518 },
+WorldCollisionSurfaceProperties D_shelter_b6_corridor_80180538[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_corridor_80180518 },
 };
 
-GpRoomParamRec D_shelter_b6_corridor_80180540[1] = {
-    { 0, 0, 1, 0, D_shelter_b6_corridor_80180524 },
+WorldCollisionSurfaceProperties D_shelter_b6_corridor_80180540[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_corridor_80180524 },
 };
 
-GpRoomParamRec* D_shelter_b6_corridor_80180548[8] = {
+WorldCollisionSurfaceProperties* D_shelter_b6_corridor_80180548[8] = {
     D_shelter_b6_corridor_80180530,
     D_shelter_b6_corridor_80180538,
     D_shelter_b6_corridor_80180540,

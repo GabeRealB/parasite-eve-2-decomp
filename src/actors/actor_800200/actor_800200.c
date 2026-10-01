@@ -2585,15 +2585,15 @@ static const TaskFuncTable9 D_actor_800200_80161EC8 = { {
 
 static s32 func_actor_800200_80165104(Task* arg0)
 {
-    GameActor*             actor;
-    const AnimationRecord* rec;
-    GfxCoord*              obj;
-    GpRoomParamRec*        param;
-    s32*                   sounds;
-    s32                    ret;
-    s32                    sound;
-    s8                     cueBits;
-    s32                    pan;
+    GameActor*                          actor;
+    const AnimationRecord*              rec;
+    GfxCoord*                           obj;
+    WorldCollisionSurfaceProperties*    surface;
+    const WorldCollisionFootstepSounds* footstepSounds;
+    s32                                 ret;
+    s32                                 sound;
+    s8                                  cueBits;
+    s32                                 pan;
 
     ret   = 0;
     sound = 0;
@@ -2605,11 +2605,11 @@ static s32 func_actor_800200_80165104(Task* arg0)
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
-                param  = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass];
-                sounds = param->field_4;
-                if (sounds != NULL) {
+                surface        = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass];
+                footstepSounds = surface->footstepSounds;
+                if (footstepSounds != NULL) {
                     if ((u16)actor->movementMode - 5 < 2U) {
-                        switch (sounds[0]) {
+                        switch (footstepSounds->walk) {
                             case 0x10000015:
                                 sound = 0x40720007;
                                 break;

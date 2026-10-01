@@ -857,18 +857,18 @@ void Gp_InitRec18Table(WorldCollisionContact* contacts, s32 count, s32 unused)
 
 void Gp_LoadRoomParams(void)
 {
-    s32              i;
-    GameSession*     session;
-    GpRoomParamRec** recs;
+    s32                               i;
+    GameSession*                      session;
+    WorldCollisionSurfaceProperties** surfaceProperties;
 
-    for (i = 7; i >= 0; i--) {
+    for (i = ARRAY_SIZE(Gp_RoomParams) - 1; i >= 0; i--) {
         Gp_RoomParams[i] = 0;
     }
 
-    session = gGameSession;
-    recs    = Gp_RoomParamTables[session->location.loc.stage - 1][session->location.loc.area - 1];
-    for (i = 0; i < 8; i++) {
-        Gp_RoomParams[i] = recs[i]->field_3;
+    session           = gGameSession;
+    surfaceProperties = Gp_RoomParamTables[session->location.loc.stage - 1][session->location.loc.area - 1];
+    for (i = 0; i < ARRAY_SIZE(Gp_RoomParams); i++) {
+        Gp_RoomParams[i] = surfaceProperties[i]->suppressPushback;
     }
 }
 

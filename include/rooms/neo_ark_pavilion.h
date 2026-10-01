@@ -42,7 +42,7 @@ extern GpViewRec D_neo_ark_pavilion_80184208[];
 
 extern GpSprtRec D_neo_ark_pavilion_801873B8[];
 
-extern GpRoomParamRec* D_neo_ark_pavilion_801879EC[];
+extern WorldCollisionSurfaceProperties* D_neo_ark_pavilion_801879EC[];
 
 void func_neo_ark_pavilion_8017FC10(Task* arg0);
 

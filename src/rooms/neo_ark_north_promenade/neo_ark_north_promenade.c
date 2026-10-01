@@ -369,25 +369,25 @@ GpObj3A D_neo_ark_north_promenade_8018328C[1] = {
     { NULL, NULL, { 6384, -1520, 5040, 0 }, { { -3056, 2672, -4368, 0 }, { 3056, 2672, 4368, 0 }, { -3056, -2672, -4368, 0 }, { 3056, -2672, 4368, 0 } }, { -3361, 0, 2350, 0 }, { 60, 23 }, 129, 0 },
 };
 
-s32 D_neo_ark_north_promenade_801832C8[3] = {
+WorldCollisionFootstepSounds D_neo_ark_north_promenade_801832C8 = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-GpRoomParamRec D_neo_ark_north_promenade_801832D4[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_neo_ark_north_promenade_801832D4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_neo_ark_north_promenade_801832DC[1] = {
-    { 0, 0, 1, 0, D_neo_ark_north_promenade_801832C8 },
+WorldCollisionSurfaceProperties D_neo_ark_north_promenade_801832DC[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_north_promenade_801832C8 },
 };
 
-GpRoomParamRec D_neo_ark_north_promenade_801832E4[1] = {
-    { 0, 1, 0, 0, D_neo_ark_north_promenade_801832C8 },
+WorldCollisionSurfaceProperties D_neo_ark_north_promenade_801832E4[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_north_promenade_801832C8 },
 };
 
-GpRoomParamRec* D_neo_ark_north_promenade_801832EC[8] = {
+WorldCollisionSurfaceProperties* D_neo_ark_north_promenade_801832EC[8] = {
     D_neo_ark_north_promenade_801832D4,
     D_neo_ark_north_promenade_801832DC,
     D_neo_ark_north_promenade_801832E4,

@@ -472,45 +472,45 @@ GpViewRec D_acropolis_fire_escape_80182E90[9] = {
     { { { { -1538, 0, -3796 }, { -2236, 3309, 906 }, { 3067, 2413, -1242 } }, { 3307, 3439, -2448 } }, 230 },
 };
 
-s32 D_acropolis_fire_escape_80182FD4[3] = {
+WorldCollisionFootstepSounds D_acropolis_fire_escape_80182FD4 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-s32 D_acropolis_fire_escape_80182FE0[3] = {
+WorldCollisionFootstepSounds D_acropolis_fire_escape_80182FE0 = {
     0x10000015,
     0x10000017,
     0x10000019,
 };
 
-s32 D_acropolis_fire_escape_80182FEC[3] = {
+WorldCollisionFootstepSounds D_acropolis_fire_escape_80182FEC = {
     0x1000000D,
     0x1000000F,
     0x1000000D,
 };
 
-GpRoomParamRec D_acropolis_fire_escape_80182FF8[1] = {
-    { 0, 0, 1, 0, D_acropolis_fire_escape_80182FEC },
+WorldCollisionSurfaceProperties D_acropolis_fire_escape_80182FF8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FEC },
 };
 
-GpRoomParamRec D_acropolis_fire_escape_80183000[1] = {
-    { 0, 0, 1, 0, D_acropolis_fire_escape_80182FD4 },
+WorldCollisionSurfaceProperties D_acropolis_fire_escape_80183000[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FD4 },
 };
 
-GpRoomParamRec D_acropolis_fire_escape_80183008[1] = {
-    { 0, 0, 1, 0, D_acropolis_fire_escape_80182FEC },
+WorldCollisionSurfaceProperties D_acropolis_fire_escape_80183008[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FEC },
 };
 
-GpRoomParamRec D_acropolis_fire_escape_80183010[1] = {
-    { 0, 0, 1, 0, D_acropolis_fire_escape_80182FE0 },
+WorldCollisionSurfaceProperties D_acropolis_fire_escape_80183010[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FE0 },
 };
 
-GpRoomParamRec D_acropolis_fire_escape_80183018[1] = {
-    { 0, 1, 0, 0, D_acropolis_fire_escape_80182FEC },
+WorldCollisionSurfaceProperties D_acropolis_fire_escape_80183018[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_fire_escape_80182FEC },
 };
 
-GpRoomParamRec* D_acropolis_fire_escape_80183020[8] = {
+WorldCollisionSurfaceProperties* D_acropolis_fire_escape_80183020[8] = {
     D_acropolis_fire_escape_80182FF8,
     D_acropolis_fire_escape_80183000,
     D_acropolis_fire_escape_80183008,

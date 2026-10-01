@@ -47,7 +47,7 @@ extern GpViewRec D_dryfield_toilet_80181428[];
 
 extern GpSprtRec D_dryfield_toilet_801821F8[];
 
-extern GpRoomParamRec* D_dryfield_toilet_8018660C[];
+extern WorldCollisionSurfaceProperties* D_dryfield_toilet_8018660C[];
 
 void func_dryfield_toilet_8017DEF4(Task* arg0);
 

@@ -170,21 +170,21 @@ GpAreaVariant D_shelter_r49_8017DD74[13] = {
     { NULL, NULL },
 };
 
-s32 D_shelter_r49_8017DDDC[3] = {
+WorldCollisionFootstepSounds D_shelter_r49_8017DDDC = {
     0x1000002D,
     0x1000002F,
     0x1000002D,
 };
 
-GpRoomParamRec D_shelter_r49_8017DDE8[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_shelter_r49_8017DDE8[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_shelter_r49_8017DDF0[1] = {
-    { 0, 0, 1, 0, D_shelter_r49_8017DDDC },
+WorldCollisionSurfaceProperties D_shelter_r49_8017DDF0[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r49_8017DDDC },
 };
 
-GpRoomParamRec* D_shelter_r49_8017DDF8[8] = {
+WorldCollisionSurfaceProperties* D_shelter_r49_8017DDF8[8] = {
     D_shelter_r49_8017DDE8,
     D_shelter_r49_8017DDF0,
     D_shelter_r49_8017DDE8,

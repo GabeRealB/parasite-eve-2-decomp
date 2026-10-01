@@ -35,7 +35,7 @@ extern GpObj4A D_shelter_b6_growth_room_801803A0[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b6_growth_room_80180730[];
 
-extern GpRoomParamRec* D_shelter_b6_growth_room_801807A8[];
+extern WorldCollisionSurfaceProperties* D_shelter_b6_growth_room_801807A8[];
 
 void func_shelter_b6_growth_room_8017D7D4(Task* task);
 

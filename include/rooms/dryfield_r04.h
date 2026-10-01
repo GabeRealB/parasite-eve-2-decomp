@@ -21,6 +21,6 @@ extern GpViewRec D_dryfield_r04_8017E218[];
 
 extern GpSprtRec D_dryfield_r04_8017E280[];
 
-extern GpRoomParamRec* D_dryfield_r04_8017E2AC[];
+extern WorldCollisionSurfaceProperties* D_dryfield_r04_8017E2AC[];
 
 #endif // INCLUDE_ROOMS_DRYFIELD_R04_H

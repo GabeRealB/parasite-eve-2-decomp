@@ -35,7 +35,7 @@ extern GpObj4A D_shelter_b2_north_maintenance_walkway_80185F24[];
 
 extern GpObj3A D_shelter_b2_north_maintenance_walkway_80186308[];
 
-extern GpRoomParamRec* D_shelter_b2_north_maintenance_walkway_80186360[];
+extern WorldCollisionSurfaceProperties* D_shelter_b2_north_maintenance_walkway_80186360[];
 
 void func_shelter_b2_north_maintenance_walkway_8017DD90(Task* task);
 

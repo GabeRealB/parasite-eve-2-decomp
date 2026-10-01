@@ -570,19 +570,19 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
 
 static void Actor02100_Fn004C4(Task* arg0)
 {
-    Actor02100Fn014E4Scratch* scratch;
-    Actor02100Work*           work;
-    Enemy*                    enemy;
-    GfxCoord*                 coord;
-    GfxCoord*                 src;
-    GpRoomParamRec*           param;
-    u8*                       head;
-    s32                       damage;
-    s32                       stun;
-    s32                       sound;
-    s32                       pan;
-    s32                       depth;
-    s32                       index;
+    Actor02100Fn014E4Scratch*        scratch;
+    Actor02100Work*                  work;
+    Enemy*                           enemy;
+    GfxCoord*                        coord;
+    GfxCoord*                        src;
+    WorldCollisionSurfaceProperties* surface;
+    u8*                              head;
+    s32                              damage;
+    s32                              stun;
+    s32                              sound;
+    s32                              pan;
+    s32                              depth;
+    s32                              index;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8) = head - 0x18;
@@ -666,10 +666,10 @@ static void Actor02100_Fn004C4(Task* arg0)
     Gp_ClearRec18Occupied(&work->field_60);
     work->field_184 = 0;
     if (Gp_CountRec18Hi(&work->field_98, 0x100000) != 0) {
-        index = func_800E1B24(work->field_98.key.value);
-        param = Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
-                                  [gGameSession->location.loc.area - 1][index];
-        if (param->field_1 == 0) {
+        index   = func_800E1B24(work->field_98.key.value);
+        surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
+                                    [gGameSession->location.loc.area - 1][index];
+        if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             work->field_184 = 1;
         }
     }

@@ -6933,7 +6933,7 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
             if (dist < minDist) {
                 func_800E0FEC(rec, &block->delta, 1, &idx);
                 idx = func_800E1ACC((u8*)&idx);
-                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->field_2 != 0) {
+                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     minDist = dist;
                     bestIdx = i;
                 }
@@ -6973,14 +6973,19 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
 
 s32 func_80105ED4(Task* arg0)
 {
-    GameActor*             actor;
-    const AnimationRecord* rec;
-    GfxCoord*              obj;
-    s32                    sound;
-    s8                     cueBits;
-    s32                    pan;
-    s32                    index;
-    s32*                   sounds;
+    // Actor mode is the low halfword and state the high halfword of this selector.
+    enum {
+        PLAYER_ACTOR_FOOTSTEP_SCRIPTED_JUMP_MODE_STATE = (3 << 16) | GAME_ACTOR_MODE_SCRIPTED
+    };
+
+    GameActor*                          actor;
+    const AnimationRecord*              rec;
+    GfxCoord*                           obj;
+    s32                                 sound;
+    s8                                  cueBits;
+    s32                                 pan;
+    s32                                 index;
+    const WorldCollisionFootstepSounds* footstepSounds;
 
     sound = 0;
     actor = arg0->work;
@@ -6991,15 +6996,15 @@ s32 func_80105ED4(Task* arg0)
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
-                sounds = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass]->field_4;
-                if (sounds != NULL) {
-                    if (*(s32*)&actor->mode == 0x30002) {
-                        sound = sounds[2];
+                footstepSounds = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass]->footstepSounds;
+                if (footstepSounds != NULL) {
+                    if (*(s32*)&actor->mode == PLAYER_ACTOR_FOOTSTEP_SCRIPTED_JUMP_MODE_STATE) {
+                        sound = footstepSounds->scriptedJump;
                     } else if ((u16)actor->movementMode == 3) {
-                        sound = sounds[1];
+                        sound = footstepSounds->run;
                         Gp_SetStateF0Bit(5);
                     } else {
-                        sound = sounds[0];
+                        sound = footstepSounds->walk;
                     }
                     if (sound != 0) {
                         if (cueBits == ANIMATION_RECORD_CUE_1) {

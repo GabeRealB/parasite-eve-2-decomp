@@ -1991,31 +1991,31 @@ WorldCoordRoomAmbientEntry D_mist_shooting_gallery_8018DFD4[19] = {
     { .color = { 600, 600, 600, 600 } },
 };
 
-s32 D_mist_shooting_gallery_8018E06C[3] = {
+WorldCollisionFootstepSounds D_mist_shooting_gallery_8018E06C = {
     0x10000009,
     0x1000000B,
     0x10000009,
 };
 
-s32 D_mist_shooting_gallery_8018E078[3] = {
+WorldCollisionFootstepSounds D_mist_shooting_gallery_8018E078 = {
     0x10000041,
     0x10000043,
     0x10000041,
 };
 
-GpRoomParamRec D_mist_shooting_gallery_8018E084[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_mist_shooting_gallery_8018E084[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_mist_shooting_gallery_8018E08C[1] = {
-    { 0, 0, 1, 0, D_mist_shooting_gallery_8018E06C },
+WorldCollisionSurfaceProperties D_mist_shooting_gallery_8018E08C[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mist_shooting_gallery_8018E06C },
 };
 
-GpRoomParamRec D_mist_shooting_gallery_8018E094[1] = {
-    { 0, 0, 1, 0, D_mist_shooting_gallery_8018E078 },
+WorldCollisionSurfaceProperties D_mist_shooting_gallery_8018E094[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mist_shooting_gallery_8018E078 },
 };
 
-GpRoomParamRec* D_mist_shooting_gallery_8018E09C[8] = {
+WorldCollisionSurfaceProperties* D_mist_shooting_gallery_8018E09C[8] = {
     D_mist_shooting_gallery_8018E084,
     D_mist_shooting_gallery_8018E08C,
     D_mist_shooting_gallery_8018E094,

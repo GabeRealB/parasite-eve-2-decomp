@@ -2468,45 +2468,45 @@ WorldCoordRoomAmbientEntry D_dryfield_night_gas_station_80190684[22] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-s32 D_dryfield_night_gas_station_80190734[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_gas_station_80190734 = {
     0x10000049,
     0x1000004B,
     0x10000049,
 };
 
-s32 D_dryfield_night_gas_station_80190740[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_gas_station_80190740 = {
     0x1000001D,
     0x1000001F,
     0x1000001D,
 };
 
-s32 D_dryfield_night_gas_station_8019074C[3] = {
+WorldCollisionFootstepSounds D_dryfield_night_gas_station_8019074C = {
     0x10000015,
     0x10000017,
     0x10000015,
 };
 
-GpRoomParamRec D_dryfield_night_gas_station_80190758[1] = {
-    { 0, 0, 1, 0, NULL },
+WorldCollisionSurfaceProperties D_dryfield_night_gas_station_80190758[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
 };
 
-GpRoomParamRec D_dryfield_night_gas_station_80190760[1] = {
-    { 0, 1, 0, 0, D_dryfield_night_gas_station_80190734 },
+WorldCollisionSurfaceProperties D_dryfield_night_gas_station_80190760[1] = {
+    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_gas_station_80190734 },
 };
 
-GpRoomParamRec D_dryfield_night_gas_station_80190768[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_gas_station_80190740 },
+WorldCollisionSurfaceProperties D_dryfield_night_gas_station_80190768[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_gas_station_80190740 },
 };
 
-GpRoomParamRec D_dryfield_night_gas_station_80190770[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_gas_station_8019074C },
+WorldCollisionSurfaceProperties D_dryfield_night_gas_station_80190770[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_gas_station_8019074C },
 };
 
-GpRoomParamRec D_dryfield_night_gas_station_80190778[1] = {
-    { 0, 0, 1, 0, D_dryfield_night_gas_station_80190734 },
+WorldCollisionSurfaceProperties D_dryfield_night_gas_station_80190778[1] = {
+    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_gas_station_80190734 },
 };
 
-GpRoomParamRec* D_dryfield_night_gas_station_80190780[8] = {
+WorldCollisionSurfaceProperties* D_dryfield_night_gas_station_80190780[8] = {
     D_dryfield_night_gas_station_80190758,
     D_dryfield_night_gas_station_80190760,
     D_dryfield_night_gas_station_80190768,
