@@ -1808,8 +1808,11 @@ static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
         // Page-relative texture coordinates, in texels.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U = 0x68,
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V = 0x50,
-        // Difference between the texture endpoints on both axes, in texels.
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN = 7,
+        /// UV endpoint difference on both axes of the horizontal separator, in texels.
+        ///
+        /// `setUVWH` selects U=0x68..0x6F and V=0x50..0x57: inclusive ranges of
+        /// eight texel coordinates, independent of the separator's drawn width.
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_ENDPOINT_DELTA = 7,
         // 4-bit page at VRAM word X=896, row Y=256; blending is disabled.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE = getTPage(0, 0, 0x380, 0x100),
         // Palette selector for VRAM word X=48, row Y=240.
@@ -1824,8 +1827,8 @@ static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
 
     setUVWH(separator, USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U,
             USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V,
-            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN,
-            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN);
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_ENDPOINT_DELTA,
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_ENDPOINT_DELTA);
     separator->tpage = USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE;
     separator->clut  = USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID;
     setPolyFT4(separator);
