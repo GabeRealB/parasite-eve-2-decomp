@@ -608,15 +608,85 @@ SpriteView D_acropolis_east_elevator_hall_80187870[7] = {
     { { .empty = D_acropolis_east_elevator_hall_80187860 }, D_acropolis_east_elevator_hall_80187860, NULL },
 };
 
-WorldCoordPointLight D_acropolis_east_elevator_hall_801878C4[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3250, -2350, 810 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 110, -2350, 270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 3332 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3400, -2350, 180 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4070, -1700, -1420 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
+/// Four authored point lights for model shading in every east elevator hall view.
+///
+/// Positions and falloff radii use world units; RGB intensities have 12 fractional
+/// bits (`ONE` is full strength). The room overlay owns this writable storage:
+/// coordinate updates set its view parent and cached transforms, and lighting
+/// queries overwrite attenuation. Borrowed pointers expire when the room unloads.
+static WorldCoordPointLight _gAcropolisEastElevatorHallPointLights[] = {
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3250, -2350, 810 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 5324, 4915, 4505 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 4000,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 110, -2350, 270 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 5324, 4915, 4505 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 3332,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3400, -2350, 180 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { 5324, 4915, 4505 },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 4000,
+    },
+    {
+        .head = {
+            .transform  = { .lighting = {
+                                .composeStamp = GRAPHICS_COORD_DIRTY,
+                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4070, -1700, -1420 } },
+                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                                .unknown_46   = { 0, 0, 0, 0 },
+                                .attenuation  = 0,
+                                .parent       = NULL,
+                           } },
+            .color      = { ONE, ONE, ONE },
+            .unknown_56 = { 0, 0 },
+        },
+        .inner = 500,
+        .outer = 2000,
+    },
 };
 
 WorldCoordRoomLights D_acropolis_east_elevator_hall_80187A44[1] = {
-    { 0, NULL, ARRAY_SIZE(D_acropolis_east_elevator_hall_801878C4), D_acropolis_east_elevator_hall_801878C4, 0, NULL },
+    { 0, NULL, ARRAY_SIZE(_gAcropolisEastElevatorHallPointLights), _gAcropolisEastElevatorHallPointLights, 0, NULL },
 };
 
 GpViewRec D_acropolis_east_elevator_hall_80187A5C[7] = {
