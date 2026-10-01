@@ -92,7 +92,7 @@ STATIC_ASSERT_SIZEOF(Actor300700SpawnWork, 0x2F4);
 extern ActorSpriteUv D_actor_300700_80165B9C[];
 
 static void func_actor_300700_80163410(Task* arg0);
-void        func_actor_300700_801633B8(Task* arg0);
+void        mothUpdateColor(Task* arg0);
 
 static void func_actor_300700_801622B4(Task* arg0);
 static void func_actor_300700_8016252C(Task* arg0);
@@ -342,7 +342,7 @@ case0:
     arg0->node.state.parts.flags = 0;
     goto default_body;
 case1:
-    func_actor_300700_801633B8(arg1);
+    mothUpdateColor(arg1);
     return;
 case2:
     obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -359,7 +359,7 @@ default_body:
     func_actor_300700_801628C8(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    func_actor_300700_801633B8(arg1);
+    mothUpdateColor(arg1);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16 & 0x7F) == 0) {
         s32 temp;
@@ -850,7 +850,7 @@ static void func_actor_300700_8016335C(Task* arg0)
 }
 
 /// The Moth's copy of the colour helper.
-#define ratUpdateColor func_actor_300700_801633B8
+#define ratUpdateColor mothUpdateColor
 #include "../../shared/rat_update_color.inc.c"
 #undef ratUpdateColor
 

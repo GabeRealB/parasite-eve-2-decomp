@@ -137,7 +137,7 @@ static void Actor00700_Fn02820(Task* arg0);
 static void Actor00700_Fn02A28(Task* arg0);
 static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1);
 static void Actor00700_Fn0305C(Task* arg0);
-static void Actor00700_Fn03518(Task* arg0);
+void        mothUpdateColor(Task* arg0);
 static void Actor00700_Fn03570(Task* arg0);
 
 /// The state handlers `ratTask` dispatches on `Task::state`:
@@ -951,7 +951,7 @@ case0:
     arg0->node.state.parts.flags = 0;
     goto default_body;
 case1:
-    Actor00700_Fn03518(arg1);
+    mothUpdateColor(arg1);
     return;
 case2:
     obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -968,7 +968,7 @@ default_body:
     Actor00700_Fn02A28(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    Actor00700_Fn03518(arg1);
+    mothUpdateColor(arg1);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16 & 0x7F) == 0) {
         s32 temp;
@@ -1435,7 +1435,7 @@ static void Actor00700_Fn034BC(Task* arg0)
 }
 
 /// A further copy, under this file's own name.
-#define ratUpdateColor Actor00700_Fn03518
+#define ratUpdateColor mothUpdateColor
 #include "../../shared/rat_update_color.inc.c"
 #undef ratUpdateColor
 
