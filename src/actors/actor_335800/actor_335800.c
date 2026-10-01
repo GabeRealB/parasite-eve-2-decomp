@@ -1386,7 +1386,7 @@ void func_actor_335800_80162F10(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_335800_80161E30;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }
@@ -1620,7 +1620,7 @@ void func_actor_335800_80163A34(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_335800_80161E5C;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

@@ -810,7 +810,7 @@ s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, TaskMess
             break;
         case 3:
             cmd = 7;
-            if (Gp_StateF0.prefix.bytes.field_0 != 2) {
+            if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED) {
                 cmd = GameFlag_GetNibble(0x147) != 0 ? 6 : 3;
             }
             break;

@@ -4771,7 +4771,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
 /// (the bridge is being lowered) restores the model's default flag set while
 /// the enemy is still in one of its first three spawn variants, and message
 /// 0x0E01/2 (the bridge run has ended) decides whether the enemy is armed for
-/// this variant: variant 0 needs `Gp_StateF0.field_6` to be set at all, variant 1 needs
+/// this variant: variant 0 needs `Gp_StateF0.battleRefs` to be set at all, variant 1 needs
 /// it to be at least 2 and variant 2 at least 3. When it is, the enemy and the
 /// work block are given the stat block's starting HP and the behaviour state
 /// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
@@ -4800,19 +4800,19 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg)
             variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
             switch (variant) {
                 case 0:
-                    if (Gp_StateF0.field_6 != 0) {
+                    if (Gp_StateF0.battleRefs != 0) {
                         break;
                     }
                     work->field_0 = 0;
                     goto hide;
                 case 1:
-                    if (Gp_StateF0.field_6 >= 2) {
+                    if (Gp_StateF0.battleRefs >= 2) {
                         break;
                     }
                     work->field_0 = 0;
                     goto hide;
                 case 2:
-                    if (Gp_StateF0.field_6 < 3) {
+                    if (Gp_StateF0.battleRefs < 3) {
                         goto reset;
                     }
                     break;
@@ -5071,7 +5071,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     _acropolisBridgeLightModel(task, task->extra.tmd->coords);
     axisY = 1;
-    if (Gp_StateF0.field_6 < 3) {
+    if (Gp_StateF0.battleRefs < 3) {
         Gp_IncStateF0Ref(0);
     }
     if (gGameSession->location.loc.room == 2) {
@@ -5731,7 +5731,7 @@ void func_acropolis_bridge_80187310(Task* task)
         gfxRotMatrixY(&task->extra.tmd->coords->coord, gRandomLcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_ClearNodeSlots(&enemy->node);
-        if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {
+        if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && Gp_StateF0.battleRefs != 0) {
             Gp_ArmStateF0(1);
         }
         work->field_290 = 0;
@@ -5777,7 +5777,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         Gp_ClearNodeSlots(&enemy->node);
-        if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {
+        if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && Gp_StateF0.battleRefs != 0) {
             Gp_ArmStateF0(1);
         }
         if (enemy->hp > 0) {
@@ -5847,7 +5847,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
         if (work->field_10C > 0) {
             return;
         }
-        if (Gp_StateF0.field_6 != 0) {
+        if (Gp_StateF0.battleRefs != 0) {
             Gp_ReleaseStateF0Add(task, 0x29);
         }
         if (work->field_10C > 0) {
@@ -5875,7 +5875,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 
 /// Ticks the bridge enemy once per frame. It refreshes the model's root
 /// coordinate and relights it, then branches on the global pause mode
-/// `Gp_StateF0.field_4`: mode 1 only releases the collision records, mode 2 also hides
+/// `Gp_StateF0.actorControl`: mode 1 only releases the collision records, mode 2 also hides
 /// the mesh, and mode 0 keeps the model's visibility in step with the camera
 /// -- re-allocating or releasing the TMD's aux buffers when the view changes,
 /// and remembering the view it last synced to in `field_292`. Outside the
@@ -5908,7 +5908,7 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
     pos.vz = task->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    mode = Gp_StateF0.field_4;
+    mode = Gp_StateF0.actorControl;
     if (mode == 1) {
         goto paused;
     }
@@ -6010,7 +6010,7 @@ hitTaken:
     D_acropolis_bridge_8019175C[work->field_0](task);
     Gp_ClearRec18Occupied(&work->recs[0]);
     Gp_ClearRec18Occupied(&work->hitRecs[0]);
-    if (Gp_StateF0.field_6 == 0) {
+    if (Gp_StateF0.battleRefs == 0) {
         if ((u32)((u16)work->field_0 - 5) >= 2U) {
             work->field_0 = 0;
         }

@@ -14,13 +14,13 @@ void podWeakPointHit(Enemy* arg0, Task* arg1)
 
     coord = arg1->extra.tmd->coords;
     part  = (Actor05300Part*)arg1->work;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }

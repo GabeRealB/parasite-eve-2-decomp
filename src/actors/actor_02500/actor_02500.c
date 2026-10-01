@@ -1154,16 +1154,16 @@ static void Actor02500_Fn012F0(Task* actor)
             dz                                                         = gPlayerStatus.coordMtx->t[2] - work->field_318;
             scratch->delta.vz                                          = dz;
             dist                                                       = SquareRoot0((dx * dx) + (dz * dz));
-            if (dist < 0x7D0 || Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
-                Gp_StateF0.field_21 = 1;
-                work->field_324     = 2;
-                work->field_32E     = ((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 0xA;
+            if (dist < 0x7D0 || Gp_StateF0.actor02500EntranceReady != 0 || Gp_StateF0.expReward != 0) {
+                Gp_StateF0.actor02500EntranceReady = 1;
+                work->field_324                    = 2;
+                work->field_32E                    = ((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 0xA;
             }
             break;
         case 1:
             obj->flags                                                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((Enemy*)actor->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            if (Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
+            if (Gp_StateF0.actor02500EntranceReady != 0 || Gp_StateF0.expReward != 0) {
                 work->field_324 = 2;
                 work->field_32E = ((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 0xA;
             }
@@ -1400,7 +1400,7 @@ static void Actor02500_Fn01AC8(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    mode  = Gp_StateF0.field_4;
+    mode  = Gp_StateF0.actorControl;
     coord = obj->coords;
     if (mode == 1) {
         goto case1;
@@ -1531,7 +1531,7 @@ static void Actor02500_Fn01E60(Enemy* arg0, Task* arg1)
     s32             one;
 
     temp_a1 = arg1->extra.tmd;
-    state   = Gp_StateF0.field_4;
+    state   = Gp_StateF0.actorControl;
     work    = arg1->work;
     temp_s2 = temp_a1->coords;
     one     = 1;
@@ -1902,7 +1902,7 @@ static void Actor02500_Fn02750(Enemy* ctx, Task* task)
     coord = task->extra.tmd->coords;
     work  = (Actor02500EffWork*)((Actor02500Work*)task->work);
     done  = 0;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         rec = work->rec18;
         if (Gp_CountRec18Hi(rec, 0x10000) != 0) {
             done  = 1;
@@ -1916,7 +1916,7 @@ static void Actor02500_Fn02750(Enemy* ctx, Task* task)
         if ((s16)timer >= 0xF1) {
             done = 1;
         }
-        if (Gp_StateF0.field_6 == 0) {
+        if (Gp_StateF0.battleRefs == 0) {
             done = 1;
         }
         if (done != 0) {

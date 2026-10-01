@@ -3,11 +3,11 @@
 /* Part of the lunging enemy library; see lunging_enemy.h. */
 
 /// Teardown state of the enemy (entry 2 of the package's task-state table).
-/// `Gp_StateF0.field_4` gates it: 1 only redraws and 2 hides the model and its lock-on
+/// `Gp_StateF0.actorControl` gates it: 1 only redraws and 2 hides the model and its lock-on
 /// node, both returning; 0 shows them and runs the states. State 0 unlinks the enemy's lock-on
 /// node and collision bodies, releases its state-F0 slot, settles on the idle
 /// `field_6B8` selects, files the pose with `Gp_SaveEnemyPose` so the enemy is
-/// restored in that pose, and raises `Gp_StateF0.field_29`. State 1 spawns a spark
+/// restored in that pose, and raises `Gp_StateF0.lungerDeathAlert`. State 1 spawns a spark
 /// every fourth frame. Either way the animation slots advance or are reseeded
 /// and the model is drawn with its ground shadow.
 void lungerDeadState(Enemy* arg0, Task* arg1)
@@ -27,12 +27,12 @@ void lungerDeadState(Enemy* arg0, Task* arg1)
     work    = arg1->work;
     coord   = arg1->extra.tmd->coords;
     scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             arg1->extra.tmd->flags       = 0;
             arg0->node.state.parts.flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
             arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
@@ -48,7 +48,7 @@ void lungerDeadState(Enemy* arg0, Task* arg1)
             pos.vz = part->workm.t[2];
             Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
@@ -73,7 +73,7 @@ void lungerDeadState(Enemy* arg0, Task* arg1)
             work->field_6A8  = 1;
             arg0->spawnState = (u8)work->field_6B8;
             Gp_SaveEnemyPose(arg0);
-            Gp_StateF0.field_29 = 1;
+            Gp_StateF0.lungerDeathAlert = 1;
             break;
         case 1:
             if (!(work->field_698 & 3)) {

@@ -217,7 +217,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
             }
         }
 
-        dmg = dmg * D_80113F90[Gp_StateF0.field_2B] / 100;
+        dmg = dmg * D_80113F90[Gp_StateF0.difficulty] / 100;
         if (dmg == 0) {
             if (base != 0) {
                 dmg = 1;
@@ -229,8 +229,8 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
 
         dmg = Gp_IdParamHi.rows[arg0 & 0x7F].field[4];
         if ((arg0 & 0x7F) >= 0x19 && (arg0 & 0x7F) < 0x1C) {
-            if (Gp_StateF0.field_5 != 0) {
-                dmg = dmg / Gp_StateF0.field_5;
+            if (Gp_StateF0.peTargetCount != 0) {
+                dmg = dmg / Gp_StateF0.peTargetCount;
             } else {
                 dmg = 0;
             }
@@ -245,7 +245,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
             dmg = dmg * 150 / 100;
         }
 
-        dmg = dmg * D_80113F90[Gp_StateF0.field_2B] / 100;
+        dmg = dmg * D_80113F90[Gp_StateF0.difficulty] / 100;
     }
     return dmg;
 }
@@ -271,7 +271,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     if (arg3 == 0) {
         hp    = gPlayerStatus.hp;
         col   = D_80113F54[hp / 10];
-        val   = Gp_DmgRows[Gp_StateF0.field_2B].field_A[col] << 8;
+        val   = Gp_DmgRows[Gp_StateF0.difficulty].field_A[col] << 8;
         extra = Gp_StateC08.field_C;
         if (extra != 0) {
             val = val * D_80113CFC[(extra / 16 - 1) * 2 + (s8)(extra % 16)] / 100;
@@ -279,7 +279,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     } else {
         hp  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp;
         col = D_80113F54[hp / 10];
-        val = Gp_DmgRows[Gp_StateF0.field_2B].field_0[col] << 8;
+        val = Gp_DmgRows[Gp_StateF0.difficulty].field_0[col] << 8;
     }
 
     val = val / 100;
@@ -463,9 +463,9 @@ void func_800E2C78(Enemy* arg0, s32 arg1, s32 arg2, s32 arg3)
     if ((u32)((arg1 & 0x7F) - 0x19) < 3U) {
         val = arg0->hp;
         if ((u32)val < (u32)arg2) {
-            Gp_StateF0.field_14 += val;
+            Gp_StateF0.lifeDrainHp += val;
             return;
         }
-        Gp_StateF0.field_14 += arg2;
+        Gp_StateF0.lifeDrainHp += arg2;
     }
 }

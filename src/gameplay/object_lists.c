@@ -995,7 +995,7 @@ void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
     WorldCollisionContact* slot;
     WorldCollisionContact* temp;
     s32                    one;
-    GpStateF0*             p;
+    SceneCombatState*      p;
 
     temp = arg0->recs;
     if (temp != NULL) {
@@ -1018,7 +1018,7 @@ void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
         slot->response.normal.vz = 0;
         slot->flags             |= WORLD_COLLISION_CONTACT_OCCUPIED;
         p                        = &Gp_StateF0;
-        p->field_5++;
+        p->peTargetCount++;
     }
 }
 

@@ -1165,7 +1165,7 @@ void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
 void func_acropolis_helicopter_landing_pad_8017E6F0(void)
 {
     Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
-    Gp_StateF0.prefix.bytes.field_1 = 3;
+    Gp_StateF0.signals.bytes.endDelayFrames = 3;
 }
 
 /// Pulses the gameplay state with `Gp_PulseState1C` and sets bit 0 of

@@ -562,13 +562,13 @@ static void Gp_DirAction1(void)
     GpVoidFuncTable5 sp;
 
     sp = D_80093990;
-    if (Gp_StateF0.prefix.bytes.field_0 == 2) {
+    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
         if (D_80114CDE == 1) {
             D_80114CDD = D_80114CDE;
         }
     }
     if (D_80114CDD != 0) {
-        Gp_StateF0.prefix.bytes.field_1 = 0x3C;
+        Gp_StateF0.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
     }
     sp.funcs[(s16)Gp_DirPhase]();
 }

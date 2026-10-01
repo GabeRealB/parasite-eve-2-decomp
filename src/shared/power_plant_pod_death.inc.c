@@ -36,17 +36,17 @@ void podDeathState(Enemy* arg0, Task* arg1)
     work  = arg1->work;
     coord = obj->coords;
     scale = 0x1000;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             break;
     }
     if ((work->field_33A & 1) && (s16)work->field_32E == 3) {
@@ -77,9 +77,9 @@ void podDeathState(Enemy* arg0, Task* arg1)
                 r               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = r;
             }
-            flag                = 1;
-            work->field_32A     = (((u32)r >> 16) & 0xF) + 0xA;
-            Gp_StateF0.field_26 = flag;
+            flag                       = 1;
+            work->field_32A            = (((u32)r >> 16) & 0xF) + 0xA;
+            Gp_StateF0.podDeathStarted = flag;
             break;
         case 1:
             if ((s16)work->field_326 > 0x200) {

@@ -24,7 +24,7 @@ s32 roomVariantGasStationMsg(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg*
     }
     if (in->areaId == 3) {
         if ((gGameSession->location.loc.stage == in->areaId) && (gGameSession->location.loc.variant == 1) &&
-            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant)) {
+            (Gp_StateF0.signals.bytes.battlePhase == gGameSession->location.loc.variant)) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x15);
             }

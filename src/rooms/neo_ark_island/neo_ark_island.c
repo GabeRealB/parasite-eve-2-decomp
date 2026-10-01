@@ -591,7 +591,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
-            Gp_StateF0.field_4 = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             goto L_advance;
         case 3:
         L_advance:

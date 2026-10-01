@@ -1,6 +1,6 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
-/// Queues CD command 0x21 once, guarded by `Gp_StateF0.field_25`: the first parameter
+/// Queues CD command 0x21 once, guarded by `Gp_StateF0.enemySoundBankQueued`: the first parameter
 /// is 2 or 3 in place 1 or 2 of stage 4 areas 0x27/0x28 and 1 everywhere
 /// else.
 void hopperLoadSoundBank(void)
@@ -8,7 +8,7 @@ void hopperLoadSoundBank(void)
     u8 param1[8];
     u8 param2[8];
 
-    if (Gp_StateF0.field_25 == 0) {
+    if (Gp_StateF0.enemySoundBankQueued == 0) {
         /* Each branch makes its own call; jump2's cross-jumping merges the
          * identical tails after sched2, which is why the argument setup is
          * duplicated per branch in the target. */
@@ -40,6 +40,6 @@ void hopperLoadSoundBank(void)
             param2[1] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
         }
-        Gp_StateF0.field_25 = 1;
+        Gp_StateF0.enemySoundBankQueued = 1;
     }
 }

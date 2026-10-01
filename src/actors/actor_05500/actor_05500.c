@@ -934,7 +934,7 @@ static void Actor05500_Fn00754(Task* arg0)
             dz                = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             delta->vz         = dz;
             dx                = scratchEnd[-1].vx;
-            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) || (work->field_3D0 != 0) || (Gp_StateF0.prefix.bytes.field_3 == 2)) {
+            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) || (work->field_3D0 != 0) || (Gp_StateF0.signals.bytes.enemyAlert == 2)) {
                 work->field_39C = 1;
                 work->field_392 = 0xD;
                 Gp_ArmStateF0(1);
@@ -1041,9 +1041,9 @@ static void Actor05500_Fn00A94(Task* actor)
                     value = 1;
                 }
             }
-            if ((value != 0) || (Gp_StateF0.field_22 != 0) || (Gp_StateF0.field_8 != 0)) {
+            if ((value != 0) || (Gp_StateF0.spiderAmbushReady != 0) || (Gp_StateF0.expReward != 0)) {
                 if (work->field_3C6 == 0) {
-                    Gp_StateF0.field_22 = 1;
+                    Gp_StateF0.spiderAmbushReady = 1;
                 }
                 Gp_ArmStateF0(1);
                 work->field_39C        = 1;
@@ -1066,7 +1066,7 @@ static void Actor05500_Fn00A94(Task* actor)
             }
             if (work->field_3D0 != 0) {
                 if (work->field_3C6 == 0) {
-                    Gp_StateF0.field_22 = 1;
+                    Gp_StateF0.spiderAmbushReady = 1;
                 }
                 Gp_ArmStateF0(1);
                 work->field_39C        = 2;

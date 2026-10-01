@@ -161,7 +161,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(GameFlag_GetNibble(0xFC) != 0 ? 3 : 1);
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             goto L_advance;
         case 1:
             var_v0 = Gp_CapBusy();
@@ -171,7 +171,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
                 if (Gp_GetCapEventKey() == 1) {
                     GameFlag_SetNibble(0x1B6, 2);
                 }
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;

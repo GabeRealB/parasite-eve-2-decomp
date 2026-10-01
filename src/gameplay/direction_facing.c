@@ -112,7 +112,7 @@ void Gp_MsgPlayerDirFacing(void)
         D_80114CDD      = 0;
     } else if (Gp_TakePendingObj4C(&D_80114CD4, &Gp_DirAlt, &Gp_DirAltNibble)) {
         if ((u8)D_80114CD4 == 0) {
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_DirPhase++;
         }
     }

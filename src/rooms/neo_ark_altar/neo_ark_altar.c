@@ -71,7 +71,7 @@ void func_neo_ark_altar_8017D668(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
             gGameSession->hideHud                                      = 1;
             gGameSession->eventState                                   = 1;
-            Gp_StateF0.field_4                                         = 2;
+            Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_HIDDEN;
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
             task->state++;
@@ -135,7 +135,7 @@ void func_neo_ark_altar_8017D668(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
             gGameSession->hideHud                                      = 0;
             gGameSession->eventState                                   = 0;
-            Gp_StateF0.field_4                                         = 0;
+            Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_RUNNING;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             taskKill(task);

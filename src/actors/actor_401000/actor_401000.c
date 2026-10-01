@@ -3371,7 +3371,7 @@ static void func_actor_401000_80138F50(Task* arg0)
     if (!overlayOutOfRange(d, work->field_C16)) {
         work->field_0 = 6;
     }
-    if (Gp_StateF0.prefix.packed & 0x50000) {
+    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3443,7 +3443,7 @@ static void func_actor_401000_8013922C(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    if (Gp_StateF0.prefix.packed & 0x50000) {
+    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3545,7 +3545,7 @@ static void func_actor_401000_801394EC(Task* arg0)
                 }
             }
         }
-        if (Gp_StateF0.prefix.packed & 0xD0000) {
+        if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
             work->field_0 = 6;
         }
         SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -4276,7 +4276,7 @@ static const Actor401000StateTable D_actor_401000_80131FF4 = { {
 
 /// The actor's per-frame tick, the 401000 twin of `func_actor_401300_801405DC`:
 /// copy the state table to the frame, advance the root coordinate and hand it
-/// to `Gp_UpdateActorColor`, then run the `Gp_StateF0.field_4` arm. Arms 1 and 2 only
+/// to `Gp_UpdateActorColor`, then run the `Gp_StateF0.actorControl` arm. Arms 1 and 2 only
 /// drop the two obstacle records (2 also opening the `field_C` draw to 0x80)
 /// and return; arm 0 falls through into the common tail, which counts
 /// `field_BE8` down into `func_actor_401000_80133D50`, carries a new
@@ -4303,8 +4303,8 @@ static void func_actor_401000_8013D044(Enemy* enemy, Task* actor)
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             state = work->field_0;
             if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {
                 actor->extra.tmd->flags = 0;
@@ -4315,7 +4315,7 @@ static void func_actor_401000_8013D044(Enemy* enemy, Task* actor)
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             state = work->field_0;
             if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {
                 actor->extra.tmd->flags = 0;
@@ -4328,7 +4328,7 @@ static void func_actor_401000_8013D044(Enemy* enemy, Task* actor)
             Gp_ClearRec18Occupied(work->field_A30);
             Gp_ClearRec18Occupied(work->field_8F0);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->field_A30);
             Gp_ClearRec18Occupied(work->field_8F0);
@@ -4368,7 +4368,7 @@ static void func_actor_401000_8013D044(Enemy* enemy, Task* actor)
     Gp_ClearRec18Occupied(work->field_A30);
     Gp_ClearRec18Occupied(work->field_8F0);
 
-    if ((Gp_StateF0.prefix.bytes.field_3 == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

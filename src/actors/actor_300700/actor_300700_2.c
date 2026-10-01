@@ -1064,7 +1064,7 @@ static void func_actor_300700_801648E4(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     coord = obj->coords;
     if (state == 1) {
         goto case1;
@@ -1194,16 +1194,16 @@ static void func_actor_300700_80164D3C(Enemy* arg0, Task* arg1)
     obj   = arg1->extra.tmd;
     coord = obj->coords;
     work  = arg1->work;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             obj->flags                   = 0;
             arg0->node.state.parts.flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             func_actor_300700_801652F4(arg1);
             func_actor_300700_8016534C(arg1);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;

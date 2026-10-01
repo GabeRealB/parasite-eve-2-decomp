@@ -1,6 +1,6 @@
 /* Part of the cloaked stalker library; see cloaked_stalker.h. */
 
-/// Frame handler for the scene's `Gp_StateF0.field_4` mode. Mode 1 only refreshes the
+/// Frame handler for the scene's `Gp_StateF0.actorControl` mode. Mode 1 only refreshes the
 /// tint and the ground shadow, and mode 2 hides the model; both return at once.
 /// Mode 0 shows the model again while the `field_6DA` timer runs and makes the
 /// enemy lockable only while a hit is pending (bit 0x8000 of `field_49A`).
@@ -19,7 +19,7 @@ void stalkerFrameState(Enemy* arg0, Task* arg1)
     temp_s1 = arg1->work;
     temp_a1 = arg1->extra.tmd;
     temp_s2 = temp_a1->coords;
-    state   = Gp_StateF0.field_4;
+    state   = Gp_StateF0.actorControl;
     one     = 1;
     if (state == one) {
         goto case1;

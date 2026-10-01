@@ -55,10 +55,10 @@ static __inline__ s32 isStateF0Active_(void);
 /// Inline copy of `Gp_IsStateF0Active`.
 static __inline__ s32 isStateF0Active_(void)
 {
-    GpStateF0* p;
+    SceneCombatState* p;
 
     p = &Gp_StateF0;
-    if ((p->prefix.bytes.field_0 == 1 && p->field_6 != 0) || p->prefix.bytes.field_1 != 0) {
+    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
         return 1;
     }
     return 0;

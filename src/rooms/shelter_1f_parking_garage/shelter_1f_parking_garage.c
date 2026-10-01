@@ -390,11 +390,11 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// Task body that holds `Gp_StateF0.field_4` set while the caption plays. On caption
+/// Task body that holds `Gp_StateF0.actorControl` set while the caption plays. On caption
 /// key 0xB it spawns the 0x31 task and, 30 frames later, advances flag nibble
 /// 0x4B from 9 to 0xA, publishes `gRoomDeparture` and
 /// spawns entry 0 of `D_shelter_1f_parking_garage_80180BA0`. Any other key
-/// clears `Gp_StateF0.field_4`, restores the weapon and ends the task.
+/// clears `Gp_StateF0.actorControl`, restores the weapon and ends the task.
 void func_shelter_1f_parking_garage_8017DAF0(Task* task)
 {
     RoomDeparture  rec;
@@ -404,7 +404,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             if (Gp_CapBusy() == 0) {
                 task->state++;
             }
@@ -418,7 +418,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 task->killCountdown = 0x1E;
                 task->state++;
             } else {
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
             }

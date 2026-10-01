@@ -2273,8 +2273,8 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
             Display_AcquireRef();
         }
     }
-    Gp_StateF0.prefix.bytes.field_0  = 0;
-    gGameSession->battleResetPending = 0;
+    Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+    gGameSession->battleResetPending     = 0;
     (Gp_IncStateF0Ref)(0);
 }
 
@@ -2589,7 +2589,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
 /// "ready" banner and the hand-off wait on `gGameSession::location.loc.view`, gated on
 /// the countdown hold `gDisplayState.pendingMode`; states 4-5 wait on the player picking up
 /// item 0x40, states 6-8 count the banner up through `field_20` while
-/// `Gp_StateF0.field_4` holds, state 9 spawns the start jingle and state 10 is the
+/// `Gp_StateF0.actorControl` holds, state 9 spawns the start jingle and state 10 is the
 /// wave loop over `D_mist_shooting_gallery_80186908`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout` picks the
 /// banner sprite the hand-off draws (`variant + 4`).
 static void func_mist_shooting_gallery_8018341C(Task* arg0)
@@ -2678,7 +2678,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
             break;
         case 6:
             if (work->field_0A <= 0) {
-                if (Gp_StateF0.field_4 == 0) {
+                if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
                     if (work->field_20 == 0xB) {
                         work->field_0A = 0xF;
@@ -2706,7 +2706,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
             break;
         case 8:
             if (work->field_0A <= 0) {
-                if (Gp_StateF0.field_4 == 0) {
+                if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     func_mist_shooting_gallery_80184BB8(0x13, work->field_20, 0x8E0);
                     if (work->field_20 == 0x13) {
                         work->field_0A = 0xF;
@@ -2920,7 +2920,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
             break;
         case 9:
             if (work->field_0A <= 0) {
-                if (Gp_StateF0.field_4 == 0) {
+                if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     func_mist_shooting_gallery_80184BB8(0x14, work->field_20, 0x8E0);
                     step = work->field_20;
                     if (step == 0x17) {
@@ -3382,7 +3382,7 @@ static u16 func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work)
 {
     u16 temp = work->field_02;
 
-    if ((temp != 0) && (Gp_StateF0.field_4 == 0)) {
+    if ((temp != 0) && (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
         work->field_02 = temp - 1;
     }
     return work->field_02;

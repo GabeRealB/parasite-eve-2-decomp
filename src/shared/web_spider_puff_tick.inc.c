@@ -23,8 +23,8 @@ void spiderPuffTick(Enemy* arg0, Task* arg1)
 
     coord = arg1->extra.tmd->coords;
     work  = arg1->work;
-    switch ((s32)Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             spiderDrawPuff(arg1, work->field_38);
             return;
         default:
@@ -67,9 +67,9 @@ void spiderPuffTick(Enemy* arg0, Task* arg1)
                 work->field_3A = 0;
             }
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             goto default_case;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             return;
     }
 }

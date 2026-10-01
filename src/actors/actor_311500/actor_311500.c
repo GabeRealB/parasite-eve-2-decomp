@@ -86,7 +86,7 @@ typedef struct Actor311500Work {
     /* 0x4CC */ s32  field_4CC;
     /* 0x4D0 */ s32  field_4D0;
     /* 0x4D4 */ u16  field_4D4;
-    /// `Gp_StateF0.field_4` as the previous frame saw it, so a mode change can be
+    /// `Gp_StateF0.actorControl` as the previous frame saw it, so a mode change can be
     /// detected.
     /* 0x4D6 */ u16 field_4D6;
 } Actor311500Work;
@@ -632,7 +632,7 @@ void func_actor_311500_80163334(Task* arg0)
 
     work  = actor->work;
     obj   = actor->extra.tmd;
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     if (state == 1) {
         goto case1;
     }
@@ -720,7 +720,7 @@ case2:
     goto case1;
 
 case1:
-    work->field_4D6 = Gp_StateF0.field_4;
+    work->field_4D6 = Gp_StateF0.actorControl;
 tail:
     enemy = actor->spawnArg2.pointer;
     Gp_UpdateCoord(&actor->extra.tmd->coords[1]);

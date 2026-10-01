@@ -2679,7 +2679,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             timer           = work->field_68E - 1;
             work->field_68E = timer;
             if ((s16)timer <= 0) {
-                if (gPlayerStatus.hp <= D_actor_521100_8015F570[Gp_StateF0.field_2B]) {
+                if (gPlayerStatus.hp <= D_actor_521100_8015F570[Gp_StateF0.difficulty]) {
                     work->field_686              = 0x14;
                     work->field_6A0              = 5;
                     sc->msg.source.sets          = D_actor_521100_8015F7CC;
@@ -3394,7 +3394,7 @@ static void func_actor_521100_80135478(Enemy* arg0, Task* arg1)
     s32              one;
 
     temp_a1 = arg1->extra.tmd;
-    state   = Gp_StateF0.field_4;
+    state   = Gp_StateF0.actorControl;
     temp_s1 = arg1->work;
     temp_s2 = temp_a1->coords;
     one     = 1;

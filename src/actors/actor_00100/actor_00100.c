@@ -3318,7 +3318,7 @@ static void Actor00100_Fn04864(Task* arg0)
                 }
             }
         }
-        if (Gp_StateF0.prefix.bytes.field_2 & 1)
+        if (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE)
             work->field_0 = 0x26;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -4512,7 +4512,7 @@ static void Actor00100_Fn0782C(Task* arg0)
         }
     } else {
     checkFlag:
-        if ((work->field_C26 <= 0) && (Gp_StateF0.prefix.bytes.field_2 & 2)) {
+        if ((work->field_C26 <= 0) && (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
             work->field_0 = 0x1C;
         }
     }
@@ -5225,8 +5225,8 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             initialState = work->field_0;
             if (initialState != 21 && initialState != 0 && initialState != 6 && initialState != 3) {
                 actor->extra.tmd->flags = 0;
@@ -5236,7 +5236,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 Actor00100_Fn01900(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             modeState = work->field_0;
             if ((modeState != 0x15) && (modeState != 0) && (modeState != 6) && (modeState != 3)) {
                 actor->extra.tmd->flags = 0;
@@ -5246,7 +5246,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 Actor00100_Fn01900(actor, 1, 0xB, 0xFA, (s32)modeHeight, 0xFF);
             }
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }

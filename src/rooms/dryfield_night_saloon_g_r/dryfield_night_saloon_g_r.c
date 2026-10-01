@@ -1852,7 +1852,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
         case 0:
             gGameSession->eventState                   = 1;
             gGameSession->hideHud                      = 1;
-            Gp_StateF0.field_4                         = 2;
+            Gp_StateF0.actorControl                    = SCENE_COMBAT_ACTORS_HIDDEN;
             save                                       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             temp                                       = save->state.location.loc.view;
             save->state.location.loc.view              = 0xC;
@@ -1878,7 +1878,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->eventState                                   = 0;
             gGameSession->hideHud                                      = 0;
             D_80114D08                                                 = 0xA;
-            Gp_StateF0.field_4                                         = 0;
+            Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_RUNNING;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.value;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);

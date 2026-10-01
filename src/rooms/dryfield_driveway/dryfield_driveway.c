@@ -632,10 +632,10 @@ static void func_dryfield_driveway_8017DE04(Task* task);
 
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 
-/// Script callback: stores its argument in the gameplay byte `Gp_StateF0.field_1A`.
+/// Script callback: stores its argument in the gameplay byte `Gp_StateF0.actor03700Wave`.
 void func_dryfield_driveway_8017DC48(s32 arg0)
 {
-    Gp_StateF0.field_1A = arg0;
+    Gp_StateF0.actor03700Wave = arg0;
 }
 
 /// Script callback: stores its argument in the session's `viewDirty` flag.

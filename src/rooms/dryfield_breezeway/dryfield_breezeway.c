@@ -572,7 +572,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 1:
-            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(5);
             } else {
                 if (GameFlag_GetNibble(0x56) != 4) {
@@ -594,7 +594,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
             break;
         case 3:
             if (GameFlag_GetNibble(0x56) >= 2) {
-                if (Gp_StateF0.prefix.bytes.field_0 != 1) {
+                if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                     if (Gp_GetCurBit2Flag(6) == 1) {
                         Task_SpawnFromTable(D_dryfield_breezeway_80181E10, 0, 0, 0);
                         GameFlag_SetNibble(0xFE, 1);

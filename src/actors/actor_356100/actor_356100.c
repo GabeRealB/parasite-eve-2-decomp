@@ -2989,20 +2989,20 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     pos.vy = arg1->extra.tmd->coords[1].workm.t[1];
     pos.vz = arg1->extra.tmd->coords[1].workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
@@ -3034,7 +3034,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     }
     work->field_2 = work->field_0;
     tbl.f[work->field_0](arg1);
-    if (Gp_StateF0.prefix.bytes.field_3 == 1) {
+    if (Gp_StateF0.signals.bytes.enemyAlert == 1) {
         if (work->field_0 == 0x18) {
             work->field_0 = 6;
         }

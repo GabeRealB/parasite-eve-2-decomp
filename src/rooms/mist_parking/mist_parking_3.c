@@ -334,7 +334,7 @@ void func_mist_parking_80183B40(Task* task)
 {
     TaskFunc states[3] = { func_mist_parking_801839CC, func_mist_parking_80183A28, taskKill };
 
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         states[task->state](task);
     }
 }

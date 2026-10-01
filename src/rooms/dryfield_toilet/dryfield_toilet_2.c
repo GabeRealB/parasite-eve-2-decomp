@@ -2517,7 +2517,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (Gp_StateF0.field_4 == 1) {
+        if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
             return;
         }
         if (arg0->state == 0) {
@@ -2649,7 +2649,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (Gp_StateF0.field_4 == 1) {
+        if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
             return;
         }
         if (arg0->state == 2) {

@@ -1011,7 +1011,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             }
             break;
         case 3:
-            Gp_StateF0.field_4 = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
@@ -1054,7 +1054,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             arg0->state++;
@@ -1068,11 +1068,11 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.field_4 = 0;
-                D_80114D08         = 0xA;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                D_80114D08              = 0xA;
                 break;
             }
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_TriggerPeIfArmed();
             D_shelter_b4_reservoir_80187500.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_reservoir_80187500.phase      = SCREEN_FADE_RUNNING;
@@ -1139,7 +1139,7 @@ s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, TaskMessa
         Gp_MsgPlayerWeapon(0);
         Gp_MsgAllyWeapon(0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
-        Gp_StateF0.field_4                                         = 2;
+        Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_HIDDEN;
         Task_SpawnFromTable(D_shelter_b4_reservoir_801848EC, 0, 0, 0);
     }
     return 0;

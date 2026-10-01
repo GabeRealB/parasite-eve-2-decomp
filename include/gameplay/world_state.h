@@ -3,74 +3,124 @@
 
 #include "common.h"
 
-/// Global at `Gp_StateF0`. `Gp_InitStateF0` zeros the object, then writes
-/// `field_2B` from `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` (as `u8`), or 4 when that byte is
-/// 0 and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount != 0`. `Gp_IsDebugAttachRoom() == 1` forces
-/// `field_2B = 0` instead. `field_0` is a state byte (1 if first set by
-/// `Gp_ArmStateF0`; 2 when the last `field_6` ref is released). `field_1`
-/// is an alternate-active flag (`Gp_IsStateF0Active` / `func_800A7CB0` /
-/// `Gp_EnqueueSndCdIfF0` / `Gp_CdIdleIfF0Active`); last-ref release sets it to 0x3C.
-/// `field_2` is a bitset (`Gp_SetStateF0Bit` sets bit `arg0 - 1` when
-/// `arg0 != 0`; also written as `Gp_StateF0.field_2`). `field_3` is cleared with
-/// `field_2` on last-ref release (also written as `Gp_StateF0.field_3` by
-/// `Gp_SetStateF0Byte3`). `field_4` holds the scene's actors: 0 lets them
-/// run, 1 freezes them so they only redraw, 2 hides them. Gameplay raises it
-/// around event views and copies it into `gRoomEffectState->effectControl` /
-/// `peEffectControl` every frame. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
-/// when it claims a contact record. `field_6` is a u16
-/// refcount incremented by `Gp_IncStateF0Ref` and decremented by
-/// `Gp_ReleaseStateF0Add` / `Gp_ReleaseStateF0Clear` / `Gp_ReleaseStateF0`. Last-ref
-/// release in `Gp_ReleaseStateF0Clear` also clears words at 0x8 / 0xC / 0x10.
-/// `Gp_ReleaseStateF0Add` then adds the `exp` / `bp` / `mp` of the released
-/// task's enemy `param` into those same words, which is how an enemy's
-/// rewards reach the battle result.
-/// `func_800E2C78` adds a hit's damage, capped at the enemy's remaining `hp`,
-/// into `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B, and the life-drain
-/// effect pays that total into the player's HP.
-/// The bytes from `field_18` on are flags and modes that the actors and rooms
-/// of a scene raise and test between themselves; `Gp_InitStateF0` clears them.
-/// `field_2B` indexes per-level scale tables: gameplay scales damage by it, and
-/// several actors pick their thresholds with it.
-/// Full object may still be larger than 0x2C (`Gp_PendingObj4CFlag` is a separate
-/// symbol at +0x34).
-typedef struct _GpStateF0 {
+/// Scene battle phases, stored in one byte.
+enum {
+    SCENE_COMBAT_BATTLE_IDLE      = 0,
+    SCENE_COMBAT_BATTLE_ENGAGED   = 1,
+    SCENE_COMBAT_BATTLE_FINISHED  = 2,
+    SCENE_COMBAT_BATTLE_RESUMED   = 3,
+    SCENE_COMBAT_END_DELAY_FRAMES = 60
+};
+
+/// Actor update and visibility control shared with room effects.
+enum {
+    SCENE_COMBAT_ACTORS_RUNNING = 0,
+    SCENE_COMBAT_ACTORS_PAUSED  = 1,
+    SCENE_COMBAT_ACTORS_HIDDEN  = 2
+};
+
+/// Action stimuli accumulated until the next player update.
+///
+/// Cast bit 8 covers PE codes 300..600; bit 4 covers the other codes. Packed
+/// masks keep word-wide loads: NOISE_OR_OTHER_CAST tests action bits 1/4,
+/// CAST_FOOTSTEP_OR_ALERT tests action bits 4/16 and the entire enemy-alert byte.
+enum {
+    SCENE_COMBAT_ACTION_NOISE                  = 0x01,
+    SCENE_COMBAT_ACTION_PE_ACTIVE              = 0x02,
+    SCENE_COMBAT_ACTION_PE_CAST_OTHER          = 0x04,
+    SCENE_COMBAT_ACTION_PE_CAST_300_TO_600     = 0x08,
+    SCENE_COMBAT_ACTION_PE_CAST_MASK           = 0x0C,
+    SCENE_COMBAT_ACTION_FOOTSTEP               = 0x10,
+    SCENE_COMBAT_ACTION_ATTACK_MASK            = 0x0D,
+    SCENE_COMBAT_SIGNAL_ATTACK_MASK            = 0x000D0000,
+    SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST    = 0x00050000,
+    SCENE_COMBAT_SIGNAL_CAST_FOOTSTEP_OR_ALERT = 0xFF140000U
+};
+
+/// Shared ownership of a hopper alert: low nibble is the enemy placement index.
+enum {
+    SCENE_COMBAT_HOPPER_OWNER_MASK    = 0x0F,
+    SCENE_COMBAT_HOPPER_ALERT_CLAIMED = 0x80
+};
+
+/// Actor 03700 group alert and player-release signals.
+enum {
+    SCENE_COMBAT_ACTOR03700_ALERT          = 0x01,
+    SCENE_COMBAT_ACTOR03700_PLAYER_RELEASE = 0x02
+};
+
+/// Handshake between actor 105100 and actor 205200.
+enum {
+    SCENE_COMBAT_PAIRED_CHARGE_REQUEST = 0x01,
+    SCENE_COMBAT_PAIRED_HEAL_REQUEST   = 0x02,
+    SCENE_COMBAT_PAIRED_HEAL_READY     = 0x04,
+    SCENE_COMBAT_PAIRED_RESET_REQUEST  = 0x08
+};
+
+/// Room-script phases for the shrine enemy entrance.
+enum {
+    SCENE_COMBAT_SHRINE_HIDDEN   = 0,
+    SCENE_COMBAT_SHRINE_REVEALED = 1,
+    SCENE_COMBAT_SHRINE_RELEASED = 2
+};
+
+/// Group activation phases of the leaping brutes.
+enum {
+    SCENE_COMBAT_BRUTE_WAITING = 0,
+    SCENE_COMBAT_BRUTE_DELAYED = 1,
+    SCENE_COMBAT_BRUTE_ACTIVE  = 2
+};
+
+/// Difficulty rows distinguish a first normal run from a replay.
+enum {
+    SCENE_COMBAT_DIFFICULTY_NORMAL = 0,
+    SCENE_COMBAT_DIFFICULTY_REPLAY = 4
+};
+
+/// Scene combat coordination, actor controls and pending battle rewards.
+///
+/// Scene loading resets this record. Enemy tasks hold `battleRefs` until they
+/// die or retire; the last release finishes the battle and starts the end delay.
+/// Room scripts and actor packages also exchange group-specific signals here.
+/// `signals` preserves byte access and combined little-endian word tests.
+typedef struct {
     union {
         struct {
-            /* 0x00 */ u8 field_0;
-            /* 0x01 */ u8 field_1;
-            /* 0x02 */ u8 field_2;
-            /* 0x03 */ u8 field_3;
+            u8 battlePhase;      // Battle phase (0 idle, 1 engaged, 2 finished, 3 resumed).
+            u8 endDelayFrames;   // Remaining battle-end hold frames; pauses with actor updates.
+            u8 actionFlags;      // Stimuli (1 noise, 2 PE active, 4/8 PE cast, 16 running footstep).
+            u8 enemyAlert;       // Enemy stimulus (0 none, 1/2 alerts with per-kind reactions).
         } bytes;
-        u32 packed;
-    } prefix;
-    /* 0x04 */ u8  field_4;
-    /* 0x05 */ u8  field_5;
-    /* 0x06 */ u16 field_6;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s32 field_14;
-    /* 0x18 */ s8  field_18;
-    /* 0x19 */ u8  field_19;
-    /* 0x1A */ s8  field_1A;
-    /* 0x1B */ s8  field_1B;
-    /* 0x1C */ s8  field_1C;
-    /* 0x1D */ u8  field_1D;
-    /* 0x1E */ s8  field_1E;
-    /* 0x1F */ u8  field_1F;
-    /* 0x20 */ s8  field_20;
-    /* 0x21 */ s8  field_21;
-    /* 0x22 */ s8  field_22;
-    /* 0x23 */ s8  field_23;
-    /* 0x24 */ s8  field_24;
-    /* 0x25 */ s8  field_25;
-    /* 0x26 */ s8  field_26;
-    /* 0x27 */ s8  field_27;
-    /* 0x28 */ s8  field_28;
-    /* 0x29 */ s8  field_29;
-    /* 0x2A */ u8  field_2A;
-    /* 0x2B */ u8  field_2B;
-} GpStateF0;
-STATIC_ASSERT_SIZEOF(GpStateF0, 0x2C);
+        u32 packed;              // Combined view of the four signal bytes.
+    } signals;
+    u8  actorControl;            // Actor control (0 update/draw, 1 pause/redraw, 2 hide).
+    u8  peTargetCount;           // Contact claims for the current PE cast; Life Drain's damage divisor.
+    u16 battleRefs;              // Outstanding enemy and encounter holds, including pending spawns.
+    s32 expReward;               // Experience accumulated for the battle result.
+    s32 bpReward;                // Battle points accumulated for the battle result.
+    s32 mpReward;                // MP accumulated for the battle result.
+    s32 lifeDrainHp;             // Drain damage capped per enemy at its remaining HP; paid to the player.
+    s8  actor00700DeathAlert;    // Group alert after an actor 00700/300700 enemy starts dying (0/1).
+    u8  actor03700Flags;         // Group signals (1 alert latched, 2 release the held player).
+    s8  actor03700Wave;          // Scripted entrance/wave stage (0 initial, 1 begin, 2+ wave thresholds).
+    s8  actor02400Alert;         // Group awakening latched when an actor 02400 projectile is spawned (0/1).
+    s8  actor01600Wave;          // Scripted activation (0 hold, 1 entrance, 2 engage, 3+ wave thresholds).
+    u8  pairedEnemySignals;      // Actor 105100/205200 handshake (1 charge, 2 heal request, 4 heal ready, 8 reset).
+    s8  spiderEntranceReady;     // Releases the scripted web-spider entrance (0 hold, 1 release).
+    u8  hopperAlertOwner;        // Hopper alert claim: bit 7 held, low nibble enemy placement index.
+    s8  shrineEnemyPhase;        // Shrine entrance (0 hidden, 1 reveal/reset delay, 2 run delay).
+    s8  actor02500EntranceReady; // Latched group entrance trigger for actor 02500 (0/1).
+    s8  spiderAmbushReady;       // Latched group ambush trigger for web spiders (0/1).
+    s8  actor00400HideRequested; // Hides the actor 00400 group and cuts short its death fade (0/1).
+    s8  bruteGroupPhase;         // Leaping-brute group activation (0 wait, 1 delayed, 2 active).
+    s8  enemySoundBankQueued;    // The scene's shared enemy sound-bank load has been queued (0/1).
+    s8  podDeathStarted;         // A power-plant pod has begun its death sequence (0/1).
+    s8  bruteDeathAlert;         // A leaping brute has reached its death cleanup; alerts the group (0/1).
+    s8  actor00300AttackAlert;   // Group attack trigger, cleared by actor 00300 patrols (0/1).
+    s8  lungerDeathAlert;        // Alerts surviving lunging enemies when one starts dying (0/1).
+    u8  field_2A;                // Initialized to zero; role unproven.
+    u8  difficulty;              // Damage/threshold row (saved modes 0..3, 4 normal replay).
+} SceneCombatState;
+STATIC_ASSERT_SIZEOF(SceneCombatState, 0x2C);
 
 #endif // GAMEPLAY_WORLD_STATE_H

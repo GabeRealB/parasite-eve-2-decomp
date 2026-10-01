@@ -3515,7 +3515,7 @@ void func_shelter_b3_dumping_hole_801818E0(void)
     DumpingHoleEntity4* p = D_shelter_b3_dumping_hole_8018F4AC->work;
     if (p->field_9C == 0) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x20);
-        Gp_StateF0.field_6       = 0;
+        Gp_StateF0.battleRefs    = 0;
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         p->field_9C              = 1;
     }
@@ -3755,7 +3755,7 @@ void func_shelter_b3_dumping_hole_80183550(Task* task)
     TaskFuncTable4 sp;
 
     sp = D_shelter_b3_dumping_hole_8017D654;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

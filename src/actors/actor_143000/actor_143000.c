@@ -329,7 +329,7 @@ static void func_actor_143000_801325F0(Task* arg0)
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     p                        = D_actor_143000_80134580;
-    Gp_StateF0.field_4       = 2;
+    Gp_StateF0.actorControl  = SCENE_COMBAT_ACTORS_HIDDEN;
     prompt                   = D_80114D28;
     if (Gp_CapBusy() != 0) {
         prompt->mode     = 0;
@@ -782,7 +782,7 @@ static void func_actor_143000_80133800(Task* arg0)
         D_80114D08                                                 = 0xA;
         gGameSession->eventState                                   = 0;
         gGameSession->hideHud                                      = 0;
-        Gp_StateF0.field_4                                         = 0;
+        Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_RUNNING;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_actor_143000_80135C0C_value;
         Gp_MsgPlayer3F3(1);
     } else {

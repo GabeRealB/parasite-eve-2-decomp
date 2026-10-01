@@ -321,7 +321,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                 }
             }
         }
-    } else if (Gp_StateF0.field_4 == 0) {
+    } else if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         state = work->field_24;
         switch (state) {
             case 0:
@@ -592,7 +592,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
     part  = (Actor205200Part*)arg1->work;
     coord = arg1->extra.tmd->coords;
     work  = (Actor205200CtrlWork*)arg1->parent->work;
-    if (Gp_StateF0.field_4 != 0) {
+    if (Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
     switch (part->field_72) {
@@ -607,7 +607,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             arg0->recs     = 0;
             work->field_2C = 1;
             work->field_20--;
-            Gp_StateF0.field_1D |= 1;
+            Gp_StateF0.pairedEnemySignals |= SCENE_COMBAT_PAIRED_CHARGE_REQUEST;
             switch (work->field_1E) {
                 case 1:
                     func_neo_ark_eve_access_tunnel_8017E090((u8)part->field_78, 1);
@@ -726,7 +726,7 @@ void func_actor_205200_8014B978(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Per-frame tick of a live part. `Gp_StateF0.field_4` gates the body: mode 1 runs
+/// Per-frame tick of a live part. `Gp_StateF0.actorControl` gates the body: mode 1 runs
 /// none of it, mode 2 marks the node not lockable and returns, mode 0 hides its
 /// HP before falling in, and any other mode enters it directly. The body
 /// applies the part's hits, ticks its effect timer and, once the controller's
@@ -743,7 +743,7 @@ static void func_actor_205200_8014B9D4(Enemy* arg0, Task* arg1)
 
     part       = (Actor205200Part*)arg1->work;
     parentWork = (Actor205200CtrlWork*)arg1->parent->work;
-    state      = Gp_StateF0.field_4;
+    state      = Gp_StateF0.actorControl;
     one        = 1;
     if (state == one) {
         goto case1;

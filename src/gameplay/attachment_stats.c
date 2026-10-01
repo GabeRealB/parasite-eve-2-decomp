@@ -261,20 +261,20 @@ u16 D_80113F90[6] = {
 
 void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
 {
-    PlayerStatus*  p;
-    GpStateF0*     state;
-    GpRec8*        rec;
-    GpAttachParam* row;
-    s32            cond;
-    s32            ret;
-    u8*            table;
-    s32            idx;
-    s32            val1;
-    s32            val2;
-    s32            flag;
-    s32            temp2;
-    s32            temp4;
-    u8             kind;
+    PlayerStatus*     p;
+    SceneCombatState* state;
+    GpRec8*           rec;
+    GpAttachParam*    row;
+    s32               cond;
+    s32               ret;
+    u8*               table;
+    s32               idx;
+    s32               val1;
+    s32               val2;
+    s32               flag;
+    s32               temp2;
+    s32               temp4;
+    u8                kind;
 
     idx = Gp_StateC08.field_B;
     if (arg0 == 1) {
@@ -304,16 +304,16 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
             }
         }
     }
-    row             = &Gp_AttachParams[idx * 3];
-    rec             = &row[ret].dispatch;
-    state           = &Gp_StateF0;
-    temp2           = rec->field_2;
-    temp4           = rec->field_4;
-    state->field_5  = 0;
-    state->field_14 = 0;
-    val1            = temp2 * 100;
-    val2            = temp4 * 100;
-    if ((Gp_StateF0.prefix.bytes.field_0 == 1 && state->field_6 != 0) || state->prefix.bytes.field_1 != 0) {
+    row                  = &Gp_AttachParams[idx * 3];
+    rec                  = &row[ret].dispatch;
+    state                = &Gp_StateF0;
+    temp2                = rec->field_2;
+    temp4                = rec->field_4;
+    state->peTargetCount = 0;
+    state->lifeDrainHp   = 0;
+    val1                 = temp2 * 100;
+    val2                 = temp4 * 100;
+    if ((Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && state->battleRefs != 0) || state->signals.bytes.endDelayFrames != 0) {
         flag = 1;
     } else {
         flag = 0;
@@ -531,10 +531,10 @@ static __inline__ s32 getAttachLevel(s32 idx)
 /// Inline copy of `Gp_IsStateF0Active`.
 static __inline__ s32 isStateF0Active_(void)
 {
-    GpStateF0* p;
+    SceneCombatState* p;
 
     p = &Gp_StateF0;
-    if ((p->prefix.bytes.field_0 == 1 && p->field_6 != 0) || p->prefix.bytes.field_1 != 0) {
+    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
         return 1;
     }
     return 0;
@@ -602,13 +602,13 @@ static void Gp_SetAttachState(s32 arg0)
     if (duration <= 0) {
         p->field_2 = 1;
     }
-    p->field_A         = 2;
-    D_80115768         = 0;
-    Gp_StateF0.field_4 = 0;
-    p->field_8         = 1;
-    p->field_9         = 0;
-    D_80114C34         = 0;
-    p->field_6        &= 0xFE;
+    p->field_A              = 2;
+    D_80115768              = 0;
+    Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+    p->field_8              = 1;
+    p->field_9              = 0;
+    D_80114C34              = 0;
+    p->field_6             &= 0xFE;
 }
 
 static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
@@ -1058,7 +1058,7 @@ static __inline__ s32 hudSwapReady(void)
     if (flag != 0) {
         if (Gp_ItemGrantCooldown <= 0) {
             ret = 1;
-            if (Gp_StateF0.prefix.bytes.field_1 == 0) {
+            if (Gp_StateF0.signals.bytes.endDelayFrames == 0) {
                 goto done;
             }
         }
@@ -1071,12 +1071,12 @@ done:
 /// Inline copy of `Gp_CdIdleIfF0Active`.
 static __inline__ s32 cdIdleIfF0Active_(void)
 {
-    GpStateF0* p;
-    s32        cond;
-    u16        ret;
+    SceneCombatState* p;
+    s32               cond;
+    u16               ret;
 
     p = &Gp_StateF0;
-    if ((p->prefix.bytes.field_0 == 1 && p->field_6 != 0) || p->prefix.bytes.field_1 != 0) {
+    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
         cond = 1;
     } else {
         cond = 0;
@@ -1093,11 +1093,11 @@ static __inline__ s32 cdIdleIfF0Active_(void)
 /// `Gp_IsStateF0Active` but always returns 0.
 static __inline__ u8 stateF0Gate_(void)
 {
-    GpStateF0* p;
-    s32        cond;
+    SceneCombatState* p;
+    s32               cond;
 
     p = &Gp_StateF0;
-    if ((p->prefix.bytes.field_0 == 1 && p->field_6 != 0) || p->prefix.bytes.field_1 != 0) {
+    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
         cond = 1;
     } else {
         cond = 0;
@@ -1168,10 +1168,10 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
             if (work != NULL) {
                 ((GameActor*)work->work)->padHeld |= 0x40;
             }
-            Gp_StateC08.field_A = 0;
-            D_80115768          = 0;
-            Gp_StateF0.field_4  = 0;
-            Gp_StateC08.field_9 = 0;
+            Gp_StateC08.field_A     = 0;
+            D_80115768              = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+            Gp_StateC08.field_9     = 0;
             if (isStateF0Active_()) {
                 Gp_DrawItemPrompt(x, y);
             }
@@ -1184,12 +1184,12 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         if ((ok != 0 && (gGameSession->padPressed & 0x10) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
              !(Gp_StateC08.field_6 & 1)) ||
             (Gp_StateC08.field_6 & 0x10)) {
-            Gp_StateC08.field_9  = 1;
-            Gp_StateC08.field_6 &= 0xEF;
-            side                 = Gp_StateC08.field_A ^ 1;
-            Gp_StateC08.field_A  = side;
-            D_80115768           = side;
-            Gp_StateF0.field_4   = side;
+            Gp_StateC08.field_9     = 1;
+            Gp_StateC08.field_6    &= 0xEF;
+            side                    = Gp_StateC08.field_A ^ 1;
+            Gp_StateC08.field_A     = side;
+            D_80115768              = side;
+            Gp_StateF0.actorControl = side;
             if (Gp_StateC08.field_B >= 0xC) {
                 Gp_StateC08.field_B = 0;
             }
@@ -1223,12 +1223,12 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         }
         if (Gp_StateC08.field_2 <= 0) {
             if (cdIdleIfF0Active_()) {
-                Gp_StateC08.field_A  = 0;
-                D_80115768           = 0;
-                Gp_StateF0.field_4   = 0;
-                Gp_StateC08.field_9  = 0;
-                Gp_StateC08.field_3  = 1;
-                Gp_ItemGrantCooldown = 0x14;
+                Gp_StateC08.field_A     = 0;
+                D_80115768              = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                Gp_StateC08.field_9     = 0;
+                Gp_StateC08.field_3     = 1;
+                Gp_ItemGrantCooldown    = 0x14;
                 CdCmd_EnqueueLoadFile(0, 0, 4);
                 if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
                     cfg->hp -= Gp_GetAttachParam(2) * 2;
@@ -1264,12 +1264,12 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
             if (Gp_StateC08.field_A >= 2) {
                 Gp_StateC08.field_3 = 2;
             }
-            Gp_StateC08.field_E = 0;
-            Gp_StateC08.field_A = 0;
-            D_80115768          = 0;
-            Gp_StateF0.field_4  = 0;
-            Gp_StateC08.field_7 = 0;
-            Gp_StateC08.field_8 = 0;
+            Gp_StateC08.field_E     = 0;
+            Gp_StateC08.field_A     = 0;
+            D_80115768              = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+            Gp_StateC08.field_7     = 0;
+            Gp_StateC08.field_8     = 0;
         }
         return;
     }
@@ -1318,19 +1318,19 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
 
 void Gp_HudTask(GpIdMapC* arg0)
 {
-    DisplayState* ds;
-    PlayerStatus* cfg;
-    GpStateC08*   c08;
-    GpStateF0*    f0;
-    Task*         slot;
-    Task*         work;
-    POLY_FT4*     poly;
-    s32           stageAreaKey;
-    s32           bad;
-    s32           state;
-    s32           sub;
-    s32           n;
-    s32           b;
+    DisplayState*     ds;
+    PlayerStatus*     cfg;
+    GpStateC08*       c08;
+    SceneCombatState* f0;
+    Task*             slot;
+    Task*             work;
+    POLY_FT4*         poly;
+    s32               stageAreaKey;
+    s32               bad;
+    s32               state;
+    s32               sub;
+    s32               n;
+    s32               b;
 
     bad           = 0;
     stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
@@ -1429,7 +1429,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         if (cfg->interactionPressed != 0) {
             goto after;
         }
-        if (Gp_StateF0.prefix.bytes.field_1 != 0) {
+        if (Gp_StateF0.signals.bytes.endDelayFrames != 0) {
             goto after;
         }
         if (d2->pendingMode != DISPLAY_MODE_NONE) {
@@ -1469,7 +1469,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                     ok = 0;
                     goto have;
                 }
-                if (Gp_StateF0.prefix.bytes.field_1 == 0) {
+                if (Gp_StateF0.signals.bytes.endDelayFrames == 0) {
                     ok = 1;
                     goto have;
                 }
@@ -1541,13 +1541,13 @@ after:
         }
         if (sub == state) {
             f0                          = &Gp_StateF0;
-            b                           = f0->prefix.bytes.field_1;
+            b                           = f0->signals.bytes.endDelayFrames;
             d3->suppressDisconnectPause = 0;
             if (b != 0) {
-                if (f0->field_4 == 0) {
-                    f0->prefix.bytes.field_1 = b - 1;
+                if (f0->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                    f0->signals.bytes.endDelayFrames = b - 1;
                 }
-                n = f0->prefix.bytes.field_1;
+                n = f0->signals.bytes.endDelayFrames;
                 if (n != 2) {
                     goto tail;
                 }
@@ -1556,12 +1556,12 @@ after:
                 if (c08->field_A >= 2) {
                     c08->field_3 = n;
                 }
-                c08->field_E = 0;
-                c08->field_A = 0;
-                D_80115768   = 0;
-                f0->field_4  = 0;
-                c08->field_7 = 0;
-                c08->field_8 = 0;
+                c08->field_E     = 0;
+                c08->field_A     = 0;
+                D_80115768       = 0;
+                f0->actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                c08->field_7     = 0;
+                c08->field_8     = 0;
                 Gp_PulseState1C80();
                 Gp_ClearSlotNodeFlags();
                 if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
@@ -1584,32 +1584,32 @@ after:
                 if (session->battleResetPending == 0) {
                     goto tail;
                 }
-                f0->prefix.bytes.field_0    = 0;
-                f0->field_6                 = 0;
-                session->battleResetPending = 0;
+                f0->signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+                f0->battleRefs                = 0;
+                session->battleResetPending   = 0;
                 if (c08->field_A >= 2) {
                     c08->field_3 = 2;
                 }
-                c08->field_E  = 0;
-                c08->field_A  = 0;
-                D_80115768    = 0;
-                f0->field_4   = 0;
-                c08->field_9  = 0;
-                arg0->field_4 = 0;
-                arg0->field_0 = 0;
+                c08->field_E     = 0;
+                c08->field_A     = 0;
+                D_80115768       = 0;
+                f0->actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                c08->field_9     = 0;
+                arg0->field_4    = 0;
+                arg0->field_0    = 0;
                 goto tail;
             }
         }
         if (sub == 2) {
-            GpStateF0* p;
-            Task*      w;
-            s32        c;
+            SceneCombatState* p;
+            Task*             w;
+            s32               c;
 
             p = &Gp_StateF0;
-            c = p->prefix.bytes.field_1;
+            c = p->signals.bytes.endDelayFrames;
             if (c != 0) {
-                if (p->field_4 == 0) {
-                    p->prefix.bytes.field_1 = c - 1;
+                if (p->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                    p->signals.bytes.endDelayFrames = c - 1;
                 }
             }
             w = gameGetPtrSlot(3);
@@ -1626,17 +1626,17 @@ after:
             PlayerStatus* p;
             s32           cond;
 
-            GpStateF0* p2;
-            Task*      w;
-            s32        c;
+            SceneCombatState* p2;
+            Task*             w;
+            s32               c;
 
             w   = gameGetPtrSlot(3);
             hit = 0;
             p2  = &Gp_StateF0;
-            c   = p2->prefix.bytes.field_1;
+            c   = p2->signals.bytes.endDelayFrames;
             if (c != 0) {
-                if (p2->field_4 == 0) {
-                    p2->prefix.bytes.field_1 = c - 1;
+                if (p2->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                    p2->signals.bytes.endDelayFrames = c - 1;
                 }
             }
             if (w != NULL) {
@@ -1706,11 +1706,11 @@ after:
             if (q->field_A >= 2) {
                 q->field_3 = 2;
             }
-            q->field_E         = 0;
-            q->field_A         = 0;
-            D_80115768         = 0;
-            Gp_StateF0.field_4 = 0;
-            q->field_9         = 0;
+            q->field_E              = 0;
+            q->field_A              = 0;
+            D_80115768              = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+            q->field_9              = 0;
         }
     }
 
@@ -1728,17 +1728,17 @@ tail:
     goto end;
 
 other: {
-    GpStateF0*  p;
-    GpStateC08* q;
-    s32         m;
+    SceneCombatState* p;
+    GpStateC08*       q;
+    s32               m;
 
-    if (Gp_StateF0.prefix.bytes.field_1 != 0) {
-        if (Gp_StateF0.field_4 == 0) {
-            Gp_StateF0.prefix.bytes.field_1 = Gp_StateF0.prefix.bytes.field_1 - 1;
+    if (Gp_StateF0.signals.bytes.endDelayFrames != 0) {
+        if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+            Gp_StateF0.signals.bytes.endDelayFrames = Gp_StateF0.signals.bytes.endDelayFrames - 1;
         }
     }
     p = &Gp_StateF0;
-    m = Gp_StateF0.prefix.bytes.field_0;
+    m = Gp_StateF0.signals.bytes.battlePhase;
     if (m == 1) {
         arg0->field_4 = 0;
         arg0->field_0 = m;
@@ -1747,13 +1747,13 @@ other: {
         if (q->field_A >= 2) {
             q->field_3 = 2;
         }
-        q->field_E    = 0;
-        q->field_A    = 0;
-        D_80115768    = 0;
-        p->field_4    = 0;
-        q->field_7    = 0;
-        q->field_8    = 0;
-        arg0->field_D = 0x20;
+        q->field_E      = 0;
+        q->field_A      = 0;
+        D_80115768      = 0;
+        p->actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+        q->field_7      = 0;
+        q->field_8      = 0;
+        arg0->field_D   = 0x20;
     } else {
         if (arg0->field_D < 0x11) {
             if (gGameSession->hideHud == 0) {

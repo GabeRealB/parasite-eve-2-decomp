@@ -981,13 +981,13 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             return;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Gp_StateF0.field_4 = 2;
-                task->state        = task->state + 1;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
+                task->state             = task->state + 1;
             }
             return;
         case 2:
             if (Gp_GetCapEventKey() == 0xA) {
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 GameFlag_SetNibble(0x55, 3);
                 SndEvt_EnqueueType6(0x52150004, 0, 0);
                 Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
@@ -995,7 +995,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             } else {
                 gGameSession->eventState                                   = 0;
                 gGameSession->hideHud                                      = 0;
-                Gp_StateF0.field_4                                         = 0;
+                Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_RUNNING;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);

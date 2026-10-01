@@ -1752,7 +1752,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd1(arg0->spawnArg1.value);
             D_80115690 = 1;
             arg0->state++;
@@ -1765,7 +1765,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             break;
         case 2:
             if (Gp_GetCapEventKey() == 0xC) {
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 break;

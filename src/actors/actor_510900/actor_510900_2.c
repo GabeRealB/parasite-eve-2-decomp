@@ -2861,7 +2861,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
 /// or either `WorldCollisionContact` table reports a hit, it fires the impact effects,
 /// reparents the task under the spawned one and hands the actor to state 2.
 /// A parent that has stopped (`field_592` == 0) tears the object down the same
-/// way. `Gp_StateF0.field_4` 1 only refreshes the colour and 2 only hides the model.
+/// way. `Gp_StateF0.actorControl` 1 only refreshes the colour and 2 only hides the model.
 static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
 {
     VECTOR                         pos;
@@ -2882,17 +2882,17 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
     coord  = tmd->coords;
     parent = (Actor510900Work*)task->parent->work;
     done   = 0;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             tmd->flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
             Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
@@ -2983,7 +2983,7 @@ static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
 
     work   = (Actor510900ChildFx*)task->work;
     parent = (Actor510900Work*)task->parent->work;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         switch (work->field_CA) {
             case 0:
                 tick           = work->field_C8 + 1;
@@ -3200,7 +3200,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-/// Frame handler (state 1) of the child task. Mode 1 of `Gp_StateF0.field_4` only
+/// Frame handler (state 1) of the child task. Mode 1 of `Gp_StateF0.actorControl` only
 /// redraws, mode 2 hides the model and flags the context, and mode 0 ticks the
 /// animation until `func_actor_510900_8013C240` reports ready before falling
 /// into the normal body.
@@ -3218,7 +3218,7 @@ static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
     work   = (Actor510900ChildAnim*)arg1->work;
     coord  = obj->coords;
     parent = (Actor510900Work*)arg1->parent->work;
-    mode   = Gp_StateF0.field_4;
+    mode   = Gp_StateF0.actorControl;
     one    = 1;
     if (mode == one) {
         goto case1;
@@ -3328,7 +3328,7 @@ case0:
         work->field_330 = 2;
         goto end;
     }
-    ctx->node.state.parts.flags = Gp_StateF0.prefix.bytes.field_0 != 1;
+    ctx->node.state.parts.flags = Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
     dmg                         = work->rec2DC.key.value;
     work->obj2BC.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.parts.targeted == one &&
@@ -3488,7 +3488,7 @@ static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1)
 
     work   = (Actor510900ChildWork*)arg1->work;
     parent = (Actor510900Work*)arg1->parent->work;
-    mode   = Gp_StateF0.field_4;
+    mode   = Gp_StateF0.actorControl;
     one    = 1;
     if (mode == one) {
         return;
@@ -3579,7 +3579,7 @@ static void func_actor_510900_8013B0D8(Task* arg0)
             }
             break;
         case 1:
-            ctx->node.state.parts.flags = Gp_StateF0.prefix.bytes.field_0 != 1;
+            ctx->node.state.parts.flags = Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
             hit                         = work->rec20.key.value;
             work->obj0.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             if ((hit & ~0x7FFF) == 0x20000) {
@@ -3748,7 +3748,7 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
     temp_a1 = arg1->extra.tmd;
     temp_s1 = temp_a1->coords;
     if (temp_s2->field_5A4 != 0) {
-        sp  = Gp_StateF0.field_4;
+        sp  = Gp_StateF0.actorControl;
         one = 1;
         if (sp == one) {
             goto case1;

@@ -1698,7 +1698,7 @@ void func_actor_503500_80132778(Task* task)
         task->state++;
     }
     work = (Actor503500EffWork*)task->work;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (work->field_8.halves.integer < ++task->killCountdown) {
             task->killCountdown = 0;
             Gp_SpawnEff(0x6018C, coord,
@@ -1747,7 +1747,7 @@ void func_actor_503500_80132990(Task* task)
     u8        r, g, b;
 
     r = g = b = task->killCountdown;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         switch (task->state) {
             case 0:
                 task->killCountdown = 0xFF;
@@ -1841,7 +1841,7 @@ void func_actor_503500_80132CA4(void)
 void func_actor_503500_80132CC4(s8 arg0)
 {
     Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x23);
-    Gp_StateF0.prefix.bytes.field_1 = arg0;
+    Gp_StateF0.signals.bytes.endDelayFrames = arg0;
 }
 
 /// Record handler (opcode 0x0D) of the actor's script data, taking the

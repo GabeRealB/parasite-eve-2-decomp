@@ -73,7 +73,7 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd(0x12, 0);
             arg0->state++;
             break;
@@ -84,7 +84,7 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
             break;
         case 2:
             if (Gp_GetCapEventKey() == 0) {
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 Gp_MsgPlayerWeapon(1);
                 taskKill(arg0);
             } else {
@@ -122,7 +122,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
-        Gp_StateF0.field_4 = 1;
+        Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         if (gGameSession->location.loc.room < 4) {
             Gp_SpawnIfCapIdle(3, 1);
             return 0;

@@ -1049,7 +1049,7 @@ static void func_actor_800200_801622B0(Task* arg0)
         }
     }
     actor->pendingCollisionUpdates = 0;
-    if (D_80115768 == 0 && Gp_StateF0.field_4 == 0) {
+    if (D_80115768 == 0 && Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         func_actor_800200_801652EC(arg0);
     }
     Gp_ClearRec18Occupied(actor->collisionContacts);
@@ -1153,7 +1153,7 @@ static void func_actor_800200_80162750(Task* arg0)
     actor                    = arg0->work;
     actor->actionValue      += 1;
     companion                = actor->companionWork;
-    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
         state             = 0;
         lock              = Gp_FindLockNode(arg0);
         actor->targetNode = lock;
@@ -2243,7 +2243,7 @@ static void func_actor_800200_801647A8(Task* arg0)
         case 0:
             initialState      = 1;
             actor->statePhase = initialState;
-            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 node              = Gp_FindLockNode(arg0);
                 actor->targetNode = node;
                 if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
@@ -2276,7 +2276,7 @@ static void func_actor_800200_801647A8(Task* arg0)
                 actor2                                                  = arg0->work;
                 next                                                    = 1;
                 actor2->companionWork->activity.combat.repeatsRemaining = next;
-                if (Gp_StateF0.prefix.bytes.field_0 == next) {
+                if (Gp_StateF0.signals.bytes.battlePhase == next) {
                     actor2->targetNode = Gp_FindLockNode(arg0);
                 } else {
                     actor2->targetNode = NULL;
@@ -2357,7 +2357,7 @@ static void func_actor_800200_801649D8(Task* arg0)
                 actor->statePhase += 1;
                 actor->rotation.vy = (u16)companion->targetHeading;
                 actor->turnSign    = 0;
-                if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+                if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     idleAnim            = 4;
                     actor->movementMode = 6;
                     random              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -2731,7 +2731,7 @@ static void func_actor_800200_8016545C(Task* arg0, s8 arg1)
     u16        flag;
 
     actor->companionWork->activity.combat.repeatsRemaining = arg1;
-    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
         actor->targetNode = Gp_FindLockNode(arg0);
     } else {
         actor->targetNode = 0;
@@ -3025,7 +3025,7 @@ static void func_actor_800200_80165D44(Task* arg0)
             actor->statePhase    += 1;
             Gp_AnimResetChildSlots(arg0, 9);
         case 2:
-            if ((func_8010BC70(coord) >= 0x500) || (Gp_StateF0.prefix.bytes.field_0 == 1)) {
+            if ((func_8010BC70(coord) >= 0x500) || (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
                 actor->animationState = 7;
                 actor->statePhase    += 1;
                 Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 3);

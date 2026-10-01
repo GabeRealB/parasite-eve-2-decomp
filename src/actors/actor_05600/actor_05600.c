@@ -1677,7 +1677,7 @@ static inline void _actor05600Draw(Task* actor, GfxCoord* coord)
 /// Per-frame tick of the approach cycle: runs the collision and state handlers,
 /// drifts the root coordinate forward along its Z axis (and upward while
 /// `field_6DE` is below 2), reseeds or ticks the nineteen animation slots, then
-/// publishes the body's colour and its ground shadow. `Gp_StateF0.field_4` overrides
+/// publishes the body's colour and its ground shadow. `Gp_StateF0.actorControl` overrides
 /// the whole state machine - 1 draws the body without advancing it and 2
 /// hides it. Entry 1 of `Actor05600_D00098`.
 static void Actor05600_Fn03EBC(Enemy* ctx, Task* actor)
@@ -1689,15 +1689,15 @@ static void Actor05600_Fn03EBC(Enemy* ctx, Task* actor)
     work  = (Actor105600Work*)actor->work;
     model = actor->extra.tmd;
     coord = model->coords;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             model->flags                = 0;
             ctx->node.state.parts.flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             _actor05600Draw(actor, coord);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;

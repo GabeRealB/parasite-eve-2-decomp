@@ -282,14 +282,14 @@ void func_mine_gorge_8017D8BC(u8 arg0)
     D_80115768 = arg0;
 }
 
-/// Script callback: stores its argument in `Gp_StateF0.field_1A`.
+/// Script callback: stores its argument in `Gp_StateF0.actor03700Wave`.
 void func_mine_gorge_8017D8C8(s32 arg0)
 {
-    Gp_StateF0.field_1A = arg0;
+    Gp_StateF0.actor03700Wave = arg0;
 }
 
 /// Room task setup state: installs the message table and pointer slot 7, sets
-/// `Gp_StateF0.field_1A` to `0x15` in place 1 once flag nibble `0xC5` is set, and on the
+/// `Gp_StateF0.actor03700Wave` to `0x15` in place 1 once flag nibble `0xC5` is set, and on the
 /// first pass with flag nibble `0xBE == 2` arms nibble `0x166`, clears nibble
 /// `0xB5` and calls `Gp_SpawnIfCapIdle(8, 0)`. Then selects scene music entry 1 and
 /// advances state.
@@ -298,7 +298,7 @@ static void func_mine_gorge_8017D8D4(Task* arg0)
     arg0->msgTable = D_mine_gorge_8017E280;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
-        Gp_StateF0.field_1A = 0x15;
+        Gp_StateF0.actor03700Wave = 0x15;
     }
     if ((GameFlag_GetNibble(0xBE) == 2) && (GameFlag_GetNibble(0x166) == 0)) {
         GameFlag_SetNibble(0x166, 1);

@@ -1859,7 +1859,7 @@ void func_acropolis_patio_8017DF48(void)
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {
-    Gp_StateF0.field_4 = arg0;
+    Gp_StateF0.actorControl = arg0;
 }
 
 static const ApGreyLevels D_acropolis_patio_8017D5E8 = { { 0x50, 0x30, 0x40 } };
@@ -1882,11 +1882,11 @@ void func_acropolis_patio_8017DF8C(Task* task)
 void func_acropolis_patio_8017DFE4(s32 arg0)
 {
     if (arg0 != 0) {
-        Gp_StateF0.field_4 = 0;
+        Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
         Gp_ArmStateF0(1);
         return;
     }
-    Gp_StateF0.field_4 = 1;
+    Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
 }
 void func_acropolis_patio_8017E024(void)
 {

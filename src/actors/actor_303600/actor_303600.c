@@ -17322,13 +17322,13 @@ static const TaskFuncTable3 D_actor_303600_80161E54 = { {
 
 /// Per-frame dispatcher of the rig's model tasks: runs their spawn, tick or
 /// exit state from `D_actor_303600_80161E54`, skipping the frame while
-/// `Gp_StateF0.field_4` is set.
+/// `Gp_StateF0.actorControl` is set.
 void func_actor_303600_801628E4(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_303600_80161E54;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }
@@ -17381,13 +17381,13 @@ static void func_actor_303600_80162A0C(Task* task)
 
 /// Per-frame dispatcher of the rig controller: runs its spawn, motion or exit
 /// state from `D_actor_303600_80161E48`, skipping the frame while
-/// `Gp_StateF0.field_4` is set.
+/// `Gp_StateF0.actorControl` is set.
 void func_actor_303600_80162A7C(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_303600_80161E48;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

@@ -122,7 +122,7 @@ void Gp_EvtCapTask(Task* arg0)
             bit0 = flags & 1;
             if (bit0 != 0) {
                 Gp_MsgPlayerWeapon(0);
-                Gp_StateF0.field_4 = flag;
+                Gp_StateF0.actorControl = flag;
             }
             if (flags & 2) {
                 Gp_MsgPlayer3F3(0);
@@ -145,7 +145,7 @@ void Gp_EvtCapTask(Task* arg0)
         case 2:
             if (flags & 1) {
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             }
             if (flags & 2) {
                 Gp_MsgPlayer3F3(1);

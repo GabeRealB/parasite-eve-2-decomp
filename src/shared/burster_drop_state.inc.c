@@ -1,7 +1,7 @@
 /* Part of the burster library; see burster.h. */
 
 /// Per-frame handler of the first enemy while it drops into place. Mode 1 of
-/// `Gp_StateF0.field_4` only re-colours it and mode 2 hides the model. Otherwise, once
+/// `Gp_StateF0.actorControl` only re-colours it and mode 2 hides the model. Otherwise, once
 /// `field_2E2` has armed the drop, the root steps along its facing and by the
 /// fall speed `field_2DE`, the collision response is applied, the animation
 /// ticks and the root is recomputed, with the step length decaying by 2 a
@@ -16,15 +16,15 @@ void bursterDropState(Enemy* arg0, Task* arg1)
     s32              soundId;
 
     work = (Actor104600Work*)arg1->work;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             if (work->field_2E2 == 0) {
                 return;

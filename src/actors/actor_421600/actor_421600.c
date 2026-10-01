@@ -3303,7 +3303,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
             break;
     }
 
-    Gp_StateF0.field_6      = 8;
+    Gp_StateF0.battleRefs   = 8;
     D_actor_421600_80151268 = 8;
     actor->state++;
 }
@@ -4020,7 +4020,7 @@ static void func_actor_421600_801369A0(Task* arg0)
         work->field_6 = 0;
         do {
         } while (0);
-        if (Gp_StateF0.field_6 >= 2U) {
+        if (Gp_StateF0.battleRefs >= 2U) {
             Gp_ReleaseStateF0Add(arg0, 1);
         }
         if (D_actor_421600_80151268 <= 0) {
@@ -6710,8 +6710,8 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0x15 && work->field_0 != 0 && work->field_0 != 0x16 && work->field_0 != 7 && work->field_0 != 8) {
                 height = actor->extra.tmd->coords->coord.t[1];
                 limbShadowDrawSegment(actor, 1, 3, 0x12C, (s32)height, 0xFF);
@@ -6724,7 +6724,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 }
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->field_0 != 0x15 && work->field_0 != 0 && work->field_0 != 0x16 && work->field_0 != 7 && work->field_0 != 8) {
                 height = actor->extra.tmd->coords->coord.t[1];
                 limbShadowDrawSegment(actor, 1, 3, 0x12C, (s32)height, 0xFF);
@@ -6741,7 +6741,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
             Gp_ClearRec18Occupied(&work->field_A4C);
             Gp_ClearRec18Occupied(work->field_CE4);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(&work->field_B8C);
             Gp_ClearRec18Occupied(&work->field_90C);

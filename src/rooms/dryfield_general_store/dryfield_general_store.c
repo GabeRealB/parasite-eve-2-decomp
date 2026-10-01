@@ -1609,7 +1609,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
             }
             break;
         case 2:
-            if (Gp_StateF0.prefix.bytes.field_0 != 1 && GameFlag_GetNibble(0x5E) == 1) {
+            if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && GameFlag_GetNibble(0x5E) == 1) {
                 func_800E8614(D_dryfield_general_store_8017E568, 1);
             }
             GameFlag_SetNibble(0x5E, 2);

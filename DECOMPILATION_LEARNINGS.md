@@ -7907,19 +7907,19 @@ Use a new local for the later stores:
 
 ```c
 p = &Gp_StateF0;
-if (p->field_6 != 0) {
-    p->field_6--;
-    if (p->field_6 == 0) {
-        Gp_StateF0.field_0 = 2;
-        p->field_2         = 0;
-        p->field_3         = 0;
-        p->field_1         = 0x3C;
+if (p->battleRefs != 0) {
+    p->battleRefs--;
+    if (p->battleRefs == 0) {
+        Gp_StateF0.signals.bytes.battlePhase = 2;
+        p->signals.bytes.actionFlags         = 0;
+        p->signals.bytes.enemyAlert         = 0;
+        p->signals.bytes.endDelayFrames         = 0x3C;
         /* ... */
     }
     rec = arg0->field_20->field_50;
     if (rec != NULL) {
         q = &Gp_StateF0;
-        q->field_8 += rec->field_6;
+        q->expReward += rec->field_6;
     }
 }
 ```
@@ -40824,7 +40824,7 @@ Moving the coordinates in only one of the two blocks makes it worse, not better
 
 ## Spell out the CFG when GCC if-converts the last term of `a && b && c`
 
-`ok = hit && Gp_ItemGrantCooldown <= 0 && Gp_StateF0.field_1 == 0;` (and the equivalent
+`ok = hit && Gp_ItemGrantCooldown <= 0 && Gp_StateF0.signals.bytes.endDelayFrames == 0;` (and the equivalent
 `if/else if/else` chain) compiles the final term with `sltiu v1,v0,1`. The
 target instead branches on it and sets the flag in a delay slot:
 
@@ -40842,7 +40842,7 @@ Write the control flow literally, with a shared fall-through `ok = 0`:
 ```c
     if (hit != 0) {
         if (Gp_ItemGrantCooldown > 0) { ok = 0; goto have; }
-        if (Gp_StateF0.field_1 == 0) { ok = 1; goto have; }
+        if (Gp_StateF0.signals.bytes.endDelayFrames == 0) { ok = 1; goto have; }
     }
     ok = 0;
 have:
@@ -41024,7 +41024,7 @@ comparison, leaving the branch with nothing but a jump to the join:
     if (flag != 0) {
         if (Gp_ItemGrantCooldown <= 0) {
             ret = 1;
-            if (Gp_StateF0.field_1 == 0) {
+            if (Gp_StateF0.signals.bytes.endDelayFrames == 0) {
                 goto done;
             }
         }
@@ -42018,8 +42018,8 @@ real symbol and violates the struct rule in `CLAUDE.md` at the same time:
 | Removed | Real name |
 |---|---|
 | `D_80114BEC` | `Gp_HpMpWork.field_4` |
-| `D_801153F1`–`F4` | `Gp_StateF0.field_1`–`field_4` |
-| `D_8011541B` | `Gp_StateF0.field_2B` |
+| `D_801153F1`–`F4` | `Gp_StateF0.signals.bytes.endDelayFrames`–`Gp_StateF0.actorControl` |
+| `D_8011541B` | `Gp_StateF0.difficulty` |
 
 Hand-written inline asm is not an excuse to keep one. `Gp_ScaleDamage` had four
 `%hi`/`%lo` references to `D_8011541B`; the assembler takes an offset
@@ -44522,7 +44522,7 @@ The last 4 instructions came from the *last* case only. In cases 2 and 3 both
 arms end in a `j` to the merged tail, so
 
 ```c
-} else if (Gp_StateF0.field_0 == 1) { Gp_RunCapCmd1(3); }
+} else if (Gp_StateF0.signals.bytes.battlePhase == 1) { Gp_RunCapCmd1(3); }
 else                                { Gp_RunCapCmd1(9); }
 ```
 
@@ -44532,7 +44532,7 @@ the opposite fall-through, so that case has to be written with the condition
 negated and the arms swapped to produce the same `beq`:
 
 ```c
-} else if (Gp_StateF0.field_0 != 1) { Gp_RunCapCmd1(0xA); }
+} else if (Gp_StateF0.signals.bytes.battlePhase != 1) { Gp_RunCapCmd1(0xA); }
 else                                { Gp_RunCapCmd1(4); }
 ```
 
@@ -44668,7 +44668,7 @@ labels) is the small worked example.
 
 ## `%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction
 
-Splat names `Gp_StateF0.field_4` as the standalone import `D_801153F4`, so a
+Splat names `Gp_StateF0.actorControl` as the standalone import `D_801153F4`, so a
 scratch-env diff of `lbu $v1, %lo(Gp_StateF0+4)($v0)` against `lbu $v1,
 %lo(D_801153F4)($v0)` reports a difference that does not exist: both symbols are
 `absolute:True`, so the linker folds them to the same halfword. Confirm with
@@ -45536,7 +45536,7 @@ aggregate. `SCHED_BARRIER()` behaves like `SOFT_BARRIER()` wherever the barrier
 works at all; `volatile` works for neither and lands two instructions off.
 
 When the global is really one byte of a larger record, write it as that
-record's member: `D_80115417` is `Gp_StateF0.field_27`, and a member of a
+record's member: `D_80115417` is `Gp_StateF0.bruteDeathAlert`, and a member of a
 global struct is in-struct as well, so the heuristic does not fire for it
 either. Replacing the gameplay-state byte aliases with `Gp_StateF0` members
 kept every actor matching, including the ones that had declared an alias as a
@@ -46586,7 +46586,7 @@ plus a swapped destination register in its delay slot.
 ## A shared actor text unit's own prototypes outrank the gameplay header
 
 Merging `Actor03800_Fn02068`'s L-label span needed the byte at `0x801153F2`,
-which is `Gp_StateF0.field_2` in `include/gameplay/3A34.h`. Adding that include
+which is `Gp_StateF0.signals.bytes.actionFlags` in `include/gameplay/world_targets.h`. Adding that include
 to `src/actors/lib/actor_103800_text.c` does not build: the file opens with its
 own hand-written prototypes for `Gp_UnlinkNode`, `Gp_UnlinkObj`,
 `Gp_SetLightMode`, `Gp_ReleaseStateF0Add`, `Gp_UpdateActorColor`,
@@ -46598,7 +46598,7 @@ signatures would silently retype the arguments of every already-matched
 function in the unit.
 
 Reach the bytes through the state record instead of a local prototype block:
-`Gp_StateF0.field_2` and `Gp_StateF0.field_4` (`include/gameplay/3A34.h`, with
+`Gp_StateF0.signals.bytes.actionFlags` and `Gp_StateF0.actorControl` (`include/gameplay/world_targets.h`, with
 `Gp_StateF0` listed in the family's imports file as `absolute:True`) assemble to
 the same `lui $v0,0x8011` / `lbu $v0,0x53F2($v0)` the target has. The flat
 byte aliases this entry once recommended (`D_801153F2`, `D_801153F4`) are gone. Reconciling a shared
@@ -53619,7 +53619,7 @@ register-based address, `D_8007216C` is a scalar MEM at a fixed address, so
 remedy — the "bare global" was interior to a named symbol. `configs/USA/sym.main.txt`
 gives `gMcSaveData = 0x80072168`, so `D_8007216C` is `gMcSaveData.location.loc.view` and
 `D_8007218A` is `gMcSaveData.characterId`; `configs/USA/sym.gameplay.txt` gives
-`Gp_StateF0 = 0x801153F0`, so `D_801153F4` is `Gp_StateF0.field_4`. Writing the
+`Gp_StateF0 = 0x801153F0`, so `D_801153F4` is `Gp_StateF0.actorControl`. Writing the
 member form restores the dependence, the registers agree again, and all four
 tails merge: 96.3% → 99.8%, with `branch`/`insert`/`delete` all zero.
 
@@ -60855,12 +60855,12 @@ The cause is GCC 2.8.1 alias analysis, not scheduling luck. `true_dependence`
 compares `MEM_IN_STRUCT_P` on the two MEMs: `D_801153F4` is a bare scalar
 (`mem:QI`) while `task->work` is a struct reference (`mem/s:SI`), so the pair
 is declared independent and the scheduler is free to sink the store. The
-address 0x801153F4 is really `Gp_StateF0.field_4` (`Gp_StateF0 = 0x801153F0`),
+address 0x801153F4 is really `Gp_StateF0.actorControl` (`Gp_StateF0 = 0x801153F0`),
 and writing it that way makes the store a `mem/s` too, which restores the
 dependence and with it the original order:
 
 ```c
-Gp_StateF0.field_4 = 2;
+Gp_StateF0.actorControl = 2;
 ```
 
 That one change took the function from 97.78% to 99.81%. Both spellings assemble
@@ -65697,7 +65697,7 @@ try to fix register assignments while this repeated-load difference remains.
 ## Precompute a flag mask before an outer guard to fill its delay slot
 
 `func_800AD6BC` reached 97.638% with a cached `u32 flags`, but testing
-`flags & 0x8000` only inside the `Gp_StateF0.field_1 == 0` arm left
+`flags & 0x8000` only inside the `Gp_StateF0.signals.bytes.endDelayFrames == 0` arm left
 `branch=1 regs=7 reorder=1 insert=2 delete=2`. The `.jump` / `.jump2`
 dumps placed the AND in the successor block; `.lreg` / `.greg` assigned
 flags to `$v1` and the state address to `$a0`. Compute
@@ -75297,7 +75297,7 @@ and the target keeps the two in different registers (`$s0` for the first,
 ```c
 GameActor* actor = arg0->actor;   /* -> $s0 */
 actor->companionWork->activity.combat.repeatsRemaining = arg1;
-if (Gp_StateF0.field_0 == 1) { actor->targetNode = Gp_FindLockNode(arg0); }
+if (Gp_StateF0.signals.bytes.battlePhase == 1) { actor->targetNode = Gp_FindLockNode(arg0); }
 ...
 actor = arg0->actor;              /* still the same pseudo: one quantity */
 actor->mode = 0;
@@ -78462,7 +78462,7 @@ varying address, HImode, base a `PLUS` - while the load is
 `(mem:HI (lo_sum (reg v1) (symbol_ref)))`, a scalar MEM whose address
 `rtx_addr_varies_p` calls constant (`rtlanal.c`: LO_SUM takes operand 1). Every
 conjunct holds, so the two are declared non-aliasing and the dependence is
-dropped. The `sb` into `Gp_StateF0.field_1D` a few insns earlier is QImode, so
+dropped. The `sb` into `Gp_StateF0.pairedEnemySignals` a few insns earlier is QImode, so
 it survives the clause and is the only store the load still waits on - which is
 why the load lands *between* them rather than at the top of the block.
 
@@ -91440,7 +91440,7 @@ switch (arg2->field_2) {
         }
         break;
     case 2:
-        if (Gp_StateF0.field_0 != 1 && GameFlag_GetNibble(0x5E) == 1) {
+        if (Gp_StateF0.signals.bytes.battlePhase != 1 && GameFlag_GetNibble(0x5E) == 1) {
             func_800E8614((s32)&D_dryfield_general_store_8017E568, 1);
         }
         GameFlag_SetNibble(0x5E, 2);
@@ -121604,9 +121604,9 @@ it fill a load-delay slot and delete a `nop`. 125 instructions either way; the
 three penalties (insert/delete 1, reorder 1, regs 4) all come from that one
 hoist.
 
-`D_801153F4` is `Gp_StateF0.field_4`, so the original's store was in-struct and
+`D_801153F4` is `Gp_StateF0.actorControl`, so the original's store was in-struct and
 the scheduler kept the load where the source wrote it. The fix has to keep the
-*symbol name* as well as the attribute: `Gp_StateF0.field_4 = 2;` restores the
+*symbol name* as well as the attribute: `Gp_StateF0.actorControl = 2;` restores the
 schedule but renames the relocation to `%hi(Gp_StateF0)` + `%lo(Gp_StateF0+4)`
 and stalls at 99.92%, because the target's disassembly names `D_801153F4`.
 Declaring the byte as a one-element array does both - `expr.c`'s `INDIRECT_REF`
@@ -121614,7 +121614,7 @@ rule sets `MEM_IN_STRUCT_P` when the address is a `PLUS_EXPR` or an `ADDR_EXPR`
 of an aggregate, which is what an array decay gives:
 
 ```c
-extern u8 D_801153F4[1];   /* Gp_StateF0.field_4 (0x801153F4) */
+extern u8 D_801153F4[1];   /* Gp_StateF0.actorControl (0x801153F4) */
 ...
 D_801153F4[0] = 2;         /* mem/s:QI, symbol still D_801153F4 */
 ```
@@ -121622,7 +121622,7 @@ D_801153F4[0] = 2;         /* mem/s:QI, symbol still D_801153F4 */
 Scores, all with the same host file otherwise: m2c baseline 86.094%; the rewrite
 to a natural `switch` (dropping m2c's gotos and the phantom second argument to
 `Gp_MsgPlayerWeapon`, which is `void Gp_MsgPlayerWeapon(s32)` - see
-`include/gameplay/3CD8.h:442`) 97.760%; `Gp_StateF0.field_4 = 2;` 99.920%;
+`include/gameplay/3CD8.h:442`) 97.760%; `Gp_StateF0.actorControl = 2;` 99.920%;
 `D_801153F4[0] = 2;` 100.000%. Contrast this with the store-side entries above
 (`func_neo_ark_altar_8017EF00`, `actor_107600`): those match a *store* against a
 later *load*; here the missing edge is what lets a load hoist, and the observable

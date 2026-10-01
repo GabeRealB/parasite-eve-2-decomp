@@ -3303,7 +3303,7 @@ static const Actor110600StateTable D_actor_110600_80131F3C = {
 /// triple `func_actor_110600_80134AB4` / this / `Gp_DestroyEnemy`: copies
 /// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
 /// coordinate and hands its translation to `Gp_UpdateActorColor`, then switches
-/// on `Gp_StateF0.field_4`.
+/// on `Gp_StateF0.actorControl`.
 ///
 /// Modes 1 and 2 skip the state handler entirely — each clears the three
 /// `WorldCollisionContact` tables and returns, mode 2 stamping `field_C` to 0x80 for the
@@ -3336,14 +3336,14 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
 
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if ((work->field_0 != 0) && (work->field_0 != 0xC)) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x280, gRoomEffectState->groundShadowShade);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if ((work->field_0 != 0xC) && (work->field_0 != 0)) {
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x280, gRoomEffectState->groundShadowShade);
             }
@@ -3351,7 +3351,7 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->recs_8D8);
             Gp_ClearRec18Occupied(work->recs);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->recs_970);
             Gp_ClearRec18Occupied(work->recs_8D8);

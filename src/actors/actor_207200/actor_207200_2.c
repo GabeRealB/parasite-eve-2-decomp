@@ -734,7 +734,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
 }
 
 /// Helper-slot state 0 of the enemy: while it is still alive, a hit recorded in
-/// the first render node's table (or the global flag `Gp_StateF0.prefix.bytes.field_3`) arms the
+/// the first render node's table (or the global flag `Gp_StateF0.signals.bytes.enemyAlert`) arms the
 /// death sequence - helper state 1, a random 0..89 delay in `field_4AA` and
 /// `Gp_ArmStateF0(1)`. Then runs the idle cycle in `field_48C`: state 1 waits
 /// 0x5B frames and rolls a 30% chance of moving to 9, which plays the
@@ -755,7 +755,7 @@ static void func_actor_207200_8014B628(Task* arg0)
         if (Gp_CountRec18Hi(work->rec1, 0x10000) != 0) {
             work->field_4A2 = 1;
         }
-        if (work->field_4A2 != 0 || Gp_StateF0.prefix.bytes.field_3 != 0) {
+        if (work->field_4A2 != 0 || Gp_StateF0.signals.bytes.enemyAlert != 0) {
             rnd               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             hi                = rnd >> 16;
             work->field_49A   = 0;
@@ -1313,7 +1313,7 @@ static __inline__ void Actor207200_UpdateColor(Enemy* enemy, Task* actor)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// Teardown tick. Mode 2 of `Gp_StateF0.field_4` hides the model, mode 1 does nothing;
+/// Teardown tick. Mode 2 of `Gp_StateF0.actorControl` hides the model, mode 1 does nothing;
 /// otherwise the teardown stage in `field_488` advances: 0 releases the actor's
 /// state reference, snapshots the model transform and unlinks its node and
 /// five display objects; 1 moves on once animation 5 has run 100 frames (or
@@ -1330,14 +1330,14 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
     obj   = arg1->extra.tmd;
     work  = arg1->work;
     coord = obj->coords;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             state = work->field_488;
             switch (state) {
@@ -1495,7 +1495,7 @@ void func_actor_207200_8014D280(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Per-frame tick of the actor's live state. `Gp_StateF0.field_4` gates it: mode 1
+/// Per-frame tick of the actor's live state. `Gp_StateF0.actorControl` gates it: mode 1
 /// skips the update and runs only the tail, mode 2 puts the model in its
 /// hidden pose (part flag 0x80, node not lockable) and returns without updating,
 /// mode 0 clears both flags before falling into the update, and any other mode
@@ -1508,7 +1508,7 @@ static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1)
     s32 state;
     s32 one;
 
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     one   = 1;
     if (state == one) {
         goto case1;

@@ -1466,7 +1466,7 @@ static void Actor00700_Fn01434(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     coord = obj->coords;
     if (state == 1) {
         goto case1;
@@ -1596,16 +1596,16 @@ static void Actor00700_Fn0188C(Enemy* arg0, Task* arg1)
     obj   = arg1->extra.tmd;
     coord = obj->coords;
     work  = arg1->work;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             obj->flags                   = 0;
             arg0->node.state.parts.flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Actor00700_Fn01E44(arg1);
             Actor00700_Fn01E9C(arg1);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
@@ -1955,7 +1955,7 @@ static void Actor00700_Fn02290(Enemy* arg0, Task* arg1)
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     coord = obj->coords;
     one   = 1;
     if (state == one) {
@@ -1987,7 +1987,7 @@ case2:
 default_body:
     Actor00700_Fn02414(arg1);
     Actor00700_Fn0268C(arg1);
-    if (work->field_2E6 == 0 && Gp_StateF0.field_18 != 0) {
+    if (work->field_2E6 == 0 && Gp_StateF0.actor00700DeathAlert != 0) {
         work->field_2E6 = 1;
         Gp_ArmStateF0(1);
     }
@@ -2295,27 +2295,27 @@ static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1)
 
     coord = arg1->extra.tmd->coords;
     work  = arg1->work;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             head                          = SCRATCH_STACK_CURSOR(SVECTOR);
             rot                           = head - 1;
             SCRATCH_STACK_CURSOR(SVECTOR) = rot;
             switch (work->field_2DE) {
                 case 0:
-                    Gp_StateF0.field_18    = 1;
-                    seed                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    rnd                    = seed >> 16;
-                    angle                  = rnd & 0xFF;
-                    arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                    gRandomLcgState        = seed;
-                    work->field_2E2        = 0x1000;
-                    work->field_22C.matrix = coord->coord;
+                    Gp_StateF0.actor00700DeathAlert = 1;
+                    seed                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    rnd                             = seed >> 16;
+                    angle                           = rnd & 0xFF;
+                    arg1->extra.tmd->flags          = TMD_OBJECT_SEMI_TRANS;
+                    gRandomLcgState                 = seed;
+                    work->field_2E2                 = 0x1000;
+                    work->field_22C.matrix          = coord->coord;
                     if (!(rnd & 0x100)) {
                         angle = -angle;
                     }

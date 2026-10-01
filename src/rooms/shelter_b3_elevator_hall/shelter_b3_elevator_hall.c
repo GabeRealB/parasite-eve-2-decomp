@@ -168,7 +168,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state++;
             break;
         case 1:
@@ -198,7 +198,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             } else {
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
             }
             task->state++;

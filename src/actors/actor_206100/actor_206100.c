@@ -106,7 +106,7 @@ typedef union Actor206100Flags {
 STATIC_ASSERT_SIZEOF(Actor206100Flags, 0x4);
 
 /// The four handlers `func_actor_206100_8014E7D4` picks between as the effect
-/// mode `Gp_StateF0.field_4` changes -- the retirement `func_actor_206100_8014FBE4`,
+/// mode `Gp_StateF0.actorControl` changes -- the retirement `func_actor_206100_8014FBE4`,
 /// the idle tick `func_actor_206100_8014FCD4`, the teleport tick
 /// `func_actor_206100_8014E964` and `func_actor_206100_8014FDE8`.  Its copy
 /// onto the stack is the same three-word block move the two tables above get,
@@ -610,7 +610,7 @@ static void func_actor_206100_8014D8E8(Task* task);
 
 /// Sub-state 1 of the state-2 dispatcher `func_actor_206100_8014DA28`'s
 /// two-entry local table, which picks it with `funcs[(s16)field_520]` and is
-/// entered from that dispatcher's `Gp_StateF0.field_4 == 0` arm -- entry 0 is the ring
+/// entered from that dispatcher's `Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING` arm -- entry 0 is the ring
 /// stepper `func_actor_206100_8014FAE4`.  It maintains the actor's companions.
 ///
 /// `field_51E` is held at 0x1E -- the frame `func_actor_206100_8014D574` fires
@@ -1593,7 +1593,7 @@ static void func_actor_206100_8014B698(Task* task)
 }
 /// Tick handler of the beam child `func_actor_206100_8014EEC0` starts, the
 /// same shape the marker `Actor00400_Fn02D48` has: while the effect mode
-/// `Gp_StateF0.field_4` is 0 it advances the child's `field_5A` and folds `field_58` /
+/// `Gp_StateF0.actorControl` is 0 it advances the child's `field_5A` and folds `field_58` /
 /// `field_5A` / `field_5C` into the root coordinate, raises `hit` when
 /// either collision slot reports one of the three kinds 1/3/5 or when
 /// `func_800E0C10`'s push-back says the beam is crowded, and retires the child
@@ -1617,7 +1617,7 @@ static void func_actor_206100_8014B8B4(Task* task)
     child = (Actor206100ChildWork*)task->work;
     coord = task->extra.tmd->coords;
     mode  = 1;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         child->field_5A      += 2;
         *&coord->composeStamp = GRAPHICS_COORD_DIRTY;
         coord->coord.t[0]    += child->field_58;
@@ -2014,11 +2014,11 @@ static void func_actor_206100_8014C458(Task* task)
     SVECTOR*               svp;
     SVECTOR*               out;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
             work->field_518                 = work->field_518 + 1;
             func_actor_206100_8014B698(task);
@@ -2142,7 +2142,7 @@ static void func_actor_206100_8014C458(Task* task)
             coord->coord.t[1] =
                 coord->coord.t[1] + (((s16)work->field_526 - coord->coord.t[1]) >> 4);
             enemy->coord = &task->extra.tmd->coords[work->field_557];
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Actor206100_UpdateColor(task);
             obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
@@ -2774,7 +2774,7 @@ static void func_actor_206100_8014D8E8(Task* task)
         work->field_522 = work->field_522 + 1;
     }
 }
-/// State-2 tick: the `Gp_StateF0.field_4` effect mode 0 arm bumps the actor's two frame
+/// State-2 tick: the `Gp_StateF0.actorControl` effect mode 0 arm bumps the actor's two frame
 /// counters and runs the handler `funcs[(s16)field_520]` picks out of a
 /// two-entry local table, then drives the animation request and re-poses the
 /// actor; mode 1 is that tail alone and mode 2 excludes the model from active
@@ -2832,11 +2832,11 @@ static void func_actor_206100_8014DA28(Task* task)
     s32              i;
     s16              state;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
             work->field_518                 = work->field_518 + 1;
             funcs[(s16)work->field_520](task);
@@ -2896,7 +2896,7 @@ static void func_actor_206100_8014DA28(Task* task)
             ScaleMatrix(&scaling.mat, &scale);
             MulMatrix(&scaled->coord, &scaling.mat);
             /* fallthrough */
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Actor206100_UpdateColor(task);
             obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -3267,7 +3267,7 @@ static void func_actor_206100_8014E228(Task* task)
 }
 
 /// Effect-mode tick of the `field_520` state table `D_actor_206100_80149EC0`,
-/// keyed on `Gp_StateF0.field_4`. Mode 2 only excludes the model from active drawing and
+/// keyed on `Gp_StateF0.actorControl`. Mode 2 only excludes the model from active drawing and
 /// leaves; mode 0 runs the handler `field_520` selects, latches the animation
 /// slot's flags into `flags_514` and eases the root coordinate -- x and z to a
 /// sixteenth of their distance to zero, y the same fraction of the way to the
@@ -3289,11 +3289,11 @@ static void func_actor_206100_8014E7D4(Task* task)
     obj    = task->extra.tmd;
     coord  = obj->coords;
     states = D_actor_206100_80149EC0;
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             states.funcs[(s16)work->field_520](task, &states);
             work->flags_514.half = work->slots[1].flags;
             coord->coord.t[0]    = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
@@ -3301,7 +3301,7 @@ static void func_actor_206100_8014E7D4(Task* task)
             coord->coord.t[1] =
                 coord->coord.t[1] + (((s16)work->field_526 - coord->coord.t[1]) >> 4);
             /* fallthrough */
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Actor206100_UpdateColor(task);
             return;
     }

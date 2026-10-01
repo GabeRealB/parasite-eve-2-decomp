@@ -13,16 +13,16 @@ void shelterElevatorTask(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             goto next;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 goto next;
             }
             break;
         case 2:
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 9;
@@ -38,7 +38,7 @@ void shelterElevatorTask(Task* task)
                     break;
                 default:
                     Gp_MsgPlayerWeapon(1);
-                    Gp_StateF0.field_4 = 0;
+                    Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                     taskKill(task);
                     break;
             }

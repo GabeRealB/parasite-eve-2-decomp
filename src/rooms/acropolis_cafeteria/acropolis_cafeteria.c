@@ -2626,10 +2626,10 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 21:
             Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0xA);
-            gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-            Gp_StateF0.prefix.bytes.field_1 = 3;
-            D_acropolis_cafeteria_80184164  = 2;
-            task->state                    += 1;
+            gGameSession->flowFlags                |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+            Gp_StateF0.signals.bytes.endDelayFrames = 3;
+            D_acropolis_cafeteria_80184164          = 2;
+            task->state                            += 1;
             break;
         case 17:
         case 22:

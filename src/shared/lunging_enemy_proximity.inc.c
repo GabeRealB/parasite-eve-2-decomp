@@ -2,7 +2,7 @@
 
 /// Proximity check of the approach states. Measures the player's horizontal
 /// distance from the root coordinate through a 0x10-byte scratch stack
-/// block: under 0x5DC one of `Gp_StateF0.prefix.bytes.field_2`'s bit groups raises `field_6B2`;
+/// block: under 0x5DC one of `Gp_StateF0.signals.bytes.actionFlags`'s bit groups raises `field_6B2`;
 /// past it the other two (the second only within 0xBB8) put the enemy into
 /// animation 4 and state 1.
 void lungerCheckProximity(Task* arg0)
@@ -29,14 +29,14 @@ void lungerCheckProximity(Task* arg0)
     SCRATCH_STACK_CURSOR(VECTOR) = delta;
     distance                     = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (Gp_StateF0.prefix.bytes.field_2 & 0x17) {
+        if (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_OTHER | SCENE_COMBAT_ACTION_FOOTSTEP)) {
             work->field_6B2 = 1;
         }
     } else {
-        if (Gp_StateF0.prefix.bytes.field_2 & 5) {
+        if (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
             trigger = 1;
         }
-        if ((Gp_StateF0.prefix.bytes.field_2 & 0x12) && (distance < 0xBB8)) {
+        if ((Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_FOOTSTEP)) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {

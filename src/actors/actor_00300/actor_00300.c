@@ -1741,12 +1741,12 @@ static void Actor00300_Fn01678(Task* arg0)
             }
             break;
     }
-    if ((work->field_6A0 != 0) || (Gp_StateF0.field_28 != 0) || (work->field_690 != 0)) {
+    if ((work->field_6A0 != 0) || (Gp_StateF0.actor00300AttackAlert != 0) || (work->field_690 != 0)) {
         work->field_684 = 1;
         work->field_686 = 0;
         work->field_6A0 = 0x1C2;
         Gp_ArmStateF0(1);
-        Gp_StateF0.field_28 = 0;
+        Gp_StateF0.actor00300AttackAlert = 0;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
@@ -1838,11 +1838,11 @@ static void Actor00300_Fn019C0(Task* arg0)
             break;
     }
     if (work->field_6A0 == 0) {
-        work->field_684     = 0;
-        work->field_686     = 0;
-        work->field_690     = 0;
-        Gp_StateF0.field_28 = 0;
-        work->field_688     = 10;
+        work->field_684                  = 0;
+        work->field_686                  = 0;
+        work->field_690                  = 0;
+        Gp_StateF0.actor00300AttackAlert = 0;
+        work->field_688                  = 10;
     } else {
         timer           = (u16)work->field_68A - 1;
         work->field_68A = timer;
@@ -1958,9 +1958,9 @@ static void Actor00300_Fn01F9C(Task* arg0)
             angle           = magnitude >= 0x800 ? (delta > 0 ? 0x1000 - delta : delta + 0x1000)
                                                  : magnitude;
             if (angle < 0x100) {
-                work->field_686     = 1;
-                work->field_66E     = 4;
-                Gp_StateF0.field_28 = 1;
+                work->field_686                  = 1;
+                work->field_66E                  = 4;
+                Gp_StateF0.actor00300AttackAlert = 1;
             } else {
                 turnTimer       = (u16)work->field_688 - 1;
                 work->field_688 = turnTimer;
@@ -1975,8 +1975,8 @@ static void Actor00300_Fn01F9C(Task* arg0)
             }
             break;
         case 1:
-            Gp_StateF0.field_28 = 0;
-            work->field_67C     = 0xF;
+            Gp_StateF0.actor00300AttackAlert = 0;
+            work->field_67C                  = 0xF;
             scratchEnd[-1].delta.vx =
                 (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
             scratch->delta.vy = 0;
@@ -2792,7 +2792,7 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    mode  = Gp_StateF0.field_4;
+    mode  = Gp_StateF0.actorControl;
     coord = obj->coords;
     if (mode == 1)
         goto case1;
@@ -2898,7 +2898,7 @@ static __inline__ void Actor00300_UpdateTransform(Enemy* arg0, Task* arg1)
 
     saved    = arg1->extra.tmd->coords;
     obj      = arg1->extra.tmd;
-    disabled = Gp_StateF0.field_4;
+    disabled = Gp_StateF0.actorControl;
     work     = arg1->parent->work;
     if (disabled == 0) {
         if (gGameSession->eventState != 0) {
@@ -3029,11 +3029,11 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
     coord   = arg1->extra.tmd->coords;
     work    = arg1->work;
     expired = 0;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             fireballDrawGlow(coord, 0x200);
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[0]  += (coord->coord.m[0][2] * 0x19) >> 8;
@@ -3055,7 +3055,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
                 arg1->state = 2;
                 work->pad8A = 0;
             }
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             return;
     }
 }
@@ -3122,17 +3122,17 @@ static void Actor00300_Fn047CC(Enemy* arg0, Task* arg1)
     Actor100300Work* work;
 
     work = arg1->work;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             arg1->extra.tmd->flags            = 0;
             work->field_43C->extra.tmd->flags = 0;
             arg0->node.state.parts.flags      = work->field_698 != 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Actor00300_Fn04FB0(arg1);
             Actor00300_Fn05008(arg1);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags            = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_43C->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags      = WORLD_TARGET_NOT_LOCKABLE;

@@ -103,7 +103,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Gp_StateF0.field_4 = 2;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
                 /* keeps the `lw state` behind the `sb` instead of filling its load delay */
                 arg0->state = arg0->state + 1;
             }
@@ -112,13 +112,13 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
             if (Gp_GetCapEventKey() == 0xA) {
                 GameFlag_SetNibble(0x55, 2);
                 func_dryfield_water_tower_8017DCB4();
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 Gp_DispatchMsg(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
                 SndEvt_EnqueueType6(0x52140009, 0, 0);
             } else {
                 gGameSession->eventState                                   = 0;
                 gGameSession->hideHud                                      = 0;
-                Gp_StateF0.field_4                                         = 0;
+                Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_RUNNING;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_water_tower_8018768C.value;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);

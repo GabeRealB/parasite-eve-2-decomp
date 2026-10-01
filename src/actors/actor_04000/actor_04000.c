@@ -2804,8 +2804,8 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5 && work->field_0 != 0xD &&
                 work->field_0 != 0xF && work->field_0 != 0x10 && work->field_0 != 0x11) {
                 arg1->extra.tmd->flags = 0;
@@ -2827,7 +2827,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord.workm), 0x60, gRoomEffectState->groundShadowShade);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 0xD && work->field_0 != 5 &&
                 work->field_0 != 0xF && work->field_0 != 0x10 && work->field_0 != 0x11) {
                 arg1->extra.tmd->flags = 0;
@@ -2837,7 +2837,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->hits);
             Gp_ClearRec18Occupied(&work->rec370);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->rec1B0);
             Gp_ClearRec18Occupied(work->hits);
@@ -3121,7 +3121,7 @@ static void Actor04000_Fn06AC4(Enemy* arg0, Task* arg1)
             obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
-    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
         work->field_0 = 7;
     }
 }
@@ -3243,7 +3243,7 @@ void Actor04000_Fn06F54(Task* arg0)
 {
     s16 i;
 
-    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
                 ((Enemy*)Actor04000_D0C718[i]->spawnArg2.pointer)->node.state.parts.flags = 0;

@@ -480,7 +480,7 @@ end:
 
 /// Charge-handler sub-state machine. States 0 and 3 share a random roll: every
 /// 15-46 frames a 1-in-8 draw switches to state 4 with animation 5. State 2
-/// waits out the animation, raising bit 2 of `Gp_StateF0.field_1D` on frame 60,
+/// waits out the animation, raising bit 2 of `Gp_StateF0.pairedEnemySignals` on frame 60,
 /// and state 4 returns to 3 while the `field_590` cooldown is still running.
 static void func_actor_205200_8014BF28(Task* arg0)
 {
@@ -490,9 +490,9 @@ static void func_actor_205200_8014BF28(Task* arg0)
     work = arg0->work;
     switch (work->field_586) {
         case 0:
-            if (Gp_StateF0.field_1D & 2) {
-                Gp_StateF0.field_1D &= 0xFD;
-                work->field_586      = 1;
+            if (Gp_StateF0.pairedEnemySignals & SCENE_COMBAT_PAIRED_HEAL_REQUEST) {
+                Gp_StateF0.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_HEAL_REQUEST);
+                work->field_586                = 1;
             }
         tick:
             if (--work->field_592 <= 0) {
@@ -509,7 +509,7 @@ static void func_actor_205200_8014BF28(Task* arg0)
             break;
         case 2:
             if ((s16)work->field_582 == 0x3C) {
-                Gp_StateF0.field_1D |= 4;
+                Gp_StateF0.pairedEnemySignals |= SCENE_COMBAT_PAIRED_HEAL_READY;
             }
             if ((s16)work->field_582 >= 0x54) {
                 work->field_57E = 1;
@@ -673,7 +673,7 @@ static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1)
         arg1->state = 2;
         return;
     }
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     if (state == 1) {
         goto case1;
     }
@@ -707,7 +707,7 @@ case1:
 }
 
 /// Per-frame tick of the live state, run from `func_actor_205200_8014C59C`'s
-/// shared body. Bit 0 of `Gp_StateF0.field_1D` is a one-shot re-arm: it clears
+/// shared body. Bit 0 of `Gp_StateF0.pairedEnemySignals` is a one-shot re-arm: it clears
 /// itself and drops the actor back to sub-state 1 with the sub-state-0x586
 /// counter restarted, which is what `func_actor_205200_8014C748` drives. The
 /// sub-state at 0x584 then picks the idle or the charge handler, the halfword at
@@ -718,10 +718,10 @@ static void func_actor_205200_8014C67C(Task* arg0)
     Actor205200Work* work;
 
     work = arg0->work;
-    if (Gp_StateF0.field_1D & 1) {
-        Gp_StateF0.field_1D &= 0xFE;
-        work->field_584      = 1;
-        work->field_586      = 0;
+    if (Gp_StateF0.pairedEnemySignals & SCENE_COMBAT_PAIRED_CHARGE_REQUEST) {
+        Gp_StateF0.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_CHARGE_REQUEST);
+        work->field_584                = 1;
+        work->field_586                = 0;
     }
     switch (work->field_584) {
         case 0:
@@ -742,7 +742,7 @@ static void func_actor_205200_8014C67C(Task* arg0)
 }
 
 /// Charge handler, sub-state 1 of `func_actor_205200_8014C67C`. On entry it
-/// switches the animation to id 3 and raises bit 3 of `Gp_StateF0.field_1D`;
+/// switches the animation to id 3 and raises bit 3 of `Gp_StateF0.pairedEnemySignals`;
 /// once the frame counter reaches 35 it plays id 1, parks the charge sub-state
 /// at 3, drops back to the idle handler and loads 600 into `field_590`.
 static void func_actor_205200_8014C748(Task* arg0)
@@ -754,9 +754,9 @@ static void func_actor_205200_8014C748(Task* arg0)
     state = work->field_586;
     switch (state) {
         case 0:
-            work->field_57E      = 3;
-            work->field_586      = 1;
-            Gp_StateF0.field_1D |= 8;
+            work->field_57E                = 3;
+            work->field_586                = 1;
+            Gp_StateF0.pairedEnemySignals |= SCENE_COMBAT_PAIRED_RESET_REQUEST;
             return;
         case 1:
             if ((s16)work->field_582 >= 0x23) {

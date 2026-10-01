@@ -1529,7 +1529,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task);
 /// Per-frame state of the room task. The first frame the session's warp is 4
 /// it spawns the streamed-scene task (entry 2 of the task table), once. While
 /// the location's place is 1 it keeps `flowFlags` at 0xA and runs a latch on
-/// `Gp_StateF0.prefix.bytes.field_0`: when that flag drops after having been 1, a sound
+/// `Gp_StateF0.signals.bytes.battlePhase`: when that flag drops after having been 1, a sound
 /// event is queued, and once the session's `battleResetPending` is then non-zero,
 /// `func_800E8634` is called with the room's two data blocks.
 static void func_acropolis_promenade_8017D5E4(Task* task)
@@ -1549,7 +1549,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
     temp = gGameSession->location.loc.variant;
     if (temp == 1) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY);
-        f0                      = Gp_StateF0.prefix.bytes.field_0;
+        f0                      = Gp_StateF0.signals.bytes.battlePhase;
         if (f0 == temp) {
             D_acropolis_promenade_80181144 = f0;
         }
@@ -1789,8 +1789,8 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             rec.enableWorldCollision              = ANIMATION_WORLD_COLLISION_DISABLE;
             Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
-            Gp_StateF0.field_4 = 1;
-            task->state        = task->state + 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            task->state             = task->state + 1;
             break;
 
         case 1:
@@ -1841,7 +1841,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
-                Gp_StateF0.field_4            = 0;
+                Gp_StateF0.actorControl       = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
                 taskKill(task);
             }

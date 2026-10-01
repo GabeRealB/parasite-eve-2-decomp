@@ -14,7 +14,7 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-extern GpStateF0 Gp_StateF0;
+extern SceneCombatState Gp_StateF0;
 
 void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 

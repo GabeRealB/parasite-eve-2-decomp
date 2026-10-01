@@ -950,7 +950,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
     s32              state;
 
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     work  = arg1->work;
     coord = obj->coords;
     switch (state) {
@@ -1147,15 +1147,15 @@ static void func_actor_105100_80132C2C(Task* arg0)
 }
 
 /// The enemy's step dispatcher, run every frame out of the `field_596` schedule
-/// the three handlers below this one step through. Bit 3 of `Gp_StateF0.field_1D`
+/// the three handlers below this one step through. Bit 3 of `Gp_StateF0.pairedEnemySignals`
 /// is a reset request: it is cleared here and the block is put back on step 6
 /// with the schedule and the animation re-arm both dropped.
 ///
 /// Step 7 is terminal -- `func_actor_105100_80136318` retires the enemy and the
 /// task stops being dispatched -- so it falls straight through to the tail, as
 /// does a step outside 0..7. The tail runs the shared post-hit reaction
-/// (`Gp_StateF0.field_1D` bit 2) and steps the `field_5AA` timer down while it is
-/// positive. Step 0 also raises bit 1 of `Gp_StateF0.field_1D` once the HP drops
+/// (`Gp_StateF0.pairedEnemySignals` bit 2) and steps the `field_5AA` timer down while it is
+/// positive. Step 0 also raises bit 1 of `Gp_StateF0.pairedEnemySignals` once the HP drops
 /// under the cap in `D_actor_105100_80141398.hpMax`.
 static void func_actor_105100_80133134(Task* arg0)
 {
@@ -1165,17 +1165,17 @@ static void func_actor_105100_80133134(Task* arg0)
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
-    if (Gp_StateF0.field_1D & 8) {
-        Gp_StateF0.field_1D &= 0xF7;
-        work->field_596      = 6;
-        work->field_598      = 0;
-        work->field_5A8      = 0;
+    if (Gp_StateF0.pairedEnemySignals & SCENE_COMBAT_PAIRED_RESET_REQUEST) {
+        Gp_StateF0.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_RESET_REQUEST);
+        work->field_596                = 6;
+        work->field_598                = 0;
+        work->field_5A8                = 0;
     }
     state = work->field_596;
     switch (state) {
         case 0:
             if (ctx->hp < (s32)D_actor_105100_80141398.hpMax) {
-                Gp_StateF0.field_1D |= 2;
+                Gp_StateF0.pairedEnemySignals |= SCENE_COMBAT_PAIRED_HEAL_REQUEST;
             }
             func_actor_105100_8013329C(arg0, ctx);
             break;
@@ -1202,7 +1202,7 @@ static void func_actor_105100_80133134(Task* arg0)
         default:
             break;
     }
-    if (Gp_StateF0.field_1D & 4) {
+    if (Gp_StateF0.pairedEnemySignals & SCENE_COMBAT_PAIRED_HEAL_READY) {
         func_actor_105100_80135FCC(arg0);
     }
     if (work->field_5AA > 0) {
@@ -1232,7 +1232,7 @@ static void func_actor_105100_8013329C(Task* arg0, Enemy* arg1)
     u16              count;
 
     work = arg0->work;
-    if (Gp_StateF0.prefix.bytes.field_0 == 0) {
+    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
         timer           = work->field_59E - 1;
         work->field_59E = timer;
         if ((timer << 16) <= 0) {
@@ -1751,7 +1751,7 @@ static inline void _actor105100AnimUpdate(Task* task)
     }
 }
 
-/// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `Gp_StateF0.field_4` only
+/// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `Gp_StateF0.actorControl` only
 /// refreshes the actor colour; mode 2 hides the model and returns. Otherwise it
 /// walks `field_598`: unlink the collision bodies, play the death clip, fire
 /// the 0x13F4 cutscene, shrink the model, then destroy the enemy.
@@ -1774,7 +1774,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
     work   = actor->work;
     coord  = obj->coords;
     player = gameGetPtrSlot(3);
-    state  = Gp_StateF0.field_4;
+    state  = Gp_StateF0.actorControl;
     if (state == 1) {
         goto color_update;
     }
@@ -1999,7 +1999,7 @@ static const GpEnemyTaskFuncTable3 D_actor_105100_80131E90 = {
 
 /// Per-frame handler of the glowing projectile this overlay spawns as its
 /// second enemy task, the middle entry of `D_actor_105100_80131E90`. Mode 1 of
-/// `Gp_StateF0.field_4` only redraws the billboard and mode 2 skips the frame.
+/// `Gp_StateF0.actorControl` only redraws the billboard and mode 2 skips the frame.
 ///
 /// `field_7A` steps the projectile through its life. It first hovers, jittering
 /// its coordinate by a per-axis offset the gameplay LCG draws and taking each
@@ -2029,7 +2029,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
     work       = arg1->work;
     coord      = arg1->extra.tmd->coords;
     parentWork = (arg1->parent)->work;
-    state      = Gp_StateF0.field_4;
+    state      = Gp_StateF0.actorControl;
     if (state == 1) {
         fireballDrawGlow(coord, work->field_7E);
         return;
@@ -2257,7 +2257,7 @@ static void func_actor_105100_801354E8(Enemy* arg0, Task* arg1)
 
     rec        = arg1->work;
     parentWork = (arg1->parent)->work;
-    state      = Gp_StateF0.field_4;
+    state      = Gp_StateF0.actorControl;
     coord      = arg1->extra.tmd->coords;
     one        = 1;
 
@@ -2588,11 +2588,11 @@ static void func_actor_105100_80135FCC(Task* arg0)
     s32       pan;
     u16       hp;
 
-    enemy                = arg0->spawnArg2.pointer;
-    coord                = arg0->extra.tmd->coords;
-    Gp_StateF0.field_1D &= 0xFB;
-    hp                   = enemy->hp + 0x50;
-    enemy->hp            = hp;
+    enemy                          = arg0->spawnArg2.pointer;
+    coord                          = arg0->extra.tmd->coords;
+    Gp_StateF0.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_HEAL_READY);
+    hp                             = enemy->hp + 0x50;
+    enemy->hp                      = hp;
     if (D_actor_105100_80141398.hpMax < (s16)hp) {
         enemy->hp = D_actor_105100_80141398.hpMax;
     }

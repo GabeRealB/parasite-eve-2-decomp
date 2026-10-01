@@ -589,7 +589,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, Task
         switch (arg2) {
             case 6:
                 if (GameFlag_GetNibble(0x142) == 0) {
-                    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+                    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                         Gp_RunCapCmd1(6);
                     }
                 } else {
@@ -598,7 +598,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, Task
                 break;
             case 7:
                 if (GameFlag_GetNibble(0x143) == 0) {
-                    if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+                    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                         Gp_RunCapCmd1(7);
                     }
                 } else {

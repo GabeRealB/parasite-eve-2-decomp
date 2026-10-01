@@ -206,18 +206,18 @@ STATIC_ASSERT_SIZEOF(Actor400600QuadScratch, 0x3C);
 extern ActorZone D_actor_400600_80151B40[];
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
- * source for the effect's own `TmdObject`; `Gp_StateF0.field_24` and `Gp_StateF0.field_27` are
+ * source for the effect's own `TmdObject`; `Gp_StateF0.bruteGroupPhase` and `Gp_StateF0.bruteDeathAlert` are
  * bytes of the run of gameplay flags at 0x80115408..0x8011541B.
  *
  * Storing to a bare `extern` global next to pointer-based struct traffic lets
  * GCC 2.8.1's `fixed_scalar_and_varying_struct_p` conclude the two cannot
  * alias, so the scheduler sinks the store past the `Actor400600Work` loads
  * that follow. Two remedies work and which one is needed was measured, not
- * chosen: the byte store to `Gp_StateF0.field_27` matches with `SOFT_BARRIER()` after
+ * chosen: the byte store to `Gp_StateF0.bruteDeathAlert` matches with `SOFT_BARRIER()` after
  * it, so that one is declared as the scalar it is; the pointer store to
  * `D_800678F0` checksums wrong with the barrier and matches only as an
  * aggregate, so its one-element array stays and is doing real work.
- * `Gp_StateF0.field_24` is the aggregate case too: one of its stores sits between
+ * `Gp_StateF0.bruteGroupPhase` is the aggregate case too: one of its stores sits between
  * struct stores on both sides, and the barrier trades the sink for a hoist
  * above the preceding flag updates. */
 extern void* D_800678F0[1];
@@ -2136,21 +2136,21 @@ static void func_actor_400600_801332F4(Task* arg0)
         func_actor_400600_80138B5C(arg0, 0);
         work->field_71C = work->field_71C + 1;
     } else if (mode == 2) {
-        work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        coord->coord.t[0]    = -0x6A4;
-        coord->coord.t[2]    = -0x514;
-        coord->coord.t[1]    = 0;
-        work->field_82       = 0x400;
-        work->field_73A      = 0xFF;
-        work->field_80       = 0;
-        work->field_84       = 0;
-        Gp_StateF0.field_24  = mode;
-        work2                = (Actor400600Work*)arg0->work;
-        arg0->state          = 1;
-        work2->field_71C     = 0;
-        work2->field_71E     = 0;
+        work->obj_4B4.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj_594.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj_5CC.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        coord->coord.t[0]          = -0x6A4;
+        coord->coord.t[2]          = -0x514;
+        coord->coord.t[1]          = 0;
+        work->field_82             = 0x400;
+        work->field_73A            = 0xFF;
+        work->field_80             = 0;
+        work->field_84             = 0;
+        Gp_StateF0.bruteGroupPhase = mode;
+        work2                      = (Actor400600Work*)arg0->work;
+        arg0->state                = 1;
+        work2->field_71C           = 0;
+        work2->field_71E           = 0;
     }
 }
 
@@ -2352,12 +2352,12 @@ static void func_actor_400600_801337A8(Task* arg0)
     Enemy*           enemy = (Enemy*)arg0->spawnArg2.pointer;
     TaskFuncTable18  fns   = D_actor_400600_80131EEC;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_400600_801387DC(arg0, -1);
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
@@ -2374,7 +2374,7 @@ static void func_actor_400600_801337A8(Task* arg0)
                 w->field_71C       = 0;
                 w->field_71E       = 0;
             }
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
             actorUpdateModelColor(arg0);
@@ -2396,7 +2396,7 @@ static void func_actor_400600_80133B88(Task* arg0)
     u32              rnd;
 
     work = (Actor400600Work*)arg0->work;
-    if (work->field_728 < 0xBB8 || Gp_StateF0.field_27 != 0) {
+    if (work->field_728 < 0xBB8 || Gp_StateF0.bruteDeathAlert != 0) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
@@ -4285,18 +4285,18 @@ static void func_actor_400600_80137EF0(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable3   fns   = D_actor_400600_80132030;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
             Actor400600_TickAnim(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
             Actor400600_RebuildRotation(arg0);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
             actorUpdateModelColor(arg0);
@@ -4558,18 +4558,18 @@ static void func_actor_400600_80138C34(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable8   fns   = D_actor_400600_80131E7C;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
             func_actor_400600_80139CAC(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
             bruteApplyRotation(arg0);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
             bruteUpdateColor(arg0);
@@ -4584,18 +4584,18 @@ static void func_actor_400600_80138D78(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns   = D_actor_400600_80131E9C;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
             func_actor_400600_80139CAC(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
             bruteApplyRotation(arg0);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
             bruteUpdateColor(arg0);
@@ -4610,18 +4610,18 @@ static void func_actor_400600_80138EA0(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable6   fns   = D_actor_400600_80131E54;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80139CAC(arg0);
             func_actor_400600_80136558(arg0);
             bruteApplyRotation(arg0);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
             bruteUpdateColor(arg0);
@@ -4636,18 +4636,18 @@ static void func_actor_400600_80138FD4(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns   = D_actor_400600_80131E6C;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80139CAC(arg0);
             func_actor_400600_80136558(arg0);
             bruteApplyRotation(arg0);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
             bruteUpdateColor(arg0);
@@ -5026,14 +5026,14 @@ static void func_actor_400600_8013A170(Task* arg0)
     Actor400600Work* work  = (Actor400600Work*)arg0->work;
     TaskFuncTable12  fns   = D_actor_400600_80131E24;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_400600_801387DC(arg0, -1);
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             fns.funcs[(s16)work->field_71C](arg0);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             bruteUpdateColor(arg0);
             func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
             break;
@@ -5311,9 +5311,9 @@ static void func_actor_400600_8013AAD8(Task* arg0)
     Task*            child;
     Task*            child2;
 
-    work                = (Actor400600Work*)arg0->work;
-    Gp_StateF0.field_27 = 1;
-    child               = work->field_704;
+    work                       = (Actor400600Work*)arg0->work;
+    Gp_StateF0.bruteDeathAlert = 1;
+    child                      = work->field_704;
     if (child != NULL) {
         taskKill(child);
     }
@@ -5668,17 +5668,17 @@ static void func_actor_400600_8013B520(Task* arg0)
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-        work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_StateF0.field_24  = 1;
-        work2                = (Actor400600Work*)arg0->work;
-        arg0->state          = 1;
-        work2->field_71C     = 0;
-        work2->field_71E     = 0;
-        work3                = (Actor400600Work*)arg0->work;
-        work3->field_71C     = 2;
-        work3->field_71E     = 0;
+        work->obj_4B4.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj_594.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj_5CC.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        Gp_StateF0.bruteGroupPhase = SCENE_COMBAT_BRUTE_DELAYED;
+        work2                      = (Actor400600Work*)arg0->work;
+        arg0->state                = 1;
+        work2->field_71C           = 0;
+        work2->field_71E           = 0;
+        work3                      = (Actor400600Work*)arg0->work;
+        work3->field_71C           = 2;
+        work3->field_71E           = 0;
     }
 }
 
@@ -5687,7 +5687,7 @@ static void func_actor_400600_8013B640(void)
     u8 param1[8];
     u8 param2[8];
 
-    if (Gp_StateF0.field_25 == 0) {
+    if (Gp_StateF0.enemySoundBankQueued == 0) {
         /* Same shape as ActorsShared801692e8: each branch makes its own call
          * and jump2's cross-jumping merges the identical tails. */
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 32, 0, 0) && gGameSession->location.loc.variant == 1) {
@@ -5709,7 +5709,7 @@ static void func_actor_400600_8013B640(void)
             param2[1] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
         }
-        Gp_StateF0.field_25 = 1;
+        Gp_StateF0.enemySoundBankQueued = 1;
     }
 }
 
@@ -6396,12 +6396,12 @@ static void func_actor_400600_8013C940(Task* arg0)
     u32              rnd;
 
     work = (Actor400600Work*)arg0->work;
-    if (Gp_StateF0.field_24 == 1) {
+    if (Gp_StateF0.bruteGroupPhase == SCENE_COMBAT_BRUTE_DELAYED) {
         rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         work->field_718 = ((rnd >> 0x10) & 7) + 0x14;
         work->field_71C = work->field_71C + 1;
-    } else if (Gp_StateF0.field_24 == 2) {
+    } else if (Gp_StateF0.bruteGroupPhase == SCENE_COMBAT_BRUTE_ACTIVE) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

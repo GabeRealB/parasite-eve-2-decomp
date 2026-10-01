@@ -1229,7 +1229,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             }
             queue->movieFrame = 1;
             func_800E9BDC(3, 0x9FF);
-            Gp_StateF0.field_4                    = 2;
+            Gp_StateF0.actorControl               = SCENE_COMBAT_ACTORS_HIDDEN;
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
@@ -1280,7 +1280,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             break;
 
         case 5:
-            Gp_StateF0.field_4 = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             func_800E9BDC(2, 0x9FF);
             SndEvt_EnqueueType7(0x80000000, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
@@ -1343,8 +1343,8 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
-            Gp_StateF0.field_4 = 2;
-            task->state        = task->state + 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
+            task->state             = task->state + 1;
             break;
 
         case 1:
@@ -1402,7 +1402,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(5);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
-                Gp_StateF0.field_4            = 0;
+                Gp_StateF0.actorControl       = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
                 taskKill(task);
             }
@@ -1444,10 +1444,10 @@ void func_acropolis_forked_road_8017E220(Task* arg0)
     }
 }
 
-/// Room script callback: sets `Gp_StateF0.field_1E` to 1.
+/// Room script callback: sets `Gp_StateF0.spiderEntranceReady` to 1.
 void func_acropolis_forked_road_8017E288(void)
 {
-    Gp_StateF0.field_1E = 1;
+    Gp_StateF0.spiderEntranceReady = 1;
 }
 
 /// Forked-road ambient effect task. On its first frame it fires one effect per

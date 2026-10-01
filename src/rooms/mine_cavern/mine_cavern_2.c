@@ -2183,13 +2183,13 @@ void func_mine_cavern_8017E358(void)
 
 void func_mine_cavern_8017E360(void)
 {
-    gGameSession->location.loc.variant = 4;
-    Gp_StateF0.prefix.bytes.field_0    = 0;
-    Gp_StateF0.field_5                 = 0;
-    Gp_StateF0.field_6                 = 0;
-    Gp_StateF0.field_8                 = 0;
-    Gp_StateF0.field_C                 = 0;
-    Gp_StateF0.field_10                = 0;
+    gGameSession->location.loc.variant   = 4;
+    Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+    Gp_StateF0.peTargetCount             = 0;
+    Gp_StateF0.battleRefs                = 0;
+    Gp_StateF0.expReward                 = 0;
+    Gp_StateF0.bpReward                  = 0;
+    Gp_StateF0.mpReward                  = 0;
 }
 
 void func_mine_cavern_8017E394(void)
@@ -2584,7 +2584,7 @@ static void func_mine_cavern_80181D80(s16 point)
 /// current view in `D_mine_cavern_8018E3BC` also runs
 /// `func_mine_cavern_80181D80`, and on every ninth tick or on entering the view
 /// spawns effect `0x60080` within 64 units of the point on each axis, unless
-/// `Gp_StateF0.field_4` is set.
+/// `Gp_StateF0.actorControl` is set.
 static void func_mine_cavern_80182184(void)
 {
     VECTOR   unused;
@@ -2616,7 +2616,7 @@ static void func_mine_cavern_80182184(void)
             if ((s16)((s16)D_mine_cavern_8018EB5C % 9) != 0 && D_mine_cavern_8018E3DC == k) {
                 continue;
             }
-            if (Gp_StateF0.field_4 != 0) {
+            if (Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
                 continue;
             }
             m                               = &coord.coord;
@@ -2634,7 +2634,7 @@ static void func_mine_cavern_80182184(void)
             Gp_SpawnEff(0x60080, &coord, 0x800004FF, NULL);
         }
     }
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         D_mine_cavern_8018EB5C++;
     }
     D_mine_cavern_8018E3DC = view;
@@ -3052,14 +3052,14 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
 
     work   = arg1->work;
     player = gameGetPtrSlot(3);
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             return;
     }
 
@@ -3072,8 +3072,8 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     d->vz                                       = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
     blk                                         = (_MineCavernHitScratch*)(head - 0x28);
 
-    if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.prefix.bytes.field_0 != 1 ||
-        (gGameSession->location.loc.variant != Gp_StateF0.prefix.bytes.field_0 && gGameSession->location.loc.variant != 4)) {
+    if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED ||
+        (gGameSession->location.loc.variant != Gp_StateF0.signals.bytes.battlePhase && gGameSession->location.loc.variant != 4)) {
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else {
         arg0->node.state.parts.flags = 0;

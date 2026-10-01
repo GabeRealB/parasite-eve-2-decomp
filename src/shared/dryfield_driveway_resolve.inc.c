@@ -42,7 +42,7 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
                         }
                     }
                 }
-                if (gGameSession->location.loc.variant == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant) {
+                if (gGameSession->location.loc.variant == 1 && Gp_StateF0.signals.bytes.battlePhase == gGameSession->location.loc.variant) {
                     return 0;
                 }
                 Gp_RunCapCmd1(1);

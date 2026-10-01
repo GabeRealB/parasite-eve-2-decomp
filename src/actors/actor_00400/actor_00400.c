@@ -1776,7 +1776,7 @@ static s16 Actor00400_Fn02154(Task* arg0)
     goto ok;
 other:
     if (req == 5) {
-        Gp_StateF0.prefix.bytes.field_3 = 1;
+        Gp_StateF0.signals.bytes.enemyAlert = 1;
         Gp_ArmStateF0(1);
         work->field_650 = 10;
         work->field_644 = 0;
@@ -2153,12 +2153,12 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 /// one of the three kinds 1/3/5, or when `func_800E0C10`'s push-back says the
 /// marker is being crowded and the current stage/room is not one of the
 /// exceptions. Once it is raised - or after 0x3C frames, or when
-/// `Gp_StateF0.field_23` is set - the object's draw flags are cleared, the task's
+/// `Gp_StateF0.actor00400HideRequested` is set - the object's draw flags are cleared, the task's
 /// state is bumped and the effect is spawned with kind 2 instead of 1.
 ///
 /// `composeStamp` is cleared through a scalar lvalue on purpose: written as a struct
 /// member it is an in-struct MEM, and GCC 2.8.1's
-/// `fixed_scalar_and_varying_struct_p` would then let the `Gp_StateF0.field_4` load
+/// `fixed_scalar_and_varying_struct_p` would then let the `Gp_StateF0.actorControl` load
 /// hoist above the store. See DECOMPILATION_LEARNINGS.md, "Struct-typing a
 /// body changes GCC 2.8.1's aliasing".
 static void Actor00400_Fn02D48(Task* arg0)
@@ -2177,8 +2177,8 @@ static void Actor00400_Fn02D48(Task* arg0)
     coord                 = arg0->extra.tmd->coords;
     *&coord->composeStamp = GRAPHICS_COORD_DIRTY;
     kind                  = 1;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_60    += 1;
             work->field_5A    += 2;
             coord->coord.t[0] += work->field_58;
@@ -2225,7 +2225,7 @@ static void Actor00400_Fn02D48(Task* arg0)
                 }
             }
             Gp_ClearRec18Occupied(work->recs);
-            if ((++arg0->killCountdown >= 0x3D) || (Gp_StateF0.field_23 != 0) || (hidden != 0)) {
+            if ((++arg0->killCountdown >= 0x3D) || (Gp_StateF0.actor00400HideRequested != 0) || (hidden != 0)) {
                 arg0->killCountdown = 0;
                 work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 kind                = 2;
@@ -2752,7 +2752,7 @@ static const TaskFuncTable11 Actor00400_D0007C = { {
 } };
 
 /// Per-frame callback for the text actor's second task. Same frame gate as
-/// `Actor00400_Fn04B48`: `Gp_StateF0.field_4` 2 only flags the model hidden, 0 runs
+/// `Actor00400_Fn04B48`: `Gp_StateF0.actorControl` 2 only flags the model hidden, 0 runs
 /// this frame's state handler before falling through to the draw half, and 1
 /// is the draw half on its own.
 static void Actor00400_Fn040DC(Task* arg0)
@@ -2769,11 +2769,11 @@ static void Actor00400_Fn040DC(Task* arg0)
     work  = arg0->work;
     ctx   = arg0->extra.tmd;
     fns   = Actor00400_D0007C;
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_663 != 0) {
                 break;
             }
@@ -2786,7 +2786,7 @@ static void Actor00400_Fn040DC(Task* arg0)
             y                 = coord->coord.t[1];
             coord->coord.t[1] = y + ((work->field_63E + (s16)work->field_658 - y) >> 4);
             /* fallthrough */
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
@@ -2914,11 +2914,11 @@ static void Actor00400_Fn04580(Task* arg0)
     s32              i;
 
     fns = Actor00400_D000A8;
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_663 != 0) {
                 break;
             }
@@ -2979,7 +2979,7 @@ static void Actor00400_Fn04580(Task* arg0)
                 w3->field_63A = 0;
             }
             /* fallthrough */
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
@@ -3069,7 +3069,7 @@ static const TaskFuncTable10 Actor00400_D000D0 = { {
     Actor00400_Fn0909C,
 } };
 
-/// Per-frame callback for the main actor task. `Gp_StateF0.field_4` gates the frame:
+/// Per-frame callback for the main actor task. `Gp_StateF0.actorControl` gates the frame:
 /// 2 only flags the model hidden, 0 runs this frame's state handler before
 /// falling through to the draw half, and 1 is the draw half on its own.
 static void Actor00400_Fn04B48(Task* arg0)
@@ -3084,18 +3084,18 @@ static void Actor00400_Fn04B48(Task* arg0)
     work = arg0->work;
     ctx  = arg0->extra.tmd;
     fns  = Actor00400_D000D0;
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_663 != 0) {
                 break;
             }
             fns.funcs[work->field_638](arg0);
             work->flags_62C.half = work->slots[1].flags;
             /* fallthrough */
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             coord = &ctx2->coords[1];
@@ -3159,7 +3159,7 @@ static const TaskFuncTable15 Actor00400_D000F8 = { {
     Actor00400_Fn09C84,
 } };
 
-/// Per-frame callback for the boss task. Same `Gp_StateF0.field_4` frame gate as
+/// Per-frame callback for the boss task. Same `Gp_StateF0.actorControl` frame gate as
 /// `Actor00400_Fn04580`, with the model's Y bobbed by two `rsin` terms and the
 /// display object re-pointed at the part coordinate `field_664` selects; the
 /// tail hides the model again while the session sits in the two area-0xA/0xB
@@ -3190,11 +3190,11 @@ static void Actor00400_Fn04E18(Task* arg0)
     s32              i;
 
     fns = Actor00400_D000F8;
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_663 != 0) {
                 return;
             }
@@ -3283,7 +3283,7 @@ static void Actor00400_Fn04E18(Task* arg0)
                 }
             }
             /* fallthrough */
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
@@ -3368,7 +3368,7 @@ static void Actor00400_Fn05320(Task* arg0)
         w1    = arg0->work;
         armed = 0;
         if (w1->field_640 < 0xDAC && (u32)(w1->field_634 - 0x600) >= 0x400U) {
-            Gp_StateF0.prefix.bytes.field_3 = 1;
+            Gp_StateF0.signals.bytes.enemyAlert = 1;
             Gp_ArmStateF0(1);
             armed         = 1;
             w2            = arg0->work;
@@ -3904,7 +3904,7 @@ static void Actor00400_Fn06A44(Task* arg0)
 }
 
 /// Per-frame callback for the text actor's third task, with the same
-/// `Gp_StateF0.field_4` frame gate as `Actor00400_Fn04B48`: 2 only flags the model
+/// `Gp_StateF0.actorControl` frame gate as `Actor00400_Fn04B48`: 2 only flags the model
 /// hidden, 0 runs this frame's state handler and rebuilds the root rotation
 /// before falling through to the draw half, and 1 is the draw half on its own.
 static void Actor00400_Fn06B7C(Task* arg0)
@@ -3924,11 +3924,11 @@ static void Actor00400_Fn06B7C(Task* arg0)
     MATRIX*          dst;
     s32              i;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->flags_62C.hi.field_62E++;
             work->field_630++;
             Actor00400_Fn01454(arg0);
@@ -3984,7 +3984,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
                 w3->field_63A = 0;
             }
             /* fallthrough */
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
@@ -4104,11 +4104,11 @@ static void Actor00400_Fn070C0(Task* arg0)
     MATRIX*          dst;
     s32              i;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->flags_62C.hi.field_62E++;
             work->field_630++;
             Actor00400_Fn01454(arg0);
@@ -4165,7 +4165,7 @@ static void Actor00400_Fn070C0(Task* arg0)
             }
             coord0->coord.t[1] += (work->field_63E - coord0->coord.t[1]) >> 4;
             /* fallthrough */
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
@@ -4284,9 +4284,9 @@ static void Actor00400_Fn077F4(Task* arg0)
     work = arg0->work;
     fns  = Actor00400_D00134;
     if ((Actor00400_Fn02154(arg0) << 0x10) != 0) {
-        Gp_StateF0.prefix.bytes.field_3 = 1;
+        Gp_StateF0.signals.bytes.enemyAlert = 1;
         Gp_ArmStateF0(1);
-    } else if (Gp_StateF0.prefix.bytes.field_3 != 0) {
+    } else if (Gp_StateF0.signals.bytes.enemyAlert != 0) {
         work2            = arg0->work;
         work2->field_638 = 4;
         work2->field_63A = 0;
@@ -4715,13 +4715,13 @@ void Actor00400_Fn08354(Task* arg0, s32 arg1, s32 arg2)
     ctx  = arg0->extra.tmd;
     switch (arg2) {
         case 0:
-            Gp_StateF0.field_23 = 1;
-            ctx->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_663     = 1;
+            Gp_StateF0.actor00400HideRequested = 1;
+            ctx->flags                        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->field_663                    = 1;
             break;
         case 1:
-            Gp_StateF0.field_23 = 0;
-            state               = arg0->state;
+            Gp_StateF0.actor00400HideRequested = 0;
+            state                              = arg0->state;
             if (((state == 2) || (state == 4)) && (work->field_644 == 4)) {
                 ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else if ((arg0->state == 2) && ((work->field_638 == 4) || (work->field_638 == 5))) {
@@ -5203,7 +5203,7 @@ static void Actor00400_Fn09124(Task* arg0)
     }
     done = 0;
     if ((u32)(work->field_634 - 0x600) >= 0x400U) {
-        Gp_StateF0.prefix.bytes.field_3 = 1;
+        Gp_StateF0.signals.bytes.enemyAlert = 1;
         Gp_ArmStateF0(1);
         active           = 1;
         state            = arg0->work;

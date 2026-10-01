@@ -15,8 +15,8 @@ void hopperVanish(Task* arg0)
     model           = arg0->extra.tmd;
     work->field_412 = 0;
     SndEvt_EnqueueType7(0x402C0002, 1);
-    if ((Gp_StateF0.field_1F & 0xF) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.field_1F = 0;
+    if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        Gp_StateF0.hopperAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     enemy->recs = 0;

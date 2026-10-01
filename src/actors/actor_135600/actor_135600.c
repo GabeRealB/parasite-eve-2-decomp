@@ -835,7 +835,7 @@ static void func_actor_135600_80132234(Task* task)
 
 /// Per-frame tick of the actor (entry 1 of `D_actor_135600_80131E3C`).
 /// Draws the ground shadow under the second part unless the model is hidden,
-/// then -- only while `Gp_StateF0.field_4` is clear -- runs the handler `walk.motion`
+/// then -- only while `Gp_StateF0.actorControl` is clear -- runs the handler `walk.motion`
 /// selects, advances the root coordinate by the high halves of the 16.16
 /// accumulators fed from `step` (re-zeroing each high half), ticks slots 1 to
 /// 19 while `model.ticking` is set, rebuilds the second part's coordinate and the
@@ -855,7 +855,7 @@ static void func_actor_135600_801324D0(Task* arg0)
             Gp_DrawEffGroundQuad(&pos, 0x300, gRoomEffectState->groundShadowShade);
         }
     }
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         funcs[work->walk.motion](arg0);
         coord                   = arg0->extra.tmd->coords;
         work->walk.acc[0].word += work->walk.step.vx;

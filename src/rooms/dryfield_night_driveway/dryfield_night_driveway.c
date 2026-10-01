@@ -954,10 +954,10 @@ static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
 
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 
-/// Script callback: stores its argument into `Gp_StateF0.field_1A`.
+/// Script callback: stores its argument into `Gp_StateF0.actor03700Wave`.
 void func_dryfield_night_driveway_8017DC6C(s32 arg0)
 {
-    Gp_StateF0.field_1A = arg0;
+    Gp_StateF0.actor03700Wave = arg0;
 }
 
 /// Script callback: stores its argument into the session's `viewDirty`.

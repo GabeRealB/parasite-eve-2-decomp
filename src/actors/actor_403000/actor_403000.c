@@ -7390,14 +7390,14 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, (VECTOR*)&pos, 0, 0);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->field_0 != 0x16 && work->field_0 != 0x14 && work->field_0 != 0) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
@@ -7409,7 +7409,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->records);
             Gp_ClearRec18Occupied(work->recordsE98);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->objD18.rec);
             Gp_ClearRec18Occupied(work->objB50.rec);

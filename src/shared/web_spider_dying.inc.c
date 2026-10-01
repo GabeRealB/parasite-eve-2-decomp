@@ -22,17 +22,17 @@ void spiderDyingState(Enemy* arg0, Task* arg1)
     obj   = arg1->extra.tmd;
     work  = arg1->work;
     coord = obj->coords;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
             vec.vz = coord->workm.t[2];
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             switch (work->field_39C) {
                 case 0:

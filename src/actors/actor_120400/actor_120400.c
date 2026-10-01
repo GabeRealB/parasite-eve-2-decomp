@@ -1120,7 +1120,7 @@ void func_actor_120400_80132748(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_120400_80131E30;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

@@ -825,7 +825,7 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
                 Gp_MsgAlly3F3(1);
                 gGameSession->eventState = 0;
                 gGameSession->hideHud    = 0;
-                Gp_StateF0.field_4       = 0;
+                Gp_StateF0.actorControl  = SCENE_COMBAT_ACTORS_RUNNING;
                 D_80114D08               = 0xA;
                 break;
             }
@@ -836,8 +836,8 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
             break;
         case 4:
             if (gGameSession->eventState == 0) {
-                D_80114D08         = 0xA;
-                Gp_StateF0.field_4 = 0;
+                D_80114D08              = 0xA;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
             }
             break;
@@ -848,7 +848,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             arg0->state++;
@@ -862,11 +862,11 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.field_4 = 0;
-                D_80114D08         = 0xA;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                D_80114D08              = 0xA;
                 break;
             }
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_TriggerPeIfArmed();
             D_shelter_b4_upper_sewer_80188D1C.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_upper_sewer_80188D1C.fade.phase      = SCREEN_FADE_RUNNING;
@@ -937,7 +937,7 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, TaskMe
             Gp_MsgAlly3F3(0);
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_StateF0.field_4                                         = 2;
+            Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_HIDDEN;
             temp_a1                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
             D_shelter_b4_upper_sewer_80188D2C[0]                       = temp_a1;

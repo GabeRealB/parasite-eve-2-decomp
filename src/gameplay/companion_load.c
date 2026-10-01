@@ -332,8 +332,8 @@ void Gp_ResumeSessionTask(Task* task)
         return;
     }
     if ((task->spawnArg1.value & 0x10) == 0) {
-        if (Gp_StateF0.prefix.bytes.field_0 == 2) {
-            Gp_StateF0.prefix.bytes.field_0 = 3;
+        if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
+            Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_RESUMED;
         }
         Gp_TriggerPeIfArmed();
     }
@@ -346,7 +346,7 @@ void func_800AC0F0(Task* task)
 
     sp = Gp_SessionStates;
     Pad_SetCooldown(0);
-    *(volatile u8*)&Gp_StateF0.field_4 = 1;
+    *(volatile u8*)&Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
     sp.funcs[((volatile Task*)task)->state](task);
 }
 

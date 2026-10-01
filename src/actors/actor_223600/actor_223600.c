@@ -1389,18 +1389,18 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
     work = (Actor223600Work*)task->work;
     fns  = D_actor_223600_80149E4C;
 
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0) {
                 task->extra.tmd->flags = 0;
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->field_0 != 0) {
                 task->extra.tmd->flags = 0;
             }
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }

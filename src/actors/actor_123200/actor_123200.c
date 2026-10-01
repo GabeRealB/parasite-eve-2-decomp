@@ -919,7 +919,7 @@ static const GpEnemyTaskFuncTable3 D_actor_123200_80131E24 = {
 
 /// Per-frame tick: flags the model's coordinate for rebuild, refreshes its
 /// colour from the part matrix's translation, then scales that matrix from the
-/// work block's `field_21C`. The render mode in `Gp_StateF0.field_4` runs next -- modes
+/// work block's `field_21C`. The render mode in `Gp_StateF0.actorControl` runs next -- modes
 /// 0 and 1 draw the ground quad while the display mode is non-zero, and 1 and 2
 /// return without ticking. The rest re-records the display mode in `field_2`
 /// (`field_4` restarting the model when it changed), dispatches the display
@@ -947,20 +947,20 @@ static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
         pos.vx = pos.vy = pos.vz = work->field_21C;
         ScaleMatrix(&work->field_1BC, &pos);
     }
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->field_0 != 0) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }

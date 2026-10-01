@@ -1310,7 +1310,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     coord        = extra->coords;
     rot          = coord + 2;
     room         = *&session->location.loc.view;
-    if (Gp_StateF0.field_4 == 2) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
         extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;

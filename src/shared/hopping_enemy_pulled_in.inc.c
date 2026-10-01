@@ -22,8 +22,8 @@ void hopperPulledIn(Task* arg0)
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
-    if ((Gp_StateF0.field_1F & 0xF) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.field_1F = 0;
+    if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        Gp_StateF0.hopperAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);

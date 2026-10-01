@@ -934,7 +934,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &rec, 0);
             }
-            Gp_StateF0.field_1A = 0;
+            Gp_StateF0.actor03700Wave = 0;
             /* fallthrough */
         case 1:
         case 2:
@@ -942,7 +942,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             task->state = task->state + 1;
             break;
         case 3:
-            if (Gp_StateF0.field_1A == 2) {
+            if (Gp_StateF0.actor03700Wave == 2) {
                 Gp_ArmStateF0(1);
                 task->state = task->state + 1;
             }

@@ -1253,7 +1253,7 @@ static void Actor03800_Fn01150(Task* arg0)
             break;
     }
 
-    if (Gp_StateF0.prefix.bytes.field_2 & 5) {
+    if (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
         work->field_352 = 2;
         work->field_354 = 0;
         if (work->field_36A == 0) {
@@ -1334,7 +1334,7 @@ static void Actor03800_Fn012B4(Task* arg0)
             break;
     }
 
-    if (Gp_StateF0.prefix.bytes.field_2 & 5) {
+    if (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
         work->field_352 = 2;
         work->field_354 = 0;
     }
@@ -1667,7 +1667,7 @@ static void Actor03800_Fn01EEC(Task* arg0)
             break;
     }
 
-    if ((Gp_StateF0.prefix.bytes.field_2 & 5) || work->field_36C != 0) {
+    if ((Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->field_36C != 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_352 = 0xA;
         work->field_354 = 0;
@@ -1682,7 +1682,7 @@ static void Actor03800_Fn01EEC(Task* arg0)
 /// Idle "look around" tick. State 0 counts `field_356` down and, on expiry,
 /// picks a new facing `field_364` within +/-0x3FF of the current one; state 1
 /// waits for the turn to finish and re-arms the countdown. Either way, an
-/// active `Gp_StateF0.prefix.bytes.field_2` bit (1 or 4) or a non-zero `field_36C` aborts
+/// active `Gp_StateF0.signals.bytes.actionFlags` bit (1 or 4) or a non-zero `field_36C` aborts
 /// back to state 0 with a short delay.
 static void Actor03800_Fn02068(Task* arg0)
 {
@@ -1729,7 +1729,7 @@ static void Actor03800_Fn02068(Task* arg0)
             break;
     }
 
-    if ((Gp_StateF0.prefix.bytes.field_2 & 5) || work->field_36C != 0) {
+    if ((Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->field_36C != 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_352 = 0xA;
         work->field_354 = 0;
@@ -2025,7 +2025,7 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     coord = work->field_344;
     if (state == 1) {
         goto case1;
@@ -2158,8 +2158,8 @@ static void Actor03800_Fn02E50(Task* actor)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     first           = (u16)((gRandomLcgState >> 16) % 5);
     Actor03800_Fn03008(actor, first);
-    if (Gp_StateF0.field_6 < 2) {
-        count = Actor03800_D05FA8[Gp_StateF0.field_6];
+    if (Gp_StateF0.battleRefs < 2) {
+        count = Actor03800_D05FA8[Gp_StateF0.battleRefs];
         out   = variants;
         for (i = 0; i < 5; i++) {
             if (i != first) {
@@ -2251,7 +2251,7 @@ static void Actor03800_Fn031B8(Enemy* arg0, Task* arg1)
     s32              state;
     s32              one;
 
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     one   = 1;
     work  = arg1->work;
     if (state == one) {
@@ -2393,12 +2393,12 @@ static void Actor03800_Fn034B0(Task* arg0)
     work = arg0->work;
     obj  = arg0->extra.tmd;
     ctx  = arg0->spawnArg2.pointer;
-    switch (Gp_StateF0.field_20) {
-        case 0:
+    switch (Gp_StateF0.shrineEnemyPhase) {
+        case SCENE_COMBAT_SHRINE_HIDDEN:
             obj->flags                  = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
-        case 1:
+        case SCENE_COMBAT_SHRINE_REVEALED:
             obj->flags       = 0;
             work->field_1C2 |= 0x8000;
             work->field_22A |= 0x4200;
@@ -2409,7 +2409,7 @@ static void Actor03800_Fn034B0(Task* arg0)
             work->field_350 = 0;
             work->field_372 = 0x80;
             return;
-        case 2:
+        case SCENE_COMBAT_SHRINE_RELEASED:
             if (--work->field_356 <= 0) {
                 work->field_352 = 1;
                 work->field_354 = 0;

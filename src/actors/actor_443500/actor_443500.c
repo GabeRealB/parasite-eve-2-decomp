@@ -2652,14 +2652,14 @@ void func_actor_443500_8013253C(Task* task)
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
 /// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
-/// from `D_actor_443500_80131E30`, skipping the frame while `Gp_StateF0.field_4` is
+/// from `D_actor_443500_80131E30`, skipping the frame while `Gp_StateF0.actorControl` is
 /// set.
 void func_actor_443500_80132738(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_443500_80131E30;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

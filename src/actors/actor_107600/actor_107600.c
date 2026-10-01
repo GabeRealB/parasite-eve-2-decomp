@@ -1096,7 +1096,7 @@ void func_actor_107600_801328CC(Task* arg0)
 }
 
 /// Update state of the `D_actor_107600_80131E24` table, switched on the scene
-/// mode `Gp_StateF0.field_4`. Mode 0 runs the `field_13E` sub-state, copies the yaw and
+/// mode `Gp_StateF0.actorControl`. Mode 0 runs the `field_13E` sub-state, copies the yaw and
 /// roll onto the model root, rebuilds its rotation and scales `coord.m[1][1]`
 /// by the `field_14B` percent; modes 0 and 1 then refresh the colour and show
 /// the model, and mode 2 hides it.
@@ -1109,19 +1109,19 @@ static void func_actor_107600_80132930(Task* arg0)
     TmdObject*       obj;
 
     obj = ext;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             funcs[(s16)work->field_13E](arg0);
             coord->param.rot.vy = work->yaw;
             coord->param.rot.vz = work->roll;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             func_actor_107600_80132B7C(arg0);
             coord->coord.m[1][1] = work->field_14B * (coord->coord.m[1][1] / 100);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             func_actor_107600_80132B0C(arg0);
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
@@ -1359,7 +1359,7 @@ static void func_actor_107600_80132ED0(Task* arg0)
     arg0->state += 1;
 }
 
-/// Per-frame update switched on the scene mode `Gp_StateF0.field_4`, like
+/// Per-frame update switched on the scene mode `Gp_StateF0.actorControl`, like
 /// `func_actor_107600_80132930`. Mode 0 runs the `field_158` state out of
 /// `D_actor_107600_80131E84`, then (below state 7) takes hits, clears the collision records and enters state 9 once the enemy's
 /// HP is gone. Afterwards publishes the enemy's slot mask to the gallery and
@@ -1383,8 +1383,8 @@ static void func_actor_107600_80133024(Task* arg0)
     sp    = D_actor_107600_80131E84;
     SCRATCH_STACK_RESERVE_BYTES(8);
     v = SCRATCH_STACK_CURSOR(SVECTOR);
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             sp.funcs[work->field_158](arg0);
             if (work->field_158 < 7) {
                 if (work->field_150 == 0) {
@@ -1397,11 +1397,11 @@ static void func_actor_107600_80133024(Task* arg0)
                     func_actor_107600_80134B98(arg0, 9);
                 }
             }
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             func_actor_107600_801349E0(arg0);
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
@@ -2020,7 +2020,7 @@ static void func_actor_107600_80134608(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 
                 colorMtx->m[1][i] = block->col0.vy;
                 colorMtx->m[2][i] = block->col0.vz;
             }
-            if (Gp_StateF0.field_4 == 0) {
+            if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                 arg0->colorBlend--;
             }
         }

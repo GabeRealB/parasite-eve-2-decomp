@@ -104,7 +104,7 @@ extern GpMsgEntry                gRoamerMsgTableB[];
 extern NeoArkForestZoneSpawnPos gRoamerSpawnPointsA[];
 extern NeoArkForestZoneSpawnPos D_neo_ark_forest_zone_80182DE8[5];
 
-/// `Gp_StateF0.field_6` as seen on the previous frame.
+/// `Gp_StateF0.battleRefs` as seen on the previous frame.
 extern s16 gRoamerPrevBattleRefs;
 
 static void func_neo_ark_forest_zone_8018141C(Task* arg0);
@@ -623,7 +623,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     if (gRoamerCooldown > 0) {
         gRoamerCooldown--;
     }
-    if (Gp_StateF0.field_6 == 0 && gRoamerPrevBattleRefs > 0) {
+    if (Gp_StateF0.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         b     = GameFlag_GetNibble(0x10A);
         count = 0;
         for (k = 0; k < 5; k++) {
@@ -651,17 +651,17 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
         areaSyncLocationVariant(&gGameSession->location.loc);
         gRoamerCooldown = 0x96;
     }
-    gRoamerPrevBattleRefs = Gp_StateF0.field_6;
+    gRoamerPrevBattleRefs = Gp_StateF0.battleRefs;
     if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
-        Gp_StateF0.prefix.bytes.field_0  = 0;
-        Gp_StateF0.field_5               = 0;
-        Gp_StateF0.field_6               = 0;
-        Gp_StateF0.field_8               = 0;
-        Gp_StateF0.field_C               = 0;
-        Gp_StateF0.field_10              = 0;
-        gGameSession->battleResetPending = 0;
+        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+        Gp_StateF0.peTargetCount             = 0;
+        Gp_StateF0.battleRefs                = 0;
+        Gp_StateF0.expReward                 = 0;
+        Gp_StateF0.bpReward                  = 0;
+        Gp_StateF0.mpReward                  = 0;
+        gGameSession->battleResetPending     = 0;
     }
-    if (Gp_StateF0.prefix.bytes.field_0 != 2 && gRoamerSpawnRequest != 0) {
+    if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
         gRoamerCommand.context.loc.stage = 5;
         gRoamerCommand.context.loc.area  = 0xB;
         gRoamerCommand.command           = 0xB;

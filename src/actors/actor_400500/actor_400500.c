@@ -3088,11 +3088,11 @@ static void func_actor_400500_80135770(Task* arg0)
             break;
     }
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             func_actor_400500_80132438(arg0);
             work->field_A1A = lookup_zone(arg0);
             if (slot == NULL) {
@@ -3143,7 +3143,7 @@ static void func_actor_400500_80135770(Task* arg0)
                 work_dead->field_A06 = 0;
                 work_dead->field_A08 = 0;
             }
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             extra      = arg0->extra.tmd;
             extra2     = extra;
             color_part = extra->coords + 1;
@@ -5661,13 +5661,13 @@ static void func_actor_400500_8013A700(Task* arg0)
     extra = arg0->extra.tmd;
     work  = (Actor400500Work*)arg0->work;
     sp    = D_actor_400500_80131F7C;
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             sp.funcs[(s16)work->field_A06](arg0);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             _actor400500UpdateColor(arg0, &arg0->extra.tmd->coords[1], arg0->extra.tmd);
             if (work->field_A28 != 0) {
                 func_actor_400500_80132AB0(arg0, -0xFA0, (u8)(work->field_A28 >> 2));

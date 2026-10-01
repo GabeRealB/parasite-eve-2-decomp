@@ -12,15 +12,15 @@ void lungerFrameState(Enemy* ctx, Task* actor)
     work  = actor->work;
     model = actor->extra.tmd;
     coord = model->coords;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             model->flags                = 0;
             ctx->node.state.parts.flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             lungerDraw(actor, coord);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;

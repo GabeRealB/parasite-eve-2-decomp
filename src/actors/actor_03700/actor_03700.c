@@ -1208,9 +1208,9 @@ static void Actor03700_Fn00ABC(Task* task)
     Actor03700_Fn032BC(task, 0, 14);
     Actor03700_Fn03320(task, 20);
     if (Actor03700_Fn01DFC(task) != 0) {
-        work->field_24E      = 3;
-        work->field_250      = 0;
-        Gp_StateF0.field_19 |= 1;
+        work->field_24E             = 3;
+        work->field_250             = 0;
+        Gp_StateF0.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
     }
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
@@ -1228,10 +1228,10 @@ static void Actor03700_Fn00D5C(Task* task)
     switch (work->field_250) {
         case 0:
             if (Actor03700_Fn01DFC(task) != 0) {
-                Gp_StateF0.field_19 |= 1;
-                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->field_250      = 1;
-                work->field_256      = (gRandomLcgState >> 16) & 0x3F;
+                Gp_StateF0.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
+                gRandomLcgState             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_250             = 1;
+                work->field_256             = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
         case 1:
@@ -1252,10 +1252,10 @@ static void Actor03700_Fn00D5C(Task* task)
                 }
             }
             if (work->field_24C >= 50) {
-                work->field_248      = 1;
-                work->field_24E      = 3;
-                work->field_250      = 0;
-                Gp_StateF0.field_19 |= 1;
+                work->field_248             = 1;
+                work->field_24E             = 3;
+                work->field_250             = 0;
+                Gp_StateF0.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
             }
             break;
     }
@@ -1274,10 +1274,10 @@ static void Actor03700_Fn00F88(Task* task)
     switch (work->field_250) {
         case 0:
             if (Actor03700_Fn01DFC(task) != 0) {
-                Gp_StateF0.field_19 |= 1;
-                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->field_250      = 1;
-                work->field_256      = (gRandomLcgState >> 16) & 0x3F;
+                Gp_StateF0.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
+                gRandomLcgState             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_250             = 1;
+                work->field_256             = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
         case 1:
@@ -1298,10 +1298,10 @@ static void Actor03700_Fn00F88(Task* task)
                 }
             }
             if (work->field_24C >= 50) {
-                work->field_248      = 1;
-                work->field_24E      = 3;
-                work->field_250      = 0;
-                Gp_StateF0.field_19 |= 1;
+                work->field_248             = 1;
+                work->field_24E             = 3;
+                work->field_250             = 0;
+                Gp_StateF0.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
             }
             break;
     }
@@ -1370,7 +1370,7 @@ static void Actor03700_Fn011B4(Task* task)
                 }
                 work->field_250 = 0;
             }
-            if (Gp_StateF0.field_19 & 2) {
+            if (Gp_StateF0.actor03700Flags & SCENE_COMBAT_ACTOR03700_PLAYER_RELEASE) {
                 work->field_24E = 5;
                 work->field_248 = 1;
                 work->field_250 = 0;
@@ -1405,9 +1405,9 @@ static void Actor03700_Fn01550(Task* task)
             sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40250004;
             SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(obj), (s8)gpGetObjDepth(obj));
             if ((s16)++work->field_26C >= 6) {
-                work->field_26C      = 0;
-                work->field_250      = 3;
-                Gp_StateF0.field_19 |= 2;
+                work->field_26C             = 0;
+                work->field_250             = 3;
+                Gp_StateF0.actor03700Flags |= SCENE_COMBAT_ACTOR03700_PLAYER_RELEASE;
             } else {
                 work->field_250 = 1;
                 work->field_256 = 20;
@@ -1444,10 +1444,10 @@ static void Actor03700_Fn01550(Task* task)
         case 4:
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
                 Gp_DispatchMsg(player, 0x3F1, 0, 0);
-                work->field_262      = 0;
-                work->field_24E      = 5;
-                work->field_250      = 0;
-                Gp_StateF0.field_19 &= 1;
+                work->field_262             = 0;
+                work->field_24E             = 5;
+                work->field_250             = 0;
+                Gp_StateF0.actor03700Flags &= SCENE_COMBAT_ACTOR03700_ALERT;
             }
             break;
     }
@@ -1581,7 +1581,7 @@ static void Actor03700_Fn01C94(Task* task)
 
 /// Tests whether the actor has noticed the player: true when the player is
 /// under 0x708 units away on the XZ plane (the offset is staged on the
-/// scratchpad stack), mid-action (`Gp_StateF0.prefix.bytes.field_2` low nibble) or holding
+/// scratchpad stack), mid-action (`Gp_StateF0.signals.bytes.actionFlags` low nibble) or holding
 /// the aim button (`field_19` bit 0). On noticing, it arms `Gp_StateF0` and
 /// plays the alert cue from the placement's sound bank. Returns 1 when noticed.
 static s32 Actor03700_Fn01DFC(Task* task)
@@ -1606,7 +1606,7 @@ static s32 Actor03700_Fn01DFC(Task* task)
     vec->vz                        = dz;
     dx                             = ((SVECTOR*)(head - 8))->vx;
     ret                            = 0;
-    if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (Gp_StateF0.prefix.bytes.field_2 & 0xF) || (Gp_StateF0.field_19 & 1)) {
+    if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_MASK)) || (Gp_StateF0.actor03700Flags & SCENE_COMBAT_ACTOR03700_ALERT)) {
         ret = 1;
         Gp_ArmStateF0(ret);
         soundId   = ((Enemy*)task->spawnArg2.pointer)->placeKey;
@@ -1758,7 +1758,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     }
 }
 
-/// Death handler. Mode 1 of `Gp_StateF0.field_4` only refreshes the actor colour and
+/// Death handler. Mode 1 of `Gp_StateF0.actorControl` only refreshes the actor colour and
 /// mode 2 hides the model; otherwise it steps `field_250`: unlink the enemy and
 /// play the death cue (releasing the player's hold if `field_262` is set), wait
 /// out a short delay, spawn the `field_268` death effect, let the player go,
@@ -1778,14 +1778,14 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
     model  = task->extra.tmd;
     player = gameGetPtrSlot(3);
 
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             _actor03700UpdateColor(task);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             if (work->field_266 != 0) {
                 Actor03700_Fn0355C(task);
@@ -1861,7 +1861,7 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
 }
 
 /// Mode 7, the drop-in: keeps the actor hidden, unlockable and out of the
-/// contact passes until `Gp_StateF0.field_1A` reaches the placement's `mode - 9`, then
+/// contact passes until `Gp_StateF0.actor03700Wave` reaches the placement's `mode - 9`, then
 /// counts `field_256` down from 5 and picks a target position `field_23C` above
 /// the root coordinate from `gRandomLcgState` - a lower one and mode 8 for
 /// placements below 10, a higher one and mode 9 above - before re-enabling the
@@ -1887,7 +1887,7 @@ static void Actor03700_Fn025C8(Task* task)
     switch (work->field_250) {
         case 0:
             diff = spawn->place->mode - 9;
-            if (Gp_StateF0.field_1A >= diff) {
+            if (Gp_StateF0.actor03700Wave >= diff) {
                 work->field_250 = 1;
                 work->field_256 = 5;
             }
@@ -1991,7 +1991,7 @@ static void Actor03700_Fn029C0(Task* task)
             work->obj.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             obj->flags                 |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            if (Gp_StateF0.field_1A == 0) {
+            if (Gp_StateF0.actor03700Wave == 0) {
                 work->field_250    = 1;
                 work->obj.flags   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2043,7 +2043,7 @@ static void Actor03700_Fn029C0(Task* task)
             Actor03700_SwayInline(task, 80);
 
             if ((s16)work->field_256 == 30) {
-                Gp_StateF0.field_1A = 2;
+                Gp_StateF0.actor03700Wave = 2;
             }
             if ((s16)--work->field_256 <= 0) {
                 work->field_24E = mode;
@@ -2074,7 +2074,7 @@ static void Actor03700_Fn03004(Enemy* enemy, Task* task)
     s32              one;
 
     obj   = task->extra.tmd;
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     work  = (Actor103700Work*)task->work;
     coord = obj->coords;
     one   = 1;
@@ -2293,33 +2293,33 @@ static void Actor03700_Fn0355C(Task* task)
     Actor103700Work* work = (Actor103700Work*)task->work;
     s32              state;
 
-    switch (Gp_StateF0.field_1A) {
+    switch (Gp_StateF0.actor03700Wave) {
         case 0:
             break;
         case 1:
-            Gp_StateF0.field_1A = 2;
+            Gp_StateF0.actor03700Wave = 2;
             return;
         case 2:
-            if (Gp_StateF0.field_6 < 0x11) {
-                Gp_StateF0.field_1A = 3;
+            if (Gp_StateF0.battleRefs < 0x11) {
+                Gp_StateF0.actor03700Wave = 3;
                 return;
             }
             break;
         case 3:
-            if (Gp_StateF0.field_6 < 0xE) {
-                Gp_StateF0.field_1A = 4;
+            if (Gp_StateF0.battleRefs < 0xE) {
+                Gp_StateF0.actor03700Wave = 4;
                 return;
             }
             break;
         case 4:
-            if (Gp_StateF0.field_6 < 0xA) {
-                Gp_StateF0.field_1A = 5;
+            if (Gp_StateF0.battleRefs < 0xA) {
+                Gp_StateF0.actor03700Wave = 5;
                 return;
             }
             break;
         case 5:
             state = task->state;
-            if (state == 2 && Gp_StateF0.field_6 == 0) {
+            if (state == 2 && Gp_StateF0.battleRefs == 0) {
                 work->field_266 = state;
             }
             break;

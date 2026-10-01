@@ -1128,7 +1128,7 @@ void func_actor_342000_8016382C(Task* arg0)
     s16                   timer;
 
     work = (Actor342000EventWork*)arg0->work;
-    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0) {
+    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
     if (gGameSession->enemyCullZone != 0) {
@@ -1417,11 +1417,11 @@ void func_actor_342000_801642F4(void)
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     if (work->field_7C == 0) {
-        Gp_StateF0.field_6                                  = 0;
-        Gp_StateF0.prefix.bytes.field_1                     = 0xF;
-        Gp_StateF0.prefix.bytes.field_0                     = 0;
-        Gp_StateF0.prefix.bytes.field_2                     = 0;
-        Gp_StateF0.prefix.bytes.field_3                     = 0;
+        Gp_StateF0.battleRefs                               = 0;
+        Gp_StateF0.signals.bytes.endDelayFrames             = 0xF;
+        Gp_StateF0.signals.bytes.battlePhase                = SCENE_COMBAT_BATTLE_IDLE;
+        Gp_StateF0.signals.bytes.actionFlags                = 0;
+        Gp_StateF0.signals.bytes.enemyAlert                 = 0;
         gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
         work->field_7C                                      = 1;

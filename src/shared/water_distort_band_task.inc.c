@@ -7,7 +7,7 @@
 /// wave, faded out over the band's last 16 rows; the strips are linked into
 /// `gGpuCurrentOt` one depth nearer per row. One view of area 30 draws a second
 /// band. The wave phases derive from `Task::killCountdown`, seeded from
-/// `rand()` on the first call and advanced every call while `Gp_StateF0.field_4` is
+/// `rand()` on the first call and advanced every call while `Gp_StateF0.actorControl` is
 /// clear.
 ///
 /// Matching note: `spare` is never assigned, so `spare >> 16` is always zero;
@@ -119,7 +119,7 @@ void waterDistortBandTask(Task* task)
         prim--;
     }
 
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         task->killCountdown++;
     }
     sinArg = task->killCountdown << 5;

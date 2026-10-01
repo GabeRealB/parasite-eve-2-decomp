@@ -615,7 +615,7 @@ static void func_dryfield_night_water_tank_8017D94C(Task* task);
 /// Exit task of the night water-tank room, in the shape the other rooms' wait
 /// tasks have: three states on `Task::state`. State 0 raises bit 0x80 of
 /// `gGameSession::flowFlags` once `Gp_StateF0` has reached 1, then advances;
-/// state 1 advances to 2 as soon as the halfword at `Gp_StateF0.field_6` clears; state
+/// state 1 advances to 2 as soon as the halfword at `Gp_StateF0.battleRefs` clears; state
 /// 2 runs the room's ending -- apply the area records, set flags 0x7B, 0x83,
 /// 0x155 and 3, spawn the script `func_800E8634` is handed -- and kills the
 /// task, or, while `gGameSession::battleResetPending` is still clear, just ticks
@@ -626,14 +626,14 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 gGameSession->flowFlags = gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON;
                 task->state             = task->state + 1;
                 return;
             }
             return;
         case 1:
-            if (Gp_StateF0.field_6 == 0) {
+            if (Gp_StateF0.battleRefs == 0) {
                 task->state = 2;
                 return;
             }

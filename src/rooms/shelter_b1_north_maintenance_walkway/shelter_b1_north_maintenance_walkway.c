@@ -175,16 +175,16 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
                 gGameSession->flowFlags |= GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON;
                 arg0->state++;
             }
             break;
         case 1:
-            if (Gp_StateF0.field_6 == 0) {
-                Gp_StateF0.prefix.bytes.field_1 = 0x3C;
-                arg0->killCountdown             = 0x3E;
+            if (Gp_StateF0.battleRefs == 0) {
+                Gp_StateF0.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
+                arg0->killCountdown                     = 0x3E;
                 arg0->state++;
             }
             break;

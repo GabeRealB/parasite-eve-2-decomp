@@ -160,7 +160,7 @@ extern NeoArkWoodlandPathSpawnPos gRoamerSpawnPointsA[];
 /// request past the fourth takes the last.
 extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_80184A14[5];
 
-/// `Gp_StateF0.field_6` as `func_...801806D8` saw it on the previous frame, so
+/// `Gp_StateF0.battleRefs` as `func_...801806D8` saw it on the previous frame, so
 /// that it can tell the reference count was non-zero before the frame began.
 extern s16 gRoamerPrevBattleRefs;
 
@@ -430,7 +430,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
     if (gRoamerCooldown > 0) {
         gRoamerCooldown--;
     }
-    if (Gp_StateF0.field_6 == 0 && gRoamerPrevBattleRefs > 0) {
+    if (Gp_StateF0.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         b     = GameFlag_GetNibble(0x10A);
         count = 0;
         for (k = 0; k < 5; k++) {
@@ -458,17 +458,17 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         areaSyncLocationVariant(&gGameSession->location.loc);
         gRoamerCooldown = 0x96;
     }
-    gRoamerPrevBattleRefs = Gp_StateF0.field_6;
+    gRoamerPrevBattleRefs = Gp_StateF0.battleRefs;
     if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
-        Gp_StateF0.prefix.bytes.field_0  = 0;
-        Gp_StateF0.field_5               = 0;
-        Gp_StateF0.field_6               = 0;
-        Gp_StateF0.field_8               = 0;
-        Gp_StateF0.field_C               = 0;
-        Gp_StateF0.field_10              = 0;
-        gGameSession->battleResetPending = 0;
+        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+        Gp_StateF0.peTargetCount             = 0;
+        Gp_StateF0.battleRefs                = 0;
+        Gp_StateF0.expReward                 = 0;
+        Gp_StateF0.bpReward                  = 0;
+        Gp_StateF0.mpReward                  = 0;
+        gGameSession->battleResetPending     = 0;
     }
-    if (Gp_StateF0.prefix.bytes.field_0 != 2 && gRoamerSpawnRequest != 0) {
+    if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
         gRoamerCommand.context.loc.stage = 5;
         gRoamerCommand.context.loc.area  = 0xB;
         gRoamerCommand.command           = 0xB;

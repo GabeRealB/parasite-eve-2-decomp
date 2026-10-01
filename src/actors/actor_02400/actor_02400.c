@@ -640,7 +640,7 @@ static void Actor02400_Fn01420(Task* task)
         random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         work->field_140 = (random >> 0x10) & 0xF;
         gRandomLcgState = random;
-        if (Gp_StateF0.prefix.bytes.field_2 & 2) {
+        if (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE) {
             flag = 1;
         }
     }
@@ -652,7 +652,7 @@ static void Actor02400_Fn01420(Task* task)
     if (SquareRoot0((dx * dx) + (dz * dz)) < 0x5DC) {
         flag = 1;
     }
-    if (Gp_StateF0.field_1B != 0) {
+    if (Gp_StateF0.actor02400Alert != 0) {
         flag = 1;
     }
     if (flag != 0) {
@@ -932,8 +932,8 @@ static void Actor02400_Fn01B90(Task* task)
             break;
         case 2:
             Gp_SpawnEnemyFromTable(Actor02400_D0465C, 1, 0, task->spawnArg2.pointer);
-            Gp_StateF0.field_1B = 1;
-            work->field_13E     = 3;
+            Gp_StateF0.actor02400Alert = 1;
+            work->field_13E            = 3;
             if (work->field_130 != NULL) {
                 (*work->field_130)->state = 3;
             }
@@ -1168,17 +1168,17 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
     obj   = arg1->extra.tmd;
     work  = arg1->work;
     coord = obj->coords;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             switch (work->field_13E) {
                 case 0:
@@ -1352,13 +1352,13 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
     coord = arg1->extra.tmd->coords;
     work  = arg1->work;
     spawn = 0;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             fireballDrawGlow(coord, 0x100);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             coord->coord.t[0]  += (work->field_A8 * 0x19) >> 9;
             coord->coord.t[2]  += (work->field_AC * 0x19) >> 9;
@@ -1407,14 +1407,14 @@ static void Actor02400_Fn02E0C(Enemy* enemy, Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             goto case1;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             obj->flags                    = 0;
             enemy->node.state.parts.flags = 0;
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags                    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;

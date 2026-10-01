@@ -23,11 +23,11 @@ void roamerTickPoolA(Task* task)
     if (gRoamerCooldown > 0) {
         gRoamerCooldown--;
     }
-    if (gRoamerReleasePending == 1 && Gp_StateF0.field_6 >= 2) {
+    if (gRoamerReleasePending == 1 && Gp_StateF0.battleRefs >= 2) {
         gRoamerReleasePending = 0;
         Gp_ReleaseStateF0(task, 0xD);
     }
-    if (Gp_StateF0.field_6 == 0 && gRoamerPrevBattleRefs > 0) {
+    if (Gp_StateF0.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         gRoamerCooldown = 0x96;
         a               = GameFlag_GetNibble(0x168);
         b               = GameFlag_GetNibble(0x10C);
@@ -47,17 +47,17 @@ void roamerTickPoolA(Task* task)
         GameFlag_SetNibble(0x10C, count);
         areaSyncLocationVariant(&gGameSession->location.loc);
     }
-    gRoamerPrevBattleRefs = Gp_StateF0.field_6;
+    gRoamerPrevBattleRefs = Gp_StateF0.battleRefs;
     if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
-        Gp_StateF0.prefix.bytes.field_0  = 0;
-        Gp_StateF0.field_5               = 0;
-        Gp_StateF0.field_6               = 0;
-        Gp_StateF0.field_8               = 0;
-        Gp_StateF0.field_C               = 0;
-        Gp_StateF0.field_10              = 0;
-        gGameSession->battleResetPending = 0;
+        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+        Gp_StateF0.peTargetCount             = 0;
+        Gp_StateF0.battleRefs                = 0;
+        Gp_StateF0.expReward                 = 0;
+        Gp_StateF0.bpReward                  = 0;
+        Gp_StateF0.mpReward                  = 0;
+        gGameSession->battleResetPending     = 0;
     }
-    if (Gp_StateF0.prefix.bytes.field_0 != 2 && gRoamerSpawnRequest != 0) {
+    if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
         gRoamerCommand.context.loc.stage = 5;
         gRoamerCommand.context.loc.area  = 0x1D;
         gRoamerCommand.command           = 0xB;

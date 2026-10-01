@@ -2297,7 +2297,7 @@ static void Actor05700_Fn031BC(Enemy* arg0, Task* arg1)
 }
 
 /// Per-frame tick of the placed effect body from `Actor05700_Fn031BC`.
-/// Mode 0 of `Gp_StateF0.field_4` drifts the root coordinate along its Y axis, puffs
+/// Mode 0 of `Gp_StateF0.actorControl` drifts the root coordinate along its Y axis, puffs
 /// an effect every fourth frame and ends the cycle - burst, sound cue and
 /// state 2 - on a hit, an empty room-parameter slot, or after 0x5A frames.
 
@@ -2318,17 +2318,17 @@ static void Actor05700_Fn035FC(Enemy* arg0, Task* arg1)
     coord = tmd->coords;
     work  = (Actor105600FxWork*)arg1->work;
     found = 0;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             tmd->flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }

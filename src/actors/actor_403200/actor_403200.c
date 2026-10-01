@@ -4763,7 +4763,7 @@ out:
 /// Emptying that pool spawns the same effect again and refills it to 0x32. Both
 /// effect spawns and the state change to 0xE are skipped while the boss is in
 /// one of the seven states that ignore hits, while the player hold is armed, or
-/// unless `Gp_StateF0.field_6` is 1.
+/// unless `Gp_StateF0.battleRefs` is 1.
 ///
 /// `pos` / `pos2` / `pos3` are all `&sc->pos`, and are not spare: each group's
 /// scan writes the contact point through its own pointer, which is what keeps
@@ -4898,7 +4898,7 @@ body:
 
     if (Gp_RollEnemyChance(work->field_ECC[0], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
         state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 &&
-        Gp_StateF0.field_6 == 1) {
+        Gp_StateF0.battleRefs == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
@@ -4928,7 +4928,7 @@ stored:
     esc0->hp         = hp;
     work->field_F0A -= sc->damage;
     if (work->field_F0A <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
-        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && Gp_StateF0.field_6 == 1) {
+        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && Gp_StateF0.battleRefs == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
@@ -4984,7 +4984,7 @@ out:
 /// spawns the same effect again and refills it to 0x3C. Both effect spawns and
 /// the state change to 0xE are skipped while the boss is in one of the seven
 /// states that ignore hits, while the player hold is armed, or while
-/// `Gp_StateF0.field_6` is not 1.
+/// `Gp_StateF0.battleRefs` is not 1.
 ///
 /// The second escort carries the damage and the effect, but `sc->angle` is the
 /// yaw of the contact point relative to the first escort's facing. `pos` /
@@ -5118,7 +5118,7 @@ body:
 
     if (Gp_RollEnemyChance(work->field_ECC[1], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
         state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 &&
-        Gp_StateF0.field_6 == 1) {
+        Gp_StateF0.battleRefs == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
@@ -5141,7 +5141,7 @@ stored:
     host->hp        -= sc->damage;
     work->field_F0C -= sc->damage;
     if (work->field_F0C <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
-        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && Gp_StateF0.field_6 == 1) {
+        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && Gp_StateF0.battleRefs == 1) {
         sc->rot.vy = 0;
         sc->rot.vx = 0;
         sc->rot.vz = 0x320;
@@ -6931,7 +6931,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             work->field_7B3 = 1;
             work->field_7B0 = 1;
         }
-        if (work->field_6 >= 0x14B || (work->field_7B3 == 1 && Gp_StateF0.field_6 == 1)) {
+        if (work->field_6 >= 0x14B || (work->field_7B3 == 1 && Gp_StateF0.battleRefs == 1)) {
             work->field_0 = 3;
         }
         if (work->field_6 == 6) {
@@ -7295,7 +7295,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         }
     }
 
-    d801153f4 = Gp_StateF0.field_4;
+    d801153f4 = Gp_StateF0.actorControl;
     if (d801153f4 == 1) {
         goto clear_and_return;
     }
@@ -7379,8 +7379,8 @@ after_mode:
     }
 
     if (work->field_F12 == 8) {
-        work->field_0      = 0x12;
-        Gp_StateF0.field_6 = 1;
+        work->field_0         = 0x12;
+        Gp_StateF0.battleRefs = 1;
         // Dumping Hole room variant 1 installs ten contiguous pending quads.
         pending               = Gp_PendingObj4C;
         pending[9].field_C.vx = arg1->extra.tmd->coords->coord.t[0] + 0xFA0;
@@ -7392,7 +7392,7 @@ after_mode:
     }
 
     if (arg0->hp <= 0) {
-        stateF0 = Gp_StateF0.prefix.bytes.field_0;
+        stateF0 = Gp_StateF0.signals.bytes.battlePhase;
         if (stateF0 == 2) {
             work->field_F06 = stateF0;
             work->field_F08 = 3;
@@ -7833,13 +7833,13 @@ void func_actor_403200_801414E8(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_403200_80131E90;
-    switch (Gp_StateF0.field_4) {
+    switch (Gp_StateF0.actorControl) {
         default:
-        case 0:
-        case 1:
+        case SCENE_COMBAT_ACTORS_RUNNING:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             break;
     }
 }
@@ -7858,14 +7858,14 @@ void func_actor_403200_80141564(Task* arg0)
     sp   = D_actor_403200_80131E9C;
     work = (Actor403200GrabWork*)arg0->work;
 
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             arg0->extra.tmd->flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             arg0->extra.tmd->flags = 0;
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
@@ -7892,14 +7892,14 @@ void func_actor_403200_80141670(Task* arg0)
 
     sp = D_actor_403200_80131F04;
 
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
@@ -7923,13 +7923,13 @@ void func_actor_403200_80141778(Task* arg0)
     GpEnemyTaskFuncTable5 sp;
 
     sp = D_actor_403200_80131F14;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
             break;
-        case 1:
-        case 2:
+        case SCENE_COMBAT_ACTORS_PAUSED:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             break;
     }
 }
@@ -7947,14 +7947,14 @@ void func_actor_403200_80141868(Task* arg0)
 
     sp = D_actor_403200_80131F28;
 
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             arg0->extra.tmd->flags = 0;
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             arg0->extra.tmd->flags = 0;
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }

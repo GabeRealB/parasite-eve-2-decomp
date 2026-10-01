@@ -585,7 +585,7 @@ void Gp_MenuRootTask(Task* arg0)
                 flag  = &D_8005ED8C;
                 *flag = 1;
                 Gp_SpawnWeaponEff();
-                if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+                if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     func_8010870C(gameGetPtrSlot(3), 5);
                 }
                 if (arg0->spawnArg1.value == 0x44) {

@@ -1651,13 +1651,13 @@ static void func_mine_forked_tunnel_8017DAB8(Task* arg0)
 
 /// Dispatches the tunnel's enemy task through its three-state table (set-up,
 /// path walk, exit), copied onto the stack first; nothing runs while
-/// `Gp_StateF0.field_4` is non-zero.
+/// `Gp_StateF0.actorControl` is non-zero.
 void func_mine_forked_tunnel_8017DBE4(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_mine_forked_tunnel_8017D5C4;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }
@@ -1743,13 +1743,13 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
 
 /// Dispatches the enemy's pitch-animated child through its three-state table
 /// (attach, pitch walk, `taskKill`), copied onto the stack first; nothing runs
-/// while `Gp_StateF0.field_4` is non-zero.
+/// while `Gp_StateF0.actorControl` is non-zero.
 void func_mine_forked_tunnel_8017DDE8(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_mine_forked_tunnel_8017D5D0;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

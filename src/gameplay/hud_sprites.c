@@ -687,10 +687,10 @@ s32 Gp_IsDebugAttachRoom(void)
 
 s32 Gp_IsStateF0Active(void)
 {
-    GpStateF0* p;
+    SceneCombatState* p;
 
     p = &Gp_StateF0;
-    if ((p->prefix.bytes.field_0 == 1 && p->field_6 != 0) || p->prefix.bytes.field_1 != 0) {
+    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
         return 1;
     }
     return 0;
@@ -836,7 +836,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
 
 static s32 Gp_IsStateF0AltClear(void)
 {
-    return Gp_StateF0.prefix.bytes.field_1 == 0;
+    return Gp_StateF0.signals.bytes.endDelayFrames == 0;
 }
 
 void Gp_EnqueueAttach7Cd(void)
@@ -880,7 +880,7 @@ void Gp_TriggerPeIfArmed(void)
 {
     u8 state;
 
-    state = Gp_StateF0.prefix.bytes.field_0;
+    state = Gp_StateF0.signals.bytes.battlePhase;
     if ((state == 1) || (state == 3)) {
         if (gGameSession->battleResetPending == 0) {
             Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
@@ -974,11 +974,11 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
 
 s32 func_800A7CB0(s32 unused)
 {
-    GpStateF0* p;
-    s32        cond;
+    SceneCombatState* p;
+    s32               cond;
 
     p = &Gp_StateF0;
-    if ((p->prefix.bytes.field_0 == 1 && p->field_6 != 0) || p->prefix.bytes.field_1 != 0) {
+    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
         cond = 1;
     } else {
         cond = 0;
@@ -991,11 +991,11 @@ s32 func_800A7CB0(s32 unused)
 
 static void Gp_EnqueueSndCdIfF0(u8 arg0)
 {
-    GpStateF0* p;
-    s32        cond;
+    SceneCombatState* p;
+    s32               cond;
 
     p = &Gp_StateF0;
-    if ((p->prefix.bytes.field_0 == 1 && p->field_6 != 0) || p->prefix.bytes.field_1 != 0) {
+    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
         cond = 1;
     } else {
         cond = 0;
@@ -1007,11 +1007,11 @@ static void Gp_EnqueueSndCdIfF0(u8 arg0)
 
 static s32 Gp_CdIdleIfF0Active(void)
 {
-    GpStateF0* p;
-    s32        cond;
+    SceneCombatState* p;
+    s32               cond;
 
     p = &Gp_StateF0;
-    if ((p->prefix.bytes.field_0 == 1 && p->field_6 != 0) || p->prefix.bytes.field_1 != 0) {
+    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
         cond = 1;
     } else {
         cond = 0;
@@ -1038,12 +1038,12 @@ void func_800A7DE0(void)
     if (p->field_A >= 2) {
         p->field_3 = 2;
     }
-    p->field_E         = 0;
-    p->field_A         = 0;
-    D_80115768         = 0;
-    Gp_StateF0.field_4 = 0;
-    p->field_7         = 0;
-    p->field_8         = 0;
+    p->field_E              = 0;
+    p->field_A              = 0;
+    D_80115768              = 0;
+    Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+    p->field_7              = 0;
+    p->field_8              = 0;
 }
 
 void func_800A7E4C(void)
@@ -1080,7 +1080,7 @@ static s32 func_800A7E5C(s32 arg0)
     }
     if (flag != 0) {
         if (Gp_ItemGrantCooldown <= 0) {
-            if (Gp_StateF0.prefix.bytes.field_1 == 0) {
+            if (Gp_StateF0.signals.bytes.endDelayFrames == 0) {
                 return 1;
             }
         }

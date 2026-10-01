@@ -9,7 +9,7 @@ void roomEventTask(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(ROOM_EVENT_REQ.capCmd);
             if (ROOM_EVENT_REQ.firstSnd != 0) {

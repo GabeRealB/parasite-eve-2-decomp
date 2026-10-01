@@ -125,7 +125,7 @@ static void func_acropolis_observatory_8017D834(Task* task)
     task->msgTable = D_acropolis_observatory_8017E7B8;
     Game_SetPtrSlot(task, 7);
     if ((gGameSession->location.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
-        Gp_StateF0.field_1A = 1;
+        Gp_StateF0.actor03700Wave = 1;
     }
     task->state = (s32)(task->state + 1);
 }

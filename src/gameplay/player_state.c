@@ -634,7 +634,7 @@ void func_8010A670(Task* arg0)
                 }
             }
         }
-        if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+        if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
             if (inner->targetNode != NULL) {
                 if (rand() & 3) {
                     Gp_DetachLinkNode(arg0);

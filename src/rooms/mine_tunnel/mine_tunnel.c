@@ -134,11 +134,11 @@ s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
     return 0;
 }
 
-/// Stores its argument in `Gp_StateF0.field_1C`; the room's event task calls it with 2
+/// Stores its argument in `Gp_StateF0.actor01600Wave`; the room's event task calls it with 2
 /// on entry to the tunnel once flag 0xA1 is set.
 void func_mine_tunnel_8017D6E0(s32 arg0)
 {
-    Gp_StateF0.field_1C = arg0;
+    Gp_StateF0.actor01600Wave = arg0;
 }
 
 /// State 0 of the room's event task: installs the room's message table,

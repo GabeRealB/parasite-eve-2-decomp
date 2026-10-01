@@ -1071,7 +1071,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
     head                     = SCRATCH_STACK_CURSOR(u8) - 0x1C;
     SCRATCH_STACK_CURSOR(u8) = head;
     scratch                  = (Actor403600ScreenScratch*)head;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         seed                    = rand();
         D_actor_403600_80160698 = seed;
         arg2->gridSeed          = seed;
@@ -1182,7 +1182,7 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
 
     actor  = arg0->parent;
     center = &actor->extra.tmd->coords[8];
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         head    = SCRATCH_STACK_CURSOR(u8);
         scratch = (Actor403600ChainScratch*)(SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor403600ChainScratch));
         Gp_UpdateCoord(&actor->extra.tmd->coords[11]);
@@ -1593,7 +1593,7 @@ block_22:
     scratch->target.vx = scratch->dir.vx;
     scratch->target.vy = scratch->dir.vy;
     scratch->target.vz = scratch->dir.vz;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (arg0->spawnArg1.value < 0x1000) {
             work->life = work->life - 1;
         } else {
@@ -2234,7 +2234,7 @@ void func_actor_403600_80135C28(Task* arg0)
         }
     }
     temp_s0 = (ActorEffectState*)arg0->work;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         switch (arg0->spawnArg1.value) {
             case 1:
                 temp_v0_9         = temp_s0->field_E4 - 1;

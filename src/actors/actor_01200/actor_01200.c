@@ -1503,7 +1503,7 @@ static const Actor01200StateTable Actor01200_D000E4 = {
 };
 
 /// Per-frame tick: refreshes the coordinate and color, handles the render
-/// mode in `Gp_StateF0.field_4`, dispatches the substate handler and plays its sound.
+/// mode in `Gp_StateF0.actorControl`, dispatches the substate handler and plays its sound.
 static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
 {
     VECTOR               pos;
@@ -1521,14 +1521,14 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {
                 arg1->extra.tmd->flags = 0;
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
@@ -1537,7 +1537,7 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->jointContacts);
             Gp_ClearRec18Occupied(&work->rec2E8);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->rootContacts);
             Gp_ClearRec18Occupied(work->jointContacts);

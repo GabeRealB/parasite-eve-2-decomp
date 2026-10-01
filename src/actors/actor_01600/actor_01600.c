@@ -1548,15 +1548,15 @@ static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
     work  = arg1->work;
     coord = arg1->extra.tmd->coords;
     if (!(Actor01600_Fn05558(arg1) & 0xFF)) {
-        switch (Gp_StateF0.field_4) {
-            case 0:
+        switch (Gp_StateF0.actorControl) {
+            case SCENE_COMBAT_ACTORS_RUNNING:
                 arg1->extra.tmd->flags       = 0;
                 arg0->node.state.parts.flags = 0;
                 break;
-            case 1:
+            case SCENE_COMBAT_ACTORS_PAUSED:
                 Actor01600_Fn06810(arg0, arg1);
                 goto update;
-            case 2:
+            case SCENE_COMBAT_ACTORS_HIDDEN:
                 obj                          = arg1->extra.tmd;
                 obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -2138,7 +2138,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_50A = 0;
             }
             if (ctx->place->mode == 0) {
-                if ((Gp_StateF0.prefix.bytes.field_2 & 1) || (Gp_StateF0.prefix.packed & 0xFF140000)) {
+                if ((Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) || (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_CAST_FOOTSTEP_OR_ALERT)) {
                     work->field_53A = 1;
                 }
             }
@@ -3362,26 +3362,26 @@ static void Actor01600_Fn03EEC(Task* arg0)
 
 static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
 {
-    Actor01600Work* work;
-    TmdObject*      obj;
-    GfxCoord*       coords;
-    GfxCoord*       attach;
-    GfxCoord*       body;
-    Actor01600Work* w;
-    GpStateF0*      state;
-    GpStateC08*     pad;
-    SVECTOR         aim;
-    s32             dist;
-    s32             anim;
-    s16             phase;
-    s16             timer;
-    s16             count;
-    s32             mode;
+    Actor01600Work*   work;
+    TmdObject*        obj;
+    GfxCoord*         coords;
+    GfxCoord*         attach;
+    GfxCoord*         body;
+    Actor01600Work*   w;
+    SceneCombatState* state;
+    GpStateC08*       pad;
+    SVECTOR           aim;
+    s32               dist;
+    s32               anim;
+    s16               phase;
+    s16               timer;
+    s16               count;
+    s32               mode;
 
     obj    = arg1->extra.tmd;
     work   = arg1->work;
     coords = obj->coords;
-    mode   = Gp_StateF0.field_4;
+    mode   = Gp_StateF0.actorControl;
     if (mode == 1) {
         return;
     }
@@ -3419,9 +3419,9 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
             Gp_UnlinkObj(&work->collision.obj);
             Gp_UnlinkObj((WorldCollisionBody*)work->field_3CC);
             state = &Gp_StateF0;
-            if (state->field_1C >= 3) {
+            if (state->actor01600Wave >= 3) {
                 if (Actor01600_Fn06F78() == 1) {
-                    state->field_1C = state->field_1C + 1;
+                    state->actor01600Wave = state->actor01600Wave + 1;
                 }
             } else {
                 Gp_ReleaseStateF0Add(arg1, 0x10);
@@ -3463,7 +3463,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
             }
             break;
         case 2:
-            if (Gp_StateF0.field_1C >= 3) {
+            if (Gp_StateF0.actor01600Wave >= 3) {
                 if (Actor01600_D12874 == 1) {
                     pad = &Gp_StateC08;
                     if (pad->field_A == 1) {
@@ -4102,10 +4102,10 @@ static s32 Actor01600_Fn05558(Task* arg0)
         case 1:
         case 2:
             Actor01600_Fn03A60(arg0);
-            if ((u32)((u8)Gp_StateF0.field_1C - 1) >= 2U) {
+            if ((u32)((u8)Gp_StateF0.actor01600Wave - 1) >= 2U) {
                 goto running;
             }
-            scriptArg = (s8)(u8)Gp_StateF0.field_1C;
+            scriptArg = (s8)(u8)Gp_StateF0.actor01600Wave;
             if (scriptArg == 1) {
                 event = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000E;
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
@@ -4143,7 +4143,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             ctx->node.state.parts.flags = 0;
             work->field_52E             = 1;
             Actor01600_Fn00480(arg0);
-            if (Gp_StateF0.field_1C == 1) {
+            if (Gp_StateF0.actor01600Wave == 1) {
                 work->collision.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
@@ -4158,7 +4158,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             work->field_52A = 0;
             return 0;
         case 3:
-            if (Gp_StateF0.field_1C == kind) {
+            if (Gp_StateF0.actor01600Wave == kind) {
                 if ((u8)params->variant == 1) {
                     Actor01600_Fn06FDC(arg0, 1);
                 running:
@@ -4193,7 +4193,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             goto running;
         default:
-            if (Gp_StateF0.field_1C < (s32)ctx->place->mode) {
+            if (Gp_StateF0.actor01600Wave < (s32)ctx->place->mode) {
                 goto running;
             }
             countdown3      = (u16)work->field_536 - 1;
@@ -4346,7 +4346,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
                 obj         = arg0->extra.tmd;
                 obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            Gp_StateF0.field_1C = 3;
+            Gp_StateF0.actor01600Wave = 3;
             break;
         case 7:
             work->field_54A = 1;

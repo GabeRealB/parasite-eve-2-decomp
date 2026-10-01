@@ -179,7 +179,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             break;
         case 3:
             if ((flags & 1) && (flags != 0xFF)) {
-                Gp_StateF0.field_4 = 1;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             }
             if ((flags & 2) && (flags != 0xFF)) {
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 0, 0);
@@ -222,12 +222,12 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             }
             if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 taskKill(arg0);
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             }
             break;
         case 8:
             taskKill(arg0);
-            Gp_StateF0.field_4 = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             break;
     }

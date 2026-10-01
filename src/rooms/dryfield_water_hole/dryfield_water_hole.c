@@ -1472,7 +1472,7 @@ void func_dryfield_water_hole_8017D840(Task* task)
 /// semi-transparent Gouraud quads laid side by side along Z, projected through
 /// the view matrix. The seam between the strips is lifted by a sine wave that
 /// runs along X and scrolls with `D_dryfield_water_hole_801828D0`, which only
-/// advances while `Gp_StateF0.field_4` is clear. The outer edges are coloured
+/// advances while `Gp_StateF0.actorControl` is clear. The outer edges are coloured
 /// (0xFF, 0, 0) and the seam (0x20, 0x20, 0x20); each quad is followed by a
 /// draw-mode packet selecting blend mode 2. Quads the projection flags as
 /// invalid are skipped. `task` is unused.
@@ -1497,7 +1497,7 @@ static void func_dryfield_water_hole_8017D898(Task* task)
     } else {
         D_dryfield_water_hole_801828CC = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         D_dryfield_water_hole_801828D0++;
     }
     phase                      = -(D_dryfield_water_hole_801828D0 * 16);

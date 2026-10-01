@@ -1,6 +1,6 @@
 /* Part of the burster library; see burster.h. */
 
-/// Death-state handler of the first enemy, under the `Gp_StateF0.field_4` mode byte:
+/// Death-state handler of the first enemy, under the `Gp_StateF0.actorControl` mode byte:
 /// mode 2 hides the model and mode 1 does nothing. Otherwise `field_2B4` steps
 /// the death through three phases. Phase 0 shrinks the model and counts the
 /// kill countdown down; when it runs out the death sound plays, state 0xF0 is
@@ -22,14 +22,14 @@ void bursterDeathState(Enemy* enemy, Task* task)
     work  = (Actor104600Work*)task->work;
     coord = obj->coords;
     model = obj;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             switch (work->field_2B4) {
                 case 0:

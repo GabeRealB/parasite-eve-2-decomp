@@ -692,7 +692,7 @@ static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1)
     Actor403600Work* work;
     GfxCoord*        var_a0;
 
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     work  = arg1->work;
     if (state == 1) {
         goto case1;
@@ -4077,15 +4077,15 @@ static void func_actor_403600_8013FC2C(Enemy* arg0, Task* arg1)
 
     obj  = arg1->extra.tmd;
     work = arg1->work;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             _actor403600UpdateColor(arg0, arg1);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             func_actor_403600_80141C3C(arg1);
             func_actor_403600_8013DC7C(arg1);
@@ -4278,17 +4278,17 @@ static void func_actor_403600_80140488(Enemy* arg0, Task* arg1)
     object     = arg1->extra.tmd;
     work       = arg1->work;
     globalWork = D_actor_403600_801606A8->work;
-    switch (Gp_StateF0.field_4) {
-        case 1:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (globalWork->field_742 != 1) {
                 return;
             }
             break;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             object->flags               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             break;
     }
@@ -4459,8 +4459,8 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             break;
         case 9:
             Gp_ReleaseStateF0Add(arg0, 0x24);
-            gGameSession->flowFlags         = (u8)(gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON);
-            Gp_StateF0.prefix.bytes.field_1 = 5;
+            gGameSession->flowFlags                 = (u8)(gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON);
+            Gp_StateF0.signals.bytes.endDelayFrames = 5;
             break;
     }
     return 0;

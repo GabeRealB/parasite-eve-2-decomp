@@ -1425,10 +1425,10 @@ static void Gp_InitState1C(Task* arg0)
 
 static void Gp_TickState1C(Task* unused)
 {
-    RoomEffectState* effectState;
-    GpStateF0*       q;
-    GpStateC08*      r;
-    s16              previousBattleState;
+    RoomEffectState*  effectState;
+    SceneCombatState* q;
+    GpStateC08*       r;
+    s16               previousBattleState;
 
     if (gRoomEffectState->effectCount <= 0) {
         gRoomEffectState->effectCount = 0;
@@ -1437,16 +1437,16 @@ static void Gp_TickState1C(Task* unused)
         gRoomEffectState->rumbleCount = 0;
     }
     previousBattleState = gRoomEffectState->battleState;
-    if ((previousBattleState == ROOM_EFFECT_BATTLE_ENGAGED) && (Gp_StateF0.prefix.bytes.field_0 != previousBattleState)) {
+    if ((previousBattleState == ROOM_EFFECT_BATTLE_ENGAGED) && (Gp_StateF0.signals.bytes.battlePhase != previousBattleState)) {
         SndEvt_EnqueueType7(0xFF0D, 1);
         gRoomEffectState->rumbleCount = 0;
     }
     // Publish cancellation for one update alongside the scene actor mode.
     effectState                     = gRoomEffectState;
     q                               = &Gp_StateF0;
-    effectState->battleState        = q->prefix.bytes.field_0;
-    effectState->effectControl      = q->field_4 | (effectState->pendingCancelFlags & ROOM_EFFECT_CANCEL_ALL);
-    effectState->peEffectControl    = q->field_4 | (effectState->pendingCancelFlags & (ROOM_EFFECT_CANCEL_PE | ROOM_EFFECT_CANCEL_ALL));
+    effectState->battleState        = q->signals.bytes.battlePhase;
+    effectState->effectControl      = q->actorControl | (effectState->pendingCancelFlags & ROOM_EFFECT_CANCEL_ALL);
+    effectState->peEffectControl    = q->actorControl | (effectState->pendingCancelFlags & (ROOM_EFFECT_CANCEL_PE | ROOM_EFFECT_CANCEL_ALL));
     effectState->pendingCancelFlags = 0;
     if (!(effectState->effectControl & ROOM_EFFECT_CONTROL_PAUSED)) {
         Gp_DecRoomCoordRefs();

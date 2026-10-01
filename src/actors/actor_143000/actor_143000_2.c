@@ -432,7 +432,7 @@ void func_actor_143000_8013450C(void)
 
 void func_actor_143000_8013452C(u8 arg0)
 {
-    Gp_StateF0.field_4 = arg0;
+    Gp_StateF0.actorControl = arg0;
 }
 
 void func_actor_143000_80134538(void)

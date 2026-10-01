@@ -1102,7 +1102,7 @@ static void Actor01500_Fn00AFC(Task* actor, s32 damage)
 
 /// Idle hover: waits for the player to come within 2500 units (then switches
 /// to pose 3, or 4 when `field_36E` is set) or for a disturbance - a random
-/// timeout, a `Gp_StateF0.prefix.bytes.field_2` trigger or lost hit points - that sends it into
+/// timeout, a `Gp_StateF0.signals.bytes.actionFlags` trigger or lost hit points - that sends it into
 /// pose 7/8 with a fresh `Actor01500_D09FC8` countdown.
 static void Actor01500_Fn00CA4(Task* actor)
 {
@@ -1146,7 +1146,7 @@ static void Actor01500_Fn00CA4(Task* actor)
         work->field_364 = 0;
         Gp_ArmStateF0(1);
     } else {
-        if (Gp_StateF0.prefix.bytes.field_2 & 1) {
+        if (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
             if (work->field_362 == 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->field_362 = ((gRandomLcgState >> 16) & 0x1F) + 1;
@@ -1160,7 +1160,7 @@ static void Actor01500_Fn00CA4(Task* actor)
         }
         work->field_364--;
         if (work->field_364 == 0) {
-            if (Gp_StateF0.prefix.bytes.field_3 != 0) {
+            if (Gp_StateF0.signals.bytes.enemyAlert != 0) {
                 flag = 1;
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1668,13 +1668,13 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
     model = arg1->extra.tmd;
     work  = arg1->work;
     coord = model->coords;
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             sub = &coord[1];
             goto update;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
@@ -1862,7 +1862,7 @@ static void Actor01500_Fn02484(Enemy* arg0, Task* arg1)
     s32              one;
 
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.field_4;
+    state = Gp_StateF0.actorControl;
     work  = arg1->work;
     coord = obj->coords;
     one   = 1;

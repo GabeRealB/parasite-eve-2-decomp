@@ -57,7 +57,7 @@ STATIC_ASSERT_SIZEOF(GpLockScanScratch, 0x38);
 /* Define BSS before API headers to preserve first-declaration order. */
 GpSlot70 Gp_LockSlots[32];
 
-GpStateF0 Gp_StateF0;
+SceneCombatState Gp_StateF0;
 
 #include "gameplay/world_targets.h"
 
@@ -872,50 +872,50 @@ void Gp_LoadImages(GpImgRec* arg0)
 
 void Gp_InitStateF0(void)
 {
-    GpStateF0*  p;
-    McSaveData* save;
-    u8          val;
+    SceneCombatState* combat;
+    McSaveData*       save;
+    u8                difficulty;
 
-    p                               = &Gp_StateF0;
-    Gp_StateF0.prefix.bytes.field_0 = 0;
-    p->prefix.bytes.field_1         = 0;
-    p->prefix.bytes.field_2         = 0;
-    p->prefix.bytes.field_3         = 0;
-    p->field_4                      = 0;
-    p->field_5                      = 0;
-    p->field_6                      = 0;
-    p->field_8                      = 0;
-    p->field_C                      = 0;
-    p->field_10                     = 0;
-    p->field_14                     = 0;
-    p->field_18                     = 0;
-    p->field_19                     = 0;
-    p->field_1A                     = 0;
-    p->field_1B                     = 0;
-    p->field_1C                     = 0;
-    p->field_1D                     = 0;
-    p->field_1E                     = 0;
-    p->field_1F                     = 0;
-    p->field_20                     = 0;
-    p->field_21                     = 0;
-    p->field_22                     = 0;
-    p->field_23                     = 0;
-    p->field_24                     = 0;
-    p->field_25                     = 0;
-    p->field_26                     = 0;
-    p->field_27                     = 0;
-    p->field_28                     = 0;
-    p->field_29                     = 0;
-    p->field_2A                     = 0;
+    combat                               = &Gp_StateF0;
+    Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+    combat->signals.bytes.endDelayFrames = 0;
+    combat->signals.bytes.actionFlags    = 0;
+    combat->signals.bytes.enemyAlert     = 0;
+    combat->actorControl                 = SCENE_COMBAT_ACTORS_RUNNING;
+    combat->peTargetCount                = 0;
+    combat->battleRefs                   = 0;
+    combat->expReward                    = 0;
+    combat->bpReward                     = 0;
+    combat->mpReward                     = 0;
+    combat->lifeDrainHp                  = 0;
+    combat->actor00700DeathAlert         = 0;
+    combat->actor03700Flags              = 0;
+    combat->actor03700Wave               = 0;
+    combat->actor02400Alert              = 0;
+    combat->actor01600Wave               = 0;
+    combat->pairedEnemySignals           = 0;
+    combat->spiderEntranceReady          = 0;
+    combat->hopperAlertOwner             = 0;
+    combat->shrineEnemyPhase             = SCENE_COMBAT_SHRINE_HIDDEN;
+    combat->actor02500EntranceReady      = 0;
+    combat->spiderAmbushReady            = 0;
+    combat->actor00400HideRequested      = 0;
+    combat->bruteGroupPhase              = SCENE_COMBAT_BRUTE_WAITING;
+    combat->enemySoundBankQueued         = 0;
+    combat->podDeathStarted              = 0;
+    combat->bruteDeathAlert              = 0;
+    combat->actor00300AttackAlert        = 0;
+    combat->lungerDeathAlert             = 0;
+    combat->field_2A                     = 0;
     if (Gp_IsDebugAttachRoom() == 1) {
-        p->field_2B = 0;
+        combat->difficulty = SCENE_COMBAT_DIFFICULTY_NORMAL;
     } else {
-        save        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        val         = (u8)save->state.gameMode;
-        p->field_2B = val;
-        if (val == 0) {
+        save               = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        difficulty         = (u8)save->state.gameMode;
+        combat->difficulty = difficulty;
+        if (difficulty == SCENE_COMBAT_DIFFICULTY_NORMAL) {
             if (save->state.clearCount != 0) {
-                p->field_2B = 4;
+                combat->difficulty = SCENE_COMBAT_DIFFICULTY_REPLAY;
             }
         }
     }
@@ -923,71 +923,71 @@ void Gp_InitStateF0(void)
 
 void Gp_ArmStateF0(s32 arg0)
 {
-    if (Gp_StateF0.prefix.bytes.field_0 == 0) {
-        Gp_StateF0.prefix.bytes.field_0 = 1;
+    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
+        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_ENGAGED;
     }
 }
 
 void Gp_SetStateF0Bit(s32 arg0)
 {
     if (arg0 != 0) {
-        Gp_StateF0.prefix.bytes.field_2 |= 1 << (arg0 - 1);
+        Gp_StateF0.signals.bytes.actionFlags |= 1 << (arg0 - 1);
     }
 }
 
 void Gp_SetStateF0Byte3(s32 arg0)
 {
-    Gp_StateF0.prefix.bytes.field_3 = arg0;
+    Gp_StateF0.signals.bytes.enemyAlert = arg0;
 }
 
 void Gp_IncStateF0Ref(s32 arg0)
 {
-    Gp_StateF0.field_6++;
+    Gp_StateF0.battleRefs++;
 }
 
 void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
 {
-    GpStateF0*   p;
-    GpStateF0*   q;
-    EnemyParams* params;
+    SceneCombatState* combat;
+    SceneCombatState* rewards;
+    EnemyParams*      params;
 
-    p = &Gp_StateF0;
-    if (p->field_6 != 0) {
-        p->field_6--;
-        if (p->field_6 == 0) {
-            Gp_StateF0.prefix.bytes.field_0 = 2;
-            p->prefix.bytes.field_2         = 0;
-            p->prefix.bytes.field_3         = 0;
-            p->prefix.bytes.field_1         = 0x3C;
+    combat = &Gp_StateF0;
+    if (combat->battleRefs != 0) {
+        combat->battleRefs--;
+        if (combat->battleRefs == 0) {
+            Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
+            combat->signals.bytes.actionFlags    = 0;
+            combat->signals.bytes.enemyAlert     = 0;
+            combat->signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
         params = ((Enemy*)arg0->spawnArg2.pointer)->param;
         if (params != NULL) {
-            q            = &Gp_StateF0;
-            q->field_8  += params->exp;
-            q->field_C  += params->bp;
-            q->field_10 += params->mp;
+            rewards             = &Gp_StateF0;
+            rewards->expReward += params->exp;
+            rewards->bpReward  += params->bp;
+            rewards->mpReward  += params->mp;
         }
     }
 }
 
 void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg)
 {
-    GpStateF0* p;
+    SceneCombatState* combat;
 
-    p = &Gp_StateF0;
-    if (p->field_6 != 0) {
-        p->field_6--;
-        if (p->field_6 == 0) {
-            Gp_StateF0.prefix.bytes.field_0 = 2;
-            p->prefix.bytes.field_2         = 0;
-            p->prefix.bytes.field_3         = 0;
-            p->prefix.bytes.field_1         = 0x3C;
-            p->field_8                      = 0;
-            p->field_C                      = 0;
-            p->field_10                     = 0;
+    combat = &Gp_StateF0;
+    if (combat->battleRefs != 0) {
+        combat->battleRefs--;
+        if (combat->battleRefs == 0) {
+            Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
+            combat->signals.bytes.actionFlags    = 0;
+            combat->signals.bytes.enemyAlert     = 0;
+            combat->signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
+            combat->expReward                    = 0;
+            combat->bpReward                     = 0;
+            combat->mpReward                     = 0;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
@@ -997,16 +997,16 @@ void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg)
 
 void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
 {
-    GpStateF0* p;
+    SceneCombatState* combat;
 
-    p = &Gp_StateF0;
-    if (p->field_6 != 0) {
-        p->field_6--;
-        if (p->field_6 == 0) {
-            Gp_StateF0.prefix.bytes.field_0 = 2;
-            p->prefix.bytes.field_2         = 0;
-            p->prefix.bytes.field_3         = 0;
-            p->prefix.bytes.field_1         = 0x3C;
+    combat = &Gp_StateF0;
+    if (combat->battleRefs != 0) {
+        combat->battleRefs--;
+        if (combat->battleRefs == 0) {
+            Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
+            combat->signals.bytes.actionFlags    = 0;
+            combat->signals.bytes.enemyAlert     = 0;
+            combat->signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }

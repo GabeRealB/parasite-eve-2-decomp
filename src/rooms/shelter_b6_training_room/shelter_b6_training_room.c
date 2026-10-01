@@ -376,7 +376,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
         case 5:
             if (GameFlag_GetNibble(0x153) != 0) {
                 Gp_RunCapCmd1(7);
-            } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+            } else if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(5);
             } else {
                 Gp_RunCapCmd1(7);
@@ -385,7 +385,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
         case 6:
             if (GameFlag_GetNibble(0x154) != 0) {
                 Gp_RunCapCmd1(8);
-            } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
+            } else if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(6);
             } else {
                 Gp_RunCapCmd1(8);
@@ -394,7 +394,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
         case 4:
             if (GameFlag_GetNibble(0x146) != 0) {
                 Gp_RunCapCmd1(7);
-            } else if (Gp_StateF0.prefix.bytes.field_0 != 1) {
+            } else if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(0xA);
             } else {
                 Gp_RunCapCmd1(4);
@@ -533,7 +533,7 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 {
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     if (arg0 != 0) {
-        Gp_StateF0.prefix.bytes.field_1 = arg0;
+        Gp_StateF0.signals.bytes.endDelayFrames = arg0;
     }
 }
 

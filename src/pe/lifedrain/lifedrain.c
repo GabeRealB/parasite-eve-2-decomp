@@ -60,7 +60,7 @@ static LifeDrainScale D_lifedrain_80130AB4[] = {
 
 /// Sound-script id of the drain's opening cue, indexed by `EffectWork.index`
 /// when the cast has drained nothing yet and by `field_20 + 3` once there is
-/// health banked in `Gp_StateF0.field_14`.
+/// health banked in `Gp_StateF0.lifeDrainHp`.
 static s32 D_lifedrain_80130AD4[] = {
     0xE0210001,
     0xE0240001,
@@ -82,7 +82,7 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 /// Runs one frame of the life-drain cast: a five-state machine driven by
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
 /// it. Cancelling (`Gp_StateC08.field_3 == -2` or `gRoomEffectState->peEffectControl >= 4`) releases
-/// the work block, and states 0 and 1 first cash the banked `Gp_StateF0.field_14` into
+/// the work block, and states 0 and 1 first cash the banked `Gp_StateF0.lifeDrainHp` into
 /// `gPlayerStatus.hp`, clamped to the max in `field_1a`.
 ///
 /// State 0 parents the effect coordinate at the origin with an identity
@@ -111,7 +111,7 @@ void func_lifedrain_8012EF48(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         if ((arg0->state < 2) && (arg0->spawnArg1.value != 0)) {
-            gPlayerStatus.hp = (u16)gPlayerStatus.hp + Gp_StateF0.field_14;
+            gPlayerStatus.hp = (u16)gPlayerStatus.hp + Gp_StateF0.lifeDrainHp;
             if (gPlayerStatus.hp > gPlayerStatus.hpMax) {
                 gPlayerStatus.hp = gPlayerStatus.hpMax;
             }
@@ -174,7 +174,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             }
             if (mem->age == 0x1E) {
                 if (arg0->spawnArg1.value != 0) {
-                    gPlayerStatus.hp = (u16)gPlayerStatus.hp + Gp_StateF0.field_14;
+                    gPlayerStatus.hp = (u16)gPlayerStatus.hp + Gp_StateF0.lifeDrainHp;
                     if (gPlayerStatus.hp > gPlayerStatus.hpMax) {
                         gPlayerStatus.hp = gPlayerStatus.hpMax;
                     }

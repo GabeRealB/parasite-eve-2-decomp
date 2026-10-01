@@ -722,8 +722,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             rec.enableWorldCollision              = ANIMATION_WORLD_COLLISION_DISABLE;
             Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
-            Gp_StateF0.field_4 = 1;
-            task->state        = task->state + 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            task->state             = task->state + 1;
             break;
 
         case 1:
@@ -779,7 +779,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
         case 4:
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
             func_800E9BDC(2, 0x9FF);
-            Gp_StateF0.field_4            = 0;
+            Gp_StateF0.actorControl       = SCENE_COMBAT_ACTORS_RUNNING;
             gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
             break;
@@ -832,8 +832,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             rec.enableWorldCollision              = ANIMATION_WORLD_COLLISION_DISABLE;
             Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
-            Gp_StateF0.field_4 = 1;
-            task->state        = task->state + 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            task->state             = task->state + 1;
             break;
 
         case 1:
@@ -889,7 +889,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
         case 4:
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
             func_800E9BDC(2, 0x9FF);
-            Gp_StateF0.field_4            = 0;
+            Gp_StateF0.actorControl       = SCENE_COMBAT_ACTORS_RUNNING;
             gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
             break;

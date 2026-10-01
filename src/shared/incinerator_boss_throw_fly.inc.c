@@ -5,14 +5,14 @@
 /// flag) re-arms the step counter, the ground marker and the first display
 /// node on the frame the state starts.
 ///
-/// While the game is running (`Gp_StateF0.field_4` clear) the model falls 0xA a step,
+/// While the game is running (`Gp_StateF0.actorControl` clear) the model falls 0xA a step,
 /// column 2 of its coordinate is normalised into a scratchpad `SVECTOR` and
 /// scaled by 0x89/0x1000 through the GTE's GPF, and that is the per-step
 /// translation added to the coordinate; past step 0x29 the height is pinned to
 /// -0x3E8 instead. The marker grows 0x60 a step and is drawn under the work
 /// block's own coordinate, which is parented to `gGfxViewCoord` and tracks the
 /// model. After 0x35 steps the display node is handed back and the task steps
-/// on. Paused (`Gp_StateF0.field_4` set) only the coordinate is refreshed, and the
+/// on. Paused (`Gp_StateF0.actorControl` set) only the coordinate is refreshed, and the
 /// marker is skipped while the host actor sits in state 6.
 ///
 /// Bails out -- unlinking the display node and stepping the task on -- when the
@@ -53,7 +53,7 @@ void incinBossThrowFly(Enemy* enemy, Task* task)
         work->obj0.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         work->field_1AC++;
         task->extra.tmd->coords->coord.t[1] += 0xA;
 

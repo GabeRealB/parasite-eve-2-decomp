@@ -96,17 +96,17 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             if (Gp_CapBusy() != 0) {
                 break;
             }
-            Gp_StateF0.field_4 = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             goto advance;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.field_4 = 0;
+                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 break;
             }
-            Gp_StateF0.field_4  = 1;
-            arg0->killCountdown = 3;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            arg0->killCountdown     = 3;
             arg0->state++;
             break;
         case 3:

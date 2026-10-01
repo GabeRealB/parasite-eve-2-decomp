@@ -190,7 +190,7 @@ extern OverlayWaveCtx* gScreenWaveCtx;
 
 /// Per-column and per-row phase records: each is seeded with a random offset
 /// and speed at spawn and advanced by its speed on every frame
-/// `Gp_StateF0.field_4` is clear.
+/// `Gp_StateF0.actorControl` is clear.
 extern OverlayWaveRec gScreenWaveColumns[10];
 extern OverlayWaveRec gScreenWaveRows[30];
 
@@ -642,7 +642,7 @@ void func_actor_342100_801630A4(Task* arg0)
     PlayerStatus*    cfg;
 
     work = (Actor342100Work*)arg0->work;
-    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0 || D_80114CF8 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
     switch (arg0->state) {

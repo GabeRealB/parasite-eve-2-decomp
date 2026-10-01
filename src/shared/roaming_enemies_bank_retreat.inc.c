@@ -18,7 +18,7 @@ void roamerBankRetreat(Task* task, s32 arg1, s32 arg2)
                 if (gRoamerParams.hpMax < v) {
                     ((s16*)gRoamerReserveHp)[i] = gRoamerParams.hpMax;
                 }
-                if (Gp_StateF0.field_6 >= 2) {
+                if (Gp_StateF0.battleRefs >= 2) {
                     Gp_ReleaseStateF0(task, 0xD);
                 } else {
                     gRoamerReleasePending = 1;

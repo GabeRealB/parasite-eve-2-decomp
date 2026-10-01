@@ -9,7 +9,7 @@ void roomEventStagedTask(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(ROOM_EVENT_LATCHED.capCmd, 0);
             D_80115690 = 1;

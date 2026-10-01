@@ -1682,7 +1682,7 @@ void stalkerGrabSeq(Task* arg0)
                 timer           = work->field_6D4 - 1;
                 work->field_6D4 = timer;
                 if (timer <= 0) {
-                    if (gPlayerStatus.hp > D_actor_402200_80153C0C[Gp_StateF0.field_2B]) {
+                    if (gPlayerStatus.hp > D_actor_402200_80153C0C[Gp_StateF0.difficulty]) {
                         if (work->field_6F8 == 0) {
                             work->field_6F8 = 1;
                         } else {

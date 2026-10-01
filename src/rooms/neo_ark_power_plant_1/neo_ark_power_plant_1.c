@@ -92,7 +92,7 @@ GpAreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {
 /// clears 0x1B2, applies `D_neo_ark_power_plant_1_80181C00`, sets
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` to 0x16 and starts the event script at
 /// `D_neo_ark_power_plant_1_8017EB7C`. When `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is 3 and nibble 0xFB
-/// is clear, it sets 0xFB, clears `field_126` and `Gp_StateF0.prefix.bytes.field_0` and
+/// is clear, it sets 0xFB, clears `field_126` and `Gp_StateF0.signals.bytes.battlePhase` and
 /// starts the script at `D_neo_ark_power_plant_1_8017EEE4`. It re-arms the
 /// countdown to 4 while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` differs from the current view with 0xDE
 /// set and 0xDF clear; otherwise it ticks the countdown down and, on reaching
@@ -120,8 +120,8 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
     }
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
         GameFlag_SetNibble(0xFB, 1);
-        gGameSession->battleResetPending = 0;
-        Gp_StateF0.prefix.bytes.field_0  = 0;
+        gGameSession->battleResetPending     = 0;
+        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
         func_800E8614(D_neo_ark_power_plant_1_8017EEE4, 0);
     }
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
@@ -173,7 +173,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
             Gp_RunCapCmd1(cmd);
             break;
         case 3:
-            if (Gp_StateF0.prefix.bytes.field_0 == 2) {
+            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
                 cmd = 7;
             } else if (GameFlag_GetNibble(0x148) != 0) {
                 cmd = 6;
@@ -226,7 +226,7 @@ void func_neo_ark_power_plant_1_8017D908(void)
 /// First state of the room task: installs the room's message table, registers
 /// the task as pointer slot 7, sets `flowFlags` to 1 when the session's place
 /// is 1 and, while nibble 0xFB is clear, sets `field_126` to 1 and
-/// `Gp_StateF0.prefix.bytes.field_0` to 2. Then advances to the next state.
+/// `Gp_StateF0.signals.bytes.battlePhase` to 2. Then advances to the next state.
 static void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->msgTable = D_neo_ark_power_plant_1_8017EB18;
@@ -235,8 +235,8 @@ static void func_neo_ark_power_plant_1_8017D928(Task* task)
         gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
     }
     if (GameFlag_GetNibble(0xFB) == 0) {
-        gGameSession->battleResetPending = 1;
-        Gp_StateF0.prefix.bytes.field_0  = 2;
+        gGameSession->battleResetPending     = 1;
+        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
     }
     task->state = (s32)(task->state + 1);
 }

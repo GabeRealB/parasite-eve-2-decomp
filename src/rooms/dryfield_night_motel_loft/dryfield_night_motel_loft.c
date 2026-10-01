@@ -237,7 +237,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.field_4 = 1;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd(GameFlag_GetNibble(0x170) != 0 ? 0x12 : 3, 0);
             D_80115680  = 5;
             arg0->state = arg0->state + 1;
@@ -252,7 +252,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
             if (Gp_GetCapEventKey() == 0x1F) {
                 GameFlag_SetNibble(0x170, 1);
             }
-            Gp_StateF0.field_4 = 0;
+            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             Gp_MsgPlayerWeapon(1);
             taskKill(arg0);
             break;

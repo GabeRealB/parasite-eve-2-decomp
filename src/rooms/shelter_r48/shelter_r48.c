@@ -1869,7 +1869,7 @@ void func_shelter_r48_8017D660(Task* arg0)
         ptr += 0x4000;
     }
     prim = (POLY_FT4*)ptr - 1;
-    if (Gp_StateF0.field_4 == 0) {
+    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
     }
     ang2 = arg0->killCountdown * 2;

@@ -263,17 +263,17 @@ void func_800A087C(Task* arg0)
         if (arg0->spawnArg1.value == 0) {
             D_80114BE2 = 0;
             D_80114BE4 = 0;
-            D_80114BDC = Gp_StateF0.field_C;
-            D_80114BDE = Gp_StateF0.field_8;
-            D_80114BE0 = Gp_StateF0.field_10;
+            D_80114BDC = Gp_StateF0.bpReward;
+            D_80114BDE = Gp_StateF0.expReward;
+            D_80114BE0 = Gp_StateF0.mpReward;
             if (func_800B9D80(0x8000) != 0) {
-                D_80114BE4 = ((u32)(Gp_StateF0.field_10 - 1) >> 2) + 1;
+                D_80114BE4 = ((u32)(Gp_StateF0.mpReward - 1) >> 2) + 1;
                 if (D_80114BE4 >= 100) {
                     D_80114BE4 = 99;
                 }
             }
             if (func_800B9D80(0x1000) != 0) {
-                add        = (u16)Gp_StateF0.field_10;
+                add        = (u16)Gp_StateF0.mpReward;
                 D_80114BE2 = add;
                 cfg->hp   += add;
                 if (cfg->hp >= cfg->hpMax) {

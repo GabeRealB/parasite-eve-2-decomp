@@ -978,11 +978,11 @@ static void func_actor_341700_80162DCC(Task* arg0)
     TaskFuncTable11  sp    = D_actor_341700_80161E64;
     s32              cur;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
             hopperTrackPlayer(arg0);
             if (take_hit(arg0) == 0) {
@@ -1011,7 +1011,7 @@ static void func_actor_341700_80162DCC(Task* arg0)
                 hopperEnterState(arg0, 9);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
@@ -1056,7 +1056,7 @@ static const TaskFuncTable9 D_actor_341700_80161F0C = { {
     hopperBurst,
 } };
 
-/// Per-frame callback of the main enemy. `Gp_StateF0.field_4` 2 hides the model,
+/// Per-frame callback of the main enemy. `Gp_StateF0.actorControl` 2 hides the model,
 /// 0 runs the current state handler (then colours it), 1 only colours it.
 /// Unless `field_451` is set, it then runs `hopperDrawLimbShadow` for
 /// three part pairs.
@@ -1067,15 +1067,15 @@ static void func_actor_341700_80164CDC(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable9   sp    = D_actor_341700_80161F0C;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
             sp.funcs[(s16)work->field_420](arg0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
                 hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
@@ -1117,11 +1117,11 @@ static void func_actor_341700_80165388(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = D_actor_341700_80161F48;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
             hopperTrackPlayer(arg0);
             if (take_hit(arg0) == 0) {
@@ -1142,7 +1142,7 @@ static void func_actor_341700_80165388(Task* arg0)
                 hopperEnterState(arg0, 3);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
@@ -1269,11 +1269,11 @@ static void func_actor_341700_80165DDC(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable10  sp    = D_actor_341700_80161FA4;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
             if (take_hit_nibble3(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
@@ -1282,7 +1282,7 @@ static void func_actor_341700_80165DDC(Task* arg0)
             update_rotation(arg0);
             hopperApplyContacts(arg0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
                 hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
@@ -1344,18 +1344,18 @@ static void func_actor_341700_80167C30(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = D_actor_341700_80161FE4;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
             sp.funcs[(s16)work->field_420](arg0);
             if (!(work->field_442 & 0x1F)) {
                 func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
                 hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
@@ -1377,18 +1377,18 @@ static void func_actor_341700_80167E18(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable7   sp    = D_actor_341700_80161FF8;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
             sp.funcs[(s16)work->field_420](arg0);
             if (!(work->field_442 & 0x1F)) {
                 func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
                 hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
@@ -1412,11 +1412,11 @@ static void func_actor_341700_80168124(Task* arg0)
     states[(s16)work->field_420](arg0);
 }
 
-/// Once bit 7 of `Gp_StateF0.field_1F` is set, puts the task in state 3 with
+/// Once bit 7 of `Gp_StateF0.hopperAlertOwner` is set, puts the task in state 3 with
 /// the state machine at state 5 and returns 1; otherwise returns 0.
 s16 hopperJoinAlert(Task* arg0)
 {
-    if ((s8)Gp_StateF0.field_1F & 0x80) {
+    if ((s8)Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED) {
         hopperEnterState(arg0, 3);
         hopperSetStateS16(arg0, 5);
         return 1;

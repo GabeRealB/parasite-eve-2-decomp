@@ -3775,7 +3775,7 @@ static void func_actor_401300_80139520(Task* arg0)
     if (!overlayOutOfRange(d, 3000)) {
         work->field_0 = 6;
     }
-    if (Gp_StateF0.prefix.bytes.field_2 & 1) {
+    if (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3847,7 +3847,7 @@ static void func_actor_401300_801397F8(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    if (Gp_StateF0.prefix.bytes.field_2 & 1) {
+    if (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3931,7 +3931,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
             work->field_0 = 6;
         }
     }
-    if (Gp_StateF0.prefix.packed & 0xD0000) {
+    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
         work->field_0 = 6;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -5499,8 +5499,8 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    switch (Gp_StateF0.field_4) {
-        case 0:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
             state = work->field_0;
             if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
                 actor->extra.tmd->flags = 0;
@@ -5511,7 +5511,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x280, gRoomEffectState->groundShadowShade);
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             state = work->field_0;
             if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
                 actor->extra.tmd->flags = 0;
@@ -5525,7 +5525,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
             Gp_ClearRec18Occupied(work->field_990);
             Gp_ClearRec18Occupied(work->sensorContacts);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_ClearRec18Occupied(work->field_AD0);
             Gp_ClearRec18Occupied(work->field_990);
@@ -5696,7 +5696,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
         Gp_ReleaseStateF0Add(actor, 0xD);
         work->field_C8A = 0;
     }
-    if ((Gp_StateF0.prefix.bytes.field_3 == 1) && (work->field_0 == 0x18)) {
+    if ((Gp_StateF0.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

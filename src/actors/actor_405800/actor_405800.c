@@ -2060,11 +2060,11 @@ static void func_actor_405800_80133800(Task* arg0)
     TaskFuncTable18  fns   = D_actor_405800_80131E64;
     Actor405800Work* w;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_840++;
             func_actor_405800_801361F8(arg0);
             fns.funcs[(s16)work->field_846](arg0);
@@ -2082,7 +2082,7 @@ static void func_actor_405800_80133800(Task* arg0)
                 w->field_846 = 0;
                 w->field_848 = 0;
             }
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             actorUpdateModelColor(arg0);
             func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
             Actor405800_ProjectPart(part);
@@ -2982,7 +2982,7 @@ static void func_actor_405800_801361F8(Task* arg0)
     }
     player = arg0->extra.tmd->coords;
     actor  = arg0->work;
-    if (player->coord.t[0] < 0x3A98 || Gp_StateF0.prefix.bytes.field_0 == 0) {
+    if (player->coord.t[0] < 0x3A98 || Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
         work->field_A8.vx = (u16)player->coord.t[0];
         work->field_A8.vy = (u16)player->coord.t[1];
         work->field_A8.vz = (u16)player->coord.t[2];
@@ -4144,13 +4144,13 @@ static void func_actor_405800_80138698(Task* arg0)
     Actor405800Work* work  = (Actor405800Work*)arg0->work;
     TaskFuncTable12  fns   = D_actor_405800_80131E24;
 
-    switch (Gp_StateF0.field_4) {
-        case 2:
+    switch (Gp_StateF0.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             fns.funcs[(s16)work->field_846](arg0);
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             bruteUpdateColor(arg0);
             func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
             break;

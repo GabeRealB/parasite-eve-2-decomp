@@ -1027,7 +1027,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
             return;
         case 1:
             if (GameFlag_GetNibble(0x77) == 0) {
-                if (gGameSession->eventState == 0 && Gp_StateF0.field_4 == 0) {
+                if (gGameSession->eventState == 0 && Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     player = gameGetPtrSlot(3);
                     task->killCountdown++;
                     if (task->killCountdown == 0x78) {
