@@ -39,6 +39,12 @@
 #define GLUTTON_HOST_TASK (_gGluttonHostTask)
 #endif
 
+/// Compile-time `GLUTTON_ROOM` selector for the Shelter B3 dumping-hole Glutton.
+///
+/// `actor_403200` binds `GLUTTON_ROOM` to this value before including this
+/// header and keeps that binding for the shared fragments. It selects the
+/// encounter's hit, escort and shake behavior. This dimensionless integer must
+/// remain a macro because the fragments compare it in `#if` directives.
 #define GLUTTON_DUMPING_HOLE 1
 #define GLUTTON_INCINERATOR  2
 #ifndef GLUTTON_ROOM
