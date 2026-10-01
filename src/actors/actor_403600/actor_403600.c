@@ -39,6 +39,7 @@
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mem.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -1019,13 +1020,13 @@ static void func_actor_403600_8013289C(s32 x, s32 corner, Actor403600GridVertex*
     vy                      = vtx->y;
     x                       = vx + 0xA0;
     y                       = vy + 0x78;
-    seed                    = D_actor_403600_80160698 * 5 + 0x71357911;
+    seed                    = D_actor_403600_80160698 * 5 + RANDOM_LCG_INCREMENT;
     D_actor_403600_80160698 = seed;
     if (((seed >> 16) & 0xFFF) < fade + 0x400) {
-        seed2                   = seed * 5 + 0x71357911;
+        seed2                   = seed * 5 + RANDOM_LCG_INCREMENT;
         x                       = vx + 0x9C;
         x                      += (seed2 >> 16) & 7;
-        seed3                   = seed2 * 5 + 0x71357911;
+        seed3                   = seed2 * 5 + RANDOM_LCG_INCREMENT;
         D_actor_403600_80160698 = seed3;
         top                     = vy + 0x74;
         y                       = top + ((seed3 >> 16) & 7);

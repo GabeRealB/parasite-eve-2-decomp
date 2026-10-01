@@ -6,7 +6,15 @@
 /// Coefficients of the shared 32-bit linear congruential random sequence.
 enum {
     RANDOM_LCG_MULTIPLIER = 5,
-    RANDOM_LCG_INCREMENT  = 0x71357911,
+
+    /// Additive coefficient of the game's 32-bit linear congruential sequences.
+    ///
+    /// Added after multiplying the previous state by `RANDOM_LCG_MULTIPLIER`;
+    /// the next state is the low 32 bits of the result. Shared gameplay draws
+    /// and independently seeded distortion grids use the same coefficient.
+    /// This constant retains type `int`, including in signed intermediate
+    /// expressions; unsigned state operands provide unsigned wraparound.
+    RANDOM_LCG_INCREMENT = 0x71357911,
 };
 
 /// Shared pseudo-random state for gameplay and loaded overlays.
