@@ -33,7 +33,7 @@
 #include "stream.h"
 #include "main/task.h"
 #include "task.h"
-#include "main/text.h"
+#include "text.h"
 #include "main/tmd.h"
 #include "main/wipsys_types.h"
 

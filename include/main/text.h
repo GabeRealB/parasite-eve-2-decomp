@@ -66,10 +66,9 @@ enum {
     /// Inline `\w1` or `\W1` also selects this path and stores the selector in
     /// the request; inline `\w0` or `\W0` switches to translucent outlined text.
     TEXT_DRAW_OUTLINED              = 1,
-    TEXT_DRAW_OUTLINED_SINGLE_ENTRY = 2,  // Fill and outline with separate texture-page packets in one OT entry.
-    TEXT_DRAW_TRANSLUCENT_OUTLINED  = 3,  // Translucent fill, alternate outline palette in the next OT entry.
-    TEXT_DRAW_OUTLINE_ONLY          = 4,  // Unmodulated outline; ignores colorRgb.
-    TEXT_DRAW_IMMEDIATE             = 16, // Opaque fill submitted immediately; ignores otIndex.
+    TEXT_DRAW_OUTLINED_SINGLE_ENTRY = 2, // Fill and outline with separate texture-page packets in one OT entry.
+    TEXT_DRAW_TRANSLUCENT_OUTLINED  = 3, // Translucent fill, alternate outline palette in the next OT entry.
+    TEXT_DRAW_OUTLINE_ONLY          = 4, // Unmodulated outline; ignores colorRgb.
 };
 
 /// Mutable placement and style for one encoded UI-text line.
