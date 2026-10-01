@@ -46,6 +46,8 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/streamed_scene.h"
+#define SPRITE_QUAD_FRAME_T s16
+#include "../../shared/sprite_quad.h"
 
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
@@ -93,7 +95,6 @@ extern u16     D_shelter_b6_training_room_801843FC[];
 
 static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to, s16 size, u16 color);
 static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* coord, s32 band);
-static void func_shelter_b6_training_room_80181BAC(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b6_training_room_80181FDC(GfxCoord* arg0, GfxCoord* arg1, s32 arg2, s16 arg3);
 
 TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
@@ -1185,7 +1186,7 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
             mem->period         = ((gRandomLcgState >> 16) & 0xF) + 6;
             task->state         = 1;
         }
-        func_shelter_b6_training_room_80181BAC(coord, mem->age, mem->scale, mem->angle);
+        spriteQuadDraw(coord, mem->age, mem->scale, mem->angle);
         if (mem->age & 1) {
             func_shelter_b6_training_room_80181FDC(coord, D_shelter_b6_training_room_80185C94, mem->age >> 1, mem->scale);
         }
@@ -1195,70 +1196,14 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
     }
 }
 
-/// Draws one spinning sprite frame: a semi-transparent `POLY_FT4` centred on
-/// the coordinate's world position, projected by a single `RTPS`. Its half-size
-/// is `arg2 * 39 / otz`, and the four corners are that half-size swung to
-/// `arg3` and to `arg3 + 0x400`. `arg1` picks one of six 40-pixel-wide frames
-/// from the texture page. Nothing is drawn if the point fails the GTE flag test.
-static void func_shelter_b6_training_room_80181BAC(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3)
-{
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s16              u;
-    u16              vz;
-
-    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)coord->workm.t[1];
-    vz                                        = (u16)coord->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2A;
-        prim->clut  = 0x42C9;
-        prim->v0    = 0x38;
-        prim->v1    = 0x38;
-        prim->v2    = 0x5F;
-        prim->v3    = 0x5F;
-        u           = arg1 % 6;
-        prim->u0    = u * 40;
-        prim->u1    = u * 40 + 0x27;
-        prim->u2    = u * 40;
-        prim->u3    = u * 40 + 0x27;
-        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
-        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
-        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_CELLS_PER_ROW 6
+#define SPRITE_QUAD_V0            0x38
+#define SPRITE_QUAD_V1            0x5F
+#define SPRITE_QUAD_SCALE         39
+#define SPRITE_QUAD_CLUT          0x42C9
+#define SPRITE_QUAD_OTZ_BIAS      0
+#include "../../shared/sprite_quad_draw.inc.c"
 
 /// Draws a textured `POLY_FT4` strip between the world positions of two
 /// coordinates. Both ends are projected and the strip is dropped if either

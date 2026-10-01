@@ -61,6 +61,8 @@ s32 D_mist_shooting_gallery_8018E0C0;
 #include "main/wipsys_types.h"
 
 #include "mapui/map_akropolis.h"
+#define SPRITE_QUAD_FRAME_T s16
+#include "../../shared/sprite_quad.h"
 
 /// The five round scripts of the gallery mini-game, indexed by
 /// `MistShootingGalleryWork::difficulty`. `func_mist_shooting_gallery_80184A14`
@@ -144,7 +146,6 @@ extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 extern void   func_8014A908(void);
 extern void   func_8014A9A0(void);
 extern void   func_8014B0D4(void);
-static void   func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
 static void   func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 static void   func_mist_shooting_gallery_80184A80(Task* arg0);
 static void   func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
@@ -2248,7 +2249,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
     coord = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_mist_shooting_gallery_80182294(coord, work->index, 0x600, work->angle);
+        spriteQuadDraw(coord, work->index, 0x600, work->angle);
         func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x600);
         rgb[0] = work->scale >> 1;
         rgb[1] = work->scale >> 1;
@@ -2280,7 +2281,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
             work->angle     = rand2 >> 16 & 0xFFF;
         case 1:
             if (work->age & 1) {
-                func_mist_shooting_gallery_80182294(coord, ++work->index, 0x400, work->angle);
+                spriteQuadDraw(coord, ++work->index, 0x400, work->angle);
                 func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x400);
             }
             rgb[0] = work->scale >> 1;
@@ -2295,72 +2296,14 @@ void func_mist_shooting_gallery_80182064(Task* task)
     }
 }
 
-/// Draws one frame of the gallery's muzzle flash: a semi-transparent
-/// `POLY_FT4` centred on the effect coordinate's world position, projected by
-/// a single `RTPS`. Its half-size is `arg2 * 39 / otz`, and the four corners
-/// are that half-size swung to `arg3` and to `arg3 + 0x400`, so the sprite
-/// spins with the effect's angle. `arg1` picks one of six 40-pixel-wide
-/// frames out of the texture page, and the primitive is queued twice into the
-/// same OT slot. Nothing is drawn if the centre projects off-screen.
-static void func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3)
-{
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s16              u;
-    u16              vz;
-
-    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)coord->workm.t[1];
-    vz                                        = (u16)coord->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2A;
-        prim->clut  = 0x4293;
-        prim->v0    = 0x38;
-        prim->v1    = 0x38;
-        prim->v2    = 0x5F;
-        prim->v3    = 0x5F;
-        u           = arg1 % 6;
-        prim->u0    = u * 40;
-        prim->u1    = u * 40 + 0x27;
-        prim->u2    = u * 40;
-        prim->u3    = u * 40 + 0x27;
-        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
-        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
-        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_CELLS_PER_ROW 6
+#define SPRITE_QUAD_V0            0x38
+#define SPRITE_QUAD_V1            0x5F
+#define SPRITE_QUAD_SCALE         39
+#define SPRITE_QUAD_CLUT          0x4293
+#define SPRITE_QUAD_OTZ_BIAS      0
+#include "../../shared/sprite_quad_draw.inc.c"
 
 /// Draws one frame of the gallery's tracer beam: a semi-transparent
 /// `POLY_FT4` stretched between the effect coordinate's world position and

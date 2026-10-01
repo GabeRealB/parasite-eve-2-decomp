@@ -31,6 +31,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define SPRITE_QUAD_FRAME_T s16
+#include "../../shared/sprite_quad.h"
 
 /// 0x20-byte scratch block `func_m4a1_hammer_8011E29C` carves off
 /// the scratch stack for the hammer's shock trail.
@@ -59,7 +61,6 @@ STATIC_ASSERT_SIZEOF(M4a1HammerTrailScratch, 0x20);
 static void func_m4a1_hammer_8011E29C(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 
 static void func_m4a1_hammer_8011D904(long* arg0, u16 arg1, u16 arg2, s16 arg3);
-static void func_m4a1_hammer_8011DE60(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
 /// Fixed offset from the parent coordinate that the hammer effect starts at.
 static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
@@ -163,8 +164,8 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                             work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
-                                func_m4a1_hammer_8011DE60(coord, work->age >> 1, work->period,
-                                                          work->angle);
+                                spriteQuadDraw(coord, work->age >> 1, work->period,
+                                               work->angle);
                             }
                             return;
                         }
@@ -186,7 +187,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->period    = ((gRandomLcgState >> 16) & 0x3FF) + 0x400;
                         if ((work->age & 1) == 0) {
-                            func_m4a1_hammer_8011DE60(coord, work->age >> 1, work->period, work->angle);
+                            spriteQuadDraw(coord, work->age >> 1, work->period, work->angle);
                             for (i = 0; i < 8; i++) {
                                 j                          = i + 8;
                                 gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -323,7 +324,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
             /* fallthrough */
         case 1:
             if (mem->age & 1) {
-                func_m4a1_hammer_8011DE60(coord, ++mem->index, 0x400, mem->angle);
+                spriteQuadDraw(coord, ++mem->index, 0x400, mem->angle);
                 if (mem->age < 8) {
                     func_m4a1_hammer_8011E29C(coord, &D_m4a1_hammer_8012D668, mem->index, 0x280);
                 }
@@ -335,70 +336,13 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     }
 }
 
-/// Draws the hammer's expanding billboard: one `POLY_FT4` centred on `arg0`'s
-/// world translation, projected with a single `RTPS`. `arg1` picks the frame
-/// out of the texture page's six 40-pixel columns, `arg2` is the radius and
-/// `arg3` the spin angle. The quad's corners are the radius rotated by `arg3`
-/// and by `arg3 + 0x400`, so the sprite spins in screen space; nothing is
-/// drawn if the centre projects off-screen. Same shape as
-/// `func_m4a1_hammer_8011D904` on a wider, brighter page.
-static void func_m4a1_hammer_8011DE60(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
-{
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    u16              vz;
-    s32              u;
-
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2A;
-        prim->clut  = 0x4293;
-        u           = (s16)(arg1 % 6) * 40;
-        prim->u0    = u;
-        prim->v0    = 0x38;
-        prim->u1    = u + 0x27;
-        prim->v1    = 0x38;
-        prim->u2    = u;
-        prim->v2    = 0x5F;
-        prim->u3    = u + 0x27;
-        prim->v3    = 0x5F;
-        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
-        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3 + 0x400)) >> 12;
-        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_CELLS_PER_ROW 6
+#define SPRITE_QUAD_V0            0x38
+#define SPRITE_QUAD_V1            0x5F
+#define SPRITE_QUAD_SCALE         39
+#define SPRITE_QUAD_CLUT          0x4293
+#include "../../shared/sprite_quad_draw.inc.c"
 
 /// Handwritten GTE routine. Draws one semi-transparent `POLY_FT4` stretched
 /// between `coord`'s world position and `arg1`, the offset endpoint the hammer

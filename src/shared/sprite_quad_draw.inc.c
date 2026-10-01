@@ -1,7 +1,17 @@
 /* Part of the sprite quad library; see sprite_quad.h. */
 
+#ifndef SPRITE_QUAD_FUNC
+#define SPRITE_QUAD_FUNC spriteQuadDraw
+#endif
+#ifndef SPRITE_QUAD_TPAGE
+#define SPRITE_QUAD_TPAGE 0x2A
+#endif
+#ifndef SPRITE_QUAD_OTZ_BIAS
+#define SPRITE_QUAD_OTZ_BIAS 1
+#endif
+
 /// Draws one cell of the overlay's sprite texture at `coord`'s world position.
-static void spriteQuadDraw(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 size, s16 angle)
+static void SPRITE_QUAD_FUNC(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 size, s16 angle)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -28,7 +38,9 @@ static void spriteQuadDraw(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 size,
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
+#if SPRITE_QUAD_OTZ_BIAS
         block->otz++;
+#endif
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyFT4(prim);
@@ -36,8 +48,12 @@ static void spriteQuadDraw(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 size,
         setShadeTex(prim, 1);
         prim->tpage = SPRITE_QUAD_TPAGE;
         prim->clut  = SPRITE_QUAD_CLUT;
-        u0          = frame * SPRITE_QUAD_CELL_W;
-        u1          = u0 + (SPRITE_QUAD_CELL_W - 1);
+#ifdef SPRITE_QUAD_CELLS_PER_ROW
+        u0 = (frame % SPRITE_QUAD_CELLS_PER_ROW) * SPRITE_QUAD_CELL_W;
+#else
+        u0 = frame * SPRITE_QUAD_CELL_W;
+#endif
+        u1 = u0 + (SPRITE_QUAD_CELL_W - 1);
         setUV4(prim, u0, SPRITE_QUAD_V0, u1, SPRITE_QUAD_V0, u0, SPRITE_QUAD_V1, u1, SPRITE_QUAD_V1);
         block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(angle)) >> 12;
         block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(angle)) >> 12;
@@ -57,3 +73,13 @@ static void spriteQuadDraw(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 size,
     }
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
+
+#undef SPRITE_QUAD_FUNC
+#undef SPRITE_QUAD_TPAGE
+#undef SPRITE_QUAD_CLUT
+#undef SPRITE_QUAD_CELL_W
+#undef SPRITE_QUAD_CELLS_PER_ROW
+#undef SPRITE_QUAD_V0
+#undef SPRITE_QUAD_V1
+#undef SPRITE_QUAD_SCALE
+#undef SPRITE_QUAD_OTZ_BIAS

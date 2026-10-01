@@ -10,7 +10,12 @@
  *   SPRITE_QUAD_CELL_W      cell width in texels (cells sit side by side)
  *   SPRITE_QUAD_V0/_V1      top and bottom texel rows
  *   SPRITE_QUAD_SCALE       size multiplier (the cell's half-width in texels)
- * and SPRITE_QUAD_TPAGE when it is not 0x2A. A unit whose callers pass the
+ *   SPRITE_QUAD_CELLS_PER_ROW  optional: frames wrap after this many cells
+ *   SPRITE_QUAD_OTZ_BIAS    1 (default) sorts the sprite one slot behind its
+ *                           point, 0 at the point itself
+ * and SPRITE_QUAD_TPAGE when it is not 0x2A. The fragment clears these, so a
+ * unit drawing two textures includes it twice; SPRITE_QUAD_FUNC names the
+ * second instance (the first is spriteQuadDraw, declared here). A unit whose callers pass the
  * frame signed defines SPRITE_QUAD_FRAME_T as s16 before including this header.
  */
 
@@ -23,10 +28,6 @@
 
 #ifndef SPRITE_QUAD_FRAME_T
 #define SPRITE_QUAD_FRAME_T u16
-#endif
-
-#ifndef SPRITE_QUAD_TPAGE
-#define SPRITE_QUAD_TPAGE 0x2A
 #endif
 
 static void spriteQuadDraw(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 size, s16 angle);

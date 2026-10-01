@@ -30,6 +30,8 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
+#define SPRITE_QUAD_FRAME_T s16
+#include "../../shared/sprite_quad.h"
 
 /// One 14-byte row of `D_antibody_80130BD4`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the effect scales with the combo
@@ -84,8 +86,7 @@ static AntibodyStep D_antibody_80130BD4[] = {
 /// once when `func_antibody_8012EF34` seeds the cast.
 static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
-static void func_antibody_8012FBB0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_antibody_8012FFEC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void spriteQuadDrawMote(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
@@ -290,10 +291,10 @@ release:
 /// the intensity `index` from the combo counter, the draw parameter
 /// `scale` from that row's `field_6` and the phase `angle` from
 /// `gRandomLcgState`. State 1 walks the coordinate back down that step every frame
-/// and draws with `func_antibody_8012FBB0`; past tick 0x10 it parks a `-0x80`
+/// and draws with `spriteQuadDrawMote`; past tick 0x10 it parks a `-0x80`
 /// Y drift in `move.vy` and moves to state 2, and one frame in sixteen it
 /// jumps straight to state 3 instead. State 2 applies that Y drift and keeps
-/// drawing; state 3 draws the larger `func_antibody_8012FFEC` /
+/// drawing; state 3 draws the larger `spriteQuadDraw` /
 /// `func_antibody_80130428` pair. All three re-roll `scale` / `angle`
 /// from the row's `field_8` one frame in eight, and states 2 and 3 release the
 /// effect at tick 0x15.
@@ -363,7 +364,7 @@ void func_antibody_8012F734(Task* arg0)
             coord->coord.t[2]  -= mem->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            func_antibody_8012FBB0(coord, mem->age, mem->scale, mem->angle);
+            spriteQuadDrawMote(coord, mem->age, mem->scale, mem->angle);
             if (mem->age >= 0x10) {
                 mem->move.vy = -0x80;
                 arg0->state  = 2;
@@ -390,7 +391,7 @@ void func_antibody_8012F734(Task* arg0)
             coord->coord.t[1]  += mem->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            func_antibody_8012FBB0(coord, mem->age, mem->scale, mem->angle);
+            spriteQuadDrawMote(coord, mem->age, mem->scale, mem->angle);
             goto check;
         case 3:
             rng3a           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -405,7 +406,7 @@ void func_antibody_8012F734(Task* arg0)
                 mem->angle      = ((u32)rng3c >> 16) & 0xFFF;
             }
             Gp_UpdateCoord(coord);
-            func_antibody_8012FFEC(coord, mem->age, mem->scale, mem->angle);
+            spriteQuadDraw(coord, mem->age, mem->scale, mem->angle);
             func_antibody_80130428(coord, mem->age, mem->scale);
         check:
             if (mem->age >= 0x15) {
@@ -415,139 +416,23 @@ void func_antibody_8012F734(Task* arg0)
     }
 }
 
-/// Draws one antibody mote as a semi-transparent raw-tex `POLY_FT4` (tpage
-/// 0x29, clut 0x42C6) centred on `arg0`'s world translation, projected with a
-/// single `RTPS`. `arg1` picks one of six 40-pixel columns, `arg2` is the
-/// radius and `arg3` the spin angle. The quad's corners are that radius
-/// rotated by `arg3` and by `arg3 + 0x400`; nothing is drawn if the centre
-/// projects off-screen.
-static void func_antibody_8012FBB0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
-{
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    u16              vz;
-    s32              u;
-    s32              ang2;
+#define SPRITE_QUAD_FUNC          spriteQuadDrawMote
+#define SPRITE_QUAD_TPAGE         0x29
+#define SPRITE_QUAD_CLUT          0x42C6
+#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_CELLS_PER_ROW 6
+#define SPRITE_QUAD_V0            0x50
+#define SPRITE_QUAD_V1            0x77
+#define SPRITE_QUAD_SCALE         39
+#include "../../shared/sprite_quad_draw.inc.c"
 
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x29;
-        prim->clut  = 0x42C6;
-        prim->v0    = 0x50;
-        prim->v1    = 0x50;
-        prim->v2    = 0x77;
-        prim->v3    = 0x77;
-        u           = (s16)(arg1 % 6) * 40;
-        prim->u0    = u;
-        prim->u1    = u + 0x27;
-        prim->u2    = u;
-        prim->u3    = u + 0x27;
-        block->dx   = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
-        block->dy   = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        ang2        = arg3 + 0x400;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
-        block->dy   = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
-
-/// Draws one antibody mote as a semi-transparent raw-tex `POLY_FT4`
-/// (tpage 0x2A, clut 0x42C9). The effect coordinate's world position is
-/// projected through `GsWSMATRIX` with one `RTPS`; the quad is a square laid
-/// around that point, `arg3` giving the spin applied at that angle and at
-/// `+ 0x400`. `arg1 % 6` selects one of six 40x40 texel tiles along the
-/// sprite sheet row at v = 0x38..0x5F. `arg2` is a signed half-extent, so the
-/// on-screen half-diagonal is `arg2 * 39 / otz`. Nothing is drawn if the
-/// projection sets a negative `gte_stflg`.
-static void func_antibody_8012FFEC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
-{
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    u16              vz;
-    s16              tile;
-    s32              u0;
-    s32              u1;
-    s32              ang2;
-
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = gGpuPrimCursor;
-        block->otz     = block->otz + 1;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2A;
-        prim->clut  = 0x42C9;
-        tile        = arg1 % 6;
-        u0          = tile * 0x28;
-        u1          = u0 + 0x27;
-        setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
-        block->dx = (((arg2 * 0x27) / block->otz) * rsin(arg3)) >> 12;
-        block->dy = (((arg2 * 0x27) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        ang2      = arg3 + 0x400;
-        prim->y3  = block->sy + (u16)block->dy;
-        block->dx = (((arg2 * 0x27) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 0x27) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GpFxQuadScratch));
-}
+#define SPRITE_QUAD_CLUT          0x42C9
+#define SPRITE_QUAD_CELL_W        0x28
+#define SPRITE_QUAD_CELLS_PER_ROW 6
+#define SPRITE_QUAD_V0            0x38
+#define SPRITE_QUAD_V1            0x5F
+#define SPRITE_QUAD_SCALE         39
+#include "../../shared/sprite_quad_draw.inc.c"
 
 /// Draws the antibody arc between the effect and the player as one
 /// semi-transparent raw-tex `POLY_FT4` (tpage 0x28, clut 0x42C8). The effect

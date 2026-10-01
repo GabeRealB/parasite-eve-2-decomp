@@ -137,3 +137,4 @@ RoomFx_DrawGroundQuad = 0x8017F540; // type:func
 glowDrawCapsule = 0x8017E28C; // type:func
 glowDrawDisc = 0x8017EAD0; // type:func
 streamedScenePlayThenHold = 0x8017DBBC; // type:func
+spriteQuadDraw = 0x80181BAC; // type:func
