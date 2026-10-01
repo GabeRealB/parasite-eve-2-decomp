@@ -178,8 +178,28 @@ GpAreaVariant D_acropolis_helicopter_landing_pad_801861E8[13] = {
     { NULL, NULL },
 };
 
-WorldCoordLight D_acropolis_helicopter_landing_pad_80186250[1] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 10, -10, -10 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1556, 1638, 1802 }, { 0, 0 } },
+/// The landing pad's directional model light, contributing in every room view.
+///
+/// The local translation is a direction vector, normalized when shading;
+/// RGB intensities have 12 fractional bits. The loaded room owns this array.
+/// Coordinate updates attach the view parent and refresh the composed matrix;
+/// shading overwrites attenuation, so the records must remain writable.
+static WorldCoordLight _gAcropolisHelicopterLandingPadDirectionalLights[] = {
+    {
+        .transform = {
+            .lighting = {
+                .composeStamp = GRAPHICS_COORD_DIRTY,
+                .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 10, -10, -10 } },
+                .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { 0, 0, 0 } },
+                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                .unknown_46   = { 0, 0, 0, 0 },
+                .attenuation  = 0,
+                .parent       = NULL,
+            },
+        },
+        .color      = { .r = 1556, .g = 1638, .b = 1802 },
+        .unknown_56 = { 0, 0 },
+    },
 };
 
 WorldCoordPointLight D_acropolis_helicopter_landing_pad_801862A8[22] = {
@@ -208,7 +228,7 @@ WorldCoordPointLight D_acropolis_helicopter_landing_pad_801862A8[22] = {
 };
 
 WorldCoordRoomLights D_acropolis_helicopter_landing_pad_80186AE8[1] = {
-    { ARRAY_SIZE(D_acropolis_helicopter_landing_pad_80186250), D_acropolis_helicopter_landing_pad_80186250, ARRAY_SIZE(D_acropolis_helicopter_landing_pad_801862A8), D_acropolis_helicopter_landing_pad_801862A8, 0, NULL },
+    { ARRAY_SIZE(_gAcropolisHelicopterLandingPadDirectionalLights), _gAcropolisHelicopterLandingPadDirectionalLights, ARRAY_SIZE(D_acropolis_helicopter_landing_pad_801862A8), D_acropolis_helicopter_landing_pad_801862A8, 0, NULL },
 };
 
 SpriteBatch D_acropolis_helicopter_landing_pad_80186B00[2] = {
