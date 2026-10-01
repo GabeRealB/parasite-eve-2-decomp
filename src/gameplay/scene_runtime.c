@@ -122,8 +122,7 @@ enum {
 
 /// Relative-rotation cache decision for a buffered pose blend.
 enum {
-    ANIMATION_ROTATION_DELTA_REUSE   = 0,
-    ANIMATION_ROTATION_DELTA_REFRESH = 1
+    ANIMATION_ROTATION_DELTA_REUSE = 0
 };
 
 /// Borrowed endpoints and output destinations for one model-part pose blend.
@@ -1964,6 +1963,14 @@ Task* func_800B2968(void)
 static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot,
                                     _AnimationBlendScratch* scratch)
 {
+    /// Requests rebuilding the relative rotation for a blend with a buffered endpoint.
+    ///
+    /// Playback emits this on entry to buffered endpoints, including a new
+    /// transition after a seek. The cache stores next * inverse(current) as
+    /// Euler angles in 1/4096 turns; later buffered ticks reuse it. The request
+    /// byte must equal this value exactly, and bank-only blends ignore it.
+    enum { ANIMATION_ROTATION_DELTA_REFRESH = 1 };
+
     if (slot->usesBufferedPose != 0) {
         // Interpolate a relative rotation when either endpoint comes from the pose buffer.
         RotMatrix_gte(&scratch->currentRotation, &scratch->currentMatrix);
