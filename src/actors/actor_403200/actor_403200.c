@@ -212,7 +212,7 @@ extern u8 gGluttonRainPointIndex[][8];
 
 /// Enemy spawn table the three launch states of `func_actor_403200_8013D9EC`
 /// draw from.
-extern TaskDesc D_actor_403200_8015E858[];
+extern TaskDesc gGluttonEscortTasks[];
 
 /// The enemy task's message-handler table, parked in `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
@@ -2703,7 +2703,7 @@ u8 gGluttonRainPointIndex[3][8] = {
     { 14, 13, 9, 0, 12, 7, 10, 11 },
 };
 
-TaskDesc D_actor_403200_8015E858[5] = {
+TaskDesc gGluttonEscortTasks[5] = {
     { { { TASK_BODY_TMD, 96 } }, gluttonGlobTask, { .model = &D_actor_403200_8014C1AC } },
     { { { TASK_BODY_COORD, 96 } }, gluttonRainTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, gluttonThrowTask, { .value = 0 } },
@@ -2901,12 +2901,8 @@ static void func_actor_403200_8014123C(Task* arg0);
 static __inline__ void Actor403200_StepForward(GfxCoord* coord);
 static __inline__ void Actor403200_SeedRootCoord(Task* task, GluttonWork* work);
 static void            func_actor_403200_80134D40(Task* arg0);
-static void            func_actor_403200_80138284(Task* arg0);
 static void            func_actor_403200_80138AFC(Enemy* enemy, Task* task);
-static void            func_actor_403200_80139A60(Task* arg0);
-static void            func_actor_403200_80139E94(Task* arg0);
 static void            func_actor_403200_8013A4A0(Task* arg0);
-static void            func_actor_403200_8013AB70(Task* arg0);
 static void            func_actor_403200_8013B23C(Task* arg0);
 static void            func_actor_403200_8013B3C8(Task* arg0);
 static void            func_actor_403200_8013B740(Task* arg0);
@@ -2921,7 +2917,6 @@ static void            func_actor_403200_8013E5A8(Task* arg0);
 static void            func_actor_403200_8013E9C0(Task* arg0);
 static void            func_actor_403200_8013EB64(Task* arg0);
 static void            func_actor_403200_8013EF6C(Task* arg0);
-static void            func_actor_403200_8013F700(Task* arg0);
 
 /// Walk `coord` 0x19/0x1000 of the way along its own forward axis (column 2 of
 /// its rotation, normalised and GPF-scaled) and flag it for rebuild. The
@@ -3751,109 +3746,7 @@ static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
     },
 };
 
-/// Screen-shake driver for the enemy task: `func_actor_403200_8013FB54` writes a
-/// level into `field_EAC`, and a change from the armed level in `field_EAD`
-/// starts a shake of 5, 10 or 22 frames -- any other level is ignored. Each tick
-/// spends one frame and drives `displaySetShakeY` off the frame counter's
-/// low bits, so level 1 alternates 0 / 2, level 2 walks a four-frame 0 / 2 / 3 / 2
-/// pattern and level 3 an eight-frame ramp that peaks at 4. The shake clears
-/// itself once the counter runs out. Same body as
-/// `func_actor_444000_8013A77C`, plus the null test on the work block.
-static void func_actor_403200_80138284(Task* arg0)
-{
-    GluttonWork* work;
-    s32          phase;
-
-    work = (GluttonWork*)arg0->work;
-    if (work == NULL) {
-        return;
-    }
-
-    if (work->field_EAC != work->field_EAD) {
-        switch (work->field_EAC) {
-            case 1:
-                work->field_EAE = 5;
-                break;
-            case 2:
-                work->field_EAE = 0xA;
-                break;
-            case 3:
-                work->field_EAE = 0x16;
-                break;
-            case 0:
-            default:
-                return;
-        }
-        work->field_EAD = work->field_EAC;
-    }
-
-    if (work->field_EAE == 0) {
-        displaySetShakeY(0);
-        work->field_EAC = 0;
-        work->field_EAD = 0;
-        return;
-    }
-    work->field_EAE--;
-
-    switch (work->field_EAC) {
-        case 1:
-            phase = work->field_EAE;
-            if ((phase & 1) == 0) {
-                work->field_EAF = 0;
-            } else {
-                work->field_EAF = 2;
-            }
-            displaySetShakeY(work->field_EAF);
-            break;
-
-        case 2:
-            phase = work->field_EAE;
-            switch (phase & 3) {
-                case 0:
-                    work->field_EAF = 0;
-                    break;
-                case 1:
-                    work->field_EAF = 2;
-                    break;
-                case 2:
-                    work->field_EAF = 3;
-                    break;
-                case 3:
-                    work->field_EAF = 2;
-                    break;
-            }
-            displaySetShakeY(work->field_EAF);
-            break;
-
-        case 3:
-            phase = work->field_EAE;
-            switch (phase & 7) {
-                case 3:
-                case 4:
-                    work->field_EAF = 4;
-                    break;
-                case 2:
-                case 5:
-                    work->field_EAF = 3;
-                    break;
-                case 1:
-                case 6:
-                    work->field_EAF = 1;
-                    break;
-                case 0:
-                case 7:
-                    work->field_EAF = 0;
-                    break;
-            }
-            displaySetShakeY(work->field_EAF);
-            break;
-
-        case 0:
-        default:
-            displaySetShakeY(0);
-            break;
-    }
-}
+#include "../../shared/glutton_shake_tick.inc.c"
 
 /// The escort-group reset the enemy runs whenever its state changes: it turns
 /// the host model's flag word around and pushes it onto all seven escorts'
@@ -4361,384 +4254,11 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     task->state                      += 1;
 }
 
-/// The group-0 hit handler: takes at most one hit this frame and turns it into
-/// damage.
-///
-/// It carves a 0x30-byte `GluttonHitScratch` off the scratchpad stack and
-/// scans the five `WorldCollisionContact` records of `hits[0]` for the first whose `key`
-/// high halfword is attack kind 2 -- the contact point goes into the frame's
-/// `pos` and the id is kept. A record with `key` 0 ends the scan with no
-/// hit. The scan is written with labels rather than a `for` so `loop.c` parks
-/// the match arm out of line; the same shape as
-/// `func_actor_444000_8013C060`'s.
-///
-/// A hit spawns the impact effect on the part's coordinate, publishes
-/// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C, and
-/// then takes the damage off the host: the player-relative offset to the part
-/// gives the range `Gp_ComputeDamage` scales `damage` by, quadrupled when
-/// `Gp_RollEnemyChance` fires. The contact point is re-read relative to the
-/// part's world translation and `ratan2` of the pair against the part's facing
-/// gives the yaw `angle`, wrapped to +/-0x800. The damage is doubled, applied
-/// through `func_800E2C78` and `func_800DA6E8`, and the host's remaining HP is
-/// mirrored onto the three escorts sharing its pool.
-///
-/// The second arm runs the same tick when `reactionFlags` has damage over time
-/// set, which `Gp_TickObjFlag4` turns into damage of its own; that one only comes off the
-/// host.
-///
-/// `esc3` / `esc0` / `esc1` and the `hp` load are not spare: read as three
-/// separate assignments the loaded pointers all share one register, and the
-/// stores then interleave with their loads (the scheduler cannot hoist a load
-/// past a store through an unknown pointer). Evaluating the three addresses
-/// first is what puts them in `a0` / `a1` / `v1`, and the `hp` load has to sit
-/// between the escort 3 and escort 0 ones to land where the original has it.
-static void func_actor_403200_80139A60(Task* arg0)
-{
-    GluttonHitScratch*     sc;
-    GluttonWork*           work;
-    Enemy*                 enemy;
-    WorldCollisionContact* recs;
-    PlayerStatus*          cfg;
-    SVECTOR*               pos;
-    s32                    mask;
-    s32                    kind;
-    s32                    id;
-    s32                    dx2;
-    s32                    dy2;
-    s32                    dz2;
-    s16                    angle;
-    s16                    i;
-    s16                    param;
-    u16                    hp;
-    Enemy*                 esc3;
-    Enemy*                 esc0;
-    Enemy*                 esc1;
+#include "../../shared/glutton_hit_group0.inc.c"
 
-    cfg   = &gPlayerStatus;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (GluttonWork*)arg0->work;
-    sc    = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
-    pos   = &sc->pos;
-    recs  = work->hits[0].recs;
-    i     = 0;
-    mask  = 0xFFFF0000;
-    kind  = 0x20000;
-scan:
-    if (recs[i].key.value == 0) {
-        goto missed;
-    }
-    if ((recs[i].key.value & mask) == kind) {
-        pos->vx = recs[i].point.vx;
-        pos->vy = recs[i].point.vy;
-        pos->vz = recs[i].point.vz;
-        id      = recs[i].key.value;
-        goto found;
-    }
-    i++;
-    if (i < 5) {
-        goto scan;
-    }
-missed:
-    id = 0;
-found:
-    sc->id = id;
+#include "../../shared/glutton_hit_groups1to2.inc.c"
 
-    if (id != 0) {
-        gluttonHitEffect(work->hits[0].obj.coord, id);
-        param           = Gp_GetIdParam2(sc->id);
-        work->field_E90 = param;
-        work->field_E8E = param;
-        work->field_E8C = param;
-        work->field_E92 = param;
-        Gp_GetIdParam0(sc->id);
-
-        sc->delta.vx = cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-        dx2          = sc->delta.vx * sc->delta.vx;
-        sc->delta.vy = cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-        dy2          = sc->delta.vy * sc->delta.vy;
-        sc->delta.vz = cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-        dz2          = sc->delta.vz * sc->delta.vz;
-        sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
-        sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
-        if (Gp_RollEnemyChance(enemy, sc->id, 0) != 0) {
-            sc->damage *= 4;
-        }
-        if (sc->damage != 0) {
-            sc->rot.vy = 0x320;
-            sc->rot.vx = 0;
-            sc->rot.vz = 0x3E8;
-            Gp_SpawnEff(0x6009C, &enemy->task->extra.tmd->coords[3], 3, &sc->rot);
-        }
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg0->extra.tmd->coords);
-        sc->rot.vx = sc->pos.vx - arg0->extra.tmd->coords->workm.t[0];
-        sc->rot.vy = sc->pos.vy - arg0->extra.tmd->coords->workm.t[1];
-        sc->rot.vz = sc->pos.vz - arg0->extra.tmd->coords->workm.t[2];
-        angle      = ratan2(sc->rot.vx, sc->rot.vz) -
-                ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
-                       arg0->extra.tmd->coords->workm.m[2][2]);
-        sc->angle = angle;
-        if (angle < 0) {
-        wrapUp:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto wrapUp;
-            }
-        } else {
-        wrapDown:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto wrapDown;
-            }
-        }
-        sc->angle = angle;
-
-        work->field_7C8 = 0;
-        work->field_7C4 = 0;
-        sc->damage     *= 2;
-        func_800E2C78(enemy, sc->id, sc->damage, 0);
-        enemy->hp -= sc->damage;
-        func_800DA6E8(&enemy->node, sc->damage, 0);
-        esc3     = work->field_ECC[3];
-        hp       = enemy->hp;
-        esc0     = work->field_ECC[0];
-        esc1     = work->field_ECC[1];
-        esc3->hp = hp;
-        esc1->hp = hp;
-        esc0->hp = hp;
-    }
-
-    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        sc->damage = Gp_TickObjFlag4(enemy);
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
-            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
-        }
-        if (sc->damage != 0) {
-            func_800E2C78(enemy, sc->id, sc->damage, 0);
-            enemy->hp -= sc->damage;
-        }
-    }
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
-}
-
-/// The hit handler for collision groups 1 and 2 -- the same scan
-/// `func_actor_403200_80139A60` runs for group 0, done twice: group 1 first, and
-/// group 2 only if nothing landed on group 1. The second scan carries its own
-/// `recs2` / `pos2` / `i2`, because sharing `recs` / `pos` / `i` with the first
-/// gives both loops one pseudo each and the wrong registers. Both scans are
-/// written as real `for` loops rather than the group-0 handler's labels so
-/// `find_and_verify_loops` parks the match arm out of line.
-///
-/// A hit spawns the impact effect on the part's coordinate, publishes
-/// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C and
-/// then takes the damage off the host: the player-relative offset to the part
-/// gives the range `Gp_ComputeDamage` scales `damage` by, quadrupled when
-/// `Gp_RollEnemyChance` fires, and zeroed unless the attack kind came back 2.
-/// The damage also comes off the work block's `field_F0E` pool and the host's
-/// remaining HP is mirrored onto the three escorts sharing its pool.
-/// `sc->angle` is the yaw of the contact point relative to the fourth escort's
-/// facing, wrapped to +/-0x800.
-///
-/// The attack kind drives a sub-state change: kinds 4 and 6 roll `gRandomLcgState`
-/// and take the boss out of state 3 into 8 one time in six, kind 2 does it
-/// outright, and both are gated on the `field_F1C` re-arm countdown.
-///
-/// `esc3` / `esc0` / `esc1` and the `hp` load are not spare: read as three
-/// separate assignments the loaded pointers all share one register, and the
-/// stores then interleave with their loads. Evaluating the three addresses
-/// first is what puts them in `a0` / `a1` / `v1`, and the `hp` load has to sit
-/// between the escort 3 and escort 0 ones to land where the original has it.
-///
-/// The `do` / `while (0)` around the angle wrap is load-bearing, not stylistic.
-/// Its body sits at loop depth 1, so `flow.c`'s `REG_N_REFS (regno) +=
-/// loop_depth` gives `sc` one reference more than the unwrapped form (37
-/// against 36, `work` sitting at 37 on a longer live range). That is what ranks
-/// `sc` above `work` in global-alloc and puts it in `$s1`; unwrapped the two
-/// exchange registers and the function stops at 99.06%.
-static void func_actor_403200_80139E94(Task* arg0)
-{
-    GluttonHitScratch*     sc;
-    GluttonWork*           work;
-    Enemy*                 host;
-    PlayerStatus*          cfg;
-    GfxCoord*              coord;
-    WorldCollisionContact* recs;
-    WorldCollisionContact* recs2;
-    SVECTOR*               pos;
-    SVECTOR*               pos2;
-    s32                    id;
-    s32                    dx2;
-    s32                    dy2;
-    s32                    dz2;
-    s16                    angle;
-    s16                    state;
-    s16                    i;
-    s16                    i2;
-    s16                    param;
-    u16                    roll;
-    u16                    hp;
-    Enemy*                 esc3;
-    Enemy*                 esc0;
-    Enemy*                 esc1;
-
-    cfg  = &gPlayerStatus;
-    host = (Enemy*)arg0->spawnArg2.pointer;
-    work = (GluttonWork*)arg0->work;
-    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
-    pos  = &sc->pos;
-    recs = work->hits[1].recs;
-    for (i = 0; i < 5; i++) {
-        if (recs[i].key.value == 0) {
-            goto missed1;
-        }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = recs[i].point.vx;
-            pos->vy = recs[i].point.vy;
-            pos->vz = recs[i].point.vz;
-            id      = recs[i].key.value;
-            goto found1;
-        }
-    }
-missed1:
-    id = 0;
-found1:
-    sc->id = id;
-    if (id != 0) {
-        coord = work->hits[1].obj.coord;
-        goto hit;
-    }
-
-    pos2  = &sc->pos;
-    recs2 = work->hits[2].recs;
-    for (i2 = 0; i2 < 5; i2++) {
-        if (recs2[i2].key.value == 0) {
-            goto missed2;
-        }
-        if ((recs2[i2].key.value & 0xFFFF0000) == 0x20000) {
-            pos2->vx = recs2[i2].point.vx;
-            pos2->vy = recs2[i2].point.vy;
-            pos2->vz = recs2[i2].point.vz;
-            id       = recs2[i2].key.value;
-            goto found2;
-        }
-    }
-missed2:
-    id = 0;
-found2:
-    sc->id = id;
-    if (id == 0) {
-        goto out;
-    }
-    coord = work->hits[2].obj.coord;
-hit:
-    gluttonHitEffect(coord, id);
-    if (sc->id != 0) {
-        param           = Gp_GetIdParam2(sc->id);
-        work->field_E90 = param;
-        work->field_E8E = param;
-        work->field_E8C = param;
-        work->field_E92 = param;
-        switch (Gp_GetIdParam0(sc->id) & 0xFFFF) {
-            case 0:
-            case 1:
-            case 3:
-            case 5:
-            case 7:
-            case 8:
-            case 9:
-                break;
-
-            case 4:
-            case 6:
-                state = work->field_0;
-                if (state != 3) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    roll            = (gRandomLcgState >> 16) % 6;
-                    if (roll == 0 && work->field_F1C == 0) {
-                        work->field_0 = 8;
-                        work->field_2 = -1;
-                    }
-                }
-                break;
-
-            case 2:
-                if (work->field_F1C == 0 && (state = work->field_0, state != 3)) {
-                    work->field_0 = 8;
-                    work->field_2 = -1;
-                }
-                break;
-        }
-
-        sc->delta.vx = cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-        dx2          = sc->delta.vx * sc->delta.vx;
-        sc->delta.vy = cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-        dy2          = sc->delta.vy * sc->delta.vy;
-        sc->delta.vz = cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-        dz2          = sc->delta.vz * sc->delta.vz;
-        sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
-        sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
-
-        if (Gp_RollEnemyChance(work->field_ECC[3], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
-            state != 9 && state != 0xE && state != 0xF) {
-            sc->rot.vy = 0;
-            sc->rot.vx = 0;
-            sc->rot.vz = 0x3E8;
-            Gp_SpawnEff(0x6009C, work->field_ECC[3]->task->extra.tmd->coords, 0, &sc->rot);
-            if (work->field_0 != 9 && work->field_F1C == 0) {
-                work->field_0 = 8;
-                work->field_2 = -1;
-            }
-            sc->damage *= 4;
-        } else if ((Gp_GetIdParam0(sc->id) & 0xFFFF) != 2) {
-            sc->damage = 0;
-        }
-
-        func_800E2C78(host, sc->id, sc->damage, 0);
-        host->hp -= sc->damage;
-        func_800DA6E8(&work->field_ECC[3]->node, sc->damage, 0);
-        work->field_F0E                                          -= sc->damage;
-        esc3                                                      = work->field_ECC[3];
-        hp                                                        = host->hp;
-        esc0                                                      = work->field_ECC[0];
-        esc1                                                      = work->field_ECC[1];
-        esc3->hp                                                  = hp;
-        esc1->hp                                                  = hp;
-        esc0->hp                                                  = hp;
-        work->field_ECC[3]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(work->field_ECC[3]->task->extra.tmd->coords);
-        sc->rot.vx = sc->pos.vx - work->field_ECC[3]->task->extra.tmd->coords->workm.t[0];
-        sc->rot.vy = sc->pos.vy - work->field_ECC[3]->task->extra.tmd->coords->workm.t[1];
-        sc->rot.vz = sc->pos.vz - work->field_ECC[3]->task->extra.tmd->coords->workm.t[2];
-        angle      = ratan2(sc->rot.vx, sc->rot.vz) -
-                ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
-                       arg0->extra.tmd->coords->workm.m[2][2]);
-        do {
-            sc->angle = angle;
-            if (angle < 0) {
-            wrapUp:
-                if (angle < -0x800) {
-                    angle += 0x1000;
-                    goto wrapUp;
-                }
-            } else {
-            wrapDown:
-                if (angle > 0x800) {
-                    angle -= 0x1000;
-                    goto wrapDown;
-                }
-            }
-        } while (0);
-        sc->angle = angle;
-
-        work->field_7C8 = 0;
-        work->field_7C4 = 0;
-    }
-out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
-}
-
-/// The hit handler for collision groups 3, 4 and 5 -- `func_actor_403200_80139E94`
+/// The hit handler for collision groups 3, 4 and 5 -- `gluttonHitGroups1To2`
 /// done three times over the parts it does not cover, each group only scanned
 /// when the previous one landed nothing and the part it hit reported no attack
 /// id back. Like the sibling actor's `func_actor_444000_8013CA60`, this one runs
@@ -4959,225 +4479,7 @@ out:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
-/// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
-/// as `func_actor_403200_8013A4A0` runs for groups 3, 4 and 5, with the next
-/// group only scanned when the previous one landed nothing and the part it hit
-/// reported no attack id back. Like the sibling actor's
-/// `func_actor_444000_8013D128`, the first two groups share one call site
-/// through `coord`, and `Gp_GetIdParam0` is called and its kind thrown away.
-///
-/// Damage is the distance-scaled hit -- measured from an offset point rather
-/// than the model origin -- quadrupled when `Gp_RollEnemyChance` fires, then
-/// divided by six (never down to zero unless it already was), and comes off the
-/// host, the two escorts sharing its pool and `field_F0C`. Emptying that pool
-/// spawns the same effect again and refills it to 0x3C. Both effect spawns and
-/// the state change to 0xE are skipped while the boss is in one of the seven
-/// states that ignore hits, while the player hold is armed, or while
-/// `gSceneCombatState.battleRefs` is not 1.
-///
-/// The second escort carries the damage and the effect, but `sc->angle` is the
-/// yaw of the contact point relative to the first escort's facing. `pos` /
-/// `pos2` / `pos3` are all `&sc->pos` and are not spare: each group's scan
-/// writes the contact point through its own pointer. `esc3` / `esc0` / `esc1`
-/// and the `hp` load sit after `func_800DA6E8`, unlike the group 3-5 handler.
-static void func_actor_403200_8013AB70(Task* arg0)
-{
-    GluttonHitScratch*     sc;
-    GluttonWork*           work;
-    Enemy*                 host;
-    PlayerStatus*          cfg;
-    GfxCoord*              coord;
-    WorldCollisionContact* recs;
-    WorldCollisionContact* recs2;
-    WorldCollisionContact* recs3;
-    SVECTOR*               pos;
-    SVECTOR*               pos2;
-    SVECTOR*               pos3;
-    s32                    id;
-    s32                    dx2;
-    s32                    dy2;
-    s32                    dz2;
-    u32                    dmg;
-    s16                    angle;
-    s16                    state;
-    s16                    i;
-    s16                    i2;
-    s16                    i3;
-    s16                    param;
-    u16                    hp;
-    Enemy*                 esc3;
-    Enemy*                 esc0;
-    Enemy*                 esc1;
-
-    cfg  = &gPlayerStatus;
-    host = (Enemy*)arg0->spawnArg2.pointer;
-    work = (GluttonWork*)arg0->work;
-    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
-    pos  = &sc->pos;
-    recs = work->hits[6].recs;
-    for (i = 0; i < 5; i++) {
-        if (recs[i].key.value == 0) {
-            goto missed1;
-        }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = recs[i].point.vx;
-            pos->vy = recs[i].point.vy;
-            pos->vz = recs[i].point.vz;
-            id      = recs[i].key.value;
-            goto found1;
-        }
-    }
-missed1:
-    id = 0;
-found1:
-    sc->id = id;
-    if (id != 0) {
-        coord = work->hits[6].obj.coord;
-        goto hit;
-    }
-
-    pos2  = &sc->pos;
-    recs2 = work->hits[7].recs;
-    for (i2 = 0; i2 < 5; i2++) {
-        if (recs2[i2].key.value == 0) {
-            goto missed2;
-        }
-        if ((recs2[i2].key.value & 0xFFFF0000) == 0x20000) {
-            pos2->vx = recs2[i2].point.vx;
-            pos2->vy = recs2[i2].point.vy;
-            pos2->vz = recs2[i2].point.vz;
-            id       = recs2[i2].key.value;
-            goto found2;
-        }
-    }
-missed2:
-    id = 0;
-found2:
-    sc->id = id;
-    if (id != 0) {
-        coord = work->hits[7].obj.coord;
-    hit:
-        gluttonHitEffect(coord, id);
-        if (sc->id != 0) {
-            goto body;
-        }
-    }
-
-    pos3  = &sc->pos;
-    recs3 = work->hits[8].recs;
-    for (i3 = 0; i3 < 5; i3++) {
-        if (recs3[i3].key.value == 0) {
-            goto missed3;
-        }
-        if ((recs3[i3].key.value & 0xFFFF0000) == 0x20000) {
-            pos3->vx = recs3[i3].point.vx;
-            pos3->vy = recs3[i3].point.vy;
-            pos3->vz = recs3[i3].point.vz;
-            id       = recs3[i3].key.value;
-            goto found3;
-        }
-    }
-missed3:
-    id = 0;
-found3:
-    sc->id = id;
-    if (id == 0) {
-        goto out;
-    }
-    gluttonHitEffect(work->hits[8].obj.coord, id);
-    if (sc->id == 0) {
-        goto out;
-    }
-body:
-    param           = Gp_GetIdParam2(sc->id);
-    work->field_E90 = param;
-    work->field_E8E = param;
-    work->field_E8C = param;
-    work->field_E92 = param;
-    Gp_GetIdParam0(sc->id);
-
-    sc->delta.vx = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) - 0x51F;
-    dx2          = sc->delta.vx * sc->delta.vx;
-    sc->delta.vy = (cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1]) - 0xFA;
-    dy2          = sc->delta.vy * sc->delta.vy;
-    sc->delta.vz = (cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]) + 0x25F;
-    dz2          = sc->delta.vz * sc->delta.vz;
-    sc->dist     = SquareRoot0(dx2 + dy2 + dz2);
-    sc->damage   = Gp_ComputeDamage(sc->id, sc->dist, 0, 0);
-
-    if (Gp_RollEnemyChance(work->field_ECC[1], sc->id, 0) != 0 && (state = work->field_0, state != 0xD) && state != 3 &&
-        state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 &&
-        gSceneCombatState.battleRefs == 1) {
-        sc->rot.vy = 0;
-        sc->rot.vx = 0;
-        sc->rot.vz = 0x320;
-        Gp_SpawnEff(0x6009C, &work->field_ECC[1]->task->extra.tmd->coords[1], 0, &sc->rot);
-        sc->damage   *= 4;
-        work->field_0 = 0xE;
-    }
-
-    dmg = sc->damage / 6;
-    if (dmg == 0) {
-        dmg = 1;
-        if (sc->damage == 0) {
-            sc->damage = 0;
-            goto stored;
-        }
-    }
-    sc->damage = dmg;
-stored:
-    func_800E2C78(host, sc->id, sc->damage, 0);
-    host->hp        -= sc->damage;
-    work->field_F0C -= sc->damage;
-    if (work->field_F0C <= 0 && (state = work->field_0, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
-        state != 0xF && state != 8 && state != 0xB && work->field_EC8 != 1 && gSceneCombatState.battleRefs == 1) {
-        sc->rot.vy = 0;
-        sc->rot.vx = 0;
-        sc->rot.vz = 0x320;
-        Gp_SpawnEff(0x6009C, &work->field_ECC[1]->task->extra.tmd->coords[1], 0, &sc->rot);
-        work->field_0   = 0xE;
-        work->field_F0C = 0x3C;
-    }
-
-    func_800DA6E8(&work->field_ECC[1]->node, sc->damage, 0);
-    esc3                                                      = work->field_ECC[3];
-    hp                                                        = host->hp;
-    esc0                                                      = work->field_ECC[0];
-    esc1                                                      = work->field_ECC[1];
-    esc3->hp                                                  = hp;
-    esc1->hp                                                  = hp;
-    esc0->hp                                                  = hp;
-    work->field_ECC[1]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(work->field_ECC[1]->task->extra.tmd->coords);
-    sc->rot.vx = sc->pos.vx - work->field_ECC[0]->task->extra.tmd->coords->workm.t[0];
-    sc->rot.vy = sc->pos.vy - work->field_ECC[0]->task->extra.tmd->coords->workm.t[1];
-    sc->rot.vz = sc->pos.vz - work->field_ECC[0]->task->extra.tmd->coords->workm.t[2];
-    angle      = ratan2(sc->rot.vx, sc->rot.vz) -
-            ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
-                   arg0->extra.tmd->coords->workm.m[2][2]);
-    do {
-        sc->angle = angle;
-        if (angle < 0) {
-        wrapUp:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto wrapUp;
-            }
-        } else {
-        wrapDown:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto wrapDown;
-            }
-        }
-    } while (0);
-    sc->angle = angle;
-
-    work->field_7C8 = 0;
-    work->field_7C4 = 0;
-out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
-}
+#include "../../shared/glutton_hit_groups6to8.inc.c"
 
 /// Reset handler: pushes the host model's `field_C` onto each of the seven
 /// escorts, and once the sub-state counter has reached 2 releases the host's and
@@ -5250,7 +4552,7 @@ static void func_actor_403200_8013B23C(Task* arg0)
 /// flag, and latches `field_F06` once the state counter is past 0x14.
 ///
 /// The switch is on the state counter and spawns from
-/// `D_actor_403200_8015E858`, each of the eight counter values picking its own
+/// `gGluttonEscortTasks`, each of the eight counter values picking its own
 /// table index; the spawned enemy is dropped, unlike the arena reset's. The
 /// `state` copy is what keeps the switch index 16-bit, as in
 /// `func_actor_403200_8013D9EC`.
@@ -5296,28 +4598,28 @@ static void func_actor_403200_8013B3C8(Task* arg0)
     state = work->field_6 - 0x13;
     switch (state) {
         case 0:
-            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 0, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 0, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 7:
-            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 1, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 1, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 9:
-            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 2, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 2, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x10:
-            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 3, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 3, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x1F:
-            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 4, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 4, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x37:
-            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 5, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 5, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x3B:
-            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 6, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 6, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x3F:
-            Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 1, 7, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 7, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
     }
     gluttonTickAnim(arg0);
@@ -5368,9 +4670,9 @@ static void func_actor_403200_8013B740(Task* arg0)
     }
 
     for (i = 0; i < 9; i++) {
-        D_actor_403200_8015E858[4].data.model = D_actor_403200_8015F888[i].model;
-        enemy                                 = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 4, D_actor_403200_8015F888[i].spawnArg, NULL);
-        work->field_EF0                       = enemy;
+        gGluttonEscortTasks[4].data.model = D_actor_403200_8015F888[i].model;
+        enemy                             = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 4, D_actor_403200_8015F888[i].spawnArg, NULL);
+        work->field_EF0                   = enemy;
         if (enemy == NULL) {
             break;
         }
@@ -6176,7 +5478,7 @@ static void func_actor_403200_8013D78C(Task* arg0)
 /// second walk in place of the release.
 ///
 /// The state then writes its two cue frames, and the three states at 0x39, 0x45
-/// and 0x4C spawn `field_EF0` from `D_actor_403200_8015E858`; every other state
+/// and 0x4C spawn `field_EF0` from `gGluttonEscortTasks`; every other state
 /// in the 0x39..0x4C window falls through to the dispatcher.
 ///
 /// The `state` copy is what keeps the switch index 16-bit: switched on
@@ -6240,7 +5542,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
         case 0:
         case 12:
         case 19:
-            spawned           = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 0, 0, arg0->spawnArg2.pointer);
+            spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 0, 0, arg0->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
             work->field_EF0   = spawned;
             break;
@@ -6268,7 +5570,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
 /// turned a quarter turn each way so `Gfx_MatrixCol2` yields the launch
 /// direction, which is normalised and scaled to 0x320 before being added to the
 /// origin -- and an effect is spawned on it. Every tenth step a fresh enemy is
-/// spawned from `D_actor_403200_8015E858` and remembered in `field_EF0`.
+/// spawned from `gGluttonEscortTasks` and remembered in `field_EF0`.
 ///
 /// The tick then runs the per-frame body and hands over to state 0xA once the
 /// second animation slot raises its flag.
@@ -6379,7 +5681,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             Gp_SpawnEff(0x60199, &D_actor_403200_8015F920, 0x97A0D680, NULL);
         }
         if ((s16)((s16)(u16)work->field_6 % 10) == 4) {
-            spawned           = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 2, 0, arg0->spawnArg2.pointer);
+            spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
             work->field_EF0   = spawned;
         }
@@ -7010,119 +6312,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
     }
 }
 
-static void func_actor_403200_8013F700(Task* arg0)
-{
-    GluttonWork* work;
-    GluttonWork* escorts;
-    GluttonWork* dying;
-    Enemy*       enemy;
-    Enemy*       spawned;
-    SVECTOR      vec;
-    SVECTOR*     v;
-    GfxCoord*    coord;
-    GfxCoord*    rot;
-    s16          i;
-    s16          j;
-    s16          angle;
-    s32          sfx;
-    s32          pan;
-
-    work  = (GluttonWork*)arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        work->field_7B3        = 0xE;
-        work->field_7B0        = 1;
-        escorts                = (GluttonWork*)arg0->work;
-        escorts->field_7F3     = 0;
-        arg0->extra.tmd->flags = 0;
-        for (i = 0; i < 7; i++) {
-            if (escorts->field_ECC[i] != NULL) {
-                escorts->field_ECC[i]->task->extra.tmd->flags =
-                    arg0->extra.tmd->flags;
-            }
-        }
-        dying = (GluttonWork*)arg0->work;
-        Tmd_AllocBuffers(arg0->extra.tmd);
-        for (j = 0; j < 7; j++) {
-            if (dying->field_ECC[j] != NULL) {
-                Tmd_AllocBuffers(dying->field_ECC[j]->task->extra.tmd);
-            }
-        }
-        work->field_EF6 = 1;
-        work->field_EF4 = 0;
-        work->field_EFA = 0;
-        work->field_EFE = 0;
-        work->field_E96 = 0xC80;
-    }
-    switch (work->field_6) {
-        case 0x64:
-        case 0x104:
-            if ((s8)work->field_F1A > 0) {
-                work->field_7B3 = 0x10;
-                work->field_7B0 = 1;
-                work->field_EF4 = 1;
-                work->field_F1A--;
-            } else {
-                work->field_0   = 0xA;
-                work->field_EFE = 0;
-            }
-            break;
-        case 0x74:
-            sfx = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
-            pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(
-                sfx, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-            break;
-        case 0x1A4:
-            work->field_0   = 0xA;
-            work->field_EFE = 0;
-            work->field_F1A = 0;
-            break;
-        case 0x9B:
-        case 0x113:
-            work->field_EFE = 0x80;
-            break;
-        case 0xAF:
-        case 0x145:
-            spawned           = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 3, 0, arg0->spawnArg2.pointer);
-            spawned->workType = ENEMY_WORK_PLAIN;
-            work->field_EF0   = spawned;
-            if (spawned != NULL) {
-                gluttonTintEscort(spawned->task->extra.tmd);
-                work->field_EFE = 0;
-            }
-            break;
-    }
-    coord = arg0->extra.tmd->coords;
-    v     = &vec;
-    v->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    v->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    v->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    rot   = arg0->extra.tmd->coords;
-    angle = ratan2(v->vx, v->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
-    work->field_7C4 = angle;
-    gluttonTickAnim(arg0);
-    if (work->field_7B3 == 0x10 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->field_7B3 = 0xE;
-        work->field_7B0 = 1;
-    }
-    if (work->field_6 >= 0x15) {
-        work->field_F06 = 3;
-    }
-}
+#include "../../shared/glutton_escort_state.inc.c"
 
 /// The host's state handlers, indexed by `field_0`; the last six slots are
 /// empty. Two of the handlers take no argument and are called through the
@@ -7144,7 +6334,7 @@ static const Actor403200StateTable D_actor_403200_80132154 = {
         func_actor_403200_8013E5A8,
         func_actor_403200_8013C84C,
         func_actor_403200_8013EF6C,
-        func_actor_403200_8013F700,
+        gluttonEscortState,
         func_actor_403200_8014122C,
         func_actor_403200_80141234,
         func_actor_403200_8014123C,
@@ -7300,12 +6490,12 @@ after_mode:
             if (work->field_E92 > 0) {
                 work->field_E92 = (s16)((u16)work->field_E92 - 1);
             } else {
-                func_actor_403200_80139E94(arg1);
+                gluttonHitGroups1To2(arg1);
             }
             if (work->field_E8C > 0) {
                 work->field_E8C = (s16)((u16)work->field_E8C - 1);
             } else {
-                func_actor_403200_80139A60(arg1);
+                gluttonHitGroup0(arg1);
             }
             if (work->field_E8E > 0) {
                 work->field_E8E = (s16)((u16)work->field_E8E - 1);
@@ -7315,7 +6505,7 @@ after_mode:
             if (work->field_E90 > 0) {
                 work->field_E90 = (s16)((u16)work->field_E90 - 1);
             } else {
-                func_actor_403200_8013AB70(arg1);
+                gluttonHitGroups6To8(arg1);
             }
         }
     }
@@ -7462,7 +6652,7 @@ after_mode:
     Gp_ClearRec18Occupied(work->hits[7].recs);
     Gp_ClearRec18Occupied(work->hits[8].recs);
     Gp_ClearRec18Occupied(work->recs2);
-    func_actor_403200_80138284(arg1);
+    gluttonShakeTick(arg1);
 
     if (work->field_F04 == 0 && work->field_0 != 0) {
         scratch->view = D_actor_403200_8015E6E8[work->field_F06](arg1, work->field_F08);
