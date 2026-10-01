@@ -72,7 +72,7 @@ STATIC_ASSERT_SIZEOF(Actor356100TintRow, 0x8);
 
 /// Head of the work block this overlay hangs off `Task::work`. `field_4` is
 /// the live-actor flag `func_actor_356100_8016A1D8` tests, where
-/// `Actor00100Work::field_4` sits. `field_0` / `field_5A` / `field_68` are the
+/// `DesertChaserWork::field_4` sits. `field_0` / `field_5A` / `field_68` are the
 /// same state, clip-id and flag halfwords `Actor01900Work` keeps at those
 /// offsets; `field_974` is the `field_5A & 0x3FF` snapshot
 /// `func_actor_356100_8016A468` stores (same role as `Actor01900Work.field_8B4`).
@@ -145,7 +145,7 @@ typedef struct Actor356100Work {
     /* 0x9D8 */ byte                  pad_9D8[0x80];
     /// Collision record `func_actor_356100_801668FC` hands `func_800E0C10`,
     /// 0x98 past `field_9C0` — one body-part record rather than one `WorldCollisionContact`,
-    /// the stride `_Actor100100SphereBody` gives the same table in the 00100 overlay.
+    /// the stride `DesertChaserSphereBody` gives the same table in the 00100 overlay.
     /* 0xA58 */ WorldCollisionContact field_A58;
     /* 0xA70 */ byte                  pad_A70[0x68];
     /// Light matrix `func_actor_356100_8016382C` binds to the model's

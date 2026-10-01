@@ -59,204 +59,8 @@
 #include "../../shared/limb_shadows.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+#define DESERT_CHASER_BUILD DESERT_CHASER_WATER_TOWER
 #include "../../shared/desert_chaser.h"
-
-/// The actor id word at 0xE90, read two ways: `func_actor_421600_8013848C`
-/// and `func_actor_421600_8013E9D8` mask the whole word to 24 bits and compare
-/// it with 0x11402, while `func_actor_421600_8013947C` tests its third byte
-/// alone against 2.
-typedef union Actor421600IdWord {
-    /* 0x0 */ s32 word;
-    /* 0x0 */ u8  bytes[4];
-} Actor421600IdWord;
-STATIC_ASSERT_SIZEOF(Actor421600IdWord, 0x4);
-
-typedef struct Actor421600AnimCommand {
-    AnimationSet* entries[4];
-    AnimationSet* field_10;
-    AnimationSet* field_14;
-} Actor421600AnimCommand;
-
-typedef struct Actor421600Waypoint {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-} Actor421600Waypoint;
-STATIC_ASSERT_SIZEOF(Actor421600Waypoint, 0x4);
-
-/// Per-actor state block for the `actor_421600` overlay's enemy.
-///
-/// `func_actor_421600_80134AD4` allocates it with `memCalloc(0xEB0, 0)` and
-/// stores it in the `Task::work` slot (0x1C), so the size below is the
-/// allocation rather than a guess: this actor reuses that pointer field for its
-/// own work block and it is *not* a `TaskIdMap` here. Reach it with
-/// `(Actor421600Work*)task->work`.
-///
-/// Only the fields the decompiled code touches are named so far: the three
-/// `WorldCollisionBody` collision bodies `func_actor_421600_8013E668` hands back to
-/// `Gp_UnlinkObj`, the two child tasks it kills, and the halfword
-/// `func_actor_421600_8013E654` writes. The display nodes sit 0x24 later than
-/// the 0x8C8/0xA08/0xB48 triple on actor 01900/401800, with the same 0x140
-/// stride. `field_4` is the live-actor flag `func_actor_421600_8013E858`
-/// tests, and `field_B6C.flags` is the mask it writes. `field_0` / `field_68`
-/// and the 0x828 motion halfwords are the same cluster `Actor00100_Fn0B730`
-/// uses; `field_8EC.field_1C` is the 0x908 store. `field_B8C` is the
-/// `WorldCollisionContact` table `ActorContact_PushContact` walks after the 0x20-byte
-/// `field_B6C` node, matching `_Actor100100SphereBody.field_20` after `objs[2]`.
-/// `field_E90` is a word here (not the `s16` actor 444000 keeps at the same
-/// offset); `func_actor_421600_8013E9D8` masks it to 24 bits and compares that
-/// with 0x11402 to pick the state it writes to `field_0`.
-typedef struct Actor421600Work {
-    /* 0x000 */ s16 field_0;
-    /// Companion halfword the message handler `func_actor_421600_80132A00`
-    /// clears to -1 whenever it reseeds `field_0`; same pairing as actor 00100's
-    /// `field_0` / `field_2`.
-    /* 0x002 */ s16 field_2;
-    /* 0x004 */ s16 field_4;
-    /// Frame counter `func_actor_421600_8013848C` bumps each tick and waits on
-    /// to read 0xF; same slot actor 00100 keeps its own tick in.
-    /* 0x006 */ u16 field_6;
-    /// Retry counter `func_actor_421600_80138D24` bumps while the 0xB8C walk
-    /// reports a hit and reads with `(s16)` in its 9..0x18 frame window; the
-    /// live-actor edge clears it.
-    /* 0x008 */ u16                 field_8;
-    /* 0x00A */ byte                pad_A[2];
-    /* 0x00C */ Actor421600Waypoint field_C[2];
-    /* 0x014 */ s16                 field_14;
-    /// Yaw the placement handler `actorMsgPlaceYawFirst` reads back off
-    /// the root coordinate after writing it.
-    /* 0x016 */ s16  field_16;
-    /* 0x018 */ byte pad_18[0x42];
-    /// Animation step counter masked to 0x3FF by the state handlers; the
-    /// model-shrink tails wait for it to read 0xC.
-    /* 0x05A */ u16  field_5A;
-    /* 0x05C */ byte pad_5C[0xC];
-    /* 0x068 */ u16  field_68;
-    /* 0x06A */ byte pad_6A[0x7BE];
-    /* 0x828 */ u16  field_828;
-    /// Motion mode every tick in this overlay tests against 0; read as a
-    /// signed halfword wherever it branches (`lh` in `func_actor_421600_8013B4C4`
-    /// and the six other readers), so it is an `s16` rather than the `u16`
-    /// the store-only callers would suggest.
-    /* 0x82A */ s16  field_82A;
-    /* 0x82C */ byte pad_82C[2];
-    /* 0x82E */ s16  field_82E;
-    /* 0x830 */ byte pad_830[2];
-    /* 0x832 */ u16  field_832;
-    /// Source `func_actor_421600_8013848C` copies into `field_832`; the anim
-    /// view above still reaches it through its own padding.
-    /* 0x834 */ u16 field_834;
-    /* 0x836 */ s16 field_836;
-    /* 0x838 */ s16 field_838;
-    /// Clip id `func_actor_421600_80133B30` copies into the blend slots.
-    /* 0x83A */ u16  field_83A;
-    /* 0x83C */ byte pad_83C[2];
-    /* 0x83E */ u16  field_83E;
-    /* 0x840 */ u16  field_840;
-    /* 0x842 */ byte pad_842[2];
-    /* 0x844 */ s16  field_844;
-    /* 0x846 */ byte pad_846[2];
-    /// Record last handled by the per-frame effect dispatch, one entry per
-    /// animation slot and wiped as one block when no case claims a record. This
-    /// overlay only ever uses entry 1, against the record word at 0x5A.
-    /* 0x848 */ s32 field_848[18];
-    /// Argument record `func_actor_421600_801350BC` fills for `func_800FDB18`:
-    /// the model part coordinate `sc->pad` names, scale 0x100 and count 2.
-    /// Same slot actor 00100 keeps at its own 0x890.
-    /* 0x890 */ EffectSpawnArg field_890;
-    /// Hit position `func_actor_421600_801350BC` copies out of its scratch
-    /// vector and hands to `func_800FDB18` as the effect rotation.
-    /* 0x898 */ SVECTOR field_898;
-    /// Cleared alongside `field_6` on the live-actor edge of the shrink tick
-    /// `func_actor_421600_801366F4`, the same place actor 00100 clears its own
-    /// 0x8DC byte.
-    /* 0x8A0 */ s8   field_8A0;
-    /* 0x8A1 */ byte pad_8A1[3];
-    /// World X and Z `func_actor_421600_8013848C` takes off the gte-rotated
-    /// vec (`field_8A4` from its `vx`, `field_8AC` from its `vz`), around the
-    /// zeroed `field_8A8` actor 00100 keeps at its own 0x8DC.
-    /* 0x8A4 */ s32  field_8A4;
-    /* 0x8A8 */ s32  field_8A8;
-    /* 0x8AC */ s32  field_8AC;
-    /* 0x8B0 */ byte pad_8B0[4];
-    /// Pose id / blend flag pair `func_actor_421600_8013848C` sets to 7 and 1;
-    /// actor 00100 has the same pair at 0x8E8 / 0x8EA.
-    /* 0x8B4 */ s16  field_8B4;
-    /* 0x8B6 */ s8   field_8B6;
-    /* 0x8B7 */ byte pad_8B7;
-    /// Player position and rotation sent together as message 0x3E9.
-    /* 0x8B8 */ VECTOR  field_8B8;
-    /* 0x8C8 */ SVECTOR field_8C8;
-    /// Reply buffer for message 0x3F8; field_8E4 selects query mode 8.
-    /* 0x8D0 */ byte               field_8D0[0x14];
-    /* 0x8E4 */ s32                field_8E4;
-    /* 0x8E8 */ u8                 field_8E8;
-    /* 0x8E9 */ u8                 field_8E9;
-    /* 0x8EA */ s16                field_8EA;
-    /* 0x8EC */ WorldCollisionBody field_8EC;
-    /// `WorldCollisionContact` table paired with `field_8EC`, the same 0x20-byte stride
-    /// `field_B8C` keeps after `field_B6C`.
-    /* 0x90C */ WorldCollisionContact field_90C;
-    /* 0x924 */ byte                  pad_924[0x108];
-    /* 0xA2C */ WorldCollisionBody    field_A2C;
-    /// `WorldCollisionContact` table paired with `field_A2C`, the middle of the three the
-    /// death tick `func_actor_421600_801392A8` walks (0x90C / 0xA4C / 0xB8C).
-    /* 0xA4C */ WorldCollisionContact field_A4C;
-    /* 0xA64 */ byte                  pad_A64[0x108];
-    /* 0xB6C */ WorldCollisionBody    field_B6C;
-    /* 0xB8C */ WorldCollisionContact field_B8C;
-    /* 0xBA4 */ byte                  pad_BA4[0x108];
-    /* 0xCAC */ WorldCollisionBody    field_CAC;
-    /// Capsule carried by the fourth collision node. Its second endpoint's
-    /// Z offset at 0xCD8 is 0x2BC at spawn and -0x320 in the movement tick.
-    /* 0xCCC */ WorldCollisionCapsule field_CCC;
-    /// The 12 0x18-byte slots `func_actor_421600_80138D24` scans for one whose
-    /// `key` reads 0x100000, stopping at the first empty one. A cursor into
-    /// the same run sits at 0xCE0, which `func_actor_421600_80134AD4` points at
-    /// `field_CE4` itself.
-    /* 0xCE4 */ WorldCollisionContact   field_CE4[12];
-    /* 0xE04 */ MATRIX                  field_E04;
-    /* 0xE24 */ MATRIX                  field_E24;
-    /* 0xE44 */ byte                    pad_E44[0x20];
-    /* 0xE64 */ s16                     field_E64;
-    /* 0xE66 */ u16                     field_E66;
-    /* 0xE68 */ byte                    pad_E68[8];
-    /* 0xE70 */ s16                     field_E70;
-    /* 0xE72 */ s16                     field_E72;
-    /* 0xE74 */ s16                     field_E74;
-    /* 0xE76 */ byte                    pad_E76[2];
-    /* 0xE78 */ s16                     field_E78;
-    /* 0xE7A */ byte                    pad_E7A[2];
-    /* 0xE7C */ Actor421600AnimCommand* field_E7C;
-    /* 0xE80 */ s32                     field_E80;
-    /* 0xE84 */ s32                     field_E84;
-    /* 0xE88 */ s32                     field_E88;
-    /* 0xE8C */ s32                     field_E8C;
-    /* 0xE90 */ Actor421600IdWord       field_E90;
-    /* 0xE94 */ Task*                   field_E94;
-    /* 0xE98 */ Task*                   field_E98;
-    /// One-shot "already reported" latch `func_actor_421600_80132A00` clears
-    /// and dispatches 0x3F1 to slot 3 on, the same handshake actor 00100 keeps
-    /// at its own 0xE9C.
-    /* 0xE9C */ s16 field_E9C;
-    /// Distance `func_actor_421600_8013848C` clamps to 0xFA0 after the gte
-    /// rotation.
-    /* 0xE9E */ s16  field_E9E;
-    /* 0xEA0 */ byte pad_EA0[2];
-    /* 0xEA2 */ u16  field_EA2;
-    /// Halfword the idle tick `func_actor_421600_8013A404` reseeds `field_6`
-    /// from, adding the low nibble of an `gRandomLcgState` draw while `field_4` is
-    /// set.
-    /* 0xEA4 */ u16 field_EA4;
-    /* 0xEA6 */ u16 field_EA6;
-    /// Halfword pair `func_actor_421600_80132A00` forwards under the 0x109
-    /// message, the same one-step lag its sibling actor 00100 keeps at
-    /// 0xC24 / 0xC26.
-    /* 0xEA8 */ u16  field_EA8;
-    /* 0xEAA */ u16  field_EAA;
-    /* 0xEAC */ s16  field_EAC;
-    /* 0xEAE */ byte pad_EAE[2];
-} Actor421600Work;
-STATIC_ASSERT_SIZEOF(Actor421600Work, 0xEB0);
 
 typedef struct Actor421600DamageScratch {
     /* 0x00 */ s32  field_0;
@@ -278,41 +82,6 @@ typedef struct Actor421600DamageScratch {
     /* 0x2E */ s16  field_2E;
 } Actor421600DamageScratch;
 STATIC_ASSERT_SIZEOF(Actor421600DamageScratch, 0x30);
-
-/// Animation view of the same work block, as `func_actor_421600_80133B30`
-/// reads it: the pose context at 0x1C and its blend twin at 0x420, each
-/// followed by 0x28-byte `AnimationSlot`s, plus the two clip ids the loop copies
-/// into them. The pads stand in for the rest of the block -- a slot array
-/// cannot span the fields `Actor421600Work` names at 0x5A / 0x68, and 0x420 is
-/// not a whole number of slots past 0x30.
-typedef struct Actor421600AnimWork {
-    /* 0x000 */ s16              field_0;
-    /* 0x002 */ byte             pad_2[0x1A];
-    /* 0x01C */ AnimationContext anim;
-    /* 0x030 */ AnimationSlot    slots[25];
-    /* 0x418 */ byte             pad_418[8];
-    /* 0x420 */ AnimationContext blendAnim;
-    /* 0x434 */ AnimationSlot    blendSlots[25];
-    /* 0x81C */ byte             pad_81C[0xC];
-    /* 0x828 */ u16              field_828;
-    /* 0x82A */ s16              field_82A;
-    /* 0x82C */ s16              field_82C;
-    /* 0x82E */ s16              field_82E;
-    /* 0x830 */ u16              field_830;
-    /* 0x832 */ u16              field_832;
-    /* 0x834 */ u16              field_834;
-    /* 0x836 */ s16              field_836;
-    /* 0x838 */ s16              field_838;
-    /* 0x83A */ u16              field_83A;
-    /* 0x83C */ s16              field_83C;
-    /* 0x83E */ u16              field_83E;
-    /* 0x840 */ u16              field_840;
-    /* 0x842 */ s16              field_842;
-    /* 0x844 */ s16              field_844;
-    /* 0x846 */ byte             pad_846[2];
-    /* 0x848 */ s32              field_848[18];
-} Actor421600AnimWork;
-STATIC_ASSERT_SIZEOF(Actor421600AnimWork, 0x890);
 
 typedef struct Actor421600AvoidScratch {
     /* 0x00 */ MATRIX   m;
@@ -468,10 +237,10 @@ typedef union {
         AnimationSet* back[5];
         SVECTOR       hitOffsets[12];
     } data;
-    Actor421600AnimCommand frontCommand;
+    DesertChaserAnimCommand frontCommand;
     struct {
-        AnimationSet*          front[5];
-        Actor421600AnimCommand command;
+        AnimationSet*           front[5];
+        DesertChaserAnimCommand command;
     } rear;
 } Actor421600ContactStorage;
 STATIC_ASSERT_SIZEOF(Actor421600ContactStorage, 136);
@@ -484,11 +253,11 @@ typedef struct {
 } Actor421600AnimWord;
 
 // These bounded symbol views preserve the original independent address loads.
-extern Actor421600AnimCommand Actor421600FrontAnim __asm__("D_actor_421600_80151090");
-extern Actor421600AnimCommand Actor421600RearAnim __asm__("D_actor_421600_80151090+20");
-extern SVECTOR                Actor421600HitOffsets[12] __asm__("D_actor_421600_80151090+40");
-extern Actor421600AnimWord    Actor421600FrontContact __asm__("D_actor_421600_80151090+16");
-extern Actor421600AnimWord    Actor421600FallbackEnd __asm__("D_actor_421600_80151090+20");
+extern DesertChaserAnimCommand Actor421600FrontAnim __asm__("D_actor_421600_80151090");
+extern DesertChaserAnimCommand Actor421600RearAnim __asm__("D_actor_421600_80151090+20");
+extern SVECTOR                 Actor421600HitOffsets[12] __asm__("D_actor_421600_80151090+40");
+extern Actor421600AnimWord     Actor421600FrontContact __asm__("D_actor_421600_80151090+16");
+extern Actor421600AnimWord     Actor421600FallbackEnd __asm__("D_actor_421600_80151090+20");
 
 static void func_actor_421600_8013E668(Task* task);
 static void func_actor_421600_8013E858(Task* arg0);
@@ -2163,7 +1932,7 @@ static s32                                  func_actor_421600_80133334(GfxCoord*
 static void                                 func_actor_421600_80133444(GfxCoord* coord);
 static s32                                  func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static void                                 func_actor_421600_80133B30(Task* arg0);
-static s32                                  func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work);
+static s32                                  func_actor_421600_80133CAC(Task* arg0, DesertChaserWork* work);
 static void                                 func_actor_421600_80134604(Task* arg0);
 static __inline__ void                      Actor421600_BindMatrices(Task* actor);
 static void                                 func_actor_421600_80134AD4(Enemy* enemy, Task* actor);
@@ -2234,10 +2003,10 @@ static __inline__ s32 Actor421600_HasPlayerContact(WorldCollisionContact* record
 /// state. Returns 1 when the message was handled.
 s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request)
 {
-    Actor421600Work* work;
-    Enemy*           enemy;
-    s32              angle;
-    s16              mode;
+    DesertChaserWork* work;
+    Enemy*            enemy;
+    s32               angle;
+    s16               mode;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -2569,16 +2338,16 @@ static s32 func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* re
 
 static void func_actor_421600_80133B30(Task* arg0)
 {
-    AnimationPose        pose;
-    AnimationPose        blendPose;
-    Actor421600AnimWork* work;
-    s32                  blend;
-    s32                  invBlend;
-    s16                  index;
-    s16                  next;
+    AnimationPose     pose;
+    AnimationPose     blendPose;
+    DesertChaserWork* work;
+    s32               blend;
+    s32               invBlend;
+    s16               index;
+    s16               next;
 
     index = 1;
-    work  = (Actor421600AnimWork*)arg0->work;
+    work  = (DesertChaserWork*)arg0->work;
     do {
         switch (index) {
             case 1:
@@ -2620,7 +2389,7 @@ static void func_actor_421600_80133B30(Task* arg0)
 /// case claimed the frame.
 ///
 /// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
-static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
+static s32 func_actor_421600_80133CAC(Task* arg0, DesertChaserWork* work)
 {
     SVECTOR offset;
     u32     prev;
@@ -2629,7 +2398,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
 
     switch (work->field_82E) {
         case 0:
-            if ((work->field_5A & 0x3FF) == 9) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 9) {
                 prev = work->field_848[1];
                 if (prev != 9) {
                     work->field_848[1] = 9;
@@ -2650,7 +2419,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                 work->field_848[1] = prev;
                 clear              = 0;
             }
-            if ((work->field_5A & 0x3FF) == 6) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 6) {
                 prev = work->field_848[1];
                 if (prev != 6) {
                     work->field_848[1] = 6;
@@ -2673,7 +2442,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
             }
             break;
         case 10:
-            if ((work->field_5A & 0x3FF) == 10) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 10) {
                 prev = work->field_848[1];
                 if (prev != 10) {
                     work->field_848[1] = 10;
@@ -2690,7 +2459,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
             }
             break;
         case 3:
-            if ((work->field_5A & 0x3FF) == 12) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 12) {
                 prev = work->field_848[1];
                 if (prev != 12) {
                     work->field_848[1] = 12;
@@ -2699,7 +2468,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                 work->field_848[1] = prev;
                 clear              = 0;
             }
-            if ((work->field_5A & 0x3FF) == 8) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 8) {
                 prev = work->field_848[1];
                 if (prev != 8) {
                     work->field_848[1] = 8;
@@ -2710,7 +2479,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
             }
             break;
         case 6:
-            if ((work->field_5A & 0x3FF) == 6) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 6) {
                 prev = work->field_848[1];
                 if (prev != 6) {
                     work->field_848[1] = 6;
@@ -2731,7 +2500,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                 work->field_848[1] = prev;
                 clear              = 0;
             }
-            if ((work->field_5A & 0x3FF) == 12) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 12) {
                 prev = work->field_848[1];
                 if (prev != 12) {
                     work->field_848[1] = 12;
@@ -2752,7 +2521,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                 work->field_848[1] = prev;
                 clear              = 0;
             }
-            if ((work->field_5A & 0x3FF) == 13) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 13) {
                 prev = work->field_848[1];
                 if (prev != 13) {
 
@@ -2791,7 +2560,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
             }
             break;
         case 21:
-            if ((work->field_5A & 0x3FF) == 6) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 6) {
                 prev = work->field_848[1];
                 if (prev != 6) {
                     work->field_848[1] = 6;
@@ -2812,7 +2581,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                 work->field_848[1] = prev;
                 clear              = 0;
             }
-            if ((work->field_5A & 0x3FF) == 9) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 9) {
                 prev = work->field_848[1];
                 if (prev != 9) {
                     work->field_848[1] = 9;
@@ -2833,7 +2602,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                 work->field_848[1] = prev;
                 clear              = 0;
             }
-            if ((work->field_5A & 0x3FF) == 14) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 14) {
                 prev = work->field_848[1];
                 if (prev != 14) {
                     work->field_848[1] = 14;
@@ -2856,7 +2625,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
             }
             break;
         case 20:
-            if ((work->field_5A & 0x3FF) == 6) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 6) {
                 prev = work->field_848[1];
                 if (prev != 6) {
                     work->field_848[1] = 6;
@@ -2877,7 +2646,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                 work->field_848[1] = prev;
                 clear              = 0;
             }
-            if ((work->field_5A & 0x3FF) == 10) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 10) {
                 prev = work->field_848[1];
                 if (prev != 10) {
                     work->field_848[1] = 10;
@@ -2898,7 +2667,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
                 work->field_848[1] = prev;
                 clear              = 0;
             }
-            if ((work->field_5A & 0x3FF) == 14) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 14) {
                 prev = work->field_848[1];
                 if (prev != 14) {
                     work->field_848[1] = 14;
@@ -2929,49 +2698,49 @@ static s32 func_actor_421600_80133CAC(Task* arg0, Actor421600Work* work)
 
 static void func_actor_421600_80134604(Task* arg0)
 {
-    s32                  index;
-    u32                  table;
-    Actor421600AnimWork* seekWork;
-    Actor421600AnimWork* resetWork;
-    Actor421600AnimWork* turnWork;
-    Actor421600AnimWork* secondaryWork;
-    Actor421600AnimWork* tickWork;
-    Actor421600AnimWork* work;
-    s32                  targetAngle;
-    s32                  animation;
-    s32                  updatedTurn;
-    s16                  currentTurn;
-    s16                  thirdAngle;
-    s16                  state;
-    s32                  currentAngle;
-    s16                  angle;
-    s32                  seekSlotIndex;
-    s32                  resetSlotIndex;
-    s32                  secondarySlotIndex;
-    s32                  tickSlotIndex;
-    s32                  signedTurn;
-    s32                  sound;
-    s32                  resetIndex;
-    s32                  secondaryIndex;
-    s32                  tickIndex;
-    s32                  seekIndex;
-    s32                  delta;
-    s8*                  tickSlot;
-    s8*                  seekSlot;
-    s8*                  resetSlot;
-    s8*                  secondarySlot;
-    s32                  pan;
-    s32                  currentAngleBits;
-    u16                  originalTurn;
-    s32                  targetAngleBits;
-    u16                  updatedTurnBits;
-    s32                  clampedAngle;
-    s32                  targetTurn;
+    s32               index;
+    u32               table;
+    DesertChaserWork* seekWork;
+    DesertChaserWork* resetWork;
+    DesertChaserWork* turnWork;
+    DesertChaserWork* secondaryWork;
+    DesertChaserWork* tickWork;
+    DesertChaserWork* work;
+    s32               targetAngle;
+    s32               animation;
+    s32               updatedTurn;
+    s16               currentTurn;
+    s16               thirdAngle;
+    s16               state;
+    s32               currentAngle;
+    s16               angle;
+    s32               seekSlotIndex;
+    s32               resetSlotIndex;
+    s32               secondarySlotIndex;
+    s32               tickSlotIndex;
+    s32               signedTurn;
+    s32               sound;
+    s32               resetIndex;
+    s32               secondaryIndex;
+    s32               tickIndex;
+    s32               seekIndex;
+    s32               delta;
+    s8*               tickSlot;
+    s8*               seekSlot;
+    s8*               resetSlot;
+    s8*               secondarySlot;
+    s32               pan;
+    s32               currentAngleBits;
+    u16               originalTurn;
+    s32               targetAngleBits;
+    u16               updatedTurnBits;
+    s32               clampedAngle;
+    s32               targetTurn;
 
-    work  = (Actor421600AnimWork*)arg0->work;
+    work  = (DesertChaserWork*)arg0->work;
     state = (s16)work->field_828;
     if (state == 1) {
-        if (work->field_82C != (s16)work->field_82E) {
+        if (work->field_82C != work->field_82E) {
             seekWork  = work;
             seekIndex = 1;
             table     = (u32)&D_actor_421600_80150DB4;
@@ -2979,13 +2748,13 @@ static void func_actor_421600_80134604(Task* arg0)
             do {
                 seekSlotIndex  = seekIndex;
                 seekSlot[0x39] = (u8)seekWork->field_832;
-                animation      = (s16)seekWork->field_82E;
+                animation      = seekWork->field_82E;
                 seekSlot      += sizeof(AnimationSlot);
                 index          = seekWork->field_82C * 0x19;
                 func_800B4114(&seekWork->anim, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
-            seekWork->field_82C = (s16)seekWork->field_82E;
+            seekWork->field_82C = seekWork->field_82E;
         }
         work->field_828 = 3;
         work->field_830 = 0;
@@ -2998,16 +2767,16 @@ static void func_actor_421600_80134604(Task* arg0)
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
             resetSlot      += sizeof(AnimationSlot);
-            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)(s16)resetWork->field_82E);
+            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
-        resetWork->field_82C = (s16)resetWork->field_82E;
+        resetWork->field_82C = resetWork->field_82E;
         work->field_828      = 3;
         work->field_830      = 0U;
         Mem_Set(work->field_848, 0U, 0x48U);
     }
     if (work->field_836 == 2) {
-        secondaryWork            = (Actor421600AnimWork*)arg0->work;
+        secondaryWork            = (DesertChaserWork*)arg0->work;
         secondaryIndex           = 1;
         secondarySlot            = (s8*)&secondaryWork->anim.slots;
         secondaryWork->field_83A = 0x20;
@@ -3022,8 +2791,8 @@ static void func_actor_421600_80134604(Task* arg0)
         work->field_836 = 3;
     }
     work->field_830 = (u16)(work->field_830 + 1);
-    if ((s16)work->field_82A == 0) {
-        tickWork  = (Actor421600AnimWork*)arg0->work;
+    if (work->field_82A == 0) {
+        tickWork  = (DesertChaserWork*)arg0->work;
         tickIndex = 1;
         tickSlot  = (s8*)&tickWork->anim.slots;
         do {
@@ -3040,7 +2809,7 @@ static void func_actor_421600_80134604(Task* arg0)
         }
     }
     targetAngle      = (s16)work->field_840;
-    currentAngle     = (s16)work->field_844;
+    currentAngle     = work->field_844;
     targetAngleBits  = work->field_840;
     currentAngleBits = (u16)work->field_844;
     if (currentAngle < targetAngle) {
@@ -3055,7 +2824,7 @@ static void func_actor_421600_80134604(Task* arg0)
     block_26:
         work->field_844 = targetAngleBits;
     }
-    angle        = (s16)work->field_844;
+    angle        = work->field_844;
     clampedAngle = (u16)work->field_844;
     if (angle != 0) {
         if (angle >= 0x501) {
@@ -3072,12 +2841,12 @@ static void func_actor_421600_80134604(Task* arg0)
         ActorContact_TurnJoint(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (((s16)work->field_82E == 0) && (work->field_0 == 0x26)) {
+    if ((work->field_82E == 0) && (work->field_0 == 0x26)) {
         Gfx_RotMatrixX(&arg0->extra.tmd->coords[4].coord, 0x280, 0);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&arg0->extra.tmd->coords[4]);
     }
-    turnWork     = (Actor421600AnimWork*)arg0->work;
+    turnWork     = (DesertChaserWork*)arg0->work;
     targetTurn   = turnWork->field_83E;
     originalTurn = targetTurn;
     if ((s16)targetTurn >= 0x201) {
@@ -3110,7 +2879,7 @@ static void func_actor_421600_80134604(Task* arg0)
     }
     ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
     arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
-    sound                                    = func_actor_421600_80133CAC(arg0, (Actor421600Work*)work);
+    sound                                    = func_actor_421600_80133CAC(arg0, (DesertChaserWork*)work);
     if (sound != 0) {
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -3119,8 +2888,8 @@ static void func_actor_421600_80134604(Task* arg0)
 
 static __inline__ void Actor421600_BindMatrices(Task* actor)
 {
-    Actor421600Work* work;
-    TmdObject*       obj;
+    DesertChaserWork* work;
+    TmdObject*        obj;
     work          = actor->work;
     obj           = actor->extra.tmd;
     obj->lightMtx = &work->field_E04;
@@ -3135,7 +2904,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     VECTOR              pos;
     TmdObject*          obj;
     GfxCoord*           root;
-    Actor421600Work*    work;
+    DesertChaserWork*   work;
     WorldCollisionBody* body;
     WorldCollisionBody* head;
     root        = actor->extra.tmd->coords;
@@ -3161,8 +2930,8 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_421600_8013EF38.hpMax;
     enemy->param                  = &D_actor_421600_8013EF38;
     enemy->recs                   = &work->field_90C;
-    func_800B3F84(&((Actor421600AnimWork*)work)->anim, D_actor_421600_80151028, obj, &((Actor421600AnimWork*)work)->slots[18], ((Actor421600AnimWork*)work)->slots);
-    func_800B3F84(&((Actor421600AnimWork*)work)->blendAnim, D_actor_421600_80151028, obj, &((Actor421600AnimWork*)work)->blendSlots[18], ((Actor421600AnimWork*)work)->blendSlots);
+    func_800B3F84(&work->anim, D_actor_421600_80151028, obj, work->poses, work->slots);
+    func_800B3F84(&work->blendAnim, D_actor_421600_80151028, obj, work->blendPoses, work->blendSlots);
     work->field_828 = 2;
     work->field_82A = 0;
     work->field_82E = 1;
@@ -3313,9 +3082,9 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
 /// overlay's own table, so it stays a per-overlay copy.
 static void func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2)
 {
-    SVECTOR*         sc;
-    s32              mag;
-    Actor421600Work* work;
+    SVECTOR*          sc;
+    s32               mag;
+    DesertChaserWork* work;
 
     sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag  = (arg1 >= 0) ? arg1 : -arg1;
@@ -3433,7 +3202,7 @@ static void func_actor_421600_801354D8(Task* arg0)
     s32                       hitPan;
     u16                       totalDamage;
     u32                       kind;
-    Actor421600Work*          work;
+    DesertChaserWork*         work;
     Enemy*                    enemy;
     Actor421600DamageScratch* scratch;
     Actor421600DamageScratch* head;
@@ -3688,9 +3457,9 @@ static void func_actor_421600_801354D8(Task* arg0)
 
 static void func_actor_421600_80135F6C(Task* arg0)
 {
-    SVECTOR          offset;
-    Actor421600Work* work;
-    TmdObject*       obj;
+    SVECTOR           offset;
+    DesertChaserWork* work;
+    TmdObject*        obj;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -3711,11 +3480,11 @@ static void func_actor_421600_80135F6C(Task* arg0)
         return;
     }
     func_actor_421600_80134604(arg0);
-    if ((work->field_68 & 2) && (work->field_82E == 0xD)) {
+    if ((work->slots[1].flags & 2) && (work->field_82E == 0xD)) {
         work->field_82E = 1;
         work->field_828 = 1;
     }
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         if (work->field_82E == 0xF) {
             work->field_828 = 2;
             work->field_82E = 0x10;
@@ -3723,7 +3492,7 @@ static void func_actor_421600_80135F6C(Task* arg0)
         func_actor_421600_80134604(arg0);
     }
     if (work->field_82E == 0xE) {
-        if ((u32)((work->field_5A & 0x3FF) - 8) < 2U) {
+        if ((u32)((work->slots[1].currentPose.indices.recordIndex & 0x3FF) - 8) < 2U) {
             offset.vz = 0;
             offset.vx = 0;
             offset.vy = 0x2BC;
@@ -3731,7 +3500,7 @@ static void func_actor_421600_80135F6C(Task* arg0)
                 Gp_SpawnEff(0x60054, arg0->extra.tmd->coords + 7, 0x80002300, &offset);
             }
         }
-        if ((work->field_5A & 0x3FF) == 8) {
+        if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) == 8) {
             offset.vz = 0;
             offset.vx = 0;
             offset.vy = 0x2BC;
@@ -3767,7 +3536,7 @@ static __inline__ s16 Actor421600_Zone(GfxCoord* coord)
 
 static void func_actor_421600_80136138(Task* arg0)
 {
-    Actor421600Work*  work;
+    DesertChaserWork* work;
     ActorTurnScratch *head, *blk;
     Enemy*            ctx;
     TmdObject*        obj;
@@ -3952,11 +3721,11 @@ static __inline__ void Actor421600_ShrinkCoord(GfxCoord* coord, s16 y)
 /// `field_0` state 0x16. Counting stops at 0x401.
 static void func_actor_421600_801366F4(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           ctx;
-    TmdObject*       obj;
-    s32              t;
-    u16              tick;
+    DesertChaserWork* work;
+    Enemy*            ctx;
+    TmdObject*        obj;
+    s32               t;
+    u16               tick;
 
     work = arg0->work;
     obj  = arg0->extra.tmd;
@@ -4000,12 +3769,12 @@ static void func_actor_421600_801366F4(Task* arg0)
 
 static void func_actor_421600_801369A0(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           ctx;
-    Enemy*           found;
-    s32              hi;
-    s32              id;
-    s32              stageAreaId;
+    DesertChaserWork* work;
+    Enemy*            ctx;
+    Enemy*            found;
+    s32               hi;
+    s32               id;
+    s32               stageAreaId;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
@@ -4091,9 +3860,9 @@ static void func_actor_421600_801369A0(Task* arg0)
 /// `field_0` instead; `func_actor_421600_80138D24` picks its aim scale with it.
 static __inline__ s16 Actor421600_HasRecord10(Task* arg0)
 {
-    Actor421600Work* work  = arg0->work;
-    s16              found = 0;
-    s16              i;
+    DesertChaserWork* work  = arg0->work;
+    s16               found = 0;
+    s16               i;
 
     for (i = 0; i < 0xC; i++) {
         if (!work->field_CE4[i].key.value) {
@@ -4108,9 +3877,9 @@ static __inline__ s16 Actor421600_HasRecord10(Task* arg0)
 
 static void func_actor_421600_80136C88(Task* arg0)
 {
-    Actor421600Work*       work;
+    DesertChaserWork*      work;
     Enemy*                 ctx;
-    Actor421600Work*       move;
+    DesertChaserWork*      move;
     ActorTurnScratch*      head;
     ActorTurnScratch*      scratch;
     TmdObject*             obj;
@@ -4174,7 +3943,7 @@ static void func_actor_421600_80136C88(Task* arg0)
     scratch->angle  = yaw;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, yaw, 1);
     records = &work->field_90C;
-    if ((s16)work->field_82A == 0) {
+    if (work->field_82A == 0) {
         if (Actor421600_HasRecord10(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
@@ -4186,7 +3955,7 @@ static void func_actor_421600_80136C88(Task* arg0)
     if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC) == 1) {
         magnitude = abs((s16)work->field_840);
         if (magnitude < 0x80)
-            work->field_6 = (u16)work->field_6 + 1;
+            work->field_6 = work->field_6 + 1;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     playerCoord                           = arg0->extra.tmd->coords;
@@ -4277,7 +4046,7 @@ static void func_actor_421600_801373D4(Task* arg0)
     Task*               player;
     TmdObject*          obj;
     Enemy*              ctx;
-    Actor421600Work*    work;
+    DesertChaserWork*   work;
     GameActor*          playerWork;
     ActorFacingScratch* scratch;
 
@@ -4303,7 +4072,7 @@ static void func_actor_421600_801373D4(Task* arg0)
         work->field_82A        = 0;
         work->field_83E        = 0;
         work->field_B6C.flags  = (u16)(work->field_B6C.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        work->field_832        = (u16)work->field_834;
+        work->field_832        = work->field_834;
         func_actor_421600_80134604(arg0);
         work->field_CCC.ends[1].vz = 0x320;
         work->field_6              = 0U;
@@ -4532,14 +4301,14 @@ static void func_actor_421600_801373D4(Task* arg0)
     if (work->field_82E == 2) {
         work->field_8 = (u16)(work->field_8 + 1);
     }
-    if ((s16)work->field_8 > (s16)work->field_EA2) {
+    if (work->field_8 > (s16)work->field_EA2) {
         temp_v1_2 = work->field_82E;
         if (temp_v1_2 == 2) {
             var_v0_25 = scratch->targetYaw;
             if (var_v0_25 < 0) {
                 var_v0_25 = -var_v0_25;
             }
-            if ((var_v0_25 < 0x80) || (work->field_68 & 0x100)) {
+            if ((var_v0_25 < 0x80) || (work->slots[1].flags & 0x100)) {
                 work->field_82E = 3;
                 work->field_828 = temp_v1_2;
                 pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -4547,7 +4316,7 @@ static void func_actor_421600_801373D4(Task* arg0)
             }
         }
     }
-    if ((s16)work->field_8 >= 0xF) {
+    if (work->field_8 >= 0xF) {
         var_v0_26 = scratch->targetYaw;
         if (var_v0_26 < 0) {
             var_v0_26 = -var_v0_26;
@@ -4564,7 +4333,7 @@ static void func_actor_421600_801373D4(Task* arg0)
         }
     }
     if (work->field_82E == 3) {
-        switch (work->field_5A & 0x3FF) {
+        switch (work->slots[1].currentPose.indices.recordIndex & 0x3FF) {
             case 5:
                 spawnEffect = 1;
                 effectJoint = 7;
@@ -4629,20 +4398,20 @@ static void func_actor_421600_801373D4(Task* arg0)
 /// writes.
 static void func_actor_421600_8013848C(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           ctx;
-    SVECTOR*         head;
-    SVECTOR*         vec;
-    SVECTOR*         gteVec;
-    TmdObject*       obj;
-    Task*            player;
-    s32              x;
-    s32              z;
-    s32              sound;
-    s32              pan;
-    s32              eventPan;
-    s32              state;
-    u16              tick;
+    DesertChaserWork* work;
+    Enemy*            ctx;
+    SVECTOR*          head;
+    SVECTOR*          vec;
+    SVECTOR*          gteVec;
+    TmdObject*        obj;
+    Task*             player;
+    s32               x;
+    s32               z;
+    s32               sound;
+    s32               pan;
+    s32               eventPan;
+    s32               state;
+    u16               tick;
 
     work                          = arg0->work;
     player                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -4695,7 +4464,7 @@ static void func_actor_421600_8013848C(Task* arg0)
         }
     }
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         state = work->field_E90.word & 0xFFFFFF;
         if (state == 0x11402) {
             state = 5;
@@ -4709,15 +4478,15 @@ static void func_actor_421600_8013848C(Task* arg0)
 
 static void func_actor_421600_80138750(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           ctx;
-    TmdObject*       obj;
-    SVECTOR*         head;
-    SVECTOR*         vec;
-    s32              x, z;
-    s16              yaw;
-    s32              outside;
-    s32              state;
+    DesertChaserWork* work;
+    Enemy*            ctx;
+    TmdObject*        obj;
+    SVECTOR*          head;
+    SVECTOR*          vec;
+    s32               x, z;
+    s16               yaw;
+    s32               outside;
+    s32               state;
 
     head = SCRATCH_STACK_CURSOR(SVECTOR);
     vec  = (SCRATCH_STACK_CURSOR(SVECTOR) = head - 2);
@@ -4756,10 +4525,10 @@ static void func_actor_421600_80138750(Task* arg0)
     }
     work->field_6 += 1;
     func_actor_421600_80134604(arg0);
-    state = (s16)work->field_82E;
+    state = work->field_82E;
     switch (state) {
         case 5:
-            if (work->field_68 & 0x100) {
+            if (work->slots[1].flags & 0x100) {
                 actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
                 outside = actorOutsideRadius(vec, 2000);
                 if (outside) {
@@ -4802,10 +4571,10 @@ static void func_actor_421600_80138750(Task* arg0)
 /// the 0xB8C walk is what runs.
 static void func_actor_421600_80138D24(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           ctx;
-    TmdObject*       obj;
-    s16              found;
+    DesertChaserWork* work;
+    Enemy*            ctx;
+    TmdObject*        obj;
+    s16               found;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -4827,10 +4596,10 @@ static void func_actor_421600_80138D24(Task* arg0)
     }
     work->field_6++;
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         work->field_0 = 2;
     }
-    if (((u32)(work->field_6 - 9) < 0x10) && ((s16)work->field_8 < 5)) {
+    if (((u32)(work->field_6 - 9) < 0x10) && (work->field_8 < 5)) {
         if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC) != 0) {
             work->field_8++;
         }
@@ -4863,15 +4632,15 @@ static void func_actor_421600_80138D24(Task* arg0)
 /// saved register.
 static void func_actor_421600_8013903C(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           ctx;
-    TmdObject*       obj;
-    SVECTOR*         head;
-    SVECTOR*         vec;
-    GfxCoord*        coord;
-    GfxCoord*        coord2;
-    s16              angle;
-    s32              view;
+    DesertChaserWork* work;
+    Enemy*            ctx;
+    TmdObject*        obj;
+    SVECTOR*          head;
+    SVECTOR*          vec;
+    GfxCoord*         coord;
+    GfxCoord*         coord2;
+    s16               angle;
+    s32               view;
 
     head                           = SCRATCH_STACK_CURSOR(SVECTOR);
     SCRATCH_STACK_CURSOR(SVECTOR) -= 2;
@@ -4939,7 +4708,7 @@ static void func_actor_421600_8013903C(Task* arg0)
 /// player is close. Ends by clearing the model's `composeStamp`.
 static void func_actor_421600_801392A8(Task* actor)
 {
-    Actor421600Work*     work;
+    DesertChaserWork*    work;
     Enemy*               enemy;
     TmdObject*           obj;
     GfxCoord*            coord;
@@ -5006,16 +4775,16 @@ static void func_actor_421600_801392A8(Task* actor)
 /// `field_0` from `hp` and the buildup bit of `reactionFlags`.
 static void func_actor_421600_8013947C(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           ctx;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    s32              sound;
-    s32              pan;
-    s32              eventSound;
-    s32              eventPan;
-    s32              x;
-    s32              z;
+    DesertChaserWork* work;
+    Enemy*            ctx;
+    GfxCoord*         coord;
+    TmdObject*        obj;
+    s32               sound;
+    s32               pan;
+    s32               eventSound;
+    s32               eventPan;
+    s32               x;
+    s32               z;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
@@ -5074,7 +4843,7 @@ static void func_actor_421600_8013947C(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         if (ctx->hp > 0) {
             if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 4;
@@ -5090,7 +4859,7 @@ static void func_actor_421600_8013947C(Task* arg0)
 static void func_actor_421600_80139718(Task* arg0)
 {
     s32                    radius = 0x5DC;
-    Actor421600Work*       work;
+    DesertChaserWork*      work;
     WorldCollisionContact* record;
     GfxCoord*              coord;
     GfxCoord*              coord2;
@@ -5309,7 +5078,7 @@ static void func_actor_421600_80139718(Task* arg0)
     scratch->delta  = yaw;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
     record = &work->field_90C;
-    if ((s16)work->field_82A == 0) {
+    if (work->field_82A == 0) {
         if (Actor421600_HasRecord10(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
@@ -5330,11 +5099,11 @@ static void func_actor_421600_80139718(Task* arg0)
     target2                               = &scratch->target;
     target2->vy                           = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
     target2->vz                           = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-    if ((s16)work->field_8 > (s16)work->field_EA6) {
+    if (work->field_8 > (s16)work->field_EA6) {
         if ((s16)work->field_EAA <= 0) {
 
             if (actorOutsideRadius(&scratch->target, radius)) {
-                if (!actorOutsideRadius(&scratch->target, 0x1F40) && (s16)work->field_8 >= 0x1C3) {
+                if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
                     facing5  = arg0->extra.tmd->coords;
                     angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
                     delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
@@ -5401,14 +5170,14 @@ static void func_actor_421600_80139718(Task* arg0)
 
 static void func_actor_421600_8013A404(Task* arg0)
 {
-    Actor421600Work* temp_s0;
-    GfxCoord*        temp_v0_2;
-    s32              temp_a0;
-    s32              temp_a1;
-    s32              var_a0;
-    s32              var_v1;
-    u32              temp_v0;
-    u8               temp_v1;
+    DesertChaserWork* temp_s0;
+    GfxCoord*         temp_v0_2;
+    s32               temp_a0;
+    s32               temp_a1;
+    s32               var_a0;
+    s32               var_v1;
+    u32               temp_v0;
+    u8                temp_v1;
 
     temp_s0 = arg0->work;
     if (temp_s0->field_4 != 0) {
@@ -5492,7 +5261,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     TmdObject*                obj;
     Enemy*                    ctx;
     Task*                     player;
-    Actor421600Work*          work;
+    DesertChaserWork*         work;
     Enemy*                    enemy;
     Actor421600AttackScratch* head;
     Actor421600AttackScratch* scratch;
@@ -5649,7 +5418,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     actorMoveForward(stepCoord, 200);
     work->field_E9E = (s16)((u16)work->field_E9E + 0xC8);
     if (work->field_82E == 3) {
-        switch (work->field_5A & 0x3FF) {
+        switch (work->slots[1].currentPose.indices.recordIndex & 0x3FF) {
             case 5:
                 spawnEffect = 1;
                 part        = 7;
@@ -5697,7 +5466,7 @@ static void func_actor_421600_8013A554(Task* arg0)
 
 static void func_actor_421600_8013B00C(Task* arg0)
 {
-    Actor421600Work*  work;
+    DesertChaserWork* work;
     ActorTurnScratch* head;
     ActorTurnScratch* blk;
     Enemy*            ctx;
@@ -5859,7 +5628,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
 /// leave open.
 static void func_actor_421600_8013B4C4(Task* arg0)
 {
-    Actor421600Work*  work;
+    DesertChaserWork* work;
     ActorTurnScratch* head;
     ActorTurnScratch* blk;
     Enemy*            ctx;
@@ -5972,8 +5741,8 @@ static void func_actor_421600_8013B4C4(Task* arg0)
 
 static void func_actor_421600_8013B8E0(Task* arg0)
 {
-    Actor421600Work* temp_s1;
-    TmdObject*       temp_a0;
+    DesertChaserWork* temp_s1;
+    TmdObject*        temp_a0;
 
     temp_s1 = arg0->work;
     if (temp_s1->field_4 != 0) {
@@ -5993,7 +5762,7 @@ static void func_actor_421600_8013B8E0(Task* arg0)
         func_actor_421600_80134604(arg0);
     }
     func_actor_421600_80134604(arg0);
-    if (temp_s1->field_68 & 0x100) {
+    if (temp_s1->slots[1].flags & 0x100) {
         arg0->extra.tmd->coords->coord.t[0]   = -0x334;
         arg0->extra.tmd->coords->coord.t[1]   = 0;
         arg0->extra.tmd->coords->coord.t[2]   = -0x4C4;
@@ -6017,7 +5786,7 @@ static __inline__ s32 Actor421600_RouteZone(s32 x, s32 z)
 static void func_actor_421600_8013BA70(Task* arg0)
 {
     s32                      radius = 0x5DC;
-    Actor421600Work*         work;
+    DesertChaserWork*        work;
     Enemy*                   enemy;
     GfxCoord*                zoneCoord;
     GfxCoord*                clampCoord;
@@ -6246,7 +6015,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
     scratch->delta  = yaw;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
     record = &work->field_90C;
-    if ((s16)work->field_82A == 0) {
+    if (work->field_82A == 0) {
         if (Actor421600_HasRecord10(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
@@ -6267,11 +6036,11 @@ static void func_actor_421600_8013BA70(Task* arg0)
     target2                               = &scratch->target;
     target2->vy                           = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
     target2->vz                           = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-    if ((s16)work->field_8 > (s16)work->field_EA2) {
+    if (work->field_8 > (s16)work->field_EA2) {
         if ((s16)work->field_EAA <= 0) {
 
             if (actorOutsideRadius(&scratch->target, radius)) {
-                if (!actorOutsideRadius(&scratch->target, 0x1F40) && (s16)work->field_8 >= 0x1C3) {
+                if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
                     facing5  = arg0->extra.tmd->coords;
                     angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
                     delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
@@ -6365,10 +6134,10 @@ static void func_actor_421600_8013BA70(Task* arg0)
 /// re-streamed. Frame 0xA writes the 0x16 state. The counter stops at 0x400.
 static void func_actor_421600_8013C8E0(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           ctx;
-    TmdObject*       obj;
-    SVECTOR          vec;
+    DesertChaserWork* work;
+    Enemy*            ctx;
+    TmdObject*        obj;
+    SVECTOR           vec;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
@@ -6424,7 +6193,7 @@ static void func_actor_421600_8013CD3C(Task* arg0)
 {
     TmdObject*            obj;
     Enemy*                ctx;
-    Actor421600Work*      work;
+    DesertChaserWork*     work;
     GfxCoord*             coord;
     GfxCoord*             coord2;
     GfxCoord*             targetCoord;
@@ -6516,7 +6285,7 @@ static void func_actor_421600_8013CD3C(Task* arg0)
     if (abs(scratch->delta) < 0x20) {
         work->field_0 = 0x1C;
     }
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         work->field_0 = 0x1C;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
@@ -6526,7 +6295,7 @@ static void func_actor_421600_8013D1DC(Task* arg0)
 {
     TmdObject*            obj;
     Enemy*                ctx;
-    Actor421600Work*      work;
+    DesertChaserWork*     work;
     GfxCoord*             coord;
     GfxCoord*             coord2;
     GfxCoord*             targetCoord;
@@ -6615,7 +6384,7 @@ static void func_actor_421600_8013D1DC(Task* arg0)
     if (abs(scratch->delta) < 0x20) {
         work->field_0 = 0x1C;
     }
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         work->field_0 = 0x1C;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
@@ -6684,12 +6453,12 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
     u8                        kind;
     s32                       contactKind;
     void**                    scratchHead;
-    Actor421600AnimCommand*   nextCommand;
-    Actor421600Work*          actorWork;
-    Actor421600Work*          actorWork2;
-    Actor421600Work*          work;
+    DesertChaserAnimCommand*  nextCommand;
+    DesertChaserWork*         actorWork;
+    DesertChaserWork*         actorWork2;
+    DesertChaserWork*         work;
     Task*                     player;
-    Actor421600AnimCommand*   command;
+    DesertChaserAnimCommand*  command;
     Task*                     slot;
     Task*                     slot2;
     Actor421600UpdateScratch* scratch;
@@ -7000,7 +6769,7 @@ return_one:
 
 s32 func_actor_421600_8013E654(Task* task)
 {
-    Actor421600Work* work = (Actor421600Work*)task->work;
+    DesertChaserWork* work = (DesertChaserWork*)task->work;
 
     work->field_EAC = 0x1E;
     return 1;
@@ -7010,10 +6779,10 @@ s32 func_actor_421600_8013E654(Task* task)
 /// display nodes, clear the enemy's `recs`, then `Gp_DestroyEnemy`.
 static void func_actor_421600_8013E668(Task* task)
 {
-    Actor421600Work* work;
-    Enemy*           enemy;
+    DesertChaserWork* work;
+    Enemy*            enemy;
 
-    work  = (Actor421600Work*)task->work;
+    work  = (DesertChaserWork*)task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
     if (work != NULL) {
         if (work->field_E94 != NULL) {
@@ -7054,9 +6823,9 @@ static s8 func_actor_421600_8013E830(s32 arg0, s32 arg1)
 
 static void func_actor_421600_8013E858(Task* arg0)
 {
-    TmdObject*       obj;
-    Actor421600Work* work;
-    Enemy*           enemy;
+    TmdObject*        obj;
+    DesertChaserWork* work;
+    Enemy*            enemy;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -7071,11 +6840,11 @@ static void func_actor_421600_8013E858(Task* arg0)
 
 static void func_actor_421600_8013E8AC(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           enemy;
-    TmdObject*       obj;
-    s32              value;
-    u32              magnitude;
+    DesertChaserWork* work;
+    Enemy*            enemy;
+    TmdObject*        obj;
+    s32               value;
+    u32               magnitude;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -7090,7 +6859,7 @@ static void func_actor_421600_8013E8AC(Task* arg0)
         work->field_B6C.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         do {
             func_actor_421600_80134604(arg0);
-        } while ((work->field_5A & 0x3FF) != 0xC);
+        } while ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) != 0xC);
         work->field_832 = 0x20;
         return;
     }
@@ -7116,9 +6885,9 @@ static void func_actor_421600_8013E8AC(Task* arg0)
 /// flag 0x100 is up, go to state 5 when `field_E90` masks to 0x11402, else 2.
 static void func_actor_421600_8013E9D8(Task* arg0)
 {
-    TmdObject*       obj;
-    Actor421600Work* work;
-    s32              state;
+    TmdObject*        obj;
+    DesertChaserWork* work;
+    s32               state;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -7136,7 +6905,7 @@ static void func_actor_421600_8013E9D8(Task* arg0)
         return;
     }
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         state = work->field_E90.word & 0xFFFFFF;
         if (state == 0x11402) {
             state = 5;
@@ -7149,8 +6918,8 @@ static void func_actor_421600_8013E9D8(Task* arg0)
 
 static void func_actor_421600_8013EAAC(Task* arg0)
 {
-    TmdObject*       obj;
-    Actor421600Work* work;
+    TmdObject*        obj;
+    DesertChaserWork* work;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -7169,15 +6938,15 @@ static void func_actor_421600_8013EAAC(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         work->field_0 = 0x1C;
     }
 }
 
 static void func_actor_421600_8013EB7C(Task* arg0)
 {
-    TmdObject*       obj;
-    Actor421600Work* work;
+    TmdObject*        obj;
+    DesertChaserWork* work;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -7194,15 +6963,15 @@ static void func_actor_421600_8013EB7C(Task* arg0)
         func_actor_421600_80134604(arg0);
     }
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         work->field_0 = 2;
     }
 }
 
 static void func_actor_421600_8013EC28(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           enemy;
+    DesertChaserWork* work;
+    Enemy*            enemy;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -7222,7 +6991,7 @@ static void func_actor_421600_8013EC28(Task* arg0)
         }
     }
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         if (work->field_82E == 0xA) {
             if (enemy->hp > 0) {
                 if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
@@ -7239,8 +7008,8 @@ static void func_actor_421600_8013EC28(Task* arg0)
 
 static void func_actor_421600_8013ED24(Task* arg0)
 {
-    Actor421600Work* work;
-    Enemy*           enemy;
+    DesertChaserWork* work;
+    Enemy*            enemy;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -7259,7 +7028,7 @@ static void func_actor_421600_8013ED24(Task* arg0)
         }
     }
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         if (enemy->hp > 0) {
             if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 4;
@@ -7274,9 +7043,9 @@ static void func_actor_421600_8013ED24(Task* arg0)
 
 static void func_actor_421600_8013EE0C(Task* arg0)
 {
-    TmdObject*       obj;
-    Actor421600Work* work;
-    Enemy*           enemy;
+    TmdObject*        obj;
+    DesertChaserWork* work;
+    Enemy*            enemy;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -7296,7 +7065,7 @@ static void func_actor_421600_8013EE0C(Task* arg0)
         }
     }
     func_actor_421600_80134604(arg0);
-    if (work->field_68 & 0x100) {
+    if (work->slots[1].flags & 0x100) {
         work->field_0 = 0x15;
     }
 }
