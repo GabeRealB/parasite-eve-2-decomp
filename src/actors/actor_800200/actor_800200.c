@@ -61,16 +61,16 @@ typedef struct {
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, GpCopyArg*);
-        s32 (*call3)(Task*, s32, GpCountArg*);
-        s32 (*call4)(Task*, s32, ActorTransform*);
-        s32 (*transform)(Task*, s32, ActorTransform*, s32);
-        s32 (*call5)(Task*, s32, ActorTransform*, GpOverrideArg*);
-        s32 (*call6)(Task*, s32, s32);
-        s32 (*call7)(Task*, s32, s32, s32);
-        s32 (*call8)(Task*, s32, GfxCoord*);
+        s32                (*call0)(Task*);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*);
+        s32                (*call2)(Task*, s32, GpCopyArg*);
+        s32                (*call3)(Task*, s32, GpCountArg*);
+        s32                (*call4)(Task*, s32, ActorTransform*);
+        s32                (*transform)(Task*, s32, ActorTransform*, s32);
+        s32                (*call5)(Task*, s32, ActorTransform*, GpOverrideArg*);
+        s32                (*call6)(Task*, s32, s32);
+        TaskMessageHandler call7;
+        s32                (*call8)(Task*, s32, GfxCoord*);
     } handler;
 } Actor800200MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor800200MessageEntry, 8);

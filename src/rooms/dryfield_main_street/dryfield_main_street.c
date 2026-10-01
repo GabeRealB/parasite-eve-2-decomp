@@ -173,7 +173,7 @@ void                        func_dryfield_main_street_8017E354(s32);
 
 extern DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584;
 s32                                      func_dryfield_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                                      func_dryfield_main_street_8017E05C(Task*, s32, DirectionActionRequest* msg, s32);
+s32                                      func_dryfield_main_street_8017E05C(Task*, s32, TaskMessageArg firstArg, s32);
 void                                     func_dryfield_main_street_8017E1C0(Task*);
 void                                     func_dryfield_main_street_8017E3A8(Task*);
 
@@ -989,8 +989,10 @@ s32 func_dryfield_main_street_8017E054(Task* task, s32 msgId, TaskMessageArg arg
 /// clear): forgets the task `func_dryfield_main_street_8017E320` spawned, calls
 /// `func_800E8634` with the room's two data blocks, and sets nibbles 0x5F and
 /// 0x155 and clears nibble 3. Always answers 0.
-s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
+s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* msg = firstArg.pointer;
+
     if ((msg->actionId == 1) && (GameFlag_GetNibble(0x5F) == 0)) {
         func_dryfield_main_street_8017E4A4(0);
         func_800E8634(D_dryfield_main_street_80181624, 0, D_dryfield_main_street_80181A14);

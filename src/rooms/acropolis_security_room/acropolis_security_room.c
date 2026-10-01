@@ -191,9 +191,9 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32  (*call1)(Task*, s32, s32, s32);
-        void (*call2)(Task*, s32, DirectionActionRequest*);
+        TaskMessageHandler call0;
+        TaskMessageHandler call1;
+        void               (*call2)(Task*, s32, DirectionActionRequest*);
     } handler;
 } AcropolisSecurityRoomMsgEntry;
 STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomMsgEntry, 8);

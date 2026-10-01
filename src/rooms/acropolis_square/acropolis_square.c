@@ -199,7 +199,7 @@ static void func_acropolis_square_801822A4(Task* task);
 
 s32  func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_square_801819BC(Task*, s32, s32, s32);
-s32  func_acropolis_square_801820D8(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32  func_acropolis_square_801820D8(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 s32  func_acropolis_square_80182108(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_acropolis_square_80182110(Task*, s32, s32, TaskMessageArg);
 void func_acropolis_square_80181AEC(Task*);
@@ -1428,8 +1428,10 @@ void func_acropolis_square_80181DD0(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_acropolis_square_801820D8(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_acropolis_square_801820D8(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 0) {
         Gp_SpawnIfCapIdle(5, 0);
     }

@@ -1097,13 +1097,13 @@ s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, TaskMe
 /// `D_acropolis_helicopter_landing_pad_80184E0C` is up and the phase is
 /// still 0, starts the helicopter sequence: flags the session, loads the
 /// bank pair, moves to phase 1, enables trigger 4 and disables trigger 8. Action 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
-s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, DirectionActionRequest* msg, TaskMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
     u8                     actionId;
     WorldCollisionTrigger* obj;
     WorldCollisionTrigger* obj2;
 
-    if ((msg->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
+    if ((((const DirectionActionRequest*)firstArg.pointer)->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
         gStageSceneMusicEntry   = 1;
         func_800E8634(D_acropolis_helicopter_landing_pad_80183A34, 0, D_acropolis_helicopter_landing_pad_80183FA4);
@@ -1113,7 +1113,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, Direct
         obj->flags                                 |= WORLD_COLLISION_TRIGGER_ENABLED;
         obj2->flags                                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
-    actionId = msg->actionId;
+    actionId = ((const DirectionActionRequest*)firstArg.pointer)->actionId;
     if (actionId == 1) {
         D_acropolis_helicopter_landing_pad_80187F84 = actionId;
     }

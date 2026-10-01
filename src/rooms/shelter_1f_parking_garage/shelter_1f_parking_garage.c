@@ -90,7 +90,7 @@ extern WorldCoordRoomLights       D_shelter_1f_parking_garage_801815E0[1];
 s32  func_shelter_1f_parking_garage_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 void func_shelter_1f_parking_garage_8017DAF0(Task*);
 
 TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
@@ -481,8 +481,10 @@ s32 func_shelter_1f_parking_garage_8017DE44(Task* task, s32 msgId, TaskMessageAr
     return 0;
 }
 
-s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 0xA) {
         Gp_MsgPlayerWeapon(0);
         Gp_RunCapCmd1(2);

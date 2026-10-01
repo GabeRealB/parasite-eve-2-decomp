@@ -88,9 +88,9 @@ extern s16 gRoamerReleasePending;
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, TaskMessageArg, TaskMessageArg);
-        s32  (*call1)(Task*, s32, u8*, TaskMessageArg);
-        void (*call2)(Task*, s32, s32);
+        TaskMessageHandler call0;
+        TaskMessageHandler call1;
+        void               (*call2)(Task*, s32, s32);
     } handler;
 } NeoArkForestZone2MsgEntry;
 STATIC_ASSERT_SIZEOF(NeoArkForestZone2MsgEntry, 8);
@@ -118,7 +118,7 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
 
 s32 func_neo_ark_forest_zone_801813BC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_forest_zone_80181494(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_forest_zone_801814B0(Task*, s32, u8*, TaskMessageArg);
+s32 func_neo_ark_forest_zone_801814B0(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 extern WorldCollisionGrid    D_neo_ark_forest_zone_80182274[1];
 extern WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6];

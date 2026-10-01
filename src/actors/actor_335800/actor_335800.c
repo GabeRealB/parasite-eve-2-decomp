@@ -112,12 +112,12 @@ extern TaskDesc D_actor_335800_8016EADC[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, ActorCommand* request, s32);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, ActorTransform*, Actor335800SpawnAnim*);
-        s32 (*call5)(Task*, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
+        TaskMessageHandler call2;
+        s32                (*call3)(Task*, s32, ActorTransform*);
+        s32                (*call4)(Task*, s32, ActorTransform*, Actor335800SpawnAnim*);
+        s32                (*call5)(Task*, s32, s32);
     } handler;
 } Actor335800MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor335800MsgEntry, 8);

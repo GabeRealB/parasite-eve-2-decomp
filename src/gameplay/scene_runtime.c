@@ -306,9 +306,9 @@ static const TaskFuncTable3 D_80093A5C;
 typedef struct {
     s32 id;
     union {
-        s32 (*find)(Task*, Task*, s32, Task**);
-        s32 (*exit)(Task*);
-        s32 (*send)(Task*, s32, s32, s32);
+        s32                (*find)(Task*, Task*, s32, Task**);
+        s32                (*exit)(Task*);
+        TaskMessageHandler send;
     } handler;
 } GpSlot4MessageEntry;
 

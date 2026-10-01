@@ -70,10 +70,10 @@ STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32);
-        s32 (*call3)(Task*, s32, s32, s32);
+        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call1)(Task*, s32, ActorTransform*);
+        s32                (*call2)(Task*, s32, s32);
+        TaskMessageHandler call3;
     } handler;
 } Actor113000MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor113000MessageEntry, 8);

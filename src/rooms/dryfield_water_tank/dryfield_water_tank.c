@@ -1020,8 +1020,10 @@ s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, RoomEventMsg* src, 
     return 1;
 }
 
-s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 1) {
         if (GameFlag_GetNibble(0x36) == 0) {
             GameFlag_SetNibble(0x36, 1);

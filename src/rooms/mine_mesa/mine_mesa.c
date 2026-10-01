@@ -287,7 +287,7 @@ void                            func_mine_mesa_80181894(Task*);
 s32 func_mine_mesa_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_mine_mesa_8017DA7C(Task*, s32, s32, TaskMessageArg);
-s32 func_mine_mesa_8017DABC(Task*, s32, DirectionActionRequest* msg, s32);
+s32 func_mine_mesa_8017DABC(Task*, s32, TaskMessageArg firstArg, s32);
 s32 func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
 
 TaskDesc D_mine_mesa_801818F8 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -2660,8 +2660,10 @@ s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
     return 0;
 }
 
-s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
+s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* msg = firstArg.pointer;
+
     switch (msg->actionId) {
         case 1:
             if (GameFlag_GetNibble(0x71) == 0) {

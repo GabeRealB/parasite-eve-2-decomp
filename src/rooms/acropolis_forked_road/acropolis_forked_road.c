@@ -48,7 +48,7 @@ static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
 s32 func_acropolis_forked_road_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_acropolis_forked_road_8017D850(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_acropolis_forked_road_8017D858(Task*, s32, s32, TaskMessageArg);
-s32 func_acropolis_forked_road_8017D8A8(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32 func_acropolis_forked_road_8017D8A8(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 GpMsgEntry D_acropolis_forked_road_80180F14[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_forked_road_8017D5EC },
@@ -160,8 +160,10 @@ s32 func_acropolis_forked_road_8017D858(Task* arg0, s32 arg1, s32 arg2, TaskMess
     return 0;
 }
 
-s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     u8 temp;
 
     if (request->actionId == 1 && (GameFlag_GetNibble(9) & 2)) {

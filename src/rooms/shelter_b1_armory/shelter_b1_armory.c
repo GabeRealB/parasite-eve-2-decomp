@@ -168,7 +168,7 @@ static void func_shelter_b1_armory_80180784(Task* task);
 s32 func_shelter_b1_armory_80180468(Task*, s32, s32, TaskMessageArg);
 s32 func_shelter_b1_armory_801805A8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_b1_armory_80180698(Task*, s32, s32, TaskMessageArg);
-s32 func_shelter_b1_armory_801806F8(Task*, s32, DirectionActionRequest* request, s32);
+s32 func_shelter_b1_armory_801806F8(Task*, s32, TaskMessageArg firstArg, s32);
 
 void func_shelter_b1_armory_80180214(Task*);
 void func_shelter_b1_armory_8018034C(Task*);
@@ -373,8 +373,10 @@ s32 func_shelter_b1_armory_80180698(Task* arg0, s32 arg1, s32 arg2, TaskMessageA
 
 /// Handler for slot-7 msg `0x13EF`: the directed action (`actionId` 1) that
 /// spawns the armory script.
-s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
+s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 1) {
         Gp_MsgPlayerWeapon(0);
         Task_SpawnFromTable(D_shelter_b1_armory_801824E8, 1, 0, 0);

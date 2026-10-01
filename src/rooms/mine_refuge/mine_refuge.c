@@ -182,7 +182,7 @@ extern WorldCoordRoomLights       D_mine_refuge_80182760[1];
 s32                               func_mine_refuge_8017FBB4(Task*, s32, s32, s32);
 s32                               func_mine_refuge_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_mine_refuge_8017FC2C(Task*, s32, s32, TaskMessageArg);
-s32                               func_mine_refuge_8017FCD0(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32                               func_mine_refuge_8017FCD0(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 s32                               func_mine_refuge_8017FD48(Task*, s32, s32, s32);
 void                              func_mine_refuge_8017FA08(Task*);
 void                              func_mine_refuge_8017FDBC(Task*);
@@ -650,8 +650,10 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, TaskMessageArg ar
     return 0;
 }
 
-s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     u8 actionId = request->actionId;
 
     if (actionId == 1) {

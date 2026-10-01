@@ -67,11 +67,11 @@ extern TaskDesc D_actor_120400_8013E748[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, ActorTransform*, Actor120400SpawnAnim*);
-        s32 (*call4)(Task*, s32, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call2)(Task*, s32, ActorTransform*);
+        s32                (*call3)(Task*, s32, ActorTransform*, Actor120400SpawnAnim*);
+        TaskMessageHandler call4;
     } handler;
 } Actor120400MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor120400MsgEntry, 8);

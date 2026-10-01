@@ -101,10 +101,10 @@ extern Task*        D_acropolis_promenade_801862D8;
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, TaskMessageArg, TaskMessageArg);
-        s32  (*call1)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32  (*call2)(Task*, s32, s32, TaskMessageArg);
-        void (*call3)(void);
+        TaskMessageHandler call0;
+        TaskMessageHandler call1;
+        TaskMessageHandler call2;
+        void               (*call3)(void);
     } handler;
 } AcropolisPromenadeMsgEntry;
 STATIC_ASSERT_SIZEOF(AcropolisPromenadeMsgEntry, 8);

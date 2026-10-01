@@ -94,9 +94,9 @@ extern TaskDesc D_shelter_b1_pod_access_tunnel_801810CC;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call2)(s32, s32, s32);
+        s32                (*call0)(void);
+        TaskMessageHandler call1;
+        s32                (*call2)(s32, s32, s32);
     } handler;
 } ShelterB1PodAccessTunnelMessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB1PodAccessTunnelMessageEntry, 8);

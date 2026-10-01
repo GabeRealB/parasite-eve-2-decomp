@@ -1341,7 +1341,7 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
 A *trailing* unused parameter is invisible in the body, so its existence is only
 in the caller's matched assembly and in the handler type: the call site sets
 `addu $a3,$zero,$zero` in the `jal` delay slot, which GCC emits only for a fourth
-argument, and `GpMsgHandler` is `s32 (*)(Task*, s32, s32, s32)` - both give the
+argument, and `TaskMessageHandler` is `s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` - both give the
 arity 4, and the typedef gives the return type the caller's sloppy `extern void`
 had hidden.
 
@@ -21101,7 +21101,7 @@ with no calls and no data references makes the body promotable once matched;
 `overlay_dup_index.py promote` then shares it with `actor_160700`, which carries
 the same 25 instructions at `0x8013265C`.
 
-The same arity trap takes out the room `GpMsgHandler`s, where m2c cannot even
+The same arity trap takes out the room `TaskMessageHandler`s, where m2c cannot even
 see the convention: the body is reached through a lone `.word` in the room's
 `_data`, so with the message id unused m2c emits a *one*-parameter signature
 and the payload lands in `$a0` instead of `$a2`. `func_mine_secret_passage_8017D898`
@@ -21116,7 +21116,7 @@ The same trap reports as a `regs` penalty only while the seed *keeps* a
 placeholder for the dead argument. When **every** leading parameter is dead,
 m2c's seed drops them from the signature, and then the symptom is a **missing
 instruction**, not a wrong register. A room message handler takes
-`GpMsgHandler`'s `s32 (*)(Task*, s32, s32, s32)` shape; for
+`TaskMessageHandler`'s `s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` shape; for
 `func_neo_ark_submarine_tunnel_8017F2C8` only the third one is read, and m2c
 emitted `s32 f(s32 arg2)` — so the value arrived in `$a0` and the target's
 `move $a0,$a2` had nothing to reproduce. The prologue is the tell: a `move`
@@ -46750,8 +46750,9 @@ What is different:
 
 The structure that *is* universal, and the better anchor:
 
-* `Task::msgTable` holds a `GpMsgEntry[]` -- `{s32 id; GpMsgHandler handler;}`,
-  already defined in `include/gameplay/D4.h` -- terminated by `0x7FFFFFFF` with
+* `Task::msgTable` holds id/handler records viewed by the dispatcher as
+  `GpMsgEntry[]` -- `{s32 id; TaskMessageHandler handler;}`,
+  already defined in `include/gameplay/message.h` -- terminated by `0x7FFFFFFF` with
   one zero word after it. `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
   are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
@@ -49094,8 +49095,8 @@ costs two instructions the target does not have.
 ## The same invention at a `jalr` also costs the extending load its fold
 
 A second cost, and the one that does not look like a call-site problem. The
-message handlers are reached through `Task::msgTable`, a table of `GpMsgHandler`
-— four slots — so the third argument is a message record pointer, not a value.
+message handlers are reached through `Task::msgTable` with `TaskMessageHandler`'s
+four argument positions. For this message the third argument is a record pointer.
 In `func_actor_361100_80163750` m2c saw the halfword the handler had just loaded
 still sitting in `$a1` at the `jalr` and passed it as an argument:
 
@@ -62214,7 +62215,7 @@ and byte-identical to ours but for `%hi(D_actor_461800_80143894)` where we have
 `%hi(ActorsShared80131f9cWork)`: same opcodes, same `$a2`, same `0x4EC`
 displacement, same `0x14`. Porting that body with the global renamed scored
 100% on the first build, the only other change being that the pointer is the
-*third* parameter (the payload of a `GpMsgHandler`), which is what puts it in
+*third* parameter (the payload of a `TaskMessageHandler`), which is what puts it in
 `$a2` rather than `$a0`.
 
 On a body this small the constant is the whole function, so the grep is
@@ -63531,7 +63532,7 @@ mismatch is on.
 
 ## A `Gp_DispatchMsg` handler takes four arguments even when it reads two
 
-Overlay message handlers are reached through a `{ s32 id, GpMsgHandler handler }`
+Overlay message handlers are reached through a `{ s32 id, TaskMessageHandler handler }`
 table in the overlay's data (`D_actor_323000_801739D0`), and
 `Gp_DispatchMsg` forwards `(Task*, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)` to
 the entry with all four registers live. A
@@ -74820,7 +74821,7 @@ value is the *second* one. The real caller is `Gp_DispatchMsg` in gameplay,
 which walks the `GpMsgEntry` table at `Task::msgTable` and calls
 
 ```c
-typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 return entry->handler(arg0, arg1, arg2, arg3);
 ```
 
@@ -76983,11 +76984,12 @@ matches -- same instruction count, same block topology, same delay slots -- so
 the build reports a two-byte `stack` penalty that no dump explains, because
 there is no codegen difference at all. The argument index is the whole bug.
 
-The actors' message handlers are all `GpMsgHandler` (`include/gameplay/D4.h`),
+The actors' message dispatch uses the four argument positions of `TaskMessageHandler`
+(`include/gameplay/message.h`),
 and `Gp_DispatchMsg` ends in `entry->handler(index, value, arg2, arg3)`:
 
 ```c
-typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 ```
 
 so a handler touching `$a2` or `$a3` has the payload in that slot. Write the
@@ -85191,13 +85193,13 @@ one slot. That signature - a single register displaced by one argument slot,
 nothing else - is arity, not allocation.
 
 The actor message handlers give the arity directly. They are installed in a
-`GpMsgEntry` table (`{ s32 id; GpMsgHandler handler; }`, terminator
+`GpMsgEntry` table (`{ s32 id; TaskMessageHandler handler; }`, terminator
 `0x7FFFFFFF`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
 `0x7DB` row points at this function. `Gp_DispatchMsg` walks that table and
 calls `entry->handler(index, value, arg2, arg3)`, so the handler's full
 signature is:
 
-    typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+    typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 
 Declare every parameter up to the last one the body reads, even when the body
 ignores the ones before it:
@@ -85639,7 +85641,7 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
 ```
 
 The message handlers in this family all have type
-`s32 (*)(Task*, s32, s32, s32)` (`GpMsgHandler`, `include/gameplay/D4.h`), so the
+`s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` (`TaskMessageHandler`, `include/gameplay/message.h`), so the
 payload is argument 3 and the unused `index`/`value` still have to be declared.
 Read a small `stack` as "check the argument registers" whenever
 `stack_accesses` is 0; splitting locals is the wrong move.
@@ -85966,7 +85968,7 @@ but leaves the table's structure undocumented.
 The type is recoverable from the consumer, which is already matched C:
 `Gp_DispatchMsg` (`src/gameplay/D4.c`) walks `field_24` as `GpMsgEntry*` with
 `entry++` and stops at `entry->id == 0x7FFFFFFF`; `GpMsgEntry` is
-`{s32 id; GpMsgHandler handler;}` = 8 bytes (`include/gameplay/D4.h`). So
+`{s32 id; TaskMessageHandler handler;}` = 8 bytes (`include/gameplay/message.h`). So
 `extern GpMsgEntry D_<room>_<vram>[];` with a bare `task->field_24 = D_...;` -
 the `rooms_shared_8017db84.c` idiom - is the accurate spelling, and it matches.
 
@@ -85976,7 +85978,7 @@ ids are message ids some gameplay dispatcher calls by name, which is the
 strongest confirmation: `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
 `Game_SetPtrSlot(task, 7)`.
-## A lone `.word` code pointer in a room's data is a `GpMsgHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
+## A lone `.word` code pointer in a room's data is a `TaskMessageHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
 
 A room function no `jal` reaches - nothing in `src/` calls it, its only
 reference is a `.word` in the room's `_data` blob - is a callback, and the
@@ -85988,8 +85990,8 @@ it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
 (the record's id half) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
 into `Task::work`, and the handler reaches its work as `task->work`.
 
-The trap is the argument split. `GpMsgHandler` is
-`s32 (*)(Task* task, s32 msgId, s32 arg2, s32 arg3)` - the handler gets the
+The trap is the argument split. `TaskMessageHandler` is
+`s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)` - the handler gets the
 same four arguments `Gp_DispatchMsg` did - so `a1` is the message id and `a2`
 is the sender's third argument. This body compares `$a2`, which reads like the
 id at first glance; it is the *payload*. `Gp_UseKeyItemRow`
@@ -86312,7 +86314,7 @@ s32 Room_Snd05(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 100.000%, every penalty zero. This is why the sibling bodies `Room_Snd01..04`
 in `src/rooms/lib/` carry four parameters - the room tables hold
-`GpMsgEntry { s32 id; GpMsgHandler handler; }` and `Gp_DispatchMsg` calls
+`GpMsgEntry { s32 id; TaskMessageHandler handler; }` and `Gp_DispatchMsg` calls
 `handler(task, msgId, arg2, arg3)`, so the handler type itself is the evidence
 for the list. General rule: when m2c names a parameter `argN` with N > 0 but
 declares it alone, pad the list to N+1 before changing anything else; `regs=N`
@@ -89220,7 +89222,7 @@ has to be padded with the parameters the handler ignores until the one it uses
 lands in the right slot.
 
 Recovering the slot and the type is a data-table read, not guesswork. A room's
-handlers are `GpMsgEntry[]` records - `{ s32 id; GpMsgHandler handler; }`, 8
+handlers are `GpMsgEntry[]` records - `{ s32 id; TaskMessageHandler handler; }`, 8
 bytes, `0x7FFFFFFF`-terminated - and they live in the overlay's trailing data
 blob, so the built overlay image still holds them verbatim. Searching the image
 for the handler's address little-endian prints the id in the word just before it,
@@ -89773,8 +89775,8 @@ same padded parameter list. What is worth separating is how the *type* and the
 The arity is fixed by the only caller a table handler has. `Gp_DispatchMsg`
 (`src/gameplay/D4.c`) walks the room's `GpMsgEntry[]` and calls
 `entry->handler(index, value, arg2, arg3)` - four arguments - which
-`GpMsgHandler` in `include/gameplay/D4.h` spells
-`s32 (*)(Task* task, s32 msgId, s32 arg2, s32 arg3)`. So the room's own table
+`TaskMessageHandler` in `include/gameplay/message.h` spells
+`s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)`. So the room's own table
 matters for the convention: `D_dryfield_main_street_80180EA0` registers this
 function under `0x13EF` beside `Room_Snd01` under `0x13F2`, and `Room_Snd01` is
 already matched as `(Task* task, s32 msgId, s32 arg2, s32 arg3)`.
@@ -91174,7 +91176,8 @@ Worked example `func_dryfield_night_saloon_g_r_8017DE68`, the twin of the
 separate `s16`s" above; that entry's struct fix is what this one starts from.
 
 **Problem.** With the payload fixed, the whole remaining diff was the constant
-`1`, shared by `arg2->field_2 == 1` and `msg.field_2 = 1`. The target had it in
+`1`, shared by `((const DirectionActionRequest*)firstArg.pointer)->actionId == 1`
+and `msg.command = 1`. The target had it in
 `$a1`, we had it in `$a0` - and `reorder=5`, `insert=1`, `delete=1` and the
 other `regs=2` were all downstream: with `$a0` holding the constant, dbr cannot
 fill the branch delay slot with `addu $a0,$zero,$zero`, and `li $a0,4` cannot
@@ -125850,8 +125853,8 @@ sit in). The matched installer names that table directly —
 "which table is this handler in" is readable from `src/` without the binary.
 
 Worth doing before writing any C, because it settles what the empty caller list
-raises: a `GpMsgEntry` handler is called as `(Task*, s32 msgId, s32 arg2, s32
-arg3)` (`GpMsgHandler`), and the overlay's neighbouring handler is the house
+raises: a `GpMsgEntry` handler is called as `(Task*, s32 messageId, TaskMessageArg firstArg, TaskMessageArg
+secondArg)` (`TaskMessageHandler`), and the overlay's neighbouring handler is the house
 spelling of the last two arguments —
 `s32 func_actor_317000_80162CA0(Task* task, s32 value, ActorCommand* msg)`.
 
@@ -139417,7 +139420,7 @@ twice. The moves are then ordinary priority-1 insns, the store wins its slot
 on potential hazard, and the copy rewrite does the rest.
 
 **Fix.** Give the function the dispatcher's full signature
-(`GpMsgHandler`: `Task*, s32 msgId, s32 arg2, s32 arg3`) and forward all four
+(`TaskMessageHandler`: `Task*, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg`) and forward all four
 arguments in the pass-through call. Forwarding only three leaves `a3` birthing
 and still gives `sw v0,0xc(s0)`. When a store in a call's delay slot uses an
 argument register as its base, count how many times each argument register is

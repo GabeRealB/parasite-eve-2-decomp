@@ -609,8 +609,10 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, Task
     return 0;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 0xA) {
         if (GameFlag_GetNibble(0xF8) != 0) {
             Gp_RunCapCmd1(5);

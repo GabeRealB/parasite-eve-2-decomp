@@ -167,10 +167,10 @@ extern TaskDesc D_shelter_b6_nursery_80185000;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, DirectionActionRequest*, s32);
-        s32 (*call2)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call3)(Task*, s32, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, DirectionActionRequest*, s32);
+        TaskMessageHandler call2;
+        TaskMessageHandler call3;
     } handler;
 } ShelterB6NurseryMessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB6NurseryMessageEntry, 8);

@@ -97,8 +97,8 @@ extern TaskDesc D_mine_forked_tunnel_80181B74[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, ActorCommand* request);
-        s32 (*call1)(Task*, s32, s32, s32);
+        s32                (*call0)(Task*, s32, ActorCommand* request);
+        TaskMessageHandler call1;
     } handler;
 } MineForkedTunnelMessageEntry;
 STATIC_ASSERT_SIZEOF(MineForkedTunnelMessageEntry, 8);
@@ -179,7 +179,7 @@ extern u32     D_mine_forked_tunnel_80180900[104];
 s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_mine_forked_tunnel_8017E134(Task*, s32, s32, TaskMessageArg);
-s32 func_mine_forked_tunnel_8017E19C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32 func_mine_forked_tunnel_8017E19C(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
@@ -1863,8 +1863,10 @@ s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, TaskMessage
 
 /// Message 1 handler: spawn the room's `Task_SpawnFromTable` entry when the
 /// tunnel switch flag is still clear.
-s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if ((request->actionId == 1) && (GameFlag_GetNibble(0x75) == 0)) {
         Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);
     }

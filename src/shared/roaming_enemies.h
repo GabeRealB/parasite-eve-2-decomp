@@ -22,13 +22,13 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "gameplay/message.h"
 
 void roamerBankRetreat(Task* task, s32 arg1, s32 arg2);
 void roamerArmPoolA(Task* task);
 void roamerTickPoolA(Task* task);
 s32  roamerAmbushMsg(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3);
 void roamerArmPoolB(Task* task);
-s32  roamerLatchRequest(Task* arg0, s32 arg1, u8* arg2, TaskMessageArg arg3);
+s32  roamerLatchRequest(Task* arg0, s32 arg1, TaskMessageArg firstArg, TaskMessageArg arg3);
 
 #endif /* SRC_SHARED_ROAMING_ENEMIES_H */

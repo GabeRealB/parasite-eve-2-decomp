@@ -212,7 +212,7 @@ s32  factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* ou
 void factoryPanelSpawn(Task* task);
 s32  factoryCommand(Task* arg0, s32 arg1, s32 cmd, TaskMessageArg arg3);
 s32  factorySoundCommand(Task* task, s32 msgId, s32 arg2, s32 arg3);
-s32  factoryRoomAction(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3);
+s32  factoryRoomAction(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3);
 void factoryPanelIdle(Task* task);
 void factoryPanelRunStep(Task* task, s16 step);
 void factoryPanelInit(Task* task);

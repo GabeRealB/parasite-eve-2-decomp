@@ -105,7 +105,7 @@ void func_dryfield_junk_yard_8017D848(Task*);
 s32  func_dryfield_junk_yard_8017D994(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_junk_yard_8017DA44(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_junk_yard_8017DB78(Task*, s32, DirectionActionRequest* msg, TaskMessageArg);
+s32  func_dryfield_junk_yard_8017DB78(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD60;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD74;
@@ -1687,8 +1687,10 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 /// spawns the sequence task. When it is 2, the slot-0xA task stands at x
 /// 0x5209 or beyond and nibble 0x38 is 1, it advances the nibble to 2 and
 /// starts a `func_800E8634` sequence. Always returns 0.
-s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, DirectionActionRequest* msg, TaskMessageArg arg3)
+s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* msg = firstArg.pointer;
+
     Task* player;
 
     if (msg->actionId == 1) {

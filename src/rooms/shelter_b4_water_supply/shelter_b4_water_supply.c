@@ -142,7 +142,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task*);
 s32  func_shelter_b4_water_supply_8017D970(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_water_supply_8017D978(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b4_water_supply_8017DA28(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b4_water_supply_8017DA30(Task*, s32, DirectionActionRequest* request, s32);
+s32  func_shelter_b4_water_supply_8017DA30(Task*, s32, TaskMessageArg firstArg, s32);
 s32  func_shelter_b4_water_supply_8017DAE4(Task*, s32, s32, s32);
 void func_shelter_b4_water_supply_8017DC28(Task*);
 void func_shelter_b4_water_supply_8017ED28(Task*);
@@ -876,8 +876,10 @@ s32 func_shelter_b4_water_supply_8017DA28(Task* task, s32 msgId, TaskMessageArg 
 /// Handler for slot-7 msg `0x13EF` in `D_shelter_b4_water_supply_801825F0`:
 /// the directed action on the water-supply valve (`actionId` 0xA / `argument`
 /// 0x20).
-s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
+s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 0xA) {
         if (request->argument == 0x20) {
             if (GameFlag_GetNibble(0xB8) != 0) {

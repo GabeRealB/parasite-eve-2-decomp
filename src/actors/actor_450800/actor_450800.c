@@ -103,13 +103,13 @@ static const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, ActorCommand* request, s32);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, VECTOR*);
-        s32 (*call5)(Task*, s32, VECTOR*, s32);
-        s32 (*call6)(Task*, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*);
+        TaskMessageHandler call2;
+        s32                (*call3)(Task*, s32, ActorTransform*);
+        s32                (*call4)(Task*, s32, VECTOR*);
+        s32                (*call5)(Task*, s32, VECTOR*, s32);
+        s32                (*call6)(Task*, s32, s32);
     } handler;
 } Actor450800MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor450800MsgEntry, 8);

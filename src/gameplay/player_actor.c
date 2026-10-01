@@ -277,20 +277,20 @@ extern GpAimRot D_801131B4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*transform)(Task*, s32, ActorTransform*, s32);
-        s32 (*call2)(Task*, s32, s32, s32);
-        s32 (*call3)(Task*, s32, GpFacingArg*);
-        s32 (*call4)(Task*);
-        s32 (*call5)(Task*, s32, s32);
-        s32 (*coord)(Task*, s32, GfxCoord*);
-        s32 (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
-        s32 (*call7)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call8)(Task*, s32, GpCountArg*);
-        s32 (*call9)(Task*, s32, GpCopyArg*);
-        s32 (*call10)(Task*, s32, GpDelayArg*);
-        s32 (*call11)(Task*, s32, GpMoveArg*);
+        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call1)(Task*, s32, ActorTransform*);
+        s32                (*transform)(Task*, s32, ActorTransform*, s32);
+        TaskMessageHandler call2;
+        s32                (*call3)(Task*, s32, GpFacingArg*);
+        s32                (*call4)(Task*);
+        s32                (*call5)(Task*, s32, s32);
+        s32                (*coord)(Task*, s32, GfxCoord*);
+        s32                (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
+        s32                (*call7)(Task*, s32, AnimationPlayRequest*);
+        s32                (*call8)(Task*, s32, GpCountArg*);
+        s32                (*call9)(Task*, s32, GpCopyArg*);
+        s32                (*call10)(Task*, s32, GpDelayArg*);
+        s32                (*call11)(Task*, s32, GpMoveArg*);
     } handler;
 } GpPlayerMessageEntry;
 

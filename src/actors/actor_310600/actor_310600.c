@@ -90,10 +90,10 @@ extern TaskDesc D_actor_310600_801796A4[];
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32  (*call1)(Task*, s32, ActorTransform*);
-        s32  (*call2)(Task*, s32, s32, s32);
-        void (*call3)(Task*, s32, VECTOR*);
+        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call1)(Task*, s32, ActorTransform*);
+        TaskMessageHandler call2;
+        void               (*call3)(Task*, s32, VECTOR*);
     } handler;
 } Actor310600MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor310600MsgEntry, 8);

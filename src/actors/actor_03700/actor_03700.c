@@ -141,7 +141,7 @@ extern AnimationSet* Actor03700_D080E4[6];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, s32, s32);
+        TaskMessageHandler call0;
     } handler;
 } Actor03700RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor03700RecoveredMsgEntry, 8);

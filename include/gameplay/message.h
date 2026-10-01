@@ -89,15 +89,23 @@ typedef union {
 } TaskMessageArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(TaskMessageArg, 4);
 
-/// 8-byte id/handler record. `Task::msgTable` points at a table of these
-/// (`Gp_Slot4MsgTable`, `D_8010FB90`, …). `Gp_DispatchMsg` walks it and calls the
-/// matching handler with the same four arguments. Terminator id is
-/// `0x7FFFFFFF`.
-typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3);
+/// A synchronous task-message callback receiving an ID and two argument words.
+///
+/// `task` is the live receiver. `messageId` selects the meaning of `firstArg`
+/// and `secondArg`, including each pointer's payload type and write permission.
+/// Object arguments borrow storage with the lifetime required by `TaskMessageArg`;
+/// the callback must copy any transient data it needs after dispatch returns.
+/// The signed result is message-specific and is forwarded unchanged to the
+/// sender; zero is not a universal success or failure code.
+///
+/// Callbacks retain all four PS1 argument-register positions and an `s32` return.
+/// The transparent argument union also permits declarations using its member
+/// types in either payload position under GCC's function-type compatibility rules.
+typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 
 typedef struct _GpMsgEntry {
-    /* 0x0 */ s32          id;
-    /* 0x4 */ GpMsgHandler handler;
+    /* 0x0 */ s32                id;
+    /* 0x4 */ TaskMessageHandler handler;
 } GpMsgEntry;
 STATIC_ASSERT_SIZEOF(GpMsgEntry, 8);
 

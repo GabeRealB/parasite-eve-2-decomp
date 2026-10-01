@@ -119,9 +119,9 @@ extern u8 gRoamerArmCountsA[];
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, TaskMessageArg, TaskMessageArg);
-        s32  (*call1)(Task*, s32, u8*, TaskMessageArg);
-        void (*call2)(Task*, s32, s32);
+        TaskMessageHandler call0;
+        TaskMessageHandler call1;
+        void               (*call2)(Task*, s32, s32);
     } handler;
 } NeoArkWoodlandPath2MsgEntry;
 STATIC_ASSERT_SIZEOF(NeoArkWoodlandPath2MsgEntry, 8);
@@ -176,7 +176,7 @@ typedef struct NeoArkWoodlandPathTrailObj {
 
 s32 func_neo_ark_woodland_path_80181474(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_woodland_path_8018154C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_woodland_path_80181568(Task*, s32, u8*, TaskMessageArg);
+s32 func_neo_ark_woodland_path_80181568(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 void func_neo_ark_woodland_path_801814E8(Task*);
 void func_neo_ark_woodland_path_801815D4(Task*);
