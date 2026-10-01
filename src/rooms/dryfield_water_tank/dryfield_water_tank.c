@@ -1,6 +1,7 @@
 #include "types.h"
 
 #include "main/task_types.h"
+#include "../../shared/water_tank.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 s32 D_dryfield_water_tank_80188D48;
@@ -442,17 +443,17 @@ TmdSource D_dryfield_water_tank_80186880 = {
 };
 
 TaskDesc D_dryfield_water_tank_801868A4[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_dryfield_water_tank_8017EDF4, { .model = &D_dryfield_water_tank_80186880 } },
+    { { { TASK_BODY_TMD, 192 } }, waterTankSwayTask, { .model = &D_dryfield_water_tank_80186880 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 D_dryfield_water_tank_801868BC = 0;
+s32 gWaterTankYaw = 0;
 
-s32 D_dryfield_water_tank_801868C0 = 0;
+s32 gWaterTankYawSpeed = 0;
 
-s32 D_dryfield_water_tank_801868C4 = 0;
+s32 gWaterTankYawStep = 0;
 
-s32 D_dryfield_water_tank_801868C8 = 0;
+s32 gWaterTankYawTarget = 0;
 
 u16 D_dryfield_water_tank_801868CC[10] = {
     0,

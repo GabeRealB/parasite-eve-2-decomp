@@ -1,4 +1,5 @@
 #include "rooms/dryfield_water_tank.h"
+#include "../../shared/water_tank.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -1253,71 +1254,7 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
 }
 
-/// Per-frame model update for the tank: the callback word at 0x801868A8 in the
-/// room's task table `D_dryfield_water_tank_801868A4`. State 0 parents the
-/// model's coordinate to `gGfxViewCoord` and places it against the room's north
-/// wall, then advances to state 1. State 1 drives the tank's slow wobble about
-/// `y`:
-/// an occasional roll re-picks the target yaw, the step moves toward it 0x100
-/// at a time, and the velocity follows 19/20 of the way to that step. Either
-/// way the frame ends by publishing the model's `workm` translation as a
-/// `VECTOR` to `func_800D7A9C`, rebuilding the coordinate's yaw matrix from the
-/// accumulated angle, and clearing `composeStamp` so the parent recomputes the world
-/// matrix next frame.
-///
-/// The coordinate's load is written through the cast expression, *before* the
-/// object pointer is assigned, because the pointer assignment has to stay a
-/// separate register copy: assigned first, cse.c's `(set REG0 REG1)` swap folds
-/// the load and the copy into one and the overlay comes up an `addu` short (see
-/// DECOMPILATION_LEARNINGS.md, "A load the pointer variable must copy").
-void func_dryfield_water_tank_8017EDF4(Task* arg0)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
-
-    coord = arg0->extra.tmd->coords;
-    obj   = arg0->extra.tmd;
-    switch (arg0->state) {
-        case 0:
-            obj->flags        = 0;
-            coord->parent     = &gGfxViewCoord;
-            coord->coord.t[0] = 0xBB8;
-            coord->coord.t[1] = -0x34A8;
-            coord->coord.t[2] = -0x4D8;
-            arg0->state++;
-            break;
-        case 1:
-            if (((s32)(rand() * 100) >> 15) <= 0) {
-                if (((s32)(rand() * 100) >> 15) < 0x50) {
-                    D_dryfield_water_tank_801868C8 = (s32)(rand() * 20) >> 7;
-                } else {
-                    D_dryfield_water_tank_801868C8 = 0;
-                }
-            }
-            if (D_dryfield_water_tank_801868C4 < D_dryfield_water_tank_801868C8) {
-                D_dryfield_water_tank_801868C4 += 0x100;
-            } else if (D_dryfield_water_tank_801868C8 < D_dryfield_water_tank_801868C4) {
-                D_dryfield_water_tank_801868C4 -= 0x100;
-            }
-            D_dryfield_water_tank_801868C0 =
-                (D_dryfield_water_tank_801868C0 + D_dryfield_water_tank_801868C4) * 19 / 20;
-            D_dryfield_water_tank_801868BC += D_dryfield_water_tank_801868C0;
-            break;
-    }
-    if (gGameSession->location.loc.view == 7) {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        obj->flags = 0;
-    }
-    Gp_UpdateCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    gfxRotMatrixY(&coord->coord, D_dryfield_water_tank_801868BC >> 8, 1);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/water_tank_sway_task.inc.c"
 
 /// Toggle the room's cutscene-“watched” state over two of the area's sprite
 /// commands, hiding one and showing the other through their

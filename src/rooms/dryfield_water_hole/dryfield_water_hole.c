@@ -52,6 +52,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/water_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/water_hole.h"
 
 #define D_dryfield_water_hole_8017FCC4 (D_dryfield_water_hole_8017FCBC + 1)
 #define D_dryfield_water_hole_8017FCDC (D_dryfield_water_hole_8017FCBC + 4)
@@ -69,7 +70,7 @@ typedef struct {
 } _DryfieldWaterHoleSpotLightStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterHoleSpotLightStorage, 648);
 
-/// One rectangle of water surface drawn by `func_dryfield_water_hole_8017D898`,
+/// One rectangle of water surface drawn by `waterHoleDrawSurfaces`,
 /// in world coordinates: it spans `width` along X from `x` and `depth` along Z
 /// from `z`, at height `y`. The table ends at the first entry whose `y` word is
 /// -1; the drawing code reads only its low half as the height.
@@ -94,7 +95,7 @@ typedef struct {
 /// and 0x13F2.
 extern TaskMessageEntry D_dryfield_water_hole_8017FC5C[];
 /// Descriptor of the room's water task, spawned by the room task's entry tick.
-/// Its callback is `func_dryfield_water_hole_8017DFA0`.
+/// Its callback is `waterHoleWaterTask`.
 extern TaskDesc D_dryfield_water_hole_8017FC8C[];
 /// The room's water surfaces, terminated by an entry with `y == -1`.
 extern _DryfieldWaterHoleSurface D_dryfield_water_hole_8017FC98[];
@@ -110,8 +111,6 @@ extern u8* D_dryfield_water_hole_801828CC;
 /// Frame counter the water surface's wave is phased by.
 extern s16 D_dryfield_water_hole_801828D0;
 
-static void func_dryfield_water_hole_8017E000(Task* arg0);
-
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_dryfield_water_hole_80180260[1];
 extern WorldCollisionOccluder     D_dryfield_water_hole_80181F28[2];
@@ -122,18 +121,16 @@ extern WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9];
 extern WorldCoordRoomLights       D_dryfield_water_hole_80182468[1];
 extern WorldCoordRoomLights       D_dryfield_water_hole_8018278C[1];
 
-s32  func_dryfield_water_hole_8017D5E8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_water_hole_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
-s32  func_dryfield_water_hole_8017D784(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
-void func_dryfield_water_hole_8017DFA0(Task*);
+s32 func_dryfield_water_hole_8017D5E8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
+s32 func_dryfield_water_hole_8017D784(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
 
 extern _DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
 extern WorldCoordPointLight               D_dryfield_water_hole_80181FA0[6];
 
 TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_hole_8017D5F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
     { 5105, func_dryfield_water_hole_8017D5E8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_hole_8017D784 },
     { 5104, func_dryfield_water_hole_8017D73C },
@@ -142,7 +139,7 @@ TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
 };
 
 TaskDesc D_dryfield_water_hole_8017FC8C[1] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_hole_8017DFA0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, waterHoleWaterTask, { .value = 0 } },
 };
 
 _DryfieldWaterHoleSurface D_dryfield_water_hole_8017FC98[3] = {
@@ -1339,7 +1336,6 @@ s16 D_dryfield_water_hole_801828D0;
 
 static void func_dryfield_water_hole_8017D7DC(Task* arg0);
 static void func_dryfield_water_hole_8017D838(Task* task);
-static void func_dryfield_water_hole_8017D898(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
@@ -1348,55 +1344,7 @@ s32 func_dryfield_water_hole_8017D5E8(Task* task, s32 msgId, TaskMessageArg arg2
     return 0;
 }
 
-/// Handler for message 0x13EE in the room's message table. It copies the
-/// incoming record to `out` and, unless `in->queryOnly` is set, answers two
-/// queries in `out->room`:
-///
-/// - 0x19: while the session's stage is 2, 2 once progress nibble 0x3A has
-///   reached 2 and 1 before; in any other stage, nibble 0x61 plus one.
-/// - 0x26: with nibble 0xC9 set, 2 or 1 by nibble 0x53, plus 2 while nibble
-///   0x51 is clear; with 0xC9 clear, 5 or 6 by whether nibble 0x51 is set.
-///
-/// Always returns 1.
-s32 func_dryfield_water_hole_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    u8 temp;
-
-    *out = *in;
-    if (in->areaId == 0x19) {
-        temp = gGameSession->location.loc.stage;
-        if (temp == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->room = temp;
-                } else {
-                    out->room = 1;
-                }
-            }
-        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
-        }
-    }
-    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0xC9) != 0) {
-            if (GameFlag_GetNibble(0x53) != 0) {
-                out->room = 2;
-            } else {
-                out->room = 1;
-            }
-            if (GameFlag_GetNibble(0x51) == 0) {
-                out->room += 2;
-            }
-        } else {
-            if (GameFlag_GetNibble(0x51) != 0) {
-                out->room = 5;
-            } else {
-                out->room = 6;
-            }
-        }
-    }
-    return 1;
-}
+#include "../../shared/water_hole_door_msg.inc.c"
 
 /// Handler for message 0x13F0 in the room's message table. Only the command 2
 /// in `arg2` concerns this room: it arms cap command 2, records it in progress
@@ -1477,7 +1425,7 @@ void func_dryfield_water_hole_8017D840(Task* task)
 /// (0xFF, 0, 0) and the seam (0x20, 0x20, 0x20); each quad is followed by a
 /// draw-mode packet selecting blend mode 2. Quads the projection flags as
 /// invalid are skipped. `task` is unused.
-static void func_dryfield_water_hole_8017D898(Task* task)
+void waterHoleDrawSurfaces(Task* task)
 {
     SVECTOR                    v0, v1, v2, v3;
     long                       sxy0, sxy1, sxy2, sxy3;
@@ -1606,21 +1554,11 @@ static void func_dryfield_water_hole_8017D898(Task* task)
     }
 }
 
-/// The room's water task: runs its current state -
-/// `func_dryfield_water_hole_8017E000` once, then
-/// `func_dryfield_water_hole_8017D898`, which draws the surfaces - and each
-/// tick sets the session's water height to -0x1A4.
-void func_dryfield_water_hole_8017DFA0(Task* task)
-{
-    TaskFunc states[2] = { func_dryfield_water_hole_8017E000, func_dryfield_water_hole_8017D898 };
-
-    states[task->state](task);
-    gGameSession->waterY = -0x1A4;
-}
+#include "../../shared/water_hole_water_task.inc.c"
 
 /// The water task's first state: clears the session halfword `field_80`, or
 /// `field_7E` while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` is set, then advances to the drawing state.
-static void func_dryfield_water_hole_8017E000(Task* arg0)
+void waterHoleWaterStart(Task* arg0)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;

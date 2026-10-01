@@ -66,6 +66,7 @@
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
+#include "../../shared/water_hole.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -101,7 +102,7 @@ typedef struct DnwhParamOverride {
 STATIC_ASSERT_SIZEOF(DnwhParamOverride, 0x8);
 
 /// One rectangle of water surface drawn by
-/// `func_dryfield_night_water_hole_8017DF28`, in world coordinates: it spans
+/// `waterHoleDrawSurfaces`, in world coordinates: it spans
 /// `width` along X from `x` and `depth` along Z from `z`, at height `y`. The
 /// table ends at the first entry whose `y` word is -1; the drawing code reads
 /// only its low half as the height.
@@ -142,7 +143,7 @@ extern s32 D_dryfield_night_water_hole_80180660;
 extern EvsCommand D_dryfield_night_water_hole_8018067C[];
 extern EvsCommand D_dryfield_night_water_hole_801807FC[];
 /// Descriptor of the room's water task, spawned while progress nibble 0xB8 is
-/// still clear. Its callback is `func_dryfield_night_water_hole_8017E630`.
+/// still clear. Its callback is `waterHoleWaterTask`.
 extern TaskDesc D_dryfield_night_water_hole_80180964[];
 /// The room's water surfaces, terminated by an entry with `y == -1`.
 extern DnwhSurface D_dryfield_night_water_hole_80180970[];
@@ -166,9 +167,6 @@ extern RoomDeparture gRoomDeparture;
 
 static void func_dryfield_night_water_hole_8017DE20(Task* task);
 static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
-static void func_dryfield_night_water_hole_8017E690(Task* arg0);
-
-void func_dryfield_night_water_hole_8017E630(Task*);
 
 extern WorldCollisionGrid         D_dryfield_night_water_hole_80180F50[1];
 extern WorldCollisionOccluder     D_dryfield_night_water_hole_80182D58[2];
@@ -189,7 +187,6 @@ extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835B8[1];
 extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835C0[1];
 
 s32 func_dryfield_night_water_hole_8017DAD4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_water_hole_8017DADC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
 s32 func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
@@ -218,7 +215,7 @@ AnimationSet D_dryfield_night_water_hole_801805C4 = {
 TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_hole_8017DADC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
     { 5105, func_dryfield_night_water_hole_8017DAD4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_hole_8017DD5C },
     { 5104, func_dryfield_night_water_hole_8017DC28 },
@@ -283,7 +280,7 @@ EvsCommand D_dryfield_night_water_hole_801807FC[15] = {
 };
 
 TaskDesc D_dryfield_night_water_hole_80180964[1] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_water_hole_8017E630, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, waterHoleWaterTask, { .value = 0 } },
 };
 
 DnwhSurface D_dryfield_night_water_hole_80180970[3] = {
@@ -1075,7 +1072,6 @@ s16 D_dryfield_night_water_hole_8018362C[2] = {
 RoomDeparture gRoomDeparture;
 
 static void func_dryfield_night_water_hole_8017D958(Task* arg0);
-static void func_dryfield_night_water_hole_8017DF28(Task* task);
 
 #include "../../shared/room_variants_shelter.inc.c"
 
@@ -1131,55 +1127,7 @@ s32 func_dryfield_night_water_hole_8017DAD4(Task* task, s32 msgId, TaskMessageAr
     return 0;
 }
 
-/// Handler for message 0x13EE in the room's message table. It copies the
-/// incoming record to `out` and, unless `in->queryOnly` is set, answers two
-/// queries in `out->room`:
-///
-/// - 0x19: while the session's stage is 2, 2 once progress nibble 0x3A has
-///   reached 2 and 1 before; in any other stage, nibble 0x61 plus one.
-/// - 0x26: with nibble 0xC9 set, 2 or 1 by nibble 0x53, plus 2 while nibble
-///   0x51 is clear; with 0xC9 clear, 5 or 6 by whether nibble 0x51 is set.
-///
-/// Always returns 1.
-s32 func_dryfield_night_water_hole_8017DADC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    u8 temp;
-
-    *out = *in;
-    if (in->areaId == 0x19) {
-        temp = gGameSession->location.loc.stage;
-        if (temp == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->room = temp;
-                } else {
-                    out->room = 1;
-                }
-            }
-        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
-        }
-    }
-    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0xC9) != 0) {
-            if (GameFlag_GetNibble(0x53) != 0) {
-                out->room = 2;
-            } else {
-                out->room = 1;
-            }
-            if (GameFlag_GetNibble(0x51) == 0) {
-                out->room += 2;
-            }
-        } else {
-            if (GameFlag_GetNibble(0x51) != 0) {
-                out->room = 5;
-            } else {
-                out->room = 6;
-            }
-        }
-    }
-    return 1;
-}
+#include "../../shared/water_hole_door_msg.inc.c"
 
 /// Message 0x13F0 handler. Slot 7 dispatches it with the sender's command in
 /// `arg2`, and only 2 concerns this room.
@@ -1296,7 +1244,7 @@ static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
 /// (0x20, 0x20, 0x20); each quad is followed by a draw-mode packet selecting
 /// blend mode 2. Quads the projection flags as invalid are skipped. `task` is
 /// unused.
-static void func_dryfield_night_water_hole_8017DF28(Task* task)
+void waterHoleDrawSurfaces(Task* task)
 {
     SVECTOR      v0, v1, v2, v3;
     long         sxy0, sxy1, sxy2, sxy3;
@@ -1425,21 +1373,11 @@ static void func_dryfield_night_water_hole_8017DF28(Task* task)
     }
 }
 
-/// The room's water task: runs its current state -
-/// `func_dryfield_night_water_hole_8017E690` once, then
-/// `func_dryfield_night_water_hole_8017DF28`, which draws the surfaces - and
-/// each tick sets the session's water height to -0x1A4.
-void func_dryfield_night_water_hole_8017E630(Task* task)
-{
-    TaskFunc states[2] = { func_dryfield_night_water_hole_8017E690, func_dryfield_night_water_hole_8017DF28 };
-
-    states[task->state](task);
-    gGameSession->waterY = -0x1A4;
-}
+#include "../../shared/water_hole_water_task.inc.c"
 
 /// The water task's first state: clears the session halfword `field_80`, or
 /// `field_7E` while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` is set, then advances to the drawing state.
-static void func_dryfield_night_water_hole_8017E690(Task* arg0)
+void waterHoleWaterStart(Task* arg0)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;

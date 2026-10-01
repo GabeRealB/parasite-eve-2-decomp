@@ -707,7 +707,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_trailer_coach_801838DC, { NULL } },                       // 0x0D9
     { { { TASK_BODY_COORD, 0x70 } }, func_inferno_8012F530, { NULL } },                                      // 0x0DA
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_8017DC28, { NULL } },                       // 0x0DB
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_room_6_80182978, { NULL } },                        // 0x0DC
+    { { { TASK_BODY_COORD, 0x70 } }, motelRoom6DayDrawGlow, { NULL } },                                      // 0x0DC
     { { { TASK_BODY_COORD, 0x70 } }, func_energyshot_8012FFB8, { NULL } },                                   // 0x0DD
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_hole_8017E040, { NULL } },                          // 0x0DE
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_cellar_8017DAEC, { NULL } },                              // 0x0DF
@@ -769,7 +769,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_trailer_coach_80182924, { NULL } },                 // 0x117
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_room_5_8017D9A4, { NULL } },                  // 0x118
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_8017E554, { NULL } },                 // 0x119
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_room_6_80182AE0, { NULL } },                  // 0x11A
+    { { { TASK_BODY_COORD, 0x70 } }, motelRoom6NightDrawGlow, { NULL } },                                    // 0x11A
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_loft_8017DB64, { NULL } },                    // 0x11B
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_hole_8017E6D0, { NULL } },                    // 0x11C
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_cellar_8017DA28, { NULL } },                        // 0x11D

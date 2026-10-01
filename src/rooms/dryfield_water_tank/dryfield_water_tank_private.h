@@ -22,14 +22,6 @@ STATIC_ASSERT_SIZEOF(DryfieldWaterTankMessageEntry, 8);
 
 extern TaskDesc D_dryfield_water_tank_80184DF4[2];
 
-extern s32 D_dryfield_water_tank_801868BC;
-
-extern s32 D_dryfield_water_tank_801868C0;
-
-extern s32 D_dryfield_water_tank_801868C4;
-
-extern s32 D_dryfield_water_tank_801868C8;
-
 extern u16 D_dryfield_water_tank_801868CC[10];
 
 extern Task* D_dryfield_water_tank_80188D50;
@@ -116,8 +108,6 @@ void func_dryfield_water_tank_8017EC38(u32);
 void func_dryfield_water_tank_8017EC6C(Task*);
 
 void func_dryfield_water_tank_8017ED30(Task*);
-
-void func_dryfield_water_tank_8017EDF4(Task*);
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_water_tank_8017D618(Task*);

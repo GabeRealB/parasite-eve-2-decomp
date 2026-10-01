@@ -35,8 +35,7 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_6_80186250[]
 void func_dryfield_night_motel_room_6_8017EA74(Task* task);
 
 void func_dryfield_night_motel_room_6_801811A0(Task* task);
-
-void func_dryfield_night_motel_room_6_80182AE0(Task* unused);
+void motelRoom6NightDrawGlow(Task* unused);
 
 void func_dryfield_night_motel_room_6_80181C80(Task* task);
 

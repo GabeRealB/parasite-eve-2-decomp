@@ -41,7 +41,7 @@ D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_squar
 gRoomCutsceneTaskDescs = 0x80182D24; // size:0x24 defined:True
 D_dryfield_motel_room_6_80182D48 = 0x80182D48; // size:0x30 defined:True
 D_dryfield_motel_room_6_80182D78 = 0x80182D78; // size:0x18 defined:True
-D_dryfield_motel_room_6_80182D90 = 0x80182D90; // size:0x8 defined:True
+gMotelRoom6GlowPos = 0x80182D90; // size:0x8 defined:True
 D_dryfield_motel_room_6_80182D98 = 0x80182D98; // size:0x10 defined:True
 D_dryfield_motel_room_6_80182DA8 = 0x80182DA8; // size:0x4 defined:True
 D_dryfield_motel_room_6_80182DAC = 0x80182DAC; // size:0x2 defined:True
@@ -94,7 +94,7 @@ D_dryfield_motel_room_6_80186800 = 0x80186800; // size:0x8 defined:True
 D_dryfield_motel_room_6_80186808 = 0x80186808; // size:0x20 defined:True
 D_dryfield_motel_room_6_80186828 = 0x80186828; // size:0x4 defined:True
 gRoomCutsceneSoundTask = 0x8018682C; // size:0x4 defined:True
-D_dryfield_motel_room_6_80186830 = 0x80186830; // size:0x18 defined:True
+gMotelRoom6CutsceneRec = 0x80186830; // size:0x18 defined:True
 D_map_dryfield_8017BB54 = 0x8017BB54; // absolute:True
 D_map_dryfield_8017BB74 = 0x8017BB74; // absolute:True
 
@@ -102,7 +102,7 @@ func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func
 
 func_dryfield_motel_room_6_80181184 = 0x80181184; // type:func
 
-func_dryfield_motel_room_6_80182978 = 0x80182978; // type:func
+motelRoom6DayDrawGlow = 0x80182978; // type:func
 Telephone_DrawPlayDataRow = 0x8017D6C0; // type:func
 Telephone_DrawUsageRow = 0x8017DE8C; // type:func
 Telephone_BuildWeaponUsage = 0x8017E288; // type:func
@@ -130,3 +130,5 @@ glowDrawPulsingDisc = 0x80181FF0; // type:func
 glowDrawWideDiamond = 0x80181B70; // type:func
 roomCutsceneTask = 0x801811D4; // type:func
 roomCutsceneSoundTask = 0x80181880; // type:func
+motelRoom6CutsceneMsg = 0x80181740; // type:func
+motelRoom6ActionMsg = 0x80181910; // type:func

@@ -60,8 +60,10 @@ D_map_dryfield_8017B284 = 0x8017B284; // absolute:True
 gRoomEventActive = 0x8017FB58; // size:0x4 defined:True
 gRoomEventReq = 0x8017FB5C; // size:0x14 defined:True
 
-D_dryfield_night_parking_lot_8018155C = 0x8018155C; // absolute:True owner=dryfield_night_parking_lot
+gParkingLotAreaRecs = 0x8018155C; // absolute:True owner=dryfield_night_parking_lot
 
 func_dryfield_parking_lot_8017DBAC = 0x8017DBAC; // type:func
 roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
+parkingLotEventMsg = 0x8017D8BC; // type:func
+parkingLotSoundMsg = 0x8017DAA0; // type:func

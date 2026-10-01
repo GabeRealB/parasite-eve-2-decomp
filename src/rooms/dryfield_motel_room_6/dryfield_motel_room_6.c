@@ -144,7 +144,6 @@ extern TaskMessageEntry D_dryfield_motel_room_6_80182D48[];
 extern TaskDesc D_dryfield_motel_room_6_80182D78[];
 
 /// World position the room's marker is drawn at.
-extern SVECTOR D_dryfield_motel_room_6_80182D90[];
 
 /// The event task `func_dryfield_motel_room_6_80181A08` spawned and waits on.
 extern Task* D_dryfield_motel_room_6_80186828;
@@ -154,8 +153,15 @@ extern Task* D_dryfield_motel_room_6_80186828;
 extern Task* gRoomCutsceneSoundTask;
 
 /// Script record the room's event handler fills in and hands to the cutscene
+/// task as its `spawnArg2`. It is a common, placed in first-declaration order,
+/// so it is declared here, after its neighbours and before the library header.
+extern RoomCutsceneRec gMotelRoom6CutsceneRec;
+
+#define DRYFIELD_TIME DRYFIELD_DAY
+#include "../../shared/motel_room_6.h"
+
+/// Script record the room's event handler fills in and hands to the cutscene
 /// task as its `spawnArg2`.
-extern RoomCutsceneRec D_dryfield_motel_room_6_80186830;
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xFF\x1F"
 #include "../../shared/telephone.h"
@@ -166,7 +172,6 @@ extern RoomCutsceneRec D_dryfield_motel_room_6_80186830;
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 #include "../../shared/planar_reflection.h"
 
-static void func_dryfield_motel_room_6_80181910(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_motel_room_6_80181AC4(Task* task);
 static void func_dryfield_motel_room_6_80181B10(Task* task);
 
@@ -175,7 +180,6 @@ extern WorldCollisionTrigger      D_dryfield_motel_room_6_8018575C[10];
 extern WorldCollisionTrigger      D_dryfield_motel_room_6_80185A54[15];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13];
 extern WorldCoordRoomLights       D_dryfield_motel_room_6_801866C0[1];
-s32                               func_dryfield_motel_room_6_80181740(Task*, s32, s32, s32);
 s32                               func_dryfield_motel_room_6_80181918(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_dryfield_motel_room_6_801819A8(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
@@ -210,7 +214,7 @@ TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
     { 5105, func_dryfield_motel_room_6_80181918 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_6_801819A8 },
     { 5106, func_dryfield_motel_room_6_80181A00 },
-    { 5104, func_dryfield_motel_room_6_80181740 },
+    { 5104, motelRoom6CutsceneMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -219,7 +223,7 @@ TaskDesc D_dryfield_motel_room_6_80182D78[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-SVECTOR D_dryfield_motel_room_6_80182D90[1] = {
+SVECTOR gMotelRoom6GlowPos[1] = {
     { 550, -850, 5170, 0 },
 };
 
@@ -1764,7 +1768,7 @@ Task* D_dryfield_motel_room_6_80186828;
 
 Task* gRoomCutsceneSoundTask;
 
-RoomCutsceneRec D_dryfield_motel_room_6_80186830;
+RoomCutsceneRec gMotelRoom6CutsceneRec;
 
 /// Telephone menu title, including retained bytes after its terminator.
 static const char Telephone_Data_8017D638[];
@@ -1801,54 +1805,13 @@ static const TaskFuncTable3 D_dryfield_motel_room_6_8017D6B4 = {
     },
 };
 
-/// Handler of message 0x13F0 in the room's message table. For event 0x16 it
-/// fills in the cutscene script record - the cap file and fade chosen from
-/// flag nibble 0x7A and the stage, and the scene's sound events - and spawns
-/// the cutscene task on it. Any other event goes to
-/// `func_dryfield_motel_room_6_80181910`.
-s32 func_dryfield_motel_room_6_80181740(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    s32 count;
-
-    count = 0;
-    if (arg2 == 0x16) {
-        D_dryfield_motel_room_6_80186830.field_0 = 0xC;
-        D_dryfield_motel_room_6_80186830.field_1 = 1;
-        switch (GameFlag_GetNibble(0x7A)) {
-            case 0 ... 3:
-                if (gGameSession->location.loc.stage == 2) {
-                    count                                     = 4;
-                    D_dryfield_motel_room_6_80186830.field_14 = 0x3C0;
-                    D_dryfield_motel_room_6_80186830.field_3  = 1;
-                } else {
-                    count                                     = 2;
-                    D_dryfield_motel_room_6_80186830.field_14 = 0x380;
-                    D_dryfield_motel_room_6_80186830.field_3  = 1;
-                }
-                break;
-            case 4 ... 6:
-                count                                     = 2;
-                D_dryfield_motel_room_6_80186830.field_14 = 0x3C0;
-                D_dryfield_motel_room_6_80186830.field_3  = count;
-                break;
-        }
-        D_dryfield_motel_room_6_80186830.field_2  = 0;
-        D_dryfield_motel_room_6_80186830.field_4  = Gp_PackStageSndId(0x521E0008);
-        D_dryfield_motel_room_6_80186830.field_8  = Gp_PackStageSndId(0x521E000B);
-        D_dryfield_motel_room_6_80186830.field_10 = Gp_PackStageSndId(0x521E0009);
-        D_dryfield_motel_room_6_80186830.field_C  = Gp_PackStageSndId(0x521E000A);
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, count, &D_dryfield_motel_room_6_80186830);
-    } else {
-        func_dryfield_motel_room_6_80181910(arg0, arg1, arg2, arg3);
-    }
-    return 0;
-}
+#include "../../shared/motel_room_6_cutscene_msg.inc.c"
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Fallback of the room's message-0x13F0 handler for every event other than
 /// the cutscene's; this room does nothing with them.
-static void func_dryfield_motel_room_6_80181910(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+void motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
 }
 
@@ -1957,18 +1920,4 @@ void func_dryfield_motel_room_6_80181B18(Task* task)
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-void func_dryfield_motel_room_6_80182978(Task* unused)
-{
-    u8 view;
-
-    view = Gp_GetViewIndex();
-    switch (view) {
-        case 3:
-        case 4:
-            glowDrawWideDiamond(&D_dryfield_motel_room_6_80182D90[0], 0x60, 0x60);
-            break;
-        case 12:
-            glowDrawPulsingDisc(&D_dryfield_motel_room_6_80182D90[0], 0x60, 0x80);
-            break;
-    }
-}
+#include "../../shared/motel_room_6_draw_glow.inc.c"

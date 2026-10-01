@@ -43,6 +43,7 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/parking_lot.h"
 
 /// The room's per-view table: `gRoomEffectState->roomEffectMode` latches the entry the
 /// current camera index selects, and the room's effect tasks read it back.
@@ -91,11 +92,11 @@ AnimationSet D_dryfield_night_parking_lot_8017EC2C = {
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_parking_lot_8017D8D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotEventMsg },
     { 5105, func_dryfield_night_parking_lot_8017DB04 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_parking_lot_8017DB34 },
     { 5104, func_dryfield_night_parking_lot_8017DB0C },
-    { 5106, func_dryfield_night_parking_lot_8017DAB4 },
+    { 5106, parkingLotSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
