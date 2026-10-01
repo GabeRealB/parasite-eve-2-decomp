@@ -2306,3 +2306,4 @@ D_80114BAC = 0x80114BAC; // size:0x4 defined:True
 D_80112ED4 = 0x80112ED4; // size:0x21 defined:True
 
 D_80114D28 = 0x80114D28; // size:0x48 defined:True
+_gAnimationUnsupportedPoseDiagnostic = 0x80093a44;

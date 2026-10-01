@@ -299,9 +299,7 @@ static const VECTOR D_80093A28;
 
 static const TaskFuncTable3 D_80093A38;
 
-/// "ERROR: ex_pdriver_2\n". The three bytes after the terminator are not zero:
-/// the original toolchain left them in the alignment gap.
-static const char D_80093A44[24];
+static const char _gAnimationUnsupportedPoseDiagnostic[24];
 
 static const TaskFuncTable3 D_80093A5C;
 
@@ -431,7 +429,6 @@ GpSndMaskRec Gp_SndMaskTable[7] = {
 };
 TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, func_800B06F0, { NULL } };
 
-static const char           D_80093A44[];
 static const TaskFuncTable3 Gp_StageLoadStates;
 static const VECTOR         D_80093A28;
 static const TaskFuncTable3 D_80093A38;
@@ -2388,7 +2385,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             _animationBlendTranslationRotation(&scratch->request, coord, slot);
             break;
         case ANIMATION_POSE_UNSUPPORTED:
-            printf(D_80093A44);
+            printf(_gAnimationUnsupportedPoseDiagnostic);
             break;
         case ANIMATION_POSE_PACKED_ROTATION:
             _animationBlendPackedRotation(&scratch->request, coord, slot);
@@ -3921,9 +3918,11 @@ static const TaskFuncTable3 D_80093A38 = { {
     Task_CallExit,
 } };
 
-/// "ERROR: ex_pdriver_2\n". The three bytes after the terminator are not zero:
-/// the original toolchain left them in the alignment gap.
-static const char D_80093A44[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
+/// Error message for animation tracks with unsupported pose encoding 2.
+///
+/// The NUL-terminated message occupies 21 bytes. The final three stored bytes
+/// preserve the original read-only data and are not part of the printed text.
+static const char _gAnimationUnsupportedPoseDiagnostic[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
 
 static const TaskFuncTable3 D_80093A5C = { {
     func_800B6094,
