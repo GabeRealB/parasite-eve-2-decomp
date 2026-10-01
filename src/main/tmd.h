@@ -158,7 +158,7 @@ u32* tmdDrawStreamPrimG3CornerNormals(TmdStreamWorkspace* ws, s32 flags, u32* st
 /// corner of the packet carries the colour its own normal gives — and it is
 /// linked into the ordering table at the depth it came out at. A dropped quad
 /// still consumes its packet's room, because the room was reserved for every
-/// element by the process pass (`gpStreamPrimG4`), whose cursor this one stays in
+/// element by the process pass (`modelLightingReserveStreamPrimG4`), whose cursor this one stays in
 /// step with.
 ///
 /// The packet's primitive code is the top byte of that same colour word, which is
@@ -333,7 +333,7 @@ u32* tmdDrawStreamPrimG3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// corner is projected on its own, because it has to be taken out of the GTE's
 /// coordinate stack before the shared transform of the other three overwrites
 /// it; an element either transform raises an error on is dropped, its packet's
-/// room passed over all the same, since the process pass (`gpStreamPrimG4`)
+/// room passed over all the same, since the process pass (`modelLightingReserveStreamPrimG4`)
 /// reserved that room for every element and this handler stays in step with its
 /// cursor.
 ///

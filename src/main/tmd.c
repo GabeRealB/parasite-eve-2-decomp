@@ -522,7 +522,7 @@ void tmdProcessStream(TmdObject* obj)
             case 0x4040:
             case 0x4060:
             case 0x4160:
-                handler = gpStreamPrimG4;
+                handler = modelLightingReserveStreamPrimG4;
                 break;
             default:
                 handler = tmdSkipStreamRecord;

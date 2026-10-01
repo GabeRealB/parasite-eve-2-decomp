@@ -2479,21 +2479,22 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* 
     return stream;
 }
 
-u32* gpStreamPrimG4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* modelLightingReserveStreamPrimG4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    u8* prims;
-    s32 stride;
+    POLY_G4* quad;
+    s32      elementStrideWords;
 
-    prims = ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        stride = ws->elemStride;
+    quad = (POLY_G4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        elementStrideWords = workspace->elemStride;
+        // Keep each element's packet slot in step with the later draw pass.
         do {
-            stream += stride;
-            prims  += 0x24;
-        } while (ws->elemCount-- > 0);
+            elements += elementStrideWords;
+            quad++;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = prims;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* modelLightingReserveStreamPrimG3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)

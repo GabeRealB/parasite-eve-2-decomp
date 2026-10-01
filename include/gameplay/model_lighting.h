@@ -191,7 +191,7 @@ u32* func_8009E4A0(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 /// dropped without its last corner being transformed at all. What survives is lit
 /// corner by corner, its depth averaged for the ordering-table link, and linked.
 /// A dropped quad still consumes its packet's room, because the room was reserved
-/// for every element of the record by the process pass (`gpStreamPrimG4`), whose
+/// for every element of the record by the process pass (`modelLightingReserveStreamPrimG4`), whose
 /// cursor this handler stays in step with.
 ///
 /// `flags` selects no variant of the record, so it goes unread here.
@@ -605,18 +605,25 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* 
 /// semi-transparency rate it blends at.
 u32* gpStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's untextured gouraud-quad records (`0x40`, `0x60`, `0x160`,
-/// `0x4040`, `0x4060`, `0x4160`): each element is one `POLY_G4` in the buffer half's
-/// second region.
+/// Reserves one untextured Gouraud quad packet per element during TMD buffer construction.
 ///
-/// Nothing of that quad is this command's to write: it is a gouraud primitive, so its
-/// colours are lit per corner rather than taken from the element as a flat family's
-/// are, and it is untextured, so there are no texture words either. The command's work
-/// is to move both cursors on, which it must still do — the half is written by both
-/// passes, so a record one of them skipped would put every primitive after it at the
-/// wrong address in the other. What fills the room a `0x60` record reserves is the
-/// draw pass's (`tmdDrawStreamPrimG4CornerNormals`), one quad per element.
-u32* gpStreamPrimG4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The construction walk selects this handler for `0x40`, `0x60`, `0x160`,
+/// `0x4040`, `0x4060` and `0x4160`. It advances `workspace->primWrite` by one
+/// `POLY_G4` per element in the selected buffer half's second region, including
+/// opcodes carrying `0x4000`. It reads and writes no payload or packet data;
+/// positions, colours and ordering-table links are completed by the draw pass
+/// for drawable records. Reserving every element keeps both passes aligned
+/// even when drawing rejects a quad.
+///
+/// `elements` is the first payload word after the three-word record header.
+/// The caller decodes `workspace->elemCount` and `workspace->elemStride` from
+/// unsigned halfwords (0..65535); the stride counts u32 words. The borrowed
+/// stream must contain count * stride payload words, and the word-aligned
+/// primitive cursor must have room for count complete `POLY_G4` packets within
+/// its region. Returns the word after the payload, leaving any following marker
+/// unconsumed. The count ends at -1, including for an empty record. `objectFlags`
+/// is unused; construction passes zero to satisfy the shared callback signature.
+u32* modelLightingReserveStreamPrimG4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Reserves one untextured Gouraud triangle packet per element during TMD buffer construction.
 ///

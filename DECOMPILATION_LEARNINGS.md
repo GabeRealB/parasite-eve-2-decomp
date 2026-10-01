@@ -134326,7 +134326,7 @@ half against the array it would index.
 ## A twin split across two draw arms takes the word the family already uses
 
 The twin rule above assumes one twin per draw body, and the untextured families
-break that assumption: `gpStreamPrimG4` answers `0x40` and `0x60` alike, because
+break that assumption: `modelLightingReserveStreamPrimG4` answers `0x40` and `0x60` alike, because
 reserving the room is the whole of its work and both records reserve the same
 room, while the draw pass needs a body each — the `0x40` element names a single
 normal for the whole quad, the `0x60` one a normal per corner and is lit corner by
