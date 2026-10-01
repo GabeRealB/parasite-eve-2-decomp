@@ -1777,7 +1777,7 @@ func_dryfield_water_tank_8017F084 = 0x8017F084; // absolute:True
 
 func_dryfield_breezeway_8017FF7C = 0x8017FF7C; // absolute:True
 
-func_dryfield_factory_801825F0 = 0x801825F0; // absolute:True
+factoryDayDrawGlows = 0x801825F0; // absolute:True
 
 func_dryfield_garage_8017DC68 = 0x8017DC68; // absolute:True
 
@@ -1817,7 +1817,7 @@ func_dryfield_night_water_tank_8017DD8C = 0x8017DD8C; // absolute:True
 
 func_dryfield_night_breezeway_8017E5BC = 0x8017E5BC; // absolute:True
 
-func_dryfield_night_factory_801825F0 = 0x801825F0; // absolute:True
+factoryNightDrawGlows = 0x801825F0; // absolute:True
 
 func_dryfield_night_garage_80181518 = 0x80181518; // absolute:True
 

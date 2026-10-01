@@ -50,6 +50,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
+#define DRYFIELD_TIME DRYFIELD_NIGHT
+#include "../../shared/trailer_coach.h"
 
 typedef struct {
     s32 id;
@@ -839,8 +841,6 @@ extern EvsCommand D_dryfield_night_trailer_coach_80188510[];
 
 static void func_dryfield_night_trailer_coach_8018231C(Task* task);
 
-static void func_dryfield_night_trailer_coach_80182898(Task* task);
-
 /// Cutscene trigger for the trailer coach at night. Where the day version has
 /// its own record and a save-view reset, this one only runs at the two ends of
 /// the visit.
@@ -882,7 +882,7 @@ void func_dryfield_night_trailer_coach_8018138C(Task* task)
 static const TaskFuncTable3 D_dryfield_night_trailer_coach_8017D7DC = {
     {
         func_dryfield_night_trailer_coach_8018231C,
-        func_dryfield_night_trailer_coach_80182898,
+        trailerCoachSetDepthShift,
         taskKill,
     },
 };
@@ -1033,16 +1033,7 @@ void func_dryfield_night_trailer_coach_80182864(void)
     func_800D4D2C((GameFlag_GetNibble(0xE0) == 0) ? 0x20 : 0x21);
 }
 
-static void func_dryfield_night_trailer_coach_80182898(Task* task)
-{
-    char pad[0x10];
-
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 5) {
-        gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-    } else {
-        gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;
-    }
-}
+#include "../../shared/trailer_coach_set_depth_shift.inc.c"
 
 /// Runs the handler for the task's state from a stack copy of
 /// `D_dryfield_night_trailer_coach_8017D7DC`.

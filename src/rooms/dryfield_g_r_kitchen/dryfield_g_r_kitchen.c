@@ -46,6 +46,8 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
+#define DRYFIELD_TIME DRYFIELD_DAY
+#include "../../shared/g_r_kitchen.h"
 
 #define D_dryfield_g_r_kitchen_8017EBF0 (D_dryfield_g_r_kitchen_8017EBE8 + 1)
 #define D_dryfield_g_r_kitchen_8017EC08 (D_dryfield_g_r_kitchen_8017EBE8 + 4)
@@ -76,7 +78,6 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
 
 // Indexed views below share one contiguous table.
 s32 func_dryfield_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
 
@@ -88,7 +89,7 @@ extern WorldCoordRoomLights  D_dryfield_g_r_kitchen_8017F464[1];
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_g_r_kitchen_8017D8C4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, grKitchenDoorMsg },
     { 5105, func_dryfield_g_r_kitchen_8017D8BC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_g_r_kitchen_8017D950 },
     { 5104, func_dryfield_g_r_kitchen_8017D948 },
@@ -294,30 +295,7 @@ s32 func_dryfield_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageArg arg
     return 0;
 }
 
-/// Handler for message 0x13EE in the room's message table, which filters a
-/// warp request: copies `in` to `out`, and for area 0x14 passes the warp
-/// through the event gate with the room's own request - nibble 0x34, no collected bit,
-/// cap command 3 and the two sound ids 0x52130001 and 0x52130004 - answering
-/// with the gate's result. Any other area answers 1.
-s32 func_dryfield_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    RoomEventReq req;
-    s32          ret;
-
-    *out = *in;
-    if (in->areaId == 0x14) {
-        req.capCmd        = 3;
-        req.missingCapCmd = 3;
-        req.firstSnd      = 0x52130001;
-        req.secondSnd     = 0x52130004;
-        req.flagId        = 0x34;
-        req.collectedBit  = 0;
-        ret               = roomEventGate(&req, in);
-    } else {
-        ret = 1;
-    }
-    return ret;
-}
+#include "../../shared/g_r_kitchen_door_msg.inc.c"
 
 /// Handler for message 0x13F0 in the room's message table: the room takes no
 /// action and reports the message as not handled.

@@ -53,19 +53,12 @@
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
-/// Selects the night package's function bindings in `factory_lift.h`.
-///
-/// A presence-only marker, scoped to the header include; omission selects day.
-#define FACTORY_ROOM_NIGHT_INSTANCE
+#define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/factory_lift.h"
-#undef FACTORY_ROOM_NIGHT_INSTANCE
 
 extern TaskDesc gRoomEventTaskDesc;
 
 /// The world-space points the room's three glow discs are drawn at.
-extern SVECTOR D_dryfield_night_factory_80186F04;
-extern SVECTOR D_dryfield_night_factory_80186F0C;
-extern SVECTOR D_dryfield_night_factory_80186F14;
 
 s32  factoryIgnoreMessage(Task*, s32, TaskMessageArg, TaskMessageArg);
 void factoryPanelRun(Task*);
@@ -262,11 +255,11 @@ OverlayHotspot gFactoryPanelHotspots[6] = {
     { 0, 0, 0, 0, -1, 0, 0 },
 };
 
-SVECTOR D_dryfield_night_factory_80186F04 = { 395, -1630, 846, 0 };
+SVECTOR gFactoryGlowPos48 = { 395, -1630, 846, 0 };
 
-SVECTOR D_dryfield_night_factory_80186F0C = { 5910, -1308, 5649, 0 };
+SVECTOR gFactoryGlowPos4A1 = { 5910, -1308, 5649, 0 };
 
-SVECTOR D_dryfield_night_factory_80186F14 = { 5910, -1404, 5649, 0 };
+SVECTOR gFactoryGlowPos4A2 = { 5910, -1404, 5649, 0 };
 
 u8* D_dryfield_night_factory_80186F1C[2] = {
     gViewIdentityMap,
@@ -899,25 +892,4 @@ static const TaskFuncTable7 _gFactoryPanelStates = {
 
 #include "../../shared/glow_draw_tinted_disc.inc.c"
 
-/// Per-frame effect: refreshes the task's composed matrix, then draws
-/// one of three glowing discs at fixed points in the room. The draw set is
-/// selected by the stage-visit byte `gGameSession->location.loc.view` taken as a bit
-/// index, and each of the three groups also gates on a story flag, so a disc
-/// only appears on the visits and after the event that the flag records.
-void func_dryfield_night_factory_801825F0(Task* task)
-{
-    s32 state;
-
-    state = 1 << gGameSession->location.loc.view;
-    Gp_UpdateCoord(task->extra.coordBody->coord);
-    if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
-        glowDrawTintedDisc(&D_dryfield_night_factory_80186F04, 0x100, 0x3660);
-    }
-    if (state & 0xF26C4) {
-        if (GameFlag_GetNibble(0x4A) == 1) {
-            glowDrawTintedDisc(&D_dryfield_night_factory_80186F0C, 0x80, 0x5A00);
-        } else if (GameFlag_GetNibble(0x4A) == 2) {
-            glowDrawTintedDisc(&D_dryfield_night_factory_80186F14, 0x80, 0x50A0);
-        }
-    }
-}
+#include "../../shared/factory_draw_glows.inc.c"

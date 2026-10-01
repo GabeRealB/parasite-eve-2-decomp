@@ -41,12 +41,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
-/// Selects the night package's function bindings in `factory_lift.h`.
-///
-/// A presence-only marker, scoped to the header include; omission selects day.
-#define FACTORY_ROOM_NIGHT_INSTANCE
+#define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/factory_lift.h"
-#undef FACTORY_ROOM_NIGHT_INSTANCE
 
 /// The two argument blocks one of the turn handlers hands `Gp_SpawnScript18`,
 /// one pair per stage variant.
