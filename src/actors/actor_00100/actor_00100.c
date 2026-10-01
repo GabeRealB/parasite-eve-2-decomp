@@ -179,8 +179,6 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 extern DesertChaserAnimCommand gDesertChaserRearAnim;
 
-s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);
-
 typedef struct {
     s32 id;
     union {
@@ -282,11 +280,9 @@ s32 Actor00100_Fn00E58(Task*, s32, ActorCommand* request);
 
 void Actor00100_Fn0B134(void);
 
-void Actor00100_Fn0BD28(Task*);
-
 extern s8 gDesertChaserClipStartFrames[25][25];
 
-static const GpEnemyTaskFuncTable4 Actor00100_D001A0;
+static const DesertChaserTaskStates gDesertChaserTaskStates;
 
 static void Actor00100_Fn0B4D8(Task* arg0);
 
@@ -1257,13 +1253,13 @@ SVECTOR gDesertChaserHitOffsets[12] = {
 Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = Actor00100_Fn00E58 } },
     { 2015, { .reset = Actor00100_Fn0B134 } },
-    { 2005, { .value = Actor00100_Fn0B1A4 } },
+    { 2005, { .value = actorMsgSetVisibility } },
     { 2006, { .task = actorMsgIsPresent } },
     { 2004, { .placement = actorMsgPlaceRecordYaw } },
     { TASK_MESSAGE_TABLE_END, { .command = NULL } },
 };
 
-TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };
+TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &Actor00100_D108C0 } };
 
 SVECTOR ActorContact_ScratchPosition;
 
@@ -3596,7 +3592,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
 
 /// The task's handlers, indexed by `Task::state`: set-up, the per-frame state
 /// dispatch, a wait for the pending release before advancing, and teardown.
-static const GpEnemyTaskFuncTable4 Actor00100_D001A0 = { {
+static const DesertChaserTaskStates gDesertChaserTaskStates = { {
     Actor00100_Fn02C54,
     Actor00100_Fn0A288,
     Actor00100_Fn0BCBC,
@@ -3626,34 +3622,7 @@ static s16 Actor00100_Fn0B13C(Task* arg0)
     return found;
 }
 
-s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2)
-{
-    TmdObject*        obj  = arg0->extra.tmd;
-    DesertChaserWork* work = arg0->work;
-
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
-            break;
-        case 1:
-            obj->flags = 0;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0x18;
-            break;
-        case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
-            break;
-        case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_visibility.inc.c"
 
 #include "../../shared/actor_messages_is_present.inc.c"
 
@@ -3873,10 +3842,4 @@ static void Actor00100_Fn0BCBC(Enemy* enemy, Task* task)
     }
 }
 
-void Actor00100_Fn0BD28(Task* arg0)
-{
-    GpEnemyTaskFuncTable4 sp;
-
-    sp = Actor00100_D001A0;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/desert_chaser_task.inc.c"

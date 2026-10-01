@@ -44,6 +44,22 @@
 #define DESERT_CHASER_BLEND_DONE ANIMATION_SLOT_SETTLED
 #endif
 
+/// What the animation tick does differently per build: the regular build's
+/// cue step returns a bare sound id, so the tick adds the placement index; the
+/// cutscene and Water Tower builds reset the blend rate and turn defaults when
+/// the blend context starts; the armed builds tip joint 4 forward in state
+/// 0x26 while no clip is queued.
+#define DESERT_CHASER_CUE_NEEDS_PLACE  (DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR)
+#define DESERT_CHASER_BLEND_RATE_RESET (DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR)
+#define DESERT_CHASER_STATE26_TILT     (DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE)
+
+/// The task states `desertChaserTask` runs; the regular build has a fourth.
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+typedef GpEnemyTaskFuncTable4 DesertChaserTaskStates;
+#else
+typedef GpEnemyTaskFuncTable3 DesertChaserTaskStates;
+#endif
+
 /// A route point, the placement and the one a fixed step ahead of it.
 typedef struct DesertChaserWaypoint {
     s16 x;

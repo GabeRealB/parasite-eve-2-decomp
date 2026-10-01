@@ -5195,7 +5195,7 @@ void func_actor_421600_8013E424(void)
 
 /// The enemy task's state handlers - spawn, per-frame tick and teardown - run by
 /// `desertChaserTask`.
-static const GpEnemyTaskFuncTable3 gDesertChaserTaskStates = {
+static const DesertChaserTaskStates gDesertChaserTaskStates = {
     {
         func_actor_421600_80134AD4,
         func_actor_421600_8013D658,
