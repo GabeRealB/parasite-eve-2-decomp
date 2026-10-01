@@ -734,11 +734,16 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(2, 1, 448, 256),
         TMD_GT3_ENV_SECOND_TEXTURE_PAGE = getTPage(2, 1, 576, 256),
         TMD_GT3_ENV_PAGE_U_DISPLACEMENT = 128,
-        TMD_GT3_ENV_BASE_COMMAND        = 0x34,
-        TMD_GT3_ENV_LAYER_COMMAND       = 0x36,
-        TMD_GT3_ENV_CORNER_COUNT        = 3,
-        TMD_GT3_ENV_PACKET_COUNT        = 2,
-        TMD_GT3_ENV_CORNER_BYTES        = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0),
+        /// GPU command byte for the opaque, colour-modulated Gouraud-textured base triangle.
+        ///
+        /// Bits 1 and 0 are clear: semi-transparency is disabled and vertex colours
+        /// modulate the texture. The second `POLY_GT3` in each pair uses the model's
+        /// texture and is linked ahead of the environment layer.
+        TMD_GT3_ENV_BASE_COMMAND  = 0x34,
+        TMD_GT3_ENV_LAYER_COMMAND = 0x36,
+        TMD_GT3_ENV_CORNER_COUNT  = 3,
+        TMD_GT3_ENV_PACKET_COUNT  = 2,
+        TMD_GT3_ENV_CORNER_BYTES  = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0),
         // Sixteen scaled OTZ units select one four-byte OT tag.
         TMD_GT3_ENV_OT_INDEX_SHIFT = 4
     };
