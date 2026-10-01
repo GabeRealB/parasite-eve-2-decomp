@@ -310,7 +310,6 @@ static __inline__ s16      Actor00100_InDirection(Task* actor, VECTOR* motion);
 static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head);
 static __inline__ s32      Actor00100_FindDamageHit(WorldCollisionContact* records, SVECTOR* pos);
 static __inline__ void     Actor00100_SetHitState(DesertChaserWork* work);
-static void                Actor00100_Fn001FC(GfxCoord* coord, s16 yaw);
 static s32                 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static void                Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
 static void                Actor00100_Fn01D74(Task* arg0);
@@ -1299,25 +1298,7 @@ static __inline__ void Actor00100_SetHitState(DesertChaserWork* work)
 
 // Transition durations indexed by previous * 25 + next animation.
 
-/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
-/// rotation in a matrix carved off the scratchpad head, applies the turn,
-/// converts the result back into the parent's frame, writes the 3x3 into the
-/// joint and refreshes it.
-static void Actor00100_Fn001FC(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
-
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
+#include "../../shared/actor_contacts_turn_joint.inc.c"
 
 #include "../../shared/actor_contacts_steer.inc.c"
 
@@ -2156,11 +2137,11 @@ static void desertChaserArmedAnimTick(Task* arg0)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        Actor00100_Fn001FC(&arg0->extra.tmd->coords[2], thirdAngle);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[2], thirdAngle);
         arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        Actor00100_Fn001FC(&arg0->extra.tmd->coords[3], thirdAngle);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[3], thirdAngle);
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        Actor00100_Fn001FC(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if ((work->field_82E == 0) && (work->field_0 == 0x26)) {
@@ -2199,7 +2180,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
             turnWork->field_842 = (s16)targetTurn;
         }
     }
-    Actor00100_Fn001FC(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
+    ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
     arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     sound                                    = Actor00100_Fn01EEC(arg0, work);
     if (sound != 0) {
