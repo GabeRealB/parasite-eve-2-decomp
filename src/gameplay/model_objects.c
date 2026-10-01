@@ -14,6 +14,7 @@
 #include "gameplay/actor_render.h"
 #include "actor_render.h"
 #include "model_objects.h"
+#include "gameplay/room_effects.h"
 
 #include "main/display.h"
 #include "main/gfx.h"
@@ -739,8 +740,18 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// provides alignment without checking bounds or projection validity;
         /// `TMD_VERTEX_DEPTH_INVALID` is tested in the selected cache entry.
         TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK = 0xFFFC,
-        // Fixed 15-bit additive environment pages at VRAM (448,256) and (576,256).
-        TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(2, 1, 448, 256),
+        /// Direct-colour texture mode: 15 RGB bits per 16-bit VRAM texel.
+        TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT = 2,
+        /// Packed GPU texture-page settings for environment triangles with no second-page markers.
+        ///
+        /// Encodes `0x137`: direct colour and additive semitransparency at
+        /// VRAM word coordinates (448,256). Projection supplies U in 0..255
+        /// and V in 0..239 relative to this origin; the model's texture-page
+        /// offset is not applied. Written to the layer's unsigned 16-bit
+        /// `POLY_GT3.tpage`, with semitransparency enabled by the layer command.
+        /// Any marked corner instead selects `TMD_GT3_ENV_SECOND_TEXTURE_PAGE`,
+        /// whose origin is 128 texels to the right, overlapping this page.
+        TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT, GPU_BLEND_ADD, 448, 256),
         TMD_GT3_ENV_SECOND_TEXTURE_PAGE = getTPage(2, 1, 576, 256),
         TMD_GT3_ENV_PAGE_U_DISPLACEMENT = 128,
         /// GPU command byte for the opaque, colour-modulated Gouraud-textured base triangle.
