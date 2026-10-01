@@ -8,7 +8,10 @@
 
 #include "gameplay/message.h"
 
-/// Number of entries in the shared identity view mapping.
+/// Number of unsigned byte entries in `gViewIdentityMap`.
+///
+/// Its capacity covers 1-based logical views 1 through this value; each room
+/// supplies its own view count independently of the shared mapping's extent.
 enum { VIEW_IDENTITY_MAP_LENGTH = 50 };
 
 /// Shared mapping for rooms whose logical views use the same camera/image indices.
