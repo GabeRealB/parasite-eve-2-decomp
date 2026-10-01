@@ -71,20 +71,6 @@ static void func_actor_800100_801635F4(Task* arg0);
 static void func_actor_800100_80163A58(Task* arg0);
 static void func_actor_800100_80165528(Task* arg0);
 
-/// 0x38 block `func_actor_800100_801624F0` allocates with `memCalloc` when
-/// its task enters state 0 and stores at `Task::work`: the launched
-/// projectile's object plus its one-entry collision table, whose final-entry flag is
-/// set even when empty. `obj.context.contacts` points at `rec`, `obj.coord` at the task's
-/// own coordinate, and `obj.key` is the hit payload `0x21C9E`. The
-/// projectile flies out along `work->angle` while `work->scale` opens, then
-/// drops; `func_actor_800100_801631C8` hands the block back to `Gp_UnlinkObj`
-/// on teardown. Same shape as the m4a1_pyke dart's `M4a1PykeBeam`.
-typedef struct _Actor800100Beam {
-    /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ WorldCollisionContact rec[1];
-} Actor800100Beam;
-STATIC_ASSERT_SIZEOF(Actor800100Beam, 0x38);
-
 /// 0x5C-byte block from the scratch stack used by
 /// `func_actor_800100_80166514`: the `GfxCoord` it hands to
 /// `Gp_PlaceCoordOffset` / `func_actor_800100_801668C0`, the `rot` offset
@@ -127,20 +113,6 @@ typedef struct _Actor800100LineScratch {
     /* 0x14 */ SVECTOR tip;
 } Actor800100LineScratch;
 STATIC_ASSERT_SIZEOF(Actor800100LineScratch, 0x1C);
-
-/// 0x30-byte block from the scratch stack used by
-/// `func_actor_800100_80162E90` to draw the projectile's ground splash: the
-/// four corners of the unit quad `D_80111E38`, each scaled to the splash
-/// half-size, rotated flat into view space by `gGfxViewCoord.workm` and moved to
-/// the traced ground point. `sxy` is where they land on screen, `vec[0]`
-/// through a single `RTPS` and the rest through one `RTPT`. Same shape as the
-/// m4a1_pyke dart's splash block, but with `otz` and `flag` kept on the stack
-/// instead of in the block.
-typedef struct _Actor800100SplashScratch {
-    /* 0x00 */ SVECTOR vec[4];
-    /* 0x20 */ DVECTOR sxy[4];
-} Actor800100SplashScratch;
-STATIC_ASSERT_SIZEOF(Actor800100SplashScratch, 0x30);
 
 /// One corner of the beam quad `func_actor_800100_801668C0` draws, as an
 /// offset in the placed coordinate's own frame: `vy` straight up, `vz` along
@@ -202,8 +174,6 @@ extern u8                      D_actor_800100_80167230[];
 /// `frame` walks the twelve windows of `D_80111E48`, `width` is the flare's
 /// half-width (divided down by the projected depth) and `ang` its spin, so the
 /// quad is a square rotated by `ang` rather than an axis-aligned sprite.
-static void func_actor_800100_80162E90(VECTOR3* arg0, s32 arg1);
-static void func_actor_800100_801631C8(Task* arg0);
 static void func_actor_800100_80163214(Task* arg0);
 static void func_actor_800100_80163C04(Task* arg0);
 static void func_actor_800100_80163D54(Task* arg0);
@@ -1171,234 +1141,21 @@ void func_actor_800100_80161F20(Task* task)
 
 #include "../../shared/pyke_flame_nozzle.inc.c"
 
-/// Projectile task of the actor: with effect control running it advances
-/// `work->age` (the animation frame, halved for the draw). With nonzero
-/// `gRoomEffectState->effectControl` it only redraws at the coordinate; values at
-/// least 4 cancel the task.
-///
-/// - State 0 allocates the projectile's `Actor800100Beam`, claims the exit
-///   callback, seeds its spin from `gRandomLcgState`, and rotates the scratch
-///   `(0, pitch, roll)` vector by the task's own coordinate through the GTE
-///   to get the launch direction. It arms the record's payload `0x21C9E`,
-///   links the object onto list 1, and falls through.
-/// - State 1 steps the coordinate by that direction, redraws, and rolls
-///   `gRandomLcgState % 3` to drop a ground impact (`Gp_TraceGroundCoord` plus
-///   `func_actor_800100_80162E90` at two thirds of the width) when the room's
-///   ground is live. A hit on anything (`func_800DE7CC`) ends the flight into
-///   state 2, and a miss after 0x15 frames releases the task.
-/// - State 2 keeps falling at four times the speed until the same 0x15.
+#define PYKE_FLAME_KEY                  0x21C9E
+#define PYKE_FLAME_REDRAW_UPDATES_COORD 1
+#include "../../shared/pyke_flame_task.inc.c"
+
+/// Per-frame task for one flame actor_800100's Pyke throws (see pyke_flame.h).
 void func_actor_800100_801624F0(Task* task)
 {
-    GfxCoord         ground;
-    SVECTOR          after;
-    SVECTOR          before;
-    GfxCoord*        coord;
-    EffectWork*      work;
-    Actor800100Beam* beam;
-    s32              effectControl;
-    u32              ang0;
-    u32              ang1;
-    u32              ang2;
-    u32              ang3;
-
-    beam          = (Actor800100Beam*)task->work;
-    work          = task->spawnArg2.pointer;
-    effectControl = gRoomEffectState->effectControl;
-    coord         = task->extra.coordBody->coord;
-    if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (task->state != 0) {
-            Gp_UnlinkObj(&beam->obj);
-        }
-        effectKillTask(work, task);
-        return;
-    }
-    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        Gp_UpdateCoord(coord);
-        pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
-                          (work->age >> 1) + 1, work->scale,
-                          work->angle);
-        return;
-    }
-    work->age = work->age + 1;
-    switch (task->state) {
-        case 0:
-            beam = memCalloc(sizeof(Actor800100Beam), 0);
-            if (beam == NULL) {
-                work->age = 0;
-                return;
-            }
-            task->exitCallback = func_actor_800100_801631C8;
-            work->move.vx      = 0;
-            ang0               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState    = ang0;
-            work->move.vy      = (u16)task->spawnArg1.value - ((ang0 >> 16) & 0x3F);
-            work->move.vz      = 0;
-            gte_SetRotMatrix(&coord->coord);
-            gte_ldv0(&work->move);
-            gte_rtv0();
-            gte_stsv(&work->move);
-            work->scale                = (u16)task->spawnArg1.value + 0x180;
-            ang1                       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle                = (ang1 >> 16) & 0xFFF;
-            task->state                = 1;
-            task->work                 = beam;
-            beam->obj.coord            = coord;
-            beam->obj.context.contacts = beam->rec;
-            beam->obj.key              = 0x21C9E;
-            beam->obj.radius           = work->scale >> 1;
-            gRandomLcgState            = ang1;
-            beam->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-            Gp_LinkObj(1, &beam->obj);
-            beam->rec[0].flags = 2;
-            beam->obj.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            /* fallthrough */
-        case 1:
-            work->scale         = work->scale + 0x10;
-            work->move.vy       = work->move.vy + 8;
-            before.vx           = coord->workm.t[0];
-            before.vy           = coord->workm.t[1];
-            before.vz           = coord->workm.t[2];
-            coord->coord.t[0]  += work->move.vx;
-            coord->coord.t[1]  += work->move.vy;
-            coord->coord.t[2]  += work->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
-            after.vx = coord->workm.t[0];
-            after.vy = coord->workm.t[1];
-            after.vz = coord->workm.t[2];
-            pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
-                              (work->age >> 1) + 1, work->scale,
-                              work->angle);
-            ang2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = ang2;
-            if ((u16)((ang2 >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
-                Gp_TraceGroundCoord(coord, &ground) == 1) {
-                func_actor_800100_80162E90(MATRIX_TRANS(&ground.workm),
-                                           (s16)((work->scale * 2) / 3));
-            }
-            if (Gp_CountRec18Hi(beam->obj.context.contacts, 0x30000) != 0) {
-                Gp_UnlinkObj(&beam->obj);
-                effectKillTask(work, task);
-                return;
-            }
-            if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
-                Gp_UnlinkObj(&beam->obj);
-                task->state     = 2;
-                work->move.vx   = (u32)rcos(work->angle) >> 8;
-                work->move.vy   = (u32)rsin(work->angle) >> 8;
-                ang3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = ang3;
-                work->move.vz   = (u32)rsin((ang3 >> 16) & 0xFFF) >> 8;
-                return;
-            }
-            if (work->age >= 0x15) {
-                Gp_UnlinkObj(&beam->obj);
-                effectKillTask(work, task);
-                return;
-            }
-            Gp_ClearRec18Occupied(beam->rec);
-            return;
-        case 2:
-            work->scale         = work->scale + 0x40;
-            coord->coord.t[0]  += work->move.vx;
-            coord->coord.t[1]  += work->move.vy;
-            coord->coord.t[2]  += work->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
-            pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
-                              (work->age >> 1) + 1, work->scale,
-                              work->angle);
-            if (work->age >= 0x15) {
-                effectKillTask(work, task);
-            }
-            break;
-    }
+    pykeFlameTask(task);
 }
 
 #include "../../shared/pyke_flame_blob.inc.c"
 
-/// Draws the projectile's ground splash at the traced ground point `pos`: the
-/// unit quad `D_80111E38` scaled to `width` half-size, laid flat by
-/// `gGfxViewCoord.workm`, and projected through `GsWSMATRIX` into a 0x30-byte
-/// scratch stack block. The first corner goes through `rtps` and the other
-/// three through one `rtpt`; a negative `gte_stflg` drops the quad.
-static void func_actor_800100_80162E90(VECTOR3* pos, s32 width)
-{
-    void**                    scratch;
-    u8*                       head;
-    Actor800100SplashScratch* block;
-    POLY_FT4*                 prim;
-    GpQuadCorner*             tbl;
-    s32                       i;
-    s32                       flag;
-    s32                       otz;
+#include "../../shared/pyke_flame_splash.inc.c"
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = (u8*)SCRATCH_HEAD_AT(scratch, void) - 0x30;
-    SCRATCH_HEAD_AT(scratch, void) = head;
-    block                          = (Actor800100SplashScratch*)head;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    i   = 0;
-    tbl = D_80111E38;
-    do {
-        block->vec[i].vx = tbl[i].x * width;
-        block->vec[i].vy = 0;
-        block->vec[i].vz = tbl[i].y * width;
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&block->vec[i]);
-        gte_rtv0();
-        gte_stsv(&block->vec[i]);
-        (u16) block->vec[i].vx = (u16)block->vec[i].vx + (u16)pos->vx;
-        (u16) block->vec[i].vy = (u16)block->vec[i].vy + (u16)pos->vy;
-        (u16) block->vec[i].vz = (u16)block->vec[i].vz + (u16)pos->vz;
-        i++;
-    } while (i < 4);
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec[0]);
-    gte_rtps();
-    gte_stsxy(&block->sxy[0]);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt();
-    gte_stsxy3(&block->sxy[1], &block->sxy[2], &block->sxy[3]);
-    gte_stflg(&flag);
-    if (flag >= 0) {
-        gte_stszotz(&otz);
-        otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        setRGB0(prim, 0x40, 0x40, 0x40);
-        prim->tpage = 0x29;
-        prim->clut  = 0x430F;
-        setUV4(prim, 0xE0, 0xC8, 0xFF, 0xC8, 0xE0, 0xE7, 0xFF, 0xE7);
-        prim->x0 = block->sxy[0].vx;
-        prim->y0 = block->sxy[0].vy;
-        prim->x1 = block->sxy[1].vx;
-        prim->y1 = block->sxy[1].vy;
-        prim->x2 = block->sxy[2].vx;
-        prim->y2 = block->sxy[2].vy;
-        prim->x3 = block->sxy[3].vx;
-        prim->y3 = block->sxy[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x30);
-}
-
-static void func_actor_800100_801631C8(Task* arg0)
-{
-    WorldCollisionBody* temp_a0;
-    void*               temp_s1;
-
-    temp_a0 = arg0->work;
-    temp_s1 = arg0->spawnArg2.pointer;
-    if (temp_a0 != NULL) {
-        Gp_UnlinkObj(temp_a0);
-    }
-    effectKillTask(temp_s1, arg0);
-}
+#include "../../shared/pyke_flame_release.inc.c"
 
 static void func_actor_800100_80163214(Task* arg0)
 {

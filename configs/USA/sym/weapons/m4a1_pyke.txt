@@ -5,3 +5,5 @@ func_m4a1_pyke_8011D1F8 = 0x8011D1F8; // type:func
 func_m4a1_pyke_8011D7D4 = 0x8011D7D4; // type:func
 pykeFlameDrawNozzle = 0x8011D548; // type:func
 pykeFlameDrawBlob = 0x8011DCEC; // type:func
+pykeFlameDrawSplash = 0x8011E168; // type:func
+pykeFlameRelease = 0x8011E4AC; // type:func
