@@ -1434,6 +1434,11 @@ s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
         /// With ten pixels per pan-offset unit, +159 caps the rightward offset at +15.
         WORLD_COORDINATE_AUDIO_PAN_MAX_X = 159,
 
+        /// Projected screen pixels per signed spatial sound pan-offset unit.
+        ///
+        /// Division truncates toward zero, mapping clamped X in [-160, 159]
+        /// to offsets in [-16, 15]; X in [-9, 9] leaves the base pan unchanged.
+        /// Playback multiplies the offset by three before adding it to the base pan.
         WORLD_COORDINATE_AUDIO_PAN_PIXELS_PER_UNIT = 10,
 
         /// Preserves the sound's base pan when projection reports a GTE summary error.
