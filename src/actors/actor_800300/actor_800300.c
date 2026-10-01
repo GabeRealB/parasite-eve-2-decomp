@@ -1944,7 +1944,7 @@ static void func_actor_800300_80162658(Task* arg0)
         func_80109BB4(arg0, &actor->collisionContacts[0]);
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
-            pan   = (s8)Gp_GetObjPan(obj);
+            pan   = (s8)worldCoordGetOriginAudioPan(obj);
             depth = (s8)gpGetObjDepth(obj);
             sound = 7;
             if ((u16)actor->hitRegion == 1) {

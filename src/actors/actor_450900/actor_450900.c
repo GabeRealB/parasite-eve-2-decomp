@@ -714,7 +714,7 @@ void func_actor_450900_80131E38(Task* task)
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
                     coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
-                    pan   = (s8)Gp_GetObjPan(coord);
+                    pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)gpGetObjDepth(coord);
                     if (rand() & 1) {
                         SndEvt_EnqueueType6(0x55170005, pan, depth);
@@ -753,7 +753,7 @@ void func_actor_450900_8013207C(Task* task)
             if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (Gp_StateF0.field_4 == 0) && ((D_8017A99C - 0x456) >= 0)) {
                 if ((D_8017A99C - 0x456) % 210 == 0) {
                     coord = gameGetPtrSlot(3)->extra.tmd->coords;
-                    pan   = (s8)Gp_GetObjPan(coord);
+                    pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)gpGetObjDepth(coord);
                     if (rand() & 1) {
                         SndEvt_EnqueueType6(0x55170003, pan, depth);
@@ -936,7 +936,7 @@ void func_actor_450900_80132684(s32 arg0)
     s8        depth;
 
     coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
-    pan   = (s8)Gp_GetObjPan(coord);
+    pan   = (s8)worldCoordGetOriginAudioPan(coord);
     depth = (s8)gpGetObjDepth(coord);
     if (arg0 != 0) {
         SndEvt_EnqueueType6(0x55170007, pan, depth);

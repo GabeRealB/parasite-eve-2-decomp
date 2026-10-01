@@ -52,7 +52,7 @@ void lungerCollapseState(Task* arg0)
 
                     snd = gLungerVoiceCues[work->field_6D6 + 0xC] |
                           ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                    pan = (s8)Gp_GetObjPan(self);
+                    pan = (s8)worldCoordGetOriginAudioPan(self);
 
                     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
                 }
@@ -61,7 +61,7 @@ void lungerCollapseState(Task* arg0)
 
                     snd = gLungerVoiceCues[work->field_6D6 + 8] |
                           ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                    pan = (s8)Gp_GetObjPan(self);
+                    pan = (s8)worldCoordGetOriginAudioPan(self);
 
                     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
                 }
@@ -70,7 +70,7 @@ void lungerCollapseState(Task* arg0)
 
                 snd = gLungerVoiceCues[work->field_6D6 + 8] |
                       ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan = (s8)Gp_GetObjPan(self);
+                pan = (s8)worldCoordGetOriginAudioPan(self);
 
                 SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
             }

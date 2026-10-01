@@ -44,7 +44,7 @@ void stalkerKneelSeq(Task* arg0)
         case 1:
             if (work->field_6C4 == 0x2C) {
                 snd = gStalkerAnimCues[work->field_712 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
             }
             if (work->field_6C4 >= 0x42) {
                 work->field_6C0 = 0x10;
@@ -61,7 +61,7 @@ void stalkerKneelSeq(Task* arg0)
         case 2:
             if (work->field_6C4 == 0x19) {
                 snd = gStalkerAnimCues[work->field_712 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
             }
             if (work->field_6C4 >= 0x31) {
                 work->field_6C0 = 0x14;

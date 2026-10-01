@@ -88,7 +88,7 @@ void podBodyHit(Task* arg0)
             work->field_332 = val;
         }
         snd = gPodSoundIds[2] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
     }
 end:
     Gp_ClearRec18Occupied(work->rec18);

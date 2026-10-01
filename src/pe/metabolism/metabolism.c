@@ -125,7 +125,7 @@ void func_metabolism_8012EF34(Task* arg0)
                 }
             }
             Gp_StateC08.field_6 |= 8;
-            pan                  = (s8)Gp_GetObjPan(coord);
+            pan                  = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_metabolism_8012FB6C[mem->index], pan,
                                 (s8)gpGetObjDepth(coord));
             /* fallthrough */

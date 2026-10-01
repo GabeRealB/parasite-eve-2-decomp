@@ -879,7 +879,7 @@ static void func_actor_510900_80135744(Task* arg0)
                     } else {
                         sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780005;
                     }
-                    pan = (s8)Gp_GetObjPan(coord);
+                    pan = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
                 }
                 if (work->field_578 != 0) {
@@ -1019,7 +1019,7 @@ static void func_actor_510900_80135E90(Task* arg0)
         case 0:
             if (work->field_58A == 0xA) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780006;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x64) {
@@ -1045,7 +1045,7 @@ static void func_actor_510900_80135E90(Task* arg0)
             }
             if (work->field_58A == 0xA) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000B;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x1D) {
@@ -1070,7 +1070,7 @@ static void func_actor_510900_80135E90(Task* arg0)
             }
             if (work->field_58A == 6) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000B;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x27) {
@@ -1133,7 +1133,7 @@ static void func_actor_510900_80136184(Task* arg0)
                         work->field_590 = 5;
                         work->field_586 = 0x15;
                         snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780003;
-                        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                        SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                             (s8)gpGetObjDepth(coord));
                     } else {
                         work->field_590 = 1;
@@ -1182,14 +1182,14 @@ static void func_actor_510900_80136184(Task* arg0)
                 }
                 work->field_59E = 0x28;
                 snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - 0xA) < 3U) {
                 work->field_590 = 6;
                 work->field_586 = 0x15;
                 snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780003;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_59C <= 0 || work->field_5A6 > 0xB478U) {
@@ -1261,7 +1261,7 @@ static void func_actor_510900_80136184(Task* arg0)
             }
             if (work->field_58A == 0x19) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780008;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x32) {
@@ -1427,7 +1427,7 @@ static void func_actor_510900_80136B70(Task* arg0)
             }
             if (work->field_58A == 0xA) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000B;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if ((work->field_5BE > 0) && (work->field_58A == 8)) {
@@ -1473,7 +1473,7 @@ static void func_actor_510900_80136B70(Task* arg0)
             }
             if (work->field_58A == 6) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000B;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x27) {
@@ -1506,7 +1506,7 @@ static void func_actor_510900_80136B70(Task* arg0)
         case 3:
             if (work->field_58A == 0x2D) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000A;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x5A) {
@@ -1548,10 +1548,10 @@ static void func_actor_510900_80137008(Task* arg0)
                 work->field_594 = 1;
                 work->field_598 = 0x55;
                 snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
                 work->field_57C = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000D;
-                SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(work->field_57C, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
                 work->obj4E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->obj504.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1561,7 +1561,7 @@ static void func_actor_510900_80137008(Task* arg0)
             }
             if (work->field_58A == 0x41) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780006;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x5A) {
@@ -1586,12 +1586,12 @@ static void func_actor_510900_80137008(Task* arg0)
                 work->obj4E4.key    = pair;
                 work->obj504.key    = pair;
                 snd                 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780007;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A == 0x2F) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780008;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x46) {
@@ -1663,7 +1663,7 @@ static void func_actor_510900_801373B8(Task* arg0)
             tmdProcessStream(model);
         }
         snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780012;
-        pan = (s8)Gp_GetObjPan(coord);
+        pan = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     }
     if (work->field_58A >= 0x46) {
@@ -1713,7 +1713,7 @@ static void func_actor_510900_801375D8(Task* arg0)
             work->field_5A2 = (work->field_58A < 0x47) ? 0 : 0x84;
             if (work->field_58A == 0x4A) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000F;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x52) {
@@ -1750,7 +1750,7 @@ static void func_actor_510900_801375D8(Task* arg0)
             work->field_5A2 = 0;
             if (work->field_58A == 0xE) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000C;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x3B) {
@@ -1800,10 +1800,10 @@ static void func_actor_510900_80137868(Task* arg0)
                 work->field_594 = 1;
                 work->field_598 = 0x10E;
                 snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
                 work->field_57C = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000D;
-                SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(work->field_57C, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
                 work->obj4E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->obj504.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1819,7 +1819,7 @@ static void func_actor_510900_80137868(Task* arg0)
         case 1:
             if (work->field_58A == 0xA) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780006;
-                SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             if (work->field_58A >= 0x64) {
@@ -1842,11 +1842,11 @@ static void func_actor_510900_80137868(Task* arg0)
             if (work->field_58A == 0x53) {
                 if (work->field_594 == 1) {
                     snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780010;
-                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                         (s8)gpGetObjDepth(coord));
                 } else {
                     snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000C;
-                    SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
+                    SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                         (s8)gpGetObjDepth(coord));
                 }
             }
@@ -1916,7 +1916,7 @@ static void func_actor_510900_80137868(Task* arg0)
                 case 2:
                     if (CdCmd_IsIdle() == 1) {
                         coord = (gameGetPtrSlot(3))->extra.tmd->coords;
-                        SndEvt_EnqueueType6(0x70010001, (s8)Gp_GetObjPan(coord),
+                        SndEvt_EnqueueType6(0x70010001, (s8)worldCoordGetOriginAudioPan(coord),
                                             (s8)gpGetObjDepth(coord));
                         work->field_5B6 = 0;
                     }
@@ -1946,7 +1946,7 @@ static void func_actor_510900_80137E20(Task* arg0)
             work->field_5A2 = 0;
             work->field_590 = 1;
             snd             = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780005;
-            pan             = (s8)Gp_GetObjPan(coord);
+            pan             = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             break;
         case 1:
@@ -2003,7 +2003,7 @@ static void func_actor_510900_80137FBC(Task* arg0)
             work->field_590 = 1;
             work->field_59C = 0;
             work->field_578 = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780009;
-            startPan        = (s8)Gp_GetObjPan(coord);
+            startPan        = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(work->field_578, startPan, (s8)gpGetObjDepth(coord));
             break;
         case 1:
@@ -2017,7 +2017,7 @@ static void func_actor_510900_80137FBC(Task* arg0)
             }
             work->field_59C++;
             if (work->field_59C >= 3) {
-                loopPan = (s8)Gp_GetObjPan(coord);
+                loopPan = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueTypeA(work->field_578, loopPan, (s8)gpGetObjDepth(coord));
                 work->field_59C = 0;
             }
@@ -2076,7 +2076,7 @@ static void func_actor_510900_80138250(Task* arg0)
             work->field_590 = 1;
             work->field_59C = 0;
             work->field_578 = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780009;
-            startPan        = (s8)Gp_GetObjPan(coord);
+            startPan        = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(work->field_578, startPan, (s8)gpGetObjDepth(coord));
             break;
         case 1:
@@ -2090,7 +2090,7 @@ static void func_actor_510900_80138250(Task* arg0)
             }
             work->field_59C++;
             if (work->field_59C >= 3) {
-                loopPan = (s8)Gp_GetObjPan(coord);
+                loopPan = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueTypeA(work->field_578, loopPan, (s8)gpGetObjDepth(coord));
                 work->field_59C = 0;
             }
@@ -2161,7 +2161,7 @@ static void func_actor_510900_801384C4(Task* arg0)
     ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     if (work->field_58A == 0x70) {
         snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780007;
-        pan = (s8)Gp_GetObjPan(coord);
+        pan = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     }
     Gp_StateC08.field_6 &= 1;
@@ -2324,12 +2324,12 @@ static void func_actor_510900_80138A9C(Task* arg0)
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_59A & ANIMATION_RECORD_CUE_2)) {
             snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780001;
-            pan = (s8)Gp_GetObjPan(coord);
+            pan = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
         }
         if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->field_59A & ANIMATION_RECORD_CUE_1)) {
             snd  = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780002;
-            pan2 = (s8)Gp_GetObjPan(coord);
+            pan2 = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(coord));
         }
         work->field_59A = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
@@ -2608,7 +2608,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
                 work->obj4E4.key    = pair;
                 work->obj504.key    = pair;
                 work->field_57C     = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000D;
-                SndEvt_EnqueueType6(work->field_57C, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(work->field_57C, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
             break;
@@ -2956,7 +2956,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
         work->field_C8         = 0;
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         snd                    = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100009;
-        SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
         task->state = 2;
     }
     Gp_ClearRec18Occupied(&work->rec60);
@@ -3087,7 +3087,7 @@ static void func_actor_510900_8013A310(Task* task)
                 work->field_CE = 0;
                 obj            = player->extra.tmd->coords;
                 snd            = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x5110000A;
-                pan            = (s8)Gp_GetObjPan(obj);
+                pan            = (s8)worldCoordGetOriginAudioPan(obj);
                 SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(obj));
             }
             break;
@@ -3361,7 +3361,7 @@ case0:
         work->obj2BC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj2F4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         snd                 = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100004;
-        pan                 = (s8)Gp_GetObjPan(coord);
+        pan                 = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     }
     Gp_ClearRec18Occupied(&work->rec2DC);
@@ -3604,7 +3604,7 @@ static void func_actor_510900_8013B0D8(Task* arg0)
                         work->obj38.key = 0x50004;
                     }
                     snd = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100002;
-                    pan = (s8)Gp_GetObjPan(coord);
+                    pan = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
                 }
             }

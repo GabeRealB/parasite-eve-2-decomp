@@ -1306,7 +1306,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             work->scale = w;
             work->angle = 0x300;
             if ((Gp_GetViewIndex() & 0xFF) == 7 && work->step == 0) {
-                pan = (s8)Gp_GetObjPan(coord);
+                pan = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(0x51040006, pan, (s8)gpGetObjDepth(coord));
                 work->step = 1;
             }

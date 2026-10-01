@@ -15,9 +15,9 @@ s32 factoryLiftLower(Task* task)
             break;
         case 1:
             if (gGameSession->location.loc.stage == 2) {
-                Gp_EnqueueStageSnd6(0x52170008, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                Gp_EnqueueStageSnd6(0x52170008, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
             } else {
-                Gp_EnqueueStageSnd6(0x53170008, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                Gp_EnqueueStageSnd6(0x53170008, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
             }
             work->field_17++;
             break;
@@ -41,10 +41,10 @@ s32 factoryLiftLower(Task* task)
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
-                    Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                    Gp_EnqueueStageSnd6(0x52170010, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
                     Gp_EnqueueStageSnd7(0x53170008, 1);
-                    Gp_EnqueueStageSnd6(0x53170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                    Gp_EnqueueStageSnd6(0x53170010, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
                 }
                 work->field_17++;
             }
@@ -58,10 +58,10 @@ s32 factoryLiftLower(Task* task)
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
-            Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            Gp_EnqueueStageSnd6(0x52170010, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
         } else {
             Gp_EnqueueStageSnd7(0x53170008, 1);
-            Gp_EnqueueStageSnd6(0x53170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            Gp_EnqueueStageSnd6(0x53170010, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
         }
         done               = 1;
         work->field_C.word = 0;

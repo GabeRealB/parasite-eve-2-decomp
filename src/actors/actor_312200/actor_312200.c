@@ -508,7 +508,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if ((Gp_GetViewIndex() == 0x10) && (work->field_8B8 == 1)) {
-                pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+                pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
                 SndEvt_EnqueueType6(0x51030008, pan,
                                     (s8)gpGetObjDepth(task->extra.tmd->coords));
             }

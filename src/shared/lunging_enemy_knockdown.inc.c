@@ -52,12 +52,12 @@ void lungerKnockdownState(Task* arg0)
         case 1:
             if (work->field_698 == 0x14) {
                 snd = gLungerVoiceCues[work->field_6D6 + 0xC] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan = (s8)Gp_GetObjPan(self);
+                pan = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 == 0x2C) {
                 snd  = gLungerVoiceCues[work->field_6D6 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan2 = (s8)Gp_GetObjPan(self);
+                pan2 = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan2, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 >= 0x42) {
@@ -81,7 +81,7 @@ void lungerKnockdownState(Task* arg0)
         case 2:
             if (work->field_698 == 0x19) {
                 snd  = gLungerVoiceCues[work->field_6D6 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan3 = (s8)Gp_GetObjPan(self);
+                pan3 = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan3, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 >= 0x31) {

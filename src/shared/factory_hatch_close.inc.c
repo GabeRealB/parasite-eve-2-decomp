@@ -22,10 +22,10 @@ s32 factoryHatchClose(Task* task)
             work->field_4.word += work->field_0;
             if (work->field_4.word > 0) {
                 if (gGameSession->location.loc.stage == 2) {
-                    Gp_EnqueueStageSnd6(0x5217000E, (s8)Gp_GetObjPan(coord),
+                    Gp_EnqueueStageSnd6(0x5217000E, (s8)worldCoordGetOriginAudioPan(coord),
                                         (s8)gpGetObjDepth(coord));
                 } else {
-                    Gp_EnqueueStageSnd6(0x5317000E, (s8)Gp_GetObjPan(coord),
+                    Gp_EnqueueStageSnd6(0x5317000E, (s8)worldCoordGetOriginAudioPan(coord),
                                         (s8)gpGetObjDepth(coord));
                 }
                 work->step++;

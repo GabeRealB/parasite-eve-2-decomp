@@ -677,7 +677,7 @@ static s32 func_actor_310100_80161E24(Task* task)
         if (rec != NULL) {
             if (work->field_508 == 0x6C) {
                 if (rec->flags & ANIMATION_RECORD_CUE_2) {
-                    SndEvt_EnqueueType6(D_actor_310100_801798A8[work->field_50A], Gp_GetObjPan(obj), 0);
+                    SndEvt_EnqueueType6(D_actor_310100_801798A8[work->field_50A], worldCoordGetOriginAudioPan(obj), 0);
                     step = work->field_50A;
                     if (step < 2U) {
                         work->field_50A = (u16)(step + 1);
@@ -685,10 +685,10 @@ static s32 func_actor_310100_80161E24(Task* task)
                 }
             } else {
                 if (rec->flags & ANIMATION_RECORD_CUE_2) {
-                    SndEvt_EnqueueType6(0x51050006, Gp_GetObjPan(obj), 0);
+                    SndEvt_EnqueueType6(0x51050006, worldCoordGetOriginAudioPan(obj), 0);
                 }
                 if (rec->flags & ANIMATION_RECORD_CUE_1) {
-                    SndEvt_EnqueueType6(0x51050007, Gp_GetObjPan(obj), 0);
+                    SndEvt_EnqueueType6(0x51050007, worldCoordGetOriginAudioPan(obj), 0);
                 }
             }
         }

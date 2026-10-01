@@ -111,7 +111,7 @@ void func_healing_8012EF34(Task* arg0)
             mem->index      = (Gp_StateC08.field_0 % 10) - 1;
             mem->angle      = 0x80;
             state->field_6 |= 8;
-            pan             = (s8)Gp_GetObjPan(coord);
+            pan             = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_healing_8012FC34[mem->index], pan,
                                 (s8)gpGetObjDepth(coord));
             /* fallthrough */

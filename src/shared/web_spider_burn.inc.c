@@ -39,7 +39,7 @@ void spiderBurnStep(Task* arg0)
     if ((s16)countdown <= 0) {
         work->field_3BE = 0x24U;
         sound           = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0005;
-        pan             = (s8)Gp_GetObjPan(coord);
+        pan             = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)gpGetObjDepth(coord));
     }
 }

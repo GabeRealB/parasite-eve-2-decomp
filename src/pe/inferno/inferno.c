@@ -114,7 +114,7 @@ void func_inferno_8012EF88(Task* arg0)
         case 0:
             mem->scale = 0x200;
             mem->angle = 0xFF;
-            pan        = (s8)Gp_GetObjPan(coord);
+            pan        = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_inferno_801304F0[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
                                 (s8)gpGetObjDepth(coord));
             arg0->state = ((u16)(Gp_StateC08.field_0 % 10) - 1) * 4 + 1;

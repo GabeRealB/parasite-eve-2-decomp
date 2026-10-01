@@ -1663,12 +1663,12 @@ void Actor05700_Fn00E44(Task* arg0)
         case 1:
             if (work->field_698 == 0x14) {
                 snd = gLungerVoiceCues[work->field_6D6 + 0xC] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan = (s8)Gp_GetObjPan(self);
+                pan = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 == 0x2C) {
                 snd  = gLungerVoiceCues[work->field_6D6 + 8] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan2 = (s8)Gp_GetObjPan(self);
+                pan2 = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan2, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 >= 0x42) {
@@ -1692,7 +1692,7 @@ void Actor05700_Fn00E44(Task* arg0)
         case 2:
             if (work->field_698 == 0x19) {
                 snd  = gLungerVoiceCues[work->field_6D6 + 8] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan3 = (s8)Gp_GetObjPan(self);
+                pan3 = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan3, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 >= 0x31) {
@@ -2290,7 +2290,7 @@ static void Actor05700_Fn031BC(Enemy* arg0, Task* arg1)
 
     ctx   = arg1->spawnArg2.pointer;
     sound = Actor05700_D17228 | ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-    pan   = (s8)Gp_GetObjPan(coord);
+    pan   = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
 
     SCRATCH_STACK_RELEASE_BYTES(0x38);
@@ -2363,7 +2363,7 @@ static void Actor05700_Fn035FC(Enemy* arg0, Task* arg1)
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         ctx                    = arg1->spawnArg2.pointer;
         sound                  = Actor05700_D1722C | ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan                    = (s8)Gp_GetObjPan(coord);
+        pan                    = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
         arg1->state = 2;
         if ((work->rec60[0].key.value & 0xFFFF0080) == 0x10000) {

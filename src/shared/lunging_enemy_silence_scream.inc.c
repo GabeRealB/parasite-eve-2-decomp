@@ -26,7 +26,7 @@ void lungerSilenceScreamState(Task* arg0)
                 scratch->vz     = 0;
                 work->field_690 = Gp_SpawnEff(D_80115758, &arg0->extra.tmd->coords[4], 0x96, scratch);
                 sound           = gLungerScreamCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(self), (s8)gpGetObjDepth(self));
+                SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)gpGetObjDepth(self));
             }
             work->field_6CE = work->field_6D0 > 0;
             if ((s16)(work->field_6AE % 10) == 0) {
@@ -70,7 +70,7 @@ void lungerSilenceScreamState(Task* arg0)
             work->field_6A8 = 0;
             work->field_694 = 2;
             sound           = gLungerSilenceCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(self), (s8)gpGetObjDepth(self));
+            SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)gpGetObjDepth(self));
             break;
         case 3:
             if (!(work->field_698 & 3)) {

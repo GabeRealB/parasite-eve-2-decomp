@@ -136,7 +136,7 @@ void incinBossRainSpawn(Enemy* enemy, Task* task)
     work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     snd = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000B;
-    pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+    pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
 
     work->eff = Gp_SpawnEff(0x6019B, task->extra.tmd->coords, 0, NULL);

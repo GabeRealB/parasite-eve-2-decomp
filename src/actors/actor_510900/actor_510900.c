@@ -2369,10 +2369,10 @@ void func_actor_510900_801355B4(Enemy* arg0, Task* arg1)
         work->field_594 = 1;
         work->field_598 = 0xFF;
         snd             = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-        pan             = (s8)Gp_GetObjPan(coord);
+        pan             = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
         work->field_580 = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780011;
-        pan2            = (s8)Gp_GetObjPan(coord);
+        pan2            = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(work->field_580, pan2, (s8)gpGetObjDepth(coord));
     }
     work->field_58A++;

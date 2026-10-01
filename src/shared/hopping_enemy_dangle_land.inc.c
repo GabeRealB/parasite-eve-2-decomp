@@ -16,7 +16,7 @@ void hopperDangleLand(Task* arg0)
         soundId >>= 0xC;
         soundId <<= 8;
         soundId  |= 0x402C0004;
-        pan       = Gp_GetObjPan(arg0->extra.tmd->coords) << 24;
+        pan       = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan     >>= 24;
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
@@ -25,7 +25,7 @@ void hopperDangleLand(Task* arg0)
         soundId >>= 0xC;
         soundId <<= 8;
         soundId  |= 0x402C0003;
-        pan       = Gp_GetObjPan(arg0->extra.tmd->coords) << 24;
+        pan       = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan     >>= 24;
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }

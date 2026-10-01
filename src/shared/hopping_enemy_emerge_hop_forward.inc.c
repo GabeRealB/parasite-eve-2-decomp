@@ -15,7 +15,7 @@ void hopperEmergeHopForward(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if ((s16)++work->field_412 == 1) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
     speed                                 = 0x50;

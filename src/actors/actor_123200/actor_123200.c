@@ -974,7 +974,7 @@ static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
     id = func_actor_123200_80133450(work);
     if (id != 0) {
         snd = id | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
+        pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
     }
     if (gGameSession->viewReady != 0) {

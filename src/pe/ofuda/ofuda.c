@@ -57,7 +57,7 @@ void ofudaEffectTask(Task* arg0)
             mem->angle            = 0x100;
             mem->step             = 0x100 / arg0->spawnArg1.value;
             arg0->state           = 1;
-            pan                   = (s8)Gp_GetObjPan(coord);
+            pan                   = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(0xE03D0001, pan, (s8)gpGetObjDepth(coord));
             return;
         case 1:

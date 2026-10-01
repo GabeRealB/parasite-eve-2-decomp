@@ -54,7 +54,7 @@ void incinBossRainFall(Enemy* enemy, Task* task)
             }
             task->state++;
             snd = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000C;
-            pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+            pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
         }
     }

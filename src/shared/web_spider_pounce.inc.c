@@ -65,7 +65,7 @@ void spiderPounceState(Task* arg0)
             }
             if ((s16)work->field_396 == 0x28) {
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
-                pan   = (s8)Gp_GetObjPan(coord);
+                pan   = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
                 work->field_3C8 = 0;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp <= 0) {
@@ -101,7 +101,7 @@ void spiderPounceState(Task* arg0)
             }
             if ((s16)work->field_396 == 0x10) {
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
-                pan1  = (s8)Gp_GetObjPan(coord);
+                pan1  = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));
                 work->field_3C8 = 2;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp <= 0) {

@@ -121,7 +121,7 @@ void lungerBulletSpawn(Enemy* arg0, Task* arg1)
 
     ctx   = arg1->spawnArg2.pointer;
     sound = gLungerShotSound | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-    pan   = (s8)Gp_GetObjPan(coord);
+    pan   = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
 
     SCRATCH_STACK_RELEASE_BYTES(0x38);

@@ -162,7 +162,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->period     = (gRandomLcgState >> 16) & 0xFFF;
             mem->index      = (Gp_StateC08.field_0 % 10) - 1;
-            pan             = (s8)Gp_GetObjPan(coord);
+            pan             = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1.value], pan,
                                 (s8)gpGetObjDepth(coord));
             Gp_SpawnPadLerp((s16)(mem->index * 2 + 8), 0xFF, 8);

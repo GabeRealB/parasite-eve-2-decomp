@@ -1038,7 +1038,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                             Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_shelter_b1_sterilization_room_80188590, 0);
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.source.index);
                             Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_PLAY, &D_shelter_b1_sterilization_room_80188624, 0);
-                            pan = (s8)Gp_GetObjPan(coord);
+                            pan = (s8)worldCoordGetOriginAudioPan(coord);
                             SndEvt_EnqueueType6(0x54100011, pan, (s8)gpGetObjDepth(coord));
                             task->killCountdown = 0;
                         }

@@ -29,6 +29,6 @@ void footstepWalkPlaySteps(Task* task)
         id = 0x10000010;
     }
     id += 0x64;
-    pan = (s8)Gp_GetObjPan(obj);
+    pan = (s8)worldCoordGetOriginAudioPan(obj);
     SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
 }

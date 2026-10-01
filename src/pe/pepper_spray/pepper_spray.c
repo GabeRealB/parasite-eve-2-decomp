@@ -99,7 +99,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
                 D_pepper_spray_8012FB9C[i] = ((i & 3) << 10) + ((gRandomLcgState >> 16) & 0x3FF);
             }
             Gp_StateC08.field_6 |= 8;
-            pan                  = (s8)Gp_GetObjPan(coord);
+            pan                  = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(0xE03F0001, pan, (s8)gpGetObjDepth(coord));
             break;
         case 1:

@@ -16,9 +16,9 @@ s32 factoryLiftJamTurnBack(Task* task)
             break;
         case 1:
             if (gGameSession->location.loc.stage == 2) {
-                Gp_EnqueueStageSnd6(0x5217000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                Gp_EnqueueStageSnd6(0x5217000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
             } else {
-                Gp_EnqueueStageSnd6(0x5317000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                Gp_EnqueueStageSnd6(0x5317000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
             }
             work->field_16++;
             break;
@@ -30,10 +30,10 @@ s32 factoryLiftJamTurnBack(Task* task)
             work->field_10.word += work->field_8;
             if (work->field_10.word < 0x3800000) {
                 if (gGameSession->location.loc.stage == 2) {
-                    Gp_EnqueueStageSnd6(0x52170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                    Gp_EnqueueStageSnd6(0x52170012, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
                     Gp_SpawnScript18(gFactoryDayJoltCmds, gFactoryDayJoltRecs);
                 } else {
-                    Gp_EnqueueStageSnd6(0x53170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                    Gp_EnqueueStageSnd6(0x53170012, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
                     Gp_SpawnScript18(gFactoryNightJoltCmds, gFactoryNightJoltRecs);
                 }
                 work->field_16++;
@@ -52,10 +52,10 @@ s32 factoryLiftJamTurnBack(Task* task)
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
-                    Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                    Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
                     Gp_EnqueueStageSnd7(0x5317000F, 1);
-                    Gp_EnqueueStageSnd6(0x53170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+                    Gp_EnqueueStageSnd6(0x53170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
                 }
                 work->field_16++;
             }
@@ -72,10 +72,10 @@ s32 factoryLiftJamTurnBack(Task* task)
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
-            Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
         } else {
             Gp_EnqueueStageSnd7(0x5317000F, 1);
-            Gp_EnqueueStageSnd6(0x53170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
+            Gp_EnqueueStageSnd6(0x53170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
         }
         work->field_16 = 4;
         done           = 1;

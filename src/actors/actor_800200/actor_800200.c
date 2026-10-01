@@ -2124,7 +2124,7 @@ static void func_actor_800200_8016436C(Task* arg0)
     } else {
         actor->statePhase = next;
         Gp_AnimPlayChildSlotsEx(arg0, actor->attackControl.targetVariant + 0xA, 0, 4);
-        pan = (s8)Gp_GetObjPan(coord);
+        pan = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(actor->attackControl.targetVariant + 0x40720009, pan, (s8)gpGetObjDepth(coord));
     tick:
         if (func_80105894(arg0, 1, 0, 0) == 0) {
@@ -2636,7 +2636,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
                         }
                     }
                     if (sound != 0) {
-                        pan = (s8)Gp_GetObjPan(obj);
+                        pan = (s8)worldCoordGetOriginAudioPan(obj);
                         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(obj));
                         func_800EA3A0(cueBits != ANIMATION_RECORD_CUE_2);
                     }
@@ -2992,7 +2992,7 @@ static void func_actor_800200_80165B84(Task* arg0)
         func_80109BB4(arg0, actor->collisionContacts);
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
-            pan = (s8)Gp_GetObjPan(coord);
+            pan = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(0x4072000A, pan, (s8)gpGetObjDepth(coord));
         }
     }

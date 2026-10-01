@@ -1277,7 +1277,7 @@ void func_acropolis_square_80181AEC(Task* task)
             D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
             D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
             Gp_UpdateCoord(&D_acropolis_square_801888CC);
-            pan = Gp_GetObjPan(&D_acropolis_square_801888CC);
+            pan = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
             SndEvt_EnqueueType6(
                 0x51010009, (s8)pan, (s8)gpGetObjDepth(&D_acropolis_square_801888CC));
             goto advance;
@@ -1292,7 +1292,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_80188898            = 0;
                 D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
-                pan2 = Gp_GetObjPan(&D_acropolis_square_801888CC);
+                pan2 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan2,
                                     (s8)gpGetObjDepth(&D_acropolis_square_801888CC));
             }
@@ -1337,7 +1337,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 D_acropolis_square_80188898            = 0;
                 D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
-                pan3 = Gp_GetObjPan(&D_acropolis_square_801888CC);
+                pan3 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan3,
                                     (s8)gpGetObjDepth(&D_acropolis_square_801888CC));
             }

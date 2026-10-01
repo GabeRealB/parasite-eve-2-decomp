@@ -36,7 +36,7 @@ void incinBossChunkFall(Enemy* enemy, Task* task)
     if (task->extra.tmd->coords->coord.t[1] >= -0x31) {
         task->extra.tmd->coords->coord.t[1] = -0x32;
         work->field_1AC                     = 0;
-        pan                                 = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+        pan                                 = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(0x4020000C, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
         task->state++;
     }

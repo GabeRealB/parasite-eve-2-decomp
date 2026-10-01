@@ -108,7 +108,7 @@ void func_combustion_8012EF34(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->move.vz = 0x200;
-            pan          = (s8)Gp_GetObjPan(coord);
+            pan          = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_combustion_80130998[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
                                 (s8)gpGetObjDepth(coord));
             rgb[0] = 0xFF;

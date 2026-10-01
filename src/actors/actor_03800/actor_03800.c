@@ -1410,7 +1410,7 @@ static void Actor03800_Fn0166C(Task* arg0)
             work->field_36E  = 1;
             work->field_2AA &= 0x7FFF;
             snd              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260003;
-            pan              = (s8)Gp_GetObjPan(coord);
+            pan              = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             break;
         case 1:
@@ -1427,7 +1427,7 @@ static void Actor03800_Fn0166C(Task* arg0)
             }
             if ((s16)work->field_34C == 12) {
                 snd  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260002;
-                pan2 = (s8)Gp_GetObjPan(coord);
+                pan2 = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(snd, pan2, (s8)gpGetObjDepth(coord));
             }
             if ((s16)work->field_34C >= 29) {
@@ -1478,7 +1478,7 @@ static void Actor03800_Fn01948(Task* arg0)
             work->field_35E = 0;
             work->field_360 = 0;
             snd             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260003;
-            pan             = (s8)Gp_GetObjPan(coord);
+            pan             = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             break;
         case 1:
@@ -1771,7 +1771,7 @@ static void Actor03800_Fn021E4(Task* arg0)
                 work->field_366  = 0x80;
                 work->field_2AA &= 0x7FFF;
                 sound            = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260002;
-                pan              = (s8)Gp_GetObjPan(coord);
+                pan              = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)gpGetObjDepth(coord));
             }
             break;
@@ -2096,7 +2096,7 @@ death:
     vec.vz = c->workm.t[2];
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260004;
-    pan = (s8)Gp_GetObjPan(coord);
+    pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;
 dying:
@@ -2430,7 +2430,7 @@ static void Actor03800_Fn03594(Task* arg0)
     if (--work->field_36A <= 0) {
         work->field_36A = 0xC;
         soundId         = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260001;
-        pan             = (s8)Gp_GetObjPan(coord);
+        pan             = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(coord));
     }
 }

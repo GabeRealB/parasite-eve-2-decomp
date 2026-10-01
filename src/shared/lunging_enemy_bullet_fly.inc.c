@@ -69,7 +69,7 @@ void lungerBulletFly(Enemy* arg0, Task* arg1)
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         ctx                    = arg1->spawnArg2.pointer;
         sound                  = gLungerImpactSound.value | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan                    = (s8)Gp_GetObjPan(coord);
+        pan                    = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
         arg1->state = 2;
         if ((work->rec60[0].key.value & 0xFFFF0080) == 0x10000) {

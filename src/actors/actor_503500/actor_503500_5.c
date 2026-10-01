@@ -1198,7 +1198,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
         work->field_98 = child;
         Task_Reparent(arg0, child);
     }
-    pan = (s8)Gp_GetObjPan(coord);
+    pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x4023000A, pan, (s8)(gpGetObjDepth(coord) / 2));
     func_actor_503500_80137290(6);
     arg0->exitCallback = func_actor_503500_80145480;
@@ -1223,7 +1223,7 @@ static void func_actor_503500_801450A0(Task* arg0)
                     work->head.obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
                 coord = arg0->extra.tmd->coords;
-                pan   = (s8)Gp_GetObjPan(coord);
+                pan   = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(0x4023000B, pan, (s8)(gpGetObjDepth(coord) / 2));
                 work->field_C6 = 0;
                 work->field_CC++;
@@ -1421,7 +1421,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     child          = eff->task;
     work->field_38 = child;
     Task_Reparent(arg0, child);
-    pan = (s8)Gp_GetObjPan(coord);
+    pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x4023000C, pan, (s8)(gpGetObjDepth(coord) / 2));
     func_actor_503500_80137290(6);
     arg0->exitCallback = func_actor_503500_80145950;
@@ -1449,11 +1449,11 @@ static void func_actor_503500_80145754(Task* arg0)
                     work->field_40++;
                 } else if (work->field_3C == 0x3E) {
                     coord = arg0->extra.tmd->coords;
-                    pan   = (s8)Gp_GetObjPan(coord);
+                    pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(0x40230014, pan, (s8)(gpGetObjDepth(coord) / 2));
                 } else if (work->field_3C == 0x5A) {
                     coord2 = arg0->extra.tmd->coords;
-                    pan2   = (s8)Gp_GetObjPan(coord2);
+                    pan2   = (s8)worldCoordGetOriginAudioPan(coord2);
                     SndEvt_EnqueueType6(0x4023000D, pan2, (s8)(gpGetObjDepth(coord2) / 2));
                 }
                 return;
@@ -1583,10 +1583,10 @@ static void func_actor_503500_80145A2C(Task* arg0)
     work->field_98 = child;
     Task_Reparent(arg0, child);
     if (gGameSession->eventState != 0) {
-        pan = (s8)Gp_GetObjPan(coord);
+        pan = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(0x40230013, pan, (s8)(gpGetObjDepth(coord) / 2));
     } else {
-        pan2 = (s8)Gp_GetObjPan(coord);
+        pan2 = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(0x4023000E, pan2, (s8)(gpGetObjDepth(coord) / 2));
     }
     func_actor_503500_80137290(8);
@@ -1612,7 +1612,7 @@ static void func_actor_503500_80145C50(Task* arg0)
             if (gGameSession->eventState == 0) {
                 work->head.obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 coord                 = arg0->extra.tmd->coords;
-                pan                   = (s8)Gp_GetObjPan(coord);
+                pan                   = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(0x4023000F, pan, (s8)(gpGetObjDepth(coord) / 2));
             }
             goto next;

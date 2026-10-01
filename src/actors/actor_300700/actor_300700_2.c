@@ -706,7 +706,7 @@ post:
         work->field_38C = (((u32)rng6 >> 16) & 0x1F) + 0x3C;
         snd             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070003;
         gRandomLcgState = rng6;
-        pan             = (s8)Gp_GetObjPan(coord);
+        pan             = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     }
     func_actor_300700_80165000(arg0);
@@ -819,7 +819,7 @@ case2:
         goto pop;
     }
     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070004;
-    pan = (s8)Gp_GetObjPan(coord);
+    pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((s32)((gRandomLcgState >> 16) & 0xF) < D_actor_300700_8016939C[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
@@ -1136,7 +1136,7 @@ death:
     vec.vz = c->workm.t[2];
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070005;
-    pan = (s8)Gp_GetObjPan(coord);
+    pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;
 dying:
@@ -1313,7 +1313,7 @@ static void func_actor_300700_80165000(Task* arg0)
         work->field_392 = (u16)(((random >> 0x10) & 0x7F) + 0x96);
         gRandomLcgState = random;
         snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070001;
-        pan             = (s8)Gp_GetObjPan(coord);
+        pan             = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(coord));
     }
 }
@@ -1348,7 +1348,7 @@ case0:
     work->field_386 = 0;
     work->field_37C = 1;
     snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070002;
-    pan             = (s8)Gp_GetObjPan(coord);
+    pan             = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;
 case1:

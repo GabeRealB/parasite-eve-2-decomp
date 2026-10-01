@@ -1351,48 +1351,48 @@ void Gp_ItemPickupTilt(Task* arg0)
                 switch (stageAreaKey) {
                     case GAME_LOCATION_KEY(1, 6, 0, 0): {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                        temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x51060009, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(1, 12, 0, 0): {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                        temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x510C0005, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     }
                     case GAME_LOCATION_KEY(2, 27, 0, 0): {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                        temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x521B000B, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(3, 27, 0, 0): {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                        temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x531B000B, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(4, 16, 0, 0): {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                        temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x54100012, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(4, 31, 0, 0): {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                        temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x541F0015, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
                     case GAME_LOCATION_KEY(4, 39, 0, 0): {
                         s32 temp;
-                        temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                        temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x54270008, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
@@ -1419,14 +1419,14 @@ void Gp_ItemPickupTilt(Task* arg0)
             switch (stageAreaKey) {
                 case GAME_LOCATION_KEY(1, 6, 0, 0): {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                    temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x5106000A, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(1, 12, 0, 0): {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                    temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x510C0006, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
@@ -1435,28 +1435,28 @@ void Gp_ItemPickupTilt(Task* arg0)
                     break;
                 case GAME_LOCATION_KEY(3, 27, 0, 0): {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                    temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x531B000C, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(4, 16, 0, 0): {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                    temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x54100013, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(4, 31, 0, 0): {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                    temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x541F0016, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
                 case GAME_LOCATION_KEY(4, 39, 0, 0): {
                     s32 temp;
-                    temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+                    temp = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x54270009, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;

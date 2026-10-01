@@ -1440,7 +1440,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
             if (eff->step < 2) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (!((gRandomLcgState >> 16) & 3)) {
-                    pan = (s8)Gp_GetObjPan(coord);
+                    pan = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(0x5216000B, pan, (s8)gpGetObjDepth(coord));
                     eff->step = 2;
                 }

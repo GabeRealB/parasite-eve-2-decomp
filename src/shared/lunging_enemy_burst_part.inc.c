@@ -33,7 +33,7 @@ void lungerBurstPartTick(Enemy* arg0, Task* arg1)
             work->field_6D2 = 2;
             snd             = gLungerBurstCue |
                   ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            pan = (s8)Gp_GetObjPan(coord);
+            pan = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             return;
         case 2:

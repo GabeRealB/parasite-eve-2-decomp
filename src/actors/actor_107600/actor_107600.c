@@ -1467,7 +1467,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 GfxCoord* o = arg0->extra.tmd->coords;
                 s32       p;
                 work->field_15A++;
-                p = (s8)Gp_GetObjPan(o);
+                p = (s8)worldCoordGetOriginAudioPan(o);
                 SndEvt_EnqueueType6(0x51140007, p, (s8)gpGetObjDepth(o));
             }
         case 3: {
@@ -1509,7 +1509,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 GfxCoord* o = arg0->extra.tmd->coords;
                 s32       p;
                 Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                p = (s8)Gp_GetObjPan(o);
+                p = (s8)worldCoordGetOriginAudioPan(o);
                 SndEvt_EnqueueType6(0x51140013, p, (s8)gpGetObjDepth(o));
             } else if ((s16)work->field_166 == 210) {
                 GfxCoord* c;
@@ -1520,7 +1520,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 work->field_166 = 0;
                 Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 Gp_SpawnEff(0x601BD, c, 0, NULL);
-                p = (s8)Gp_GetObjPan(c);
+                p = (s8)worldCoordGetOriginAudioPan(c);
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
                 if (actor->mode != GAME_ACTOR_MODE_DAMAGE) {
                     if (gPlayerStatus.hp < 11) {
@@ -1532,7 +1532,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                     actor->hitRegion      = 1;
                     actor->damageReaction = 5;
                     func_8010A9D0(player);
-                    pan = (s8)Gp_GetObjPan(c);
+                    pan = (s8)worldCoordGetOriginAudioPan(c);
                     SndEvt_EnqueueType6(6, pan, (s8)gpGetObjDepth(c));
                 }
             }
@@ -1616,7 +1616,7 @@ static void func_actor_107600_801337FC(Task* arg0)
                 work->field_16B = 0;
                 work->field_15C = 0;
                 Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
-                pan = (s8)Gp_GetObjPan(obj);
+                pan = (s8)worldCoordGetOriginAudioPan(obj);
                 SndEvt_EnqueueType6(0x51140009, pan, (s8)gpGetObjDepth(obj));
             }
             break;
@@ -1682,7 +1682,7 @@ static void func_actor_107600_801339A4(Task* arg0)
             } else {
                 id = 0x51140012;
             }
-            pan = (s8)Gp_GetObjPan(obj);
+            pan = (s8)worldCoordGetOriginAudioPan(obj);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
             work->field_52  = (obj->parent)->param.rot.vy;
             work->field_54  = (obj->parent)->param.rot.vz;
@@ -1801,7 +1801,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
                     if (work->field_16B < 8) {
                         obj = arg0->extra.tmd->coords;
                         work->field_16B++;
-                        pan = (s8)Gp_GetObjPan(obj);
+                        pan = (s8)worldCoordGetOriginAudioPan(obj);
                         SndEvt_EnqueueType6(0x51140008, pan, (s8)gpGetObjDepth(obj));
                     }
                     if (damage >= 0x14) {

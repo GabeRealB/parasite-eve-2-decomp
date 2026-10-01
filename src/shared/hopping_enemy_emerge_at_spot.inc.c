@@ -37,7 +37,7 @@ void hopperEmergeAtSpot(Task* arg0)
             coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].y;
             coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].z;
             id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54270006;
-            pan               = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
+            pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
         } else if (stageAreaKey == GAME_LOCATION_KEY(4, 40, 0, 0)) {
             work->field_78    = 0;

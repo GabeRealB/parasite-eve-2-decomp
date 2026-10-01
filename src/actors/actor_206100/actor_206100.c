@@ -2027,7 +2027,7 @@ static void func_actor_206100_8014C458(Task* task)
             if ((s16)sub->field_52E != 0) {
                 if (((u16)sub->field_52E & 7) == 0) {
                     sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4004000B;
-                    pan   = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+                    pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
                     SndEvt_EnqueueType6(
                         sound, pan,
                         (s8)gpGetObjDepth(task->extra.tmd->coords));
@@ -2438,7 +2438,7 @@ static void func_actor_206100_8014CFF4(Task* task)
 /// counter `field_51E` and arms `field_52E` with 0x18 on the first frame, eases
 /// `field_35C` toward 0x4000 by a quarter of the remaining distance over frames
 /// 0x29..0x4D, fires the overlay's sound events -- 0x551E0002 panned through
-/// `Gp_GetObjPan` / `gpGetObjDepth` at 0x54 and plain at 0x77 -- flags the six
+/// `worldCoordGetOriginAudioPan` / `gpGetObjDepth` at 0x54 and plain at 0x77 -- flags the six
 /// cue frames, hands state 2 to the actor at sub-state 0 when its `flags_514`
 /// say so, and folds the heading onto the vector from the root coordinate to
 /// the walk target `field_4D0` / `field_4D4`, exactly as
@@ -2488,7 +2488,7 @@ static void func_actor_206100_8014D14C(Task* task)
         sub->field_35C = ease + ((s32)((0x4000 - (ease * 0x10)) << 0x10) >> 0x16);
     }
     if ((s16)sub->field_51E == 0x54) {
-        pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+        pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(0x551E0002, pan,
                             (s8)gpGetObjDepth(task->extra.tmd->coords));
     }
@@ -2670,7 +2670,7 @@ static void func_actor_206100_8014D574(Task* task)
             i++;
         } while (i < 0x20);
         sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x551E0006;
-        pan   = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+        pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
         work->field_51E = 0;
         work->field_526 = 0x1E78;
@@ -3085,7 +3085,7 @@ static void func_actor_206100_8014E0C0(Task* task)
             break;
         case 1:
             sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-            pan   = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+            pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
             SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
             work->field_554 = work->field_554 + 1;
             break;
@@ -3760,7 +3760,7 @@ static void func_actor_206100_8014F7B4(Task* task)
 
     work    = (Actor206100Work*)task->work;
     soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x551E0005;
-    pan     = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+    pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(soundId, pan,
                         (s8)gpGetObjDepth(task->extra.tmd->coords));
     next            = (Actor206100Work*)task->work;
@@ -3801,7 +3801,7 @@ static void func_actor_206100_8014F8BC(Task* task)
     work->field_510 = 0xA;
     work->field_50C = 1;
     soundId         = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan             = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+    pan             = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(soundId, pan,
                         (s8)gpGetObjDepth(task->extra.tmd->coords));
     work->field_522 = work->field_522 + 1;
@@ -3934,7 +3934,7 @@ static void func_actor_206100_8014FBE4(Task* task, void* unusedTable)
     work->field_51E = 0;
     work->field_520 = work->field_520 + 1;
     soundId         = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan             = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+    pan             = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(soundId, pan,
                         (s8)gpGetObjDepth(task->extra.tmd->coords));
 }

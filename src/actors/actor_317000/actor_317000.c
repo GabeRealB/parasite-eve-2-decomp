@@ -795,7 +795,7 @@ static void func_actor_317000_80162950(Task* arg0)
     preset.blendFrames          = 5;
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
-    pan = (s8)Gp_GetObjPan(coord);
+    pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x400A000B, pan, (s8)gpGetObjDepth(coord));
 
     work->walk.step.vx = 0;

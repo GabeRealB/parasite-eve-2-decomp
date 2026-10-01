@@ -1895,7 +1895,7 @@ static void func_actor_800100_80163F04(Task* arg0)
         func_80109BB4(arg0, actor->collisionContacts);
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
-            pan = (s8)Gp_GetObjPan(coord);
+            pan = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant - 1) << 16) + 0x4065000A, pan, (s8)gpGetObjDepth(coord));
         }
     }

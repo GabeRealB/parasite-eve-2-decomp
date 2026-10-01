@@ -1393,42 +1393,56 @@ s32 gpGetObjDepth(GfxCoord* coord)
     return val >> 8;
 }
 
-s32 Gp_GetObjPan(GfxCoord* coord)
+/// Projects a local origin into the reserved record immediately below `scratchEnd`.
+///
+/// `scratchEnd` is the cursor before reservation. Keeps the GTE projection
+/// settings, replaces its matrices/results and leaves the scratch cursor alone.
+static inline void _worldCoordProjectOrigin(const GfxCoord* coord, WorldCoordProjectionScratch* scratchEnd)
 {
-    WorldCoordProjectionScratch* scratchEnd;
     WorldCoordProjectionScratch* projection;
     SVECTOR*                     inputPoint;
-    s32                          ret;
 
-    scratchEnd                                        = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
-    projection                                        = scratchEnd - 1;
-    SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch) = projection;
-    inputPoint                                        = &projection->point;
+    projection = scratchEnd - 1;
+    inputPoint = &projection->point;
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
-    // Project the coordinate's local origin through its composed view matrix.
     projection->point.vz = 0;
     projection->point.vy = 0;
     projection->point.vx = 0;
-    gte_ldv0(inputPoint);
-    gte_rtps();
-    gte_stsxy(&scratchEnd[-1].screen);
-    gte_stdp(&scratchEnd[-1].depthCue);
-    gte_stflg(&scratchEnd[-1].projectionFlags);
-    gte_stszotz(&scratchEnd[-1].orderingDepth);
+    gte_RotTransPers(inputPoint, &scratchEnd[-1].screen, &scratchEnd[-1].depthCue,
+                     &scratchEnd[-1].projectionFlags, &scratchEnd[-1].orderingDepth);
+}
+
+s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
+{
+    // Screen-pixel limits and pixels per sound-event pan-offset unit.
+    enum {
+        WORLD_COORDINATE_AUDIO_PAN_MIN_X           = -160,
+        WORLD_COORDINATE_AUDIO_PAN_MAX_X           = 159,
+        WORLD_COORDINATE_AUDIO_PAN_PIXELS_PER_UNIT = 10,
+        WORLD_COORDINATE_AUDIO_PAN_CENTER          = 0
+    };
+    WorldCoordProjectionScratch* scratchEnd;
+    WorldCoordProjectionScratch* projection;
+    s32                          negativePan;
+
+    projection = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
+    scratchEnd = projection + 1;
+    // Project the coordinate's local origin through its composed view matrix.
+    _worldCoordProjectOrigin(coord, scratchEnd);
     if (projection->projectionFlags >= 0) {
-        if (projection->screen.vx >= 0xA0) {
-            projection->screen.vx = 0x9F;
+        if (projection->screen.vx > WORLD_COORDINATE_AUDIO_PAN_MAX_X) {
+            projection->screen.vx = WORLD_COORDINATE_AUDIO_PAN_MAX_X;
         }
-        if (projection->screen.vx < -0x9F) {
-            projection->screen.vx = -0xA0;
+        if (projection->screen.vx <= WORLD_COORDINATE_AUDIO_PAN_MIN_X) {
+            projection->screen.vx = WORLD_COORDINATE_AUDIO_PAN_MIN_X;
         }
-        ret = -projection->screen.vx / 10;
+        negativePan = -projection->screen.vx / WORLD_COORDINATE_AUDIO_PAN_PIXELS_PER_UNIT;
     } else {
-        ret = 0;
+        negativePan = WORLD_COORDINATE_AUDIO_PAN_CENTER;
     }
     SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
-    return -ret;
+    return -negativePan;
 }
 
 void Gp_SetOverrideVec(SVECTOR* arg0)

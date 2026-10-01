@@ -1416,7 +1416,7 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
     reaction = func_actor_223600_8014B464(work);
     if (reaction != 0) {
         cue = reaction | (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+        pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(
             cue, pan,
             (s8)gpGetObjDepth(task->extra.tmd->coords));

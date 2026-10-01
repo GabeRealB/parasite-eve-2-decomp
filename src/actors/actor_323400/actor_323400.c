@@ -3352,7 +3352,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
                 Gp_SpawnEff(0x60054, &task->extra.tmd->coords[7], 0x80002400, p);
             }
             id  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000E;
-            pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+            pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
             break;
         }

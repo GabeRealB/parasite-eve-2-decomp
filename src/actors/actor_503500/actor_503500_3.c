@@ -982,7 +982,7 @@ static void func_actor_503500_80134408(Task* arg0)
             gGameSession->bossPartsHpSum = sum;
             work->field_7E0              = 0;
             func_actor_503500_80135FB4(arg0, 0xE, 0x20);
-            pan = (s8)Gp_GetObjPan(&arg0->extra.tmd->coords[3]);
+            pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[3]);
             SndEvt_EnqueueType6(0x40230010, pan,
                                 (s8)(gpGetObjDepth(&arg0->extra.tmd->coords[3]) / 2));
             work->field_7DA = work->field_7DA + 1;
@@ -1033,7 +1033,7 @@ static void func_actor_503500_801345F4(Task* arg0)
             }
             if (work->field_7BC == 2) {
                 coord = &arg0->extra.tmd->coords[3];
-                pan   = (s8)Gp_GetObjPan(coord);
+                pan   = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(0x40230012, pan, (s8)(gpGetObjDepth(coord) / 2));
             }
             if (++work->field_7BC >= 0x97) {
@@ -2774,7 +2774,7 @@ static void func_actor_503500_80137678(Task* arg0)
                 ApplyMatrixLV(&m.mat, (VECTOR*)&work->vel, (VECTOR*)&work->vel);
                 func_actor_503500_80135D00(arg0->parent, 0xC);
                 Gp_UpdateCoord(coord);
-                SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(0x40230004, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)(gpGetObjDepth(coord) / 2));
                 work->field_15A = 0;
                 work->field_15D++;
@@ -2793,7 +2793,7 @@ static void func_actor_503500_80137678(Task* arg0)
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
+                    SndEvt_EnqueueType6(0xD, (s8)worldCoordGetOriginAudioPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
                     break;
                 case 30:
@@ -3470,7 +3470,7 @@ static void func_actor_503500_80139014(Task* arg0)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->field_2EA     = phase;
                 Gp_UpdateCoord(coord);
-                SndEvt_EnqueueType6(0x40230004, (s8)Gp_GetObjPan(coord),
+                SndEvt_EnqueueType6(0x40230004, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)(gpGetObjDepth(coord) / 2));
                 work->field_2E4++;
             }
@@ -3521,7 +3521,7 @@ static void func_actor_503500_80139014(Task* arg0)
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
+                    SndEvt_EnqueueType6(0xD, (s8)worldCoordGetOriginAudioPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
                     break;
                 case 15:

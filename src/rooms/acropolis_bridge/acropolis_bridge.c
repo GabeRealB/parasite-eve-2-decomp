@@ -5434,7 +5434,7 @@ static __inline__ void bridge_play_snd(Task* task, Enemy* enemy, s32 base)
     s32 pan;
 
     snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | base;
-    pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+    pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(snd, pan,
                         (s8)gpGetObjDepth(task->extra.tmd->coords));
 }
