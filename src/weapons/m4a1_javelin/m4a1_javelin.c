@@ -43,6 +43,10 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#define SPRITE_QUAD_POS_T     long
+#define SPRITE_QUAD_POS(p, i) ((p)[i])
+#define SPRITE_QUAD_FRAME_T   s16
+#include "../../shared/sprite_quad.h"
 
 /// Low halves of a `VECTOR3` (typically `GfxCoord.workm.t`).
 typedef struct M4a1JavelinVecLo {
@@ -89,7 +93,6 @@ static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 /// The four RGB444 beam colours `EffectWork::step` fades through.
 static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
-static void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0);
 static void func_m4a1_javelin_8011F5D4(Task* arg0);
 
@@ -671,67 +674,12 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1JavelinLineScratch));
 }
 
-/// Links the billboarded muzzle-flare quad for one javelin launch frame into
-/// `gGpuCurrentOt`, dropped entirely if the source point fails its `RTPS`
-/// `FLAG` check. `arg0` is the world-space point, `arg1` picks the 0x1F-wide
-/// animation column of the flare texture, `arg2` is the half-extent in world
-/// units and `arg3` the spin angle: the corners sit at `arg3` and
-/// `arg3 + 0x400`, a quarter turn apart, so the quad stays square as it spins.
-static void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 arg3)
-{
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              u1;
-    s32              ang2;
-    u16              vz;
-
-    head                                                         = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = arg0->vx;
-    block                                                        = (GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch));
-    block->vec.vy                                                = arg0->vy;
-    vz                                                           = arg0->vz;
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)                        = block;
-    block->vec.vz                                                = vz;
-    vec                                                          = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setSemiTrans(prim, 1);
-        setShadeTex(prim, 1);
-        prim->tpage = 0x2A;
-        setClut(prim, 0x30, 0x10B);
-        u0 = arg1 << 5;
-        u1 = u0 + 0x1F;
-        setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
-        block->dx = (((arg2 * 31) / block->otz) * rsin(arg3)) >> 12;
-        block->dy = (((arg2 * 31) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = arg3 + 0x400;
-        block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GpFxQuadScratch));
-}
+#define SPRITE_QUAD_CLUT   0x42C3
+#define SPRITE_QUAD_CELL_W 0x20
+#define SPRITE_QUAD_V0     0x18
+#define SPRITE_QUAD_V1     0x37
+#define SPRITE_QUAD_SCALE  31
+#include "../../shared/sprite_quad_draw.inc.c"
 
 static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
 {
@@ -769,7 +717,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
         mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
         arg0->state     = 1;
     }
-    func_m4a1_javelin_8011F0AC((M4a1JavelinVecLo*)&coord->workm.t, mem->age - 1, mem->scale, mem->angle);
+    spriteQuadDraw(coord->workm.t, mem->age - 1, mem->scale, mem->angle);
     if (mem->age == 8) {
         effectKillTask(mem, arg0);
     }

@@ -11,6 +11,9 @@
  *   SPRITE_QUAD_V0/_V1      top and bottom texel rows
  *   SPRITE_QUAD_SCALE       size multiplier (the cell's half-width in texels)
  *   SPRITE_QUAD_CELLS_PER_ROW  optional: frames wrap after this many cells
+ *   SPRITE_QUAD_CELL_MASK   optional: the frame's low bits pick the cell
+ *   SPRITE_QUAD_U_BASE      optional: texel column of the first cell
+ *   SPRITE_QUAD_MIN_OTZ     optional: draw only at this depth or beyond
  *   SPRITE_QUAD_OTZ_BIAS    1 (default) sorts the sprite one slot behind its
  *                           point, 0 at the point itself
  * and SPRITE_QUAD_TPAGE when it is not 0x2A. The fragment clears these, so a
@@ -26,10 +29,20 @@
 
 #include "gameplay/effects.h"
 
+/* Where the position comes from: a coordinate's world matrix by default, or a
+ * bare translation (`long[3]`, SPRITE_QUAD_POS_T long). Set before including. */
+#ifndef SPRITE_QUAD_POS_T
+#define SPRITE_QUAD_POS_T     GfxCoord
+#define SPRITE_QUAD_POS(p, i) ((p)->workm.t[i])
+#endif
+#ifndef SPRITE_QUAD_SIZE_T
+#define SPRITE_QUAD_SIZE_T s16
+#endif
+
 #ifndef SPRITE_QUAD_FRAME_T
 #define SPRITE_QUAD_FRAME_T u16
 #endif
 
-static void spriteQuadDraw(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 size, s16 angle);
+static void spriteQuadDraw(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle);
 
 #endif /* SRC_SHARED_SPRITE_QUAD_H */

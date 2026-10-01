@@ -60,7 +60,7 @@ STATIC_ASSERT_SIZEOF(M4a1HammerTrailScratch, 0x20);
 
 static void func_m4a1_hammer_8011E29C(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 
-static void func_m4a1_hammer_8011D904(long* arg0, u16 arg1, u16 arg2, s16 arg3);
+static void spriteQuadDrawCharge(long* arg0, u16 arg1, u16 arg2, s16 arg3);
 
 /// Fixed offset from the parent coordinate that the hammer effect starts at.
 static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
@@ -133,8 +133,8 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                             work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
-                                func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
-                                                          work->angle);
+                                spriteQuadDrawCharge(coord->workm.t, work->age >> 1, work->period,
+                                                     work->angle);
                             }
                             return;
                         }
@@ -146,8 +146,8 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->period    = ((gRandomLcgState >> 16) & 0xFF) + 0xC0;
                         if ((work->age & 1) == 0) {
-                            func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
-                                                      work->angle);
+                            spriteQuadDrawCharge(coord->workm.t, work->age >> 1, work->period,
+                                                 work->angle);
                         }
                         lightSlot->framesLeft = 4;
                         slot->inner           = 0x80;
@@ -232,69 +232,32 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     }
 }
 
-/// Draws the hammer's charging flare: one `POLY_FT4` centred on `arg0`, the
-/// effect coordinate's world translation, projected with a single `RTPS`.
-/// `arg1` picks the animation frame out of the texture page's eight 24-pixel
-/// columns, `arg2` is the radius and `arg3` the spin angle. The quad's corners
-/// are the radius rotated by `arg3` and by `arg3 + 0x400`, so the sprite spins
-/// in screen space; nothing is drawn if the centre projects off-screen.
-static void func_m4a1_hammer_8011D904(long* arg0, u16 arg1, u16 arg2, s16 arg3)
-{
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    u16              vz;
-    s32              u;
-
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0[1];
-    vz                                        = (u16)arg0[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x28;
-        prim->clut  = 0x430C;
-        u           = (arg1 & 7) * 24;
-        prim->u0    = u;
-        prim->v0    = 0x88;
-        prim->u1    = u + 0x17;
-        prim->v1    = 0x88;
-        prim->u2    = u;
-        prim->v2    = 0x9F;
-        prim->u3    = u + 0x17;
-        prim->v3    = 0x9F;
-        block->dx   = (((arg2 * 23) / block->otz) * rsin(arg3)) >> 12;
-        block->dy   = (((arg2 * 23) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        block->dx   = (((arg2 * 23) / block->otz) * rsin(arg3 + 0x400)) >> 12;
-        block->dy   = (((arg2 * 23) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+/* the charging flare takes a bare translation and an unsigned size */
+#undef SPRITE_QUAD_POS_T
+#undef SPRITE_QUAD_POS
+#undef SPRITE_QUAD_FRAME_T
+#undef SPRITE_QUAD_SIZE_T
+#define SPRITE_QUAD_POS_T     long
+#define SPRITE_QUAD_POS(p, i) ((p)[i])
+#define SPRITE_QUAD_FRAME_T   u16
+#define SPRITE_QUAD_SIZE_T    u16
+#define SPRITE_QUAD_FUNC      spriteQuadDrawCharge
+#define SPRITE_QUAD_TPAGE     0x28
+#define SPRITE_QUAD_CLUT      0x430C
+#define SPRITE_QUAD_CELL_W    24
+#define SPRITE_QUAD_CELL_MASK 7
+#define SPRITE_QUAD_V0        0x88
+#define SPRITE_QUAD_V1        0x9F
+#define SPRITE_QUAD_SCALE     23
+#include "../../shared/sprite_quad_draw.inc.c"
+#undef SPRITE_QUAD_POS_T
+#undef SPRITE_QUAD_POS
+#undef SPRITE_QUAD_FRAME_T
+#undef SPRITE_QUAD_SIZE_T
+#define SPRITE_QUAD_POS_T     GfxCoord
+#define SPRITE_QUAD_POS(p, i) ((p)->workm.t[i])
+#define SPRITE_QUAD_FRAME_T   s16
+#define SPRITE_QUAD_SIZE_T    s16
 
 void func_m4a1_hammer_8011DD08(Task* arg0)
 {

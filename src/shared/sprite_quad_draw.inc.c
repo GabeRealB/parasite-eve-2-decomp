@@ -11,7 +11,7 @@
 #endif
 
 /// Draws one cell of the overlay's sprite texture at `coord`'s world position.
-static void SPRITE_QUAD_FUNC(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 size, s16 angle)
+static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -23,10 +23,10 @@ static void SPRITE_QUAD_FUNC(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 siz
     u16              vz;
 
     head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
+    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)SPRITE_QUAD_POS(pos, 0);
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)coord->workm.t[1];
-    vz                                        = (u16)coord->workm.t[2];
+    block->vec.vy                             = (u16)SPRITE_QUAD_POS(pos, 1);
+    vz                                        = (u16)SPRITE_QUAD_POS(pos, 2);
     block->vec.vz                             = vz;
     SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     vec                                       = &block->vec;
@@ -48,10 +48,15 @@ static void SPRITE_QUAD_FUNC(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 siz
         setShadeTex(prim, 1);
         prim->tpage = SPRITE_QUAD_TPAGE;
         prim->clut  = SPRITE_QUAD_CLUT;
-#ifdef SPRITE_QUAD_CELLS_PER_ROW
+#if defined(SPRITE_QUAD_CELLS_PER_ROW)
         u0 = (frame % SPRITE_QUAD_CELLS_PER_ROW) * SPRITE_QUAD_CELL_W;
+#elif defined(SPRITE_QUAD_CELL_MASK)
+        u0 = (frame & SPRITE_QUAD_CELL_MASK) * SPRITE_QUAD_CELL_W;
 #else
         u0 = frame * SPRITE_QUAD_CELL_W;
+#endif
+#ifdef SPRITE_QUAD_U_BASE
+        u0 = u0 + SPRITE_QUAD_U_BASE;
 #endif
         u1 = u0 + (SPRITE_QUAD_CELL_W - 1);
         setUV4(prim, u0, SPRITE_QUAD_V0, u1, SPRITE_QUAD_V0, u0, SPRITE_QUAD_V1, u1, SPRITE_QUAD_V1);
@@ -83,3 +88,6 @@ static void SPRITE_QUAD_FUNC(GfxCoord* coord, SPRITE_QUAD_FRAME_T frame, s16 siz
 #undef SPRITE_QUAD_V1
 #undef SPRITE_QUAD_SCALE
 #undef SPRITE_QUAD_OTZ_BIAS
+#undef SPRITE_QUAD_CELL_MASK
+#undef SPRITE_QUAD_U_BASE
+#undef SPRITE_QUAD_MIN_OTZ
