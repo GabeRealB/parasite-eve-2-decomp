@@ -1074,7 +1074,7 @@ void func_actor_800100_80161F20(Task* task)
     GpCoord64*            base;
     WorldCoordPointLight* slot;
     GfxCoord*             light;
-    GpMtxWords*           rot;
+    GfxRotationWords*     rot;
     EffectWork*           eff;
     u32                   ang;
 
@@ -1092,13 +1092,13 @@ void func_actor_800100_80161F20(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            rot                 = (GpMtxWords*)&coord->coord;
+            rot                 = (GfxRotationWords*)&coord->coord;
             coord->parent       = work->parent;
-            rot->m00_m01        = 0x1000;
-            rot->m02_m10        = 0;
-            rot->m11_m12        = 0x1000;
-            rot->m20_m21        = 0;
-            rot->m22            = 0x1000;
+            rot->m00M01         = ONE;
+            rot->m02M10         = 0;
+            rot->m11M12         = ONE;
+            rot->m20M21         = 0;
+            rot->m22            = ONE;
             coord->coord.t[0]   = D_actor_800100_80167128.vx;
             coord->coord.t[1]   = D_actor_800100_80167128.vy;
             coord->coord.t[2]   = D_actor_800100_80167128.vz;

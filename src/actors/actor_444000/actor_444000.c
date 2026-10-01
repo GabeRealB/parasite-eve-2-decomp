@@ -3117,11 +3117,11 @@ static void func_actor_444000_8013482C(Task* task)
         work->field_EFA               = 0;
         work->field_EFE               = 0;
         mat                           = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
-        mat->ident.m00_m01            = 0x1000;
-        mat->ident.m02_m10            = 0;
-        mat->ident.m11_m12            = 0x1000;
-        mat->ident.m20_m21            = 0;
-        mat->ident.m22                = 0x1000;
+        mat->ident.m00M01             = ONE;
+        mat->ident.m02M10             = 0;
+        mat->ident.m11M12             = ONE;
+        mat->ident.m20M21             = 0;
+        mat->ident.m22                = ONE;
     }
 
     gluttonTickAnim(task);
@@ -4483,14 +4483,14 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->field_ECC[3]->param         = &D_actor_444000_80144A58;
     work->field_ECC[3]->recs          = work->hits[1].recs;
 
-    freeCoord                     = &work->field_E3C.c;
-    work->field_E3C.c.parent      = task->extra.tmd->coords;
-    work->field_E3C.ident.m00_m01 = 0x1000;
-    mtx                           = (OverlayMat*)&work->field_E3C.c.coord;
-    mtx->ident.m02_m10            = 0;
-    mtx->ident.m11_m12            = 0x1000;
-    mtx->ident.m20_m21            = 0;
-    mtx->ident.m22                = 0x1000;
+    freeCoord                             = &work->field_E3C.c;
+    work->field_E3C.c.parent              = task->extra.tmd->coords;
+    work->field_E3C.ident.rotation.m00M01 = ONE;
+    mtx                                   = (OverlayMat*)&work->field_E3C.c.coord;
+    mtx->ident.m02M10                     = 0;
+    mtx->ident.m11M12                     = ONE;
+    mtx->ident.m20M21                     = 0;
+    mtx->ident.m22                        = ONE;
     work->field_E3C.c.coord.t[0] = work->field_E3C.c.coord.t[1] = work->field_E3C.c.coord.t[2] = 0;
     work->field_E3C.c.composeStamp                                                             = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(freeCoord);
@@ -6508,18 +6508,18 @@ static void func_actor_444000_80140BBC(Task* arg0)
         work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
-        coords                                 = arg0->extra.tmd->coords;
-        D_actor_444000_801618B8.ident.m00_m01  = 0x1000;
-        mtx                                    = (OverlayMat*)&D_actor_444000_801618B8.c.coord;
-        mtx->ident.m02_m10                     = 0;
-        mtx->ident.m11_m12                     = 0x1000;
-        mtx->ident.m20_m21                     = 0;
-        mtx->ident.m22                         = 0x1000;
-        D_actor_444000_801618B8.c.coord.t[1]   = -0x64;
-        D_actor_444000_801618B8.c.coord.t[0]   = 0;
-        D_actor_444000_801618B8.c.coord.t[2]   = 0x64;
-        D_actor_444000_801618B8.c.composeStamp = GRAPHICS_COORD_DIRTY;
-        D_actor_444000_801618B8.c.parent       = &coords[4];
+        coords                                        = arg0->extra.tmd->coords;
+        D_actor_444000_801618B8.ident.rotation.m00M01 = ONE;
+        mtx                                           = (OverlayMat*)&D_actor_444000_801618B8.c.coord;
+        mtx->ident.m02M10                             = 0;
+        mtx->ident.m11M12                             = ONE;
+        mtx->ident.m20M21                             = 0;
+        mtx->ident.m22                                = ONE;
+        D_actor_444000_801618B8.c.coord.t[1]          = -0x64;
+        D_actor_444000_801618B8.c.coord.t[0]          = 0;
+        D_actor_444000_801618B8.c.coord.t[2]          = 0x64;
+        D_actor_444000_801618B8.c.composeStamp        = GRAPHICS_COORD_DIRTY;
+        D_actor_444000_801618B8.c.parent              = &coords[4];
         Gp_UpdateCoord(&D_actor_444000_801618B8.c);
     }
     if (work->field_7B3 == 0x14 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {

@@ -1134,8 +1134,8 @@ static void func_actor_503500_80144E8C(Task* arg0)
     WorldCollisionContact* rec;
     EffectWork*            eff;
     Task*                  child;
-    GpMtxWords*            m1;
-    GpMtxWords*            m2;
+    GfxRotationWords*      m1;
+    GfxRotationWords*      m2;
     s32                    pan;
 
     coord = arg0->extra.tmd->coords;
@@ -1147,19 +1147,19 @@ static void func_actor_503500_80144E8C(Task* arg0)
     arg0->work     = work;
     work->field_C4 = 0x1000;
 
-    m1          = (GpMtxWords*)&coord->coord;
-    m1->m00_m01 = 0x1000;
-    m1->m02_m10 = 0;
-    m1->m11_m12 = 0x1000;
-    m1->m20_m21 = 0;
-    m1->m22     = 0x1000;
+    m1         = (GfxRotationWords*)&coord->coord;
+    m1->m00M01 = ONE;
+    m1->m02M10 = 0;
+    m1->m11M12 = ONE;
+    m1->m20M21 = 0;
+    m1->m22    = ONE;
 
-    m2          = (GpMtxWords*)&work->field_9C;
-    m2->m00_m01 = 0x1000;
-    m2->m02_m10 = 0;
-    m2->m11_m12 = 0x1000;
-    m2->m20_m21 = 0;
-    m2->m22     = 0x1000;
+    m2         = (GfxRotationWords*)&work->field_9C;
+    m2->m00M01 = ONE;
+    m2->m02M10 = 0;
+    m2->m11M12 = ONE;
+    m2->m20M21 = 0;
+    m2->m22    = ONE;
 
     d4  = &work->head.d4;
     rec = work->head.rec;
@@ -1243,16 +1243,16 @@ static void func_actor_503500_801450A0(Task* arg0)
                 step = 0x20000;
             }
             {
-                GpMtxWords* m;
+                GfxRotationWords* m;
 
-                m                    = (GpMtxWords*)&work->field_9C;
-                m->m00_m01           = 0x1000;
+                m                    = (GfxRotationWords*)&work->field_9C;
+                m->m00M01            = ONE;
                 work->field_C0      += step;
                 work->field_BC.word += work->field_C0;
-                m->m02_m10           = 0;
-                m->m11_m12           = 0x1000;
-                m->m20_m21           = 0;
-                m->m22               = 0x1000;
+                m->m02M10            = 0;
+                m->m11M12            = ONE;
+                m->m20M21            = 0;
+                m->m22               = ONE;
             }
             RotMatrixY(work->field_BC.halves.integer, &work->field_9C);
             ang = work->field_BC.halves.integer;
@@ -1278,15 +1278,15 @@ static void func_actor_503500_801450A0(Task* arg0)
                 }
             }
             {
-                GpMtxWords* m;
+                GfxRotationWords* m;
 
-                m                    = (GpMtxWords*)&work->field_9C;
-                m->m00_m01           = 0x1000;
+                m                    = (GfxRotationWords*)&work->field_9C;
+                m->m00M01            = ONE;
                 work->field_BC.word += work->field_C0;
-                m->m02_m10           = 0;
-                m->m11_m12           = 0x1000;
-                m->m20_m21           = 0;
-                m->m22               = 0x1000;
+                m->m02M10            = 0;
+                m->m11M12            = ONE;
+                m->m20M21            = 0;
+                m->m22               = ONE;
             }
             RotMatrixY(work->field_BC.halves.integer, &work->field_9C);
             break;
@@ -1380,7 +1380,7 @@ static void func_actor_503500_801455A4(Task* arg0)
 {
     Actor503500Work44* work;
     GfxCoord*          coord;
-    GpMtxWords*        m;
+    GfxRotationWords*  m;
     EffectWork*        eff;
     Task*              child;
     s32                pan;
@@ -1393,12 +1393,12 @@ static void func_actor_503500_801455A4(Task* arg0)
     }
     arg0->work = work;
 
-    m          = (GpMtxWords*)&coord->coord;
-    m->m00_m01 = 0x1000;
-    m->m02_m10 = 0;
-    m->m11_m12 = 0x1000;
-    m->m20_m21 = 0;
-    m->m22     = 0x1000;
+    m         = (GfxRotationWords*)&coord->coord;
+    m->m00M01 = ONE;
+    m->m02M10 = 0;
+    m->m11M12 = ONE;
+    m->m20M21 = 0;
+    m->m22    = ONE;
 
     work->head.obj.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     work->head.obj.context.contacts = &work->head.rec;
@@ -1528,7 +1528,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     WorldCollisionContact* rec;
     EffectWork*            eff;
     Task*                  child;
-    GpMtxWords*            m;
+    GfxRotationWords*      m;
     s32                    pan;
     s32                    pan2;
 
@@ -1540,12 +1540,12 @@ static void func_actor_503500_80145A2C(Task* arg0)
     }
     arg0->work = work;
 
-    m          = (GpMtxWords*)&coord->coord;
-    m->m00_m01 = 0x1000;
-    m->m02_m10 = 0;
-    m->m11_m12 = 0x1000;
-    m->m20_m21 = 0;
-    m->m22     = 0x1000;
+    m         = (GfxRotationWords*)&coord->coord;
+    m->m00M01 = ONE;
+    m->m02M10 = 0;
+    m->m11M12 = ONE;
+    m->m20M21 = 0;
+    m->m22    = ONE;
 
     d4  = &work->head.d4;
     rec = work->head.rec;

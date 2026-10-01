@@ -11,19 +11,19 @@
 /// fourth part on odd animation frames.
 void golemKnightBishopTranslucencyFade(Task* arg0)
 {
-    SVECTOR*         sc;
-    Actor402200Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GpMtxWords*      m;
-    s32              snd;
-    s32              pan;
-    s32              v;
-    s32              w;
-    s32              sy;
-    s32              y;
-    u32              random;
-    s16              t;
+    SVECTOR*          sc;
+    Actor402200Work*  work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
+    GfxRotationWords* m;
+    s32               snd;
+    s32               pan;
+    s32               v;
+    s32               w;
+    s32               sy;
+    s32               y;
+    u32               random;
+    s16               t;
 
     sc    = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work  = arg0->work;
@@ -161,12 +161,12 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                 if (obj->shading.colorBlend <= 0) {
                     obj->shading.colorBlend = 0;
                     work->field_6DA         = 0;
-                    m                       = (GpMtxWords*)&arg0->extra.tmd->coords[0].coord;
-                    m->m00_m01              = 0x1000;
-                    m->m02_m10              = 0;
-                    m->m11_m12              = 0x1000;
-                    m->m20_m21              = 0;
-                    m->m22                  = 0x1000;
+                    m                       = (GfxRotationWords*)&arg0->extra.tmd->coords[0].coord;
+                    m->m00M01               = ONE;
+                    m->m02M10               = 0;
+                    m->m11M12               = ONE;
+                    m->m20M21               = 0;
+                    m->m22                  = ONE;
                     arg0->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 }
             }

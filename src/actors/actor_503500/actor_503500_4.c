@@ -2682,7 +2682,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     WorldCollisionContact* rec;
     WorldCollisionContact* rec2;
     OverlayMat             m;
-    GpMtxWords*            ident;
+    GfxRotationWords*      ident;
     s32                    idx;
     s32                    i;
 
@@ -2698,12 +2698,12 @@ static void func_actor_503500_8013FA74(Task* arg0)
     coord->coord.t[0] = D_actor_503500_8016F3AC[idx].vx;
     coord->coord.t[1] = D_actor_503500_8016F3AC[idx].vy;
     coord->coord.t[2] = D_actor_503500_8016F3AC[idx].vz;
-    m.ident.m00_m01   = 0x1000;
+    m.ident.m00M01    = ONE;
     ident             = &m.ident;
-    ident->m02_m10    = 0;
-    ident->m11_m12    = 0x1000;
-    ident->m20_m21    = 0;
-    ident->m22        = 0x1000;
+    ident->m02M10     = 0;
+    ident->m11M12     = ONE;
+    ident->m20M21     = 0;
+    ident->m22        = ONE;
     RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3947,7 +3947,7 @@ static void func_actor_503500_80142980(Task* arg0)
     OverlayMat          m;
     s8                  param1[8];
     s8                  param2[8];
-    GpMtxWords*         ident;
+    GfxRotationWords*   ident;
     Actor503500Work224* work;
     Enemy*              enemy;
     GfxCoord*           coord;
@@ -4106,15 +4106,15 @@ static void func_actor_503500_80142980(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx          = work->rot.vx.word >> 16;
-    rot.vy          = work->rot.vy.word >> 16;
-    rot.vz          = work->rot.vz.word >> 16;
-    m.ident.m00_m01 = 0x1000;
-    m.ident.m02_m10 = 0;
-    ident           = &m.ident;
-    ident->m11_m12  = 0x1000;
-    m.ident.m20_m21 = 0;
-    ident->m22      = 0x1000;
+    rot.vx         = work->rot.vx.word >> 16;
+    rot.vy         = work->rot.vy.word >> 16;
+    rot.vz         = work->rot.vz.word >> 16;
+    m.ident.m00M01 = ONE;
+    m.ident.m02M10 = 0;
+    ident          = &m.ident;
+    ident->m11M12  = ONE;
+    m.ident.m20M21 = 0;
+    ident->m22     = ONE;
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&m.mat);
@@ -4636,7 +4636,7 @@ static void func_actor_503500_80144300(Task* arg0)
     WorldCollisionContact* rec;
     EffectWork*            eff;
     Task*                  child;
-    GpMtxWords*            m;
+    GfxRotationWords*      m;
     VECTOR                 v;
     s32                    pan;
 
@@ -4662,12 +4662,12 @@ static void func_actor_503500_80144300(Task* arg0)
         v.vz = arg0->spawnArg2.value;
         ApplyMatrixLV(&coord->coord, &v, &work->field_A4);
     } else {
-        m          = (GpMtxWords*)&coord->coord;
-        m->m00_m01 = 0x1000;
-        m->m02_m10 = 0;
-        m->m11_m12 = 0x1000;
-        m->m20_m21 = 0;
-        m->m22     = 0x1000;
+        m         = (GfxRotationWords*)&coord->coord;
+        m->m00M01 = ONE;
+        m->m02M10 = 0;
+        m->m11M12 = ONE;
+        m->m20M21 = 0;
+        m->m22    = ONE;
     }
     rec = work->rec;
 
@@ -4833,7 +4833,7 @@ static void func_actor_503500_801448E8(Task* arg0)
     WorldCollisionContact* rec;
     EffectWork*            eff;
     Task*                  child;
-    GpMtxWords*            m;
+    GfxRotationWords*      m;
     s32                    pan;
     s32                    pan2;
 
@@ -4856,12 +4856,12 @@ static void func_actor_503500_801448E8(Task* arg0)
     if (arg0->spawnArg2.pointer != NULL) {
         work->field_A8 = arg0->spawnArg2.value;
     } else {
-        m              = (GpMtxWords*)&coord->coord;
-        m->m00_m01     = 0x1000;
-        m->m02_m10     = 0;
-        m->m11_m12     = 0x1000;
-        m->m20_m21     = 0;
-        m->m22         = 0x1000;
+        m              = (GfxRotationWords*)&coord->coord;
+        m->m00M01      = ONE;
+        m->m02M10      = 0;
+        m->m11M12      = ONE;
+        m->m20M21      = 0;
+        m->m22         = ONE;
         work->field_A8 = 0x100000;
     }
     rec = work->rec;

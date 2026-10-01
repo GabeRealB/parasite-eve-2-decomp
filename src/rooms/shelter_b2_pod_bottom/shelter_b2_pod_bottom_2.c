@@ -518,11 +518,11 @@ static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 a
 /// or an event of state 4 or above starts.
 void func_shelter_b2_pod_bottom_8017EC78(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    u16         tick;
-    u8          rgb[3];
+    EffectWork*       work;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    u16               tick;
+    u8                rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -532,13 +532,13 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
         work->age           = tick + 1;
         switch (task->state) {
             case 0:
-                rot          = (GpMtxWords*)&coord->coord;
-                rot->m00_m01 = 0x1000;
-                rot->m02_m10 = 0;
-                rot->m11_m12 = 0x1000;
-                rot->m20_m21 = 0;
-                rot->m22     = 0x1000;
-                work->scale  = 0xA0;
+                rot         = (GfxRotationWords*)&coord->coord;
+                rot->m00M01 = ONE;
+                rot->m02M10 = 0;
+                rot->m11M12 = ONE;
+                rot->m20M21 = 0;
+                rot->m22    = ONE;
+                work->scale = 0xA0;
                 task->state++;
                 return;
             case 1:
@@ -682,11 +682,11 @@ static void func_shelter_b2_pod_bottom_8017EEAC(EffectWork* work, GfxCoord* coor
 /// released once the fade reaches 0x10 or an event of state 4 or above starts.
 void func_shelter_b2_pod_bottom_8017F448(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s32         sum;
-    u8          rgb[3];
+    EffectWork*       work;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s32               sum;
+    u8                rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -694,12 +694,12 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot                 = (GpMtxWords*)&coord->coord;
-                rot->m00_m01        = 0x1000;
-                rot->m02_m10        = 0;
-                rot->m11_m12        = 0x1000;
-                rot->m20_m21        = 0;
-                rot->m22            = 0x1000;
+                rot                 = (GfxRotationWords*)&coord->coord;
+                rot->m00M01         = ONE;
+                rot->m02M10         = 0;
+                rot->m11M12         = ONE;
+                rot->m20M21         = 0;
+                rot->m22            = ONE;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->scale         = 0;
                 work->angle         = 0x80;
@@ -881,12 +881,12 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
 /// above starts.
 void func_shelter_b2_pod_bottom_8018016C(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s32         i;
-    s32         sum;
-    u8          rgb[3];
+    EffectWork*       work;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s32               i;
+    s32               sum;
+    u8                rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -894,12 +894,12 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot                 = (GpMtxWords*)&coord->coord;
-                rot->m00_m01        = 0x1000;
-                rot->m02_m10        = 0;
-                rot->m11_m12        = 0x1000;
-                rot->m20_m21        = 0;
-                rot->m22            = 0x1000;
+                rot                 = (GfxRotationWords*)&coord->coord;
+                rot->m00M01         = ONE;
+                rot->m02M10         = 0;
+                rot->m11M12         = ONE;
+                rot->m20M21         = 0;
+                rot->m22            = ONE;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->scale         = 0;
                 work->angle         = 0x80;

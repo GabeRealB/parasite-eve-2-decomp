@@ -3264,22 +3264,22 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             work->scale.vz                        -= 10;
                             ident                                  = (OverlayMat*)&task->extra.tmd->coords[3].coord;
 
-                            ident->ident.m00_m01 = 0x1000;
-                            ident->ident.m02_m10 = 0;
-                            ident->ident.m11_m12 = 0x1000;
-                            ident->ident.m20_m21 = 0;
-                            ident->ident.m22     = 0x1000;
+                            ident->ident.m00M01 = ONE;
+                            ident->ident.m02M10 = 0;
+                            ident->ident.m11M12 = ONE;
+                            ident->ident.m20M21 = 0;
+                            ident->ident.m22    = ONE;
 
                             gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->scale);
                         } else if (work->timer < 0x20) {
                             task->extra.tmd->coords[2].coord.t[1] += 0x20;
                             ident2                                 = (OverlayMat*)&task->extra.tmd->coords[3].coord;
 
-                            ident2->ident.m00_m01 = 0x1000;
-                            ident2->ident.m02_m10 = 0;
-                            ident2->ident.m11_m12 = 0x1000;
-                            ident2->ident.m20_m21 = 0;
-                            ident2->ident.m22     = 0x1000;
+                            ident2->ident.m00M01 = ONE;
+                            ident2->ident.m02M10 = 0;
+                            ident2->ident.m11M12 = ONE;
+                            ident2->ident.m20M21 = 0;
+                            ident2->ident.m22    = ONE;
                         }
                         if (!(gDisplayState.animFrame & 0xF)) {
                             buf.vec[1].vx = 0xC8;

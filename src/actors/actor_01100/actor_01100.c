@@ -1091,7 +1091,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     ActorsShared80138efcWork* work;
     TmdObject*                extra;
     GfxCoord*                 parts;
-    GpMtxWords*               mtx;
+    GfxRotationWords*         mtx;
     SceneCombatState*         combat;
     u8                        param1[8];
     u8                        param2[8];
@@ -1153,12 +1153,12 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     work->field_BA5 = 1;
     work->field_BA4 = 1;
 
-    mtx          = (GpMtxWords*)&work->coord.coord;
-    mtx->m00_m01 = 0x1000;
-    mtx->m02_m10 = 0;
-    mtx->m11_m12 = 0x1000;
-    mtx->m20_m21 = 0;
-    mtx->m22     = 0x1000;
+    mtx         = (GfxRotationWords*)&work->coord.coord;
+    mtx->m00M01 = ONE;
+    mtx->m02M10 = 0;
+    mtx->m11M12 = ONE;
+    mtx->m20M21 = 0;
+    mtx->m22    = ONE;
     if (work->field_BBB == 0x31) {
         scale = Actor01100_D00010;
         Actor01100_Fn067C0(&work->coord.coord, &scale);
@@ -3598,7 +3598,7 @@ static void Actor01100_Fn0638C(Task* task)
     s32                       pan;
     WorldCollisionBody*       obj;
     GfxCoord*                 coord;
-    GpMtxWords*               rotation;
+    GfxRotationWords*         rotation;
 
     coord        = task->extra.tmd->coords;
     stageAreaKey = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
@@ -3618,13 +3618,13 @@ static void Actor01100_Fn0638C(Task* task)
         Task_Reparent(task, effect->task);
     }
     task->killCountdown   = 0x5A;
-    rotation              = (GpMtxWords*)&coord->coord;
+    rotation              = (GfxRotationWords*)&coord->coord;
     obj                   = &work->obj;
-    rotation->m00_m01     = 0x1000;
-    rotation->m02_m10     = 0;
-    rotation->m11_m12     = 0x1000;
-    rotation->m20_m21     = 0;
-    rotation->m22         = 0x1000;
+    rotation->m00M01      = ONE;
+    rotation->m02M10      = 0;
+    rotation->m11M12      = ONE;
+    rotation->m20M21      = 0;
+    rotation->m22         = ONE;
     rec                   = work->rec18;
     coord->composeStamp   = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]    += 0x30;

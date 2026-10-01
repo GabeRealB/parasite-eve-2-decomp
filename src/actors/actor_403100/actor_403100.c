@@ -3582,11 +3582,11 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             D_actor_403100_80155814[i].position.vy          = (u16)arg1->vy;
             D_actor_403100_80155814[i].position.vz          = (u16)arg1->vz;
             D_actor_403100_80155814[i].coord.parent         = &gGfxViewCoord;
-            matrix.ident.m00_m01                            = 0x1000;
-            matrix.ident.m02_m10                            = 0;
-            identity->ident.m11_m12                         = 0x1000;
-            matrix.ident.m20_m21                            = 0;
-            identity->ident.m22                             = 0x1000;
+            matrix.ident.m00M01                             = ONE;
+            matrix.ident.m02M10                             = 0;
+            identity->ident.m11M12                          = ONE;
+            matrix.ident.m20M21                             = 0;
+            identity->ident.m22                             = ONE;
             matrix.mat.t[0]                                 = (s32)(s16)arg1->vx;
             matrix.mat.t[1]                                 = (s32)(s16)arg1->vy;
             records                                         = D_actor_403100_80155814[i].records;

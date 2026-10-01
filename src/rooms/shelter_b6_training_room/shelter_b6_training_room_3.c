@@ -890,10 +890,10 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
 
 void func_shelter_b6_training_room_80180DB4(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    u8          rgb[3];
+    EffectWork*       work;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    u8                rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -901,12 +901,12 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot                 = (GpMtxWords*)&coord->coord;
-                rot->m00_m01        = 0x1000;
-                rot->m02_m10        = 0;
-                rot->m11_m12        = 0x1000;
-                rot->m20_m21        = 0;
-                rot->m22            = 0x1000;
+                rot                 = (GfxRotationWords*)&coord->coord;
+                rot->m00M01         = ONE;
+                rot->m02M10         = 0;
+                rot->m11M12         = ONE;
+                rot->m20M21         = 0;
+                rot->m22            = ONE;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->scale         = 0;
                 work->angle         = 0x100;
@@ -1161,16 +1161,16 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
         mem->age++;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (task->state == 0) {
-            GpMtxWords* rot;
-            u32         first;
+            GfxRotationWords* rot;
+            u32               first;
 
-            rot                 = (GpMtxWords*)&coord->coord;
+            rot                 = (GfxRotationWords*)&coord->coord;
             coord->parent       = mem->parent;
-            rot->m00_m01        = 0x1000;
-            rot->m02_m10        = 0;
-            rot->m11_m12        = 0x1000;
-            rot->m20_m21        = 0;
-            rot->m22            = 0x1000;
+            rot->m00M01         = ONE;
+            rot->m02M10         = 0;
+            rot->m11M12         = ONE;
+            rot->m20M21         = 0;
+            rot->m22            = ONE;
             coord->coord.t[0]   = mem->pos.vx;
             gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             first               = gRandomLcgState;

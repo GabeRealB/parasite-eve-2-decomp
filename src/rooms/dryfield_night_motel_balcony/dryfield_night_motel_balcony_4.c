@@ -3389,13 +3389,13 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
 
 void func_dryfield_night_motel_balcony_801809CC(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s16         flag;
-    u16         age;
-    s16         t;
-    u8          color[3];
+    EffectWork*       work;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s16               flag;
+    u16               age;
+    s16               t;
+    u8                color[3];
 
     work  = task->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -3411,12 +3411,12 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
     work->age = age + 1;
     switch (task->state) {
         case 0:
-            rot             = (GpMtxWords*)&coord->coord;
-            rot->m00_m01    = 0x1000;
-            rot->m02_m10    = 0;
-            rot->m11_m12    = 0x1000;
-            rot->m20_m21    = 0;
-            rot->m22        = 0x1000;
+            rot             = (GfxRotationWords*)&coord->coord;
+            rot->m00M01     = ONE;
+            rot->m02M10     = 0;
+            rot->m11M12     = ONE;
+            rot->m20M21     = 0;
+            rot->m22        = ONE;
             work->pos.vx    = task->spawnArg1.halves.low & 0xFFF;
             work->scale     = 0xA0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

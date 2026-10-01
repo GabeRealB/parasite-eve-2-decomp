@@ -2715,15 +2715,15 @@ static void func_actor_503500_801374BC(Task* arg0)
 /// `D_actor_503500_8016F078`.
 static void func_actor_503500_80137678(Task* arg0)
 {
-    SVECTOR          rot;
-    OverlayMat       m;
-    GpMtxWords*      ident;
-    Actor503500Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    s32*             src;
-    s32*             out;
-    s32              i;
+    SVECTOR           rot;
+    OverlayMat        m;
+    GfxRotationWords* ident;
+    Actor503500Work*  work;
+    Enemy*            enemy;
+    GfxCoord*         coord;
+    s32*              src;
+    s32*              out;
+    s32               i;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -2810,15 +2810,15 @@ static void func_actor_503500_80137678(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx          = work->rot.vx.word >> 16;
-    rot.vy          = work->rot.vy.word >> 16;
-    rot.vz          = work->rot.vz.word >> 16;
-    m.ident.m00_m01 = 0x1000;
-    m.ident.m02_m10 = 0;
-    ident           = &m.ident;
-    ident->m11_m12  = 0x1000;
-    m.ident.m20_m21 = 0;
-    ident->m22      = 0x1000;
+    rot.vx         = work->rot.vx.word >> 16;
+    rot.vy         = work->rot.vy.word >> 16;
+    rot.vz         = work->rot.vz.word >> 16;
+    m.ident.m00M01 = ONE;
+    m.ident.m02M10 = 0;
+    ident          = &m.ident;
+    ident->m11M12  = ONE;
+    m.ident.m20M21 = 0;
+    ident->m22     = ONE;
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&m.mat);
@@ -3138,7 +3138,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     Actor503500Work2EC*    work;
     WorldCollisionContact* rec;
     OverlayMat             m;
-    GpMtxWords*            ident;
+    GfxRotationWords*      ident;
     s32                    idx;
     s32                    i;
 
@@ -3155,12 +3155,12 @@ static void func_actor_503500_8013852C(Task* arg0)
     coord->coord.t[0] = D_actor_503500_8016F090[idx].vx;
     coord->coord.t[1] = D_actor_503500_8016F090[idx].vy;
     coord->coord.t[2] = D_actor_503500_8016F090[idx].vz;
-    m.ident.m00_m01   = 0x1000;
+    m.ident.m00M01    = ONE;
     ident             = &m.ident;
-    ident->m02_m10    = 0;
-    ident->m11_m12    = 0x1000;
-    ident->m20_m21    = 0;
-    ident->m22        = 0x1000;
+    ident->m02M10     = 0;
+    ident->m11M12     = ONE;
+    ident->m20M21     = 0;
+    ident->m22        = ONE;
     RotMatrix(&D_actor_503500_8016F0A0[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3282,7 +3282,7 @@ static void func_actor_503500_80138A30(Task* arg0)
 {
     Actor503500Work2EC* work;
     OverlayMat          m;
-    GpMtxWords*         ident;
+    GfxRotationWords*   ident;
     SVECTOR             v;
     s32                 idx;
     s16                 hp;
@@ -3304,12 +3304,12 @@ static void func_actor_503500_80138A30(Task* arg0)
         func_actor_503500_8013ACC4(arg0, 1);
         return;
     }
-    m.ident.m00_m01 = 0x1000;
-    ident           = &m.ident;
-    ident->m02_m10  = 0;
-    ident->m11_m12  = 0x1000;
-    ident->m20_m21  = 0;
-    ident->m22      = 0x1000;
+    m.ident.m00M01 = ONE;
+    ident          = &m.ident;
+    ident->m02M10  = 0;
+    ident->m11M12  = ONE;
+    ident->m20M21  = 0;
+    ident->m22     = ONE;
     RotMatrix(&work->field_2A4, &m.mat);
     gte_SetRotMatrix(&m.mat);
     gte_ldv0(&D_actor_503500_8016F0C8);

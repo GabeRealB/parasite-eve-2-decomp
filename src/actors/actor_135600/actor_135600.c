@@ -724,7 +724,7 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
      * written that way keeps its address in the register `RotMatrixZ` is
      * handed, where the ones naming `m` directly fold to a frame-relative
      * address, and the target has both. */
-    m.ident.m00_m01           = 0x1000;
+    m.ident.m00M01            = ONE;
     MATRIX_PAIR(&m.mat, 0, 2) = 0;
     MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
     MATRIX_PAIR(&m.mat, 2, 0) = 0;
@@ -946,7 +946,7 @@ static void func_actor_135600_80132B14(Task* task)
     coord->coord.t[2] = 0;
 
     mtx                    = &m.mat;
-    m.ident.m00_m01        = 0x1000;
+    m.ident.m00M01         = ONE;
     MATRIX_PAIR(mtx, 0, 2) = 0;
     MATRIX_PAIR(mtx, 1, 1) = 0x1000;
     MATRIX_PAIR(mtx, 2, 0) = 0;

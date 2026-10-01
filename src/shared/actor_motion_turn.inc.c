@@ -10,7 +10,7 @@
 void actorMotionTurnToYaw(Task* arg0)
 {
     ActorMotionWork*     work;
-    GpMtxWords*          words;
+    GfxRotationWords*    words;
     GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
@@ -41,12 +41,12 @@ void actorMotionTurnToYaw(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words          = (GpMtxWords*)&coord->coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
+    words         = (GfxRotationWords*)&coord->coord;
+    words->m00M01 = ONE;
+    words->m02M10 = 0;
+    words->m11M12 = ONE;
+    words->m20M21 = 0;
+    words->m22    = ONE;
     RotMatrix(&vec, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

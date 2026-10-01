@@ -2801,14 +2801,14 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
     LINE_G2*    line;
     DR_TPAGE*   dr;
 
-    off               = D_dryfield_night_gas_station_8017D650;
-    one               = ONE;
-    m                 = &mtx;
-    mtx.ident.m00_m01 = one;
-    mtx.ident.m02_m10 = 0;
-    m->ident.m11_m12  = one;
-    mtx.ident.m20_m21 = 0;
-    m->ident.m22      = one;
+    off              = D_dryfield_night_gas_station_8017D650;
+    one              = ONE;
+    m                = &mtx;
+    mtx.ident.m00M01 = one;
+    mtx.ident.m02M10 = 0;
+    m->ident.m11M12  = one;
+    mtx.ident.m20M21 = 0;
+    m->ident.m22     = one;
     RotMatrixY((s16)(-0x262), &mtx.mat);
     vec = &D_dryfield_night_gas_station_80188580[arg0];
     ApplyMatrixSV(&mtx.mat, vec, &pos);
@@ -2845,12 +2845,12 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         setRGB0(tile1, 0xFF, 0, 0);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tile1);
 
-        mtx.ident.m00_m01 = one;
-        mtx.ident.m02_m10 = 0;
-        m->ident.m11_m12  = one;
-        mtx.ident.m20_m21 = 0;
-        m->ident.m22      = one;
-        val               = -0x262;
+        mtx.ident.m00M01 = one;
+        mtx.ident.m02M10 = 0;
+        m->ident.m11M12  = one;
+        mtx.ident.m20M21 = 0;
+        m->ident.m22     = one;
+        val              = -0x262;
         RotMatrixY((s16)(val), &mtx.mat);
         ApplyMatrixSV(&mtx.mat, vec, &pos);
         SetRotMatrix(&gGfxViewCoord.workm);

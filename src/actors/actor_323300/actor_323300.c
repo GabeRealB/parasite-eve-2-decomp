@@ -802,12 +802,12 @@ static void func_actor_323300_801627B4(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words                = (OverlayMat*)&coord->coord;
-    words->ident.m00_m01 = 0x1000;
-    words->ident.m02_m10 = 0;
-    words->ident.m11_m12 = 0x1000;
-    words->ident.m20_m21 = 0;
-    words->ident.m22     = 0x1000;
+    words               = (OverlayMat*)&coord->coord;
+    words->ident.m00M01 = ONE;
+    words->ident.m02M10 = 0;
+    words->ident.m11M12 = ONE;
+    words->ident.m20M21 = 0;
+    words->ident.m22    = ONE;
     RotMatrix(&vec, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -1096,19 +1096,19 @@ static void func_actor_323300_80163510(Task* arg0)
     work   = (Actor323300MtxWork*)arg0->work;
     coords = extra->coords;
 
-    work->light.ident.m00_m01 = 0x1000;
-    light                     = &work->light;
-    light->ident.m02_m10      = 0;
-    light->ident.m11_m12      = 0x1000;
-    light->ident.m20_m21      = 0;
-    light->ident.m22          = 0x1000;
+    work->light.ident.m00M01 = ONE;
+    light                    = &work->light;
+    light->ident.m02M10      = 0;
+    light->ident.m11M12      = ONE;
+    light->ident.m20M21      = 0;
+    light->ident.m22         = ONE;
 
-    work->color.ident.m00_m01 = 0x1000;
-    color                     = &work->color;
-    color->ident.m02_m10      = 0;
-    color->ident.m11_m12      = 0x1000;
-    color->ident.m20_m21      = 0;
-    color->ident.m22          = 0x1000;
+    work->color.ident.m00M01 = ONE;
+    color                    = &work->color;
+    color->ident.m02M10      = 0;
+    color->ident.m11M12      = ONE;
+    color->ident.m20M21      = 0;
+    color->ident.m22         = ONE;
 
     extra->lightMtx = &light->mat;
     extra->colorMtx = &color->mat;

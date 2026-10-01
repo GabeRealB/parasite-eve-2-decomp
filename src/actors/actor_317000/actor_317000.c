@@ -483,17 +483,17 @@ static void func_actor_317000_801620BC(Task* task)
 /// calls and puts `&target[4]` in its own register.
 static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
 {
-    GfxCoord*   coord;
-    GfxCoord*   target;
-    GfxCoord*   head;
-    GfxCoord*   aim;
-    MATRIX*     arm;
-    GpMtxWords* words;
-    VECTOR      delta;
-    VECTOR      dir;
-    SVECTOR     ang;
-    SVECTOR     vec;
-    SVECTOR     rot;
+    GfxCoord*         coord;
+    GfxCoord*         target;
+    GfxCoord*         head;
+    GfxCoord*         aim;
+    MATRIX*           arm;
+    GfxRotationWords* words;
+    VECTOR            delta;
+    VECTOR            dir;
+    SVECTOR           ang;
+    SVECTOR           vec;
+    SVECTOR           rot;
 
     coord  = task->extra.tmd->coords;
     target = targetTask->extra.tmd->coords;
@@ -530,12 +530,12 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
     vec.vy = vec.vy * 5 / 8;
     vec.vz = vec.vz * 5 / 8;
 
-    words          = (GpMtxWords*)&coord[5].coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
+    words         = (GfxRotationWords*)&coord[5].coord;
+    words->m00M01 = ONE;
+    words->m02M10 = 0;
+    words->m11M12 = ONE;
+    words->m20M21 = 0;
+    words->m22    = ONE;
     RotMatrix(&vec, &coord[5].coord);
 }
 
@@ -709,7 +709,7 @@ static void func_actor_317000_80162768(Task* arg0)
 static void func_actor_317000_801627D0(Task* arg0)
 {
     Actor317000Work*     work;
-    GpMtxWords*          words;
+    GfxRotationWords*    words;
     GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
@@ -740,12 +740,12 @@ static void func_actor_317000_801627D0(Task* arg0)
         work->walk.motionStep++;
     }
 
-    words          = (GpMtxWords*)&coord->coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
+    words         = (GfxRotationWords*)&coord->coord;
+    words->m00M01 = ONE;
+    words->m02M10 = 0;
+    words->m11M12 = ONE;
+    words->m20M21 = 0;
+    words->m22    = ONE;
     RotMatrix(&vec, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

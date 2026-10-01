@@ -517,7 +517,7 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// starts spawn entry 4 (`func_actor_342100_80162AB0`) with the roll's masked
 /// high half as its `spawnArg1` -- the lifetime that task's state 1 counts down
 /// -- and lays the entry onto the model the new task displays: identity rotation
-/// at scale 0x1000 through the `GpMtxWords` view of `coord`, the entry's `vx` /
+/// at scale 0x1000 through the `GfxRotationWords` view of `coord`, the entry's `vx` /
 /// `vy` / `vz` written to `coord.t[0..2]`. The walk is `while (pos->vx != 0)`,
 /// so a table is as many entries as it has non-zero `vx`s and a table whose
 /// first entry is zero spawns nothing.
@@ -533,11 +533,11 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// passes it no arguments, which is why the declaration is `(void)`.
 void func_actor_342100_80162C88(void)
 {
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    SVECTOR*    pos;
-    Task*       task;
-    u32         rng;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    SVECTOR*          pos;
+    Task*             task;
+    u32               rng;
 
     switch (gGameSession->location.loc.view) {
         case 29:
@@ -561,12 +561,12 @@ void func_actor_342100_80162C88(void)
         gRandomLcgState   = rng;
         task              = Task_SpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
         coord             = task->extra.tmd->coords;
-        rot               = (GpMtxWords*)&coord->coord;
-        rot->m00_m01      = 0x1000;
-        rot->m02_m10      = 0;
-        rot->m11_m12      = 0x1000;
-        rot->m20_m21      = 0;
-        rot->m22          = 0x1000;
+        rot               = (GfxRotationWords*)&coord->coord;
+        rot->m00M01       = ONE;
+        rot->m02M10       = 0;
+        rot->m11M12       = ONE;
+        rot->m20M21       = 0;
+        rot->m22          = ONE;
         coord->coord.t[0] = pos->vx;
         coord->coord.t[1] = pos->vy;
         coord->coord.t[2] = pos->vz;

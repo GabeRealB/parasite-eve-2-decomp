@@ -78,12 +78,12 @@ static s32 D_combustion_801309A4 = 0;
 /// row's `field_6` tick is reached.
 void func_combustion_8012EF34(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    EffectWork* spawned;
-    s32         pan;
-    u8          rgb[3];
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    EffectWork*       spawned;
+    s32               pan;
+    u8                rgb[3];
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;
@@ -94,13 +94,13 @@ void func_combustion_8012EF34(Task* arg0)
                 arg0->spawnArg1.value = 1;
             }
             D_combustion_801309A4 = coord->workm.t[1];
-            rot                   = (GpMtxWords*)&coord->coord;
+            rot                   = (GfxRotationWords*)&coord->coord;
             coord->parent         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            rot->m00_m01          = 0x1000;
-            rot->m11_m12          = 0x1000;
-            rot->m22              = 0x1000;
-            rot->m02_m10          = 0;
-            rot->m20_m21          = 0;
+            rot->m00M01           = ONE;
+            rot->m11M12           = ONE;
+            rot->m22              = ONE;
+            rot->m02M10           = 0;
+            rot->m20M21           = 0;
             coord->coord.t[0]     = 0;
             coord->coord.t[1]     = -0x400;
             coord->coord.t[2]     = 0;
@@ -165,29 +165,29 @@ void func_combustion_8012EF34(Task* arg0)
 /// 0x21 frames.
 void func_combustion_8012F2BC(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    EffectWork* spawned;
-    s32         rng;
-    s32         spawnRng1;
-    s32         spawnRng1b;
-    s32         spawnRng2;
-    s32         spawnRng2b;
-    s32         last;
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    EffectWork*       spawned;
+    s32               rng;
+    s32               spawnRng1;
+    s32               spawnRng1b;
+    s32               spawnRng2;
+    s32               spawnRng2b;
+    s32               last;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            rot           = (GpMtxWords*)&coord->coord;
+            rot           = (GfxRotationWords*)&coord->coord;
             coord->parent = mem->parent;
-            rot->m00_m01  = 0x1000;
-            rot->m02_m10  = 0;
-            rot->m11_m12  = 0x1000;
-            rot->m20_m21  = 0;
-            rot->m22      = 0x1000;
+            rot->m00M01   = ONE;
+            rot->m02M10   = 0;
+            rot->m11M12   = ONE;
+            rot->m20M21   = 0;
+            rot->m22      = ONE;
 
             coord->coord.t[0]   = mem->pos.vx;
             coord->coord.t[1]   = mem->pos.vy;

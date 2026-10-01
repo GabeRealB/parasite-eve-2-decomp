@@ -2666,15 +2666,15 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
 /// Weight 0x52 restores the parented identity frame.
 static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
-    Actor510900Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        parentCoord;
-    GpMtxWords*      mat;
-    GpMtxWords*      mat2;
-    s16              blend;
-    s16              r;
-    s32              dy;
+    TmdObject*        obj;
+    Actor510900Work*  work;
+    GfxCoord*         coord;
+    GfxCoord*         parentCoord;
+    GfxRotationWords* mat;
+    GfxRotationWords* mat2;
+    s16               blend;
+    s16               r;
+    s32               dy;
 
     work  = (Actor510900Work*)task->parent->work;
     obj   = task->extra.tmd;
@@ -2701,12 +2701,12 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
             if (blend < 0x50) {
                 r = blend % 40;
                 if (r < 0xF) {
-                    mat               = (GpMtxWords*)&coord->coord;
-                    mat->m00_m01      = 0x1000;
-                    mat->m11_m12      = 0x1000;
-                    mat->m22          = 0x1000;
-                    mat->m02_m10      = 0;
-                    mat->m20_m21      = 0;
+                    mat               = (GfxRotationWords*)&coord->coord;
+                    mat->m00M01       = ONE;
+                    mat->m11M12       = ONE;
+                    mat->m22          = ONE;
+                    mat->m02M10       = 0;
+                    mat->m20M21       = 0;
                     coord->coord.t[0] = 0;
                     coord->coord.t[1] = 0;
                     coord->coord.t[2] = 0;
@@ -2724,12 +2724,12 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
             } else if (blend == 0x52) {
-                mat2                = (GpMtxWords*)&coord->coord;
-                mat2->m00_m01       = 0x1000;
-                mat2->m02_m10       = 0;
-                mat2->m11_m12       = 0x1000;
-                mat2->m20_m21       = 0;
-                mat2->m22           = 0x1000;
+                mat2                = (GfxRotationWords*)&coord->coord;
+                mat2->m00M01        = ONE;
+                mat2->m02M10        = 0;
+                mat2->m11M12        = ONE;
+                mat2->m20M21        = 0;
+                mat2->m22           = ONE;
                 coord->coord.t[0]   = 0;
                 coord->coord.t[1]   = 0;
                 coord->coord.t[2]   = 0;
@@ -3422,7 +3422,7 @@ end:
 static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
 {
     GfxCoord*             coord;
-    GpMtxWords*           mat;
+    GfxRotationWords*     mat;
     Actor510900ChildWork* work;
 
     coord = task->extra.tmd->coords;
@@ -3431,13 +3431,13 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    mat                 = (GpMtxWords*)&coord->coord;
+    mat                 = (GfxRotationWords*)&coord->coord;
     task->work          = work;
-    mat->m00_m01        = 0x1000;
-    mat->m11_m12        = 0x1000;
-    mat->m22            = 0x1000;
-    mat->m02_m10        = 0;
-    mat->m20_m21        = 0;
+    mat->m00M01         = ONE;
+    mat->m11M12         = ONE;
+    mat->m22            = ONE;
+    mat->m02M10         = 0;
+    mat->m20M21         = 0;
     coord->coord.t[0]   = -0x17D4;
     coord->coord.t[1]   = -0x456;
     coord->coord.t[2]   = 0x17C;

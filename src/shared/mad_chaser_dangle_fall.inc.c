@@ -13,15 +13,15 @@ void madChaserDangleFall(Task* arg0)
     MATRIX*          dst;
     Actor341700Work* anim;
 
-    work               = (Actor341700Work*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    src                = &rot;
-    src->ident.m00_m01 = 0x1000;
-    src->ident.m02_m10 = 0;
-    src->ident.m11_m12 = 0x1000;
-    src->ident.m20_m21 = 0;
-    src->ident.m22     = 0x1000;
-    work->field_434   += -work->field_434 >> 2;
+    work              = (Actor341700Work*)arg0->work;
+    coord             = arg0->extra.tmd->coords;
+    src               = &rot;
+    src->ident.m00M01 = ONE;
+    src->ident.m02M10 = 0;
+    src->ident.m11M12 = ONE;
+    src->ident.m20M21 = 0;
+    src->ident.m22    = ONE;
+    work->field_434  += -work->field_434 >> 2;
     RotMatrixX(work->field_434, &src->mat);
     RotMatrixY(work->field_7A, &src->mat);
     dst                = &coord->coord;

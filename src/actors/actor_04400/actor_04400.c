@@ -1904,15 +1904,15 @@ static void Actor04400_Fn02008(Task* arg0)
     MATRIX*          dst;
     Actor104400Work* anim;
 
-    work               = (Actor104400Work*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    src                = &rot;
-    src->ident.m00_m01 = 0x1000;
-    src->ident.m02_m10 = 0;
-    src->ident.m11_m12 = 0x1000;
-    src->ident.m20_m21 = 0;
-    src->ident.m22     = 0x1000;
-    work->field_434   += -work->field_434 >> 2;
+    work              = (Actor104400Work*)arg0->work;
+    coord             = arg0->extra.tmd->coords;
+    src               = &rot;
+    src->ident.m00M01 = ONE;
+    src->ident.m02M10 = 0;
+    src->ident.m11M12 = ONE;
+    src->ident.m20M21 = 0;
+    src->ident.m22    = ONE;
+    work->field_434  += -work->field_434 >> 2;
     RotMatrixX(work->field_434, &src->mat);
     RotMatrixY(work->field_7A, &src->mat);
     dst                = &coord->coord;
@@ -2263,13 +2263,13 @@ static void Actor04400_Fn02E8C(Task* arg0)
 /// 32.
 static void Actor04400_Fn0304C(Task* arg0)
 {
-    Actor104400Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    VECTOR           scale;
-    OverlayMat       m;
-    GpMtxWords*      ident;
-    SVECTOR          ofs;
+    Actor104400Work*  work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
+    VECTOR            scale;
+    OverlayMat        m;
+    GfxRotationWords* ident;
+    SVECTOR           ofs;
 
     work             = (Actor104400Work*)arg0->work;
     ident            = &m.ident;
@@ -2280,11 +2280,11 @@ static void Actor04400_Fn0304C(Task* arg0)
     scale.vy         = (s16)work->field_430;
     scale.vz         = 0x1000;
     coord->coord     = work->matrix_0;
-    m.ident.m00_m01  = 0x1000;
-    m.ident.m02_m10  = 0;
-    ident->m11_m12   = 0x1000;
-    m.ident.m20_m21  = 0;
-    ident->m22       = 0x1000;
+    m.ident.m00M01   = ONE;
+    m.ident.m02M10   = 0;
+    ident->m11M12    = ONE;
+    m.ident.m20M21   = 0;
+    ident->m22       = ONE;
     ScaleMatrix(&m.mat, &scale);
     MulMatrix(&coord->coord, &m.mat);
     if ((s16)++work->field_412 == 4) {
@@ -4233,15 +4233,15 @@ static void Actor04400_Fn07404(Task* arg0)
     MATRIX*          dst;
     s16              pitch;
 
-    work               = (Actor104400Work*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    src                = &rot;
-    src->ident.m00_m01 = 0x1000;
-    src->ident.m02_m10 = 0;
-    src->ident.m11_m12 = 0x1000;
-    src->ident.m20_m21 = 0;
-    src->ident.m22     = 0x1000;
-    pitch              = ((rsin((s16)work->field_442 << 6) * 0x10) >> 7) - 0x400;
+    work              = (Actor104400Work*)arg0->work;
+    coord             = arg0->extra.tmd->coords;
+    src               = &rot;
+    src->ident.m00M01 = ONE;
+    src->ident.m02M10 = 0;
+    src->ident.m11M12 = ONE;
+    src->ident.m20M21 = 0;
+    src->ident.m22    = ONE;
+    pitch             = ((rsin((s16)work->field_442 << 6) * 0x10) >> 7) - 0x400;
     RotMatrixX(pitch, &src->mat);
     RotMatrixY(work->field_7A, &src->mat);
     dst          = &coord->coord;
@@ -5052,12 +5052,12 @@ static void Actor04400_Fn08C08(Task* arg0)
 /// the model is hidden (flag 0x80) and the state advances.
 static void Actor04400_Fn08C64(Task* arg0)
 {
-    Actor104400Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    VECTOR           scale;
-    OverlayMat       m;
-    GpMtxWords*      ident;
+    Actor104400Work*  work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
+    VECTOR            scale;
+    OverlayMat        m;
+    GfxRotationWords* ident;
 
     work             = (Actor104400Work*)arg0->work;
     ident            = &m.ident;
@@ -5068,11 +5068,11 @@ static void Actor04400_Fn08C64(Task* arg0)
     scale.vy         = (s16)work->field_430;
     scale.vz         = 0x1000;
     coord->coord     = work->matrix_0;
-    m.ident.m00_m01  = 0x1000;
-    m.ident.m02_m10  = 0;
-    ident->m11_m12   = 0x1000;
-    m.ident.m20_m21  = 0;
-    ident->m22       = 0x1000;
+    m.ident.m00M01   = ONE;
+    m.ident.m02M10   = 0;
+    ident->m11M12    = ONE;
+    m.ident.m20M21   = 0;
+    ident->m22       = ONE;
     ScaleMatrix(&m.mat, &scale);
     MulMatrix(&coord->coord, &m.mat);
     if ((s16)++work->field_412 == 0x10) {

@@ -124,15 +124,15 @@ void func_antibody_8012EF34(Task* arg0)
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0: {
-                GpMtxWords* rot;
+                GfxRotationWords* rot;
 
-                rot                 = (GpMtxWords*)&coord->coord;
+                rot                 = (GfxRotationWords*)&coord->coord;
                 coord->parent       = mem->parent;
-                rot->m00_m01        = 0x1000;
-                rot->m02_m10        = 0;
-                rot->m11_m12        = 0x1000;
-                rot->m20_m21        = 0;
-                rot->m22            = 0x1000;
+                rot->m00M01         = ONE;
+                rot->m02M10         = 0;
+                rot->m11M12         = ONE;
+                rot->m20M21         = 0;
+                rot->m22            = ONE;
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
@@ -299,21 +299,21 @@ release:
 /// effect at tick 0x15.
 void func_antibody_8012F734(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s32         rng0;
-    s32         rng1a;
-    s32         rng1b;
-    s32         rng1c;
-    s32         rng1d;
-    s32         rng2a;
-    s32         rng2b;
-    s32         rng2c;
-    s32         rng3a;
-    s32         rng3b;
-    s32         rng3c;
-    s16         idx;
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s32               rng0;
+    s32               rng1a;
+    s32               rng1b;
+    s32               rng1c;
+    s32               rng1d;
+    s32               rng2a;
+    s32               rng2b;
+    s32               rng2c;
+    s32               rng3a;
+    s32               rng3b;
+    s32               rng3c;
+    s16               idx;
 
     mem                 = arg0->spawnArg2.pointer;
     coord               = arg0->extra.coordBody->coord;
@@ -321,13 +321,13 @@ void func_antibody_8012F734(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     switch (arg0->state) {
         case 0:
-            rot           = (GpMtxWords*)&coord->coord;
+            rot           = (GfxRotationWords*)&coord->coord;
             coord->parent = mem->parent;
-            rot->m00_m01  = 0x1000;
-            rot->m02_m10  = 0;
-            rot->m11_m12  = 0x1000;
-            rot->m20_m21  = 0;
-            rot->m22      = 0x1000;
+            rot->m00M01   = ONE;
+            rot->m02M10   = 0;
+            rot->m11M12   = ONE;
+            rot->m20M21   = 0;
+            rot->m22      = ONE;
 
             coord->coord.t[0] = mem->pos.vx;
             coord->coord.t[1] = mem->pos.vy;

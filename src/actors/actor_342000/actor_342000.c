@@ -546,11 +546,11 @@ static inline void Actor342000_InitCoord(Task* arg0, Actor342000Work* w)
     coord->coord.t[1]                     = 0;
     coord->coord.t[2]                     = 0;
     mtx                                   = (OverlayMat*)&w->coord.coord;
-    mtx->ident.m00_m01                    = 0x1000;
-    mtx->ident.m02_m10                    = 0;
-    mtx->ident.m11_m12                    = 0x1000;
-    mtx->ident.m20_m21                    = 0;
-    mtx->ident.m22                        = 0x1000;
+    mtx->ident.m00M01                     = ONE;
+    mtx->ident.m02M10                     = 0;
+    mtx->ident.m11M12                     = ONE;
+    mtx->ident.m20M21                     = 0;
+    mtx->ident.m22                        = ONE;
     w->coord.composeStamp                 = GRAPHICS_COORD_DIRTY;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -671,13 +671,13 @@ void func_actor_342000_801625D8(Task* arg0)
             arg0->state        += 1;
             break;
         case 1:
-            sc                 = &((Actor342000Work*)work->field_298->work)->field_264;
-            mtx                = (OverlayMat*)&work->coord.coord;
-            mtx->ident.m00_m01 = 0x1000;
-            mtx->ident.m02_m10 = 0;
-            mtx->ident.m11_m12 = 0x1000;
-            mtx->ident.m20_m21 = 0;
-            mtx->ident.m22     = 0x1000;
+            sc                = &((Actor342000Work*)work->field_298->work)->field_264;
+            mtx               = (OverlayMat*)&work->coord.coord;
+            mtx->ident.m00M01 = ONE;
+            mtx->ident.m02M10 = 0;
+            mtx->ident.m11M12 = ONE;
+            mtx->ident.m20M21 = 0;
+            mtx->ident.m22    = ONE;
             gfxScaleMatrixColumns(&mtx->mat, sc);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
@@ -715,13 +715,13 @@ void func_actor_342000_801628C8(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            mtx                = (OverlayMat*)&work->coord.coord;
-            mtx->ident.m00_m01 = 0x1000;
-            mtx->ident.m02_m10 = 0;
-            mtx->ident.m11_m12 = 0x1000;
-            mtx->ident.m20_m21 = 0;
-            mtx->ident.m22     = 0x1000;
-            ang                = &work->field_274;
+            mtx               = (OverlayMat*)&work->coord.coord;
+            mtx->ident.m00M01 = ONE;
+            mtx->ident.m02M10 = 0;
+            mtx->ident.m11M12 = ONE;
+            mtx->ident.m20M21 = 0;
+            mtx->ident.m22    = ONE;
+            ang               = &work->field_274;
             gfxRotMatrixY(&mtx->mat, ang[1], 1);
             Gfx_RotMatrixX(&mtx->mat, ang[0], 0);
             Gfx_RotMatrixZ(&mtx->mat, ang[2], 0);

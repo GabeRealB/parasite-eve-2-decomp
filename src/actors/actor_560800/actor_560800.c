@@ -6658,21 +6658,21 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg)
             i    = 0;
             do {
                 if (work->parts[i & 0xFFFF] != NULL) {
-                    coord              = work->parts[i & 0xFFFF]->extra.tmd->coords;
-                    mat                = (OverlayMat*)&coord->coord;
-                    mat->ident.m00_m01 = 0x1000;
-                    mat->ident.m02_m10 = 0;
-                    mat->ident.m11_m12 = 0x1000;
-                    mat->ident.m20_m21 = 0;
-                    mat->ident.m22     = 0x1000;
-                    coord->parent      = &gGfxViewCoord;
-                    part               = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
-                    part->field_254    = msg->vx + pose->pos.vx;
-                    part->field_256    = msg->vy + pose->pos.vy;
-                    part->field_258    = msg->vz + pose->pos.vz;
-                    part->field_24C    = 0;
-                    part->field_24E    = 0;
-                    part->field_250    = 0;
+                    coord             = work->parts[i & 0xFFFF]->extra.tmd->coords;
+                    mat               = (OverlayMat*)&coord->coord;
+                    mat->ident.m00M01 = ONE;
+                    mat->ident.m02M10 = 0;
+                    mat->ident.m11M12 = ONE;
+                    mat->ident.m20M21 = 0;
+                    mat->ident.m22    = ONE;
+                    coord->parent     = &gGfxViewCoord;
+                    part              = (Actor560800ModelWork*)work->parts[i & 0xFFFF]->work;
+                    part->field_254   = msg->vx + pose->pos.vx;
+                    part->field_256   = msg->vy + pose->pos.vy;
+                    part->field_258   = msg->vz + pose->pos.vz;
+                    part->field_24C   = 0;
+                    part->field_24E   = 0;
+                    part->field_250   = 0;
                 }
                 i++;
                 pose++;

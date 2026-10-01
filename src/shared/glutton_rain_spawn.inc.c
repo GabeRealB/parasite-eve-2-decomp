@@ -125,11 +125,11 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
 
     work->coord.parent = &gGfxViewCoord;
     mtx                = (OverlayMat*)&work->coord.coord;
-    mtx->ident.m00_m01 = 0x1000;
-    mtx->ident.m02_m10 = 0;
-    mtx->ident.m11_m12 = 0x1000;
-    mtx->ident.m20_m21 = 0;
-    mtx->ident.m22     = 0x1000;
+    mtx->ident.m00M01  = ONE;
+    mtx->ident.m02M10  = 0;
+    mtx->ident.m11M12  = ONE;
+    mtx->ident.m20M21  = 0;
+    mtx->ident.m22     = ONE;
     gfxRotMatrixY(&mtx->mat, 0, 1);
 
     actorLinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);

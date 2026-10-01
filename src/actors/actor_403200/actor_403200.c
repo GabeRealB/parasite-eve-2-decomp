@@ -4308,13 +4308,13 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->field_F0A    = 0x32;
     work->field_7F2    = 0;
 
-    work->field_E3C.c.parent      = task->extra.tmd->coords;
-    work->field_E3C.ident.m00_m01 = 0x1000;
-    mtx                           = (OverlayMat*)&work->field_E3C.c.coord;
-    mtx->ident.m02_m10            = 0;
-    mtx->ident.m11_m12            = 0x1000;
-    mtx->ident.m20_m21            = 0;
-    mtx->ident.m22                = 0x1000;
+    work->field_E3C.c.parent              = task->extra.tmd->coords;
+    work->field_E3C.ident.rotation.m00M01 = ONE;
+    mtx                                   = (OverlayMat*)&work->field_E3C.c.coord;
+    mtx->ident.m02M10                     = 0;
+    mtx->ident.m11M12                     = ONE;
+    mtx->ident.m20M21                     = 0;
+    mtx->ident.m22                        = ONE;
     work->field_E3C.c.coord.t[0] = work->field_E3C.c.coord.t[1] = work->field_E3C.c.coord.t[2] = 0;
     work->field_E3C.c.composeStamp                                                             = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(freeCoord);
@@ -6452,18 +6452,18 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if (work->field_7B3 == 9 && work->field_6 == 0x2D) {
-        coords                                 = arg0->extra.tmd->coords;
-        D_actor_403200_8015F970.ident.m00_m01  = 0x1000;
-        mtx                                    = (OverlayMat*)&D_actor_403200_8015F970.c.coord;
-        mtx->ident.m02_m10                     = 0;
-        mtx->ident.m11_m12                     = 0x1000;
-        mtx->ident.m20_m21                     = 0;
-        mtx->ident.m22                         = 0x1000;
-        D_actor_403200_8015F970.c.coord.t[1]   = -0x64;
-        D_actor_403200_8015F970.c.coord.t[0]   = 0;
-        D_actor_403200_8015F970.c.coord.t[2]   = 0x64;
-        D_actor_403200_8015F970.c.composeStamp = GRAPHICS_COORD_DIRTY;
-        D_actor_403200_8015F970.c.parent       = &coords[4];
+        coords                                        = arg0->extra.tmd->coords;
+        D_actor_403200_8015F970.ident.rotation.m00M01 = ONE;
+        mtx                                           = (OverlayMat*)&D_actor_403200_8015F970.c.coord;
+        mtx->ident.m02M10                             = 0;
+        mtx->ident.m11M12                             = ONE;
+        mtx->ident.m20M21                             = 0;
+        mtx->ident.m22                                = ONE;
+        D_actor_403200_8015F970.c.coord.t[1]          = -0x64;
+        D_actor_403200_8015F970.c.coord.t[0]          = 0;
+        D_actor_403200_8015F970.c.coord.t[2]          = 0x64;
+        D_actor_403200_8015F970.c.composeStamp        = GRAPHICS_COORD_DIRTY;
+        D_actor_403200_8015F970.c.parent              = &coords[4];
         Gp_UpdateCoord(&D_actor_403200_8015F970.c);
     }
     state = work->field_7B3;

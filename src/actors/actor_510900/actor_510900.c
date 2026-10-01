@@ -1132,7 +1132,7 @@ void func_actor_510900_80131F24(Task* arg0)
     WorldCoordPointLight* slot;
     GpCoord64*            base;
     EffectWork*           eff;
-    GpMtxWords*           mat;
+    GfxRotationWords*     mat;
     s32                   i;
     s32                   bits;
     s32                   z;
@@ -1151,13 +1151,13 @@ void func_actor_510900_80131F24(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        mat                 = (GpMtxWords*)&coord->coord;
+        mat                 = (GfxRotationWords*)&coord->coord;
         coord->parent       = mem->parent;
-        mat->m00_m01        = 0x1000;
-        mat->m02_m10        = 0;
-        mat->m11_m12        = 0x1000;
-        mat->m20_m21        = 0;
-        mat->m22            = 0x1000;
+        mat->m00M01         = ONE;
+        mat->m02M10         = 0;
+        mat->m11M12         = ONE;
+        mat->m20M21         = 0;
+        mat->m22            = ONE;
         coord->coord.t[0]   = mem->pos.vx;
         coord->coord.t[1]   = mem->pos.vy;
         z                   = mem->pos.vz;
@@ -1833,7 +1833,7 @@ void func_actor_510900_801340E8(Task* arg0)
     WorldCoordPointLight* ext;
     EffectWork*           eff;
     GfxCoord*             coord;
-    GpMtxWords*           mat;
+    GfxRotationWords*     mat;
     s32                   i;
 
     base  = &Gp_RoomCoords[3];
@@ -1845,13 +1845,13 @@ void func_actor_510900_801340E8(Task* arg0)
         Gp_ReleaseState1CMem(eff, arg0);
         return;
     }
-    mat                 = (GpMtxWords*)&coord->coord;
+    mat                 = (GfxRotationWords*)&coord->coord;
     coord->parent       = eff->parent;
-    mat->m00_m01        = 0x1000;
-    mat->m02_m10        = 0;
-    mat->m11_m12        = 0x1000;
-    mat->m20_m21        = 0;
-    mat->m22            = 0x1000;
+    mat->m00M01         = ONE;
+    mat->m02M10         = 0;
+    mat->m11M12         = ONE;
+    mat->m20M21         = 0;
+    mat->m22            = ONE;
     coord->coord.t[0]   = eff->pos.vx;
     coord->coord.t[1]   = eff->pos.vy;
     coord->coord.t[2]   = eff->pos.vz;

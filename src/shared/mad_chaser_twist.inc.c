@@ -5,25 +5,25 @@
 /// 3x3 and marks the coordinate dirty.
 void madChaserTwistSpine(Task* arg0)
 {
-    SVECTOR          rot;
-    OverlayMat       mtx;
-    GpMtxWords*      ident;
-    Actor341700Work* work;
-    GfxCoord*        coords;
-    MATRIX*          m5;
-    MATRIX*          m4;
-    MATRIX*          m3;
+    SVECTOR           rot;
+    OverlayMat        mtx;
+    GfxRotationWords* ident;
+    Actor341700Work*  work;
+    GfxCoord*         coords;
+    MATRIX*           m5;
+    MATRIX*           m4;
+    MATRIX*           m3;
 
     work   = (Actor341700Work*)arg0->work;
     ident  = &mtx.ident;
     coords = arg0->extra.tmd->coords;
 
-    mtx.ident.m00_m01 = 0x1000;
-    mtx.ident.m02_m10 = 0;
-    ident->m11_m12    = 0x1000;
-    mtx.ident.m20_m21 = 0;
-    ident->m22        = 0x1000;
-    m5                = &coords[5].coord;
+    mtx.ident.m00M01 = ONE;
+    mtx.ident.m02M10 = 0;
+    ident->m11M12    = ONE;
+    mtx.ident.m20M21 = 0;
+    ident->m22       = ONE;
+    m5               = &coords[5].coord;
     Gp_MtxToEuler(m5, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);
@@ -38,12 +38,12 @@ void madChaserTwistSpine(Task* arg0)
     m5->m[2][2]            = (u16)mtx.mat.m[2][2];
     coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
 
-    mtx.ident.m00_m01 = 0x1000;
-    mtx.ident.m02_m10 = 0;
-    ident->m11_m12    = 0x1000;
-    mtx.ident.m20_m21 = 0;
-    ident->m22        = 0x1000;
-    m4                = &coords[4].coord;
+    mtx.ident.m00M01 = ONE;
+    mtx.ident.m02M10 = 0;
+    ident->m11M12    = ONE;
+    mtx.ident.m20M21 = 0;
+    ident->m22       = ONE;
+    m4               = &coords[4].coord;
     Gp_MtxToEuler(m4, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);
@@ -58,12 +58,12 @@ void madChaserTwistSpine(Task* arg0)
     m4->m[2][2]            = (u16)mtx.mat.m[2][2];
     coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
 
-    mtx.ident.m00_m01 = 0x1000;
-    mtx.ident.m02_m10 = 0;
-    ident->m11_m12    = 0x1000;
-    mtx.ident.m20_m21 = 0;
-    ident->m22        = 0x1000;
-    m3                = &coords[3].coord;
+    mtx.ident.m00M01 = ONE;
+    mtx.ident.m02M10 = 0;
+    ident->m11M12    = ONE;
+    mtx.ident.m20M21 = 0;
+    ident->m22       = ONE;
+    m3               = &coords[3].coord;
     Gp_MtxToEuler(m3, &rot);
     rot.vy = (u16)rot.vy + work->field_424 / 3;
     RotMatrix(&rot, &mtx.mat);

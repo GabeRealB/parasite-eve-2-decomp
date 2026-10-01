@@ -124,7 +124,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     GpCoord64*            base;
     GfxCoord*             light;
     WorldCoordPointLight* slot;
-    GpMtxWords*           dstm;
+    GfxRotationWords*     dstm;
     SVECTOR               pa;
     SVECTOR               pb;
     SVECTOR               qa;
@@ -151,13 +151,13 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case 0:
-            dstm                = (GpMtxWords*)&coord->coord;
+            dstm                = (GfxRotationWords*)&coord->coord;
             coord->parent       = work->parent;
-            dstm->m00_m01       = 0x1000;
-            dstm->m02_m10       = 0;
-            dstm->m11_m12       = 0x1000;
-            dstm->m20_m21       = 0;
-            dstm->m22           = 0x1000;
+            dstm->m00M01        = ONE;
+            dstm->m02M10        = 0;
+            dstm->m11M12        = ONE;
+            dstm->m20M21        = 0;
+            dstm->m22           = ONE;
             coord->coord.t[0]   = D_m4a1_javelin_8011FA90.vx;
             coord->coord.t[1]   = D_m4a1_javelin_8011FA90.vy;
             coord->coord.t[2]   = D_m4a1_javelin_8011FA90.vz;

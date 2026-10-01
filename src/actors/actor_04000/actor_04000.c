@@ -2791,7 +2791,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
     Actor104000StateTable table;
     GfxCoord              coord;
     Actor104000Work*      work;
-    GpMtxWords*           mw;
+    GfxRotationWords*     mw;
     s32                   snd;
     s32                   pan;
     s32                   id;
@@ -2812,17 +2812,17 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x100, gRoomEffectState->groundShadowShade);
             }
             if (work->field_0 == 0xF) {
-                mw                                   = (GpMtxWords*)&coord.coord;
-                mw->m00_m01                          = 0x1000;
-                ((GpMtxWords*)&coord.coord)->m02_m10 = 0;
-                mw->m11_m12                          = 0x1000;
-                ((GpMtxWords*)&coord.coord)->m20_m21 = 0;
-                mw->m22                              = 0x1000;
-                coord.coord.t[0]                     = arg1->extra.tmd->coords->coord.t[0];
-                coord.coord.t[1]                     = 0;
-                coord.coord.t[2]                     = arg1->extra.tmd->coords->coord.t[2];
-                coord.parent                         = &gGfxViewCoord;
-                coord.composeStamp                   = GRAPHICS_COORD_DIRTY;
+                mw                                        = (GfxRotationWords*)&coord.coord;
+                mw->m00M01                                = ONE;
+                ((GfxRotationWords*)&coord.coord)->m02M10 = 0;
+                mw->m11M12                                = ONE;
+                ((GfxRotationWords*)&coord.coord)->m20M21 = 0;
+                mw->m22                                   = ONE;
+                coord.coord.t[0]                          = arg1->extra.tmd->coords->coord.t[0];
+                coord.coord.t[1]                          = 0;
+                coord.coord.t[2]                          = arg1->extra.tmd->coords->coord.t[2];
+                coord.parent                              = &gGfxViewCoord;
+                coord.composeStamp                        = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(&coord);
                 Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord.workm), 0x60, gRoomEffectState->groundShadowShade);
             }

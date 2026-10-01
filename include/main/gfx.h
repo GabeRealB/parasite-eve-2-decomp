@@ -106,13 +106,13 @@ s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 /// The caller manages any containing `GfxCoord`'s `composeStamp` separately.
 static __inline__ void gfxSetRotIdentity(MATRIX* matrix)
 {
-    GpMtxWords* rotationWords = (GpMtxWords*)matrix;
+    GfxRotationWords* rotationWords = (GfxRotationWords*)matrix;
 
-    rotationWords->m00_m01 = ONE;
-    rotationWords->m02_m10 = 0;
-    rotationWords->m11_m12 = ONE;
-    rotationWords->m20_m21 = 0;
-    rotationWords->m22     = ONE;
+    rotationWords->m00M01 = ONE;
+    rotationWords->m02M10 = 0;
+    rotationWords->m11M12 = ONE;
+    rotationWords->m20M21 = 0;
+    rotationWords->m22    = ONE;
 }
 
 #endif // MAIN_GFX_H

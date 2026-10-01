@@ -750,17 +750,17 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
         OverlayMat*   light     = (OverlayMat*)&eventWork->light;
         OverlayMat*   color     = (OverlayMat*)&eventWork->color;
 
-        light->ident.m00_m01 = 0x1000;
-        light->ident.m02_m10 = 0;
-        light->ident.m11_m12 = 0x1000;
-        light->ident.m20_m21 = 0;
-        light->ident.m22     = 0x1000;
+        light->ident.m00M01 = ONE;
+        light->ident.m02M10 = 0;
+        light->ident.m11M12 = ONE;
+        light->ident.m20M21 = 0;
+        light->ident.m22    = ONE;
 
-        color->ident.m00_m01 = 0x1000;
-        color->ident.m02_m10 = 0;
-        color->ident.m11_m12 = 0x1000;
-        color->ident.m20_m21 = 0;
-        color->ident.m22     = 0x1000;
+        color->ident.m00M01 = ONE;
+        color->ident.m02M10 = 0;
+        color->ident.m11M12 = ONE;
+        color->ident.m20M21 = 0;
+        color->ident.m22    = ONE;
 
         eventObj->lightMtx = &eventWork->light;
 
@@ -1134,10 +1134,10 @@ static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, D
     POLY_FT4*  p;
 
     mtx                    = &matw.mat;
-    matw.ident.m00_m01     = 0x1000;
-    matw.ident.m02_m10     = 0;
+    matw.ident.m00M01      = ONE;
+    matw.ident.m02M10      = 0;
     MATRIX_PAIR(mtx, 1, 1) = 0x1000;
-    matw.ident.m20_m21     = 0;
+    matw.ident.m20M21      = 0;
     mtx->m[2][2]           = 0x1000;
     matw.mat.t[0]          = 0;
     matw.mat.t[1]          = 0;

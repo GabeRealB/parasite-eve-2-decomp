@@ -803,15 +803,15 @@ static void func_actor_521100_801368B0(Task* task)
     } else {
         work->field_484 = 2;
     }
-    scratch->scale.vx          = 0x1000;
-    scratch->scale.vy          = (s32)(s16)work->field_488;
-    scratch->scale.vz          = 0x1000;
-    coord->coord               = work->field_48C.mat;
-    scratch->mat.ident.m00_m01 = 0x1000;
-    scratch->mat.ident.m02_m10 = 0;
-    scratch->mat.ident.m11_m12 = 0x1000;
-    scratch->mat.ident.m20_m21 = 0;
-    scratch->mat.ident.m22     = 0x1000;
+    scratch->scale.vx         = 0x1000;
+    scratch->scale.vy         = (s32)(s16)work->field_488;
+    scratch->scale.vz         = 0x1000;
+    coord->coord              = work->field_48C.mat;
+    scratch->mat.ident.m00M01 = ONE;
+    scratch->mat.ident.m02M10 = 0;
+    scratch->mat.ident.m11M12 = ONE;
+    scratch->mat.ident.m20M21 = 0;
+    scratch->mat.ident.m22    = ONE;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -625,13 +625,13 @@ static void func_actor_135400_80131EB4(Task* task)
                 break;
             }
         case 3:
-            coord              = task->extra.tmd->coords;
-            src                = &rot;
-            src->ident.m00_m01 = 0x1000;
-            src->ident.m02_m10 = 0;
-            src->ident.m11_m12 = 0x1000;
-            src->ident.m20_m21 = 0;
-            src->ident.m22     = 0x1000;
+            coord             = task->extra.tmd->coords;
+            src               = &rot;
+            src->ident.m00M01 = ONE;
+            src->ident.m02M10 = 0;
+            src->ident.m11M12 = ONE;
+            src->ident.m20M21 = 0;
+            src->ident.m22    = ONE;
             RotMatrixY(-0x38E, &rot.mat);
             coord->coord          = rot.mat;
             coord->coord.t[0]     = 0x12FE;

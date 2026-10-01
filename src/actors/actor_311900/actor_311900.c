@@ -607,17 +607,17 @@ static void func_actor_311900_8016278C(Task* task)
     light = (OverlayMat*)&work->light;
     color = (OverlayMat*)&work->color;
 
-    light->ident.m00_m01 = 0x1000;
-    light->ident.m02_m10 = 0;
-    light->ident.m11_m12 = 0x1000;
-    light->ident.m20_m21 = 0;
-    light->ident.m22     = 0x1000;
+    light->ident.m00M01 = ONE;
+    light->ident.m02M10 = 0;
+    light->ident.m11M12 = ONE;
+    light->ident.m20M21 = 0;
+    light->ident.m22    = ONE;
 
-    color->ident.m00_m01 = 0x1000;
-    color->ident.m02_m10 = 0;
-    color->ident.m11_m12 = 0x1000;
-    color->ident.m20_m21 = 0;
-    color->ident.m22     = 0x1000;
+    color->ident.m00M01 = ONE;
+    color->ident.m02M10 = 0;
+    color->ident.m11M12 = ONE;
+    color->ident.m20M21 = 0;
+    color->ident.m22    = ONE;
 
     ext->lightMtx = &work->light;
 
@@ -660,17 +660,17 @@ static void func_actor_311900_8016281C(Task* task)
     light = (OverlayMat*)&work->light;
     color = (OverlayMat*)&work->color;
 
-    light->ident.m00_m01 = 0x1000;
-    light->ident.m02_m10 = 0;
-    light->ident.m11_m12 = 0x1000;
-    light->ident.m20_m21 = 0;
-    light->ident.m22     = 0x1000;
+    light->ident.m00M01 = ONE;
+    light->ident.m02M10 = 0;
+    light->ident.m11M12 = ONE;
+    light->ident.m20M21 = 0;
+    light->ident.m22    = ONE;
 
-    color->ident.m00_m01 = 0x1000;
-    color->ident.m02_m10 = 0;
-    color->ident.m11_m12 = 0x1000;
-    color->ident.m20_m21 = 0;
-    color->ident.m22     = 0x1000;
+    color->ident.m00M01 = ONE;
+    color->ident.m02M10 = 0;
+    color->ident.m11M12 = ONE;
+    color->ident.m20M21 = 0;
+    color->ident.m22    = ONE;
 
     ext->lightMtx = &work->light;
 
