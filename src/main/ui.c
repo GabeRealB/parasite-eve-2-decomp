@@ -1804,13 +1804,17 @@ static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U    = 0x68,
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V    = 0x50,
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE = getTPage(0, 0, 0x380, 0x100),
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_PALETTE      = getClut(0x30, 0xF0)
+        /// GPU CLUT ID for the separator's 4-bit texture palette at VRAM (48, 240).
+        ///
+        /// Bits 0..5 hold the VRAM word X coordinate divided by 16; bits 6..14
+        /// hold the row. The encoded value (0x3C03) fits the packet's 16-bit clut.
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID = getClut(0x30, 0xF0)
     };
 
     setUVWH(separator, USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U,
             USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V, 7, 7);
     separator->tpage = USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE;
-    separator->clut  = USER_INTERFACE_HORIZONTAL_SEPARATOR_PALETTE;
+    separator->clut  = USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID;
     setPolyFT4(separator);
     setShadeTex(separator, 1);
 }
