@@ -31,11 +31,18 @@ STATIC_ASSERT_SIZEOF(EvsSceneKey, 6);
 /// operands read by the selected opcode need meaningful initialization. Width
 /// conversions below describe truncation at dispatch, not narrower storage.
 enum {
-    EVENT_SCRIPT_OPCODE_END                     = -1, // End the script, release its display reference and clear the active scene key.
-    EVENT_SCRIPT_OPCODE_SEND_MESSAGE            = 1,  // 0 slot (4 placed enemy, -1 other scene child), 1 child selector, 2 message id, 3/4 payload words.
-    EVENT_SCRIPT_OPCODE_START_FLASH             = 2,  // 0 hold frames, 1 blend-mode selector; replaces the primary effect-task pointer.
-    EVENT_SCRIPT_OPCODE_SET_VIEW                = 3,  // 0 saved view id, truncated to u8.
-    EVENT_SCRIPT_OPCODE_WAIT_FRAMES             = 4,  // 0 frame countdown; advance once and yield, including when the count is zero.
+    EVENT_SCRIPT_OPCODE_END          = -1, // End the script, release its display reference and clear the active scene key.
+    EVENT_SCRIPT_OPCODE_SEND_MESSAGE = 1,  // 0 slot (4 placed enemy, -1 other scene child), 1 child selector, 2 message id, 3/4 payload words.
+    EVENT_SCRIPT_OPCODE_START_FLASH  = 2,  // 0 hold frames, 1 blend-mode selector; replaces the primary effect-task pointer.
+    EVENT_SCRIPT_OPCODE_SET_VIEW     = 3,  // 0 saved view id, truncated to u8.
+    /// Yields the script and delays the following command by a frame countdown.
+    ///
+    /// `operand0.value` is a nonnegative s32 count of interpreter updates.
+    /// Dispatch advances once and yields; the next N unfrozen updates only
+    /// decrement the count, so zero resumes on the next update, not immediately.
+    /// A script freeze suspends the countdown; an accepted skip clears it.
+    /// The CAP pause gate is checked after the countdown. Operands 1-4 are ignored.
+    EVENT_SCRIPT_OPCODE_WAIT_FRAMES             = 4,
     EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE     = 5,  // Kill and clear the primary flash/fade task, if present.
     EVENT_SCRIPT_OPCODE_RESTORE_HUD             = 6,  // Show the HUD immediately, or remove its demo replacement task.
     EVENT_SCRIPT_OPCODE_SET_EVENT_STATE         = 7,  // 0 event-state value, truncated to u8.

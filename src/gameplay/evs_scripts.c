@@ -287,6 +287,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_WAIT_FRAMES:
+                // Advance before yielding; even a zero countdown separates task updates.
                 D_801156CB = 1;
                 st->wait   = st->pc->operand0.value;
                 st->pc     = st->pc + 1;
