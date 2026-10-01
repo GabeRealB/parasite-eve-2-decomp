@@ -105,7 +105,6 @@ STATIC_ASSERT_SIZEOF(WorldCollisionMotionContext, 0xC);
 /// first contact while retaining the other body's encoded address.
 /// ROOM_TRIGGER_ENABLED tests room-transition quads, and VIEW_TRIGGER_ENABLED
 /// tests saved-view quads. GRID_ENABLED gates room-grid collision tests.
-/// FLAGS_MASK preserves the width of explicit masks.
 enum {
     WORLD_COLLISION_BODY_NONE                 = 0,
     WORLD_COLLISION_BODY_SPHERE               = 1,
@@ -126,9 +125,16 @@ enum {
     /// motion sphere and the corresponding trigger-enable bit. Clearing this
     /// bit leaves the body linked and existing contacts intact; grid tests
     /// use `WORLD_COLLISION_BODY_GRID_ENABLED` independently.
-    WORLD_COLLISION_BODY_PAIR_ENABLED = 0x8000,
-    WORLD_COLLISION_BODY_FLAGS_MASK   = 0xFFFF
+    WORLD_COLLISION_BODY_PAIR_ENABLED = 0x8000
 };
+
+/// All storage bits of a collision body's 16-bit kind-and-flags word.
+///
+/// Includes the kind, list membership, receiving-body index and pass options.
+/// XOR with bits drawn from this word produces a nonnegative int clearing mask
+/// that preserves every other stored bit. Used alone, it preserves the whole
+/// word when a body-flags update only sets bits.
+enum { WORLD_COLLISION_BODY_FLAGS_MASK = 0xFFFF };
 
 /// A borrowed collision body linked into one of the world's object lists.
 ///

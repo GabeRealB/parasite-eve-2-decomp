@@ -4536,11 +4536,11 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             entry->coord.coord.t[2]   = entry->position.vz;
             entry->obj.radius         = size / 3;
             if (D_actor_403100_80155810 == 0) {
-                _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, 0xFFFF, WORLD_COLLISION_BODY_PAIR_ENABLED);
+                _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, WORLD_COLLISION_BODY_FLAGS_MASK, WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else {
                 _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), 0);
             }
-            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, 0xFFFF, 0x4000);
+            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, WORLD_COLLISION_BODY_FLAGS_MASK, 0x4000);
             Gp_ClearRec18Occupied(D_actor_403100_80155814[i].records);
             entry->age++;
             entry->frame++;
