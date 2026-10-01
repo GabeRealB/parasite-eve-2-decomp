@@ -1,5 +1,7 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
+/// Behaviour state 1: tracks the player and pounces (state 5) once they are
+/// within `MAGGOT_CATERPILLAR_POUNCE_RANGE` and less than 0x80 off its facing.
 void maggotCaterpillarAimState(Task* arg0)
 {
     MaggotCaterpillarWork* work;

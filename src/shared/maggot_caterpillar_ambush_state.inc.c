@@ -1,5 +1,9 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
+/// Behaviour state 2, the ambush: waits until the player is within
+/// `MAGGOT_CATERPILLAR_AMBUSH_RANGE` (or another of the room's ambushers has
+/// sprung), then drops on its line at its row's `gMaggotCaterpillarDropSpeed`,
+/// lands, and joins the fight.
 void maggotCaterpillarAmbushState(Task* actor)
 {
     MaggotCaterpillarWork* work;

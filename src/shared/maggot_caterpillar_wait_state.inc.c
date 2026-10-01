@@ -1,5 +1,9 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
+/// Behaviour state 0: waits until the player is within
+/// `MAGGOT_CATERPILLAR_WAKE_RANGE`, the contact pass has flagged a hit
+/// (`field_3D0`) or the room is on alert, then wakes; sub-state 1 crawls
+/// forward while its clip plays and hands over to the roam state (3).
 void maggotCaterpillarWaitState(Task* arg0)
 {
     MaggotCaterpillarWork* work;

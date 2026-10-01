@@ -5,7 +5,7 @@
 /// asks the player for range 0x19 while enemies remain; on success it plants
 /// the display object at `field_6A4`, places the player 0x5AA in front of it
 /// with message 0x3E9 and queues a cue. States 1 and 2 step the player's
-/// animation. State 3 waits out `field_6D6`, then every 0x1E frames decides
+/// animation. State 3 waits out `field_6D6`, then every `GOLEM_KNIGHT_BISHOP_GRAB_RECHECK` frames decides
 /// whether the hold ends: always when `gPlayerStatus.hp` is above the
 /// per-difficulty `gGolemKnightBishopGrabHpLimits`, otherwise by an LCG roll whose
 /// chance grows with the attempt count `field_6F6`; a raised `field_6F4`
@@ -145,7 +145,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                     } else {
-                        work->field_6D4 = GOLEM_KNIGHT_BISHOP_GRAB_HOLD;
+                        work->field_6D4 = GOLEM_KNIGHT_BISHOP_GRAB_RECHECK;
                         taskMessageDispatch(player, 0x3F9, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
                         work->field_6F6++;
                     }

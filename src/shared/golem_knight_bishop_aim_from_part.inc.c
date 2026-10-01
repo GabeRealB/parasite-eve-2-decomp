@@ -2,8 +2,8 @@
 
 /// Aims the actor off its fourth part. While `field_6D6` is positive the
 /// offset (-0x28, -0x78, 0xDC) through the root-to-part matrix lands in
-/// `field_634`..`field_638` with bits 0xC000 of `field_62A` raised. Below 0x13
-/// it projects two points into `field_6FC`..`field_704`: the same offset off
+/// `field_634`..`field_638` with bits 0xC000 of `field_62A` raised. Below
+/// `GOLEM_KNIGHT_BISHOP_AIM_TIME` - 1 it projects two points into `field_6FC`..`field_704`: the same offset off
 /// the part, and a point 0x514 up and the `field_644` target's distance out
 /// from the root.
 void golemKnightBishopAimFromPart(Task* arg0)

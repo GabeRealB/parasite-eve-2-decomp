@@ -1,5 +1,6 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
+/// Projectile task: runs the puff's state handler from `gMaggotCaterpillarPuffStates`.
 void maggotCaterpillarPuffTask(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;

@@ -1,5 +1,10 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
+/// Behaviour state 3: idles for its row's `gMaggotCaterpillarRoamDelay` plus a
+/// random spread and turns toward the player; then it sprays (state 4) when
+/// close, not burning (`field_3B0`) and the player is not in darkness - a
+/// Maggot only, `field_3C0` clear - or pounces (state 5) within
+/// `MAGGOT_CATERPILLAR_POUNCE_RANGE`.
 void maggotCaterpillarRoamState(Task* arg0)
 {
     MaggotCaterpillarWork* work;

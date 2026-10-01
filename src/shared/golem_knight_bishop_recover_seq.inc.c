@@ -2,7 +2,7 @@
 
 /// Rolls the actor's cue countdown. State 0 puts the slot set on animation
 /// 0xB and drops the state to 1, arming `field_6D4` from the `gRandomLcgState` LCG
-/// (0x4B..0x6A); while no flinch is already running it also raises the hit
+/// (`GOLEM_KNIGHT_BISHOP_RECOVER_DELAY` plus 0..0x1F); while no flinch is already running it also raises the hit
 /// descriptor `field_494`/`field_49A`. State 1 ticks `field_6D4` down and, on
 /// the frame it runs out, arms the `field_6DA`/`field_6DC`/`field_6DE`/
 /// `field_6E0` timers, clears the state and `field_6CC`, and queues the actor's

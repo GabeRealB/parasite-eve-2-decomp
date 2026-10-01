@@ -1,5 +1,8 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
+/// Per-frame collision pass: pushes the model out of what it touches, turns
+/// it around on a blocking contact, and notes in `field_3CE` whether a body
+/// or a wall blocked it.
 void maggotCaterpillarResolveContacts(Task* arg0)
 {
     MaggotCaterpillarWork*       work;

@@ -3,7 +3,7 @@
 /// State machine on `field_6CE`: 0 rolls a `field_6D4` wait, 1 counts it
 /// down, 2 picks state 3 or 4 from `field_70E` and an LCG draw offset by
 /// `field_710` (or 5 when `golemKnightBishopPlayerInBox` reports a box hit), and 3-5
-/// settle the result, walking `field_70C` up to 12.
+/// settle the result, walking `field_70C` up to `GOLEM_KNIGHT_BISHOP_IDLE_LIMIT`.
 void golemKnightBishopIdleSeq(Task* arg0)
 {
     GolemKnightBishopWork* work;

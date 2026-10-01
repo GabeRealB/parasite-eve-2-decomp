@@ -30,21 +30,21 @@
 #error "define GOLEM_KNIGHT_BISHOP_KIND (GOLEM_KNIGHT or GOLEM_BISHOP) before including golem_knight_bishop.h"
 #endif
 
-/* Per type: its id (also in its collision keys, 0x30000 | id); the frames a
- * grab holds the player; what one hit adds to the hit load and the load at
- * which the box approach breaks off; the aim countdown, whose last frames
- * project the beam; the idle sequence's cap on its approach counter; and the
- * base of the random recovery delay. */
+/* Per type: its id (also in its collision keys, 0x30000 | id); how often a
+ * hold re-decides whether it ends; what one hit adds to the hit load and the
+ * load at which the box approach breaks off; the aim countdown, whose last
+ * frames project the beam; the idle sequence's cap on its approach counter;
+ * and the base of the random recovery delay. */
 #if GOLEM_KNIGHT_BISHOP_KIND == GOLEM_KNIGHT
 #define GOLEM_KNIGHT_BISHOP_ID            0x16
-#define GOLEM_KNIGHT_BISHOP_GRAB_HOLD     0x1E
+#define GOLEM_KNIGHT_BISHOP_GRAB_RECHECK  0x1E
 #define GOLEM_KNIGHT_BISHOP_HIT_WEIGHT    0xA0
 #define GOLEM_KNIGHT_BISHOP_AIM_TIME      0x14
 #define GOLEM_KNIGHT_BISHOP_IDLE_LIMIT    12
 #define GOLEM_KNIGHT_BISHOP_RECOVER_DELAY 0x4B
 #else
 #define GOLEM_KNIGHT_BISHOP_ID            0x27
-#define GOLEM_KNIGHT_BISHOP_GRAB_HOLD     0x14
+#define GOLEM_KNIGHT_BISHOP_GRAB_RECHECK  0x14
 #define GOLEM_KNIGHT_BISHOP_HIT_WEIGHT    0xFA
 #define GOLEM_KNIGHT_BISHOP_AIM_TIME      0xA
 #define GOLEM_KNIGHT_BISHOP_IDLE_LIMIT    8
