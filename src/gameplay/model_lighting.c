@@ -203,43 +203,32 @@ u32 D_80114BAC = 0x10FF2220;
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
-/// Copies a flat triangle's packed texture fields and applies encoded address displacements.
+/// Initializes one flat textured triangle's persistent texture coordinates and GPU addresses.
 ///
-/// The packet and element are four-byte aligned. Packed stores preserve both
-/// U/V bytes together with the CLUT/page words; the last store spans only U2/V2
-/// and leaves the packet's trailing SDK halfword untouched.
-static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* element, const TmdStreamWorkspace* workspace)
+/// `triangle` is a writable, four-byte-aligned `POLY_FT3`. `elementWords` points
+/// to a four-byte-aligned element of a `0x1C`/`0x1E` stream record, past its
+/// three-word header, with at least five readable u32 words. Words 2 and 3 pack
+/// unsigned byte U/V texel coordinates with encoded CLUT and texture-page
+/// settings; word 4's low half packs U2/V2. Its high half is ignored, preserving
+/// `triangle->pad1`.
+///
+/// The workspace supplies signed displacements in encoded address units:
+/// `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128, 64 per
+/// palette row). Each sum wraps in its u16 field without changing U/V. The
+/// packet's tag, colour/command and screen positions remain untouched. All
+/// three objects are borrowed for the call; no cursor or count is changed.
+static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* elementWords, const TmdStreamWorkspace* workspace)
 {
+    // Word indices within the element, excluding the record header.
     enum {
-        /// Zero-based u32 word index of vertex 0's packed U/V and CLUT in a stream element.
-        ///
-        /// For records 0x1C/0x1E, the index starts at each element after the record
-        /// header. Bits 0..7 and 8..15 are unsigned U0/V0 texel coordinates;
-        /// bits 16..31 are the encoded CLUT address before the model's displacement.
-        MODEL_LIGHTING_FT3_UV0_CLUT_WORD = 2,
-
-        /// Zero-based u32 word index of vertex 1's packed U/V and texture-page settings.
-        ///
-        /// For records 0x1C/0x1E, counted from each element after the three-word
-        /// record header. Bits 0..7 and 8..15 are unsigned U1/V1 texel coordinates;
-        /// bits 16..31 are encoded texture-page settings before the model's
-        /// displacement. The complete word seeds `POLY_FT3.u1`, `v1` and `tpage`;
-        /// adding `texturePageOffset` afterwards wraps only the u16 `tpage` field.
-        MODEL_LIGHTING_FT3_UV1_TPAGE_WORD = 3,
-
-        /// Zero-based u32 word index of vertex 2's packed U/V texture coordinates.
-        ///
-        /// For records 0x1C/0x1E, counted from each element after the three-word
-        /// record header. Bits 0..7 and 8..15 are unsigned U2/V2 texel coordinates.
-        /// Only the low halfword is copied into `POLY_FT3.u2` and `v2`; the stream
-        /// word's high halfword is ignored and `POLY_FT3.pad1` remains untouched.
-        /// Nonempty elements must have a stride of at least five u32 words.
-        MODEL_LIGHTING_FT3_UV2_WORD = 4
+        MODEL_LIGHTING_FT3_UV0_CLUT_WORD  = 2, // U0/V0 in low half, CLUT address in high half
+        MODEL_LIGHTING_FT3_UV1_TPAGE_WORD = 3, // U1/V1 in low half, texture-page settings in high half
+        MODEL_LIGHTING_FT3_UV2_WORD       = 4  // U2/V2 in low half; high half is not copied
     };
 
-    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = element[MODEL_LIGHTING_FT3_UV0_CLUT_WORD];
-    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = element[MODEL_LIGHTING_FT3_UV1_TPAGE_WORD];
-    *(u16*)&triangle->u2                    = (u16)element[MODEL_LIGHTING_FT3_UV2_WORD];
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[MODEL_LIGHTING_FT3_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[MODEL_LIGHTING_FT3_UV1_TPAGE_WORD];
+    *(u16*)&triangle->u2                    = (u16)elementWords[MODEL_LIGHTING_FT3_UV2_WORD];
     triangle->tpage                        += workspace->texturePageOffset;
     triangle->clut                         += workspace->encodedClutOffset;
 }
