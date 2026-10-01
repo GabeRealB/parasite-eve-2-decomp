@@ -118,7 +118,7 @@ STATIC_ASSERT_SIZEOF(Actor800100LockScratch, 0x20);
 /// `sxy0` is the origin's screen point — and `tip` the second, `angle` units
 /// straight up, so `sxy1` is the screen point of the far end. `otz` is the
 /// `gte_stszotz` of that second projection, already shifted, and doubles as
-/// the `Gp_AddTpageShift` bucket.
+/// the `gpuSetPrimitiveBlendMode` bucket.
 typedef struct _Actor800100LineScratch {
     /* 0x00 */ DVECTOR sxy0;
     /* 0x04 */ DVECTOR sxy1;
@@ -3393,7 +3393,7 @@ static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1)
         prim->g1 = 0;
         prim->b1 = 0;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((Actor800100LineScratch*)newhead)->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, ((Actor800100LineScratch*)newhead)->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, ((Actor800100LineScratch*)newhead)->otz);
     }
     SCRATCH_POP_BYTES_AT(scratch, sizeof(Actor800100LineScratch));
 }

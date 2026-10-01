@@ -522,7 +522,7 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
         setRGB3(prim, 0, 0, 0);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }

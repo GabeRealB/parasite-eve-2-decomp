@@ -3259,7 +3259,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
         setRGB3(prim, 0, 0, 0);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
     }
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&D_dryfield_dilapidated_house_80186884[arg1]);
@@ -3305,7 +3305,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
     setRGB2(prim, shade, shade, shade);
     setRGB3(prim, shade, shade, shade);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
     SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
@@ -3473,7 +3473,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
             setRGB3(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);

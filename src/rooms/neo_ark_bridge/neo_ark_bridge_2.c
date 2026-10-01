@@ -824,7 +824,7 @@ static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
             i++;
         } while (i < 2);
 
@@ -846,7 +846,7 @@ static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
             line->y2 = block->sy + (block->radius * t2);
             addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                     line);
-            Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
             i = t2;
         } while (i < 2);
     }

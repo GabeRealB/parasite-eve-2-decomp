@@ -2180,7 +2180,7 @@ void func_acropolis_patio_8017E730(Task* task)
             prim->b0        = level;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 0, sc->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, sc->otz);
         }
         SCRATCH_STACK_RELEASE_BYTES(0xC);
     }

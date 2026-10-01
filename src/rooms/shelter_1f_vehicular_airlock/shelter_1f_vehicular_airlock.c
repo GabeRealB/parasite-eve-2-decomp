@@ -579,7 +579,7 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
             prim->y1 = (block->sy - (u16)block->halfWidth) + (block->halfWidth * twice);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
             i++;
         } while (i < 2);
 
@@ -601,7 +601,7 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
             line->y2 = block->sy + (block->halfWidth * t2);
             addPrim(((u_long*)((((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                     line);
-            Gp_AddTpageShift((P_TAG*)line, 1, block->otz);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
             i = t2;
         } while (i < 2);
     }

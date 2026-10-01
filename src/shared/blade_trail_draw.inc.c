@@ -65,7 +65,7 @@ void bladeTrailDraw(s16 slot, s16 flags)
             setRGB3(prim, lo * (flags >> 8), lo * ((flags >> 4) & 3), lo * (flags & 3));
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(BladeTrailScratch));

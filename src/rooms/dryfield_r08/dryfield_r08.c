@@ -929,7 +929,7 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
             ang      = t2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
 
         r   = (u8)r >> 1;
@@ -956,7 +956,7 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
             prim->y3 = block->sy + ((block->rInner * rcos(ub)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -977,7 +977,7 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2)
             ang      = uc;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x14);

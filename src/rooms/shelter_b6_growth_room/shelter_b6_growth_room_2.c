@@ -575,7 +575,7 @@ static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
     setRGB3(prim, arg1, arg1, arg1);
     setXY4(prim, -160, 120 - arg0, 160, 120 - arg0, -160, 120, 160, 120);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(0x40 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    Gp_AddTpageShift((P_TAG*)prim, 1, 0x40);
+    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, 0x40);
 }
 
 void func_shelter_b6_growth_room_8017E564(Task* task)

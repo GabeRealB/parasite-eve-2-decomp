@@ -1110,7 +1110,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
                     prim           = gGpuPrimCursor;
@@ -1130,7 +1130,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
                     prim->y3 = block->sy1;
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
                     prim           = gGpuPrimCursor;
                     t              = t3;
@@ -1152,7 +1152,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
                     ang = t2;
                 } while (ang < limit);
             }
@@ -1227,7 +1227,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
             ang      = t2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
@@ -1313,7 +1313,7 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
             prim->y2 = blk->sxy[2].vy;
             prim->x3 = blk->sxy[3].vx;
             prim->y3 = blk->sxy[3].vy;
-            Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
         }
     }
     gte_SetRotMatrix(&coord->workm);
@@ -1370,7 +1370,7 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
         prim->x3 = blk->sxy[3].vx;
         prim->y3 = blk->sxy[3].vy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomQuadProjScratch);
 }

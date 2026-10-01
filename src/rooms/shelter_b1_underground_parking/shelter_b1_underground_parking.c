@@ -2618,7 +2618,7 @@ static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radiu
             ang      = t;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0x40 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, 0x40);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, 0x40);
         } while (ang < 0x1000);
         radius <<= 1;
         r      >>= 1;

@@ -1651,7 +1651,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y3 = blk->sy + ((blk->rOuter * D_acropolis_square_80183B68[i + 2]) >> 12);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
 
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -1670,7 +1670,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y3 = blk->sy + ((blk->rOuter * D_acropolis_square_80183B68[i + 2]) >> 13);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }
             ampHalf = amp >> 1;
             for (i = 2; i < 0x10; i += 8) {
@@ -1704,7 +1704,7 @@ void func_acropolis_square_801825DC(Task* task)
                     SOFT_TOUCH_REG(z);
                     SOFT_TOUCH_REG_USE(z, tag);
                     SOFT_TOUCH_REG_USE(prim, z);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, z);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, z);
 
                     prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
@@ -1727,7 +1727,7 @@ void func_acropolis_square_801825DC(Task* task)
                 z = blk->otz;
                 __asm__("" : "+r"(z) : "r"(red), "r"(&D_acropolis_square_80183B68[i]));
                 __asm__("" : "+r"(prim) : "r"(z), "r"(cyan));
-                Gp_AddTpageShift((P_TAG*)prim, 1, z);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, z);
             }
         } else {
             blk->rOuter = (((level >> 8) & 0xFF) << 9) / blk->otz;
@@ -1746,7 +1746,7 @@ void func_acropolis_square_801825DC(Task* task)
                 prim->y1                       = (blk->sy - blk->rOuter) + blk->rOuter * (i + i);
                 addPrim(((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }
             if (task->spawnArg1.value & 0x10000000) {
                 for (i = 0; i < 2; i++) {
@@ -1764,7 +1764,7 @@ void func_acropolis_square_801825DC(Task* task)
                     line->y2 = blk->sy + blk->rOuter * (i + 1);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             line);
-                    Gp_AddTpageShift((P_TAG*)line, 1, blk->otz);
+                    gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, blk->otz);
                 }
             }
         }

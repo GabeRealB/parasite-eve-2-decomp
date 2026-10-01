@@ -586,7 +586,7 @@ dump does not show - you have to walk the order and keep score.
    **every call it crosses** with `sw`/`lw` to a dedicated stack slot. This is
    real in this codebase: `func_acropolis_roof_garden_8017E29C` keeps five
    such values in `$a3 $t0 $t1 $t2 $t4`, saved to `0x30..0x40($sp)` around
-   each `jal Gp_AddTpageShift`, in both the target and the seed.
+   each `jal gpuSetPrimitiveBlendMode`, in both the target and the seed.
 6. Still nothing: if some register holds only local-alloc pseudos whose summed
    `refs / length` is lower than this allocno's, evict them (scanning from
    `$t9` downward) and take it. (Source only; no probe.)

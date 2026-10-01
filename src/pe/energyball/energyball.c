@@ -456,7 +456,7 @@ release:
 /// divided by the projected OTZ) and `arg2` the brightness: only the inner
 /// vertex of each `POLY_G4` is lit, `(arg2 / 2, arg2, arg2 / 2)`, so every
 /// wedge fades from green at the centre to black at the rim. Each wedge gets
-/// the semi-transparent tpage of `Gp_AddTpageShift` at its OTZ.
+/// the semi-transparent tpage of `gpuSetPrimitiveBlendMode` at its OTZ.
 static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
 {
     GpRingScratch* block;
@@ -495,7 +495,7 @@ static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
             prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);

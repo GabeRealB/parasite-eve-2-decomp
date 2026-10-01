@@ -98,7 +98,7 @@ void muzzleFlashDrawStreak(GfxCoord* arg0, s16 arg1, s16 arg2)
         setRGB3(prim, 0, 0, 0);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((MuzzleStreakScratch*)(head - 0x24))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, ((MuzzleStreakScratch*)(head - 0x24))->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, ((MuzzleStreakScratch*)(head - 0x24))->otz);
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(MuzzleStreakScratch));
 }

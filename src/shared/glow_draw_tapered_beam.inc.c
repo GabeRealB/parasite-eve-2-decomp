@@ -13,7 +13,7 @@
 /// half turn and the far end the other. Centre vertices take a grey of 0x20
 /// or 0x30 on the parity of `gDisplayState.animFrame`, rim vertices are black.
 /// Each primitive goes into the OT bucket of its own end's `otz` with a
-/// `Gp_AddTpageShift` tpage.
+/// `gpuSetPrimitiveBlendMode` tpage.
 void glowDrawTaperedBeam(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
@@ -95,7 +95,7 @@ void glowDrawTaperedBeam(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
             prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -114,7 +114,7 @@ void glowDrawTaperedBeam(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
             prim->y3 = block->sy1;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -134,7 +134,7 @@ void glowDrawTaperedBeam(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
             ang      = t2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
         } while (ang < 0x800);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x28);

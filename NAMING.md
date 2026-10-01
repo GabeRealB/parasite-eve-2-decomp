@@ -332,6 +332,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `cap` | CAP relocation, dialogue, commands, rendering and playback | `cap_commands.c`, `cap_control.c`, `cap_reloc.c`, `cap_script.c`, `cap_start.c`, `captions.c` | `include/gameplay/cap.h`, `include/gameplay/captions.h`, `src/gameplay/cap.h`, `src/gameplay/captions.h` |
 | `evs` | Event-script dispatch | `evs_scripts.c` | `include/gameplay/evs.h`, `include/gameplay/evs_scripts.h`, `src/gameplay/evs_scripts.h` |
 | `effect` | Gameplay effect tasks | `effect_tasks.c`, `effect_attach.c`, `player_actor.c` | `include/gameplay/effect_tasks.h`, `src/gameplay/effect_tasks.h` |
+| `gpu` | GPU packet blend-mode commands linked into the current depth-sorted ordering table | `room_effects.c` | `include/gameplay/room_effects.h` |
 | `roomEffect` | Room effect state and tasks | `room_effects.c` | `include/gameplay/room_effects.h`, `src/gameplay/room_effects.h` |
 | `hud` | HUD sprites, numbers and tracking | `hud_sprites.c` | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
 | `padInput`, `padScript` | Gameplay input mapping, and scripted on/off and variable-intensity controller vibration | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |

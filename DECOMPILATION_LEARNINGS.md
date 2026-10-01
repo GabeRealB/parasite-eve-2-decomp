@@ -28895,11 +28895,11 @@ directly in the `addPrim` argument. Operand order matters too:
 `addu v0, v0, ot`.
 
 ```c
-addPrim((u_long*)(((((u32)arg2 << gDisplayState.otDepthShift) >> 2) & 0xFFC)
-                  + (s32)gGpuCurrentOt), p);
+addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+            ((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode);
 ```
 
-`Gp_AddTpageShift` is the example. The hoisted `ds` form stuck at 87%
+`gpuSetPrimitiveBlendMode` is the example. The hoisted `ds` form stuck at 87%
 with only those registers and the `addu` operands swapped.
 
 ## Overlay `save + i*stride` so two `lbu`s share `$v0` and `$v1`
@@ -34420,14 +34420,14 @@ p->y0 = yTop - gDisplayState.vramYOffset;
 `(value & 3) << 5` at the `setDrawTPage` site delays the `andi`.
 
 `setSemiTrans(p, 1)` **after** the POLY `addPrim` (not before, as in
-`Gp_AddTpage` / `Gp_AddTpageShift`) lets `lbu code / ori 2 / sb` fill the
+`Gp_AddTpage` / `gpuSetPrimitiveBlendMode`) lets `lbu code / ori 2 / sb` fill the
 `lui`/`ori 0xE100020A` window. Then:
 
 ```c
 setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
 ```
 
-which is `0xE100020A | (abr << 5)`. Same OT slot as `Gp_AddTpageShift` with
+which is `0xE100020A | (abr << 5)`. Same OT slot as `gpuSetPrimitiveBlendMode` with
 `z = 0x10`. `Gp_DrawFadeQuad` is the example.
 
 ## Keep `+ K` on a sign-extended `s8` with `* -1 + u16`, not `u16 - (s8 + K)`
@@ -48635,7 +48635,7 @@ Two things bite in a `do { ... } while (ang < N)` that walks an angle:
 ```c
         ang = t2;
         addPrim(...);
-        Gp_AddTpageShift(...);
+        gpuSetPrimitiveBlendMode(...);
         SOFT_USE_REG(t2);      /* emits nothing; blocks the coalesce */
     } while (ang < 0x1000);
 ```
@@ -56731,7 +56731,7 @@ more entry worth writing down: a `- 0x118` off `SCRATCH_STACK_CURSOR_SLOT` is th
 `GpBandScratch` two-ring band, and the matched example is `Gp_DrawBandEx`
 (gameplay `3CD8_9CC8.c`). `func_pyrokinesis_801312B4` is that function with the
 colour source swapped and the trailing `DR_TPAGE` replaced by
-`Gp_AddTpageShift`; porting the sibling and changing only those two things
+`gpuSetPrimitiveBlendMode`; porting the sibling and changing only those two things
 scored 100% on the first attempt, with the m2c seed never compiled.
 
 Recognise it from the shape rather than the size alone: two 16-iteration loops,
@@ -59616,7 +59616,7 @@ len, pad, code, p2.
 
 Writing them in the order the object shows leaves the `li` for the code byte
 three insns lower than the target, and in `Room_Draw37` that one displacement
-cascaded: the `li $a1, 1` argument of the following `Gp_AddTpageShift` moved
+cascaded: the `li $a1, 1` argument of the following `gpuSetPrimitiveBlendMode` moved
 past the `gGpuCurrentOt` load, so the two no longer overlapped and the OT
 pointer was coloured `$a1` instead of `$a2`, which in turn changed the jal's
 delay slot. 99.396% with `regs=3 reorder=3` became 100% by substituting the
@@ -60597,7 +60597,7 @@ for (i = 0; i < 2; i++) {
     ...
     quad->x0 = blk->sxy[i + 1];
     addPrim(ot, quad);
-    Gp_AddTpageShift((P_TAG*)quad, 1, blk->otz);
+    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, blk->otz);
 }
 ```
 
@@ -60613,7 +60613,7 @@ for (i = 0; i < 2;) {
     quad->x0 = blk->sxy[i + 1];
     i++;
     addPrim(ot, quad);
-    Gp_AddTpageShift((P_TAG*)quad, 1, blk->otz);
+    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, blk->otz);
 }
 ```
 

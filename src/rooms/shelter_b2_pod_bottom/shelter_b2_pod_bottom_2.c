@@ -504,7 +504,7 @@ static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 a
             prim->y3 = (u16)block->sxy3.vy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x118);
@@ -813,7 +813,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
             prim->y3 = block->sy + ((block->inner * rcos(next)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -833,7 +833,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
             ang      = next;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
 
         ang = 0x200;
@@ -861,7 +861,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
             ang      = next;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
@@ -1015,7 +1015,7 @@ static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 ar
         prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
@@ -1273,7 +1273,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                         prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
                         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
 
                         prim           = gGpuPrimCursor;
                         gGpuPrimCursor = prim + 1;
@@ -1293,7 +1293,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                         prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
                         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
                         prim           = gGpuPrimCursor;
                         mid            = angStart + (ang - angStart) * 2;
@@ -1313,7 +1313,7 @@ static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 c
                         prim->y3 = block->sy1;
                         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
                         ang = next;
                     } while (ang < limit);
                 }

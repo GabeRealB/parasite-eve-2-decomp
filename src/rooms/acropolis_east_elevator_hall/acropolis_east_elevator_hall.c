@@ -820,7 +820,7 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
         setRGB0(prim, 0x80, 0x80, 0x80);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, ((RoomMoteScratch*)(head - 0xC))->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, ((RoomMoteScratch*)(head - 0xC))->otz);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0xC);
     Gp_ReleaseState1CMem(mem, arg0);

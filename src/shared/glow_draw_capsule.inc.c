@@ -81,7 +81,7 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
                     prim           = gGpuPrimCursor;
                     side           = angStart + (ang - angStart) * 2;
@@ -101,7 +101,7 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim->y3 = block->sy1;
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, (block->otz1 + block->otz0) / 2);
                     t3             = ang + 0x800;
                     prim           = gGpuPrimCursor;
                     t              = t3;
@@ -123,7 +123,7 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
                     ang = t2;
                 } while (ang < limit);
             }

@@ -884,7 +884,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 prim->y3 = blk->sy + ((blk->rOuter * rcos(c)) >> 12);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
 
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -904,7 +904,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 prim->y3 = blk->sy + ((blk->rOuter * rcos(c)) >> 13);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }
 
             lvl = half;
@@ -929,7 +929,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 prim->y3 = blk->sy + ((blk->rInner * rcos(d)) >> 13);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
 
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -950,7 +950,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
                 prim->y3 = blk->sy + ((blk->rInner * rcos(d)) >> 12);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }
         }
         SCRATCH_STACK_RELEASE_BYTES(0x14);

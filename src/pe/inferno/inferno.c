@@ -231,7 +231,7 @@ static void func_inferno_8012F3EC(s16 arg0)
     p->x3 = x1;
     p->y3 = yBot - ds->vramYOffset;
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)z << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), p);
-    Gp_AddTpageShift((P_TAG*)p, 1, z);
+    gpuSetPrimitiveBlendMode(p, GPU_BLEND_ADD, z);
 }
 
 /// Companion inferno-cast task: state 0 allocates a 12-byte `InfernoIdMap`

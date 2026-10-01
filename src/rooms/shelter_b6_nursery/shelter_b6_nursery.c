@@ -1635,7 +1635,7 @@ static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 sha
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_AddTpageShift((P_TAG*)prim, (gRandomLcgState >> 16) & 1, blk->otz);
+        gpuSetPrimitiveBlendMode(prim, (gRandomLcgState >> 16) & 1, blk->otz);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB6NurseryTriScratch);
 }

@@ -973,7 +973,7 @@ static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
                     prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
                     conn           = angStart + ((ang - angStart) * 2);
                     prim           = gGpuPrimCursor;
@@ -993,7 +993,7 @@ static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
                     prim->y3 = block->sy1;
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, (block->otz1 + block->otz0) / 2);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, (block->otz1 + block->otz0) / 2);
 
                     prim           = gGpuPrimCursor;
                     t3             = ang + 0x800;
@@ -1016,7 +1016,7 @@ static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
                     prim->y3 = block->sy1 + ((block->r1 * rcos(t)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
                     ang = t2;
                 } while (ang < limit);
             }

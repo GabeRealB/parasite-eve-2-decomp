@@ -343,7 +343,7 @@ static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
         prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }

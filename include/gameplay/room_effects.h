@@ -106,6 +106,27 @@ void Gp_ReleaseState1CMem(void* arg0, Task* arg1);
 
 void Gp_PulseState1C(void);
 
-void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2);
+/// GPU semitransparency modes, with B the background and F the primitive colour.
+enum {
+    GPU_BLEND_AVERAGE     = 0, // B/2 + F/2
+    GPU_BLEND_ADD         = 1, // B + F
+    GPU_BLEND_SUBTRACT    = 2, // B - F
+    GPU_BLEND_ADD_QUARTER = 3, // B + F/4
+};
+
+/// Enables semitransparency and queues the blend mode for an untextured primitive.
+///
+/// `primitive` must be an initialized, writable polygon, line or rectangle packet
+/// already linked into the current depth ordering table at the same `depth`.
+/// `depth` is the sorting depth before `gDisplayState.otDepthShift`, not a tag
+/// index; the scaled value wraps to one of the 1024 depth tags. The low two bits
+/// of `blendMode` select a `GPU_BLEND_*` mode.
+///
+/// Consumes `sizeof(DR_TPAGE)` bytes from `gGpuPrimCursor` without a capacity
+/// check and prepends that command at the depth slot, ahead of the primitive.
+/// It enables dithering, prohibits drawing into the displayed area and selects
+/// the fixed 4-bit texture page at (640, 0). The draw mode remains active until
+/// replaced. Both packets borrow the frame arena until GPU drawing completes.
+void gpuSetPrimitiveBlendMode(void* primitive, s32 blendMode, s32 depth);
 
 #endif // GAMEPLAY_ROOM_EFFECTS_H

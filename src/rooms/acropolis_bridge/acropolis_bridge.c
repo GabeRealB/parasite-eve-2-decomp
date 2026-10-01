@@ -4363,7 +4363,7 @@ void func_acropolis_bridge_80182394(Task* task)
         setRGB0(prim, work->scale >> 1, work->scale, work->scale);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomMoteScratch*)(head - 0xC))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 0, ((RoomMoteScratch*)(head - 0xC))->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, ((RoomMoteScratch*)(head - 0xC))->otz);
         work->move.vy += 6;
     }
     SCRATCH_POP_BYTES_AT(scratch, 0xC);

@@ -2242,16 +2242,22 @@ static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
     addPrim(gGpuCurrentOt + (arg2 >> 4), p);
 }
 
-void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2)
+/// Queues a dithered blend-mode command in the current depth ordering table.
+static inline void _gpuQueueBlendMode(s32 blendMode, s32 depth)
 {
-    DR_TPAGE* p;
+    DR_TPAGE* drawMode;
 
-    setSemiTrans(arg0, 1);
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    p->code[0]     = 0xE100020A | ((arg1 & 3) << 5);
-    setlen(p, 1);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), p);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    // Untextured primitives ignore the fixed texture page; its ABR bits set blending.
+    setDrawTPage(drawMode, 0, 1, getTPage(0, blendMode, 640, 0));
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode);
+}
+
+void gpuSetPrimitiveBlendMode(void* primitive, s32 blendMode, s32 depth)
+{
+    setSemiTrans(primitive, 1);
+    _gpuQueueBlendMode(blendMode, depth);
 }
 
 void func_800EC9C8(void)

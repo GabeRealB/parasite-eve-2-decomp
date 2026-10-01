@@ -3267,7 +3267,7 @@ static void func_acropolis_security_room_80180A78(Task* task)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((AsrBeamScratch*)(head - 0x14))->otz << gDisplayState.otDepthShift) >> 2) &
                                                              GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 2, ((AsrBeamScratch*)(head - 0x14))->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_SUBTRACT, ((AsrBeamScratch*)(head - 0x14))->otz);
         }
         SCRATCH_STACK_RELEASE_BYTES(0x14);
     }
@@ -3512,7 +3512,7 @@ void func_acropolis_security_room_801817A4(Task* task)
             quad->y0 = quad->y2 = quad->y3 = scratch->y;
             quad->y1                       = (scratch->y - scratch->step) + scratch->step * (i + i);
             addPrim(&gGpuCurrentOt[((u32)scratch->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], quad);
-            Gp_AddTpageShift((P_TAG*)quad, 1, scratch->otz);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
         }
         for (i = 0; i < 2; i++) {
             line           = gGpuPrimCursor;
@@ -3528,7 +3528,7 @@ void func_acropolis_security_room_801817A4(Task* task)
             line->x2 = scratch->x - scratch->step * (i * 2 - 1);
             line->y2 = scratch->y + scratch->step * (i + 1);
             addPrim(&gGpuCurrentOt[((u32)scratch->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], line);
-            Gp_AddTpageShift((P_TAG*)line, 1, scratch->otz);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, scratch->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(AsrFlashScratch);

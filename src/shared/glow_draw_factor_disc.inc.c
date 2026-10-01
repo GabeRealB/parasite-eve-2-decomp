@@ -86,7 +86,7 @@ void glowDrawFactorDisc(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
             angle         = nextAngle;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));

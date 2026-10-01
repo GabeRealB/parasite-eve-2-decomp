@@ -455,7 +455,7 @@ happens” ornaments. Only two of those, Flare and Pepper Spray, are “Use to �
 items, so there is one package more than the usable items account for. The names
 `ofuda` / `flare` / `pepper_spray` are assigned by position and by what the code
 draws — rings and fade quads with no motion, a spawned moving object, and a
-scrolling-texture cloud (`Gp_AddTpageShift`) that suits a gas spray — and are
+Gouraud cone with additive blending (`gpuSetPrimitiveBlendMode`) that suits a gas spray — and are
 marked `ambiguous` in the manifest.
 
 ### 5.8 Menus sitting above the stack

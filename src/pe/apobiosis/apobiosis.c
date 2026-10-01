@@ -300,7 +300,7 @@ static void func_apobiosis_8012F808(s16 bright)
            0xA0, 0x78 - gDisplayState.vramYOffset);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(0x30 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
-    Gp_AddTpageShift((P_TAG*)prim, 1, 0x30);
+    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, 0x30);
 }
 
 /// Projects `arg0`'s world position through `GsWSMATRIX` and, when the GTE
@@ -310,7 +310,7 @@ static void func_apobiosis_8012F808(s16 bright)
 /// `(s16)arg1 * 64 / otz` and `outer` is `(s16)(arg1 + arg2) * 64 / otz`, so
 /// the ring is an annulus `arg2` wide. `rgb` tints the outer rim of every
 /// wedge while its inner rim stays black. Each wedge is linked into the OT
-/// bucket its own depth names and then handed to `Gp_AddTpageShift`. Same
+/// bucket its own depth names and then handed to `gpuSetPrimitiveBlendMode`. Same
 /// shape as `func_plasma_8012FB10`, which grows its ring from `otz + 1`
 /// instead.
 static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
@@ -360,7 +360,7 @@ static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             prim->y3 = block->sy + ((block->outer * rcos(next)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);

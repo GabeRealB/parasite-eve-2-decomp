@@ -384,7 +384,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             line->x1 = sc->sx1;
             line->y1 = sc->sy1;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
-            Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, sc->otz0);
             sc->r0 = 0x4000 / sc->otz0;
             sc->r1 = 0x4000 / sc->otz1;
             r      = r * 2 / 3;
@@ -415,7 +415,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                     prim->y3 = (u16)line->y1 + ((sc->r1 * rcos(tipAng)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz1);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, sc->otz1);
                 }
             } else {
                 angle = D_m4a1_javelin_8012EB60;
@@ -441,7 +441,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                     prim->y3 = (u16)line->y0 + ((sc->r0 * rcos(baseAng)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz0);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, sc->otz0);
                 }
             }
             for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
@@ -463,7 +463,7 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
                 prim->y3 = (u16)line->y1;
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, sc->otz0);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, sc->otz0);
             }
         } else {
             D_m4a1_javelin_8012EB64 = 1;
@@ -539,7 +539,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     line->y1 = sc->sy1;
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((OverlayPointPairScratch*)head)[-1].otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             line);
-    Gp_AddTpageShift((P_TAG*)line, 1, ((OverlayPointPairScratch*)head)[-1].otz0);
+    gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, ((OverlayPointPairScratch*)head)[-1].otz0);
     sc->r0 = 0x4000 / ((OverlayPointPairScratch*)head)[-1].otz0;
     sc->r1 = 0x4000 / sc->otz1;
 
@@ -564,7 +564,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             poly->x3 = (u16)line->x1 + ((sc->r1 * rsin(i + 0xC00)) >> 12);
             poly->y3 = (u16)line->y1 + ((sc->r1 * rcos(i + 0xC00)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
-            Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz1);
+            gpuSetPrimitiveBlendMode(poly, GPU_BLEND_ADD, sc->otz1);
         }
     } else {
         ang = D_m4a1_javelin_8012EB62;
@@ -588,7 +588,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
             poly->x3 = (u16)line->x0 + ((sc->r0 * rsin(i + 0x400)) >> 12);
             poly->y3 = (u16)line->y0 + ((sc->r0 * rcos(i + 0x400)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
-            Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz0);
+            gpuSetPrimitiveBlendMode(poly, GPU_BLEND_ADD, sc->otz0);
         }
     }
 
@@ -609,7 +609,7 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
         poly->x3 = line->x1;
         poly->y3 = line->y1;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
-        Gp_AddTpageShift((P_TAG*)poly, 1, sc->otz0);
+        gpuSetPrimitiveBlendMode(poly, GPU_BLEND_ADD, sc->otz0);
     }
     goto done;
 
@@ -665,7 +665,7 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
             line->x1 = sc->sx1;
             line->y1 = sc->sy1;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
-            Gp_AddTpageShift((P_TAG*)line, 1, sc->otz0);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, sc->otz0);
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1JavelinLineScratch));

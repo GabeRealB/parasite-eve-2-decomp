@@ -978,7 +978,7 @@ void Gp_EffLineTaskA3(Task* arg0)
                 prim->y1 = (u16)block->sxy1.vy;
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
             }
         }
         SCRATCH_STACK_RELEASE_BYTES(0x20);
@@ -1697,7 +1697,7 @@ void Gp_EffTileTaskA4(Task* arg0)
         prim->y0 = block->sxy.vy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x14);
     mem->age++;
@@ -2693,7 +2693,7 @@ void Gp_EffLineTask92(Task* arg0)
             prim->y1 = (u16)block->sxy1.vy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
             mem->pos.vx = (u16)coord->workm.t[0];
             mem->pos.vy = (u16)coord->workm.t[1];
             mem->pos.vz = (u16)coord->workm.t[2];
@@ -2800,7 +2800,7 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
             ang = ang2;
-            Gp_AddTpageShift((P_TAG*)quad, 1, block->otz);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->otz);
         } while (ang < 0x1000);
         if (arg3 & 0x1000) {
             block->dx = 0x12000 / block->otz;
@@ -2835,7 +2835,7 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         tri);
                 ang += 0x400;
-                Gp_AddTpageShift((P_TAG*)tri, 1, block->otz);
+                gpuSetPrimitiveBlendMode(tri, GPU_BLEND_ADD, block->otz);
             } while (ang < 0x1000);
         }
     }

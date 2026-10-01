@@ -799,7 +799,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
 /// centre and black at the rim; it is drawn three times, at the full radius
 /// with half the brightness, at half the radius with the brightness, and at an
 /// eighth of the radius with four times the brightness (wrapping in a byte).
-/// Every wedge takes the semi-transparent tpage of `Gp_AddTpageShift`.
+/// Every wedge takes the semi-transparent tpage of `gpuSetPrimitiveBlendMode`.
 void func_acropolis_fire_escape_80180154(Task* task)
 {
     EffectWork*                     work;
@@ -878,7 +878,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 prim->x3 = block->sx + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 12);
                 prim->y3 = block->sy + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 12);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                Gp_AddTpageShift(prim, 1, block->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
 
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -897,7 +897,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 prim->x3 = block->sx + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 13);
                 prim->y3 = block->sy + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 13);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                Gp_AddTpageShift(prim, 1, block->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
 
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -916,7 +916,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                 prim->x3 = block->sx + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 15);
                 prim->y3 = block->sy + ((block->radius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 15);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                Gp_AddTpageShift(prim, 1, block->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
             }
         }
         SCRATCH_STACK_RELEASE_BYTES(0x18);
@@ -930,7 +930,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
 /// A negative `spawnArg1` draws a radial glow of `POLY_G4` wedges with four
 /// longer rays; otherwise a flat diamond of two `POLY_G4`s, with two crossed
 /// `LINE_G3` streaks when bit 28 is set. Every primitive takes the
-/// semi-transparent tpage of `Gp_AddTpageShift`. Finally `spawnArg2` goes to
+/// semi-transparent tpage of `gpuSetPrimitiveBlendMode`. Finally `spawnArg2` goes to
 /// `Gp_ReleaseState1CMem`.
 void func_acropolis_fire_escape_80180B20(Task* task)
 {
@@ -1003,7 +1003,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
                 prim->y3 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 12);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
 
                 prim           = gGpuPrimCursor;
                 gGpuPrimCursor = prim + 1;
@@ -1022,7 +1022,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
                 prim->y3 = blk->sy + ((blk->radius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 13);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }
             ampHalf = amp >> 1;
             for (i = 2; i < 0x10; i += 8) {
@@ -1056,7 +1056,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
                     SOFT_TOUCH_REG(z);
                     SOFT_TOUCH_REG_USE(z, tag);
                     SOFT_TOUCH_REG_USE(prim, z);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, z);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, z);
 
                     prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
@@ -1079,7 +1079,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
                 z = blk->otz;
                 __asm__("" : "+r"(z) : "r"(red), "r"(&D_acropolis_fire_escape_80181D7C[i]));
                 __asm__("" : "+r"(prim) : "r"(z), "r"(cyan));
-                Gp_AddTpageShift((P_TAG*)prim, 1, z);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, z);
             }
         } else {
             blk->radius  = (((level >> 8) & 0xFF) << 9) / blk->otz;
@@ -1099,7 +1099,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
                 prim->y1                       = (blk->sy - blk->radius2) + blk->radius2 * (i + i);
                 addPrim(((u_long*)((((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + (uintptr)gGpuCurrentOt)),
                         prim);
-                Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
             }
             if (task->spawnArg1.value & 0x10000000) {
                 for (i = 0; i < 2; i++) {
@@ -1117,7 +1117,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
                     line->y2 = blk->sy + blk->radius2 * (i + 1);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
                 }
             }
         }

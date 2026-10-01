@@ -701,7 +701,7 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
                         prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
                         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
 
                         prim           = gGpuPrimCursor;
                         gGpuPrimCursor = prim + 1;
@@ -721,7 +721,7 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
                         prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
                         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
                         prim           = gGpuPrimCursor;
                         mid            = angStart + (ang - angStart) * 2;
@@ -741,7 +741,7 @@ void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color
                         prim->y3 = block->sy1;
                         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                                 prim);
-                        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
                         ang = next;
                     } while (ang < limit);
                 }
@@ -839,7 +839,7 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
                     prim->y3 = block->sy1 + ((block->r1 * rcos(ang + 0xC00)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
 
                     prim           = gGpuPrimCursor;
                     gGpuPrimCursor = prim + 1;
@@ -859,7 +859,7 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
                     prim->y3 = block->sy0 + ((block->r0 * rcos(next)) >> 12);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
                     prim           = gGpuPrimCursor;
                     mid            = angStart + (ang - angStart) * 2;
@@ -879,7 +879,7 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
                     prim->y3 = block->sy1;
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             prim);
-                    Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
                     ang = next;
                 } while (ang < limit);
             }

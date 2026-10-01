@@ -97,7 +97,7 @@ static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 a
             prim->y3 = blk->sy3;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
         }
         i += 1;
     } while (i < 7);

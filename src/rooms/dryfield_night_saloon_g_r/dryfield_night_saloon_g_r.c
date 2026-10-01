@@ -2230,7 +2230,7 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
 /// wedge around the far end walked backwards from 0x1000. The centre vertices
 /// take a grey of 0x20 or 0x30 depending on the parity of
 /// `gDisplayState.animFrame`, the rim vertices are black. Each primitive goes
-/// into the OT bucket of its own end's `otz` with a `Gp_AddTpageShift` tpage.
+/// into the OT bucket of its own end's `otz` with a `gpuSetPrimitiveBlendMode` tpage.
 static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
@@ -2305,7 +2305,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
             prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -2324,7 +2324,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
             prim->y3 = block->sy1;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
@@ -2344,7 +2344,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
             ang      = t2;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
         } while (ang < 0x800);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x28);
