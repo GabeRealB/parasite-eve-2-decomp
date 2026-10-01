@@ -1506,7 +1506,7 @@ void Gp_EffSprTask81(Task* arg0)
     gte_SetRotMatrix(&parent->workm);
     gte_SetTransMatrix(&parent->workm);
     world = &gGfxViewCoord.workm;
-    Gp_WorldToLocal(world, &coord->workm, &coord->coord);
+    gfxMakeRelativeTransform(world, &coord->workm, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
@@ -5876,7 +5876,7 @@ void Gp_PlaceCoordOffset(GfxCoord* arg0, GfxCoord* arg1, SVECTOR* arg2)
     gte_rtv0tr();
     gte_stlvnl(arg1->workm.t);
     world = &gGfxViewCoord.workm;
-    Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
+    gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
     arg1->parent       = PARENT_OF(world, GfxCoord, workm);
     arg1->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1);

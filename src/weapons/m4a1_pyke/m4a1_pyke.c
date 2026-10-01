@@ -155,7 +155,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     slot->head.color.r = ((ang >> 16) & 0x700) + 0x400;
                     slot->head.color.g = (u16)slot->head.color.r >> 1;
                     slot->head.color.b = slot->head.color.r >> 2;
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                     light->composeStamp = GRAPHICS_COORD_DIRTY;
                     work->scale         = 0x40;
                     break;
@@ -180,7 +180,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     slot->head.color.r    = ((ang >> 16) & 0x700) + 0x800;
                     slot->head.color.g    = (u16)slot->head.color.r >> 1;
                     slot->head.color.b    = slot->head.color.r >> 2;
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                     light->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;
                 case 3:

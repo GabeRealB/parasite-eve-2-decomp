@@ -186,7 +186,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             slot->head.color.g    = t >> 2;
             gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             if (work->scale == 0xC0) {
                 task->state = 2;
@@ -222,7 +222,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             slot->head.color.b    = rnd;
             slot->head.color.r    = rnd >> 1;
             slot->head.color.g    = rnd >> 1;
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             D_m4a1_javelin_8012EB64 = 0;
             light->composeStamp     = GRAPHICS_COORD_DIRTY;
             D_m4a1_javelin_8012EB66 = 0;

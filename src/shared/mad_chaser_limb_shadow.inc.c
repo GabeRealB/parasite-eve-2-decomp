@@ -25,8 +25,8 @@ void madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 wi
         s = (ActorsShared80163354Scratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorsShared80163354Scratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->first.vy                = (s16)height;
         s->second.vy               = (s16)height;
         s->first.vx                = s->firstMatrix.t[0];

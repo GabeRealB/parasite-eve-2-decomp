@@ -1674,7 +1674,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                     splash->strength = ABS(D_dryfield_water_hole_8017FD1C[i].vx - part->workm.t[0]) +
                                        ABS(D_dryfield_water_hole_8017FD1C[i].vy - part->workm.t[1]) +
                                        ABS(D_dryfield_water_hole_8017FD1C[i].vz - part->workm.t[2]) + 0x20;
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &part->workm, &surface.coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &part->workm, &surface.coord);
                     surface.parent       = view;
                     surface.coord.t[1]   = gGameSession->waterY;
                     surface.composeStamp = GRAPHICS_COORD_DIRTY;

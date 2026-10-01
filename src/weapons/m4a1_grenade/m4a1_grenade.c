@@ -236,7 +236,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     gte_ldv0(vec);
     gte_rtv0tr();
     gte_stlvnl(coord->workm.t);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     mtx                 = (MATRIX*)(head - 0x20);
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

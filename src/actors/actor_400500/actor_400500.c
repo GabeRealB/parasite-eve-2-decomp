@@ -69,9 +69,10 @@ typedef struct Actor400500TaskFuncTable13 {
 } Actor400500TaskFuncTable13;
 STATIC_ASSERT_SIZEOF(Actor400500TaskFuncTable13, 0x34);
 
-/// View-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
-/// the translation `Gp_WorldToLocal` produces for one of the actor's
-/// coordinate nodes. `func_actor_400500_80132C54` passes
+/// World-space sample written by `func_actor_400500_8013DBCC`: the X and Z of
+/// the translation of one of the actor's coordinate nodes, produced by
+/// `gfxMakeRelativeTransform` relative to `gGfxViewCoord.workm`.
+/// `func_actor_400500_80132C54` passes
 /// `Actor400500Work::field_9A0` as the destination, so the slot lives inside
 /// the work block. Only `x` and `z` are ever written; the middle halfword is
 /// kept so the layout matches the sibling `Actor400600ViewPos`.
@@ -1811,8 +1812,8 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
     if (firstJoint != secondJoint) {
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
         first.vy   = (s16)height;
         second.vy  = (s16)height;
         first.vx   = firstMatrix.t[0];
@@ -2331,7 +2332,7 @@ static inline void _actor400500SampleView(Task* task, s16 part, Actor400500ViewP
 
     coord = &task->extra.tmd->coords[part];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     pos->x              = local.t[0];
     pos->z              = local.t[2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2349,8 +2350,8 @@ static inline void _actor400500AnchorPart(Task* task, s16 part, Actor400500ViewP
     coords = task->extra.tmd->coords;
     coord  = &coords[part];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[0].workm, &root);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     coords[0].coord.t[0]   = pos->x - (local.t[0] - root.t[0]);
     coords[0].coord.t[2]   = pos->z - (local.t[2] - root.t[2]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3470,7 +3471,7 @@ static void func_actor_400500_801361EC(Task* arg0)
                     pos2         = &work->field_9A0;
                     coords       = arg0->extra.tmd->coords;
                     Gp_UpdateCoord(&coords[11]);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[11].workm, &local);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[11].workm, &local);
                     pos                     = pos2;
                     pos->x                  = local.t[0];
                     pos->z                  = local.t[2];
@@ -3481,7 +3482,7 @@ static void func_actor_400500_801361EC(Task* arg0)
             pos4    = &work->field_9A0;
             coords2 = arg0->extra.tmd->coords;
             Gp_UpdateCoord(&coords2[11]);
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coords2[11].workm, &local);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords2[11].workm, &local);
             pos3                     = pos4;
             pos3->x                  = local.t[0];
             pos3->z                  = local.t[2];
@@ -4268,8 +4269,8 @@ static inline s16 _actor400500PlayerDistance(GfxCoord* part)
     playerCoords = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     Gp_UpdateCoord(&playerCoords[4]);
     Gp_UpdateCoord(part);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &playerCoords[4].workm, &playerView);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &part->workm, &partView);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &playerCoords[4].workm, &playerView);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &part->workm, &partView);
     delta.vx = (u16)playerView.t[0] - (u16)partView.t[0];
     delta.vz = (u16)playerView.t[2] - (u16)partView.t[2];
     return SquareRoot0((delta.vx * delta.vx) + (delta.vz * delta.vz));
@@ -5090,7 +5091,7 @@ static void func_actor_400500_8013973C(Task* arg0)
         pos2        = &work->field_9A0;
         coordsEarly = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&coordsEarly[3]);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coordsEarly[3].workm, &rot.mat);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordsEarly[3].workm, &rot.mat);
         pos                         = pos2;
         pos->x                      = rot.mat.t[0];
         pos->z                      = rot.mat.t[2];
@@ -5108,8 +5109,8 @@ static void func_actor_400500_8013973C(Task* arg0)
     part3             = &coordsMain[3];
     Gp_UpdateCoord(part3);
     view = &gGfxViewCoord.workm;
-    Gp_WorldToLocal(view, &coordsMain->workm, &local0);
-    Gp_WorldToLocal(view, &coordsMain[3].workm, &local3);
+    gfxMakeRelativeTransform(view, &coordsMain->workm, &local0);
+    gfxMakeRelativeTransform(view, &coordsMain[3].workm, &local3);
     posMain                    = posMain2;
     dx                         = local3.t[0] - local0.t[0];
     coordsMain->coord.t[0]     = posMain->x - dx;
@@ -5421,8 +5422,8 @@ static void func_actor_400500_8013A0B8(Task* arg0)
         Gp_UpdateCoord(coord14);
         pos2 = &work->field_9A0;
         view = &gGfxViewCoord.workm;
-        Gp_WorldToLocal(view, &coords->workm, &rot.mat);
-        Gp_WorldToLocal(view, &coord14->workm, &local2);
+        gfxMakeRelativeTransform(view, &coords->workm, &rot.mat);
+        gfxMakeRelativeTransform(view, &coord14->workm, &local2);
         dx                    = local2.t[0] - rot.mat.t[0];
         coords->coord.t[0]    = work->field_9A0.x - dx;
         pos                   = pos2;
@@ -5998,7 +5999,7 @@ static void func_actor_400500_8013AF44(Task* arg0)
         pos2   = &work->field_9A0;
         coords = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&coords[8]);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[8].workm, &local);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[8].workm, &local);
         pos                    = pos2;
         pos->x                 = local.t[0];
         pos->z                 = local.t[2];
@@ -6930,7 +6931,7 @@ static void func_actor_400500_8013CA38(Task* arg0)
         pos2            = &work->field_9A0;
         coords          = arg0->extra.tmd->coords;
         Gp_UpdateCoord(&coords[0xE]);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[0xE].workm, &local);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0xE].workm, &local);
         pos                      = pos2;
         pos->x                   = local.t[0];
         pos->z                   = local.t[2];
@@ -7640,7 +7641,7 @@ static void func_actor_400500_8013DBCC(Task* arg0, s16 arg1, Actor400500ViewPos*
 
     coord = &arg0->extra.tmd->coords[arg1];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     arg2->x             = local.t[0];
     arg2->z             = local.t[2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

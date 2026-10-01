@@ -2668,7 +2668,7 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
                     coord->coord.t[2] = 0;
                     coord->parent     = parentCoord;
                     if (r == 0xE) {
-                        Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &work->field_544);
+                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &work->field_544);
                     }
                 } else {
                     r                  = r - 0xF;
@@ -2734,7 +2734,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     Gp_UpdateCoord(&gGfxViewCoord);
     parentCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(parentCoord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
 
     scratch->rot.vx = -0xA5;
     scratch->rot.vy = -0x235;

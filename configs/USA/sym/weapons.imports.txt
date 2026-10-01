@@ -35,7 +35,7 @@ gPlayerStatus = 0x80073B88; // absolute:True
 
 // --- from gameplay (38 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
-Gp_WorldToLocal = 0x800A8864; // absolute:True
+gfxMakeRelativeTransform = 0x800A8864; // absolute:True
 Gp_AnimGetRec = 0x800B4668; // absolute:True
 Gp_ConsumeSlotQty = 0x800B6DA4; // absolute:True
 Gp_GetItemSlot = 0x800BAFE0; // absolute:True

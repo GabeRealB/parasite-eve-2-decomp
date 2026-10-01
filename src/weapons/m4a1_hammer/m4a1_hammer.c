@@ -155,7 +155,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
                         slot->head.color.r    = (u16)slot->head.color.b >> 1;
                         slot->head.color.g    = (u16)slot->head.color.b >> 1;
-                        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                         light->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->index         = 0;
                         return;
@@ -215,7 +215,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x800;
                         slot->head.color.r    = (u16)slot->head.color.b >> 1;
                         slot->head.color.g    = slot->head.color.b >> 1;
-                        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                         light->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->index         = work->index + 1;
                         if (work->index >= 5) {

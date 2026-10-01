@@ -1497,7 +1497,7 @@ s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
         arg1->workm.t[0] = block->dir.vx;
         arg1->workm.t[1] = block->dir.vy;
         arg1->workm.t[2] = block->dir.vz;
-        Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
+        gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
         arg1->parent       = PARENT_OF(world, GfxCoord, workm);
         arg1->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg1);
@@ -1655,7 +1655,7 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
             gte_ldv0(arg3);
             gte_rtv0tr();
             gte_stlvnl(coord->workm.t);
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
         }
         coord->parent       = &gGfxViewCoord;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -19,7 +19,7 @@ gMcSaveData = 0x80072168; // absolute:True
 
 // --- from gameplay (12 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
-Gp_WorldToLocal = 0x800A8864; // absolute:True
+gfxMakeRelativeTransform = 0x800A8864; // absolute:True
 func_800E0FEC = 0x800E0FEC; // absolute:True
 Gp_LinkObj = 0x800E15AC; // absolute:True
 Gp_UnlinkObj = 0x800E1638; // absolute:True

@@ -4108,7 +4108,7 @@ to get this: other readers of `field_A04` use `lhu`.
 ## Copy a field address across a `jal` to rematerialize `addiu` in a load delay
 
 `work->field_9A0.x = local.t[0]; work->field_9A0.z = local.t[2];` after
-`Gp_WorldToLocal` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
+`gfxMakeRelativeTransform` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
 nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
 as `sh $v1, 4($v0)`.
 
@@ -4119,7 +4119,7 @@ there:
 ```c
 pos2 = &work->field_9A0;
 Gp_UpdateCoord(&coords[0xE]);
-Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
 pos    = pos2;
 pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
 pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
@@ -11680,7 +11680,7 @@ command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 is the template: `gte_SetRotMatrix` + `gte_SetTransMatrix` + `gte_ldv0` +
 that command + `gte_stlvnl`.
 
-`Gfx_ViewWorldMtx` is `gGfxViewCoord.workm`. After `Gp_WorldToLocal(&Gfx_ViewWorldMtx, ...)`,
+`Gfx_ViewWorldMtx` is `gGfxViewCoord.workm`. After `gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, ...)`,
 recover the parent as
 `(GfxCoord*)((u8*)world - OFFSET_OF(GfxCoord, workm))` so the
 compiler emits `addiu s0, s0, -0x24`. A second `&gGfxViewCoord` symbol load
@@ -34188,10 +34188,10 @@ and pin `mask` to `$t2`.
 
 ## Relative matrix: reuse `$a0` as 0x30 scratch, pin after the overwrite
 
-`Gp_WorldToLocal` is `arg2 = inverse(index) * value` for rigid transforms:
-transpose the parent rotation into scratch (same `t4`/`t5`/`t6` halfword
-pattern as `Gfx_TransposeRot`), `gte_MulMatrix0` into `arg2`, then
-`ApplyMatrixLV` of `child.t - parent.t`. Splat tags it "Handwritten"
+`gfxMakeRelativeTransform` is `out = inverse(reference) * target` for rigid transforms:
+transpose the reference rotation into scratch (same `t4`/`t5`/`t6` halfword
+pattern as `Gfx_TransposeRot`), `gte_MulMatrix0` into `out`, then
+`ApplyMatrixLV` of `target.t - reference.t`. Splat tags it "Handwritten"
 because of COP2; the C is still GCC 2.8.1.
 
 The target copies the incoming parent out of `$a0` immediately:
@@ -34203,7 +34203,7 @@ sw     a0, 0(s0)
 lhu    t4, 0(a3)     /* not 0(a0) */
 ```
 
-`src = index; tmp = (Scratch*)(head - 0x30)` without a barrier keeps the
+`src = reference; tmp = (Scratch*)(head - 0x30)` without a barrier keeps the
 old `$a0` live for the first `lhu` and parks the new pointer in `$t1`.
 Pin all three after the store so the overwrite sticks:
 
@@ -34211,7 +34211,7 @@ Pin all three after the store so the overwrite sticks:
 register MATRIX*          src asm("a3");
 register _GfxRelativeTransformScratch* tmp asm("a0");
 
-src      = arg0;
+src      = reference;
 tmp      = (_GfxRelativeTransformScratch*)(head - 0x30);
 *scratch = tmp;
 __asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
@@ -34221,7 +34221,7 @@ Type that scratch as `MATRIX` + `VECTOR` (0x30) and keep `tmp` itself
 pinned to `$a0`. A second `Scratch*` copy of `tmp` emits `move t1, a0`
 and `sw 0x20(t1)` for the translation delta. Pass the delta to
 `ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->originDelta`) so the
-call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)arg2->t` (`addiu a2,
+call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)out->t` (`addiu a2,
 a2, 0x14` in the second subtract's load delay).
 
 ## Pin array base and the loaded byte both to `$v0` so stores beat `sll 24` / `slti`
@@ -44316,7 +44316,7 @@ lw   $20, 0($3)
 sw   $18, 0($3)
 ```
 
-`Gp_WorldToLocal` and `Gp_DrawMapCursor` want that register form and write
+`gfxMakeRelativeTransform` and `Gp_DrawMapCursor` want that register form and write
 `scratch = SCRATCH_STACK_CURSOR_SLOT; head = *scratch; ... *scratch = blk;`. When
 the target keeps both absolute, hide the load's address from CSE the way
 `Gp_AimYawToLock` does, and leave the store as the plain macro:
@@ -47654,10 +47654,10 @@ uses in the entry block still share one `lui/ori` through CSE.
 ## `Gfx_ViewWorldMtx` versus `gGfxViewCoord.workm` is a relocation-name diff only
 
 `Gfx_ViewWorldMtx` (0x80070F34) *is* `gGfxViewCoord.workm` (0x80070F10 + 0x24).
-When a function passes that matrix to `Gp_WorldToLocal` and then parents a
+When a function passes that matrix to `gfxMakeRelativeTransform` and then parents a
 coordinate to world, the target derives the second address from the first
 (`lui/addiu %hi/%lo(Gfx_ViewWorldMtx)`, then `addiu s0, s0, -0x24`). The clean
-C — `Gp_WorldToLocal(&gGfxViewCoord.workm, ...)` plus `coord->parent =
+C — `gfxMakeRelativeTransform(&gGfxViewCoord.workm, ...)` plus `coord->parent =
 &gGfxViewCoord` — emits `%hi(gGfxViewCoord)` / `%lo(gGfxViewCoord+0x24)` and
 the same `-0x24`, so the *linked words are identical* and only the scratch
 normalizer's symbol names differ (99.95%, `regs=2`). Prefer the struct-member
@@ -50755,7 +50755,7 @@ head  = *SCRATCH_STACK_CURSOR_SLOT;
 *SCRATCH_STACK_CURSOR_SLOT = head - 0x50;
 block = (GpEdgeScratch*)(head - 0x50);
 mat   = (MATRIX*)(head - 0x20);      /* not `head -= 0x20` */
-Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, mat);
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coord->workm, mat);
 gte_SetRotMatrix(mat);
 ```
 
@@ -71413,7 +71413,7 @@ to get this: other readers of `field_A04` use `lhu`.
 ## Copy a field address across a `jal` to rematerialize `addiu` in a load delay
 
 `work->field_9A0.x = local.t[0]; work->field_9A0.z = local.t[2];` after
-`Gp_WorldToLocal` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
+`gfxMakeRelativeTransform` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
 nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
 as `sh $v1, 4($v0)`.
 
@@ -71424,7 +71424,7 @@ there:
 ```c
 pos2 = &work->field_9A0;
 Gp_UpdateCoord(&coords[0xE]);
-Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
 pos    = pos2;
 pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
 pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
@@ -90720,11 +90720,11 @@ Inputs: `base_2.i` (93.4%, `regs=8 reorder=8`), `base_4.i` (100%).
 ## Two field accesses through the same `&arr[k]` split into a folded `addiu` and a live pointer, so the source names the element (func_actor_510900_80138BF0, 2026-09-16)
 
 `func_actor_510900_80138BF0` touches `coord[4]` twice, far apart: `&coord[4].workm`
-for `Gp_WorldToLocal` at the top and `&coord[4].coord` for `Gp_OrientAlong` at the
+for `gfxMakeRelativeTransform` at the top and `&coord[4].coord` for `Gp_OrientAlong` at the
 bottom. Written as two index expressions, GCC 2.8.1 folds each into one `addiu`:
 
 ```c
-Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord[4].workm, &scratch->view);
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coord[4].workm, &scratch->view);
 ...
 Gp_OrientAlong(&scratch->local, &coord[4].coord, 0);   /* addiu a1,s2,0x144 */
 ```
@@ -143333,7 +143333,7 @@ middle = &coords[2];
 lower  = &coords[1];
 part   = 3;
 ...
-Gp_WorldToLocal(&gGfxViewCoord.workm, &root[part].workm, &m);
+gfxMakeRelativeTransform(&gGfxViewCoord.workm, &root[part].workm, &m);
 ...
 } else if (arg1 == 3) {
 ```

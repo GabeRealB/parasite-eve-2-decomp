@@ -1707,7 +1707,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                     work->field_26 = ABS(D_shelter_b4_reservoir_801850AC[i].vx - c->workm.t[0]) +
                                      ABS(D_shelter_b4_reservoir_801850AC[i].vy - c->workm.t[1]) +
                                      ABS(D_shelter_b4_reservoir_801850AC[i].vz - c->workm.t[2]) + 0x20;
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &c->workm, &coord.coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &c->workm, &coord.coord);
                     coord.parent       = &gGfxViewCoord;
                     coord.coord.t[1]   = gGameSession->waterY;
                     coord.composeStamp = GRAPHICS_COORD_DIRTY;

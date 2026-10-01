@@ -1367,7 +1367,7 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
             splash->strength = ABS(D_shelter_b4_water_supply_801826E0[i].vx - part->workm.t[0]) +
                                ABS(D_shelter_b4_water_supply_801826E0[i].vy - part->workm.t[1]) +
                                ABS(D_shelter_b4_water_supply_801826E0[i].vz - part->workm.t[2]) + 0x20;
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &part->workm, &surface.coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &part->workm, &surface.coord);
             surface.parent       = &gGfxViewCoord;
             surface.coord.t[1]   = gGameSession->waterY;
             surface.composeStamp = GRAPHICS_COORD_DIRTY;

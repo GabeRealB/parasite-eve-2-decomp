@@ -216,7 +216,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
             slot->head.color.r    = (u16)slot->head.color.b >> 1;
             slot->head.color.g    = slot->head.color.b >> 1;
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->spawnArg1.value < 0) {
                 task->spawnArg1.value = 0;
@@ -245,7 +245,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x800;
             slot->head.color.r    = (u16)slot->head.color.b >> 1;
             slot->head.color.g    = slot->head.color.b >> 1;
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             work->scale        += work->step;
             if (work->scale >= 0x100) {

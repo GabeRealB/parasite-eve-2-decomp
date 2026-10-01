@@ -4114,13 +4114,13 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                     dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                     dst         = &D_dryfield_dilapidated_house_8018A060[i];
                     dst->parent = &gGfxViewCoord;
                     dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 return;
 
@@ -4141,13 +4141,13 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                 dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 dst         = &D_dryfield_dilapidated_house_8018A060[work->age & 7];
                 dst->parent = &gGfxViewCoord;
                 dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
                     dst               = &D_dryfield_dilapidated_house_80189DE0[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;

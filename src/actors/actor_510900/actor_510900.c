@@ -1174,7 +1174,7 @@ void func_actor_510900_80131F24(Task* arg0)
             slot->inner -= 0x190;
         }
         lightSlot->framesLeft--;
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
         lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
         if (lightSlot->framesLeft == WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
             arg0->spawnArg1.value = 0;
@@ -1871,7 +1871,7 @@ void func_actor_510900_801340E8(Task* arg0)
     ext->head.color.r     = 0xC00;
     ext->head.color.g     = 0x800;
     ext->head.color.b     = 0x400;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &cam->coord);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &cam->coord);
     cam->composeStamp = GRAPHICS_COORD_DIRTY;
     effectKillTask(eff, arg0);
 }

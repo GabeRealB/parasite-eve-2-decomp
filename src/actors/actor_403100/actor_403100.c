@@ -3819,8 +3819,8 @@ static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoi
     if (firstJoint != secondJoint) {
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
         first.vy   = (s16)height;
         second.vy  = (s16)height;
         first.vx   = firstMatrix.t[0];
@@ -7217,7 +7217,7 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     angles    = &allocated->angles;
     gfxSetRotIdentity(matrices);
     root = arg0->extra.tmd->coords;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &root[part].workm, &worldMatrix);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &root[part].workm, &worldMatrix);
     delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
     offsetY  = worldMatrix.t[1] + 0x600;
     delta.vy = D_actor_403100_80155808->field_9A - offsetY;

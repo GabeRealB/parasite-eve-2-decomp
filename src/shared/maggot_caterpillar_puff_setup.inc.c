@@ -31,7 +31,7 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     parentCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(parentCoord);
     coord->parent = &gGfxViewCoord;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
     coord->composeStamp        = GRAPHICS_COORD_DIRTY;
     work->field_3A             = 0xC0;
     pair                       = parentWork->field_3AC;

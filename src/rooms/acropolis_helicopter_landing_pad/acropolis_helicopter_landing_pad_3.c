@@ -1164,7 +1164,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             slot->head.color.g    = 0x800;
             gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x900;
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         case 1:
@@ -1196,7 +1196,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                 slot->head.color.r    = 0xC00;
                 slot->head.color.g    = 0xC00;
                 slot->head.color.b    = 0x600;
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
                 lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             }
             break;

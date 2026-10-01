@@ -253,7 +253,7 @@ static void func_800DDC2C(WorldCollisionBody* arg0)
     block->src[1].vx = (u16)arg0->pos.vx + (-(motionDirection->vx * arg0->radius) >> 12);
     block->src[1].vy = 0;
     block->src[1].vz = (u16)arg0->pos.vz + (-(motionDirection->vz * arg0->radius) >> 12);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &arg0->coord->workm, mat);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &arg0->coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {
         gte_ldv0(&block->src[i]);
@@ -344,7 +344,7 @@ static void func_800DE150(WorldCollisionBody* arg0)
     block                      = (GpEdgeScratch*)(head - 0x50);
     mat                        = (MATRIX*)(head - 0x20);
     src                        = arg0->context.capsule->ends;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mat);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {
         block->src[i].vx = (u16)src[i].vx + (u16)arg0->pos.vx;

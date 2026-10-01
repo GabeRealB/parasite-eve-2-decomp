@@ -3150,7 +3150,7 @@ static void func_actor_206100_8014E228(Task* task)
     c2   = &base[2];
     c3   = &base[3];
     c4   = &base[4];
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &c4->workm, &view);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &c4->workm, &view);
     delta.vx = (s16)work->field_4D0 - view.t[0];
     delta.vy = (s16)work->field_4D2 - (view.t[1] + 0x100);
     delta.vz = (s16)work->field_4D4 - view.t[2];

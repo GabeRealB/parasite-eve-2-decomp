@@ -1316,21 +1316,31 @@ void Gp_LoadStageView(void)
     PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
+/// Writes the reference-relative translation using the saved rotation.
+///
+/// `scratch->transposedRotation` must already hold the reference rotation's
+/// transpose. All three origin differences are saved before writing `out`,
+/// preserving complete-matrix aliasing with either input.
+static __inline__ void _gfxWriteRelativeTranslation(const MATRIX* reference, const MATRIX* target, MATRIX* out,
+                                                    _GfxRelativeTransformScratch* scratch)
+{
+    scratch->originDelta.vx = target->t[0] - reference->t[0];
+    scratch->originDelta.vy = target->t[1] - reference->t[1];
+    scratch->originDelta.vz = target->t[2] - reference->t[2];
+    // The SDK writes only XYZ into the matrix's three-word translation.
+    ApplyMatrixLV(&scratch->transposedRotation, &scratch->originDelta, (VECTOR*)out->t);
+}
+
+void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MATRIX* out)
 {
     _GfxRelativeTransformScratch* scratch;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxRelativeTransformScratch);
 
-    gte_TransposeMatrix(arg0, &scratch->transposedRotation);
-
-    gte_MulMatrix0(&scratch->transposedRotation, arg1, arg2);
-
-    scratch->originDelta.vx = arg1->t[0] - arg0->t[0];
-    scratch->originDelta.vy = arg1->t[1] - arg0->t[1];
-    scratch->originDelta.vz = arg1->t[2] - arg0->t[2];
-    // The SDK writes only XYZ into the matrix's three-word translation.
-    ApplyMatrixLV(&scratch->transposedRotation, &scratch->originDelta, (VECTOR*)arg2->t);
+    // Save the reference rotation before writing a possibly aliased output.
+    gte_TransposeMatrix(reference, &scratch->transposedRotation);
+    gte_MulMatrix0(&scratch->transposedRotation, target, out);
+    _gfxWriteRelativeTranslation(reference, target, out, scratch);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxRelativeTransformScratch);
 }

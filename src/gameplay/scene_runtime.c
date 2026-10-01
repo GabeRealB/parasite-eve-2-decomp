@@ -998,7 +998,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
         gte_ldv0(arg2);
         gte_rtv0tr();
         gte_stlvnl(dest->workm.t);
-        Gp_WorldToLocal(&world->workm, &dest->workm, &dest->coord);
+        gfxMakeRelativeTransform(&world->workm, &dest->workm, &dest->coord);
     }
     dest->parent       = &gGfxViewCoord;
     dest->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3440,7 +3440,7 @@ void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1)
         Gp_UpdateCoord(arg0);
         Gp_UpdateCoord(dest);
         dest->parent = arg0;
-        Gp_WorldToLocal(&arg0->workm, &dest->workm, &dest->coord);
+        gfxMakeRelativeTransform(&arg0->workm, &dest->workm, &dest->coord);
         dest->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }

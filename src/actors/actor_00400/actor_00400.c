@@ -4672,7 +4672,7 @@ static void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3)
 
     coords = arg0->extra.tmd->coords;
     work   = arg0->work;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[arg1].workm, &m);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[arg1].workm, &m);
     d.vx = work->field_5E4.vx - m.t[0];
     d.vy = work->field_5E4.vy - arg3 - m.t[1];
     d.vz = work->field_5E4.vz - m.t[2];
@@ -4699,8 +4699,8 @@ static void Actor00400_Fn0824C(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     coordB->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coordA);
     Gp_UpdateCoord(coordB);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coordA->workm, &a);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coordB->workm, &b);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordA->workm, &a);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordB->workm, &b);
     arg3->vx             = (a.t[0] + b.t[0]) / 2;
     arg3->vz             = (a.t[2] + b.t[2]) / 2;
     coordA->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4765,9 +4765,9 @@ static void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     coordB->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coordA);
     Gp_UpdateCoord(coordB);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[0].workm, &root);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coordA->workm, &a);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coordB->workm, &b);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordA->workm, &a);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coordB->workm, &b);
     coords[0].coord.t[0]   = arg3->vx - ((a.t[0] + b.t[0]) / 2 - root.t[0]);
     coords[0].coord.t[2]   = arg3->vz - ((a.t[2] + b.t[2]) / 2 - root.t[2]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;

@@ -20,7 +20,7 @@ void golemPawnRookAimLaserSight(Task* arg0)
     self[0].composeStamp = GRAPHICS_COORD_DIRTY;
     self[7].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&self[7]);
-    Gp_WorldToLocal(&self->workm, &self[7].workm, &scratch->mtx);
+    gfxMakeRelativeTransform(&self->workm, &self[7].workm, &scratch->mtx);
     scratch->vec.vy = 100;
     scratch->vec.vx = 0;
     scratch->vec.vz = -100;
