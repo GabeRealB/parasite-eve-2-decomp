@@ -66,6 +66,8 @@ STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 #define DESERT_CHASER_CLIP_STAGGER     0x10
 #define DESERT_CHASER_CLIP_COLLAPSE    0x13
 #define DESERT_CHASER_CLIP_STUNNED     0x15
+#define DESERT_CHASER_CLIP_TURN_STEP   0x11
+#define DESERT_CHASER_CLIP_TURN_PROBE  0x12
 #define DESERT_CHASER_SLOT_RATE(work)  ((work)->field_834) /* the chaser's own speed */
 /* seeing the player raises the alert and starts the chase */
 #define DESERT_CHASER_NOTICE(work) (Gp_ArmStateF0(1), (work)->field_0 = 0x26)
@@ -79,6 +81,8 @@ STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 #define DESERT_CHASER_CLIP_STAGGER     0x13 /* three more clips before these */
 #define DESERT_CHASER_CLIP_COLLAPSE    0x16
 #define DESERT_CHASER_CLIP_STUNNED     0x18
+#define DESERT_CHASER_CLIP_TURN_STEP   0x14
+#define DESERT_CHASER_CLIP_TURN_PROBE  0x15
 #define DESERT_CHASER_SLOT_RATE(work)  0x10 /* every runner alike */
 #define DESERT_CHASER_NOTICE(work)     ((work)->field_0 = 0x1C)
 #define DESERT_CHASER_CLOSE_IN         1500
