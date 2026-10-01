@@ -20,7 +20,7 @@
  * tmdDrawStreamPrimG4CornerNormals  untextured quad, one normal per corner
  * tmdDrawStreamPrimG4   the same quad, one normal for the whole face
  * tmdDrawStreamGt3SemiTrans/tmdDrawStreamGt3  gouraud textured triangle (+ ABR)
- * tmdDrawStreamGt4SemiTrans/tmdDrawStreamGt4  gouraud textured quad (+ ABR)
+ * tmdDrawStreamGt4SemiTrans/tmdDrawStreamGt4  gouraud textured quad (semi-transparent alternate)
  * tmdDrawStreamPrimGt3PreXform/tmdDrawStreamPrimGt3PreXformSemiTrans,
  * tmdDrawStreamPrimGt4PreXform/tmdDrawStreamPrimGt4PreXformSemiTrans
  *                        pre-transformed textured gouraud (+ ABR) tri/quad
@@ -524,10 +524,13 @@ glabel tmdDrawStreamGt3
     swc2        $22, 0x28($t8)
 .endm
 
+/* GPU command 0x3E with neutral RGB for semi-transparent per-corner lighting. */
+.equ TMD_DRAW_STREAM_GT4_SEMI_TRANS_COLOR, 0x3E808080
+
 alabel tmdDrawStreamGt4SemiTrans
-    /* 188C 8001108C */  lui         $t0, 0x3E80
-  .L80011090:
-    /* 1890 80011090 */  ori         $t0, $t0, 0x8080
+    /* Force the blended code; a1 still selects the shared walk's facing rule. */
+    /* 188C 8001108C */  lui         $t0, (TMD_DRAW_STREAM_GT4_SEMI_TRANS_COLOR >> 16)
+    /* 1890 80011090 */  ori         $t0, $t0, (TMD_DRAW_STREAM_GT4_SEMI_TRANS_COLOR & 0xFFFF)
     /* 1894 80011094 */  mtc2        $t0, $6
     /* 1898 80011098 */  j           .L800110B8
     /* 189C 8001109C */  nop

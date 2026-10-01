@@ -215,21 +215,41 @@ u32* tmdXformStreamVertsElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream
 /// is borrowed; no pointer is retained. Keep packets alive until the GPU finishes.
 u32* tmdDrawStreamGt3SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// The draw pass's handler for a stream's gouraud textured-quad records that ask
-/// for the semi-transparent primitive (`0x7A`): each element contributes one quad,
-/// taken to screen space and lit corner by corner, and the packet the build pass
-/// laid out for it is completed and linked into the ordering table, unless the
-/// transform clipped a corner or the facing test turned the quad away.
+/// Projects, lights and links a record's semi-transparent gouraud textured quads.
 ///
-/// The element is the opaque `0x78` quad's — a vertex and a normal per corner, and
-/// the same texture words — and the two entries share one body, so the primitive
-/// code the packet is built under is the whole of the difference between the two
-/// records: `0x3C` for the opaque quad and `0x3E` here, the semi-transparency bit
-/// being the difference. The element names no colour, so the quad is lit from a
-/// fixed mid-grey, and the same constant carries both, the code in its top byte.
-/// The opcode alone settles the variant: this entry does not test the `flags` bit
-/// the `0x78` one picks its code from.
-u32* tmdDrawStreamGt4SemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The `0x7A` draw entry always selects GPU code 0x3E, regardless of
+/// `objectFlags & TMD_OBJECT_SEMI_TRANS`. It shares `tmdDrawStreamGt4`'s
+/// geometry, lighting and packet walks. `objectFlags` carries `TmdObject.flags`:
+/// `TMD_OBJECT_REVERSE_CULLING` still reverses the facing rule. Ordinary facing
+/// keeps `NCLIP(2,1,0) < 0` or `NCLIP(2,1,3) > 0`; reversed facing keeps the
+/// opposite strict signs. The second test runs only if the first fails to keep
+/// the quad. Two zero areas and projections reporting `TMD_GTE_ERROR_FLAG`
+/// are rejected. Lighting uses one normal per corner with neutral RGB
+/// (128,128,128); the texture-page blend mode is left unchanged.
+///
+/// `elements` starts after the three-word header. `workspace->elemCount`
+/// supplies 0..65535 elements and `elemStride` their stride in u32 words,
+/// at least four. Those words pack eight u16 byte offsets: vertices 0..3,
+/// then normals 0..3. Each must name a complete, word-aligned eight-byte
+/// `SVECTOR` in its borrowed array. Standard records have seven words;
+/// `gpStreamPrimGt4` has already copied their texture words into one
+/// word-aligned `POLY_GT4` slot per element at `workspace->primWrite` in the
+/// selected buffer half's second region. The GTE part transform, light/colour
+/// matrices and background colour must already be set.
+///
+/// Every element consumes its 52-byte slot, including rejected quads, whose
+/// coordinates may be partially written. Accepted packets receive screen
+/// coordinates, lit colours and a twelve-word DMA length, then prepend to
+/// `workspace->ot` at bucket
+/// `(((u32)OTZ << workspace->otDepthShift) & 0x3FFF) >> 4`, using `AVSZ4` depth.
+/// The displaced OT base and wrapped 0..1023 bucket must fit the backing table;
+/// normal draw supplies shifts 0..3. Geometry, stream and packet capacities
+/// are not checked here.
+///
+/// Returns `elements + elemCount * elemStride` and advances `primWrite` past
+/// all slots. Workspace counts and saved GTE results are unchanged. All storage
+/// is borrowed; no pointer is retained. Keep packets alive until the GPU finishes.
+u32* tmdDrawStreamGt4SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// The draw pass's handler for a stream's pre-transformed textured-triangle
 /// records that ask for the semi-transparent primitive (`0x3B`): each element's
