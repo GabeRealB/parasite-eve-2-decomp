@@ -155,7 +155,7 @@ extern s32 gGluttonGrabActive;
 extern s16 gGluttonLimbReach;
 
 /// Cleared by both halves of the launch state and exposed through the setter /
-/// getter pair `func_actor_403200_80141108` and `func_actor_403200_80141114`;
+/// getter pair `gluttonSetSpinnersReleased` and `gluttonGetSpinnersReleased`;
 /// the spinner enemies wait for it to be 1 and die once it is 0.
 extern s16 gGluttonSpinnersReleased;
 
@@ -238,7 +238,7 @@ extern Actor403200SpawnRec D_actor_403200_8015F888[9];
 /// player, and cleared again when it restarts.
 
 /// The enemy task itself, published for the overlay's other code.
-extern Task* D_actor_403200_8015F8F0;
+extern Task* gGluttonHostTask;
 
 /// Shared 0x7DA payload buffer.
 extern ActorCommand D_actor_403200_8015F8F4;
@@ -367,13 +367,7 @@ s32                 func_actor_403200_80134A14(Task*, s16);
 s32                 func_actor_403200_80141124(Task*, s16);
 s32                 func_actor_403200_80141180(Task*, s16);
 s32                 func_actor_403200_801411A8(Task*, s16);
-void                func_actor_403200_80141430(Task*);
 void                func_actor_403200_8014148C(Task*);
-void                func_actor_403200_801414E8(Task*);
-void                func_actor_403200_80141564(Task*);
-void                func_actor_403200_80141670(Task*);
-void                func_actor_403200_80141778(Task*);
-void                func_actor_403200_80141868(Task*);
 
 s32  func_actor_403200_80138468(Task*, s32, s32);
 s32  func_actor_403200_80138748(Task*, s32, ActorCommand* msg);
@@ -2664,12 +2658,12 @@ AnimationSet* gGluttonCaughtAnimSets[7] = {
 };
 
 TaskDesc D_actor_403200_8015E72C[7] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_80148FF4 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_80147838 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_80144EF8 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_8014607C } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_8014A384 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_8014ACB8 } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &D_actor_403200_80148FF4 } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &D_actor_403200_80147838 } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &D_actor_403200_80144EF8 } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &D_actor_403200_8014607C } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &D_actor_403200_8014A384 } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &D_actor_403200_8014ACB8 } },
     { { { TASK_BODY_TMD, 96 } }, func_actor_403200_8014148C, { .model = &D_actor_403200_8014A858 } },
 };
 
@@ -2710,11 +2704,11 @@ u8 gGluttonRainPointIndex[3][8] = {
 };
 
 TaskDesc D_actor_403200_8015E858[5] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141564, { .model = &D_actor_403200_8014C1AC } },
-    { { { TASK_BODY_COORD, 96 } }, func_actor_403200_80141778, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, func_actor_403200_801414E8, { .value = 0 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141670, { .model = &D_actor_403200_8014E048 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141868, { .model = &D_actor_403200_8014B588 } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonGlobTask, { .model = &D_actor_403200_8014C1AC } },
+    { { { TASK_BODY_COORD, 96 } }, gluttonRainTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, gluttonThrowTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonChunkTask, { .model = &D_actor_403200_8014E048 } },
+    { { { TASK_BODY_TMD, 96 } }, gluttonSpinnerTask, { .model = &D_actor_403200_8014B588 } },
 };
 
 AnimationPackedPose D_actor_403200_8015E894[7] = {
@@ -2857,7 +2851,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-Task* D_actor_403200_8015F8F0 = NULL;
+Task* gGluttonHostTask = NULL;
 
 ActorCommand D_actor_403200_8015F8F4 = { { .loc = { 0, 0 } }, 0 };
 
@@ -2929,10 +2923,6 @@ static void            func_actor_403200_8013EB64(Task* arg0);
 static void            func_actor_403200_8013EF6C(Task* arg0);
 static inline void     _actor403200TintEscort(TmdObject* model);
 static void            func_actor_403200_8013F700(Task* arg0);
-static void            func_actor_403200_80140FD4(s32 arg0, s16 arg1);
-static void            func_actor_403200_801410F0(s8 arg0);
-static void            func_actor_403200_80141108(s16 arg0);
-static s16             func_actor_403200_80141114(void);
 
 /// Walk `coord` 0x19/0x1000 of the way along its own forward axis (column 2 of
 /// its rotation, normalised and GPF-scaled) and flag it for rebuild. The
@@ -3427,10 +3417,10 @@ static const Actor403200ViewPoints D_actor_403200_80131E64 = {
     },
 };
 
-/// State handlers of the escort model task `func_actor_403200_80141430` and
+/// State handlers of the escort model task `gluttonPropTask` and
 /// `func_actor_403200_8014148C` dispatch: texture setup, coordinate refresh,
 /// teardown.
-static const GpEnemyTaskFuncTable3 D_actor_403200_80131E84 = {
+static const GpEnemyTaskFuncTable3 gGluttonPropStates = {
     {
         gluttonPropSetup,
         gluttonPropTick,
@@ -3683,7 +3673,7 @@ static void func_actor_403200_80134D40(Task* arg0)
 
 /// State handlers of the enemy stood up on the host's first escort: spawn,
 /// flight, teardown.
-static const GpEnemyTaskFuncTable3 D_actor_403200_80131E90 = {
+static const GpEnemyTaskFuncTable3 gGluttonThrowStates = {
     {
         gluttonThrowSpawn,
         gluttonThrowFly,
@@ -3701,7 +3691,7 @@ static const GpEnemyTaskFuncTable3 D_actor_403200_80131E90 = {
 
 /// State handlers of the grab enemy, by state: entry, bounce, rise, hold and
 /// teardown.
-static const GpEnemyTaskFuncTable5 D_actor_403200_80131E9C = {
+static const GpEnemyTaskFuncTable5 gGluttonGlobStates = {
     {
         gluttonGlobSpawn,
         gluttonGlobFall,
@@ -3719,7 +3709,7 @@ static const GpEnemyTaskFuncTable5 D_actor_403200_80131E9C = {
 
 /// State handlers of the enemy dropped from the host's part 3: spawn, fall,
 /// settle, teardown.
-static const GpEnemyTaskFuncTable4 D_actor_403200_80131F04 = {
+static const GpEnemyTaskFuncTable4 gGluttonChunkStates = {
     {
         gluttonChunkSpawn,
         gluttonChunkFall,
@@ -3738,7 +3728,7 @@ static const GpEnemyTaskFuncTable4 D_actor_403200_80131F04 = {
 
 /// State handlers of the enemy that rises out of view and slams back down:
 /// spawn, rise, descent, landing, teardown.
-static const GpEnemyTaskFuncTable5 D_actor_403200_80131F14 = {
+static const GpEnemyTaskFuncTable5 gGluttonRainStates = {
     {
         gluttonRainSpawn,
         gluttonRainRise,
@@ -3753,7 +3743,7 @@ static const GpEnemyTaskFuncTable5 D_actor_403200_80131F14 = {
 #include "../../shared/glutton_spinner_chase.inc.c"
 
 /// State handlers of the spinner enemy: spawn, wait, home, teardown.
-static const GpEnemyTaskFuncTable4 D_actor_403200_80131F28 = {
+static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
     {
         gluttonSpinnerSpawn,
         gluttonSpinnerWait,
@@ -4367,7 +4357,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 
     work->field_E94 = work->field_E96 = 0x9C4;
     work->field_E98                   = 0x190;
-    D_actor_403200_8015F8F0           = task;
+    gGluttonHostTask                  = task;
     work->field_F1B = work->field_F1C = 0;
     task->state                      += 1;
 }
@@ -7697,40 +7687,15 @@ void func_actor_403200_80140E6C(Task* arg0)
     sp.funcs[arg0->state](enemy, arg0);
 }
 
-/// Set the heights of collision grid quads `arg1` and `arg1 + 1`: 500 for each
-/// quad's first two vertices, 800 for the other two. Nothing in the actor calls
-/// it.
-static void func_actor_403200_80140FD4(s32 arg0, s16 arg1)
-{
-    SVECTOR* verts;
-
-    verts                  = Gp_GridParams->vertices;
-    verts[arg1 * 4].vy     = 500;
-    verts[arg1 * 4 + 1].vy = 500;
-    verts[arg1 * 4 + 2].vy = 800;
-    verts[arg1 * 4 + 3].vy = 800;
-    verts[arg1 * 4 + 4].vy = 500;
-    verts[arg1 * 4 + 5].vy = 500;
-    verts[arg1 * 4 + 6].vy = 800;
-    verts[arg1 * 4 + 7].vy = 800;
-}
+#include "../../shared/glutton_quad_heights.inc.c"
 
 #include "../../shared/glutton_exit.inc.c"
 
-static void func_actor_403200_801410F0(s8 arg0)
-{
-    ((Actor403200Work*)D_actor_403200_8015F8F0->work)->field_EAC = arg0;
-}
+#include "../../shared/glutton_shake_level.inc.c"
 
-static void func_actor_403200_80141108(s16 arg0)
-{
-    gGluttonSpinnersReleased = arg0;
-}
+#include "../../shared/glutton_set_spinners_released.inc.c"
 
-static s16 func_actor_403200_80141114(void)
-{
-    return gGluttonSpinnersReleased;
-}
+#include "../../shared/glutton_get_spinners_released.inc.c"
 
 s32 func_actor_403200_80141124(Task* arg0, s16 arg1)
 {
@@ -7810,166 +7775,24 @@ static void func_actor_403200_8014123C(Task* arg0)
 
 #include "../../shared/glutton_prop_tick.inc.c"
 
-void func_actor_403200_80141430(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
+#include "../../shared/glutton_prop_task.inc.c"
 
-    sp = D_actor_403200_80131E84;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+/// A further copy, under this file's own name.
+#define gluttonPropTask func_actor_403200_8014148C
+#include "../../shared/glutton_prop_task.inc.c"
+#undef gluttonPropTask
 
-void func_actor_403200_8014148C(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
+#include "../../shared/glutton_throw_task.inc.c"
 
-    sp = D_actor_403200_80131E84;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/glutton_glob_task.inc.c"
 
-/// Dispatcher of the enemy `D_actor_403200_80131E90` drives: run the handler for
-/// the task's state, skipped while the global game mode is 2.
-void func_actor_403200_801414E8(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
+#include "../../shared/glutton_chunk_task.inc.c"
 
-    sp = D_actor_403200_80131E90;
-    switch (gSceneCombatState.actorControl) {
-        default:
-        case SCENE_COMBAT_ACTORS_RUNNING:
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-            break;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            break;
-    }
-}
-
-/// Dispatcher of the grab enemy (`D_actor_403200_80131E9C`): park the model
-/// object while the global game mode is 1 or 2, otherwise note in the work
-/// block whether the state changed since the last step and run the handler for
-/// it. Unlike `func_actor_403200_80141670` it guards the bookkeeping on the
-/// state being non-zero rather than on the work block existing, and clears the
-/// model object's flag word rather than leaving it 2.
-void func_actor_403200_80141564(Task* arg0)
-{
-    GpEnemyTaskFuncTable5 sp;
-    Actor403200GrabWork*  work;
-
-    sp   = D_actor_403200_80131E9C;
-    work = (Actor403200GrabWork*)arg0->work;
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            arg0->extra.tmd->flags = 0;
-            break;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            arg0->extra.tmd->flags = 0;
-            return;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-    }
-
-    if (arg0->state != 0) {
-        if (work->field_1B4 != arg0->state) {
-            work->field_1A8 = 1;
-        } else {
-            work->field_1A8 = 0;
-        }
-        work->field_1B4 = arg0->state;
-    }
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
-
-/// Dispatcher of the `D_actor_403200_80131F04` enemy: park the model object
-/// while the global game mode is 1 or 2, otherwise note in the work block
-/// whether the state changed since the last step and run the handler for it.
-/// The model object's flag word is left at 2 while the enemy runs.
-void func_actor_403200_80141670(Task* arg0)
-{
-    GpEnemyTaskFuncTable4 sp;
-    Actor403200GrabWork*  work;
-
-    sp = D_actor_403200_80131F04;
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-            break;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-            return;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-    }
-
-    if (arg0->work != NULL) {
-        work = (Actor403200GrabWork*)arg0->work;
-        if (work->field_1B4 != arg0->state) {
-            work->field_1A8 = 1;
-        } else {
-            work->field_1A8 = 0;
-        }
-        work->field_1B4 = arg0->state;
-    }
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
-
-/// Dispatcher of the dropped enemy (`D_actor_403200_80131F14`): run the handler
-/// for the task's state, skipped while the global game mode is 1 or 2.
-void func_actor_403200_80141778(Task* arg0)
-{
-    GpEnemyTaskFuncTable5 sp;
-
-    sp = D_actor_403200_80131F14;
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_RUNNING:
-        default:
-            sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-            break;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            break;
-    }
-}
+#include "../../shared/glutton_rain_task.inc.c"
 
 #include "../../shared/glutton_spinner_wait.inc.c"
 
-/// Dispatcher of the spinner enemy (`D_actor_403200_80131F28`): park the model
-/// object while the global game mode is 1 or 2, otherwise note in the work
-/// block whether the state changed since the last step and run the handler for
-/// it.
-void func_actor_403200_80141868(Task* arg0)
-{
-    GpEnemyTaskFuncTable4   sp;
-    Actor403200SpinnerWork* work;
-
-    sp = D_actor_403200_80131F28;
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            arg0->extra.tmd->flags = 0;
-            break;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            arg0->extra.tmd->flags = 0;
-            return;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-    }
-
-    if (arg0->work != NULL) {
-        work = (Actor403200SpinnerWork*)arg0->work;
-        if (work->field_94 != arg0->state) {
-            work->field_90 = 1;
-        } else {
-            work->field_90 = 0;
-        }
-        work->field_94 = arg0->state;
-    }
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/glutton_spinner_task.inc.c"
 
 void func_actor_403200_8014196C(void)
 {

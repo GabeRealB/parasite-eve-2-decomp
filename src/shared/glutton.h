@@ -21,6 +21,13 @@
 #ifndef SRC_SHARED_GLUTTON_H
 #define SRC_SHARED_GLUTTON_H
 
+/// The Glutton's host task, as the helpers reach it. A package whose symbol
+/// is a wider object holding the pointer defines this as the member before
+/// including the header.
+#ifndef GLUTTON_HOST_TASK
+#define GLUTTON_HOST_TASK gGluttonHostTask
+#endif
+
 #include "types.h"
 
 #include "main/coord.h"
@@ -58,5 +65,16 @@ void gluttonSpinnerWait(Enemy* arg0, Task* arg1);
 static inline void gluttonShrinkRotation(GfxCoord* coord);
 static inline void gluttonScaleRotation(GfxCoord* coord, s16 xz, s32 y);
 static inline void gluttonGapToCamera(GfxCoord* coord, SVECTOR* out);
+
+void gluttonGlobTask(Task* arg0);
+void gluttonChunkTask(Task* arg0);
+void gluttonSpinnerTask(Task* arg0);
+void gluttonRainTask(Task* arg0);
+void gluttonThrowTask(Task* arg0);
+void gluttonPropTask(Task* arg0);
+void gluttonSetQuadHeights(s32 arg0, s16 arg1);
+void gluttonSetShakeLevel(s8 arg0);
+void gluttonSetSpinnersReleased(s16 arg0);
+s16  gluttonGetSpinnersReleased(void);
 
 #endif /* SRC_SHARED_GLUTTON_H */
