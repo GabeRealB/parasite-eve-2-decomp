@@ -71686,7 +71686,7 @@ This supports the eligibility rule in CODEGEN_MODEL §10.3; it does not establis
 ## Two overlay globals of the same struct type can own differently-sized work blocks
 
 **Problem.** `actor_444000` publishes two task pointers, `D_actor_444000_80161860`
-and `D_actor_444000_80161878`, and the header had typed both `Actor444000*` with a
+and `_gGluttonHostTask.task`, and the header had typed both `Actor444000*` with a
 single `Actor444000Work* field_1C`. Fields were then filed into that one struct from
 whichever function touched them, so `field_2C` / `field_2E` (reached through
 `80161860`) and `field_0` / `field_EAC` (reached through `80161878`) shared a

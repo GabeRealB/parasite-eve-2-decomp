@@ -238,9 +238,6 @@ extern Actor403200SpawnRec D_actor_403200_8015F888[9];
 /// Non-zero once the launch state has published the enemy's position to the
 /// player, and cleared again when it restarts.
 
-/// The enemy task itself, published for the overlay's other code.
-extern Task* gGluttonHostTask;
-
 /// Shared 0x7DA payload buffer.
 extern ActorCommand D_actor_403200_8015F8F4;
 
@@ -2851,7 +2848,10 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-Task* gGluttonHostTask = NULL;
+/// Borrowed host task reference for screen-shake requests while the boss lives.
+///
+/// NULL until successful spawn; teardown does not clear this reference.
+static Task* _gGluttonHostTask = NULL;
 
 ActorCommand D_actor_403200_8015F8F4 = { { .loc = { 0, 0 } }, 0 };
 
@@ -4249,7 +4249,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 
     work->field_E94 = work->field_E96 = 0x9C4;
     work->field_E98                   = 0x190;
-    gGluttonHostTask                  = task;
+    _gGluttonHostTask                 = task;
     work->field_F1B = work->field_F1C = 0;
     task->state                      += 1;
 }

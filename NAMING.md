@@ -382,6 +382,10 @@ entry task and scenes between the day and night packages. Its interface is
 the compiled instance's function bindings independently of runtime stage
 selection.
 
+`glutton` owns the included boss helpers shared by `actor_403200` and
+`actor_444000`. Its implementation interface is `src/shared/glutton.h`;
+`GLUTTON_` instance bindings select each carrier's local boss state.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before

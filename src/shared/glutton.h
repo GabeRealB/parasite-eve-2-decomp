@@ -26,11 +26,17 @@
 #ifndef SRC_SHARED_GLUTTON_H
 #define SRC_SHARED_GLUTTON_H
 
-/// The Glutton's host task, as the helpers reach it. A package whose symbol
-/// is a wider object holding the pointer defines this as the member before
-/// including the header.
+/// Binds the shared shake helper to the current instance's borrowed host task.
+///
+/// Must expand to a side-effect-free `Task*` expression. The default selects
+/// actor_403200's private pointer; actor_444000 overrides it before this header
+/// with its storage record's `task` member. Both carriers declare the storage
+/// before including the shake helper. Evaluated once per shake request; the
+/// host and its `GluttonWork` must be alive. Spawn publishes the pointer,
+/// and teardown leaves it stale, so requests require a successfully spawned,
+/// still-live host. The binding neither owns the task nor checks for NULL.
 #ifndef GLUTTON_HOST_TASK
-#define GLUTTON_HOST_TASK gGluttonHostTask
+#define GLUTTON_HOST_TASK (_gGluttonHostTask)
 #endif
 
 #define GLUTTON_DUMPING_HOLE 1

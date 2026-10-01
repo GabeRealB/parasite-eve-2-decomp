@@ -66,8 +66,8 @@
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/actor_contacts.h"
-// The host-task symbol carries four zero bytes after the pointer.
-#define GLUTTON_HOST_TASK gGluttonHostTask.value
+/// Binds the shared shake helper to this instance's borrowed host task pointer.
+#define GLUTTON_HOST_TASK (_gGluttonHostTask.task)
 #define GLUTTON_ROOM      GLUTTON_INCINERATOR
 #include "../../shared/glutton.h"
 
@@ -180,17 +180,12 @@ STATIC_ASSERT_SIZEOF(Actor444000DragScratch, 0x4C);
 /// The overlay's event/controller task, whose `work` holds an
 /// `Actor444000EventWork`.
 extern Task* D_actor_444000_80161860;
-/// The enemy task itself, published for the overlay's other code.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Storage for this Glutton instance's borrowed host task pointer.
 typedef struct {
-    Task* value;
-    u8    retained[4];
-} Actor444000Storage1878;
-STATIC_ASSERT_SIZEOF(Actor444000Storage1878, 8);
-
-extern Actor444000Storage1878 gGluttonHostTask;
+    Task* task;         // Main boss task; NULL until successful spawn, not cleared at teardown
+    u8    unknown_4[4]; // Zero-initialized bytes with no established accesses; role unproven
+} _GluttonHostTaskStorage;
+STATIC_ASSERT_SIZEOF(_GluttonHostTaskStorage, 8);
 
 /// Weapon class (1 is the class whose animations sit at the low base) and the
 /// equipped-weapon index within it; together they pick the player animation the
@@ -2676,7 +2671,8 @@ Actor444000Storage1868 D_actor_444000_80161868 = { 0, { 0, 0, 0, 0, 0, 0, 0 } };
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
-Actor444000Storage1878 gGluttonHostTask = { NULL, { 0, 0, 0, 0 } };
+/// Borrowed host task reference for screen-shake requests while the boss lives.
+static _GluttonHostTaskStorage _gGluttonHostTask = { NULL, { 0 } };
 
 EffectSpawnArg D_actor_444000_80161880 = { NULL, 0, 0 };
 
@@ -4483,7 +4479,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 
     gSceneCombatState.battleRefs = 0xA;
     Gp_ReleaseStateF0Add(task, 0x20);
-    gGluttonHostTask.value = task;
+    _gGluttonHostTask.task = task;
     work->field_F1B = work->field_F1C = 0;
     task->state                      += 1;
 }
