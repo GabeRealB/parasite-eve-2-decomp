@@ -53,8 +53,17 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#define EFFECT_SPRITE_SHARED_BILLBOARD
+
+/// Selects this room's billboard declaration with `s32` frame and size arguments.
+///
+/// Presence-only configuration for the first inclusion of `effect_sprite.h`;
+/// the replacement value is unused. Leave the halfword argument flag undefined
+/// and undefine this flag after the header. The drawer narrows frame to `u16`
+/// and size to `s16` internally; the call signature remains word-sized.
+#define EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
 #include "../../shared/effect_sprite.h"
+#undef EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
+
 #include "../../shared/screen_wave.h"
 
 #define D_shelter_b3_garbage_incinerator_8018754C (D_shelter_b3_garbage_incinerator_80187544 + 1)
