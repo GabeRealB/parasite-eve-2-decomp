@@ -110,8 +110,7 @@ enum {
     /// transition durations must fit the signed remaining time after scaling
     /// (0..2047 whole frames). Interpolation weights use the separate
     /// `ANIMATION_BLEND_FRACTION_BITS` scale.
-    ANIMATION_TIME_FRACTION_BITS   = 4,
-    ANIMATION_TIME_UNITS_PER_FRAME = 1 << ANIMATION_TIME_FRACTION_BITS
+    ANIMATION_TIME_FRACTION_BITS = 4
 };
 STATIC_ASSERT((1 << ANIMATION_TIME_FRACTION_BITS) == ANIMATION_RATE_ONE, animation_time_fraction_matches_rate_one);
 
@@ -2585,7 +2584,7 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
             arg3 = -arg3;
         }
 
-        arg1->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+        arg1->rate                            = ANIMATION_RATE_ONE;
         arg1->timeLeft                        = 0;
         arg1->currentPose.indices.setIndex    = arg3;
         arg1->currentPose.indices.recordIndex = 0;
@@ -2623,7 +2622,7 @@ void Gp_AnimInitSlot(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s
         arg3 = -arg3;
     }
 
-    arg1->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+    arg1->rate                            = ANIMATION_RATE_ONE;
     arg1->timeLeft                        = 0;
     arg1->currentPose.indices.setIndex    = arg3;
     arg1->currentPose.indices.recordIndex = 0;
@@ -2713,7 +2712,7 @@ void Gp_AnimResetSlot(AnimationContext* context, s32 arg1, s32 arg2)
     u8             recordFlags;
 
     slot                                  = &context->slots[arg1];
-    slot->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+    slot->rate                            = ANIMATION_RATE_ONE;
     slot->timeLeft                        = 0;
     slot->currentPose.indices.setIndex    = arg2;
     slot->currentPose.indices.recordIndex = 0;
@@ -2737,7 +2736,7 @@ void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3,
     u8             recordFlags;
 
     slot                                  = &context->slots[arg1];
-    slot->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+    slot->rate                            = ANIMATION_RATE_ONE;
     slot->timeLeft                        = 0;
     slot->currentPose.indices.setIndex    = arg2;
     slot->currentPose.indices.recordIndex = 0;
