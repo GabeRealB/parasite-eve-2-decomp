@@ -65,8 +65,22 @@ enum {
     /// palettes must already be loaded.
     /// Inline `\w1` or `\W1` also selects this path and stores the selector in
     /// the request; inline `\w0` or `\W0` switches to translucent outlined text.
-    TEXT_DRAW_OUTLINED              = 1,
-    TEXT_DRAW_OUTLINED_SINGLE_ENTRY = 2, // Fill and outline with separate texture-page packets in one OT entry.
+    TEXT_DRAW_OUTLINED = 1,
+    /// Draws opaque glyph fills and subtractive outlines in one ordering-table entry.
+    ///
+    /// Selector 2 in `TextDrawReq::drawMode`. Both passes use the signed
+    /// `otIndex` entry in `gGpuCurrentOt`; no following entry is needed while
+    /// this mode remains selected. Each glyph's unmodulated outline executes
+    /// before its color-modulated fill, with a texture-page packet before each
+    /// pass. Fill RGB starts at `colorRgb` and follows inline color commands.
+    /// Each glyph reserves two sprites and two texture-page packets (56 bytes)
+    /// in the active primitive buffer. A line ending in this mode reserves one
+    /// additional texture-page packet (8 bytes), even when no glyph was drawn.
+    /// The entry and packet storage must be writable, with sufficient capacity;
+    /// font textures and text palettes must already be loaded.
+    /// Inline `\w0` or `\w1` (either letter case) changes the request to
+    /// translucent outlined or outlined text, which also needs `otIndex + 1`.
+    TEXT_DRAW_OUTLINED_SINGLE_ENTRY = 2,
     TEXT_DRAW_TRANSLUCENT_OUTLINED  = 3, // Translucent fill, alternate outline palette in the next OT entry.
     TEXT_DRAW_OUTLINE_ONLY          = 4, // Unmodulated outline; ignores colorRgb.
 };
