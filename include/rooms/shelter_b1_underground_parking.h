@@ -25,7 +25,7 @@ extern GpAreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
 extern ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0;
 
 // shelter_b1_underground_parking
-extern GpRoomCoordRec D_shelter_b1_underground_parking_801877B4[];
+extern WorldCoordRoomLighting D_shelter_b1_underground_parking_801877B4[];
 
 extern GpRoomObjRec D_shelter_b1_underground_parking_801877F4[];
 

@@ -267,7 +267,7 @@ u8* D_dryfield_gas_station_8018315C[1] = {
     D_8010CAF8,
 };
 
-GpRoomCoordRec D_dryfield_gas_station_80183160[1] = {
+WorldCoordRoomLighting D_dryfield_gas_station_80183160[1] = {
     { D_dryfield_gas_station_80184B48, NULL },
 };
 

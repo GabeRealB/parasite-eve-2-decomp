@@ -130,7 +130,7 @@ GpRoomObjRec D_shelter_1f_bulwark_801803B0[1] = {
     { D_shelter_1f_bulwark_80180648, D_shelter_1f_bulwark_80180A8C, D_shelter_1f_bulwark_80180B24, D_shelter_1f_bulwark_80180E08 },
 };
 
-GpRoomCoordRec D_shelter_1f_bulwark_801803C0[1] = {
+WorldCoordRoomLighting D_shelter_1f_bulwark_801803C0[1] = {
     { D_shelter_1f_bulwark_80180A74, NULL },
 };
 

@@ -742,7 +742,7 @@ GpViewCountRec D_acropolis_cafeteria_801875BC[4] = {
     { { .bytes = { 24, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_cafeteria_801875C4[4] = {
+WorldCoordRoomLighting D_acropolis_cafeteria_801875C4[4] = {
     { D_acropolis_cafeteria_8018AA18, D_acropolis_cafeteria_8018C90C },
     { D_acropolis_cafeteria_8018AA18, D_acropolis_cafeteria_8018C90C },
     { D_acropolis_cafeteria_8018AA18, D_acropolis_cafeteria_8018C90C },

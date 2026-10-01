@@ -991,7 +991,7 @@ GpRoomObjRec D_mine_cavern_80188FE0[3] = {
     { D_mine_cavern_8018981C, D_mine_cavern_8018D744, D_mine_cavern_8018DC9C, D_mine_cavern_8018E078 },
 };
 
-GpRoomCoordRec D_mine_cavern_80189010[3] = {
+WorldCoordRoomLighting D_mine_cavern_80189010[3] = {
     { D_mine_cavern_8018D13C, NULL },
     { D_mine_cavern_8018D13C, NULL },
     { D_mine_cavern_8018D13C, NULL },

@@ -596,7 +596,7 @@ SVECTOR D_shelter_b1_underground_parking_801877A4[2] = {
     { -8250, -3080, 1780, 0 },
 };
 
-GpRoomCoordRec D_shelter_b1_underground_parking_801877B4[8] = {
+WorldCoordRoomLighting D_shelter_b1_underground_parking_801877B4[8] = {
     { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
     { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },
     { D_shelter_b1_underground_parking_8018B07C, D_shelter_b1_underground_parking_8018D638 },

@@ -21,7 +21,7 @@ extern TmdSource D_dryfield_trailer_coach_80184554;
 // dryfield_trailer_coach
 extern GpRoomObjRec D_dryfield_trailer_coach_801871CC[];
 
-extern GpRoomCoordRec D_dryfield_trailer_coach_801871DC[];
+extern WorldCoordRoomLighting D_dryfield_trailer_coach_801871DC[];
 
 extern u8* D_dryfield_trailer_coach_801871E4[];
 

@@ -479,7 +479,7 @@ GpViewCountRec D_acropolis_roof_garden_80184CA0[1] = {
     { { .bytes = { 7, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_roof_garden_80184CA4[1] = {
+WorldCoordRoomLighting D_acropolis_roof_garden_80184CA4[1] = {
     { D_acropolis_roof_garden_80186BDC, NULL },
 };
 

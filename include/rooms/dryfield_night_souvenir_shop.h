@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_souvenir_shop_8017F62C[12];
 
 // dryfield_night_souvenir_shop
-extern GpRoomCoordRec D_dryfield_night_souvenir_shop_8017E0E4[];
+extern WorldCoordRoomLighting D_dryfield_night_souvenir_shop_8017E0E4[];
 
 extern GpRoomObjRec D_dryfield_night_souvenir_shop_8017E0EC[];
 

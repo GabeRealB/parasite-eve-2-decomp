@@ -167,7 +167,7 @@ GpViewCountRec D_acropolis_observatory_8017FEF8[2] = {
     { { .bytes = { 8, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_observatory_8017FEFC[2] = {
+WorldCoordRoomLighting D_acropolis_observatory_8017FEFC[2] = {
     { D_acropolis_observatory_8018177C, NULL },
     { D_acropolis_observatory_8018177C, NULL },
 };

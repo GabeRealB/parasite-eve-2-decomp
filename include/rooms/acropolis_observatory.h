@@ -20,7 +20,7 @@ extern u8* D_acropolis_observatory_8017FEF0[];
 
 extern GpViewCountRec D_acropolis_observatory_8017FEF8[];
 
-extern GpRoomCoordRec D_acropolis_observatory_8017FEFC[];
+extern WorldCoordRoomLighting D_acropolis_observatory_8017FEFC[];
 
 extern GpWarpRec D_acropolis_observatory_8017FF0C[];
 

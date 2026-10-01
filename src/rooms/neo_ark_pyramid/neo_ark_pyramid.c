@@ -102,7 +102,7 @@ GpRoomObjRec D_neo_ark_pyramid_8017FC28[2] = {
     { D_neo_ark_pyramid_801802C4, D_neo_ark_pyramid_801812B0, D_neo_ark_pyramid_80181478, D_neo_ark_pyramid_80181790 },
 };
 
-GpRoomCoordRec D_neo_ark_pyramid_8017FC48[2] = {
+WorldCoordRoomLighting D_neo_ark_pyramid_8017FC48[2] = {
     { D_neo_ark_pyramid_80181298, NULL },
     { D_neo_ark_pyramid_80181298, NULL },
 };

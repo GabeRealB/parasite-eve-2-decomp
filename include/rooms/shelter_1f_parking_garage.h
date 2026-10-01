@@ -16,7 +16,7 @@ extern GpAreaVariant D_shelter_1f_parking_garage_801818D8[12];
 // shelter_1f_parking_garage
 extern GpRoomObjRec D_shelter_1f_parking_garage_80180C64[];
 
-extern GpRoomCoordRec D_shelter_1f_parking_garage_80180C74[];
+extern WorldCoordRoomLighting D_shelter_1f_parking_garage_80180C74[];
 
 extern u8* D_shelter_1f_parking_garage_80180C7C[];
 

@@ -130,7 +130,7 @@ SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[21] = {
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-GpRoomCoordRec D_shelter_b1_south_maintenance_walkway_801823F4[1] = {
+WorldCoordRoomLighting D_shelter_b1_south_maintenance_walkway_801823F4[1] = {
     { D_shelter_b1_south_maintenance_walkway_80183094, NULL },
 };
 

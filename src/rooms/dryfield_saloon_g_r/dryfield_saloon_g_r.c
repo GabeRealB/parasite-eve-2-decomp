@@ -174,7 +174,7 @@ GpViewCountRec D_dryfield_saloon_g_r_8017EDD8[2] = {
     { { .bytes = { 13, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_saloon_g_r_8017EDDC[2] = {
+WorldCoordRoomLighting D_dryfield_saloon_g_r_8017EDDC[2] = {
     { D_dryfield_saloon_g_r_80181AC8, NULL },
     { D_dryfield_saloon_g_r_80181AC8, NULL },
 };

@@ -92,7 +92,7 @@ SVECTOR D_dryfield_night_breezeway_8017E6A4[8] = {
     { 10000, -2600, 1140, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_breezeway_8017E6E4[1] = {
+WorldCoordRoomLighting D_dryfield_night_breezeway_8017E6E4[1] = {
     { D_dryfield_night_breezeway_80180158, NULL },
 };
 

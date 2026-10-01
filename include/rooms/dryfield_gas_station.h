@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_gas_station_8018314C[];
 
 extern u8* D_dryfield_gas_station_8018315C[];
 
-extern GpRoomCoordRec D_dryfield_gas_station_80183160[];
+extern WorldCoordRoomLighting D_dryfield_gas_station_80183160[];
 
 extern GpViewCountRec D_dryfield_gas_station_80183168[];
 

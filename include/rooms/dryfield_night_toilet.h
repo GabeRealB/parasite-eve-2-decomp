@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_toilet_8017F354[12];
 
 // dryfield_night_toilet
-extern GpRoomCoordRec D_dryfield_night_toilet_8017DAB0[];
+extern WorldCoordRoomLighting D_dryfield_night_toilet_8017DAB0[];
 
 extern GpRoomObjRec D_dryfield_night_toilet_8017DAB8[];
 

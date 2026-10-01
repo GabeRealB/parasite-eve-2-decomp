@@ -217,7 +217,7 @@ SVECTOR D_mine_refuge_801818D8[2] = {
 
 SVECTOR D_mine_refuge_801818E8 = { 2731, -1261, 4325, 0 };
 
-GpRoomCoordRec D_mine_refuge_801818F0[1] = {
+WorldCoordRoomLighting D_mine_refuge_801818F0[1] = {
     { D_mine_refuge_80182760, D_mine_refuge_80182A58 },
 };
 

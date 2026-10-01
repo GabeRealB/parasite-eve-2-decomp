@@ -570,7 +570,7 @@ GpViewCountRec D_acropolis_helicopter_landing_pad_80184F40[1] = {
     { { .bytes = { 27, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_helicopter_landing_pad_80184F44[1] = {
+WorldCoordRoomLighting D_acropolis_helicopter_landing_pad_80184F44[1] = {
     { D_acropolis_helicopter_landing_pad_80186AE8, NULL },
 };
 

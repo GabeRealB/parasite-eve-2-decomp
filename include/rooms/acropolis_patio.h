@@ -20,7 +20,7 @@ extern u8* D_acropolis_patio_80182EC0[];
 
 extern GpViewCountRec D_acropolis_patio_80182ECC[];
 
-extern GpRoomCoordRec D_acropolis_patio_80182ED4[];
+extern WorldCoordRoomLighting D_acropolis_patio_80182ED4[];
 
 extern GpWarpRec D_acropolis_patio_80182EEC[];
 

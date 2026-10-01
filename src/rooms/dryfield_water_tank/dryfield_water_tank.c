@@ -481,7 +481,7 @@ GpViewCountRec D_dryfield_water_tank_801868F4[2] = {
     { { .bytes = { 0, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_water_tank_801868F8[1] = {
+WorldCoordRoomLighting D_dryfield_water_tank_801868F8[1] = {
     { D_dryfield_water_tank_80188908, D_dryfield_water_tank_80188C58 },
 };
 

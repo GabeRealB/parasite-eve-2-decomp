@@ -249,7 +249,7 @@ GpRoomObjRec D_neo_ark_power_plant_2_80180690[1] = {
     { D_neo_ark_power_plant_2_80180DC4, D_neo_ark_power_plant_2_801828C0, D_neo_ark_power_plant_2_80182B20, D_neo_ark_power_plant_2_80182E78 },
 };
 
-GpRoomCoordRec D_neo_ark_power_plant_2_801806A0[1] = {
+WorldCoordRoomLighting D_neo_ark_power_plant_2_801806A0[1] = {
     { D_neo_ark_power_plant_2_801828A8, D_neo_ark_power_plant_2_80182EB4 },
 };
 

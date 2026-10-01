@@ -1174,7 +1174,7 @@ s32 D_dryfield_night_gas_station_80189D54[19] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomCoordRec D_dryfield_night_gas_station_80189DB0[4] = {
+WorldCoordRoomLighting D_dryfield_night_gas_station_80189DB0[4] = {
     { D_dryfield_night_gas_station_8018FAC0, D_dryfield_night_gas_station_80190684 },
     { D_dryfield_night_gas_station_8018FD78, D_dryfield_night_gas_station_80190684 },
     { D_dryfield_night_gas_station_8018FD78, D_dryfield_night_gas_station_80190684 },

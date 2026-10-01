@@ -119,7 +119,7 @@ GpViewCountRec D_dryfield_g_r_kitchen_8017EC3C[1] = {
     { { .bytes = { 3, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_g_r_kitchen_8017EC40[1] = {
+WorldCoordRoomLighting D_dryfield_g_r_kitchen_8017EC40[1] = {
     { D_dryfield_g_r_kitchen_8017F464, NULL },
 };
 

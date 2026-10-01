@@ -1016,7 +1016,7 @@ SVECTOR D_mine_forked_tunnel_8018362C[1] = {
     { 430, -950, 2530, 0 },
 };
 
-GpRoomCoordRec D_mine_forked_tunnel_80183634[1] = {
+WorldCoordRoomLighting D_mine_forked_tunnel_80183634[1] = {
     { D_mine_forked_tunnel_80184F38, D_mine_forked_tunnel_80185564 },
 };
 

@@ -299,7 +299,7 @@ u8* D_dryfield_factory_80186F44[2] = {
     D_dryfield_factory_80186F30,
 };
 
-GpRoomCoordRec D_dryfield_factory_80186F4C[2] = {
+WorldCoordRoomLighting D_dryfield_factory_80186F4C[2] = {
     { D_dryfield_factory_8018A28C, D_dryfield_factory_8018A2A4 },
     { D_dryfield_factory_8018A28C, D_dryfield_factory_8018A2A4 },
 };

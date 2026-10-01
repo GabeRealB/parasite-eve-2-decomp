@@ -20,7 +20,7 @@ extern u8* D_dryfield_water_tank_801868F0[];
 
 extern GpViewCountRec D_dryfield_water_tank_801868F4[];
 
-extern GpRoomCoordRec D_dryfield_water_tank_801868F8[];
+extern WorldCoordRoomLighting D_dryfield_water_tank_801868F8[];
 
 extern GpWarpRec D_dryfield_water_tank_80186900[];
 

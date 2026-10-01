@@ -17,7 +17,7 @@ extern u8* D_dryfield_motel_lobby_8017F848[];
 
 extern GpViewCountRec D_dryfield_motel_lobby_8017F84C[];
 
-extern GpRoomCoordRec D_dryfield_motel_lobby_8017F850[];
+extern WorldCoordRoomLighting D_dryfield_motel_lobby_8017F850[];
 
 extern GpWarpRec D_dryfield_motel_lobby_8017F858[];
 

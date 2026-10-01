@@ -20,7 +20,7 @@ extern u8* D_dryfield_saloon_g_r_8017EDD0[];
 
 extern GpViewCountRec D_dryfield_saloon_g_r_8017EDD8[];
 
-extern GpRoomCoordRec D_dryfield_saloon_g_r_8017EDDC[];
+extern WorldCoordRoomLighting D_dryfield_saloon_g_r_8017EDDC[];
 
 extern GpWarpRec D_dryfield_saloon_g_r_8017EDEC[];
 

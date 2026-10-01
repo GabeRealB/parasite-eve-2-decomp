@@ -292,7 +292,7 @@ GpRoomObjRec D_shelter_1f_heliport_801812D0[1] = {
     { &gFollowCollisionGrid, D_shelter_1f_heliport_80182178, D_shelter_1f_heliport_80182508, NULL },
 };
 
-GpRoomCoordRec D_shelter_1f_heliport_801812E0[1] = {
+WorldCoordRoomLighting D_shelter_1f_heliport_801812E0[1] = {
     { D_shelter_1f_heliport_80182160, D_shelter_1f_heliport_80182B44 },
 };
 

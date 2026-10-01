@@ -17,7 +17,7 @@ extern u8* D_acropolis_west_elevator_hall_80185034[];
 
 extern GpViewCountRec D_acropolis_west_elevator_hall_80185038[];
 
-extern GpRoomCoordRec D_acropolis_west_elevator_hall_8018503C[];
+extern WorldCoordRoomLighting D_acropolis_west_elevator_hall_8018503C[];
 
 extern GpWarpRec D_acropolis_west_elevator_hall_80185044[];
 

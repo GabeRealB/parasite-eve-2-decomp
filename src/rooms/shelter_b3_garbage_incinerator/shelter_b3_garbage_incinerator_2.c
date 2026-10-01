@@ -389,7 +389,7 @@ static TaskDesc D_shelter_b3_garbage_incinerator_80187184[1] = {
 
 #include "../../shared/cap_captions_schedule.inc.c"
 
-GpRoomCoordRec D_shelter_b3_garbage_incinerator_80187280[7] = {
+WorldCoordRoomLighting D_shelter_b3_garbage_incinerator_80187280[7] = {
     { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
     { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
     { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },

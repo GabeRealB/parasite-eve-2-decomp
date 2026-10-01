@@ -101,7 +101,7 @@ s16 D_dryfield_night_warehouse_8017E8D8[8] = {
     150,
 };
 
-GpRoomCoordRec D_dryfield_night_warehouse_8017E8E8[3] = {
+WorldCoordRoomLighting D_dryfield_night_warehouse_8017E8E8[3] = {
     { D_dryfield_night_warehouse_8017F6DC, D_dryfield_night_warehouse_8017F824 },
     { D_dryfield_night_warehouse_8017F6DC, D_dryfield_night_warehouse_8017F824 },
     { D_dryfield_night_warehouse_8017F6DC, D_dryfield_night_warehouse_8017F824 },

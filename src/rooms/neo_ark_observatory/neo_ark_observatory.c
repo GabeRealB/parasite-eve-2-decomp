@@ -329,7 +329,7 @@ GpRoomObjRec D_neo_ark_observatory_80181594[2] = {
     { &gFollowCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
 };
 
-GpRoomCoordRec D_neo_ark_observatory_801815B4[2] = {
+WorldCoordRoomLighting D_neo_ark_observatory_801815B4[2] = {
     { D_neo_ark_observatory_80186844, NULL },
     { D_neo_ark_observatory_80186EBC, NULL },
 };

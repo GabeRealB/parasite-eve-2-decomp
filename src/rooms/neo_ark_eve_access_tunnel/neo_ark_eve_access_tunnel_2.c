@@ -94,7 +94,7 @@ GpRoomObjRec D_neo_ark_eve_access_tunnel_8017EB78[1] = {
     { D_neo_ark_eve_access_tunnel_8017F05C, D_neo_ark_eve_access_tunnel_801802EC, D_neo_ark_eve_access_tunnel_801804B4, D_neo_ark_eve_access_tunnel_80180720 },
 };
 
-GpRoomCoordRec D_neo_ark_eve_access_tunnel_8017EB88[1] = {
+WorldCoordRoomLighting D_neo_ark_eve_access_tunnel_8017EB88[1] = {
     { D_neo_ark_eve_access_tunnel_801802D4, NULL },
 };
 

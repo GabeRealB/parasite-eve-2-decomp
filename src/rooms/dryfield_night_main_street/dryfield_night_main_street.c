@@ -473,7 +473,7 @@ GpRoomObjRec D_dryfield_night_main_street_80182284[3] = {
     { D_dryfield_night_main_street_80184540, D_dryfield_night_main_street_80187704, D_dryfield_night_main_street_8018824C, NULL },
 };
 
-GpRoomCoordRec D_dryfield_night_main_street_801822B4[3] = {
+WorldCoordRoomLighting D_dryfield_night_main_street_801822B4[3] = {
     { D_dryfield_night_main_street_8018899C, D_dryfield_night_main_street_80188A70 },
     { D_dryfield_night_main_street_8018899C, D_dryfield_night_main_street_80188A70 },
     { D_dryfield_night_main_street_8018899C, D_dryfield_night_main_street_80188A70 },

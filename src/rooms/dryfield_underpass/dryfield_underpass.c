@@ -305,7 +305,7 @@ GpViewCountRec D_dryfield_underpass_8017EBD4[6] = {
     { { .bytes = { 11, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_underpass_8017EBE0[6] = {
+WorldCoordRoomLighting D_dryfield_underpass_8017EBE0[6] = {
     { D_dryfield_underpass_80180EBC, NULL },
     { D_dryfield_underpass_80181114, NULL },
     { D_dryfield_underpass_80180EBC, NULL },

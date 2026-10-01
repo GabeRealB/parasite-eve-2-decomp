@@ -227,7 +227,7 @@ u8* D_dryfield_breezeway_8018317C[1] = {
     D_8010CAF8,
 };
 
-GpRoomCoordRec D_dryfield_breezeway_80183180[1] = {
+WorldCoordRoomLighting D_dryfield_breezeway_80183180[1] = {
     { D_dryfield_breezeway_80184250, NULL },
 };
 

@@ -22,7 +22,7 @@ extern u8* D_acropolis_bridge_80189A80[];
 
 extern GpViewCountRec D_acropolis_bridge_80189A88[];
 
-extern GpRoomCoordRec D_acropolis_bridge_80189A8C[];
+extern WorldCoordRoomLighting D_acropolis_bridge_80189A8C[];
 
 extern GpWarpRec D_acropolis_bridge_80189AB4[];
 

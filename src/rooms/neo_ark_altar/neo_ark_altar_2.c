@@ -166,7 +166,7 @@ GpRoomObjRec D_neo_ark_altar_8017F094[3] = {
     { D_neo_ark_altar_8017F57C, NULL, D_neo_ark_altar_8017FF08, NULL },
 };
 
-GpRoomCoordRec D_neo_ark_altar_8017F0C4[3] = {
+WorldCoordRoomLighting D_neo_ark_altar_8017F0C4[3] = {
     { D_neo_ark_altar_8017FEF0, NULL },
     { D_neo_ark_altar_8017FEF0, NULL },
     { D_neo_ark_altar_8017FEF0, NULL },

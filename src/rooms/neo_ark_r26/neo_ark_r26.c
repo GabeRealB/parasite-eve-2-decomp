@@ -213,7 +213,7 @@ GpRoomObjRec D_neo_ark_r26_8017E0CC[1] = {
     { D_neo_ark_r26_8017E19C, NULL, NULL, NULL },
 };
 
-GpRoomCoordRec D_neo_ark_r26_8017E0DC[1] = {
+WorldCoordRoomLighting D_neo_ark_r26_8017E0DC[1] = {
     { D_neo_ark_r26_8017E928, D_neo_ark_r26_8017E9EC },
 };
 

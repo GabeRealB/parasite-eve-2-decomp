@@ -58,7 +58,7 @@ extern u16 D_map_neo_ark_8017A9A0[];
 /// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
 /// one pointer per room, into that room's package or, for some rooms, at a
 /// record this overlay holds itself.
-extern GpRoomCoordRec* D_map_neo_ark_8017A9FC[];
+extern WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[];
 
 extern GpWarpRec* D_map_neo_ark_8017AA80[];
 

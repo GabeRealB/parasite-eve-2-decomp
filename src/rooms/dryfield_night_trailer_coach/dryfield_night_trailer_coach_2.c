@@ -255,7 +255,7 @@ SVECTOR D_dryfield_night_trailer_coach_80189480[16] = {
     { 7960, -1883, -656, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_trailer_coach_80189500[1] = {
+WorldCoordRoomLighting D_dryfield_night_trailer_coach_80189500[1] = {
     { D_dryfield_night_trailer_coach_8018BB8C, D_dryfield_night_trailer_coach_8018BCD4 },
 };
 

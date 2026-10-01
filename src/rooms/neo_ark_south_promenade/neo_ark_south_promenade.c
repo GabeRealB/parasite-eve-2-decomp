@@ -81,7 +81,7 @@ GpMsgEntry D_neo_ark_south_promenade_8017F6B4[5] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomCoordRec D_neo_ark_south_promenade_8017F6EC[1] = {
+WorldCoordRoomLighting D_neo_ark_south_promenade_8017F6EC[1] = {
     { D_neo_ark_south_promenade_801804D0, NULL },
 };
 

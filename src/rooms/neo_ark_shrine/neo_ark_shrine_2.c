@@ -202,7 +202,7 @@ GpRoomObjRec D_neo_ark_shrine_80182724[6] = {
     { D_neo_ark_shrine_80183698, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_801863B4, D_neo_ark_shrine_80186730 },
 };
 
-GpRoomCoordRec D_neo_ark_shrine_80182784[6] = {
+WorldCoordRoomLighting D_neo_ark_shrine_80182784[6] = {
     { D_neo_ark_shrine_80185A68, NULL },
     { D_neo_ark_shrine_80185A68, NULL },
     { D_neo_ark_shrine_80185A68, NULL },

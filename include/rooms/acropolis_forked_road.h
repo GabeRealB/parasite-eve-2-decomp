@@ -20,7 +20,7 @@ extern u8* D_acropolis_forked_road_8018225C[];
 
 extern GpViewCountRec D_acropolis_forked_road_80182268[];
 
-extern GpRoomCoordRec D_acropolis_forked_road_80182270[];
+extern WorldCoordRoomLighting D_acropolis_forked_road_80182270[];
 
 extern GpWarpRec D_acropolis_forked_road_80182288[];
 

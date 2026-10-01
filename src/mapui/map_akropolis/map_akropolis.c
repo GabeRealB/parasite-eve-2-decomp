@@ -664,7 +664,7 @@ u16 D_map_akropolis_8017AA0C[14] = {
     0x1EA,
 };
 
-GpRoomCoordRec* D_map_akropolis_8017AA28[20] = {
+WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
     D_acropolis_square_80183BB4,
     D_acropolis_east_elevator_hall_80186338,
     D_acropolis_patio_80182ED4,

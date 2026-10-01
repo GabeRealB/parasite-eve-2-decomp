@@ -70,7 +70,7 @@ SVECTOR D_dryfield_night_junk_yard_80180754[4] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomCoordRec D_dryfield_night_junk_yard_80180784[2] = {
+WorldCoordRoomLighting D_dryfield_night_junk_yard_80180784[2] = {
     { D_dryfield_night_junk_yard_80183D10, NULL },
     { D_dryfield_night_junk_yard_80183D10, NULL },
 };

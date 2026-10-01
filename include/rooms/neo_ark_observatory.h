@@ -18,7 +18,7 @@ extern GpAreaVariant D_neo_ark_observatory_8018786C[13];
 // neo_ark_observatory
 extern GpRoomObjRec D_neo_ark_observatory_80181594[];
 
-extern GpRoomCoordRec D_neo_ark_observatory_801815B4[];
+extern WorldCoordRoomLighting D_neo_ark_observatory_801815B4[];
 
 extern u8* D_neo_ark_observatory_801815DC[];
 

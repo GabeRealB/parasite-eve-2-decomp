@@ -1496,7 +1496,7 @@ GpViewCountRec D_acropolis_security_room_801839E4[1] = {
     { { .bytes = { 16, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_security_room_801839E8[1] = {
+WorldCoordRoomLighting D_acropolis_security_room_801839E8[1] = {
     { D_acropolis_security_room_801841C8, NULL },
 };
 

@@ -16,7 +16,7 @@ extern GpAreaVariant D_neo_ark_eve_access_tunnel_801806B8[13];
 // neo_ark_eve_access_tunnel
 extern GpRoomObjRec D_neo_ark_eve_access_tunnel_8017EB78[];
 
-extern GpRoomCoordRec D_neo_ark_eve_access_tunnel_8017EB88[];
+extern WorldCoordRoomLighting D_neo_ark_eve_access_tunnel_8017EB88[];
 
 extern u8* D_neo_ark_eve_access_tunnel_8017EB90[];
 

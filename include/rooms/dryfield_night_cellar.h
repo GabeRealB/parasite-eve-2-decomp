@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_cellar_80180780[12];
 
 // dryfield_night_cellar
-extern GpRoomCoordRec D_dryfield_night_cellar_8017DAF0[];
+extern WorldCoordRoomLighting D_dryfield_night_cellar_8017DAF0[];
 
 extern GpRoomObjRec D_dryfield_night_cellar_8017DB00[];
 

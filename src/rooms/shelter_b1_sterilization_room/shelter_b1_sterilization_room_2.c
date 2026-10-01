@@ -288,7 +288,7 @@ SVECTOR D_shelter_b1_sterilization_room_8018909C[87] = {
     { -4096, -4096, 0, 0 },
 };
 
-GpRoomCoordRec D_shelter_b1_sterilization_room_80189354[3] = {
+WorldCoordRoomLighting D_shelter_b1_sterilization_room_80189354[3] = {
     { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
     { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
     { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },

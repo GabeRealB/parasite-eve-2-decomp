@@ -26,7 +26,7 @@ extern TaskDesc D_neo_ark_submarine_tunnel_801810E4;
 extern GpAreaVariant D_neo_ark_submarine_tunnel_80187470[13];
 
 // neo_ark_submarine_tunnel
-extern GpRoomCoordRec D_neo_ark_submarine_tunnel_80181E00[];
+extern WorldCoordRoomLighting D_neo_ark_submarine_tunnel_80181E00[];
 
 extern GpRoomObjRec D_neo_ark_submarine_tunnel_80181E08[];
 

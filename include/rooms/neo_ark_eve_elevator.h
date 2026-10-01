@@ -13,7 +13,7 @@
 // neo_ark_eve_elevator
 extern GpRoomObjRec D_neo_ark_eve_elevator_8017D74C[];
 
-extern GpRoomCoordRec D_neo_ark_eve_elevator_8017D75C[];
+extern WorldCoordRoomLighting D_neo_ark_eve_elevator_8017D75C[];
 
 extern u8* D_neo_ark_eve_elevator_8017D764[];
 

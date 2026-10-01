@@ -322,7 +322,7 @@ GpRoomObjRec D_dryfield_night_water_hole_80180A04[4] = {
     { D_dryfield_night_water_hole_80180F50, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_80182AF8, D_dryfield_night_water_hole_80182D58 },
 };
 
-GpRoomCoordRec D_dryfield_night_water_hole_80180A44[4] = {
+WorldCoordRoomLighting D_dryfield_night_water_hole_80180A44[4] = {
     { D_dryfield_night_water_hole_8018307C, D_dryfield_night_water_hole_801834C8 },
     { D_dryfield_night_water_hole_801833A0, D_dryfield_night_water_hole_80183528 },
     { D_dryfield_night_water_hole_8018307C, D_dryfield_night_water_hole_801834C8 },

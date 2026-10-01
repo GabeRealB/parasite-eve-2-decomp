@@ -19,7 +19,7 @@ extern GpAreaVariant D_dryfield_night_water_hole_80183418[22];
 // dryfield_night_water_hole
 extern GpRoomObjRec D_dryfield_night_water_hole_80180A04[];
 
-extern GpRoomCoordRec D_dryfield_night_water_hole_80180A44[];
+extern WorldCoordRoomLighting D_dryfield_night_water_hole_80180A44[];
 
 extern u8* D_dryfield_night_water_hole_80180A94[];
 

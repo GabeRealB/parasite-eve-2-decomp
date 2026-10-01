@@ -909,7 +909,7 @@ GpViewCountRec D_mist_r18_80186620[2] = {
     { { .bytes = { 0, 0 } } },
 };
 
-GpRoomCoordRec D_mist_r18_80186624[1] = {
+WorldCoordRoomLighting D_mist_r18_80186624[1] = {
     { D_mist_r18_80186E44, NULL },
 };
 

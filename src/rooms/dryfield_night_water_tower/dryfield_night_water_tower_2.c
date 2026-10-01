@@ -78,7 +78,7 @@ SVECTOR D_dryfield_night_water_tower_8017E71C[5] = {
 
 SVECTOR D_dryfield_night_water_tower_8017E744 = { 4290, -3050, 1810, 0 };
 
-GpRoomCoordRec D_dryfield_night_water_tower_8017E74C[1] = {
+WorldCoordRoomLighting D_dryfield_night_water_tower_8017E74C[1] = {
     { D_dryfield_night_water_tower_801823F8, NULL },
 };
 

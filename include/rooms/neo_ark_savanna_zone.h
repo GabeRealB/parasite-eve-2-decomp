@@ -16,7 +16,7 @@ extern GpAreaVariant D_neo_ark_savanna_zone_80180864[13];
 // neo_ark_savanna_zone
 extern GpRoomObjRec D_neo_ark_savanna_zone_8017F9E4[];
 
-extern GpRoomCoordRec D_neo_ark_savanna_zone_8017F9F4[];
+extern WorldCoordRoomLighting D_neo_ark_savanna_zone_8017F9F4[];
 
 extern u8* D_neo_ark_savanna_zone_8017F9FC[];
 

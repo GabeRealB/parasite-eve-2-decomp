@@ -18,7 +18,7 @@ extern TaskDesc D_dryfield_night_garage_80181C2C;
 extern GpAreaVariant D_dryfield_night_garage_801874BC[12];
 
 // dryfield_night_garage
-extern GpRoomCoordRec D_dryfield_night_garage_801833F4[];
+extern WorldCoordRoomLighting D_dryfield_night_garage_801833F4[];
 
 extern GpRoomObjRec D_dryfield_night_garage_80183404[];
 

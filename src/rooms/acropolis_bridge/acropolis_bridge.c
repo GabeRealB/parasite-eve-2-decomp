@@ -824,7 +824,7 @@ GpViewCountRec D_acropolis_bridge_80189A88[2] = {
     { { .bytes = { 10, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_bridge_80189A8C[2] = {
+WorldCoordRoomLighting D_acropolis_bridge_80189A8C[2] = {
     { D_acropolis_bridge_80190A0C, NULL },
     { D_acropolis_bridge_80190A0C, NULL },
 };

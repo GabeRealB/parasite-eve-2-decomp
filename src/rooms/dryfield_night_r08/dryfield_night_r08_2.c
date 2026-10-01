@@ -95,7 +95,7 @@ SVECTOR D_dryfield_night_r08_801805AC[24] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomCoordRec D_dryfield_night_r08_8018067C[1] = {
+WorldCoordRoomLighting D_dryfield_night_r08_8018067C[1] = {
     { D_dryfield_night_r08_8018189C, NULL },
 };
 

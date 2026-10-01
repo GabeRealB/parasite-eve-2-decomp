@@ -13,7 +13,7 @@
 // neo_ark_altar
 extern GpRoomObjRec D_neo_ark_altar_8017F094[];
 
-extern GpRoomCoordRec D_neo_ark_altar_8017F0C4[];
+extern WorldCoordRoomLighting D_neo_ark_altar_8017F0C4[];
 
 extern u8* D_neo_ark_altar_8017F0EC[];
 

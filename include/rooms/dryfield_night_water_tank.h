@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_water_tank_80180764[13];
 
 // dryfield_night_water_tank
-extern GpRoomCoordRec D_dryfield_night_water_tank_8017EE50[];
+extern WorldCoordRoomLighting D_dryfield_night_water_tank_8017EE50[];
 
 extern GpRoomObjRec D_dryfield_night_water_tank_8017EE58[];
 

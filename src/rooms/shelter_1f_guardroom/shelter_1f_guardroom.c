@@ -79,7 +79,7 @@ GpRoomObjRec D_shelter_1f_guardroom_8017DA78[1] = {
     { D_shelter_1f_guardroom_8017DBF0, D_shelter_1f_guardroom_8017DE3C, D_shelter_1f_guardroom_8017DED4, NULL },
 };
 
-GpRoomCoordRec D_shelter_1f_guardroom_8017DA88[1] = {
+WorldCoordRoomLighting D_shelter_1f_guardroom_8017DA88[1] = {
     { D_shelter_1f_guardroom_8017DE24, D_shelter_1f_guardroom_8017DFB8 },
 };
 

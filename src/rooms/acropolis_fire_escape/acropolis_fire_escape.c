@@ -259,7 +259,7 @@ GpViewCountRec D_acropolis_fire_escape_80181DC0[1] = {
     { { .bytes = { 10, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_fire_escape_80181DC4[1] = {
+WorldCoordRoomLighting D_acropolis_fire_escape_80181DC4[1] = {
     { D_acropolis_fire_escape_80182B54, NULL },
 };
 

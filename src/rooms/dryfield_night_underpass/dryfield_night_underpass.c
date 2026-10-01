@@ -102,7 +102,7 @@ GpRoomObjRec D_dryfield_night_underpass_8017DD70[6] = {
     { D_dryfield_night_underpass_8017E6D4, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
 };
 
-GpRoomCoordRec D_dryfield_night_underpass_8017DDD0[6] = {
+WorldCoordRoomLighting D_dryfield_night_underpass_8017DDD0[6] = {
     { D_dryfield_night_underpass_8017FFF4, NULL },
     { D_dryfield_night_underpass_8018024C, NULL },
     { D_dryfield_night_underpass_8017FFF4, NULL },

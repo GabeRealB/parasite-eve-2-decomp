@@ -90,7 +90,7 @@ GpRoomObjRec D_neo_ark_garden_8018140C[1] = {
     { D_neo_ark_garden_801816C4, D_neo_ark_garden_8018270C, D_neo_ark_garden_801828D4, NULL },
 };
 
-GpRoomCoordRec D_neo_ark_garden_8018141C[1] = {
+WorldCoordRoomLighting D_neo_ark_garden_8018141C[1] = {
     { D_neo_ark_garden_801826F4, NULL },
 };
 

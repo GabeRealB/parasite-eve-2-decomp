@@ -66,7 +66,7 @@ GpRoomObjRec D_neo_ark_island_80181B94[1] = {
     { D_neo_ark_island_801826C8, D_neo_ark_island_80183CC8, D_neo_ark_island_80183DF8, NULL },
 };
 
-GpRoomCoordRec D_neo_ark_island_80181BA4[1] = {
+WorldCoordRoomLighting D_neo_ark_island_80181BA4[1] = {
     { D_neo_ark_island_80183CB0, NULL },
 };
 

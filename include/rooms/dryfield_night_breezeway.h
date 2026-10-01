@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_breezeway_801803E4[22];
 
 // dryfield_night_breezeway
-extern GpRoomCoordRec D_dryfield_night_breezeway_8017E6E4[];
+extern WorldCoordRoomLighting D_dryfield_night_breezeway_8017E6E4[];
 
 extern GpRoomObjRec D_dryfield_night_breezeway_8017E6EC[];
 

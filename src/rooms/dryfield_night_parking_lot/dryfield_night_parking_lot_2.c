@@ -158,7 +158,7 @@ SVECTOR D_dryfield_night_parking_lot_8017EDFC[3] = {
     { 3930, -2480, 1380, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_parking_lot_8017EE14[2] = {
+WorldCoordRoomLighting D_dryfield_night_parking_lot_8017EE14[2] = {
     { D_dryfield_night_parking_lot_80180C90, NULL },
     { D_dryfield_night_parking_lot_80180C90, NULL },
 };

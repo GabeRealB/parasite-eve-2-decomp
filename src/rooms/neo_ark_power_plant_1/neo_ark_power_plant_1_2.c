@@ -251,7 +251,7 @@ GpRoomObjRec D_neo_ark_power_plant_1_8017F1C8[1] = {
     { D_neo_ark_power_plant_1_80180090, D_neo_ark_power_plant_1_8018155C, D_neo_ark_power_plant_1_80181854, D_neo_ark_power_plant_1_80181B60 },
 };
 
-GpRoomCoordRec D_neo_ark_power_plant_1_8017F1D8[1] = {
+WorldCoordRoomLighting D_neo_ark_power_plant_1_8017F1D8[1] = {
     { D_neo_ark_power_plant_1_8017FB80, NULL },
 };
 

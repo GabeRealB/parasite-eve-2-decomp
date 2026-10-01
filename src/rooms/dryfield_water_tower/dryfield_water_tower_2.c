@@ -776,7 +776,7 @@ GpViewCountRec D_dryfield_water_tower_801827E0[1] = {
     { { .bytes = { 21, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_water_tower_801827E4[1] = {
+WorldCoordRoomLighting D_dryfield_water_tower_801827E4[1] = {
     { D_dryfield_water_tower_801874E4, NULL },
 };
 

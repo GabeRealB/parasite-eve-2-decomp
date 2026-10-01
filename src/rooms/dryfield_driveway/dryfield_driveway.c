@@ -209,7 +209,7 @@ u8* D_dryfield_driveway_8017E7AC[2] = {
     D_dryfield_driveway_8017E7A4,
 };
 
-GpRoomCoordRec D_dryfield_driveway_8017E7B4[2] = {
+WorldCoordRoomLighting D_dryfield_driveway_8017E7B4[2] = {
     { D_dryfield_driveway_801802E0, NULL },
     { D_dryfield_driveway_801802E0, NULL },
 };

@@ -266,7 +266,7 @@ GpViewCountRec D_dryfield_motel_room_1_8017E4B8[2] = {
     { { .bytes = { 9, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_motel_room_1_8017E4BC[2] = {
+WorldCoordRoomLighting D_dryfield_motel_room_1_8017E4BC[2] = {
     { D_dryfield_motel_room_1_801813D8, NULL },
     { D_dryfield_motel_room_1_801813D8, NULL },
 };

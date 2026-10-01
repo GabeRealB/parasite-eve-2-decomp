@@ -215,7 +215,7 @@ s32 D_dryfield_night_water_tank_8017EE48 = 0;
 
 s32 D_dryfield_night_water_tank_8017EE4C = 0;
 
-GpRoomCoordRec D_dryfield_night_water_tank_8017EE50[1] = {
+WorldCoordRoomLighting D_dryfield_night_water_tank_8017EE50[1] = {
     { D_dryfield_night_water_tank_80180374, NULL },
 };
 

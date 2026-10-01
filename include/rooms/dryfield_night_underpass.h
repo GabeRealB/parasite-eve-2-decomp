@@ -16,7 +16,7 @@ extern GpAreaVariant D_dryfield_night_underpass_801802DC[12];
 // dryfield_night_underpass
 extern GpRoomObjRec D_dryfield_night_underpass_8017DD70[];
 
-extern GpRoomCoordRec D_dryfield_night_underpass_8017DDD0[];
+extern WorldCoordRoomLighting D_dryfield_night_underpass_8017DDD0[];
 
 extern u8* D_dryfield_night_underpass_8017DE3C[];
 

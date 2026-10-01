@@ -152,7 +152,7 @@ RoomRingShape D_shelter_r48_80182FE8[6] = {
 
 SVECTOR D_shelter_r48_8018300C = { 8210, -2920, -370, 0 };
 
-GpRoomCoordRec D_shelter_r48_80183014[1] = {
+WorldCoordRoomLighting D_shelter_r48_80183014[1] = {
     { D_shelter_r48_8018B658, NULL },
 };
 

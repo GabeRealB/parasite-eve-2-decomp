@@ -56,7 +56,7 @@ SVECTOR D_mine_tunnel_8017E12C[5] = {
     { 1170, -1820, 400, 0 },
 };
 
-GpRoomCoordRec D_mine_tunnel_8017E154[1] = {
+WorldCoordRoomLighting D_mine_tunnel_8017E154[1] = {
     { D_mine_tunnel_8017FBC0, D_mine_tunnel_8018022C },
 };
 

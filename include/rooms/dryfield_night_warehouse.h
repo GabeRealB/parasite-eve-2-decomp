@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_warehouse_8017FB98[12];
 
 // dryfield_night_warehouse
-extern GpRoomCoordRec D_dryfield_night_warehouse_8017E8E8[];
+extern WorldCoordRoomLighting D_dryfield_night_warehouse_8017E8E8[];
 
 extern GpRoomObjRec D_dryfield_night_warehouse_8017E900[];
 

@@ -24,7 +24,7 @@ extern u8* D_dryfield_water_tower_801827DC[];
 
 extern GpViewCountRec D_dryfield_water_tower_801827E0[];
 
-extern GpRoomCoordRec D_dryfield_water_tower_801827E4[];
+extern WorldCoordRoomLighting D_dryfield_water_tower_801827E4[];
 
 extern GpWarpRec D_dryfield_water_tower_801827EC[];
 

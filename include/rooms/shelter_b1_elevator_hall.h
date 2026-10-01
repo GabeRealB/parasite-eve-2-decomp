@@ -14,7 +14,7 @@
 extern GpAreaVariant D_shelter_b1_elevator_hall_80184940[12];
 
 // shelter_b1_elevator_hall
-extern GpRoomCoordRec D_shelter_b1_elevator_hall_80182DF8[];
+extern WorldCoordRoomLighting D_shelter_b1_elevator_hall_80182DF8[];
 
 extern GpRoomObjRec D_shelter_b1_elevator_hall_80182E00[];
 

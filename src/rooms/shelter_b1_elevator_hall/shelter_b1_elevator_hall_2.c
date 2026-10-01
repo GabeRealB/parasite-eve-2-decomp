@@ -132,7 +132,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-GpRoomCoordRec D_shelter_b1_elevator_hall_80182DF8[1] = {
+WorldCoordRoomLighting D_shelter_b1_elevator_hall_80182DF8[1] = {
     { D_shelter_b1_elevator_hall_80184270, NULL },
 };
 

@@ -13,7 +13,7 @@
 // shelter_1f_guardroom
 extern GpRoomObjRec D_shelter_1f_guardroom_8017DA78[];
 
-extern GpRoomCoordRec D_shelter_1f_guardroom_8017DA88[];
+extern WorldCoordRoomLighting D_shelter_1f_guardroom_8017DA88[];
 
 extern u8* D_shelter_1f_guardroom_8017DA90[];
 

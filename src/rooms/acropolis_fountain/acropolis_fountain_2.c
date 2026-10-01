@@ -169,7 +169,7 @@ GpViewCountRec D_acropolis_fountain_8017E854[2] = {
     { { .bytes = { 22, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_fountain_8017E858[2] = {
+WorldCoordRoomLighting D_acropolis_fountain_8017E858[2] = {
     { D_acropolis_fountain_8017FF34, NULL },
     { D_acropolis_fountain_8017FF34, NULL },
 };

@@ -23,7 +23,7 @@ extern u8* D_acropolis_roof_garden_80184C9C[];
 
 extern GpViewCountRec D_acropolis_roof_garden_80184CA0[];
 
-extern GpRoomCoordRec D_acropolis_roof_garden_80184CA4[];
+extern WorldCoordRoomLighting D_acropolis_roof_garden_80184CA4[];
 
 extern GpWarpRec D_acropolis_roof_garden_80184CAC[];
 

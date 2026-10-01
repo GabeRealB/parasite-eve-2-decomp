@@ -135,7 +135,7 @@ GpRoomObjRec D_neo_ark_pavilion_801838B4[2] = {
     { D_neo_ark_pavilion_801841E4, D_neo_ark_pavilion_80187584, D_neo_ark_pavilion_8018785C, D_neo_ark_pavilion_8018798C },
 };
 
-GpRoomCoordRec D_neo_ark_pavilion_801838D4[2] = {
+WorldCoordRoomLighting D_neo_ark_pavilion_801838D4[2] = {
     { D_neo_ark_pavilion_8018756C, NULL },
     { D_neo_ark_pavilion_8018756C, NULL },
 };

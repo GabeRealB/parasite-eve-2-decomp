@@ -29,7 +29,7 @@ GpViewCountRec D_dryfield_r04_8017D5D8[1] = { { { { 2, 0 } } } };
 
 /// Nothing points at this record: the stage's room coordinate table has no
 /// entry for this room.
-static GpRoomCoordRec D_dryfield_r04_8017D5DC = { NULL, NULL };
+static WorldCoordRoomLighting D_dryfield_r04_8017D5DC = { NULL, NULL };
 
 GpWarpRec D_dryfield_r04_8017D5E4[1] = {
     { .field_34 = 2 },

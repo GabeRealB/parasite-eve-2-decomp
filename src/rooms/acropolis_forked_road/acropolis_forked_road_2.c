@@ -593,7 +593,7 @@ GpViewCountRec D_acropolis_forked_road_80182268[3] = {
     { { .bytes = { 9, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_forked_road_80182270[3] = {
+WorldCoordRoomLighting D_acropolis_forked_road_80182270[3] = {
     { D_acropolis_forked_road_80184E70, NULL },
     { D_acropolis_forked_road_80184E70, NULL },
     { D_acropolis_forked_road_80184E70, NULL },

@@ -23,7 +23,7 @@ extern u8* D_acropolis_hallway_8017E268[];
 
 extern GpViewCountRec D_acropolis_hallway_8017E26C[];
 
-extern GpRoomCoordRec D_acropolis_hallway_8017E270[];
+extern WorldCoordRoomLighting D_acropolis_hallway_8017E270[];
 
 extern GpWarpRec D_acropolis_hallway_8017E278[];
 

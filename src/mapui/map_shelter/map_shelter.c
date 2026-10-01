@@ -608,129 +608,129 @@ u16 D_map_shelter_8017AD88[30] = {
     0x1BB,
 };
 
-static GpRoomCoordRec D_map_shelter_8017ADC4[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017ADC4[1] = {
     { &D_shelter_b1_north_maintenance_walkway_801855D4, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017ADCC[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017ADCC[1] = {
     { &D_shelter_b1_armory_80184AFC, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017ADD4[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017ADD4[1] = {
     { &D_shelter_b1_sleeping_quarters_80183234, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017ADDC[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017ADDC[1] = {
     { &D_shelter_b1_main_corridor_801853E0, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017ADE4[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017ADE4[1] = {
     { &D_shelter_b1_pod_access_tunnel_80184734, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017ADEC[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017ADEC[1] = {
     { &D_shelter_b1_control_room_801834DC, D_shelter_b1_control_room_80183B48 },
 };
 
-static GpRoomCoordRec D_map_shelter_8017ADF4[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017ADF4[1] = {
     { &D_shelter_b1_access_tunnel_8017FA1C, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017ADFC[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017ADFC[1] = {
     { &D_shelter_b1_golem_freezer_1_8017EE64, D_shelter_b1_golem_freezer_1_8017F234 },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE04[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE04[1] = {
     { &D_shelter_b1_pod_service_gantry_801824F4, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE0C[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE0C[1] = {
     { &D_shelter_b1_transfer_tunnel_80182D90, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE14[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE14[1] = {
     { &D_shelter_b1_control_room_access_tunnel_801822D4, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE1C[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE1C[1] = {
     { &D_shelter_b2_elevator_8017E840, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE24[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE24[1] = {
     { &D_shelter_b2_elevator_hall_801846B4, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE2C[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE2C[1] = {
     { &D_shelter_b2_south_maintenance_walkway_80183294, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE34[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE34[1] = {
     { &D_shelter_b2_operating_room_80183718, D_shelter_b2_operating_room_80184184 },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE3C[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE3C[1] = {
     { &D_shelter_b2_north_maintenance_walkway_80185D44, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE44[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE44[1] = {
     { &D_shelter_b2_laboratory_80185944, D_shelter_b2_laboratory_801863B8 },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE4C[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE4C[1] = {
     { &D_shelter_b2_breeding_room_801837AC, D_shelter_b2_breeding_room_80184624 },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE54[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE54[1] = {
     { &D_shelter_b2_main_corridor_80188BE4, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE5C[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE5C[1] = {
     { &D_shelter_b2_septic_tank_80186A3C, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE64[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE64[1] = {
     { &D_shelter_r36_8017F6DC, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE6C[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE6C[1] = {
     { &D_shelter_r37_8017DD44, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE74[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE74[1] = {
     { &D_shelter_1f_heliport_s4_8017DE6C, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE7C[2] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE7C[2] = {
     { &D_shelter_b3_dumping_hole_8018E3DC, D_shelter_b3_dumping_hole_8018F1FC },
     { &D_shelter_b3_dumping_hole_8018E874, D_shelter_b3_dumping_hole_8018F32C },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE8C[2] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE8C[2] = {
     { &D_shelter_b3_incinerator_control_room_801824A0, NULL },
     { &D_shelter_b3_incinerator_control_room_801824A0, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AE9C[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AE9C[1] = {
     { &D_shelter_b3_elevator_hall_80184410, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AEA4[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AEA4[1] = {
     { &D_shelter_b4_lower_sewer_8018342C, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AEAC[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AEAC[1] = {
     { &D_shelter_b4_upper_sewer_80188184, NULL },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AEB4[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AEB4[1] = {
     { &D_shelter_b4_water_supply_801843D4, D_shelter_b4_water_supply_80184D7C },
 };
 
-static GpRoomCoordRec D_map_shelter_8017AEBC[1] = {
+static WorldCoordRoomLighting D_map_shelter_8017AEBC[1] = {
     { &D_shelter_r47_8018A5BC, NULL },
 };
 
-GpRoomCoordRec* D_map_shelter_8017AEC4[49] = {
+WorldCoordRoomLighting* D_map_shelter_8017AEC4[49] = {
     D_mine_mesa_8018654C,
     D_mine_cavern_80189010,
     D_mine_tunnel_entrance_8017DB58,

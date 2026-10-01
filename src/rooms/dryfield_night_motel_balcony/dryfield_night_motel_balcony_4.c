@@ -161,7 +161,7 @@ _ClutOrigin D_dryfield_night_motel_balcony_80182DF4[3] = {
     { 0, 264 },
 };
 
-GpRoomCoordRec D_dryfield_night_motel_balcony_80182E00[3] = {
+WorldCoordRoomLighting D_dryfield_night_motel_balcony_80182E00[3] = {
     { D_dryfield_night_motel_balcony_8018DA8C, D_dryfield_night_motel_balcony_8018EFE8 },
     { D_dryfield_night_motel_balcony_8018E2E4, D_dryfield_night_motel_balcony_8018F128 },
     { D_dryfield_night_motel_balcony_8018DA8C, D_dryfield_night_motel_balcony_8018EFE8 },

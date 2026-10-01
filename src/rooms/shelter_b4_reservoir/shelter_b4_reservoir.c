@@ -458,7 +458,7 @@ u8 D_shelter_b4_reservoir_801850D8[16] = {
     0,
 };
 
-GpRoomCoordRec D_shelter_b4_reservoir_801850E8[2] = {
+WorldCoordRoomLighting D_shelter_b4_reservoir_801850E8[2] = {
     { D_shelter_b4_reservoir_80186AA8, NULL },
     { D_shelter_b4_reservoir_80186AA8, NULL },
 };

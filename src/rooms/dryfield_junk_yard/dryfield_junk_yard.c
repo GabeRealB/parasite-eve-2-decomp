@@ -313,7 +313,7 @@ GpRoomObjRec D_dryfield_junk_yard_8017ED04[1] = {
     { D_dryfield_junk_yard_8017F4C8, D_dryfield_junk_yard_80180C7C, D_dryfield_junk_yard_80180F74, D_dryfield_junk_yard_80181518 },
 };
 
-GpRoomCoordRec D_dryfield_junk_yard_8017ED14[1] = {
+WorldCoordRoomLighting D_dryfield_junk_yard_8017ED14[1] = {
     { D_dryfield_junk_yard_80181BB4, D_dryfield_junk_yard_80181BCC },
 };
 

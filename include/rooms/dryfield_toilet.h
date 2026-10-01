@@ -39,7 +39,7 @@ extern u8* D_dryfield_toilet_8018113C[];
 
 extern GpViewCountRec D_dryfield_toilet_80181140[];
 
-extern GpRoomCoordRec D_dryfield_toilet_80181144[];
+extern WorldCoordRoomLighting D_dryfield_toilet_80181144[];
 
 extern GpWarpRec D_dryfield_toilet_8018114C[];
 

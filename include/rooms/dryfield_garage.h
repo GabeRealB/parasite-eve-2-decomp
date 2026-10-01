@@ -33,7 +33,7 @@ extern u8* D_dryfield_garage_8017DCEC[];
 
 extern GpViewCountRec D_dryfield_garage_8017DCF0[];
 
-extern GpRoomCoordRec D_dryfield_garage_8017DCF4[];
+extern WorldCoordRoomLighting D_dryfield_garage_8017DCF4[];
 
 extern GpWarpRec D_dryfield_garage_8017DCFC[];
 

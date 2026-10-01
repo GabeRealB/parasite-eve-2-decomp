@@ -1126,7 +1126,7 @@ u8* D_mine_mesa_80186548[1] = {
     D_8010CAF8,
 };
 
-GpRoomCoordRec D_mine_mesa_8018654C[1] = {
+WorldCoordRoomLighting D_mine_mesa_8018654C[1] = {
     { D_mine_mesa_80188E28, D_mine_mesa_80189954 },
 };
 

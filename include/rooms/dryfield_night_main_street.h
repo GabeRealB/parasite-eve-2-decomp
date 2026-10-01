@@ -28,7 +28,7 @@ extern GpAreaVariant D_dryfield_night_main_street_80188A08[13];
 // dryfield_night_main_street
 extern GpRoomObjRec D_dryfield_night_main_street_80182284[];
 
-extern GpRoomCoordRec D_dryfield_night_main_street_801822B4[];
+extern WorldCoordRoomLighting D_dryfield_night_main_street_801822B4[];
 
 extern u8* D_dryfield_night_main_street_801822FC[];
 

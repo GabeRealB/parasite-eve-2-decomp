@@ -814,7 +814,7 @@ GpViewCountRec D_acropolis_sanctuary_80182800[1] = {
     { { .bytes = { 16, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_sanctuary_80182804[1] = {
+WorldCoordRoomLighting D_acropolis_sanctuary_80182804[1] = {
     { D_acropolis_sanctuary_801843EC, NULL },
 };
 

@@ -13,7 +13,7 @@
 // neo_ark_substation
 extern GpRoomObjRec D_neo_ark_substation_8017E3F0[];
 
-extern GpRoomCoordRec D_neo_ark_substation_8017E400[];
+extern WorldCoordRoomLighting D_neo_ark_substation_8017E400[];
 
 extern u8* D_neo_ark_substation_8017E408[];
 

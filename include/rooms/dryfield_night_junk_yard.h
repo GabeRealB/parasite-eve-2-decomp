@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_junk_yard_801843F0[22];
 
 // dryfield_night_junk_yard
-extern GpRoomCoordRec D_dryfield_night_junk_yard_80180784[];
+extern WorldCoordRoomLighting D_dryfield_night_junk_yard_80180784[];
 
 extern GpRoomObjRec D_dryfield_night_junk_yard_80180794[];
 

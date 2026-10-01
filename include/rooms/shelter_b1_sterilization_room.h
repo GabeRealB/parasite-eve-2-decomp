@@ -17,7 +17,7 @@ extern TmdSource D_shelter_b1_sterilization_room_80184DF8;
 extern GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
 
 // shelter_b1_sterilization_room
-extern GpRoomCoordRec D_shelter_b1_sterilization_room_80189354[];
+extern WorldCoordRoomLighting D_shelter_b1_sterilization_room_80189354[];
 
 extern GpRoomObjRec D_shelter_b1_sterilization_room_8018936C[];
 

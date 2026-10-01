@@ -23,7 +23,7 @@ extern u8* D_acropolis_security_room_801839E0[];
 
 extern GpViewCountRec D_acropolis_security_room_801839E4[];
 
-extern GpRoomCoordRec D_acropolis_security_room_801839E8[];
+extern WorldCoordRoomLighting D_acropolis_security_room_801839E8[];
 
 extern GpWarpRec D_acropolis_security_room_801839F0[];
 

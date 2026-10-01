@@ -136,7 +136,7 @@ GpRoomObjRec D_shelter_1f_parking_garage_80180C64[1] = {
     { D_shelter_1f_parking_garage_80180FE8, D_shelter_1f_parking_garage_801815F8, D_shelter_1f_parking_garage_80181728, NULL },
 };
 
-GpRoomCoordRec D_shelter_1f_parking_garage_80180C74[1] = {
+WorldCoordRoomLighting D_shelter_1f_parking_garage_80180C74[1] = {
     { D_shelter_1f_parking_garage_801815E0, D_shelter_1f_parking_garage_801818A4 },
 };
 

@@ -105,7 +105,7 @@ GpRoomObjRec D_shelter_1f_airlock_8017E59C[1] = {
     { D_shelter_1f_airlock_8017E838, D_shelter_1f_airlock_8017F430, D_shelter_1f_airlock_8017F5F8, D_shelter_1f_airlock_8017F7B8 },
 };
 
-GpRoomCoordRec D_shelter_1f_airlock_8017E5AC[1] = {
+WorldCoordRoomLighting D_shelter_1f_airlock_8017E5AC[1] = {
     { D_shelter_1f_airlock_8017F418, NULL },
 };
 

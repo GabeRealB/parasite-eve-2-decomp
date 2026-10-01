@@ -97,7 +97,7 @@ GpRoomObjRec D_neo_ark_savanna_zone_8017F9E4[1] = {
     { D_neo_ark_savanna_zone_8017FBD0, D_neo_ark_savanna_zone_801804EC, D_neo_ark_savanna_zone_8018061C, D_neo_ark_savanna_zone_801808CC },
 };
 
-GpRoomCoordRec D_neo_ark_savanna_zone_8017F9F4[1] = {
+WorldCoordRoomLighting D_neo_ark_savanna_zone_8017F9F4[1] = {
     { D_neo_ark_savanna_zone_801804D4, D_neo_ark_savanna_zone_80180908 },
 };
 

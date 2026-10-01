@@ -20,7 +20,7 @@ extern u8* D_dryfield_g_r_kitchen_8017EC38[];
 
 extern GpViewCountRec D_dryfield_g_r_kitchen_8017EC3C[];
 
-extern GpRoomCoordRec D_dryfield_g_r_kitchen_8017EC40[];
+extern WorldCoordRoomLighting D_dryfield_g_r_kitchen_8017EC40[];
 
 extern GpWarpRec D_dryfield_g_r_kitchen_8017EC48[];
 

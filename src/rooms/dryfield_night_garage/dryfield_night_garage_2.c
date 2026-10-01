@@ -235,7 +235,7 @@ SVECTOR D_dryfield_night_garage_801833DC[3] = {
     { 6940, -3260, 1662, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_garage_801833F4[2] = {
+WorldCoordRoomLighting D_dryfield_night_garage_801833F4[2] = {
     { D_dryfield_night_garage_80186D64, D_dryfield_night_garage_8018751C },
     { D_dryfield_night_garage_80186D64, D_dryfield_night_garage_8018751C },
 };

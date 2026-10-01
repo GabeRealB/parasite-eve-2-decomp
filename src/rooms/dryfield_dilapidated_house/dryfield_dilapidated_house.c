@@ -974,7 +974,7 @@ GpViewCountRec D_dryfield_dilapidated_house_80186968[1] = {
     { { .bytes = { 21, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_dilapidated_house_8018696C[1] = {
+WorldCoordRoomLighting D_dryfield_dilapidated_house_8018696C[1] = {
     { D_dryfield_dilapidated_house_801898FC, D_dryfield_dilapidated_house_801899A0 },
 };
 

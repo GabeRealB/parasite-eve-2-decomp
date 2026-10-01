@@ -86,7 +86,7 @@ SVECTOR D_mine_gorge_8017E798[2] = {
     { 0x4628, -1670, 3650, 0 },
 };
 
-GpRoomCoordRec D_mine_gorge_8017E7A8[2] = {
+WorldCoordRoomLighting D_mine_gorge_8017E7A8[2] = {
     { D_mine_gorge_80182ABC, D_mine_gorge_801835A4 },
     { D_mine_gorge_80182ABC, D_mine_gorge_801835A4 },
 };

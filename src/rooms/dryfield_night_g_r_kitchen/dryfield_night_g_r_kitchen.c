@@ -102,7 +102,7 @@ SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[4] = {
     { 70, -2790, 370, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_g_r_kitchen_8017E2BC[1] = {
+WorldCoordRoomLighting D_dryfield_night_g_r_kitchen_8017E2BC[1] = {
     { D_dryfield_night_g_r_kitchen_8017E84C, NULL },
 };
 

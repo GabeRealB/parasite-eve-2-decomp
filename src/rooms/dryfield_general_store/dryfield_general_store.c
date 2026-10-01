@@ -200,7 +200,7 @@ GpViewCountRec D_dryfield_general_store_8017E684[1] = {
     { { .bytes = { 16, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_general_store_8017E688[1] = {
+WorldCoordRoomLighting D_dryfield_general_store_8017E688[1] = {
     { D_dryfield_general_store_801854E8, D_dryfield_general_store_80185500 },
 };
 

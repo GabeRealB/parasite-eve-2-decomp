@@ -92,7 +92,7 @@ GpViewCountRec D_acropolis_hallway_8017E26C[1] = {
     { { .bytes = { 5, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_hallway_8017E270[1] = {
+WorldCoordRoomLighting D_acropolis_hallway_8017E270[1] = {
     { D_acropolis_hallway_8017EBC4, NULL },
 };
 

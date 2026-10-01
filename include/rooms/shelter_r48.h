@@ -19,7 +19,7 @@ extern TaskDesc D_shelter_r48_80182FAC;
 extern GpAreaVariant D_shelter_r48_8018BC10[13];
 
 // shelter_r48
-extern GpRoomCoordRec D_shelter_r48_80183014[];
+extern WorldCoordRoomLighting D_shelter_r48_80183014[];
 
 extern GpRoomObjRec D_shelter_r48_8018301C[];
 

@@ -77,7 +77,7 @@ SVECTOR D_dryfield_night_toilet_8017DAA8[1] = {
     { 0, -1900, -850, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_toilet_8017DAB0[1] = {
+WorldCoordRoomLighting D_dryfield_night_toilet_8017DAB0[1] = {
     { D_dryfield_night_toilet_8017EE84, NULL },
 };
 

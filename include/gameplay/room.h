@@ -14,7 +14,7 @@ struct WorldCollisionTrigger;
 /// Entry zero holds `viewCount`; entries 1..viewCount hold each view's colour.
 /// RGB levels use 16 units per 8-bit colour level, matching the GTE back colour.
 /// Lighting clamps the model colour matrix's ambient term to these minima.
-/// The room overlay owns the table, referenced by `GpRoomCoordRec.field_4`;
+/// The room overlay owns the table, referenced by `WorldCoordRoomLighting.ambientTable`;
 /// a missing table or view beyond its count uses `Gp_RoomBoundDefault`.
 typedef union {
     struct {
@@ -48,16 +48,24 @@ typedef struct {
 } WorldCoordRoomLights;
 STATIC_ASSERT_SIZEOF(WorldCoordRoomLights, 0x18);
 
-/// 8-byte record in tables pointed to by `Gp_RoomCoordTables`. Indexed 1-based
-/// by `GameLocationKey.room`. `Gp_GetRoomCoordRec` returns the record (or NULL).
-/// `Gp_GetRoomCoordSet` returns `field_0`, the room's lights (or NULL).
-/// `Gp_GetRoomBound` walks `field_4` as a `WorldCoordRoomAmbientEntry` table, falling
-/// back to `Gp_RoomBoundDefault`.
-typedef struct _GpRoomCoordRec {
-    /* 0x0 */ WorldCoordRoomLights*       field_0;
-    /* 0x4 */ WorldCoordRoomAmbientEntry* field_4;
-} GpRoomCoordRec;
-STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
+/// A room's light collection and minimum ambient colours by view.
+///
+/// `Gp_RoomCoordTables` selects a stage's area table, then an area's room array.
+/// Lookups require valid 1-based `GameLocationKey` stage, area and room indices;
+/// each containing table determines its own extent. Ambient lookups require a
+/// 1-based view: entry zero holds `viewCount`, followed by colours at entries
+/// 1..viewCount. A missing record/table or a view beyond that count uses
+/// `Gp_RoomBoundDefault`.
+///
+/// The collection and ambient table are borrowed from the loaded room overlay.
+/// Room scripts may replace `lights`; its light arrays remain writable for
+/// coordinate updates and shading queries. Pointers to room-overlay records or
+/// data must not survive unloading that overlay.
+typedef struct {
+    WorldCoordRoomLights*             lights;       // Borrowed mutable room light collection, or NULL for no room lights.
+    const WorldCoordRoomAmbientEntry* ambientTable; // Borrowed read-only ambient table, or NULL for the default minima.
+} WorldCoordRoomLighting;
+STATIC_ASSERT_SIZEOF(WorldCoordRoomLighting, 8);
 
 /// Independent policies stored in the surface record's three flag bytes.
 enum {

@@ -49,7 +49,7 @@ SVECTOR D_dryfield_night_motel_room_5_8017DA68[1] = {
     { 4550, -1140, 5590, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_motel_room_5_8017DA70[2] = {
+WorldCoordRoomLighting D_dryfield_night_motel_room_5_8017DA70[2] = {
     { D_dryfield_night_motel_room_5_8018113C, NULL },
     { D_dryfield_night_motel_room_5_8018113C, NULL },
 };

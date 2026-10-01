@@ -17,7 +17,7 @@ extern GpAreaVariant D_dryfield_night_motel_loft_80180888[13];
 extern TmdSource D_dryfield_night_motel_loft_8017EAF8;
 
 // dryfield_night_motel_loft
-extern GpRoomCoordRec D_dryfield_night_motel_loft_8017EDB0[];
+extern WorldCoordRoomLighting D_dryfield_night_motel_loft_8017EDB0[];
 
 extern GpRoomObjRec D_dryfield_night_motel_loft_8017EDC0[];
 

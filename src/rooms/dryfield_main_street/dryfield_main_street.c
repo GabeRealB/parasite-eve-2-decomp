@@ -356,7 +356,7 @@ GpViewCountRec D_dryfield_main_street_80181BD0[1] = {
     { { .bytes = { 13, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_main_street_80181BD4[1] = {
+WorldCoordRoomLighting D_dryfield_main_street_80181BD4[1] = {
     { D_dryfield_main_street_80185588, NULL },
 };
 

@@ -84,7 +84,7 @@ SVECTOR gGlowPrismCorners[16] = {
     { 5040, 0, -3475, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_souvenir_shop_8017E0E4[1] = {
+WorldCoordRoomLighting D_dryfield_night_souvenir_shop_8017E0E4[1] = {
     { D_dryfield_night_souvenir_shop_8017F178, D_dryfield_night_souvenir_shop_8017F228 },
 };
 

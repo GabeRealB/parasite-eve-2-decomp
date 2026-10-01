@@ -149,7 +149,7 @@ GpRoomObjRec D_neo_ark_substation_8017E3F0[1] = {
     { D_neo_ark_substation_8017E8A4, D_neo_ark_substation_8017FC5C, D_neo_ark_substation_8017FFEC, NULL },
 };
 
-GpRoomCoordRec D_neo_ark_substation_8017E400[1] = {
+WorldCoordRoomLighting D_neo_ark_substation_8017E400[1] = {
     { D_neo_ark_substation_8017FC44, NULL },
 };
 

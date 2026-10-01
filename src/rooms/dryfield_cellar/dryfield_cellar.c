@@ -109,7 +109,7 @@ GpViewCountRec D_dryfield_cellar_8017DC0C[2] = {
     { { .bytes = { 6, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_cellar_8017DC10[2] = {
+WorldCoordRoomLighting D_dryfield_cellar_8017DC10[2] = {
     { D_dryfield_cellar_80180898, NULL },
     { D_dryfield_cellar_80180A90, NULL },
 };

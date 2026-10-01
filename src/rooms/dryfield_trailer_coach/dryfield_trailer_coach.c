@@ -796,7 +796,7 @@ GpRoomObjRec D_dryfield_trailer_coach_801871CC[1] = {
     { D_dryfield_trailer_coach_801876B4, D_dryfield_trailer_coach_80189254, D_dryfield_trailer_coach_80189384, NULL },
 };
 
-GpRoomCoordRec D_dryfield_trailer_coach_801871DC[1] = {
+WorldCoordRoomLighting D_dryfield_trailer_coach_801871DC[1] = {
     { D_dryfield_trailer_coach_80189B94, D_dryfield_trailer_coach_80189BAC },
 };
 

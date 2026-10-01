@@ -59,7 +59,7 @@ extern u16 D_map_akropolis_8017AA0C[];
 /// `Gp_SprtTables`, `Gp_WarpTables`, `Gp_ViewCountTables`, `Gp_ViewTables`,
 /// `Gp_ViewIndexTables` and `Gp_RoomParamTables`: each leads to one pointer per
 /// room into that room's package.
-extern GpRoomCoordRec* D_map_akropolis_8017AA28[];
+extern WorldCoordRoomLighting* D_map_akropolis_8017AA28[];
 
 extern GpRoomObjTbl D_map_akropolis_8017AAC8;
 

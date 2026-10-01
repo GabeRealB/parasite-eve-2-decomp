@@ -95,7 +95,7 @@ GpRoomObjRec D_shelter_b2_pod_bottom_80181D14[1] = {
     { D_shelter_b2_pod_bottom_80182B5C, D_shelter_b2_pod_bottom_80186FA8, D_shelter_b2_pod_bottom_80188670, NULL },
 };
 
-GpRoomCoordRec D_shelter_b2_pod_bottom_80181D24[1] = {
+WorldCoordRoomLighting D_shelter_b2_pod_bottom_80181D24[1] = {
     { D_shelter_b2_pod_bottom_80186F90, D_shelter_b2_pod_bottom_801886BC },
 };
 

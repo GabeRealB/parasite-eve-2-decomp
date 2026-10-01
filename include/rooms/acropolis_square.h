@@ -24,7 +24,7 @@ extern u8* D_acropolis_square_80183BAC[];
 
 extern GpViewCountRec D_acropolis_square_80183BB0[];
 
-extern GpRoomCoordRec D_acropolis_square_80183BB4[];
+extern WorldCoordRoomLighting D_acropolis_square_80183BB4[];
 
 extern GpWarpRec D_acropolis_square_80183BBC[];
 

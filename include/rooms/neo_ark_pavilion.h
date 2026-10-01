@@ -30,7 +30,7 @@ extern GpAreaVariant D_neo_ark_pavilion_801876C4[13];
 // neo_ark_pavilion
 extern GpRoomObjRec D_neo_ark_pavilion_801838B4[];
 
-extern GpRoomCoordRec D_neo_ark_pavilion_801838D4[];
+extern WorldCoordRoomLighting D_neo_ark_pavilion_801838D4[];
 
 extern u8* D_neo_ark_pavilion_801838EC[];
 

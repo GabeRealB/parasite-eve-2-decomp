@@ -220,7 +220,7 @@ GpViewCountRec D_dryfield_water_hole_8017FD94[4] = {
     { { .bytes = { 8, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_water_hole_8017FD9C[4] = {
+WorldCoordRoomLighting D_dryfield_water_hole_8017FD9C[4] = {
     { D_dryfield_water_hole_80182468, D_dryfield_water_hole_80182824 },
     { D_dryfield_water_hole_8018278C, NULL },
     { D_dryfield_water_hole_80182468, D_dryfield_water_hole_80182824 },

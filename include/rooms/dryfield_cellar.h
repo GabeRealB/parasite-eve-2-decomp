@@ -20,7 +20,7 @@ extern u8* D_dryfield_cellar_8017DC04[];
 
 extern GpViewCountRec D_dryfield_cellar_8017DC0C[];
 
-extern GpRoomCoordRec D_dryfield_cellar_8017DC10[];
+extern WorldCoordRoomLighting D_dryfield_cellar_8017DC10[];
 
 extern GpWarpRec D_dryfield_cellar_8017DC20[];
 

@@ -239,7 +239,7 @@ GpRoomObjRec D_neo_ark_forest_zone_801820A4[1] = {
     { D_neo_ark_forest_zone_80182274, D_neo_ark_forest_zone_801826B4, D_neo_ark_forest_zone_801829D0, NULL },
 };
 
-GpRoomCoordRec D_neo_ark_forest_zone_801820B4[1] = {
+WorldCoordRoomLighting D_neo_ark_forest_zone_801820B4[1] = {
     { D_neo_ark_forest_zone_8018269C, NULL },
 };
 

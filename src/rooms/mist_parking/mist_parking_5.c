@@ -173,7 +173,7 @@ GpViewCountRec D_mist_parking_801915C0[4] = {
     { { .bytes = { 20, 0 } } },
 };
 
-GpRoomCoordRec D_mist_parking_801915C8[4] = {
+WorldCoordRoomLighting D_mist_parking_801915C8[4] = {
     { D_mist_parking_801950A0, NULL },
     { D_mist_parking_80195178, D_mist_parking_8019521C },
     { D_mist_parking_801950A0, NULL },

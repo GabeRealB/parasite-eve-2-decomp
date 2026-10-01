@@ -236,7 +236,7 @@ static void Gp_RemapActorColor(Enemy* arg0, MATRIX* arg1, s32 arg2);
 
 static void Gp_LightFalloff(WorldCoordPointLight* light);
 
-static WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0);
+static const WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0);
 
 static s32 Gp_CountRoomCoords(void);
 
@@ -257,7 +257,7 @@ void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4
 
 static void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 
-static GpRoomCoordRec* Gp_GetRoomCoordRec(GameLocationKey* arg0);
+static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0);
 
 static void Gp_CopyDefaultBound(WorldCoordRoomAmbientEntry* ambientEntry);
 
@@ -988,7 +988,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         colorMtx->t[1] = Gp_OverrideVec.vy;
         colorMtx->t[2] = Gp_OverrideVec.vz;
     } else {
-        WorldCoordRoomAmbientEntry* ambientEntry;
+        const WorldCoordRoomAmbientEntry* ambientEntry;
 
         ambientEntry = Gp_GetRoomBound(&gGameSession->location.loc);
         if (colorMtx->t[0] < ambientEntry->color.r) {
@@ -1519,24 +1519,24 @@ void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3)
     m->t[2] = arg3;
 }
 
-static WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0)
+static const WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0)
 {
-    GpRoomCoordRec**            mid;
-    GpRoomCoordRec*             rec;
-    WorldCoordRoomAmbientEntry* ambientEntry;
-    WorldCoordRoomAmbientEntry* ambientTable;
+    WorldCoordRoomLighting**          areaLightingTables;
+    WorldCoordRoomLighting*           roomLighting;
+    const WorldCoordRoomAmbientEntry* ambientEntry;
+    const WorldCoordRoomAmbientEntry* ambientTable;
 
-    mid = Gp_RoomCoordTables[arg0->stage - 1];
-    rec = NULL;
-    if (mid != NULL) {
-        rec = mid[arg0->area - 1];
-        if (rec != NULL) {
-            rec = &rec[arg0->room - 1];
+    areaLightingTables = Gp_RoomCoordTables[arg0->stage - 1];
+    roomLighting       = NULL;
+    if (areaLightingTables != NULL) {
+        roomLighting = areaLightingTables[arg0->area - 1];
+        if (roomLighting != NULL) {
+            roomLighting = &roomLighting[arg0->room - 1];
         }
     }
     ambientEntry = &Gp_RoomBoundDefault;
-    if (rec != NULL) {
-        ambientTable = rec->field_4;
+    if (roomLighting != NULL) {
+        ambientTable = roomLighting->ambientTable;
         if (ambientTable != NULL) {
             if (ambientTable->viewCount >= arg0->view) {
                 ambientEntry = &ambientTable[arg0->view];
@@ -1562,21 +1562,21 @@ static s32 Gp_CountRoomCoords(void)
 
 static WorldCoordRoomLights* Gp_GetRoomCoordSet(GameLocationKey* arg0)
 {
-    GpRoomCoordRec**      mid;
-    GpRoomCoordRec*       rec;
-    WorldCoordRoomLights* roomLights;
+    WorldCoordRoomLighting** areaLightingTables;
+    WorldCoordRoomLighting*  roomLighting;
+    WorldCoordRoomLights*    roomLights;
 
-    roomLights = NULL;
-    mid        = Gp_RoomCoordTables[arg0->stage - 1];
-    rec        = NULL;
-    if (mid != NULL) {
-        rec = mid[arg0->area - 1];
-        if (rec != NULL) {
-            rec = &rec[arg0->room - 1];
+    roomLights         = NULL;
+    areaLightingTables = Gp_RoomCoordTables[arg0->stage - 1];
+    roomLighting       = NULL;
+    if (areaLightingTables != NULL) {
+        roomLighting = areaLightingTables[arg0->area - 1];
+        if (roomLighting != NULL) {
+            roomLighting = &roomLighting[arg0->room - 1];
         }
     }
-    if (rec != NULL) {
-        roomLights = rec->field_0;
+    if (roomLighting != NULL) {
+        roomLights = roomLighting->lights;
     }
     return roomLights;
 }
@@ -1735,20 +1735,20 @@ static void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
     arg0->field_C.vx = arg0->field_C.vy = arg0->field_C.vz = arg3;
 }
 
-static GpRoomCoordRec* Gp_GetRoomCoordRec(GameLocationKey* arg0)
+static WorldCoordRoomLighting* Gp_GetRoomCoordRec(GameLocationKey* arg0)
 {
-    GpRoomCoordRec** mid;
-    GpRoomCoordRec*  rec;
+    WorldCoordRoomLighting** areaLightingTables;
+    WorldCoordRoomLighting*  roomLighting;
 
-    mid = Gp_RoomCoordTables[arg0->stage - 1];
-    rec = NULL;
-    if (mid != NULL) {
-        rec = mid[arg0->area - 1];
-        if (rec != NULL) {
-            rec = &rec[arg0->room - 1];
+    areaLightingTables = Gp_RoomCoordTables[arg0->stage - 1];
+    roomLighting       = NULL;
+    if (areaLightingTables != NULL) {
+        roomLighting = areaLightingTables[arg0->area - 1];
+        if (roomLighting != NULL) {
+            roomLighting = &roomLighting[arg0->room - 1];
         }
     }
-    return rec;
+    return roomLighting;
 }
 
 void func_800D9CC8(Task* arg0)

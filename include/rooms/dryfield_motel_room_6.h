@@ -22,7 +22,7 @@ extern u8* D_dryfield_motel_room_6_80182DA8[];
 
 extern GpViewCountRec D_dryfield_motel_room_6_80182DAC[];
 
-extern GpRoomCoordRec D_dryfield_motel_room_6_80182DB0[];
+extern WorldCoordRoomLighting D_dryfield_motel_room_6_80182DB0[];
 
 extern GpWarpRec D_dryfield_motel_room_6_80182DB8[];
 

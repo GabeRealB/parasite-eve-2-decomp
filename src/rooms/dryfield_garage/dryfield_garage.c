@@ -120,7 +120,7 @@ GpViewCountRec D_dryfield_garage_8017DCF0[1] = {
     { { .bytes = { 15, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_garage_8017DCF4[1] = {
+WorldCoordRoomLighting D_dryfield_garage_8017DCF4[1] = {
     { D_dryfield_garage_8017FD04, D_dryfield_garage_80180148 },
 };
 

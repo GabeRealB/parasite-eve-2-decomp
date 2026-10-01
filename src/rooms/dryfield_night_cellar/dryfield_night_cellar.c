@@ -77,7 +77,7 @@ SVECTOR D_dryfield_night_cellar_8017DAE0[2] = {
     { 8300, -2330, 200, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_cellar_8017DAF0[2] = {
+WorldCoordRoomLighting D_dryfield_night_cellar_8017DAF0[2] = {
     { D_dryfield_night_cellar_80180510, NULL },
     { D_dryfield_night_cellar_80180708, NULL },
 };

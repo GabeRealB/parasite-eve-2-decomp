@@ -20,7 +20,7 @@ extern u8* D_dryfield_dilapidated_house_80186964[];
 
 extern GpViewCountRec D_dryfield_dilapidated_house_80186968[];
 
-extern GpRoomCoordRec D_dryfield_dilapidated_house_8018696C[];
+extern WorldCoordRoomLighting D_dryfield_dilapidated_house_8018696C[];
 
 extern GpWarpRec D_dryfield_dilapidated_house_80186974[];
 

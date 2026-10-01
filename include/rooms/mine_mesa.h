@@ -18,7 +18,7 @@ extern GpRoomObjRec D_mine_mesa_80186538[];
 
 extern u8* D_mine_mesa_80186548[];
 
-extern GpRoomCoordRec D_mine_mesa_8018654C[];
+extern WorldCoordRoomLighting D_mine_mesa_8018654C[];
 
 extern GpViewCountRec D_mine_mesa_80186554[];
 

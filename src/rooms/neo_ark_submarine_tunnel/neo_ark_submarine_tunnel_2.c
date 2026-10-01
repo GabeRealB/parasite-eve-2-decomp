@@ -60,7 +60,7 @@ u8 D_neo_ark_submarine_tunnel_80181DF0 = 0;
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-GpRoomCoordRec D_neo_ark_submarine_tunnel_80181E00[1] = {
+WorldCoordRoomLighting D_neo_ark_submarine_tunnel_80181E00[1] = {
     { D_neo_ark_submarine_tunnel_80187230, NULL },
 };
 

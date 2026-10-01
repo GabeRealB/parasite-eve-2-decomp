@@ -171,7 +171,7 @@ GpRoomObjRec D_shelter_1f_vehicular_airlock_801820FC[1] = {
     { D_shelter_1f_vehicular_airlock_80182438, D_shelter_1f_vehicular_airlock_80182714, D_shelter_1f_vehicular_airlock_801827AC, NULL },
 };
 
-GpRoomCoordRec D_shelter_1f_vehicular_airlock_8018210C[1] = {
+WorldCoordRoomLighting D_shelter_1f_vehicular_airlock_8018210C[1] = {
     { D_shelter_1f_vehicular_airlock_801826FC, D_shelter_1f_vehicular_airlock_801829C0 },
 };
 

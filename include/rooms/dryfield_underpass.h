@@ -20,7 +20,7 @@ extern u8* D_dryfield_underpass_8017EBBC[];
 
 extern GpViewCountRec D_dryfield_underpass_8017EBD4[];
 
-extern GpRoomCoordRec D_dryfield_underpass_8017EBE0[];
+extern WorldCoordRoomLighting D_dryfield_underpass_8017EBE0[];
 
 extern GpWarpRec D_dryfield_underpass_8017EC10[];
 

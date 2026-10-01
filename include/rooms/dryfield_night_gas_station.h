@@ -14,7 +14,7 @@
 extern GpAreaVariant D_dryfield_night_gas_station_80190624[12];
 
 // dryfield_night_gas_station
-extern GpRoomCoordRec D_dryfield_night_gas_station_80189DB0[];
+extern WorldCoordRoomLighting D_dryfield_night_gas_station_80189DB0[];
 
 extern GpRoomObjRec D_dryfield_night_gas_station_80189DD0[];
 

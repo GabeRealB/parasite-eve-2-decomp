@@ -106,7 +106,7 @@ GpRoomObjRec D_neo_ark_north_promenade_80181DB4[1] = {
     { D_neo_ark_north_promenade_801823EC, D_neo_ark_north_promenade_80182DB4, D_neo_ark_north_promenade_801830C4, D_neo_ark_north_promenade_8018328C },
 };
 
-GpRoomCoordRec D_neo_ark_north_promenade_80181DC4[1] = {
+WorldCoordRoomLighting D_neo_ark_north_promenade_80181DC4[1] = {
     { D_neo_ark_north_promenade_80182D9C, NULL },
 };
 

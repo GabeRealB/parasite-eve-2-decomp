@@ -56,7 +56,7 @@ extern u16 D_map_dryfield_8017A824[];
 /// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
 /// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
 /// one pointer per room into that room's package.
-extern GpRoomCoordRec* D_map_dryfield_8017A860[];
+extern WorldCoordRoomLighting* D_map_dryfield_8017A860[];
 
 extern GpWarpRec* D_map_dryfield_8017A8F8[];
 

@@ -653,7 +653,7 @@ GpViewCountRec D_acropolis_promenade_80181BC8[2] = {
     { { .bytes = { 13, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_promenade_80181BCC[2] = {
+WorldCoordRoomLighting D_acropolis_promenade_80181BCC[2] = {
     { D_acropolis_promenade_80183A08, NULL },
     { D_acropolis_promenade_80183A08, NULL },
 };

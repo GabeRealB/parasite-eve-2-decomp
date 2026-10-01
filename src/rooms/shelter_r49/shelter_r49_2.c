@@ -56,7 +56,7 @@ GpViewCountRec D_shelter_r49_8017DA2C[1] = {
     { { .bytes = { 3, 0 } } },
 };
 
-GpRoomCoordRec D_shelter_r49_8017DA30[1] = {
+WorldCoordRoomLighting D_shelter_r49_8017DA30[1] = {
     { D_shelter_r49_8017DD24, NULL },
 };
 

@@ -512,43 +512,43 @@ u16 D_map_neo_ark_8017A9A0[9] = {
     0x1AC,
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9B4[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9B4[1] = {
     { &D_shelter_b6_nursery_80187294, D_shelter_b6_nursery_8018789C },
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9BC[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9BC[1] = {
     { &D_shelter_b6_growth_room_8017FF78, D_shelter_b6_growth_room_80180730 },
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9C4[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9C4[1] = {
     { &D_shelter_b6_corridor_801800E8, D_shelter_b6_corridor_801804E8 },
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9CC[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9CC[1] = {
     { &D_shelter_b6_training_room_80185768, D_shelter_b6_training_room_80185BC0 },
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9D4[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9D4[1] = {
     { &D_neo_ark_bridge_8018470C, NULL },
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9DC[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9DC[1] = {
     { &D_shelter_1f_tent_80183A7C, NULL },
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9E4[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9E4[1] = {
     { &D_neo_ark_woodland_path_80183F84, D_neo_ark_woodland_path_8018477C },
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9EC[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9EC[1] = {
     { &D_neo_ark_submarine_gallery_80185284, NULL },
 };
 
-static GpRoomCoordRec D_map_neo_ark_8017A9F4[1] = {
+static WorldCoordRoomLighting D_map_neo_ark_8017A9F4[1] = {
     { &D_neo_ark_r31_8017DB7C, NULL },
 };
 
-GpRoomCoordRec* D_map_neo_ark_8017A9FC[33] = {
+WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[33] = {
     D_shelter_1f_parking_garage_80180C74,
     D_shelter_1f_vehicular_airlock_8018210C,
     D_shelter_1f_bulwark_801803C0,

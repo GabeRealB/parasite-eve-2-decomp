@@ -887,7 +887,7 @@ GpViewCountRec D_mist_shooting_gallery_801853BC[2] = {
     { { .bytes = { 0, 0 } } },
 };
 
-GpRoomCoordRec D_mist_shooting_gallery_801853C0[1] = {
+WorldCoordRoomLighting D_mist_shooting_gallery_801853C0[1] = {
     { &D_mist_shooting_gallery_8018D1B4, D_mist_shooting_gallery_8018DFD4 },
 };
 
@@ -2546,10 +2546,10 @@ void func_mist_shooting_gallery_801810D8(Task* task)
 void func_mist_shooting_gallery_801811C0(s16 arg0)
 {
     if (arg0 == 0) {
-        D_mist_shooting_gallery_801853C0[0].field_0 = &D_mist_shooting_gallery_8018D1B4;
+        D_mist_shooting_gallery_801853C0[0].lights = &D_mist_shooting_gallery_8018D1B4;
         return;
     }
-    D_mist_shooting_gallery_801853C0[0].field_0 = &D_mist_shooting_gallery_8018DF38;
+    D_mist_shooting_gallery_801853C0[0].lights = &D_mist_shooting_gallery_8018DF38;
 }
 
 void func_mist_shooting_gallery_801811EC(Task* unused)

@@ -16,7 +16,7 @@ extern GpAreaVariant D_shelter_b1_storeroom_80186C9C[22];
 // shelter_b1_storeroom
 extern GpRoomObjRec D_shelter_b1_storeroom_80184B50[];
 
-extern GpRoomCoordRec D_shelter_b1_storeroom_80184B60[];
+extern WorldCoordRoomLighting D_shelter_b1_storeroom_80184B60[];
 
 extern u8* D_shelter_b1_storeroom_80184B68[];
 

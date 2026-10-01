@@ -336,7 +336,7 @@ GpViewCountRec D_acropolis_east_elevator_hall_80186334[1] = {
     { { .bytes = { 7, 0 } } },
 };
 
-GpRoomCoordRec D_acropolis_east_elevator_hall_80186338[1] = {
+WorldCoordRoomLighting D_acropolis_east_elevator_hall_80186338[1] = {
     { D_acropolis_east_elevator_hall_80187A44, NULL },
 };
 

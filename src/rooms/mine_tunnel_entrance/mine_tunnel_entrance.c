@@ -106,7 +106,7 @@ SVECTOR D_mine_tunnel_entrance_8017DB48[2] = {
     { 3000, -1870, -3060, 0 },
 };
 
-GpRoomCoordRec D_mine_tunnel_entrance_8017DB58[1] = {
+WorldCoordRoomLighting D_mine_tunnel_entrance_8017DB58[1] = {
     { D_mine_tunnel_entrance_8017ECD4, D_mine_tunnel_entrance_8017F38C },
 };
 

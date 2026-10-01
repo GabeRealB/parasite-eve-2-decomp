@@ -99,7 +99,7 @@ GpRoomObjRec D_dryfield_night_back_street_801803AC[1] = {
     { D_dryfield_night_back_street_80180B34, D_dryfield_night_back_street_80180D70, D_dryfield_night_back_street_80180F38, NULL },
 };
 
-GpRoomCoordRec D_dryfield_night_back_street_801803BC[1] = {
+WorldCoordRoomLighting D_dryfield_night_back_street_801803BC[1] = {
     { D_dryfield_night_back_street_80181470, D_dryfield_night_back_street_801815C8 },
 };
 

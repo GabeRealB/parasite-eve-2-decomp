@@ -59,7 +59,7 @@ GpRoomObjRec D_neo_ark_eve_elevator_8017D74C[1] = {
     { D_neo_ark_eve_elevator_8017DA2C, NULL, D_neo_ark_eve_elevator_8017DBC8, NULL },
 };
 
-GpRoomCoordRec D_neo_ark_eve_elevator_8017D75C[1] = {
+WorldCoordRoomLighting D_neo_ark_eve_elevator_8017D75C[1] = {
     { D_neo_ark_eve_elevator_8017DBB0, NULL },
 };
 

@@ -66,7 +66,7 @@ SVECTOR D_dryfield_night_general_store_8017E81C[2] = {
     { 6800, -2820, 7000, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_general_store_8017E82C[1] = {
+WorldCoordRoomLighting D_dryfield_night_general_store_8017E82C[1] = {
     { D_dryfield_night_general_store_801847B8, D_dryfield_night_general_store_801857DC },
 };
 

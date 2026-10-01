@@ -1066,7 +1066,7 @@ s16 D_dryfield_night_saloon_g_r_80185154[22] = {
     -3540,
 };
 
-GpRoomCoordRec D_dryfield_night_saloon_g_r_80185180[2] = {
+WorldCoordRoomLighting D_dryfield_night_saloon_g_r_80185180[2] = {
     { D_dryfield_night_saloon_g_r_80188304, NULL },
     { D_dryfield_night_saloon_g_r_80188304, NULL },
 };

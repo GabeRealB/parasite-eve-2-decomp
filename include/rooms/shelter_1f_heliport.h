@@ -18,7 +18,7 @@ extern GpAreaVariant D_shelter_1f_heliport_80182BF4[13];
 // shelter_1f_heliport
 extern GpRoomObjRec D_shelter_1f_heliport_801812D0[];
 
-extern GpRoomCoordRec D_shelter_1f_heliport_801812E0[];
+extern WorldCoordRoomLighting D_shelter_1f_heliport_801812E0[];
 
 extern u8* D_shelter_1f_heliport_801812E8[];
 

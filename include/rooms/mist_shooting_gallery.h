@@ -60,7 +60,7 @@ extern u8* D_mist_shooting_gallery_801853B8[];
 
 extern GpViewCountRec D_mist_shooting_gallery_801853BC[];
 
-extern GpRoomCoordRec D_mist_shooting_gallery_801853C0[];
+extern WorldCoordRoomLighting D_mist_shooting_gallery_801853C0[];
 
 extern GpWarpRec D_mist_shooting_gallery_801853C8[];
 

@@ -162,7 +162,7 @@ GpViewCountRec D_dryfield_r08_8017F704[2] = {
     { { .bytes = { 6, 0 } } },
 };
 
-GpRoomCoordRec D_dryfield_r08_8017F708[2] = {
+WorldCoordRoomLighting D_dryfield_r08_8017F708[2] = {
     { &D_dryfield_r08_801809C0, NULL },
     { &D_dryfield_r08_80180B58, NULL },
 };
@@ -1036,8 +1036,8 @@ static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
 void func_dryfield_r08_8017F438(s16 arg0)
 {
     if (arg0 == 0) {
-        D_dryfield_r08_8017F708[0].field_0 = &D_dryfield_r08_801809C0;
+        D_dryfield_r08_8017F708[0].lights = &D_dryfield_r08_801809C0;
         return;
     }
-    D_dryfield_r08_8017F708[0].field_0 = &D_dryfield_r08_80180B58;
+    D_dryfield_r08_8017F708[0].lights = &D_dryfield_r08_80180B58;
 }

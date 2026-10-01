@@ -20,7 +20,7 @@ extern TmdSource D_dryfield_junk_yard_8017ECE0;
 // dryfield_junk_yard
 extern GpRoomObjRec D_dryfield_junk_yard_8017ED04[];
 
-extern GpRoomCoordRec D_dryfield_junk_yard_8017ED14[];
+extern WorldCoordRoomLighting D_dryfield_junk_yard_8017ED14[];
 
 extern u8* D_dryfield_junk_yard_8017ED1C[];
 

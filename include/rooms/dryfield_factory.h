@@ -17,7 +17,7 @@ extern GpRoomObjRec D_dryfield_factory_80186F10[];
 
 extern u8* D_dryfield_factory_80186F44[];
 
-extern GpRoomCoordRec D_dryfield_factory_80186F4C[];
+extern WorldCoordRoomLighting D_dryfield_factory_80186F4C[];
 
 extern GpViewCountRec D_dryfield_factory_80186F5C[];
 

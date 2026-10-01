@@ -20,7 +20,7 @@ extern u8* D_acropolis_fountain_8017E84C[];
 
 extern GpViewCountRec D_acropolis_fountain_8017E854[];
 
-extern GpRoomCoordRec D_acropolis_fountain_8017E858[];
+extern WorldCoordRoomLighting D_acropolis_fountain_8017E858[];
 
 extern GpWarpRec D_acropolis_fountain_8017E868[];
 

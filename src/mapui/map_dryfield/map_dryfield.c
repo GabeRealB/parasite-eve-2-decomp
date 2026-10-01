@@ -494,7 +494,7 @@ u16 D_map_dryfield_8017A824[29] = {
     0x1BD,
 };
 
-GpRoomCoordRec* D_map_dryfield_8017A860[38] = {
+WorldCoordRoomLighting* D_map_dryfield_8017A860[38] = {
     D_dryfield_gas_station_80183160,
     D_dryfield_main_street_80181BD4,
     D_dryfield_general_store_8017E688,

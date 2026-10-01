@@ -20,7 +20,7 @@ extern u8* D_dryfield_warehouse_8017FC04[];
 
 extern GpViewCountRec D_dryfield_warehouse_8017FC10[];
 
-extern GpRoomCoordRec D_dryfield_warehouse_8017FC18[];
+extern WorldCoordRoomLighting D_dryfield_warehouse_8017FC18[];
 
 extern GpWarpRec D_dryfield_warehouse_8017FC30[];
 

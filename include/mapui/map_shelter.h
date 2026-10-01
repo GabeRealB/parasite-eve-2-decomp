@@ -55,7 +55,7 @@ extern u16 D_map_shelter_8017AD88[];
 /// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
 /// one pointer per room into that room's package, except that some rooms'
 /// coordinate and object records are this overlay's own.
-extern GpRoomCoordRec* D_map_shelter_8017AEC4[];
+extern WorldCoordRoomLighting* D_map_shelter_8017AEC4[];
 
 extern GpWarpRec* D_map_shelter_8017AF88[];
 

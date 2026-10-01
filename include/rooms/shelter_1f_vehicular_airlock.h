@@ -20,7 +20,7 @@ extern GpAreaVariant D_shelter_1f_vehicular_airlock_80182A04[12];
 // shelter_1f_vehicular_airlock
 extern GpRoomObjRec D_shelter_1f_vehicular_airlock_801820FC[];
 
-extern GpRoomCoordRec D_shelter_1f_vehicular_airlock_8018210C[];
+extern WorldCoordRoomLighting D_shelter_1f_vehicular_airlock_8018210C[];
 
 extern u8* D_shelter_1f_vehicular_airlock_80182114[];
 

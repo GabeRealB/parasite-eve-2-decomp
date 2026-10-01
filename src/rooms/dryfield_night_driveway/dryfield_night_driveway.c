@@ -489,7 +489,7 @@ SVECTOR D_dryfield_night_driveway_801805B0[6] = {
     { 5740, -2430, 900, 0 },
 };
 
-GpRoomCoordRec D_dryfield_night_driveway_801805E0[2] = {
+WorldCoordRoomLighting D_dryfield_night_driveway_801805E0[2] = {
     { D_dryfield_night_driveway_80181DB0, D_dryfield_night_driveway_80182074 },
     { D_dryfield_night_driveway_80181DB0, D_dryfield_night_driveway_80182074 },
 };

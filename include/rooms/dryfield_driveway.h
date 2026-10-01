@@ -18,7 +18,7 @@ extern GpRoomObjRec D_dryfield_driveway_8017E784[];
 
 extern u8* D_dryfield_driveway_8017E7AC[];
 
-extern GpRoomCoordRec D_dryfield_driveway_8017E7B4[];
+extern WorldCoordRoomLighting D_dryfield_driveway_8017E7B4[];
 
 extern GpViewCountRec D_dryfield_driveway_8017E7C4[];
 

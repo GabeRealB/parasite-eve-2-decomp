@@ -17,7 +17,7 @@ extern u8* D_dryfield_motel_room_5_8017D6EC[];
 
 extern GpViewCountRec D_dryfield_motel_room_5_8017D6F0[];
 
-extern GpRoomCoordRec D_dryfield_motel_room_5_8017D6F4[];
+extern WorldCoordRoomLighting D_dryfield_motel_room_5_8017D6F4[];
 
 extern GpWarpRec D_dryfield_motel_room_5_8017D6FC[];
 

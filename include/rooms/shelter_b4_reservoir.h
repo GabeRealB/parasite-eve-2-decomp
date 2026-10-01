@@ -28,7 +28,7 @@ extern u8 D_shelter_b4_reservoir_801850C8[16];
 extern u8 D_shelter_b4_reservoir_801850D8[16];
 
 // shelter_b4_reservoir
-extern GpRoomCoordRec D_shelter_b4_reservoir_801850E8[];
+extern WorldCoordRoomLighting D_shelter_b4_reservoir_801850E8[];
 
 extern GpRoomObjRec D_shelter_b4_reservoir_801850F8[];
 

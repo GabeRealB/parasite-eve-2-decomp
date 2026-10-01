@@ -16,7 +16,7 @@ extern GpAreaVariant D_mine_cavern_8018E238[22];
 // mine_cavern
 extern GpRoomObjRec D_mine_cavern_80188FE0[];
 
-extern GpRoomCoordRec D_mine_cavern_80189010[];
+extern WorldCoordRoomLighting D_mine_cavern_80189010[];
 
 extern u8* D_mine_cavern_80189060[];
 

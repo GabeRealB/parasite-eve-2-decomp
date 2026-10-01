@@ -21,7 +21,7 @@ extern GpAreaVariant D_dryfield_night_factory_8018A70C[11];
 // dryfield_night_factory
 extern u8* D_dryfield_night_factory_80186F1C[];
 
-extern GpRoomCoordRec D_dryfield_night_factory_80186F24[];
+extern WorldCoordRoomLighting D_dryfield_night_factory_80186F24[];
 
 extern GpRoomObjRec D_dryfield_night_factory_80186F34[];
 

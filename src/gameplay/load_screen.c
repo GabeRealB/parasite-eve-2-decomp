@@ -89,7 +89,7 @@ GpViewIndexTbl*                    Gp_ViewIndexTables[5] = { &D_map_akropolis_80
 GpSprtTbl*                         Gp_SprtTables[5]      = { &D_map_akropolis_8017AB1C, &D_map_dryfield_8017AC98, &D_map_dryfield_full_8017ABAC, &D_map_shelter_8017B610, &D_map_neo_ark_8017AE38 };
 GpRoomObjTbl*                      Gp_RoomObjTables[5]   = { &D_map_akropolis_8017AAC8, &D_map_dryfield_8017AAC4, &D_map_dryfield_full_8017A9D8, &D_map_shelter_8017B3B8, &D_map_neo_ark_8017ACA0 };
 GpWarpRec**                        Gp_WarpTables[5]      = { D_map_akropolis_8017AB20, D_map_dryfield_8017A8F8, D_map_dryfield_full_8017A80C, D_map_shelter_8017AF88, D_map_neo_ark_8017AA80 };
-GpRoomCoordRec**                   Gp_RoomCoordTables[5] = { D_map_akropolis_8017AA28, D_map_dryfield_8017A860, D_map_dryfield_full_8017A774, D_map_shelter_8017AEC4, D_map_neo_ark_8017A9FC };
+WorldCoordRoomLighting**           Gp_RoomCoordTables[5] = { D_map_akropolis_8017AA28, D_map_dryfield_8017A860, D_map_dryfield_full_8017A774, D_map_shelter_8017AEC4, D_map_neo_ark_8017A9FC };
 WorldCollisionSurfaceProperties*** Gp_RoomParamTables[5] = { D_map_akropolis_8017AC6C, D_map_dryfield_8017AC9C, D_map_dryfield_full_8017ABB0, D_map_shelter_8017B614, D_map_neo_ark_8017AE3C };
 
 void func_800AA548(s32 arg0)

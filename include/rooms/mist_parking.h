@@ -22,7 +22,7 @@ extern u8* D_mist_parking_801915B0[];
 
 extern GpViewCountRec D_mist_parking_801915C0[];
 
-extern GpRoomCoordRec D_mist_parking_801915C8[];
+extern WorldCoordRoomLighting D_mist_parking_801915C8[];
 
 extern GpWarpRec D_mist_parking_801915E8[];
 

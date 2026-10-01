@@ -20,7 +20,7 @@ extern u8* D_acropolis_promenade_80181BC0[];
 
 extern GpViewCountRec D_acropolis_promenade_80181BC8[];
 
-extern GpRoomCoordRec D_acropolis_promenade_80181BCC[];
+extern WorldCoordRoomLighting D_acropolis_promenade_80181BCC[];
 
 extern GpWarpRec D_acropolis_promenade_80181BDC[];
 

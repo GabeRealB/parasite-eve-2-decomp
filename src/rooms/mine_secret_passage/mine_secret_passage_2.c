@@ -131,7 +131,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-GpRoomCoordRec D_mine_secret_passage_80180F9C[1] = {
+WorldCoordRoomLighting D_mine_secret_passage_80180F9C[1] = {
     { D_mine_secret_passage_80182DB4, D_mine_secret_passage_801833A0 },
 };
 

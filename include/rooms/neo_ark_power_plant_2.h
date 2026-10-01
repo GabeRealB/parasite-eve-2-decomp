@@ -16,7 +16,7 @@ extern GpAreaVariant D_neo_ark_power_plant_2_80182DE0[19];
 // neo_ark_power_plant_2
 extern GpRoomObjRec D_neo_ark_power_plant_2_80180690[];
 
-extern GpRoomCoordRec D_neo_ark_power_plant_2_801806A0[];
+extern WorldCoordRoomLighting D_neo_ark_power_plant_2_801806A0[];
 
 extern u8* D_neo_ark_power_plant_2_801806A8[];
 
