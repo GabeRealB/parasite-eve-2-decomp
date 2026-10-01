@@ -3050,7 +3050,7 @@ void func_mine_mesa_8017E3E0(Task* arg0)
     addPrim(gGpuCurrentOt + 3, tile);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 1, 0, getTPage(0, 2, 320, 0));
+    setDrawTPage(dr, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, 320, 0));
     addPrim(gGpuCurrentOt + 3, dr);
 }
 

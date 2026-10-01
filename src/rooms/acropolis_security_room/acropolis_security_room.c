@@ -2260,9 +2260,8 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
 /// block's `cameraId` biased by -0x7F -- as a semi-transparent `POLY_F4`
 /// covering (-0x66, -0x5F) to (0x6C, 0x3C) in `gGpuCurrentOt[0xC]`, followed by
 /// the drawing-mode packet that restores the panel's texture page. A negative
-/// `id` uses its magnitude and the other semi-transparency rate (0xE100004A
-/// rather than 0xE100002A), which is what makes the "no signal" panel read
-/// differently from a live camera. The strip below the panel (y 0x3C to 0x38)
+/// `id` selects `GPU_BLEND_SUBTRACT`, darkening the "no signal" panel.
+/// The strip below the panel (y 0x3C to 0x38)
 /// is then blacked out with an opaque quad in `gGpuCurrentOt[0xB]`.
 static void func_acropolis_security_room_8017E0C4(s16 id)
 {
@@ -2316,7 +2315,7 @@ static void func_acropolis_security_room_8017E0C4(s16 id)
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setlen(dr, 1);
-        dr->code[0] = 0xE100004A;
+        dr->code[0] = _get_mode(false, false, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));
         addPrim(gGpuCurrentOt + 0xC, dr);
     }
 

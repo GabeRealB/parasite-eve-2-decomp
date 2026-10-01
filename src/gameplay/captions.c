@@ -49,6 +49,7 @@ u8 D_801156A4;
 s32 D_801156A8;
 
 #include "gameplay/captions.h"
+#include "gameplay/room_effects.h"
 
 #include "captions.h"
 
@@ -794,7 +795,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 gt2            = gGpuPrimCursor;
                 gGpuPrimCursor = gt2 + 1;
                 *gt2           = *gt;
-                gt2->tpage     = getTPage(0, 2, D_80115654, D_80115656);
+                gt2->tpage     = getTPage(0, GPU_BLEND_SUBTRACT, D_80115654, D_80115656);
                 addPrim(&gGpuCurrentOt[2], gt2);
                 if (layout->vertical == 0) {
                     x = Gp_CapGlyphs[(s16)code].w + x - 1;

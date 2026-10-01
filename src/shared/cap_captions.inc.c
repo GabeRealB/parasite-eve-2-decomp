@@ -9,6 +9,7 @@
 
 #include "gameplay/cap.h"
 #include "gameplay/captions.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
 
 #include "main/display.h"
@@ -354,7 +355,7 @@ static s32 CapCaption_DrawText(u16* arg0, s32 arg1, s32 arg2, s32 arg3)
             gt2            = gGpuPrimCursor;
             gGpuPrimCursor = gt2 + 1;
             *gt2           = *gt;
-            gt2->tpage     = getTPage(0, 2, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
+            gt2->tpage     = getTPage(0, GPU_BLEND_SUBTRACT, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
             addPrim(&gGpuCurrentOt[2], gt2);
             x = CapCaption_Data_8015E654[(s16)code].w + x - 1;
         }

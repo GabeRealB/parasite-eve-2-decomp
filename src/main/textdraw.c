@@ -846,7 +846,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
     if (request->drawMode == TEXT_DRAW_OUTLINED || request->drawMode == TEXT_DRAW_TRANSLUCENT_OUTLINED) {
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
-        dr->code[0]    = 0xE100025F;
+        dr->code[0]    = _get_mode(false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0x3C0, 0x100));
         setlen(dr, 1);
         addPrim(gGpuCurrentOt + request->otIndex + 1, dr);
     }
@@ -854,7 +854,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
         if (request->drawMode == TEXT_DRAW_OUTLINE_ONLY) {
             dr             = gGpuPrimCursor;
             gGpuPrimCursor = dr + 1;
-            dr->code[0]    = 0xE100025F;
+            dr->code[0]    = _get_mode(false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0x3C0, 0x100));
             setlen(dr, 1);
             addPrim(gGpuCurrentOt + request->otIndex, dr);
         } else {
