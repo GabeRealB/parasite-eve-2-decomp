@@ -269,7 +269,7 @@ typedef struct OddStrangerWork {
     /* 0xC26 */ s16 field_C26;
     /// Latch `oddStrangerGrabRelease` clears after sending the closing
     /// 0x3F1 message, gating on it being 1 the same way the 0x3ED probe does.
-    /// The same slot `Actor00100Work` keeps at +0xC28.
+    /// The same slot `DesertChaserWork` keeps at +0xC28.
     /* 0xC28 */ s16  field_C28;
     /* 0xC2A */ byte pad_C2A[2];
     /// Ring of the last seven view-space positions `oddStrangerTick`
