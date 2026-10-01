@@ -51,6 +51,10 @@
 #include "overlay.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
+// The cue frames of the first footstep clip (2), which this build animates
+// differently.
+#define ODD_STRANGER_CLIP2_STEP_A 0x10
+#define ODD_STRANGER_CLIP2_STEP_B 0x16
 #include "../../shared/odd_stranger.h"
 
 /// XZ patrol point in `Actor401800Work.field_C`. Same shape as
@@ -1361,153 +1365,7 @@ static void            func_actor_401800_8013D64C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/player_detection_sight.inc.c"
 
-/// Animation-event dispatcher: picks the `0x400A00xx` event the state in
-/// `field_89E` and the animation index in the second slot's cue index queue, one event
-/// per index change because `field_8B4` latches the index the last one fired
-/// for — a repeat of that index just stores it back. A state/index pair with
-/// no event falls through to the shared tail, which latches the index, or
-/// clears `field_8B4` outright in the states that need it. Same dispatcher
-/// shape as `Actor01900_Fn01A7C`.
-s32 oddStrangerAnimEvent(OddStrangerWork* work)
-{
-    s32 id;
-    s32 prev;
-
-    switch (work->field_89E) {
-        case 20:
-        case 21:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 7) {
-                if (work->field_8B4 != id) {
-                    work->field_8B4 = id;
-                    return 0x400A0010;
-                }
-                work->field_8B4 = id;
-            } else if (id == 0x10) {
-                prev = work->field_8B4;
-                if (prev != id) {
-                    work->field_8B4 = id;
-                    return 0x400A0011;
-                }
-                work->field_8B4 = prev;
-            } else {
-                work->field_8B4 = 0;
-            }
-            break;
-        case 3:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 0x1A) {
-                if (work->field_8B4 != id) {
-                    work->field_8B4 = id;
-                    return 0x400A0004;
-                }
-                work->field_8B4 = id;
-            } else if (id == 0x13) {
-                prev = work->field_8B4;
-                if (prev != id) {
-                    work->field_8B4 = id;
-                    return 0x400A0003;
-                }
-                work->field_8B4 = prev;
-            } else {
-                work->field_8B4 = 0;
-            }
-            break;
-        case 2:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 0x10) {
-                if (work->field_8B4 != id) {
-                    work->field_8B4 = id;
-                    return 0x400A0002;
-                }
-                work->field_8B4 = id;
-            } else if (id == 0x16) {
-                prev = work->field_8B4;
-                if (prev != id) {
-                    work->field_8B4 = id;
-                    return 0x400A0001;
-                }
-                work->field_8B4 = prev;
-            } else {
-                work->field_8B4 = 0;
-            }
-            break;
-        case 9:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 4 && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A0006;
-            }
-            prev            = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            work->field_8B4 = prev;
-            break;
-        case 11:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 4 && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A0005;
-            }
-            prev            = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            work->field_8B4 = prev;
-            break;
-        case 12:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 7 && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A0005;
-            }
-            prev            = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            work->field_8B4 = prev;
-            break;
-        case 4:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 0xA && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A0004;
-            }
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 0x12 && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A0002;
-            }
-            prev            = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            work->field_8B4 = prev;
-            break;
-        case 5:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 9 && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A000D;
-            }
-            prev            = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            work->field_8B4 = prev;
-            break;
-        case 7:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 0x16 && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A0003;
-            }
-            prev            = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            work->field_8B4 = prev;
-            break;
-        case 6:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 9 && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A000D;
-            }
-            id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id == 0x13 && work->field_8B4 != id) {
-                work->field_8B4 = id;
-                return 0x400A000C;
-            }
-            prev            = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            work->field_8B4 = prev;
-            break;
-    }
-    return 0;
-}
+#include "../../shared/odd_stranger_anim_event.inc.c"
 
 #include "../../shared/odd_stranger_drive.inc.c"
 

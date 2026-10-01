@@ -68,7 +68,13 @@ void oddStrangerTickBlended(Task* arg0);
 void oddStrangerDrive(Task* arg0);
 s32  oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 
-/* Defined by each package. */
 s32 oddStrangerAnimEvent(OddStrangerWork* work);
+
+/* The two packages animate the first footstep clip (2) with its cues on
+ * different frames. Each defines them before including this header:
+ *
+ *   ODD_STRANGER_CLIP2_STEP_A   frame of the first step cue (0x400A0002)
+ *   ODD_STRANGER_CLIP2_STEP_B   frame of the second step cue (0x400A0001)
+ */
 
 #endif /* SRC_SHARED_ODD_STRANGER_H */
