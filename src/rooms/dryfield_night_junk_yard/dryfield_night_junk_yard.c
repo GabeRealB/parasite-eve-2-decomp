@@ -19,6 +19,7 @@
 #include "main/session_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
+#include "../../shared/junk_yard.h"
 
 /// The room's message table, published in `Task::msgTable` for
 /// `taskMessageDispatch` to walk.
@@ -27,7 +28,6 @@ extern TaskMessageEntry D_dryfield_night_junk_yard_8018055C[];
 extern s32        D_dryfield_night_junk_yard_801805A0;
 extern EvsCommand D_dryfield_night_junk_yard_801805A4[];
 
-s32 func_dryfield_night_junk_yard_8017D5F4(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_night_junk_yard_8017D6A4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_junk_yard_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, TaskMessageArg);
@@ -41,7 +41,7 @@ TaskMessageEntry D_dryfield_night_junk_yard_8018055C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_junk_yard_8017D6AC },
     { 5105, func_dryfield_night_junk_yard_8017D6A4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_junk_yard_8017D82C },
-    { 5104, func_dryfield_night_junk_yard_8017D5F4 },
+    { 5104, junkYardCapMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -76,31 +76,7 @@ EvsCommand D_dryfield_night_junk_yard_801805A4[17] = {
 static void func_dryfield_night_junk_yard_8017D8B0(Task* task);
 static void func_dryfield_night_junk_yard_8017D958(Task* task);
 
-/// Handler for message 0x13F0 in the room's message table, keyed by `arg2`.
-/// Point 6 plays CAP command 0xC until nibble 0x3A is set, and 6 after. Point 8
-/// plays command 9 unless bit flag 0x1C is set; with it set, command 8 plays
-/// only while nibble 0x73 is still clear and 0x7C is set, and otherwise the
-/// point's own CAP slot starts. Always returns 0.
-s32 func_dryfield_night_junk_yard_8017D5F4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
-{
-    switch (arg2) {
-        case 6:
-            Gp_RunCapCmd1(GameFlag_GetNibble(0x3A) <= 0 ? 0xC : 6);
-            break;
-        case 8:
-            if (Gp_GetCurBit2Flag(0x1C) == 1) {
-                if (GameFlag_GetNibble(0x73) == 0 && GameFlag_GetNibble(0x7C) != 0) {
-                    Gp_RunCapCmd1(8);
-                } else {
-                    Gp_StartCapSlot(arg2, 1, 0);
-                }
-            } else {
-                Gp_RunCapCmd1(9);
-            }
-            break;
-    }
-    return 0;
-}
+#include "../../shared/junk_yard_cap_msg.inc.c"
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.

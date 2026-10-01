@@ -29,7 +29,7 @@ extern SpriteView D_dryfield_factory_801895B0[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_factory_8018A37C[];
 
-void func_dryfield_factory_801825F0(Task* task);
+void factoryDayDrawGlows(Task* task);
 
 void factoryDayEntryTask(Task* task);
 

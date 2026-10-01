@@ -317,3 +317,4 @@ Shop_Data_8017D6EC = 0x8017D6EC;
 roomCutsceneTask = 0x80181D88; // type:func
 roomCutsceneSoundTask = 0x801824E8; // type:func
 glowDrawStarLocal = 0x801829A8; // type:func
+trailerCoachSetDepthShift = 0x8018291C; // type:func

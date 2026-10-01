@@ -48,6 +48,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
+#define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/factory_lift.h"
 
 /// The pending event message and request the gate latched, the flag saying

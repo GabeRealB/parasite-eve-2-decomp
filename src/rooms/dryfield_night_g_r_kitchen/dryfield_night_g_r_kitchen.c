@@ -46,6 +46,8 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
+#define DRYFIELD_TIME DRYFIELD_NIGHT
+#include "../../shared/g_r_kitchen.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
 
@@ -68,7 +70,6 @@ extern SVECTOR D_dryfield_night_g_r_kitchen_8017E27C[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[];
 
 s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
 
@@ -80,7 +81,7 @@ extern WorldCoordRoomLights  D_dryfield_night_g_r_kitchen_8017E84C[1];
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_g_r_kitchen_8017D8C4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, grKitchenDoorMsg },
     { 5105, func_dryfield_night_g_r_kitchen_8017D8BC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_g_r_kitchen_8017D950 },
     { 5104, func_dryfield_night_g_r_kitchen_8017D948 },
@@ -290,27 +291,7 @@ s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageA
     return 0;
 }
 
-/// The room's handler for message 0x13EE, the first entry of its message
-/// table. It copies the incoming record to `out`; for a record whose first
-/// halfword is 0x14 it builds the room's event request -- flag nibble 0x34, no
-/// collected bit, CAP commands 3 and 3 and two sounds -- and answers what
-/// the event gate answers. Everything else answers 1.
-s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    RoomEventReq req;
-
-    *out = *in;
-    if (in->areaId == 0x14) {
-        req.capCmd        = 3;
-        req.missingCapCmd = 3;
-        req.firstSnd      = 0x53130001;
-        req.secondSnd     = 0x53130004;
-        req.flagId        = 0x34;
-        req.collectedBit  = 0;
-        return roomEventGate(&req, in);
-    }
-    return 1;
-}
+#include "../../shared/g_r_kitchen_door_msg.inc.c"
 
 /// The room's handler for message 0x13F0: answers 0.
 s32 func_dryfield_night_g_r_kitchen_8017D948(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

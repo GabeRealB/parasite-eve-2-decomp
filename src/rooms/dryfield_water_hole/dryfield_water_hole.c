@@ -52,6 +52,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/water_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/water_hole.h"
 
 #define D_dryfield_water_hole_8017FCC4 (D_dryfield_water_hole_8017FCBC + 1)
 #define D_dryfield_water_hole_8017FCDC (D_dryfield_water_hole_8017FCBC + 4)
@@ -69,18 +70,6 @@ typedef struct {
 } _DryfieldWaterHoleSpotLightStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterHoleSpotLightStorage, 648);
 
-/// One rectangle of water surface drawn by `func_dryfield_water_hole_8017D898`,
-/// in world coordinates: it spans `width` along X from `x` and `depth` along Z
-/// from `z`, at height `y`. The table ends at the first entry whose `y` word is
-/// -1; the drawing code reads only its low half as the height.
-typedef struct {
-    s16 x;
-    s16 z;
-    s16 width;
-    u16 depth;
-    s32 y;
-} _DryfieldWaterHoleSurface;
-
 /// Block the room's splash task receives as `spawnArg2`. Only the halfword at
 /// 0x26 is touched: an effect strength, set from how far a tracked part moved
 /// this frame and used as the odds of spawning each of the two effects.
@@ -94,10 +83,9 @@ typedef struct {
 /// and 0x13F2.
 extern TaskMessageEntry D_dryfield_water_hole_8017FC5C[];
 /// Descriptor of the room's water task, spawned by the room task's entry tick.
-/// Its callback is `func_dryfield_water_hole_8017DFA0`.
+/// Its callback is `waterHoleWaterTask`.
 extern TaskDesc D_dryfield_water_hole_8017FC8C[];
 /// The room's water surfaces, terminated by an entry with `y == -1`.
-extern _DryfieldWaterHoleSurface D_dryfield_water_hole_8017FC98[];
 /// Point pairs of the glowing beams the splash task draws, one table per group
 /// of views.
 /// Last-frame world positions of the two tracked parts of the slot-3 task's
@@ -106,11 +94,7 @@ extern SVECTOR D_dryfield_water_hole_8017FD1C[];
 /// Cursor into the primitive area the room's water surface is written to,
 /// reset each frame to the half of that area belonging to the ordering table
 /// being built.
-extern u8* D_dryfield_water_hole_801828CC;
 /// Frame counter the water surface's wave is phased by.
-extern s16 D_dryfield_water_hole_801828D0;
-
-static void func_dryfield_water_hole_8017E000(Task* arg0);
 
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_dryfield_water_hole_80180260[1];
@@ -122,18 +106,16 @@ extern WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9];
 extern WorldCoordRoomLights       D_dryfield_water_hole_80182468[1];
 extern WorldCoordRoomLights       D_dryfield_water_hole_8018278C[1];
 
-s32  func_dryfield_water_hole_8017D5E8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_water_hole_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
-s32  func_dryfield_water_hole_8017D784(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
-void func_dryfield_water_hole_8017DFA0(Task*);
+s32 func_dryfield_water_hole_8017D5E8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
+s32 func_dryfield_water_hole_8017D784(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
 
 extern _DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
 extern WorldCoordPointLight               D_dryfield_water_hole_80181FA0[6];
 
 TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_hole_8017D5F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
     { 5105, func_dryfield_water_hole_8017D5E8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_hole_8017D784 },
     { 5104, func_dryfield_water_hole_8017D73C },
@@ -142,10 +124,10 @@ TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
 };
 
 TaskDesc D_dryfield_water_hole_8017FC8C[1] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_hole_8017DFA0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, waterHoleWaterTask, { .value = 0 } },
 };
 
-_DryfieldWaterHoleSurface D_dryfield_water_hole_8017FC98[3] = {
+WaterHoleSurface gWaterHoleSurfaces[3] = {
     { 4000, -2000, 8000, 2000, -420 },
     { 0x2710, -4000, 0x32C8, 2000, -420 },
     { 0, 0, 0, 0, -1 },
@@ -1333,13 +1315,12 @@ WorldCollisionSurfaceProperties* D_dryfield_water_hole_801828AC[8] = {
     D_dryfield_water_hole_80182884,
 };
 
-u8* D_dryfield_water_hole_801828CC = NULL;
+u8* gWaterHolePrimCursor = NULL;
 
-s16 D_dryfield_water_hole_801828D0;
+s16 gWaterHoleWaveScroll;
 
 static void func_dryfield_water_hole_8017D7DC(Task* arg0);
 static void func_dryfield_water_hole_8017D838(Task* task);
-static void func_dryfield_water_hole_8017D898(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
@@ -1348,55 +1329,7 @@ s32 func_dryfield_water_hole_8017D5E8(Task* task, s32 msgId, TaskMessageArg arg2
     return 0;
 }
 
-/// Handler for message 0x13EE in the room's message table. It copies the
-/// incoming record to `out` and, unless `in->queryOnly` is set, answers two
-/// queries in `out->room`:
-///
-/// - 0x19: while the session's stage is 2, 2 once progress nibble 0x3A has
-///   reached 2 and 1 before; in any other stage, nibble 0x61 plus one.
-/// - 0x26: with nibble 0xC9 set, 2 or 1 by nibble 0x53, plus 2 while nibble
-///   0x51 is clear; with 0xC9 clear, 5 or 6 by whether nibble 0x51 is set.
-///
-/// Always returns 1.
-s32 func_dryfield_water_hole_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    u8 temp;
-
-    *out = *in;
-    if (in->areaId == 0x19) {
-        temp = gGameSession->location.loc.stage;
-        if (temp == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->room = temp;
-                } else {
-                    out->room = 1;
-                }
-            }
-        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
-        }
-    }
-    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0xC9) != 0) {
-            if (GameFlag_GetNibble(0x53) != 0) {
-                out->room = 2;
-            } else {
-                out->room = 1;
-            }
-            if (GameFlag_GetNibble(0x51) == 0) {
-                out->room += 2;
-            }
-        } else {
-            if (GameFlag_GetNibble(0x51) != 0) {
-                out->room = 5;
-            } else {
-                out->room = 6;
-            }
-        }
-    }
-    return 1;
-}
+#include "../../shared/water_hole_door_msg.inc.c"
 
 /// Handler for message 0x13F0 in the room's message table. Only the command 2
 /// in `arg2` concerns this room: it arms cap command 2, records it in progress
@@ -1469,158 +1402,13 @@ void func_dryfield_water_hole_8017D840(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws each surface in `D_dryfield_water_hole_8017FC98` as two strips of 64
-/// semi-transparent Gouraud quads laid side by side along Z, projected through
-/// the view matrix. The seam between the strips is lifted by a sine wave that
-/// runs along X and scrolls with `D_dryfield_water_hole_801828D0`, which only
-/// advances while `gSceneCombatState.actorControl` is clear. The outer edges are coloured
-/// (0xFF, 0, 0) and the seam (0x20, 0x20, 0x20); each quad is followed by a
-/// draw-mode packet selecting blend mode 2. Quads the projection flags as
-/// invalid are skipped. `task` is unused.
-static void func_dryfield_water_hole_8017D898(Task* task)
-{
-    SVECTOR                    v0, v1, v2, v3;
-    long                       sxy0, sxy1, sxy2, sxy3;
-    long                       p, flag;
-    s32                        step;
-    s32                        phase;
-    _DryfieldWaterHoleSurface* e;
-    POLY_G4*                   poly;
-    DR_MODE*                   dr;
-    s32                        otz;
-    s32                        i;
-    s32                        half;
-    s32                        wave;
+#include "../../shared/water_hole_draw_surfaces.inc.c"
 
-    e = D_dryfield_water_hole_8017FC98;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_dryfield_water_hole_801828CC = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
-    } else {
-        D_dryfield_water_hole_801828CC = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
-    }
-    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        D_dryfield_water_hole_801828D0++;
-    }
-    phase                      = -(D_dryfield_water_hole_801828D0 * 16);
-    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    for (; e->y != -1; e++) {
-        step = e->width / 64;
-        half = (s16)e->depth / 2;
-        for (i = 0; i < 64; i++) {
-            v0.vx = e->x + step * i;
-            v0.vy = e->y;
-            v0.vz = e->z;
-            v1.vx = e->x + step * (i + 1);
-            v1.vy = e->y;
-            v1.vz = e->z;
-            wave  = (rsin(phase + (i << 9)) * 16) >> 12;
-            v2.vx = e->x + step * i;
-            v2.vy = e->y + wave;
-            v2.vz = e->z + half;
-            wave  = (rsin(phase + ((i + 1) << 9)) * 16) >> 12;
-            v3.vx = e->x + step * (i + 1);
-            v3.vy = e->y + wave;
-            v3.vz = e->z + half;
-            otz   = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                           = (POLY_G4*)D_dryfield_water_hole_801828CC;
-                D_dryfield_water_hole_801828CC = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r0                       = 0xFF;
-                poly->r1                       = 0xFF;
-                poly->g0                       = 0;
-                poly->b0                       = 0;
-                poly->g1                       = 0;
-                poly->b1                       = 0;
-                poly->r2                       = 0x20;
-                poly->g2                       = 0x20;
-                poly->b2                       = 0x20;
-                poly->r3                       = 0x20;
-                poly->g3                       = 0x20;
-                poly->b3                       = 0x20;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                             = (DR_MODE*)D_dryfield_water_hole_801828CC;
-                D_dryfield_water_hole_801828CC = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
-            }
-        }
-        for (i = 0; i < 64; i++) {
-            wave  = (rsin(phase + (i << 9)) * 16) >> 12;
-            v0.vx = e->x + step * i;
-            v0.vy = e->y + wave;
-            v0.vz = e->z + half;
-            wave  = (rsin(phase + ((i + 1) << 9)) * 16) >> 12;
-            v1.vx = e->x + step * (i + 1);
-            v1.vy = e->y + wave;
-            v1.vz = e->z + half;
-            v2.vx = e->x + step * i;
-            v2.vy = e->y;
-            v2.vz = e->z + half * 2;
-            v3.vx = e->x + step * (i + 1);
-            v3.vy = e->y;
-            v3.vz = e->z + half * 2;
-            otz   = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                           = (POLY_G4*)D_dryfield_water_hole_801828CC;
-                D_dryfield_water_hole_801828CC = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r2                       = 0xFF;
-                poly->r3                       = 0xFF;
-                poly->g2                       = 0;
-                poly->b2                       = 0;
-                poly->g3                       = 0;
-                poly->b3                       = 0;
-                poly->r0                       = 0x20;
-                poly->g0                       = 0x20;
-                poly->b0                       = 0x20;
-                poly->r1                       = 0x20;
-                poly->g1                       = 0x20;
-                poly->b1                       = 0x20;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                             = (DR_MODE*)D_dryfield_water_hole_801828CC;
-                D_dryfield_water_hole_801828CC = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
-            }
-        }
-    }
-}
-
-/// The room's water task: runs its current state -
-/// `func_dryfield_water_hole_8017E000` once, then
-/// `func_dryfield_water_hole_8017D898`, which draws the surfaces - and each
-/// tick sets the session's water height to -0x1A4.
-void func_dryfield_water_hole_8017DFA0(Task* task)
-{
-    TaskFunc states[2] = { func_dryfield_water_hole_8017E000, func_dryfield_water_hole_8017D898 };
-
-    states[task->state](task);
-    gGameSession->waterY = -0x1A4;
-}
+#include "../../shared/water_hole_water_task.inc.c"
 
 /// The water task's first state: clears the session halfword `field_80`, or
 /// `field_7E` while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` is set, then advances to the drawing state.
-static void func_dryfield_water_hole_8017E000(Task* arg0)
+void waterHoleWaterStart(Task* arg0)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;

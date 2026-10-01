@@ -36,6 +36,7 @@
 #include "main/tmd_types.h"
 
 #include "mapui/map_dryfield_full.h"
+#include "../../shared/water_tank.h"
 
 extern WorldCollisionGrid D_dryfield_night_water_tank_8017E08C;
 extern WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0;
@@ -59,7 +60,7 @@ extern TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[];
 /// Task descriptor tables spawned by the room entry task, each one entry and
 /// the 0xFFFF terminator: `8017E010` runs the exit task
 /// `func_dryfield_night_water_tank_8017D5D0`, `8017EE28` the tank model's
-/// update `func_dryfield_night_water_tank_8017DB8C`.
+/// update `waterTankSwayTask`.
 extern TaskDesc D_dryfield_night_water_tank_8017E010[];
 extern TaskDesc D_dryfield_night_water_tank_8017EE28[];
 
@@ -78,10 +79,6 @@ extern EvsCommand D_dryfield_night_water_tank_8017DEE0[];
 /// The tank's wobble spring: `8017EE40` is the accumulated yaw handed to
 /// `gfxRotMatrixY` (`>> 8`), `8017EE44` its velocity, `8017EE48` the yaw it
 /// steps toward and `8017EE4C` the target that step chases.
-extern s32 D_dryfield_night_water_tank_8017EE40;
-extern s32 D_dryfield_night_water_tank_8017EE44;
-extern s32 D_dryfield_night_water_tank_8017EE48;
-extern s32 D_dryfield_night_water_tank_8017EE4C;
 
 static void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
 
@@ -91,7 +88,6 @@ extern WorldCollisionTrigger  D_dryfield_night_water_tank_8018038C[4];
 extern WorldCollisionTrigger  D_dryfield_night_water_tank_801804BC[8];
 extern WorldCoordRoomLights   D_dryfield_night_water_tank_80180374[1];
 extern TmdSource              D_dryfield_night_water_tank_8017EE04;
-void                          func_dryfield_night_water_tank_8017DB8C(Task*);
 
 s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_water_tank_8017D714(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -203,17 +199,17 @@ TmdSource D_dryfield_night_water_tank_8017EE04 = {
 };
 
 TaskDesc D_dryfield_night_water_tank_8017EE28[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_dryfield_night_water_tank_8017DB8C, { .model = &D_dryfield_night_water_tank_8017EE04 } },
+    { { { TASK_BODY_TMD, 192 } }, waterTankSwayTask, { .model = &D_dryfield_night_water_tank_8017EE04 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 D_dryfield_night_water_tank_8017EE40 = 0;
+s32 gWaterTankYaw = 0;
 
-s32 D_dryfield_night_water_tank_8017EE44 = 0;
+s32 gWaterTankYawSpeed = 0;
 
-s32 D_dryfield_night_water_tank_8017EE48 = 0;
+s32 gWaterTankYawStep = 0;
 
-s32 D_dryfield_night_water_tank_8017EE4C = 0;
+s32 gWaterTankYawTarget = 0;
 
 WorldCoordRoomLighting D_dryfield_night_water_tank_8017EE50[1] = {
     { D_dryfield_night_water_tank_80180374, NULL },
@@ -798,68 +794,7 @@ static void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
     }
 }
 
-/// Per-frame model update for the tank, the callback of the task entry 0 of
-/// `D_dryfield_night_water_tank_8017EE28` describes (spawned by the room entry
-/// task). State 0 parents the model's coordinate to `gGfxViewCoord` and places
-/// it at (0xBB8, -0x34A8, -0x4D8), then advances to state 1. State 1 drives the
-/// tank's slow wobble about `y`: an occasional roll re-picks the target yaw,
-/// the step moves toward it 0x100 at a time, and the velocity follows 19/20 of
-/// the way to that step. Every frame then sets the model's flags to 0x80 while
-/// the view is 7 (0 otherwise), publishes the coordinate's `workm` translation
-/// as a `VECTOR` to `func_800D7A9C`, rebuilds the coordinate's yaw matrix from
-/// the accumulated angle, and clears `composeStamp` so the world matrix is recomputed.
-///
-/// The coordinate's load is written through the cast expression, before the
-/// object pointer is assigned: the pointer assignment has to stay a separate
-/// register copy, or the overlay comes up an `addu` short.
-void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
-{
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
-
-    coord = arg0->extra.tmd->coords;
-    obj   = arg0->extra.tmd;
-    switch (arg0->state) {
-        case 0:
-            obj->flags        = 0;
-            coord->parent     = &gGfxViewCoord;
-            coord->coord.t[0] = 0xBB8;
-            coord->coord.t[1] = -0x34A8;
-            coord->coord.t[2] = -0x4D8;
-            arg0->state++;
-            break;
-        case 1:
-            if (((s32)(rand() * 100) >> 15) <= 0) {
-                if (((s32)(rand() * 100) >> 15) < 0x50) {
-                    D_dryfield_night_water_tank_8017EE4C = (s32)(rand() * 20) >> 7;
-                } else {
-                    D_dryfield_night_water_tank_8017EE4C = 0;
-                }
-            }
-            if (D_dryfield_night_water_tank_8017EE48 < D_dryfield_night_water_tank_8017EE4C) {
-                D_dryfield_night_water_tank_8017EE48 += 0x100;
-            } else if (D_dryfield_night_water_tank_8017EE4C < D_dryfield_night_water_tank_8017EE48) {
-                D_dryfield_night_water_tank_8017EE48 -= 0x100;
-            }
-            D_dryfield_night_water_tank_8017EE44 =
-                (D_dryfield_night_water_tank_8017EE44 + D_dryfield_night_water_tank_8017EE48) * 19 / 20;
-            D_dryfield_night_water_tank_8017EE40 += D_dryfield_night_water_tank_8017EE44;
-            break;
-    }
-    if (gGameSession->location.loc.view == 7) {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        obj->flags = 0;
-    }
-    Gp_UpdateCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    gfxRotMatrixY(&coord->coord, D_dryfield_night_water_tank_8017EE40 >> 8, 1);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/water_tank_sway_task.inc.c"
 
 void func_dryfield_night_water_tank_8017DD8C(Task* unused)
 {

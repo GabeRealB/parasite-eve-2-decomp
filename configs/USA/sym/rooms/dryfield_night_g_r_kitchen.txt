@@ -48,3 +48,4 @@ func_dryfield_night_g_r_kitchen_8017E1E4 = 0x8017E1E4; // type:func
 glowDrawShaft = 0x8017D9FC; // type:func
 roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
+grKitchenDoorMsg = 0x8017D8C4; // type:func

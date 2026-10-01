@@ -129,69 +129,9 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
     taskKill(arg0);
 }
 
-/// The room's handler for message 0x13EE, the first entry of its message table.
-/// It copies the incoming record to `out` and answers by the record's first
-/// halfword. For 0x13 it builds the room's event request -- flag nibble 0x34,
-/// collected bit 0x10, CAP commands 0xA and 6 and two stage sounds -- and
-/// hands it to the event gate with the incoming record; the gate's 0 (the
-/// prerequisite missing) is answered as 2, and once the gate has latched the
-/// event item 0x110 is marked seen. Any other record first drops nibble 0x55
-/// from 2 back to 1 unless it is only a query. For 0x15 it also clears nibble
-/// 0x4B when it reads 7, and answers 1 on stage 3 and otherwise only while
-/// nibble 0x32 is 2. Everything else answers 1.
-s32 func_dryfield_water_tower_8017DAF8(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
-{
-    RoomEventReq req;
-    s32          ret;
+#include "../../shared/water_tower_event_msg.inc.c"
 
-    *out = *msg;
-    if (msg->areaId == 0x13) {
-        req.capCmd        = 0xA;
-        req.missingCapCmd = 6;
-        req.firstSnd      = Gp_PackStageSndId(0x5214000E);
-        req.secondSnd     = Gp_PackStageSndId(0x52140003);
-        req.flagId        = 0x34;
-        req.collectedBit  = 0x10;
-        ret               = roomEventGate(&req, msg);
-        if (ret == 0) {
-            ret = 2;
-        }
-        if (gRoomEventActive != 0) {
-            Gp_SetItemSeenBit(0x110, 1);
-        }
-        return ret;
-    }
-    if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x55) == 2) {
-        GameFlag_SetNibble(0x55, 1);
-    }
-    if (msg->areaId == 0x15) {
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x4B) == 7) {
-            GameFlag_SetNibble(0x4B, 0);
-        }
-        if (gGameSession->location.loc.stage == 3) {
-            return 1;
-        }
-        if (GameFlag_GetNibble(0x32) != 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-/// The room's handler for message 0x13F2: plays the stage sound for script
-/// events 8 and 13 and answers 0 for every event.
-s32 func_dryfield_water_tower_8017DC64(s32 arg0, s32 arg1, s32 arg2)
-{
-    switch (arg2) {
-        case 8:
-            Gp_EnqueueStageSnd6(0x52140008, 0, 0);
-            break;
-        case 13:
-            Gp_EnqueueStageSnd6(0x5214000D, 0, 0);
-            break;
-    }
-    return 0;
-}
+#include "../../shared/water_tower_sound_msg.inc.c"
 
 /// Shows or hides the view's sprites from nibble 0x55: modes 0 and 1 draw
 /// them, 2 and 3 skip them, and any other value leaves them alone.

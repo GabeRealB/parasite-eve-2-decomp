@@ -49,11 +49,8 @@
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+#define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/factory_lift.h"
-
-extern SVECTOR D_dryfield_factory_80186EF8;
-extern SVECTOR D_dryfield_factory_80186F00;
-extern SVECTOR D_dryfield_factory_80186F08;
 
 /// State handlers of the room's script task, run by
 /// `factoryPanelRun`: set-up, prompt arming, the idle hotspot
@@ -260,11 +257,11 @@ OverlayHotspot gFactoryPanelHotspots[6] = {
     { 0, 0, 0, 0, -1, 0, 0 },
 };
 
-SVECTOR D_dryfield_factory_80186EF8 = { 395, -1630, 846, 0 };
+SVECTOR gFactoryGlowPos48 = { 395, -1630, 846, 0 };
 
-SVECTOR D_dryfield_factory_80186F00 = { 5910, -1308, 5649, 0 };
+SVECTOR gFactoryGlowPos4A1 = { 5910, -1308, 5649, 0 };
 
-SVECTOR D_dryfield_factory_80186F08 = { 5910, -1404, 5649, 0 };
+SVECTOR gFactoryGlowPos4A2 = { 5910, -1404, 5649, 0 };
 
 GpRoomObjRec D_dryfield_factory_80186F10[2] = {
     { &gFactoryDayGrid, D_dryfield_factory_80189694, D_dryfield_factory_80189ABC, NULL },
@@ -353,24 +350,4 @@ GpWarpRec D_dryfield_factory_80186F60[3] = {
 
 #include "../../shared/glow_draw_tinted_disc.inc.c"
 
-/// Per-frame effect: draws up to three glowing discs at fixed points in the
-/// room. The draw set is selected by the stage-visit byte
-/// `gGameSession->location.loc.view` taken as a bit index, and each group also gates on a
-/// story flag, so a disc only appears on the visits and after the event that
-/// the flag records.
-void func_dryfield_factory_801825F0(Task* task)
-{
-    s32 state;
-
-    state = 1 << gGameSession->location.loc.view;
-    if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
-        glowDrawTintedDisc(&D_dryfield_factory_80186EF8, 0x100, 0x3660);
-    }
-    if (state & 0xF26C4) {
-        if (GameFlag_GetNibble(0x4A) == 1) {
-            glowDrawTintedDisc(&D_dryfield_factory_80186F00, 0x80, 0x5A00);
-        } else if (GameFlag_GetNibble(0x4A) == 2) {
-            glowDrawTintedDisc(&D_dryfield_factory_80186F08, 0x80, 0x50A0);
-        }
-    }
-}
+#include "../../shared/factory_draw_glows.inc.c"

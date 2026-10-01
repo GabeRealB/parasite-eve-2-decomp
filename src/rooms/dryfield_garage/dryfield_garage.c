@@ -39,6 +39,7 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
+#include "../../shared/garage.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
 
@@ -82,7 +83,6 @@ extern WorldCollisionTrigger      D_dryfield_garage_8017F69C[14];
 extern WorldCollisionTrigger      D_dryfield_garage_8017FD1C[11];
 extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
 extern WorldCoordRoomLights       D_dryfield_garage_8017FD04[1];
-s32                               func_dryfield_garage_8017D8BC(Task*, s32, s32, TaskMessageArg);
 s32                               func_dryfield_garage_8017D914(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_dryfield_garage_8017DA18(Task*, s32, s32, TaskMessageArg);
@@ -94,7 +94,7 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskMessageEntry D_dryfield_garage_8017DC7C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
     { 5105, func_dryfield_garage_8017D914 },
-    { 5106, func_dryfield_garage_8017D8BC },
+    { 5106, garageSoundMsg },
     { 5104, func_dryfield_garage_8017DA18 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_garage_8017DA54 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -612,21 +612,7 @@ static const TaskFuncTable3 D_dryfield_garage_8017D5DC = {
     { func_dryfield_garage_8017DB18, func_dryfield_garage_8017DC08, taskKill },
 };
 
-/// Handler for message 0x13F2 in the room's message table: on event 9 it plays
-/// stage sound 0x52030009, on event 0x6C it reads the cap event key, and it
-/// always reports the message as not handled.
-s32 func_dryfield_garage_8017D8BC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
-{
-    switch (arg2) {
-        case 0x9:
-            Gp_EnqueueStageSnd6(0x52030009, 0, 0);
-            break;
-        case 0x6C:
-            Gp_GetCapEventKey();
-            break;
-    }
-    return 0;
-}
+#include "../../shared/garage_sound_msg.inc.c"
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.

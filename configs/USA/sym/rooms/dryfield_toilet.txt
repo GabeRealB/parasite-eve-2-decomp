@@ -107,3 +107,4 @@ RoomFx_DrawFlyingDisc = 0x8017F4C0; // type:func
 RoomFx_DrawBurst2Glow = 0x8017FA00; // type:func
 RoomFx_DrawGround2Quad = 0x8017FF2C; // type:func
 roomVariantParkingLotMsg = 0x8017D810; // type:func
+toiletSoundMsg = 0x8017D884; // type:func

@@ -1,9 +1,9 @@
 // Overlay-local symbols for dryfield_night_water_tank.
-D_dryfield_night_water_tank_8017EE40 = 0x8017EE40; // size:0x4 defined:True
-D_dryfield_night_water_tank_8017EE44 = 0x8017EE44; // size:0x4 defined:True
-D_dryfield_night_water_tank_8017EE48 = 0x8017EE48; // size:0x4 defined:True
+gWaterTankYaw = 0x8017EE40; // size:0x4 defined:True
+gWaterTankYawSpeed = 0x8017EE44; // size:0x4 defined:True
+gWaterTankYawStep = 0x8017EE48; // size:0x4 defined:True
 D_dryfield_night_water_tank_8017EE28 = 0x8017EE28; // size:0x18 defined:True
-D_dryfield_night_water_tank_8017EE4C = 0x8017EE4C; // size:0x4 defined:True
+gWaterTankYawTarget = 0x8017EE4C; // size:0x4 defined:True
 D_dryfield_night_water_tank_8017EE50 = 0x8017EE50; // size:0x8 defined:True
 D_dryfield_night_water_tank_8017EE58 = 0x8017EE58; // size:0x10 defined:True
 D_dryfield_night_water_tank_8017EE68 = 0x8017EE68; // size:0xC defined:True
@@ -73,3 +73,4 @@ D_dryfield_night_water_tank_8017E5B8 = 0x8017E5B8; // size:0x84C defined:True
 D_dryfield_night_water_tank_8017EE04 = 0x8017EE04; // size:0x24 defined:True
 
 func_dryfield_night_water_tank_8017DD8C = 0x8017DD8C; // type:func
+waterTankSwayTask = 0x8017DB8C; // type:func

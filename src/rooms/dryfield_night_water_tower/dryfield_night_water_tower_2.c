@@ -41,6 +41,7 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
+#include "../../shared/water_tower.h"
 
 /// The world points the room's effect draw places its glow sprites and light
 /// shaft at, `SVECTOR`s laid out back to back; the first two are the ends of
@@ -59,10 +60,10 @@ extern TaskDesc D_80142604;
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_water_tower_8017E6EC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_tower_8017D8E0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, waterTowerEventMsg },
     { 5105, func_dryfield_night_water_tower_8017DA9C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_tower_8017DAD4 },
-    { 5106, func_dryfield_night_water_tower_8017DA4C },
+    { 5106, waterTowerSoundMsg },
     { 5104, func_dryfield_night_water_tower_8017DAA4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

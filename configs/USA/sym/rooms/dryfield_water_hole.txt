@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_water_hole.
 D_dryfield_water_hole_8017FD1C = 0x8017FD1C; // size:0x10 defined:True
 D_dryfield_water_hole_8017FCBC = 0x8017FCBC; // size:0x60 defined:True
-D_dryfield_water_hole_8017FC98 = 0x8017FC98; // size:0x24 defined:True
+gWaterHoleSurfaces = 0x8017FC98; // size:0x24 defined:True
 D_dryfield_water_hole_8017FD2C = 0x8017FD2C; // size:0x40 defined:True
 D_dryfield_water_hole_8017FD6C = 0x8017FD6C; // size:0x8 defined:True
 D_dryfield_water_hole_8017FD74 = 0x8017FD74; // size:0x8 defined:True
@@ -69,10 +69,10 @@ D_dryfield_water_hole_80182894 = 0x80182894; // size:0x8 defined:True
 D_dryfield_water_hole_8018289C = 0x8018289C; // size:0x8 defined:True
 D_dryfield_water_hole_801828A4 = 0x801828A4; // size:0x8 defined:True
 D_dryfield_water_hole_801828AC = 0x801828AC; // size:0x20 defined:True
-D_dryfield_water_hole_801828CC = 0x801828CC; // size:0x4 defined:True
+gWaterHolePrimCursor = 0x801828CC; // size:0x4 defined:True
 D_80139DAC = 0x80139DAC; // absolute:True
 D_map_dryfield_8017BB84 = 0x8017BB84; // absolute:True
-D_dryfield_water_hole_801828D0 = 0x801828D0; // size:0x2 defined:True
+gWaterHoleWaveScroll = 0x801828D0; // size:0x2 defined:True
 
 func_dryfield_water_hole_8017EC90 = 0x8017EC90; // type:func
 
@@ -83,3 +83,7 @@ waterDrawSplash = 0x8017EDE4; // type:func
 glowDrawTaperedBeam = 0x8017E410; // type:func
 waterDrawSpinU16 = 0x8017F5D4; // type:func
 waterDrawTileU16 = 0x8017F9C0; // type:func
+waterHoleDoorMsg = 0x8017D5F0; // type:func
+waterHoleWaterTask = 0x8017DFA0; // type:func
+waterHoleWaterStart = 0x8017E000; // type:func
+waterHoleDrawSurfaces = 0x8017D898; // type:func

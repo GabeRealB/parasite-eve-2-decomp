@@ -55,3 +55,4 @@ D_map_dryfield_full_8017BDF8 = 0x8017BDF8; // absolute:True
 func_dryfield_night_toilet_8017D9F8 = 0x8017D9F8; // type:func
 glowDrawFlareClipped = 0x8017D77C; // type:func
 roomVariantParkingLotMsg = 0x8017D5D0; // type:func
+toiletSoundMsg = 0x8017D644; // type:func

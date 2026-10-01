@@ -68,3 +68,4 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 func_dryfield_garage_8017DC68 = 0x8017DC68; // type:func
 roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
+garageSoundMsg = 0x8017D8BC; // type:func

@@ -62,6 +62,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
+#define DRYFIELD_TIME DRYFIELD_NIGHT
+#include "../../shared/motel_room_6.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -142,7 +144,6 @@ extern TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[];
 extern TaskDesc D_dryfield_night_motel_room_6_80182EE0;
 
 /// World position the room's marker is drawn at.
-extern SVECTOR D_dryfield_night_motel_room_6_80182EF8[];
 
 /// Area-record patch lists the story task applies as it ends.
 extern GpAreaApplyRec D_dryfield_night_motel_room_6_80186270[];
@@ -154,7 +155,6 @@ extern Task* gRoomCutsceneSoundTask;
 
 /// Script record the room's event handler fills in and hands to the cutscene
 /// task as its `spawnArg2`.
-extern RoomCutsceneRec D_dryfield_night_motel_room_6_801862B8;
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xDF\xDC"
 #include "../../shared/telephone.h"
@@ -165,7 +165,6 @@ extern RoomCutsceneRec D_dryfield_night_motel_room_6_801862B8;
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 #include "../../shared/planar_reflection.h"
 
-static s32  func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_dryfield_night_motel_room_6_80181C34(Task* task);
 static void func_dryfield_night_motel_room_6_80181C78(Task* task);
 
@@ -173,7 +172,6 @@ extern WorldCollisionGrid    D_dryfield_night_motel_room_6_80183984[1];
 extern WorldCollisionTrigger D_dryfield_night_motel_room_6_80185A48[10];
 extern WorldCollisionTrigger D_dryfield_night_motel_room_6_80185D40[15];
 extern WorldCoordRoomLights  D_dryfield_night_motel_room_6_80185A30[1];
-s32                          func_dryfield_night_motel_room_6_8018175C(Task*, s32, s32, s32);
 s32                          func_dryfield_night_motel_room_6_80181B74(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                          func_dryfield_night_motel_room_6_80181BF8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                          func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, TaskMessageArg);
@@ -203,7 +201,7 @@ TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
     { 5105, func_dryfield_night_motel_room_6_80181B74 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_6_80181BF8 },
-    { 5104, func_dryfield_night_motel_room_6_8018175C },
+    { 5104, motelRoom6CutsceneMsg },
     { 5106, func_dryfield_night_motel_room_6_80181C00 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -212,7 +210,7 @@ TaskDesc D_dryfield_night_motel_room_6_80182EE0 = { { { TASK_BODY_NONE, 32 } }, 
 
 TaskDesc D_dryfield_night_motel_room_6_80182EEC = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_room_6_8018189C, { .value = 0 } };
 
-SVECTOR D_dryfield_night_motel_room_6_80182EF8[1] = {
+SVECTOR gMotelRoom6GlowPos[1] = {
     { 550, -850, 5170, 0 },
 };
 
@@ -852,7 +850,7 @@ GpAreaApplyRec D_dryfield_night_motel_room_6_801862B0[1] = {
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-RoomCutsceneRec D_dryfield_night_motel_room_6_801862B8;
+RoomCutsceneRec gMotelRoom6CutsceneRec;
 
 /// Telephone menu title, including retained bytes after its terminator.
 static const char Telephone_Data_8017D638[];
@@ -889,48 +887,7 @@ static const TaskFuncTable3 D_dryfield_night_motel_room_6_8017D6B4 = {
     },
 };
 
-/// Handler of message 0x13F0 in the room's message table. For event 0x16 it
-/// fills in the cutscene script record - the cap file and fade chosen from
-/// flag nibble 0x7A and the stage, and the scene's sound events - and spawns
-/// the cutscene task on it. Any other event goes to
-/// `func_dryfield_night_motel_room_6_80181A9C`.
-s32 func_dryfield_night_motel_room_6_8018175C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    s32 count;
-
-    count = 0;
-    if (arg2 == 0x16) {
-        D_dryfield_night_motel_room_6_801862B8.field_0 = 0xC;
-        D_dryfield_night_motel_room_6_801862B8.field_1 = 1;
-        switch (GameFlag_GetNibble(0x7A)) {
-            case 0 ... 3:
-                if (gGameSession->location.loc.stage == 2) {
-                    count                                           = 4;
-                    D_dryfield_night_motel_room_6_801862B8.field_14 = 0x3C0;
-                    D_dryfield_night_motel_room_6_801862B8.field_3  = 1;
-                } else {
-                    count                                           = 2;
-                    D_dryfield_night_motel_room_6_801862B8.field_14 = 0x380;
-                    D_dryfield_night_motel_room_6_801862B8.field_3  = 1;
-                }
-                break;
-            case 4 ... 6:
-                count                                           = 2;
-                D_dryfield_night_motel_room_6_801862B8.field_14 = 0x3C0;
-                D_dryfield_night_motel_room_6_801862B8.field_3  = count;
-                break;
-        }
-        D_dryfield_night_motel_room_6_801862B8.field_2  = 0;
-        D_dryfield_night_motel_room_6_801862B8.field_4  = Gp_PackStageSndId(0x521E0008);
-        D_dryfield_night_motel_room_6_801862B8.field_8  = Gp_PackStageSndId(0x521E000B);
-        D_dryfield_night_motel_room_6_801862B8.field_10 = Gp_PackStageSndId(0x521E0009);
-        D_dryfield_night_motel_room_6_801862B8.field_C  = Gp_PackStageSndId(0x521E000A);
-        Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, count, &D_dryfield_night_motel_room_6_801862B8);
-    } else {
-        func_dryfield_night_motel_room_6_80181A9C(arg0, arg1, arg2, arg3);
-    }
-    return 0;
-}
+#include "../../shared/motel_room_6_cutscene_msg.inc.c"
 
 /// The room's story task: holds the player's weapon and runs cap command 0x10.
 /// If the scene then reports event key 0xB the task ends there, giving the
@@ -1007,7 +964,7 @@ L_case5:
 /// Runs the cap command for events 6, 0xD and 0xB, picking an alternative
 /// command while flag nibble 0x61 is set. Event 6 instead spawns the story
 /// task once nibble 0x6C is positive and nibble 0x70 is below 2.
-static s32 func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 6) {
         if (GameFlag_GetNibble(0x61) != 0) {
@@ -1087,20 +1044,4 @@ void func_dryfield_night_motel_room_6_80181C80(Task* task)
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-/// Draws the room's highlight for the current camera view: the diamond marker
-/// in views 3 and 4, the glow disc in view 12, nothing otherwise.
-void func_dryfield_night_motel_room_6_80182AE0(Task* unused)
-{
-    u8 view;
-
-    view = Gp_GetViewIndex();
-    switch (view) {
-        case 3:
-        case 4:
-            glowDrawWideDiamond(&D_dryfield_night_motel_room_6_80182EF8[0], 0x60, 0x60);
-            break;
-        case 12:
-            glowDrawPulsingDisc(&D_dryfield_night_motel_room_6_80182EF8[0], 0x60, 0x80);
-            break;
-    }
-}
+#include "../../shared/motel_room_6_draw_glow.inc.c"

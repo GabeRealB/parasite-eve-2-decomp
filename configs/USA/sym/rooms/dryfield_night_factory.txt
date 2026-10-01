@@ -4,8 +4,8 @@
 factoryDayShowView9Sprite = 0x80181620; // type:func absolute:True owner=dryfield_factory
 factoryDayShowView11Sprite = 0x80181B38; // type:func absolute:True owner=dryfield_factory
 gFactoryPanelHotspots = 0x80186EBC; // size:0x48 defined:True
-D_dryfield_night_factory_80186F04 = 0x80186F04; // size:0x8 defined:True
-D_dryfield_night_factory_80186F0C = 0x80186F0C; // size:0x8 defined:True
+gFactoryGlowPos48 = 0x80186F04; // size:0x8 defined:True
+gFactoryGlowPos4A1 = 0x80186F0C; // size:0x8 defined:True
 D_dryfield_night_factory_8018A764 = 0x8018A764; // size:0xC defined:True
 D_dryfield_night_factory_8018A770 = 0x8018A770; // size:0xC defined:True
 D_dryfield_night_factory_8018A77C = 0x8018A77C; // size:0x8 defined:True
@@ -21,7 +21,7 @@ gFactoryPanelDesc = 0x8018A7E0; // size:0x4 defined:True
 gFactorySpawnTable = 0x8018A7E4; // size:0x4 defined:True
 gFactoryPanelSlot = 0x8018A7E8; // size:0x4 defined:True
 gRoomEventReq = 0x8018A7EC; // size:0x14 defined:True
-D_dryfield_night_factory_80186F14 = 0x80186F14; // size:0x8 defined:True
+gFactoryGlowPos4A2 = 0x80186F14; // size:0x8 defined:True
 D_dryfield_night_factory_80186F1C = 0x80186F1C; // size:0x8 defined:True
 D_dryfield_night_factory_80186F24 = 0x80186F24; // size:0x10 defined:True
 gRoomEventTaskDesc = 0x80186E40; // size:0xC defined:True
@@ -113,7 +113,7 @@ D_dryfield_night_factory_80186DB4 = 0x80186DB4; // size:0x8 defined:True
 gFactoryLiftTurnedTemplate = 0x80186DBC; // size:0x24 defined:True
 gFactoryNightSpawnTable = 0x80186DE0; // size:0x60 defined:True
 
-func_dryfield_night_factory_801825F0 = 0x801825F0; // type:func
+factoryNightDrawGlows = 0x801825F0; // type:func
 actionPromptOutlineRect = 0x80180BA4; // type:func
 actionPromptMoveCursors = 0x801810D8; // type:func
 actionPromptDrawCursor = 0x80181538; // type:func

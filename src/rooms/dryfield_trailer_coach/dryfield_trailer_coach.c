@@ -71,6 +71,8 @@
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room_cutscene.h"
 #include "../../shared/glow_draw.h"
+#define DRYFIELD_TIME DRYFIELD_DAY
+#include "../../shared/trailer_coach.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -1550,8 +1552,6 @@ extern EvsCommand D_dryfield_trailer_coach_80185964[];
 
 static void func_dryfield_trailer_coach_80182888(Task* arg0);
 
-static void func_dryfield_trailer_coach_8018291C(Task* task);
-
 extern SVECTOR D_dryfield_trailer_coach_801871C4;
 
 static inline s32 Shop_AddItemCount(s32 item, s32 count);
@@ -1758,7 +1758,7 @@ static void func_dryfield_trailer_coach_801827D0(Task* arg0)
 static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
     {
         func_dryfield_trailer_coach_80182888,
-        func_dryfield_trailer_coach_8018291C,
+        trailerCoachSetDepthShift,
         taskKill,
     },
 };
@@ -1810,16 +1810,7 @@ static void func_dryfield_trailer_coach_80182888(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-static void func_dryfield_trailer_coach_8018291C(Task* task)
-{
-    char pad[0x10];
-
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 8) {
-        gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-    } else {
-        gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;
-    }
-}
+#include "../../shared/trailer_coach_set_depth_shift.inc.c"
 
 /// Runs the cutscene task's current state through a stack copy of its state
 /// table.

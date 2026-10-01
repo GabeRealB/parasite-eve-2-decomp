@@ -34,6 +34,8 @@
 
 #include "main/task_types.h"
 
+#include "dryfield_time.h"
+
 #include "overlay.h"
 
 /// Cutscene work block the room's cutscene task allocates as 0xC zeroed bytes
@@ -167,21 +169,23 @@ extern PadScriptCmd              gFactoryNightJoltCmds[3];
 extern PadScriptVibrationSegment gFactoryDayJoltRecs[3];
 extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
 
+void factoryDayDrawGlows(Task* task);
+void factoryNightDrawGlows(Task* task);
 void factoryDayShowView9Sprite(s32 show);
 void factoryNightShowView9Sprite(s32 show);
 void factoryDayShowView11Sprite(s32 show);
 void factoryNightShowView11Sprite(s32 show);
 
-// `FACTORY_ROOM_NIGHT_INSTANCE` selects the night image's entry-task and
-// view-sprite function bindings. Both dryfield_night_factory TUs define this
-// empty marker before including the header, then undefine it. Both
-// dryfield_factory TUs omit it to select day. The aliases remain available to
-// the included function fragments; runtime stage selection is independent.
-#ifdef FACTORY_ROOM_NIGHT_INSTANCE
+// Each build exports the view-sprite functions and the entry task under its
+// own name, which gameplay and the other build refer to; the library's names
+// map onto the build's own.
+#if DRYFIELD_TIME == DRYFIELD_NIGHT
+#define factoryDrawGlows        factoryNightDrawGlows
 #define factoryShowView9Sprite  factoryNightShowView9Sprite
 #define factoryShowView11Sprite factoryNightShowView11Sprite
 #define factoryEntryTask        factoryNightEntryTask
 #else
+#define factoryDrawGlows        factoryDayDrawGlows
 #define factoryShowView9Sprite  factoryDayShowView9Sprite
 #define factoryShowView11Sprite factoryDayShowView11Sprite
 #define factoryEntryTask        factoryDayEntryTask
@@ -232,5 +236,11 @@ void factoryPanelRun(Task* task);
 void factoryPromptTask(Task* task);
 void factoryPanelTrigger(Task* task);
 void factoryPanelArmPrompt(Task* task);
+
+/// Where `factoryDrawGlows` draws the disc nibble 0x48 enables, and the two
+/// it alternates between by nibble 0x4A's value.
+extern SVECTOR gFactoryGlowPos48;
+extern SVECTOR gFactoryGlowPos4A1;
+extern SVECTOR gFactoryGlowPos4A2;
 
 #endif /* SRC_SHARED_FACTORY_LIFT_H */

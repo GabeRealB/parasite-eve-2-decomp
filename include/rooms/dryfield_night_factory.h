@@ -35,7 +35,7 @@ extern SpriteView D_dryfield_night_factory_80189A24[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[];
 
-void func_dryfield_night_factory_801825F0(Task* task);
+void factoryNightDrawGlows(Task* task);
 
 void factoryNightEntryTask(Task* task);
 

@@ -23,6 +23,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "../../shared/room_variants.h"
+#include "../../shared/toilet.h"
 
 /// The room task's message table (published in `Task::msgTable` for
 /// `taskMessageDispatch` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
@@ -53,7 +54,6 @@ static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
     { func_dryfield_toilet_8017D940, func_dryfield_toilet_8017D9D4, taskKill },
 };
 
-s32 func_dryfield_toilet_8017D884(Task*, s32, s32, s32);
 s32 func_dryfield_toilet_8017D8B8(void);
 s32 func_dryfield_toilet_8017D8C0(void);
 s32 func_dryfield_toilet_8017D8C8(s32, s32, RoomEventMsg*, RoomEventMsg*);
@@ -63,7 +63,7 @@ DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
     { 5105, { .call0 = func_dryfield_toilet_8017D8B8 } },
     { 5103, { .call2 = func_dryfield_toilet_8017D8C8 } },
     { 5104, { .call0 = func_dryfield_toilet_8017D8C0 } },
-    { 5106, { .call1 = func_dryfield_toilet_8017D884 } },
+    { 5106, { .call1 = toiletSoundMsg } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
@@ -175,14 +175,7 @@ static void func_dryfield_toilet_8017D5E4(void)
 
 #include "../../shared/room_variants_parking_lot.inc.c"
 
-/// Queues stage sound `0x52100005` when `arg2` is 5; otherwise does nothing.
-s32 func_dryfield_toilet_8017D884(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    if (arg2 == 5) {
-        Gp_EnqueueStageSnd6(0x52100000 | 5, 0, 0);
-    }
-    return 0;
-}
+#include "../../shared/toilet_sound_msg.inc.c"
 
 s32 func_dryfield_toilet_8017D8B8(void)
 {

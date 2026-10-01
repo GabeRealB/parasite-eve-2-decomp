@@ -1777,7 +1777,7 @@ func_dryfield_water_tank_8017F084 = 0x8017F084; // absolute:True
 
 func_dryfield_breezeway_8017FF7C = 0x8017FF7C; // absolute:True
 
-func_dryfield_factory_801825F0 = 0x801825F0; // absolute:True
+factoryDayDrawGlows = 0x801825F0; // absolute:True
 
 func_dryfield_garage_8017DC68 = 0x8017DC68; // absolute:True
 
@@ -1787,7 +1787,7 @@ func_dryfield_junk_yard_8017DD0C = 0x8017DD0C; // absolute:True
 
 func_dryfield_motel_balcony_8017DC28 = 0x8017DC28; // absolute:True
 
-func_dryfield_motel_room_6_80182978 = 0x80182978; // absolute:True
+motelRoom6DayDrawGlow = 0x80182978; // absolute:True
 
 func_dryfield_water_hole_8017E040 = 0x8017E040; // absolute:True
 
@@ -1817,7 +1817,7 @@ func_dryfield_night_water_tank_8017DD8C = 0x8017DD8C; // absolute:True
 
 func_dryfield_night_breezeway_8017E5BC = 0x8017E5BC; // absolute:True
 
-func_dryfield_night_factory_801825F0 = 0x801825F0; // absolute:True
+factoryNightDrawGlows = 0x801825F0; // absolute:True
 
 func_dryfield_night_garage_80181518 = 0x80181518; // absolute:True
 
@@ -1827,7 +1827,7 @@ func_dryfield_night_trailer_coach_80182924 = 0x80182924; // absolute:True
 
 func_dryfield_night_motel_room_5_8017D9A4 = 0x8017D9A4; // absolute:True
 
-func_dryfield_night_motel_room_6_80182AE0 = 0x80182AE0; // absolute:True
+motelRoom6NightDrawGlow = 0x80182AE0; // absolute:True
 
 func_dryfield_night_cellar_8017DA28 = 0x8017DA28; // absolute:True
 
