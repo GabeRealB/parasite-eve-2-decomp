@@ -39101,7 +39101,7 @@ The last two diffs in `animationTickSlotPose` were `addu v0,v1,v0` vs `addu v1,v
 same operands, different destination — from
 
 ```c
-scratch->request.currentPose = &((u8*)set->poseBanks[poseEncoding])[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
+scratch->request.currentPose.bytes = &((u8*)set->poseBanks[poseEncoding])[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
 ```
 
 GCC ties the add's output to whichever input pseudo it decides dies first.
@@ -39109,7 +39109,7 @@ Hoisting the inner pointer into its own local flips that choice:
 
 ```c
 poseBytes                    = set->poseBanks[poseEncoding];
-scratch->request.currentPose = &poseBytes[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
+scratch->request.currentPose.bytes = &poseBytes[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
 ```
 
 Neither a temporary for the whole address (`p = &...; x = p;`) nor the
@@ -67013,7 +67013,7 @@ into it. Shorten the recipient to a single block rather than pinning.
 
 The opposite shape has a second fix: `expand_preferences` only merges across a
 dying copy when the two allocnos do **not** conflict. `_animationBlendTranslationRotation` reads
-three packed-pose pointers off `request` (`currentPose`, `nextPose`, then `encodedDestination`
+three packed-pose pointers off `request` (`currentPose.translationRotation`, `nextPose.translationRotation`, then `encodedDestination.translationRotation`
 after the call). With a separate `dest` for the last one, `dest` inherited
 `$a0` from the dying `request` and landed in `$a0`, not the target's `$v1`. Using
 one `pose` variable for all three reads makes it live while `request` is too, so

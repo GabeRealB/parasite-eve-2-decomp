@@ -120,16 +120,39 @@ enum {
     AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT   = 8
 };
 
-/// Encoded inputs and optional outputs of one animation slot's pose blend.
+/// Relative-rotation cache decision for a buffered pose blend.
+enum {
+    ANIMATION_ROTATION_DELTA_REUSE   = 0,
+    ANIMATION_ROTATION_DELTA_REFRESH = 1
+};
+
+/// Borrowed endpoints and output destinations for one model-part pose blend.
 ///
-/// The slot selects encoding 1 (translation and rotation) or 4 (rotation only).
-/// All pointers are borrowed for the current tick; the request lives in scratch.
+/// `AnimationSlot.poseEncoding` selects the pointer views: encoding 1 uses
+/// `translationRotation` (12 bytes), and encoding 4 uses `packedRotation`
+/// (4 bytes). `bytes` resolves word offsets in a bank or addresses a slot's
+/// 16-byte buffer entry; `address` accepts the caller's optional encoded output.
+/// All encoded addresses must be word-aligned and cover the complete pose.
+/// Translation uses model integer units; decoded rotations use 1/4096 turns.
+///
+/// A null unpacked destination updates the model coordinate. A non-null one
+/// receives the pose instead, preserving its translation for encoding 4.
+/// The encoded destination is independent and may alias an endpoint: encoded
+/// writes follow decoding both endpoints. A zero-duration segment writes neither
+/// output. The request and its borrowed pointers remain live only for this call.
 typedef struct {
-    const void*    currentPose;          // Current encoded pose
-    const void*    nextPose;             // Next encoded pose, in the same format
-    void*          encodedDestination;   // Optional output in the slot's encoding
-    AnimationPose* unpackedDestination;  // Optional unpacked output; NULL updates the model coordinate
-    u8             refreshRotationDelta; // First tick using a buffered pose: calculate the relative rotation
+    union {
+        const u8*                      bytes;               // Word-aligned bank or buffered-pose address
+        const AnimationPackedPose*     translationRotation; // Encoding 1: translation and full-resolution angles
+        const AnimationPackedRotation* packedRotation;      // Encoding 4: signed 11/10/11-bit angles
+    } currentPose, nextPose;                                // Segment's starting and destination poses, in the same encoding
+    union {
+        void*                    address;                   // Optional caller-supplied encoded output (NULL skips it)
+        AnimationPackedPose*     translationRotation;       // Encoding 1: writable 12-byte pose
+        AnimationPackedRotation* packedRotation;            // Encoding 4: writable 4-byte rotation
+    } encodedDestination;                                   // Optional encoded output, independent of the unpacked output
+    AnimationPose* unpackedDestination;                     // Optional 16-byte pose output (NULL updates the model coordinate)
+    u8             refreshRotationDelta;                    // Relative rotation (0 reuse/unused, 1 rebuild on entering buffered endpoints)
 } _AnimationBlendRequest;
 STATIC_ASSERT_SIZEOF(_AnimationBlendRequest, 0x14);
 
@@ -1944,7 +1967,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* c
     if (slot->usesBufferedPose != 0) {
         // Interpolate a relative rotation when either endpoint comes from the pose buffer.
         RotMatrix_gte(&scratch->currentRotation, &scratch->currentMatrix);
-        if (request->refreshRotationDelta == 1) {
+        if (request->refreshRotationDelta == ANIMATION_ROTATION_DELTA_REFRESH) {
             RotMatrix_gte(&scratch->nextRotation, &scratch->nextMatrix);
             TransposeMatrix(&scratch->currentMatrix, &scratch->deltaMatrix);
             gte_MulMatrix0(&scratch->nextMatrix, &scratch->deltaMatrix, &scratch->deltaMatrix);
@@ -1957,7 +1980,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* c
         RotMatrix_gte(&scratch->nextRotation, &scratch->deltaMatrix);
         if (request->unpackedDestination == NULL) {
             gte_MulMatrix0(&scratch->deltaMatrix, &scratch->currentMatrix, &coord->coord);
-            if (request->encodedDestination != NULL) {
+            if (request->encodedDestination.address != NULL) {
                 gfxMatrixToEuler(&coord->coord, &scratch->nextRotation);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1993,7 +2016,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
 
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
-        if (request->currentPose != request->nextPose) {
+        if (request->currentPose.bytes != request->nextPose.bytes) {
             // Store the scaled remaining time, then replace it with the truncated quotient.
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
@@ -2006,10 +2029,10 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
         }
         // The compact translation occupies six bytes; the GTE load reads three halfwords.
         gte_lddp(scratch->currentWeight);
-        gte_ldsv(request->currentPose);
+        gte_ldsv(request->currentPose.translationRotation);
         gte_gpf12();
         gte_lddp(scratch->nextWeight);
-        gte_ldsv(request->nextPose);
+        gte_ldsv(request->nextPose.translationRotation);
         gte_gpl12();
         gte_stsv(&scratch->translation);
         if (request->unpackedDestination == NULL) {
@@ -2023,20 +2046,20 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
             request->unpackedDestination->translation.vz = scratch->translation.vz;
         }
         // Decode full-resolution angles before the shared rotation blend.
-        encodedPose                 = request->currentPose;
+        encodedPose                 = request->currentPose.translationRotation;
         scratch->currentRotation.vx = encodedPose->rotationX;
         scratch->currentRotation.vy = encodedPose->rotationY;
         scratch->currentRotation.vz = encodedPose->rotationZ;
-        encodedPose                 = request->nextPose;
+        encodedPose                 = request->nextPose.translationRotation;
         scratch->nextRotation.vx    = encodedPose->rotationX;
         scratch->nextRotation.vy    = encodedPose->rotationY;
         scratch->nextRotation.vz    = encodedPose->rotationZ;
         _animationBlendRotation(request, coord, slot, scratch);
-        encodedPose = request->encodedDestination;
+        encodedPose = request->encodedDestination.translationRotation;
         if (encodedPose != NULL) {
             AnimationPackedPose* destinationPose;
 
-            destinationPose               = request->encodedDestination;
+            destinationPose               = request->encodedDestination.translationRotation;
             destinationPose->translationX = scratch->translation.vx;
             destinationPose->translationY = scratch->translation.vy;
             destinationPose->translationZ = scratch->translation.vz;
@@ -2058,7 +2081,7 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
 
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
-        if (request->currentPose != request->nextPose) {
+        if (request->currentPose.bytes != request->nextPose.bytes) {
             // Store the scaled remaining time, then replace it with the truncated quotient.
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
@@ -2070,16 +2093,16 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
             scratch->nextWeight    = ONE;
         }
         // Expand the 11/10/11-bit angles to the same units as encoding 1.
-        sourcePose                  = request->currentPose;
+        sourcePose                  = request->currentPose.packedRotation;
         scratch->currentRotation.vx = sourcePose->rx << ANIMATION_PACKED_ANGLE_SHIFT;
         scratch->currentRotation.vy = sourcePose->ry << ANIMATION_PACKED_ANGLE_SHIFT;
         scratch->currentRotation.vz = sourcePose->rz << ANIMATION_PACKED_ANGLE_SHIFT;
-        sourcePose                  = request->nextPose;
+        sourcePose                  = request->nextPose.packedRotation;
         scratch->nextRotation.vx    = sourcePose->rx << ANIMATION_PACKED_ANGLE_SHIFT;
         scratch->nextRotation.vy    = sourcePose->ry << ANIMATION_PACKED_ANGLE_SHIFT;
         scratch->nextRotation.vz    = sourcePose->rz << ANIMATION_PACKED_ANGLE_SHIFT;
         _animationBlendRotation(request, coord, slot, scratch);
-        destinationPose = request->encodedDestination;
+        destinationPose = request->encodedDestination.packedRotation;
         // Arithmetic shifts discard the low three bits; the fields retain their widths.
         if (destinationPose != NULL) {
             destinationPose->rx = scratch->nextRotation.vx >> ANIMATION_PACKED_ANGLE_SHIFT;
@@ -2250,29 +2273,30 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     scratch->request.refreshRotationDelta = slot->usesBufferedPose;
     slot->usesBufferedPose                = 0;
     if (slot->currentPose.indices.setIndex == ANIMATION_SET_BUFFERED_POSE) {
-        scratch->request.currentPose = context->poseBuffer[slotIndex];
-        slot->usesBufferedPose       = 1;
+        scratch->request.currentPose.bytes = context->poseBuffer[slotIndex];
+        slot->usesBufferedPose             = 1;
     } else {
-        records                      = slot->sets[slot->currentPose.indices.setIndex]->records;
-        poseBytes                    = slot->sets[slot->currentPose.indices.setIndex]->poseBanks[poseEncoding];
-        scratch->request.currentPose = &poseBytes[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
+        records                            = slot->sets[slot->currentPose.indices.setIndex]->records;
+        poseBytes                          = slot->sets[slot->currentPose.indices.setIndex]->poseBanks[poseEncoding];
+        scratch->request.currentPose.bytes = &poseBytes[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
     }
     if (slot->nextPose.indices.setIndex == ANIMATION_SET_BUFFERED_POSE) {
-        scratch->request.nextPose = context->poseBuffer[slotIndex];
-        slot->usesBufferedPose    = 1;
+        scratch->request.nextPose.bytes = context->poseBuffer[slotIndex];
+        slot->usesBufferedPose          = 1;
     } else {
-        set                       = slot->sets[slot->nextPose.indices.setIndex];
-        records                   = set->records;
-        poseBytes                 = set->poseBanks[poseEncoding];
-        scratch->request.nextPose = &poseBytes[records[slot->nextPose.indices.recordIndex].wordOffset * sizeof(u32)];
+        set                             = slot->sets[slot->nextPose.indices.setIndex];
+        records                         = set->records;
+        poseBytes                       = set->poseBanks[poseEncoding];
+        scratch->request.nextPose.bytes = &poseBytes[records[slot->nextPose.indices.recordIndex].wordOffset * sizeof(u32)];
     }
-    if ((scratch->request.refreshRotationDelta == 0) && (slot->usesBufferedPose == 1)) {
+    // Rebuild the cache only when this tick enters buffered endpoints.
+    if ((scratch->request.refreshRotationDelta == ANIMATION_ROTATION_DELTA_REUSE) && (slot->usesBufferedPose == 1)) {
         scratch->request.refreshRotationDelta = slot->usesBufferedPose;
     } else {
-        scratch->request.refreshRotationDelta = 0;
+        scratch->request.refreshRotationDelta = ANIMATION_ROTATION_DELTA_REUSE;
     }
-    scratch->request.encodedDestination  = encodedDestination;
-    scratch->request.unpackedDestination = unpackedDestination;
+    scratch->request.encodedDestination.address = encodedDestination;
+    scratch->request.unpackedDestination        = unpackedDestination;
     switch (poseEncoding) {
         case ANIMATION_POSE_TRANSLATION_ROTATION:
             _animationBlendTranslationRotation(&scratch->request, coord, slot);
