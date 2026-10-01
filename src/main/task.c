@@ -98,8 +98,16 @@ static inline void _taskInsert(TaskNode* list, Task* task, u32 priority)
 
 static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskNode* list)
 {
-    /// Defers the initial model buffer while leaving automatic recovery enabled.
-    enum { TASK_SPAWN_DEFER_MODEL_BUFFER = 2 };
+    /// Spawn-time creation flag that defers a TMD body's initial primitive buffer.
+    ///
+    /// Bit 1 of the signed 32-bit buffer-flags argument, added while
+    /// `gTaskDeferModelBufferAllocation` is set. A nonzero creation argument
+    /// skips auxiliary-heap buffer allocation but still creates the model body
+    /// and its coordinates. This bit does not set `TMD_OBJECT_SKIP_AUTO_BUFFER`;
+    /// recovery remains eligible unless `TASK_DESC_SKIP_MODEL_BUFFER` also
+    /// supplies bit 0. No allocation is scheduled by this flag: a later
+    /// buffer-allocation pass must run.
+    enum { TASK_SPAWN_DEFER_MODEL_BUFFER = 1 << 1 };
 
     Task*    task;
     TaskBody extra;
