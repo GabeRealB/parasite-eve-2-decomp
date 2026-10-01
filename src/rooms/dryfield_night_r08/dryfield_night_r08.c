@@ -18,7 +18,7 @@
 extern s32 D_80133898;
 extern s32 D_801341E0;
 /// The room's message table, published in `Task::msgTable` for
-/// `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
+/// `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
 extern TaskMessageEntry D_dryfield_night_r08_80180544[];
 
 s32 func_dryfield_night_r08_8017D5F0(Task*, s32, TaskMessageArg, TaskMessageArg);

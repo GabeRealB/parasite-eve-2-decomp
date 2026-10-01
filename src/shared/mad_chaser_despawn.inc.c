@@ -12,7 +12,7 @@ void madChaserDespawn(Task* arg0)
     work->field_412 = ticks;
     if ((s16)ticks >= 0x24) {
         if ((gGameSession->location.loc.stage == 4) && ((u32)(gGameSession->location.loc.area - 0x27) < 2U) && (gGameSession->location.loc.variant == 1)) {
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 1, 0);
+            taskMessageDispatch(Gp_LookupSlot4(0), 0x13F4, 1, 0);
         }
         Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
     }

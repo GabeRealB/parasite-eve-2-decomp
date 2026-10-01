@@ -413,7 +413,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     ret1:
         return 1;
     }
-    if (Gp_DispatchMsg(work->field_2C, 0x3ED, 0, 0) != 0) {
+    if (taskMessageDispatch(work->field_2C, 0x3ED, 0, 0) != 0) {
         return 0;
     }
     if (work->field_3C < 0x2F) {
@@ -606,7 +606,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_actor_342100_801649C8, 0);
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
             work->field_3E = work->field_3E + 1;
             break;
@@ -744,7 +744,7 @@ void func_actor_342100_801633D0(s32 arg0)
 {
     Actor342100Work* work = (Actor342100Work*)D_actor_342100_80164BB8->work;
 
-    Gp_DispatchMsg(work->field_34, 0x7DB, arg0, 0);
+    taskMessageDispatch(work->field_34, 0x7DB, arg0, 0);
 }
 
 /// Seed the spawn entry's two parameters and start the task that consumes

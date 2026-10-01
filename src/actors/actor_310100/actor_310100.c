@@ -728,7 +728,7 @@ static void func_actor_310100_80161F80(Task* task)
         }
     }
     player = ((Actor310100Work*)task->work)->field_4E8;
-    if (player == NULL || Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+    if (player == NULL || taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
         ok = 1;
     } else {
         ok = 0;

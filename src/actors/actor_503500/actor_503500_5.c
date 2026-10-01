@@ -149,7 +149,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Effect4CC, 0x4CC);
 static void func_actor_503500_801464E8(Task* arg0);
 static void func_actor_503500_80146508(Task* arg0);
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_8014642C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.

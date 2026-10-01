@@ -71,7 +71,7 @@ void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 /// Signed byte of gameplay state the room's script callback stores into.
 
 /// The room's message table, published in `Task::msgTable` for
-/// `Gp_DispatchMsg` to walk.
+/// `taskMessageDispatch` to walk.
 extern TaskMessageEntry     D_dryfield_junk_yard_8017DD20[];
 extern TaskDesc             D_dryfield_junk_yard_8017DD48[];
 extern AnimationPlayRequest D_dryfield_junk_yard_8017DD88;
@@ -1571,7 +1571,7 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
 ///
 /// Every case writes its own `task->state + 1; return;`: cross jumping folds
 /// those identical tails into the one increment block, and folds cases 4 and
-/// 6's `Gp_DispatchMsg(..., 0, 0)` into one call.
+/// 6's `taskMessageDispatch(..., 0, 0)` into one call.
 void func_dryfield_junk_yard_8017D848(Task* task)
 {
     switch (task->state) {
@@ -1590,7 +1590,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3F0, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -1600,7 +1600,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 6:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3ED, 0, 0) != 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3ED, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;

@@ -114,7 +114,7 @@ STATIC_ASSERT_SIZEOF(Dmr1DriverBuf, 0x1C);
 /// The room's script-driver task, whose `work` holds a `Dmr1Work`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
-/// The two objects the room task places, passed as `Gp_DispatchMsg`'s `arg2`
+/// The two objects the room task places, passed as `taskMessageDispatch`'s `arg2`
 /// for message 0x7D4 - `[0]` to `Dmr1Work::field_C`, `[1]` to `field_10`.
 extern ActorTransform D_dryfield_motel_room_1_8017E130[2];
 
@@ -983,7 +983,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
             buf.msg.context.loc.area  = gGameSession->location.loc.area;
             buf.msg.command           = 2;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
+            taskMessageDispatch(work->field_0, 0x3F3, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E100[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E100[1], 0);
             break;
@@ -1022,7 +1022,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         rec->blendFrames                     = 5;
                         buf.shifted.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.shifted.rec, 0);
-                        Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
+                        taskMessageDispatch(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 1;
                     } else {
                         weaponId = cfg->weapon;
@@ -1037,7 +1037,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blendFrames          = 5;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
-                        Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
+                        taskMessageDispatch(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 2;
                     }
                     return;

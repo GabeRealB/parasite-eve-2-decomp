@@ -21,7 +21,7 @@
 #include "main/task_types.h"
 
 /// The room's message table, published in `Task::msgTable` for
-/// `Gp_DispatchMsg` to walk.
+/// `taskMessageDispatch` to walk.
 extern TaskMessageEntry D_dryfield_night_junk_yard_8018055C[];
 /// Payload of the 0x7DA message the entry task sends to the slot-4 task.
 extern s32        D_dryfield_night_junk_yard_801805A0;

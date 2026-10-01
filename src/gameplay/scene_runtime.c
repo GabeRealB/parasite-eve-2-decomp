@@ -3784,7 +3784,7 @@ s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         type = work->field_A >> 8;
         next = arg0->nextSibling;
         if (type == 9) {
-            Gp_DispatchMsg(arg0, arg3, arg2, 0);
+            taskMessageDispatch(arg0, arg3, arg2, 0);
         }
         arg0 = next;
     } while (arg0 != child);

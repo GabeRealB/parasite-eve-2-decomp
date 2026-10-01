@@ -633,8 +633,8 @@ static void func_actor_205200_8014C0C0(Task* arg0)
             break;
         case 2:
             if ((s16)++work->field_58C >= 0x25) {
-                if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                    Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                    taskMessageDispatch(player, 0x3F1, 0, 0);
                     work->field_58A = 0;
                     work->field_58C = 0;
                     work->field_588 = 0;

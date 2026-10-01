@@ -73,7 +73,7 @@ void Gp_HudTask(GpIdMapC* arg0);
 void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1);
 
 /// Pending flags written by `Gp_ApplyItemUse` and consumed by `Gp_MenuExitCallback`.
-/// `Gp_HealPending == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
+/// `Gp_HealPending == 1` requests `taskMessageDispatch(..., 0x402, ...)`.
 extern s32 Gp_HealPending;
 
 /// Attachment slot selected by `func_800D6334` and its child UI descriptor.

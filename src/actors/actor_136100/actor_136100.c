@@ -1236,7 +1236,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     ret1:
         return 1;
     }
-    if (Gp_DispatchMsg(work->field_4B4, 0x3ED, 0, 0) != 0) {
+    if (taskMessageDispatch(work->field_4B4, 0x3ED, 0, 0) != 0) {
         return 0;
     }
     if ((u16)work->field_4DE < 0x2FU) {
@@ -1456,7 +1456,7 @@ static void func_actor_136100_801323F8(Task* arg0)
                     work->field_4C6++;
                     return;
                 case 1:
-                    if (Gp_DispatchMsg(work->field_4B4, 0x3F0, 0, 0) == 0) {
+                    if (taskMessageDispatch(work->field_4B4, 0x3F0, 0, 0) == 0) {
                         work->field_4C6++;
                     }
                     return;
@@ -1675,7 +1675,7 @@ static void func_actor_136100_80132BC0(Task* arg0)
     s16              anim;
 
     work = (Actor136100Work*)arg0->work;
-    if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
+    if (work->field_4C0 != NULL && taskMessageDispatch(work->field_4C0, 0x3ED, 0, 0) == 0) {
         anim = D_actor_136100_8013F218[work->field_4E2];
         if (anim >= 0) {
             func_actor_136100_PlayAnim(arg0, anim, 1, 0xA);
@@ -1736,20 +1736,20 @@ static void func_actor_136100_80132E78(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsg(work->field_4B4, 0x3F3, 0, 0);
+            taskMessageDispatch(work->field_4B4, 0x3F3, 0, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
         case 2:
             switch ((u16)work->field_4C6) {
                 case 0:
-                    Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
+                    taskMessageDispatch(work->field_4B4, 0x3F3, 1, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F334[0], 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3F2, &D_actor_136100_8013F334[1], 0);
                     work->field_4C8 = 0;
                     work->field_4C6++;
                     return;
                 case 1:
-                    if (Gp_DispatchMsg(work->field_4B4, 0x3F0, 0, 0) == 0) {
+                    if (taskMessageDispatch(work->field_4B4, 0x3F0, 0, 0) == 0) {
                         work->field_4C6++;
                     }
                     return;
@@ -1865,7 +1865,7 @@ static void func_actor_136100_80133558(Task* arg0)
     u16                  anim;
 
     work = (Actor136100Work*)arg0->work;
-    if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
+    if (work->field_4C0 != NULL && taskMessageDispatch(work->field_4C0, 0x3ED, 0, 0) == 0) {
         anim = D_actor_136100_8013F218[work->field_4E2];
         if (D_actor_136100_8013F218[work->field_4E2] >= 0) {
             msgWork = (Actor136100Work*)arg0->work;
@@ -2236,9 +2236,9 @@ void func_actor_136100_80133BC8(Task* arg0)
         case 1:
             if (work->field_4E4 == 0) {
                 func_800E3FAC(0xA2, 0x19);
-                Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
+                taskMessageDispatch(arg0, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_4B8, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_4BC, 0x7D5, 1, 0);
                 TASK_MESSAGE_DISPATCH_POINTER(work->field_4BC, 0x7D4, &D_actor_136100_8013F454, 0);
                 if (work->field_4C0 != NULL) {
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
@@ -2248,9 +2248,9 @@ void func_actor_136100_80133BC8(Task* arg0)
                 ACTOR_136100_RESET_LINKED_ANIMATION(arg0, 1, message.animation);
             } else {
                 func_800E3FAC(0xA2, 0x1A);
-                Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
+                taskMessageDispatch(arg0, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_4B8, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_4BC, 0x7D5, 1, 0);
                 if (work->field_4C0 != NULL) {
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
                 }

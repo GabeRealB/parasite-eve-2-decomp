@@ -112,7 +112,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 GameFlag_SetNibble(0x55, 2);
                 func_dryfield_water_tower_8017DCB4();
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                Gp_DispatchMsg(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
+                taskMessageDispatch(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
                 SndEvt_EnqueueType6(0x52140009, 0, 0);
             } else {
                 gGameSession->eventState                                   = 0;
@@ -235,7 +235,7 @@ s32 func_dryfield_water_tower_8017DD3C(void)
 /// script task with the arguments it arrived with.
 s32 func_dryfield_water_tower_8017DD44(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    return Gp_DispatchMsg(D_dryfield_water_tower_801876A0, msgId, arg2, arg3);
+    return taskMessageDispatch(D_dryfield_water_tower_801876A0, msgId, arg2, arg3);
 }
 
 /// State 0 of the room entry task: installs the room's message table,

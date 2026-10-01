@@ -3032,7 +3032,7 @@ static void func_actor_510900_8013A310(Task* task)
                     work->field_CA = 3;
                     break;
                 }
-                Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
+                taskMessageDispatch(player, 0x3F9, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
                 scratch->anim.source.sets          = D_actor_510900_80167B2C;
                 scratch->anim.animationId          = 1;
                 scratch->anim.blend                = ANIMATION_BLEND_RESET;
@@ -3067,8 +3067,8 @@ static void func_actor_510900_8013A310(Task* task)
             tick           = work->field_CE + 1;
             work->field_CE = tick;
             if ((s16)tick >= 0x15) {
-                if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                    Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                    taskMessageDispatch(player, 0x3F1, 0, 0);
                     work->field_CA = 3;
                 }
             }

@@ -1709,7 +1709,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                     } else {
                         work->field_6D4 = 0x1E;
-                        Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
+                        taskMessageDispatch(player, 0x3F9, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
                         work->field_6F6++;
                     }
                 }
@@ -1794,7 +1794,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 sc->in.vz                         = 0xC8;
                 func_800FDB18(1, &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[4], &sc->in, &D_actor_402200_80154170);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
-                Gp_DispatchMsg(player, 0x400, 0, 0);
+                taskMessageDispatch(player, 0x400, 0, 0);
                 gPlayerStatus.hp = 0;
             }
             break;

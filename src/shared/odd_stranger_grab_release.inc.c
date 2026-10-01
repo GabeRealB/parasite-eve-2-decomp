@@ -27,8 +27,8 @@ void oddStrangerGrabRelease(Task* arg0)
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         return;
     }
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0 && cfg->hp > 0 && work->field_C28 == 1) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0 && cfg->hp > 0 && work->field_C28 == 1) {
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         work->field_C28 = 0;
     }
     if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7U) {
@@ -53,7 +53,7 @@ void oddStrangerGrabRelease(Task* arg0)
             work->field_0 = 6;
         }
         if (cfg->hp > 0 && work->field_C28 == 1) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             work->field_C28 = 0;
         }
     }

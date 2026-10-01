@@ -2543,7 +2543,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
         if (D_dryfield_dilapidated_house_80183EFC == 1) {
             D_dryfield_dilapidated_house_80183EFC = 2;
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
-                   (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
+                   (taskMessageDispatch(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
             if (Gp_StateC08.field_A != 1) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;

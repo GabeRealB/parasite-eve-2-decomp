@@ -615,7 +615,7 @@ s32 func_mine_refuge_8017FBB4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (D_mine_refuge_80182AD8 == NULL) {
         ret = 0;
     } else {
-        ret = Gp_DispatchMsg(D_mine_refuge_80182AD8, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_mine_refuge_80182AD8, msgId, arg2, arg3);
     }
     return ret;
 }

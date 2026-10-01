@@ -1052,7 +1052,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
-                    Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
+                    taskMessageDispatch((Task*)work->owner, 0x3FD, 8, 0);
                     break;
             }
             break;

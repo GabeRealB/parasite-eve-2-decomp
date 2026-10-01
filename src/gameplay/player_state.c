@@ -1853,7 +1853,7 @@ s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp -= Gp_ScaleDamage(arg2, 0, 0, 1);
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
             ret = 1;
         }
     }

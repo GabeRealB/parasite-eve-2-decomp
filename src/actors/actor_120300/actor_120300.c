@@ -52,7 +52,7 @@
 /// `Gp_SpawnWeaponEff` while it is set, clears it, then hands
 /// `Gp_MsgPlayerWeapon` the zero that follows.
 ///
-/// 0x4B8/0x4BC are `Gp_DispatchMsg` targets, not state:
+/// 0x4B8/0x4BC are `taskMessageDispatch` targets, not state:
 /// `func_actor_120300_80133D04` sends message 0x7D5 to the actor, to 0x4B8 and
 /// to 0x4BC in turn.
 ///
@@ -67,7 +67,7 @@ typedef struct Actor120300Work {
     /* 0x000 */ ActorAnimRig20 rig;
     /* 0x474 */ MATRIX         field_474; // light matrix, into TmdObject::lightMtx
     /* 0x494 */ MATRIX         field_494; // colour matrix, into TmdObject::colorMtx
-    /* 0x4B4 */ Task*          field_4B4; // Gp_DispatchMsg target for msgs 0x3E8/0x3E9
+    /* 0x4B4 */ Task*          field_4B4; // taskMessageDispatch target for msgs 0x3E8/0x3E9
     /* 0x4B8 */ Task*          field_4B8;
     /* 0x4BC */ Task*          field_4BC;
     /* 0x4C0 */ s16            field_4C0;
@@ -1563,7 +1563,7 @@ static void func_actor_120300_80132338(Task* arg0)
 
     work = (Actor120300Work*)arg0->work;
     if (gGameSession->eventState != 0) {
-        if ((work->field_4B4 != NULL) && (Gp_DispatchMsg(work->field_4B4, 0x3ED, 0, 0) == 0)) {
+        if ((work->field_4B4 != NULL) && (taskMessageDispatch(work->field_4B4, 0x3ED, 0, 0) == 0)) {
             if (D_actor_120300_8014095C[work->field_4D2] >= 0) {
                 _actor120300PlayAnim(arg0, D_actor_120300_8014095C[work->field_4D2]);
             }
@@ -1589,7 +1589,7 @@ static void func_actor_120300_80132338(Task* arg0)
             _actor120300PlayAnim(arg0, 2);
             break;
         case 5:
-            Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
+            taskMessageDispatch(work->field_4B4, 0x3F3, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, &D_actor_120300_80140A54[2], 0);
             _actor120300PlayAnim(arg0, 3);
             break;
@@ -1615,16 +1615,16 @@ static void func_actor_120300_80132338(Task* arg0)
             return;
         case 10:
             _actor120300PlayAnim(arg0, 8);
-            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            taskMessageDispatch(work->field_4B4, 0x3FD, 8, 0);
             break;
         case 11:
             TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, &D_actor_120300_80140A54[3], 0);
             _actor120300PlayAnim(arg0, 0xB);
-            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            taskMessageDispatch(work->field_4B4, 0x3FD, 8, 0);
             break;
         case 12:
             _actor120300PlayAnim(arg0, 9);
-            Gp_DispatchMsg(work->field_4B4, 0x3FD, 0x18, 0);
+            taskMessageDispatch(work->field_4B4, 0x3FD, 0x18, 0);
             break;
         case 13:
             TASK_MESSAGE_DISPATCH_POINTER(((Actor120300Work*)arg0->work)->field_4B4, 0x3E9, &D_actor_120300_80140A54[5], 0);
@@ -1632,19 +1632,19 @@ static void func_actor_120300_80132338(Task* arg0)
             break;
         case 14:
             _actor120300PlayAnim(arg0, 0xF);
-            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            taskMessageDispatch(work->field_4B4, 0x3FD, 8, 0);
             break;
         case 15:
             _actor120300PlayAnim(arg0, 0xE);
-            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            taskMessageDispatch(work->field_4B4, 0x3FD, 8, 0);
             break;
         case 16:
             _actor120300PlayAnim(arg0, 0xD);
-            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            taskMessageDispatch(work->field_4B4, 0x3FD, 8, 0);
             break;
         case 17:
             _actor120300PlayAnim(arg0, 0xE);
-            Gp_DispatchMsg(work->field_4B4, 0x3FD, 8, 0);
+            taskMessageDispatch(work->field_4B4, 0x3FD, 8, 0);
             break;
         case 18:
             ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->field_4B4, 1, 0xA);
@@ -1881,8 +1881,8 @@ void func_actor_120300_80133330(s32 arg0)
         i++;
     } while ((u16)i < 0x14U);
 
-    Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
-    Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
+    taskMessageDispatch(work->field_4B8, 0x7D5, 1, 0);
+    taskMessageDispatch(work->field_4BC, 0x7D5, 1, 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->field_4BC, 0x7D4, &D_actor_120300_80140A54[11], 0);
     if (arg0 == 0) {
         weaponId                 = gPlayerStatus.weapon;
@@ -2170,13 +2170,13 @@ void func_actor_120300_80133D04(s32 arg0)
     Actor120300Work* work = D_actor_120300_80141BA8->work;
 
     if (arg0 == 0) {
-        Gp_DispatchMsg(D_actor_120300_80141BA8, 0x7D5, 0, 0);
-        Gp_DispatchMsg(work->field_4B8, 0x7D5, 0, 0);
-        Gp_DispatchMsg(work->field_4BC, 0x7D5, 0, 0);
+        taskMessageDispatch(D_actor_120300_80141BA8, 0x7D5, 0, 0);
+        taskMessageDispatch(work->field_4B8, 0x7D5, 0, 0);
+        taskMessageDispatch(work->field_4BC, 0x7D5, 0, 0);
     } else if (arg0 == 1) {
-        Gp_DispatchMsg(D_actor_120300_80141BA8, 0x7D5, 1, 0);
-        Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
-        Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
+        taskMessageDispatch(D_actor_120300_80141BA8, 0x7D5, 1, 0);
+        taskMessageDispatch(work->field_4B8, 0x7D5, 1, 0);
+        taskMessageDispatch(work->field_4BC, 0x7D5, 1, 0);
     }
 }
 

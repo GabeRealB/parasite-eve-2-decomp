@@ -2556,7 +2556,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                 SndEvt_EnqueueType7(0x51030008, 1);
             }
             if ((work->field_0 == 0xC || work->field_0 == 0xD || work->field_0 == 0xE) && config->hp > 0 && work->field_D20 == 1) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             }
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400D0008;
@@ -3186,7 +3186,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             Gp_UpdateCoord(arg0->extra.tmd->coords);
             if (work->field_6C & 0x100) {
                 work->field_0 = 0;
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, enemy->hp, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, enemy->hp, 0);
             }
             break;
     }
@@ -3512,7 +3512,7 @@ static void func_actor_401300_80138B24(Task* arg0)
         work->field_8A6 = 0x10;
         work->field_8A2 = 6;
         work->field_89C = 2;
-        if ((s16)Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 0), 0) == 1) {
+        if ((s16)taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 0), 0) == 1) {
             ((GameActor*)player->work)->state = 0xA;
         }
         work->field_CAC.animationId = 2;
@@ -4805,12 +4805,12 @@ static void func_actor_401300_8013DADC(Task* arg0)
                         amount                      = -0x64;
                         work->field_CAC.animationId = 4;
                         work->field_CE4.vy          = aim->turn + Actor401300_Yaw(task->extra.tmd->coords);
-                        ret                         = Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 4), 0);
+                        ret                         = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 4), 0);
                     } else {
                         amount                      = 0x64;
                         work->field_CAC.animationId = 5;
                         work->field_CE4.vy          = aim->turn + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
-                        ret                         = Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 5), 0);
+                        ret                         = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 5), 0);
                     }
                     if (ret == 1) {
                         player->state = 0xA;
@@ -5023,12 +5023,12 @@ static void func_actor_401300_8013E930(Task* arg0)
                         amount                      = -0x46;
                         work->field_CAC.animationId = 4;
                         work->field_CE4.vy          = blk->angle + Actor401300_Yaw(task->extra.tmd->coords);
-                        ret                         = Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
+                        ret                         = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
                     } else {
                         amount                      = 0x46;
                         work->field_CAC.animationId = 5;
                         work->field_CE4.vy          = blk->angle + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
-                        ret                         = Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+                        ret                         = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
                     }
                     if (ret == 1) {
                         player->state = 0xA;
@@ -5649,7 +5649,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
             case 7:
                 break;
         }
-        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             switch (work->field_CAC.animationId) {
                 case 0:
                     break;
@@ -5684,7 +5684,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
                 case 3:
                 case 6:
                 case 7:
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
                     work->field_D20 = 0;
                     break;
             }

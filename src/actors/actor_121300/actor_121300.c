@@ -61,7 +61,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 /// `(Actor121300Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_121300_8013D418` and stores the
 /// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in `field_488`, which is the target of every
-/// `Gp_DispatchMsg` the overlay sends.
+/// `taskMessageDispatch` the overlay sends.
 ///
 /// The block opens with the animation prefix `actor_105100` and `actor_136100`
 /// also carry: the 0x14-byte `AnimationContext` `func_800B3F84` is handed as its
@@ -74,7 +74,7 @@ typedef struct Actor121300Work {
     /* 0x43C */ MATRIX         field_43C; // light matrix, into TmdObject::lightMtx
     /* 0x45C */ MATRIX         field_45C; // colour matrix, into TmdObject::colorMtx
     /* 0x47C */ OverlayWaveCtx wave;      // ramp of the screen-wave task `screenWaveTask`
-    /* 0x488 */ Task*          field_488; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task, the Gp_DispatchMsg target
+    /* 0x488 */ Task*          field_488; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task, the taskMessageDispatch target
     /* 0x48C */ Task*          field_48C;
     /* 0x490 */ byte           pad_490[0x8];
     /* 0x498 */ s16            field_498;         // set by func_actor_121300_80134250
@@ -2282,7 +2282,7 @@ static void func_actor_121300_80133854(Task* arg0)
     func_actor_121300_80132818(arg0);
     switch ((u16)work->field_498) {
         case 1:
-            Gp_DispatchMsg(work->field_488, 0x3F3, 2, 0);
+            taskMessageDispatch(work->field_488, 0x3F3, 2, 0);
             TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
             gGameSession->viewDirty = 1;
             {
@@ -2587,7 +2587,7 @@ void func_actor_121300_8013427C(void)
     D_actor_121300_8013D41C   = 0;
     work->wave.state          = 2;
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
-    Gp_DispatchMsg(work->field_488, 0x3F3, 1, 0);
+    taskMessageDispatch(work->field_488, 0x3F3, 1, 0);
     CdCmd_CancelReplaceAndActivate();
 }
 
@@ -2605,7 +2605,7 @@ void func_actor_121300_80134304(s32 arg0)
 
 void func_actor_121300_80134334(s32 arg0)
 {
-    Gp_DispatchMsg(D_actor_121300_8013D418, 0x7D5, arg0, 0);
+    taskMessageDispatch(D_actor_121300_8013D418, 0x7D5, arg0, 0);
 }
 
 void func_actor_121300_80134364(void)

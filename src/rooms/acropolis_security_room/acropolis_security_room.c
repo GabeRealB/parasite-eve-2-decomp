@@ -1921,7 +1921,7 @@ s32 func_acropolis_security_room_8017D6D4(Task* task, s32 msgId, s32 arg2, s32 a
     if (target == NULL) {
         ret = 0;
     } else {
-        ret = Gp_DispatchMsg(target, msgId, arg2, arg3);
+        ret = taskMessageDispatch(target, msgId, arg2, arg3);
     }
     return ret;
 }
@@ -1993,8 +1993,8 @@ void func_acropolis_security_room_8017D834(Task* arg0)
             return;
         case 1:
             if (Task_PollKill(D_acropolis_security_room_801855AC, &sp10) != 0) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 D_acropolis_security_room_801855AC = NULL;

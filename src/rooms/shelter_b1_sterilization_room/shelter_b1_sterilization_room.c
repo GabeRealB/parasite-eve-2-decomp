@@ -73,7 +73,7 @@ static UiObjectDesc Telephone_Data_80181C90;
 /// entry 0 with a `RoomCutsceneRec` as its argument.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
-/// A 0x18-byte message argument block passed to `Gp_DispatchMsg`; only its
+/// A 0x18-byte message argument block passed to `taskMessageDispatch`; only its
 /// stride is known.
 typedef struct {
     u8 data[0x18];
@@ -705,14 +705,14 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
             func_800E6D4C(0x2C0, 0x100);
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
             task->state++;
             break;
         case 1:
             task->state++;
             break;
         case 2:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 task->state++;
             }
             break;
@@ -726,14 +726,14 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             }
             break;
         case 5:
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
             task->state++;
             break;
         case 6:
             task->state++;
             break;
         case 7:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 task->state++;
             }
             break;
@@ -1030,7 +1030,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     task->killCountdown++;
                     if (task->killCountdown == 0x78) {
-                        Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);
+                        taskMessageDispatch(player, 0x3F9, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);
                     } else if (task->killCountdown >= 0x79) {
                         if (gPlayerStatus.hp > 0) {
                             coord = player->extra.tmd->coords;

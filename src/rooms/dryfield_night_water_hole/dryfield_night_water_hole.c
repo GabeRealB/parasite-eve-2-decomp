@@ -129,7 +129,7 @@ extern TaskDesc D_801351FC[];
 /// callback is that same task, `roomDepartureTask`.
 extern TaskDesc D_dryfield_night_water_hole_801805EC;
 /// The room's message table, the `TaskMessageEntry` list the room task publishes in
-/// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and
+/// `Task::msgTable` for `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0.
 extern TaskMessageEntry D_dryfield_night_water_hole_801805F8[];
 /// The two four-byte records this room hands the slot-4 task as the message

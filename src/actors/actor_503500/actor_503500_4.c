@@ -4335,7 +4335,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
                 gte_rtv0();
                 gte_stsv(&vec);
                 side = vec.vz >= 0;
-                Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
+                taskMessageDispatch(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_801714E0[side], 0);
                 Task_SpawnFromTable(&D_actor_503500_8017146C, 0, side, &work->field_40);
                 Gp_StateC08.field_6 |= 1;
@@ -4440,13 +4440,13 @@ void func_actor_503500_80143AC0(Task* arg0)
             }
             break;
         case 2:
-            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171508[arg0->spawnArg1.value], 0);
                 arg0->state++;
             }
             break;
         case 3:
-            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
                         ->table.addresses[7];
@@ -4455,8 +4455,8 @@ void func_actor_503500_80143AC0(Task* arg0)
             }
             break;
         case 4:
-            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                Gp_DispatchMsg(player, 0x3F1, 2, 0);
+            if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                taskMessageDispatch(player, 0x3F1, 2, 0);
                 taskKill(arg0);
             }
             break;

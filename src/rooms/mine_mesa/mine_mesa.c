@@ -2705,7 +2705,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
                 GameFlag_SetNibble(0xCD, 1);
             }
         } else if (D_mine_mesa_80189B4C != NULL) {
-            Gp_DispatchMsg(D_mine_mesa_80189B4C, 0x13F4, arg2, arg3);
+            taskMessageDispatch(D_mine_mesa_80189B4C, 0x13F4, arg2, arg3);
         }
     }
     return 0;

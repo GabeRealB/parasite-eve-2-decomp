@@ -530,7 +530,7 @@ static void func_shelter_r47_8017FB94(Task* task)
     Game_SetPtrSlot(task, 7);
     player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (player != NULL && GameFlag_GetNibble(0x80) == 0 && GameFlag_GetNibble(0xD1) == 1) {
-        Gp_DispatchMsg(player, 0x3F3, 0, 0);
+        taskMessageDispatch(player, 0x3F3, 0, 0);
         Gp_AllyAnimId(&D_shelter_r47_80186F5C.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
     }

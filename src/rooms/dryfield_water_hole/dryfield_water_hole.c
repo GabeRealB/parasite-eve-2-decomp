@@ -87,7 +87,7 @@ typedef struct {
 } _DryfieldWaterHoleSplash;
 
 /// The room's message table, the `TaskMessageEntry` list the room task publishes in
-/// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF, 0x13F0
+/// `Task::msgTable` for `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF, 0x13F0
 /// and 0x13F2.
 extern TaskMessageEntry D_dryfield_water_hole_8017FC5C[];
 /// Descriptor of the room's water task, spawned by the room task's entry tick.

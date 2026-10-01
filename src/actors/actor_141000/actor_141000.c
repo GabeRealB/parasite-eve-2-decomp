@@ -134,7 +134,7 @@ extern TaskDesc D_actor_141000_801348D8[];
 extern AnimationSet*  D_actor_141000_8013D74C[11];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `func_actor_141000_8013392C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -2727,7 +2727,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
+/// `taskMessageDispatch` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`.
 /// Mode 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows it,
 /// allocates the buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it,

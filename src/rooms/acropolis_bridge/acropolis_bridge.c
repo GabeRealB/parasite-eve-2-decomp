@@ -2687,7 +2687,7 @@ static void func_acropolis_bridge_8017DB60(Task* arg0)
 
 static void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA3, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA3, 0, 0) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
         gGameSession->hideHud                                      = 1;
         Gp_MsgPlayer3F3(0);
@@ -2754,7 +2754,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
     s32 killed;
 
     if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 1, 0x7D5);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 1, 0x7D5);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
         gGameSession->location.loc.room                            = 2;
@@ -3391,7 +3391,7 @@ void func_acropolis_bridge_8017F788(Task* task)
 
 /// Per-frame driver for the bridge's ambient effect field, and the room's
 /// message-table owner. On the first frame it publishes
-/// `D_acropolis_bridge_801898FC` as slot 5's `Gp_DispatchMsg` table and seeds
+/// `D_acropolis_bridge_801898FC` as slot 5's `taskMessageDispatch` table and seeds
 /// `D_acropolis_bridge_80189A34` with the two tracked cable joints' world
 /// positions.
 ///

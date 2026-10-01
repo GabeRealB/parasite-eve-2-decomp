@@ -1656,7 +1656,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 temp_s0_7 = (s8)worldCoordGetOriginAudioPan(temp_s6);
                                 temp_v0_7 = worldCoordGetOriginAudioDepth(temp_s6);
                                 SndEvt_EnqueueType6(temp_s4, temp_s0_7, (s32)(((temp_v0_7 >> 0x1F) + temp_v0_7) << 0x17) >> 0x18);
-                                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
                             }
                         }
                         temp_s0_8 = &temp_s3->field_4B8;
@@ -1961,7 +1961,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                             temp_s0_17 = (s8)worldCoordGetOriginAudioPan(temp_s6);
                             temp_v0_19 = worldCoordGetOriginAudioDepth(temp_s6);
                             SndEvt_EnqueueType6(temp_s4, temp_s0_17, (s32)(((temp_v0_19 >> 0x1F) + temp_v0_19) << 0x17) >> 0x18);
-                            Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 0), 0);
+                            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 0), 0);
                         }
                     }
                     if (temp_s1 < 0x3E9) {
@@ -2119,7 +2119,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 temp_s0_21         = (s8)worldCoordGetOriginAudioPan(temp_s6);
                                 temp_v0_22         = worldCoordGetOriginAudioDepth(temp_s6);
                                 SndEvt_EnqueueType6(temp_s4, temp_s0_21, (s32)(((temp_v0_22 >> 0x1F) + temp_v0_22) << 0x17) >> 0x18);
-                                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
                             } else {
                                 Gp_SpawnPadLerp(0x14, 0xB0, 0x50);
                                 temp_s3->field_760 = 0;
@@ -2140,7 +2140,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 temp_s0_22 = (s8)worldCoordGetOriginAudioPan(temp_s6);
                                 temp_v0_23 = worldCoordGetOriginAudioDepth(temp_s6);
                                 SndEvt_EnqueueType6(temp_s4, temp_s0_22, (s32)(((temp_v0_23 >> 0x1F) + temp_v0_23) << 0x17) >> 0x18);
-                                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 4), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 4), 0);
                                 temp_s3->field_734 = (s16)temp_s3->field_782;
                             }
                             temp_s3->field_792 = 0x96;
@@ -2359,7 +2359,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_26         = (s8)worldCoordGetOriginAudioPan(temp_s6);
                         temp_v0_31         = worldCoordGetOriginAudioDepth(temp_s6);
                         SndEvt_EnqueueType6(temp_s4, temp_s0_26, (s32)(((temp_v0_31 >> 0x1F) + temp_v0_31) << 0x17) >> 0x18);
-                        Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 3), 0);
+                        taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9, Gp_PackPair(&D_actor_403600_80150E9C, 3), 0);
                         D_actor_403600_80160568.animationId = 4;
                         TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                         temp_v0_32   = temp_wip->mp - 0xFB;
@@ -2984,7 +2984,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
         Gp_PulseState1C80();
         gGameSession->eventState            = 1;
         D_actor_403600_80160568.animationId = 0;
-        Gp_DispatchMsg(*gPlayerActorTasks, 0x3F1, 0, 0);
+        taskMessageDispatch(*gPlayerActorTasks, 0x3F1, 0, 0);
         temp_v0_3            = arg0->work;
         temp_v0_3->field_756 = 8;
         temp_v0_3->field_776 = 0xA;
@@ -3705,13 +3705,13 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 temp_s0_2 = (s8)worldCoordGetOriginAudioPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0_2,
                                     (s8)worldCoordGetOriginAudioDepth(temp_s4));
-                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9,
-                               Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F9,
+                                    Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
             }
             if ((s16)temp_s3->field_760 >= 0x66) {
                 temp_s3->field_760                  = 0;
                 D_actor_403600_80160568.animationId = 0;
-                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F1, 0, 0);
+                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F1, 0, 0);
             }
             break;
 
@@ -3784,7 +3784,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             if ((s16)temp_v0_2 >= 0x28) {
                 temp_s3->field_760                  = 0;
                 D_actor_403600_80160568.animationId = 0;
-                Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F1, 0, 0);
+                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F1, 0, 0);
             }
             break;
     }
@@ -4394,7 +4394,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             break;
         case 4:
             D_actor_403600_801606B0 = Task_SpawnFromTable(&D_8016E468, 0, 0, 0);
-            Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F3, 0, 0);
+            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F3, 0, 0);
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_4B4         = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 2, 0, 0);
@@ -4561,7 +4561,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
             }
         }
         if (work->field_73A == 0x2A8) {
-            Gp_DispatchMsg(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F3, 1, 0);
+            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], 0x3F3, 1, 0);
         }
         if (work->field_73A >= 0x2A8 && work->field_73A < 0x385 && (work->field_73A & 3) == 3) {
             Gp_SpawnEff(0x601BF, &work->field_4B8, 0x10800, NULL);

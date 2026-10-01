@@ -297,7 +297,7 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
     s32 phase = D_acropolis_helicopter_landing_pad_80184D9C;
 
     if (phase == 1) {
-        if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0) {
+        if (taskMessageDispatch(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0) {
             if ((Gp_StateC08.field_A != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
                 func_800E8634(D_acropolis_helicopter_landing_pad_80184124, 0,

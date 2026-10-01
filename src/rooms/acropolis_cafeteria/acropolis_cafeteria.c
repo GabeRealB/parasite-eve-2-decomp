@@ -1056,7 +1056,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 3:
             blackout = 1;
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
             task->state += 1;
             break;
         case 4:
@@ -1114,7 +1114,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 18:
-            if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 &&
+            if (taskMessageDispatch(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 &&
                 gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_MsgPlayerWeapon(0);
                 task->state += 1;
@@ -1141,7 +1141,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             task->state += 1;
             break;
         case 27:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 func_800E3FAC(0xA2, 3);
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
@@ -1170,7 +1170,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
     switch (task->state) {
         case 0:
             if (Gp_GetCurBit2Flag(3) == 1) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
                 task->state = task->state + 1;
             } else {
                 taskKill(task);
@@ -1178,7 +1178,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 1:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 Gp_RunCapCmd1(3);
                 task->state = task->state + 1;
             }
@@ -1187,7 +1187,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
         case 2:
             if (Gp_CapBusy() == 0) {
                 if (Gp_GetCurBit2Flag(3) == 1) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
                     task->state = task->state + 1;
                 } else {
                     task->state = 6;
@@ -1196,7 +1196,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 3:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
             }

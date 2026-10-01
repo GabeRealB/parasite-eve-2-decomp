@@ -24,7 +24,7 @@ void func_800E70AC(Task* task)
         switch (task->state) {
             case 0:
                 if (D_80115666 == 2) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 1, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 1, 0);
                 }
                 task->state++;
                 break;

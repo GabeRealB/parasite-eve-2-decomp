@@ -1231,7 +1231,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             gSceneCombatState.actorControl        = SCENE_COMBAT_ACTORS_HIDDEN;
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             place.rot.vy = 0x400;
             place.rot.vx = 0;
             place.rot.vz = 0;
@@ -1252,7 +1252,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             break;
 
         case 2:
-            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
+            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
                 slot = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0);
                 CdCmd_Enqueue(0x61, 0, &slot);
                 task->state = task->state + 1;
@@ -1333,7 +1333,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             }
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             weaponId                 = gPlayerStatus.weapon;
             rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId          = 1;
@@ -1396,10 +1396,10 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             break;
 
         case 3:
-            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
+            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
+                taskMessageDispatch(work->target, 0x3F1, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(5);
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);

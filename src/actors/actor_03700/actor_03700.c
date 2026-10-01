@@ -1390,7 +1390,7 @@ static void Actor03700_Fn01550(Task* task)
 
     switch (work->field_250) {
         case 0:
-            Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&Actor03700_D07F08, 0), 0);
+            taskMessageDispatch(player, 0x3F9, Gp_PackPair(&Actor03700_D07F08, 0), 0);
             func_800FDB18(1, obj, NULL, &work->field_224);
             Gp_SpawnPadLerp(5, 0xC0, 8);
             sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40250004;
@@ -1433,8 +1433,8 @@ static void Actor03700_Fn01550(Task* task)
             work->field_250 = 4;
             break;
         case 4:
-            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                Gp_DispatchMsg(player, 0x3F1, 0, 0);
+            if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                taskMessageDispatch(player, 0x3F1, 0, 0);
                 work->field_262                    = 0;
                 work->field_24E                    = 5;
                 work->field_250                    = 0;
@@ -1559,8 +1559,8 @@ static void Actor03700_Fn01C94(Task* task)
             work->field_250 = 1;
             break;
         case 1:
-            if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                Gp_DispatchMsg(player, 0x3F1, 0, 0);
+            if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                taskMessageDispatch(player, 0x3F1, 0, 0);
                 work->field_262 = 0;
                 work->field_24E = 5;
                 work->field_250 = 0;
@@ -1825,8 +1825,8 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
                     break;
                 case 2:
                     if (work->field_262 != 0) {
-                        if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                            Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                        if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                            taskMessageDispatch(player, 0x3F1, 0, 0);
                             work->field_250 = 3;
                             work->field_256 = 60;
                             work->field_262 = 0;

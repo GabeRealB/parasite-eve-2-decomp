@@ -169,7 +169,7 @@ s32 func_shelter_b3_garbage_incinerator_8017DA74(Task* arg0, s32 arg1, s32 arg2,
 {
     switch (arg2) {
         case 0:
-            Gp_DispatchMsg(D_shelter_b3_garbage_incinerator_801855D8, 0x13F4, 0, 0);
+            taskMessageDispatch(D_shelter_b3_garbage_incinerator_801855D8, 0x13F4, 0, 0);
             break;
         case 1:
             gGameSession->skipEventIntro = 1;

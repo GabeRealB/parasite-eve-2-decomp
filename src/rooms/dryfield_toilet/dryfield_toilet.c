@@ -25,7 +25,7 @@
 #include "../../shared/room_variants.h"
 
 /// The room task's message table (published in `Task::msgTable` for
-/// `Gp_DispatchMsg` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
+/// `taskMessageDispatch` to walk) and the four-byte payload `func_dryfield_toilet_8017D940`
 /// hands that call as `arg2`.
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {

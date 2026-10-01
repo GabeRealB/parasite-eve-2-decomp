@@ -429,25 +429,25 @@ void Gp_FlashWhiteTask(Task* task)
     }
 }
 
-s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 taskMessageDispatch(Task* receiver, s32 messageId, s32 firstArg, s32 secondArg)
 {
-    const TaskMessageEntry* temp;
     const TaskMessageEntry* entry;
 
-    temp = arg0->msgTable;
-    if (temp == NULL) {
+    if (receiver->msgTable == NULL) {
         return 0;
     }
-    entry = temp;
-    if (entry->messageId != arg1) {
+    entry = receiver->msgTable;
+
+    // Match the ID before testing the reserved end marker.
+    if (entry->messageId != messageId) {
         do {
             if (entry->messageId == TASK_MESSAGE_TABLE_END) {
                 return 0;
             }
             entry++;
-        } while (entry->messageId != arg1);
+        } while (entry->messageId != messageId);
     }
-    return entry->handler(arg0, arg1, arg2, arg3);
+    return entry->handler(receiver, messageId, firstArg, secondArg);
 }
 
 void Gp_LinkRoomObjectsSpawn(Task* task)

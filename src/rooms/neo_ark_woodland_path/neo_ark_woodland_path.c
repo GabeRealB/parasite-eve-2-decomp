@@ -798,7 +798,7 @@ s32 func_neo_ark_woodland_path_8017E8DC(Task* task, s32 msgId, s32 arg2, s32 arg
     if (D_neo_ark_woodland_path_80181680 == NULL) {
         ret = -1;
     } else {
-        ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
     }
     return ret;
 }
@@ -813,7 +813,7 @@ s32 func_neo_ark_woodland_path_8017E910(Task* task, s32 msgId, s32 arg2, s32 arg
     if (D_neo_ark_woodland_path_80181680 == NULL) {
         ret = -1;
     } else {
-        ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
     }
     return ret;
 }

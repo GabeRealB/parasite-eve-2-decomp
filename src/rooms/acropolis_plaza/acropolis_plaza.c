@@ -3474,7 +3474,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0xD55;
@@ -3482,7 +3482,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -3549,7 +3549,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0xD55;
@@ -3557,7 +3557,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
             script.source.sets          = D_actor_310100_801797FC;
@@ -3616,7 +3616,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             break;
         case 6:
             if (CdCmd_IsIdle() != 0) {
-                Gp_DispatchMsg(work->slot3, 0x3F1, 0, 0);
+                taskMessageDispatch(work->slot3, 0x3F1, 0, 0);
                 Task_RequestKill(task, 0);
             }
             break;
@@ -3685,7 +3685,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
             warp.rot.vy = 0x1000;
@@ -3693,7 +3693,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (Gp_DispatchMsg(work->slot3, 0x3F0, 0, 0) != 0) {
+            if (taskMessageDispatch(work->slot3, 0x3F0, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
@@ -3744,7 +3744,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (q->movieReady == 0) {
                 return;
             }
-            Gp_DispatchMsg(work->slot3, 0x3F1, 1, 0);
+            taskMessageDispatch(work->slot3, 0x3F1, 1, 0);
             placeBack.pos.vx = 0x3DE;
             placeBack.pos.vy = 0;
             placeBack.pos.vz = 0x439E;
@@ -3821,12 +3821,12 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                     }
                 }
             found8:
-                Gp_DispatchMsg(
+                taskMessageDispatch(
                     Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
                                     sessionKey->area)
                         ->field_0,
                     0x7D7, 1, 0);
-                Gp_DispatchMsg(work->slot3, 0x3F3, 2, 0);
+                taskMessageDispatch(work->slot3, 0x3F3, 2, 0);
                 Gpu_ResetGraphAndOt();
                 Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 Mem_SetActiveAuxHeap(1);
@@ -3901,7 +3901,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
         case 15:
             if (CdCmd_IsIdle() != 0) {
                 SndEvt_EnqueueType7(0x51050002, 0xB4);
-                Gp_DispatchMsg(work->slot3, 0x3F1, 1, 0);
+                taskMessageDispatch(work->slot3, 0x3F1, 1, 0);
                 Task_RequestKill(task, 0);
             }
             func_acropolis_plaza_8017DE24(5);
@@ -3996,7 +3996,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             }
             break;
         case 2:
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 1, 0);
             Task_RequestKill(task, 0);
             break;
     }
@@ -4312,7 +4312,7 @@ void func_acropolis_plaza_80180054(Task* task)
             vec.vy = 0x370;
             vec.vz = 0x370;
             Gp_SetOverrideVec(&vec);
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             work->field_12 = 0;
             work->field_10 = 0;
             work->field_8  = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);

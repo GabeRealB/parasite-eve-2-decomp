@@ -589,7 +589,7 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
         slot = Gp_LookupSlot4(0);
         cap  = 1;
         if (slot != NULL) {
-            result = Gp_DispatchMsg(slot, 0x7D6, 0, 0);
+            result = taskMessageDispatch(slot, 0x7D6, 0, 0);
             cap    = 9;
             if (result == 0) {
                 cap = 1;
@@ -719,7 +719,7 @@ static void func_acropolis_fire_escape_8017FECC(Task* task)
     Task* slot;
 
     slot = Gp_LookupSlot4(0);
-    if (slot == NULL || Gp_DispatchMsg(slot, 0x7D6, 0, 0) == 0) {
+    if (slot == NULL || taskMessageDispatch(slot, 0x7D6, 0, 0) == 0) {
         {
             WorldCollisionTrigger* object = &D_acropolis_fire_escape_8018252C[5];
             object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);

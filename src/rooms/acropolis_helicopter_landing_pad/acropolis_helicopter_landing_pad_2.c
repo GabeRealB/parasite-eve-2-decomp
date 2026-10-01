@@ -790,7 +790,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             Gp_MsgPlayerWeapon(0);
             task->state += 1;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
-                Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D5, 0, 0);
+                taskMessageDispatch(Gp_LookupSlot4(1), 0x7D5, 0, 0);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
             vec.vx                                                     = 0x4B0;
@@ -805,7 +805,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 2:
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
             }
             task->state += 1;
             break;
@@ -826,7 +826,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             coord = spawned->extra.tmd->coords;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F5, coord, 0);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             task->state += 1;
             break;
         case 6:
@@ -1192,7 +1192,7 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
             task->state++;
             break;
         case 1:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
                 taskKill(task);
             }
             break;

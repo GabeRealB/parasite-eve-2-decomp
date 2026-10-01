@@ -749,7 +749,7 @@ static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
 /// Task state step: advances the state once msg 0x3F0 to slot 3 returns 0.
 static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -768,7 +768,7 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;

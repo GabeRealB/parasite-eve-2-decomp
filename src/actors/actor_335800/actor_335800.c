@@ -124,7 +124,7 @@ STATIC_ASSERT_SIZEOF(Actor335800MsgEntry, 8);
 
 extern Actor335800MsgEntry D_actor_335800_8016EB00[];
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `func_actor_335800_80163AA0`; terminator id `TASK_MESSAGE_TABLE_END`.
 extern Actor335800MsgEntry D_actor_335800_80172EA8[];
 

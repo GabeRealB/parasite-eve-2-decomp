@@ -151,7 +151,7 @@ void Gp_EvtCapTask(Task* arg0)
                 Gp_MsgPlayer3F3(1);
             }
             if (D_80115598 != 0) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
             }
             taskKill(arg0);
             break;

@@ -54,7 +54,7 @@ extern RoomEventReq gRoomEventReq;
 /// `D_dryfield_breezeway_80182E18` in its state 0 and drops again once
 /// `Task_PollKill` reaps it; `func_dryfield_breezeway_8017DDB0` clears it when
 /// the message task starts. `func_dryfield_breezeway_8017D90C` forwards message
-/// 0x13F1 to it through `Gp_DispatchMsg`, answering 0 while there is none.
+/// 0x13F1 to it through `taskMessageDispatch`, answering 0 while there is none.
 extern Task* D_dryfield_breezeway_801843A8;
 
 /// Raised by the room's event gate `roomEventGate` when it
@@ -522,7 +522,7 @@ s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (D_dryfield_breezeway_801843A8 == NULL) {
         ret = 0;
     } else {
-        ret = Gp_DispatchMsg(D_dryfield_breezeway_801843A8, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_dryfield_breezeway_801843A8, msgId, arg2, arg3);
     }
     return ret;
 }

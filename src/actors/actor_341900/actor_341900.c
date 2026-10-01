@@ -735,7 +735,7 @@ static void func_actor_341900_801628B8(Task* arg0)
 
     work = (Actor341900Work*)arg0->work;
     if (work->field_0 != NULL) {
-        Gp_DispatchMsg(work->field_0, 0x3ED, 0, 0);
+        taskMessageDispatch(work->field_0, 0x3ED, 0, 0);
     }
     switch ((u16)work->field_5C) {
         case 0:
@@ -886,7 +886,7 @@ static void func_actor_341900_80162AD4(Task* arg0)
         case 3:
             TASK_MESSAGE_DISPATCH_POINTER(work->field_C, 0x7D4, &D_actor_341900_801639D8[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_10, 0x7D4, &D_actor_341900_801639D8[1], 0);
-            Gp_DispatchMsg(work->field_4, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_4, 0x7D5, 2, 0);
             work->field_64 = 0;
             break;
         case 4:
@@ -1050,14 +1050,14 @@ void func_actor_341900_80163388(s32 arg0)
 {
     Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
-    Gp_DispatchMsg(work->field_8, 0x7D5, arg0, 0);
+    taskMessageDispatch(work->field_8, 0x7D5, arg0, 0);
 }
 
 void func_actor_341900_801633C0(s32 arg0)
 {
     Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
-    Gp_DispatchMsg(work->field_0, 0x3F3, arg0, 0);
+    taskMessageDispatch(work->field_0, 0x3F3, arg0, 0);
 }
 
 void func_actor_341900_801633F8(void)

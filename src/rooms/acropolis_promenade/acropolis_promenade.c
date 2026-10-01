@@ -1776,7 +1776,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 taskKill(task);
                 break;
             }
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             weaponId                              = gPlayerStatus.weapon;
@@ -1834,9 +1834,9 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             break;
 
         case 3:
-            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
+                taskMessageDispatch(work->target, 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

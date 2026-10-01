@@ -73,7 +73,7 @@
 /// (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`), then `field_0` of the work `Gp_FindWorkById` finds
 /// for the id formed from `gGameSession` bytes 6/7 and for that id OR'd with
 /// 0x1000. `field_8` is the dispatch slot
-/// `func_dryfield_breezeway_8017E390` hands to `Gp_DispatchMsg`.
+/// `func_dryfield_breezeway_8017E390` hands to `taskMessageDispatch`.
 ///
 /// `field_C` and `field_E` are the two shorts the breezeway hotspot action
 /// `func_dryfield_breezeway_8017E370` writes, which the room's data table calls
@@ -92,7 +92,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// `Task::work` (0x1C): `func_dryfield_breezeway_8017E464` allocates it with
 /// `memCalloc(0x60, 0)` and parks the family's `TaskMessageEntry[]`
 /// (`D_dryfield_breezeway_80182DCC`, a single 0x13F1 entry) in
-/// `Task::msgTable`, which is what makes `Gp_DispatchMsg` route messages into
+/// `Task::msgTable`, which is what makes `taskMessageDispatch` route messages into
 /// this family at all. Reach the block with `(DbwEventWork*)task->work`.
 ///
 /// `field_40` is the answer latch the message handler
@@ -142,7 +142,7 @@ STATIC_ASSERT_SIZEOF(DbwEventWork, 0x60);
 
 /// The `TaskDesc` `func_dryfield_breezeway_8017E464` spawns the room's prompt
 /// task (`func_dryfield_breezeway_8017FA80`) from, and the single-entry `TaskMessageEntry[]` it parks in `Task::msgTable`
-/// so `Gp_DispatchMsg` routes the family's messages (the 0x13F1 "can this key
+/// so `taskMessageDispatch` routes the family's messages (the 0x13F1 "can this key
 /// item be used here?" query) into it. Both sit in the room's trailing data
 /// blob, the table immediately after the descriptor.
 extern TaskDesc         D_dryfield_breezeway_80182DC0;

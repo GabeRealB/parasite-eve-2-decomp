@@ -6833,7 +6833,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
         ret = Gp_ApplyHpDamage(Gp_ScaleDamage(arg2, 0, &out, 0));
         if (ret != 0) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
         } else if (actor->companionWork == 0) {
             func_8010A42C(arg0, (u8)out);
         }
@@ -8610,7 +8610,7 @@ void Gp_PlayerMode2State6(Task* arg0)
     if (inner->actionValue >= inner->stateTimer) {
         inner->recoveryTicks = 0x12;
         if (inner->statePhase == 0) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
             inner->statePhase = 1;
         }
     } else if (inner->padPressed & 0xF0F0) {

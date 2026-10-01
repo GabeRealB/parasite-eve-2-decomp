@@ -53,7 +53,7 @@ typedef GpSpawnAnimArg Actor317000SpawnAnim;
 extern AnimationSet*  D_actor_317000_8016CF1C[9];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `func_actor_317000_8016267C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.

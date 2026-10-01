@@ -962,14 +962,14 @@ void func_acropolis_observatory_8017E19C(Task* task)
             task->state                                                = task->state + 1;
             break;
         case 6:
-            Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
+            taskMessageDispatch(work->target, 0x3F1, 0, 0);
             taskKill(task);
             break;
     }
 
     tail = (AobSceneWork*)task->work;
     msg  = &arg;
-    if (tail->target != NULL && Gp_DispatchMsg(tail->target, 0x3ED, 0, 0) == 0) {
+    if (tail->target != NULL && taskMessageDispatch(tail->target, 0x3ED, 0, 0) == 0) {
         p     = &D_acropolis_observatory_8017FE68[tail->step];
         temp  = *p;
         entry = *p;

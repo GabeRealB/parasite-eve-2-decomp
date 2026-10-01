@@ -222,11 +222,11 @@ if (pulse == 1) {
 A same-block nested `if (work->field_2E != 0) { work->field_24 = 3; if (work->field_2E != 0) ... }` keeps a copy+`beqz` of the first load (`move $v1,$v0; li $v0,3; beqz $v1`). Naming the load once as `s16 temp` lets jump_optimize delete the inner test.
 ## Named loop-invariant hoists before a preceding `jal`; a literal rematerializes in the delay slot (func_actor_120300_80132C60, 2026-09-21)
 
-Case 8 does `Gp_DispatchMsg(…); i = 1; loop { slots[i].rate = 0x10; … }`. Writing `n = 0x10` after the jal still placed `li $s2, 0x10` *before* the call and `li $s0, 1` in the delay slot. Inlining the literal (`slots[(u16)i].rate = 0x10` with no `n` in that case) schedules `i = 1` with the argument setup and rematerializes `0x10` in the delay slot.
+Case 8 does `taskMessageDispatch(…); i = 1; loop { slots[i].rate = 0x10; … }`. Writing `n = 0x10` after the jal still placed `li $s2, 0x10` *before* the call and `li $s0, 1` in the delay slot. Inlining the literal (`slots[(u16)i].rate = 0x10` with no `n` in that case) schedules `i = 1` with the argument setup and rematerializes `0x10` in the delay slot.
 
 ```
-Gp_DispatchMsg(arg0, 0x7D4, msg, 0);
-Gp_DispatchMsg(work->field_4BC, 0x7D4, msg + 0x30, 0);
+taskMessageDispatch(arg0, 0x7D4, msg, 0);
+taskMessageDispatch(work->field_4BC, 0x7D4, msg + 0x30, 0);
 animWork = arg0->work;
 animWork->field_4D4 = 8;
 i = 1;
@@ -1864,7 +1864,7 @@ sw     ra,0x10(sp)
 j      Lret
 addu   v0,zero,zero     /* then-arm in the j delay slot */
 Lcall:
-jal    Gp_DispatchMsg
+jal    taskMessageDispatch
 nop
 Lret:
 lw     ra,0x10(sp)
@@ -1874,7 +1874,7 @@ m2c writes that as an early return, and the shape is wrong:
 
 ```c
 if (D == NULL) return 0;                    /* 60%, insert=3 delete=2 reorder=1 */
-return Gp_DispatchMsg(D);
+return taskMessageDispatch(D);
 ```
 
 GCC lays the *call* arm out as the entry's fall-through and the then-arm after
@@ -1890,7 +1890,7 @@ s32 ret;
 if (D == NULL) {
     ret = 0;
 } else {
-    ret = Gp_DispatchMsg(D);
+    ret = taskMessageDispatch(D);
 }
 return ret;                                 /* 100% */
 ```
@@ -2623,7 +2623,7 @@ Inputs: `base_5.i` `3c0a92341d65b59510133bafeec8756af4cd364e14919d6d643a36e5d089
 ## One `reg/v` pseudo with two definitions blocks the register the target reuses
 
 `func_actor_341900_80162EFC` writes through `index->work` before and after the
-`Gp_DispatchMsg` call, and the target keeps the two pointers in different
+`taskMessageDispatch` call, and the target keeps the two pointers in different
 registers (`$s0` before, `$s1` after); one C variable gave `$s1` for both
 (`regs=7`). `.greg` says why: a variable assigned twice is *one* pseudo
 (`;; 5 regs to allocate: 83 84 81 80 117`, with `81 conflicts: 80 81 84 117 2 3
@@ -5275,7 +5275,7 @@ point generalises: any packed stack struct/descriptor passed by pointer wants a
 single addressable aggregate, not sibling scalars.
 
 Casting that address to an integer does not defeat the escape.
-`Gp_DispatchMsg` takes its payload as `(s32)&msg` throughout this project, and a
+`taskMessageDispatch` takes its payload as `(s32)&msg` throughout this project, and a
 `DwtwMsg7DB` (`u8`, `u8`, `u16`) local still keeps all three stores - the
 aggregate is addressable as a whole. `func_dryfield_water_tower_80180194` is the
 case (m2c's three scalars: 88.1%, `delete=4`; one struct local: 100% first try,
@@ -11980,7 +11980,7 @@ unchanged and emits exactly the `jal` + `nop` above.
 Do **not** "fix" this by giving the header the real prototype: that is the error,
 not the cure. Where it compiles at all it makes GCC materialise the outgoing
 `$a0` at each call site (`move a0,s0` and friends), which the target does not
-have — the same mechanism as the `Gp_DispatchMsg` entry. A K&R *definition*
+have — the same mechanism as the `taskMessageDispatch` entry. A K&R *definition*
 (entry above) works too but is only needed when the definition itself must not
 be a prototype; here the definition is fine and only the declaration matters.
 
@@ -22154,7 +22154,7 @@ early prototype instead. `SndLoad_ProcessSector` → `SndBank_FreeById` is the p
 
 ## A room's dispatch wrapper forwards the caller's `$a1`-`$a3`, so the callee must stay unprototyped
 
-`Gp_DispatchMsg` is declared `(Task*, s32, s32, s32)` in `include/gameplay/D4.h`,
+`taskMessageDispatch` is declared `(Task*, s32, s32, s32)` in `include/gameplay/D4.h`,
 but the room wrappers that only re-dispatch a task call it with the task alone and
 depend on `$a1`-`$a3` still holding whatever the *caller* passed. With the 4-arg
 prototype in scope, GCC materialises the outgoing arguments from the wrapper's own
@@ -22162,20 +22162,20 @@ parameters instead:
 
 ```
 move v1,a0 ; move t0,a1 ; move a3,a2 ; lui v0,%hi(D_) ; move a1,v1 ;
-lw a0,%lo(D_)(v0) ; sw ra,0x10(sp) ; jal Gp_DispatchMsg ; move a2,t0   ← 14 insns
+lw a0,%lo(D_)(v0) ; sw ra,0x10(sp) ; jal taskMessageDispatch ; move a2,t0   ← 14 insns
 ```
 
 against a target of 10 that loads `$a0` and leaves `$a1`-`$a3` alone. The five
 extra moves are the whole difference; no amount of statement reordering removes
 them, because the prototype is what makes the other three arguments exist.
 
-With the callee declared unprototyped — `s32 Gp_DispatchMsg();`, and `D4.h` *not*
+With the callee declared unprototyped — `s32 taskMessageDispatch();`, and `D4.h` *not*
 included by that file — the call sets `$a0` and passes nothing else, which is the
 target exactly. `func_dryfield_water_tower_8017DD44` is the pure example;
 `src/rooms/neo_ark_woodland_path/neo_ark_woodland_path_2.c` already carried that
 declaration with an explanatory comment. Dropping the include is safe when the
 file's other `Gp_*` calls come from `gameplay/3CD8.h`, but the prototype's
-disappearance also reaches the 4-arg `Gp_DispatchMsg` calls in the same file, so
+disappearance also reaches the 4-arg `taskMessageDispatch` calls in the same file, so
 re-verify the whole overlay rather than the one function.
 
 ## Non-volatile `lui` + volatile `lbu` for early gDisplayState prologue slot
@@ -24452,7 +24452,7 @@ register s32 val asm("s0");
 switch (task->state) {
 case 1:
     if (task->killCountdown == 0) {
-        val = arg->field_0; /* live across Gp_DispatchMsg */
+        val = arg->field_0; /* live across taskMessageDispatch */
         ...
     }
 }
@@ -26338,7 +26338,7 @@ and became `lb` against the real `GameSession`.
 When the target does
 
 ```
-lw    v0, field        /* table = p->field_24 */
+lw    v0, field        /* table = receiver->msgTable */
 nop
 bnez  v0, body
  move v1, v0           /* cursor = table */
@@ -26346,7 +26346,7 @@ j     ret0
  move v0, zero
 ```
 
-a single live pointer (`entry = p->field_24; if (entry == NULL) return 0;`)
+a single live pointer (`entry = receiver->msgTable; if (entry == NULL) return 0;`)
 loads straight into `$v1` (`lw v1; bnez v1; nop`). The load has to land in
 `$v0` so the delay-slot `move v1, v0` can fill.
 
@@ -26354,14 +26354,13 @@ Give the NULL test its own short-lived copy, then assign the long-lived
 cursor afterwards:
 
 ```c
-temp = arg0->field_24;
-if (temp == NULL) {
+if (receiver->msgTable == NULL) {
     return 0;
 }
-entry = temp;
+entry = receiver->msgTable;
 ```
 
-`Gp_DispatchMsg` is the example. The one-pointer form stuck at 92% with only
+`taskMessageDispatch` is the example. The one-pointer form stuck at 92% with only
 that `lw`/`move` pair missing.
 
 Testing the field itself and re-reading it inside the `if` gives the same pair
@@ -43200,7 +43199,7 @@ the tail and a `break` — and let GCC 2.8.1 cross-jump the copies back together
 switch (task->state) {
     case 0:
         if (Gp_GetCurBit2Flag(3) == 1) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
             task->state = task->state + 1;      /* duplicated, not `goto` */
         } else {
             taskKill(task);                    /* duplicated, not `goto` */
@@ -43215,7 +43214,7 @@ the `state++` tail between the case-7 and case-8 bodies and the `taskKill` tail
 after case 8 in `func_acropolis_cafeteria_8017DD1C`. Hand-written `goto advance`
 / `goto kill` labels put the tail wherever the label sits in the source and, far
 worse, free cross-jumping to merge something else: there it ate a
-`jal Gp_DispatchMsg` argument tail shared by two cases (97.2%, `branch`/`delete`
+`jal taskMessageDispatch` argument tail shared by two cases (97.2%, `branch`/`delete`
 non-zero with no other diff).
 
 Diagnostic for exactly that miss: `reload_cse` runs **after** the post-reload
@@ -43934,7 +43933,7 @@ independently hands the `high` pseudo `$v0`. Repeating the whole tail in each
 arm keeps the address pseudo block-local, local alloc ties it to its `high`, and
 `jump2` cross-jumps the duplicated `jal`s back together so the instruction count
 is unchanged. `func_acropolis_sanctuary_8017D8CC` went 99.20% → 100% by moving
-both `Gp_PlayerWeaponId(...)` and `Gp_DispatchMsg(...)` inside the `if`/`else`.
+both `Gp_PlayerWeaponId(...)` and `taskMessageDispatch(...)` inside the `if`/`else`.
 
 ## A shared body may reference overlay-local data — give the datum one name in every sym map
 
@@ -46049,7 +46048,7 @@ path - once before a call, once again at a shared label after it:
 ```c
     var_a1 = 1;
     if (D_80071075 == 0) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
         f |= 8;
         goto block_27;
     }
@@ -46062,7 +46061,7 @@ block_27:
 The duplicate looks redundant - both arms end with the same value, so
 `ret = 1;` hoisted above the `if` is exactly equivalent - and rewriting it that
 way costs a whole register class. Hoisted, `ret` is live across
-`Gp_DispatchMsg`, GCC 2.8.1 gives it a **callee-saved** register and adds
+`taskMessageDispatch`, GCC 2.8.1 gives it a **callee-saved** register and adds
 `sw $s1, 0x14($sp)` / `lw $s1, …` plus a bigger frame; the target had it in
 `$a1`, set from `addiu $a1, $zero, 1` sitting in branch delay slots, and
 returned with `addu $v0, $a1, $zero`. Every instruction in the body then shifts
@@ -46754,7 +46753,7 @@ The structure that *is* universal, and the better anchor:
 * `Task::msgTable` holds id/handler records viewed by the dispatcher as
   `TaskMessageEntry[]` -- `{s32 messageId; TaskMessageHandler handler;}`,
   already defined in `include/gameplay/message.h` -- terminated by `TASK_MESSAGE_TABLE_END` with
-  one zero word after it. `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
+  one zero word after it. `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
   are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
   first did.
@@ -52820,11 +52819,11 @@ from one `*out = *in;`. Count the `lwl` offsets to recover the size (the highest
 `swl` offset + 1) and take the alignment from the field types; do not try to
 reproduce the byte-lane instructions by hand.
 
-## A short frame around a `Gp_DispatchMsg` payload means the wrong payload type
+## A short frame around a `taskMessageDispatch` payload means the wrong payload type
 
 When every emitted instruction already matches and the only diff is the frame
 size (`addiu $sp,$sp,-0x28` against the ROM's `-0x30`, with the `$s0`/`$ra`
-slots shifted to match), the stack local handed to `Gp_DispatchMsg` as `arg2`
+slots shifted to match), the stack local handed to `taskMessageDispatch` as `arg2`
 is bigger than the fields the function writes. `func_acropolis_fountain_8017DC00`
 stores only three words at `sp+0x10`/`0x14`/`0x18` yet reserves 0x18 bytes of
 locals: the payload is the 0x18-byte `ActorTransform` (`include/gameplay/message.h`),
@@ -57279,7 +57278,7 @@ rule is not specific to function-pointer tables — it applies to any small
 stack record built before the first `jal` and passed by address.
 
 `func_acropolis_bridge_8017DC68` fills a three-field payload and hands it to
-`Gp_DispatchMsg` as `arg2`. Written as separate assignments:
+`taskMessageDispatch` as `arg2`. Written as separate assignments:
 
 ```c
 AcropolisBridgeMsg7DA msg;
@@ -60016,11 +60015,11 @@ one shared increment block that every case jumps to, so the obvious C is a
 ```c
 case 0:
     ...
-    Gp_DispatchMsg(work->slot3, 0x3F2, (s32)&place, 0);
+    taskMessageDispatch(work->slot3, 0x3F2, (s32)&place, 0);
     goto advance;
 case 1:
     ...
-    Gp_DispatchMsg(work->slot3, 0x3EE, (s32)&warp, 0);
+    taskMessageDispatch(work->slot3, 0x3EE, (s32)&warp, 0);
     goto advance;
 ...
 case 3:
@@ -60041,7 +60040,7 @@ j     <into case 1>
 GCC 2.8.1's second jump pass cross-jumps *two jumps to the same label*. With
 an explicit label, cases 0 and 1 both end in `jump L_advance`, and the pass
 walks backwards merging every identical insn — the jump, the call to
-`Gp_DispatchMsg`, its `a3 = 0`, the `lw a0,0(v0)` — stopping only at the
+`taskMessageDispatch`, its `a3 = 0`, the `lw a0,0(v0)` — stopping only at the
 `addiu a2,sp,N` that differs. The result is one case branching into the middle
 of another's call sequence.
 
@@ -60961,8 +60960,8 @@ Declaring one struct and passing `&msg` is enough:
 typedef struct { u8 field_0; u8 field_1; u16 field_2; } SlotMsg;
 SlotMsg msg;
 msg.field_0 = 1; msg.field_1 = 3; msg.field_2 = 0;
-Gp_DispatchMsg(Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
-Gp_DispatchMsg(Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
+taskMessageDispatch(Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
+taskMessageDispatch(Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
 ```
 
 The aggregation, not the store count, is what stops the CSE: an attempt that
@@ -63513,7 +63512,7 @@ ActorCommand msg;
 msg.context.loc.stage = 0;
 msg.context.loc.area  = 0x2C;
 msg.command        = 3;
-Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (s32)&msg, 0x7DB);
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (s32)&msg, 0x7DB);
 ```
 
 So the initializer / element-wise choice is a scheduling lever in both
@@ -63522,11 +63521,11 @@ assignments to let them drift into the body. Read the block's `.sched2` dump
 for the clobber insn (`clobber (mem/s:BLK ...)`) before guessing which side a
 mismatch is on.
 
-## A `Gp_DispatchMsg` handler takes four arguments even when it reads two
+## A `taskMessageDispatch` handler takes four arguments even when it reads two
 
 Overlay message handlers are reached through a `{ s32 id, TaskMessageHandler handler }`
 table in the overlay's data (`D_actor_323000_801739D0`), and
-`Gp_DispatchMsg` forwards `(Task*, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)` to
+`taskMessageDispatch` forwards `(Task*, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)` to
 the entry with all four registers live. A
 handler that only touches the task and the payload therefore reads `$a0` and
 `$a2` with nothing in between, and m2c — which names parameters by the
@@ -64965,13 +64964,13 @@ has this function three times.
 ## Assign the fallback after a call result to avoid preserving it across the call
 
 `func_acropolis_fire_escape_8017F9F8` matched with an initial `cap = 1`,
-then, inside a non-null task check, `result = Gp_DispatchMsg(...)`,
+then, inside a non-null task check, `result = taskMessageDispatch(...)`,
 `cap = 9`, and `if (result == 0) cap = 1`. Both assignments after the call
 kill the earlier value, leaving `cap` in `$a0`. The target places the initial
 `li a0,1` in the null-check delay slot and `li a0,9` in the result-check delay
 slot.
 
-Writing the inner selection as `cap = Gp_DispatchMsg(...) != 0 ? 9 : 1`
+Writing the inner selection as `cap = taskMessageDispatch(...) != 0 ? 9 : 1`
 produced a `.jump` assignment of 1 before the result branch; subsequent
 optimization removed that redundant assignment. The `.lreg` dump then showed
 `cap` crossing one call, and `.greg` allocated `$s0`, adding moves and changing
@@ -67498,7 +67497,7 @@ reasoning about the allocator.
 value. Written as a ternary it reached 99.79% with `regs=3` and nothing else:
 
 ```c
-work->field_0 = Gp_DispatchMsg(...) == 0 ? 5 : 0xD;   /* $v1 */
+work->field_0 = taskMessageDispatch(...) == 0 ? 5 : 0xD;   /* $v1 */
 ```
 
 ```
@@ -67529,7 +67528,7 @@ edits cannot fix it.
 Storing in both arms instead does:
 
 ```c
-if (Gp_DispatchMsg(...) == 0) {
+if (taskMessageDispatch(...) == 0) {
     work->field_0 = 5;
 } else {
     work->field_0 = 0xD;
@@ -69550,7 +69549,7 @@ copy left `p` with few refs and dropped it behind `work` in global priority
 ## A stack buffer's base kept in a register for one field store: write that field through a pointer alias
 
 `func_shelter_b3_dumping_hole_80181430` fills a `s32 desc[5]` then passes
-`(s32)desc` to `Gp_DispatchMsg`. Retail materialises `addiu a1,sp,0x18`
+`(s32)desc` to `taskMessageDispatch`. Retail materialises `addiu a1,sp,0x18`
 (`&desc`) in the ternary's `bne` delay slot and stores `desc[1]` via
 `sw v0,0x4(a1)`, keeping the other elements `sp`-relative — so the ternary is a
 full `bne / j` diamond (the delay slot is consumed by the address, not the
@@ -69565,7 +69564,7 @@ s32* p = desc;
 desc[0] = base + (flag == 1 ? 1 : 0x22);
 p[1]    = 1;              /* &desc kept in a reg, used once, then reused for the call arg */
 desc[2] = desc[3] = desc[4] = 0;
-Gp_DispatchMsg(slot, 0x3E8, (s32)desc, 0);
+taskMessageDispatch(slot, 0x3E8, (s32)desc, 0);
 ```
 
 The single pointer-based store gives `&desc` enough of a reason to live in a
@@ -74805,7 +74804,7 @@ topology and predicates all already match.
 
 **Cause.** m2c reconstructs the smallest signature the body uses, so a handler
 that never reads its own opcode id comes back as two parameters and the tested
-value is the *second* one. The real caller is `Gp_DispatchMsg` in gameplay,
+value is the *second* one. The real caller is `taskMessageDispatch` in gameplay,
 which walks the `TaskMessageEntry` table at `Task::msgTable` and calls
 
 ```c
@@ -75351,7 +75350,7 @@ minimal functions; `func_actor_800200_80165B84` is the worked example (both
 casts, exact on the first attempt after the m2c seed scored 60.9%).
 ## A leading stack store is scheduled early: give the callee pointer its own statement
 
-**Symptom.** `func_actor_560800_8013631C` (a 0x7DB `Gp_DispatchMsg` send that
+**Symptom.** `func_actor_560800_8013631C` (a 0x7DB `taskMessageDispatch` send that
 builds a 4-byte payload on the stack) scored 96% with `reorder=1`: the
 `sh $a0,0x12($sp)` came straight after the prologue, while retail has it after
 the `lw 0x1C($v0)` that fetches the work block and the `addiu $a2,$sp,0x10`
@@ -75371,7 +75370,7 @@ Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
 ActorCommand         msg;
 
 msg.command = arg0;
-Gp_DispatchMsg(work->field_24, 0x7DB, (s32)&msg, 0);
+taskMessageDispatch(work->field_24, 0x7DB, (s32)&msg, 0);
 ```
 
 The `sh` now expands *after* the `lw 0x1C` (uid 19 vs 16 in `.sched`), and the
@@ -75605,7 +75604,7 @@ callee-saved register.
 
 ## Message payloads want their real type, not one local per word
 
-**Problem.** m2c's seed for the same function declared the `Gp_DispatchMsg`
+**Problem.** m2c's seed for the same function declared the `taskMessageDispatch`
 payload as five stack locals (`sp10`, `sp14`, `sp18`, `sp1C`, `sp20`), assigned
 `sp10 = &D_...` and passed `&sp10`. It compiled to 24 instructions against 32,
 `delete=8` with `struct` matching: only `sp10`'s address escapes, so the other
@@ -76974,7 +76973,7 @@ there is no codegen difference at all. The argument index is the whole bug.
 
 The actors' message dispatch uses the four argument positions of `TaskMessageHandler`
 (`include/gameplay/message.h`),
-and `Gp_DispatchMsg` ends in `entry->handler(index, value, arg2, arg3)`:
+and `taskMessageDispatch` ends in `entry->handler(receiver, messageId, firstArg, secondArg)`:
 
 ```c
 typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
@@ -82089,7 +82088,7 @@ disjoint, so nothing in the source looked shared — but the *names* were:
 
 A name is a pseudo, and its live range is the union of its assignments, so the
 two `disp2`s are **one** allocno live from the first branch into the second —
-which rules out every call-clobbered register across the `Gp_DispatchMsg` call in
+which rules out every call-clobbered register across the `taskMessageDispatch` call in
 between, and `$s1` is what is left. The target keeps the message path's pointer
 in `$a3` (caller-saved, dead before the call) and the slot-reset path's in `$s1`,
 and those live ranges do not overlap, so they are two pseudos. Giving each branch
@@ -83946,7 +83945,7 @@ reads like this in the m2c seed:
 ```c
 extern s32 D_actor_335800_80164E7C;                    /* wrong width */
 Gp_PlayerWeaponId(&D_actor_335800_80164E7C);
-Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &D_actor_335800_80164E7C, 0);
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &D_actor_335800_80164E7C, 0);
 ```
 
 The payload is not an `s32`: it is the five-word `AnimationPlayRequest`
@@ -83963,13 +83962,13 @@ same address; the typed form costs nothing.
 
 Two things the seed gets wrong beyond the type:
 
-* `Gp_DispatchMsg`'s prototype lives in `include/gameplay/D4.h`, which
+* `taskMessageDispatch`'s prototype lives in `include/gameplay/D4.h`, which
   `gameplay/gameplay.h` does not pull in — include it explicitly. m2c's
-  `? Gp_DispatchMsg(void *, ?, s32 *, ?);` placeholder is a parse error, not a
+  `? taskMessageDispatch(void *, ?, s32 *, ?);` placeholder is a parse error, not a
   declaration; delete the line once the header is in.
 * The call order is **source order**, and it varies between neighbours. The
   gameplay siblings (`src/gameplay/3CD8.c`, `3688.c`) inline the slot call —
-  `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&rec, 0)` — so it evaluates
+  `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&rec, 0)` — so it evaluates
   after `Gp_PlayerWeaponId`. `func_actor_335800_801624DC` instead binds it first
   (`slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);`), which is why `$s1` holds the slot across the
   `Gp_PlayerWeaponId` call. Both spellings match their own target; pick from the
@@ -84276,7 +84275,7 @@ the project's own structs.
 `M2C_FIELD(M2C_FIELD(D_actor_342100_80164BB8, void **, 0x1C), s32 *, 0x34)`
 compiled to the exact target bytes, and the only real work was `Task::work`
 plus the work block's `field_34` — which is a `Task*`, since that load feeds
-`Gp_DispatchMsg` as its first argument. m2c's `s32 *` in the `M2C_FIELD` is a
+`taskMessageDispatch` as its first argument. m2c's `s32 *` in the `M2C_FIELD` is a
 guess from the instruction width alone; a matching seed can still carry the
 wrong field type, so check each retyped field against how the value is used
 before writing it into a header.
@@ -85183,7 +85182,7 @@ nothing else - is arity, not allocation.
 The actor message handlers give the arity directly. They are installed in a
 `TaskMessageEntry` table (`{ s32 messageId; TaskMessageHandler handler; }`, terminator
 `TASK_MESSAGE_TABLE_END`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
-`0x7DB` row points at this function. `Gp_DispatchMsg` walks that table and
+`0x7DB` row points at this function. `taskMessageDispatch` walks that table and
 calls `entry->handler(index, value, arg2, arg3)`, so the handler's full
 signature is:
 
@@ -85945,7 +85944,7 @@ file, needs it for the aliasing of that store with its `state->field_48` read.
 Prefer whichever name the target relocates against, and when a body's schedule
 needs the other one, say so at both sites.
 
-## `Task::msgTable` tables are 8-byte `TaskMessageEntry[]`; type them from `Gp_DispatchMsg` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
+## `Task::msgTable` tables are 8-byte `TaskMessageEntry[]`; type them from `taskMessageDispatch` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
 
 A room's state-0 opener parks its message table in `Task::msgTable` and the C
 body shows nothing but the address, so the `D_<room>_<vram>` label it names has
@@ -85954,7 +85953,7 @@ no type of its own. Several matched rooms declare it `extern s32 D_x;` and take
 but leaves the table's structure undocumented.
 
 The type is recoverable from the consumer, which is already matched C:
-`Gp_DispatchMsg` (`src/gameplay/companion_load.c`) walks `msgTable` as `const TaskMessageEntry*` with
+`taskMessageDispatch` (`src/gameplay/companion_load.c`) walks `msgTable` as `const TaskMessageEntry*` with
 `entry++` and stops at `entry->messageId == TASK_MESSAGE_TABLE_END`; `TaskMessageEntry` is
 `{s32 messageId; TaskMessageHandler handler;}` = 8 bytes (`include/gameplay/message.h`). So
 `extern TaskMessageEntry D_<room>_<vram>[];` with a bare `task->msgTable = D_...;` -
@@ -85963,7 +85962,7 @@ the `rooms_shared_8017db84.c` idiom - is the accurate spelling, and it matches.
 Two checks confirm the reading on a raw splat dump: the record stride is 8 bytes
 with a code pointer at `+0x4`, and the last record's `messageId` is `TASK_MESSAGE_TABLE_END` (`0x7FFFFFFF`). The
 ids are message ids some gameplay dispatcher calls by name, which is the
-strongest confirmation: `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EF, ...)`
+strongest confirmation: `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
 `Game_SetPtrSlot(task, 7)`.
 ## A lone `.word` code pointer in a room's data is a `TaskMessageHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
@@ -85980,10 +85979,10 @@ into `Task::work`, and the handler reaches its work as `task->work`.
 
 The trap is the argument split. `TaskMessageHandler` is
 `s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)` - the handler gets the
-same four arguments `Gp_DispatchMsg` did - so `a1` is the message id and `a2`
+same four arguments `taskMessageDispatch` did - so `a1` is the message id and `a2`
 is the sender's third argument. This body compares `$a2`, which reads like the
 id at first glance; it is the *payload*. `Gp_UseKeyItemRow`
-(`src/gameplay/3688.c`) sends `Gp_DispatchMsg(slot, 0x13F1, item, 0)` with the
+(`src/gameplay/3688.c`) sends `taskMessageDispatch(slot, 0x13F1, item, 0)` with the
 highlighted key item third, so the handler answers "is the highlighted item
 0x11B?", not "am I message 0x11B?". The matched C of the same query,
 `func_acropolis_security_room_8017FE24`, is the shape to copy.
@@ -86241,7 +86240,7 @@ j     .Lend
 li    v0,-1
 .Lcall:
 move  a2,s1
-jal   Gp_DispatchMsg
+jal   taskMessageDispatch
 move  a3,s3
 ```
 
@@ -86302,7 +86301,7 @@ s32 Room_Snd05(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 100.000%, every penalty zero. This is why the sibling bodies `Room_Snd01..04`
 in `src/rooms/lib/` carry four parameters - the room tables hold
-`TaskMessageEntry { s32 messageId; TaskMessageHandler handler; }` and `Gp_DispatchMsg` calls
+`TaskMessageEntry { s32 messageId; TaskMessageHandler handler; }` and `taskMessageDispatch` calls
 `handler(task, msgId, arg2, arg3)`, so the handler type itself is the evidence
 for the list. General rule: when m2c names a parameter `argN` with N > 0 but
 declares it alone, pad the list to N+1 before changing anything else; `regs=N`
@@ -86872,7 +86871,7 @@ m2c seeded `func_neo_ark_woodland_path_8017E8DC` with the early-return guard
 if (D_neo_ark_woodland_path_80181680 == NULL) {
     return -1;
 }
-return Gp_DispatchMsg(D_neo_ark_woodland_path_80181680);
+return taskMessageDispatch(D_neo_ark_woodland_path_80181680);
 ```
 
 which scored 60% with `reorder=1 insert=3 delete=2` and inverted the predicate
@@ -86881,9 +86880,9 @@ and the block order:
 ```
 -bnez  a0,1c            +beqz  a0,24
  sw    ra,0x10(sp)       sw    ra,0x10(sp)
--j     .text+24         jal   Gp_DispatchMsg
+-j     .text+24         jal   taskMessageDispatch
 -li    v0,-0x1           nop
- jal   Gp_DispatchMsg   +j     .text+28
+ jal   taskMessageDispatch   +j     .text+28
  nop                    +nop
                         +li    v0,-0x1
 ```
@@ -86902,7 +86901,7 @@ single epilogue is reached by fall-through.
 
 `func_dryfield_breezeway_8017D90C` is the guarded-dispatch wrapper most rooms
 carry - read a room-local `Task*`, return 0 when it is null, else forward it to
-`Gp_DispatchMsg` and return that. m2c's two-`return` seed scored exactly 60%
+`taskMessageDispatch` and return that. m2c's two-`return` seed scored exactly 60%
 (`insert=3 delete=2 reorder=1`) with the call as the fall-through, `beqz`, and
 an extra `j`/`nop` around the out-of-line `addu v0,zero,zero`:
 
@@ -86912,11 +86911,11 @@ s32 ret;
 if (D_neo_ark_woodland_path_80181680 == NULL) {
     ret = -1;
 } else {
-    ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680);
+    ret = taskMessageDispatch(D_neo_ark_woodland_path_80181680);
 if (D_dryfield_breezeway_801843A8 == NULL) {
     ret = 0;
 } else {
-    ret = Gp_DispatchMsg(D_dryfield_breezeway_801843A8);
+    ret = taskMessageDispatch(D_dryfield_breezeway_801843A8);
 }
 return ret;
 ```
@@ -88854,7 +88853,7 @@ side, in the call-argument position:
 
 ```c
     D_8007216C = Gp_FindViewIndex(3);
-    Gp_DispatchMsg(work->owner, 0x3F3, 1, 0);     /* 95.556%, reorder=2 */
+    taskMessageDispatch(work->owner, 0x3F3, 1, 0);     /* 95.556%, reorder=2 */
 ```
 
 `work->owner` is `(mem/s:SI (plus:SI (reg) (const_int 64)))` — in-struct, varying,
@@ -88871,14 +88870,14 @@ typed form, and the divergence is one ready-list line in each dump — everythin
 else, `.rtl` through `.combine` inclusive, is byte-identical. With the edge the
 `sb` is not ready until the load has been picked, so it precedes it; without it
 sched1 sinks the store past the load and `dbr` takes it for
-`jal Gp_DispatchMsg`'s delay slot, which is the whole 4-instruction difference.
+`jal taskMessageDispatch`'s delay slot, which is the whole 4-instruction difference.
 Symptom to recognise: a store that belongs before a call shows up *after* the
 `jal`, and the call's real delay-slot insn appears above the call.
 
 The fix is the cast-through-`u8*` form, `OFFSET_OF` for the offset:
 
 ```c
-    Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+    taskMessageDispatch(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
 ```
 
 Scope matters: only that one reference needs the cast. `gGameSession->viewDirty = 1`
@@ -89090,8 +89089,8 @@ and one epilogue. Prefer this over choosing a polarity when the body's tail is a
 dispatch guard: the already-matched room siblings
 (`func_neo_ark_woodland_path_8017E910`, `func_acropolis_security_room_8017D6DC`)
 are written this way, so copying a sibling's shape is the cheapest route to the
-layout. The declaration of `Gp_DispatchMsg`
-stays unprototyped (`s32 Gp_DispatchMsg();`) - the call passes only the task and
+layout. The declaration of `taskMessageDispatch`
+stays unprototyped (`s32 taskMessageDispatch();`) - the call passes only the task and
 leaves `a1`-`a3` holding whatever the caller had - and the referenced `Task*` is
 overlay-local, so the body is *not* promotable despite the twin other rooms
 carry.
@@ -89099,7 +89098,7 @@ carry.
 ## An m2c payload's unread scalar locals are deleted by the first jump pass - write the payload as a struct (func_dryfield_breezeway_8017E2D4, 2026-09-15)
 
 `func_dryfield_breezeway_8017E2D4` builds a 4-byte message payload on the stack
-and passes `&payload` to `Gp_DispatchMsg`. m2c renders such a payload as one
+and passes `&payload` to `taskMessageDispatch`. m2c renders such a payload as one
 scalar local per field and takes the address of the first one only:
 
 ```c
@@ -89108,7 +89107,7 @@ u8 sp10; u8 sp11; s16 sp12;   /* msg payload at sp+0x10 / +0x11 / +0x12 */
 sp10 = gGameSession->location.loc.stage;
 sp12 = 2;
 sp11 = gGameSession->location.loc.area;
-Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &sp10, 0x7DB);
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &sp10, 0x7DB);
 ```
 
 `sp11` and `sp12` are never read by any C expression - the callee is unknowable
@@ -89511,7 +89510,7 @@ Inputs: `base.c` (m2c casts, 99.600%)
 
 The ratio tell in "A m2c `ptr + 0xNNN` is scaled by `sizeof(*ptr)`" needs several
 displacements to fire. One alone reads as a plain layout error: m2c's seed
-declared both `Gp_DispatchMsg` payloads `extern M2C_UNK D_...` (`s32`) and wrote
+declared both `taskMessageDispatch` payloads `extern M2C_UNK D_...` (`s32`) and wrote
 `&D_dryfield_water_tower_801823D8 + 0x18`, so the compiler scaled the offset and
 emitted `addiu a2,s0,0x60` where the target has `0x18`. One instruction, 99.891%,
 `regs=1`.
@@ -89526,8 +89525,8 @@ the displacement while keeping the base symbol:
 extern ActorTransform D_dryfield_water_tower_801823A8;
 extern ActorTransform D_dryfield_water_tower_801823D8[];
 
-Gp_DispatchMsg(work->field_8, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[0], 0);
-Gp_DispatchMsg(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
+taskMessageDispatch(work->field_8, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[0], 0);
+taskMessageDispatch(work->field_4, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
 ```
 
 CSE keeps `&D_..._801823D8` in one register, so the second call is the single
@@ -89712,7 +89711,7 @@ Inputs: `base.i`
 
 ## A `base + const` argument off a reused `%hi`/`%lo` means one symbol indexed - and the const is the element size (func_dryfield_motel_room_1_8017DF08, 2026-09-15)
 
-`func_dryfield_motel_room_1_8017DF08` hands `Gp_DispatchMsg` two payload
+`func_dryfield_motel_room_1_8017DF08` hands `taskMessageDispatch` two payload
 pointers and the target reads
 
 ```
@@ -89738,8 +89737,8 @@ already uses for the 0x7D4 placement payload the two calls carry - check
 
 ```c
 extern ActorTransform D_dryfield_motel_room_1_8017E130[2];
-Gp_DispatchMsg(work->field_C,  0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[0], 0);
-Gp_DispatchMsg(work->field_10, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[1], 0);
+taskMessageDispatch(work->field_C,  0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[0], 0);
+taskMessageDispatch(work->field_10, 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[1], 0);
 ```
 
 The function's other half is the 4-byte stack payload of "m2c's scalar stack
@@ -89760,7 +89759,7 @@ handler below - m2c emitted `s32 f(void *arg2)` reading one byte at offset 2,
 same padded parameter list. What is worth separating is how the *type* and the
 *arity* are recovered, because a twin's declaration is not evidence for either.
 
-The arity is fixed by the only caller a table handler has. `Gp_DispatchMsg`
+The arity is fixed by the only caller a table handler has. `taskMessageDispatch`
 (`src/gameplay/D4.c`) walks the room's `TaskMessageEntry[]` and calls
 `entry->handler(index, value, arg2, arg3)` - four arguments - which
 `TaskMessageHandler` in `include/gameplay/message.h` spells
@@ -90818,7 +90817,7 @@ Inputs: `base_6.i` (97.2%, `delete=1`), `base_11.i` (99.4%, `reorder=1`),
 ## A cast-offset store to a global materialises `&global+off`; the typed member keeps `&global`
 
 `func_dryfield_night_motel_loft_8017D808` writes the halfword at 0x2 of a global
-and then passes that same global's address to `Gp_DispatchMsg`. m2c's cast form
+and then passes that same global's address to `taskMessageDispatch`. m2c's cast form
 scores 88.929% with `insert=2 delete=2 regs=1 reorder=1`, and the residue is not
 a register choice or a schedule - the *value* in the address register is
 different:
@@ -91520,7 +91519,7 @@ Game_SetPtrSlot(7);              /* 98.45%, regs=1 reorder=1 */
 Writing `Game_SetPtrSlot(task, 7)` took it straight to 100% with **both**
 penalties gone. The `regs` is the obvious half (7 lands in `$a0` instead of
 `$a1`); the half worth remembering is the other one. The `reorder` belongs to
-the `Gp_DispatchMsg` call three blocks later — the familiar
+the `taskMessageDispatch` call three blocks later — the familiar
 `li a1,0x7DA` / `lui a2,%hi(payload)` swap — and nothing in that block is
 wrong. Reading it first sends you after the scheduler for a defect that lives
 in a call signature.
@@ -94602,7 +94601,7 @@ sp14 = 0;
 sp18 = 0;
 sp1C = 0;
 sp20 = 0;
-Gp_DispatchMsg(*temp_a0, 0x3F4, (s32) &sp10, 0);
+taskMessageDispatch(*temp_a0, 0x3F4, (s32) &sp10, 0);
 ```
 
 -- and that shape is a **trap**: only `sp10` has its address taken (the `&sp10`
@@ -94631,7 +94630,7 @@ script.animationId  = 0;
 script.blend  = 0;
 script.blendFrames  = 0;
 script.enableWorldCollision = 0;
-Gp_DispatchMsg((Task*) work2->owner, 0x3F4, (s32) &script, 0);
+taskMessageDispatch((Task*) work2->owner, 0x3F4, (s32) &script, 0);
 ```
 
 95.0% -> 100% with no other change. Note the zeros survive here for the reason
@@ -94956,7 +94955,7 @@ wherever they read best; only code-producing lines are positional.
 
 The same function's codegen lesson is the cross-jump one above ("Differing call
 arguments do not block a cross-jump"): m2c's joined form - a `var_a0`/`var_a2`
-pair assigned per arm and one `Gp_DispatchMsg` after the `if` - leaves
+pair assigned per arm and one `taskMessageDispatch` after the `if` - leaves
 `li a1, 0x7DB` hoisted into the join block, where the target has it in both
 arms. One call site per arm, literal at each site, reached 100% in one build.
 
@@ -97188,7 +97187,7 @@ run to have refused.
 
 m2c's seed wrote both halves of one global through the same cast expression —
 `M2C_FIELD(&D_actor_401000_80154F1C, s32 *, 4) = 2;` then
-`Gp_DispatchMsg(…, &D_actor_401000_80154F1C, 0);` — and came out at 92.32%
+`taskMessageDispatch(…, &D_actor_401000_80154F1C, 0);` — and came out at 92.32%
 (`regs=4 reorder=4 insert=3 delete=3`) with the base register holding the
 *wrong* address:
 
@@ -97210,7 +97209,7 @@ block below to 100%):
 ```c
 AnimationPlayRequest* msg = &D_actor_401000_80154F1C;
 msg->animationId   = 2;
-Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FF, (s32)msg, 0);
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FF, (s32)msg, 0);
 ```
 
 The fix came from the matched sibling `func_actor_356100_8016A468`
@@ -98595,7 +98594,7 @@ reference pins the init where it was written:
             unit = lowIdx * 3;
             SOFT_USE_REG(msgId);       /* ref 3, emits nothing */
         }
-        Gp_DispatchMsg(slot, msgId, (s32)((unit * 8) + (s32)D_actor_335800_80164EA4), 0);
+        taskMessageDispatch(slot, msgId, (s32)((unit * 8) + (s32)D_actor_335800_80164EA4), 0);
 ```
 
 The soft use must not sit *between* the init and the branch: the backward scan
@@ -98797,7 +98796,7 @@ A message-send prologue writes `1` to three places - `anim.field_4`,
 `work->field_262` after the call - and also returns it. The obvious source,
 
 ```c
-    Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+    taskMessageDispatch(player, 0x3FF, (s32)&scratch->anim, 0);
     ret = 1;
     work->field_262 = 1;
 ```
@@ -98809,7 +98808,7 @@ register is not a copy of anything, and the surplus pair shows up as
 `insert=2 delete=2` on top of `regs=23`. Swapping the two statements is 100.000%:
 
 ```c
-    Gp_DispatchMsg(player, 0x3FF, (s32)&scratch->anim, 0);
+    taskMessageDispatch(player, 0x3FF, (s32)&scratch->anim, 0);
     work->field_262 = 1;
     ret = 1;
 ```
@@ -98826,7 +98825,7 @@ so in the failing order the HImode store takes the return register and the
 
 Writing the field store first removes the choice instead of winning it: at the
 `sh` only the 0x1C/0x28 register is in the class, so CSE picks it, which makes
-the constant live across the `Gp_DispatchMsg` call. It then has to be
+the constant live across the `taskMessageDispatch` call. It then has to be
 callee-saved (`$s0`), and the return assignment, now the second `1`, folds into
 `move $s3,$s0`. The readable signature of the two orders is `li` + `move` (match)
 against two `li`s (mismatch) - and the mismatch's second `li` is what the
@@ -99087,7 +99086,7 @@ sp14 = 1;
 sp18 = 0;
 sp1C = 0;
 sp20 = 0;
-Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&sp10, 0);
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&sp10, 0);
 ```
 
 `.frame $sp,40,$31  # vars= 8` - the frame is two words, not five - and only
@@ -99106,7 +99105,7 @@ AnimationPlayRequest msg;
 msg.source.index = anim;   /* all five stores survive, in order */
 msg.animationId = 1;
 ...
-Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&msg, 0);
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&msg, 0);
 ```
 
 100% with no `delete` penalty (`func_actor_342000_8016439C`). Any aggregate
@@ -99819,7 +99818,7 @@ this family.
 
 The seed fills a 0x7DA payload out of three locals m2c emitted one per field —
 `u8 sp10; u8 sp11; s16 sp12;` — and passes only the first by address
-(`Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &sp10, 0x7DB)`). It scores 78.114%
+(`taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &sp10, 0x7DB)`). It scores 78.114%
 with `regs=13 delete=6 insert=1`, and the object is missing `sb $v0,0x11($sp)`
 (0x7DB selector halfword) and `sh $s0,0x12($sp)`, plus the frame, both `$s0`/`$s1`
 saves and the `s1` home of the work pointer.
@@ -99837,7 +99836,7 @@ address-taken 4-byte struct, which is also what makes the payload's fields live:
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command        = 9;
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (s32)&msg, 0x7DB);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
         work->field_E = 1;
     }
@@ -101662,7 +101661,7 @@ above).
 Inputs: `base.i` (m2c seed, 85.111%), `base_1.i` (100.000%).
 ## One pseudo per C variable, not per assignment: reusing the function's pointer local denies a reload a caller-saved home (func_actor_120500_80132920, 2026-09-16)
 
-An `if (p->work->field_4B4 != 0) { ...; Gp_DispatchMsg(p->work->field_4B4, ...); }`
+An `if (p->work->field_4B4 != 0) { ...; taskMessageDispatch(p->work->field_4B4, ...); }`
 where the target loads `p->work` **once** and reuses it for the call argument
 scores 88.75% from the m2c seed and 96.97% after the payload is made one
 struct — both times with the wrong shape in the same place. The m2c seed writes
@@ -101692,7 +101691,7 @@ target's `$v1`, and it is 100.000% with all penalties zero:
     if (animWork->field_4B4 != NULL) {
         msg.field_0 = D_actor_120500_8013807C;
         ...
-        Gp_DispatchMsg(animWork->field_4B4, 0x3F4, (s32)&msg, 0);
+        taskMessageDispatch(animWork->field_4B4, 0x3F4, (s32)&msg, 0);
     }
     work = actor->field_1C;
 ```
@@ -108324,7 +108323,7 @@ Scratch `nonmatchings/func_actor_401000_80138BB4-vacuum`.
 `0x10`/`0x12`/`0x14` into `D_actor_401000_80155018`, a 0x20-byte zeroed run in
 the package's `.data` with no symbol anywhere under `src/`. That is `ActorTransform`
 (`include/gameplay/message.h`) — the same 0x18-byte slot-3 payload the stack-local
-senders use ("A short frame around a `Gp_DispatchMsg` payload means the wrong
+senders use ("A short frame around a `taskMessageDispatch` payload means the wrong
 payload type"). Declare it in the overlay header and reach it through a pointer:
 
 ```c
@@ -119693,7 +119692,7 @@ and a frame shorter than the target's, is this.
 
 The same seed also demonstrates the already-documented scalar-locals cause:
 m2c declared the 5-word msg payload as `s32 sp10 … sp20`, only `&sp10` is
-passed to `Gp_DispatchMsg`, so the other four stores were never generated at
+passed to `taskMessageDispatch`, so the other four stores were never generated at
 all. `AnimationPlayRequest buf;` with `buf.animationId = 1; …` brings them back. See "m2c's
 scalar stack locals for an address-taken struct lose their dead stores".
 
@@ -120685,17 +120684,17 @@ from case 6's dispatch test. Two spellings of the same program merge differently
 
 ```c
 /* base_2, 95.639% branch=2 delete=3, 80 insns: case 3's tail is eaten */
-case 3: Gp_DispatchMsg(...); goto inc;
+case 3: taskMessageDispatch(...); goto inc;
 ...
-case 6: if (Gp_DispatchMsg(...) != 0) return;
+case 6: if (taskMessageDispatch(...) != 0) return;
 inc:    task->state = task->state + 1; return;
 ```
 
 ```c
 /* base_3, 100.000%: every case keeps its own call */
-case 3: Gp_DispatchMsg(...); task->state = task->state + 1; return;
+case 3: taskMessageDispatch(...); task->state = task->state + 1; return;
 ...
-case 6: if (Gp_DispatchMsg(...) != 0) return;
+case 6: if (taskMessageDispatch(...) != 0) return;
         task->state = task->state + 1; return;
 ```
 
@@ -120705,13 +120704,13 @@ pairwise from the two jumps and stops at the first differing insn, then deletes 
 from there and retargets its jump.
 
 With `goto inc` the only jumps to `inc` are cases 0, 3 and 5, whose tails are
-`[a3 = 0][jal Gp_DispatchMsg]`. Case 3 therefore pairs with case 5, the walk matches
+`[a3 = 0][jal taskMessageDispatch]`. Case 3 therefore pairs with case 5, the walk matches
 those **two** insns, `minimum` reaches 0, and `jal` is deleted from case 3 — 3
 instructions short, `blocks=15/14`.
 
 Written out per case, every case's `return` jumps to the *epilogue* label instead, so
 case 3 pairs with case 6, whose stream above the `lw` is `[bnez v0, epilogue]`. The walk
-still matches `[sw][addiu][lw]` and then hits `jal Gp_DispatchMsg` against a conditional
+still matches `[sw][addiu][lw]` and then hits `jal taskMessageDispatch` against a conditional
 branch — `GET_CODE` differ — so it stops *below* the call. Each case keeps its own `jal`
 and the merge produces exactly the ROM's three new labels: the increment block, the
 `bnez` test shared with case 1, and the `a2 = 0 / jal / a3 = a2` dispatch shared with
@@ -120962,11 +120961,11 @@ Two arms of a switch end in the same call and a `break`:
 ```c
         case 1:
             ...
-            Gp_DispatchMsg(work->child, 0x7DB, (s32)&msg, 0);
+            taskMessageDispatch(work->child, 0x7DB, (s32)&msg, 0);
             break;
         case 2:
             ...
-            Gp_DispatchMsg(work->owner, 0x3F3, 1, 0);
+            taskMessageDispatch(work->owner, 0x3F3, 1, 0);
             break;
 ```
 
@@ -120974,7 +120973,7 @@ The target has **one** call site for both (case 1 `j`s to it, case 2 falls into
 it, and the block after it holds the `sh $zero,0x50($s0)` both arms want):
 
 ```
-.LDFE068:  jal Gp_DispatchMsg; addu a3,zero,zero; j <epilogue>; sh zero,0x50(s0)
+.LDFE068:  jal taskMessageDispatch; addu a3,zero,zero; j <epilogue>; sh zero,0x50(s0)
 ```
 
 That merge is `jump.c`'s cross-jumping, and it runs in the *last*
@@ -120999,7 +120998,7 @@ scalar), so the fix is that entry's cast deref on that one access - nothing else
 in the arm changes:
 
 ```c
-    Gp_DispatchMsg(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
+    taskMessageDispatch(*(Task**)((u8*)work + OFFSET_OF(DwtScriptWork, owner)), 0x3F3, 1, 0);
 ```
 
 95.904% (`branch=3 regs=2 reorder=4 insert=3 delete=0`) to 100.000%, one build.
@@ -127502,7 +127501,7 @@ that no single statement seems to need:
      move  a3,s0        # a3 = work, in the beqz delay slot
     ...
     lw     a0,0x2c(a3)  # the call's first argument, 0x2C past the work block
-    jal    Gp_DispatchMsg
+    jal    taskMessageDispatch
      move  a3,zero
 ```
 
@@ -127517,7 +127516,7 @@ same field* in the C, taken at the top of the case:
     case 0:
         msgWork = (Actor342100Work*)arg0->work;   /* the copy's origin */
         ...
-        Gp_DispatchMsg(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
+        taskMessageDispatch(msgWork->field_2C, 0x3F7, (s32)&msg, 0);
 ```
 
 The dumps name the pass: `.rtl` holds two

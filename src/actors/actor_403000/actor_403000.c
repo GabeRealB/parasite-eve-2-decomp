@@ -5143,7 +5143,7 @@ static void func_actor_403000_8013603C(Task* arg0)
         Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
     }
     if (work->field_F8C == 1 && Gp_StateC08.field_A != work->field_F8C && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
         work->field_F8C = 0;
     }
     if ((s16)work->field_6 <= 0x1000) {
@@ -5780,7 +5780,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                         TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_403000_80158D90.value, 0);
                     }
                     task         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 1), 0);
+                    scratch->ret = taskMessageDispatch(task, 0x3F9, Gp_PackObjPair(enemy, 1), 0);
                     if (scratch->ret == 1) {
                         pw                              = (GameActor*)player->work;
                         gGameSession->deathFadeFrames   = 0x28;
@@ -6046,7 +6046,7 @@ static void func_actor_403000_801386E8(Task* arg0)
             D_actor_403000_80158D90.value.rot.vz = 0;
             TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_403000_80158D90.value, 0);
             task         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
+            scratch->ret = taskMessageDispatch(task, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
             if (scratch->ret == 1) {
                 pw                              = (GameActor*)player->work;
                 gGameSession->deathFadeFrames   = 0x1C;
@@ -7070,7 +7070,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
         if (!Actor403000_Outside(&scratch->target, 1000) && enemy->hp > 0 &&
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403000_80158DD0.value, 0) == 0) {
             task         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+            scratch->ret = taskMessageDispatch(task, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
             if (scratch->ret == 1) {
                 pw                              = (GameActor*)player->work;
                 gGameSession->deathFadeFrames   = 0x28;
@@ -7524,7 +7524,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
                     break;
             }
         }
-        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             work->field_FCC = 0;
             if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]) {
                 switch (work->field_F94) {
@@ -7561,7 +7561,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
                         break;
                 }
             } else {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                 work->field_FC0 = 0;
             }
         }

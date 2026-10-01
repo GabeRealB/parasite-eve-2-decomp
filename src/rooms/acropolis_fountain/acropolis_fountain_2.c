@@ -1294,7 +1294,7 @@ static void func_acropolis_fountain_8017DAA4(Task* arg0)
 
 static void func_acropolis_fountain_8017DB00(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -1313,7 +1313,7 @@ static void func_acropolis_fountain_8017DB54(Task* arg0)
 
 static void func_acropolis_fountain_8017DBAC(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -1337,8 +1337,8 @@ static void func_acropolis_fountain_8017DC6C(Task* arg0)
     Task* temp_v0;
 
     temp_v0 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (Gp_DispatchMsg(temp_v0, 0x3F0, 0, 0) == 0) {
-        Gp_DispatchMsg(temp_v0, 0x3F1, 0, 0);
+    if (taskMessageDispatch(temp_v0, 0x3F0, 0, 0) == 0) {
+        taskMessageDispatch(temp_v0, 0x3F1, 0, 0);
         taskKill(arg0);
     }
 }

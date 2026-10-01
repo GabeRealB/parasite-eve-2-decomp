@@ -684,7 +684,7 @@ static void Gp_MsgPlayer3EE(void)
 
 static void Gp_MsgPlayer3F0(void)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         Gp_DirPhase++;
     }
 }
