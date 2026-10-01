@@ -742,8 +742,12 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// texture and is linked ahead of the environment layer.
         TMD_GT3_ENV_BASE_COMMAND  = 0x34,
         TMD_GT3_ENV_LAYER_COMMAND = 0x36,
-        TMD_GT3_ENV_CORNER_COUNT  = 3,
-        TMD_GT3_ENV_PACKET_COUNT  = 2,
+        /// Number of environment-triangle corners visited during second-page U adjustment.
+        ///
+        /// Covers `u0/u1/u2` and their `code/p1/p2` page markers in the
+        /// environment packet of each environment/base pair.
+        TMD_GT3_ENV_CORNER_COUNT = 3,
+        TMD_GT3_ENV_PACKET_COUNT = 2,
         /// Byte stride between corresponding fields of successive environment-triangle corners.
         ///
         /// Advances the U and 0/1 second-page-marker cursors through `u0/u1/u2`
@@ -760,6 +764,9 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
                       OFFSET_OF(POLY_GT3, p1) - OFFSET_OF(POLY_GT3, code) == TMD_GT3_ENV_CORNER_STRIDE_BYTES &&
                       OFFSET_OF(POLY_GT3, p2) - OFFSET_OF(POLY_GT3, p1) == TMD_GT3_ENV_CORNER_STRIDE_BYTES,
                   tmdGt3EnvCornerStride);
+    STATIC_ASSERT(OFFSET_OF(POLY_GT3, u0) + (TMD_GT3_ENV_CORNER_COUNT - 1) * TMD_GT3_ENV_CORNER_STRIDE_BYTES == OFFSET_OF(POLY_GT3, u2) &&
+                      OFFSET_OF(POLY_GT3, code) + (TMD_GT3_ENV_CORNER_COUNT - 1) * TMD_GT3_ENV_CORNER_STRIDE_BYTES == OFFSET_OF(POLY_GT3, p2),
+                  tmdGt3EnvCornerCount);
     STATIC_ASSERT(OFFSET_OF(POLY_GT3, code) + TMD_GT3_ENV_CORNER_COUNT * TMD_GT3_ENV_CORNER_STRIDE_BYTES <= sizeof(_TmdEnvTrianglePair) &&
                       OFFSET_OF(POLY_GT3, u0) + TMD_GT3_ENV_CORNER_COUNT * TMD_GT3_ENV_CORNER_STRIDE_BYTES <= sizeof(_TmdEnvTrianglePair),
                   tmdGt3EnvCornerCursorBounds);
