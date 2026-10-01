@@ -333,22 +333,37 @@ static inline void _modelLightingInitGt3CornerColorsTexture(POLY_GT3* triangle, 
     triangle->clut      += workspace->encodedClutOffset;
 }
 
-/// Initializes a Gouraud textured triangle's persistent texture fields.
+/// Initializes a Gouraud textured triangle's persistent texture fields from packed element words.
 ///
-/// `elementWords` is a four-byte-aligned element base; `textureWordIndex` is
-/// a nonnegative u32-word index selecting three readable words within it:
-/// U0/V0/CLUT, U1/V1/texture-page settings and U2/V2 in the last low half.
-/// `triangle` must be a writable, four-byte-aligned `POLY_GT3`. Signed encoded
-/// page/CLUT displacements from `workspace` wrap in the packet's u16 fields.
-/// The last word's high half is ignored; `pad2` and all non-texture fields are
-/// preserved. Inputs are borrowed, no pointer is retained and no cursor changes.
-static inline void _tmdInitGt3TextureWords(POLY_GT3* triangle, const u32* elementWords, s32 textureWordIndex,
-                                           const TmdStreamWorkspace* workspace)
+/// `elementWords` is a four-byte-aligned element base, after the stream record's
+/// three-word header. `uv0ClutWordIndex` counts u32 words from that base and
+/// selects three consecutive readable words in the same element. It must be
+/// nonnegative, with index + 2 representable in s32; bounds are not checked.
+/// The first two words pack unsigned byte U/V texel coordinates in their low
+/// halves and encoded CLUT and texture-page settings in their high halves.
+/// Only the last word's low half supplies U2/V2; its high half is ignored.
+/// This readable extent does not establish the element's complete size.
+///
+/// `triangle` must be a writable, four-byte-aligned `POLY_GT3`. A construction
+/// workspace supplies signed encoded-address displacements: `texturePageOffset`
+/// (-128..127) and `encodedClutOffset` (-8192..8128, 64 per palette row). Sums
+/// wrap modulo 65536 in the u16 packet fields without changing U/V. The tag,
+/// colours/command, screen positions and pad fields remain untouched for drawing.
+/// All storage is borrowed for the call; no pointer is retained and no workspace
+/// cursor or count is changed.
+static inline void _modelLightingInitGt3TextureWords(POLY_GT3* triangle, const u32* elementWords, s32 uv0ClutWordIndex,
+                                                     const TmdStreamWorkspace* workspace)
 {
-    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[textureWordIndex];
-    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[textureWordIndex + 1];
-    // Copy both UV bytes without overwriting the adjacent SDK pad2 field.
-    *(u16*)&triangle->u2 = (u16)elementWords[textureWordIndex + 2];
+    // Relative word positions in the packed texture suffix, independent of its element prefix.
+    enum {
+        MODEL_LIGHTING_GT3_UV1_TPAGE_WORD_OFFSET = 1,
+        MODEL_LIGHTING_GT3_UV2_WORD_OFFSET       = 2
+    };
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[uv0ClutWordIndex];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[uv0ClutWordIndex + MODEL_LIGHTING_GT3_UV1_TPAGE_WORD_OFFSET];
+    // The halfword view copies the U/V byte pair while preserving the SDK's adjacent pad2.
+    *(u16*)&triangle->u2 = (u16)elementWords[uv0ClutWordIndex + MODEL_LIGHTING_GT3_UV2_WORD_OFFSET];
     triangle->tpage     += workspace->texturePageOffset;
     triangle->clut      += workspace->encodedClutOffset;
 }
@@ -2128,7 +2143,7 @@ u32* tmdBuildStreamGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, 
     triangle = (POLY_GT3*)workspace->primWrite;
     // Seed texture data for the draw pass that lights the element's material colour.
     while (workspace->elemCount-- > 0) {
-        _tmdInitGt3TextureWords(triangle, elements, MODEL_LIGHTING_GT3_ELEMENT_COLOR_UV0_CLUT_WORD, workspace);
+        _modelLightingInitGt3TextureWords(triangle, elements, MODEL_LIGHTING_GT3_ELEMENT_COLOR_UV0_CLUT_WORD, workspace);
         triangle++;
         elements += workspace->elemStride;
     }
