@@ -74,3 +74,4 @@ D_shelter_r36_8017FAE4 = 0x8017FAE4; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_801413EC = 0x801413EC; // absolute:True
 D_80149664 = 0x80149664; // absolute:True
+streamedScenePlay = 0x8017DA34; // type:func

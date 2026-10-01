@@ -69,3 +69,4 @@ RoomFx_DrawBurst2Glow = 0x801812E4; // type:func
 RoomFx_DrawGround2Quad = 0x80181810; // type:func
 glowDrawCapsule = 0x8017F39C; // type:func
 glowDrawDisc = 0x8017FBE0; // type:func
+streamedScenePlayThenHold = 0x8017EF24; // type:func

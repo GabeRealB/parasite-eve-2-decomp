@@ -46,16 +46,16 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/streamed_scene.h"
 
 #define D_shelter_b1_control_room_80181C3C (D_shelter_b1_control_room_80181BD4 + 13)
 
 // Indexed views below share one contiguous table.
-void func_shelter_b1_control_room_8017EF24(Task*);
 void func_shelter_b1_control_room_8017F100(Task*);
 
 TaskDesc D_shelter_b1_control_room_80181BBC[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_control_room_8017F100, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_control_room_8017EF24, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, streamedScenePlayThenHold, { .value = 0 } },
 };
 
 SVECTOR D_shelter_b1_control_room_80181BD4[18] = {
@@ -79,104 +79,7 @@ SVECTOR D_shelter_b1_control_room_80181BD4[18] = {
     { 5180, -850, -2530, 0 },
 };
 
-/// Streamed-scene task. It blanks the display and queues CD command 0x61 on
-/// the stream slot of the current location with its view replaced by 0x64,
-/// then shows the display once the command queue signals it. The scene runs
-/// until the CD is idle or the pad check aborts it, which is recorded in
-/// `spawnArg1`. After the stream state is restored an aborted scene kills the
-/// task at once, and a finished one after 0x3D more ticks; either way the
-/// display heap is reset.
-void func_shelter_b1_control_room_8017EF24(Task* arg0)
-{
-    u8          slotParam[4];
-    s32         state;
-    GameLoc     key;
-    CdCmdQueue* queue;
-    Task*       task;
-
-    task  = arg0;
-    queue = &gCdCmdQueue;
-    switch (task->state) {
-        case 0:
-            goto L_case0;
-        case 1:
-            goto L_case1;
-        case 2:
-            goto L_case2;
-        case 3:
-            goto L_case3;
-        case 4:
-            goto L_case4;
-        case 5:
-            goto L_case5;
-        case 6:
-            goto L_case6;
-    }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key          = gGameSession->location;
-    key.loc.view = 0x64;
-    slotParam[0] = Stream_FindSlot((u8*)&key, 0, 0);
-    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case2:
-    if (queue->movieReady == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        state                 = task->state;
-        task->spawnArg1.value = 0;
-        task->state           = state + 1;
-        return;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    task->spawnArg1.value = 1;
-    task->state           = task->state + 1;
-    return;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-    goto advance;
-
-L_case5:
-    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
-        return;
-    }
-    if (task->spawnArg1.value != 0) {
-        goto kill;
-    }
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case6:
-    task->killCountdown = task->killCountdown + 1;
-    if (task->killCountdown < 0x3D) {
-        return;
-    }
-kill:
-    taskKill(task);
-    Display_ResetHeapWrapper();
-}
+#include "../../shared/streamed_scene_play_then_hold.inc.c"
 
 void func_shelter_b1_control_room_8017F100(Task* arg0)
 {

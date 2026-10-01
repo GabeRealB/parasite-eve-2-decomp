@@ -36,6 +36,7 @@
 #include "main/task_types.h"
 
 #include "mapui/map_shelter.h"
+#include "../../shared/streamed_scene.h"
 
 extern EvsCommand D_shelter_r36_8017DF2C[];
 extern EvsCommand D_shelter_r36_8017E5A4[];
@@ -284,7 +285,7 @@ TaskMessageEntry D_shelter_r36_8017E97C[5] = {
 
 TaskDesc D_shelter_r36_8017E9A4[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_r36_8017DBC0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r36_8017DA34, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, streamedScenePlay, { .value = 0 } },
 };
 
 u8* D_shelter_r36_8017E9BC[1] = {

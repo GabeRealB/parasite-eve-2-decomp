@@ -45,6 +45,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/streamed_scene.h"
 
 // Preserve the nonzero halfword after the three effect records.
 // Its role is unresolved; it may be retained exporter padding.
@@ -346,7 +347,7 @@ EvsCommand D_shelter_b6_training_room_80184274[7] = {
 
 TaskDesc D_shelter_b6_training_room_8018431C[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b6_training_room_8017DD98, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b6_training_room_8017DBBC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, streamedScenePlayThenHold, { .value = 0 } },
 };
 
 SVECTOR D_shelter_b6_training_room_80184334[25] = {

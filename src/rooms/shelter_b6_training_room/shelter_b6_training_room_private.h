@@ -56,8 +56,6 @@ void func_shelter_b6_training_room_8017DB28(void);
 
 void func_shelter_b6_training_room_8017DB70(void);
 
-void func_shelter_b6_training_room_8017DBBC(Task*);
-
 void func_shelter_b6_training_room_8017DD98(Task*);
 
 #endif // SRC_ROOMS_SHELTER_B6_TRAINING_ROOM_SHELTER_B6_TRAINING_ROOM_PRIVATE_H

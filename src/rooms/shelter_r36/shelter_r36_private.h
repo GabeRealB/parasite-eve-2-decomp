@@ -6,7 +6,6 @@
 extern TaskDesc D_shelter_r36_8017E9A4[2];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_shelter_r36_8017DA34(Task*);
 
 void func_shelter_r36_8017DBC0(Task*);
 

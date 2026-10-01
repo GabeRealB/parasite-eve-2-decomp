@@ -73,6 +73,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/streamed_scene.h"
 
 #define MINE_MESA_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
@@ -190,7 +191,6 @@ extern AnimationSet D_mine_mesa_80183BBC;
 extern AnimationSet D_mine_mesa_80183EA4;
 extern AnimationSet D_mine_mesa_8018415C;
 
-void func_mine_mesa_8017DE38(Task*);
 void func_mine_mesa_8017DFC4(Task*);
 void func_mine_mesa_8017E024(Task*);
 
@@ -313,7 +313,7 @@ EvsCommand D_mine_mesa_80181960[2] = {
 
 TaskDesc D_mine_mesa_80181990[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E024, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017DE38, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, streamedScenePlay, { .value = 0 } },
 };
 
 TaskDesc D_mine_mesa_801819A8 = { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017DFC4, { .value = 0 } };
@@ -2755,78 +2755,7 @@ void func_mine_mesa_8017DDF0(void)
     }
 }
 
-void func_mine_mesa_8017DE38(Task* arg0)
-{
-    u8          slotParam[4];
-    GameLoc     key;
-    CdCmdQueue* queue;
-    Task*       task;
-
-    task  = arg0;
-    queue = &gCdCmdQueue;
-    switch (task->state) {
-        case 0:
-            goto L_case0;
-        case 1:
-            goto L_case1;
-        case 2:
-            goto L_case2;
-        case 3:
-            goto L_case3;
-        case 4:
-            goto L_case4;
-        case 5:
-            goto L_case5;
-    }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key          = gGameSession->location;
-    key.loc.view = 0x64;
-    slotParam[0] = Stream_FindSlot((u8*)&key, 0, 0);
-    CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case2:
-    if (queue->movieReady == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case5:
-    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
-        return;
-    }
-    taskKill(task);
-    Display_ResetHeapWrapper();
-}
+#include "../../shared/streamed_scene_play.inc.c"
 
 void func_mine_mesa_8017DFC4(Task* arg0)
 {
