@@ -680,7 +680,38 @@ glabel tmdDrawStreamGt4
     /* 1AD0 800112D0 */  addu        $v0, $zero, $a2
     /* 1AD4 800112D4 */  jr          $ra
     /* 1AD8 800112D8 */  nop
+/* Neutral RGB with a zero code byte; RGB2 stores all four bytes. */
+.equ TMD_XFORM_STREAM_VERTS_COLOR, 0x00808080
+/* Outside the unsigned 16-bit vertex byte-offset domain. */
+.equ TMD_XFORM_STREAM_VERTS_NO_PREVIOUS_VERTEX, 0x0FFE0000
+/* Assembly equivalent of the depth-cache rejection bit in main/tmd_types.h. */
+.equ TMD_XFORM_STREAM_VERTS_DEPTH_INVALID, 0x80000000
+
+/*
+ * Light one normal and scatter the projected XY and lit colour to packet words.
+ * Inputs: a2 element (refs, destinations), t9 byte stride, t8 packet base;
+ * GTE V0 holds the normal, SXY2 the projected vertex, RGB the neutral colour.
+ * Advances a2; clobbers t3, t4 and NCCS results. Both destinations are unsigned
+ * 16-bit byte offsets from t8 and must name complete aligned four-byte words.
+ * Offset decoding supplies the NCCS result latency; keep the stores in order
+ * even when the two destinations coincide. No call or extra delays are emitted.
+ */
+.macro TMD_XFORM_STREAM_VERTS_LIGHT_AND_SCATTER
+    lw          $t3, 0x4($a2)
+    addu        $a2, $t9, $a2
+    nccs
+    srl         $t4, $t3, 16
+    addu        $t4, $t8, $t4
+    sll         $t3, $t3, 16
+    srl         $t3, $t3, 16
+    addu        $t3, $t8, $t3
+    swc2        $14, 0x0($t3)
+    swc2        $22, 0x0($t4)
+.endm
+
 glabel tmdXformStreamVerts
+    /* a0 workspace, a1 unused object flags, a2 elements; a3 counts locally. */
+    /* t8 fixed packet base, t6 vertices, t5 normals, v1 depth-cache base. */
     /* 1ADC 800112DC */  lw          $t9, 0x18($a0)
     /* 1AE0 800112E0 */  lw          $a3, 0x1C($a0)
     /* 1AE4 800112E4 */  lw          $t8, 0x4($a0)
@@ -688,61 +719,54 @@ glabel tmdXformStreamVerts
     /* 1AEC 800112EC */  lw          $t5, 0xC($a0)
     /* 1AF0 800112F0 */  lw          $v1, 0x10($a0)
     /* 1AF4 800112F4 */  sll         $t9, $t9, 2
-    /* 1AF8 800112F8 */  lui         $t1, 0x80
-    /* 1AFC 800112FC */  ori         $t1, $t1, 0x8080
+    /* 1AF8 800112F8 */  lui         $t1, (TMD_XFORM_STREAM_VERTS_COLOR >> 16)
+    /* 1AFC 800112FC */  ori         $t1, $t1, (TMD_XFORM_STREAM_VERTS_COLOR & 0xFFFF)
     /* 1B00 80011300 */  mtc2        $t1, $6
-    /* 1B04 80011304 */  lui         $v0, 0xFFE
-    /* 1B08 80011308 */  j           .L80011344
+    /* 1B04 80011304 */  lui         $v0, (TMD_XFORM_STREAM_VERTS_NO_PREVIOUS_VERTEX >> 16)
+    /* 1B08 80011308 */  j           .LtmdXformStreamVertsNextElement
     /* 1B0C 8001130C */  nop
-  .L80011310:
+  .LtmdXformStreamVertsReuseProjection:
+    /* SXY2 and cached Z survive lighting; a repeated vertex still has its own normal. */
     /* 1B10 80011310 */  addu        $t2, $t5, $t2
-  .L80011314:
     /* 1B14 80011314 */  lwc2        $0, 0x0($t2)
     /* 1B18 80011318 */  lwc2        $1, 0x4($t2)
-  .L8001131C:
-    /* 1B1C 8001131C */  lw          $t3, 0x4($a2)
-    /* 1B20 80011320 */  addu        $a2, $t9, $a2
-    /* 1B24 80011324 */  .word 0x4B08041B
-    /* 1B28 80011328 */  srl         $t4, $t3, 16
-    /* 1B2C 8001132C */  addu        $t4, $t8, $t4
-    /* 1B30 80011330 */  sll         $t3, $t3, 16
-    /* 1B34 80011334 */  srl         $t3, $t3, 16
-    /* 1B38 80011338 */  addu        $t3, $t8, $t3
-    /* 1B3C 8001133C */  swc2        $14, 0x0($t3)
-    /* 1B40 80011340 */  swc2        $22, 0x0($t4)
-  .L80011344:
-    /* 1B44 80011344 */  beq         $zero, $a3, .L800113A8
+  .LtmdXformStreamVertsLightAndScatter:
+    /* 1B1C..1B40 8001131C..80011340 */  TMD_XFORM_STREAM_VERTS_LIGHT_AND_SCATTER
+  .LtmdXformStreamVertsNextElement:
+    /* The delay-slot load also reads the word after the payload, including an empty record. */
+    /* 1B44 80011344 */  beq         $zero, $a3, .LtmdXformStreamVertsReturn
     /* 1B48 80011348 */  lw          $t1, 0x0($a2)
     /* 1B4C 8001134C */  addiu       $a3, $a3, -0x1
     /* 1B50 80011350 */  srl         $t2, $t1, 16
     /* 1B54 80011354 */  sll         $t1, $t1, 16
     /* 1B58 80011358 */  srl         $t1, $t1, 16
-    /* 1B5C 8001135C */  beq         $t1, $v0, .L80011310
+    /* 1B5C 8001135C */  beq         $t1, $v0, .LtmdXformStreamVertsReuseProjection
     /* 1B60 80011360 */  addu        $v0, $zero, $t1
     /* 1B64 80011364 */  addu        $t1, $t6, $v0
     /* 1B68 80011368 */  lwc2        $0, 0x0($t1)
     /* 1B6C 8001136C */  lwc2        $1, 0x4($t1)
+    /* Halve the vertex byte offset to address its four-byte depth-cache entry. */
     /* 1B70 80011370 */  srl         $t3, $v0, 1
     /* 1B74 80011374 */  addu        $t3, $v1, $t3
-    /* 1B78 80011378 */  .word 0x4A180001
+    /* 1B78 80011378 */  rtps
     /* 1B7C 8001137C */  addu        $t2, $t5, $t2
     /* 1B80 80011380 */  lwc2        $0, 0x0($t2)
     /* 1B84 80011384 */  lwc2        $1, 0x4($t2)
+    /* Cache SZ3 even on projection failure; later primitives reject a negative depth. */
     /* 1B88 80011388 */  cfc2        $t1, $31
     /* 1B8C 8001138C */  mfc2        $t0, $19
-    /* 1B90 80011390 */  bgez        $t1, .L8001139C
-    /* 1B94 80011394 */  lui         $t4, 0x8000
+    /* 1B90 80011390 */  bgez        $t1, .LtmdXformStreamVertsStoreDepth
+    /* 1B94 80011394 */  lui         $t4, (TMD_XFORM_STREAM_VERTS_DEPTH_INVALID >> 16)
     /* 1B98 80011398 */  or          $t0, $t4, $t0
-  .L8001139C:
+  .LtmdXformStreamVertsStoreDepth:
     /* 1B9C 8001139C */  sw          $t0, 0x0($t3)
-  .L800113A0:
-    /* 1BA0 800113A0 */  j           .L8001131C
+    /* 1BA0 800113A0 */  j           .LtmdXformStreamVertsLightAndScatter
     /* 1BA4 800113A4 */  nop
-  .L800113A8:
+  .LtmdXformStreamVertsReturn:
     /* 1BA8 800113A8 */  addu        $v0, $zero, $a2
-  .L800113AC:
     /* 1BAC 800113AC */  jr          $ra
     /* 1BB0 800113B0 */  nop
+.purgem TMD_XFORM_STREAM_VERTS_LIGHT_AND_SCATTER
 alabel tmdDrawStreamPrimGt3PreXformSemiTrans
     /* 1BB4 800113B4 */  lw          $t9, 0x18($a0)
   .L800113B8:

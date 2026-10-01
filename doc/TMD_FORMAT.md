@@ -408,9 +408,10 @@ They differ only in colour handling:
 | `0xC8` | 2 | `w0` refs, `w1` destinations | constant `0x00808080` loaded once into GTE `RGB` | `RTPS` + `NCCS` |
 | `0xC4` | — | `w0` refs, `w1` destinations | none | `RTPS` only |
 
-`0xC0` and `0xC8` are the same handler body apart from one instruction, which
-is bit `0x08` doing exactly what §3.2 says: dropping the per-element word in
-favour of a constant. `0xC4` (`0xC0 | 0x04`) skips lighting entirely, matching
+`0xC0` and `0xC8` use the same projection, lighting and scatter algorithm,
+with bit `0x08` dropping the per-element colour word in favour of a constant.
+Their destination words consequently occupy different element positions.
+`0xC4` (`0xC0 | 0x04`) skips lighting entirely, matching
 `0x04` as the "no per-vertex colour" bit. `0xC4` never appears in the extracted
 models.
 
@@ -430,14 +431,24 @@ vertices.
 
 The pass also writes a **per-vertex depth cache** at `ws->szTable`, and that
 is what settles the `ref / 4` divisor of §3.4 from the source rather than by
-inference. `tmdXformStreamVerts` stores the `RTPS` result with
-`t3 = ws->szTable + (vertex_byte_offset >> 1)`, so the cache holds one word
-per vertex; `tmdDrawStreamPrimGt3PreXform` then reads its refs as
-`ws->szTable + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
+inference. `tmdXformStreamVerts` stores the `RTPS` result at byte address
+`(u8*)workspace->szTable + (vertex_byte_offset >> 1)`, equivalently
+`&workspace->szTable[vertex_byte_offset >> 3]`, so the cache holds one word
+per vertex; `tmdDrawStreamPrimGt3PreXform` then reads its refs at byte addresses
+`(u8*)ws->szTable + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
 stride gives 4, so a pre-transformed ref is `vertex_index * 4` and the cache
-slot maps to a vertex one-to-one. The negative-value check either side of it
-(`bltz` on the loaded word) is `TMD_VERTEX_DEPTH_INVALID`. `tmdXformStreamVerts`
+slot maps to a vertex one-to-one. The draw handler's negative-value check
+(`bltz` on the loaded word) tests `TMD_VERTEX_DEPTH_INVALID`. `tmdXformStreamVerts`
 sets that bit when GTE FLAG bit 31, `TMD_GTE_ERROR_FLAG`, is set.
+
+`tmdXformStreamVerts` leaves the workspace's counts, saved GTE words and packet
+cursors unchanged. Its packet destinations are relative to the current
+`workspace->preXformWrite`, and it writes both XY and colour even on projection
+failure. Projection reuse retains a failed vertex's coordinates and negative
+cached depth too; the later primitive handler decides whether to link it.
+The element walk's branch delay slot also reads the word immediately after the
+payload, including for a record with zero elements, so that word must be
+readable (normally the next opcode or group marker).
 
 What either handler leaves at a destination is the GTE's colour register, and
 that is a whole primitive colour word: the R, G and B the lighting produced,

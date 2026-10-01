@@ -149,23 +149,37 @@ u32* tmdDrawStreamGt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* eleme
 /// is retained. Keep the packet storage alive until the GPU finishes using it.
 u32* tmdDrawStreamGt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's transform pre-pass records (`0xC8`): each element
-/// contributes one transformed vertex to the buffer half, and the record builds
-/// no primitive of its own.
+/// Projects vertices and scatters screen coordinates and lit colours for a `0xC8` record.
 ///
-/// An element names a vertex, a normal, and the two places in the buffer half
-/// its results go: the vertex is projected into screen coordinates, the normal
-/// is lit into a colour, and both are written where the element names. The
-/// elements carry no colour word, so the lighting uses a fixed colour instead;
-/// the record whose elements name one is `tmdXformStreamVertsElemColor`, and the
-/// record that drops the lighting altogether is `gpXformStreamVertsUnlit`.
+/// `elements` starts after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `workspace->elemStride` in u32 words,
+/// at least two words per element. The first two words pack four u16 byte
+/// offsets: vertex, normal, screen-XY destination, colour destination. Geometry
+/// offsets name complete eight-byte `SVECTOR` entries in the borrowed arrays;
+/// the vertex index (offset / 8) must also fit `workspace->szTable` (1024 entries
+/// in normal drawing). Neither geometry array's full extent is supplied here.
 ///
-/// The projection is reused where consecutive elements name the same vertex, and
-/// each vertex's depth goes to the per-vertex cache: the commands that build a
-/// primitive from screen coordinates already in the buffer average those depths
-/// to order it, and a vertex whose transform reported an error is stored with
-/// its sign bit set, which is how those commands know the primitive cannot be
-/// drawn. The record has no variant for `flags` to select, so it goes unread.
-u32* tmdXformStreamVerts(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Both destinations are relative to the current `workspace->preXformWrite`
+/// and must name complete aligned four-byte words within the selected buffer
+/// half's first region. XY is written before colour, even if the destinations
+/// coincide. Every element writes both words, including rejected projections.
+/// Colour uses fixed RGB (128,128,128); the whole lit RGB2 word is stored, with
+/// a zero high byte. A destination at a packet's first colour therefore also
+/// clears its GPU command byte, which a later draw handler must supply.
+///
+/// The GTE must already hold the part transform, projection settings, light and
+/// colour matrices and background colour. A new vertex is projected with RTPS;
+/// its SZ3 (0..65535) is cached at `szTable[vertexOffset / 8]`, with
+/// `TMD_VERTEX_DEPTH_INVALID` ORed in when the fresh GTE FLAG has
+/// `TMD_GTE_ERROR_FLAG`. Consecutive equal vertex offsets reuse SXY2 and that
+/// cached depth, including a failed projection. Each element still lights its
+/// own normal with NCCS. Later primitives test cached depths before linking.
+///
+/// Returns `elements + elemCount * elemStride`. The word at that returned
+/// address must also be readable: a branch delay slot loads it even for zero
+/// elements. The handler leaves all workspace fields and packet cursors
+/// unchanged, allocates and links no primitive, and ignores `objectFlags`.
+/// It retains no pointer; keep packet storage alive until GPU use finishes.
+u32* tmdXformStreamVerts(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 #endif // MAIN_TMD_H
