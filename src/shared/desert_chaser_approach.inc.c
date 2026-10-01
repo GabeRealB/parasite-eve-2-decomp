@@ -46,8 +46,8 @@ void desertChaserApproach(Task* arg0)
         work->field_832 = work->field_834;
 #else
 #endif
-        desertChaserArmedAnimTick(arg0);
-        desertChaserArmedAnimTick(arg0);
+        desertChaserAnimTick(arg0);
+        desertChaserAnimTick(arg0);
         work->field_6                      = 0;
         work->capsuleBody.shape.ends[1].vz = 0x26C;
         return;
@@ -65,7 +65,7 @@ void desertChaserApproach(Task* arg0)
             move->field_14 = 0;
         work->field_6 = 0;
     }
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     coord           = arg0->extra.tmd->coords;
     angle           = ratan2(scratch->delta.vx, scratch->delta.vz);
     delta           = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);

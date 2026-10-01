@@ -38,7 +38,7 @@ void desertChaserCollapse(Task* arg0)
             Gp_SetStateF0Byte3(1);
         }
     }
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     if (work->slots[1].flags & 0x100) {
         work->field_0 = 0x15;
     }

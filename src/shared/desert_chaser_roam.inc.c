@@ -81,8 +81,8 @@ void desertChaserRoam(Task* arg0)
 #else
 
 #endif
-        desertChaserArmedAnimTick(arg0);
-        desertChaserArmedAnimTick(arg0);
+        desertChaserAnimTick(arg0);
+        desertChaserAnimTick(arg0);
         work->field_6   = 0;
         work->field_8   = 0;
         coord           = arg0->extra.tmd->coords;
@@ -171,7 +171,7 @@ void desertChaserRoam(Task* arg0)
         work->field_C[work->field_14].z = (s16)((u16)scratch->target.vz + arg0->extra.tmd->coords->coord.t[2]);
         work->field_6                   = 0;
     }
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     facing3  = arg0->extra.tmd->coords;
     angle3   = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz);
     delta3   = angle3 - ratan2((s32)-facing3->coord.m[2][0], (s32)facing3->coord.m[2][2]);

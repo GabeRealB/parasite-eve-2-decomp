@@ -44,7 +44,7 @@ void desertChaserTurnStepProbe(Task* arg0)
         work->field_6   = 0;
     }
     work->field_6 += 1;
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     targetCoord     = arg0->extra.tmd->coords;
     head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
     scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];

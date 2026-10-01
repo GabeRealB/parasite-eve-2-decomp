@@ -193,7 +193,7 @@ void desertChaserPursue(Task* arg0)
         work->field_83E          = 0;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->field_832          = work->field_834;
-        desertChaserArmedAnimTick(arg0);
+        desertChaserAnimTick(arg0);
         work->capsuleBody.shape.ends[1].vz = 0x320;
         work->field_6                      = 0;
         work->field_8                      = 0;
@@ -488,7 +488,7 @@ void desertChaserPursue(Task* arg0)
     var_v1_8                              = actorNormalizeYaw(temp_s0_22);
 
     scratch->turnYaw = var_v1_8;
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     if (work->field_82E == 2) {
         if (scratch->turnYaw >= 0x41) {
             scratch->turnYaw = 0x40;

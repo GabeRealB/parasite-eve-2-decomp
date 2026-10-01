@@ -7,6 +7,9 @@
 /// is set. It eases `field_844` toward `field_840` and spreads it over the
 /// body joints 2-4, eases `field_842` toward `field_83E` for joint 10, and
 /// plays the sound `desertChaserAnimCues` returns, panned at the root.
+/// The blend context and the cue step are each build's own. The armed builds
+/// also tip joint 4 forward in state 0x26 while no clip is queued, and the
+/// regular build adds the placement index to the cue's sound id.
 void desertChaserAnimTick(Task* task)
 {
     DesertChaserWork* work;
@@ -42,7 +45,10 @@ void desertChaserAnimTick(Task* task)
     u16               updatedTurnBits;
     s32               delta;
     s32               sound;
-    s32               pan;
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    s32 soundId;
+#endif
+    s32 pan;
 
     work  = (DesertChaserWork*)task->work;
     state = work->field_828;
@@ -55,7 +61,7 @@ void desertChaserAnimTick(Task* task)
                 seekSlotIndex               = seekIndex;
                 work->slots[seekIndex].rate = seekWork->field_832;
                 animation                   = seekWork->field_82E;
-                index                       = seekWork->field_82C * 0x2D;
+                index                       = seekWork->field_82C * DESERT_CHASER_CLIP_COUNT;
                 func_800B4114(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
             } while (seekIndex < 0x12);
@@ -79,10 +85,12 @@ void desertChaserAnimTick(Task* task)
         Mem_Set(work->field_848, 0U, 0x48U);
     }
     if (work->field_836 == 2) {
-        secondaryWork            = (DesertChaserWork*)task->work;
-        secondaryIndex           = 1;
+        secondaryWork  = (DesertChaserWork*)task->work;
+        secondaryIndex = 1;
+#if DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR
         secondaryWork->field_83A = 0x20;
         secondaryWork->field_83C = 0x800;
+#endif
         do {
             secondarySlotIndex                        = secondaryIndex;
             secondaryWork->slots[secondaryIndex].rate = secondaryWork->field_83A;
@@ -103,7 +111,7 @@ void desertChaserAnimTick(Task* task)
         } while (tickIndex < 0x12);
     } else {
         desertChaserBlendTick(task);
-        if (work->blendSlots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (work->blendSlots[1].flags & DESERT_CHASER_BLEND_DONE) {
             work->field_82A = 0;
         }
     }
@@ -140,6 +148,13 @@ void desertChaserAnimTick(Task* task)
         ActorContact_TurnJoint(&task->extra.tmd->coords[4], (s16)clampedAngle / 2);
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
+#if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
+    if ((work->field_82E == 0) && (work->field_0 == 0x26)) {
+        Gfx_RotMatrixX(&task->extra.tmd->coords[4].coord, 0x280, 0);
+        task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(&task->extra.tmd->coords[4]);
+    }
+#endif
     turnWork     = (DesertChaserWork*)task->work;
     targetTurn   = (u16)turnWork->field_83E;
     originalTurn = targetTurn;
@@ -175,7 +190,14 @@ void desertChaserAnimTick(Task* task)
     task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     sound                                    = desertChaserAnimCues(task, work);
     if (sound != 0) {
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+        /* the regular build's cues leave out the placement index */
+        soundId = sound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+        pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        SndEvt_EnqueueType6(soundId, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+#else
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+#endif
     }
 }

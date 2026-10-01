@@ -63,7 +63,7 @@ void desertChaserStrike(Task* arg0)
 #endif
     }
     work->field_6 += 1;
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     state = work->field_82E;
     switch (state) {
         case 5:

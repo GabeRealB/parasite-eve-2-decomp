@@ -24,7 +24,7 @@ void desertChaserStunned(Task* arg0)
         work->field_832          = 0x10;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         do {
-            desertChaserArmedAnimTick(arg0);
+            desertChaserAnimTick(arg0);
         } while ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) != 0xC);
         work->field_832 = 0x20;
         return;
@@ -39,7 +39,7 @@ void desertChaserStunned(Task* arg0)
     if ((s16)work->field_832 == -1) {
         work->field_832 = 0x10;
     }
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     if (Gp_TickObjFlag2(ctx) == 1) {
         ctx->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->field_0       = 0x24;

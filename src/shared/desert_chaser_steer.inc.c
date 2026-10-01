@@ -46,13 +46,13 @@ void desertChaserSteer(Task* arg0)
         work->field_832 = work->field_834;
 #else
 #endif
-        desertChaserArmedAnimTick(arg0);
+        desertChaserAnimTick(arg0);
     }
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     radius = 2000;
 #else
 #endif
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     if (((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, 5, &delta) != 0) || ((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->objs[1].contacts, 5, &delta) != 0)) {
 #else

@@ -62,7 +62,7 @@ void desertChaserSpawnAim(Task* arg0)
         work->field_83E          = 0;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->field_832          = work->field_834;
-        desertChaserArmedAnimTick(arg0);
+        desertChaserAnimTick(arg0);
         Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, vec);
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
         work->field_C28 = 0;
@@ -101,7 +101,7 @@ void desertChaserSpawnAim(Task* arg0)
             Gp_SpawnEff(0x60054, player->extra.tmd->coords + 1, 0x80003A00, NULL);
         }
     }
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     if (work->slots[1].flags & 0x100) {
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
         work->field_0 = 0x1F;

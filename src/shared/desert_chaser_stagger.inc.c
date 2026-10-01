@@ -48,7 +48,7 @@ void desertChaserStagger(Task* arg0)
             Gp_SetStateF0Byte3(1);
         }
     }
-    desertChaserArmedAnimTick(arg0);
+    desertChaserAnimTick(arg0);
     if (work->slots[1].flags & 0x100) {
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
         if (ctx->hp > 0) {
