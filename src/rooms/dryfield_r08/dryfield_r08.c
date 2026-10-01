@@ -424,11 +424,30 @@ GpSprtRec D_dryfield_r08_80180918[6] = {
     { { .elements = D_dryfield_r08_801806A8 }, D_dryfield_r08_80180900, NULL },
 };
 
-WorldCoordPointLight D_dryfield_r08_80180960[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5215, -1041, 3017 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x3000, 0x3000, 0x3000 }, { 0, 0 } }, 381, 1500 },
+/// The default lighting bank's white point light, contributing in every room view.
+///
+/// Position and falloff radii use integer world units; RGB intensities use
+/// 12 fractional bits, with each channel initially at three times `ONE`.
+/// The loaded room overlay owns this mutable array: coordinate updates parent
+/// and compose its transform, and lighting queries overwrite attenuation.
+static WorldCoordPointLight _gDryfieldR08DefaultPointLights[] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5215, -1041, 3017 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 3 * ONE, 3 * ONE, 3 * ONE },
+        },
+        .inner = 381,
+        .outer = 1500,
+    },
 };
 
-WorldCoordRoomLights D_dryfield_r08_801809C0 = { 0, NULL, ARRAY_SIZE(D_dryfield_r08_80180960), D_dryfield_r08_80180960, 0, NULL };
+WorldCoordRoomLights D_dryfield_r08_801809C0 = { 0, NULL, ARRAY_SIZE(_gDryfieldR08DefaultPointLights), _gDryfieldR08DefaultPointLights, 0, NULL };
 
 WorldCoordPointLight D_dryfield_r08_801809D8[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5781, 225, 2364 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 4096 }, { 0, 0 } }, 400, 1150 },
