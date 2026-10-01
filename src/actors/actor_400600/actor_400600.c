@@ -54,6 +54,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_junk_yard.h"
+#define STALKER_ZEBRA_IVORY_KIND STALKER_ZEBRA
 #include "../../shared/stalker_zebra_ivory.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
@@ -97,9 +98,9 @@ typedef struct Actor400600Work {
     /* 0x040 */ MATRIX                   matrix_40; // light matrix for the child models
     /* 0x060 */ byte                     pad_60[0x10];
     /* 0x070 */ VECTOR                   field_70;  // copy of the root coordinate's translation
-    /* 0x080 */ u16                      field_80;  // pitch, see stalkerZebraIvoryApplyRotation
-    /* 0x082 */ u16                      field_82;  // yaw, see stalkerZebraIvoryApplyRotation
-    /* 0x084 */ u16                      field_84;  // roll, see stalkerZebraIvoryApplyRotation
+    /* 0x080 */ u16                      pitch;     // pitch, see stalkerZebraIvoryApplyRotation
+    /* 0x082 */ u16                      yaw;       // yaw, see stalkerZebraIvoryApplyRotation
+    /* 0x084 */ u16                      roll;      // roll, see stalkerZebraIvoryApplyRotation
     /* 0x086 */ byte                     pad_86[0x2];
     /* 0x088 */ StalkerZebraIvoryViewPos field_88;
     /* 0x08E */ byte                     pad_8E[0x2];
@@ -113,53 +114,53 @@ typedef struct Actor400600Work {
     /* 0x09E */ byte                     pad_9E[0xA];
     /* 0x0A8 */ StalkerZebraIvoryViewPos field_A8; // copied to the stack for stalkerZebraIvoryTurnToward
     /* 0x0AE */ byte                     pad_AE[0x2];
-    /* 0x0B0 */ AnimationContext         anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
+    /* 0x0B0 */ AnimationContext         anim;     // slots 1..0x11 reset by stalkerZebraIvoryRestartClip
     /* 0x0C4 */ AnimationSlot            slots[0x12];
     /* 0x394 */ byte                     pad_394[0x120];
-    /* 0x4B4 */ WorldCollisionBody       obj_4B4;    // collision node; flags bit 0x8000 cleared
-    /* 0x4D4 */ WorldCollisionContact    rec_4D4[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x594 */ WorldCollisionBody       obj_594;    // collision node; flags bit 0x8000 cleared
-    /* 0x5B4 */ WorldCollisionContact    rec_5B4[1]; // obj_594's table (flags kind 1)
-    /* 0x5CC */ WorldCollisionBody       obj_5CC;    // collision node; flags bit 0x8000 cleared
-    /* 0x5EC */ WorldCollisionContact    rec_5EC[1]; // obj_5CC's table (flags kind 1)
-    /* 0x604 */ WorldCollisionBody       obj_604;    // collision node; flags bit 0x4000 cleared
-    /* 0x624 */ WorldCollisionCapsule    rec_624;    // obj_604's payload (flags kind 3)
-    /* 0x63C */ WorldCollisionContact    rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x6FC */ EffectSpawnArg           eff_6FC;    // fourth model part's coordinate
-    /* 0x704 */ Task*                    field_704;  // child task, killed on death
-    /* 0x708 */ Task*                    field_708;  // child task, killed on death
+    /* 0x4B4 */ WorldCollisionBody       obj_4B4;            // collision node; flags bit 0x8000 cleared
+    /* 0x4D4 */ WorldCollisionContact    rec_4D4[8];         // occupancy cleared by func_actor_400600_80138D78
+    /* 0x594 */ WorldCollisionBody       obj_594;            // collision node; flags bit 0x8000 cleared
+    /* 0x5B4 */ WorldCollisionContact    rec_5B4[1];         // obj_594's table (flags kind 1)
+    /* 0x5CC */ WorldCollisionBody       obj_5CC;            // collision node; flags bit 0x8000 cleared
+    /* 0x5EC */ WorldCollisionContact    rec_5EC[1];         // obj_5CC's table (flags kind 1)
+    /* 0x604 */ WorldCollisionBody       capsuleBody;        // collision node; flags bit 0x4000 cleared
+    /* 0x624 */ WorldCollisionCapsule    capsule;            // capsuleBody's payload (flags kind 3)
+    /* 0x63C */ WorldCollisionContact    capsuleContacts[8]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x6FC */ EffectSpawnArg           eff_6FC;            // fourth model part's coordinate
+    /* 0x704 */ Task*                    field_704;          // child task, killed on death
+    /* 0x708 */ Task*                    field_708;          // child task, killed on death
     /* 0x70C */ byte                     pad_70C[0x4];
     /* 0x710 */ Actor400600Timer         field_710;
     /* 0x714 */ s16                      field_714; // reset to 0x1000 on death
     /* 0x716 */ u16                      field_716; // frame counter, bumped by func_actor_400600_80138D78
     /* 0x718 */ u16                      field_718; // per-state frame counter
     /* 0x71A */ s16                      field_71A;
-    /* 0x71C */ u16                      field_71C; // state index
-    /* 0x71E */ u16                      field_71E; // sub-state index
-    /* 0x720 */ s16                      field_720;
+    /* 0x71C */ u16                      state;     // state index
+    /* 0x71E */ u16                      subState;  // sub-state index
+    /* 0x720 */ s16                      animBlend;
     /* 0x722 */ s16                      field_722; // velocity step (can go negative)
     /* 0x724 */ s16                      field_724; // accumulated step
-    /* 0x726 */ s16                      field_726;
-    /* 0x728 */ s16                      field_728;
+    /* 0x726 */ s16                      animStep;
+    /* 0x728 */ s16                      playerDistance;
     /* 0x72A */ u16                      field_72A;
     /* 0x72C */ u16                      field_72C;
-    /* 0x72E */ s16                      field_72E;
-    /* 0x730 */ s16                      field_730;
-    /* 0x732 */ s16                      field_732; // countdown seeded by func_actor_400600_80138AF0
+    /* 0x72E */ s16                      pendingArmed;
+    /* 0x730 */ s16                      pendingAction;
+    /* 0x732 */ s16                      timer;     // countdown seeded by stalkerZebraIvorySeedTimer
     /* 0x734 */ s16                      field_734; // model slot id handed to func_actor_400600_80139FE0
     /* 0x736 */ byte                     pad_736[0x4];
     /* 0x73A */ s16                      field_73A; // fade level, lerped toward 0xFF
     /* 0x73C */ s16                      field_73C;
     /* 0x73E */ u16                      field_73E;
     /* 0x740 */ s16                      field_740;
-    /* 0x742 */ s16                      field_742; // animation request kind
-    /* 0x744 */ s16                      field_744; // animation id now playing
-    /* 0x746 */ s16                      field_746; // animation id
-    /* 0x748 */ s16                      field_748; // sound step index (func_actor_400600_801361AC)
-    /* 0x74A */ s16                      field_74A; // hit cooldown, seeded from Gp_GetIdParam2
+    /* 0x742 */ s16                      animRequest; // animation request kind
+    /* 0x744 */ s16                      animPlaying; // animation id now playing
+    /* 0x746 */ s16                      animClip;    // animation id
+    /* 0x748 */ s16                      animFrame;   // sound step index (func_actor_400600_801361AC)
+    /* 0x74A */ s16                      field_74A;   // hit cooldown, seeded from Gp_GetIdParam2
     /* 0x74C */ s16                      field_74C;
     /* 0x74E */ s16                      field_74E;
-    /* 0x750 */ u16                      field_750; // countdown to state 0xB
+    /* 0x750 */ u16                      countdown; // countdown to state 0xB
     /* 0x752 */ s16                      field_752;
     /* 0x754 */ s16                      field_754;
     /* 0x756 */ u16                      field_756; // countdown to the next state-2 transition
@@ -168,22 +169,25 @@ typedef struct Actor400600Work {
     /* 0x75C */ Actor400600State         field_75C;
     /* 0x760 */ s8                       field_760;
     /* 0x761 */ byte                     pad_761;
-    /* 0x762 */ u8                       field_762;
+    /* 0x762 */ u8                       moveMode;
     /* 0x763 */ u8                       field_763;
-    /* 0x764 */ u8                       field_764;
-    /* 0x765 */ s8                       field_765;
-    /* 0x766 */ s8                       field_766;
-    /* 0x767 */ s8                       field_767;
-    /* 0x768 */ u8                       field_768;
-    /* 0x769 */ u8                       field_769; // sub-variant flag, gates state indices
-    /* 0x76A */ u8                       field_76A; // distance mode: 0 none, 1 XZ, 2 XY
+    /* 0x764 */ u8                       holdTaken;
+    /* 0x765 */ s8                       queuedMode;
+    /* 0x766 */ s8                       queuedFlag;
+    /* 0x767 */ s8                       holding;
+    /* 0x768 */ u8                       onCeiling;
+    /* 0x769 */ u8                       onBack;       // sub-variant flag, gates state indices
+    /* 0x76A */ u8                       distanceMode; // distance mode: 0 none, 1 XZ, 2 XY
     /* 0x76B */ u8                       field_76B;
-    /* 0x76C */ u8                       field_76C; // nonzero: landing spawns the dust ring
+    /* 0x76C */ u8                       field_76C;    // nonzero: landing spawns the dust ring
     /* 0x76D */ u8                       field_76D;
-    /* 0x76E */ u8                       field_76E; // set when spawned in map 0x0314
+    /* 0x76E */ u8                       field_76E;    // set when spawned in map 0x0314
     /* 0x76F */ byte                     pad_76F;
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
+
+/// The Stalker library's name for this package's work block (see stalker_zebra_ivory.h).
+typedef Actor400600Work StalkerZebraIvoryWork;
 
 /// 0x3C-byte scratchpad frame `func_actor_400600_801383E4` carves off
 /// the scratch stack: the four widened corners of the quad and
@@ -249,7 +253,7 @@ extern TmdSource D_actor_400600_80143604;
 extern TmdSource D_actor_400600_80143B24;
 extern TmdSource D_actor_400600_80144994;
 
-extern u8 D_actor_400600_80151B1C[];
+extern u8 gStalkerZebraIvoryResumeClips[];
 
 /* Part indices into the model's coordinate array, terminated by -1. */
 extern s16 D_actor_400600_80151B88[];
@@ -275,23 +279,19 @@ static void func_actor_400600_80134218(Task* arg0);
 static void func_actor_400600_80134570(Task* arg0);
 static void func_actor_400600_8013479C(Task* arg0);
 static void func_actor_400600_80134970(Task* arg0);
-static void func_actor_400600_80134B98(Task* arg0);
 static void func_actor_400600_80134E28(Task* arg0);
 static void func_actor_400600_801350F4(Task* arg0);
 static void func_actor_400600_80135450(Task* arg0);
 static void func_actor_400600_80135578(Task* arg0);
 static void func_actor_400600_801356E0(Task* arg0);
 static void func_actor_400600_80135998(Task* arg0, s16 arg1);
-static void func_actor_400600_80135DDC(Task* arg0);
 static void func_actor_400600_801361AC(Task* arg0);
 static void func_actor_400600_80136558(Task* arg0);
 static void func_actor_400600_80136670(Task* arg0);
 static void func_actor_400600_80136968(Task* arg0);
 static s32  func_actor_400600_80136FA8(Task* arg0);
-static s32  func_actor_400600_801370F4(Task* arg0);
 static void func_actor_400600_80137240(Task* arg0);
 static void func_actor_400600_80137498(Task* arg0, s16 arg1);
-static s32  func_actor_400600_801376EC(Task* arg0);
 static void func_actor_400600_80137840(Task* arg0);
 static s32  func_actor_400600_80137AF0(Task* arg0);
 static s32  func_actor_400600_80137C34(Task* arg0);
@@ -303,10 +303,7 @@ static s32  func_actor_400600_8013886C(Task* arg0);
 static s32  func_actor_400600_8013892C(Task* arg0);
 static void func_actor_400600_8013896C(Task* arg0, s16 arg1);
 static void func_actor_400600_80138A24(Task* arg0, s16 arg1);
-static void func_actor_400600_80138AA4(Task* arg0);
 static void func_actor_400600_80138AB8(Task* arg0);
-static void func_actor_400600_80138AF0(Task* arg0, s32 arg1);
-static void func_actor_400600_80138B40(Task* arg0);
 static void func_actor_400600_80138B5C(Task* arg0, s32 arg1);
 static void func_actor_400600_80138C34(Task* arg0);
 static void func_actor_400600_80138D78(Task* arg0);
@@ -326,29 +323,18 @@ static void func_actor_400600_80139608(Task* arg0);
 static void func_actor_400600_80139670(Task* arg0);
 static void func_actor_400600_801396E4(Task* arg0);
 static void func_actor_400600_80139764(Task* arg0);
-static void func_actor_400600_801397E4(Task* arg0);
 static void func_actor_400600_80139878(Task* arg0);
 static void func_actor_400600_801398E0(Task* arg0);
-static void func_actor_400600_80139A78(Task* arg0);
-static void func_actor_400600_80139AE8(Task* arg0);
-static s16  func_actor_400600_80139BA0(Task* arg0, s16 arg1);
-static void func_actor_400600_80139CAC(Task* arg0);
-static void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2);
 static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_actor_400600_80139E68(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
 static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
 static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
-static s32  func_actor_400600_8013A0B0(Task* arg0);
 void        func_actor_400600_8013A0F0(Task* arg0);
 static void func_actor_400600_8013A170(Task* arg0);
 static void func_actor_400600_8013A26C(Task* arg0);
-void        func_actor_400600_8013A338(Task* arg0, s32 arg1, u16* arg2);
 void        func_actor_400600_8013A3A8(Task* arg0);
 void        func_actor_400600_8013A3B8(Task* task);
 void        func_actor_400600_8013A3C0(Task* task);
 static void func_actor_400600_8013A3C8(Task* arg0);
-static void func_actor_400600_8013A4AC(Task* arg0);
-static void func_actor_400600_8013A518(Task* arg0);
 static void func_actor_400600_8013A570(Task* arg0);
 static void func_actor_400600_8013A638(Task* arg0);
 static void func_actor_400600_8013A6C4(Task* arg0);
@@ -390,9 +376,7 @@ static void func_actor_400600_8013BCD8(Task* arg0);
 static void func_actor_400600_8013BD54(Task* arg0);
 static void func_actor_400600_8013BDF0(Task* arg0);
 static void func_actor_400600_8013BE58(Task* arg0);
-static void func_actor_400600_8013BE90(Task* arg0);
 static void func_actor_400600_8013BF48(Task* arg0);
-static void func_actor_400600_8013BF80(Task* arg0);
 static void func_actor_400600_8013BFD4(Task* arg0);
 static void func_actor_400600_8013C038(Task* arg0);
 static void func_actor_400600_8013C074(Task* arg0);
@@ -400,12 +384,10 @@ static void func_actor_400600_8013C104(Task* arg0);
 static void func_actor_400600_8013C124(Task* arg0);
 static void func_actor_400600_8013C1C0(Task* arg0);
 static void func_actor_400600_8013C238(Task* arg0);
-static void func_actor_400600_8013C2D4(Task* arg0);
 static void func_actor_400600_8013C394(Task* arg0);
 static void func_actor_400600_8013C410(Task* arg0);
 static void func_actor_400600_8013C4AC(Task* arg0);
 static void func_actor_400600_8013C518(Task* arg0);
-static void func_actor_400600_8013C534(Task* arg0);
 static void func_actor_400600_8013C598(Task* arg0);
 static void func_actor_400600_8013C5F8(Task* arg0);
 static void func_actor_400600_8013C6B0(SVECTOR* pos, WorldCollisionContact* rec, SVECTOR* out);
@@ -413,7 +395,6 @@ static s32  func_actor_400600_8013C7E8(s16 arg0, s16 arg1);
 static void func_actor_400600_8013C874(Task* arg0);
 static void func_actor_400600_8013C940(Task* arg0);
 static void func_actor_400600_8013C9DC(Task* arg0);
-static s32  func_actor_400600_8013CACC(Task* arg0);
 static void func_actor_400600_8013CB40(Task* arg0, u8 arg1);
 static void func_actor_400600_8013CB70(Task* arg0, s32 arg1);
 static void func_actor_400600_8013CC04(Task* arg0, s16 arg1);
@@ -423,7 +404,6 @@ void             func_actor_400600_8013A0F0(Task*);
 
 extern TmdSource D_actor_400600_80144C0C;
 extern TmdSource D_actor_400600_80144E84;
-void             func_actor_400600_8013A338(Task*, s32, u16*);
 void             func_actor_400600_8013A3A8(Task*);
 void             func_actor_400600_8013A3B8(Task*);
 void             func_actor_400600_8013A3C0(Task*);
@@ -1548,7 +1528,7 @@ AnimationSet* D_actor_400600_80151A54[35] = {
 };
 
 Actor400600MessageEntry D_actor_400600_80151AE0[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_400600_8013A338 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = stalkerZebraIvorySetMoveMode } },
     { 2014, { .call0 = func_actor_400600_8013A3A8 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
@@ -1560,7 +1540,7 @@ TaskDesc D_actor_400600_80151AF8[2] = {
 
 TaskDesc D_actor_400600_80151B10 = { { { TASK_BODY_TMD, 96 } }, func_actor_400600_8013A0F0, { .model = &D_actor_400600_80141994 } };
 
-u8 D_actor_400600_80151B1C[36] = {
+u8 gStalkerZebraIvoryResumeClips[36] = {
     26,
     26,
     26,
@@ -1624,76 +1604,9 @@ s16 D_actor_400600_80151B88[12] = {
     -1,
 };
 
-static __inline__ void Actor400600_RebuildRotation(Task* arg0);
-static __inline__ void Actor400600_TickAnim(Task* arg0);
-static inline void     _actor400600SetCoordRotation(GfxCoord* coord, s16 angle);
+static inline void _actor400600SetCoordRotation(GfxCoord* coord, s16 angle);
 
-/// `stalkerZebraIvoryApplyRotation`'s body, inlined: wrap the three angles to 12 bits and
-/// rebuild the model root's rotation from them. Inlining is what keeps each
-/// the cursor slot access in the absolute `lui`/`lw` form instead of a
-/// register CSE would otherwise hoist the address into.
-static __inline__ void Actor400600_RebuildRotation(Task* arg0)
-{
-    Actor400600Work* work  = (Actor400600Work*)arg0->work;
-    GfxCoord*        coord = arg0->extra.tmd->coords;
-    MATRIX*          m;
-    MATRIX*          dst;
-
-    work->field_80              &= 0xFFF;
-    work->field_82              &= 0xFFF;
-    work->field_84              &= 0xFFF;
-    m                            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
-    MATRIX_PAIR(m, 0, 0)         = 0x1000;
-    MATRIX_PAIR(m, 0, 2)         = 0;
-    MATRIX_PAIR(m, 1, 1)         = 0x1000;
-    MATRIX_PAIR(m, 2, 0)         = 0;
-    m->m[2][2]                   = 0x1000;
-    SCRATCH_STACK_CURSOR(MATRIX) = m;
-    RotMatrixZ((s16)work->field_84, m);
-    RotMatrixX((s16)work->field_80, m);
-    RotMatrixY((s16)work->field_82, m);
-    dst          = &coord->coord;
-    dst->m[0][0] = m->m[0][0];
-    dst->m[0][1] = m->m[0][1];
-    dst->m[0][2] = m->m[0][2];
-    dst->m[1][0] = m->m[1][0];
-    dst->m[1][1] = m->m[1][1];
-    dst->m[1][2] = m->m[1][2];
-    dst->m[2][0] = m->m[2][0];
-    dst->m[2][1] = m->m[2][1];
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
-    dst->m[2][2] = m->m[2][2];
-}
-
-/// `func_actor_400600_80139CAC`'s body, inlined: advance the pending animation
-/// request, then tick every model slot at the current rate.
-static __inline__ void Actor400600_TickAnim(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-    s32              i;
-
-    if (work->field_742 == 1) {
-        if (work->field_744 != work->field_746) {
-            work->field_748 = 0;
-        } else {
-            work->field_748 = func_actor_400600_80139BA0(arg0, work->field_748);
-        }
-        func_actor_400600_80139AE8(arg0);
-        work->field_742 = 3;
-    } else if (work->field_742 == 2) {
-        func_actor_400600_80139A78(arg0);
-        work->field_742 = 3;
-        work->field_748 = 0;
-    } else if (work->field_742 == 3) {
-        work->field_748++;
-    }
-    i = 1;
-    do {
-        work->slots[i].rate = work->field_726;
-        animationTickSlot(&work->anim, i);
-        i++;
-    } while (i < 0x12);
-}
+#include "../../shared/stalker_zebra_ivory_inlines.inc.c"
 
 static void func_actor_400600_8013203C(Task* arg0)
 {
@@ -1714,25 +1627,25 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->obj_4B4.flags = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj_4B4);
     Gp_InitRec18Table(work->rec_4D4, 8, 0);
-    work->rec_624.ends[0].vz      = 0xBB8;
-    work->rec_624.end0Radius      = 0xA;
-    work->rec_624.end1Radius      = 0xA;
-    work->rec_624.ends[0].vx      = 0;
-    work->rec_624.ends[1].vz      = 0;
-    work->rec_624.ends[1].vx      = 0;
-    work->rec_624.contacts        = work->rec_63C;
-    work->obj_4B4.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    work->obj_604.coord           = arg0->extra.tmd->coords;
-    work->obj_604.context.capsule = &work->rec_624;
-    work->obj_604.pos.vx          = 0;
-    work->obj_604.pos.vy          = -0x190;
-    work->obj_604.pos.vz          = 0;
-    work->obj_604.key             = 0x30006;
-    work->obj_604.radius          = 0;
-    work->obj_604.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    Gp_LinkObj(2, &work->obj_604);
-    Gp_InitRec18Table(work->rec_63C, 8, 0);
-    work->obj_604.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    work->capsule.ends[0].vz          = 0xBB8;
+    work->capsule.end0Radius          = 0xA;
+    work->capsule.end1Radius          = 0xA;
+    work->capsule.ends[0].vx          = 0;
+    work->capsule.ends[1].vz          = 0;
+    work->capsule.ends[1].vx          = 0;
+    work->capsule.contacts            = work->capsuleContacts;
+    work->obj_4B4.flags              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->capsuleBody.coord           = arg0->extra.tmd->coords;
+    work->capsuleBody.context.capsule = &work->capsule;
+    work->capsuleBody.pos.vx          = 0;
+    work->capsuleBody.pos.vy          = -0x190;
+    work->capsuleBody.pos.vz          = 0;
+    work->capsuleBody.key             = 0x30006;
+    work->capsuleBody.radius          = 0;
+    work->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    Gp_LinkObj(2, &work->capsuleBody);
+    Gp_InitRec18Table(work->capsuleContacts, 8, 0);
+    work->capsuleBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     work->obj_594.key              = Gp_PackPair(D_actor_400600_80144EA8, 0);
     work->obj_594.coord            = &arg0->extra.tmd->coords[7];
     work->obj_594.context.contacts = work->rec_5B4;
@@ -1868,9 +1781,9 @@ static void func_actor_400600_801328A8(Task* arg0)
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         func_dryfield_night_junk_yard_8017D9B8(1);
-        func_actor_400600_80139D98(arg0, 0x19, 0x30);
+        stalkerZebraIvoryPlayClip(arg0, 0x19, 0x30);
         coords->coord.t[1] = -0x508;
-        work->field_71C++;
+        work->state++;
     }
 }
 
@@ -1893,7 +1806,7 @@ static void func_actor_400600_801329EC(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     work->field_718++;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         sound >>= 0xC;
         sound <<= 8;
@@ -1906,11 +1819,11 @@ static void func_actor_400600_801329EC(Task* arg0)
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work2                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
-        work2->field_71C     = 0;
-        work2->field_71E     = 0;
+        work2->state         = 0;
+        work2->subState      = 0;
         work3                = (Actor400600Work*)arg0->work;
-        work3->field_71C     = 2;
-        work3->field_71E     = 0;
+        work3->state         = 2;
+        work3->subState      = 0;
     }
 }
 
@@ -1933,9 +1846,9 @@ static void func_actor_400600_80132B3C(Task* arg0)
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531A000A;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        func_actor_400600_80139D98(arg0, 0x19, 0x10);
+        stalkerZebraIvoryPlayClip(arg0, 0x19, 0x10);
         coords->coord.t[1] = 0;
-        work->field_71C++;
+        work->state++;
     }
 }
 
@@ -1950,33 +1863,33 @@ static void func_actor_400600_80132C70(Task* arg0)
     s16              yaw;
 
     work   = (Actor400600Work*)arg0->work;
-    mode   = work->field_762;
+    mode   = work->moveMode;
     coords = arg0->extra.tmd->coords;
     if (mode == 1) {
         coords->coord.t[0] = 0x36B0;
         coords->coord.t[1] = -0x320;
         coords->coord.t[2] = -0x7D0;
-        work->field_80     = 0;
-        work->field_82     = 0x400;
-        work->field_84     = 0x400;
+        work->pitch        = 0;
+        work->yaw          = 0x400;
+        work->roll         = 0x400;
         work->field_718    = 0;
-        func_actor_400600_80139D98(arg0, 2, 0x10);
+        stalkerZebraIvoryPlayClip(arg0, 2, 0x10);
         work->field_73C = -0x7D0;
-        work->field_71C++;
+        work->state++;
     } else if (mode == 2) {
         coords->coord.t[0] = 0x4A38;
         coords->coord.t[1] = -0x320;
         coords->coord.t[2] = -0xFA0;
         yaw                = -0x400;
-        work->field_82     = yaw;
-        work->field_80     = 0;
-        work->field_84     = 0x400;
+        work->yaw          = yaw;
+        work->pitch        = 0;
+        work->roll         = 0x400;
         work->field_718    = 0;
-        func_actor_400600_80139D98(arg0, 2, 0x10);
-        work->field_73C  = -0xFA0;
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_71C = 5;
-        work2->field_71E = 0;
+        stalkerZebraIvoryPlayClip(arg0, 2, 0x10);
+        work->field_73C = -0xFA0;
+        work2           = (Actor400600Work*)arg0->work;
+        work2->state    = 5;
+        work2->subState = 0;
     } else if (mode == 3) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1984,12 +1897,12 @@ static void func_actor_400600_80132C70(Task* arg0)
         coords->coord.t[0]   = 0x2AF8;
         coords->coord.t[2]   = -0x3E8;
         coords->coord.t[1]   = 0;
-        work->field_80       = 0;
-        work->field_82       = 0xC00;
+        work->pitch          = 0;
+        work->yaw            = 0xC00;
         work3                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
-        work3->field_71C     = 0;
-        work3->field_71E     = 0;
+        work3->state         = 0;
+        work3->subState      = 0;
     } else if (mode == 4) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1997,12 +1910,12 @@ static void func_actor_400600_80132C70(Task* arg0)
         coords->coord.t[0]   = 0x3A98;
         coords->coord.t[2]   = -0xBB8;
         coords->coord.t[1]   = 0;
-        work->field_80       = 0;
-        work->field_82       = 0x400;
+        work->pitch          = 0;
+        work->yaw            = 0x400;
         work4                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
-        work4->field_71C     = 0;
-        work4->field_71E     = 0;
+        work4->state         = 0;
+        work4->subState      = 0;
     }
 }
 
@@ -2032,7 +1945,7 @@ static void func_actor_400600_80132E10(Task* arg0)
         work->field_722 = -0xA;
         work->field_724 = 0;
         func_actor_400600_80139DB0(arg0, 0x15, 0x10, 4);
-        work->field_71C = work->field_71C + 1;
+        work->state = work->state + 1;
     }
 }
 
@@ -2053,8 +1966,8 @@ static void func_actor_400600_80132F3C(Task* arg0)
         coords->coord.t[1] += work->field_724;
         coords->coord.t[2] += (-0xBB8 - coords->coord.t[2]) >> 3;
         coords->coord.t[0] += (0x4588 - coords->coord.t[0]) >> 2;
-        work->field_82     += (0xC00 - (s16)work->field_82) >> 2;
-        work->field_84     += -(s16)work->field_84 >> 3;
+        work->yaw          += (0xC00 - (s16)work->yaw) >> 2;
+        work->roll         += -(s16)work->roll >> 3;
         if ((s16)work->field_718 == 0x22) {
             func_actor_400600_8013896C(arg0, 0);
         }
@@ -2065,9 +1978,9 @@ static void func_actor_400600_80132F3C(Task* arg0)
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x404A0003;
             pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-            func_actor_400600_80139D98(arg0, 0x19, 0x10);
+            stalkerZebraIvoryPlayClip(arg0, 0x19, 0x10);
             coords->coord.t[1] = 0;
-            work->field_71C++;
+            work->state++;
         }
     }
 }
@@ -2089,8 +2002,8 @@ static void func_actor_400600_80133118(Task* arg0)
         coords->coord.t[1] += work->field_724;
         coords->coord.t[2] += (-0xBB8 - coords->coord.t[2]) >> 3;
         coords->coord.t[0] += (0x3A98 - coords->coord.t[0]) >> 2;
-        work->field_82     += (0x400 - (s16)work->field_82) >> 2;
-        work->field_84     += -(s16)work->field_84 >> 3;
+        work->yaw          += (0x400 - (s16)work->yaw) >> 2;
+        work->roll         += -(s16)work->roll >> 3;
         if ((s16)work->field_718 == 0x22) {
             func_actor_400600_8013896C(arg0, 0);
         }
@@ -2101,9 +2014,9 @@ static void func_actor_400600_80133118(Task* arg0)
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x404A0003;
             pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-            func_actor_400600_80139D98(arg0, 0x19, 0x10);
+            stalkerZebraIvoryPlayClip(arg0, 0x19, 0x10);
             coords->coord.t[1] = 0;
-            work->field_71C++;
+            work->state++;
         }
     }
 }
@@ -2118,23 +2031,23 @@ static void func_actor_400600_801332F4(Task* arg0)
 
     work  = (Actor400600Work*)arg0->work;
     model = arg0->extra.tmd;
-    mode  = work->field_762;
+    mode  = work->moveMode;
     coord = model->coords;
     if (mode == 1) {
         Gp_SpawnPadLerp(0x14, 0xFF, 0x80);
         coord->coord.t[0] = 0xCE4;
         coord->coord.t[1] = -0xBB8;
         coord->coord.t[2] = 0;
-        work->field_80    = 0;
-        work->field_82    = 0xC00;
-        work->field_84    = 0;
+        work->pitch       = 0;
+        work->yaw         = 0xC00;
+        work->roll        = 0;
         model->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_718   = 0;
         work->field_722   = 0;
         work->field_724   = 0;
-        func_actor_400600_80139D98(arg0, 0x15, 0x10);
+        stalkerZebraIvoryPlayClip(arg0, 0x15, 0x10);
         func_actor_400600_80138B5C(arg0, 0);
-        work->field_71C = work->field_71C + 1;
+        work->state = work->state + 1;
     } else if (mode == 2) {
         work->obj_4B4.flags                     |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2142,22 +2055,22 @@ static void func_actor_400600_801332F4(Task* arg0)
         coord->coord.t[0]                        = -0x6A4;
         coord->coord.t[2]                        = -0x514;
         coord->coord.t[1]                        = 0;
-        work->field_82                           = 0x400;
+        work->yaw                                = 0x400;
         work->field_73A                          = 0xFF;
-        work->field_80                           = 0;
-        work->field_84                           = 0;
+        work->pitch                              = 0;
+        work->roll                               = 0;
         gSceneCombatState.zebraStalkerGroupPhase = mode;
         work2                                    = (Actor400600Work*)arg0->work;
         arg0->state                              = 1;
-        work2->field_71C                         = 0;
-        work2->field_71E                         = 0;
+        work2->state                             = 0;
+        work2->subState                          = 0;
     }
 }
 
 static const TaskFuncTable12 D_actor_400600_80131E24 = { {
     func_actor_400600_8013A3C8,
-    func_actor_400600_8013A4AC,
-    func_actor_400600_8013A518,
+    stalkerZebraIvoryResumeClip,
+    stalkerZebraIvoryAnimateUntilDone,
     func_actor_400600_8013A570,
     func_actor_400600_8013A638,
     func_actor_400600_8013A6C4,
@@ -2259,23 +2172,23 @@ static void func_actor_400600_80133434(Task* arg0)
     enemy->hp = enemy->hpMax = D_actor_400600_80144EB0.hpMax;
     func_800B3F84(&work->anim, D_actor_400600_80151A54, model, work->pad_394, work->slots);
 
-    w2            = (Actor400600Work*)arg0->work;
-    w2->field_726 = 0x10;
-    w2->field_746 = 1;
-    w2->field_742 = 2;
+    w2              = (Actor400600Work*)arg0->work;
+    w2->animStep    = 0x10;
+    w2->animClip    = 1;
+    w2->animRequest = 2;
 
-    Actor400600_TickAnim(arg0);
+    stalkerZebraIvoryTickAnimInline(arg0);
 
-    coord->parent  = &gGfxViewCoord;
-    work->field_82 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    coord->parent = &gGfxViewCoord;
+    work->yaw     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     func_actor_400600_8013203C(arg0);
     work->obj_4B4.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     func_actor_400600_801356E0(arg0);
     (Gp_IncStateF0Ref)(0);
     func_actor_400600_80138A24(arg0, 1);
     w3              = (Actor400600Work*)arg0->work;
-    w3->field_71C   = 0;
-    w3->field_71E   = 0;
+    w3->state       = 0;
+    w3->subState    = 0;
     work->field_90  = coord->coord.t[0];
     work->field_92  = coord->coord.t[1];
     work->field_94  = coord->coord.t[2];
@@ -2285,41 +2198,41 @@ static void func_actor_400600_80133434(Task* arg0)
     work->field_73E = work->field_92;
     switch ((u8)arg0->spawnArg1.value >> 4) {
         case 0:
-            w4            = (Actor400600Work*)arg0->work;
-            arg0->state   = 1;
-            w4->field_71C = 0;
-            w4->field_71E = 0;
+            w4           = (Actor400600Work*)arg0->work;
+            arg0->state  = 1;
+            w4->state    = 0;
+            w4->subState = 0;
             break;
         case 1:
             work->field_76C = 1;
             w4              = (Actor400600Work*)arg0->work;
             arg0->state     = 4;
-            w4->field_71C   = 0;
-            w4->field_71E   = 0;
+            w4->state       = 0;
+            w4->subState    = 0;
             break;
         case 2:
-            w4            = (Actor400600Work*)arg0->work;
-            arg0->state   = 5;
-            w4->field_71C = 0;
-            w4->field_71E = 0;
+            w4           = (Actor400600Work*)arg0->work;
+            arg0->state  = 5;
+            w4->state    = 0;
+            w4->subState = 0;
             break;
         case 3:
-            w4            = (Actor400600Work*)arg0->work;
-            arg0->state   = 6;
-            w4->field_71C = 0;
-            w4->field_71E = 0;
+            w4           = (Actor400600Work*)arg0->work;
+            arg0->state  = 6;
+            w4->state    = 0;
+            w4->subState = 0;
             break;
         case 4:
-            w4            = (Actor400600Work*)arg0->work;
-            arg0->state   = 7;
-            w4->field_71C = 0;
-            w4->field_71E = 0;
+            w4           = (Actor400600Work*)arg0->work;
+            arg0->state  = 7;
+            w4->state    = 0;
+            w4->subState = 0;
             break;
         case 5:
-            w4            = (Actor400600Work*)arg0->work;
-            arg0->state   = 8;
-            w4->field_71C = 0;
-            w4->field_71E = 0;
+            w4           = (Actor400600Work*)arg0->work;
+            arg0->state  = 8;
+            w4->state    = 0;
+            w4->subState = 0;
             break;
     }
 }
@@ -2340,7 +2253,7 @@ static const TaskFuncTable18 D_actor_400600_80131EEC = { {
     func_actor_400600_80139670,
     func_actor_400600_801396E4,
     func_actor_400600_80139764,
-    func_actor_400600_801397E4,
+    stalkerZebraIvoryRunSubStates,
     func_actor_400600_80139878,
     func_actor_400600_801398E0,
 } };
@@ -2360,23 +2273,23 @@ static void func_actor_400600_801337A8(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
-            fns.funcs[(s16)work->field_71C](arg0);
+            fns.funcs[(s16)work->state](arg0);
             func_actor_400600_80138AB8(arg0);
             func_actor_400600_80137840(arg0);
             func_actor_400600_80136558(arg0);
-            Actor400600_TickAnim(arg0);
+            stalkerZebraIvoryTickAnimInline(arg0);
             work->field_710.h.flags = work->slots[1].flags;
-            Actor400600_RebuildRotation(arg0);
+            stalkerZebraIvoryApplyRotationInline(arg0);
             func_actor_400600_80136968(arg0);
-            if (enemy->hp <= 0 && (u8)work->field_767 == 0) {
+            if (enemy->hp <= 0 && (u8)work->holding == 0) {
                 Actor400600Work* w = (Actor400600Work*)arg0->work;
                 arg0->state        = 2;
-                w->field_71C       = 0;
-                w->field_71E       = 0;
+                w->state           = 0;
+                w->subState        = 0;
             }
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
-            Gp_ClearRec18Occupied(work->rec_63C);
+            Gp_ClearRec18Occupied(work->capsuleContacts);
             actorUpdateModelColor(arg0);
             func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
             if (work->field_75C.b.field_75E == 0) {
@@ -2396,18 +2309,18 @@ static void func_actor_400600_80133B88(Task* arg0)
     u32              rnd;
 
     work = (Actor400600Work*)arg0->work;
-    if (work->field_728 < 0xBB8 || gSceneCombatState.zebraStalkerDeathAlert != 0) {
+    if (work->playerDistance < 0xBB8 || gSceneCombatState.zebraStalkerDeathAlert != 0) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         func_actor_400600_80138B5C(arg0, 0);
         Gp_ArmStateF0(1);
-        rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState  = rnd;
-        work->field_758  = ((rnd >> 0x10) & 0x3F) + 0x1E;
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_71C = 2;
-        work2->field_71E = 0;
+        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
+        work->field_758 = ((rnd >> 0x10) & 0x3F) + 0x1E;
+        work2           = (Actor400600Work*)arg0->work;
+        work2->state    = 2;
+        work2->subState = 0;
         return;
     }
     if ((s16)func_actor_400600_80136FA8(arg0) != 0) {
@@ -2440,17 +2353,17 @@ static void func_actor_400600_80133CB0(Task* arg0)
     if ((s16)work->field_718 == 0x1C) {
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        func_actor_400600_80138AF0(arg0, 0x2D);
-        func_actor_400600_80138AA4(arg0);
-        if (work->field_768 == 0 && work->field_728 < 0x578 && (u16)(work->field_72C - 0x200) > 0xC00 && (u16)(work->field_72A - 0x200) > 0xC00) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 9;
-            work2->field_71E = 0;
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        stalkerZebraIvorySeedTimer(arg0, 0x2D);
+        stalkerZebraIvoryClearQueued(arg0);
+        if (work->onCeiling == 0 && work->playerDistance < 0x578 && (u16)(work->field_72C - 0x200) > 0xC00 && (u16)(work->field_72A - 0x200) > 0xC00) {
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 9;
+            work2->subState = 0;
         } else {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_71C = 2;
-            work3->field_71E = 0;
+            work3           = (Actor400600Work*)arg0->work;
+            work3->state    = 2;
+            work3->subState = 0;
         }
     }
 }
@@ -2480,17 +2393,17 @@ static void func_actor_400600_80133E38(Task* arg0)
     if ((s16)work->field_718 == 0x1C) {
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        func_actor_400600_80138AF0(arg0, 0x2D);
-        func_actor_400600_80138AA4(arg0);
-        if (work->field_768 == 0 && work->field_728 < 0x578 && (u16)(work->field_72C - 0x200) > 0xC00 && (u16)(work->field_72A - 0x200) > 0xC00) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 9;
-            work2->field_71E = 0;
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        stalkerZebraIvorySeedTimer(arg0, 0x2D);
+        stalkerZebraIvoryClearQueued(arg0);
+        if (work->onCeiling == 0 && work->playerDistance < 0x578 && (u16)(work->field_72C - 0x200) > 0xC00 && (u16)(work->field_72A - 0x200) > 0xC00) {
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 9;
+            work2->subState = 0;
         } else {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_71C = 2;
-            work3->field_71E = 0;
+            work3           = (Actor400600Work*)arg0->work;
+            work3->state    = 2;
+            work3->subState = 0;
         }
     }
 }
@@ -2507,33 +2420,33 @@ static void func_actor_400600_80133FC0(Task* arg0)
     s32                  pan;
 
     work = (Actor400600Work*)arg0->work;
-    if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->mode == GAME_ACTOR_MODE_SCRIPTED || (func_actor_400600_801376EC(arg0) << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
-        func_actor_400600_80138B40(arg0);
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_71C = 2;
-        work2->field_71E = 0;
+    if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->mode == GAME_ACTOR_MODE_SCRIPTED || (stalkerZebraIvoryWallDistance(arg0) << 0x10) != 0 || work->playerDistance >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
+        stalkerZebraIvoryDropCapsuleGrid(arg0);
+        work2           = (Actor400600Work*)arg0->work;
+        work2->state    = 2;
+        work2->subState = 0;
         func_actor_400600_80135998(arg0, work->field_752);
         return;
     }
     query.field_14 = 8;
     if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
-        if (work->field_768 == 0) {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_71C = 2;
-            work3->field_71E = 0;
+        if (work->onCeiling == 0) {
+            work3           = (Actor400600Work*)arg0->work;
+            work3->state    = 2;
+            work3->subState = 0;
             return;
         }
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_71C = 0xD;
-        work2->field_71E = 0;
+        work2           = (Actor400600Work*)arg0->work;
+        work2->state    = 0xD;
+        work2->subState = 0;
         return;
     }
     work->field_73E = work->field_92;
-    func_actor_400600_80138B40(arg0);
-    work->field_768          = 0;
+    stalkerZebraIvoryDropCapsuleGrid(arg0);
+    work->onCeiling          = 0;
     Gp_StateC08.field_6     |= 1;
-    work->field_767          = 1;
+    work->holding            = 1;
     work->field_9A           = work->field_92;
     msg.source.sets          = D_actor_400600_80151A48;
     msg.blend                = ANIMATION_BLEND_RESET;
@@ -2543,10 +2456,10 @@ static void func_actor_400600_80133FC0(Task* arg0)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     work2                = (Actor400600Work*)arg0->work;
-    work2->field_720     = 4;
-    work2->field_726     = 0x10;
-    work2->field_746     = 5;
-    work2->field_742     = 1;
+    work2->animBlend     = 4;
+    work2->animStep      = 0x10;
+    work2->animClip      = 5;
+    work2->animRequest   = 1;
     work->field_718      = 0;
     work->field_71A      = 0;
     base                 = 0x40060004;
@@ -2557,7 +2470,7 @@ static void func_actor_400600_80133FC0(Task* arg0)
     pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     work->field_75C.b.field_75C = 0;
-    work->field_71E++;
+    work->subState++;
 }
 
 static void func_actor_400600_80134218(Task* arg0)
@@ -2582,7 +2495,7 @@ static void func_actor_400600_80134218(Task* arg0)
     coord              = arg0->extra.tmd->coords;
     enemy              = (Enemy*)arg0->spawnArg2.pointer;
     player             = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
-    work->field_84    += -(s16)work->field_84 >> 2;
+    work->roll        += -(s16)work->roll >> 2;
     coord->coord.t[0] += (player->coord.t[0] - coord->coord.t[0]) >> 2;
     coord->coord.t[2] += (player->coord.t[2] - coord->coord.t[2]) >> 2;
     y                  = coord->coord.t[1];
@@ -2594,9 +2507,9 @@ static void func_actor_400600_80134218(Task* arg0)
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (work->field_763 == 1 || work->field_764 == 1 || enemy->hp <= 0 || work->field_75C.b.field_75C >= 3) {
+    if (work->field_763 == 1 || work->holdTaken == 1 || enemy->hp <= 0 || work->field_75C.b.field_75C >= 3) {
         work->field_763 = 0;
-        if (work->field_764 == 0) {
+        if (work->holdTaken == 0) {
             msg.source.sets          = D_actor_400600_80151A48;
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 8;
@@ -2605,15 +2518,15 @@ static void func_actor_400600_80134218(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         }
         work2                = (Actor400600Work*)arg0->work;
-        work2->field_720     = 8;
-        work2->field_726     = 0x10;
-        work2->field_746     = 6;
-        work2->field_742     = 1;
+        work2->animBlend     = 8;
+        work2->animStep      = 0x10;
+        work2->animClip      = 6;
+        work2->animRequest   = 1;
         work->field_722      = 0;
         work->field_724      = 0;
         work->field_718      = 0;
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->field_71E++;
+        work->subState++;
         return;
     }
     if ((s16)work->field_718 == 0xD || (s16)work->field_718 == 0x1A) {
@@ -2627,14 +2540,14 @@ static void func_actor_400600_80134218(Task* arg0)
         pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 1), 0) != 0) {
-            work->field_764 = 1;
+            work->holdTaken = 1;
         }
         vec.vx = 0;
         vec.vy = -200;
         vec.vz = 0;
         Gp_SpawnEff(0x6009B, root, 0x10100, &vec);
     }
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->field_718 = 0;
         work->field_75C.b.field_75C++;
     }
@@ -2655,10 +2568,10 @@ static void func_actor_400600_80134570(Task* arg0)
     s32              pan;
     s16              vy;
 
-    work            = (Actor400600Work*)arg0->work;
-    coord           = arg0->extra.tmd->coords;
-    player          = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
-    work->field_84 += -(s16)work->field_84 >> 2;
+    work        = (Actor400600Work*)arg0->work;
+    coord       = arg0->extra.tmd->coords;
+    player      = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
+    work->roll += -(s16)work->roll >> 2;
     work->field_718++;
     if ((s16)work->field_718 >= 8) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2690,11 +2603,11 @@ static void func_actor_400600_80134570(Task* arg0)
             SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             work->obj_4B4.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work2                = (Actor400600Work*)arg0->work;
-            work2->field_720     = 2;
-            work2->field_746     = 0x19;
-            work2->field_726     = 0x10;
-            work2->field_742     = 1;
-            work->field_71E++;
+            work2->animBlend     = 2;
+            work2->animClip      = 0x19;
+            work2->animStep      = 0x10;
+            work2->animRequest   = 1;
+            work->subState++;
         }
     }
 }
@@ -2707,31 +2620,31 @@ static void func_actor_400600_8013479C(Task* arg0)
     s16              v;
 
     work = (Actor400600Work*)arg0->work;
-    v    = func_actor_400600_801376EC(arg0);
+    v    = stalkerZebraIvoryWallDistance(arg0);
     if (v != 0) {
         if ((u16)(v - 0x4E9) >= 0x6D0U) {
-            func_actor_400600_80138B40(arg0);
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_71C = 2;
-            work3->field_71E = 0;
+            stalkerZebraIvoryDropCapsuleGrid(arg0);
+            work3           = (Actor400600Work*)arg0->work;
+            work3->state    = 2;
+            work3->subState = 0;
             return;
         }
-        work->field_98 = ((rsin((s16)work->field_82 + 0x800) * (v - 0x100)) >> 12) / 20;
-        work->field_9C = ((rcos((s16)work->field_82 + 0x800) * (v - 0x100)) >> 12) / 20;
+        work->field_98 = ((rsin((s16)work->yaw + 0x800) * (v - 0x100)) >> 12) / 20;
+        work->field_9C = ((rcos((s16)work->yaw + 0x800) * (v - 0x100)) >> 12) / 20;
     } else {
-        work->field_98 = ((rsin((s16)work->field_82 + 0x800) * 3000) >> 12) / 20;
-        work->field_9C = ((rcos((s16)work->field_82 + 0x800) * 3000) >> 12) / 20;
+        work->field_98 = ((rsin((s16)work->yaw + 0x800) * 3000) >> 12) / 20;
+        work->field_9C = ((rcos((s16)work->yaw + 0x800) * 3000) >> 12) / 20;
     }
-    func_actor_400600_80138B40(arg0);
-    work2            = (Actor400600Work*)arg0->work;
-    work2->field_720 = 4;
-    work2->field_726 = 0x10;
-    work2->field_746 = 0x15;
-    work2->field_742 = 1;
-    work->field_722  = -0x2A;
-    work->field_724  = 0;
-    work->field_718  = 0;
-    work->field_71E++;
+    stalkerZebraIvoryDropCapsuleGrid(arg0);
+    work2              = (Actor400600Work*)arg0->work;
+    work2->animBlend   = 4;
+    work2->animStep    = 0x10;
+    work2->animClip    = 0x15;
+    work2->animRequest = 1;
+    work->field_722    = -0x2A;
+    work->field_724    = 0;
+    work->field_718    = 0;
+    work->subState++;
 }
 
 static void func_actor_400600_80134970(Task* arg0)
@@ -2756,8 +2669,8 @@ static void func_actor_400600_80134970(Task* arg0)
         return;
     }
     if ((s16)work->field_718 == 0x11) {
-        work->field_730 = 0;
-        work->field_767 = 1;
+        work->pendingAction = 0;
+        work->holding       = 1;
     }
     coord->coord.t[0] += (s16)work->field_98;
     coord->coord.t[2] += (s16)work->field_9C;
@@ -2785,43 +2698,17 @@ static void func_actor_400600_80134970(Task* arg0)
         sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_720 = 2;
-        work2->field_746 = 0x19;
-        work2->field_726 = 0x10;
-        work2->field_742 = 1;
-        work->field_767  = 0;
-        work->field_71E++;
+        work2              = (Actor400600Work*)arg0->work;
+        work2->animBlend   = 2;
+        work2->animClip    = 0x19;
+        work2->animStep    = 0x10;
+        work2->animRequest = 1;
+        work->holding      = 0;
+        work->subState++;
     }
 }
 
-static void func_actor_400600_80134B98(Task* arg0)
-{
-    Actor400600Work* work;
-    Actor400600Work* work2;
-    Actor400600Work* work3;
-    GfxCoord*        coord;
-
-    work  = (Actor400600Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    func_actor_400600_80139E68(arg0, 0xE, &work->field_88);
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        work->field_82   = (work->field_82 + 0x800) & 0xFFF;
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_726 = 0x10;
-        work2->field_746 = 2;
-        work2->field_742 = 2;
-        Actor400600_RebuildRotation(arg0);
-        Actor400600_TickAnim(arg0);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
-        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
-        work->field_769  = 0;
-        work3            = (Actor400600Work*)arg0->work;
-        work3->field_71C = 2;
-        work3->field_71E = 0;
-    }
-}
+#include "../../shared/stalker_zebra_ivory_right_itself.inc.c"
 
 static void func_actor_400600_80134E28(Task* arg0)
 {
@@ -2841,8 +2728,8 @@ static void func_actor_400600_80134E28(Task* arg0)
         return;
     }
     if ((s16)work->field_718 == 0x11) {
-        work->field_730      = 0;
-        work->field_767      = 1;
+        work->pendingAction  = 0;
+        work->holding        = 1;
         work->field_73E      = work->field_9A;
         work->obj_4B4.flags &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
     }
@@ -2850,7 +2737,7 @@ static void func_actor_400600_80134E28(Task* arg0)
      * `(a - 400) - y`. */
     y                  = coord->coord.t[1] + 0x190;
     coord->coord.t[1] += ((s16)work->field_9A - y) >> 3;
-    work->field_80    += (0x800 - (s16)work->field_80) >> 3;
+    work->pitch       += (0x800 - (s16)work->pitch) >> 3;
     if ((s16)work->field_9A >= coord->coord.t[1]) {
         id = 0x40060003;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
@@ -2861,20 +2748,20 @@ static void func_actor_400600_80134E28(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         coord->coord.t[1]    = (s16)work->field_9A;
-        work->field_80       = 0;
-        work->field_84       = 0x800;
-        work->field_82      += 0x800;
-        Actor400600_RebuildRotation(arg0);
+        work->pitch          = 0;
+        work->roll           = 0x800;
+        work->yaw           += 0x800;
+        stalkerZebraIvoryApplyRotationInline(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_720 = 2;
-        work2->field_726 = 0x10;
-        work2->field_746 = 0x19;
-        work2->field_742 = 1;
-        work->field_767  = 0;
-        work->field_768  = 1;
-        work->field_71E++;
+        work2              = (Actor400600Work*)arg0->work;
+        work2->animBlend   = 2;
+        work2->animStep    = 0x10;
+        work2->animClip    = 0x19;
+        work2->animRequest = 1;
+        work->holding      = 0;
+        work->onCeiling    = 1;
+        work->subState++;
     }
 }
 
@@ -2893,32 +2780,32 @@ static void func_actor_400600_801350F4(Task* arg0)
     }
     work->field_88.x += ((s16)work->field_98 - work->field_88.x) >> 2;
     work->field_88.z += ((s16)work->field_9C - work->field_88.z) >> 2;
-    func_actor_400600_80139E68(arg0, 3, &work->field_88);
+    stalkerZebraIvoryPinPartXZ(arg0, 3, &work->field_88);
     work->field_722   += 2;
     work->field_724   += work->field_722;
     coord->coord.t[1] += work->field_724;
-    if ((work->field_80 & 0xFFF) != 0x800) {
-        work->field_80 -= 0x80;
+    if ((work->pitch & 0xFFF) != 0x800) {
+        work->pitch -= 0x80;
     }
     if ((s16)work->field_92 < coord->coord.t[1]) {
-        work->field_768   = 0;
+        work->onCeiling   = 0;
         coord->coord.t[0] = (s16)work->field_98;
         coord->coord.t[1] = (s16)work->field_92;
         coord->coord.t[2] = (s16)work->field_9C;
-        work->field_80    = 0;
-        work->field_84    = 0;
-        work->field_82   += 0x800;
-        Actor400600_RebuildRotation(arg0);
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_720 = 2;
-        work2->field_726 = 0x10;
-        work2->field_746 = 0x19;
-        work2->field_742 = 1;
-        Actor400600_TickAnim(arg0);
+        work->pitch       = 0;
+        work->roll        = 0;
+        work->yaw        += 0x800;
+        stalkerZebraIvoryApplyRotationInline(arg0);
+        work2              = (Actor400600Work*)arg0->work;
+        work2->animBlend   = 2;
+        work2->animStep    = 0x10;
+        work2->animClip    = 0x19;
+        work2->animRequest = 1;
+        stalkerZebraIvoryTickAnimInline(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         work->field_718 = 0;
-        work->field_71E++;
+        work->subState++;
     }
 }
 
@@ -2941,16 +2828,16 @@ static void func_actor_400600_80135450(Task* arg0)
         pan   = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan >>= 24;
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work->field_767 = 0;
+        work->holding = 0;
         work->field_718++;
     }
-    if ((func_actor_400600_801370F4(arg0) << 0x10) == 0 && (func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryTakePending(arg0) << 0x10) == 0 && (stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         rnd                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState         = rnd;
         work->field_710.h.timer = ((rnd >> 0x10) & 0x1F) + 0xD2;
         work2                   = (Actor400600Work*)arg0->work;
-        work2->field_71C        = 2;
-        work2->field_71E        = 0;
+        work2->state            = 2;
+        work2->subState         = 0;
     }
 }
 
@@ -2966,8 +2853,8 @@ static void func_actor_400600_80135578(Task* arg0)
 
     work = (Actor400600Work*)arg0->work;
     if ((s16)work->field_718 == 0) {
-        work->field_767 = 0;
-        id              = 0x40060006;
+        work->holding = 0;
+        id            = 0x40060006;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0006;
         }
@@ -2977,23 +2864,23 @@ static void func_actor_400600_80135578(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_718++;
     }
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        if (work->field_730 != 3) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_720 = 2;
-            work2->field_726 = 0x10;
-            work2->field_746 = 0x14;
-            work2->field_742 = 1;
-            work->field_71E++;
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        if (work->pendingAction != 3) {
+            work2              = (Actor400600Work*)arg0->work;
+            work2->animBlend   = 2;
+            work2->animStep    = 0x10;
+            work2->animClip    = 0x14;
+            work2->animRequest = 1;
+            work->subState++;
             return;
         }
-        work->field_730  = 0;
-        rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState  = rnd;
-        work->field_750  = ((rnd >> 0x10) & 0x7F) + 0x1E;
-        work3            = (Actor400600Work*)arg0->work;
-        work3->field_71C = 5;
-        work3->field_71E = 0;
+        work->pendingAction = 0;
+        rnd                 = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState     = rnd;
+        work->countdown     = ((rnd >> 0x10) & 0x7F) + 0x1E;
+        work3               = (Actor400600Work*)arg0->work;
+        work3->state        = 5;
+        work3->subState     = 0;
     }
 }
 
@@ -3099,7 +2986,7 @@ static void func_actor_400600_801356E0(Task* arg0)
 }
 
 /// Animation state 2: the landing slam. Same two sound/tracking windows as
-/// `func_actor_400600_80135DDC`, plus the dust ring each window spawns when
+/// `stalkerZebraIvoryStepClip4`, plus the dust ring each window spawns when
 /// `field_76C` says the actor is over ground.
 static void func_actor_400600_80135998(Task* arg0, s16 arg1)
 {
@@ -3122,35 +3009,35 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
 
     work  = (Actor400600Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (work->field_746 != 2) {
-        work->field_726 = 0x10;
-        work->field_746 = 2;
-        work->field_742 = 2;
-        Actor400600_TickAnim(arg0);
+    if (work->animClip != 2) {
+        work->animStep    = 0x10;
+        work->animClip    = 2;
+        work->animRequest = 2;
+        stalkerZebraIvoryTickAnimInline(arg0);
     }
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
+    if (((Actor400600Work*)arg0->work)->animStep == 0) {
         tmp0 = 0;
     } else {
-        tmp0 = (u32)(0xB00 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
+        tmp0 = (u32)(0xB00 / ((Actor400600Work*)arg0->work)->animStep) >> 4;
     }
     end0 = tmp0;
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
+    if (((Actor400600Work*)arg0->work)->animStep == 0) {
         tmp1 = 0;
     } else {
-        tmp1 = (u32)(0xC00 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
+        tmp1 = (u32)(0xC00 / ((Actor400600Work*)arg0->work)->animStep) >> 4;
     }
     start1 = tmp1;
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
+    if (((Actor400600Work*)arg0->work)->animStep == 0) {
         tmp2 = 0;
     } else {
-        tmp2 = (u32)(0x1500 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
+        tmp2 = (u32)(0x1500 / ((Actor400600Work*)arg0->work)->animStep) >> 4;
     }
     end1 = tmp2;
     if ((func_actor_400600_8013892C(arg0) << 0x10) != 0) {
-        work->field_748 = 0;
-        work->field_726 = arg1;
+        work->animFrame = 0;
+        work->animStep  = arg1;
     }
-    if (work->field_748 == 0) {
+    if (work->animFrame == 0) {
         stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
         id = 0x40060001;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
@@ -3173,7 +3060,7 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
             Gp_SpawnEff(D_8011574C, coord, 0x40, &vec);
         }
     }
-    if (work->field_748 == start1) {
+    if (work->animFrame == start1) {
         stalkerZebraIvoryReadPartViewXZ(arg0, 8, &work->field_88);
         id = 0x40060002;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
@@ -3194,113 +3081,21 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
             Gp_SpawnEff(D_8011574C, coord, 0x40, &vec);
         }
     }
-    if (work->field_748 >= 0 && work->field_748 <= end0) {
-        func_actor_400600_80139E68(arg0, 0xB, &work->field_88);
+    if (work->animFrame >= 0 && work->animFrame <= end0) {
+        stalkerZebraIvoryPinPartXZ(arg0, 0xB, &work->field_88);
         work->field_734 = 8;
     }
-    if (work->field_748 >= start1 && work->field_748 <= end1) {
-        func_actor_400600_80139E68(arg0, 8, &work->field_88);
+    if (work->animFrame >= start1 && work->animFrame <= end1) {
+        stalkerZebraIvoryPinPartXZ(arg0, 8, &work->field_88);
         work->field_734 = 0xB;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Animation state 4: drives the two sound/tracking windows the same way
-/// `func_actor_400600_801361AC` does, one frame-count pair per sound event.
-static void func_actor_400600_80135DDC(Task* arg0)
-{
-    Actor400600Work* work;
-    GfxCoord*        coord;
-    /* The first window starts at frame 0. `start0` is still its own `u8`: the
-     * width is what folds both of its tests against a literal zero, and the
-     * wider first temp below is what keeps the zero arm a fresh constant
-     * instead of a copy of it. */
-    u8  start0;
-    u32 tmp0;
-    u8  tmp1;
-    u8  tmp2;
-    u8  end0;
-    u8  start1;
-    u8  end1;
-    s32 id;
-    u32 sound;
-    u32 voice;
-    s32 pan;
-
-    work  = (Actor400600Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->field_746 != 4) {
-        work->field_726 = 0x10;
-        work->field_720 = 4;
-        work->field_746 = 4;
-        work->field_742 = 1;
-        Actor400600_TickAnim(arg0);
-    }
-    start0 = 0;
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
-        tmp0 = 0;
-    } else {
-        tmp0 = (u32)(0xD00 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
-    }
-    end0 = tmp0;
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
-        tmp1 = 0;
-    } else {
-        tmp1 = (u32)(0xE00 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
-    }
-    start1 = tmp1;
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
-        tmp2 = 0;
-    } else {
-        tmp2 = (u32)(0x1B00 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
-    }
-    end1 = tmp2;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        work->field_748 = 0;
-    }
-    if (work->field_748 == start0) {
-        stalkerZebraIvoryReadPartViewXZ(arg0, 8, &work->field_88);
-        id = 0x40060001;
-        if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
-            id = 0x404A0001;
-        }
-        /* `voice` is a plain copy that the compiler propagates away; writing
-         * `sound = id | sound` instead swaps the operands of the `or`. */
-        sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        sound >>= 0xC;
-        sound <<= 8;
-        voice   = sound;
-        sound   = id | voice;
-        pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if (work->field_748 == start1) {
-        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
-        id = 0x40060002;
-        if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
-            id = 0x404A0002;
-        }
-        sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        sound >>= 0xC;
-        sound <<= 8;
-        voice   = sound;
-        sound   = id | voice;
-        pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan   >>= 24;
-        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if (work->field_748 >= start0 && work->field_748 <= end0) {
-        func_actor_400600_80139E68(arg0, 8, &work->field_88);
-    }
-    if (work->field_748 >= start1 && work->field_748 <= end1) {
-        func_actor_400600_80139E68(arg0, 0xB, &work->field_88);
-    }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/stalker_zebra_ivory_step_clip4.inc.c"
 
 /// Drives the two sound/tracking windows of the current animation. The window
-/// bounds are frame counts derived from the playback rate (`field_726`), each
+/// bounds are frame counts derived from the playback rate (`animStep`), each
 /// read back through `arg0->work` rather than the cached `work` pointer.
 static void func_actor_400600_801361AC(Task* arg0)
 {
@@ -3320,37 +3115,37 @@ static void func_actor_400600_801361AC(Task* arg0)
 
     work  = (Actor400600Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (work->field_746 != 2) {
-        work->field_726 = 0x10;
-        work->field_746 = 2;
-        work->field_742 = 2;
-        Actor400600_TickAnim(arg0);
+    if (work->animClip != 2) {
+        work->animStep    = 0x10;
+        work->animClip    = 2;
+        work->animRequest = 2;
+        stalkerZebraIvoryTickAnimInline(arg0);
     }
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
+    if (((Actor400600Work*)arg0->work)->animStep == 0) {
         tmp0 = 0;
     } else {
-        tmp0 = (u32)(0xB00 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
+        tmp0 = (u32)(0xB00 / ((Actor400600Work*)arg0->work)->animStep) >> 4;
     }
     end0 = tmp0;
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
+    if (((Actor400600Work*)arg0->work)->animStep == 0) {
         tmp1 = 0;
     } else {
-        tmp1 = (u32)(0xC00 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
+        tmp1 = (u32)(0xC00 / ((Actor400600Work*)arg0->work)->animStep) >> 4;
     }
     start1 = tmp1;
-    if (((Actor400600Work*)arg0->work)->field_726 == 0) {
+    if (((Actor400600Work*)arg0->work)->animStep == 0) {
         tmp2 = 0;
     } else {
-        tmp2 = (u32)(0x1500 / ((Actor400600Work*)arg0->work)->field_726) >> 4;
+        tmp2 = (u32)(0x1500 / ((Actor400600Work*)arg0->work)->animStep) >> 4;
     }
     end1 = tmp2;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        work->field_748 = 0;
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        work->animFrame = 0;
     }
     /* The first window starts at frame 0, and the original compares against it
      * in a register: a literal 0 is folded into `$zero` by CSE. */
     SOFT_MOVE_ZERO(start0);
-    if (work->field_748 == start0) {
+    if (work->animFrame == start0) {
         func_actor_400600_80139F4C(arg0, 0xB, &work->field_88);
         sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         sound >>= 0xC;
@@ -3360,7 +3155,7 @@ static void func_actor_400600_801361AC(Task* arg0)
         pan   >>= 24;
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (work->field_748 == start1) {
+    if (work->animFrame == start1) {
         func_actor_400600_80139F4C(arg0, 8, &work->field_88);
         sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         sound >>= 0xC;
@@ -3370,11 +3165,11 @@ static void func_actor_400600_801361AC(Task* arg0)
         pan   >>= 24;
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (work->field_748 >= start0 && work->field_748 <= end0) {
+    if (work->animFrame >= start0 && work->animFrame <= end0) {
         func_actor_400600_80139FE0(arg0, 0xB, &work->field_88);
         work->field_734 = 8;
     }
-    if (work->field_748 >= start1 && work->field_748 <= end1) {
+    if (work->animFrame >= start1 && work->animFrame <= end1) {
         func_actor_400600_80139FE0(arg0, 8, &work->field_88);
         work->field_734 = 0xB;
     }
@@ -3476,12 +3271,12 @@ static void func_actor_400600_80136670(Task* arg0)
         work->field_A8.y = player->coord.t[1];
         work->field_A8.z = player->coord.t[2];
     }
-    v.vx            = work->field_A8.x - coord->coord.t[0];
-    v.vy            = work->field_A8.y - coord->coord.t[1];
-    v.vz            = work->field_A8.z - coord->coord.t[2];
-    work->field_728 = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
+    v.vx                 = work->field_A8.x - coord->coord.t[0];
+    v.vy                 = work->field_A8.y - coord->coord.t[1];
+    v.vz                 = work->field_A8.z - coord->coord.t[2];
+    work->playerDistance = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
     VectorNormalSS(&v, &v);
-    work->field_72C = (ratan2(v.vx, v.vz) - work->field_82) & 0xFFF;
+    work->field_72C = (ratan2(v.vx, v.vz) - work->yaw) & 0xFFF;
     work->field_72A = (ratan2(-v.vx, -v.vz) - actor->rotation.vy) & 0xFFF;
 }
 
@@ -3499,14 +3294,14 @@ static const TaskFuncTable8 D_actor_400600_80131F40 = { {
     func_actor_400600_80133FC0,
     func_actor_400600_80134218,
     func_actor_400600_80134570,
-    func_actor_400600_8013BE90,
+    stalkerZebraIvoryReleaseHold,
 } };
 
 static const TaskFuncTable4 D_actor_400600_80131F60 = { {
     func_actor_400600_8013BF48,
     func_actor_400600_8013479C,
     func_actor_400600_80134970,
-    func_actor_400600_8013BF80,
+    stalkerZebraIvoryWaitClip,
 } };
 
 static const TaskFuncTable3 D_actor_400600_80131F70 = { {
@@ -3526,10 +3321,10 @@ static const TaskFuncTable4 D_actor_400600_80131F8C = { {
     func_actor_400600_8013C1C0,
     func_actor_400600_8013C238,
     func_actor_400600_80135578,
-    func_actor_400600_8013C2D4,
+    stalkerZebraIvoryWaitClipThenRest,
 } };
 
-static const TaskFuncTable3 D_actor_400600_80131F9C = { {
+static const TaskFuncTable3 gStalkerZebraIvorySubStates = { {
     func_actor_400600_8013C394,
     func_actor_400600_8013C410,
     func_actor_400600_8013C4AC,
@@ -3555,16 +3350,16 @@ static void func_actor_400600_80136968(Task* arg0)
     s16              tick;
     s32              i;
 
-    maxX            = 0;
-    maxZ            = 0;
-    stepX           = 0;
-    stepZ           = 0;
-    blocked         = 0;
-    coord           = arg0->extra.tmd->coords;
-    work            = (Actor400600Work*)arg0->work;
-    enemy           = (Enemy*)arg0->spawnArg2.pointer;
-    work->field_72E = 0;
-    eff             = &coord[3];
+    maxX               = 0;
+    maxZ               = 0;
+    stepX              = 0;
+    stepZ              = 0;
+    blocked            = 0;
+    coord              = arg0->extra.tmd->coords;
+    work               = (Actor400600Work*)arg0->work;
+    enemy              = (Enemy*)arg0->spawnArg2.pointer;
+    work->pendingArmed = 0;
+    eff                = &coord[3];
 
     for (i = 0; i < 8; i++) {
         switch (work->rec_4D4[i].key.value & 0xFFFF0000) {
@@ -3583,10 +3378,10 @@ static void func_actor_400600_80136968(Task* arg0)
                 break;
             case 0x20000:
                 if (work->field_74A == 0) {
-                    work->field_72E = 1;
-                    dmg             = Gp_ComputeDamage(work->rec_4D4[i].key.value, work->field_728, 0, 0);
-                    amount          = dmg;
-                    work->field_74A = Gp_GetIdParam2(work->rec_4D4[i].key.value);
+                    work->pendingArmed = 1;
+                    dmg                = Gp_ComputeDamage(work->rec_4D4[i].key.value, work->playerDistance, 0, 0);
+                    amount             = dmg;
+                    work->field_74A    = Gp_GetIdParam2(work->rec_4D4[i].key.value);
                     if (Gp_RollEnemyChance(enemy, work->rec_4D4[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[3], 0, NULL);
@@ -3606,9 +3401,9 @@ static void func_actor_400600_80136968(Task* arg0)
                                       &arg0->extra.tmd->coords[4], NULL, &work->eff_6FC);
                     }
                     if (amount >= 0x64) {
-                        work->field_730 = 2;
+                        work->pendingAction = 2;
                     } else {
-                        work->field_730 = 1;
+                        work->pendingAction = 1;
                     }
                     switch (Gp_GetIdParam0(work->rec_4D4[i].key.value) & 0xFFFF) {
                         case 0:
@@ -3623,22 +3418,22 @@ static void func_actor_400600_80136968(Task* arg0)
                             Gp_SetObjFlag4(enemy, work->rec_4D4[i].key.value, 0);
                             break;
                         case 4:
-                            work->field_730 = 4;
+                            work->pendingAction = 4;
                             break;
                         case 5:
-                            work->field_730 = 2;
+                            work->pendingAction = 2;
                             break;
                         case 6:
-                            work->field_730 = 4;
+                            work->pendingAction = 4;
                             break;
                         case 7:
-                            work->field_730 = 2;
+                            work->pendingAction = 2;
                             break;
                         case 8:
-                            work->field_730 = 3;
+                            work->pendingAction = 3;
                             break;
                         case 9:
-                            work->field_730 = 3;
+                            work->pendingAction = 3;
                             break;
                     }
                 } else if ((Gp_GetIdParam1(work->rec_4D4[i].key.value) & 0xFFFF) == 0xD) {
@@ -3650,11 +3445,11 @@ static void func_actor_400600_80136968(Task* arg0)
 
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
-        work->field_730       = 5;
+        work->pendingAction   = 5;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-        work->field_730       = 3;
+        work->pendingAction   = 3;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         work->field_760 = 1;
@@ -3666,8 +3461,8 @@ static void func_actor_400600_80136968(Task* arg0)
             if (enemy->hp < 0) {
                 enemy->hp = 0;
             }
-            work->field_72E = 1;
-            work->field_730 = 2;
+            work->pendingArmed  = 1;
+            work->pendingAction = 2;
         }
         if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
@@ -3730,153 +3525,77 @@ static s32 func_actor_400600_80136FA8(Task* arg0)
     Actor400600Work* work2;
 
     work = (Actor400600Work*)arg0->work;
-    if (work->field_72E != 1) {
+    if (work->pendingArmed != 1) {
         return 0;
     }
-    if (work->field_768 == 0) {
-        switch (work->field_730) {
+    if (work->onCeiling == 0) {
+        switch (work->pendingAction) {
             case 1:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 3;
-                work2->field_71E = 0;
+                work2           = (Actor400600Work*)arg0->work;
+                work2->state    = 3;
+                work2->subState = 0;
                 break;
             case 2:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 4;
-                work2->field_71E = 0;
+                work2           = (Actor400600Work*)arg0->work;
+                work2->state    = 4;
+                work2->subState = 0;
                 break;
             case 3:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 5;
-                work2->field_71E = 0;
+                work2           = (Actor400600Work*)arg0->work;
+                work2->state    = 5;
+                work2->subState = 0;
                 break;
             case 4:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 4;
-                work2->field_71E = 0;
+                work2           = (Actor400600Work*)arg0->work;
+                work2->state    = 4;
+                work2->subState = 0;
                 break;
             case 5:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 0xF;
-                work2->field_71E = 0;
+                work2           = (Actor400600Work*)arg0->work;
+                work2->state    = 0xF;
+                work2->subState = 0;
                 break;
         }
-        work->field_730 = 0;
+        work->pendingAction = 0;
     } else {
-        switch (work->field_730) {
+        switch (work->pendingAction) {
             case 1:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 3;
-                work2->field_71E = 0;
-                work->field_730  = 0;
+                work2               = (Actor400600Work*)arg0->work;
+                work2->state        = 3;
+                work2->subState     = 0;
+                work->pendingAction = 0;
                 break;
             case 2:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 4;
-                work2->field_71E = 0;
-                work->field_730  = 0;
+                work2               = (Actor400600Work*)arg0->work;
+                work2->state        = 4;
+                work2->subState     = 0;
+                work->pendingAction = 0;
                 break;
             case 3:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 0xE;
-                work2->field_71E = 0;
+                work2           = (Actor400600Work*)arg0->work;
+                work2->state    = 0xE;
+                work2->subState = 0;
                 break;
             case 4:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 4;
-                work2->field_71E = 0;
-                work->field_730  = 0;
+                work2               = (Actor400600Work*)arg0->work;
+                work2->state        = 4;
+                work2->subState     = 0;
+                work->pendingAction = 0;
                 break;
             case 5:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 0xE;
-                work2->field_71E = 0;
-                work->field_730  = 0;
+                work2               = (Actor400600Work*)arg0->work;
+                work2->state        = 0xE;
+                work2->subState     = 0;
+                work->pendingAction = 0;
                 break;
         }
     }
     work->field_76D = 0;
-    func_actor_400600_80138B40(arg0);
+    stalkerZebraIvoryDropCapsuleGrid(arg0);
     return 1;
 }
 
-static s32 func_actor_400600_801370F4(Task* arg0)
-{
-    Actor400600Work* work;
-    Actor400600Work* work2;
-
-    work = (Actor400600Work*)arg0->work;
-    if (work->field_768 == 0) {
-        switch (work->field_730) {
-            case 1:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 3;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-            case 2:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 4;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-            case 3:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 5;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-            case 4:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 4;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-            case 5:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 0xF;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-        }
-        work->field_730 = 0;
-        return 0;
-    } else {
-        switch (work->field_730) {
-            case 1:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 3;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-            case 2:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 4;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-            case 3:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 0xE;
-                work2->field_71E = 0;
-                return 1;
-            case 4:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 4;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-            case 5:
-                work2            = (Actor400600Work*)arg0->work;
-                work2->field_71C = 0xE;
-                work2->field_71E = 0;
-                work->field_730  = 0;
-                return 1;
-        }
-        work->field_730 = 0;
-        return 0;
-    }
-}
+#include "../../shared/stalker_zebra_ivory_take_pending.inc.c"
 
 static void func_actor_400600_80137240(Task* arg0)
 {
@@ -3958,10 +3677,10 @@ static void func_actor_400600_80137498(Task* arg0, s16 arg1)
     OverlayMat       rot;
     s16              n;
 
-    work->field_76A = arg1;
+    work->distanceMode = arg1;
     switch (arg1) {
         case 0:
-            if (work->field_768 == 0) {
+            if (work->onCeiling == 0) {
                 OverlayMat* m = &rot;
 
                 v.vx             = work->field_A8.x - arg0->extra.tmd->coords->coord.t[0];
@@ -3975,7 +3694,7 @@ static void func_actor_400600_80137498(Task* arg0, s16 arg1)
                 rot.mat.t[0]     = 0;
                 rot.mat.t[1]     = 0;
                 rot.mat.t[2]     = 0;
-                RotMatrixY(-(s16)work->field_82, &m->mat);
+                RotMatrixY(-(s16)work->yaw, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             } else {
                 OverlayMat* m = &rot;
@@ -3991,80 +3710,41 @@ static void func_actor_400600_80137498(Task* arg0, s16 arg1)
                 rot.mat.t[0]     = 0;
                 rot.mat.t[1]     = 0;
                 rot.mat.t[2]     = 0;
-                RotMatrixY(-(s16)work->field_82, &m->mat);
-                RotMatrixZ(-(s16)work->field_84, &m->mat);
+                RotMatrixY(-(s16)work->yaw, &m->mat);
+                RotMatrixZ(-(s16)work->roll, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             }
-            work->rec_624.ends[0].vx = out.vx;
-            work->rec_624.ends[0].vy = out.vy;
+            work->capsule.ends[0].vx = out.vx;
+            work->capsule.ends[0].vy = out.vy;
             n                        = out.vz;
-            work->rec_624.ends[0].vz = n;
+            work->capsule.ends[0].vz = n;
             n                        = 0xA;
-            work->rec_624.end0Radius = n;
-            work->rec_624.end1Radius = n;
+            work->capsule.end0Radius = n;
+            work->capsule.end1Radius = n;
             break;
         case 1:
-            work->rec_624.ends[0].vx = 0;
-            work->rec_624.ends[0].vy = 0x190;
-            work->rec_624.ends[0].vz = -0xBB8;
-            work->rec_624.end0Radius = 0x50;
-            work->rec_624.end1Radius = 0x50;
+            work->capsule.ends[0].vx = 0;
+            work->capsule.ends[0].vy = 0x190;
+            work->capsule.ends[0].vz = -0xBB8;
+            work->capsule.end0Radius = 0x50;
+            work->capsule.end1Radius = 0x50;
             break;
         case 2:
-            work->rec_624.ends[0].vx = 0;
-            work->rec_624.ends[0].vy = -0xBB8;
-            work->rec_624.ends[0].vz = 0;
-            work->rec_624.end0Radius = 0xA;
-            work->rec_624.end1Radius = 0xA;
+            work->capsule.ends[0].vx = 0;
+            work->capsule.ends[0].vy = -0xBB8;
+            work->capsule.ends[0].vz = 0;
+            work->capsule.end0Radius = 0xA;
+            work->capsule.end1Radius = 0xA;
             break;
     }
-    work->rec_624.ends[1].vx = 0;
-    work->rec_624.ends[1].vy = 0x64;
-    work->rec_624.ends[1].vz = 0;
-    Gp_ClearRec18Occupied(work->rec_63C);
-    work->obj_604.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    work->capsule.ends[1].vx = 0;
+    work->capsule.ends[1].vy = 0x64;
+    work->capsule.ends[1].vz = 0;
+    Gp_ClearRec18Occupied(work->capsuleContacts);
+    work->capsuleBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 }
 
-static s32 func_actor_400600_801376EC(Task* arg0)
-{
-    Actor400600Work* work;
-    GfxCoord*        coord;
-    SVECTOR          v;
-    s16              dist;
-    s32              i;
-
-    dist  = 0;
-    work  = (Actor400600Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    for (i = 0; i < 8; i++) {
-        if ((work->rec_63C[i].key.value & 0xFFFF0000) != 0x100000) {
-            dist = 0;
-        } else {
-            if (work->field_76A == 0) {
-                dist = 1;
-            } else if (work->field_76A == 1) {
-                v.vx = work->rec_63C[i].point.vx - coord->workm.t[0];
-                v.vy = 0;
-                v.vz = work->rec_63C[i].point.vz - coord->workm.t[2];
-                dist = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
-                if (dist == 0) {
-                    dist = 1;
-                }
-            } else if (work->field_76A == 2) {
-                v.vx = work->rec_63C[i].point.vx - coord->workm.t[0];
-                v.vy = work->rec_63C[i].point.vy - coord->workm.t[1];
-                v.vz = 0;
-                dist = SquareRoot0(v.vx * v.vx + v.vy * v.vy);
-                if (dist == 0) {
-                    dist = 1;
-                }
-            }
-            break;
-        }
-    }
-    Gp_ClearRec18Occupied(work->rec_63C);
-    return dist;
-}
+#include "../../shared/stalker_zebra_ivory_wall_distance.inc.c"
 
 /// Replaces the rotation of `coord` with the one `RotMatrixY` applies to an
 /// identity matrix for `angle`.
@@ -4110,7 +3790,7 @@ static void func_actor_400600_80137840(Task* arg0)
     s32              angle;
 
     work = (Actor400600Work*)arg0->work;
-    if ((u8)work->field_765 != 0) {
+    if ((u8)work->queuedMode != 0) {
         work->field_74E += (0x380 - work->field_74E) >> 2;
         _ACTOR400600_ROTATE_CHILD(arg0, field_708, work->field_74E);
     } else {
@@ -4119,7 +3799,7 @@ static void func_actor_400600_80137840(Task* arg0)
         angle                = work->field_74E;
         _ACTOR400600_ROTATE_CHILD(arg0, field_708, angle);
     }
-    if ((u8)work->field_766 != 0) {
+    if ((u8)work->queuedFlag != 0) {
         work->field_74C += (0x380 - work->field_74C) >> 2;
         _ACTOR400600_ROTATE_CHILD(arg0, field_704, -work->field_74C);
     } else {
@@ -4127,7 +3807,7 @@ static void func_actor_400600_80137840(Task* arg0)
         work->field_74C     += -work->field_74C >> 3;
         _ACTOR400600_ROTATE_CHILD(arg0, field_704, -work->field_74C);
     }
-    if ((u32)(work->field_71C - 6) >= 2U) {
+    if ((u32)(work->state - 6) >= 2U) {
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
@@ -4147,7 +3827,7 @@ static s32 func_actor_400600_80137AF0(Task* arg0)
         return 0;
     }
     if ((u32)(work->field_72C - 0x400) >= 0x801U && (u32)(work->field_72A - 0x300) >= 0xA01U) {
-        if (work->field_728 < 0xBB8) {
+        if (work->playerDistance < 0xBB8) {
             model = arg0->extra.tmd;
             if (work->field_75C.b.field_75E != 1) {
                 work->field_75C.b.field_75E = 1;
@@ -4157,9 +3837,9 @@ static s32 func_actor_400600_80137AF0(Task* arg0)
                 Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
                 func_actor_400600_801387DC(arg0, 2);
             }
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 0x11;
-            work2->field_71E = 0;
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 0x11;
+            work2->subState = 0;
             return 1;
         }
     } else {
@@ -4197,10 +3877,10 @@ static s32 func_actor_400600_80137C34(Task* arg0)
     rnd             = gRandomLcgState >> 0x10;
     switch (work->field_76D) {
         case 0:
-            if (work->field_732 != 0) {
+            if (work->timer != 0) {
                 return 0;
             }
-            if (work->field_768 == 0) {
+            if (work->onCeiling == 0) {
                 if ((rnd & 0xF) == 0) {
                     if (!(arg0->spawnArg1.value & 1) && work->field_710.h.timer == 0) {
                         func_actor_400600_80137498(arg0, 2);
@@ -4209,65 +3889,65 @@ static s32 func_actor_400600_80137C34(Task* arg0)
                     return 0;
                 }
                 if ((rnd & 7) == 1 || (rnd & 7) == 2) {
-                    if (work->field_728 < 0x5DC && (u32)(work->field_72C - 0x200) >= 0xC01U) {
-                        work2            = (Actor400600Work*)arg0->work;
-                        work2->field_71C = 8;
-                        work2->field_71E = 0;
+                    if (work->playerDistance < 0x5DC && (u32)(work->field_72C - 0x200) >= 0xC01U) {
+                        work2           = (Actor400600Work*)arg0->work;
+                        work2->state    = 8;
+                        work2->subState = 0;
                         return 1;
                     }
-                } else if (work->field_728 < 0x5DC) {
+                } else if (work->playerDistance < 0x5DC) {
                     if ((s16)work->field_72C < 0x400) {
-                        work2            = (Actor400600Work*)arg0->work;
-                        work2->field_71C = 6;
-                        work2->field_71E = 0;
+                        work2           = (Actor400600Work*)arg0->work;
+                        work2->state    = 6;
+                        work2->subState = 0;
                         return 1;
                     }
                     if ((s16)work->field_72C > 0xC00) {
-                        work2            = (Actor400600Work*)arg0->work;
-                        work2->field_71C = 7;
-                        work2->field_71E = 0;
+                        work2           = (Actor400600Work*)arg0->work;
+                        work2->state    = 7;
+                        work2->subState = 0;
                         return 1;
                     }
                 }
             } else if ((rnd & 7) == 0) {
                 if (work->field_710.h.timer == 0) {
-                    work2            = (Actor400600Work*)arg0->work;
-                    work2->field_71C = 0x10;
-                    work2->field_71E = 0;
+                    work2           = (Actor400600Work*)arg0->work;
+                    work2->state    = 0x10;
+                    work2->subState = 0;
                     return 1;
                 }
             } else if ((rnd & 0xF) == 1) {
                 if (work->field_710.h.timer == 0) {
-                    work2            = (Actor400600Work*)arg0->work;
-                    work2->field_71C = 0xD;
-                    work2->field_71E = 0;
+                    work2           = (Actor400600Work*)arg0->work;
+                    work2->state    = 0xD;
+                    work2->subState = 0;
                     return 1;
                 }
             } else {
-                rnd1                                      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                rnd2                                      = (rnd1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState                           = rnd2;
-                ((Actor400600Work*)arg0->work)->field_732 = 0x3C + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
+                rnd1                                  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                rnd2                                  = (rnd1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState                       = rnd2;
+                ((Actor400600Work*)arg0->work)->timer = 0x3C + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
                 return 0;
             }
             return 0;
         case 1:
             work->field_76D = 0;
-            dist            = func_actor_400600_801376EC(arg0);
+            dist            = stalkerZebraIvoryWallDistance(arg0);
             if ((u16)(dist - 0x7D1) < 0x3E8) {
                 if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0)) {
                     y = -0x9C4;
                 } else {
                     y = coord->coord.t[1] - dist;
                 }
-                work->field_9A                                 = y;
-                work3                                          = (Actor400600Work*)arg0->work;
-                work3->field_71C                               = 0xC;
-                work3->field_71E                               = 0;
-                ((Actor400600Work*)arg0->work)->obj_604.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+                work->field_9A                                     = y;
+                work3                                              = (Actor400600Work*)arg0->work;
+                work3->state                                       = 0xC;
+                work3->subState                                    = 0;
+                ((Actor400600Work*)arg0->work)->capsuleBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                 return 1;
             }
-            ((Actor400600Work*)arg0->work)->obj_604.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+            ((Actor400600Work*)arg0->work)->capsuleBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             return 0;
     }
     return 0;
@@ -4292,13 +3972,13 @@ static void func_actor_400600_80137EF0(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
-            Actor400600_TickAnim(arg0);
-            fns.funcs[(s16)work->field_71C](arg0);
+            stalkerZebraIvoryTickAnimInline(arg0);
+            fns.funcs[(s16)work->state](arg0);
             func_actor_400600_80136558(arg0);
-            Actor400600_RebuildRotation(arg0);
+            stalkerZebraIvoryApplyRotationInline(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
-            Gp_ClearRec18Occupied(work->rec_63C);
+            Gp_ClearRec18Occupied(work->capsuleContacts);
             actorUpdateModelColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
@@ -4486,43 +4166,23 @@ static void func_actor_400600_80138A24(Task* arg0, s16 arg1)
     }
 }
 
-static void func_actor_400600_80138AA4(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-
-    work->field_766 = 0;
-    work->field_765 = 0;
-}
+#include "../../shared/stalker_zebra_ivory_clear_queued.inc.c"
 
 static void func_actor_400600_80138AB8(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    if (work->field_732 > 0) {
-        work->field_732 = (u16)work->field_732 - 1;
+    if (work->timer > 0) {
+        work->timer = (u16)work->timer - 1;
     }
     if (work->field_710.h.timer > 0) {
         work->field_710.h.timer = (u16)work->field_710.h.timer - 1;
     }
 }
 
-static void func_actor_400600_80138AF0(Task* arg0, s32 arg1)
-{
-    u32 rnd1;
-    u32 rnd2;
+#include "../../shared/stalker_zebra_ivory_seed_timer.inc.c"
 
-    rnd1                                      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    rnd2                                      = (rnd1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    gRandomLcgState                           = rnd2;
-    ((Actor400600Work*)arg0->work)->field_732 = arg1 + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
-}
-
-static void func_actor_400600_80138B40(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-
-    work->obj_604.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-}
+#include "../../shared/stalker_zebra_ivory_drop_capsule_grid.inc.c"
 
 static void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
 {
@@ -4566,13 +4226,13 @@ static void func_actor_400600_80138C34(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
-            func_actor_400600_80139CAC(arg0);
-            fns.funcs[(s16)work->field_71C](arg0);
+            stalkerZebraIvoryTickAnim(arg0);
+            fns.funcs[(s16)work->state](arg0);
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
-            Gp_ClearRec18Occupied(work->rec_63C);
+            Gp_ClearRec18Occupied(work->capsuleContacts);
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80132704(arg0, work->field_73C, work->field_73A);
             break;
@@ -4592,13 +4252,13 @@ static void func_actor_400600_80138D78(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
-            func_actor_400600_80139CAC(arg0);
-            fns.funcs[(s16)work->field_71C](arg0);
+            stalkerZebraIvoryTickAnim(arg0);
+            fns.funcs[(s16)work->state](arg0);
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
-            Gp_ClearRec18Occupied(work->rec_63C);
+            Gp_ClearRec18Occupied(work->capsuleContacts);
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
@@ -4618,13 +4278,13 @@ static void func_actor_400600_80138EA0(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
-            fns.funcs[(s16)work->field_71C](arg0);
-            func_actor_400600_80139CAC(arg0);
+            fns.funcs[(s16)work->state](arg0);
+            stalkerZebraIvoryTickAnim(arg0);
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
-            Gp_ClearRec18Occupied(work->rec_63C);
+            Gp_ClearRec18Occupied(work->capsuleContacts);
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, (u8)work->field_73A);
             break;
@@ -4644,13 +4304,13 @@ static void func_actor_400600_80138FD4(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_716++;
             func_actor_400600_80136670(arg0);
-            fns.funcs[(s16)work->field_71C](arg0);
-            func_actor_400600_80139CAC(arg0);
+            fns.funcs[(s16)work->state](arg0);
+            stalkerZebraIvoryTickAnim(arg0);
             func_actor_400600_80136558(arg0);
             stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
-            Gp_ClearRec18Occupied(work->rec_63C);
+            Gp_ClearRec18Occupied(work->capsuleContacts);
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
@@ -4661,8 +4321,8 @@ static void func_actor_400600_801390FC(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    work->field_71C = 1;
-    work->field_71E = 0;
+    work->state    = 1;
+    work->subState = 0;
 }
 
 static void func_actor_400600_80139110(Task* arg0)
@@ -4670,14 +4330,14 @@ static void func_actor_400600_80139110(Task* arg0)
     Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013B6F4, func_actor_400600_8013B740 };
 
-    func_actor_400600_80138AA4(arg0);
+    stalkerZebraIvoryClearQueued(arg0);
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
-        fns[(s16)work->field_71E](arg0);
-        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0) && work->field_768 != 0 && arg0->extra.tmd->coords->coord.t[0] > 10000) {
+        fns[(s16)work->subState](arg0);
+        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0) && work->onCeiling != 0 && arg0->extra.tmd->coords->coord.t[0] > 10000) {
             Actor400600Work* cur = (Actor400600Work*)arg0->work;
 
-            cur->field_71C = 0xD;
-            cur->field_71E = 0;
+            cur->state    = 0xD;
+            cur->subState = 0;
         }
     }
 }
@@ -4687,8 +4347,8 @@ static void func_actor_400600_80139218(Task* arg0)
     Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013B830, func_actor_400600_8013B8AC };
 
-    func_actor_400600_80138AA4(arg0);
-    fns[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_80139280(Task* arg0)
@@ -4696,8 +4356,8 @@ static void func_actor_400600_80139280(Task* arg0)
     Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013B984, func_actor_400600_8013BA00 };
 
-    func_actor_400600_80138AA4(arg0);
-    fns[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_801392E8(Task* arg0)
@@ -4705,8 +4365,8 @@ static void func_actor_400600_801392E8(Task* arg0)
     Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable3   fns  = D_actor_400600_80131F34;
 
-    func_actor_400600_80138AA4(arg0);
-    fns.funcs[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_8013935C(Task* arg0)
@@ -4715,7 +4375,7 @@ static void func_actor_400600_8013935C(Task* arg0)
     void             (*fns[2])(Task*) = { func_actor_400600_8013BBF4, func_actor_400600_80133CB0 };
 
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
-        fns[(s16)work->field_71E](arg0);
+        fns[(s16)work->subState](arg0);
     }
 }
 
@@ -4725,7 +4385,7 @@ static void func_actor_400600_801393D0(Task* arg0)
     void             (*fns[2])(Task*) = { func_actor_400600_8013BC68, func_actor_400600_80133E38 };
 
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
-        fns[(s16)work->field_71E](arg0);
+        fns[(s16)work->subState](arg0);
     }
 }
 
@@ -4734,8 +4394,8 @@ static void func_actor_400600_80139444(Task* arg0)
     Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable8   fns  = D_actor_400600_80131F40;
 
-    func_actor_400600_80138AA4(arg0);
-    fns.funcs[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_801394E0(Task* arg0)
@@ -4743,8 +4403,8 @@ static void func_actor_400600_801394E0(Task* arg0)
     Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns  = D_actor_400600_80131F60;
 
-    func_actor_400600_80138AA4(arg0);
-    fns.funcs[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_80139560(Task* arg0)
@@ -4755,31 +4415,31 @@ static void func_actor_400600_80139560(Task* arg0)
     s16              count;
 
     work = (Actor400600Work*)arg0->work;
-    func_actor_400600_80138AA4(arg0);
+    stalkerZebraIvoryClearQueued(arg0);
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
-        count           = work->field_750 - 1;
-        work->field_750 = count;
+        count           = work->countdown - 1;
+        work->countdown = count;
         if (count == 0) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 0xB;
-            work2->field_71E = 0;
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 0xB;
+            work2->subState = 0;
             return;
         }
         pos.vx = work->field_A8.x;
         pos.vy = work->field_A8.y;
         pos.vz = work->field_A8.z;
         stalkerZebraIvoryTurnToward(arg0, &pos, 0x18);
-        func_actor_400600_80135DDC(arg0);
+        stalkerZebraIvoryStepClip4(arg0);
     }
 }
 
 static void func_actor_400600_80139608(Task* arg0)
 {
     Actor400600Work* work             = (Actor400600Work*)arg0->work;
-    void             (*fns[2])(Task*) = { func_actor_400600_8013BFD4, func_actor_400600_80134B98 };
+    void             (*fns[2])(Task*) = { func_actor_400600_8013BFD4, stalkerZebraIvoryRightItself };
 
-    func_actor_400600_80138AA4(arg0);
-    fns[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_80139670(Task* arg0)
@@ -4787,8 +4447,8 @@ static void func_actor_400600_80139670(Task* arg0)
     Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable3   fns  = D_actor_400600_80131F70;
 
-    func_actor_400600_80138AA4(arg0);
-    fns.funcs[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_801396E4(Task* arg0)
@@ -4796,8 +4456,8 @@ static void func_actor_400600_801396E4(Task* arg0)
     Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns  = D_actor_400600_80131F7C;
 
-    func_actor_400600_80138AA4(arg0);
-    fns.funcs[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_80139764(Task* arg0)
@@ -4805,28 +4465,19 @@ static void func_actor_400600_80139764(Task* arg0)
     Actor400600Work* work = (Actor400600Work*)arg0->work;
     TaskFuncTable4   fns  = D_actor_400600_80131F8C;
 
-    func_actor_400600_80138AA4(arg0);
-    fns.funcs[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
-static void func_actor_400600_801397E4(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-    TaskFuncTable3   fns  = D_actor_400600_80131F9C;
-
-    func_actor_400600_80138AA4(arg0);
-    if ((func_actor_400600_8013CACC(arg0) << 0x10) == 0) {
-        fns.funcs[(s16)work->field_71E](arg0);
-    }
-}
+#include "../../shared/stalker_zebra_ivory_run_sub_states.inc.c"
 
 static void func_actor_400600_80139878(Task* arg0)
 {
     Actor400600Work* work             = (Actor400600Work*)arg0->work;
-    void             (*fns[2])(Task*) = { func_actor_400600_8013C518, func_actor_400600_8013C534 };
+    void             (*fns[2])(Task*) = { func_actor_400600_8013C518, stalkerZebraIvoryPickRange };
 
-    func_actor_400600_80138AA4(arg0);
-    fns[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns[(s16)work->subState](arg0);
 }
 
 static void func_actor_400600_801398E0(Task* arg0)
@@ -4834,134 +4485,37 @@ static void func_actor_400600_801398E0(Task* arg0)
     Actor400600Work* work             = (Actor400600Work*)arg0->work;
     void             (*fns[2])(Task*) = { func_actor_400600_8013C598, func_actor_400600_8013C5F8 };
 
-    func_actor_400600_80138AA4(arg0);
-    fns[(s16)work->field_71E](arg0);
+    stalkerZebraIvoryClearQueued(arg0);
+    fns[(s16)work->subState](arg0);
 }
 
 #include "../../shared/stalker_zebra_ivory_apply_rotation.inc.c"
 
-static void func_actor_400600_80139A78(Task* arg0)
-{
-    Actor400600Work* work;
-    s32              i;
+#include "../../shared/stalker_zebra_ivory_restart_clip.inc.c"
 
-    work = (Actor400600Work*)arg0->work;
-    i    = 1;
-    do {
-        work->slots[i].rate = work->field_726;
-        animationResetSlot(&work->anim, i, work->field_746);
-        i++;
-    } while (i < 0x12);
-    work->field_744 = work->field_746;
-}
+#include "../../shared/stalker_zebra_ivory_blend_clip.inc.c"
 
-static void func_actor_400600_80139AE8(Task* arg0)
-{
-    Actor400600Work* work;
-    s32              i;
-
-    work = (Actor400600Work*)arg0->work;
-    if (work->field_744 == work->field_746) {
-        i = 1;
-        do {
-            work->slots[i].rate = work->field_726;
-            i++;
-        } while (i < 0x12);
-    } else {
-        i = 1;
-        do {
-            work->slots[i].rate = work->field_726;
-            func_800B4114(&work->anim, i, work->field_746, 0, work->field_720);
-            i++;
-        } while (i < 0x12);
-        work->field_720 = 0;
-    }
-    work->field_744 = work->field_746;
-}
-
-static s16 func_actor_400600_80139BA0(Task* arg0, s16 arg1)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-
-    if (work->field_726 == 0) {
-        return 0;
-    }
-    return ((arg1 << 8) / work->field_726 << 12) >> 16;
-}
+#include "../../shared/stalker_zebra_ivory_scale_frame.inc.c"
 
 #include "../../shared/stalker_zebra_ivory_turn_toward.inc.c"
 
-static void func_actor_400600_80139CAC(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-    s32              i;
+#include "../../shared/stalker_zebra_ivory_tick_anim.inc.c"
 
-    if (work->field_742 == 1) {
-        if (work->field_744 != work->field_746) {
-            work->field_748 = 0;
-        } else {
-            work->field_748 = func_actor_400600_80139BA0(arg0, work->field_748);
-        }
-        func_actor_400600_80139AE8(arg0);
-        work->field_742 = 3;
-    } else if (work->field_742 == 2) {
-        func_actor_400600_80139A78(arg0);
-        work->field_742 = 3;
-        work->field_748 = 0;
-    } else if (work->field_742 == 3) {
-        work->field_748++;
-    }
-    i = 1;
-    do {
-        work->slots[i].rate = work->field_726;
-        animationTickSlot(&work->anim, i);
-        i++;
-    } while (i < 0x12);
-}
-
-static void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-
-    work->field_726 = arg2;
-    work->field_746 = arg1;
-    work->field_742 = 2;
-}
+#include "../../shared/stalker_zebra_ivory_play_clip.inc.c"
 
 static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    work->field_720 = arg3;
-    work->field_726 = arg2;
-    work->field_746 = arg1;
-    work->field_742 = 1;
+    work->animBlend   = arg3;
+    work->animStep    = arg2;
+    work->animClip    = arg1;
+    work->animRequest = 1;
 }
 
 #include "../../shared/stalker_zebra_ivory_part_view_xz.inc.c"
 
-static void func_actor_400600_80139E68(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
-{
-    MATRIX    root;
-    MATRIX    local;
-    GfxCoord* coord;
-    GfxCoord* coords;
-
-    coords                     = arg0->extra.tmd->coords;
-    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                      = &coords[arg1];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
-    coords[0].coord.t[0]   = arg2->x - (local.t[0] - root.t[0]);
-    coords[0].coord.t[2]   = arg2->z - (local.t[2] - root.t[2]);
-    coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->composeStamp    = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    Gp_UpdateCoord(coords);
-}
+#include "../../shared/stalker_zebra_ivory_pin_part_xz.inc.c"
 
 static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
 {
@@ -4999,21 +4553,7 @@ static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, StalkerZebraIvoryVi
     Gp_UpdateCoord(coords);
 }
 
-/// Returns 1 when any of bits 0, 1 or 8 of the second animation slot's
-/// `slots[1].flags` is set (reached a boundary, followed a control record, or
-/// holding the boundary pose, `ANIMATION_SLOT_SETTLED`) and 0 otherwise. Bit 0
-/// is read as a halfword and the other two through the word starting there,
-/// which is why the work block is seen through `ActorsShared8013a0b0Work`.
-static s32 func_actor_400600_8013A0B0(Task* arg0)
-{
-    ActorsShared8013a0b0Work* work = (ActorsShared8013a0b0Work*)arg0->work;
-
-    if ((work->flags_FC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_FC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        return 1;
-    }
-    return 0;
-}
+#include "../../shared/stalker_zebra_ivory_clip_done.inc.c"
 
 void func_actor_400600_8013A0F0(Task* arg0)
 {
@@ -5034,7 +4574,7 @@ static void func_actor_400600_8013A170(Task* arg0)
             func_actor_400600_801387DC(arg0, -1);
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            fns.funcs[(s16)work->field_71C](arg0);
+            fns.funcs[(s16)work->state](arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
@@ -5050,30 +4590,12 @@ static void func_actor_400600_8013A26C(Task* arg0)
         func_actor_400600_8013AB44,
     };
 
-    states[(s16)work->field_71C](arg0);
+    states[(s16)work->state](arg0);
 }
 
 #include "../../shared/stalker_zebra_ivory_update_color.inc.c"
 
-void func_actor_400600_8013A338(Task* arg0, s32 arg1, u16* arg2)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-
-    switch (arg2[1]) {
-        case 0:
-            work->field_762 = 1;
-            break;
-        case 1:
-            work->field_762 = 2;
-            break;
-        case 2:
-            work->field_762 = 3;
-            break;
-        case 3:
-            work->field_762 = 4;
-            break;
-    }
-}
+#include "../../shared/stalker_zebra_ivory_set_move_mode.inc.c"
 
 void func_actor_400600_8013A3A8(Task* arg0)
 {
@@ -5100,40 +4622,24 @@ static void func_actor_400600_8013A3C8(Task* arg0)
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UnlinkNode(&enemy->node);
-    if (work->field_730 == 4) {
+    if (work->pendingAction == 4) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         func_actor_400600_801387DC(arg0, -1);
         work->field_718 = 0;
         func_actor_400600_8013CC04(arg0, 7);
-    } else if (work->field_768 == 0) {
+    } else if (work->onCeiling == 0) {
         model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         func_actor_400600_801387DC(arg0, 0);
-        work->field_71C = work->field_71C + 1;
+        work->state = work->state + 1;
     } else {
         func_actor_400600_8013CC04(arg0, 9);
     }
 }
 
-static void func_actor_400600_8013A4AC(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
+#include "../../shared/stalker_zebra_ivory_resume_clip.inc.c"
 
-    Gp_ReleaseStateF0Add(arg0, 0);
-    func_actor_400600_80139D98(arg0, D_actor_400600_80151B1C[work->field_746], 0x10);
-    func_actor_400600_80139CAC(arg0);
-    work->field_71C = work->field_71C + 1;
-}
-
-static void func_actor_400600_8013A518(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-
-    func_actor_400600_80139CAC(arg0);
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        work->field_71C = work->field_71C + 1;
-    }
-}
+#include "../../shared/stalker_zebra_ivory_animate_until_done.inc.c"
 
 static void func_actor_400600_8013A570(Task* arg0)
 {
@@ -5144,12 +4650,12 @@ static void func_actor_400600_8013A570(Task* arg0)
     Gp_UnlinkObj(&work->obj_4B4);
     Gp_UnlinkObj(&work->obj_594);
     Gp_UnlinkObj(&work->obj_5CC);
-    Gp_UnlinkObj(&work->obj_604);
+    Gp_UnlinkObj(&work->capsuleBody);
     work->field_714 = 0x1000;
     work->matrix_0  = coord->coord;
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
     work->field_718 = 0;
-    work->field_71C++;
+    work->state++;
 }
 
 static void func_actor_400600_8013A638(Task* arg0)
@@ -5167,7 +4673,7 @@ static void func_actor_400600_8013A638(Task* arg0)
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         func_actor_400600_801387DC(arg0, 2);
         work->field_718 = 0;
-        work->field_71C = work->field_71C + 1;
+        work->state     = work->state + 1;
     }
 }
 
@@ -5200,7 +4706,7 @@ static void func_actor_400600_8013A6C4(Task* arg0)
     if ((s16)work->field_718 >= 0x11) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         func_actor_400600_801387DC(arg0, -1);
-        work->field_71C = work->field_71C + 1;
+        work->state = work->state + 1;
     }
 }
 
@@ -5208,9 +4714,9 @@ static void func_actor_400600_8013A808(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    arg0->state     = 3;
-    work->field_71C = 0;
-    work->field_71E = 0;
+    arg0->state    = 3;
+    work->state    = 0;
+    work->subState = 0;
 }
 
 static void func_actor_400600_8013A820(Task* arg0)
@@ -5222,7 +4728,7 @@ static void func_actor_400600_8013A820(Task* arg0)
     frame           = work->field_718 + 1;
     work->field_718 = frame;
     if ((s16)frame >= 2) {
-        work->field_71C = work->field_71C + 1;
+        work->state = work->state + 1;
     }
 }
 
@@ -5244,11 +4750,11 @@ static void func_actor_400600_8013A864(Task* arg0)
     Gp_UnlinkObj(&work->obj_4B4);
     Gp_UnlinkObj(&work->obj_594);
     Gp_UnlinkObj(&work->obj_5CC);
-    Gp_UnlinkObj(&work->obj_604);
-    work2            = (Actor400600Work*)arg0->work;
-    arg0->state      = 3;
-    work2->field_71C = 0;
-    work2->field_71E = 0;
+    Gp_UnlinkObj(&work->capsuleBody);
+    work2           = (Actor400600Work*)arg0->work;
+    arg0->state     = 3;
+    work2->state    = 0;
+    work2->subState = 0;
 }
 
 static void func_actor_400600_8013A908(Task* arg0)
@@ -5264,8 +4770,8 @@ static void func_actor_400600_8013A908(Task* arg0)
     work->field_722 = 0;
     work->field_724 = 0;
     work->field_73E = work->field_92;
-    func_actor_400600_80139CAC(arg0);
-    work->field_71C = work->field_71C + 1;
+    stalkerZebraIvoryTickAnim(arg0);
+    work->state = work->state + 1;
 }
 
 static void func_actor_400600_8013A990(Task* arg0)
@@ -5280,17 +4786,17 @@ static void func_actor_400600_8013A990(Task* arg0)
     coord->coord.t[1] += work->field_724;
     if ((s16)work->field_92 < coord->coord.t[1]) {
         coord->coord.t[1] = (s16)work->field_92;
-        func_actor_400600_80139D98(arg0, 0x13, 0x10);
-        work->field_84 += 0x800;
+        stalkerZebraIvoryPlayClip(arg0, 0x13, 0x10);
+        work->roll += 0x800;
         stalkerZebraIvoryApplyRotation(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         work->field_718 = 0;
-        work->field_768 = 0;
-        work->field_769 = 1;
-        work->field_71C++;
+        work->onCeiling = 0;
+        work->onBack    = 1;
+        work->state++;
     }
-    func_actor_400600_80139CAC(arg0);
+    stalkerZebraIvoryTickAnim(arg0);
 }
 
 static void func_actor_400600_8013AA5C(Task* arg0)
@@ -5301,10 +4807,10 @@ static void func_actor_400600_8013AA5C(Task* arg0)
         func_actor_400600_8013CB70(arg0, 0x40060006);
         work->field_718 = work->field_718 + 1;
     }
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         func_actor_400600_8013CC04(arg0, 1);
     }
-    func_actor_400600_80139CAC(arg0);
+    stalkerZebraIvoryTickAnim(arg0);
 }
 
 static void func_actor_400600_8013AAD8(Task* arg0)
@@ -5324,7 +4830,7 @@ static void func_actor_400600_8013AAD8(Task* arg0)
         taskKill(child2);
     }
     work->field_718 = 0;
-    work->field_71C = work->field_71C + 1;
+    work->state     = work->state + 1;
 }
 
 static void func_actor_400600_8013AB44(Task* arg0)
@@ -5353,7 +4859,7 @@ static void func_actor_400600_8013AB98(Task* arg0)
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_71C      = work->field_71C + 1;
+    work->state          = work->state + 1;
 }
 
 static void func_actor_400600_8013AC14(Task* arg0)
@@ -5366,35 +4872,35 @@ static void func_actor_400600_8013AC14(Task* arg0)
     work  = (Actor400600Work*)arg0->work;
     model = arg0->extra.tmd;
     coord = model->coords;
-    if (work->field_762 == 1) {
+    if (work->moveMode == 1) {
         func_dryfield_night_junk_yard_8017D9B8(0);
         coord->coord.t[0] = 0x40C8;
         coord->coord.t[1] = -0x708;
         coord->coord.t[2] = -0x3E8;
-        work->field_80    = 0;
-        work->field_82    = 0;
-        work->field_84    = 0;
+        work->pitch       = 0;
+        work->yaw         = 0;
+        work->roll        = 0;
         model->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_722   = 0;
         work->field_724   = 0;
-        func_actor_400600_80139D98(arg0, 0x15, 0x10);
+        stalkerZebraIvoryPlayClip(arg0, 0x15, 0x10);
         func_actor_400600_80138B5C(arg0, 0);
-        work->field_71C = work->field_71C + 1;
-    } else if (work->field_762 == 3) {
+        work->state = work->state + 1;
+    } else if (work->moveMode == 3) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         coord->coord.t[0]    = 0x32C2;
         coord->coord.t[2]    = 0x960;
         coord->coord.t[1]    = 0;
-        work->field_80       = 0;
-        work->field_82       = 0xC00;
-        work->field_84       = 0;
+        work->pitch          = 0;
+        work->yaw            = 0xC00;
+        work->roll           = 0;
         work->field_73A      = 0;
         work2                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
-        work2->field_71C     = 0;
-        work2->field_71E     = 0;
+        work2->state         = 0;
+        work2->subState      = 0;
     }
 }
 
@@ -5402,12 +4908,12 @@ static void func_actor_400600_8013AD3C(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->field_718 = 0;
         work->field_722 = 0;
         work->field_724 = 0;
-        func_actor_400600_80139D98(arg0, 0x22, 0x10);
-        work->field_71C = work->field_71C + 1;
+        stalkerZebraIvoryPlayClip(arg0, 0x22, 0x10);
+        work->state = work->state + 1;
     }
 }
 
@@ -5438,9 +4944,9 @@ static void func_actor_400600_8013ADA4(Task* arg0)
         if (y >= 0) {
             Gp_SpawnPadLerp(0x10, 0x80, 0x20);
             work->field_718 = 0;
-            func_actor_400600_80139D98(arg0, 0x19, 0x10);
+            stalkerZebraIvoryPlayClip(arg0, 0x19, 0x10);
             coord->coord.t[1] = 0;
-            work->field_71C   = work->field_71C + 1;
+            work->state       = work->state + 1;
         }
     }
 }
@@ -5458,7 +4964,7 @@ static void func_actor_400600_8013AE88(Task* arg0)
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_71C      = work->field_71C + 1;
+    work->state          = work->state + 1;
 }
 
 static void func_actor_400600_8013AF04(Task* arg0)
@@ -5471,34 +4977,34 @@ static void func_actor_400600_8013AF04(Task* arg0)
     work  = (Actor400600Work*)arg0->work;
     model = arg0->extra.tmd;
     coord = model->coords;
-    if (work->field_762 == 2) {
+    if (work->moveMode == 2) {
         coord->coord.t[0] = 0x1FDD;
         coord->coord.t[1] = -0xE38;
         coord->coord.t[2] = 0x5CE;
-        work->field_80    = 0;
-        work->field_82    = 0x400;
-        work->field_84    = 0;
+        work->pitch       = 0;
+        work->yaw         = 0x400;
+        work->roll        = 0;
         model->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->field_722   = 0;
         work->field_724   = 0;
-        func_actor_400600_80139D98(arg0, 0x15, 0x10);
+        stalkerZebraIvoryPlayClip(arg0, 0x15, 0x10);
         func_actor_400600_80138B5C(arg0, 0);
-        work->field_71C = work->field_71C + 1;
-    } else if (work->field_762 == 3) {
+        work->state = work->state + 1;
+    } else if (work->moveMode == 3) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         coord->coord.t[0]    = 0x640;
         coord->coord.t[2]    = 0x87A;
         coord->coord.t[1]    = 0;
-        work->field_80       = 0;
-        work->field_82       = 0x400;
-        work->field_84       = 0;
+        work->pitch          = 0;
+        work->yaw            = 0x400;
+        work->roll           = 0;
         work->field_73A      = 0;
         work2                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
-        work2->field_71C     = 0;
-        work2->field_71E     = 0;
+        work2->state         = 0;
+        work2->subState      = 0;
     }
 }
 
@@ -5511,7 +5017,7 @@ static void func_actor_400600_8013B018(Task* arg0)
     s32              pan;
 
     work = (Actor400600Work*)arg0->work;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -5520,11 +5026,11 @@ static void func_actor_400600_8013B018(Task* arg0)
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work2                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
-        work2->field_71C     = 0;
-        work2->field_71E     = 0;
+        work2->state         = 0;
+        work2->subState      = 0;
         work3                = (Actor400600Work*)arg0->work;
-        work3->field_71C     = 2;
-        work3->field_71E     = 0;
+        work3->state         = 2;
+        work3->subState      = 0;
     }
 }
 
@@ -5540,7 +5046,7 @@ static void func_actor_400600_8013B0FC(Task* arg0)
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_71C      = work->field_71C + 1;
+    work->state          = work->state + 1;
 }
 
 static void func_actor_400600_8013B150(Task* arg0)
@@ -5550,18 +5056,18 @@ static void func_actor_400600_8013B150(Task* arg0)
     Actor400600Work* work3;
 
     work = (Actor400600Work*)arg0->work;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ArmStateF0(1);
-        work2            = (Actor400600Work*)arg0->work;
-        arg0->state      = 1;
-        work2->field_71C = 0;
-        work2->field_71E = 0;
-        work3            = (Actor400600Work*)arg0->work;
-        work3->field_71C = 2;
-        work3->field_71E = 0;
+        work2           = (Actor400600Work*)arg0->work;
+        arg0->state     = 1;
+        work2->state    = 0;
+        work2->subState = 0;
+        work3           = (Actor400600Work*)arg0->work;
+        work3->state    = 2;
+        work3->subState = 0;
     }
 }
 
@@ -5582,7 +5088,7 @@ static void func_actor_400600_8013B1DC(Task* arg0)
         work->field_722 = -0xA;
         work->field_724 = 0;
         func_actor_400600_80139DB0(arg0, 0x15, 0x10, 4);
-        work->field_71C = work->field_71C + 1;
+        work->state = work->state + 1;
     }
 }
 
@@ -5595,7 +5101,7 @@ static void func_actor_400600_8013B2A8(Task* arg0)
     s32              pan;
 
     work = (Actor400600Work*)arg0->work;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x404A0004;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -5603,13 +5109,13 @@ static void func_actor_400600_8013B2A8(Task* arg0)
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ArmStateF0(1);
-        work2            = (Actor400600Work*)arg0->work;
-        arg0->state      = 1;
-        work2->field_71C = 0;
-        work2->field_71E = 0;
-        work3            = (Actor400600Work*)arg0->work;
-        work3->field_71C = 2;
-        work3->field_71E = 0;
+        work2           = (Actor400600Work*)arg0->work;
+        arg0->state     = 1;
+        work2->state    = 0;
+        work2->subState = 0;
+        work3           = (Actor400600Work*)arg0->work;
+        work3->state    = 2;
+        work3->subState = 0;
     }
 }
 
@@ -5626,7 +5132,7 @@ static void func_actor_400600_8013B394(Task* arg0)
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_71C      = work->field_71C + 1;
+    work->state          = work->state + 1;
 }
 
 static void func_actor_400600_8013B410(Task* arg0)
@@ -5647,9 +5153,9 @@ static void func_actor_400600_8013B410(Task* arg0)
         soundId         = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060003;
         pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        func_actor_400600_80139D98(arg0, 0x19, 0x10);
+        stalkerZebraIvoryPlayClip(arg0, 0x19, 0x10);
         coords->coord.t[1] = 0;
-        work->field_71C++;
+        work->state++;
     }
 }
 
@@ -5666,7 +5172,7 @@ static void func_actor_400600_8013B520(Task* arg0)
     if ((s16)work->field_718 == 1) {
         Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
     }
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -5676,11 +5182,11 @@ static void func_actor_400600_8013B520(Task* arg0)
         gSceneCombatState.zebraStalkerGroupPhase = SCENE_COMBAT_ZEBRA_STALKER_DELAYED;
         work2                                    = (Actor400600Work*)arg0->work;
         arg0->state                              = 1;
-        work2->field_71C                         = 0;
-        work2->field_71E                         = 0;
+        work2->state                             = 0;
+        work2->subState                          = 0;
         work3                                    = (Actor400600Work*)arg0->work;
-        work3->field_71C                         = 2;
-        work3->field_71E                         = 0;
+        work3->state                             = 2;
+        work3->subState                          = 0;
     }
 }
 
@@ -5723,7 +5229,7 @@ static void func_actor_400600_8013B6F4(Task* arg0)
     work->field_76B = 0;
     work->field_752 = 0x10;
     func_actor_400600_80135998(arg0, 0x10);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013B740(Task* arg0)
@@ -5735,7 +5241,7 @@ static void func_actor_400600_8013B740(Task* arg0)
     u32              rnd;
 
     min = 0x10;
-    if (work->field_728 > 0xBB8 && work->field_76B == 0) {
+    if (work->playerDistance > 0xBB8 && work->field_76B == 0) {
         rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         if ((rnd >> 0x10) & 1) {
@@ -5762,19 +5268,19 @@ static void func_actor_400600_8013B830(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    if (work->field_769 == 0) {
-        work->field_720 = 2;
-        work->field_726 = 0x20;
-        work->field_746 = 9;
-        work->field_742 = 1;
+    if (work->onBack == 0) {
+        work->animBlend   = 2;
+        work->animStep    = 0x20;
+        work->animClip    = 9;
+        work->animRequest = 1;
     } else {
-        work->field_720 = 2;
-        work->field_726 = 0x20;
-        work->field_746 = 0xB;
-        work->field_742 = 1;
+        work->animBlend   = 2;
+        work->animStep    = 0x20;
+        work->animClip    = 0xB;
+        work->animRequest = 1;
     }
     func_actor_400600_80138B5C(arg0, 0);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013B8AC(Task* arg0)
@@ -5784,27 +5290,27 @@ static void func_actor_400600_8013B8AC(Task* arg0)
     Actor400600Work* work3;
 
     work = (Actor400600Work*)arg0->work;
-    if (work->field_72E != 0 && work->field_730 == 1) {
-        if (work->field_769 == 0) {
-            work->field_726 = 0x20;
-            work->field_746 = 9;
-            work->field_742 = 2;
+    if (work->pendingArmed != 0 && work->pendingAction == 1) {
+        if (work->onBack == 0) {
+            work->animStep    = 0x20;
+            work->animClip    = 9;
+            work->animRequest = 2;
         } else {
-            work->field_726 = 0x20;
-            work->field_746 = 0xB;
-            work->field_742 = 2;
+            work->animStep    = 0x20;
+            work->animClip    = 0xB;
+            work->animRequest = 2;
         }
         return;
     }
-    if ((func_actor_400600_80136FA8(arg0) << 0x10) == 0 && (func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        if (work->field_769 == 0) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 2;
-            work2->field_71E = 0;
+    if ((func_actor_400600_80136FA8(arg0) << 0x10) == 0 && (stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        if (work->onBack == 0) {
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 2;
+            work2->subState = 0;
         } else {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_71C = 0xA;
-            work3->field_71E = 0;
+            work3           = (Actor400600Work*)arg0->work;
+            work3->state    = 0xA;
+            work3->subState = 0;
         }
     }
 }
@@ -5813,19 +5319,19 @@ static void func_actor_400600_8013B984(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    if (work->field_769 == 0) {
-        work->field_720 = 3;
-        work->field_726 = 0x10;
-        work->field_746 = 0xA;
-        work->field_742 = 1;
+    if (work->onBack == 0) {
+        work->animBlend   = 3;
+        work->animStep    = 0x10;
+        work->animClip    = 0xA;
+        work->animRequest = 1;
     } else {
-        work->field_720 = 3;
-        work->field_726 = 0x10;
-        work->field_746 = 0xC;
-        work->field_742 = 1;
+        work->animBlend   = 3;
+        work->animStep    = 0x10;
+        work->animClip    = 0xC;
+        work->animRequest = 1;
     }
     func_actor_400600_80138B5C(arg0, 0);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013BA00(Task* arg0)
@@ -5835,15 +5341,15 @@ static void func_actor_400600_8013BA00(Task* arg0)
     Actor400600Work* work3;
 
     work = (Actor400600Work*)arg0->work;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        if (work->field_769 == 0) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 2;
-            work2->field_71E = 0;
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        if (work->onBack == 0) {
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 2;
+            work2->subState = 0;
         } else {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_71C = 0xA;
-            work3->field_71E = 0;
+            work3           = (Actor400600Work*)arg0->work;
+            work3->state    = 0xA;
+            work3->subState = 0;
         }
     }
 }
@@ -5852,19 +5358,19 @@ static void func_actor_400600_8013BA6C(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    if (work->field_769 == 0) {
-        work->field_720 = 8;
-        work->field_726 = 0x10;
-        work->field_746 = 0xF;
-        work->field_742 = 1;
+    if (work->onBack == 0) {
+        work->animBlend   = 8;
+        work->animStep    = 0x10;
+        work->animClip    = 0xF;
+        work->animRequest = 1;
     } else {
-        work->field_720 = 3;
-        work->field_726 = 0x10;
-        work->field_746 = 0x11;
-        work->field_742 = 1;
+        work->animBlend   = 3;
+        work->animStep    = 0x10;
+        work->animClip    = 0x11;
+        work->animRequest = 1;
     }
     func_actor_400600_80138B5C(arg0, 0);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013BAEC(Task* arg0)
@@ -5875,20 +5381,20 @@ static void func_actor_400600_8013BAEC(Task* arg0)
 
     work = (Actor400600Work*)arg0->work;
     if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-        if (work->field_769 == 0) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_720 = 8;
-            work2->field_726 = 0x10;
-            work2->field_746 = 0x10;
-            work2->field_742 = 1;
+        if (work->onBack == 0) {
+            work2              = (Actor400600Work*)arg0->work;
+            work2->animBlend   = 8;
+            work2->animStep    = 0x10;
+            work2->animClip    = 0x10;
+            work2->animRequest = 1;
         } else {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_720 = 8;
-            work3->field_726 = 0x10;
-            work3->field_746 = 0x12;
-            work3->field_742 = 1;
+            work3              = (Actor400600Work*)arg0->work;
+            work3->animBlend   = 8;
+            work3->animStep    = 0x10;
+            work3->animClip    = 0x12;
+            work3->animRequest = 1;
         }
-        work->field_71E = work->field_71E + 1;
+        work->subState = work->subState + 1;
     }
 }
 
@@ -5899,15 +5405,15 @@ static void func_actor_400600_8013BB88(Task* arg0)
     Actor400600Work* work3;
 
     work = (Actor400600Work*)arg0->work;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        if (work->field_769 == 0) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 2;
-            work2->field_71E = 0;
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        if (work->onBack == 0) {
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 2;
+            work2->subState = 0;
         } else {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_71C = 0xA;
-            work3->field_71E = 0;
+            work3           = (Actor400600Work*)arg0->work;
+            work3->state    = 0xA;
+            work3->subState = 0;
         }
     }
 }
@@ -5916,28 +5422,28 @@ static void func_actor_400600_8013BBF4(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    work->field_720 = 8;
-    work->field_726 = 0x10;
-    work->field_746 = 7;
-    work->field_742 = 1;
-    work->field_718 = 0;
+    work->animBlend   = 8;
+    work->animStep    = 0x10;
+    work->animClip    = 7;
+    work->animRequest = 1;
+    work->field_718   = 0;
     func_actor_400600_8013CB40(arg0, 0);
     func_actor_400600_80138B5C(arg0, 0);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013BC68(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    work->field_720 = 8;
-    work->field_726 = 0x10;
-    work->field_746 = 8;
-    work->field_742 = 1;
-    work->field_718 = 0;
+    work->animBlend   = 8;
+    work->animStep    = 0x10;
+    work->animClip    = 8;
+    work->animRequest = 1;
+    work->field_718   = 0;
     func_actor_400600_8013CB40(arg0, 1);
     func_actor_400600_80138B5C(arg0, 0);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013BCD8(Task* arg0)
@@ -5949,12 +5455,12 @@ static void func_actor_400600_8013BCD8(Task* arg0)
     if ((func_actor_400600_80136FA8(arg0) << 0x10) == 0) {
         work->field_718 = 0;
         func_actor_400600_80138B5C(arg0, 0);
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_720 = 4;
-        work2->field_726 = 0x10;
-        work2->field_746 = 1;
-        work2->field_742 = 1;
-        work->field_71E  = work->field_71E + 1;
+        work2              = (Actor400600Work*)arg0->work;
+        work2->animBlend   = 4;
+        work2->animStep    = 0x10;
+        work2->animClip    = 1;
+        work2->animRequest = 1;
+        work->subState     = work->subState + 1;
     }
 }
 
@@ -5969,13 +5475,13 @@ static void func_actor_400600_8013BD54(Task* arg0)
         frame           = work->field_718 + 1;
         work->field_718 = frame;
         if ((s16)frame >= 0x11) {
-            work->field_718  = 0;
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_720 = 4;
-            work2->field_726 = 0x10;
-            work2->field_746 = 0x15;
-            work2->field_742 = 1;
-            work->field_71E  = work->field_71E + 1;
+            work->field_718    = 0;
+            work2              = (Actor400600Work*)arg0->work;
+            work2->animBlend   = 4;
+            work2->animStep    = 0x10;
+            work2->animClip    = 0x15;
+            work2->animRequest = 1;
+            work->subState     = work->subState + 1;
         }
     }
 }
@@ -5990,7 +5496,7 @@ static void func_actor_400600_8013BDF0(Task* arg0)
         frame           = work->field_718 + 1;
         work->field_718 = frame;
         if ((s16)frame >= 0x11) {
-            work->field_71E = work->field_71E + 1;
+            work->subState = work->subState + 1;
         }
     }
 }
@@ -6001,73 +5507,47 @@ static void func_actor_400600_8013BE58(Task* arg0)
 
     func_actor_400600_80137498(arg0, 0);
     work->field_763 = 0;
-    work->field_71E = work->field_71E + 1;
+    work->subState  = work->subState + 1;
 }
 
-static void func_actor_400600_8013BE90(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-    Actor400600Work* work2;
-
-    work->field_84 += -(s16)work->field_84 >> 2;
-    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
-        if (work->field_764 == 0) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
-        }
-        func_actor_400600_80138AF0(arg0, 0x3C);
-        work->field_84   = 0;
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_71C = 2;
-        work2->field_71E = 0;
-        work->field_767  = 0;
-    }
-}
+#include "../../shared/stalker_zebra_ivory_release_hold.inc.c"
 
 static void func_actor_400600_8013BF48(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
     func_actor_400600_80137498(arg0, 1);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
-static void func_actor_400600_8013BF80(Task* arg0)
-{
-    Actor400600Work* work;
-
-    if (((func_actor_400600_801370F4(arg0) << 0x10) == 0) && ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0)) {
-        work            = (Actor400600Work*)arg0->work;
-        work->field_71C = 2;
-        work->field_71E = 0;
-    }
-}
+#include "../../shared/stalker_zebra_ivory_wait_clip.inc.c"
 
 static void func_actor_400600_8013BFD4(Task* arg0)
 {
     Actor400600Work* work;
     Actor400600Work* work2;
 
-    work             = (Actor400600Work*)arg0->work;
-    work->field_718  = 0;
-    work2            = (Actor400600Work*)arg0->work;
-    work2->field_720 = 2;
-    work2->field_726 = 0x10;
-    work2->field_746 = 0x16;
-    work2->field_742 = 1;
+    work               = (Actor400600Work*)arg0->work;
+    work->field_718    = 0;
+    work2              = (Actor400600Work*)arg0->work;
+    work2->animBlend   = 2;
+    work2->animStep    = 0x10;
+    work2->animClip    = 0x16;
+    work2->animRequest = 1;
     stalkerZebraIvoryReadPartViewXZ(arg0, 0xE, &work->field_88);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013C038(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    work->field_720 = 4;
-    work->field_726 = 0x10;
-    work->field_746 = 0x15;
-    work->field_742 = 1;
-    work->field_718 = 0;
-    work->field_71E = work->field_71E + 1;
+    work->animBlend   = 4;
+    work->animStep    = 0x10;
+    work->animClip    = 0x15;
+    work->animRequest = 1;
+    work->field_718   = 0;
+    work->subState    = work->subState + 1;
 }
 
 static void func_actor_400600_8013C074(Task* arg0)
@@ -6077,13 +5557,13 @@ static void func_actor_400600_8013C074(Task* arg0)
     u32              rnd;
 
     work = (Actor400600Work*)arg0->work;
-    if (((func_actor_400600_801370F4(arg0) << 0x10) == 0) && ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0)) {
+    if (((stalkerZebraIvoryTakePending(arg0) << 0x10) == 0) && ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0)) {
         rnd                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState         = rnd;
         work->field_710.h.timer = ((rnd >> 0x10) & 0x1F) + 0xD2;
         work2                   = (Actor400600Work*)arg0->work;
-        work2->field_71C        = 2;
-        work2->field_71E        = 0;
+        work2->state            = 2;
+        work2->subState         = 0;
     }
 }
 
@@ -6091,8 +5571,8 @@ static void func_actor_400600_8013C104(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    work->field_767 = 1;
-    work->field_71E = work->field_71E + 1;
+    work->holding  = 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013C124(Task* arg0)
@@ -6103,19 +5583,19 @@ static void func_actor_400600_8013C124(Task* arg0)
 
     work  = (Actor400600Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
-    func_actor_400600_80138B40(arg0);
-    work2            = (Actor400600Work*)arg0->work;
-    work2->field_720 = 4;
-    work2->field_726 = 0x10;
-    work2->field_746 = 0x20;
-    work2->field_742 = 1;
-    work->field_722  = 0x40;
-    work->field_724  = 0;
-    work->field_718  = 0;
-    work->field_98   = coord->coord.t[0];
-    work->field_9C   = coord->coord.t[2];
-    work->field_73E  = work->field_92;
-    work->field_71E  = work->field_71E + 1;
+    stalkerZebraIvoryDropCapsuleGrid(arg0);
+    work2              = (Actor400600Work*)arg0->work;
+    work2->animBlend   = 4;
+    work2->animStep    = 0x10;
+    work2->animClip    = 0x20;
+    work2->animRequest = 1;
+    work->field_722    = 0x40;
+    work->field_724    = 0;
+    work->field_718    = 0;
+    work->field_98     = coord->coord.t[0];
+    work->field_9C     = coord->coord.t[2];
+    work->field_73E    = work->field_92;
+    work->subState     = work->subState + 1;
 }
 
 static void func_actor_400600_8013C1C0(Task* arg0)
@@ -6125,16 +5605,16 @@ static void func_actor_400600_8013C1C0(Task* arg0)
 
     work = (Actor400600Work*)arg0->work;
     func_actor_400600_80138B5C(arg0, 0);
-    work2            = (Actor400600Work*)arg0->work;
-    work2->field_720 = 2;
-    work2->field_726 = 0x10;
-    work2->field_746 = 9;
-    work2->field_742 = 1;
-    work->field_767  = 1;
-    work->field_722  = 0;
-    work->field_724  = 0;
-    work->field_71E  = work->field_71E + 1;
-    work->field_73E  = work->field_92;
+    work2              = (Actor400600Work*)arg0->work;
+    work2->animBlend   = 2;
+    work2->animStep    = 0x10;
+    work2->animClip    = 9;
+    work2->animRequest = 1;
+    work->holding      = 1;
+    work->field_722    = 0;
+    work->field_724    = 0;
+    work->subState     = work->subState + 1;
+    work->field_73E    = work->field_92;
 }
 
 static void func_actor_400600_8013C238(Task* arg0)
@@ -6149,57 +5629,38 @@ static void func_actor_400600_8013C238(Task* arg0)
     work->field_724    = work->field_724 + work->field_722;
     coord->coord.t[1] += work->field_724;
     if ((s16)work->field_92 < coord->coord.t[1]) {
-        coord->coord.t[1] = (s16)work->field_92;
-        work2             = (Actor400600Work*)arg0->work;
-        work2->field_726  = 0x10;
-        work2->field_746  = 0x13;
-        work2->field_742  = 2;
-        work->field_769   = 1;
-        work->field_718   = 0;
-        work->field_768   = 0;
-        work->field_84    = work->field_84 + 0x800;
-        work->field_71E   = work->field_71E + 1;
+        coord->coord.t[1]  = (s16)work->field_92;
+        work2              = (Actor400600Work*)arg0->work;
+        work2->animStep    = 0x10;
+        work2->animClip    = 0x13;
+        work2->animRequest = 2;
+        work->onBack       = 1;
+        work->field_718    = 0;
+        work->onCeiling    = 0;
+        work->roll         = work->roll + 0x800;
+        work->subState     = work->subState + 1;
     }
 }
 
-static void func_actor_400600_8013C2D4(Task* arg0)
-{
-    Actor400600Work* work;
-    Actor400600Work* work2;
-    u32              rnd;
-
-    work = (Actor400600Work*)arg0->work;
-    if ((func_actor_400600_801370F4(arg0) << 0x10) != 0) {
-        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rnd;
-        work->field_750 = ((rnd >> 0x10) & 0x7F) + 0x1E;
-    } else if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState  = rnd;
-        work->field_750  = ((rnd >> 0x10) & 0x7F) + 0x1E;
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_71C = 0xA;
-        work2->field_71E = 0;
-    }
-}
+#include "../../shared/stalker_zebra_ivory_wait_clip_then_rest.inc.c"
 
 static void func_actor_400600_8013C394(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    if (work->field_769 == 0) {
-        work->field_720 = 3;
-        work->field_726 = 0x10;
-        work->field_746 = 0x1A;
-        work->field_742 = 1;
+    if (work->onBack == 0) {
+        work->animBlend   = 3;
+        work->animStep    = 0x10;
+        work->animClip    = 0x1A;
+        work->animRequest = 1;
     } else {
-        work->field_720 = 3;
-        work->field_726 = 0x10;
-        work->field_746 = 0x1B;
-        work->field_742 = 1;
+        work->animBlend   = 3;
+        work->animStep    = 0x10;
+        work->animClip    = 0x1B;
+        work->animRequest = 1;
     }
     func_actor_400600_80138B5C(arg0, 0);
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
 static void func_actor_400600_8013C410(Task* arg0)
@@ -6209,21 +5670,21 @@ static void func_actor_400600_8013C410(Task* arg0)
     Actor400600Work* work3;
 
     work = (Actor400600Work*)arg0->work;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        if (work->field_769 == 0) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_720 = 0x1E;
-            work2->field_726 = 0x10;
-            work2->field_746 = 0x10;
-            work2->field_742 = 1;
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        if (work->onBack == 0) {
+            work2              = (Actor400600Work*)arg0->work;
+            work2->animBlend   = 0x1E;
+            work2->animStep    = 0x10;
+            work2->animClip    = 0x10;
+            work2->animRequest = 1;
         } else {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_720 = 0x1E;
-            work3->field_726 = 8;
-            work3->field_746 = 0x14;
-            work3->field_742 = 1;
+            work3              = (Actor400600Work*)arg0->work;
+            work3->animBlend   = 0x1E;
+            work3->animStep    = 8;
+            work3->animClip    = 0x14;
+            work3->animRequest = 1;
         }
-        work->field_71E = work->field_71E + 1;
+        work->subState = work->subState + 1;
     }
 }
 
@@ -6234,15 +5695,15 @@ static void func_actor_400600_8013C4AC(Task* arg0)
     Actor400600Work* work3;
 
     work = (Actor400600Work*)arg0->work;
-    if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        if (work->field_769 == 0) {
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 2;
-            work2->field_71E = 0;
+    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+        if (work->onBack == 0) {
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 2;
+            work2->subState = 0;
         } else {
-            work3            = (Actor400600Work*)arg0->work;
-            work3->field_71C = 0xA;
-            work3->field_71E = 0;
+            work3           = (Actor400600Work*)arg0->work;
+            work3->state    = 0xA;
+            work3->subState = 0;
         }
     }
 }
@@ -6251,41 +5712,24 @@ static void func_actor_400600_8013C518(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    work->field_71E = work->field_71E + 1;
+    work->subState = work->subState + 1;
 }
 
-static void func_actor_400600_8013C534(Task* arg0)
-{
-    Actor400600Work* work;
-    Actor400600Work* work2;
-    Actor400600Work* work3;
-
-    work = (Actor400600Work*)arg0->work;
-    func_actor_400600_80138B40(arg0);
-    if (work->field_728 > 2000) {
-        work2            = (Actor400600Work*)arg0->work;
-        work2->field_71C = 0xD;
-        work2->field_71E = 0;
-    } else {
-        work3            = (Actor400600Work*)arg0->work;
-        work3->field_71C = 8;
-        work3->field_71E = 0;
-    }
-}
+#include "../../shared/stalker_zebra_ivory_pick_range.inc.c"
 
 static void func_actor_400600_8013C598(Task* arg0)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
     u32              rnd;
 
-    work->field_720 = 4;
-    work->field_726 = 0x10;
-    work->field_746 = 1;
-    work->field_742 = 1;
-    rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    gRandomLcgState = rnd;
-    work->field_756 = ((rnd >> 0x10) & 0x3F) + 0x5A;
-    work->field_71E = work->field_71E + 1;
+    work->animBlend   = 4;
+    work->animStep    = 0x10;
+    work->animClip    = 1;
+    work->animRequest = 1;
+    rnd               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState   = rnd;
+    work->field_756   = ((rnd >> 0x10) & 0x3F) + 0x5A;
+    work->subState    = work->subState + 1;
 }
 
 static void func_actor_400600_8013C5F8(Task* arg0)
@@ -6304,9 +5748,9 @@ static void func_actor_400600_8013C5F8(Task* arg0)
             gRandomLcgState = rnd;
             work->field_758 = ((rnd >> 0x10) & 0x3F) + 0x1E;
             func_actor_400600_80138B5C(arg0, 0);
-            work2            = (Actor400600Work*)arg0->work;
-            work2->field_71C = 2;
-            work2->field_71E = 0;
+            work2           = (Actor400600Work*)arg0->work;
+            work2->state    = 2;
+            work2->subState = 0;
         }
     }
 }
@@ -6388,7 +5832,7 @@ static void func_actor_400600_8013C874(Task* arg0)
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     model->flags        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_71C      = work->field_71C + 1;
+    work->state          = work->state + 1;
 }
 
 static void func_actor_400600_8013C940(Task* arg0)
@@ -6402,15 +5846,15 @@ static void func_actor_400600_8013C940(Task* arg0)
         rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         work->field_718 = ((rnd >> 0x10) & 7) + 0x14;
-        work->field_71C = work->field_71C + 1;
+        work->state     = work->state + 1;
     } else if (gSceneCombatState.zebraStalkerGroupPhase == SCENE_COMBAT_ZEBRA_STALKER_ACTIVE) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work2                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
-        work2->field_71C     = 0;
-        work2->field_71E     = 0;
+        work2->state         = 0;
+        work2->subState      = 0;
     }
 }
 
@@ -6433,35 +5877,15 @@ static void func_actor_400600_8013C9DC(Task* arg0)
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work2                = (Actor400600Work*)arg0->work;
         arg0->state          = 1;
-        work2->field_71C     = 0;
-        work2->field_71E     = 0;
+        work2->state         = 0;
+        work2->subState      = 0;
         work3                = (Actor400600Work*)arg0->work;
-        work3->field_71C     = 2;
-        work3->field_71E     = 0;
+        work3->state         = 2;
+        work3->subState      = 0;
     }
 }
 
-static s32 func_actor_400600_8013CACC(Task* arg0)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-
-    if (work->field_72E == 1 && work->field_768 == 0) {
-        switch (work->field_730) {
-            case 3:
-                work->field_71C = 5;
-                work->field_71E = 0;
-                work->field_730 = 0;
-                return 1;
-            case 5:
-                work->field_71C = 0xF;
-                work->field_71E = 0;
-                work->field_730 = 0;
-                return 1;
-        }
-    }
-    work->field_730 = 0;
-    return 0;
-}
+#include "../../shared/stalker_zebra_ivory_take_armed_pending.inc.c"
 
 static void func_actor_400600_8013CB40(Task* arg0, u8 arg1)
 {
@@ -6469,9 +5893,9 @@ static void func_actor_400600_8013CB40(Task* arg0, u8 arg1)
     s32              mode = arg1;
 
     if (mode == 0) {
-        work->field_766 = 1;
+        work->queuedFlag = 1;
     } else if (mode == 1) {
-        work->field_765 = mode;
+        work->queuedMode = mode;
     }
 }
 
@@ -6493,6 +5917,6 @@ static void func_actor_400600_8013CC04(Task* arg0, s16 arg1)
 {
     Actor400600Work* work = (Actor400600Work*)arg0->work;
 
-    work->field_71C = arg1;
-    work->field_71E = 0;
+    work->state    = arg1;
+    work->subState = 0;
 }
