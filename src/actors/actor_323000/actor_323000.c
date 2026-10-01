@@ -98,34 +98,29 @@ extern s8 gRigClipStartFrames[];
 
 static void func_actor_323000_8016409C(Enemy* enemy, Task* task);
 static void func_actor_323000_8016420C(Enemy* enemy, Task* task);
-static void func_actor_323000_801645A4(Enemy* enemy, Task* task);
-static void func_actor_323000_80164C20(Enemy* arg0, Task* arg1);
 static void func_actor_323000_80164C58(Enemy* enemy, Task* task);
 
-/// State handlers `func_actor_323000_801645A4` runs by `Actor323000Work::field_0`.
+/// State handlers `desertChaserFrameState` runs by `Actor323000Work::field_0`.
 #include "../../shared/actor_contacts.h"
 
-static const GpEnemyTaskFuncTable4 D_actor_323000_80161E24 = {
-    func_actor_323000_80164C20,
+static const GpEnemyTaskFuncTable4 gDesertChaserStates = {
+    desertChaserHideState,
     func_actor_323000_8016409C,
     func_actor_323000_80164C58,
     func_actor_323000_8016420C,
 };
 
-/// Task states `func_actor_323000_80164CE4` runs by `Task::state`: the spawn
+/// Task states `desertChaserTask` runs by `Task::state`: the spawn
 /// handler, the per-frame driver, then `Gp_DestroyEnemy`.
-static const GpEnemyTaskFuncTable3 D_actor_323000_80161E34 = {
+static const GpEnemyTaskFuncTable3 gDesertChaserTaskStates = {
     desertChaserSpawn,
-    func_actor_323000_801645A4,
+    desertChaserFrameState,
     Gp_DestroyEnemy,
 };
 
 extern TmdSource D_actor_323000_80169870;
-s32              func_actor_323000_80164904(Task*);
 s32              func_actor_323000_80164A54(Task*, s32, ActorCommand* msg, s32);
-s32              func_actor_323000_80164AF0(Task*, s32, AnimationPlayRequest*, s32);
 void             func_actor_323000_8016483C(void);
-void             func_actor_323000_80164CE4(Task*);
 
 DamageAttack D_actor_323000_80164D40[5] = {
     { 30, 0 },
@@ -3027,14 +3022,14 @@ u8 gRigAnimSource[340] = {
 Actor323000MessageEntry gRigMessages[7] = {
     { 2015, { .call5 = func_actor_323000_8016483C } },
     { 2005, { .call4 = desertChaserSetVisibility } },
-    { 2006, { .call0 = func_actor_323000_80164904 } },
+    { 2006, { .call0 = desertChaserMsgQueryAlive } },
     { 2004, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323000_80164A54 } },
-    { 2003, { .call1 = func_actor_323000_80164AF0 } },
+    { 2003, { .call1 = desertChaserMsgPlayAnim } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_323000_80173A08 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_323000_80164CE4, { .model = &D_actor_323000_80169870 } };
+TaskDesc D_actor_323000_80173A08 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &D_actor_323000_80169870 } };
 
 static Actor323000Storage3A14 ActorContact_ScratchPosition = { 0 };
 
@@ -3433,82 +3428,7 @@ static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Per-frame driver of the live actor: brings the model root's coordinate up
-/// to date, takes its world position as the actor colour, flags a state change
-/// in `field_4`, and runs the state handler `field_0` selects from a stack copy
-/// of `D_actor_323000_80161E24`. Afterwards it walks the origin of the model's
-/// third part coordinate up to `gGfxViewCoord` and stores it as the enemy's
-/// local position, parented to the view.
-static void func_actor_323000_801645A4(Enemy* enemy, Task* task)
-{
-    Actor323000Work*        work;
-    GpEnemyTaskFuncTable4   sp;
-    Actor323000TickScratch* scratch;
-    u8*                     head;
-    GfxCoord*               walker;
-    SVECTOR*                pos;
-
-    work = (Actor323000Work*)task->work;
-    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    sp                                    = D_actor_323000_80161E24;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    head                                  = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8)              = head - 0x1C;
-    scratch                               = (Actor323000TickScratch*)(head - 0x1C);
-    Gp_UpdateCoord(task->extra.tmd->coords);
-    scratch->pos.vx = task->extra.tmd->coords->workm.t[0];
-    scratch->pos.vy = task->extra.tmd->coords->workm.t[1];
-    scratch->pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &scratch->pos, 0, 0);
-    if (work->field_2 != work->field_0) {
-        work->field_4 = 1;
-    } else {
-        work->field_4 = 0;
-    }
-    work->field_2 = work->field_0;
-    sp.funcs[work->field_0](enemy, task);
-    scratch->local.vx = 0;
-    scratch->local.vy = 0;
-    scratch->local.vz = 0;
-    {
-        SVECTOR  local;
-        VECTOR   result;
-        s32      flag;
-        SVECTOR* localp = &local;
-
-        walker   = &task->extra.tmd->coords[2];
-        pos      = &scratch->local;
-        local.vx = scratch->local.vx;
-        local.vy = pos->vy;
-        local.vz = pos->vz;
-        while (1) {
-            if (walker->parent == NULL)
-                break;
-            if (walker != &gGfxViewCoord) {
-                gte_SetTransMatrix(&walker->coord);
-                gte_SetRotMatrix(&walker->coord);
-                gte_ldv0(localp);
-                gte_rtv0tr();
-                gte_stlvnl(&result);
-                gte_stflg(&flag);
-                local.vx = result.vx;
-                local.vy = result.vy;
-                local.vz = result.vz;
-                walker   = walker->parent;
-                continue;
-            }
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            break;
-        }
-    }
-    enemy->bodyPos.vx = scratch->local.vx;
-    enemy->bodyPos.vy = scratch->local.vy;
-    enemy->bodyPos.vz = scratch->local.vz;
-    enemy->coord      = &gGfxViewCoord;
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#include "../../shared/desert_chaser_frame.inc.c"
 
 /// Handler for message 0x7DF: does nothing.
 void func_actor_323000_8016483C(void)
@@ -3517,23 +3437,7 @@ void func_actor_323000_8016483C(void)
 
 #include "../../shared/desert_chaser_visibility.inc.c"
 
-/// Handler for message 0x7D6: returns 1 while the enemy still has hit points,
-/// and otherwise 1 only when the model has neither flag 0x80 nor flag 2 set.
-s32 func_actor_323000_80164904(Task* task)
-{
-    u16 flags;
-
-    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
-        flags = task->extra.tmd->flags;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            return 0;
-        }
-        if (flags & 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/desert_chaser_query_alive.inc.c"
 
 #include "../../shared/actor_messages_place_yaw_first.inc.c"
 
@@ -3568,24 +3472,9 @@ s32 func_actor_323000_80164A54(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
     return 0;
 }
 
-/// Handler for message 0x7D3: latches the requested animation id into
-/// `field_82E` and restarts the state machine at state 1.
-s32 func_actor_323000_80164AF0(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor323000Work* work = (Actor323000Work*)task->work;
+#include "../../shared/desert_chaser_play_anim.inc.c"
 
-    work->field_82E = msg->animationId;
-    work->field_0   = 1;
-    work->field_2   = -1;
-    return 0;
-}
-
-/// `Task::exitCallback` the spawn handler installs: destroys the enemy the
-/// task carries.
-void desertChaserExit(Task* task)
-{
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
-}
+#include "../../shared/desert_chaser_exit.inc.c"
 
 /// Spawns effect 0x60054 at coordinate `arg1` with the offset that limb
 /// uses; the spawn argument is `arg2` with bit 31 set. Coordinates the
@@ -3625,22 +3514,7 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2)
     Gp_SpawnEff(0x60054, &obj->coords[arg1], arg2 | 0x80000000, &sp10);
 }
 
-/// State 0 of `D_actor_323000_80161E24`: when the work block's `field_4` flag
-/// is set, flags the enemy's link node and raises bit 0x80 of the model's
-/// flags. `obj` gets its own local: the fused form ranks the `Task::extra`
-/// load with the store and transposes it.
-static void func_actor_323000_80164C20(Enemy* arg0, Task* arg1)
-{
-    Actor323000Work* work;
-    TmdObject*       obj;
-
-    work = (Actor323000Work*)arg1->work;
-    if (work->field_4 != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-}
+#include "../../shared/desert_chaser_hide.inc.c"
 
 /// State 2: on entry flags the enemy's link node, clears the model's flags,
 /// rebuilds its buffers and starts clip 0xD with the frame counter at 0; the
@@ -3669,13 +3543,4 @@ static void func_actor_323000_80164C58(Enemy* enemy, Task* task)
     }
 }
 
-/// Task body of the actor's descriptor: runs the handler for the task's
-/// state from a stack copy of `D_actor_323000_80161E34` - the spawn handler,
-/// the per-frame driver, then `Gp_DestroyEnemy`.
-void func_actor_323000_80164CE4(Task* task)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_actor_323000_80161E34;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
-}
+#include "../../shared/desert_chaser_task.inc.c"

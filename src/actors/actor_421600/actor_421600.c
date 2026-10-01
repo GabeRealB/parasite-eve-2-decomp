@@ -59,6 +59,7 @@
 #include "../../shared/limb_shadows.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+#include "../../shared/desert_chaser.h"
 
 /// The actor id word at 0xE90, read two ways: `func_actor_421600_8013848C`
 /// and `func_actor_421600_8013E9D8` mask the whole word to 24 bits and compare
@@ -508,9 +509,7 @@ extern AnimationSet D_actor_421600_8014DA04;
 extern TmdSource    D_actor_421600_80143A54;
 s32                 func_actor_421600_80132A00(Task*, s32, ActorCommand* request);
 s32                 func_actor_421600_8013E4EC(Task*);
-s32                 func_actor_421600_8013E62C(Task*, s32, AnimationPlayRequest*, s32);
 s32                 func_actor_421600_8013E654(Task*);
-static void         func_actor_421600_8013EEC8(Task*);
 void                func_actor_421600_8013E424(void);
 
 DamageAttack D_actor_421600_8013EF24[5] = {
@@ -2096,7 +2095,7 @@ Actor421600MessageEntry D_actor_421600_80151118[8] = {
     { 2006, { .call0 = func_actor_421600_8013E4EC } },
     { 2004, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_421600_80132A00 } },
-    { 2003, { .call1 = func_actor_421600_8013E62C } },
+    { 2003, { .call1 = desertChaserMsgPlayAnim } },
     { 5108, { .call0 = func_actor_421600_8013E654 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2150,7 +2149,7 @@ s32 D_actor_421600_801511D4[4][8] = {
     { 0x1F7BC, 1553, 0x1FBDC, 1606, 0x10459, 0xF66F, 0x106C9, 0xFB85 },
 };
 
-TaskDesc D_actor_421600_80151254 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_421600_8013EEC8, { .model = &D_actor_421600_80143A54 } };
+TaskDesc D_actor_421600_80151254 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &D_actor_421600_80143A54 } };
 
 SVECTOR ActorContact_ScratchPosition;
 
@@ -2199,7 +2198,6 @@ static void                                 func_actor_421600_8013C8E0(Task* arg
 static void                                 func_actor_421600_8013CD3C(Task* arg0);
 static void                                 func_actor_421600_8013D1DC(Task* arg0);
 static void                                 func_actor_421600_8013D658(Enemy* enemy, Task* actor);
-static void                                 func_actor_421600_8013E700(Task* arg0, s16 part, s16 flags);
 static void                                 func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);
 static s8                                   func_actor_421600_8013E830(s32 arg0, s32 arg1);
 
@@ -6969,8 +6967,8 @@ void func_actor_421600_8013E424(void)
 }
 
 /// The enemy task's state handlers - spawn, per-frame tick and teardown - run by
-/// `func_actor_421600_8013EEC8`.
-static const GpEnemyTaskFuncTable3 D_actor_421600_80131FB0 = {
+/// `desertChaserTask`.
+static const GpEnemyTaskFuncTable3 gDesertChaserTaskStates = {
     {
         func_actor_421600_80134AD4,
         func_actor_421600_8013D658,
@@ -6998,17 +6996,7 @@ return_one:
 
 #include "../../shared/actor_messages_place_yaw_first.inc.c"
 
-/// Handler for message 0x7D3: latch the requested animation id into
-/// `field_82E` and restart the state machine at state 1.
-s32 func_actor_421600_8013E62C(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor421600Work* work = (Actor421600Work*)task->work;
-
-    work->field_82E = msg->animationId;
-    work->field_0   = 1;
-    work->field_2   = -1;
-    return 0;
-}
+#include "../../shared/desert_chaser_play_anim.inc.c"
 
 s32 func_actor_421600_8013E654(Task* task)
 {
@@ -7042,51 +7030,7 @@ static void func_actor_421600_8013E668(Task* task)
     Gp_DestroyEnemy(enemy, task);
 }
 
-/// Spawn effect 0x60054 on model part `part` when the room's effect mode is 2.
-/// Only parts 0, 1, 7, 9, 14 and 17 emit; each carries its own vertical offset
-/// in the effect's position argument. `flags` goes to `Gp_SpawnEff` with the
-/// top bit set.
-static void func_actor_421600_8013E700(Task* arg0, s16 part, s16 flags)
-{
-    SVECTOR sp10;
-    s32     spawn;
-
-    switch (part) {
-        case 0:
-        case 1:
-            spawn   = 1;
-            sp10.vz = 0;
-            sp10.vx = 0;
-            sp10.vy = 0;
-            break;
-        case 9:
-            spawn   = 1;
-            sp10.vz = 0;
-            sp10.vx = 0;
-            sp10.vy = 0x2BC;
-            break;
-        case 7:
-            spawn   = 1;
-            sp10.vz = 0;
-            sp10.vx = 0;
-            sp10.vy = 0x2BC;
-            break;
-        case 14:
-        case 17:
-            spawn   = 1;
-            sp10.vz = 0;
-            sp10.vx = 0;
-            sp10.vy = 0x258;
-            break;
-        default:
-            spawn = 0;
-            break;
-    }
-
-    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && spawn == 1) {
-        Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[part], flags | 0x80000000, &sp10);
-    }
-}
+#include "../../shared/desert_chaser_part_effect.inc.c"
 
 /// Copy the `vx`/`vy`/`vz` of entry `arg1` of the pose table into `arg0`.
 static void func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1)
@@ -7357,12 +7301,4 @@ static void func_actor_421600_8013EE0C(Task* arg0)
     }
 }
 
-/// The enemy task's per-frame entry: runs the handler for the task's current
-/// state - spawn, tick or teardown - from a stack copy of the state table.
-static void func_actor_421600_8013EEC8(Task* task)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_actor_421600_80131FB0;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
-}
+#include "../../shared/desert_chaser_task.inc.c"

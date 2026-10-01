@@ -60,6 +60,7 @@
 #include "rooms/mine_mesa.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/desert_chaser.h"
 
 /// Sphere body and all five results supplied by its owner.
 typedef struct {
@@ -312,8 +313,6 @@ extern SVECTOR Actor00100_D1BA90;
 
 extern Actor00100AnimCommand Actor00100_D1B9D0;
 
-s32 Actor00100_Fn0B264(Task* task);
-
 s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2);
 
 typedef struct {
@@ -396,8 +395,6 @@ typedef struct Actor00100DamageScratch {
 } Actor00100DamageScratch;
 
 static void Actor00100_Fn02788(Task* arg0);
-
-static void Actor00100_Fn0B3B4(Task* task);
 
 static void Actor00100_Fn0B658(Task* arg0);
 
@@ -1499,7 +1496,7 @@ Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = Actor00100_Fn00E58 } },
     { 2015, { .reset = Actor00100_Fn0B134 } },
     { 2005, { .value = Actor00100_Fn0B1A4 } },
-    { 2006, { .task = Actor00100_Fn0B264 } },
+    { 2006, { .task = desertChaserMsgQueryAlive } },
     { 2004, { .placement = actorMsgPlaceRecordYaw } },
     { 0x7FFFFFFF, { .command = NULL } },
 };
@@ -2612,7 +2609,7 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
         return;
     }
     (Gp_IncStateF0Ref)(0);
-    arg1->exitCallback = Actor00100_Fn0B3B4;
+    arg1->exitCallback = desertChaserExit;
     mapped             = (Actor00100Work*)arg1->work;
     model              = arg1->extra.tmd;
     model->lightMtx    = &mapped->field_B80;
@@ -5533,28 +5530,11 @@ s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Actor00100_Fn0B264(Task* task)
-{
-    u16 flags;
-
-    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
-        flags = task->extra.tmd->flags;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            return 0;
-        }
-        if (flags & 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/desert_chaser_query_alive.inc.c"
 
 #include "../../shared/actor_messages_place_yaw.inc.c"
 
-static void Actor00100_Fn0B3B4(Task* task)
-{
-    Gp_DestroyEnemy(task->spawnArg2.pointer, task);
-}
+#include "../../shared/desert_chaser_exit.inc.c"
 
 static void Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2)
 {

@@ -203,3 +203,6 @@ actorMsgPlaceYawFirst = 0x8013E52C; // type:func
 ActorContact_TurnJoint = 0x80132004; // type:func
 ActorContact_Steer = 0x80132310; // type:func
 ActorContact_PushContact = 0x8013285C; // type:func
+desertChaserPartEffect = 0x8013E700; // type:func
+desertChaserTask = 0x8013EEC8; // type:func
+desertChaserMsgPlayAnim = 0x8013E62C; // type:func
