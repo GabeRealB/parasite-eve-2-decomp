@@ -46,6 +46,7 @@
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 #include "../../shared/jet_cone.h"
+#include "../../shared/ground_glow.h"
 
 /// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
 /// frame of the barrel's recoil kick. `dir` receives the third column of the
@@ -98,8 +99,6 @@ static SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 
 static void func_hypervelocity_8011F11C(Task* task);
 static void func_hypervelocity_8011F6A0(Task* task);
-
-static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin);
 
 static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb);
 static void func_hypervelocity_8011F374(Task* arg0);
@@ -440,7 +439,7 @@ void func_hypervelocity_8011D830(Task* task)
             jetConeDraw(coord, work->age, work->angle, 0);
             jetConeDraw(coord, work->age, work->angle, 1);
             if (gRoomEffectState->groundTraceEnabled != 0 && Gp_TraceGroundCoord(coord, &ground) == 1) {
-                func_hypervelocity_8011E8A0(&ground, work->angle);
+                groundGlowDraw(&ground, work->angle);
             }
             if (work->age < 0x15) {
                 Gp_SpawnEff(0x600E0, coord, 0x400, NULL);
@@ -503,88 +502,11 @@ void func_hypervelocity_8011D830(Task* task)
 #define SPRITE_QUAD_SCALE     55
 #include "../../shared/sprite_quad_draw.inc.c"
 
-/// Paints the round's scorch quad on the ground point `Gp_TraceGroundCoord`
-/// found under the flare. `ground`'s `workm` translation is the traced point
-/// and `spin` the quad's half-size: the unit quad `D_80111E38` is scaled by it
-/// in the ground plane (Y stays 0), rotated by `gGfxViewCoord.workm` so the quad
-/// lies flat in world space, and moved onto the ground point. One `RTPS` plus
-/// one `RTPT` project the four corners, and the whole quad is dropped if the
-/// first corner fails its `FLAG` check. The texture is the two-frame 0x28-page
-/// strip at rows 0x38..0x57, the frame picked by the low bit of
-/// `gDisplayState.animFrame` so it flickers every other field.
-///
-/// `u` is latched before each pair of stores on purpose: writing the `POLY_FT4`
-/// byte straight from the expression lets GCC fold the store's truncation back
-/// into the `gDisplayState.animFrame` load and the `+ 0xC0` / `+ 0xDF`, which the
-/// ROM does not do.
-static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin)
-{
-    OverlayGroundScratch* sc;
-    POLY_FT4*             prim;
-    s32                   i;
-    s32                   otz;
-    s32                   flag;
-    s32                   u;
-
-    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        sc->vec[i].vx = D_80111E38[i].x * spin;
-        sc->vec[i].vy = 0;
-        sc->vec[i].vz = D_80111E38[i].y * spin;
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&sc->vec[i]);
-        gte_rtv0();
-        gte_stsv(&sc->vec[i]);
-        sc->vec[i].vx += ground->workm.t[0];
-        sc->vec[i].vy += ground->workm.t[1];
-        sc->vec[i].vz += ground->workm.t[2];
-    }
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec[0]);
-    gte_rtps();
-    gte_stsxy(&sc->sxy0);
-    gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
-    gte_rtpt();
-    gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
-    gte_stflg(&flag);
-    if (flag >= 0) {
-        gte_stszotz(&otz);
-        otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        prim->r0    = 0x30;
-        prim->g0    = 0x30;
-        prim->b0    = 0x30;
-        prim->tpage = 0x28;
-        prim->clut  = 0x428B;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-        prim->v0    = 0x38;
-        prim->u0    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-        prim->v1    = 0x38;
-        prim->u1    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-        prim->v2    = 0x57;
-        prim->u2    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-        prim->v3    = 0x57;
-        prim->u3    = u;
-        prim->x0    = sc->sxy0.vx;
-        prim->y0    = sc->sxy0.vy;
-        prim->x1    = sc->sxy1.vx;
-        prim->y1    = sc->sxy1.vy;
-        prim->x2    = sc->sxy2.vx;
-        prim->y2    = sc->sxy2.vy;
-        prim->x3    = sc->sxy3.vx;
-        prim->y3    = sc->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
-}
+#define GROUND_GLOW_R    0x30
+#define GROUND_GLOW_G    0x30
+#define GROUND_GLOW_B    0x30
+#define GROUND_GLOW_CLUT 0x428B
+#include "../../shared/ground_glow_draw.inc.c"
 
 /// Draws the discharge cone `func_hypervelocity_8011F270` leaves behind: two
 /// opposed `POLY_FT4` walls flaring out of `coord`, built in the scratchpad as

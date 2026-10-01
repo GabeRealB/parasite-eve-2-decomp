@@ -38,6 +38,7 @@
 
 #include "overlay.h"
 #include "../../shared/sprite_quad.h"
+#include "../../shared/ground_glow.h"
 
 /// One 4-byte row of `D_energyball_80131194`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
@@ -60,7 +61,6 @@ typedef struct EnergyBallWork {
 STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
 
 static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2);
-static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1);
 static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// The energy ball's sound-script ids. Only the first three are read, indexed by
@@ -197,7 +197,7 @@ void func_energyball_8012F180(Task* arg0)
         func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
         if ((arg0->state < 3) && (gRoomEffectState->groundTraceEnabled != 0) &&
             (Gp_TraceGroundCoord(coord, &ground) == 1)) {
-            func_energyball_801307D4(&ground, mem->angle);
+            groundGlowDraw(&ground, mem->angle);
         }
         return;
     }
@@ -276,7 +276,7 @@ void func_energyball_8012F180(Task* arg0)
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if ((gRoomEffectState->groundTraceEnabled != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
-                func_energyball_801307D4(&ground, mem->angle);
+                groundGlowDraw(&ground, mem->angle);
             }
             coord->workm.t[1] += D_energyball_80131194[mem->index].field_2 * mem->age;
             func_energyball_80130B54(coord, mem->angle,
@@ -344,7 +344,7 @@ void func_energyball_8012F180(Task* arg0)
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if (gRoomEffectState->groundTraceEnabled != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
-                    func_energyball_801307D4(&ground, mem->angle);
+                    groundGlowDraw(&ground, mem->angle);
                 }
             }
             if ((u16)(Gp_StateC08.field_0 / 10) != 0x2B) {
@@ -513,82 +513,11 @@ static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
     setSemiTrans(p, 1)
 #include "../../shared/sprite_quad_draw_flicker.inc.c"
 
-/// Draws a ground-plane quad at `arg0`'s `workm` translation: the unit quad
-/// `D_80111E38` is scaled to `arg1` half-size (Y stays 0), rotated flat by
-/// `gGfxViewCoord.workm`, then projected through `GsWSMATRIX`. One `RTPS` plus
-/// one `RTPT` project the four corners; a negative `gte_stflg` drops the
-/// quad. The texture is the two-frame tpage-0x28 strip at rows 0x38..0x57,
-/// the frame picked by the low bit of `gDisplayState.animFrame`, tinted
-/// `(0x20, 0x30, 0x20)`.
-static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1)
-{
-    OverlayGroundScratch* sc;
-    POLY_FT4*             prim;
-    s32                   i;
-    s32                   otz;
-    s32                   flag;
-    s32                   u;
-
-    sc = SCRATCH_STACK_RESERVE_BLOCK(OverlayGroundScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        sc->vec[i].vx = D_80111E38[i].x * arg1;
-        sc->vec[i].vy = 0;
-        sc->vec[i].vz = D_80111E38[i].y * arg1;
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&sc->vec[i]);
-        gte_rtv0();
-        gte_stsv(&sc->vec[i]);
-        sc->vec[i].vx += arg0->workm.t[0];
-        sc->vec[i].vy += arg0->workm.t[1];
-        sc->vec[i].vz += arg0->workm.t[2];
-    }
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->vec[0]);
-    gte_rtps();
-    gte_stsxy(&sc->sxy0);
-    gte_ldv3(&sc->vec[1], &sc->vec[2], &sc->vec[3]);
-    gte_rtpt();
-    gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
-    gte_stflg(&flag);
-    if (flag >= 0) {
-        gte_stszotz(&otz);
-        otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        prim->r0    = 0x20;
-        prim->g0    = 0x30;
-        prim->b0    = 0x20;
-        prim->tpage = 0x28;
-        prim->clut  = 0x428C;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-        prim->v0    = 0x38;
-        prim->u0    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-        prim->v1    = 0x38;
-        prim->u1    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-        prim->v2    = 0x57;
-        prim->u2    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-        prim->v3    = 0x57;
-        prim->u3    = u;
-        prim->x0    = sc->sxy0.vx;
-        prim->y0    = sc->sxy0.vy;
-        prim->x1    = sc->sxy1.vx;
-        prim->y1    = sc->sxy1.vy;
-        prim->x2    = sc->sxy2.vx;
-        prim->y2    = sc->sxy2.vy;
-        prim->x3    = sc->sxy3.vx;
-        prim->y3    = sc->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
-}
+#define GROUND_GLOW_R    0x20
+#define GROUND_GLOW_G    0x30
+#define GROUND_GLOW_B    0x20
+#define GROUND_GLOW_CLUT 0x428C
+#include "../../shared/ground_glow_draw.inc.c"
 
 /// Draws the energy ball's surface: two 16-vertex rings of the same radius
 /// sit `arg1 * 2` apart in `arg0`'s local Y, are rotated by its `workm` and
