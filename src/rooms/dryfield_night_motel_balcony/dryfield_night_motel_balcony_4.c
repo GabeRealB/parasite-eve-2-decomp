@@ -19,7 +19,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
@@ -260,7 +259,7 @@ u8 D_dryfield_night_motel_balcony_80182E70[40] = {
 };
 
 u8* D_dryfield_night_motel_balcony_80182E98[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_motel_balcony_80182E48,
     D_dryfield_night_motel_balcony_80182E70,
 };

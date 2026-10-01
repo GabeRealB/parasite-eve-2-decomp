@@ -11,7 +11,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -218,7 +217,7 @@ WorldCoordRoomLighting D_neo_ark_r26_8017E0DC[1] = {
 };
 
 u8* D_neo_ark_r26_8017E0E4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_r26_8017E0E8[1] = {

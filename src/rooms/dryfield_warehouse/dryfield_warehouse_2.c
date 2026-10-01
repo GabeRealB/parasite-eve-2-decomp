@@ -18,7 +18,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -242,7 +241,7 @@ u8 D_dryfield_warehouse_8017FBF8[12] = {
 };
 
 u8* D_dryfield_warehouse_8017FC04[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_warehouse_8017FBEC,
     D_dryfield_warehouse_8017FBF8,
 };

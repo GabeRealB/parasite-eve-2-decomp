@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
@@ -119,7 +118,7 @@ u8 D_neo_ark_pyramid_8017FC58[8] = {
 };
 
 u8* D_neo_ark_pyramid_8017FC60[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_neo_ark_pyramid_8017FC58,
 };
 

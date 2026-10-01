@@ -469,8 +469,8 @@ GpRoomObjRec D_shelter_b4_reservoir_801850F8[2] = {
 };
 
 u8* D_shelter_b4_reservoir_80185118[2] = {
-    D_8010CAF8,
-    D_8010CAF8,
+    gViewIdentityMap,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b4_reservoir_80185120[2] = {

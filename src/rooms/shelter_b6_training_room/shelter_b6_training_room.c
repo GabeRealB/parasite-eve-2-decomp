@@ -24,7 +24,6 @@ Task* D_shelter_b6_training_room_80185C5C;
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -56,7 +55,7 @@ static void func_shelter_b6_training_room_8017DBB0(s32 arg0);
 extern GpAreaTmdRec D_shelter_b6_training_room_80185994[6];
 
 u8* D_shelter_b6_training_room_80184418[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b6_training_room_8018441C[2] = {

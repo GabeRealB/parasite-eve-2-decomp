@@ -26,7 +26,6 @@ Task* D_dryfield_water_tank_80188D4C;
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -473,7 +472,7 @@ GpRoomObjRec D_dryfield_water_tank_801868E0[1] = {
 };
 
 u8* D_dryfield_water_tank_801868F0[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_water_tank_801868F4[2] = {

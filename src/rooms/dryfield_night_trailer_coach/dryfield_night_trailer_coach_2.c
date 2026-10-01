@@ -16,7 +16,6 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/inventory.h"
 #include "gameplay/light.h"
@@ -264,7 +263,7 @@ GpRoomObjRec D_dryfield_night_trailer_coach_80189508[1] = {
 };
 
 u8* D_dryfield_night_trailer_coach_80189518[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_night_trailer_coach_8018951C[1] = {

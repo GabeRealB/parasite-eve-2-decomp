@@ -19,7 +19,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
@@ -472,7 +471,7 @@ GpRoomObjRec D_acropolis_roof_garden_80184C8C[1] = {
 };
 
 u8* D_acropolis_roof_garden_80184C9C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_acropolis_roof_garden_80184CA0[1] = {

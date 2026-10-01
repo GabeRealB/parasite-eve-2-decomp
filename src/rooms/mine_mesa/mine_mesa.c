@@ -21,7 +21,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -1123,7 +1122,7 @@ GpRoomObjRec D_mine_mesa_80186538[1] = {
 };
 
 u8* D_mine_mesa_80186548[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 WorldCoordRoomLighting D_mine_mesa_8018654C[1] = {

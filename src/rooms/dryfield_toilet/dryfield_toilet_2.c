@@ -19,7 +19,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
@@ -177,7 +176,7 @@ GpRoomObjRec D_dryfield_toilet_8018112C[1] = {
 };
 
 u8* D_dryfield_toilet_8018113C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_toilet_80181140[1] = {

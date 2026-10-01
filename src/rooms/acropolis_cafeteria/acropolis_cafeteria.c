@@ -25,7 +25,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/companion_load.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
@@ -729,7 +728,7 @@ u8 D_acropolis_cafeteria_80187594[24] = {
 };
 
 u8* D_acropolis_cafeteria_801875AC[4] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_cafeteria_8018757C,
     D_acropolis_cafeteria_8018757C,
     D_acropolis_cafeteria_80187594,

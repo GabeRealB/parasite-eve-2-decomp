@@ -14,7 +14,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -187,7 +186,7 @@ u8 D_dryfield_night_underpass_8017DE30[12] = {
 };
 
 u8* D_dryfield_night_underpass_8017DE3C[6] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_underpass_8017DE00,
     D_dryfield_night_underpass_8017DE0C,
     D_dryfield_night_underpass_8017DE18,

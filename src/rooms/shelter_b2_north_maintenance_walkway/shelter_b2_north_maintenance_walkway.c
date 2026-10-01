@@ -16,7 +16,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -85,7 +84,7 @@ extern TaskDesc D_80142604;
 extern TaskDesc D_801575F0;
 
 u8* D_shelter_b2_north_maintenance_walkway_80183C5C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b2_north_maintenance_walkway_80183C60[2] = {

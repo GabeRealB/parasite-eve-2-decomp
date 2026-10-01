@@ -16,7 +16,6 @@
 #include "gameplay/animation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
@@ -1215,7 +1214,7 @@ GpRoomObjRec D_dryfield_night_dilapidated_house_80187394[1] = {
 };
 
 u8* D_dryfield_night_dilapidated_house_801873A4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_night_dilapidated_house_801873A8[1] = {

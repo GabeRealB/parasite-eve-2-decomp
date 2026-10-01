@@ -8,7 +8,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -64,7 +63,7 @@ WorldCoordRoomLighting D_neo_ark_eve_elevator_8017D75C[1] = {
 };
 
 u8* D_neo_ark_eve_elevator_8017D764[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_eve_elevator_8017D768[1] = {

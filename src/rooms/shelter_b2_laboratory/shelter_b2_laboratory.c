@@ -344,7 +344,7 @@ SVECTOR D_shelter_b2_laboratory_80182AA0[45] = {
 };
 
 u8* D_shelter_b2_laboratory_80182C08[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b2_laboratory_80182C0C[1] = {

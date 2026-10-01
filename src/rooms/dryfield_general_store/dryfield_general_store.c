@@ -13,7 +13,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -193,7 +192,7 @@ GpRoomObjRec D_dryfield_general_store_8017E670[1] = {
 };
 
 u8* D_dryfield_general_store_8017E680[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_general_store_8017E684[1] = {

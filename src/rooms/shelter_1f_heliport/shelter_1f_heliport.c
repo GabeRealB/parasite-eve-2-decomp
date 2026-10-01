@@ -13,7 +13,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
@@ -297,7 +296,7 @@ WorldCoordRoomLighting D_shelter_1f_heliport_801812E0[1] = {
 };
 
 u8* D_shelter_1f_heliport_801812E8[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_1f_heliport_801812EC[1] = {

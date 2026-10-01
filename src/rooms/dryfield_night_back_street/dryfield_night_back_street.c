@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
@@ -104,7 +103,7 @@ WorldCoordRoomLighting D_dryfield_night_back_street_801803BC[1] = {
 };
 
 u8* D_dryfield_night_back_street_801803C4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_night_back_street_801803C8[1] = {

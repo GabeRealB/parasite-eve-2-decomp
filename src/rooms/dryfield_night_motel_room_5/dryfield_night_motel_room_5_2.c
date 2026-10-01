@@ -12,7 +12,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
@@ -75,7 +74,7 @@ u8 D_dryfield_night_motel_room_5_8017DAA0[12] = {
 };
 
 u8* D_dryfield_night_motel_room_5_8017DAAC[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_motel_room_5_8017DAA0,
 };
 

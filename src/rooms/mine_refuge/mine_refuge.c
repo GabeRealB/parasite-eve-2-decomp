@@ -226,7 +226,7 @@ GpRoomObjRec D_mine_refuge_801818F8[1] = {
 };
 
 u8* D_mine_refuge_80181908[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_mine_refuge_8018190C[1] = {

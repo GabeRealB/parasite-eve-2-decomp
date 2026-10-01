@@ -815,7 +815,7 @@ u8 D_acropolis_bridge_80189A74[12] = {
 };
 
 u8* D_acropolis_bridge_80189A80[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_bridge_80189A74,
 };
 

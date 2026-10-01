@@ -237,7 +237,7 @@ GpRoomObjRec D_dryfield_motel_room_6_80182D98[1] = {
 };
 
 u8* D_dryfield_motel_room_6_80182DA8[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_motel_room_6_80182DAC[1] = {

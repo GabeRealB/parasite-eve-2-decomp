@@ -15,7 +15,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -87,7 +86,7 @@ GpRoomObjRec D_dryfield_night_water_tower_8017E754[1] = {
 };
 
 u8* D_dryfield_night_water_tower_8017E764[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_night_water_tower_8017E768[1] = {

@@ -22,7 +22,6 @@
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -158,7 +157,7 @@ u8 D_acropolis_observatory_8017FEE8[8] = {
 };
 
 u8* D_acropolis_observatory_8017FEF0[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_observatory_8017FEE8,
 };
 

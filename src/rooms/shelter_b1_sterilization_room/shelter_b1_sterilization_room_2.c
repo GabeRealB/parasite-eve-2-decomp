@@ -20,7 +20,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -355,7 +354,7 @@ u8 D_shelter_b1_sterilization_room_801893B4[24] = {
 };
 
 u8* D_shelter_b1_sterilization_room_801893CC[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_shelter_b1_sterilization_room_8018939C,
     D_shelter_b1_sterilization_room_801893B4,
 };

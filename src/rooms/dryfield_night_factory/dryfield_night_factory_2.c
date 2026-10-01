@@ -10,13 +10,13 @@
 
 #include "dryfield_night_factory_private.h"
 
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/action_prompt.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
 #include "gameplay/loading.h"
@@ -269,8 +269,8 @@ SVECTOR D_dryfield_night_factory_80186F0C = { 5910, -1308, 5649, 0 };
 SVECTOR D_dryfield_night_factory_80186F14 = { 5910, -1404, 5649, 0 };
 
 u8* D_dryfield_night_factory_80186F1C[2] = {
-    D_8010CAF8,
-    D_8010CAF8,
+    gViewIdentityMap,
+    gViewIdentityMap,
 };
 
 WorldCoordRoomLighting D_dryfield_night_factory_80186F24[2] = {

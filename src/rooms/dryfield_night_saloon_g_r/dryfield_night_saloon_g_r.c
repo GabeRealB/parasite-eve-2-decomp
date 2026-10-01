@@ -1077,8 +1077,8 @@ GpRoomObjRec D_dryfield_night_saloon_g_r_80185190[2] = {
 };
 
 u8* D_dryfield_night_saloon_g_r_801851B0[2] = {
-    D_8010CAF8,
-    D_8010CAF8,
+    gViewIdentityMap,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_night_saloon_g_r_801851B8[2] = {

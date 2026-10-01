@@ -14,7 +14,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
@@ -65,7 +64,7 @@ GpRoomObjRec D_mine_tunnel_8017E15C[1] = {
 };
 
 u8* D_mine_tunnel_8017E16C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_mine_tunnel_8017E170[1] = {

@@ -251,7 +251,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
 u8* D_shelter_b4_upper_sewer_80186590[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b4_upper_sewer_80186594[1] = {

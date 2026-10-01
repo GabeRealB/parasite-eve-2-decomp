@@ -27,7 +27,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -1008,8 +1007,8 @@ GpRoomObjRec D_shelter_b3_dumping_hole_8018B678[2] = {
 };
 
 u8* D_shelter_b3_dumping_hole_8018B698[2] = {
-    D_8010CAF8,
-    D_8010CAF8,
+    gViewIdentityMap,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b3_dumping_hole_8018B6A0[2] = {

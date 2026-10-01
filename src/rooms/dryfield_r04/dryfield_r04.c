@@ -7,7 +7,6 @@
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/room.h"
 #include "gameplay/view.h"
 
@@ -23,7 +22,7 @@ GpRoomObjRec D_dryfield_r04_8017D5C4[1] = {
     { &D_dryfield_r04_8017E1F4, NULL, NULL, NULL },
 };
 
-u8* D_dryfield_r04_8017D5D4[1] = { D_8010CAF8 };
+u8* D_dryfield_r04_8017D5D4[1] = { gViewIdentityMap };
 
 GpViewCountRec D_dryfield_r04_8017D5D8[1] = { { { { 2, 0 } } } };
 

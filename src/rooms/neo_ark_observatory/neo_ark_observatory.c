@@ -19,7 +19,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -363,7 +362,7 @@ u8 D_neo_ark_observatory_801815C4[24] = {
 
 u8* D_neo_ark_observatory_801815DC[2] = {
     D_neo_ark_observatory_801815C4,
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_observatory_801815E4[2] = {

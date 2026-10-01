@@ -19,7 +19,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
@@ -582,7 +581,7 @@ u8 D_acropolis_forked_road_80182250[12] = {
 };
 
 u8* D_acropolis_forked_road_8018225C[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_forked_road_80182244,
     D_acropolis_forked_road_80182250,
 };

@@ -33,7 +33,6 @@ Task* D_dryfield_gas_station_80184BD4;
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -264,7 +263,7 @@ GpRoomObjRec D_dryfield_gas_station_8018314C[1] = {
 };
 
 u8* D_dryfield_gas_station_8018315C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 WorldCoordRoomLighting D_dryfield_gas_station_80183160[1] = {

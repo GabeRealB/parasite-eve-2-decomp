@@ -278,7 +278,7 @@ u8 D_shelter_b4_water_supply_801826FC[64] = {
 };
 
 u8* D_shelter_b4_water_supply_8018273C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b4_water_supply_80182740[1] = {

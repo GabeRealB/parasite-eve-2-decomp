@@ -20,7 +20,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
@@ -69,7 +68,7 @@ GpRoomObjRec D_neo_ark_submarine_tunnel_80181E08[1] = {
 };
 
 u8* D_neo_ark_submarine_tunnel_80181E18[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_submarine_tunnel_80181E1C[1] = {

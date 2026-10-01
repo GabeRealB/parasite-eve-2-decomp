@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -288,7 +287,7 @@ u8 D_dryfield_underpass_8017EBB0[12] = {
 };
 
 u8* D_dryfield_underpass_8017EBBC[6] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_underpass_8017EB80,
     D_dryfield_underpass_8017EB8C,
     D_dryfield_underpass_8017EB98,

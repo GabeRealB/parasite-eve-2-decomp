@@ -16,7 +16,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -600,7 +599,7 @@ GpRoomObjRec D_acropolis_west_elevator_hall_80185024[1] = {
 };
 
 u8* D_acropolis_west_elevator_hall_80185034[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_acropolis_west_elevator_hall_80185038[1] = {

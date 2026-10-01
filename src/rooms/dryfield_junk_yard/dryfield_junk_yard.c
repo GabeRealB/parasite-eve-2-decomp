@@ -13,7 +13,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -318,7 +317,7 @@ WorldCoordRoomLighting D_dryfield_junk_yard_8017ED14[1] = {
 };
 
 u8* D_dryfield_junk_yard_8017ED1C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_junk_yard_8017ED20[1] = {

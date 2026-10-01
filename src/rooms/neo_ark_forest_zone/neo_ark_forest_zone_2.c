@@ -15,7 +15,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -244,7 +243,7 @@ WorldCoordRoomLighting D_neo_ark_forest_zone_801820B4[1] = {
 };
 
 u8* D_neo_ark_forest_zone_801820BC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_forest_zone_801820C0[1] = {

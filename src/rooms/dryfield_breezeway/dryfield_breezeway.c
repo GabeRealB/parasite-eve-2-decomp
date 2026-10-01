@@ -14,7 +14,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/item_pickup.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
@@ -224,7 +223,7 @@ GpRoomObjRec D_dryfield_breezeway_8018316C[1] = {
 };
 
 u8* D_dryfield_breezeway_8018317C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 WorldCoordRoomLighting D_dryfield_breezeway_80183180[1] = {

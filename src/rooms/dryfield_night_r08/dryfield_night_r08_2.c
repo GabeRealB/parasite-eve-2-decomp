@@ -16,7 +16,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
@@ -104,7 +103,7 @@ GpRoomObjRec D_dryfield_night_r08_80180684[1] = {
 };
 
 u8* D_dryfield_night_r08_80180694[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_night_r08_80180698[1] = {

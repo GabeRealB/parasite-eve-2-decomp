@@ -1351,7 +1351,7 @@ Gp_RoomParams = 0x80115428; // size:0x20 defined:True
 // Gameplay naming pass 8 (collected bits, item map, load CD, Obj4C)
 Gp_ItemMaps = 0x8010D2F8; // size:0x20 defined:True
 Gp_AreaIdCounts = 0x8010CAF0; // size:0x8 defined:True
-D_8010CAF8 = 0x8010CAF8; // size:0x32 defined:True
+gViewIdentityMap = 0x8010CAF8; // size:0x32 defined:True
 Gp_DefaultScan = 0x8010D520; // size:0x4 defined:True
 Gp_ScanPtrs = 0x8010D550; // size:0x30 defined:True
 Gp_ItemTable2 = 0x80114C20; // size:0x14 defined:True

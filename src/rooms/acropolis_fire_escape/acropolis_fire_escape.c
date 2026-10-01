@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
@@ -18,7 +19,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/item_menu.h"
@@ -252,7 +252,7 @@ GpRoomObjRec D_acropolis_fire_escape_80181DAC[1] = {
 };
 
 u8* D_acropolis_fire_escape_80181DBC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_acropolis_fire_escape_80181DC0[1] = {

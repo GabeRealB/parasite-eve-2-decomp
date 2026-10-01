@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -644,7 +643,7 @@ u8 D_acropolis_promenade_80181BB0[16] = {
 };
 
 u8* D_acropolis_promenade_80181BC0[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_promenade_80181BB0,
 };
 

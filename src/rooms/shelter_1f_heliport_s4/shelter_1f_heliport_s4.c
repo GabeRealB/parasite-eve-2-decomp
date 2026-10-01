@@ -7,7 +7,6 @@
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -38,7 +37,7 @@ GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
 };
 
 u8* D_shelter_1f_heliport_s4_8017D6F8[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_1f_heliport_s4_8017D6FC[1] = {

@@ -18,7 +18,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -854,7 +853,7 @@ u8 D_acropolis_patio_80182EAC[20] = {
 };
 
 u8* D_acropolis_patio_80182EC0[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_patio_80182E98,
     D_acropolis_patio_80182EAC,
 };

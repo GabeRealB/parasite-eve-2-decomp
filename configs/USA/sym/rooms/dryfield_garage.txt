@@ -63,7 +63,7 @@ D_dryfield_garage_8017F69C = 0x8017F69C; // size:0x428 defined:True
 D_dryfield_garage_8017FAC4 = 0x8017FAC4; // size:0x240 defined:True
 D_dryfield_garage_8017FD04 = 0x8017FD04; // size:0x18 defined:True
 D_dryfield_garage_8017FD1C = 0x8017FD1C; // size:0x344 defined:True
-D_8010CAF8 = 0x8010CAF8; // absolute:True
+gViewIdentityMap = 0x8010CAF8; // absolute:True
 
 func_dryfield_garage_8017DC68 = 0x8017DC68; // type:func
 roomEventGate = 0x8017D5E8; // type:func

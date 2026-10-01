@@ -19,7 +19,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/hud_sprites.h"
@@ -265,7 +264,7 @@ u8 D_dryfield_night_garage_80183424[16] = {
 };
 
 u8* D_dryfield_night_garage_80183434[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_garage_80183424,
 };
 

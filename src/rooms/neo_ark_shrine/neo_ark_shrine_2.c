@@ -281,9 +281,9 @@ u8 D_neo_ark_shrine_801827DC[20] = {
 };
 
 u8* D_neo_ark_shrine_801827F0[6] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_neo_ark_shrine_801827B4,
-    D_8010CAF8,
+    gViewIdentityMap,
     D_neo_ark_shrine_801827C8,
     D_neo_ark_shrine_801827DC,
     D_neo_ark_shrine_801827C8,

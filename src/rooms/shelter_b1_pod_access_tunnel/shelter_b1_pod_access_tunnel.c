@@ -20,7 +20,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
@@ -561,7 +560,7 @@ SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[4] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 u8* D_shelter_b1_pod_access_tunnel_80183A14[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b1_pod_access_tunnel_80183A18[1] = {

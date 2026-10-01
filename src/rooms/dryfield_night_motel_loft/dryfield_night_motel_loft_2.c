@@ -14,7 +14,6 @@
 #include "gameplay/display.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -208,7 +207,7 @@ u8 D_dryfield_night_motel_loft_8017EDE0[16] = {
 };
 
 u8* D_dryfield_night_motel_loft_8017EDF0[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_motel_loft_8017EDE0,
 };
 

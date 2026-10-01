@@ -16,7 +16,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -180,7 +179,7 @@ u8 D_dryfield_night_parking_lot_8017EE44[8] = {
 };
 
 u8* D_dryfield_night_parking_lot_8017EE4C[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_parking_lot_8017EE44,
 };
 

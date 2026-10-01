@@ -879,7 +879,7 @@ GpRoomObjRec D_mist_shooting_gallery_801853A8[1] = {
 };
 
 u8* D_mist_shooting_gallery_801853B8[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_mist_shooting_gallery_801853BC[2] = {

@@ -8,7 +8,6 @@
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
@@ -130,7 +129,7 @@ GpRoomObjRec D_dryfield_motel_lobby_8017F838[1] = {
 };
 
 u8* D_dryfield_motel_lobby_8017F848[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_motel_lobby_8017F84C[1] = {

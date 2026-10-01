@@ -15,7 +15,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
@@ -163,8 +162,8 @@ u8 D_mist_parking_8019159C[20] = {
 u8* D_mist_parking_801915B0[4] = {
     D_mist_parking_8019159C,
     D_mist_parking_8019159C,
-    D_8010CAF8,
-    D_8010CAF8,
+    gViewIdentityMap,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_mist_parking_801915C0[4] = {

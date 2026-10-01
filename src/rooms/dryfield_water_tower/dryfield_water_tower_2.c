@@ -769,7 +769,7 @@ GpRoomObjRec D_dryfield_water_tower_801827CC[1] = {
 };
 
 u8* D_dryfield_water_tower_801827DC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_water_tower_801827E0[1] = {

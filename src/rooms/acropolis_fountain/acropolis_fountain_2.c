@@ -18,7 +18,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -160,7 +159,7 @@ u8 D_acropolis_fountain_8017E834[24] = {
 };
 
 u8* D_acropolis_fountain_8017E84C[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_fountain_8017E834,
 };
 

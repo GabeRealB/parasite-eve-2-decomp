@@ -17,7 +17,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
@@ -77,8 +76,8 @@ SVECTOR D_shelter_b3_incinerator_control_room_80181888[19] = {
 };
 
 u8* D_shelter_b3_incinerator_control_room_80181920[2] = {
-    D_8010CAF8,
-    D_8010CAF8,
+    gViewIdentityMap,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b3_incinerator_control_room_80181928[2] = {

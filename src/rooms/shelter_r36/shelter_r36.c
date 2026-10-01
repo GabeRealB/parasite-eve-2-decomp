@@ -15,7 +15,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -289,7 +288,7 @@ TaskDesc D_shelter_r36_8017E9A4[2] = {
 };
 
 u8* D_shelter_r36_8017E9BC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_r36_8017E9C0[1] = {

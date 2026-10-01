@@ -22,7 +22,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -254,7 +253,7 @@ WorldCoordRoomLighting D_neo_ark_power_plant_2_801806A0[1] = {
 };
 
 u8* D_neo_ark_power_plant_2_801806A8[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_power_plant_2_801806AC[2] = {

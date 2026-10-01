@@ -13,7 +13,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -100,7 +99,7 @@ WorldCoordRoomLighting D_shelter_b2_pod_bottom_80181D24[1] = {
 };
 
 u8* D_shelter_b2_pod_bottom_80181D2C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b2_pod_bottom_80181D30[1] = {

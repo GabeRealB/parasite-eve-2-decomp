@@ -1489,7 +1489,7 @@ GpRoomObjRec D_acropolis_security_room_801839D0[1] = {
 };
 
 u8* D_acropolis_security_room_801839E0[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_acropolis_security_room_801839E4[1] = {

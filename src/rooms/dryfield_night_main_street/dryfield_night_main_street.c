@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
@@ -534,7 +533,7 @@ u8 D_dryfield_night_main_street_801822E4[24] = {
 };
 
 u8* D_dryfield_night_main_street_801822FC[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_main_street_801822CC,
     D_dryfield_night_main_street_801822E4,
 };
