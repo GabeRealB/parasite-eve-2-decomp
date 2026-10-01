@@ -84,7 +84,7 @@ typedef struct OddStrangerWaypoint {
 
 /// Status flags at `OddStrangerWork` + 0x68, read through two widths: the
 /// guards in this overlay test bit 0 or bit 0x100 as a halfword, while
-/// `func_actor_401000_80134DB4` tests bits 0x102 as a word, so both views are
+/// `oddStrangerStunned` tests bits 0x102 as a word, so both views are
 /// modelled explicitly rather than casting at the use site. The same shape as
 /// `MadChaserSlotFlags` / `Actor400500HitFlags`.
 typedef union OddStrangerSlotFlags {
@@ -106,11 +106,11 @@ typedef struct OddStrangerWork {
     /* 0x000 */ s16 field_0;
     /* 0x002 */ s16 field_2;
     /* 0x004 */ s16 field_4;
-    /// One-shot latch `func_actor_401000_8013922C` raises once the actor's
+    /// One-shot latch `oddStrangerDormant` raises once the actor's
     /// spawn sound has been queued; the same slot `Actor401300Work` keeps at
     /// +0x6.
     /* 0x006 */ s16 field_6;
-    /// Frame counter `func_actor_401000_8013C46C` runs the 0x5B re-arm and the
+    /// Frame counter `oddStrangerStalk` runs the 0x5B re-arm and the
     /// 0xF1 turn flip off; the same slot `Actor401300Work` keeps at +0x8.
     /* 0x008 */ s16  field_8;
     /* 0x00A */ byte pad_A[2];
@@ -150,7 +150,7 @@ typedef struct OddStrangerWork {
     /* 0x8AE */ s16  field_8AE;
     /* 0x8B0 */ s16  field_8B0;
     /* 0x8B2 */ byte pad_8B2[2];
-    /// Last animation state `func_actor_401000_8013922C` acted on; the same
+    /// Last animation state `oddStrangerDormant` acted on; the same
     /// de-duplication slot `Actor401300Work` keeps at +0x8BC.
     /* 0x8B4 */ s32            field_8B4;
     /* 0x8B8 */ EffectSpawnArg field_8B8;
@@ -189,42 +189,42 @@ typedef struct OddStrangerWork {
     /* 0xBEA */ s16  field_BEA;
     /* 0xBEC */ s16  field_BEC;
     /* 0xBEE */ byte pad_BEE[2];
-    /// Forward direction `func_actor_401000_801374D4` rebuilds from the wrapped
+    /// Forward direction `oddStrangerSidestep` rebuilds from the wrapped
     /// turn toward the player: `gfxRotMatrixY` on the turn then its second
     /// column, normalised, and finally scaled by the `field_C0A` draw. The same
     /// slot `Actor401300Work` keeps at +0xC8C.
     /* 0xBF0 */ SVECTOR field_BF0;
-    /// Position `func_actor_401000_8013D044` snaps the root coordinate to when
+    /// Position `oddStrangerTick` snaps the root coordinate to when
     /// a 0xB/0xD state transition arrives: written by the transition handler and
     /// loaded into `coord.t` with `composeStamp` cleared so the local matrix is rebuilt.
     /* 0xBF8 */ SVECTOR field_BF8;
-    /// Turn angle `func_actor_401000_80136E20` rebuilds the facing from, and
+    /// Turn angle `oddStrangerTurnAround` rebuilds the facing from, and
     /// the yaw it is driven to: each entry nudges `field_C00` by 0x89 toward
     /// `field_C02` and stops once they meet, and `gfxRotMatrixY` /
     /// `actorRescaleYaw` turn that angle into the root rotation. The
     /// same pair `Actor401300Work` keeps at +0xC94 / +0xC96.
     /* 0xC00 */ s16 field_C00;
     /* 0xC02 */ s16 field_C02;
-    /// Turn countdown `func_actor_401000_80139D10` runs while it walks the
+    /// Turn countdown `oddStrangerAdvance` runs while it walks the
     /// actor at the player: the `detectPlayerOutOfReach` probe reads it
     /// signed, the step helper and the countdown itself through a `(u16)`.
     /* 0xC04 */ s16 field_C04;
-    /// Clip-phase latch `func_actor_401000_801365C8` runs the 8 / -1 / 0 march
+    /// Clip-phase latch `oddStrangerChase` runs the 8 / -1 / 0 march
     /// off: 8 flips to -1 once `field_8A2` reaches 0x18, -1 flips to 0 at 0x12,
     /// and 0 keys the 5-frame exit window. The same slot `Actor01900Work` keeps
     /// at +0xC26.
     /* 0xC06 */ s16 field_C06;
-    /// Turn direction `func_actor_401000_801374D4` toggles as it enters: 0 (the
+    /// Turn direction `oddStrangerSidestep` toggles as it enters: 0 (the
     /// unseeded state) draws a sign from `gRandomLcgState`, and each entry flips it
     /// to the other side. Selects the `field_89E` clip and the `field_C12` sign.
     /// The same slot `Actor401300Work` keeps at +0xC9C.
     /* 0xC08 */ s16 field_C08;
-    /// Turn length `func_actor_401000_801374D4` rebuilds the forward direction
+    /// Turn length `oddStrangerSidestep` rebuilds the forward direction
     /// with: seeded to 0xDE, taken signed by the `gte_lddp` draw and halved
     /// while the actor overlaps an obstacle record. The same slot
     /// `Actor401300Work` keeps at +0xC9E.
     /* 0xC0A */ s16 field_C0A;
-    /// Forward step `func_actor_401000_801385B0` walks the root by, feeding the
+    /// Forward step `oddStrangerGrabRelease` walks the root by, feeding the
     /// same `MoveForwardNonzero` helper `Actor401300Work` keeps at +0xC98.
     /// Set to -0x78 when the live-actor flag goes up, halved while the actor
     /// overlaps an obstacle record. The three reads widen it differently: the
@@ -232,25 +232,25 @@ typedef struct OddStrangerWork {
     /// step helper and the halving read it back through a `(u16)`.
     /* 0xC0C */ s16  field_C0C;
     /* 0xC0E */ byte pad_C0E[2];
-    /// Frame-length bias `func_actor_401000_8013DF6C` reseeds the `field_6`
+    /// Frame-length bias `oddStrangerIdle` reseeds the `field_6`
     /// countdown from, plus a 0-15 `gRandomLcgState` draw. The 401300 sibling keeps
     /// the same bias at +0xCA0, and the countdown `Actor01900` runs off +0xC10
     /// is the same slot.
     /* 0xC10 */ u16 field_C10;
-    /// Turn step `func_actor_401000_801374D4` adds to (or subtracts from) the
+    /// Turn step `oddStrangerSidestep` adds to (or subtracts from) the
     /// wrapped facing each entry; the same slot `Actor401300Work` keeps at
     /// +0xCA2 and `Actor01900Work` at +0xC14.
     /* 0xC12 */ s16 field_C12;
     /// Third of the four halfwords `func_actor_401000_80133274` copies out of
     /// the `spawnArg1`-selected record; not read anywhere yet.
     /* 0xC14 */ s16 field_C14;
-    /// Radius `func_actor_401000_8013922C` and `func_actor_401000_80138F50`
+    /// Radius `oddStrangerDormant` and `func_actor_401000_80138F50`
     /// test the actor's distance from `gPlayerStatus.coordMtx` against.
     /* 0xC16 */ u16 field_C16;
-    /// The three bytes `func_actor_401000_8013D958` copies out of the front of
+    /// The three bytes `oddStrangerApplyCommand` copies out of the front of
     /// the message payload; the same triple `Actor01900Work` keeps at +0xC34.
     /* 0xC18 */ u8 field_C18[3];
-    /// Turn cooldown `func_actor_401000_80136E20` spends an entry on: while it
+    /// Turn cooldown `oddStrangerTurnAround` spends an entry on: while it
     /// is up the actor keeps the state-8 arm instead of the 0xB one, and each
     /// entry it is up it counts down by one. The same slot `Actor401300Work`
     /// keeps at +0xC1F.
@@ -259,20 +259,20 @@ typedef struct OddStrangerWork {
     /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
     /* 0xC1C */ Task* field_C1C;
     /* 0xC20 */ Task* field_C20;
-    /// Counter `func_actor_401000_80136E20` gates the turn-entry obstacle
+    /// Counter `oddStrangerTurnAround` gates the turn-entry obstacle
     /// probe on: below 2 the actor keeps the state-8 arm whatever the range
     /// check says. The same slot `Actor401300Work` keeps at +0xD1C.
     /* 0xC24 */ s16 field_C24;
-    /// Wraps counter `func_actor_401000_801374D4` counts the turn entries with:
+    /// Wraps counter `oddStrangerSidestep` counts the turn entries with:
     /// nonzero picks the un-biased `field_C12` arm, and each entry increments
     /// it. The same slot `Actor401300Work` keeps at +0xD1E.
     /* 0xC26 */ s16 field_C26;
-    /// Latch `func_actor_401000_801385B0` clears after sending the closing
+    /// Latch `oddStrangerGrabRelease` clears after sending the closing
     /// 0x3F1 message, gating on it being 1 the same way the 0x3ED probe does.
     /// The same slot `Actor00100Work` keeps at +0xC28.
     /* 0xC28 */ s16  field_C28;
     /* 0xC2A */ byte pad_C2A[2];
-    /// Ring of the last seven view-space positions `func_actor_401000_8013D044`
+    /// Ring of the last seven view-space positions `oddStrangerTick`
     /// records, one per step; `field_C7C` is the write cursor.
     /* 0xC2C */ SVECTOR field_C2C[7];
     /* 0xC64 */ byte    pad_C64[0x18];
@@ -284,7 +284,7 @@ typedef struct OddStrangerWork {
 STATIC_ASSERT_SIZEOF(OddStrangerWork, ODD_STRANGER_HIT_FX_OFFSET ? 0xC80 : 0xC78);
 
 /// The actor's state handlers, indexed by `OddStrangerWork::field_0`.
-/// `func_actor_401000_8013D044` copies the table to its frame before
+/// `oddStrangerTick` copies the table to its frame before
 /// dispatching. Same shape as `Actor01900StateTable` / `Actor401300StateTable`.
 typedef struct OddStrangerStateTable {
     TaskFunc fn[34];

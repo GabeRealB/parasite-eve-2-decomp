@@ -74,7 +74,7 @@ typedef struct GluttonHitGroup {
 STATIC_ASSERT_SIZEOF(GluttonHitGroup, 0x98);
 
 /// 0x30-byte scratchpad frame the group-0 hit handler
-/// `func_actor_403200_80139A60` carves off `SCRATCH_STACK_CURSOR` for the one hit it
+/// `gluttonHitGroup0` carves off `SCRATCH_STACK_CURSOR` for the one hit it
 /// takes this frame. `pos` is the contact point copied out of the `WorldCollisionContact`;
 /// `delta` is the player-relative offset whose length is `dist`, the range
 /// `Gp_ComputeDamage` scales `damage` by. `rot` doubles as `Gp_SpawnEff`'s
@@ -373,7 +373,7 @@ typedef struct GluttonWork {
     /// Companion value handed to the follow helper alongside `field_E94`.
     /* 0xE98 */ s16  field_E98;
     /* 0xE9A */ byte pad_E9A[0x12];
-    /// Screen-shake level `func_actor_403200_80138284` drives, and the level
+    /// Screen-shake level `gluttonShakeTick` drives, and the level
     /// armed last tick in `field_EAD`; a change from the armed level starts a
     /// shake.
     /* 0xEAC */ u8 field_EAC;
@@ -431,11 +431,11 @@ typedef struct GluttonWork {
     /// refills to 0x32 when it runs out.
     /* 0xF0A */ s16 field_F0A;
     /// Damage pool the hit handler for collision groups 6, 7 and 8
-    /// (`func_actor_403200_8013AB70`) draws down alongside the host's HP, and
+    /// (`gluttonHitGroups6To8`) draws down alongside the host's HP, and
     /// refills to 0x3C when it runs out.
     /* 0xF0C */ s16 field_F0C;
     /// Damage pool the hit handler for collision groups 1 and 2
-    /// (`func_actor_403200_80139E94`) draws down alongside the host's HP.
+    /// (`gluttonHitGroups1To2`) draws down alongside the host's HP.
     /* 0xF0E */ s16 field_F0E;
     /// Start-of-state countdown the attack state reads against `field_6`: the
     /// state body only runs once `field_6` has reached it, and it is seeded to

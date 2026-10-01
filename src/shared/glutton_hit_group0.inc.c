@@ -8,8 +8,7 @@
 /// high halfword is attack kind 2 -- the contact point goes into the frame's
 /// `pos` and the id is kept. A record with `key` 0 ends the scan with no
 /// hit. The scan is written with labels rather than a `for` so `loop.c` parks
-/// the match arm out of line; the same shape as
-/// `func_actor_444000_8013C060`'s.
+/// the match arm out of line in both room builds.
 ///
 /// A hit spawns the impact effect on the part's coordinate, publishes
 /// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C, and
