@@ -12,6 +12,11 @@
  * timer complete the frame. The dead state uses inlined copies of the reseed,
  * tint and shadow, which move into the shared header.
  *
+ * Each package builds the library for its own type: it defines
+ * GOLEM_KNIGHT_BISHOP_KIND as GOLEM_KNIGHT (actor_402200) or GOLEM_BISHOP
+ * (actor_403900) before including this header, and the parameters below
+ * follow from it.
+ *
  * Include this header in the prologue and each fragment at its function's
  * position.
  */
@@ -19,12 +24,46 @@
 #ifndef SRC_SHARED_GOLEM_KNIGHT_BISHOP_H
 #define SRC_SHARED_GOLEM_KNIGHT_BISHOP_H
 
+#define GOLEM_KNIGHT 1
+#define GOLEM_BISHOP 2
+#ifndef GOLEM_KNIGHT_BISHOP_KIND
+#error "define GOLEM_KNIGHT_BISHOP_KIND (GOLEM_KNIGHT or GOLEM_BISHOP) before including golem_knight_bishop.h"
+#endif
+
+/* Per type: its id (also in its collision keys, 0x30000 | id); the frames a
+ * grab holds the player; what one hit adds to the hit load and the load at
+ * which the box approach breaks off; the aim countdown, whose last frames
+ * project the beam; the idle sequence's cap on its approach counter; and the
+ * base of the random recovery delay. */
+#if GOLEM_KNIGHT_BISHOP_KIND == GOLEM_KNIGHT
+#define GOLEM_KNIGHT_BISHOP_ID            0x16
+#define GOLEM_KNIGHT_BISHOP_GRAB_HOLD     0x1E
+#define GOLEM_KNIGHT_BISHOP_HIT_WEIGHT    0xA0
+#define GOLEM_KNIGHT_BISHOP_AIM_TIME      0x14
+#define GOLEM_KNIGHT_BISHOP_IDLE_LIMIT    12
+#define GOLEM_KNIGHT_BISHOP_RECOVER_DELAY 0x4B
+#else
+#define GOLEM_KNIGHT_BISHOP_ID            0x27
+#define GOLEM_KNIGHT_BISHOP_GRAB_HOLD     0x14
+#define GOLEM_KNIGHT_BISHOP_HIT_WEIGHT    0xFA
+#define GOLEM_KNIGHT_BISHOP_AIM_TIME      0xA
+#define GOLEM_KNIGHT_BISHOP_IDLE_LIMIT    8
+#define GOLEM_KNIGHT_BISHOP_RECOVER_DELAY 0x2D
+#endif
+
 #include "types.h"
 
 #include "actors/actor.h"
 
 #include "main/coord.h"
 #include "main/task_types.h"
+
+typedef struct {
+    s32 id;
+    union {
+        s32 (*call0)(Task*);
+    } handler;
+} GolemKnightBishopMessageEntry;
 
 /// One 0x10-byte entry of the box table `GolemKnightBishopWork::field_6B4`: the
 /// entry's kind at `field_0` (0 a circle of radius `field_2` round
@@ -433,6 +472,8 @@ void golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1);
 void golemKnightBishopTakeHits(Task* arg0);
 void golemKnightBishopUpdateTint(Task* arg0);
 void golemKnightBishopTickAnim(Task* arg0);
+void golemKnightBishopSpawn(Enemy* arg0, Task* arg1);
+void golemKnightBishopAimFromPart(Task* arg0);
 void golemKnightBishopIdleSeq(Task* arg0);
 void golemKnightBishopGrabSeq(Task* arg0);
 void golemKnightBishopBoxApproachSeq(Task* arg0);
