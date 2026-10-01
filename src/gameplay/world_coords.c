@@ -1427,7 +1427,11 @@ s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
         WORLD_COORDINATE_AUDIO_PAN_MIN_X           = -160,
         WORLD_COORDINATE_AUDIO_PAN_MAX_X           = 159,
         WORLD_COORDINATE_AUDIO_PAN_PIXELS_PER_UNIT = 10,
-        WORLD_COORDINATE_AUDIO_PAN_CENTER          = 0
+
+        /// Preserves the sound's base pan when projection reports a GTE summary error.
+        ///
+        /// Zero is a signed pan offset; the sound's base pan may be off-centre.
+        WORLD_COORDINATE_AUDIO_PAN_NO_OFFSET = 0
     };
     WorldCoordProjectionScratch* scratchEnd;
     WorldCoordProjectionScratch* projection;
@@ -1446,7 +1450,7 @@ s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
         }
         negativePan = -projection->screen.vx / WORLD_COORDINATE_AUDIO_PAN_PIXELS_PER_UNIT;
     } else {
-        negativePan = WORLD_COORDINATE_AUDIO_PAN_CENTER;
+        negativePan = WORLD_COORDINATE_AUDIO_PAN_NO_OFFSET;
     }
     SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
     return -negativePan;
