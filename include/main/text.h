@@ -82,7 +82,23 @@ enum {
     /// translucent outlined or outlined text, which also needs `otIndex + 1`.
     TEXT_DRAW_OUTLINED_SINGLE_ENTRY = 2,
     TEXT_DRAW_TRANSLUCENT_OUTLINED  = 3, // Translucent fill, alternate outline palette in the next OT entry.
-    TEXT_DRAW_OUTLINE_ONLY          = 4, // Unmodulated outline; ignores colorRgb.
+    /// Queues the subtractive outline pass without a glyph fill.
+    ///
+    /// Selector 4 in `TextDrawReq::drawMode`. Uses the outline palette without
+    /// RGB modulation, so `colorRgb` and inline color commands do not tint it.
+    /// While this mode remains selected, only the signed `otIndex` entry in
+    /// `gGpuCurrentOt` is needed. Each glyph reserves one sprite (20 bytes);
+    /// a line ending in this mode reserves one texture-page packet (8 bytes),
+    /// even when no glyph was drawn. The entry and primitive storage must be
+    /// writable, with sufficient capacity; font textures and text palettes
+    /// must already be loaded.
+    /// To pair it with a separate fill in the same OT entry, queue the fill
+    /// first and restore the placement before queuing this pass: packets are
+    /// prepended, so the outline executes before the fill.
+    /// Inline `\w0` or `\w1` (either letter case) switches to translucent
+    /// outlined or outlined text and stores that mode in the request;
+    /// subsequent drawing also needs `otIndex + 1` and space for both passes.
+    TEXT_DRAW_OUTLINE_ONLY = 4,
 };
 
 /// Mutable placement and style for one encoded UI-text line.
