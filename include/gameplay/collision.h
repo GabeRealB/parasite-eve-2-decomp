@@ -57,8 +57,15 @@ enum {
     WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD = 4,
     WORLD_COLLISION_TRIGGER_LINKED              = 0x20,
     WORLD_COLLISION_TRIGGER_ENABLED             = 0x40,
-    WORLD_COLLISION_TRIGGER_LAST                = 0x80,
-    WORLD_COLLISION_TRIGGER_PERSISTENT_FLAGS    = WORLD_COLLISION_TRIGGER_KIND_MASK | WORLD_COLLISION_TRIGGER_LAST,
+    /// Marks the final record included in a contiguous room-trigger array scan.
+    ///
+    /// Set this bit in the last element of each non-NULL view-boundary or action
+    /// array. Room setup binds, links and enables that element before stopping;
+    /// no separate count or dummy terminator is supplied. Linking, unlinking and
+    /// clearing a list preserve the bit so its array can be bound again.
+    /// Runtime lists terminate at a NULL `next`, independently of this marker.
+    WORLD_COLLISION_TRIGGER_LAST             = 0x80,
+    WORLD_COLLISION_TRIGGER_PERSISTENT_FLAGS = WORLD_COLLISION_TRIGGER_KIND_MASK | WORLD_COLLISION_TRIGGER_LAST,
 };
 
 /// Direction-action selectors and activation gates in a trigger's control word.
