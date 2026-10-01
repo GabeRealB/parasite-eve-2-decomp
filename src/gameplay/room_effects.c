@@ -2275,8 +2275,13 @@ static inline void _gpuQueueBlendMode(s32 blendMode, s32 sortingDepth)
         /// The blend command fixes the texture depth even though untextured
         /// primitives do not sample the selected page.
         GPU_BLEND_TEXTURE_DEPTH_4BIT = 0,
-        GPU_BLEND_TEXTURE_PAGE_X     = 640,
-        GPU_BLEND_TEXTURE_PAGE_Y     = 0,
+        /// Horizontal texture-page origin in VRAM 16-bit words for the blend draw mode.
+        ///
+        /// Pass this 64-word-aligned origin unshifted to `getTPage`, which
+        /// encodes 640 as 0xA in draw-mode bits 0..3. The command selects this
+        /// page even though untextured primitives do not sample its texels.
+        GPU_BLEND_TEXTURE_PAGE_X = 640,
+        GPU_BLEND_TEXTURE_PAGE_Y = 0,
     };
     DR_TPAGE* blendCommand;
 
