@@ -211,6 +211,11 @@ u32 D_80114BAC = 0x10FF2220;
 static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* element, const TmdStreamWorkspace* workspace)
 {
     enum {
+        /// Zero-based u32 word index of vertex 0's packed U/V and CLUT in a stream element.
+        ///
+        /// For records 0x1C/0x1E, the index starts at each element after the record
+        /// header. Bits 0..7 and 8..15 are unsigned U0/V0 texel coordinates;
+        /// bits 16..31 are the encoded CLUT address before the model's displacement.
         MODEL_LIGHTING_FT3_UV0_CLUT_WORD  = 2,
         MODEL_LIGHTING_FT3_UV1_TPAGE_WORD = 3,
         MODEL_LIGHTING_FT3_UV2_WORD       = 4
