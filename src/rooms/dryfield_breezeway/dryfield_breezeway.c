@@ -207,16 +207,7 @@ GpImgRec D_dryfield_breezeway_80183144[2] = {
     { 255, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u8 D_dryfield_breezeway_80183164[8] = {
-    70,
-    70,
-    171,
-    250,
-    9,
-    11,
-    0,
-    0,
-};
+SVECTOR D_dryfield_breezeway_80183164 = { 17990, -1365, 2825, 0 };
 
 GpRoomObjRec D_dryfield_breezeway_8018316C[1] = {
     { D_dryfield_breezeway_80183628, D_dryfield_breezeway_80183DE4, D_dryfield_breezeway_80183F14, NULL },

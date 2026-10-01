@@ -10,7 +10,7 @@
 
 extern GpImgRec D_dryfield_breezeway_80183144[2];
 
-extern u8 D_dryfield_breezeway_80183164[8];
+extern SVECTOR D_dryfield_breezeway_80183164;
 
 extern Task* D_dryfield_breezeway_801843C0;
 

@@ -59,6 +59,7 @@ void glowDrawTaperedBeam(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 void glowDrawWedge(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 void glowDrawHalo(GfxCoord* coord, s32 inner, s32 width, u8* rgb);
 void glowDrawRingBeam(Task* task, SVECTOR* points, s32 otz);
+void glowDrawRayStar(GfxCoord* coord, SVECTOR* point, s32 rate, s32 arg3);
 
 /* glowDrawRingBeam's tables, the package's data at its own positions */
 extern s8 gGlowRingBeamQuads[16][4];

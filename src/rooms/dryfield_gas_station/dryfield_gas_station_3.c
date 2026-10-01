@@ -563,7 +563,6 @@ Task* D_dryfield_gas_station_80184BCC = NULL;
 RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 
 static void func_dryfield_gas_station_801803C0(Task* task);
-static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
 
 /// Carries out the script command in `DgsWork::field_4`, then clears it (the
 /// multi-frame commands return early until they finish). 1 places the owner at
@@ -822,157 +821,17 @@ void func_dryfield_gas_station_80180B2C(s16 arg0)
 
 #include "../../shared/glow_draw_star_local.inc.c"
 
-/// Draws a pulsing cyan glow at `data` in `coord`'s space: the point is
-/// projected through `GsWSMATRIX`, and nothing is drawn when its `otz` is 16 or
-/// less. Around the projected centre it lays a fan of gouraud `POLY_G4`
-/// wedges of radius `rOuter`, each paired with a brighter one of half that
-/// radius, then four quads reaching out from `rInner` towards `rOuter`.
-/// The centre vertex's intensity is `rsin(animFrame * arg2) / 34 + 0x78`,
-/// halved on the outer wedges and on the four quads.
-static void func_dryfield_gas_station_80181058(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
-{
-    u8*              head;
-    RoomGlowScratch* block;
-    POLY_G4*         prim;
-    s32              pulse;
-    s32              color;
-    s32              half;
-    s32              size;
-    s32              ang;
-    s32              t;
-    s32              t2;
-    s32              u;
-
-    Gp_UpdateCoord(coord);
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - 0x18);
-        block   = (RoomGlowScratch*)tmp;
-    }
-
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(data);
-    gte_rtv0();
-    gte_stsv(&((RoomGlowScratch*)(head - 0x18))->vec);
-    block->vec.vx += coord->workm.t[0];
-    block->vec.vy += coord->workm.t[1];
-    block->vec.vz += coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomGlowScratch*)(head - 0x18))->vec);
-    gte_rtps();
-    gte_stsxy(&((RoomGlowScratch*)(head - 0x18))->sx);
-    gte_stszotz(&block->otz);
-    if (((RoomGlowScratch*)(head - 0x18))->otz > 16) {
-        pulse         = rsin(gDisplayState.animFrame * (s16)arg2);
-        ang           = 0;
-        size          = (s16)arg3;
-        block->rOuter = (size * 64) / ((RoomGlowScratch*)(head - 0x18))->otz;
-        color         = pulse / 34 + 0x78;
-        block->rInner = (size * 8) / ((RoomGlowScratch*)(head - 0x18))->otz;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            half = (s16)color >> 1;
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, half, half);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
-
-        color = half;
-        ang   = 0x200;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            u        = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
-            u        = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
-            ang      = u;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#define GLOW_DRAW_RAY_STAR_OUTER(p, c, h) setRGB2(p, 0, h, h)
+#define GLOW_DRAW_RAY_STAR_INNER(p, c, h) setRGB2(p, 0, c, c)
+#define GLOW_DRAW_RAY_STAR_RAY(p, c)      setRGB2(p, 0, c, c)
+#include "../../shared/glow_draw_ray_star.inc.c"
 
 /// Per-frame effect: draws the gas station's shaft with the task's own
 /// coordinate, then enables `gRoomEffectState->roomEffectMode`.
 /// `Task::extra.coordBody->coord` is the coordinate both draws share. The
 /// stage-visit byte `gGameSession->location.loc.view` is used as a bit index: bits 4, 6,
 /// 11 and 12 (`0x1850`) select `glowDrawStarLocal` with the wide half-extent 0x80,
-/// and any other non-zero bit selects `func_dryfield_gas_station_80181058`
+/// and any other non-zero bit selects `glowDrawRayStar`
 /// with 0x40.
 void func_dryfield_gas_station_80181A78(Task* arg0)
 {
@@ -984,7 +843,7 @@ void func_dryfield_gas_station_80181A78(Task* arg0)
     if (mask & 0x1850) {
         glowDrawStarLocal(coord, &D_dryfield_gas_station_80183144, 0x60, 0x80);
     } else if (mask != 0) {
-        func_dryfield_gas_station_80181058(coord, &D_dryfield_gas_station_80183144, 0x60, 0x40);
+        glowDrawRayStar(coord, &D_dryfield_gas_station_80183144, 0x60, 0x40);
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }
