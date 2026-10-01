@@ -6,7 +6,7 @@
 /// Status flags at + 0xFC of the `Task::work` work block, read through two
 /// widths: bit 0 as a halfword, then bits 0x102 as a word. In
 /// `Actor400600Work` the word sits over `slots[1].flags`. Bit 0 is
-/// `ANIMATION_SLOT_REACHED_END`; bits 0x102 are `ANIMATION_SLOT_FOLLOWED_JUMP`
+/// `ANIMATION_SLOT_REACHED_BOUNDARY`; bits 0x102 are `ANIMATION_SLOT_FOLLOWED_JUMP`
 /// and `ANIMATION_SLOT_SETTLED`.
 typedef union ActorsShared8013a0b0Flags {
     /* 0x0 */ u32 word;

@@ -30,16 +30,26 @@ enum { ANIMATION_SET_BUFFERED_POSE = 0x7FFF };
 /// `ANIMATION_SLOT_SETTLED` means the latest pose tick is holding the boundary
 /// pose. While `atEnd` is set and both endpoints still agree, that tick reports
 /// this bit alone and does not advance time. The tick whose walk reaches a
-/// boundary also reports `ANIMATION_SLOT_REACHED_END` and latches the hold.
+/// boundary also reports `ANIMATION_SLOT_REACHED_BOUNDARY` and latches the hold.
 /// A seek keeps that tick's flags and can add walk bits after moving the
 /// endpoints, so a set bit after a seek is not a hold of the new segment.
 /// The next pose tick clears the flags first. A zero `rate` outside a hold
 /// leaves the segment where it is and leaves this bit clear.
 enum {
-    ANIMATION_SLOT_REACHED_END   = 1,    // End control, jump to the selected keyframe, or reverse track boundary
-    ANIMATION_SLOT_FOLLOWED_JUMP = 2,    // Control jump taken this walk (stop clear; index becomes wordOffset), including a jump that also sets ANIMATION_SLOT_REACHED_END
-    ANIMATION_SLOT_BOUNDARY_MASK = ANIMATION_SLOT_REACHED_END | ANIMATION_SLOT_FOLLOWED_JUMP,
-    ANIMATION_SLOT_SETTLED       = 0x100 // Boundary pose held by the latest pose tick
+    /// A track walk reported an end control, return jump, or reverse-start clamp.
+    ///
+    /// Forward walks set this for a stop control or a control jump whose target
+    /// record index equals the slot's previously selected next record index;
+    /// the jump comparison does not compare set indices. Reverse walks set it
+    /// when the candidate record index falls below the track start.
+    /// A pose tick clears it first and adds `ANIMATION_SLOT_SETTLED` when the
+    /// walk reports this boundary. Later ticks holding that pose report only
+    /// `ANIMATION_SLOT_SETTLED`. Seek/play walks retain the preceding pose
+    /// tick's flags and may add this bit while selecting a new endpoint.
+    ANIMATION_SLOT_REACHED_BOUNDARY = 1,
+    ANIMATION_SLOT_FOLLOWED_JUMP    = 2,    // Control jump taken this walk (stop clear; index becomes wordOffset), including a jump that also sets ANIMATION_SLOT_REACHED_BOUNDARY
+    ANIMATION_SLOT_BOUNDARY_MASK    = ANIMATION_SLOT_REACHED_BOUNDARY | ANIMATION_SLOT_FOLLOWED_JUMP,
+    ANIMATION_SLOT_SETTLED          = 0x100 // Boundary pose held by the latest pose tick
 };
 
 /// Low record-index bits used by actor cue tests; playback uses the full index.

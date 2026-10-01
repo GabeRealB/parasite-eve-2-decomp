@@ -2865,7 +2865,8 @@ static void Actor00400_Fn04414(Task* arg0)
     } while (i < 0xF);
     if (arg0->spawnArg1.value != 7) {
         w2 = arg0->work;
-        if ((w2->flags_62C.half & 1) || (w2->flags_62C.word & 0x102)) {
+        if ((w2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (w2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -3008,7 +3009,8 @@ static void Actor00400_Fn04900(Task* arg0)
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
         work2 = arg0->work;
-        if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+        if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -3042,7 +3044,8 @@ static void Actor00400_Fn04A1C(Task* arg0)
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
         work2 = arg0->work;
-        if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+        if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -3395,7 +3398,8 @@ static void Actor00400_Fn05320(Task* arg0)
         SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     w4 = arg0->work;
-    if ((w4->flags_62C.half & 1) || (w4->flags_62C.word & 0x102)) {
+    if ((w4->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (w4->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -3656,7 +3660,8 @@ static void Actor00400_Fn060CC(Task* arg0)
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
         work2 = arg0->work;
-        if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+        if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -3806,7 +3811,8 @@ static void Actor00400_Fn064B0(Task* arg0)
         Actor00400_SpawnMarker(arg0);
     }
     work2 = arg0->work;
-    if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+    if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4034,7 +4040,8 @@ static void Actor00400_Fn06EA4(Task* arg0)
     work = arg0->work;
     if (Actor00400_ConsumeStateRequest(work) == 0) {
         work = arg0->work;
-        if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+        if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -4069,7 +4076,8 @@ static void Actor00400_Fn06F64(Task* arg0)
     }
     if (Actor00400_ConsumeStateRequest(work) == 0) {
         work = arg0->work;
-        if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+        if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -4188,7 +4196,8 @@ static void Actor00400_Fn07400(Task* arg0)
         work->field_636 = phase;
         work->field_63E = work->field_658 + ((u16)work->field_64E + ((rsin(phase << 16 >> 10) * 0x10) >> 10));
         work2           = arg0->work;
-        if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+        if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -4906,7 +4915,8 @@ static s16 Actor00400_Fn08908(Task* arg0)
 {
     Actor100400Work* work = arg0->work;
 
-    if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;
@@ -5361,7 +5371,8 @@ static void Actor00400_Fn095D8(Task* arg0)
     work            = arg0->work;
     work->field_660 = 1;
     work2           = arg0->work;
-    if ((work2->flags_62C.half & 1) || (work2->flags_62C.word & 0x102)) {
+    if ((work2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5399,7 +5410,8 @@ static void Actor00400_Fn096C0(Task* arg0)
     Actor100400Work* work;
 
     work = arg0->work;
-    if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5441,7 +5453,8 @@ static void Actor00400_Fn097C8(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     state = arg0->work;
-    if ((state->flags_62C.half & 1) || (state->flags_62C.word & 0x102)) {
+    if ((state->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (state->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5488,7 +5501,8 @@ static void Actor00400_Fn09924(Task* arg0)
         state->field_624 = mode;
     } else {
         state = arg0->work;
-        if ((state->flags_62C.half & 1) || (state->flags_62C.word & 0x102)) {
+        if ((state->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (state->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -5978,7 +5992,8 @@ static void Actor00400_Fn0A6B0(Task* arg0)
     s32              cond;
 
     work = arg0->work;
-    if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6017,7 +6032,8 @@ static void Actor00400_Fn0A760(Task* arg0)
     }
     Actor00400_Fn00C84(arg0);
     work = arg0->work;
-    if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6048,7 +6064,8 @@ static void Actor00400_Fn0A82C(Task* arg0)
     s32              cond;
 
     work = arg0->work;
-    if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6122,7 +6139,8 @@ static void Actor00400_Fn0AA40(Task* arg0)
     work = arg0->work;
     work->field_636++;
     state = arg0->work;
-    if ((state->flags_62C.half & 1) || (state->flags_62C.word & 0x102)) {
+    if ((state->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (state->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;

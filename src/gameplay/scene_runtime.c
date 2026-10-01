@@ -2145,12 +2145,12 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
                 if (rec->flags < ANIMATION_RECORD_END) {
                     recordIndex = rec->wordOffset;
                     if (recordIndex == slot->nextPose.indices.recordIndex) {
-                        slot->flags |= ANIMATION_SLOT_REACHED_END;
+                        slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                     }
                     slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
                 } else {
                     recordIndex  = slot->nextPose.indices.recordIndex;
-                    slot->flags |= ANIMATION_SLOT_REACHED_END;
+                    slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                     break;
                 }
             }
@@ -2225,12 +2225,12 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
                 if (record->flags < ANIMATION_RECORD_END) {
                     nextRecordIndex = record->wordOffset;
                     if (nextRecordIndex == slot->nextPose.indices.recordIndex) {
-                        slot->flags |= ANIMATION_SLOT_REACHED_END;
+                        slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                     }
                     slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
                 } else {
                     nextRecordIndex = slot->nextPose.indices.recordIndex;
-                    slot->flags    |= ANIMATION_SLOT_REACHED_END;
+                    slot->flags    |= ANIMATION_SLOT_REACHED_BOUNDARY;
                     break;
                 }
             }
@@ -2241,7 +2241,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             slot->timeSpan                     = segmentDuration;
             slot->timeLeft                    += segmentDuration;
         }
-        if (slot->flags & ANIMATION_SLOT_REACHED_END) {
+        if (slot->flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             // The forward walk reached a boundary: latch the hold.
             slot->atEnd  = 1;
             slot->flags |= ANIMATION_SLOT_SETTLED;
@@ -2258,7 +2258,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             firstRecordIndex    = slot->sets[previousSetIndex]->trackStartIndices[slot->trackIndex];
             if (previousRecordIndex < firstRecordIndex) {
                 previousRecordIndex = firstRecordIndex;
-                slot->flags        |= ANIMATION_SLOT_REACHED_END;
+                slot->flags        |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
             slot->currentPose.indices.recordIndex = previousRecordIndex;
             slot->currentPose.indices.setIndex    = previousSetIndex;
@@ -2266,7 +2266,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             segmentDuration                       = records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
             slot->timeSpan                        = segmentDuration;
         }
-        if (slot->flags & ANIMATION_SLOT_REACHED_END) {
+        if (slot->flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             // The reverse walk reached the track start: latch the hold.
             slot->atEnd  = 1;
             slot->flags |= ANIMATION_SLOT_SETTLED;
@@ -2340,12 +2340,12 @@ static inline void _gpAnimSeekSlot(AnimationContext* context, s32 arg1, u16 arg2
         if (rec->flags < ANIMATION_RECORD_END) {
             recordIndex = rec->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
-                slot->flags |= ANIMATION_SLOT_REACHED_END;
+                slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
             slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
             recordIndex  = slot->nextPose.indices.recordIndex;
-            slot->flags |= ANIMATION_SLOT_REACHED_END;
+            slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }
@@ -2404,12 +2404,12 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
             if (rec->flags < ANIMATION_RECORD_END) {
                 recordIndex = rec->wordOffset;
                 if (recordIndex == slot->nextPose.indices.recordIndex) {
-                    slot->flags |= ANIMATION_SLOT_REACHED_END;
+                    slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                 }
                 slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
             } else {
                 recordIndex  = slot->nextPose.indices.recordIndex;
-                slot->flags |= ANIMATION_SLOT_REACHED_END;
+                slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
                 break;
             }
         }
@@ -2709,12 +2709,12 @@ void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16
         if (rec->flags < ANIMATION_RECORD_END) {
             recordIndex = rec->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
-                slot->flags |= ANIMATION_SLOT_REACHED_END;
+                slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
             slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
             recordIndex  = slot->nextPose.indices.recordIndex;
-            slot->flags |= ANIMATION_SLOT_REACHED_END;
+            slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }
@@ -2751,12 +2751,12 @@ static void func_800B46A4(AnimationContext* unusedContext, AnimationSlot* arg1, 
         if (rec->flags < ANIMATION_RECORD_END) {
             arg3 = rec->wordOffset;
             if (arg3 == arg1->nextPose.indices.recordIndex) {
-                arg1->flags |= ANIMATION_SLOT_REACHED_END;
+                arg1->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
             arg1->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
             arg3         = arg1->nextPose.indices.recordIndex;
-            arg1->flags |= ANIMATION_SLOT_REACHED_END;
+            arg1->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }
@@ -2771,7 +2771,7 @@ static void func_800B4754(AnimationContext* unusedContext, AnimationSlot* arg1, 
     limit = arg1->sets[arg2]->trackStartIndices[arg1->trackIndex];
     if (arg3 < limit) {
         arg3         = limit;
-        arg1->flags |= ANIMATION_SLOT_REACHED_END;
+        arg1->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
     }
     arg1->currentPose.indices.recordIndex = arg3;
     arg1->currentPose.indices.setIndex    = arg2;
@@ -2806,12 +2806,12 @@ void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, AnimationPose* arg2, u
         if (rec->flags < ANIMATION_RECORD_END) {
             recordIndex = rec->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
-                slot->flags |= ANIMATION_SLOT_REACHED_END;
+                slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             }
             slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
             recordIndex  = slot->nextPose.indices.recordIndex;
-            slot->flags |= ANIMATION_SLOT_REACHED_END;
+            slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
             break;
         }
     }

@@ -104,7 +104,7 @@ void blendRigDrive(Task* arg0)
         } while (tickIndex < 0x13);
     } else {
         blendRigTickBlended(arg0);
-        if (work->blend.slots[1].flags & ANIMATION_SLOT_REACHED_END) {
+        if (work->blend.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_89A = 0;
         }
     }

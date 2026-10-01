@@ -69,7 +69,8 @@ extern s32 D_actor_310100_801798A8[];
 /// Model frame handler: queues the step sound for the animation record slot 1
 /// has just entered — from `D_actor_310100_801798A8` while the model is on the
 /// 0x6C display id, from the fixed 0x51050006 / 0x51050007 pair otherwise — then
-/// ticks slots 1..0x12 and returns slot 1's `field_10` bit 0.
+/// ticks slots 1..0x12 and returns slot 1's `ANIMATION_SLOT_REACHED_BOUNDARY`
+/// result from `flags`.
 static s32 func_actor_310100_80161E24(Task* task);
 
 /// State handler for the display model spawned by `func_actor_310100_80162C64`:
@@ -699,7 +700,7 @@ static s32 func_actor_310100_80161E24(Task* task)
         Gp_AnimTickIndex(&work->rig.anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
-    return work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_END;
+    return work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY;
 }
 
 static void func_actor_310100_80161F80(Task* task)

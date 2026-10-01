@@ -103,7 +103,7 @@ void rigAnimTick(Task* task)
         } while (tickIndex < 0x12);
     } else {
         rigBlendTick(task);
-        if (work->blendSlots[1].flags & ANIMATION_SLOT_REACHED_END) {
+        if (work->blendSlots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_82A = 0;
         }
     }

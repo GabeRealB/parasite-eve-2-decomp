@@ -3784,7 +3784,8 @@ static s32 func_actor_405800_80137908(Task* arg0)
 {
     Actor405800Work* work = (Actor405800Work*)arg0->work;
 
-    if ((work->flags_83C.half & 1) || (work->flags_83C.word & 0x102)) {
+    if ((work->flags_83C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_83C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;
@@ -4121,7 +4122,8 @@ static s32 func_actor_405800_801385F4(Task* arg0)
 {
     ActorsShared8013a0b0Work* work = (ActorsShared8013a0b0Work*)arg0->work;
 
-    if ((work->flags_FC.half & 1) || (work->flags_FC.word & 0x102)) {
+    if ((work->flags_FC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_FC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;

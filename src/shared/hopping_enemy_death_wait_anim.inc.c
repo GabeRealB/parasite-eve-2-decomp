@@ -10,7 +10,8 @@ void hopperDeathWaitAnim(Task* arg0)
     work = (Actor341700Work*)arg0->work;
     hopperTickAnim(arg0);
     work2 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;

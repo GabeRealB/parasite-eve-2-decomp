@@ -569,8 +569,9 @@ static void func_actor_120500_801322A0(Task* task)
 /// `eventState` clears.
 ///
 /// Every state then steps the request handler, ticks the nineteen animation
-/// slots past slot 0 and walks the slots to the first whose `flags` bit 0 is
-/// clear. Request code 1 at 0x4C0 allocates the model's buffers, spawns the
+/// slots past slot 0 and walks the slots to the first whose
+/// `ANIMATION_SLOT_REACHED_BOUNDARY` result is clear. Request code 1 at 0x4C0
+/// allocates the model's buffers, spawns the
 /// fade from black and places the actor with its own placement record. At
 /// 0x4C8, code 1 spawns the fade to black and code 2 sends message 0x3F3,
 /// spawns the streamed sequence, raises `gDisplayState.control.flags.flipMode` and spawns the view
@@ -632,7 +633,7 @@ void func_actor_120500_8013241C(Task* arg0)
 
     i = 1;
 loop_slots:
-    if ((slotsWork->rig.slots[(u16)i].flags & ANIMATION_SLOT_REACHED_END) != 0) {
+    if ((slotsWork->rig.slots[(u16)i].flags & ANIMATION_SLOT_REACHED_BOUNDARY) != 0) {
         i++;
         if ((u16)i < 0x14U) {
             goto loop_slots;

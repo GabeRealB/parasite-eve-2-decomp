@@ -3507,10 +3507,10 @@ static __inline__ s32 Actor403100_LocalizeRotation(GfxCoord* arg0, MATRIX* arg1,
 
 static __inline__ s16 Actor403100_TestFlags(void)
 {
-    if (D_actor_403100_80155808->flags_634.half & 1) {
+    if (D_actor_403100_80155808->flags_634.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
     }
-    if (D_actor_403100_80155808->flags_634.word & 0x102) {
+    if (D_actor_403100_80155808->flags_634.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
         return 1;
     }
     return 0;
@@ -3518,10 +3518,10 @@ static __inline__ s16 Actor403100_TestFlags(void)
 
 static __inline__ s16 Actor403100_TestFlags104(void)
 {
-    if (D_actor_403100_80155808->field_B8.legacy.flags_104.half & 1) {
+    if (D_actor_403100_80155808->field_B8.legacy.flags_104.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
     }
-    if (D_actor_403100_80155808->field_B8.legacy.flags_104.word & 0x102) {
+    if (D_actor_403100_80155808->field_B8.legacy.flags_104.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
         return 1;
     }
     return 0;

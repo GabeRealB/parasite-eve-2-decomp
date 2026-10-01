@@ -93,7 +93,8 @@ void hopperPulledStruggle(Task* arg0)
     } else if (enemy->hp > 0) {
         Actor341700Work* w2 = (Actor341700Work*)arg0->work;
 
-        if ((w2->flags_EC.half & 1) || (w2->flags_EC.word & 0x102)) {
+        if ((w2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (w2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;

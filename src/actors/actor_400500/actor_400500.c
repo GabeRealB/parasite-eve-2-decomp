@@ -2171,7 +2171,8 @@ static s32 func_actor_400500_80133358(Task* arg0)
         return ret;
     check_hit:
         hit = (Actor400500HitView*)arg0->work;
-        if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -2244,7 +2245,8 @@ static s32 func_actor_400500_80133460(Task* arg0)
             work->field_A3E  = 0;
         }
         hit = (Actor400500HitView*)arg0->work;
-        if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -2309,13 +2311,13 @@ static inline void _actor400500TickAnim(Task* task)
     } while (i < 0x12);
 }
 
-/// Returns 1 when bit 0 of the hit flags' low halfword, or bit 1 or 8 of the
-/// whole word, is set.
+/// Returns 1 when slot 1 reports a reached boundary, control jump, or held boundary pose.
 static inline s32 _actor400500HitFlagged(Task* task)
 {
     Actor400500HitView* hit = (Actor400500HitView*)task->work;
 
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;
@@ -4373,7 +4375,8 @@ static void func_actor_400500_8013771C(Task* arg0)
         }
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4423,7 +4426,8 @@ static void func_actor_400500_80138088(Task* arg0)
     _actor400500TurnPart(&arg0->extra.tmd->coords[9], work->field_9BC);
 
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4557,7 +4561,8 @@ static void func_actor_400500_801387E8(Task* arg0)
         }
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4677,7 +4682,8 @@ static void func_actor_400500_80138B78(Task* arg0)
         }
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4727,7 +4733,8 @@ static void func_actor_400500_80138DC4(Task* arg0)
     u32                 rnd;
 
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5211,7 +5218,8 @@ static void func_actor_400500_80139AC4(Task* arg0)
         }
         if (flag == 0) {
             hit = (Actor400500HitView*)arg0->work;
-            if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+            if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+                (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
                 cond = 1;
             } else {
                 cond = 0;
@@ -5428,7 +5436,8 @@ static void func_actor_400500_8013A0B8(Task* arg0)
         Gp_UpdateCoord(coords);
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -5764,7 +5773,8 @@ static void func_actor_400500_8013AA98(Task* arg0)
         i++;
     } while (i < 0x12);
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6324,7 +6334,8 @@ static void func_actor_400500_8013BBB0(Task* arg0)
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6382,7 +6393,8 @@ static void func_actor_400500_8013BD64(Task* arg0)
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6574,7 +6586,8 @@ static void func_actor_400500_8013C218(Task* arg0)
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6601,7 +6614,8 @@ static void func_actor_400500_8013C348(Task* arg0)
 
     hit   = (Actor400500HitView*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6631,7 +6645,8 @@ static void func_actor_400500_8013C3C4(Task* arg0)
     work  = (Actor400500Work*)arg0->work;
     if (enemy->hp > 0) {
         hit = (Actor400500HitView*)work;
-        if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -6668,7 +6683,8 @@ static void func_actor_400500_8013C474(Task* arg0)
     work  = (Actor400500Work*)arg0->work;
     if (enemy->hp > 0) {
         hit = (Actor400500HitView*)work;
-        if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -6699,7 +6715,8 @@ static void func_actor_400500_8013C508(Task* arg0)
 
     hit   = (Actor400500HitView*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6754,7 +6771,8 @@ static void func_actor_400500_8013C61C(Task* arg0)
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6780,7 +6798,8 @@ static void func_actor_400500_8013C750(Task* arg0)
     s32                 cond;
 
     work = (Actor400500HitView*)arg0->work;
-    if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
+    if ((work->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -6871,7 +6890,8 @@ static void func_actor_400500_8013C9D4(Task* arg0)
     s32                 cond;
 
     work = (Actor400500HitView*)arg0->work;
-    if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
+    if ((work->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7345,7 +7365,8 @@ static void func_actor_400500_8013D59C(Task* arg0)
     work  = (Actor400500Work*)arg0->work;
     if (enemy->hp > 0) {
         hit = (Actor400500HitView*)work;
-        if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+        if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -7376,7 +7397,8 @@ static void func_actor_400500_8013D630(Task* arg0)
 
     hit   = (Actor400500HitView*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7431,7 +7453,8 @@ static void func_actor_400500_8013D744(Task* arg0)
         work->field_A04 = work->field_A04 + 1;
     }
     hit = (Actor400500HitView*)arg0->work;
-    if ((hit->flags_4C.half & 1) || (hit->flags_4C.word & 0x102)) {
+    if ((hit->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (hit->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7457,7 +7480,8 @@ static void func_actor_400500_8013D878(Task* arg0)
     s32                 cond;
 
     work = (Actor400500HitView*)arg0->work;
-    if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
+    if ((work->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -7690,7 +7714,8 @@ static s32 func_actor_400500_8013DDEC(Task* arg0)
 {
     Actor400500HitView* work = (Actor400500HitView*)arg0->work;
 
-    if ((work->flags_4C.half & 1) || (work->flags_4C.word & 0x102)) {
+    if ((work->flags_4C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_4C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;

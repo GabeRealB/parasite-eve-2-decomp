@@ -61,7 +61,7 @@ void incinBossTickAnim(Task* arg0)
         }
     } else {
         incinBossTickBlended(arg0);
-        if (work->slots1[1].flags & ANIMATION_SLOT_REACHED_END) {
+        if (work->slots1[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_7B1 = 0;
         }
     }

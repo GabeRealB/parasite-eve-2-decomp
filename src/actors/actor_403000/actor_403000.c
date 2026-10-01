@@ -5079,7 +5079,7 @@ static void func_actor_403000_80135F08(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.word & 0x102) {
+    if (work->field_60.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
         seed            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = seed;
         work->field_6   = (seed >> 0x10) & 0x1F;
@@ -5829,7 +5829,7 @@ static void func_actor_403000_801377C8(Task* arg0)
         work->field_FD5 = -work->field_FD3;
     }
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.half & 0x100) {
+    if (work->field_60.half & ANIMATION_SLOT_SETTLED) {
         if (work->field_AC6 == 0xB) {
             scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
             cell                = Actor403000_Cell(arg0->extra.tmd->coords);
@@ -5874,7 +5874,7 @@ static void func_actor_403000_801377C8(Task* arg0)
 /// Per-frame push: on the frame `field_4` is set, turn the display object's
 /// first matrix column into a short push vector and play the enemy's sound,
 /// then send it to the player as message 0x3FE for the first 0x28 frames.
-/// Bit 0 of `field_60` moves the state machine to 4 and flips `field_FD3`.
+/// `ANIMATION_SLOT_REACHED_BOUNDARY` in `field_60` moves the state machine to 4 and flips `field_FD3`.
 static void func_actor_403000_801384E8(Task* arg0)
 {
     Actor403000Work*        work;
@@ -5917,7 +5917,7 @@ static void func_actor_403000_801384E8(Task* arg0)
             D_actor_403000_80158DB0.value.field_12 = ret;
         }
     }
-    if (work->field_60.half & 1) {
+    if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0   = 4;
         work->field_FD3 = work->field_FD5 = work->field_FD2 = -work->field_FD3;
     }
@@ -6063,7 +6063,7 @@ static void func_actor_403000_801386E8(Task* arg0)
             work->field_FC0 = 1;
         }
     }
-    if (work->field_60.half & 0x100) {
+    if (work->field_60.half & ANIMATION_SLOT_SETTLED) {
         work->field_0   = 2;
         work->field_FD2 = work->field_FD3;
         work->field_FD3 = -work->field_FD3;
@@ -6082,7 +6082,7 @@ static void func_actor_403000_801386E8(Task* arg0)
 /// the camera target and start the hit effect; for the first ten frames step it
 /// forward and push the player with message 0x3FE, turn for the first six, and
 /// on frame 0x29 aim a sideways push that frames 0x2C..0x35 keep resending.
-/// Bit 0 of `field_60` moves the state machine to 4 with a fresh `field_FD3`.
+/// `ANIMATION_SLOT_REACHED_BOUNDARY` in `field_60` moves the state machine to 4 with a fresh `field_FD3`.
 static void func_actor_403000_80138DB0(Task* arg0)
 {
     Actor403000Work*         work;
@@ -6263,7 +6263,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         work->field_FA0 = 1;
         Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_F90, 0);
     }
-    if (work->field_60.half & 1) {
+    if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
         cell                = Actor403000_Cell(arg0->extra.tmd->coords);
         scratch->cell       = cell;
@@ -6332,7 +6332,7 @@ static void func_actor_403000_801399A0(Task* arg0)
         ActorContact_PushContact(arg0->extra.tmd->coords, work->objB50.rec, 5);
     }
     func_actor_403000_80133AF8(arg0);
-    if ((work->field_60.half & 0x100) && work->field_AC6 == 0xE) {
+    if ((work->field_60.half & ANIMATION_SLOT_SETTLED) && work->field_AC6 == 0xE) {
         work->objB50.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp > 0) {
             if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
@@ -6971,7 +6971,7 @@ static void func_actor_403000_8013B238(Task* arg0)
     arg0->extra.tmd->coords->coord.t[2]  += work->field_FB0.vz;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.half & 1) {
+    if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 2;
     }
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000AimScratch);
@@ -7096,7 +7096,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.half & 1) {
+    if (work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         t      = &scratch->target;
         coord2 = arg0->extra.tmd->coords;
         t->vx  = gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0];
@@ -7137,7 +7137,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
 
 /// Ease the display object up toward the player and across to
 /// `field_F74`/`field_F78`, turn the player's third matrix column into the
-/// push vector for the first 8 frames, and once bit 0 of `field_60` is set
+/// push vector for the first 8 frames, and once `ANIMATION_SLOT_REACHED_BOUNDARY` is set in `field_60`
 /// after frame 0xB move the state machine to 4.
 static void func_actor_403000_8013BDE0(Task* arg0)
 {
@@ -7178,7 +7178,7 @@ static void func_actor_403000_8013BDE0(Task* arg0)
     D_actor_403000_80158DB0.value.z        = scratch->dir.vz;
     D_actor_403000_80158DB0.value.field_10 = 7;
     D_actor_403000_80158DB0.value.field_12 = 1;
-    if ((work->field_60.half & 1) && (s16)work->field_6 >= 0xB) {
+    if ((work->field_60.half & ANIMATION_SLOT_REACHED_BOUNDARY) && (s16)work->field_6 >= 0xB) {
         work->field_0   = 4;
         work->field_FD3 = work->field_FD2 = work->field_FD5 = -func_actor_403000_80134204(arg0->extra.tmd->coords);
     }
@@ -7783,7 +7783,7 @@ static void func_actor_403000_8013D648(Task* arg0)
     }
     work->field_6++;
     func_actor_403000_80133AF8(arg0);
-    if ((work->field_60.word & 0x102) || (s16)work->field_6 >= 5) {
+    if ((work->field_60.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) || (s16)work->field_6 >= 5) {
         if (enemy->hp > 0) {
             if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 0x10;
@@ -7834,7 +7834,7 @@ static void func_actor_403000_8013D72C(Task* arg0)
         work->field_F30.m[0][1] = 0;
         work->field_F30.m[0][0] = 0;
     }
-    if (work->field_FA6 == 4 && work->field_AC6 == 0x1B && (work->field_60.half & 0x100)) {
+    if (work->field_FA6 == 4 && work->field_AC6 == 0x1B && (work->field_60.half & ANIMATION_SLOT_SETTLED)) {
         work->field_AC6 = 0x1D;
         work->field_AC0 = 2;
     }
@@ -7862,7 +7862,7 @@ static void func_actor_403000_8013D850(Task* arg0)
     }
     work->field_6++;
     func_actor_403000_80133AF8(arg0);
-    if (work->field_60.half & 0x100) {
+    if (work->field_60.half & ANIMATION_SLOT_SETTLED) {
         work->field_FD3 = 1;
         work->field_FD2 = 1;
         work->field_0   = 2;

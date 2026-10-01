@@ -2038,7 +2038,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
                 if (work->field_BA2 < 0x40) {
                     work->field_BA2 += 4;
                 }
-                if (work->slots2[1].flags & ANIMATION_SLOT_REACHED_END) {
+                if (work->slots2[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
                     work->field_BA3++;
                 }
                 break;
@@ -2088,7 +2088,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
             }
             slot++;
         } while (slot < 0x15);
-        if (work->slots[1].flags & ANIMATION_SLOT_REACHED_END) {
+        if (work->slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_BA9 = 1;
         }
         part               = task->extra.tmd->coords;

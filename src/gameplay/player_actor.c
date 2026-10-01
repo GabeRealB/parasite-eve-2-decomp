@@ -4901,7 +4901,7 @@ void Gp_TickActorAnimState(Task* arg0)
         case 8:
             if (rec != NULL) {
                 flags = actor->animationSlots[1].flags;
-                if ((flags & ANIMATION_SLOT_REACHED_END) || (flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
+                if ((flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
                     actor->statePhase++;
                     func_801066DC(arg0, 0);
                 }

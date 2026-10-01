@@ -3406,7 +3406,7 @@ static void func_actor_444000_80135448(Task* task)
         return;
     }
 
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_6 = 0;
         incinBossTickAnim(task);
     }
@@ -5729,7 +5729,7 @@ static void func_actor_444000_8013E058(Task* task)
         }
     }
 
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         D_actor_444000_80161888.value.context.loc.stage = 0;
         D_actor_444000_80161888.value.context.loc.area  = 0x2C;
         D_actor_444000_80161888.value.command           = 3;
@@ -5966,7 +5966,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
         incinBossTickAnim(arg0);
 
-        if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) && work->field_7B3 == 0xF) {
+        if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_7B3 == 0xF) {
             work->field_7B0 = 2;
             work->field_7B3 = 0xE;
         }
@@ -6441,7 +6441,7 @@ static void func_actor_444000_801404C0(Task* arg0)
 
     incinBossTickAnim(arg0);
 
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 0xA;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
     }
@@ -6522,7 +6522,7 @@ static void func_actor_444000_80140BBC(Task* arg0)
         D_actor_444000_801618B8.c.parent       = &coords[4];
         Gp_UpdateCoord(&D_actor_444000_801618B8.c);
     }
-    if (work->field_7B3 == 0x14 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END)) {
+    if (work->field_7B3 == 0x14 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_7B3 = 0xD;
         work->field_7B0 = 1;
     }
@@ -6640,7 +6640,7 @@ static void func_actor_444000_8014105C(Task* arg0)
         gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
     }
     incinBossTickAnim(arg0);
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 0xA;
     }
     SCRATCH_STACK_RELEASE_BYTES(0xC);
@@ -6900,7 +6900,7 @@ static void func_actor_444000_80141618(Task* task)
         }
     }
     work->field_7C4 = angle;
-    if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) && work->field_7B3 == 0x13) {
+    if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_7B3 == 0x13) {
         work->field_7B3 = 1;
         work->field_7B0 = 1;
         work->field_7B6 = 0x10;
@@ -7134,7 +7134,7 @@ static void func_actor_444000_80141DFC(Task* arg0)
     }
     work->field_7C4 = angle;
     incinBossTickAnim(arg0);
-    if (work->field_7B3 == 0x10 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END)) {
+    if (work->field_7B3 == 0x10 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_7B3 = 0xE;
         work->field_7B0 = 1;
     }
@@ -7823,7 +7823,7 @@ static void func_actor_444000_801435CC(Task* arg0)
         SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     incinBossTickAnim(arg0);
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 9;
     }
 }

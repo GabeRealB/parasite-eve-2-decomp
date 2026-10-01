@@ -2500,7 +2500,8 @@ static void func_actor_206100_8014D14C(Task* task)
         sub->field_555 = 1;
     }
     next = (Actor206100Work*)task->work;
-    if ((next->flags_514.half & 1) || (next->flags_514.word & 0x102)) {
+    if ((next->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -3813,7 +3814,8 @@ static void func_actor_206100_8014F970(Task* task)
     s32              cond;
 
     work = (Actor206100Work*)task->work;
-    if ((work->flags_514.half & 1) || (work->flags_514.word & 0x102)) {
+    if ((work->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -3852,7 +3854,8 @@ static void func_actor_206100_8014FA08(Task* task)
         work->field_557 = 1;
     }
     next = (Actor206100Work*)task->work;
-    if ((next->flags_514.half & 1) || (next->flags_514.word & 0x102)) {
+    if ((next->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;

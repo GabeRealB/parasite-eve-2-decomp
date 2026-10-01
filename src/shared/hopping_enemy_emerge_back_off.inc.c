@@ -27,7 +27,8 @@ void hopperEmergeBackOff(Task* arg0)
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work2                                 = (Actor341700Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;

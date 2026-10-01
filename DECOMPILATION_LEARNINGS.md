@@ -3858,13 +3858,13 @@ with `lh` - three overlays agreeing beats one ambiguous store.
 the same storage. Naming the narrow view for both tests leaves both reads in
 HImode, and CSE does merge those - one `lhu`, two `andi`s:
 
-    if ((work->flags_62C.half & 1) || (work->flags_62C.half & 0x102)) { ... }
+    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.half & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
 
 The target held a *second* load at 0x62C and it was a word load, `andi
 $v0,$v0,0x102` after `lw $v0,0x62C($v1)`, because the second test is on the wide
 view and a `lw` has no common subexpression with the `lhu`:
 
-    if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) { ... }
+    if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
 
 The symptom is small - the object is short two instructions (`lw`/`nop`) and the
 block addresses shift, so `branch` is non-zero - and it reads like an allocation
@@ -24421,7 +24421,7 @@ typedef union Actor341700Flags {
     /* 0x0 */ u16 half;
 } Actor341700Flags;
 
-if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) { ... }
+if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
 ```
 
 Declaring the field once as `u16` makes the second test `lhu` too, and once
@@ -103653,7 +103653,7 @@ at all. Two matched siblings in the same TU pin both forms down:
 
 ```c
 /* Actor00400_Fn08908: direct branches, no materialization (matched) */
-if ((work->flags_62C.half & 1) || (work->flags_62C.word & 0x102)) {
+if ((work->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
     return 1;
 }
 return 0;
@@ -103663,7 +103663,7 @@ return 0;
 /* Actor00400_Fn095D8: the phi form, condition sequence byte-identical
    to the already-matched Actor00400_Fn04414 */
 w2 = arg0->field_1C;
-if ((w2->flags_62C.half & 1) || (w2->flags_62C.word & 0x102)) {
+if ((w2->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->flags_62C.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
 ## A naming pass makes twins invisible to `overlay_dup_index.py find` — the wildcard is name-shaped
 
 `Actor04400_Fn06C70` (USA/actors/lib) came back as `same body: 1 copies` — itself
@@ -103815,9 +103815,9 @@ m2c reconstructs the flag test of this actor's animation re-request as a
 
 ```c
 var_v0 = 1;
-if (!(work->flags_EC.half & 1)) {
+if (!(work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY)) {
     var_v0 = 1;
-    if (!(work->flags_EC.word & 0x102)) { var_v0 = 0; }
+    if (!(work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { var_v0 = 0; }
 }
 if (var_v0 != 0) { ... }
 ```
@@ -103848,7 +103848,7 @@ is 1 in the taken path and literally 0 in the fall-through only comes from a
 source-level variable assigned a literal in an `else`:
 
 ```c
-if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
     cond = 1;
 } else {
     cond = 0;
@@ -104981,7 +104981,7 @@ explicit 1/0 assignment:
     s32 cond;
 
     work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -109213,7 +109213,7 @@ Three things made it one-shot:
    short-circuit, where the 401300 twin stops at the range call.
 
 3. **Read `else if` constants off the target, not off the twin.** The tail here is
-   `work->flags_68.half & 1` (bit 0) where the 401300 twin tests `field_6C & 0x100`
+   `work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY` (bit 0) where the 401300 twin tests `field_6C & 0x100`
    and this overlay's own state-9 bodies test `0x100`. `andi 0x1` versus `andi 0x100`
    is one instruction's worth of difference and the twin will not tell you which
    one you have.
@@ -116815,7 +116815,7 @@ overlay's `Actor206100Flags` union already carried that (`half` / `word`):
 
 ```c
 next = (Actor206100Work*)task->work;
-if ((next->flags_514.half & 1) || (next->flags_514.word & 0x102)) {
+if ((next->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (next->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
     cond = 1;
 } else {
     cond = 0;
@@ -117149,7 +117149,7 @@ sibling `func_actor_206100_8014FA08` writes its own two reads:
 
 ```c
     work = (Actor206100Work*)task->work;
-    if ((work->flags_514.half & 1) || (work->flags_514.word & 0x102)) { ... }
+    if ((work->flags_514.half & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->flags_514.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) { ... }
     ...
     work = (Actor206100Work*)task->work;
     work->field_520 = 2;

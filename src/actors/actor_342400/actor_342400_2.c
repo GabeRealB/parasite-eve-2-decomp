@@ -1361,7 +1361,8 @@ s16 hopperAnimEnded(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;

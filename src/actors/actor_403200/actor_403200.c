@@ -4064,7 +4064,7 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
                 work->field_7B0 = 2;
                 work->field_7B6 = 0x7F;
                 incinBossTickAnim(task);
-                while (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+                while (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
                     incinBossTickAnim(task);
                 }
                 work->field_7B6                       = 0x10;
@@ -5332,7 +5332,7 @@ static void func_actor_403200_8013B3C8(Task* arg0)
             break;
     }
     incinBossTickAnim(arg0);
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 0xA;
     }
     if (work->field_6 >= 0x15) {
@@ -5659,7 +5659,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         func_80105B74(&sc->push);
     }
 
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         D_actor_403200_8015F8F4.context.loc.stage = 0;
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 3;
@@ -5806,7 +5806,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
 
     SCRATCH_STACK_RESERVE_BYTES(0x3C);
     incinBossTickAnim(arg0);
-    if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) && (work->field_7B3 == 0xF)) {
+    if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) && (work->field_7B3 == 0xF)) {
         work->field_7B0 = 2;
         work->field_7B3 = 0xE;
     }
@@ -6159,7 +6159,7 @@ static void func_actor_403200_8013D78C(Task* arg0)
         work->field_E96                     = 0xFA0;
     }
     incinBossTickAnim(arg0);
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 1;
     }
     if (arg0->extra.tmd->coords->coord.t[1] > 0) {
@@ -6257,7 +6257,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
             break;
     }
     incinBossTickAnim(arg0);
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }
     if (work->field_6 >= 0x15) {
@@ -6398,7 +6398,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
 
     incinBossTickAnim(arg0);
 
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 0xA;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
     }
@@ -6468,7 +6468,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
     }
     state = work->field_7B3;
     if (state == 0x14) {
-        if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+        if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->field_7B3 = 0xD;
             work->field_7B0 = 1;
         }
@@ -6543,7 +6543,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
         while (j < work->field_F14 / 4) {
             incinBossTickAnim(arg0);
             j++;
-            if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+            if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
                 break;
             }
         }
@@ -6653,7 +6653,7 @@ static void func_actor_403200_8013E9C0(Task* arg0)
         gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
         work->field_7A4     = 0;
     }
-    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) {
+    if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 0xA;
     }
     if (work->field_6 >= 0x15) {
@@ -6927,7 +6927,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             }
         }
         work->field_7C4 = angle;
-        if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_END) && work->field_7B3 == 0x13) {
+        if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_7B3 == 0x13) {
             work->field_7B3 = 1;
             work->field_7B0 = 1;
         }
@@ -7141,7 +7141,7 @@ static void func_actor_403200_8013F700(Task* arg0)
     }
     work->field_7C4 = angle;
     incinBossTickAnim(arg0);
-    if (work->field_7B3 == 0x10 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_END)) {
+    if (work->field_7B3 == 0x10 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_7B3 = 0xE;
         work->field_7B0 = 1;
     }

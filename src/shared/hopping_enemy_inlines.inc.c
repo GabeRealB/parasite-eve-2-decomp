@@ -110,7 +110,8 @@ static __inline__ s32 hopperIsHit(Task* arg0)
 {
     Actor341700Work* w = (Actor341700Work*)arg0->work;
 
-    if ((w->flags_EC.half & 1) || (w->flags_EC.word & 0x102)) {
+    if ((w->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (w->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;

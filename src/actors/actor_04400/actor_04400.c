@@ -1069,13 +1069,14 @@ static __inline__ s32 Actor04400_TakeRequest(Task* arg0)
     return 0;
 }
 
-/// Whether `flags_EC` reports a hit: bit 0 as a halfword, or 0x102 as a word.
+/// Whether slot 1 reports a reached boundary, control jump, or held boundary pose.
 /// The inlined form of `Actor04400_Fn06618`.
 static __inline__ s32 Actor04400_IsHit(Task* arg0)
 {
     Actor104400Work* w = (Actor104400Work*)arg0->work;
 
-    if ((w->flags_EC.half & 1) || (w->flags_EC.word & 0x102)) {
+    if ((w->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (w->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;
@@ -2561,8 +2562,8 @@ static void Actor04400_Fn039EC(Task* arg0)
 
 /// Counts the frame in `field_412` and, on frames 0x1D..0x29, pushes the model
 /// root along the heading `field_7A` turned a quarter circle, by `field_41C`
-/// scaled 30/16. Once `flags_EC` reports a hit (bit 0 as a halfword, or 0x102
-/// as a word), clears `field_438` and puts the task in state 3 with its work
+/// scaled 30/16. Once slot 1 reports a boundary or control jump in `flags_EC`,
+/// clears `field_438` and puts the task in state 3 with its work
 /// block at state 3.
 static void Actor04400_Fn03B34(Task* arg0)
 {
@@ -2583,7 +2584,8 @@ static void Actor04400_Fn03B34(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     work2 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -2597,8 +2599,8 @@ static void Actor04400_Fn03B34(Task* arg0)
 
 /// Counts the frame in `field_412` and, on frames 0x1D..0x29, pushes the model
 /// root along the heading `field_7A` turned a quarter circle, by `field_41C`
-/// scaled 30/16. Once `flags_EC` reports a hit (bit 0 as a halfword, or 0x102 as
-/// a word), clears `field_438`, requests animation 3 at speed 0x10 and rewinds
+/// scaled 30/16. Once slot 1 reports a boundary or control jump in `flags_EC`,
+/// clears `field_438`, requests animation 3 at speed 0x10 and rewinds
 /// the frame counter so the next state starts fresh.
 static void Actor04400_Fn03CA0(Task* arg0)
 {
@@ -2619,7 +2621,8 @@ static void Actor04400_Fn03CA0(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     work2 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -2639,7 +2642,7 @@ static void Actor04400_Fn03CA0(Task* arg0)
 /// Unless `Actor04400_Fn06328` claims the frame: count the frame in
 /// `field_412` and, on frames 0x17..0x23, push the model root along the
 /// heading `field_7A` turned a quarter circle, by `field_41C` scaled -30/16.
-/// Once `flags_EC` reports a hit (bit 0 as a halfword, or 0x102 as a word),
+/// Once slot 1 reports a boundary or control jump in `flags_EC`,
 /// `field_438` is cleared and the state machine rewinds to state 0.
 static void Actor04400_Fn03E20(Task* arg0)
 {
@@ -2662,7 +2665,8 @@ static void Actor04400_Fn03E20(Task* arg0)
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         work2 = (Actor104400Work*)arg0->work;
-        if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -2868,7 +2872,7 @@ static void Actor04400_Fn04718(Task* arg0)
 /// Counts `field_412` up and on the first frame plays sound 0x402C0009 (bank from the
 /// enemy's `field_8` high nibble) panned and attenuated from the model root.
 /// Every frame, pushes the root 0x14 forward along the heading `field_7A`.
-/// Once status bit 0 or bits 0x102 of `flags_EC` are set, flags `obj_2CC` with
+/// Once slot 1 reports a boundary or control jump in `flags_EC`, flags `obj_2CC` with
 /// 0x4000 and switches the task to state 3 with the work block's state 5,
 /// sub-state 0.
 static void Actor04400_Fn048A0(Task* arg0)
@@ -2895,7 +2899,8 @@ static void Actor04400_Fn048A0(Task* arg0)
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work2                                 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -2997,7 +3002,7 @@ static void Actor04400_Fn04BA8(Task* arg0)
 /// Counts `field_412` up and on the first frame plays sound 0x402C0009 (bank
 /// from the enemy's `field_8` high nibble) panned and attenuated from the model
 /// root. Every frame, pushes the root 0x14 back against the heading `field_7A`.
-/// Once status bit 0 or bits 0x102 of `flags_EC` are set, flags `obj_2CC` with
+/// Once slot 1 reports a boundary or control jump in `flags_EC`, flags `obj_2CC` with
 /// 0x4000 and switches the task to state 3 with the work block's state 3,
 /// sub-state 0.
 static void Actor04400_Fn04D44(Task* arg0)
@@ -3024,7 +3029,8 @@ static void Actor04400_Fn04D44(Task* arg0)
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work2                                 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -3140,7 +3146,7 @@ static void Actor04400_Fn05040(Task* arg0)
 /// Counts `field_412` up and on the first frame plays sound 0x402C0009 (bank
 /// from the enemy's `field_8` high nibble) panned and attenuated from the model
 /// root. Every frame, pushes the root 0x14 forward along the heading `field_7A`.
-/// Once status bit 0 or bits 0x102 of `flags_EC` are set, flags `obj_2CC` with
+/// Once slot 1 reports a boundary or control jump in `flags_EC`, flags `obj_2CC` with
 /// 0x4000 and switches the task to state 3 with the work block's state 5,
 /// sub-state 0.
 static void Actor04400_Fn05260(Task* arg0)
@@ -3167,7 +3173,8 @@ static void Actor04400_Fn05260(Task* arg0)
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work2                                 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -3279,7 +3286,8 @@ static void Actor04400_Fn053FC(Task* arg0)
     } else if (enemy->hp > 0) {
         Actor104400Work* w2 = (Actor104400Work*)arg0->work;
 
-        if ((w2->flags_EC.half & 1) || (w2->flags_EC.word & 0x102)) {
+        if ((w2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (w2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -3724,12 +3732,13 @@ static s32 Actor04400_Fn065F4(Task* arg0, s16 value)
     return (s32)((((Actor104400Work*)arg0->work)->field_41C * value) << 0xC) >> 0x10;
 }
 
-/// Whether `flags_EC` reports a hit: bit 0 as a halfword, or 0x102 as a word.
+/// Whether slot 1 reports a reached boundary, control jump, or held boundary pose.
 static s16 Actor04400_Fn06618(Task* arg0)
 {
     Actor104400Work* work = (Actor104400Work*)arg0->work;
 
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;
@@ -4330,7 +4339,8 @@ static void Actor04400_Fn076D0(Task* arg0)
     work = (Actor104400Work*)arg0->work;
     Actor04400_Fn02B8C(arg0);
     work2 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4491,7 +4501,8 @@ static void Actor04400_Fn07C60(Task* arg0)
     s32              cond;
 
     work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4615,7 +4626,8 @@ static void Actor04400_Fn08094(Task* arg0)
     s32              cond;
 
     work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4634,7 +4646,8 @@ static void Actor04400_Fn080E8(Task* arg0)
     s32              cond;
 
     work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4656,7 +4669,8 @@ static void Actor04400_Fn08160(Task* arg0)
     s32              cond;
 
     work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4695,7 +4709,8 @@ static void Actor04400_Fn0823C(Task* arg0)
     s32              cond;
 
     work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4716,7 +4731,8 @@ static void Actor04400_Fn082E0(Task* arg0)
     s32              cond;
 
     work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & 1) || (work->flags_EC.word & 0x102)) {
+    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
@@ -4749,8 +4765,8 @@ static void Actor04400_Fn08358(Task* arg0)
     }
 }
 
-/// Unless `Actor04400_Fn06328` claims the frame, a hit (`flags_EC` bit 0 as a
-/// halfword, or 0x102 as a word) clears the frame counter, sets `field_438`,
+/// Unless `Actor04400_Fn06328` claims the frame, a boundary or control jump
+/// reported by slot 1 in `flags_EC` clears the frame counter, sets `field_438`,
 /// requests animation 4 (kind 1, speed 0x10, `field_426` 4) and advances the
 /// sub-state.
 static void Actor04400_Fn083CC(Task* arg0)
@@ -4763,7 +4779,8 @@ static void Actor04400_Fn083CC(Task* arg0)
     work = (Actor104400Work*)arg0->work;
     if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
         work2 = (Actor104400Work*)arg0->work;
-        if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+        if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
             cond = 1;
         } else {
             cond = 0;
@@ -4974,7 +4991,8 @@ static void Actor04400_Fn089C0(Task* arg0)
     work = (Actor104400Work*)arg0->work;
     Actor04400_Fn02B8C(arg0);
     work2 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & 1) || (work2->flags_EC.word & 0x102)) {
+    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
     } else {
         cond = 0;
