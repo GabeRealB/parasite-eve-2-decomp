@@ -492,7 +492,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     gRoamerCooldown += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
                     switch ((s16)(gRoamerSpawnRequest - 1)) {
                         case 0:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[0].x;

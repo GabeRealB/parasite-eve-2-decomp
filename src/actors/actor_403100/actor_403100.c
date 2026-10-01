@@ -6315,7 +6315,7 @@ static void func_actor_403100_80138F88(Task* arg0)
         Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
         D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->hp;
     }
 }
@@ -6383,7 +6383,7 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->pad_660[0] = 0;
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
         D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
     }
     if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||
@@ -7983,7 +7983,7 @@ static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
     msg.rot.vx = 0;
     msg.rot.vy = arg3;
     msg.rot.vz = 0;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
 }
 static void func_actor_403100_8013D11C(Task* arg0)
 {
@@ -8022,9 +8022,9 @@ static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
     msg.enableWorldCollision           = ANIMATION_WORLD_COLLISION_DISABLE;
     D_actor_403100_80155808->field_65D = (s8)arg0;
     if (arg1 == 0x3FF) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     } else if (arg1 == 0x3F4) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 static void func_actor_403100_8013D24C(void)
@@ -8356,7 +8356,7 @@ static void func_actor_403100_8013E1E4(void)
         sp.blendFrames                      = 3;
         sp.enableWorldCollision             = ANIMATION_WORLD_COLLISION_DISABLE;
         sp.animationId                      = 4;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
         D_actor_403100_80155808->field_5F2 = 3;
     }
 }

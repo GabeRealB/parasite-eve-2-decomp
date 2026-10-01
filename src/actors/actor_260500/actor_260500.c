@@ -1528,7 +1528,7 @@ static void func_actor_260500_80149E80(void)
 
     slot = Gp_LookupSlot4(0);
     if (slot != 0) {
-        Gp_DispatchMsgPtr(slot, 0x7D4, &D_actor_260500_8014CAF4.data.placements[0], 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_260500_8014CAF4.data.placements[0], 0);
     }
 }
 

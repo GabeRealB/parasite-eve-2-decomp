@@ -574,7 +574,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->anim.blend                = ANIMATION_BLEND_RESET;
                 scratch->anim.blendFrames          = 0;
                 scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, scratch, 0);
                 work->field_58A = 1;
                 work->field_58C = 0;
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
@@ -608,7 +608,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                     scratch->place.rot.vy = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                 }
                 scratch->place.rot.vz = 0;
-                Gp_DispatchMsgPtr(player, 0x3E9, &scratch->place, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &scratch->place, 0);
             }
             if ((s16)work->field_58C == 0x10) {
                 if (work->field_596 == 0) {
@@ -626,7 +626,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->anim.blend                = ANIMATION_BLEND_RESET;
                 scratch->anim.blendFrames          = 0;
                 scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, scratch, 0);
                 work->field_58A = 2;
                 work->field_58C = 0;
             }

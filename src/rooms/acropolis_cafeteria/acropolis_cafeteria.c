@@ -2740,8 +2740,8 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
     coord = Gp_LookupSlot4(0)->extra.tmd->coords;
     switch (task->state) {
         case 0:
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_cafeteria_80182D28, 0);
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_cafeteria_80182DB8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_cafeteria_80182D28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_cafeteria_80182DB8, 0);
             D_acropolis_cafeteria_8018D6A0 = 0;
             D_acropolis_cafeteria_8018D6A4 = -0x14;
             D_acropolis_cafeteria_8018D6A8 = -0x14;
@@ -2854,7 +2854,7 @@ static void func_acropolis_cafeteria_8017E348(Task* task)
         Gp_MsgSlot4Chain(1, 2);
         Gp_MsgSlot4Chain(2, 1);
         (D_acropolis_cafeteria_801891E4 + 9)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-        Gp_DispatchMsgPtr(Gp_LookupSlot4(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
     }
     task->state = task->state + 1;
 }

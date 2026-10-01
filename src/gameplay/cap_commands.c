@@ -158,7 +158,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             if ((flags & 1) && (flags != 0xFF)) {
                 recA              = Gp_WeaponMsgRec;
                 recA.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &recA, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &recA, 0);
             }
             recB              = D_8010FB10;
             recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
@@ -266,7 +266,7 @@ void Gp_MsgPlayerWeapon(s32 arg0)
     if (arg0 == 0) {
         sp              = Gp_WeaponMsgRec;
         sp.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &sp, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &sp, 0);
     } else {
         Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
     }
@@ -361,7 +361,7 @@ void Gp_MsgAllyWeapon(s32 arg0)
         if (arg0 == 0) {
             sp              = Gp_WeaponMsgRec;
             sp.source.index = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-            Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &sp, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &sp, 0);
         } else {
             Gp_DispatchMsg(slot, 0x3F1, 0, 0);
         }

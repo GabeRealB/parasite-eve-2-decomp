@@ -3075,11 +3075,11 @@ static void func_actor_400500_80135770(Task* arg0)
             if (work->field_A4D != 0) {
                 msg.animationId = 3;
                 work->field_A48 = 4;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
             } else {
                 msg.animationId = handshake;
                 work->field_A48 = 3;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
             break;
         case 3:
@@ -4336,7 +4336,7 @@ static void func_actor_400500_8013771C(Task* arg0)
                 msg.blend                = ANIMATION_BLEND_RESET;
                 msg.blendFrames          = 0;
                 msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
                 work->field_A48      = 1;
                 Gp_StateC08.field_6 |= 1;
                 work->field_A18      = 1;

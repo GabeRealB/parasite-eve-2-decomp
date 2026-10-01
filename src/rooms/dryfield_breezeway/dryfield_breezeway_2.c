@@ -505,10 +505,10 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
-            Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_breezeway_80181E40[0], 0);
-            Gp_DispatchMsgPtr(work->field_0, 0x3EE, &D_dryfield_breezeway_80181E40[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &D_dryfield_breezeway_80181E40[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3EE, &D_dryfield_breezeway_80181E40[1], 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
             break;
         case 2:
@@ -519,7 +519,7 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             rec->blend                   = ANIMATION_BLEND_INTERPOLATE;
             rec->blendFrames             = 0xA;
             buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf, 0);
             break;
     }
     work->field_C = 0;
@@ -602,7 +602,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             buf.blend                = ANIMATION_BLEND_INTERPOLATE;
             buf.blendFrames          = 0xA;
             buf.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf, 0);
             func_800E8634(D_dryfield_breezeway_80181E70, 0, D_dryfield_breezeway_80181F90);
             arg0->state += 1;
             break;
@@ -625,8 +625,8 @@ void func_dryfield_breezeway_8017E2D4(void)
     msg.context.loc.stage = gGameSession->location.loc.stage;
     msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = 2;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-    Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }
 
 void func_dryfield_breezeway_8017E350(void)
@@ -655,15 +655,14 @@ void func_dryfield_breezeway_8017E390(void)
     buf.rec.blend                = ANIMATION_BLEND_RESET;
     buf.rec.blendFrames          = 0;
     buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    /* The message ABI carries this object address in one 32-bit word. */
-    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, (s32)&buf, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
 
     work                      = (DbwWork*)D_dryfield_breezeway_801843C0->work;
     buf.msg.context.loc.stage = gGameSession->location.loc.stage;
     buf.msg.context.loc.area  = gGameSession->location.loc.area;
     buf.msg.command           = 2;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &buf, ACTOR_COMMAND_MESSAGE_APPLY);
-    Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }
 
 /// Brings up the room's second task family, the key-item event the prompt in

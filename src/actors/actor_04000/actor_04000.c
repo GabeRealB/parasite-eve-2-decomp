@@ -1584,7 +1584,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
         if (mag < 0x200) {
             if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 work->field_490 = 0xC;
-                if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->field_47C, 0) == 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->field_47C, 0) == 0) {
                     coord     = player->extra.tmd->coords;
                     angle     = ratan2(sc->d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
                     sc->angle = actorWrapAngle(angle);
@@ -1594,7 +1594,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
                         Actor04000_D0C530.source.sets = Actor04000_D0C520;
                     }
                     Actor04000_D0C530.animationId = 1;
-                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
                     work->field_0   = 0xB;
                     work->field_496 = 1;
                     Gfx_MatrixCol0(&player->extra.tmd->coords->coord, &sc->d);
@@ -1700,7 +1700,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
         work->obj388.pos.vy           = arg1->extra.tmd->coords->coord.t[1];
         work->obj388.pos.vz           = arg1->extra.tmd->coords->coord.t[2];
         Actor04000_D0C530.animationId = 2;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
         work->field_6 = 0;
     }
     if ((s16)work->field_6 < 0x13) {
@@ -3031,7 +3031,7 @@ static void Actor04000_Fn06878(Enemy* arg0, Task* arg1)
     work->field_6++;
     if ((s16)work->field_6 > 0x28) {
         work->field_490 = 0x270F;
-        if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->field_47C, 0) == 0) {
+        if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->field_47C, 0) == 0) {
             work->field_0 = 5;
         } else {
             work->field_0 = 0xD;
@@ -3235,7 +3235,7 @@ void Actor04000_Fn06EA8(Task* arg0)
     msg.context.loc.area  = 0x10;
     Actor04000_D0C710[0]  = NULL;
     msg.command           = 1;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     arg0->state++;
 }
 

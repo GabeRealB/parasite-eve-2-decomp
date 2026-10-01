@@ -1038,7 +1038,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                         msg.rec.blend                = ANIMATION_BLEND_RESET;
                         msg.rec.blendFrames          = 0;
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
                     work->field_6++;
                     return;
@@ -1050,7 +1050,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                         msg.rec.blend                = step;
                         msg.rec.blendFrames          = 0xF;
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
                     Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
                     break;
@@ -1061,7 +1061,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
             break;
         case 4:
             msg.warp.rot.vy = 0x800;
-            Gp_DispatchMsgPtr((Task*)work->owner, 0x3EE, &msg.warp, 0);
+            TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3EE, &msg.warp, 0);
             break;
         case 5:
             idx = (u16)work->field_6;
@@ -1077,7 +1077,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     work->field_6 = idx + 1;
                     return;
                 case 3:
-                    Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_water_tank_801804F4, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_water_tank_801804F4, 0);
                     // Taken before the record is filled, the address sits in
                     // $a1 and `field_4` is stored through it.
                     rec                         = &script;
@@ -1087,7 +1087,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     script.blend                = ANIMATION_BLEND_RESET;
                     script.blendFrames          = 0;
                     script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
                     gGameSession->viewDirty = 1;
                     break;
                 default:
@@ -1150,7 +1150,7 @@ L_case0:
         script.blend                = ANIMATION_BLEND_INTERPOLATE;
         script.blendFrames          = 0xA;
         script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
         func_800E8634(D_dryfield_water_tank_8018050C, 0,
                       D_dryfield_water_tank_8018068C);
         goto advance;
@@ -1190,8 +1190,8 @@ void func_dryfield_water_tank_8017EBA0(void)
     s32                  weaponId;
     s32                  anim;
 
-    Gp_DispatchMsgPtr(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
-                      &D_dryfield_water_tank_801804F4, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
+                                  &D_dryfield_water_tank_801804F4, 0);
     weaponId                 = gPlayerStatus.weapon;
     anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = anim;
@@ -1199,7 +1199,7 @@ void func_dryfield_water_tank_8017EBA0(void)
     rec.blend                = ANIMATION_BLEND_RESET;
     rec.blendFrames          = 0;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
     SetDispMask(1);
 }
 
@@ -1227,7 +1227,7 @@ void func_dryfield_water_tank_8017EC6C(Task* arg0)
     rec.rot.vy = -0x7FF;
     rec.rot.vz = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
 }
 
 /// The tank's second run leg, the continuation of `func_dryfield_water_tank_8017EC6C`:
@@ -1250,7 +1250,7 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
     rec.rot.vy = 0x400;
     rec.rot.vz = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
 }
 
 /// Per-frame model update for the tank: the callback word at 0x801868A8 in the

@@ -337,7 +337,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     Gp_AllyAnimId(&rec.source.index);
                 }
                 if (slot != NULL) {
-                    Gp_DispatchMsgPtr(slot, st->pc->operand2.value, &rec, st->pc->operand4.value);
+                    TASK_MESSAGE_DISPATCH_POINTER(slot, st->pc->operand2.value, &rec, st->pc->operand4.value);
                 }
                 break;
 

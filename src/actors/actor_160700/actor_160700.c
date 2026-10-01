@@ -1490,7 +1490,7 @@ static void func_actor_160700_80131E24(void)
     if (GameFlag_GetNibble(0x113) != 0) {
         slot = Gp_LookupSlot4(0);
         if (slot != 0) {
-            Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_160700_801354CC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_160700_801354CC, 0);
         }
     }
 }

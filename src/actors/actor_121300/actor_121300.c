@@ -2283,7 +2283,7 @@ static void func_actor_121300_80133854(Task* arg0)
     switch ((u16)work->field_498) {
         case 1:
             Gp_DispatchMsg(work->field_488, 0x3F3, 2, 0);
-            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
             gGameSession->viewDirty = 1;
             {
                 Actor121300Work* slotsWork;
@@ -2325,7 +2325,7 @@ static void func_actor_121300_80133854(Task* arg0)
             break;
         case 6:
             if ((u16)work->field_49A == 0) {
-                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
                 {
                     Actor121300Work* slotsWork;
                     s32              i;
@@ -2476,7 +2476,7 @@ void func_actor_121300_80133D98(Task* arg0)
                 scratch.msg.blend                = ANIMATION_BLEND_RESET;
                 scratch.msg.blendFrames          = 0;
                 scratch.msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.msg, 0);
                 func_actor_121300_80133BFC(arg0);
                 arg0->state += 1;
                 break;

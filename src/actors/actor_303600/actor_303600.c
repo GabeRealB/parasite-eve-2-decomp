@@ -16910,7 +16910,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 1;
             break;
         case 2:
@@ -16918,7 +16918,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 2;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 2;
             break;
         case 3:
@@ -16926,7 +16926,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 3;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 3;
             break;
         case 4:
@@ -16934,7 +16934,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 4;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 4;
             if (D_actor_303600_8016E4C4 != NULL) {
                 taskKill(D_actor_303600_8016E4C4);
@@ -16947,7 +16947,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 5;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 5;
             break;
         case 6:
@@ -17113,7 +17113,7 @@ void func_actor_303600_801624B0(void)
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 9;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_C = 9;
         work->field_E = 1;
     }
@@ -17140,7 +17140,7 @@ void func_actor_303600_8016253C(void)
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 9;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_C = 9;
         work->field_E = 1;
     }

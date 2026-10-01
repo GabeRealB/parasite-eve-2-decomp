@@ -432,7 +432,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xA;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(w->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(w->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
     goto ret1;
 }
 
@@ -602,7 +602,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             }
             msg.source.sets = &D_actor_342100_80164900[0];
             msg.count       = n & 0xFFFF;
-            Gp_DispatchMsgPtr(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_actor_342100_801649C8, 0);
@@ -737,7 +737,7 @@ void func_actor_342100_8016334C(s32 arg0)
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xF;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
 }
 
 void func_actor_342100_801633D0(s32 arg0)
@@ -774,10 +774,9 @@ void func_actor_342100_80163454(s32 arg0)
         msg.context.loc.area  = 0x2C;
         msg.context.loc.stage = 0;
         msg.command           = 4;
-        // The message ABI carries the borrowed record's address in one word.
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, (s32)&msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         if (work->field_30 != NULL) {
-            Gp_DispatchMsgPtr(work->field_30, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_30, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         }
         work->field_38 = Task_SpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
         return;

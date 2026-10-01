@@ -3470,7 +3470,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             place.pos.vx                                 = 0x3804;
             place.pos.vy                                 = 0;
             place.pos.vz                                 = 0xFC8;
-            Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, &place, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -3478,7 +3478,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
                 return;
             }
             warp.rot.vy = 0xD55;
-            Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, &warp, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -3545,7 +3545,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             place.pos.vx                                 = 0xF6E;
             place.pos.vy                                 = 0;
             place.pos.vz                                 = 0x2328;
-            Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, &place, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3F2, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -3553,7 +3553,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 return;
             }
             warp.rot.vy = 0xD55;
-            Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, &warp, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3EE, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -3565,7 +3565,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             script.blend                = ANIMATION_BLEND_RESET;
             script.blendFrames          = 0;
             script.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(work->slot3, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->slot3, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
             task->state = task->state + 1;
             return;
         case 3:
@@ -3601,7 +3601,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 buf.weapon.rec.blend                = ANIMATION_BLEND_RESET;
                 rec->blendFrames                    = 0xA;
                 buf.weapon.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.weapon.rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.weapon.rec, 0);
 
                 coord            = ((AcropolisPlazaWarpWork*)task->work)->slot3->extra.tmd->coords;
                 buf.place.pos.vx = coord->coord.t[0];
@@ -3610,7 +3610,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 buf.place.rot.vz = 0;
                 buf.place.rot.vx = 0;
                 buf.place.rot.vy = 0xEAA;
-                Gp_DispatchMsgPtr(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3E9, &buf.place, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaWarpWork*)task->work)->slot3, 0x3E9, &buf.place, 0);
                 task->state = task->state + 1;
             }
             break;
@@ -3681,7 +3681,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             place.pos.vx                                    = 0x3DE;
             place.pos.vy                                    = 0;
             place.pos.vz                                    = 0x33FE;
-            Gp_DispatchMsgPtr(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, &place, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, &place, 0);
             task->state = task->state + 1;
             return;
         case 1:
@@ -3689,7 +3689,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             warp.rot.vy = 0x1000;
-            Gp_DispatchMsgPtr(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3EE, &warp, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3EE, &warp, 0);
             task->state = task->state + 1;
             return;
         case 2:
@@ -3748,7 +3748,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             placeBack.pos.vx = 0x3DE;
             placeBack.pos.vy = 0;
             placeBack.pos.vz = 0x439E;
-            Gp_DispatchMsgPtr(
+            TASK_MESSAGE_DISPATCH_POINTER(
                 ((AcropolisPlazaOpeningWork*)task->work)->slot3, 0x3F2, &placeBack, 0);
             roomRec.source.index         = 1;
             roomRec.animationId          = 8;
@@ -3779,7 +3779,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 }
             }
         found6:
-            Gp_DispatchMsgPtr(
+            TASK_MESSAGE_DISPATCH_POINTER(
                 Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
                                 sessionKey->area)
                     ->field_0,
@@ -3934,7 +3934,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0xA;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
             task->state = task->state + 1;
             break;
         case 1:
@@ -3984,7 +3984,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0xA;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
             task->state = task->state + 1;
             break;
         case 1:

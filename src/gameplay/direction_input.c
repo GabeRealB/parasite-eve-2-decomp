@@ -287,7 +287,7 @@ void Gp_SetupDirWarp(void)
             } else if (rec.player.words.field_0 == 0x7FFE) {
                 msg.rot.vy = actor->rotation.vy;
             }
-            Gp_DispatchMsgPtr(slot3, 0x3EE, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3EE, &msg, 0);
             if (rec.field_35 & 2) {
                 Gp_DirFadeLevel = 0x1E;
             }
@@ -329,7 +329,7 @@ void Gp_SetupDirWarp(void)
             } else if (rec.player.words.field_0 == 0x7FFE) {
                 msg.rot.vy = actor->rotation.vy;
             }
-            Gp_DispatchMsgPtr(slot3, 0x3EE, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3EE, &msg, 0);
             Gp_DirPhase++;
             break;
 

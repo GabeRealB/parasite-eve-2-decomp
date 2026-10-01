@@ -484,8 +484,8 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(work->owner, ANIMATION_MESSAGE_PLAY, &rec, 0);
-            Gp_DispatchMsgPtr(work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->owner, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room != 2) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
                 gGameSession->location.loc.room                            = 2;
@@ -541,9 +541,9 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                         msg.rec.blend                = ANIMATION_BLEND_RESET;
                         msg.rec.blendFrames          = 0;
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr(cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
-                    Gp_DispatchMsgPtr(work->owner, 0x3E9, &D_dryfield_warehouse_8017F850, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->owner, 0x3E9, &D_dryfield_warehouse_8017F850, 0);
                     work->field_8 = 0;
                     work->field_6++;
                     break;
@@ -573,9 +573,8 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             msg.rec.blendFrames          = 0;
             msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
-            // The message ABI carries this request address in a signed word.
-            Gp_DispatchMsg(shared->owner, ANIMATION_MESSAGE_PLAY, (s32)&msg.rec, 0);
-            Gp_DispatchMsgPtr(shared->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(shared->owner, ANIMATION_MESSAGE_PLAY, &msg.rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(shared->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             switch (work->field_6) {
                 case 0:
                     Task_SpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
@@ -696,7 +695,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                 rec.blend                = ANIMATION_BLEND_RESET;
                 rec.blendFrames          = 0;
                 rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
                 D_dryfield_warehouse_801821C0 = NULL;
                 D_80115768                    = 1;
                 arg0->state                   = arg0->state + 1;

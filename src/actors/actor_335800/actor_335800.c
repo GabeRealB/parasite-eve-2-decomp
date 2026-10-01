@@ -1039,10 +1039,10 @@ void func_actor_335800_80162114(void)
         extra = slot->extra.tmd;
         coord = extra->coords;
         if ((u32)(coord->coord.t[2] - 0xC53) < 0x96F) {
-            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[2], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[2], 0);
         }
         if ((u32)(coord->coord.t[2] - 0x3E9) < 0x86A) {
-            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[1], 0);
         }
     }
 }
@@ -1065,9 +1065,9 @@ void func_actor_335800_801621B4(s32 arg0)
             highIdx = 4;
         }
         if (coord->coord.t[2] >= 0xC53) {
-            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[highIdx], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[highIdx], 0);
         } else {
-            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[lowIdx], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[lowIdx], 0);
         }
     }
 }
@@ -1182,7 +1182,7 @@ void func_actor_335800_801624DC(Task* arg0)
     if (gGameSession->battleResetPending != 0) {
         slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         Gp_PlayerWeaponId(&D_actor_335800_80164E7C.source.index);
-        Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
         taskKill(arg0);
     }
 }

@@ -318,13 +318,21 @@ STATIC_ASSERT_SIZEOF(GpSpawnAnimArg, 8);
 
 s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-/// Send an object address in arg2; the recipient's message id defines its type.
-static __inline__ s32 Gp_DispatchMsgPtr(Task* task, s32 id, const void* data, s32 arg3)
-{
-    TaskMessageArg payload;
-    payload.pointer = data;
-    return Gp_DispatchMsg(task, id, payload.value, arg3);
-}
+/// Dispatches a synchronous task message with an object address as its first payload.
+///
+/// `receiver` must be a live task. Its message table and `messageId` select the
+/// payload's type, complete extent, alignment and write permission; a null
+/// payload is valid only when that message permits it. Storage is borrowed as
+/// described by `TaskMessageArg`. `secondArg` remains a signed integer word,
+/// whose meaning is also selected by the message. The handler's signed result
+/// is returned unchanged, or zero if the task has no matching handler.
+///
+/// Each argument is evaluated once, with ordinary function-argument ordering.
+/// The cast encodes the complete object address in the PS1's 32-bit integer
+/// message ABI. Keep it in the call expression: an inline parameter or union
+/// temporary can make GCC retain a stack address across successive dispatches.
+#define TASK_MESSAGE_DISPATCH_POINTER(receiver, messageId, payload, secondArg) \
+    Gp_DispatchMsg((receiver), (messageId), (s32)(payload), (secondArg))
 
 /// Send an object address in arg3, commonly an output/reply destination.
 static __inline__ s32 Gp_DispatchMsgReply(Task* task, s32 id, s32 arg2, const void* reply)

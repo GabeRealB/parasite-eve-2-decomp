@@ -711,7 +711,7 @@ void func_actor_342000_801628C8(Task* arg0)
     switch (arg0->state) {
         case 0:
             func_actor_342000_80162158(arg0);
-            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_342000_801648B8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_342000_801648B8, 0);
             arg0->state += 1;
             return;
         case 1:
@@ -766,12 +766,12 @@ static void func_actor_342000_80162BBC(Task* arg0)
         case 1:
             Gp_PulseState1C();
             Gp_StateC08.field_6 |= 1;
-            Gp_DispatchMsgPtr(work->field_48, 0x3E9, &D_actor_342000_80164930, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_48, 0x3E9, &D_actor_342000_80164930, 0);
             break;
         case 2:
             switch (work->field_6A) {
                 case 0:
-                    Gp_DispatchMsgPtr(work->field_48, 0x3F2, &D_actor_342000_80164948, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_48, 0x3F2, &D_actor_342000_80164948, 0);
                     work->field_6A++;
                     return;
                 case 1:
@@ -788,19 +788,19 @@ static void func_actor_342000_80162BBC(Task* arg0)
                         msg.blend                = ANIMATION_BLEND_RESET;
                         msg.blendFrames          = 0;
                         msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
                     }
                     return;
             }
             return;
         case 3:
-            Gp_DispatchMsgPtr(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
             msg.source.sets          = D_actor_342000_801647E8;
             msg.animationId          = 0;
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 4:
             msg.source.sets          = D_actor_342000_801647E8;
@@ -808,7 +808,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 10;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 5: {
             s32 weaponId;
@@ -821,7 +821,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
         }
         case 6:
@@ -830,7 +830,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 10;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 7: {
             s32 weaponId;
@@ -843,7 +843,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 10;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
         }
         case 8:
@@ -852,7 +852,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             ev = (Actor342000EventWork*)D_actor_342000_80165070->work;
             if (ev->field_7A == 0) {
                 SndEvt_EnqueueType6(0x54280005, 0, 0);
@@ -950,10 +950,10 @@ static void func_actor_342000_80162F28(Task* arg0)
                     actor->field_264.vx     -= 4;
                     work->field_0[0].pos.vx += 5;
                     work->field_0[1].pos.vx -= 5;
-                    Gp_DispatchMsgPtr(work->field_5C, 0x7D4, &work->field_0[0], 0);
-                    Gp_DispatchMsgPtr(work->field_60, 0x7D4, &work->field_0[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_5C, 0x7D4, &work->field_0[0], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_60, 0x7D4, &work->field_0[1], 0);
                     work->field_30.pos.vy += 3;
-                    Gp_DispatchMsgPtr(work->field_50, 0x7D4, &work->field_30, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_50, 0x7D4, &work->field_30, 0);
                     break;
             }
             return;
@@ -962,7 +962,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                 case 0:
                     Gp_DispatchMsg(work->field_5C, 0x7D5, 0, 0);
                     Gp_DispatchMsg(work->field_60, 0x7D5, 0, 0);
-                    Gp_DispatchMsgPtr(work->field_50, 0x7D4, &D_actor_342000_801648D0, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_50, 0x7D4, &D_actor_342000_801648D0, 0);
                     Actor342000_SetAnim(work->field_50, 0, 0, 8);
                     Actor342000_SetAnim(work->field_54, 0, 0, 4);
                     Actor342000_SetAnim(work->field_58, 0, 0, 4);
@@ -977,7 +977,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                 case 0:
                     Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
                     Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
-                    Gp_DispatchMsgPtr(work->field_50, 0x7D4, &D_actor_342000_801648B8, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_50, 0x7D4, &D_actor_342000_801648B8, 0);
                     Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164848[0]);
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164848[1]);
                     work->field_72++;
@@ -989,8 +989,8 @@ static void func_actor_342000_80162F28(Task* arg0)
                     Actor342000_Store(&work->field_0[0].pos.vz, v);
                     v = Actor342000_Sway(work->field_0[1].pos.vz, 20);
                     Actor342000_Store(&work->field_0[1].pos.vz, v);
-                    Gp_DispatchMsgPtr(work->field_5C, 0x7D4, &work->field_0[0], 0);
-                    Gp_DispatchMsgPtr(work->field_60, 0x7D4, &work->field_0[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_5C, 0x7D4, &work->field_0[0], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_60, 0x7D4, &work->field_0[1], 0);
                     break;
             }
             return;
@@ -1020,8 +1020,8 @@ static void func_actor_342000_80162F28(Task* arg0)
             }
             work->field_0[0].pos.vx += 5;
             work->field_0[1].pos.vx -= 5;
-            Gp_DispatchMsgPtr(work->field_5C, 0x7D4, &work->field_0[0], 0);
-            Gp_DispatchMsgPtr(work->field_60, 0x7D4, &work->field_0[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_5C, 0x7D4, &work->field_0[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_60, 0x7D4, &work->field_0[1], 0);
             return;
         case 7:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_78;
@@ -1044,8 +1044,8 @@ static void func_actor_342000_80162F28(Task* arg0)
                         func_80143490(3);
                         work->field_70 = 0;
                     }
-                    Gp_DispatchMsgPtr(work->field_5C, 0x7D4, &work->field_0[0], 0);
-                    Gp_DispatchMsgPtr(work->field_60, 0x7D4, &work->field_0[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_5C, 0x7D4, &work->field_0[0], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_60, 0x7D4, &work->field_0[1], 0);
                     break;
             }
             return;
@@ -1154,7 +1154,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 msg.context.loc.stage = gGameSession->location.loc.stage;
                 msg.context.loc.area  = gGameSession->location.loc.area;
                 msg.command           = 0;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 work->field_5C = Task_SpawnFromTable(D_actor_342000_80164FF8, 8, 0, arg0);
                 work->field_60 = Task_SpawnFromTable(D_actor_342000_80164FF8, 9, 0, arg0);
                 goto next;
@@ -1233,7 +1233,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 msg.context.loc.stage = gGameSession->location.loc.stage;
                 msg.context.loc.area  = gGameSession->location.loc.area;
                 msg.command           = 0;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 arg0->killCountdown = 0;
                 arg0->state++;
                 break;
@@ -1448,7 +1448,7 @@ void func_actor_342000_8016439C(void)
     s32                   anim;
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
-    Gp_DispatchMsgPtr(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
     func_shelter_b3_garbage_incinerator_8018507C();
     weaponId                 = gPlayerStatus.weapon;
     anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -1457,7 +1457,7 @@ void func_actor_342000_8016439C(void)
     msg.blend                = ANIMATION_BLEND_RESET;
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
     Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
     if (work->field_64 != NULL) {
         taskKill(work->field_64);

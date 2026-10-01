@@ -3627,7 +3627,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                 work->field_8E8 = 9;
                 work->field_8E9 = 1;
                 work->field_8EA = 3;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_8E8, ACTOR_COMMAND_MESSAGE_APPLY);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->field_8E8, ACTOR_COMMAND_MESSAGE_APPLY);
             } else {
                 if ((s16)totalDamage >= 0x47) {
                     hurtState = work->field_0;
@@ -4315,7 +4315,7 @@ static void func_actor_421600_801373D4(Task* arg0)
         work->field_8E8            = 9;
         work->field_8E9            = 1;
         work->field_8EA            = 1;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_8E8, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->field_8E8, ACTOR_COMMAND_MESSAGE_APPLY);
         return;
     }
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFacingScratch);
@@ -4362,7 +4362,7 @@ static void func_actor_421600_801373D4(Task* arg0)
             scratch->contactYaw = (u16)var_v0_9;
             var_v0_9            = abs(var_v0_9);
             if (var_v0_9 < 0x180) {
-                if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &work->field_8D0, 0) == 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &work->field_8D0, 0) == 0) {
                     Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
                     temp_v0_6           = ratan2(scratch->vx, scratch->vz) + 0x800;
                     var_v1_3            = temp_v0_6;
@@ -4403,7 +4403,7 @@ static void func_actor_421600_801373D4(Task* arg0)
                     work->field_8B8.vx = (s32)player->extra.tmd->coords->coord.t[0];
                     work->field_8B8.vy = (s32)player->extra.tmd->coords->coord.t[1];
                     work->field_8B8.vz = (s32)player->extra.tmd->coords->coord.t[2];
-                    Gp_DispatchMsgPtr(player, 0x3E9, &work->field_8B8, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &work->field_8B8, 0);
                     if (work->field_E9E < 0x3E8) {
                         if (ctx->hp > 0) {
                             var_v0_15 = scratch->playerYaw;
@@ -4427,7 +4427,7 @@ static void func_actor_421600_801373D4(Task* arg0)
                             work->field_8B6          = 1;
                             work->field_E9C          = 1;
                             work->field_E90.bytes[3] = 0;
-                            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
+                            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
                         }
                         work->field_0 = 0x25;
                         Gp_SpawnPadLerp(3, 0xFF, 8);
@@ -4456,7 +4456,7 @@ static void func_actor_421600_801373D4(Task* arg0)
                         work->field_8B6          = 1;
                         work->field_E9C          = 1;
                         work->field_E90.bytes[3] = 0;
-                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
                         work->field_0 = 0x1E;
                         Gp_SpawnPadLerp(8, 0xFF, 8);
                     }
@@ -5534,7 +5534,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     }
     if ((ActorContact_Steer(arg0->extra.tmd->coords, &work->field_90C, 0xC, &scratch->vec) << 0x10) != 0 && work->field_82E == 3) {
         work->field_8E4 = 8;
-        if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &work->field_8D0, 0) == 0) {
+        if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &work->field_8D0, 0) == 0) {
             playerX            = -gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0];
             scratch->playerYaw = ratan2(playerX, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
             targetCoord        = arg0->extra.tmd->coords;
@@ -5563,7 +5563,7 @@ static void func_actor_421600_8013A554(Task* arg0)
             work->field_8B8.vx = (s32)player->extra.tmd->coords->coord.t[0];
             work->field_8B8.vy = (s32)player->extra.tmd->coords->coord.t[1];
             work->field_8B8.vz = (s32)player->extra.tmd->coords->coord.t[2];
-            Gp_DispatchMsgPtr(player, 0x3E9, &work->field_8B8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &work->field_8B8, 0);
             if (work->field_E9E < 0x3E8) {
                 if (enemy->hp > 0) {
                     closeDistance = scratch->yaw - scratch->playerYaw;
@@ -5585,7 +5585,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                     work->field_8B6          = 1;
                     work->field_E9C          = 1;
                     work->field_E90.bytes[3] = 0;
-                    Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
                 }
                 nextState = 0x25;
             } else {
@@ -5611,7 +5611,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                 work->field_8B6          = 1;
                 work->field_E9C          = 1;
                 work->field_E90.bytes[3] = 0;
-                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_E7C, 0);
                 nextState = 0x1E;
             }
             work->field_0 = nextState;
@@ -6809,7 +6809,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
             case 4:
                 break;
             case 1:
-                if (Gp_DispatchMsgPtr(player, 0x3FE, &work->field_8A4, 0) == 1) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &work->field_8A4, 0) == 1) {
                     work->field_8A4 = 0;
                     work->field_8A8 = 0;
                     work->field_8AC = 0;
@@ -6829,7 +6829,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                         work->field_E80   = 4;
                         work->field_E84   = 1;
                         work->field_E88   = 3;
-                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                         work->field_E90.bytes[3] = 0U;
                     }
                 } else if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x22U)) {
@@ -6839,13 +6839,13 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                     work->field_E80 = 4;
                     work->field_E84 = 1;
                     work->field_E88 = 3;
-                    Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                     work->field_E90.bytes[3] = 0U;
                 }
                 break;
             case 3:
                 if (((u8)work->field_E90.bytes[3] < 6U) && (config->hp > 0)) {
-                    result = Gp_DispatchMsgPtr(player, 0x3FE, &work->field_8A4, 0);
+                    result = TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &work->field_8A4, 0);
                     if (result == 1) {
                         work->field_8A4 = 0;
                         work->field_8A8 = 0;
@@ -6871,7 +6871,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                         work->field_E88 = 0;
                         work->field_E80 = 2;
 
-                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
                         work->field_E90.bytes[3] = 0U;
                     }
                     break;
@@ -6887,7 +6887,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                             Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
                         }
                         nextMessage = &work->field_E7C;
-                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
                         work->field_E90.bytes[3] = 0U;
                     }
                     break;

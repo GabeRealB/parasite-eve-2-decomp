@@ -275,7 +275,7 @@ static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (Gp_LookupSlot4(0) != 0 && GameFlag_GetNibble(0x96) != 0) {
         D_dryfield_night_motel_loft_8018092C.command = 1;
-        Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
     }
     func_dryfield_night_motel_loft_8017D9BC(Gp_GetCurBit2Flag(0xA) == 2);
     arg0->state = (s32)(arg0->state + 1);

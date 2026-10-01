@@ -1590,29 +1590,28 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
             Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
             D_acropolis_patio_80187060 = Task_SpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
         }
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
-            Gp_DispatchMsgPtr(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
         }
     }
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
-            Gp_DispatchMsgPtr(temp, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(temp, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
         }
     }
     if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(0x26) == 0)) {
         msg.context.loc.stage = 1;
         msg.context.loc.area  = 3;
         msg.command           = 0;
-        // The message ABI carries the borrowed record's address in one word.
-        Gp_DispatchMsg(Gp_LookupSlot4(2), ACTOR_COMMAND_MESSAGE_APPLY, (s32)&msg, 0);
-        Gp_DispatchMsgPtr(Gp_LookupSlot4(3), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(2), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(3), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
     }
     arg0->state = arg0->state + 1;
 }

@@ -1567,7 +1567,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
         case 0:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED && gPlayerStatus.hp > 0) {
                 sc->query.field_14 = 0x19;
-                if (Gp_DispatchMsgPtr(player, 0x3F8, sc, 0) == 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, sc, 0) == 0) {
                     work->field_6C0 = 1;
                     work->field_6CE = 1;
                     work->field_6F4 = 0;
@@ -1593,7 +1593,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     sc->place.rot.vx = 0;
                     sc->place.rot.vy = work->field_6E6;
                     sc->place.rot.vz = 0;
-                    Gp_DispatchMsgPtr(player, 0x3E9, &sc->place, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->place, 0);
                     Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
                     snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                     SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(pcoord), (s8)worldCoordGetOriginAudioDepth(pcoord));
@@ -1609,7 +1609,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
             sc->anim.blend                = ANIMATION_BLEND_RESET;
             sc->anim.blendFrames          = 0;
             sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
             work->field_6CE = 2;
             work->field_6DC = 0x3C;
             work->field_6DA = 1;
@@ -1629,7 +1629,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 sc->anim.blend                = ANIMATION_BLEND_RESET;
                 sc->anim.blendFrames          = 0;
                 sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                 Gp_ArmStateF0(1);
                 work->field_70A = 0;
                 if (work->field_6C6 == 0) {
@@ -1672,7 +1672,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         sc->anim.blend                = ANIMATION_BLEND_RESET;
                         sc->anim.blendFrames          = 0;
                         sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                        Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                     } else {
                         work->field_6D4 = 0x14;
                         Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
@@ -1713,7 +1713,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 sc->anim.blend                = ANIMATION_BLEND_RESET;
                 sc->anim.blendFrames          = 0;
                 sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
             }
             break;
         case 4:
@@ -1740,7 +1740,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     sc->anim.blend                = ANIMATION_BLEND_RESET;
                     sc->anim.blendFrames          = 0;
                     sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                     work->field_6D4 = 0x69;
                     work->field_6DA = 3;
                     work->field_6DC = 0x4B;

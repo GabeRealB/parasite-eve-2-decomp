@@ -297,7 +297,7 @@ void madChaserWavePairCull(Task* arg0)
             msg.context.loc.stage = 0;
             msg.context.loc.area  = 0;
             msg.command           = 5;
-            Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             work->enemy0 = NULL;
         }
     } else {
@@ -313,7 +313,7 @@ void madChaserWavePairCull(Task* arg0)
             msg.context.loc.stage = 0;
             msg.context.loc.area  = 0;
             msg.command           = 5;
-            Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             work->enemy1 = NULL;
         }
     } else {
@@ -581,7 +581,7 @@ static void func_actor_342400_80162C10(Task* arg0)
         msg.context.loc.stage  = 0;
         msg.context.loc.area   = 0x2C;
         msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         arg0->state++;
     }
 }
@@ -611,7 +611,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
         msg.context.loc.stage = 0;
         msg.context.loc.area  = 0x2C;
         msg.command           = 5;
-        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
@@ -669,7 +669,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
         msg.context.loc.stage = 0;
         msg.context.loc.area  = 0;
         msg.command           = 5;
-        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }

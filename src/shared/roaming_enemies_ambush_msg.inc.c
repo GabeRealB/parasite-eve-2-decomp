@@ -25,8 +25,8 @@ s32 roamerAmbushMsg(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg
                 gRoamerCommand.command           = 0xC;
                 result                           = 1;
                 if (Gp_LookupSlot4(0) != 0) {
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY,
-                                      &gRoamerCommand, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY,
+                                                  &gRoamerCommand, 0);
                     obj                                              = Gp_LookupSlot4(0)->spawnArg2.pointer;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[0] = 5;
                     Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[1] = 0;

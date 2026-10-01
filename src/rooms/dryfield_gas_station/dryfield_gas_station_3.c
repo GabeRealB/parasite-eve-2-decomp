@@ -593,7 +593,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E44[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E44[0], 0);
             SndEvt_EnqueueType6(0x52010011, 0, 0);
             SndEvt_EnqueueType6(0x52010012, 0, 0);
             break;
@@ -605,13 +605,13 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.blend                = ANIMATION_BLEND_RESET;
                 msg.rec.blendFrames          = 0;
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
             Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
             break;
         case 3:
             SndEvt_EnqueueType6(0x52010013, 0, 0);
-            Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E5C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E5C, 0);
             cur = (DgsWork*)task->work;
             if (cur->owner != NULL) {
                 msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
@@ -619,7 +619,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                 msg.rec.blendFrames          = 0x1E;
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
             break;
         case 4:
@@ -633,7 +633,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                         msg.rec.blend                = ANIMATION_BLEND_RESET;
                         msg.rec.blendFrames          = 0;
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
                     Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
                     Gp_DispatchMsg((Task*)work->owner, 0x3FC, 0, 0);
@@ -645,7 +645,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                     msg.move.y        = 0;
                     msg.move.z        = (D_dryfield_gas_station_80182E44[2].pos.vz - D_dryfield_gas_station_80182E44[0].pos.vz) / 30;
                     msg.move.field_10 = 0;
-                    Gp_DispatchMsgPtr((Task*)work->owner, 0x3FE, &msg.move, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3FE, &msg.move, 0);
                     work->field_8++;
                     if (work->field_8 < 31) {
                         return;
@@ -661,7 +661,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                         rec->blend                  = step;
                         rec->blendFrames            = 0xF;
                         script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, rec, 0);
                     }
                     break;
                 default:
@@ -676,7 +676,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 eff->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            Gp_DispatchMsgPtr((Task*)eff->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
+            TASK_MESSAGE_DISPATCH_POINTER((Task*)eff->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
             cur = (DgsWork*)shared->work;
             if (cur->owner != NULL) {
                 msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
@@ -684,7 +684,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.blend                = ANIMATION_BLEND_RESET;
                 msg.rec.blendFrames          = 0;
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
             SndEvt_EnqueueType7(0x52010011, 0x3C);
             SetDispMask(1);
@@ -740,7 +740,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     script.blend                = ANIMATION_BLEND_RESET;
                     script.blendFrames          = 0;
                     script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                    Gp_DispatchMsgPtr((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
                 }
                 func_800E3FAC(0xA2, 9);
                 func_800E8634(D_dryfield_gas_station_80182E8C, 0,
@@ -796,7 +796,7 @@ void func_dryfield_gas_station_80180A60(void)
         work->playerEffActive = 0;
         Gp_MsgPlayerWeapon(0);
     }
-    Gp_DispatchMsgPtr((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
+    TASK_MESSAGE_DISPATCH_POINTER((Task*)work->owner, 0x3E9, &D_dryfield_gas_station_80182E74, 0);
     work2 = (DgsWork*)task->work;
     if (work2->owner != 0) {
         script.source.sets          = D_dryfield_gas_station_80182E30;
@@ -804,7 +804,7 @@ void func_dryfield_gas_station_80180A60(void)
         script.blend                = ANIMATION_BLEND_RESET;
         script.blendFrames          = 0;
         script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        Gp_DispatchMsgPtr((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
+        TASK_MESSAGE_DISPATCH_POINTER((Task*)work2->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
     }
     SndEvt_EnqueueType7(0x52010011, 0x3C);
     SetDispMask(1);

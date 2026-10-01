@@ -292,8 +292,8 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x1E:
             Gp_PlayerWeaponId(&D_actor_215100_8014CF84.source.index);
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_215100_8014CF84, 0);
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D010, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_215100_8014CF84, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D010, 0);
             task->killCountdown = 0x1B;
             Gp_StartCapSlot(0xB, 0, 0);
             task->state++;
@@ -303,10 +303,10 @@ void func_actor_215100_80149F2C(Task* task)
                 task->killCountdown--;
             }
             if (task->killCountdown == 0) {
-                Gp_DispatchMsgPtr(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D024, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D024, 0);
             }
             if (task->killCountdown == -0x16) {
-                Gp_DispatchMsgPtr(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014CFAC, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014CFAC, 0);
             }
             if (Gp_CapBusy() == 0) {
                 task->state++;

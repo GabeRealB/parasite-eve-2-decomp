@@ -2707,8 +2707,8 @@ static void func_actor_450800_80132000(void)
 
 static void func_actor_450800_80132028(void)
 {
-    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_450800_801397A4, 0);
-    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_actor_450800_801398EC, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_450800_801397A4, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_actor_450800_801398EC, 0);
 }
 
 void func_actor_450800_80132080(void)

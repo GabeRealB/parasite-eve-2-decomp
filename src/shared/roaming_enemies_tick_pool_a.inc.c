@@ -81,7 +81,7 @@ void roamerTickPoolA(Task* task)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     gRoamerCooldown += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].x;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].z;

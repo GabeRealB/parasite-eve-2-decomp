@@ -588,7 +588,7 @@ void Gp_MenuRootTask(Task* arg0)
                 }
                 if (arg0->spawnArg1.value == 0x44) {
                     Gp_PlayerWeaponId(&D_8010E7F4.source.index);
-                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
                 }
                 gTaskDeferModelBufferAllocation = false;
                 Task_SetActiveList(previousList);

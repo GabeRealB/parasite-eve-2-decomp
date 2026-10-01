@@ -2244,8 +2244,8 @@ static void func_actor_460200_80132210(void)
 
     slot = Gp_LookupSlot4(0);
     if (slot != NULL) {
-        Gp_DispatchMsgPtr(slot, 0x7D4, &D_actor_460200_80136234, 0);
-        Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_460200_8013607C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_460200_80136234, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_8013607C, 0);
     }
     if (Gp_LookupSlot4(1) != 0) {
         Gp_MsgSlot4Chain(1, 2);
@@ -2253,7 +2253,7 @@ static void func_actor_460200_80132210(void)
     slot = Gp_LookupSlot4(2);
     if (slot != NULL) {
         Gp_MsgSlot4Chain(2, 1);
-        Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_460200_80135F14, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_80135F14, 0);
     }
 }
 

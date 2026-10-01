@@ -818,14 +818,14 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 5:
             Gp_DispatchMsgReply(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D8, 0x28, &spawned);
-            Gp_DispatchMsgPtr(spawned, 0x7D3, &D_acropolis_helicopter_landing_pad_80184E28, 0);
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(spawned, 0x7D3, &D_acropolis_helicopter_landing_pad_80184E28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
             D_acropolis_helicopter_landing_pad_80184E3C.animationId  = 9;
             D_acropolis_helicopter_landing_pad_80184E3C.source.index = gPlayerStatus.weapon + 1;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
             coord = spawned->extra.tmd->coords;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F5, coord, 0);
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F5, coord, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
             Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             task->state += 1;
             break;
@@ -1152,7 +1152,7 @@ void func_acropolis_helicopter_landing_pad_8017E64C(void)
 void func_acropolis_helicopter_landing_pad_8017E67C(void)
 {
     if (D_acropolis_helicopter_landing_pad_80187F84 != 0) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_80184E50, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_80184E50, 0);
     }
 }
 

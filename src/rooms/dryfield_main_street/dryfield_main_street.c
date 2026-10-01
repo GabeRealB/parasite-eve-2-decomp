@@ -1012,7 +1012,7 @@ static void func_dryfield_main_street_8017E0D8(Task* task)
     Game_SetPtrSlot(task, 7);
     D_80115598 = 1;
     if (GameFlag_GetNibble(0x5F) == 0) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_main_street_80180ED0, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_main_street_80180ED0, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     task->state++;
 }

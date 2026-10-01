@@ -743,7 +743,7 @@ static void func_actor_310100_80161F80(Task* task)
                 arg.blend                = ANIMATION_BLEND_INTERPOLATE;
                 arg.blendFrames          = 0xA;
                 arg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(msg->field_4E8, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &arg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(msg->field_4E8, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &arg, 0);
             }
             work->field_4F6 = seed;
         }
@@ -1222,7 +1222,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement
             request.blend                = blendRequested;
             request.blendFrames          = 0xA;
             request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(msgDisp->field_4E8, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(msgDisp->field_4E8, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
         }
     } else {
         active    = placement->pos.vy;

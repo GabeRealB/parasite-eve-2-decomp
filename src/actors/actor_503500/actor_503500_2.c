@@ -1915,7 +1915,7 @@ void func_actor_503500_80132E7C(void)
     slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if ((D_actor_503500_8017655C.pos.vx != 0) || (D_actor_503500_8017655C.pos.vy != 0) ||
         (D_actor_503500_8017655C.pos.vz != 0)) {
-        Gp_DispatchMsgPtr(slot3, 0x3E9, &D_actor_503500_8017655C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3E9, &D_actor_503500_8017655C, 0);
     }
 }
 

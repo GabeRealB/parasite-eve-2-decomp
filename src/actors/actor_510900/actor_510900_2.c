@@ -3072,7 +3072,7 @@ static void func_actor_510900_8013A310(Task* task)
         case 0:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 scratch->query.field_14 = 0xC;
-                if (Gp_DispatchMsgPtr(player, 0x3F8, scratch, 0) != 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, scratch, 0) != 0) {
                     work->field_CA = 3;
                     break;
                 }
@@ -3082,7 +3082,7 @@ static void func_actor_510900_8013A310(Task* task)
                 scratch->anim.blend                = ANIMATION_BLEND_RESET;
                 scratch->anim.blendFrames          = 0;
                 scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
                 work->field_CC = 1;
                 work->field_CE = 0;
                 obj            = player->extra.tmd->coords;
@@ -3103,7 +3103,7 @@ static void func_actor_510900_8013A310(Task* task)
             scratch->anim.blend                = ANIMATION_BLEND_RESET;
             scratch->anim.blendFrames          = 0;
             scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
             work->field_CC = 2;
             work->field_CE = 0;
             break;

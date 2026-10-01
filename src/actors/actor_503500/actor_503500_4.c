@@ -4313,7 +4313,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
             player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             pcoord = player->extra.tmd->coords;
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
-                Gp_DispatchMsgPtr(player, 0x3F8, &D_actor_503500_80171544, 0) == 0) {
+                TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, &D_actor_503500_80171544, 0) == 0) {
                 coord = arg0->parent->extra.tmd->coords;
                 src   = (s32*)&coord->coord;
                 dst   = (s32*)&work->field_40;
@@ -4336,7 +4336,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
                 gte_stsv(&vec);
                 side = vec.vz >= 0;
                 Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
-                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_801714E0[side], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_801714E0[side], 0);
                 Task_SpawnFromTable(&D_actor_503500_8017146C, 0, side, &work->field_40);
                 Gp_StateC08.field_6 |= 1;
                 pan                  = (s8)worldCoordGetOriginAudioPan(pcoord);
@@ -4411,7 +4411,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             msg.x              = work->pos.vx.halves.integer;
             msg.y              = work->pos.vy.halves.integer;
             msg.z              = work->pos.vz.halves.integer;
-            if (Gp_DispatchMsgPtr(player, 0x3FE, &msg, 0) != 0) {
+            if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &msg, 0) != 0) {
                 work->speed = 0;
             }
             work->pos.vx.word = (u16)work->pos.vx.word;
@@ -4441,7 +4441,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             break;
         case 2:
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_80171508[arg0->spawnArg1.value], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171508[arg0->spawnArg1.value], 0);
                 arg0->state++;
             }
             break;
@@ -4450,7 +4450,7 @@ void func_actor_503500_80143AC0(Task* arg0)
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
                         ->table.addresses[7];
-                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_80171530, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171530, 0);
                 arg0->state++;
             }
             break;

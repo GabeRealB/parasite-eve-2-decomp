@@ -2223,7 +2223,7 @@ static void func_actor_405800_801340E0(Task* arg0)
         return;
     }
     query.field_14 = 0x18;
-    if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
         Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         if (work->field_890 == 0) {
             work3            = (Actor405800Work*)arg0->work;
@@ -2247,7 +2247,7 @@ static void func_actor_405800_801340E0(Task* arg0)
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     msg.animationId          = 4;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     work2                = (Actor405800Work*)arg0->work;
@@ -2308,7 +2308,7 @@ static void func_actor_405800_80134314(Task* arg0)
             msg.blendFrames          = 8;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             msg.animationId          = 5;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         }
         work2            = (Actor405800Work*)arg0->work;
         work2->field_84A = 8;

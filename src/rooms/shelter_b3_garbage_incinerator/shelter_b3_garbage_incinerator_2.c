@@ -692,7 +692,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     msg[2] = 0;
                     msg[3] = 0;
                     msg[4] = 0;
-                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
                 } else {
                     p = msg;
                     w = gPlayerStatus.weapon;
@@ -706,7 +706,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     p[2]   = 1;
                     p[3]   = 10;
                     msg[4] = 0;
-                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
                 }
                 arg0->killCountdown = 0;
                 arg0->state++;
@@ -784,7 +784,7 @@ static s16 func_shelter_b3_garbage_incinerator_8017DF24(Task* arg0)
     msg.rot.vz = 0;
     msg.rot.vx = 0;
     msg.rot.vy = 0x800;
-    Gp_DispatchMsgPtr(work->target, 0x7D4, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->target, 0x7D4, &msg, 0);
     return 0;
 }
 
@@ -843,13 +843,13 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             }
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
-                    Gp_DispatchMsgPtr(task, 0x7D4, &D_shelter_b3_garbage_incinerator_80185B88, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &D_shelter_b3_garbage_incinerator_80185B88, 0);
                     func_shelter_b3_garbage_incinerator_80185220();
                     task->state = 1;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
                 case GAME_SESSION_INCINERATOR_DESCENT_LANDED:
-                    Gp_DispatchMsgPtr(task, 0x7D4, D_shelter_b3_garbage_incinerator_80185B58, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_shelter_b3_garbage_incinerator_80185B58, 0);
                     task->state = 4;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
@@ -1003,7 +1003,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xA;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(msgWork->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
     goto ret1;
 }
 
@@ -1031,7 +1031,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             }
             msg.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
             msg.count       = n & 0xFFFF;
-            Gp_DispatchMsgPtr(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
@@ -1138,7 +1138,7 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xF;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
 }
 
 void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0)

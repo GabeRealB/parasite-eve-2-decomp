@@ -4363,7 +4363,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     D_actor_403200_8015F8F4.context.loc.stage = 0;
     D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
     D_actor_403200_8015F8F4.command           = 0;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
 
     work->field_E94 = work->field_E96 = 0x9C4;
     work->field_E98                   = 0x190;
@@ -5448,7 +5448,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         D_actor_403200_8015F8F4.context.loc.stage = 0;
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 2;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         {
             s16 armed                = 1;
             work->field_E96          = 0xC80;
@@ -5587,7 +5587,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     }
 
     if (((u32)((work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xB) < 5U) && (sc->dist < 0x4B0) && (enemy->hp > 0) &&
-        (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403200_8015FA00, 0) == 0)) {
+        (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403200_8015FA00, 0) == 0)) {
         SVECTOR* dirp;
         s16      ang;
 
@@ -5642,13 +5642,13 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             }
         }
         if (cfg->hp > 0) {
-            Gp_DispatchMsgPtr(task, 0x3E9, &D_actor_403200_8015F9C0.value, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, 0x3E9, &D_actor_403200_8015F9C0.value, 0);
         }
         work->anim.animationId = 1;
         work->anim.blend       = ANIMATION_BLEND_RESET;
         work->anim.blendFrames = 0;
         work->field_F02        = 1;
-        Gp_DispatchMsgPtr(task, 0x3F4, &work->anim, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(task, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &work->anim, 0);
         work->field_7CA = 0;
     }
 
@@ -5663,7 +5663,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         D_actor_403200_8015F8F4.context.loc.stage = 0;
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 3;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         gGluttonSpinnersReleased = 0;
         work->field_7F2          = 0;
         work->field_0            = 0xA;
@@ -5737,7 +5737,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8F4.context.loc.stage = 0;
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 3;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         gGluttonSpinnersReleased = 0;
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
         work->field_7B3        = 0xF;
@@ -5792,7 +5792,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F8F4.context.loc.stage = 0;
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 3;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_E96          = 0x9C4;
         gGluttonSpinnersReleased = 0;
         Gp_StateC08.field_6     |= 1;
@@ -5862,12 +5862,12 @@ static void func_actor_403200_8013C84C(Task* arg0)
         D_actor_403200_8015F9C0.value.pos.vx = arg0->extra.tmd->coords[0].coord.t[0];
         D_actor_403200_8015F9C0.value.pos.vy = arg0->extra.tmd->coords[0].coord.t[1];
         D_actor_403200_8015F9C0.value.pos.vz = arg0->extra.tmd->coords[0].coord.t[2];
-        Gp_DispatchMsgPtr(task, 0x3E9, &D_actor_403200_8015F9C0.value, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(task, 0x3E9, &D_actor_403200_8015F9C0.value, 0);
         D_actor_403200_8015F8E0[0] = 1;
     }
     if (work->field_6 < 0x18) {
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
-        Gp_DispatchMsgPtr(task, 0x3FF, &work->anim, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(task, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         work->field_7CA = 0;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x3C);
@@ -6074,7 +6074,7 @@ missed:
     found = 0;
 scanned:
     if (found != 0 && enemy->hp > 0 &&
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403200_8015FA00, 0) == 0) {
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403200_8015FA00, 0) == 0) {
         target          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
         work->field_ECA = reply;
@@ -6086,7 +6086,7 @@ scanned:
         work->anim.animationId = 2;
         work->anim.blend       = ANIMATION_BLEND_RESET;
         work->anim.blendFrames = 0;
-        Gp_DispatchMsgPtr(task, 0x3FF, &work->anim, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(task, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         work->field_7CA = 0;
     }
 
@@ -7013,7 +7013,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 rnd                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
                 gRandomLcgState                   = rnd;
-                Gp_DispatchMsgPtr(work->field_EE8[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->field_EE8[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
             }
         }
     out:
@@ -7368,7 +7368,7 @@ after_mode:
             D_actor_403200_8015F8F4.context.loc.stage = 0;
             D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
             D_actor_403200_8015F8F4.command           = 3;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403200_8015F8F4, ACTOR_COMMAND_MESSAGE_APPLY);
             gGluttonSpinnersReleased = 0;
         }
     }
@@ -7507,14 +7507,14 @@ after_mode:
                 work->anim.source.sets = D_actor_403200_8015E6AC;
                 work->anim.blend       = ANIMATION_BLEND_RESET;
                 work->anim.blendFrames = 0;
-                Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
                 work->field_7CA = 0;
             }
         } else if (work->anim.animationId == 2 && (s16)count < 0x28) {
             work->anim.source.sets = D_actor_403200_8015E6AC;
             work->anim.blend       = ANIMATION_BLEND_RESET;
             work->anim.blendFrames = 0;
-            Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         }
 
         if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
@@ -7529,7 +7529,7 @@ after_mode:
                         work->anim.animationId = 4;
                         work->anim.blend       = ANIMATION_BLEND_INTERPOLATE;
                         work->anim.blendFrames = 3;
-                        Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
                         work->field_7CA = 0;
                     }
                     break;

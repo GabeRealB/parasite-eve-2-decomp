@@ -1260,7 +1260,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     rec.blend                = ANIMATION_BLEND_INTERPOLATE;
     rec.blendFrames          = 0xA;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
     goto ret1;
 }
 
@@ -1428,7 +1428,7 @@ void func_actor_136100_80132284(Task* arg0)
         (record).blend                = (blendChoice);                                                                                \
         (record).blendFrames          = (frames);                                                                                     \
         (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                            \
-        Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &(record), 0);                                                  \
+        TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &(record), 0);                                      \
     }
 
 /// Step the cutscene actor's `field_4C4` request.  Request 1 runs a three-step
@@ -1450,8 +1450,8 @@ static void func_actor_136100_801323F8(Task* arg0)
         case 1:
             switch ((u16)work->field_4C6) {
                 case 0:
-                    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[0], 0);
-                    Gp_DispatchMsgPtr(work->field_4B4, 0x3F2, &D_actor_136100_8013F304[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[0], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3F2, &D_actor_136100_8013F304[1], 0);
                     work->field_4C8 = 0;
                     work->field_4C6++;
                     return;
@@ -1477,7 +1477,7 @@ static void func_actor_136100_801323F8(Task* arg0)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x34, 1, 0xA, rec);
             break;
         case 4:
-            Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F37C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F37C, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 0, 0, rec);
             break;
         case 5:
@@ -1497,19 +1497,19 @@ static void func_actor_136100_801323F8(Task* arg0)
 /// evaluated once. Dispatch consumes the request synchronously.
 /// A null linked task suppresses evaluation of the clip and record arguments.
 /// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_PLAY_LINKED_ANIMATION(task, anim, blendChoice, frames, record)                   \
-    {                                                                                                 \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->work;                                   \
-                                                                                                      \
-        if (animWork->field_4C0 != NULL) {                                                            \
-            (record).source.sets          = D_actor_136100_8013F1D4;                                  \
-            animWork->field_4E2           = anim;                                                     \
-            (record).animationId          = anim;                                                     \
-            (record).blend                = (blendChoice);                                            \
-            (record).blendFrames          = (frames);                                                 \
-            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                        \
-            Gp_DispatchMsgPtr(animWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
-        }                                                                                             \
+#define ACTOR_136100_PLAY_LINKED_ANIMATION(task, anim, blendChoice, frames, record)                               \
+    {                                                                                                             \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->work;                                               \
+                                                                                                                  \
+        if (animWork->field_4C0 != NULL) {                                                                        \
+            (record).source.sets          = D_actor_136100_8013F1D4;                                              \
+            animWork->field_4E2           = anim;                                                                 \
+            (record).animationId          = anim;                                                                 \
+            (record).blend                = (blendChoice);                                                        \
+            (record).blendFrames          = (frames);                                                             \
+            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                    \
+            TASK_MESSAGE_DISPATCH_POINTER(animWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
+        }                                                                                                         \
     }
 
 /// Record `id` as the work block's current animation (`field_4E0`).
@@ -1601,8 +1601,7 @@ static void func_actor_136100_80132748(Task* arg0)
                         rec.blendFrames          = 0xA;
                         rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
 
-                        // The message ABI carries this request address in a signed word.
-                        Gp_DispatchMsg(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, (s32)&rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
                     }
                     ACTOR_136100_PLAY_LINKED_ANIMATION(arg0, 4, 1, 0xA, rec);
                     break;
@@ -1661,7 +1660,7 @@ static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s
         msg.blend                = blend;
         msg.blendFrames          = speed;
         msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        Gp_DispatchMsgPtr(work->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 
@@ -1713,7 +1712,7 @@ static void func_actor_136100_80132BC0(Task* arg0)
             }
             break;
         case 3:
-            Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
             func_actor_136100_PlayAnim(arg0, 0, 0, 0);
             break;
     }
@@ -1744,8 +1743,8 @@ static void func_actor_136100_80132E78(Task* arg0)
             switch ((u16)work->field_4C6) {
                 case 0:
                     Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
-                    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F334[0], 0);
-                    Gp_DispatchMsgPtr(work->field_4B4, 0x3F2, &D_actor_136100_8013F334[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F334[0], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3F2, &D_actor_136100_8013F334[1], 0);
                     work->field_4C8 = 0;
                     work->field_4C6++;
                     return;
@@ -1771,7 +1770,7 @@ static void func_actor_136100_80132E78(Task* arg0)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x35, 1, 0xA, rec);
             break;
         case 5:
-            Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F364, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F364, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
         case 6:
@@ -1795,17 +1794,17 @@ static void func_actor_136100_80133238(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3C4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3C4, 0);
             break;
         case 2:
-            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3DC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3DC, 0);
             break;
         case 3:
             func_actor_136100_SetAnim(arg0, 4);
             break;
         case 4:
             func_actor_136100_ResetSlots(arg0, 3);
-            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
             break;
         case 5:
             switch ((u16)work->field_4CE) {
@@ -1825,7 +1824,7 @@ static void func_actor_136100_80133238(Task* arg0)
         case 6:
             switch ((u16)work->field_4C6) {
                 case 0:
-                    Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3DC, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3DC, 0);
                     work->field_4EA = 0x1000;
                     work->field_4C6++;
                     return;
@@ -1877,7 +1876,7 @@ static void func_actor_136100_80133558(Task* arg0)
                 msg.blend                = ANIMATION_BLEND_INTERPOLATE;
                 msg.blendFrames          = 0xA;
                 msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(msgWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
         }
     }
@@ -1885,13 +1884,13 @@ static void func_actor_136100_80133558(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F424, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F424, 0);
             break;
         case 2:
-            Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F43C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F43C, 0);
             break;
         case 3:
-            Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
             break;
     }
     work->field_4D4 = 0;
@@ -1937,7 +1936,7 @@ void func_actor_136100_80133690(void)
         i++;
     } while ((u16)i < 0x14U);
 
-    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[1], 0);
 
     msgWork                  = (Actor136100Work*)task->work;
     weaponId                 = gPlayerStatus.weapon;
@@ -1948,7 +1947,7 @@ void func_actor_136100_80133690(void)
     rec.blend                = ANIMATION_BLEND_RESET;
     rec.blendFrames          = 0;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 /// Second half of the cutscene actor's re-arm: clears the first two
@@ -1980,7 +1979,7 @@ void func_actor_136100_8013379C(s32 arg0)
     work->field_4C4 = 0;
     work->field_4CC = 0;
 
-    Gp_DispatchMsgPtr(task, 0x7D4, &D_actor_136100_8013F3AC, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &D_actor_136100_8013F3AC, 0);
 
     animWork            = (Actor136100Work*)task->work;
     animWork->field_4E0 = 3;
@@ -1991,7 +1990,7 @@ void func_actor_136100_8013379C(s32 arg0)
         i++;
     } while ((u16)i < 0x14U);
 
-    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, D_actor_136100_8013F334, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, D_actor_136100_8013F334, 0);
 
     msgWork                  = (Actor136100Work*)task->work;
     weaponId                 = gPlayerStatus.weapon;
@@ -2002,9 +2001,9 @@ void func_actor_136100_8013379C(s32 arg0)
     rec.blend                = ANIMATION_BLEND_RESET;
     rec.blendFrames          = 0;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_PLAY, &rec, 0);
 
-    Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
 
     if (arg0 == 1) {
         gfxRotMatrixY(&task->extra.tmd->coords[4].coord, 0, 1);
@@ -2134,19 +2133,19 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
 /// evaluated once. Dispatch consumes the request synchronously.
 /// A null linked task suppresses evaluation of the clip and record arguments.
 /// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_RESET_LINKED_ANIMATION(task, anim, record)                                       \
-    {                                                                                                 \
-        Actor136100Work* animWork = (Actor136100Work*)(task)->work;                                   \
-                                                                                                      \
-        if (animWork->field_4C0 != NULL) {                                                            \
-            (record).source.sets          = D_actor_136100_8013F1D4;                                  \
-            animWork->field_4E2           = anim;                                                     \
-            (record).animationId          = anim;                                                     \
-            (record).blend                = ANIMATION_BLEND_RESET;                                    \
-            (record).blendFrames          = 0;                                                        \
-            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                        \
-            Gp_DispatchMsgPtr(animWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
-        }                                                                                             \
+#define ACTOR_136100_RESET_LINKED_ANIMATION(task, anim, record)                                                   \
+    {                                                                                                             \
+        Actor136100Work* animWork = (Actor136100Work*)(task)->work;                                               \
+                                                                                                                  \
+        if (animWork->field_4C0 != NULL) {                                                                        \
+            (record).source.sets          = D_actor_136100_8013F1D4;                                              \
+            animWork->field_4E2           = anim;                                                                 \
+            (record).animationId          = anim;                                                                 \
+            (record).blend                = ANIMATION_BLEND_RESET;                                                \
+            (record).blendFrames          = 0;                                                                    \
+            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                    \
+            TASK_MESSAGE_DISPATCH_POINTER(animWork->field_4C0, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
+        }                                                                                                         \
     }
 
 /// Copies seven set addresses into the player's writable animation-bank extension.
@@ -2154,18 +2153,18 @@ static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* ev
 /// `record` must be a side-effect-free `GpCopyArg` lvalue. The table is
 /// null-terminated; the receiver copies only the preceding entries.
 /// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, record)                                       \
-    {                                                                                               \
-        Actor136100Work* msgWork = (Actor136100Work*)(task)->work;                                  \
-        s32              n;                                                                         \
-                                                                                                    \
-        n = 0;                                                                                      \
-        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {                                          \
-            n += 1;                                                                                 \
-        }                                                                                           \
-        (record).source.sets = &D_actor_136100_8013F180[0];                                         \
-        (record).count       = n & 0xFFFF;                                                          \
-        Gp_DispatchMsgPtr(msgWork->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
+#define ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, record)                                                   \
+    {                                                                                                           \
+        Actor136100Work* msgWork = (Actor136100Work*)(task)->work;                                              \
+        s32              n;                                                                                     \
+                                                                                                                \
+        n = 0;                                                                                                  \
+        while (D_actor_136100_8013F180[n & 0xFFFF] != 0) {                                                      \
+            n += 1;                                                                                             \
+        }                                                                                                       \
+        (record).source.sets = &D_actor_136100_8013F180[0];                                                     \
+        (record).count       = n & 0xFFFF;                                                                      \
+        TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
     }
 
 /// Refresh the shadow coordinate and hand its translation to `func_800D7A9C`.
@@ -2240,11 +2239,11 @@ void func_actor_136100_80133BC8(Task* arg0)
                 Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
                 Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
                 Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
-                Gp_DispatchMsgPtr(work->field_4BC, 0x7D4, &D_actor_136100_8013F454, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->field_4BC, 0x7D4, &D_actor_136100_8013F454, 0);
                 if (work->field_4C0 != NULL) {
-                    Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
                 }
-                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F394, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F394, 0);
                 func_actor_136100_ResetSlots(arg0, 1);
                 ACTOR_136100_RESET_LINKED_ANIMATION(arg0, 1, message.animation);
             } else {
@@ -2253,9 +2252,9 @@ void func_actor_136100_80133BC8(Task* arg0)
                 Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
                 Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
                 if (work->field_4C0 != NULL) {
-                    Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
                 }
-                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
                 func_actor_136100_ResetSlots(arg0, 3);
                 ACTOR_136100_RESET_LINKED_ANIMATION(arg0, 5, message.animation);
             }
@@ -2383,7 +2382,7 @@ void func_actor_136100_8013467C(void)
     rec.blend                = ANIMATION_BLEND_RESET;
     rec.blendFrames          = 0;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 /// Shows the task's model when `arg2` is non-zero and hides it (bit 0x80 of
@@ -2506,5 +2505,5 @@ static void func_actor_136100_80134A18(Task* arg0)
     }
     msg.source.sets = &D_actor_136100_8013F180[0];
     msg.count       = n & 0xFFFF;
-    Gp_DispatchMsgPtr(work->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
 }

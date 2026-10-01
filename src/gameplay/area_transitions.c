@@ -594,7 +594,7 @@ static void Gp_PostMsg13EF(void)
             request.actionId = Gp_DirByte;
             request.argument = Gp_DirNibble;
             roomTask         = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
-            Gp_DispatchMsgPtr(roomTask, DIRECTION_MESSAGE_ROOM_ACTION, &request, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(roomTask, DIRECTION_MESSAGE_ROOM_ACTION, &request, 0);
         }
     }
     Gp_DirNibble    = 0;
@@ -677,7 +677,7 @@ static void Gp_MsgPlayer3EE(void)
         sp.rot.vx = 0;
         sp.rot.vz = 0;
         sp.rot.vy = Gp_DirNibble << 4;
-        Gp_DispatchMsgPtr(playerTask, 0x3EE, &sp, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(playerTask, 0x3EE, &sp, 0);
         Gp_DirPhase++;
     }
 }
@@ -697,7 +697,7 @@ static void Gp_MsgPlayer3EF(void)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     sp.field_0 = (Gp_DirFlags >> 8) & 1;
     sp.field_4 = Gp_DirByte & 0xF;
-    Gp_DispatchMsgPtr(playerTask, 0x3EF, &sp, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(playerTask, 0x3EF, &sp, 0);
     Gp_DirAltNibble = 0;
     Gp_DirAlt       = 0;
     D_80114CD4      = 0;

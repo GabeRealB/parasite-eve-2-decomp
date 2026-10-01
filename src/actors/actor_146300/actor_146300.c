@@ -1450,32 +1450,32 @@ static void func_actor_146300_8013224C(void)
 {
     switch (GameFlag_GetNibble(0x7B)) {
         case 2:
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
             break;
         case 3:
             if (Gp_HasCollectedBit(0x119) == 0) {
                 if (Gp_GetCurBit2Flag(0x1F) == 1) {
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
                 } else {
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
                 }
             } else {
-                Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
             }
             break;
         case 4:
             if (Gp_HasCollectedBit(0x119) == 0) {
                 if (Gp_GetCurBit2Flag(0x20) == 1) {
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
                 } else {
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
                 }
                 break;
             }
             /* fallthrough */
         case 5:
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_actor_146300_80137C10, 0);
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B60, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_actor_146300_80137C10, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B60, 0);
             break;
     }
 }
@@ -1491,12 +1491,12 @@ void func_actor_146300_80132418(s32 arg0)
     switch (arg0) {
         case 0:
             if (Gp_GetCapEventKey() == 1) {
-                Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B10, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B10, 0);
             }
             break;
         case 1:
             if (Gp_GetCapEventKey() == 2) {
-                Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
             }
             break;
     }

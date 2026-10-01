@@ -2716,7 +2716,7 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
             arg0->state                                                = (s32)(arg0->state + 1);
         } else {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 9;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             arg0->state = (s32)(arg0->state + 1);
         }
     }
@@ -3350,7 +3350,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
     } else {
         ActorCommand msg = { { { 1, 0xE } }, 2 };
 
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         SndEvt_EnqueueType6(0x510E0009, 0, 0);
         task->state = 6;
     }

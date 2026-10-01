@@ -447,13 +447,13 @@ static void func_actor_120500_80132028(Task* arg0)
                         msg.blend               = ANIMATION_BLEND_RESET;
                         msg.blendFrames         = 0;
                         p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                        Gp_DispatchMsgPtr(w3->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(w3->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
                     }
                     work->field_4BA = work->field_4BA + 1;
                     /* fallthrough */
                 case 1:
-                    Gp_DispatchMsgPtr(((Actor120500Work*)arg0->work)->field_4B4, 0x3E9,
-                                      &D_actor_120500_80138090, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(((Actor120500Work*)arg0->work)->field_4B4, 0x3E9,
+                                                  &D_actor_120500_80138090, 0);
                     return;
             }
             return;
@@ -462,7 +462,7 @@ static void func_actor_120500_80132028(Task* arg0)
             w = (Actor120500Work*)arg0->work;
             Gp_SetOverrideVec(NULL);
             Gp_DispatchMsg(w->field_4B4, 0x3F3, 1, 0);
-            Gp_DispatchMsgPtr(w->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(w->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
             w2 = (Actor120500Work*)arg0->work;
             p  = &msg;
             if (w2->field_4B4 != NULL) {
@@ -471,7 +471,7 @@ static void func_actor_120500_80132028(Task* arg0)
                 msg.blend               = ANIMATION_BLEND_RESET;
                 msg.blendFrames         = 0;
                 p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(w2->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(w2->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
             }
             break;
         case 4:
@@ -483,7 +483,7 @@ static void func_actor_120500_80132028(Task* arg0)
                 p->blend                = ANIMATION_BLEND_INTERPOLATE;
                 p->blendFrames          = 8;
                 p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(w2->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(w2->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
             }
             break;
         case 5:
@@ -501,7 +501,7 @@ static void func_actor_120500_80132028(Task* arg0)
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(work->field_4B4, ANIMATION_MESSAGE_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
     }
     work->field_4B8 = 0;
@@ -606,7 +606,7 @@ void func_actor_120500_8013241C(Task* arg0)
                 args.msg.blend                = ANIMATION_BLEND_INTERPOLATE;
                 args.msg.blendFrames          = 10;
                 args.msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &args.msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &args.msg, 0);
                 func_800E3FAC(0xA2, 0xD);
                 func_800E8634(D_actor_120500_801380D8, 0, D_actor_120500_80138318);
                 arg0->state += 1;
@@ -644,7 +644,7 @@ loop_slots:
         if (work->field_4C0 == 1) {
             Tmd_AllocBuffers(arg0->extra.tmd);
             Task_SpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
-            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_actor_120500_801380C0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_120500_801380C0, 0);
         }
     }
     work->field_4C0 = 0;
@@ -744,12 +744,12 @@ void func_actor_120500_80132920(void)
         msg.blend                = ANIMATION_BLEND_RESET;
         msg.blendFrames          = 0;
         msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        Gp_DispatchMsgPtr(animWork->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(animWork->field_4B4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
     work = actor->work;
     Gp_SetOverrideVec(NULL);
     Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
-    Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_120500_801380A8, 0);
 }
 
 /// Message 0x7D5 handler: shows or hides the task's model. Payload 0 hides it

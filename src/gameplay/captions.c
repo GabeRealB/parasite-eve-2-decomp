@@ -283,7 +283,7 @@ resumeView:
                     if (target != NULL) {
                         D_801155A0.done    = 0;
                         D_801155A0.field_3 = 1;
-                        Gp_DispatchMsgPtr(target, 0x7DB, &D_801155A0, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(target, ACTOR_COMMAND_MESSAGE_APPLY, &D_801155A0, 0);
                     } else {
                         D_801155A0.done    = 1;
                         D_801155A0.field_3 = 1;

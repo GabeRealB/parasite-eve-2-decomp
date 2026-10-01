@@ -2876,7 +2876,7 @@ void func_mine_mesa_8017E074(Task* arg0)
     rec.rot.vy  = 0x311;
     rec.rot.vz  = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
 }
 
 /// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:

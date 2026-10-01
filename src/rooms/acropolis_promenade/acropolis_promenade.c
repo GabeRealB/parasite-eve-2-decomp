@@ -1785,7 +1785,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             rec.blend                             = ANIMATION_BLEND_RESET;
             rec.blendFrames                       = 0;
             rec.enableWorldCollision              = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state                    = task->state + 1;
@@ -1814,7 +1814,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
                     dest         = (RoomStreamWork*)task->work;
-                    Gp_DispatchMsgPtr(dest->target, 0x3E9, &place, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(dest->target, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_promenade_80181148, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
@@ -1828,7 +1828,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 place.pos.vy = 0x29;
                 place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
                 dest         = (RoomStreamWork*)task->work;
-                Gp_DispatchMsgPtr(dest->target, 0x3F2, &place, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(dest->target, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;

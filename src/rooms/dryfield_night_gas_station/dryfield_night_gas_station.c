@@ -2548,9 +2548,9 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
     arg0->msgTable = D_dryfield_night_gas_station_80184034;
     Game_SetPtrSlot(arg0, 7);
     if ((GameFlag_GetNibble(0x63) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
         Gp_AllyAnimId(&D_dryfield_night_gas_station_80184098.source.index);
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
         func_dryfield_night_gas_station_8017FBD4(0);
     }
     if (GameFlag_GetNibble(0xA0) == 0) {
