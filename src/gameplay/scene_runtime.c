@@ -364,7 +364,7 @@ static void _animationBlendPackedRotation(const _AnimationBlendRequest* request,
 
 static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1);
 
-static inline void _gpAnimSeekSlot(AnimationContext* context, s32 arg1, u16 arg2, s32 arg3, s32 arg4);
+static inline void _animationSeekSlotWithBlend(AnimationContext* context, s32 slotIndex, u16 setIndex, s32 trackRecordOffset, s32 blendFrames);
 
 static void Gp_AnimSeekSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3);
 
@@ -2474,43 +2474,93 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     SCRATCH_STACK_RELEASE_BLOCK(_AnimationTickScratch);
 }
 
-static inline void _gpAnimSeekSlot(AnimationContext* context, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
+/// Captures a slot's ticked pose and starts a timed blend toward a track-relative record.
+///
+/// First ticks playback with model-coordinate and encoded-buffer outputs, then
+/// replaces the current endpoint with this slot's buffer entry. Its record
+/// index is retained. Zero span or unsupported encoding skips the capture's
+/// pose writes, but the buffered endpoint is still installed.
+/// The target is `trackRecordOffset` elements from the selected set's track
+/// start, narrowed to `u16` before following controls.
+/// Jumps add walk flags; a stop retains the capture tick's next record index
+/// within the newly selected set. The capture tick's flags and boundary latch
+/// are retained, as are the playback rate and pose encoding. Clearing the
+/// buffered-endpoint flag requests a fresh rotation delta when a later tick
+/// blends from the buffer.
+///
+/// `slotIndex` must be nonnegative and fit the slot and pose-buffer arrays.
+/// `setIndex` selects a loaded slot set, excluding `ANIMATION_SET_BUFFERED_POSE`;
+/// its track start, all visited records and the retained next index must fit
+/// that set. The track-start sum must be representable in `s32`. The control
+/// chain must terminate, and the target pose bank must support the slot's
+/// existing encoding. Borrowed storage, full encoded-pose
+/// bounds, scratch capacity and GTE requirements are those of `animationTickSlotPose`.
+/// The slot's buffer entry must remain live until no endpoint refers to it.
+///
+/// `blendFrames` counts whole normal-rate frames. It is shifted in `s32` and
+/// narrowed through `u16` before storing both time fields; 0..2047 keeps the
+/// signed remaining time nonnegative. Zero starts with no transition time.
+static inline void _animationSeekSlotWithBlend(AnimationContext* context, s32 slotIndex, u16 setIndex, s32 trackRecordOffset, s32 blendFrames)
 {
     AnimationSlot*         slot;
     AnimationSet*          set;
-    const AnimationRecord* recs;
-    const AnimationRecord* rec;
+    const AnimationRecord* records;
     u16                    recordIndex;
-    u16                    blendTime;
+    u16                    blendDuration;
     u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
+    /// Resolves the seek's forward control chain without clearing the capture tick's flags.
+    ///
+    /// `playbackSlot` is a writable `AnimationSlot*`, `recordArray` a borrowed
+    /// `const AnimationRecord*`, and `candidateIndex` a separate writable `u16`.
+    /// All visited indices and the slot's retained next index must fit the array;
+    /// the chain must reach a keyframe or stop. Jumps replace the index and add
+    /// jump flags; a jump to the prior next index also adds the boundary flag.
+    /// Stops restore that prior index, add the boundary flag and ignore the offset.
+    /// The caller installs the endpoint; only the index and accumulated flags change.
+    ///
+    /// Arguments are evaluated repeatedly and must be stable, have no side
+    /// effects and not refer to the block-local `controlRecord`. The internal
+    /// break leaves only the walk. The signed-byte cast tests the control bit;
+    /// the stop threshold compares unsigned flags. Negating the index in `s32`
+    /// preserves the address-add operand order without pointer/integer casts.
+#define ANIMATION_RESOLVE_SEEK_RECORD(playbackSlot, recordArray, candidateIndex)        \
+    do {                                                                                \
+        const AnimationRecord* controlRecord;                                           \
+                                                                                        \
+        while ((s8)(recordArray)[(candidateIndex)].flags < 0) {                         \
+            controlRecord = (recordArray) - -(s32)(candidateIndex);                     \
+            if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {                \
+                (candidateIndex) = controlRecord->wordOffset;                           \
+                if ((candidateIndex) == (playbackSlot)->nextPose.indices.recordIndex) { \
+                    (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;           \
+                }                                                                       \
+                (playbackSlot)->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;                  \
+            } else {                                                                    \
+                (candidateIndex)       = (playbackSlot)->nextPose.indices.recordIndex;  \
+                (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;               \
+                break;                                                                  \
+            }                                                                           \
+        }                                                                               \
+    } while (0)
+
     // Capture this slot's encoded blend before replacing its destination keyframe.
-    bufferedPose = context->poseBuffer + arg1;
-    slot         = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, 0, bufferedPose);
+    bufferedPose = context->poseBuffer + slotIndex;
+    slot         = &context->slots[slotIndex];
+    animationTickSlotPose(context, slotIndex, NULL, bufferedPose);
     slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
-    set                                = slot->sets[arg2];
-    recs                               = set->records;
-    recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg3;
-    while ((s8)recs[recordIndex].flags < 0) {
-        rec = recs - -(s32)recordIndex;
-        if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
-            recordIndex = rec->wordOffset;
-            if (recordIndex == slot->nextPose.indices.recordIndex) {
-                slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
-            }
-            slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
-        } else {
-            recordIndex  = slot->nextPose.indices.recordIndex;
-            slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
-            break;
-        }
-    }
+
+    // Resolve controls in the target track without clearing the capture tick's results.
+    set         = slot->sets[setIndex];
+    records     = set->records;
+    recordIndex = set->trackStartIndices[slot->trackIndex] + trackRecordOffset;
+    ANIMATION_RESOLVE_SEEK_RECORD(slot, records, recordIndex);
+#undef ANIMATION_RESOLVE_SEEK_RECORD
     slot->nextPose.indices.recordIndex = recordIndex;
-    slot->nextPose.indices.setIndex    = arg2;
-    blendTime                          = arg4 << ANIMATION_TIME_FRACTION_BITS;
-    slot->timeSpan                     = blendTime;
-    slot->timeLeft                     = blendTime;
+    slot->nextPose.indices.setIndex    = setIndex;
+    blendDuration                      = blendFrames << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan                     = blendDuration;
+    slot->timeLeft                     = blendDuration;
     slot->usesBufferedPose             = 0;
 }
 
@@ -2522,7 +2572,7 @@ static void Gp_AnimSeekSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32
 
     slot = &context->slots[arg1];
     recs = slot->sets[arg2]->records;
-    _gpAnimSeekSlot(context, arg1, arg2, arg3, 1);
+    _animationSeekSlotWithBlend(context, arg1, arg2, arg3, 1);
     segmentTime    = recs[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     slot->timeSpan = segmentTime;
     slot->timeLeft = segmentTime;
@@ -2776,7 +2826,7 @@ static void Gp_AnimSeekSlot(AnimationContext* context, s32 arg1, s32 arg2)
 
 void func_800B4114(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    _gpAnimSeekSlot(context, arg1, arg2, arg3, arg4);
+    _animationSeekSlotWithBlend(context, arg1, arg2, arg3, arg4);
 }
 
 void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,

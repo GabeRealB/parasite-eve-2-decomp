@@ -495,22 +495,45 @@ u32* tmdDrawStreamPrimG4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* el
 /// variant, so `flags` goes unread.
 u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Draw handler of a stream's one-normal textured-triangle records (`0x18`,
-/// `0x1A`): each element's triangle is transformed and culled, its screen
-/// coordinates and lit colour are written into the `POLY_GT3` the record's texture
-/// words were laid in, and that packet is linked into the ordering table.
+/// Projects and draws opaque textured triangles, lighting each from one face normal.
 ///
-/// `tmdProcessStream` fills the polygon's texture words as it builds the record
-/// into the buffer half, so what is left here is the half that changes per frame.
-/// The element names one normal for the whole triangle rather than one per corner,
-/// so a single lighting step colours all three corners; the depth the packet is
-/// filed under is the three vertices' average, out of the same transform.
+/// Draw resolution selects this entry for `0x18`. `elements` starts after the
+/// three-word record header. Words 0/1 pack four unsigned u16 byte offsets:
+/// vertex 0, vertex 1, vertex 2, then the face normal. Each must address a
+/// complete, word-aligned eight-byte vector in the borrowed `workspace->verts`
+/// or `workspace->normals` array; neither array's full extent is supplied here.
+/// `elemCount` and `elemStride` are decoded unsigned halfwords (0..65535);
+/// stride counts u32 words. Drawing reads two words per element, but the
+/// complete record requires at least five because `gpStreamPrimGt3OneNormal`
+/// initializes the texture words from words 2..4. The stream must contain
+/// count * stride payload words and remain valid for the call.
 ///
-/// The `0x1A` entry shares this body and differs only in the primitive code the
-/// polygon is drawn with, which this family carries in a fixed material colour
-/// instead of reading one from the element: `0x34` opaque, `0x36` blended. Which
-/// of the two is drawn is settled by the opcode alone, so `flags` selects nothing.
-u32* tmdDrawStreamPrimGt3OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The word-aligned `workspace->primWrite` must have count complete 40-byte
+/// `POLY_GT3` slots in the selected buffer half's second region, with UVs,
+/// texture page and CLUT already initialized by construction. Every element
+/// consumes one slot, including triangles rejected for GTE FLAG bit 31 or
+/// nonpositive `NCLIP(0,1,2)` winding. Rejection writes neither packet nor OT.
+/// Accepted packets receive projected XY and the same lit RGB/command word at
+/// all three corners: NCCS lights fixed RGB (128,128,128) with GPU code 0x34.
+/// Texture words remain unchanged.
+///
+/// The caller supplies the part's GTE transform, lighting and three-depth
+/// averaging scale. Accepted packets prepend to `workspace->ot` using AVSZ3 at
+/// entry `(((u32)OTZ << (workspace->otDepthShift & 31)) & 0x3FFF) >> 4`.
+/// Normal drawing supplies shifts 0..3. The OT base already includes the
+/// object's signed entry displacement; every resulting bucket (0..1023) must
+/// fit the selected table. DMA links retain 24 address bits and the packet tag
+/// records nine payload words. Capacities are unchecked; packet and OT storage
+/// are borrowed and must remain GPU-visible until consumption completes.
+///
+/// Returns `elements + elemCount * elemStride`, leaving the next record or
+/// marker unconsumed, and updates only `workspace->primWrite` among workspace
+/// fields. Counts, saved GTE results and the first-region cursor are unchanged.
+/// An empty record reads no payload and advances neither cursor. `objectFlags`
+/// is ignored, including blend and reverse-culling bits. Opcode `0x1A` selects
+/// `tmdDrawStreamPrimGt3OneNormalSemiTrans`, which shares the body but supplies
+/// GPU code 0x36 through its own entry; this entry always supplies opaque 0x34.
+u32* tmdDrawStreamPrimGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Draw handler of a stream's one-normal textured-quad records (`0x58`, `0x5A`):
 /// each element's quad is transformed and culled, its four corners' screen

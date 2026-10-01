@@ -1303,13 +1303,45 @@ alabel tmdDrawStreamPrimGt3OneNormalSemiTrans
     /* 2194 80011994 */  lui         $t0, 0x3680
     /* 2198 80011998 */  ori         $t0, $t0, 0x8080
     /* 219C 8001199C */  mtc2        $t0, $6
-    /* 21A0 800119A0 */  j           .L800119B4
+    /* 21A0 800119A0 */  j           .LtmdGt3OneNormalSetup
     /* 21A4 800119A4 */  nop
+
+/* DMA tags retain 24 address bits; reuse the GT3 packet, material and depth constants. */
+.equ TMD_DRAW_STREAM_GT3_ONE_NORMAL_DMA_ADDRESS_BITS, 24
+
+/*
+ * Complete and prepend a GT3 packet with one lit colour for all corners.
+ * Inputs: t8 packet, t1 its 24-bit DMA address, t7 displaced OT base,
+ * t2 AVSZ3 OTZ, a1 depth shift, v0 nine-word DMA length in bits 24..31,
+ * GTE RGB2 from the preceding NCCS. Clobbers t0, t2 and t3; writes the
+ * OT head, packet tag and three colour words, leaving texture words intact.
+ * The link arithmetic runs while NCCS completes; retain the colour read's
+ * load delay before its stores. This fixed-register expansion emits no call.
+ */
+.macro TMD_DRAW_STREAM_GT3_ONE_NORMAL_LINK_PACKET
+    sllv        $t2, $t2, $a1
+    andi        $t2, $t2, TMD_DRAW_STREAM_GT3_DEPTH_MASK
+    srl         $t2, $t2, TMD_DRAW_STREAM_GT3_DEPTH_SHIFT
+    sll         $t2, $t2, 2
+    addu        $t2, $t2, $t7
+    lw          $t0, 0x0($t2)
+    sw          $t1, 0x0($t2)
+    sll         $t0, $t0, (32 - TMD_DRAW_STREAM_GT3_ONE_NORMAL_DMA_ADDRESS_BITS)
+    srl         $t0, $t0, (32 - TMD_DRAW_STREAM_GT3_ONE_NORMAL_DMA_ADDRESS_BITS)
+    or          $t0, $v0, $t0
+    mfc2        $t3, $22
+    sw          $t0, 0x0($t8)
+    sw          $t3, 0x4($t8)
+    sw          $t3, 0x10($t8)
+    sw          $t3, 0x1C($t8)
+.endm
+
 glabel tmdDrawStreamPrimGt3OneNormal
-    /* 21A8 800119A8 */  lui         $t0, 0x3480
-    /* 21AC 800119AC */  ori         $t0, $t0, 0x8080
+    /* a0 workspace, a1 ignored object flags, a2 first element word. */
+    /* 21A8 800119A8 */  lui         $t0, (TMD_DRAW_STREAM_GT3_COLOR >> 16)
+    /* 21AC 800119AC */  ori         $t0, $t0, (TMD_DRAW_STREAM_GT3_COLOR & 0xFFFF)
     /* 21B0 800119B0 */  mtc2        $t0, $6
-  .L800119B4:
+  .LtmdGt3OneNormalSetup:
     /* 21B4 800119B4 */  lw          $t9, 0x18($a0)
     /* 21B8 800119B8 */  lw          $a3, 0x1C($a0)
     /* 21BC 800119BC */  lw          $t8, 0x0($a0)
@@ -1317,17 +1349,18 @@ glabel tmdDrawStreamPrimGt3OneNormal
     /* 21C4 800119C4 */  lw          $t6, 0x8($a0)
     /* 21C8 800119C8 */  lw          $t5, 0xC($a0)
     /* 21CC 800119CC */  sll         $t9, $t9, 2
-    /* 21D0 800119D0 */  lui         $v0, 0x900
-    /* 21D4 800119D4 */  j           .L800119E4
+    /* 21D0 800119D0 */  lui         $v0, (TMD_DRAW_STREAM_GT3_PACKET_WORDS << 8)
+    /* 21D4 800119D4 */  j           .LtmdGt3OneNormalLoop
     /* 21D8 800119D8 */  lw          $a1, 0x84($a0)
-  .L800119DC:
-    /* 21DC 800119DC */  addiu       $t8, $t8, 0x28
-  .L800119E0:
+  .LtmdGt3OneNormalAdvance:
+    /* Rejection consumes the same packet slot as an accepted triangle. */
+    /* 21DC 800119DC */  addiu       $t8, $t8, TMD_DRAW_STREAM_GT3_PACKET_BYTES
     /* 21E0 800119E0 */  addu        $a2, $t9, $a2
-  .L800119E4:
-    /* 21E4 800119E4 */  beq         $zero, $a3, .L80011AE4
+  .LtmdGt3OneNormalLoop:
+    /* 21E4 800119E4 */  beq         $zero, $a3, .LtmdGt3OneNormalDone
     /* 21E8 800119E8 */  nop
     /* 21EC 800119EC */  addiu       $a3, $a3, -0x1
+    /* Unpack three vertex byte offsets and the face normal's byte offset. */
     /* 21F0 800119F0 */  lw          $t1, 0x0($a2)
     /* 21F4 800119F4 */  lw          $t3, 0x4($a2)
     /* 21F8 800119F8 */  srl         $t2, $t1, 16
@@ -1347,54 +1380,42 @@ glabel tmdDrawStreamPrimGt3OneNormal
     /* 2230 80011A30 */  lwc2        $5, 0x4($t3)
     /* 2234 80011A34 */  nop
     /* 2238 80011A38 */  sll         $t1, $t4, 0
-    /* 223C 80011A3C */  .word 0x4A280030
+    /* Project all corners, then reject GTE errors and nonpositive winding. */
+    /* 223C 80011A3C */  rtpt
     /* 2240 80011A40 */  addu        $t1, $t5, $t1
     /* 2244 80011A44 */  cfc2        $t0, $31
     /* 2248 80011A48 */  nop
-    /* 224C 80011A4C */  bltz        $t0, .L800119DC
+    /* 224C 80011A4C */  bltz        $t0, .LtmdGt3OneNormalAdvance
     /* 2250 80011A50 */  nop
     /* 2254 80011A54 */  nop
     /* 2258 80011A58 */  nop
-    /* 225C 80011A5C */  .word 0x4B400006
+    /* 225C 80011A5C */  nclip
     /* 2260 80011A60 */  mfc2        $t0, $24
     /* 2264 80011A64 */  nop
-    /* 2268 80011A68 */  blez        $t0, .L800119DC
+    /* 2268 80011A68 */  blez        $t0, .LtmdGt3OneNormalAdvance
     /* 226C 80011A6C */  nop
     /* 2270 80011A70 */  swc2        $12, 0x8($t8)
     /* 2274 80011A74 */  swc2        $13, 0x14($t8)
     /* 2278 80011A78 */  swc2        $14, 0x20($t8)
     /* 227C 80011A7C */  nop
     /* 2280 80011A80 */  nop
-    /* 2284 80011A84 */  .word 0x4B58002D
+    /* Average the three depths and light neutral RGB with the face normal. */
+    /* 2284 80011A84 */  avsz3
     /* 2288 80011A88 */  lwc2        $0, 0x0($t1)
     /* 228C 80011A8C */  lwc2        $1, 0x4($t1)
     /* 2290 80011A90 */  mfc2        $t2, $7
-    /* 2294 80011A94 */  sll         $t1, $t8, 8
-    /* 2298 80011A98 */  srl         $t1, $t1, 8
-    /* 229C 80011A9C */  .word 0x4B08041B
-    /* 22A0 80011AA0 */  sllv        $t2, $t2, $a1
-    /* 22A4 80011AA4 */  andi        $t2, $t2, 0x3FFF
-    /* 22A8 80011AA8 */  srl         $t2, $t2, 4
-    /* 22AC 80011AAC */  sll         $t2, $t2, 2
-    /* 22B0 80011AB0 */  addu        $t2, $t2, $t7
-    /* 22B4 80011AB4 */  lw          $t0, 0x0($t2)
-    /* 22B8 80011AB8 */  sw          $t1, 0x0($t2)
-    /* 22BC 80011ABC */  sll         $t0, $t0, 8
-    /* 22C0 80011AC0 */  srl         $t0, $t0, 8
-    /* 22C4 80011AC4 */  or          $t0, $v0, $t0
-    /* 22C8 80011AC8 */  mfc2        $t3, $22
-    /* 22CC 80011ACC */  sw          $t0, 0x0($t8)
-    /* 22D0 80011AD0 */  sw          $t3, 0x4($t8)
-    /* 22D4 80011AD4 */  sw          $t3, 0x10($t8)
-    /* 22D8 80011AD8 */  sw          $t3, 0x1C($t8)
-    /* 22DC 80011ADC */  j           .L800119DC
+    /* 2294 80011A94 */  sll         $t1, $t8, (32 - TMD_DRAW_STREAM_GT3_ONE_NORMAL_DMA_ADDRESS_BITS)
+    /* 2298 80011A98 */  srl         $t1, $t1, (32 - TMD_DRAW_STREAM_GT3_ONE_NORMAL_DMA_ADDRESS_BITS)
+    /* 229C 80011A9C */  nccs
+    /* 22A0..22D8 80011AA0..80011AD8 */  TMD_DRAW_STREAM_GT3_ONE_NORMAL_LINK_PACKET
+    /* 22DC 80011ADC */  j           .LtmdGt3OneNormalAdvance
     /* 22E0 80011AE0 */  nop
-  .L80011AE4:
+  .LtmdGt3OneNormalDone:
     /* 22E4 80011AE4 */  sw          $t8, 0x0($a0)
-  .L80011AE8:
     /* 22E8 80011AE8 */  addu        $v0, $zero, $a2
     /* 22EC 80011AEC */  jr          $ra
     /* 22F0 80011AF0 */  nop
+.purgem TMD_DRAW_STREAM_GT3_ONE_NORMAL_LINK_PACKET
 alabel tmdDrawStreamPrimGt4OneNormal
     /* 22F4 80011AF4 */  lui         $t0, 0x3C80
     /* 22F8 80011AF8 */  ori         $t0, $t0, 0x8080

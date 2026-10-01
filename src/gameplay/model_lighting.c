@@ -365,7 +365,16 @@ static inline void _modelLightingInitGt3TextureWords(POLY_GT3* triangle, const u
         /// to `uv0ClutWordIndex` must fit in s32 and select a readable word in
         /// the same element. The full word is copied before page relocation.
         MODEL_LIGHTING_GT3_UV1_TPAGE_WORD_OFFSET = 1,
-        MODEL_LIGHTING_GT3_UV2_WORD_OFFSET       = 2
+        /// Offset in u32 stream words from a GT3 element's U0/V0/CLUT word to its U2/V2 word.
+        ///
+        /// The word two positions later packs U2 in bits 0..7 and V2 in bits
+        /// 8..15 on the little-endian target. Only its low half is copied into
+        /// the packet's adjacent u2/v2 bytes, preserving pad2; the source high
+        /// half is ignored and its role is unproven. This offset is independent
+        /// of the element prefix and destination packet's byte layout. Adding
+        /// it to `uv0ClutWordIndex` must fit in s32 and select a readable u32
+        /// word in the same element; it does not establish the element's size.
+        MODEL_LIGHTING_GT3_UV2_WORD_OFFSET = 2
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[uv0ClutWordIndex];

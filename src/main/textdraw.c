@@ -588,6 +588,11 @@ static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontG
 {
     /// Palette selectors and draw-mode commands for the two glyph passes.
     enum {
+        /// GPU texture-depth selector for 4-bit indexed font texels.
+        ///
+        /// `getTPage` encodes value 0 in texture-page bits 7..8. Fill and outline
+        /// sample the same font page, using separate 16-color CLUTs to interpret
+        /// texel indices 0..15.
         TEXT_SINGLE_ENTRY_GLYPH_TEXTURE_DEPTH_4BIT = 0,
         /// GPU CLUT selector for the opaque, color-modulated fill in one OT entry.
         ///
