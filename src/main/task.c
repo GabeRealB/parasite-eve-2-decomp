@@ -182,10 +182,14 @@ static inline void _taskCollectImmediately(Task* task)
     _gTaskActiveList = savedListHead;
 }
 
-/// Stops task callbacks and consumes the sole countdown tick within teardown.
+/// Stops frame updates and repeat exit dispatch for body teardown in the current call.
 ///
-/// The caller releases the body and marks it for collection when the resulting
-/// signed counter is zero. Keep the store and decrement as separate operations.
+/// `task` must be non-NULL and remain allocated through the caller's teardown.
+/// Both handlers become `taskNoopCallback`, and the signed `killCountdown`
+/// is initialized to one and decremented to zero within this call.
+/// The caller releases the body and marks the task for execution-list collection;
+/// coordinate bodies are unlinked from their refresh list before this helper.
+/// The task allocation remains live on return.
 static inline void _taskStopForInlineBodyRelease(Task* task)
 {
     /// Initial countdown for non-model body teardown completed within the same call.
