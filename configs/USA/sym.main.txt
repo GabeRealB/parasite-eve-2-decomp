@@ -843,7 +843,7 @@ free3                       = 0x8002DD74;
 //--------------------------------------------------------------------
 taskNoopCallback               = 0x8002DEC4; // type:func
 _textMeasureLineWidth               = 0x8002DECC; // type:func
-Text_DrawGlyphDualSprtA               = 0x8002E010; // type:func
+_textDrawGlyphTranslucentOutlined               = 0x8002E010; // type:func
 _textDrawGlyphOutlined               = 0x8002E188; // type:func
 Text_DrawGlyphDualSprtTpage               = 0x8002E300; // type:func
 Text_DrawString               = 0x8002E53C; // type:func

@@ -152,8 +152,6 @@ void func_80701400(Task* arg0);
 
 static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, const _FontGlyph* glyphTable);
 
-static void Text_DrawGlyphDualSprtA(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
-
 static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
 /// Writes `value` in decimal to `arg0` and terminates it; values past nine
@@ -427,37 +425,6 @@ static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, con
     return width - glyph->advanceExtraX;
 }
 
-static void Text_DrawGlyphDualSprtA(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
-{
-    SPRT* p;
-    SPRT* p2;
-    s32   temp;
-
-    p                              = gGpuPrimCursor;
-    gGpuPrimCursor                 = p + 1;
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
-    setlen(p, 4);
-    setcode(p, 0x66);
-
-    p2             = gGpuPrimCursor;
-    gGpuPrimCursor = p2 + 1;
-    setlen(p2, 4);
-    setcode(p2, 0x67);
-
-    p2->x0 = p->x0 = request->x + glyph->xOffset;
-    p2->y0 = p->y0 = (request->y - glyph->heightMinusOne) + glyph->yOffset;
-    p2->u0 = p->u0 = glyph->u;
-    p2->v0 = p->v0 = glyph->v + request->vBias;
-    p2->w = p->w = glyph->widthMinusOne + 1;
-    temp         = glyph->heightMinusOne;
-    p2->h = p->h = temp + 1;
-    p2->clut     = 0x7FFE;
-    p->clut      = 0x7FFD;
-
-    addPrim(gGpuCurrentOt + request->otIndex + 1, p2);
-    addPrim(gGpuCurrentOt + request->otIndex, p);
-}
-
 /// Sets matching screen and texture rectangles for a UI glyph's fill and outline.
 ///
 /// Pen coordinates and glyph offsets are in draw-environment pixels. X starts
@@ -479,6 +446,55 @@ static inline void _textSetOutlinedGlyphRectangle(SPRT* fill, SPRT* outline,
     outline->v0 = fill->v0 = glyph->v + request->vBias;
     outline->w = fill->w = glyph->widthMinusOne + 1;
     outline->h = fill->h = glyph->heightMinusOne + 1;
+}
+
+/// Queues an additive glyph fill and subtractive outline in adjacent OT entries.
+///
+/// Borrows `request` and `glyph` without modifying or retaining them or advancing
+/// the pen. Placement and glyph offsets are draw-environment pixels; U/V and
+/// dimensions are texels. Screen X/Y narrow to signed 16-bit fields, V wraps
+/// modulo 256 after the signed bias, and minus-one dimensions decode to 1..256.
+/// `colorRgb` supplies modulation RGB in bits 0..23 (red low); its high byte is
+/// replaced by the sprite command. The raw outline ignores RGB.
+/// Reserves two `SPRT` packets (40 bytes) at the word-aligned `gGpuPrimCursor`;
+/// the arena and signed OT entries `otIndex` and `otIndex + 1` must be writable
+/// and in bounds. Font textures and palettes must already be loaded. The caller
+/// must prepend font-page commands selecting additive blending for the fill
+/// entry and subtractive blending for the earlier-executing outline entry.
+/// Keep the packets intact until GPU drawing completes.
+static void _textDrawGlyphTranslucentOutlined(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb)
+{
+    /// GPU CLUT selectors for the palettes in the final VRAM row.
+    enum {
+        /// Fill palette at word X=976, Y=511; nonzero colors permit blending.
+        TEXT_TRANSLUCENT_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
+        /// Alternate outline palette at word X=992, Y=511, used without RGB modulation.
+        TEXT_TRANSLUCENT_GLYPH_OUTLINE_CLUT = getClut(0x3E0, 0x1FF),
+    };
+
+    SPRT* fill;
+    SPRT* outline;
+
+    fill                              = gGpuPrimCursor;
+    gGpuPrimCursor                    = fill + 1;
+    GPU_PRIMITIVE_COLOR_WORD(fill, 0) = colorRgb;
+    setSprt(fill);
+    setSemiTrans(fill, true);
+
+    outline        = gGpuPrimCursor;
+    gGpuPrimCursor = outline + 1;
+    setSprt(outline);
+    setSemiTrans(outline, true);
+    setShadeTex(outline, true);
+
+    // Both passes share geometry; the alternate outline palette supplies its color.
+    _textSetOutlinedGlyphRectangle(fill, outline, request, glyph);
+    outline->clut = TEXT_TRANSLUCENT_GLYPH_OUTLINE_CLUT;
+    fill->clut    = TEXT_TRANSLUCENT_GLYPH_FILL_CLUT;
+
+    // Descending OT traversal draws the subtractive outline before the additive fill.
+    addPrim(gGpuCurrentOt + request->otIndex + 1, outline);
+    addPrim(gGpuCurrentOt + request->otIndex, fill);
 }
 
 /// Queues an opaque glyph fill and subtractive outline in adjacent OT entries.
@@ -635,7 +651,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
             draw = Text_DrawGlyphDualSprtTpage;
             break;
         case TEXT_DRAW_TRANSLUCENT_OUTLINED:
-            draw = Text_DrawGlyphDualSprtA;
+            draw = _textDrawGlyphTranslucentOutlined;
             break;
         case TEXT_DRAW_OUTLINE_ONLY:
             draw = Text_DrawGlyphOt;
@@ -721,7 +737,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                         switch (*ptr) {
                             case '0':
                                 request->drawMode = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                                draw              = Text_DrawGlyphDualSprtA;
+                                draw              = _textDrawGlyphTranslucentOutlined;
                                 break;
                             case '1':
                                 request->drawMode = TEXT_DRAW_OUTLINED;
