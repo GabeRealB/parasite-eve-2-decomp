@@ -172,7 +172,7 @@ static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyp
 
 static void Text_DrawGlyphQueued(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
-static void Text_DrawGlyphOt(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor);
+static void _textDrawGlyphOutline(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor);
 
 static void Text_UiTaskCallback(Task* task);
 
@@ -727,7 +727,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
             draw = _textDrawGlyphTranslucentOutlined;
             break;
         case TEXT_DRAW_OUTLINE_ONLY:
-            draw = Text_DrawGlyphOt;
+            draw = _textDrawGlyphOutline;
             break;
         case TEXT_DRAW_IMMEDIATE:
             dr = &D_80071728;
@@ -1283,24 +1283,61 @@ static void Text_DrawGlyphQueued(TextDrawReq* request, const _FontGlyph* glyph, 
     addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_DrawGlyphOt(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor)
+/// Initializes a raw, semitransparent outline sprite at the current text pen.
+///
+/// Sets the command, length, rectangle and palette, leaving RGB untouched.
+/// Allocation and DMA linking belong to the caller. Borrows the read-only
+/// request and glyph without advancing the pen.
+static inline void _textInitOutlineGlyphSprite(SPRT* outline, const TextDrawReq* request, const _FontGlyph* glyph)
 {
-    SPRT* p;
-    s32   temp;
+    /// Palette selector for the standalone subtractive glyph outline.
+    enum {
+        /// Final 16-color font palette at VRAM word X=1008, row Y=511.
+        ///
+        /// Indices 0..5 are transparent, 6..9 increase in gray, and 10..15
+        /// are white. All nonzero colors enable semi-transparency. Raw texture
+        /// colors darken the background when the page selects subtractive blending.
+        TEXT_OUTLINE_ONLY_GLYPH_CLUT = getClut(0x3F0, 0x1FF),
+    };
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(p, 4);
-    setcode(p, 0x67);
-    p->x0   = request->x + glyph->xOffset;
-    p->y0   = (request->y - glyph->heightMinusOne) + glyph->yOffset;
-    p->u0   = glyph->u;
-    p->v0   = glyph->v + request->vBias;
-    p->w    = glyph->widthMinusOne + 1;
-    temp    = glyph->heightMinusOne;
-    p->clut = 0x7FFF;
-    p->h    = temp + 1;
-    addPrim(gGpuCurrentOt + request->otIndex, p);
+    s32 heightMinusOne;
+
+    setSprt(outline);
+    setSemiTrans(outline, true);
+    setShadeTex(outline, true);
+    outline->x0    = request->x + glyph->xOffset;
+    outline->y0    = (request->y - glyph->heightMinusOne) + glyph->yOffset;
+    outline->u0    = glyph->u;
+    outline->v0    = glyph->v + request->vBias;
+    outline->w     = glyph->widthMinusOne + 1;
+    heightMinusOne = glyph->heightMinusOne;
+    outline->clut  = TEXT_OUTLINE_ONLY_GLYPH_CLUT;
+    outline->h     = heightMinusOne + 1;
+}
+
+/// Queues one subtractive glyph outline without a fill or RGB modulation.
+///
+/// Borrows `request` and `glyph` without modifying or retaining them or advancing
+/// the pen. `unusedColor` preserves the shared glyph-drawer callback signature;
+/// the raw-texture command ignores RGB, including the packet's untouched colors.
+/// Pen coordinates and offsets are draw-environment pixels. X/Y narrow to signed
+/// 16-bit fields; the last row lies at pen Y plus the glyph's Y offset. U/V are
+/// page-local texels, V wraps modulo 256 after adding the signed bias, and
+/// minus-one dimensions decode to 1..256 pixels and texels.
+///
+/// Reserves one `SPRT` (20 bytes) at the word-aligned `gGpuPrimCursor`. The arena
+/// and signed `request->otIndex` entry in `gGpuCurrentOt` must be writable and in
+/// bounds. Font textures and the final palette from `Text_LoadClutImages` must
+/// already be resident. The caller must prepend a 4bpp font-page command with
+/// subtractive blending to this entry; packets remain live until GPU completion.
+static void _textDrawGlyphOutline(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor)
+{
+    SPRT* outline;
+
+    outline        = gGpuPrimCursor;
+    gGpuPrimCursor = outline + 1;
+    _textInitOutlineGlyphSprite(outline, request, glyph);
+    addPrim(gGpuCurrentOt + request->otIndex, outline);
 }
 
 static void Text_UiTaskCallback(Task* task)
