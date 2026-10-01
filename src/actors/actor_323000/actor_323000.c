@@ -93,7 +93,7 @@ static Actor323000Storage3A14 ActorContact_ScratchPosition;
 
 /// Per-state animation table `desertChaserAnimTick` reads when it
 /// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
-extern s8 gRigClipStartFrames[];
+extern s8 gDesertChaserClipStartFrames[];
 
 /// Psy-Q `RotMatrixY`.
 
@@ -646,7 +646,7 @@ AnimationSet D_actor_323000_80173068 = {
     { NULL, D_actor_323000_80170D5C, NULL, NULL, D_actor_323000_80171200, NULL, NULL, NULL },
 };
 
-s8 gRigClipStartFrames[2028] = {
+s8 gDesertChaserClipStartFrames[2028] = {
     0,
     0,
     5,

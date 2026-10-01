@@ -1,7 +1,7 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
 /// Per-frame animation tick. Seeds the slots when `field_828` asks for it
-/// (1 from the per-state table `gRigClipStartFrames`, 2 by resetting to
+/// (1 from the per-state table `gDesertChaserClipStartFrames`, 2 by resetting to
 /// `field_82E`), seeds the blend context when `field_836` is 2, then ticks
 /// the slots - blended through `desertChaserBlendTick` while `field_82A`
 /// is set. It eases `field_844` toward `field_840` and spreads it over the
@@ -50,7 +50,7 @@ void desertChaserAnimTick(Task* task)
         if (work->field_82C != work->field_82E) {
             seekWork  = work;
             seekIndex = 1;
-            table     = (u32)gRigClipStartFrames;
+            table     = (u32)gDesertChaserClipStartFrames;
             do {
                 seekSlotIndex               = seekIndex;
                 work->slots[seekIndex].rate = seekWork->field_832;

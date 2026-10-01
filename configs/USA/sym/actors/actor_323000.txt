@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_323000.
-gRigClipStartFrames = 0x80173090; // size:0x7EC defined:True
+gDesertChaserClipStartFrames = 0x80173090; // size:0x7EC defined:True
 gRigAnimSource = 0x8017387C; // size:0x154 defined:True
 gRigMessages = 0x801739D0; // size:0x38 defined:True
 D_actor_323000_80173A08 = 0x80173A08; // size:0xC defined:True

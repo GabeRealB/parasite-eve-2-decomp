@@ -211,7 +211,7 @@ extern s8 D_actor_421600_801511C0[16];
 extern s16 D_actor_421600_80151268;
 
 /// Signed transition durations, indexed by old animation * 25 + new animation.
-extern s8 D_actor_421600_80150DB4[];
+extern s8 gDesertChaserClipStartFrames[];
 
 /// Per-frame scratch: the view-space body position and its arena zone.
 typedef struct Actor421600UpdateScratch {
@@ -1114,7 +1114,7 @@ AnimationSet D_actor_421600_80150D8C = {
     { NULL, D_actor_421600_8014EE78, NULL, NULL, D_actor_421600_8014F268, NULL, NULL, NULL },
 };
 
-s8 D_actor_421600_80150DB4[628] = {
+s8 gDesertChaserClipStartFrames[628] = {
     0,
     0,
     5,
@@ -1927,8 +1927,6 @@ static __inline__ s32                       Actor421600_HasPlayerContact(WorldCo
 static s32                                  func_actor_421600_80133334(GfxCoord* arg0);
 static void                                 func_actor_421600_80133444(GfxCoord* coord);
 static s32                                  desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
-static void                                 func_actor_421600_80133B30(Task* arg0);
-static s32                                  func_actor_421600_80133CAC(Task* arg0, DesertChaserWork* work);
 static void                                 desertChaserArmedAnimTick(Task* arg0);
 static __inline__ void                      Actor421600_BindMatrices(Task* actor);
 static void                                 func_actor_421600_80134AD4(Enemy* enemy, Task* actor);
@@ -2322,7 +2320,7 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
     return s->blocked != 0;
 }
 
-static void func_actor_421600_80133B30(Task* arg0)
+void desertChaserBlendTick(Task* arg0)
 {
     AnimationPose     pose;
     AnimationPose     blendPose;
@@ -2375,7 +2373,7 @@ static void func_actor_421600_80133B30(Task* arg0)
 /// case claimed the frame.
 ///
 /// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
-static s32 func_actor_421600_80133CAC(Task* arg0, DesertChaserWork* work)
+s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* work)
 {
     SVECTOR offset;
     u32     prev;
@@ -2729,7 +2727,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
         if (work->field_82C != work->field_82E) {
             seekWork  = work;
             seekIndex = 1;
-            table     = (u32)&D_actor_421600_80150DB4;
+            table     = (u32)&gDesertChaserClipStartFrames;
             seekSlot  = (s8*)&work->anim.slots;
             do {
                 seekSlotIndex  = seekIndex;
@@ -2789,7 +2787,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
             tickIndex += 1;
         } while (tickIndex < 0x12);
     } else {
-        func_actor_421600_80133B30(arg0);
+        desertChaserBlendTick(arg0);
         if (work->blendSlots[1].flags & ANIMATION_SLOT_SETTLED) {
             work->field_82A = 0;
         }
@@ -2865,7 +2863,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
     }
     ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
     arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
-    sound                                    = func_actor_421600_80133CAC(arg0, (DesertChaserWork*)work);
+    sound                                    = desertChaserAnimCues(arg0, (DesertChaserWork*)work);
     if (sound != 0) {
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
