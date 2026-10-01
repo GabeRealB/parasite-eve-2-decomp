@@ -1796,7 +1796,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 work->script                  = Gp_SpawnScript18(D_acropolis_promenade_80186224,
                                                                  D_acropolis_promenade_8018623C);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                Task_Reparent(task, work->script);
+                taskReparent(task, work->script);
                 task->state = task->state + 1;
             }
             break;

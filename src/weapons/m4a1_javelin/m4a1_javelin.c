@@ -856,7 +856,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                                   actor->equipmentTasks[1]->extra.tmd->coords,
                                   0x1D, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(actor->equipmentTasks[1], eff->task);
+                    taskReparent(actor->equipmentTasks[1], eff->task);
                 }
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201D0005, 1);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
@@ -921,7 +921,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                 func_m4a1_javelin_8011F4A4((M4a1JavelinVecLo*)spot->workm.t);
                 eff = Gp_SpawnEff(0x60183, spot, 0, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(actor->equipmentTasks[1], eff->task);
+                    taskReparent(actor->equipmentTasks[1], eff->task);
                 }
             } else {
                 func_m4a1_javelin_8011F4A4(NULL);

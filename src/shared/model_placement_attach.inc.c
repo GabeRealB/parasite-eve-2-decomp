@@ -36,6 +36,6 @@ void modelPlacementAttachChild(Task* task)
     root->parent       = coords;
     obj->lightMtx      = parentObj->lightMtx;
     obj->colorMtx      = parentObj->colorMtx;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     task->state++;
 }

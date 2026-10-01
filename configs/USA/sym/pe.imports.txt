@@ -6,7 +6,7 @@
 // same here as it does in main/ or gameplay/.
 
 // --- from main (20 symbols)
-Task_Reparent = 0x8002D14C; // absolute:True
+taskReparent = 0x8002D14C; // absolute:True
 gameGetTaskSlot = 0x8002D22C; // absolute:True
 memCalloc = 0x8002D978; // absolute:True
 gfxRotMatrixY = 0x8003C98C; // absolute:True

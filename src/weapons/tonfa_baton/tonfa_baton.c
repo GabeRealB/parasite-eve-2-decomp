@@ -297,7 +297,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->equipmentTasks[1], eff->task);
+                        taskReparent(actor->equipmentTasks[1], eff->task);
                     }
                 }
             }
@@ -316,7 +316,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                         0x6003A, actor->equipmentTasks[1]->extra.tmd->coords, 1,
                         NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->equipmentTasks[1], eff->task);
+                        taskReparent(actor->equipmentTasks[1], eff->task);
                     }
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else {

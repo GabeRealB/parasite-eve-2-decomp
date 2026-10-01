@@ -1239,7 +1239,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
                 extra->lightMtx = &mtx->light;
                 extra->colorMtx = &mtx->color;
                 arg0->msgTable  = D_dryfield_water_tank_8017FD90;
-                Task_Reparent(D_dryfield_water_tank_80188D4C, arg0);
+                taskReparent(D_dryfield_water_tank_80188D4C, arg0);
             }
             arg0->state += 1;
             break;

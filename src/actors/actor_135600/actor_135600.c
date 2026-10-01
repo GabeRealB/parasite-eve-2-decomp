@@ -960,7 +960,7 @@ static void func_actor_135600_80132B14(Task* task)
     extra->lightMtx     = parentExtra->lightMtx;
     extra->colorMtx     = parentExtra->colorMtx;
     extra->otOffset     = 0;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     task->killCountdown = 0x1000;
     task->state        += 1;
 }

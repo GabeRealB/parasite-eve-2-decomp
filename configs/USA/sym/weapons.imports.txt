@@ -8,7 +8,7 @@
 // --- from main (26 symbols)
 taskKill = 0x8002CCB8; // absolute:True
 Task_Spawn = 0x8002CFDC; // absolute:True
-Task_Reparent = 0x8002D14C; // absolute:True
+taskReparent = 0x8002D14C; // absolute:True
 gameGetTaskSlot = 0x8002D22C; // absolute:True
 Mem_Set = 0x8002D894; // absolute:True
 memCalloc = 0x8002D978; // absolute:True

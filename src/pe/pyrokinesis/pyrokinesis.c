@@ -204,7 +204,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->task);
+                        taskReparent(arg0, spawned->task);
                     }
                 }
                 next = 3;
@@ -249,7 +249,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             if (mem->age < 0x1E) {
                 spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
             }
             if (gRoomEffectState->groundTraceEnabled != 0) {
@@ -274,7 +274,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->task);
+                        taskReparent(arg0, spawned->task);
                     }
                 }
                 next = 3;
@@ -323,7 +323,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             if (mem->angle >= 0x81) {
                 spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
             }
             if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
@@ -331,7 +331,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 for (i = 0; i < 0x556; i += 0x2AA) {
                     spawned = Gp_SpawnEff(0x600F6, coord, i, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->task);
+                        taskReparent(arg0, spawned->task);
                     }
                 }
                 next = 3;

@@ -47,6 +47,6 @@ void factoryHatchInit(Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     model->lightMtx     = capModel->lightMtx;
     model->colorMtx     = capModel->colorMtx;
-    Task_Reparent(cap, task);
+    taskReparent(cap, task);
     task->state += 1;
 }

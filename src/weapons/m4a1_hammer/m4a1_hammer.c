@@ -306,7 +306,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            Task_Reparent(D_m4a1_hammer_8012D660, arg0);
+            taskReparent(D_m4a1_hammer_8012D660, arg0);
             if (arg0->spawnArg1.value != 0) {
                 parent              = mem->parent;
                 coord->coord.t[0]   = 0;

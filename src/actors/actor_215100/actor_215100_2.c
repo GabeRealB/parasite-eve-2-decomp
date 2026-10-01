@@ -2219,7 +2219,7 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task)
     work->enemy                      = enemy;
     spawned                          = Gp_SpawnEnemyFromTable(D_actor_215100_8015E5D0, 1, 0, enemy);
     actorTintModel(spawned->task->extra.tmd, enemy);
-    Task_Reparent(task, spawned->task);
+    taskReparent(task, spawned->task);
     work->pairTask  = spawned->task;
     work->st.animId = 0xC;
     obj->lightMtx   = &work->light;

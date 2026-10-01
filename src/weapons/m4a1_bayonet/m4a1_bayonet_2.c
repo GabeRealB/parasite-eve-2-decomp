@@ -149,7 +149,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0x1A, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->equipmentTasks[1], eff->task);
+                        taskReparent(actor->equipmentTasks[1], eff->task);
                     }
                 } else {
                     actor->statePhase                                     = 7;

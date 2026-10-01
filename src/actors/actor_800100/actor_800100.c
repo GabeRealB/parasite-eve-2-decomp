@@ -1142,7 +1142,7 @@ void func_actor_800100_80161F20(Task* task)
                     }
                     eff = Gp_SpawnEff(0x60181, coord, (s32)(work->scale), NULL);
                     if (eff != NULL) {
-                        Task_Reparent(task, eff->task);
+                        taskReparent(task, eff->task);
                     }
                     lightSlot->framesLeft = 4;
                     slot->inner           = 0x400;
@@ -1518,7 +1518,7 @@ static void func_actor_800100_80163214(Task* arg0)
                 eff = Gp_SpawnEff(0x80060180, actor->equipmentTasks[1]->extra.tmd->coords, idx, 0);
                 if (eff != NULL) {
                     actor->weaponEffectTask = eff->task;
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                     func_80106350(arg0, idx, 0);
                 }
             }

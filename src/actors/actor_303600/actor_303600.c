@@ -17353,7 +17353,7 @@ static void func_actor_303600_80162950(Task* task)
     coord->parent       = parentCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_303600_80162A0C(task);
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     obj->flags  &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     task->state += 1;
 }

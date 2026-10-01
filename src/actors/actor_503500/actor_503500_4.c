@@ -4690,7 +4690,7 @@ static void func_actor_503500_80144300(Task* arg0)
     }
     child          = eff->task;
     work->field_80 = child;
-    Task_Reparent(arg0, child);
+    taskReparent(arg0, child);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x40230005, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     func_actor_503500_80137290(1);
@@ -4893,7 +4893,7 @@ static void func_actor_503500_801448E8(Task* arg0)
     }
     child          = eff->task;
     work->field_80 = child;
-    Task_Reparent(arg0, child);
+    taskReparent(arg0, child);
     func_actor_503500_80137290(3);
     arg0->exitCallback = func_actor_503500_80144DA8;
     arg0->state       += 1;

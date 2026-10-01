@@ -160,7 +160,7 @@ void func_metabolism_8012EF34(Task* arg0)
                                                (s32)(D_metabolism_8012FB54[mem->index].field_6),
                                                &mem->move);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->task);
+                        taskReparent(arg0, spawned->task);
                     }
                 }
             }

@@ -1195,7 +1195,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
         }
         child          = eff->task;
         work->field_98 = child;
-        Task_Reparent(arg0, child);
+        taskReparent(arg0, child);
     }
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x4023000A, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
@@ -1419,7 +1419,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     }
     child          = eff->task;
     work->field_38 = child;
-    Task_Reparent(arg0, child);
+    taskReparent(arg0, child);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x4023000C, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     func_actor_503500_80137290(6);
@@ -1580,7 +1580,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     }
     child          = eff->task;
     work->field_98 = child;
-    Task_Reparent(arg0, child);
+    taskReparent(arg0, child);
     if (gGameSession->eventState != 0) {
         pan = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(0x40230013, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));

@@ -793,7 +793,7 @@ static void Actor02400_Fn01590(Task* task)
         eff             = (Task**)Gp_SpawnEff(D_80115734, coord, (s32)(work->variant), NULL);
         work->field_130 = eff;
         if (eff != NULL) {
-            Task_Reparent(task, *eff);
+            taskReparent(task, *eff);
         }
     }
     *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;

@@ -1178,7 +1178,7 @@ static void func_actor_510900_80136184(Task* arg0)
             if (--work->field_59E == 0) {
                 eff = Gp_SpawnEff(0x80060044, &arg0->extra.tmd->coords[8], 0, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
                 work->field_59E = 0x28;
                 snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
@@ -2899,7 +2899,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
         Gp_SpawnEff(0x60070, coord, 0xC1001200, NULL);
         eff = Gp_SpawnEff(0x80060185, coord, 0, NULL);
         if (eff != NULL) {
-            Task_Reparent(task, eff->task);
+            taskReparent(task, eff->task);
         }
         if (work->rec60.key.value != 0) {
             work->field_CA = 2;
@@ -3310,7 +3310,7 @@ case0:
         if (eff != NULL) {
             spawned         = eff->task;
             work->field_32C = spawned;
-            Task_Reparent(task, spawned);
+            taskReparent(task, spawned);
         }
         Gp_SpawnEff(0x6005C, coord, 0x200, &scratch->rot);
         work->field_332     = 0x78;
@@ -3548,7 +3548,7 @@ static void func_actor_510900_8013B0D8(Task* arg0)
                     if (eff != NULL) {
                         spawned        = eff->task;
                         work->field_70 = spawned;
-                        Task_Reparent(arg0, spawned);
+                        taskReparent(arg0, spawned);
                     }
                     work->obj0.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->obj38.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;

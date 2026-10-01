@@ -556,7 +556,7 @@ void func_actor_341900_80162200(Task* arg0)
             extra->colorMtx                 = &mtx->color;
             extra->otOffset                 = 0x1F;
             arg0->msgTable                  = D_actor_341900_80163A38;
-            Task_Reparent(mtx->field_40, arg0);
+            taskReparent(mtx->field_40, arg0);
         }
         arg0->state++;
     }
@@ -634,7 +634,7 @@ static void func_actor_341900_80162330(Task* arg0)
             }
             break;
     }
-    Task_Reparent(w->field_248, arg0);
+    taskReparent(w->field_248, arg0);
 }
 
 /// Attaches the actor to the bone its spawn record names, copies that record's
@@ -695,14 +695,14 @@ void func_actor_341900_80162708(Task* arg0)
             if (work->field_254 == arg0->state) {
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x12) && (work->field_230 != frame)) {
-                    Task_Reparent(arg0,
-                                  Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+                    taskReparent(arg0,
+                                 Gp_SpawnScript18(&D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x18) && (work->field_230 != frame)) {
-                    Task_Reparent(arg0,
-                                  Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+                    taskReparent(arg0,
+                                 Gp_SpawnScript18(&D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
                 work->field_230 = work->field_66 & 0x3FF;

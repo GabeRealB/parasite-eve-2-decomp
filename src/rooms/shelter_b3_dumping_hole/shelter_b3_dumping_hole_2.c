@@ -2400,7 +2400,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     Gfx_RotMatrixX(&coord->coord, placement->rot.vx, 0);
     Gfx_RotMatrixZ(&coord->coord, placement->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Task_Reparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
+    taskReparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
     Gp_UpdateCoord(coord);
     e2   = arg0->extra.tmd;
     v.vx = e2->coords->workm.t[0];

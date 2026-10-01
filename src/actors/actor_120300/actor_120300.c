@@ -2012,8 +2012,8 @@ static void func_actor_120300_801335D8(Task* task)
     work->field_4BC = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, task);
     task->msgTable  = D_actor_120300_80140A44;
     work->field_4E0 = 0x1000;
-    Task_Reparent(task, work->field_4B8);
-    Task_Reparent(task, work->field_4BC);
+    taskReparent(task, work->field_4B8);
+    taskReparent(task, work->field_4BC);
 }
 
 /// Main tick of the cutscene actor. State 0 waits until no other cutscene is

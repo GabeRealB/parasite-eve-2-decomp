@@ -1264,7 +1264,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
                 work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185058,
                                                                  D_acropolis_forked_road_80185070);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                Task_Reparent(task, work->script);
+                taskReparent(task, work->script);
                 task->state = task->state + 1;
             }
             break;
@@ -1354,7 +1354,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185038,
                                                                  D_acropolis_forked_road_80185050);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                Task_Reparent(task, work->script);
+                taskReparent(task, work->script);
                 SetDispMask(0);
                 task->killCountdown = 0;
                 task->state         = task->state + 1;

@@ -3456,7 +3456,7 @@ static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGaller
     enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, arg1->idLo | (arg1->idHi << 16), NULL);
     if (enemy != NULL) {
         enemy->task->parent = arg0;
-        Task_Reparent(arg0, enemy->task);
+        taskReparent(arg0, enemy->task);
         obj                    = enemy->task->extra.tmd;
         obj->texturePageOffset = 0;
         obj->clutRowOffset     = 2;

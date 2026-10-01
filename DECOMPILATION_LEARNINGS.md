@@ -623,7 +623,7 @@ store order, but they do not create the extra locals that push `0xFFFFFF` off
 
 `func_dryfield_dilapidated_house_80180B84` copies vertices then normals from a
 `TmdSource` into a `DdhRoomRec`. Written with one `SVECTOR* verts` reused for
-both walks, the `task->extra` reload after `Task_Reparent` joins the local
+both walks, the `task->extra` reload after `taskReparent` joins the local
 quantity of `rec = &D_...`'s `%hi` temp (`$v0`). sched1 then dumps the
 extra→source→verts chain at the start of the preheader, so extra is loaded
 *before* `lui` and needs a nop in its delay. Target has `lui`/`addiu rec` first
@@ -16671,37 +16671,37 @@ jr    ra
 /* use path walks from v1; a0 is then reused as the first-child sentinel */
 ```
 
-Writing `cur = temp` *before* the null test CSE's both into one register and you
+Writing `lastChild = childHead` *before* the null test CSE's both into one register and you
 get a plain `lw v1` with a `nop` delay:
 
 ```c
-/* BAD — CSE merges temp and cur into v1 */
-temp = arg0->field_c;
-cur  = temp;
-if (temp == NULL) { arg0->field_c = arg1; return; }
+/* BAD — CSE merges childHead and lastChild into v1 */
+childHead = newParent->firstChild;
+lastChild = childHead;
+if (childHead == NULL) { newParent->firstChild = task; return; }
 ```
 
-Assign the walk pointer only on the non-null path, and rebind the dead parent
-argument as the first-child sentinel (so the loop compare uses `$a0`):
+Assign the walk pointer only on the non-null path, then copy the head into a
+separate first-child sentinel (so the loop compare uses `$a0`):
 
 ```c
-temp = arg0->field_c;
-if (temp == NULL) {
-    arg0->field_c = arg1;
+childHead = newParent->firstChild;
+if (childHead == NULL) {
+    newParent->firstChild = task;
     return;
 }
-cur  = temp;  /* delay-slot: move v1, v0 */
-arg0 = temp;  /* later: move a0, v1 before the walk */
-if (cur->field_10 != cur) {
+lastChild  = childHead;  /* delay-slot: move v1, v0 */
+firstChild = childHead;  /* later: move a0, v1 before the walk */
+if (lastChild->nextSibling != lastChild) {
     do {
-        cur = cur->field_10;
-    } while (cur->field_10 != arg0);
+        lastChild = lastChild->nextSibling;
+    } while (lastChild->nextSibling != firstChild);
 }
-arg1->field_10 = arg0;
-cur->field_10  = arg1;
+task->nextSibling      = firstChild;
+lastChild->nextSibling = task;
 ```
 
-`Task_Reparent` is the pure example (reparent: detach then insert into parent's
+`taskReparent` is the pure example (reparent: detach then insert into parent's
 circular child list — same unlink shape as `Task_DetachFromParent`).
 
 ## Force a second `(s8)` cast into the same reg (`sll v1; sra v1,v1`)
@@ -75662,10 +75662,10 @@ penalty mix had to be operands. It was two symptoms:
 -move  a1,s1                                   # then sh,sh / jal / sh(delay)
  sh    zero,6(s0)
  sh    zero,4(s0)
--jal    Task_Reparent
+-jal    taskReparent
  sh    zero,2(s0)
 +lw    a0,%lo(...)(v0)                         # seed: load left next to the jal,
-+jal    Task_Reparent                          # a1 setup in the delay slot
++jal    taskReparent                          # a1 setup in the delay slot
 +move  a1,s1
 ...
 -lhu   v0,2(s0)                                # retail: halfword RMW
@@ -75698,7 +75698,7 @@ if ((s16)work->r >= 0x100) { ... }
 ```
 
 100%, every penalty zero, on the next build — the `reorder` went with the
-widths, so the `Task_Reparent` argument load was never a scheduler question.
+widths, so the `taskReparent` argument load was never a scheduler question.
 Read a penalty mix of `reorder`/`insert`/`delete` at zero `regs` and zero
 `stack`, with `topology: match`, as an operand-width error first: diff for the
 load/store widths, and treat any order difference as downstream until the
@@ -76201,7 +76201,7 @@ Example: `func_actor_107600_80132A7C`. Input: `base_1.i`
 `Task::work` is overloaded by every actor overlay, so an offset alone (`0xE`
 here) does not name a type, and any same-width struct scores 100% anyway. The
 parent is not arbitrary: `Gp_AllocEnemy(Task* task, Enemy* parent)`
-(`src/gameplay/1BC.c`) ends in `Task_Reparent(parent->task, task)`, so
+(`src/gameplay/1BC.c`) ends in `taskReparent(parent->task, task)`, so
 `index->parent` is the task of whatever spawned this actor, and its `work` is
 that spawner's work block.
 
@@ -76213,7 +76213,7 @@ grep -rnF 'D_80134F94' asm/USA/          # -> only mist_shooting_gallery
 ```
 
 `func_mist_shooting_gallery_80184CD0` spawns it, calls
-`Task_Reparent(s0, spawned->task)`, then does `lbu` / `addiu -1` / `sb` on
+`taskReparent(s0, spawned->task)`, then does `lbu` / `addiu -1` / `sb` on
 `s0->work + 0xE` - and that room's `MistShootingGalleryWork::field_0E` is the
 `u8` there. The gallery's other spawn site (`0x200D`, the phase-2 cursor
 target) skips the increment, which is exactly the `!= 2` guard being matched
@@ -81247,7 +81247,7 @@ lw    v1, 0x8(v1)
 lw    v0, 0x8(v0)
 sw    v0, 0x4C(v1)     /* ->field_8->parent */
 lw    a0, 0x20(s0)     /* spawnArg2 again, for the call */
-jal   Task_Reparent
+jal   taskReparent
 ```
 
 The sibling shared helper `ActorsShared80132450` names every one of these in a
@@ -81263,8 +81263,8 @@ twice** reads as a source-shape difference, not a scheduling one: the fix is to
 write the read out again where it is used, keeping the expression inline.
 
 ```c
-((TmdObject*)task->extra)->coords->parent = ((TmdObject*)((Task*)task->spawnArg2)->extra)->coords;
-Task_Reparent((Task*)task->spawnArg2, task);
+task->extra.tmd->coords->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
+taskReparent(task->spawnArg2.pointer, task);
 ```
 
 Note the locals were introduced only to please the struct-usage style; the
@@ -81594,10 +81594,10 @@ and `+0x24` is `workm`; and the `0x50` stride is `sizeof(GfxCoord)`.
 Rewriting the seed with those types reached 100.000% with every penalty zero and
 the same allocation. `Task::spawnArg2` here is a *model task* (`Task*`), not the
 `Enemy*` the `Gp_AllocEnemy` path puts in that slot elsewhere — a body that
-passes it straight to `Task_Reparent` and dereferences `+0x2C` is the tell.
+passes it straight to `taskReparent` and dereferences `+0x2C` is the tell.
 
 Two non-conclusions. The `(TmdObject*)` / `(Task*)` casts exist only because
-`Task::spawnArg2` is `void*`; they are codegen-neutral — a variant expressing the
+`Task::spawnArg2.pointer` is `void*`; they are codegen-neutral — a variant expressing the
 same graph through an overlay struct typed `field_20` as a pointer to itself
 produced byte-identical assembly. And `overlay_dup_index.py find` reported this
 body as its own only copy, so there was no shared-body promotion to do: being
@@ -84018,7 +84018,7 @@ distinct.** Here the sibling's exact C body *was* the whole match — one attemp
 
 The typed form is what pins the allocation, not the offsets: this body is the
 attach sequence (`coord->composeStamp = 0`, `coord->parent = &parentExtra->field_8[part]`,
-inherit `field_1C`/`field_20`, `Task_Reparent`, `state += 1`). Written with m2c's
+inherit `field_1C`/`field_20`, `taskReparent`, `state += 1`). Written with m2c's
 `void *` temps and `M2C_FIELD` it scored 75.875% (`regs=14 insert=4 delete=3`),
 because the compiler kept `task->extra` in `$a2` and its `field_8` in `$a3`;
 written with `TmdObject*` / `GfxCoord*` locals it puts
@@ -88629,7 +88629,7 @@ variation `base_2.i`
 ext->field_1C = parentExt->field_1C;
 ext->field_20 = parentExt->field_20;
 ext->field_E  = -1;                 /* last in the source */
-Task_Reparent(parent, task);
+taskReparent(parent, task);
 ```
 
 m2c read the *emitted* order off the target instead - the copy of `0x1C`, then
@@ -88726,9 +88726,9 @@ Inputs: `base_1.i`
 ## m2c's third argument to a two-argument function was a value living in `$a2` (func_mine_forked_tunnel_8017DE54, 2026-09-15)
 
 m2c read the target's `lw a2,8(v1)` / `move a1,s1` / `jal` triple as a three
-argument call and emitted `Task_Reparent(temp_a0, index, temp_a2)`, which compiles
+argument call and emitted `taskReparent(temp_a0, index, temp_a2)`, which compiles
 only because the seed declares the callee itself instead of including the header.
-`Task_Reparent` takes two arguments (`include/main/task.h`, `src/main/task.c`),
+`taskReparent` takes two arguments (`include/main/task.h`, `src/main/task.c`),
 and the `$a2` value - the parent object's coordinate pointer - is stored into
 `coord->parent` before the call: a local the allocator parked in an argument
 register, not an argument.
@@ -95566,7 +95566,7 @@ instead.
 
 `func_actor_510900_8013A9BC` reads `work->field_32C` (a `Task*`) in four
 different places: once to store the task `Gp_SpawnEff` just created and hand it
-to `Task_Reparent`, and once in each arm of the later state machine, where it is
+to `taskReparent`, and once in each arm of the later state machine, where it is
 only tested and written through. Using one `Task* child` local for all of them
 put the pointer in `$a1` in arms that contain no call at all, for `regs=10`.
 
@@ -95577,7 +95577,7 @@ The reason is in the `.greg` dump, not the object dump:
 
 `$v1` (3) is not in the conflict set, so plain candidate order would have taken
 it; the copy preference for `$5` — earned by the *other* use, where the local is
-copied into `$a1` as `Task_Reparent`'s second argument — overrides it
+copied into `$a1` as `taskReparent`'s second argument — overrides it
 (`CODEGEN_MODEL.md` §10.4 step 3). A preference is a property of the allocno,
 so it applies to every reference of the shared local, including branches that
 never see the call. Giving the argument its own local (`spawned`) dropped the
@@ -99011,7 +99011,7 @@ lw s0,0x2c(s1) ; lw a0,0x20(s1) ; lw a2,0x34(s1) ; lw v0,0x2c(a0) ; lw v1,8(s0) 
 ```
 
 and every source shape tried emitted the `0x20` load (the one whose value is
-also `Task_Reparent`'s first argument) first, with `0x2C` second - seven
+also `taskReparent`'s first argument) first, with `0x2C` second - seven
 statement permutations, an intermediate `TmdObject*` local for `parent->extra`,
 and taking the argument inline as `(Task*)task->spawnArg2` (which instead adds a
 second `lw a0,0x20(s1)` before the call) all reproduce the swap. The permuter
@@ -120842,7 +120842,7 @@ Scratch `nonmatchings/func_dryfield_night_parking_lot_8017D8D0-vacuum`.
 ## One leftover `reorder` between two independent insns: the scheduler's LAUNCH_PRIORITY boost, and the fix is an adjacent statement's order (func_dryfield_water_tank_8017DD20, 2026-09-17)
 
 Symptom: 99.38%, `reorder=1`, and the only difference is `lui $v0,%hi(SYM)` and
-`move $a1,$s2` swapped in front of `Task_Reparent(SYM, index)` - two insns with
+`move $a1,$s2` swapped in front of `taskReparent(SYM, index)` - two insns with
 no dependence between them.
 
 `dump.sh` (and any build >= 90%) leaves the pre-reload scheduler's ready-list

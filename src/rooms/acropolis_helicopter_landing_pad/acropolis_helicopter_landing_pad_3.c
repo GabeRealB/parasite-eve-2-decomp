@@ -1180,12 +1180,12 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                 mem->scale = 0;
                 eff        = Gp_SpawnEff(0x6003B, coord, 0x200, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
                 for (i = 0; i < 6; i++) {
                     eff = Gp_SpawnEff(0x600A4, coord, 1, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->task);
+                        taskReparent(arg0, eff->task);
                     }
                 }
                 lightSlot             = &Gp_RoomCoords[5];

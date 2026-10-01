@@ -362,15 +362,15 @@ void func_energyball_8012F180(Task* arg0)
             if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 spawned = Gp_SpawnEff(0x600F9, coord, 0, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
                 spawned = Gp_SpawnEff(0x600F9, coord, 0x2AA, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
                 spawned = Gp_SpawnEff(0x600F9, coord, 0x555, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
                 snd = D_energyball_8013117C;
                 SndEvt_EnqueueType6(snd[mem->index + 3], 0, 0);

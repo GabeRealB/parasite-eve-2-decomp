@@ -3658,7 +3658,7 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     coord->parent       = parentCoord;
     obj->lightMtx       = parentObj->lightMtx;
     obj->colorMtx       = parentObj->colorMtx;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
 
     rec    = &D_dryfield_dilapidated_house_8018669C;
     source = task->extra.tmd->source;
@@ -3814,7 +3814,7 @@ void func_dryfield_dilapidated_house_80181134(Task* task)
 /// State 0 of the handler table at `D_dryfield_dilapidated_house_8017D61C`:
 /// snapshots the placed model coordinate's matrix into a fresh `DdhModelWork`,
 /// seeds its 0x1000 word, marks the model's `TmdObject` hidden (bit 0x80 of
-/// `field_C`), re-parents the task that spawned this one under it and advances
+/// `field_C`), attaches this task under the task that spawned it and advances
 /// to state 1.
 static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
 {
@@ -3833,7 +3833,7 @@ static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
     work->field_20 = 0x1000;
     work->mtx      = coord->coord;
     obj->flags    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
+    taskReparent(arg0->spawnArg2.pointer, arg0);
     arg0->state += 1;
 }
 
@@ -3868,7 +3868,7 @@ static void func_dryfield_dilapidated_house_80181340(Task* arg0)
     }
     arg0->work    = work;
     coord->parent = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords;
-    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
+    taskReparent(arg0->spawnArg2.pointer, arg0);
     arg0->exitCallback = func_dryfield_dilapidated_house_8018142C;
     arg0->state       += 1;
 }
@@ -3908,7 +3908,7 @@ void func_dryfield_dilapidated_house_8018145C(Task* task)
 /// `DdhAngleStep` with the shared per-part angle table scaled by this task's spawn
 /// arg (each wrapped into the 0x4000 angle period), links the model coordinate
 /// this task works on to the parent model's coordinate array, and re-parents the
-/// task that spawned this one under it.
+/// task under the task that spawned it.
 static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
 {
     DdhAngleStep* work;
@@ -3926,7 +3926,7 @@ static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
         work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1.value) & 0x3FFF;
     }
     coord->parent = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords;
-    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
+    taskReparent(arg0->spawnArg2.pointer, arg0);
     arg0->state += 1;
 }
 
@@ -4305,7 +4305,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             do {
                 eff = Gp_SpawnEff(0x60275, coord, i, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->task);
+                    taskReparent(task, eff->task);
                 }
                 i += 0x2AA;
             } while (i < 0x556);

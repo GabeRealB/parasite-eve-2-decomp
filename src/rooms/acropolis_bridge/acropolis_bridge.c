@@ -2803,7 +2803,7 @@ L_case1:
     if (queue->movieReady == 0) {
         goto tail;
     }
-    Task_Reparent(task, Gp_SpawnScript18(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
+    taskReparent(task, Gp_SpawnScript18(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
     goto advance;
 
 L_case2:

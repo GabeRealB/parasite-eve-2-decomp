@@ -2766,7 +2766,7 @@ static void func_actor_511000_80133240(Task* task)
     }
     func_actor_511000_80133760(task);
     coord->parent = dest;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     task->state += 1;
 }
 
@@ -2835,7 +2835,7 @@ static void func_actor_511000_801333C4(Task* task)
     }
     func_actor_511000_80133760(task);
     (coord)->parent = dest;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     coord->param.rot.vx = D_actor_511000_80147AC4[0].vx;
     coord->param.rot.vy = D_actor_511000_80147AC4[0].vy;
     coord->param.rot.vz = D_actor_511000_80147AC4[0].vz;

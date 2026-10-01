@@ -82,7 +82,21 @@ void Task_CallExit(Task* task);
 
 void Task_DetachFromParent(Task* task);
 
-void Task_Reparent(Task* parent, Task* task);
+/// Moves a live task to the end of a parent's circular child ring for teardown.
+///
+/// Both arguments must be non-NULL and remain live throughout the call. The
+/// destination and any existing source ring must be closed rings of live tasks,
+/// with each child's `parent` identifying its ring owner. A parentless task must
+/// have `nextSibling == task`. The caller must avoid cycles in the teardown tree;
+/// this function performs no validation and NULL does not request detachment.
+///
+/// Removal advances the old ring's head when needed, or clears it for an only
+/// child. Insertion preserves an existing destination head; an empty destination
+/// receives this task as its only child. Using the current parent removes and
+/// appends the task again, which can change child teardown order. The task keeps
+/// its own children, execution-list membership and resources. No allocation,
+/// release, callback dispatch or coordinate attachment occurs.
+void taskReparent(Task* newParent, Task* task);
 
 void Task_CallExitFiltered(TaskNode* node, s32 filter);
 

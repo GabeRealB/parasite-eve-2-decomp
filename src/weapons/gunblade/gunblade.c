@@ -127,7 +127,7 @@ void func_gunblade_8011D1E4(Task* task)
                     work->index++;
                     eff = Gp_SpawnEff(0x6029A, coord, task->spawnArg1.value, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(task, eff->task);
+                        taskReparent(task, eff->task);
                     }
                 }
                 bladeTrailDraw(work->age & 7, 0x331);

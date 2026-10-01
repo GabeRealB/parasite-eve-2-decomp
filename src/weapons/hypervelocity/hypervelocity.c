@@ -285,7 +285,7 @@ void func_hypervelocity_8011D1E8(Task* task)
                 task->state = 4;
                 eff         = Gp_SpawnEff(0x6000C, coord, 0, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->task);
+                    taskReparent(task, eff->task);
                 }
                 work->scale = 0xFF;
             }
@@ -417,7 +417,7 @@ void func_hypervelocity_8011D830(Task* task)
             beam->obj.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             eff                = Gp_SpawnEff(0x6000D, coord, 0, NULL);
             if (eff != NULL) {
-                Task_Reparent(task, eff->task);
+                taskReparent(task, eff->task);
             }
             task->state           = 1;
             lightSlot->framesLeft = 4;
@@ -466,7 +466,7 @@ void func_hypervelocity_8011D830(Task* task)
                 Gp_SpawnEff(0x600E0, coord, 0x400, NULL);
                 eff = Gp_SpawnEff(0x6000B, coord, 0, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->task);
+                    taskReparent(task, eff->task);
                 }
             }
             light->coord.t[0]     = coord->coord.t[0];
@@ -1043,7 +1043,7 @@ static void func_hypervelocity_8011F570(Task* arg0)
             childExtra                       = child->extra.tmd;
             childExtra->colorMtx             = extra->colorMtx;
             childExtra->lightMtx             = extra->lightMtx;
-            Task_Reparent(arg0, child);
+            taskReparent(arg0, child);
         }
         child = Task_Spawn(7, 0x74, 2, 0);
         if (child != NULL) {
@@ -1051,7 +1051,7 @@ static void func_hypervelocity_8011F570(Task* arg0)
             childExtra                       = child->extra.tmd;
             childExtra->colorMtx             = extra->colorMtx;
             childExtra->lightMtx             = extra->lightMtx;
-            Task_Reparent(arg0, child);
+            taskReparent(arg0, child);
             coord->coord.t[0] = -6;
             coord->coord.t[1] = -0x3C;
             coord->coord.t[2] = -0x16;

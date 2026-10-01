@@ -663,7 +663,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     temp_v0_4               = Task_SpawnFromTable(D_actor_403600_801421A0, 0, 0, 0);
     D_actor_403600_801606AC = temp_v0_4;
     if (temp_v0_4 != 0) {
-        Task_Reparent(task, temp_v0_4);
+        taskReparent(task, temp_v0_4);
     }
     temp_v0->field_4B4      = 0;
     D_actor_403600_801606A8 = task;

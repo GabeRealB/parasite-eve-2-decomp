@@ -2350,12 +2350,12 @@ void func_actor_141000_801331AC(Task* task)
 }
 
 /// Chains this actor's root coordinate under the spawner's root coordinate,
-/// hands the task to the spawner with `Task_Reparent`, arms `killCountdown` at
+/// hands the task to the spawner with `taskReparent`, arms `killCountdown` at
 /// 0x7FF and advances the state.
 static void func_actor_141000_80133204(Task* task)
 {
     task->extra.tmd->coords->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
-    Task_Reparent((Task*)task->spawnArg2.pointer, task);
+    taskReparent(task->spawnArg2.pointer, task);
     task->killCountdown = 0x7FF;
     task->state        += 1;
 }

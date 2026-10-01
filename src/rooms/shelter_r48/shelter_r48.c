@@ -3118,7 +3118,7 @@ void func_shelter_r48_801810B0(Task* task)
                     task->state = 2;
                     eff         = Gp_SpawnEff(0x60191, coord, 0, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(task, eff->task);
+                        taskReparent(task, eff->task);
                     }
                 }
                 return;

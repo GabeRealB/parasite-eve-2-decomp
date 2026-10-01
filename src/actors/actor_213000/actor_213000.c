@@ -692,7 +692,7 @@ static void func_actor_213000_8014A35C(Task* task)
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     obj->otOffset = -4;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     task->state += 1;
 }
 

@@ -1022,9 +1022,9 @@ static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent)
     enemy->task             = task;
     enemy->coord            = &gGfxViewCoord;
     if (parent != NULL) {
-        Task_Reparent(parent->task, task);
+        taskReparent(parent->task, task);
     } else {
-        Task_Reparent(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), enemy->task);
+        taskReparent(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), enemy->task);
     }
     return enemy;
 }

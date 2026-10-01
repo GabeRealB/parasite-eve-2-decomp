@@ -440,48 +440,65 @@ void Task_DetachFromParent(Task* task)
     task->parent = NULL;
 }
 
-void Task_Reparent(Task* arg0, Task* arg1)
+/// Removes a task from its parent's child ring before attaching it elsewhere.
+///
+/// A parentless task is left unchanged. A linked task must belong to a live,
+/// closed ring; removal clears its parent and restores its sibling self-link.
+/// This helper is used only by `taskReparent`.
+static inline void _taskDetachForReparent(Task* task)
 {
-    Task* parent;
-    Task* next;
-    Task* cur;
-    Task* temp;
+    Task* oldParent;
+    Task* nextSibling;
+    Task* predecessor;
 
-    parent = arg1->parent;
-    if (parent != NULL) {
-        next = arg1->nextSibling;
-        if (next == arg1) {
-            parent->firstChild = NULL;
+    oldParent = task->parent;
+    if (oldParent != NULL) {
+        nextSibling = task->nextSibling;
+        if (nextSibling == task) {
+            oldParent->firstChild = NULL;
         } else {
-            if (parent->firstChild == arg1) {
-                parent->firstChild = next;
+            if (oldParent->firstChild == task) {
+                oldParent->firstChild = nextSibling;
             }
-            cur = arg1;
-            if (arg1->nextSibling != arg1) {
+            predecessor = task;
+            if (task->nextSibling != task) {
                 do {
-                    cur = cur->nextSibling;
-                } while (cur->nextSibling != arg1);
+                    predecessor = predecessor->nextSibling;
+                } while (predecessor->nextSibling != task);
             }
-            cur->nextSibling  = arg1->nextSibling;
-            arg1->nextSibling = arg1;
+            predecessor->nextSibling = task->nextSibling;
+            task->nextSibling        = task;
         }
-        arg1->parent = NULL;
+        task->parent = NULL;
     }
-    arg1->parent = arg0;
-    temp         = arg0->firstChild;
-    if (temp == NULL) {
-        arg0->firstChild = arg1;
+}
+
+void taskReparent(Task* newParent, Task* task)
+{
+    Task* childHead;
+    Task* lastChild;
+    Task* firstChild;
+
+    // Restore the old parent's ring before changing the teardown relationship.
+    _taskDetachForReparent(task);
+
+    task->parent = newParent;
+    childHead    = newParent->firstChild;
+    if (childHead == NULL) {
+        newParent->firstChild = task;
         return;
     }
-    cur  = temp;
-    arg0 = temp;
-    if (cur->nextSibling != cur) {
+
+    // Append after the last child, retaining the destination ring's head.
+    lastChild  = childHead;
+    firstChild = childHead;
+    if (lastChild->nextSibling != lastChild) {
         do {
-            cur = cur->nextSibling;
-        } while (cur->nextSibling != arg0);
+            lastChild = lastChild->nextSibling;
+        } while (lastChild->nextSibling != firstChild);
     }
-    arg1->nextSibling = arg0;
-    cur->nextSibling  = arg1;
+    task->nextSibling      = firstChild;
+    lastChild->nextSibling = task;
 }
 
 void Game_SetPtrSlot(void* ptr, s32 index)

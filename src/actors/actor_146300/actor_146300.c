@@ -1546,7 +1546,7 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
     helper                           = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
     gActorHelperTask                 = helper;
     actorTintTask(helper, enemy);
-    Task_Reparent(task, gActorHelperTask);
+    taskReparent(task, gActorHelperTask);
     obj->lightMtx = &gScriptedWalkWork->light;
     obj->colorMtx = &gScriptedWalkWork->color;
     vec.vx        = coord->workm.t[0];

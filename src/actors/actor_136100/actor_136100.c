@@ -1338,7 +1338,7 @@ void func_actor_136100_801320E0(Task* task)
             tmd->lightMtx  = &work->field_474;
             tmd->colorMtx  = &work->field_494;
             task->msgTable = D_actor_136100_8013F2F4;
-            Task_Reparent(D_actor_136100_8014078C, task);
+            taskReparent(D_actor_136100_8014078C, task);
         }
         place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
         id    = place->entryId;
@@ -1384,7 +1384,7 @@ void func_actor_136100_80132284(Task* arg0)
             tmd->lightMtx  = &work->field_474;
             tmd->colorMtx  = &work->field_494;
             arg0->msgTable = D_actor_136100_8013F2F4;
-            Task_Reparent(D_actor_136100_8014078C, arg0);
+            taskReparent(D_actor_136100_8014078C, arg0);
         }
         arg0->state += 1;
         if (arg0->spawnArg1.value != 0) {

@@ -1777,7 +1777,7 @@ static void func_mine_forked_tunnel_8017DE54(Task* task)
     ext->lightMtx       = parentExt->lightMtx;
     ext->colorMtx       = parentExt->colorMtx;
     ext->otOffset       = -1;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     ext->flags = ext->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
     dst               = task->extra.tmd->coords;

@@ -517,7 +517,7 @@ void func_actor_342000_8016201C(Task* arg0)
             extra->colorMtx                 = &mtx->color;
             extra->lightMtx                 = &mtx->light;
             arg0->msgTable                  = D_actor_342000_801648A8;
-            Task_Reparent(mtx->field_40, arg0);
+            taskReparent(mtx->field_40, arg0);
         }
         arg0->state += 1;
     }
@@ -638,7 +638,7 @@ static void func_actor_342000_80162158(Task* arg0)
             Actor342000_InitCoord(arg0, w);
             break;
     }
-    Task_Reparent(w->field_298, arg0);
+    taskReparent(w->field_298, arg0);
     arg0->exitCallback = func_actor_342000_80163F88;
 }
 
@@ -1040,7 +1040,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                     if (work->field_0[0].pos.vx >= 0x36B0) {
                         work->field_0[0].pos.vx = 0x36B0;
                         work->field_0[1].pos.vx = 0x36B0;
-                        Task_Reparent(arg0, Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+                        taskReparent(arg0, Gp_SpawnScript18(&D_80144A74, D_80144A7C));
                         func_80143490(3);
                         work->field_70 = 0;
                     }
@@ -1052,7 +1052,7 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 9:
             SndEvt_EnqueueType7(0x5428000B, 1);
             SndEvt_EnqueueType6(0x5428000C, 0, 0);
-            Task_Reparent(arg0, Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+            taskReparent(arg0, Gp_SpawnScript18(&D_80144A74, D_80144A7C));
             func_80143490(3);
             break;
         default:

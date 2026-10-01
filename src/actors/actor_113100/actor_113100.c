@@ -1681,7 +1681,7 @@ static void func_actor_113100_80132B30(Task* task)
     node->composeStamp = GRAPHICS_COORD_DIRTY;
     node->parent       = &part[index];
 
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     if (GameFlag_GetNibble(0xF1) == 0) {
         model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {

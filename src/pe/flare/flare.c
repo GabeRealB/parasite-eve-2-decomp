@@ -77,7 +77,7 @@ void flareEffectTask(Task* arg0)
         gRandomLcgState = rng;
         spawned         = Gp_SpawnEff(0x6019E, coord, (((u32)rng >> 16) & 0x1FF) + 0x680, 0);
         if (spawned != NULL) {
-            Task_Reparent(arg0, spawned->task);
+            taskReparent(arg0, spawned->task);
         }
         return;
     }

@@ -2174,7 +2174,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     arg0->work              = work;
     eff                     = Gp_SpawnEff(0x60081, coord, 0, NULL);
     arg0->spawnArg2.pointer = eff->task;
-    Task_Reparent(arg0, eff->task);
+    taskReparent(arg0, eff->task);
     angle           = arg0->spawnArg1.value;
     vec->vy         = -rcos(angle);
     vec->vx         = rsin(angle);
@@ -2873,7 +2873,7 @@ static void Actor07000_Fn062A8(Task* arg0)
     task      = Task_SpawnFromTable(Actor07000_D0D7D0, 1, angle, 0);
     if (task != NULL) {
         Gp_CopyCoordOffset(task, child, &offset);
-        Task_Reparent(arg0, task);
+        taskReparent(arg0, task);
     }
 }
 

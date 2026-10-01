@@ -170,7 +170,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     }
                     eff = Gp_SpawnEff(0x6017F, coord, (s32)(work->scale), NULL);
                     if (eff != NULL) {
-                        Task_Reparent(task, eff->task);
+                        taskReparent(task, eff->task);
                     }
                     lightSlot->framesLeft = 4;
                     slot->inner           = 0x400;

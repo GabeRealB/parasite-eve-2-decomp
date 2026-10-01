@@ -1603,7 +1603,7 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
 /// State 0 of the `func_actor_451100_80132BD4` dispatcher: allocates the
 /// actor's 0x4C0-byte `Actor150400Work` block and hangs it off the task, spawns
 /// entry 1 of `D_actor_451100_8014E6E4` (the sub-model task
-/// `func_actor_451100_801330B0`), hands it to `Task_Reparent` with this task
+/// `func_actor_451100_801330B0`), hands it to `taskReparent` with this task
 /// and keeps it in `pairTask`, then seeds the animation and runs the step
 /// routine once.
 ///
@@ -1640,7 +1640,7 @@ static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
     spawned                          = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
-    Task_Reparent(task, spawned->task);
+    taskReparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;
     obj->colorMtx  = &work->color;

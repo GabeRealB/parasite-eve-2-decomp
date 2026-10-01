@@ -23,7 +23,7 @@ void golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task)
             effect = Gp_SpawnEff(D_8011572C | 0x80000000,
                                  &task->parent->extra.tmd->coords[7], 0, NULL);
             if (effect != NULL) {
-                Task_Reparent(task, effect->task);
+                taskReparent(task, effect->task);
             }
         }
     }

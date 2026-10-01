@@ -389,7 +389,7 @@ void func_apobiosis_8012FE10(Task* arg0)
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
-                Task_Reparent(D_apobiosis_80130BA0, arg0);
+                taskReparent(D_apobiosis_80130BA0, arg0);
                 if (arg0->spawnArg1.value != 0) {
                     coord->parent       = mem->parent;
                     coord->coord.t[0]   = 0;

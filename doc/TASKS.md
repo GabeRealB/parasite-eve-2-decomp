@@ -45,8 +45,10 @@ Allocated with `memCalloc(sizeof(Task), 0)` (0x48 bytes). Inserted into the **ac
 
 Parent/child is a **sibling ring**: `firstChild` is the head, `nextSibling`
 walks the ring and is self when the task is an only child. `taskKill` runs
-every child’s `exitCallback` first (with `parent` cleared). `Task_Reparent`
-moves a live task onto another parent’s ring.
+every child’s `exitCallback` first (with `parent` cleared). `taskReparent`
+detaches a live task from its old ring and appends it to the destination
+parent’s ring, preserving that ring’s head. Reattaching to the same parent can
+change child teardown order. Execution-list membership is unchanged.
 
 `work` is an opaque `void*` to callback-defined storage. Default teardown
 passes a non-NULL value to `memFree`, so heap work belongs to the primary heap;
