@@ -2281,6 +2281,11 @@ static inline void _gpuQueueBlendMode(s32 blendMode, s32 sortingDepth)
         /// encodes 640 as 0xA in draw-mode bits 0..3. The command selects this
         /// page even though untextured primitives do not sample its texels.
         GPU_BLEND_TEXTURE_PAGE_X = 640,
+        /// Vertical texture-page origin in VRAM rows for the blend draw mode.
+        ///
+        /// Pass this 256-row-aligned origin unshifted to `getTPage`. Zero
+        /// leaves the Y contributions in draw-mode bits 4 and 11 clear;
+        /// untextured primitives do not sample the selected page.
         GPU_BLEND_TEXTURE_PAGE_Y = 0,
     };
     DR_TPAGE* blendCommand;
