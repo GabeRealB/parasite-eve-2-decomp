@@ -55,7 +55,7 @@ extern s32      D_neo_ark_pyramid_801818A4;
 extern TaskDesc D_neo_ark_pyramid_8017FC0C;
 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF
-/// and 0x13F0, closed by a 0x7FFFFFFF entry.
+/// and 0x13F0, closed by a `TASK_MESSAGE_TABLE_END` entry.
 extern TaskMessageEntry D_neo_ark_pyramid_8017FBE4[];
 
 /// The two points on the spawner's parent coordinate that the ribbon task

@@ -219,7 +219,7 @@ AnimationSet Actor04600_D05840 = {
 
 Actor04600RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = sucklercephMessage } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &Actor04600_D05200 } };

@@ -91,7 +91,7 @@ extern AnimationPlayRequest D_actor_443500_80158728;
 extern TaskDesc D_actor_443500_8015873C[];
 
 /// The actor's animation table: `(anim id, handler)` pairs for 0x7D3 / 0x7D4 /
-/// 0x7D5, ended by `0x7FFFFFFF`. The spawn handler parks its address in
+/// 0x7D5, ended by `TASK_MESSAGE_TABLE_END`. The spawn handler parks its address in
 /// `Task::msgTable` (0x24).
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -2388,7 +2388,7 @@ Actor443500MessageEntry D_actor_443500_80158754[4] = {
     { 2003, { .call0 = func_actor_443500_801327E0 } },
     { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call2 = func_actor_443500_8013297C } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_443500_80158774[2] = {

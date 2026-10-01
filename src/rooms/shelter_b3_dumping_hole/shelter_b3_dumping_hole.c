@@ -91,7 +91,7 @@ ShelterB3DumpingHoleMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
     { 5103, { .call0 = func_shelter_b3_dumping_hole_8017D868 } },
     { 5104, { .call2 = func_shelter_b3_dumping_hole_8017D82C } },
     { 5108, { .call0 = func_shelter_b3_dumping_hole_8017D870 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TmdBone D_shelter_b3_dumping_hole_801875A4[1] = {

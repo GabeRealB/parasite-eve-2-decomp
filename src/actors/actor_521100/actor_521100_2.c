@@ -381,7 +381,7 @@ Actor5211002MessageEntry D_actor_521100_8016A358[6] = {
     { 2004, { .call2 = func_actor_521100_80136A64 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_521100_80136AE0 } },
     { 2013, { .call2 = func_actor_521100_80136BE8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_521100_8016A388[2] = {

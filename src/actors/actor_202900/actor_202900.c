@@ -213,7 +213,7 @@ AnimationSet D_actor_202900_80156DE4 = {
 Actor202900MessageEntry D_actor_202900_80156E0C[3] = {
     { 2003, { .call0 = func_actor_202900_8014A3E0 } },
     { 2005, { .call1 = actorMsgSetPairVisibility } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_202900_80156E24[2] = {

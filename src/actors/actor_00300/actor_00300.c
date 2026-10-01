@@ -1175,7 +1175,7 @@ Actor00300RecoveredMsgEntry Actor00300_D16314[5] = {
     { 2004, { .call2 = actorMsgPlaceRotMatrix } },
     { 2005, { .call3 = Actor00300_Fn053EC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor00300_Fn05434 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 AnimationSet* Actor00300_D1633C[22] = {

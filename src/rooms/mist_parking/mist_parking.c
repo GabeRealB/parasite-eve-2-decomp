@@ -197,7 +197,7 @@ MistParkingMessageEntry D_mist_parking_80186BB8[5] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_mist_parking_801826E8 } },
     { 5105, { .call0 = func_mist_parking_801826B8 } },
     { 5104, { .call3 = func_mist_parking_801823F8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 ActorTransform D_mist_parking_80186BE0 = { { 8448, 1, -2599, 0 }, { 0, 0, 0, 0 } };

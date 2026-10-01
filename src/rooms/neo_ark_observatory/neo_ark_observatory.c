@@ -117,7 +117,7 @@ extern EvsCommand D_neo_ark_observatory_801812C0[];
 /// Descriptor of the cap-file task `func_neo_ark_observatory_8017FB1C`.
 extern TaskDesc D_neo_ark_observatory_801811AC;
 
-/// Messages the room task answers, terminated by id 0x7FFFFFFF.
+/// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_neo_ark_observatory_801811B8[];
 
 /// Offset `func_neo_ark_observatory_8017FA98` hands the mesh rebuild; only its

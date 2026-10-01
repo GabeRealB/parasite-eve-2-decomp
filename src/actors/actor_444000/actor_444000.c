@@ -2656,7 +2656,7 @@ Actor444000MessageEntry D_actor_444000_80161818[7] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_444000_8013ACD0 } },
     { 5108, { .call3 = func_actor_444000_80143E68 } },
     { 2009, { .call0 = func_actor_444000_80143F38 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 s16 D_actor_444000_80161850 = 0;

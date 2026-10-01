@@ -1269,7 +1269,7 @@ Actor511000MessageEntry D_actor_511000_8014730C[6] = {
     { 2005, { .call4 = func_actor_511000_801327A0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_511000_8013287C } },
     { 2016, { .call4 = func_actor_511000_80132904 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_511000_8014733C = { -30, 440, 140, 0 };
@@ -1845,7 +1845,7 @@ Actor511000MsgEntry D_actor_511000_80148FC4[4] = {
     { 2003, { .call0 = func_actor_511000_801334B8 } },
     { 2004, { .call1 = func_actor_511000_801334C4 } },
     { 2005, { .call2 = func_actor_511000_80133554 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_511000_80148FE4[4] = {
@@ -2092,7 +2092,7 @@ Actor511000MessageEntry D_actor_511000_801550A0[4] = {
     { 2003, { .call0 = func_actor_511000_80133DEC } },
     { 2004, { .call3 = actorMsgPlaceRotMatrix } },
     { 2005, { .call4 = func_actor_511000_80133EAC } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 AnimationSet* D_actor_511000_801550C0[4] = {

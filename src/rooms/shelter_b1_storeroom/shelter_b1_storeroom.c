@@ -16,7 +16,7 @@
 #include "mapui/map_shelter.h"
 
 /// Message table the room task installs on itself: ids 0x13EE-0x13F2 mapped
-/// to the room's handlers, closed by id 0x7FFFFFFF.
+/// to the room's handlers, closed by id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_shelter_b1_storeroom_80184968[];
 
 static void func_shelter_b1_storeroom_8017D740(Task* task);

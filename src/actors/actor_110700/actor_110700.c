@@ -204,7 +204,7 @@ Actor110700MsgEntry D_actor_110700_8013BFA0[4] = {
     { 2003, { .call0 = func_actor_110700_8013201C } },
     { 2004, { .call1 = actorMsgPlaceRotMatrix } },
     { 2005, { .call2 = func_actor_110700_801320D8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 u8 D_actor_110700_8013BFC0[24] = {

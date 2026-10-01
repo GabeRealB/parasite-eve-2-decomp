@@ -3109,7 +3109,7 @@ Actor403100MessageEntry D_actor_403100_801556EC[4] = {
     { 2014, { .call0 = func_actor_403100_8013D5F4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403100_8013D564 } },
     { 2005, { .call1 = func_actor_403100_8013D608 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 /// Borrowed player animation table with a dynamically selected clip in entry four.

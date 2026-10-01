@@ -424,7 +424,7 @@ AnimationSet Actor07000_D08008 = {
 
 Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = sucklercephMessage } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &Actor07000_D079C8 } };
@@ -863,7 +863,7 @@ SVECTOR Actor07000_D0D7B8 = { 0, -300, 0, 0 };
 
 Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor07000_Fn05AB8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc Actor07000_D0D7D0[2] = {

@@ -1108,7 +1108,7 @@ Actor100400AreaConfig Actor00400_D15F20[12] = {
 Actor00400RecoveredMsgEntry Actor00400_D16010[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor00400_Fn0805C } },
     { 2005, { .call1 = Actor00400_Fn08354 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc Actor00400_D16028[3] = {

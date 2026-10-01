@@ -171,7 +171,7 @@ ShelterB1PodAccessTunnelMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] 
     { 5103, { .call0 = func_shelter_b1_pod_access_tunnel_8017DDD8 } },
     { 5104, { .call2 = func_shelter_b1_pod_access_tunnel_8017DD70 } },
     { 5106, { .call2 = func_shelter_b1_pod_access_tunnel_8017DDE0 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80181108[2] = {

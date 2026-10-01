@@ -4016,7 +4016,7 @@ GpSlot4MessageEntry Gp_Slot4MsgTable[5] = {
     { 2008, { .find = Gp_FindChildExceptType9 } },
     { 2009, { .exit = Gp_ExitChildrenType9 } },
     { 2010, { .send = Gp_SendMsgType9 } },
-    { 0x7FFFFFFF, { .exit = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .exit = NULL } },
 };
 GpBit2Bank Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameFlag_AcropolisBanks[0].header.entryStates }, { D_map_dryfield_8017A564, GameFlag_DryfieldBanks[0].header.entryStates }, { D_map_dryfield_full_8017A46C, GameFlag_DryfieldBanks[0].header.entryStates }, { D_map_shelter_8017A998, GameFlag_ShelterBanks[0].header.entryStates }, { D_map_neo_ark_8017A6EC, GameFlag_NeoArkBanks[0].header.entryStates } };
 

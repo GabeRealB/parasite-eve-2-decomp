@@ -414,7 +414,7 @@ Actor510900MessageEntry D_actor_510900_80167A6C[7] = {
     { 2005, { .call4 = func_actor_510900_8013BE64 } },
     { 2007, { .call4 = func_actor_510900_801391B8 } },
     { 2006, { .call0 = func_actor_510900_8013BE84 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 u8 D_actor_510900_80167AA4[136] = {

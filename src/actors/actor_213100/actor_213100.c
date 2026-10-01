@@ -380,7 +380,7 @@ Actor213100MessageEntry D_actor_213100_801521C0[4] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call2 = func_actor_213100_8014A40C } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 s8 D_actor_213100_801521E0[24] = {

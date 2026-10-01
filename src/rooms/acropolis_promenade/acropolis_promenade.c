@@ -206,7 +206,7 @@ AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
     { 5103, { .call3 = func_acropolis_promenade_8017D930 } },
     { 5105, { .call0 = func_acropolis_promenade_8017D8D8 } },
     { 5106, { .call0 = func_acropolis_promenade_8017D938 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_acropolis_promenade_80180EA4[2] = {

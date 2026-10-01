@@ -46752,7 +46752,7 @@ The structure that *is* universal, and the better anchor:
 
 * `Task::msgTable` holds id/handler records viewed by the dispatcher as
   `TaskMessageEntry[]` -- `{s32 messageId; TaskMessageHandler handler;}`,
-  already defined in `include/gameplay/message.h` -- terminated by `0x7FFFFFFF` with
+  already defined in `include/gameplay/message.h` -- terminated by `TASK_MESSAGE_TABLE_END` with
   one zero word after it. `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
   are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
@@ -85181,7 +85181,7 @@ nothing else - is arity, not allocation.
 
 The actor message handlers give the arity directly. They are installed in a
 `TaskMessageEntry` table (`{ s32 messageId; TaskMessageHandler handler; }`, terminator
-`0x7FFFFFFF`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
+`TASK_MESSAGE_TABLE_END`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
 `0x7DB` row points at this function. `Gp_DispatchMsg` walks that table and
 calls `entry->handler(index, value, arg2, arg3)`, so the handler's full
 signature is:
@@ -85971,7 +85971,7 @@ A room function no `jal` reaches - nothing in `src/` calls it, its only
 reference is a `.word` in the room's `_data` blob - is a callback, and the
 neighbouring words say which kind. `func_dryfield_breezeway_8017FBC8` sits in
 `D_dryfield_breezeway_80182DD0` with `0x13F1` in the word before it and
-`0x7FFFFFFF` after it: that is the `TaskMessageEntry` spelling above, a one-entry
+`TASK_MESSAGE_TABLE_END` after it: that is the `TaskMessageEntry` spelling above, a one-entry
 message table plus terminator. The room function that owns the table confirms
 it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
 (the record's id half) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
@@ -89210,7 +89210,7 @@ lands in the right slot.
 
 Recovering the slot and the type is a data-table read, not guesswork. A room's
 handlers are `TaskMessageEntry[]` records - `{ s32 messageId; TaskMessageHandler handler; }`, 8
-bytes, `0x7FFFFFFF`-terminated - and they live in the overlay's trailing data
+bytes, `TASK_MESSAGE_TABLE_END`-terminated - and they live in the overlay's trailing data
 blob, so the built overlay image still holds them verbatim. Searching the image
 for the handler's address little-endian prints the id in the word just before it,
 which here named the message (`0x13EF`) and so pointed at the two already-matched

@@ -314,7 +314,7 @@ s32 func_acropolis_square_8018344C(s32, s32, s32);
 
 AcropolisSquareMessageEntry D_acropolis_square_80183B58[2] = {
     { 3103, { .call0 = func_acropolis_square_8018344C } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 s16 D_acropolis_square_80183B68[24] = {

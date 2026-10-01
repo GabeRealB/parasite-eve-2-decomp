@@ -55,7 +55,7 @@ STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 
 /// Message entries with the payload signature selected by each message id.
 typedef struct {
-    s32 id; // Message id; 0x7FFFFFFF terminates the table
+    s32 id; // Message id; `TASK_MESSAGE_TABLE_END` terminates the table
     union {
         s32 (*animation)(Task*, s32, AnimationPlayRequest*, TaskMessageArg);
         s32 (*placement)(Task*, s32, ActorTransform*, s32);
@@ -79,7 +79,7 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequ
 _AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
     { 2003, { .animation = func_acropolis_helicopter_landing_pad_8017D824 } },
     { 2004, { .placement = actorMsgPlaceEuler } },
-    { 0x7FFFFFFF, { .animation = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
 };
 
 GsF_LIGHT D_acropolis_helicopter_landing_pad_80182340[3] = {

@@ -605,7 +605,7 @@ Actor123200MessageEntry D_actor_123200_80137214[4] = {
     { 2005, { .call2 = func_actor_123200_80133E30 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_123200_80133EDC } },
     { 2004, { .call1 = actorMsgPlace } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_123200_80137234 = { { { TASK_BODY_TMD, 96 } }, func_actor_123200_801341A8, { .model = &D_actor_123200_80135AF0 } };

@@ -335,7 +335,7 @@ Actor150400MsgEntry D_actor_150400_8013C8C4[6] = {
     { 2004, { .call2 = pairWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_150400_801327EC } },
     { 2013, { .call2 = func_actor_150400_801327F4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_150400_8013C8F4[2] = {

@@ -812,7 +812,7 @@ s32 func_mine_forked_tunnel_8017DD08(Task*, s32, s32, s32);
 MineForkedTunnelMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
     { 2005, { .call1 = func_mine_forked_tunnel_8017DD08 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_mine_forked_tunnel_8017D8EC } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 ActorTransform D_mine_forked_tunnel_80181BA4 = { { 180, -235, -780, 0 }, { 0, 0, 0, 0 } };

@@ -838,7 +838,7 @@ Actor223600MessageEntry D_actor_223600_80150B28[4] = {
     { 2005, { .call2 = func_actor_223600_8014CC04 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_223600_8014CCD4 } },
     { 2004, { .call1 = actorMsgPlace } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_223600_80150B48 = { { { TASK_BODY_TMD, 96 } }, func_actor_223600_8014CF6C, { .model = &D_actor_223600_8014E660 } };

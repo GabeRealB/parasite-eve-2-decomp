@@ -1368,7 +1368,7 @@ Actor160700MessageEntry D_actor_160700_80141678[6] = {
     { 2004, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_160700_80132738 } },
     { 2013, { .call2 = pacedWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_160700_801416A8[2] = {

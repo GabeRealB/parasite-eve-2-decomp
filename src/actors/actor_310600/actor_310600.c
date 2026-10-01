@@ -417,7 +417,7 @@ Actor310600MsgEntry D_actor_310600_801796BC[5] = {
     { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call2 = func_actor_310600_801625F0 } },
     { 2013, { .call3 = func_actor_310600_80162C94 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 static void func_actor_310600_80161E64(Task* task)

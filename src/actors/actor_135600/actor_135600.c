@@ -648,7 +648,7 @@ Actor135600MsgEntry D_actor_135600_8013B0F4[6] = {
     { 2005, { .call4 = func_actor_135600_80133240 } },
     { 2013, { .call2 = actorMotionStartWalk } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_135600_8013336C } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1);

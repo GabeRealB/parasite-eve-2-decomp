@@ -2097,7 +2097,7 @@ Actor421600MessageEntry D_actor_421600_80151118[8] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_421600_80132A00 } },
     { 2003, { .call1 = desertChaserMsgPlayAnim } },
     { 5108, { .call0 = func_actor_421600_8013E654 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_421600_80151158[13] = {

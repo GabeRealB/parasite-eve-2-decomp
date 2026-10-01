@@ -43,7 +43,7 @@ static void func_dryfield_night_warehouse_8017D654(Task* task);
 static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s16 arg2);
 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF and
-/// 0x13F0, closed by a 0x7FFFFFFF entry.
+/// 0x13F0, closed by a `TASK_MESSAGE_TABLE_END` entry.
 extern TaskMessageEntry D_dryfield_night_warehouse_8017E830[];
 
 /// Ring centres in the space of the coordinate drawn under, one per circle.

@@ -550,7 +550,7 @@ NeoArkForestZone2MsgEntry gRoamerMsgTableA[4] = {
     { 5103, { .call0 = roamerLatchRequest } },
     { 5108, { .call2 = roamerBankRetreat } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_forest_zone_801813BC } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 NeoArkForestZoneSpawnPos gRoamerSpawnPointsA[7] = {

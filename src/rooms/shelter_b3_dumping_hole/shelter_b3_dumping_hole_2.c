@@ -1039,7 +1039,7 @@ ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12] = {
 
 ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_shelter_b3_dumping_hole_80183530 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[16] = {

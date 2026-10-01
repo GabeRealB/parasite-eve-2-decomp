@@ -1607,7 +1607,7 @@ Actor521100MessageEntry D_actor_521100_8015F6FC[8] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call3 = func_actor_521100_80135D58 } },
     { 2007, { .call1 = func_actor_521100_80135D9C } },
     { 2006, { .call0 = func_actor_521100_80135DC8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 static void           func_actor_521100_80131E8C(Enemy* enemy, Task* task);

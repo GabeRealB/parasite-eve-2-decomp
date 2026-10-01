@@ -638,7 +638,7 @@ Actor310100MessageEntry D_actor_310100_801798B4[6] = {
     { 2007, { .call2 = func_actor_310100_80162CDC } },
     { 2005, { .call3 = func_actor_310100_80162C64 } },
     { 2002, { .call0 = func_actor_310100_80162F34 } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_310100_801798E4 = { { { TASK_BODY_NONE, 192 } }, func_actor_310100_801620FC, { .value = 0 } };

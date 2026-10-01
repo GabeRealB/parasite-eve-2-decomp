@@ -2441,7 +2441,7 @@ u8* D_acropolis_bridge_80191720[9] = {
 AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_acropolis_bridge_801856E0 } },
     { 2005, { .call1 = func_acropolis_bridge_80187BD0 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 void (*D_acropolis_bridge_8019175C[9])(Task*) = {

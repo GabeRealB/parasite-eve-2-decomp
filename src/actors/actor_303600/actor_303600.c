@@ -16845,7 +16845,7 @@ TaskDesc D_actor_303600_8016E468[2] = {
 
 Actor303600MsgEntry D_actor_303600_8016E480[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_303600_80162870 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 GsF_LIGHT D_actor_303600_8016E490[3] = {

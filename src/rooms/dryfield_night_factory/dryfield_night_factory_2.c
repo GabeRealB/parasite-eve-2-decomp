@@ -250,7 +250,7 @@ TaskDesc gFactoryNightPanelDesc[1] = {
 
 FactoryControlMessageEntry gFactoryPanelMsgTable[2] = {
     { 5107, factoryPanelTrigger },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 OverlayHotspot gFactoryPanelHotspots[6] = {

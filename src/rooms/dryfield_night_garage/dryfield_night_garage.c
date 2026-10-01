@@ -162,7 +162,7 @@ static UiObjectDesc   Shop_Data_80181BF4;
 static UiObjectDesc   Shop_Data_80181C10;
 
 /// The room's own `TaskMessageEntry[]` - the message table `func_dryfield_night_garage_8017FF2C`
-/// publishes in `Task::msgTable`. It terminates with id 0x7FFFFFFF.
+/// publishes in `Task::msgTable`. It terminates with id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_dryfield_night_garage_80181C38[];
 
 /// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the

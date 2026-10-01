@@ -202,7 +202,7 @@ TaskDesc D_actor_205200_8014CA60[2] = {
 
 Actor205200MessageEntry D_actor_205200_8014CA78[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_205200_8014B94C } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TmdBone D_actor_205200_8014CA88[19] = {

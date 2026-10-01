@@ -466,7 +466,7 @@ DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6]
     { 5103, { .call0 = func_dryfield_night_trailer_coach_80182800 } },
     { 5104, { .call2 = func_dryfield_night_trailer_coach_801826EC } },
     { 5106, { .call2 = func_dryfield_night_trailer_coach_80182808 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_dryfield_night_trailer_coach_8018797C = { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_trailer_coach_8018243C, { .value = 0 } };

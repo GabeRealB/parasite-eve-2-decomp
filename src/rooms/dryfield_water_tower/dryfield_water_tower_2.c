@@ -425,7 +425,7 @@ DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7] = {
     { 5104, { .call2 = func_dryfield_water_tower_8017DD04 } },
     { 5106, { .call3 = func_dryfield_water_tower_8017DC64 } },
     { 5108, { .call2 = func_dryfield_water_tower_8017DD44 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_dryfield_water_tower_801803D8[2] = {

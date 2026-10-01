@@ -1349,7 +1349,7 @@ Actor161500MessageEntry gStrideWalkMessages[6] = {
     { 2004, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_161500_80132B88 } },
     { 2013, { .call2 = strideWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc gStrideWalkTasks[2] = {

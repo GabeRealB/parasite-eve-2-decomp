@@ -295,7 +295,7 @@ void func_actor_403600_80141CD4(Task*);
 
 Actor4036002MessageEntry D_actor_403600_80160504[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_403600_801406A4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_403600_80160514[3] = {

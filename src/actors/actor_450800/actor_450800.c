@@ -2262,7 +2262,7 @@ Actor450800MsgEntry D_actor_450800_8014AC58[6] = {
     { 2004, { .call3 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_450800_80132CE0 } },
     { 2013, { .call5 = func_actor_450800_80132D74 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_450800_8014AC88[5] = {
@@ -2580,7 +2580,7 @@ Actor450800MsgEntry gPairWalkMessages[6] = {
     { 2004, { .call3 = pairWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_450800_80133670 } },
     { 2013, { .call4 = pairWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc gPairWalkTasks[2] = {

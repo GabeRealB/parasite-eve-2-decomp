@@ -81,7 +81,7 @@ extern TaskDesc D_actor_113100_80144308[];
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3
 /// (`func_actor_113100_801331E8`), 0x7D4 (`actorMsgPlaceEuler`), 0x7D5
 /// (`func_actor_113100_80132790`), 0x7DD (`func_actor_113100_801328EC`) and
-/// 0x7DB (`func_actor_113100_801333B8`), terminated by 0x7FFFFFFF.
+/// 0x7DB (`func_actor_113100_801333B8`), terminated by `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -1169,7 +1169,7 @@ Actor113100MsgEntry D_actor_113100_80144338[6] = {
     { 2005, { .call4 = func_actor_113100_80132790 } },
     { 2013, { .call3 = func_actor_113100_801328EC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_113100_801333B8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 /// Setup handler (state 0): allocates the 0x540-byte work block, clears the

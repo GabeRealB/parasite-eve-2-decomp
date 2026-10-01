@@ -237,7 +237,7 @@ ShelterB6NurseryMessageEntry D_shelter_b6_nursery_8018500C[5] = {
     { 5105, { .call0 = func_shelter_b6_nursery_8017FDCC } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_shelter_b6_nursery_8017FE3C } },
     { 5104, { .call3 = func_shelter_b6_nursery_8017FA54 } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 s8 D_shelter_b6_nursery_80185034[24] = {

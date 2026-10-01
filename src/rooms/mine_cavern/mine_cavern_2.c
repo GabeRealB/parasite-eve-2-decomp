@@ -245,7 +245,7 @@ MineCavernMessageEntry D_mine_cavern_80183C6C[7] = {
     { 5104, { .call2 = func_mine_cavern_8017DAA0 } },
     { 5108, { .call0 = func_mine_cavern_8017DC9C } },
     { 5106, { .call4 = func_mine_cavern_8017DD38 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_mine_cavern_80183CA4[2] = {

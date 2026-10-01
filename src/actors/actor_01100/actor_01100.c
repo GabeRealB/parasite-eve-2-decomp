@@ -1040,7 +1040,7 @@ AnimationSet* Actor01100_D15604[23] = {
 
 Actor01100RecoveredMsgEntry Actor01100_D15660[2] = {
     { 2005, { .call0 = Actor01100_Fn0670C } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 u8 Actor01100_D15670;

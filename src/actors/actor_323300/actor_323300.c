@@ -97,10 +97,10 @@ STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 /// `Gp_DispatchMsg` matches an incoming id against these and calls the handler.
 /// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `actorMotionPlayAnim19`,
 /// `actorMsgPlaceEuler`, `func_actor_323300_80162208` and
-/// `func_actor_323300_80162360`; the 0x7FFFFFFF terminator ends the walk.
+/// `func_actor_323300_80162360`; the `TASK_MESSAGE_TABLE_END` terminator ends the walk.
 /// Message entries with the payload signature selected by each message id.
 typedef struct {
-    s32 id; // Message id; 0x7FFFFFFF terminates the table
+    s32 id; // Message id; `TASK_MESSAGE_TABLE_END` terminates the table
     union {
         s32                (*animation)(Task*, s32, AnimationPlayRequest*, s32);
         s32                (*placement)(Task*, s32, ActorTransform*, s32);
@@ -332,7 +332,7 @@ _Actor323300MessageEntry D_actor_323300_80172574[5] = {
     { 2004, { .placement = actorMsgPlaceEuler } },
     { 2005, { .mode = func_actor_323300_80162208 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_323300_80162360 } },
-    { 0x7FFFFFFF, { .animation = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
 };
 
 ActorTransform D_actor_323300_8017259C = { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } };

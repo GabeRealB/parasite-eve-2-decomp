@@ -1352,7 +1352,7 @@ EnemyParams D_actor_400500_80153C90 = { D_actor_400500_80153C84, 450, 500, 200, 
 
 Actor400500MessageEntry D_actor_400500_80153CA0[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_400500_8013DAE4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 /// Borrowed player animation table; entry zero is unused.

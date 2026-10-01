@@ -1498,7 +1498,7 @@ Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { 2005, { .value = Actor00100_Fn0B1A4 } },
     { 2006, { .task = actorMsgIsPresent } },
     { 2004, { .placement = actorMsgPlaceRecordYaw } },
-    { 0x7FFFFFFF, { .command = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .command = NULL } },
 };
 
 TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };

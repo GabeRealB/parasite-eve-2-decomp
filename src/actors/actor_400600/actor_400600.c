@@ -1550,7 +1550,7 @@ AnimationSet* D_actor_400600_80151A54[35] = {
 Actor400600MessageEntry D_actor_400600_80151AE0[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_400600_8013A338 } },
     { 2014, { .call0 = func_actor_400600_8013A3A8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_400600_80151AF8[2] = {

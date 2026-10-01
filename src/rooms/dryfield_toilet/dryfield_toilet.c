@@ -64,7 +64,7 @@ DryfieldToiletMessageEntry D_dryfield_toilet_801802A4[6] = {
     { 5103, { .call2 = func_dryfield_toilet_8017D8C8 } },
     { 5104, { .call0 = func_dryfield_toilet_8017D8C0 } },
     { 5106, { .call1 = func_dryfield_toilet_8017D884 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 s32 D_dryfield_toilet_801802D4 = 4098;

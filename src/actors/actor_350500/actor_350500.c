@@ -37,7 +37,7 @@ extern AnimationSet*  D_actor_350500_80168E8C[5];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `reverseWalkSpawn`; terminator id 0x7FFFFFFF.
+/// `reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -219,7 +219,7 @@ Actor350500MsgEntry gReverseWalkMessages[6] = {
     { 2005, { .call4 = reverseWalkVisibilityMsg } },
     { 2013, { .call3 = reverseWalkStartMsg } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_350500_80162ABC } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,
 #include "../../shared/reversing_walker_update.inc.c"
 

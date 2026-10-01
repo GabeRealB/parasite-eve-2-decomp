@@ -790,7 +790,7 @@ Actor361100MsgEntry D_actor_361100_8016BAF0[5] = {
     { 2004, { .call2 = func_actor_361100_80162F58 } },
     { 2005, { .call3 = func_actor_361100_80162FF4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_801630D4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TmdBone D_actor_361100_8016BB18[19] = {
@@ -932,7 +932,7 @@ Actor361100MessageEntry D_actor_361100_80171BB8[5] = {
     { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call3 = func_actor_361100_80163670 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_80163750 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 Task* D_actor_361100_80171BE0;

@@ -171,7 +171,7 @@ static void         func_actor_403900_80138344(Task*);
 
 Actor403900MessageEntry D_actor_403900_801383A0[2] = {
     { 2014, { .call0 = func_actor_403900_801381E4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 s16 gGolemKnightBishopAnimBlend[22] = {

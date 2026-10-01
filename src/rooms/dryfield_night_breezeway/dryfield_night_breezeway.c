@@ -46,7 +46,7 @@ static void func_dryfield_night_breezeway_8017D634(Task* task);
 static void func_dryfield_night_breezeway_8017D678(Task* task);
 
 /// The room's message table: 0x13EE, 0x13F1, 0x13EF and 0x13F0 to their
-/// handlers, terminated by 0x7FFFFFFF.
+/// handlers, terminated by `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_dryfield_night_breezeway_8017E67C[];
 
 /// The anchor points of the room's lights: one run of eight `SVECTOR`s. The

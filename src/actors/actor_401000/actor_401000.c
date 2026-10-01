@@ -1074,7 +1074,7 @@ Actor401000MessageEntry D_actor_401000_80154F90[8] = {
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = actorMsgReleaseHold } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = oddStrangerApplyCommand } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 ActorHeightClamp D_actor_401000_80154FD0[3] = {

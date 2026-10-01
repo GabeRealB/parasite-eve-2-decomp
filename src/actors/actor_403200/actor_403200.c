@@ -2804,7 +2804,7 @@ Actor403200MessageEntry D_actor_403200_8015F770[8] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403200_80138748 } },
     { 5108, { .call4 = func_actor_403200_80141A94 } },
     { 2014, { .call0 = func_actor_403200_80141B30 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_403200_8015F7B0[3][9] = {

@@ -885,7 +885,7 @@ Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
     { 2005, { .call4 = func_actor_120400_80132C38 } },
     { 2013, { .call3 = func_actor_120400_80132398 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_120400_80132D14 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// The parent's spawn handler. Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
 /// has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture page and CLUT

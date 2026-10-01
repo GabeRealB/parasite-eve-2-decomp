@@ -339,7 +339,7 @@ AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6] = {
     { 5105, { .call0 = func_acropolis_patio_8017DD44 } },
     { 5106, { .call2 = func_acropolis_patio_8017DD4C } },
     { 5103, { .call3 = func_acropolis_patio_8017DBAC } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_acropolis_patio_801802BC[4] = {

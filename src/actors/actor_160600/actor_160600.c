@@ -1101,7 +1101,7 @@ Actor160600MessageEntry gPacedWalkMsgTable[6] = {
     { 2004, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_160600_8013268C } },
     { 2013, { .call2 = pacedWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_160600_8013DFA0 = { { { TASK_BODY_TMD, 96 } }, func_actor_160600_801321B4, { .model = &D_actor_160600_8013BA9C } };

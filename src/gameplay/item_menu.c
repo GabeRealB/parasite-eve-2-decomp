@@ -12,6 +12,7 @@
 #include "item_use.h"
 #include "gameplay/items.h"
 #include "items.h"
+#include "gameplay/message.h"
 #include "message.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/starter_inventory.h"
@@ -202,7 +203,7 @@ UiObjectDesc   D_8010D6F4[11]    = {
     { 0, 0xFFC6, 0xFFE2, 116, 60, 16, 0, 0, 192, Gp_ItemMenuListTask, 0 },
     { 0, 0xFF70, 64, 288, 40, 60, 0, 0, 192, Gp_HolderPromptTask, 0 },
 };
-GpItemReplyEntry D_8010D828[2] = { { 2011, Gp_BindItemObj2 }, { 0x7FFFFFFF, NULL } };
+GpItemReplyEntry D_8010D828[2] = { { 2011, Gp_BindItemObj2 }, { TASK_MESSAGE_TABLE_END, NULL } };
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.

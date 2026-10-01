@@ -759,7 +759,7 @@ AnimationSet* gMadChaserAnimBank[21] = {
 Actor341700MessageEntry gMadChaserMsgTable[3] = {
     { 2004, { .call0 = madChaserMsgPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = madChaserCommandMsg } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_341700_80174D58 = { { { TASK_BODY_TMD, 96 } }, madChaserTask, { .model = &D_actor_341700_80171864 } };

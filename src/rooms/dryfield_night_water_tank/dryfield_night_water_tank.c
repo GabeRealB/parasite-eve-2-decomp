@@ -52,7 +52,7 @@ extern s32 D_80137C28;
 extern s32 D_80138570;
 
 /// Message table of the night water-tank room, 0x13EE..0x13F1 with the
-/// 0x7FFFFFFF terminator: `func_dryfield_night_water_tank_8017D714`,
+/// `TASK_MESSAGE_TABLE_END` terminator: `func_dryfield_night_water_tank_8017D714`,
 /// `..._8017D70C`, `..._8017D76C` and `..._8017D73C`.
 extern TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[];
 

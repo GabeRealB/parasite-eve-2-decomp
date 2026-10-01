@@ -416,7 +416,7 @@ Actor461800MessageEntry D_actor_461800_80139F5C[6] = {
     { 2004, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_80132F20 } },
     { 2013, { .call3 = scriptedWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_461800_80139F8C[3] = {
@@ -826,7 +826,7 @@ Actor461800MessageEntry gFootstepWalkMsgTable[6] = {
     { 2004, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_461800_801339EC } },
     { 2013, { .call3 = footstepWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_461800_801437EC = { { { TASK_BODY_TMD, 192 } }, func_actor_461800_80133554, { .model = &D_actor_461800_8013F77C } };

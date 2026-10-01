@@ -307,7 +307,7 @@ DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { 5104, { .call3 = func_dryfield_night_gas_station_8017F89C } },
     { 5106, { .call3 = gasStationCueSoundMsg } },
     { 5108, { .call0 = func_dryfield_night_gas_station_8017F9E8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_dryfield_night_gas_station_8018406C[2] = {

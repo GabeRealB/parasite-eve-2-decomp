@@ -68,7 +68,7 @@ typedef struct RgSpriteLevels {
     /* 0x0 */ u8 v[3];
 } RgSpriteLevels;
 
-/// Messages the room task answers, terminated by id 0x7FFFFFFF.
+/// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_acropolis_roof_garden_80183BDC[];
 extern Task*            D_acropolis_roof_garden_80183C0C;
 extern TaskDesc         D_acropolis_roof_garden_80183C10[];

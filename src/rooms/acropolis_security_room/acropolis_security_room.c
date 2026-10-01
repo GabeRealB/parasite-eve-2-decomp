@@ -341,7 +341,7 @@ AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[5] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call2 = func_acropolis_security_room_8017D740 } },
     { 5104, { .call1 = func_acropolis_security_room_8017D708 } },
     { 5105, { .call1 = func_acropolis_security_room_8017D6D4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 AnimationPlayRequest D_acropolis_security_room_80182604 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

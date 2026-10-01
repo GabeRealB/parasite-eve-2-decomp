@@ -259,7 +259,7 @@ MIPS span = first strong prologue (`addiu $sp,$sp,-N` / `jr $ra` / `jal`)
 through the last `jr $ra` + delay. The same detector hits the known title
 (`.text` `0x9C`–`0x140C`) and gameplay (`.text` `0x42C0`–`0x79208`) ranges
 exactly. Spot-checks on rooms land on real epilogues; the bytes immediately
-after are event records (`0x13EE` / pointer / `0x13F1` / … / `0x7FFFFFFF`).
+after are event records (`0x13EE` / pointer / `0x13F1` / … / `TASK_MESSAGE_TABLE_END` = `0x7FFFFFFF`).
 
 Across all 168 rooms (weighted):
 

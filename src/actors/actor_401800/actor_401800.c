@@ -1098,7 +1098,7 @@ Actor401800MessageEntry D_actor_401800_80155A80[8] = {
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = actorMsgReleaseHold } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = oddStrangerApplyCommand } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 u16 gOddStrangerChaseDistance = 0;
