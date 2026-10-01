@@ -567,7 +567,6 @@ void Gp_MenuRootTask(Task* arg0)
             PlayerStatus* cfg;
             s32           secondaryItemId;
             TaskNode*     previousList;
-            s32*          flag;
 
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 return;
@@ -581,8 +580,8 @@ void Gp_MenuRootTask(Task* arg0)
                 (D_80114DE0 != secondaryItemId)) {
                 previousList = Task_GetActiveList();
                 Task_SetActiveList(&gTaskDefaultList);
-                flag  = &D_8005ED8C;
-                *flag = 1;
+                // Rebuild the weapon bodies now; allocate their buffers after the view reload.
+                gTaskDeferModelBufferAllocation = true;
                 Gp_SpawnWeaponEff();
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     func_8010870C(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 5);
@@ -591,7 +590,7 @@ void Gp_MenuRootTask(Task* arg0)
                     Gp_PlayerWeaponId(&D_8010E7F4.source.index);
                     Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
                 }
-                *flag = 0;
+                gTaskDeferModelBufferAllocation = false;
                 Task_SetActiveList(previousList);
             }
             GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);

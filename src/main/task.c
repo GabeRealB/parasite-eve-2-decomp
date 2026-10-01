@@ -62,7 +62,7 @@ static void Task_Unlink(Task* state);
 
 static void Task_Free(Task* state);
 
-s32 D_8005ED8C = 0;
+bool gTaskDeferModelBufferAllocation = false;
 
 /// Links `task` into `list` ahead of the first task whose priority is higher,
 /// so the list stays in ascending priority order and equal priorities keep
@@ -90,6 +90,9 @@ static inline void _taskInsert(TaskNode* list, Task* task, u32 priority)
 
 static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskNode* list)
 {
+    /// Defers the initial model buffer while leaving automatic recovery enabled.
+    enum { TASK_SPAWN_DEFER_MODEL_BUFFER = 2 };
+
     Task*    task;
     TaskBody extra;
     u16      flags;
@@ -109,8 +112,8 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
             if (flags & TASK_DESC_SKIP_MODEL_BUFFER) {
                 attachFlags = 1;
             }
-            if (D_8005ED8C != 0) {
-                attachFlags |= 2;
+            if (gTaskDeferModelBufferAllocation) {
+                attachFlags |= TASK_SPAWN_DEFER_MODEL_BUFFER;
             }
             extra.tmd = Gp_AttachTmdFlags(task, desc->data.model, attachFlags);
             break;

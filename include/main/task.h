@@ -19,6 +19,18 @@
 /// allocations. Boot and session resets pair it with heap reinitialization.
 extern TaskNode gTaskDefaultList;
 
+/// Defers primitive-buffer allocation for newly spawned TMD task bodies.
+///
+/// `false` uses the descriptor's normal buffer policy; `true` defers allocation
+/// without disabling later missing-buffer recovery. A descriptor that disables
+/// automatic buffers keeps that policy in either case. Existing bodies and
+/// direct model attachments are unaffected.
+///
+/// This resident 32-bit Boolean starts `false`. The menu sets it while rebuilding
+/// weapon attachments before the auxiliary heap is reused for the view, then
+/// clears it before returning. Callers must clear it after a temporary override.
+extern bool gTaskDeferModelBufferAllocation;
+
 /// Six task descriptors. Entry 5 is a model descriptor whose model is not
 /// fixed: callers store the model in its `data.model` just before spawning effect
 /// 0x80005, which spawns its task from that entry.

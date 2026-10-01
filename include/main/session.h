@@ -55,8 +55,6 @@ extern GameSession* gGameSession;
 
 extern s32 D_8005ED68;
 
-extern s32 D_8005ED8C;
-
 /// Stores a task in the session's pointer-slot table.
 void Game_SetPtrSlot(void* ptr, s32 index);
 
