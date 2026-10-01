@@ -238,16 +238,17 @@ static void Gp_ScriptTaskState1(Task* arg0)
     while (1) {
         switch (st->pc->opcode) {
             case EVENT_SCRIPT_OPCODE_SEND_MESSAGE:
-                if (st->pc->operand0.value == 4) {
+                // Resolve scene recipients before forwarding the untouched payload words.
+                if (st->pc->operand0.value == GAME_TASK_SLOT_SCENE) {
                     slot = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
-                    if (st->pc->operand1.value != -1) {
-                        Gp_DispatchMsgReply(slot, 0x7D0,
+                    if (st->pc->operand1.value != EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER) {
+                        Gp_DispatchMsgReply(slot, SCENE_MESSAGE_FIND_PLACED_ACTOR,
                                             (st->pc->operand1.value << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area,
                                             &slot);
                     }
-                } else if (st->pc->operand0.value == -1) {
+                } else if (st->pc->operand0.value == EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD) {
                     slot = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
-                    Gp_DispatchMsgReply(slot, 0x7D8, st->pc->operand1.value, &slot);
+                    Gp_DispatchMsgReply(slot, SCENE_MESSAGE_FIND_OTHER_CHILD, st->pc->operand1.value, &slot);
                 } else {
                     slot = gameGetTaskSlot(st->pc->operand0.value);
                 }

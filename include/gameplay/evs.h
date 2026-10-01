@@ -40,8 +40,23 @@ enum {
     /// random states. The script task enters its kill state for the next update
     /// without advancing the command pointer.
     /// Unlike `EVENT_SCRIPT_OPCODE_RETURN`, this does not pop a script call.
-    EVENT_SCRIPT_OPCODE_END          = -1,
-    EVENT_SCRIPT_OPCODE_SEND_MESSAGE = 1, // 0 slot (4 placed enemy, -1 other scene child), 1 child selector, 2 message id, 3/4 payload words.
+    EVENT_SCRIPT_OPCODE_END = -1,
+    /// Sends a synchronous task message to a registered task or a scene child.
+    ///
+    /// Operand 0 is a resident task-slot index in 0..15, or
+    /// `EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD`. Slot 4 selects a type-9
+    /// actor by operand 1's placement index (0..15) in the current stage/area;
+    /// `EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER` instead selects the manager.
+    /// The other-child target selects a child outside type 9 by operand 1's
+    /// byte ID (0..255). Other slots ignore operand 1. Child lookups require a
+    /// live scene manager; every selected non-NULL task must remain live.
+    ///
+    /// Operand 2 is the message ID; operands 3/4 are complete argument words,
+    /// interpreted by the recipient as integers or borrowed addresses through
+    /// `TaskMessageArg`. Payload storage must satisfy that message's type,
+    /// extent and lifetime. Missing targets are skipped, handler return values
+    /// are discarded, and execution advances without yielding.
+    EVENT_SCRIPT_OPCODE_SEND_MESSAGE = 1,
     EVENT_SCRIPT_OPCODE_START_FLASH  = 2, // 0 hold frames, 1 blend-mode selector; replaces the primary effect-task pointer.
     EVENT_SCRIPT_OPCODE_SET_VIEW     = 3, // 0 saved view id, truncated to u8.
     /// Yields the script and delays the following command by a frame countdown.
@@ -97,6 +112,12 @@ enum {
     EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND     = 47, // 0 u8 flag (0 stop selected sound scripts on skip, nonzero keep them).
     EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW          = 48, // 0 saved view id, truncated to u8; also mark the view dirty.
     EVENT_SCRIPT_OPCODE_SAVE_VIEW               = 49, // Save the current view for later restoration.
+};
+
+/// Special recipient selectors for `EVENT_SCRIPT_OPCODE_SEND_MESSAGE`.
+enum {
+    EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD = -1, // Operand 0: resolve a non-type-9 child by operand 1's byte ID
+    EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER     = -1, // Operand 1 with task slot 4: address the manager itself
 };
 
 /// One four-byte event-script operand, interpreted by its instruction's opcode.

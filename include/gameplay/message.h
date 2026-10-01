@@ -207,6 +207,18 @@ typedef struct GpDelayArg {
 } GpDelayArg;
 STATIC_ASSERT_SIZEOF(GpDelayArg, 0x18);
 
+/// Scene-child lookup messages with a borrowed, writable `Task*` reply.
+///
+/// The first payload is a packed placement key (index in bits 12..15, stage in
+/// bits 8..11, area in bits 0..7) for a type-9 actor, or a byte ID for a child
+/// outside type 9. The second payload addresses one complete `Task*` that is
+/// set synchronously to the first matching child, or NULL when none matches.
+/// The scene manager must be live; the returned child is borrowed.
+enum {
+    SCENE_MESSAGE_FIND_PLACED_ACTOR = 0x7D0,
+    SCENE_MESSAGE_FIND_OTHER_CHILD  = 0x7D8,
+};
+
 /// Actor-command delivery and the scene manager's general actor-message broadcast.
 enum {
     ACTOR_COMMAND_MESSAGE_APPLY       = 0x7DB,
