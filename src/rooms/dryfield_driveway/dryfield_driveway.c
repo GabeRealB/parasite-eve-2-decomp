@@ -343,9 +343,9 @@ SpriteBatch D_dryfield_driveway_8017F160[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_dryfield_driveway_8017F198[2] = {
+SpriteDrawArea D_dryfield_driveway_8017F198[2] = {
     { { 0, 0, 231, 239 }, 925 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_dryfield_driveway_8017F1AC[50] = {

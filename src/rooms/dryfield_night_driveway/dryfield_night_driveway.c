@@ -624,9 +624,9 @@ SpriteBatch D_dryfield_night_driveway_80180FD0[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_dryfield_night_driveway_80181008[2] = {
+SpriteDrawArea D_dryfield_night_driveway_80181008[2] = {
     { { 0, 0, 222, 239 }, 925 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_dryfield_night_driveway_8018101C[54] = {
@@ -788,9 +788,9 @@ SpriteBatch D_dryfield_night_driveway_80181824[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_dryfield_night_driveway_8018185C[2] = {
+SpriteDrawArea D_dryfield_night_driveway_8018185C[2] = {
     { { 0, 0, 222, 239 }, 925 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 GpSprtRec D_dryfield_night_driveway_80181870[10] = {

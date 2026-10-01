@@ -284,9 +284,9 @@ SpriteBatch D_shelter_b1_elevator_hall_80183A34[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b1_elevator_hall_80183A4C[2] = {
+SpriteDrawArea D_shelter_b1_elevator_hall_80183A4C[2] = {
     { { 150, 64, 84, 92 }, 1870 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_shelter_b1_elevator_hall_80183A60[2] = {

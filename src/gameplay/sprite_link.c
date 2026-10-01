@@ -383,30 +383,32 @@ static void func_800AD024(void)
     GpSprtTbl*       tbl2;
     GpSprtRec**      mid2;
     GpSprtRec*       recs;
-    GpDrawAreaRec*   area;
+    SpriteDrawArea*  drawArea;
     DR_AREA*         prim;
 
-    session = gGameSession;
-    sess    = &session->location.loc;
-    tbl     = Gp_ViewIndexTables[sess->stage - 1];
-    mid     = tbl->field_0;
-    inner   = mid[sess->area - 1];
-    bytes   = inner[sess->room - 1];
-    idx     = bytes[sess->view - 1];
-    tbl2    = Gp_SprtTables[sess->stage - 1];
-    mid2    = tbl2->field_0;
-    recs    = mid2[sess->area - 1];
-    area    = recs[idx - 1].field_8;
-    if (area != NULL) {
-        for (; area->depth != 0xFFFF; area++) {
-            rect = area->rect;
+    session  = gGameSession;
+    sess     = &session->location.loc;
+    tbl      = Gp_ViewIndexTables[sess->stage - 1];
+    mid      = tbl->field_0;
+    inner    = mid[sess->area - 1];
+    bytes    = inner[sess->room - 1];
+    idx      = bytes[sess->view - 1];
+    tbl2     = Gp_SprtTables[sess->stage - 1];
+    mid2     = tbl2->field_0;
+    recs     = mid2[sess->area - 1];
+    drawArea = recs[idx - 1].field_8;
+    if (drawArea != NULL) {
+        for (; drawArea->restoreDepth != SPRITE_DRAW_AREA_END; drawArea++) {
+            // Apply the view clip before depth-sorted drawing begins.
+            rect = drawArea->clipRect;
             if (gDisplayState.drawBuffer != 0) {
                 rect.y += 0x110;
             }
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             SetDrawArea(prim, &rect);
-            addPrim(&gGpuCurrentOt[0x3FF], prim);
+            addPrim(&gGpuCurrentOt[GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt)], prim);
+            // Restore the full draw buffer at this record's sorting boundary.
             if (gDisplayState.drawBuffer != 0) {
                 rect.y = 0x110;
             } else {
@@ -418,7 +420,7 @@ static void func_800AD024(void)
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             SetDrawArea(prim, &rect);
-            addPrim((&gGpuCurrentOt[((((u32)area->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), prim);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)drawArea->restoreDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), prim);
         }
     }
 }

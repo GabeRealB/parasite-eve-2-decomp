@@ -200,9 +200,9 @@ SpriteBatch D_shelter_1f_airlock_8017EB10[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_1f_airlock_8017EB30[2] = {
+SpriteDrawArea D_shelter_1f_airlock_8017EB30[2] = {
     { { 117, 161, 0, 0 }, 0x4E20 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_1f_airlock_8017EB44[26] = {
@@ -241,9 +241,9 @@ SpriteBatch D_shelter_1f_airlock_8017ED4C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_1f_airlock_8017ED6C[2] = {
+SpriteDrawArea D_shelter_1f_airlock_8017ED6C[2] = {
     { { 149, 229, 0, 0 }, 0x343A },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_1f_airlock_8017ED80[36] = {
@@ -291,9 +291,9 @@ SpriteBatch D_shelter_1f_airlock_8017F050[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_1f_airlock_8017F068[2] = {
+SpriteDrawArea D_shelter_1f_airlock_8017F068[2] = {
     { { 87, 207, 0, 0 }, 0x2BF2 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 GpSprtRec D_shelter_1f_airlock_8017F07C[5] = {

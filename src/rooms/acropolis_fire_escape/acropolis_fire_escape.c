@@ -185,20 +185,20 @@ extern GpObj3A        D_acropolis_fire_escape_801828BC[2];
 extern GpObj4C        D_acropolis_fire_escape_801822CC[8];
 extern GpRoomCoordSet D_acropolis_fire_escape_80182B54[1];
 
-extern GpDrawAreaRec D_acropolis_fire_escape_80182D44[2];
-extern GpDrawAreaRec D_acropolis_fire_escape_80182DF4[2];
-extern SpriteBatch   D_acropolis_fire_escape_80182B6C[2];
-extern SpriteBatch   D_acropolis_fire_escape_80182B7C[2];
-extern SpriteBatch   D_acropolis_fire_escape_80182C90[3];
-extern SpriteBatch   D_acropolis_fire_escape_80182CA8[2];
-extern SpriteBatch   D_acropolis_fire_escape_80182D1C[3];
-extern SpriteBatch   D_acropolis_fire_escape_80182D34[2];
-extern SpriteBatch   D_acropolis_fire_escape_80182DBC[3];
-extern SpriteBatch   D_acropolis_fire_escape_80182DD4[2];
-extern SpriteBatch   D_acropolis_fire_escape_80182DE4[2];
-extern SpriteSource  D_acropolis_fire_escape_80182B8C[13];
-extern SpriteSource  D_acropolis_fire_escape_80182CB8[5];
-extern SpriteSource  D_acropolis_fire_escape_80182D58[5];
+extern SpriteDrawArea D_acropolis_fire_escape_80182D44[2];
+extern SpriteDrawArea D_acropolis_fire_escape_80182DF4[2];
+extern SpriteBatch    D_acropolis_fire_escape_80182B6C[2];
+extern SpriteBatch    D_acropolis_fire_escape_80182B7C[2];
+extern SpriteBatch    D_acropolis_fire_escape_80182C90[3];
+extern SpriteBatch    D_acropolis_fire_escape_80182CA8[2];
+extern SpriteBatch    D_acropolis_fire_escape_80182D1C[3];
+extern SpriteBatch    D_acropolis_fire_escape_80182D34[2];
+extern SpriteBatch    D_acropolis_fire_escape_80182DBC[3];
+extern SpriteBatch    D_acropolis_fire_escape_80182DD4[2];
+extern SpriteBatch    D_acropolis_fire_escape_80182DE4[2];
+extern SpriteSource   D_acropolis_fire_escape_80182B8C[13];
+extern SpriteSource   D_acropolis_fire_escape_80182CB8[5];
+extern SpriteSource   D_acropolis_fire_escape_80182D58[5];
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -408,9 +408,9 @@ SpriteBatch D_acropolis_fire_escape_80182D34[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_acropolis_fire_escape_80182D44[2] = {
+SpriteDrawArea D_acropolis_fire_escape_80182D44[2] = {
     { { 103, 0, 215, 239 }, 1000 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_acropolis_fire_escape_80182D58[5] = {
@@ -437,9 +437,9 @@ SpriteBatch D_acropolis_fire_escape_80182DE4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_acropolis_fire_escape_80182DF4[2] = {
+SpriteDrawArea D_acropolis_fire_escape_80182DF4[2] = {
     { { 19, 11, 0, 0 }, 250 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_acropolis_fire_escape_80182E08[2] = {

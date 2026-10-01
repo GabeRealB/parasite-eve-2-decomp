@@ -111,35 +111,35 @@ extern SVECTOR D_acropolis_cafeteria_8018D32C[18];
 extern TmdBone D_acropolis_cafeteria_8018D254[1];
 extern u32     D_acropolis_cafeteria_8018D3BC[112];
 
-extern GpDrawAreaRec D_acropolis_cafeteria_8018B3A4[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018AA30[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018AD60[10];
-extern SpriteBatch   D_acropolis_cafeteria_8018B2EC[19];
-extern SpriteBatch   D_acropolis_cafeteria_8018B394[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018B6C4[6];
-extern SpriteBatch   D_acropolis_cafeteria_8018B6F4[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018B704[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018B714[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018B724[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018B7C0[3];
-extern SpriteBatch   D_acropolis_cafeteria_8018B800[3];
-extern SpriteBatch   D_acropolis_cafeteria_8018B818[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018BA94[17];
-extern SpriteBatch   D_acropolis_cafeteria_8018BC0C[3];
-extern SpriteBatch   D_acropolis_cafeteria_8018BC24[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018BC34[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018BC44[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018BC54[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018BC64[2];
-extern SpriteBatch   D_acropolis_cafeteria_8018C250[19];
-extern SpriteSource  D_acropolis_cafeteria_8018AA40[40];
-extern SpriteSource  D_acropolis_cafeteria_8018ADB0[67];
-extern SpriteSource  D_acropolis_cafeteria_8018B3B8[39];
-extern SpriteSource  D_acropolis_cafeteria_8018B734[7];
-extern SpriteSource  D_acropolis_cafeteria_8018B7D8[2];
-extern SpriteSource  D_acropolis_cafeteria_8018B828[31];
-extern SpriteSource  D_acropolis_cafeteria_8018BB1C[12];
-extern SpriteSource  D_acropolis_cafeteria_8018BC74[75];
+extern SpriteDrawArea D_acropolis_cafeteria_8018B3A4[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018AA30[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018AD60[10];
+extern SpriteBatch    D_acropolis_cafeteria_8018B2EC[19];
+extern SpriteBatch    D_acropolis_cafeteria_8018B394[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018B6C4[6];
+extern SpriteBatch    D_acropolis_cafeteria_8018B6F4[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018B704[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018B714[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018B724[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018B7C0[3];
+extern SpriteBatch    D_acropolis_cafeteria_8018B800[3];
+extern SpriteBatch    D_acropolis_cafeteria_8018B818[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018BA94[17];
+extern SpriteBatch    D_acropolis_cafeteria_8018BC0C[3];
+extern SpriteBatch    D_acropolis_cafeteria_8018BC24[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018BC34[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018BC44[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018BC54[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018BC64[2];
+extern SpriteBatch    D_acropolis_cafeteria_8018C250[19];
+extern SpriteSource   D_acropolis_cafeteria_8018AA40[40];
+extern SpriteSource   D_acropolis_cafeteria_8018ADB0[67];
+extern SpriteSource   D_acropolis_cafeteria_8018B3B8[39];
+extern SpriteSource   D_acropolis_cafeteria_8018B734[7];
+extern SpriteSource   D_acropolis_cafeteria_8018B7D8[2];
+extern SpriteSource   D_acropolis_cafeteria_8018B828[31];
+extern SpriteSource   D_acropolis_cafeteria_8018BB1C[12];
+extern SpriteSource   D_acropolis_cafeteria_8018BC74[75];
 
 GpRoomCoordSet D_acropolis_cafeteria_8018AA18[1] = {
     { 0, NULL, 15, D_acropolis_cafeteria_80189E24, 1, D_acropolis_cafeteria_8018A3C4.active },
@@ -308,9 +308,9 @@ SpriteBatch D_acropolis_cafeteria_8018B394[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_acropolis_cafeteria_8018B3A4[2] = {
+SpriteDrawArea D_acropolis_cafeteria_8018B3A4[2] = {
     { { 72, 0, 248, 239 }, 707 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_acropolis_cafeteria_8018B3B8[39] = {

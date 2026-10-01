@@ -270,9 +270,9 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80180BF4[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b1_pod_service_gantry_80180C14[2] = {
+SpriteDrawArea D_shelter_b1_pod_service_gantry_80180C14[2] = {
     { { 195, 0, 125, 239 }, 2500 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b1_pod_service_gantry_80180C28[82] = {

@@ -869,9 +869,9 @@ SpriteBatch D_shelter_b2_laboratory_8018549C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b2_laboratory_801854BC[2] = {
+SpriteDrawArea D_shelter_b2_laboratory_801854BC[2] = {
     { { 60, 3, 257, 235 }, 745 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 GpSprtRec D_shelter_b2_laboratory_801854D0[15] = {

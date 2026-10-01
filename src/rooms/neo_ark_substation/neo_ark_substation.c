@@ -379,9 +379,9 @@ SpriteBatch D_neo_ark_substation_8017F51C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_neo_ark_substation_8017F52C[2] = {
+SpriteDrawArea D_neo_ark_substation_8017F52C[2] = {
     { { 0, 0, 194, 186 }, 975 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_neo_ark_substation_8017F540[2] = {
@@ -389,9 +389,9 @@ SpriteBatch D_neo_ark_substation_8017F540[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_neo_ark_substation_8017F550[2] = {
+SpriteDrawArea D_neo_ark_substation_8017F550[2] = {
     { { 136, 0, 184, 172 }, 1075 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_neo_ark_substation_8017F564[2] = {

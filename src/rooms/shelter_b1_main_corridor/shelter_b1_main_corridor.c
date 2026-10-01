@@ -323,9 +323,9 @@ SpriteBatch D_shelter_b1_main_corridor_8018470C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b1_main_corridor_80184724[2] = {
+SpriteDrawArea D_shelter_b1_main_corridor_80184724[2] = {
     { { 33, 0, 285, 239 }, 1373 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b1_main_corridor_80184738[13] = {
@@ -409,9 +409,9 @@ SpriteBatch D_shelter_b1_main_corridor_80184BA0[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b1_main_corridor_80184BB8[2] = {
+SpriteDrawArea D_shelter_b1_main_corridor_80184BB8[2] = {
     { { 105, 0, 215, 239 }, 2289 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b1_main_corridor_80184BCC[19] = {

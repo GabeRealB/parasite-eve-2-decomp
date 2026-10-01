@@ -223,9 +223,9 @@ SpriteBatch D_shelter_b1_sleeping_quarters_80181A30[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b1_sleeping_quarters_80181A50[2] = {
+SpriteDrawArea D_shelter_b1_sleeping_quarters_80181A50[2] = {
     { { 79, 99, 62, 140 }, 1662 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b1_sleeping_quarters_80181A64[112] = {
@@ -351,9 +351,9 @@ SpriteBatch D_shelter_b1_sleeping_quarters_80182324[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b1_sleeping_quarters_8018234C[2] = {
+SpriteDrawArea D_shelter_b1_sleeping_quarters_8018234C[2] = {
     { { 109, 215, 0, 0 }, 0x57E4 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b1_sleeping_quarters_80182360[37] = {
@@ -403,9 +403,9 @@ SpriteBatch D_shelter_b1_sleeping_quarters_80182644[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b1_sleeping_quarters_80182664[2] = {
+SpriteDrawArea D_shelter_b1_sleeping_quarters_80182664[2] = {
     { { 121, 87, 83, 152 }, 1375 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b1_sleeping_quarters_80182678[39] = {

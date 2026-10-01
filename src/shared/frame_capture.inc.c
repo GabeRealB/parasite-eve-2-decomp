@@ -5,14 +5,14 @@
 /// (0x1C0, 0x100), fill it with a near-black tile with mask-bit setting on,
 /// draw two 160x240 raw-texture sprites copied from the current draw buffer
 /// over it, and then restore the draw offset, mask setting and draw area for
-/// the current buffer. The restored area is the view's sprite rectangle when
-/// one is active and nearer than `otz`, full screen otherwise. The 0x14-byte
+/// the current buffer. The first view draw-area rectangle is restored when
+/// its scaled restore depth is below `otz`, full screen otherwise. The 0x14-byte
 /// block holding the rectangle and offset is carved off the scratch head and
 /// released before returning.
 void frameCaptureQueue(s32 otz)
 {
     ActorsDrawScratch* scratch;
-    GpDrawAreaRec*     extra;
+    SpriteDrawArea*    drawArea;
     DR_AREA*           area;
     DR_STP*            stp;
     DR_OFFSET*         off;
@@ -22,13 +22,13 @@ void frameCaptureQueue(s32 otz)
     RECT*              clip;
     u_short*           ofs;
 
-    extra          = Gp_GetViewSprtExtra();
+    drawArea       = Gp_GetViewSprtExtra();
     scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorsDrawScratch);
     scratch->otz   = otz;
     area           = gGpuPrimCursor;
     gGpuPrimCursor = area + 1;
-    if (extra != NULL && ((extra->depth << gDisplayState.otDepthShift) & 0x3FFF) >> 4 < scratch->otz) {
-        scratch->rect    = extra->rect;
+    if (drawArea != NULL && ((drawArea->restoreDepth << gDisplayState.otDepthShift) & 0x3FFF) >> 4 < scratch->otz) {
+        scratch->rect    = drawArea->clipRect;
         scratch->rect.y += gDisplayState.drawBuffer * 0x110;
     } else {
         scratch->rect.x = 0;

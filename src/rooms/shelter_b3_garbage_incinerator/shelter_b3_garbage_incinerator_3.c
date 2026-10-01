@@ -308,9 +308,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_80188A94[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_80188AAC[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_80188AAC[2] = {
     { { 27, 0, 292, 239 }, 1012 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_80188AC0[11] = {
@@ -333,9 +333,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_80188B9C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_80188BB4[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_80188BB4[2] = {
     { { 42, 0, 278, 239 }, 1962 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_80188BC8[8] = {
@@ -355,9 +355,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_80188C68[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_80188C80[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_80188C80[2] = {
     { { 83, 0, 237, 239 }, 2875 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_80188C94[5] = {
@@ -374,9 +374,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_80188CF8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_80188D10[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_80188D10[2] = {
     { { 85, 0, 235, 239 }, 4000 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_80188D24[47] = {
@@ -436,9 +436,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_801890D0[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_801890F0[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_801890F0[2] = {
     { { 98, 0, 222, 239 }, 4250 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_shelter_b3_garbage_incinerator_80189104[2] = {
@@ -701,9 +701,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018A15C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018A17C[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018A17C[2] = {
     { { 75, 0, 245, 239 }, 2625 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_shelter_b3_garbage_incinerator_8018A190[2] = {
@@ -766,9 +766,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018A524[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018A544[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018A544[2] = {
     { { 31, 1, 287, 167 }, 1337 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_shelter_b3_garbage_incinerator_8018A558[2] = {
@@ -859,9 +859,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018AB30[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018AB48[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018AB48[2] = {
     { { 0, 0, 319, 208 }, 700 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_shelter_b3_garbage_incinerator_8018AB5C[2] = {
@@ -902,9 +902,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018ACA4[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018ACBC[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018ACBC[2] = {
     { { 30, 0, 290, 239 }, 962 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_8018ACD0[15] = {
@@ -931,9 +931,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018ADFC[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018AE14[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018AE14[2] = {
     { { 35, 0, 285, 239 }, 1875 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_8018AE28[8] = {
@@ -953,9 +953,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018AEC8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018AEE0[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018AEE0[2] = {
     { { 83, 0, 237, 239 }, 2875 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_8018AEF4[5] = {
@@ -972,9 +972,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018AF58[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018AF70[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018AF70[2] = {
     { { 85, 1, 234, 238 }, 4000 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_8018AF84[133] = {
@@ -1121,9 +1121,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018B9E8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018BA10[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018BA10[2] = {
     { { 98, 0, 222, 239 }, 4250 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_shelter_b3_garbage_incinerator_8018BA24[2] = {
@@ -1288,9 +1288,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018C46C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018C48C[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018C48C[2] = {
     { { 68, 0, 252, 239 }, 2500 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_garbage_incinerator_8018C4A0[41] = {
@@ -1344,9 +1344,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018C7D4[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018C7F4[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018C7F4[2] = {
     { { 32, 1, 286, 169 }, 1337 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_shelter_b3_garbage_incinerator_8018C808[2] = {
@@ -1491,9 +1491,9 @@ SpriteBatch D_shelter_b3_garbage_incinerator_8018D0D4[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_garbage_incinerator_8018D0EC[2] = {
+SpriteDrawArea D_shelter_b3_garbage_incinerator_8018D0EC[2] = {
     { { 1, 1, 318, 168 }, 1337 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 GpSprtRec D_shelter_b3_garbage_incinerator_8018D100[40] = {

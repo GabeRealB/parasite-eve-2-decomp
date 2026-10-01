@@ -446,9 +446,9 @@ SpriteBatch D_dryfield_night_motel_room_5_8017F674[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_dryfield_night_motel_room_5_8017F6A4[2] = {
+SpriteDrawArea D_dryfield_night_motel_room_5_8017F6A4[2] = {
     { { 0, 102, 320, 137 }, 800 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_dryfield_night_motel_room_5_8017F6B8[41] = {

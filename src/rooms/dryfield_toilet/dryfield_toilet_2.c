@@ -420,9 +420,9 @@ SpriteBatch D_dryfield_toilet_80182154[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_dryfield_toilet_80182184[2] = {
+SpriteDrawArea D_dryfield_toilet_80182184[2] = {
     { { 150, 0, 168, 239 }, 875 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteBatch D_dryfield_toilet_80182198[2] = {

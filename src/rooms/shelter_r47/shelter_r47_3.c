@@ -331,9 +331,9 @@ SpriteBatch D_shelter_r47_80188CBC[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_r47_80188CDC[2] = {
+SpriteDrawArea D_shelter_r47_80188CDC[2] = {
     { { 195, 0, 125, 239 }, 2500 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_r47_80188CF0[82] = {

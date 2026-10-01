@@ -1546,9 +1546,9 @@ SpriteBatch D_dryfield_water_tower_801864A8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_dryfield_water_tower_801864C0[2] = {
+SpriteDrawArea D_dryfield_water_tower_801864C0[2] = {
     { { 316, 1, 3, 2 }, 500 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_dryfield_water_tower_801864D4[5] = {

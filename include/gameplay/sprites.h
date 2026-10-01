@@ -89,13 +89,28 @@ typedef struct {
 } SpriteSource;
 STATIC_ASSERT_SIZEOF(SpriteSource, 0x14);
 
-/// 10-byte draw-area record. `GpSprtRec.field_8` points at a list terminated
-/// by depth 0xFFFF. Each rectangle clips the view sprites up to its OT depth.
-typedef struct _GpDrawAreaRec {
-    /* 0x0 */ RECT rect;
-    /* 0x8 */ u16  depth;
-} GpDrawAreaRec;
-STATIC_ASSERT_SIZEOF(GpDrawAreaRec, 0xA);
+/// Sentinel in `SpriteDrawArea.restoreDepth` ending a view's draw-area list.
+enum { SPRITE_DRAW_AREA_END = 0xFFFF };
+
+/// A view clipping rectangle and the sorting depth that restores full-screen drawing.
+///
+/// Room overlays own lists referenced by `GpSprtRec.field_8`; NULL selects no
+/// clipping commands. Lists end with `restoreDepth == SPRITE_DRAW_AREA_END`;
+/// the renderer emits no command for the terminal record. The overlay and list
+/// must remain valid while building drawing commands. Frame capture consults
+/// only the first record when choosing its restored clip.
+///
+/// Coordinates and dimensions are pixels measured from the draw buffer's
+/// upper-left corner; emission adds the buffer's VRAM Y origin (0 or 272).
+/// The renderer queues the clip at OT slot 1023 and a 320x240 full-screen restore at
+/// `((u32)restoreDepth << gDisplayState.otDepthShift) >> 4 & 0x3FF`.
+/// This is a masked sorting value, not a clamped OT index; it clips primitives
+/// drawn before the restore command, including scene objects as well as sprites.
+typedef struct {
+    RECT clipRect;     // Clipping rectangle in draw-buffer pixels, before the VRAM Y offset
+    u16  restoreDepth; // Unscaled full-screen restore depth (0..65534, SPRITE_DRAW_AREA_END ends the list)
+} SpriteDrawArea;
+STATIC_ASSERT_SIZEOF(SpriteDrawArea, 0xA);
 
 /// 12-byte per-view record in tables pointed to by `Gp_SprtTables`.
 /// Indexed 1-based by the `Gp_ViewIndexTables` camera / view byte.
@@ -106,8 +121,8 @@ typedef struct _GpSprtRec {
         // Empty lists retain the command-table address here; no sprite is read.
         SpriteBatch* empty;
     } field_0;
-    /* 0x4 */ SpriteBatch*   field_4;
-    /* 0x8 */ GpDrawAreaRec* field_8;
+    /* 0x4 */ SpriteBatch*    field_4;
+    /* 0x8 */ SpriteDrawArea* field_8;
 } GpSprtRec;
 STATIC_ASSERT_SIZEOF(GpSprtRec, 0xC);
 

@@ -2864,7 +2864,7 @@ v0, v0, v1`. A bare `if (val < otz)` uses `$s0` directly (copy-coalesced).
 `gDisplayState` into `$a3`. Split the mask from the shift, then copy:
 
 ```c
-val = (extra->depth << gDisplayState.otDepthShift) & 0x3FFF;
+val = (drawArea->restoreDepth << gDisplayState.otDepthShift) & 0x3FFF;
 z = otz;
 SOFT_TOUCH_REG(z);
 if ((val >> 4) < z) {
@@ -65332,7 +65332,7 @@ uses. Check `.lreg` block locality and `.greg` preferences before adding pins.
 The m2c seed compiled at 68.270% despite replacing a paired `lwl`/`lwr`
 rectangle copy with `M2C_ERROR` placeholders and splitting the destination
 RECT into unrelated locals. A naturally two-byte-aligned record containing
-`RECT rect; u16 depth;` (size 0xA), `rect = area->rect`, and a sentinel-tested
+`RECT clipRect; u16 restoreDepth;` (size 0xA), `rect = drawArea->clipRect`, and a sentinel-tested
 `for` loop restored the copy and both walking pointers without barriers or
 pins. Use byte-correct primitive allocation (`DR_AREA* prim; prim + 1`) and
 OT addressing: arithmetic on `DR_TPAGE*` or `u_long*` silently multiplies
@@ -70803,7 +70803,7 @@ v0, v0, v1`. A bare `if (val < otz)` uses `$s0` directly (copy-coalesced).
 `gDisplayState` into `$a3`. Split the mask from the shift, then copy:
 
 ```c
-val = (extra->depth << gDisplayState.otDepthShift) & 0x3FFF;
+val = (drawArea->restoreDepth << gDisplayState.otDepthShift) & 0x3FFF;
 z = otz;
 SOFT_TOUCH_REG(z);
 if ((val >> 4) < z) {

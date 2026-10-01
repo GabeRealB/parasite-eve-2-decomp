@@ -190,9 +190,9 @@ SpriteBatch D_dryfield_parking_lot_8017EAD4[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_dryfield_parking_lot_8017EAF4[2] = {
+SpriteDrawArea D_dryfield_parking_lot_8017EAF4[2] = {
     { { 136, 0, 183, 238 }, 2250 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_dryfield_parking_lot_8017EB08[24] = {

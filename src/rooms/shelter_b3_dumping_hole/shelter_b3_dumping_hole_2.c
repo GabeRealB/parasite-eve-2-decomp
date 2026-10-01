@@ -472,56 +472,56 @@ void func_shelter_b3_dumping_hole_801835C8(Task*);
 void func_shelter_b3_dumping_hole_80183620(Task*);
 void func_shelter_b3_dumping_hole_80183678(Task*);
 
-extern GpDrawAreaRec D_shelter_b3_dumping_hole_8018D3E0[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018C944[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018C954[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018C964[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CAA0[3];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CAB8[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CAC8[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CAD8[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CC28[3];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CC40[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CC50[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CC60[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018CC70[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018D3B0[6];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018D7B4[4];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018D964[4];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018D984[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DB24[4];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DBE4[3];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DBFC[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DC0C[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DD34[3];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DD4C[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DD5C[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DD80[3];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DD98[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DF88[3];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DFA0[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DFB0[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DFC0[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DFD0[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DFE0[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018DFF0[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018E000[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018E010[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018E020[2];
-extern SpriteBatch   D_shelter_b3_dumping_hole_8018E030[2];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018C974[15];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018CAE8[16];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018CC80[92];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018D3F4[48];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018D7D4[20];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018D994[20];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018DB44[8];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018DC1C[14];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018DD6C[1];
-extern SpriteSource  D_shelter_b3_dumping_hole_8018DDA8[24];
-extern TaskDesc      D_80164B78;
-extern TaskDesc      D_80174D58;
-extern TaskDesc      D_shelter_b3_dumping_hole_80188BC8[5];
+extern SpriteDrawArea D_shelter_b3_dumping_hole_8018D3E0[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018C944[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018C954[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018C964[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CAA0[3];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CAB8[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CAC8[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CAD8[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC28[3];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC40[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC50[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC60[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC70[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018D3B0[6];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018D7B4[4];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018D964[4];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018D984[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DB24[4];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DBE4[3];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DBFC[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DC0C[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD34[3];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD4C[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD5C[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD80[3];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD98[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DF88[3];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFA0[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFB0[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFC0[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFD0[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFE0[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFF0[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018E000[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018E010[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018E020[2];
+extern SpriteBatch    D_shelter_b3_dumping_hole_8018E030[2];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018C974[15];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018CAE8[16];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018CC80[92];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018D3F4[48];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018D7D4[20];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018D994[20];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018DB44[8];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018DC1C[14];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018DD6C[1];
+extern SpriteSource   D_shelter_b3_dumping_hole_8018DDA8[24];
+extern TaskDesc       D_80164B78;
+extern TaskDesc       D_80174D58;
+extern TaskDesc       D_shelter_b3_dumping_hole_80188BC8[5];
 
 DumpingHoleAnimFrame D_shelter_b3_dumping_hole_801880B8[13] = {
     { 704, 0, 112, 112, 48, 48 },
@@ -1386,9 +1386,9 @@ SpriteBatch D_shelter_b3_dumping_hole_8018D3B0[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpDrawAreaRec D_shelter_b3_dumping_hole_8018D3E0[2] = {
+SpriteDrawArea D_shelter_b3_dumping_hole_8018D3E0[2] = {
     { { 1, 0, 318, 196 }, 1400 },
-    { { 0, 0, 0, 0 }, 0xFFFF },
+    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
 SpriteSource D_shelter_b3_dumping_hole_8018D3F4[48] = {
