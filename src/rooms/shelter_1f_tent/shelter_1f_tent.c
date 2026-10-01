@@ -112,7 +112,7 @@ static UiList       Telephone_Data_80181CF4;
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// Message table of the room's message task.
-extern GpMsgEntry D_shelter_1f_tent_80181CDC[];
+extern TaskMessageEntry D_shelter_1f_tent_80181CDC[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x0C-"
 #include "../../shared/telephone.h"
@@ -130,12 +130,12 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_shelter_1f_tent_80181CDC[5] = {
+TaskMessageEntry D_shelter_1f_tent_80181CDC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_tent_8017FC5C },
     { 5105, func_shelter_1f_tent_8017FC54 },
-    { 5103, func_shelter_1f_tent_8017FD54 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_tent_8017FD54 },
     { 5104, func_shelter_1f_tent_8017FCA0 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_shelter_1f_tent_8017F9F0(Task* task);

@@ -15,7 +15,7 @@ extern WorldCoordRoomLights D_dryfield_night_motel_loft_8018004C[1];
 
 extern WorldCollisionTrigger D_dryfield_night_motel_loft_80180064[12];
 
-extern GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[6];
+extern TaskMessageEntry D_dryfield_night_motel_loft_8017EB1C[6];
 
 extern TaskDesc D_dryfield_night_motel_loft_8017EB4C[1];
 

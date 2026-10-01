@@ -202,29 +202,29 @@ STATIC_ASSERT_SIZEOF(AcropolisBridgeMessageEntry, 8);
 // No separate references identify them; their role (including padding) is unresolved.
 extern u16 D_acropolis_bridge_801917A4[2];
 
-extern GpMsgEntry D_acropolis_bridge_80188E4C[];
-extern TaskDesc   D_acropolis_bridge_80188E7C[];
-extern EvsCommand D_acropolis_bridge_80188EBC[];
-extern EvsCommand D_acropolis_bridge_8018912C[];
-extern TaskDesc   D_acropolis_bridge_80189234;
-extern SVECTOR    D_acropolis_bridge_80189240[];
-extern TaskDesc   D_acropolis_bridge_80189830;
+extern TaskMessageEntry D_acropolis_bridge_80188E4C[];
+extern TaskDesc         D_acropolis_bridge_80188E7C[];
+extern EvsCommand       D_acropolis_bridge_80188EBC[];
+extern EvsCommand       D_acropolis_bridge_8018912C[];
+extern TaskDesc         D_acropolis_bridge_80189234;
+extern SVECTOR          D_acropolis_bridge_80189240[];
+extern TaskDesc         D_acropolis_bridge_80189830;
 
 /// Three 16-entry rows, one per digit of the bridge code, mapping a nibble to
 /// the SPRT command that renders it. Entries above 9 hold the row's blank
 /// sentinel.
 extern u8 D_acropolis_bridge_801898CC[3][16];
 
-extern GpMsgEntry D_acropolis_bridge_801898FC[];
-extern SVECTOR    D_acropolis_bridge_8018991C[7];
-extern SVECTOR    D_acropolis_bridge_80189954[7];
-extern SVECTOR    D_acropolis_bridge_8018998C[12];
-extern u16        D_acropolis_bridge_801899EC[8];
-extern u16        D_acropolis_bridge_801899FC[16];
-extern u16        D_acropolis_bridge_80189A1C[12];
-extern SVECTOR    D_acropolis_bridge_80189A34[2];
-extern SVECTOR    D_acropolis_bridge_80189A44;
-extern SVECTOR    D_acropolis_bridge_80189A4C;
+extern TaskMessageEntry D_acropolis_bridge_801898FC[];
+extern SVECTOR          D_acropolis_bridge_8018991C[7];
+extern SVECTOR          D_acropolis_bridge_80189954[7];
+extern SVECTOR          D_acropolis_bridge_8018998C[12];
+extern u16              D_acropolis_bridge_801899EC[8];
+extern u16              D_acropolis_bridge_801899FC[16];
+extern u16              D_acropolis_bridge_80189A1C[12];
+extern SVECTOR          D_acropolis_bridge_80189A34[2];
+extern SVECTOR          D_acropolis_bridge_80189A44;
+extern SVECTOR          D_acropolis_bridge_80189A4C;
 
 /// The two 0x18-byte script work blocks `Gp_SpawnScript18` copies from when the
 /// bridge cutscene starts.
@@ -416,13 +416,13 @@ TmdSource D_acropolis_bridge_80188E28[1] = {
     { 0, 5480, 0, 1, D_acropolis_bridge_80187E00, D_acropolis_bridge_80187E04, &D_acropolis_bridge_80187E04[171], D_acropolis_bridge_80187DDC, D_acropolis_bridge_8018835C },
 };
 
-GpMsgEntry D_acropolis_bridge_80188E4C[6] = {
+TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_bridge_8017D6F4 },
     { 5104, func_acropolis_bridge_8017D7F8 },
-    { 5103, func_acropolis_bridge_8017D868 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_bridge_8017D868 },
     { 5105, func_acropolis_bridge_8017D7F0 },
     { 5106, func_acropolis_bridge_8017D870 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_acropolis_bridge_80188E7C[3] = {
@@ -696,9 +696,9 @@ u8 D_acropolis_bridge_801898CC[3][16] = {
     { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 31, 31, 31, 31, 31, 31 },
 };
 
-GpMsgEntry D_acropolis_bridge_801898FC[2] = {
+TaskMessageEntry D_acropolis_bridge_801898FC[2] = {
     { 3104, func_acropolis_bridge_801820A0 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AcropolisBridgeQuadCorner D_acropolis_bridge_8018990C[4] = {

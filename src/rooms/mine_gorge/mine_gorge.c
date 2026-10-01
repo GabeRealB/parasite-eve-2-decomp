@@ -34,7 +34,7 @@
 void func_mine_gorge_8017D828(Task* arg0);
 
 /// The room's message table, installed by the room task's first state.
-extern GpMsgEntry D_mine_gorge_8017E280[];
+extern TaskMessageEntry D_mine_gorge_8017E280[];
 
 /// The cutscene task `func_mine_gorge_8017D5F8` spawns: one descriptor and a
 /// terminator.
@@ -85,13 +85,13 @@ AnimationSet D_mine_gorge_8017E258 = {
     { NULL, D_mine_gorge_8017DE10, NULL, NULL, D_mine_gorge_8017DE88, NULL, NULL, NULL },
 };
 
-GpMsgEntry D_mine_gorge_8017E280[6] = {
+TaskMessageEntry D_mine_gorge_8017E280[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_gorge_8017D6E8 },
     { 5105, func_mine_gorge_8017D5F8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_gorge_8017D784 },
     { 5104, func_mine_gorge_8017D77C },
     { 5106, func_mine_gorge_8017D7F4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_mine_gorge_8017E2B0[2] = {

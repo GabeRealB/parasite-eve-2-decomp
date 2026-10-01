@@ -11,6 +11,7 @@
 
 #include "shelter_b3_elevator_hall_private.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
@@ -64,10 +65,10 @@ extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
 extern TaskDesc D_shelter_b3_elevator_hall_80182A68[];
 /// The room's message table, which its CAP scripts index.
-extern GpMsgEntry D_shelter_b3_elevator_hall_80182A38[];
-extern SVECTOR    D_shelter_b3_elevator_hall_80182A74[];
-extern SVECTOR    D_shelter_b3_elevator_hall_80182AB4[];
-extern SVECTOR    D_shelter_b3_elevator_hall_80182AF4[];
+extern TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[];
+extern SVECTOR          D_shelter_b3_elevator_hall_80182A74[];
+extern SVECTOR          D_shelter_b3_elevator_hall_80182AB4[];
+extern SVECTOR          D_shelter_b3_elevator_hall_80182AF4[];
 /// Per-palette right shifts applied to the halo's level for red, green and
 /// blue, selected by the palette index in the spawn argument.
 
@@ -87,13 +88,13 @@ TaskDesc D_shelter_b3_elevator_hall_80182A2C[1] = {
     { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } },
 };
 
-GpMsgEntry D_shelter_b3_elevator_hall_80182A38[6] = {
+TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_elevator_hall_8017DC80 },
     { 5105, func_shelter_b3_elevator_hall_8017DC78 },
-    { 5103, func_shelter_b3_elevator_hall_8017DD90 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_elevator_hall_8017DD90 },
     { 5104, func_shelter_b3_elevator_hall_8017DD88 },
     { 5106, func_shelter_b3_elevator_hall_8017DD98 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b3_elevator_hall_80182A68[1] = {

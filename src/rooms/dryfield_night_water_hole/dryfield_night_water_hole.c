@@ -128,10 +128,10 @@ extern TaskDesc D_801351FC[];
 /// `func_dryfield_night_water_hole_8017DC28` hands `Task_SpawnFromTable`. Its
 /// callback is that same task, `roomDepartureTask`.
 extern TaskDesc D_dryfield_night_water_hole_801805EC;
-/// The room's message table, the `GpMsgEntry` list the room task publishes in
+/// The room's message table, the `TaskMessageEntry` list the room task publishes in
 /// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0.
-extern GpMsgEntry D_dryfield_night_water_hole_801805F8[];
+extern TaskMessageEntry D_dryfield_night_water_hole_801805F8[];
 /// The two four-byte records this room hands the slot-4 task as the message
 /// 0x7DB payload, picked by `gGameSession::location.loc.warp`. They are the last two of
 /// the four-record run at 0x80180654, which differ only in the halfword at 0x2.
@@ -217,12 +217,12 @@ AnimationSet D_dryfield_night_water_hole_801805C4 = {
 
 TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_water_hole_801805F8[5] = {
+TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_hole_8017DADC },
     { 5105, func_dryfield_night_water_hole_8017DAD4 },
-    { 5103, func_dryfield_night_water_hole_8017DD5C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_hole_8017DD5C },
     { 5104, func_dryfield_night_water_hole_8017DC28 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_dryfield_night_water_hole_80180620[1] = {

@@ -10288,7 +10288,7 @@ already the thing that binds *one name* to *one address* per link, so aliasing
 the data under a shared name lets a single object serve every carrier.
 
 Take the 19-instruction message-task opener, which parks the room's own
-`GpMsgEntry` table in `Task::msgTable`:
+`TaskMessageEntry` table in `Task::msgTable`:
 
 ```c
 void RoomsShared8017d8c8(Task* arg0)
@@ -21124,7 +21124,7 @@ whose source is a *later* argument register, ahead of any use, means the seed's
 parameter list lost the leading placeholders, whatever the body looks like.
 Restoring the full signature (`Task* task, s32 msgId, s32 arg2, s32 arg3`)
 brought the copy back and the function matched; the id/handler pairing in the
-`GpMsgEntry` table the room publishes is where that prototype comes from. That
+`TaskMessageEntry` table the room publishes is where that prototype comes from. That
 seed also carried `insert=2 delete=4` from an unrelated cause — its single `&&`
 condition folded the two bound compares into one range test (section "Two
 compares in the object mean the source had nested `if`s") — so the 69.9%
@@ -46299,7 +46299,7 @@ before naming a work struct, then decide per function which block its
 `index->work` points at. Address order is the cheap tell: the functions around
 the `0x80` allocator use the `0x80` block.
 
-## When address order cannot decide a handler's work block, follow its `GpMsgEntry` table
+## When address order cannot decide a handler's work block, follow its `TaskMessageEntry` table
 
 The companion case, and the one that nearly cost a wrong struct. In
 `actor_303600` the overlay's documented work block is the 0x44 light/colour
@@ -46315,7 +46315,7 @@ work produces.
 Here the handler and the allocator are in different units of the overlay, so the
 `memCalloc` grep plus address order says nothing. What identifies the task is
 the handler's own address: it is a `.word` in the overlay's data, paired with an
-id in a `GpMsgEntry` table (`D_actor_303600_8016E480`, id 0x7DB, in
+id in a `TaskMessageEntry` table (`D_actor_303600_8016E480`, id 0x7DB, in
 `actor_303600_data_2.data.s`). Read the function that stores *that* table into
 `Task::msgTable` (`func_actor_303600_801626C0`) — that is the handler's task, and
 it is also where its `memCalloc(0x3C, 0)` names the block the handler sees.
@@ -46751,7 +46751,7 @@ What is different:
 The structure that *is* universal, and the better anchor:
 
 * `Task::msgTable` holds id/handler records viewed by the dispatcher as
-  `GpMsgEntry[]` -- `{s32 id; TaskMessageHandler handler;}`,
+  `TaskMessageEntry[]` -- `{s32 messageId; TaskMessageHandler handler;}`,
   already defined in `include/gameplay/message.h` -- terminated by `0x7FFFFFFF` with
   one zero word after it. `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
@@ -74805,7 +74805,7 @@ topology and predicates all already match.
 **Cause.** m2c reconstructs the smallest signature the body uses, so a handler
 that never reads its own opcode id comes back as two parameters and the tested
 value is the *second* one. The real caller is `Gp_DispatchMsg` in gameplay,
-which walks the `GpMsgEntry` table at `Task::msgTable` and calls
+which walks the `TaskMessageEntry` table at `Task::msgTable` and calls
 
 ```c
 typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
@@ -85180,7 +85180,7 @@ one slot. That signature - a single register displaced by one argument slot,
 nothing else - is arity, not allocation.
 
 The actor message handlers give the arity directly. They are installed in a
-`GpMsgEntry` table (`{ s32 id; TaskMessageHandler handler; }`, terminator
+`TaskMessageEntry` table (`{ s32 messageId; TaskMessageHandler handler; }`, terminator
 `0x7FFFFFFF`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
 `0x7DB` row points at this function. `Gp_DispatchMsg` walks that table and
 calls `entry->handler(index, value, arg2, arg3)`, so the handler's full
@@ -85944,7 +85944,7 @@ file, needs it for the aliasing of that store with its `state->field_48` read.
 Prefer whichever name the target relocates against, and when a body's schedule
 needs the other one, say so at both sites.
 
-## `Task::msgTable` tables are 8-byte `GpMsgEntry[]`; type them from `Gp_DispatchMsg` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
+## `Task::msgTable` tables are 8-byte `TaskMessageEntry[]`; type them from `Gp_DispatchMsg` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
 
 A room's state-0 opener parks its message table in `Task::msgTable` and the C
 body shows nothing but the address, so the `D_<room>_<vram>` label it names has
@@ -85953,14 +85953,14 @@ no type of its own. Several matched rooms declare it `extern s32 D_x;` and take
 but leaves the table's structure undocumented.
 
 The type is recoverable from the consumer, which is already matched C:
-`Gp_DispatchMsg` (`src/gameplay/D4.c`) walks `field_24` as `GpMsgEntry*` with
-`entry++` and stops at `entry->id == 0x7FFFFFFF`; `GpMsgEntry` is
-`{s32 id; TaskMessageHandler handler;}` = 8 bytes (`include/gameplay/message.h`). So
-`extern GpMsgEntry D_<room>_<vram>[];` with a bare `task->field_24 = D_...;` -
+`Gp_DispatchMsg` (`src/gameplay/companion_load.c`) walks `msgTable` as `const TaskMessageEntry*` with
+`entry++` and stops at `entry->messageId == TASK_MESSAGE_TABLE_END`; `TaskMessageEntry` is
+`{s32 messageId; TaskMessageHandler handler;}` = 8 bytes (`include/gameplay/message.h`). So
+`extern TaskMessageEntry D_<room>_<vram>[];` with a bare `task->msgTable = D_...;` -
 the `rooms_shared_8017db84.c` idiom - is the accurate spelling, and it matches.
 
 Two checks confirm the reading on a raw splat dump: the record stride is 8 bytes
-with a code pointer at `+0x4`, and the last record's `id` is `0x7FFFFFFF`. The
+with a code pointer at `+0x4`, and the last record's `messageId` is `TASK_MESSAGE_TABLE_END` (`0x7FFFFFFF`). The
 ids are message ids some gameplay dispatcher calls by name, which is the
 strongest confirmation: `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
@@ -85971,7 +85971,7 @@ A room function no `jal` reaches - nothing in `src/` calls it, its only
 reference is a `.word` in the room's `_data` blob - is a callback, and the
 neighbouring words say which kind. `func_dryfield_breezeway_8017FBC8` sits in
 `D_dryfield_breezeway_80182DD0` with `0x13F1` in the word before it and
-`0x7FFFFFFF` after it: that is the `GpMsgEntry` spelling above, a one-entry
+`0x7FFFFFFF` after it: that is the `TaskMessageEntry` spelling above, a one-entry
 message table plus terminator. The room function that owns the table confirms
 it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
 (the record's id half) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
@@ -86301,7 +86301,7 @@ s32 Room_Snd05(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 100.000%, every penalty zero. This is why the sibling bodies `Room_Snd01..04`
 in `src/rooms/lib/` carry four parameters - the room tables hold
-`GpMsgEntry { s32 id; TaskMessageHandler handler; }` and `Gp_DispatchMsg` calls
+`TaskMessageEntry { s32 messageId; TaskMessageHandler handler; }` and `Gp_DispatchMsg` calls
 `handler(task, msgId, arg2, arg3)`, so the handler type itself is the evidence
 for the list. General rule: when m2c names a parameter `argN` with N > 0 but
 declares it alone, pad the list to N+1 before changing anything else; `regs=N`
@@ -89191,7 +89191,7 @@ Inputs: `base.i` (74.630%)
 
 ## m2c names a parameter by its register, not its position - a handler that only reads `$a2` comes out with the payload in `$a0` (func_dryfield_breezeway_8017DBD8, 2026-09-15)
 
-`func_dryfield_breezeway_8017DBD8` is the room's `GpMsgEntry` handler for message
+`func_dryfield_breezeway_8017DBD8` is the room's `TaskMessageEntry` handler for message
 0x13EF. It reads one byte of its payload (`lbu $v1, 0x2($s0)`) and m2c, seeing
 only `$a2` touched and nothing upstream setting it, emitted the pointer as the
 function's *first* parameter:
@@ -89209,7 +89209,7 @@ has to be padded with the parameters the handler ignores until the one it uses
 lands in the right slot.
 
 Recovering the slot and the type is a data-table read, not guesswork. A room's
-handlers are `GpMsgEntry[]` records - `{ s32 id; TaskMessageHandler handler; }`, 8
+handlers are `TaskMessageEntry[]` records - `{ s32 messageId; TaskMessageHandler handler; }`, 8
 bytes, `0x7FFFFFFF`-terminated - and they live in the overlay's trailing data
 blob, so the built overlay image still holds them verbatim. Searching the image
 for the handler's address little-endian prints the id in the word just before it,
@@ -89760,7 +89760,7 @@ same padded parameter list. What is worth separating is how the *type* and the
 *arity* are recovered, because a twin's declaration is not evidence for either.
 
 The arity is fixed by the only caller a table handler has. `Gp_DispatchMsg`
-(`src/gameplay/D4.c`) walks the room's `GpMsgEntry[]` and calls
+(`src/gameplay/D4.c`) walks the room's `TaskMessageEntry[]` and calls
 `entry->handler(index, value, arg2, arg3)` - four arguments - which
 `TaskMessageHandler` in `include/gameplay/message.h` spells
 `s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)`. So the room's own table
@@ -91291,7 +91291,7 @@ every matched sibling does -
 
 A controlled variant (`base_2.c`) that keeps the seed's `M2C_UNK` scalar symbol
 forms and only restores `index` reproduces base_1.c's assembly byte for byte, so
-the cause is the argument, not the tidier `GpMsgEntry[]` type.
+the cause is the argument, not the tidier `TaskMessageEntry[]` type.
 
 Reordering statements or pinning `$a0` cannot reach this: which register carries
 an argument is fixed by the argument's *position* in the source call. So when a
@@ -94332,7 +94332,7 @@ Inputs: `base.c` (literal, 93.333%)
 
 ## Room event handlers are near-copies the exact-dup index cannot see
 
-Every room overlay carries one handler per entry of its own `GpMsgEntry` table,
+Every room overlay carries one handler per entry of its own `TaskMessageEntry` table,
 and they are all the same body with three substitutions:
 
 ```c
@@ -101155,7 +101155,7 @@ pattern), so type the index `s32` — the family's `func_actor_444000_8013ACD0`
 does exactly that; and the handler's fourth parameter is unread, so the seed's
 two-parameter m2c signature puts the payload in `$a1` where the target reads
 `$a2`. The arity comes from the dispatch table, not the body:
-`D_actor_312200_80169F5C` lists this handler as a `GpMsgEntry` id 0x7DB handler,
+`D_actor_312200_80169F5C` lists this handler as a `TaskMessageEntry` id 0x7DB handler,
 i.e. `s32 f(Task*, s32, Msg*, s32)`.
 
 Evidence: scratch `nonmatchings/func_actor_312200_801636CC-vacuum/`; `base_1.c`
@@ -125826,14 +125826,14 @@ all — no `jal`, no `lui`/`addiu` pair. The single reference is a data word:
 
 so the search has to span the family's `data/` tree (`asm/<ver>/<family>/`, not
 just `<family>/nonmatchings/<overlay>/`), where the neighbours name it: it is
-the handler half of a `GpMsgEntry` pair, id `0x7DD` in `D_actor_317000_8016CF50`
+the handler half of a `TaskMessageEntry` pair, id `0x7DD` in `D_actor_317000_8016CF50`
 (the same table the overlay's 0x7DB handler, 0x7D4 and `ActorsShared80162bc4`
 sit in). The matched installer names that table directly —
-`index->field_24 = D_actor_317000_8016CF50;` in `func_actor_317000_8016267C` — so
+`index->msgTable = D_actor_317000_8016CF50;` in `func_actor_317000_8016267C` — so
 "which table is this handler in" is readable from `src/` without the binary.
 
 Worth doing before writing any C, because it settles what the empty caller list
-raises: a `GpMsgEntry` handler is called as `(Task*, s32 messageId, TaskMessageArg firstArg, TaskMessageArg
+raises: a `TaskMessageEntry` handler is called as `(Task*, s32 messageId, TaskMessageArg firstArg, TaskMessageArg
 secondArg)` (`TaskMessageHandler`), and the overlay's neighbouring handler is the house
 spelling of the last two arguments —
 `s32 func_actor_317000_80162CA0(Task* task, s32 value, ActorCommand* msg)`.

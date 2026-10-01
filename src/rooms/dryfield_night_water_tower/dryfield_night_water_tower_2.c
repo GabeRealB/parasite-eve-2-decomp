@@ -58,13 +58,13 @@ extern TaskDesc D_80142604;
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_water_tower_8017E6EC[6] = {
-    { 5102, func_dryfield_night_water_tower_8017D8E0 },
+TaskMessageEntry D_dryfield_night_water_tower_8017E6EC[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_tower_8017D8E0 },
     { 5105, func_dryfield_night_water_tower_8017DA9C },
-    { 5103, func_dryfield_night_water_tower_8017DAD4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_tower_8017DAD4 },
     { 5106, func_dryfield_night_water_tower_8017DA4C },
     { 5104, func_dryfield_night_water_tower_8017DAA4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_night_water_tower_8017E71C[5] = {

@@ -47,7 +47,7 @@ static void func_dryfield_night_breezeway_8017D678(Task* task);
 
 /// The room's message table: 0x13EE, 0x13F1, 0x13EF and 0x13F0 to their
 /// handlers, terminated by 0x7FFFFFFF.
-extern GpMsgEntry D_dryfield_night_breezeway_8017E67C[];
+extern TaskMessageEntry D_dryfield_night_breezeway_8017E67C[];
 
 /// The anchor points of the room's lights: one run of eight `SVECTOR`s. The
 /// draw below reaches some points through their own address and others by
@@ -72,12 +72,12 @@ extern WorldCoordRoomLights  D_dryfield_night_breezeway_80180158[1];
 
 extern TaskDesc D_8014D8A4;
 
-GpMsgEntry D_dryfield_night_breezeway_8017E67C[5] = {
+TaskMessageEntry D_dryfield_night_breezeway_8017E67C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_breezeway_8017D5D8 },
     { 5105, func_dryfield_night_breezeway_8017D5D0 },
-    { 5103, func_dryfield_night_breezeway_8017D62C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_breezeway_8017D62C },
     { 5104, func_dryfield_night_breezeway_8017D600 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_night_breezeway_8017E6A4[8] = {

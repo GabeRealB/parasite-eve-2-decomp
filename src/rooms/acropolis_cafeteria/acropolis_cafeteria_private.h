@@ -23,7 +23,7 @@ STATIC_ASSERT_SIZEOF(AcropolisCafeteriaSpotLightStorage, 1620);
 
 extern TaskDesc D_acropolis_cafeteria_80184178[];
 
-extern GpMsgEntry D_acropolis_cafeteria_80184CEC[2];
+extern TaskMessageEntry D_acropolis_cafeteria_80184CEC[2];
 
 extern s32 D_acropolis_cafeteria_80184CFC;
 

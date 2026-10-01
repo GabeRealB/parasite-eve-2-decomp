@@ -61,7 +61,7 @@ extern RoomEventReq gRoomEventReq;
 extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's message table, installed on the room task by its entry state.
-extern GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[];
+extern TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[];
 
 /// Endpoints of the two beams drawn in view 2. The code forms this address,
 /// but the table starts one entry earlier, so the beams run from `[0]` to
@@ -87,12 +87,12 @@ extern WorldCoordRoomLights  D_dryfield_g_r_kitchen_8017F464[1];
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
+TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_g_r_kitchen_8017D8C4 },
     { 5105, func_dryfield_g_r_kitchen_8017D8BC },
-    { 5103, func_dryfield_g_r_kitchen_8017D950 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_g_r_kitchen_8017D950 },
     { 5104, func_dryfield_g_r_kitchen_8017D948 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_g_r_kitchen_8017EBE8[8] = {

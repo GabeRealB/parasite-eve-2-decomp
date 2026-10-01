@@ -60,12 +60,12 @@ void func_dryfield_night_dilapidated_house_8017DCE0(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
-    { 5102, func_dryfield_night_dilapidated_house_8017D8DC },
+TaskMessageEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_dilapidated_house_8017D8DC },
     { 5105, func_dryfield_night_dilapidated_house_8017D8D4 },
-    { 5103, func_dryfield_night_dilapidated_house_8017D968 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_dilapidated_house_8017D968 },
     { 5104, func_dryfield_night_dilapidated_house_8017D960 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPackedPose D_dryfield_night_dilapidated_house_8017E728[6] = {

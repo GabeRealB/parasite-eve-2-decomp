@@ -17,7 +17,7 @@ extern WorldCollisionTrigger D_neo_ark_island_80183CC8[4];
 
 extern WorldCollisionTrigger D_neo_ark_island_80183DF8[3];
 
-extern GpMsgEntry D_neo_ark_island_80181B48[6];
+extern TaskMessageEntry D_neo_ark_island_80181B48[6];
 
 extern TaskDesc D_neo_ark_island_80181B78;
 

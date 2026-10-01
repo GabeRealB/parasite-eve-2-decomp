@@ -59,7 +59,7 @@ extern TaskDesc     gRoomEventTaskDesc;
 
 /// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
 /// which the entry task installs as its own `Task::msgTable`.
-extern GpMsgEntry D_dryfield_night_g_r_kitchen_8017E254[];
+extern TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[];
 
 /// The two pairs of world points the room's light shafts run between, one
 /// pair per `SVECTOR[2]`: the first array holds the two shafts drawn in view
@@ -79,12 +79,12 @@ extern WorldCoordRoomLights  D_dryfield_night_g_r_kitchen_8017E84C[1];
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_g_r_kitchen_8017E254[5] = {
+TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_g_r_kitchen_8017D8C4 },
     { 5105, func_dryfield_night_g_r_kitchen_8017D8BC },
-    { 5103, func_dryfield_night_g_r_kitchen_8017D950 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_g_r_kitchen_8017D950 },
     { 5104, func_dryfield_night_g_r_kitchen_8017D948 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_night_g_r_kitchen_8017E27C[4] = {

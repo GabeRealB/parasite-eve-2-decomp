@@ -53,7 +53,7 @@ extern RoomEventReq gRoomEventReq;
 extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's message table, installed on the room task by its entry state.
-extern GpMsgEntry D_dryfield_garage_8017DC7C[];
+extern TaskMessageEntry D_dryfield_garage_8017DC7C[];
 
 /// Spawn table of the task `func_dryfield_garage_8017DAA0`, ended by a 0xFFFF
 /// entry.
@@ -91,13 +91,13 @@ void                              func_dryfield_garage_8017DAA0(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_garage_8017DC7C[6] = {
+TaskMessageEntry D_dryfield_garage_8017DC7C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
     { 5105, func_dryfield_garage_8017D914 },
     { 5106, func_dryfield_garage_8017D8BC },
     { 5104, func_dryfield_garage_8017DA18 },
-    { 5103, func_dryfield_garage_8017DA54 },
-    { 0x7FFFFFFF, NULL },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_garage_8017DA54 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_garage_8017DCAC[2] = {

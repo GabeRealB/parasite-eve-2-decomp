@@ -11,6 +11,7 @@
 
 #include "dryfield_breezeway_private.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/action_prompt.h"
 #include "gameplay/actor_render.h"
@@ -89,7 +90,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 
 /// 0x60 work block of the second task family in this room, also hung off
 /// `Task::work` (0x1C): `func_dryfield_breezeway_8017E464` allocates it with
-/// `memCalloc(0x60, 0)` and parks the family's `GpMsgEntry[]`
+/// `memCalloc(0x60, 0)` and parks the family's `TaskMessageEntry[]`
 /// (`D_dryfield_breezeway_80182DCC`, a single 0x13F1 entry) in
 /// `Task::msgTable`, which is what makes `Gp_DispatchMsg` route messages into
 /// this family at all. Reach the block with `(DbwEventWork*)task->work`.
@@ -140,12 +141,12 @@ typedef struct DbwEventWork {
 STATIC_ASSERT_SIZEOF(DbwEventWork, 0x60);
 
 /// The `TaskDesc` `func_dryfield_breezeway_8017E464` spawns the room's prompt
-/// task (`func_dryfield_breezeway_8017FA80`) from, and the single-entry `GpMsgEntry[]` it parks in `Task::msgTable`
+/// task (`func_dryfield_breezeway_8017FA80`) from, and the single-entry `TaskMessageEntry[]` it parks in `Task::msgTable`
 /// so `Gp_DispatchMsg` routes the family's messages (the 0x13F1 "can this key
 /// item be used here?" query) into it. Both sit in the room's trailing data
 /// blob, the table immediately after the descriptor.
-extern TaskDesc   D_dryfield_breezeway_80182DC0;
-extern GpMsgEntry D_dryfield_breezeway_80182DCC[];
+extern TaskDesc         D_dryfield_breezeway_80182DC0;
+extern TaskMessageEntry D_dryfield_breezeway_80182DCC[];
 
 /// The one scratch buffer `func_dryfield_breezeway_8017E390` builds both of its
 /// payloads in, which is why they share a frame slot: `rec` is the 0x14-byte
@@ -271,13 +272,13 @@ void func_dryfield_breezeway_8017FC38(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_breezeway_80181DE0[6] = {
-    { 5102, func_dryfield_breezeway_8017D940 },
+TaskMessageEntry D_dryfield_breezeway_80181DE0[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_breezeway_8017D940 },
     { 5105, func_dryfield_breezeway_8017D90C },
     { 5104, func_dryfield_breezeway_8017DA48 },
     { 5106, func_dryfield_breezeway_8017DBA4 },
-    { 5103, func_dryfield_breezeway_8017DBD8 },
-    { 0x7FFFFFFF, NULL },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_breezeway_8017DBD8 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_breezeway_80181E10[2] = {
@@ -363,9 +364,9 @@ TmdSource D_dryfield_breezeway_80182D9C = {
 
 TaskDesc D_dryfield_breezeway_80182DC0 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017FA80, { .value = 0 } };
 
-GpMsgEntry D_dryfield_breezeway_80182DCC[2] = {
+TaskMessageEntry D_dryfield_breezeway_80182DCC[2] = {
     { 5105, func_dryfield_breezeway_8017FBC8 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 OverlayHotspot D_dryfield_breezeway_80182DDC[3] = {
@@ -667,7 +668,7 @@ void func_dryfield_breezeway_8017E390(void)
 
 /// Brings up the room's second task family, the key-item event the prompt in
 /// `func_dryfield_breezeway_8017E65C` rides on. The 0x60 `DbwEventWork` block
-/// is allocated and published in `Task::work`, the family's own `GpMsgEntry[]`
+/// is allocated and published in `Task::work`, the family's own `TaskMessageEntry[]`
 /// (`D_dryfield_breezeway_80182DCC`, the one 0x13F1 record) goes to
 /// `Task::msgTable` -- which is what routes the key-item query into this room
 /// at all -- and the room's own event task is spawned from
@@ -1259,7 +1260,7 @@ static void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
     coord->coord.t[1]   = (arg2 * 0x5DC) / 680;
 }
 
-/// `GpMsgEntry` handler for message 0x13F1, the "can this key item be used
+/// `TaskMessageEntry` handler for message 0x13F1, the "can this key item be used
 /// here?" query `Gp_UseKeyItemRow` sends to slot 7. `item` is the key item the
 /// player highlighted; 0x11B is the only one the breezeway accepts, and the
 /// answer is latched in the work block's `field_40` for

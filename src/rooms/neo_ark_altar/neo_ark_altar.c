@@ -25,8 +25,8 @@
 
 #include "mapui/map_neo_ark.h"
 
-/// The room's own `GpMsgEntry[]` - the message table this task publishes.
-extern GpMsgEntry D_neo_ark_altar_8017EF98[];
+/// The room's own `TaskMessageEntry[]` - the message table this task publishes.
+extern TaskMessageEntry D_neo_ark_altar_8017EF98[];
 
 /// Single-entry spawn table for the altar's cutscene-driver task
 /// (`func_neo_ark_altar_8017D668`).
@@ -52,12 +52,12 @@ s32  func_neo_ark_altar_8017D910(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskDesc D_neo_ark_altar_8017EF8C = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_altar_8017D668, { .value = 0 } };
 
-GpMsgEntry D_neo_ark_altar_8017EF98[5] = {
+TaskMessageEntry D_neo_ark_altar_8017EF98[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_altar_8017D8C4 },
     { 5105, func_neo_ark_altar_8017D8BC },
-    { 5103, func_neo_ark_altar_8017D910 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_altar_8017D910 },
     { 5104, func_neo_ark_altar_8017D908 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// Altar cutscene driver: silences the player's weapon, runs cap command 2,

@@ -72,7 +72,7 @@ void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
 /// The room's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk.
-extern GpMsgEntry           D_dryfield_junk_yard_8017DD20[];
+extern TaskMessageEntry     D_dryfield_junk_yard_8017DD20[];
 extern TaskDesc             D_dryfield_junk_yard_8017DD48[];
 extern AnimationPlayRequest D_dryfield_junk_yard_8017DD88;
 extern AnimationPlayRequest D_dryfield_junk_yard_8017DDD8;
@@ -127,12 +127,12 @@ void                              func_dryfield_junk_yard_8017DC54(s8);
 extern DryfieldJunkYardSpotLightStorage D_dryfield_junk_yard_80181854;
 extern WorldCoordPointLight             D_dryfield_junk_yard_80181554[8];
 
-GpMsgEntry D_dryfield_junk_yard_8017DD20[5] = {
+TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
     { 5105, func_dryfield_junk_yard_8017DA44 },
     { 5104, func_dryfield_junk_yard_8017D994 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_junk_yard_8017DB78 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_junk_yard_8017DD48[2] = {

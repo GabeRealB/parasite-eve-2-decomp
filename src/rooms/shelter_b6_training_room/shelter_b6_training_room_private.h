@@ -17,7 +17,7 @@ extern GfxCoord* D_shelter_b6_training_room_80185C94;
 
 extern u16 D_shelter_b6_training_room_80185C98;
 
-extern GpMsgEntry D_shelter_b6_training_room_80182AF4[6];
+extern TaskMessageEntry D_shelter_b6_training_room_80182AF4[6];
 
 extern s32 D_shelter_b6_training_room_80182B24;
 

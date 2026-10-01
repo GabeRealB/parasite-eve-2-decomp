@@ -93,10 +93,10 @@ void func_dryfield_warehouse_8017E308(Task*);
 void func_dryfield_warehouse_8017DA58(s32);
 void func_dryfield_warehouse_8017E3F4(s16);
 
-GpMsgEntry D_dryfield_warehouse_8017F554[3] = {
-    { 5102, func_dryfield_warehouse_8017D824 },
+TaskMessageEntry D_dryfield_warehouse_8017F554[3] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_warehouse_8017D824 },
     { 5105, func_dryfield_warehouse_8017D764 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_warehouse_8017F56C[2] = {

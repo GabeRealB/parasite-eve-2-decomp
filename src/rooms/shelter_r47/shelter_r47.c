@@ -89,7 +89,7 @@ typedef struct {
 } ShelterR47SpritePart;
 
 static TaskDesc             gRoomCutsceneTaskDescs[3];
-static GpMsgEntry           D_shelter_r47_80186F2C[6];
+static TaskMessageEntry     D_shelter_r47_80186F2C[6];
 static AnimationPlayRequest D_shelter_r47_80186F5C;
 static TaskDesc             D_shelter_r47_80186F70[3];
 static TaskDesc             D_shelter_r47_80186F94[2];
@@ -124,13 +124,13 @@ static TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-static GpMsgEntry D_shelter_r47_80186F2C[6] = {
+static TaskMessageEntry D_shelter_r47_80186F2C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r47_801805D8 },
     { 5105, func_shelter_r47_801805D0 },
-    { 5103, func_shelter_r47_8017FE84 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r47_8017FE84 },
     { 5104, func_shelter_r47_801801DC },
     { 5106, func_shelter_r47_8018061C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static AnimationPlayRequest D_shelter_r47_80186F5C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

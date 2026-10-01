@@ -38,7 +38,7 @@ extern EvsCommand D_dryfield_water_tank_8017F114[11];
 
 extern EvsCommand D_dryfield_water_tank_8017F21C[11];
 
-extern GpMsgEntry D_dryfield_water_tank_8017F324[5];
+extern TaskMessageEntry D_dryfield_water_tank_8017F324[5];
 
 extern TaskDesc D_dryfield_water_tank_8017F34C[2];
 

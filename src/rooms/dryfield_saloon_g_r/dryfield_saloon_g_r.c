@@ -61,7 +61,7 @@ extern RoomEventReq gRoomEventReq;
 extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's message table, installed on the room task by its entry state.
-extern GpMsgEntry D_dryfield_saloon_g_r_8017ECBC[];
+extern TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[];
 
 /// One view bitmask per effect, tested against `1 << view`: entries 0-10 gate
 /// the sprites, 11 the beam and 12 the light shafts.
@@ -89,12 +89,12 @@ extern SpriteSource D_dryfield_saloon_g_r_8017FAF4[14];
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
+TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
     { 5105, func_dryfield_saloon_g_r_8017D994 },
-    { 5103, func_dryfield_saloon_g_r_8017D9C4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_saloon_g_r_8017D9C4 },
     { 5104, func_dryfield_saloon_g_r_8017D99C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// The room's effect positions in the model's local space. The frame hook

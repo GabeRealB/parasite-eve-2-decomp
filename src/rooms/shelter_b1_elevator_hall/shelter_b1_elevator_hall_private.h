@@ -11,7 +11,7 @@
 
 extern TaskDesc D_shelter_b1_elevator_hall_80182CAC;
 
-extern GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[6];
+extern TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6];
 
 extern TaskDesc D_shelter_b1_elevator_hall_80182CE8;
 

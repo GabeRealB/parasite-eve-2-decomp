@@ -146,7 +146,7 @@ static u8 Reflection_Data_8017FC8C[];
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The room's message table, installed on the room entry task.
-extern GpMsgEntry D_dryfield_motel_room_6_80182D48[];
+extern TaskMessageEntry D_dryfield_motel_room_6_80182D48[];
 
 /// Task table whose entry 0 runs the room's event task
 /// `func_dryfield_motel_room_6_80181A08`.
@@ -214,13 +214,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_dryfield_motel_room_6_80182D48[6] = {
+TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_6_80181920 },
     { 5105, func_dryfield_motel_room_6_80181918 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_6_801819A8 },
     { 5106, func_dryfield_motel_room_6_80181A00 },
     { 5104, func_dryfield_motel_room_6_80181740 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_motel_room_6_80182D78[2] = {

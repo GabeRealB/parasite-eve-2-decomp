@@ -69,7 +69,7 @@ extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b1_access_tunnel_8017E710;
 
 /// Message table `func_shelter_b1_access_tunnel_8017DCBC` installs on its task.
-extern GpMsgEntry D_shelter_b1_access_tunnel_8017E71C[];
+extern TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[];
 
 extern SVECTOR D_shelter_b1_access_tunnel_8017E744[];
 extern SVECTOR D_shelter_b1_access_tunnel_8017E7B4[];
@@ -106,12 +106,12 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskDesc D_shelter_b1_access_tunnel_8017E710 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
+TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_access_tunnel_8017DA68 },
     { 5105, func_shelter_b1_access_tunnel_8017DCA4 },
-    { 5103, func_shelter_b1_access_tunnel_8017DCB4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_access_tunnel_8017DCB4 },
     { 5104, func_shelter_b1_access_tunnel_8017DCAC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_b1_access_tunnel_8017E744[14] = {

@@ -227,16 +227,16 @@ extern DryfieldDilapidatedHouseSpawnState D_dryfield_dilapidated_house_80189B80;
 extern OverlayWaveCtx D_dryfield_dilapidated_house_80189C94;
 extern TaskDesc       D_dryfield_dilapidated_house_80183E48[];
 
-extern GpMsgEntry D_dryfield_dilapidated_house_80183E8C[];
-extern s32        D_dryfield_dilapidated_house_80186804[16];
-extern SVECTOR    D_dryfield_dilapidated_house_80186844[2];
-extern DdhRoomRec D_dryfield_dilapidated_house_8018669C;
-extern SVECTOR    D_dryfield_dilapidated_house_801866B4[];
-extern s8         D_dryfield_dilapidated_house_801866F4[16][4];
-extern u8         D_dryfield_dilapidated_house_80186734[24][4];
-extern SVECTOR    D_dryfield_dilapidated_house_80186794[2];
-extern SVECTOR    D_dryfield_dilapidated_house_801867A4[6];
-extern SVECTOR    D_dryfield_dilapidated_house_801867D4[6];
+extern TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[];
+extern s32              D_dryfield_dilapidated_house_80186804[16];
+extern SVECTOR          D_dryfield_dilapidated_house_80186844[2];
+extern DdhRoomRec       D_dryfield_dilapidated_house_8018669C;
+extern SVECTOR          D_dryfield_dilapidated_house_801866B4[];
+extern s8               D_dryfield_dilapidated_house_801866F4[16][4];
+extern u8               D_dryfield_dilapidated_house_80186734[24][4];
+extern SVECTOR          D_dryfield_dilapidated_house_80186794[2];
+extern SVECTOR          D_dryfield_dilapidated_house_801867A4[6];
+extern SVECTOR          D_dryfield_dilapidated_house_801867D4[6];
 
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
 static void func_dryfield_dilapidated_house_8017EBB8(Task* task);
@@ -317,12 +317,12 @@ RECT D_dryfield_dilapidated_house_80183E7C = { 0, 0, 320, 240 };
 
 RECT D_dryfield_dilapidated_house_80183E84 = { 0, 0, 16, 240 };
 
-GpMsgEntry D_dryfield_dilapidated_house_80183E8C[5] = {
+TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_dilapidated_house_8017E574 },
     { 5105, func_dryfield_dilapidated_house_8017E56C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_dilapidated_house_8017E68C },
     { 5104, func_dryfield_dilapidated_house_8017E684 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_dilapidated_house_80183EB4[4] = {

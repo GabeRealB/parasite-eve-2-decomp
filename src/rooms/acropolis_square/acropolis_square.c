@@ -137,7 +137,7 @@ static UiList Telephone_Data_80181CF4;
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The room's message table, installed on the room entry task.
-extern GpMsgEntry D_acropolis_square_801837C4[];
+extern TaskMessageEntry D_acropolis_square_801837C4[];
 
 extern TaskDesc   D_acropolis_square_80183808[];
 extern s32        D_acropolis_square_8018382C;
@@ -233,13 +233,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_acropolis_square_801837C4[6] = {
+TaskMessageEntry D_acropolis_square_801837C4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_square_80181794 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_square_801820D8 },
     { 5105, func_acropolis_square_80182108 },
     { 5104, func_acropolis_square_801819BC },
     { 5106, func_acropolis_square_80182110 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPlayRequest D_acropolis_square_801837F4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

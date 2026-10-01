@@ -80,7 +80,7 @@ extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b2_operating_room_80180910;
 
 /// The room's message table, which the cap scripts index.
-extern GpMsgEntry D_shelter_b2_operating_room_8018091C[];
+extern TaskMessageEntry D_shelter_b2_operating_room_8018091C[];
 
 /// Point pairs and points the view task draws its glows at, per view.
 
@@ -110,12 +110,12 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskDesc D_shelter_b2_operating_room_80180910 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b2_operating_room_8018091C[5] = {
+TaskMessageEntry D_shelter_b2_operating_room_8018091C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_operating_room_8017DA94 },
     { 5105, func_shelter_b2_operating_room_8017DC9C },
-    { 5103, func_shelter_b2_operating_room_8017DD0C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_operating_room_8017DD0C },
     { 5104, func_shelter_b2_operating_room_8017DCA4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_b2_operating_room_80180944[15] = {

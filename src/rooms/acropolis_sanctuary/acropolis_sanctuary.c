@@ -195,7 +195,7 @@ typedef struct AcsSpriteLevels {
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
 
-extern GpMsgEntry           D_acropolis_sanctuary_8018081C[];
+extern TaskMessageEntry     D_acropolis_sanctuary_8018081C[];
 extern ActorTransform       D_acropolis_sanctuary_801808BC;
 extern AnimationPlayRequest D_acropolis_sanctuary_801809F8;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180A0C;
@@ -205,7 +205,7 @@ extern EvsCommand           D_acropolis_sanctuary_80181664[];
 extern EvsCommand           D_acropolis_sanctuary_80181814[];
 extern TaskDesc             D_acropolis_sanctuary_80182240;
 extern WorldCollisionGrid   D_acropolis_sanctuary_801822EC;
-extern GpMsgEntry           D_acropolis_sanctuary_80182310[];
+extern TaskMessageEntry     D_acropolis_sanctuary_80182310[];
 extern AcsTile              D_acropolis_sanctuary_80182320[];
 extern AcsQuad              D_acropolis_sanctuary_80182710[];
 extern s16                  D_acropolis_sanctuary_80182750[];
@@ -322,12 +322,12 @@ AnimationSet D_acropolis_sanctuary_801807F4 = {
     { NULL, D_acropolis_sanctuary_80180348, NULL, NULL, D_acropolis_sanctuary_801803A8, NULL, NULL, NULL },
 };
 
-GpMsgEntry D_acropolis_sanctuary_8018081C[5] = {
+TaskMessageEntry D_acropolis_sanctuary_8018081C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_sanctuary_8017D73C },
     { 5104, func_acropolis_sanctuary_8017D810 },
     { 5105, func_acropolis_sanctuary_8017D808 },
-    { 5103, func_acropolis_sanctuary_8017D848 },
-    { 0x7FFFFFFF, NULL },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_sanctuary_8017D848 },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 ActorTransform D_acropolis_sanctuary_80180844 = { { -9700, 0, -7910, 0 }, { 0, 1024, 0, 0 } };
@@ -665,9 +665,9 @@ s16* D_acropolis_sanctuary_801822E8[1] = {
 
 WorldCollisionGrid D_acropolis_sanctuary_801822EC = { NULL, D_acropolis_sanctuary_8018224C, D_acropolis_sanctuary_8018226C, D_acropolis_sanctuary_801822AC, D_acropolis_sanctuary_801822E8, 4941, 8914, 1, 1, 4000, 4 };
 
-GpMsgEntry D_acropolis_sanctuary_80182310[2] = {
+TaskMessageEntry D_acropolis_sanctuary_80182310[2] = {
     { 3101, func_acropolis_sanctuary_8017F918 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AcsTile D_acropolis_sanctuary_80182320[72] = {

@@ -43,7 +43,7 @@ extern EvsCommand D_shelter_r36_8017E664[];
 extern EvsCommand D_shelter_r36_8017E8BC[];
 
 /// The room's message table, installed on the room entry task.
-extern GpMsgEntry D_shelter_r36_8017E97C[];
+extern TaskMessageEntry D_shelter_r36_8017E97C[];
 
 /// The room's two event tasks, one per arrival warp.
 extern TaskDesc D_shelter_r36_8017DF14[];
@@ -274,12 +274,12 @@ EvsCommand D_shelter_r36_8017E8BC[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpMsgEntry D_shelter_r36_8017E97C[5] = {
+TaskMessageEntry D_shelter_r36_8017E97C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r36_8017D8D0 },
     { 5105, func_shelter_r36_8017D8C8 },
-    { 5103, func_shelter_r36_8017D91C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r36_8017D91C },
     { 5104, func_shelter_r36_8017D914 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_r36_8017E9A4[2] = {

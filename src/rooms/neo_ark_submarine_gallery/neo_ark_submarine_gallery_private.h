@@ -7,7 +7,7 @@
 
 #include "main/task_types.h"
 
-extern GpMsgEntry D_neo_ark_submarine_gallery_80181884[5];
+extern TaskMessageEntry D_neo_ark_submarine_gallery_80181884[5];
 
 extern TaskDesc D_neo_ark_submarine_gallery_801818AC;
 

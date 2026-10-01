@@ -65,7 +65,7 @@ extern AnimationSet* D_acropolis_cafeteria_80182C40[1];
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
-extern GpMsgEntry D_acropolis_cafeteria_80182AA8[];
+extern TaskMessageEntry D_acropolis_cafeteria_80182AA8[];
 
 extern ActorTransform D_acropolis_cafeteria_80182D28;
 extern s32            D_acropolis_cafeteria_80182DB8;
@@ -112,13 +112,13 @@ void                func_acropolis_cafeteria_8017E2B0(void);
 void                func_acropolis_cafeteria_8017E2D0(void);
 void                func_acropolis_cafeteria_8017E310(void);
 
-GpMsgEntry D_acropolis_cafeteria_80182AA8[6] = {
+TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_cafeteria_8017D700 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_cafeteria_8017E154 },
     { 5104, func_acropolis_cafeteria_8017E0DC },
     { 5105, func_acropolis_cafeteria_8017E0D4 },
     { 5106, func_acropolis_cafeteria_8017E22C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_acropolis_cafeteria_80182AD8[4] = {
@@ -501,9 +501,9 @@ AnimationSet D_acropolis_cafeteria_80184CC4 = {
     { NULL, D_acropolis_cafeteria_8018419C, NULL, NULL, D_acropolis_cafeteria_801842B0, NULL, NULL, NULL },
 };
 
-GpMsgEntry D_acropolis_cafeteria_80184CEC[2] = {
+TaskMessageEntry D_acropolis_cafeteria_80184CEC[2] = {
     { 3000, func_acropolis_cafeteria_8017F908 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 D_acropolis_cafeteria_80184CFC = 0;

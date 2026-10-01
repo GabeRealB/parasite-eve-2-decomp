@@ -41,8 +41,8 @@
 #include "overlay.h"
 #include "../../shared/actor_contacts.h"
 
-extern GpMsgEntry D_acropolis_hallway_8017E238[];
-extern SVECTOR    ActorContact_ScratchPosition;
+extern TaskMessageEntry D_acropolis_hallway_8017E238[];
+extern SVECTOR          ActorContact_ScratchPosition;
 
 /// The contact routines' scratch position.
 static inline SVECTOR* ActorContact_GetScratchPosition(void)
@@ -72,11 +72,11 @@ s32                          func_acropolis_hallway_8017D5D0(Task*, s32, RoomEve
 s32                          func_acropolis_hallway_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                          func_acropolis_hallway_8017D734(Task*, s32, s32, TaskMessageArg);
 
-GpMsgEntry D_acropolis_hallway_8017E238[4] = {
+TaskMessageEntry D_acropolis_hallway_8017E238[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
     { 5105, func_acropolis_hallway_8017D72C },
     { 5106, func_acropolis_hallway_8017D734 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 GpRoomObjRec D_acropolis_hallway_8017E258[1] = {

@@ -67,13 +67,13 @@
 extern GpObj3A                    D_neo_ark_power_plant_2_80182E78[1];
 extern WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10];
 
-extern GpMsgEntry     D_neo_ark_power_plant_2_801801F8[];
-extern EvsCommand     D_neo_ark_power_plant_2_801802A8[];
-extern EvsCommand     D_neo_ark_power_plant_2_80180560[];
-extern SVECTOR        D_neo_ark_power_plant_2_80180668;
-extern SVECTOR        D_neo_ark_power_plant_2_80180678;
-extern GpAreaApplyRec D_neo_ark_power_plant_2_80182F70[];
-extern GpAreaApplyRec D_neo_ark_power_plant_2_80182F94[];
+extern TaskMessageEntry D_neo_ark_power_plant_2_801801F8[];
+extern EvsCommand       D_neo_ark_power_plant_2_801802A8[];
+extern EvsCommand       D_neo_ark_power_plant_2_80180560[];
+extern SVECTOR          D_neo_ark_power_plant_2_80180668;
+extern SVECTOR          D_neo_ark_power_plant_2_80180678;
+extern GpAreaApplyRec   D_neo_ark_power_plant_2_80182F70[];
+extern GpAreaApplyRec   D_neo_ark_power_plant_2_80182F94[];
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
 /// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
@@ -149,12 +149,12 @@ AnimationSet D_neo_ark_power_plant_2_801801D0 = {
     { NULL, D_neo_ark_power_plant_2_80180034, NULL, NULL, D_neo_ark_power_plant_2_8018004C, NULL, NULL, NULL },
 };
 
-GpMsgEntry D_neo_ark_power_plant_2_801801F8[5] = {
+TaskMessageEntry D_neo_ark_power_plant_2_801801F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_power_plant_2_8017D5D8 },
     { 5105, func_neo_ark_power_plant_2_8017D5D0 },
-    { 5103, func_neo_ark_power_plant_2_8017D694 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_power_plant_2_8017D694 },
     { 5104, func_neo_ark_power_plant_2_8017D61C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPlayRequest D_neo_ark_power_plant_2_80180220 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };

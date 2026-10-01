@@ -36,7 +36,7 @@ s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 /// The room's message table.
-extern GpMsgEntry D_neo_ark_bridge_80181F30[];
+extern TaskMessageEntry D_neo_ark_bridge_80181F30[];
 
 s32 func_neo_ark_bridge_8017E82C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_bridge_8017E834(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -47,12 +47,12 @@ TaskDesc D_neo_ark_bridge_80181F18 = { { { TASK_BODY_NONE, 192 } }, waterRefract
 
 TaskDesc D_neo_ark_bridge_80181F24 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
-GpMsgEntry D_neo_ark_bridge_80181F30[5] = {
+TaskMessageEntry D_neo_ark_bridge_80181F30[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_bridge_8017E834 },
     { 5105, func_neo_ark_bridge_8017E82C },
-    { 5103, func_neo_ark_bridge_8017E880 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_bridge_8017E880 },
     { 5104, func_neo_ark_bridge_8017E878 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_neo_ark_bridge_8017E888(Task* arg0);

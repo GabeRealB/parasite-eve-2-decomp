@@ -55,7 +55,7 @@
 
 /// The room's message table, installed in `Task::msgTable` by
 /// `func_shelter_b1_transfer_tunnel_8017D62C`.
-extern GpMsgEntry D_shelter_b1_transfer_tunnel_801828C0[];
+extern TaskMessageEntry D_shelter_b1_transfer_tunnel_801828C0[];
 
 /// Anchor points of the cones and discs drawn from
 /// `func_shelter_b1_transfer_tunnel_8017D6D0`, chosen by camera view.
@@ -84,12 +84,12 @@ s32 func_shelter_b1_transfer_tunnel_8017D5D8(Task*, s32, RoomEventMsg*, RoomEven
 s32 func_shelter_b1_transfer_tunnel_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_transfer_tunnel_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-GpMsgEntry D_shelter_b1_transfer_tunnel_801828C0[5] = {
+TaskMessageEntry D_shelter_b1_transfer_tunnel_801828C0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_transfer_tunnel_8017D5D8 },
     { 5105, func_shelter_b1_transfer_tunnel_8017D5D0 },
-    { 5103, func_shelter_b1_transfer_tunnel_8017D624 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_transfer_tunnel_8017D624 },
     { 5104, func_shelter_b1_transfer_tunnel_8017D61C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_b1_transfer_tunnel_801828E8[2] = {

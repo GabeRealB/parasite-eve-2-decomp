@@ -141,7 +141,7 @@ static UiList       Telephone_Data_80181CF4;
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// Message table of the room's message task.
-extern GpMsgEntry D_mine_refuge_80181884[];
+extern TaskMessageEntry D_mine_refuge_80181884[];
 
 /// Task table of the room's two scripted sequences,
 /// `func_mine_refuge_8017FA08` and `func_mine_refuge_8017FDBC`.
@@ -195,13 +195,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_mine_refuge_80181884[6] = {
+TaskMessageEntry D_mine_refuge_80181884[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_refuge_8017FBE8 },
     { 5105, func_mine_refuge_8017FBB4 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_refuge_8017FCD0 },
     { 5104, func_mine_refuge_8017FC2C },
     { 5106, func_mine_refuge_8017FD48 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_mine_refuge_801818B4[3] = {

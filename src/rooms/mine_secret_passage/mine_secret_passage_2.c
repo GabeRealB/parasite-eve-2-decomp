@@ -70,13 +70,13 @@ extern WorldCollisionTrigger      D_mine_secret_passage_801830C4[3];
 extern WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9];
 extern WorldCoordRoomLights       D_mine_secret_passage_80182DB4[1];
 
-GpMsgEntry D_mine_secret_passage_80180E8C[6] = {
-    { 5102, func_mine_secret_passage_8017D7CC },
+TaskMessageEntry D_mine_secret_passage_80180E8C[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_secret_passage_8017D7CC },
     { 5105, func_mine_secret_passage_8017D7C4 },
-    { 5103, func_mine_secret_passage_8017D890 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_secret_passage_8017D890 },
     { 5104, func_mine_secret_passage_8017D888 },
     { 5106, func_mine_secret_passage_8017D898 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_mine_secret_passage_80180EBC = { { { TASK_BODY_NONE, 32 } }, func_mine_secret_passage_8017D60C, { .value = 0 } };

@@ -41,7 +41,7 @@
 #define D_shelter_1f_airlock_8017E4D4 (D_shelter_1f_airlock_8017E4BC + 3)
 
 /// The room's message table, handed to its event task in state 0.
-extern GpMsgEntry D_shelter_1f_airlock_8017E494[];
+extern TaskMessageEntry D_shelter_1f_airlock_8017E494[];
 
 /// Ambient effect emitter positions for the airlock, selected by view index.
 /// `D_shelter_1f_airlock_8017E4BC` / `_8017E4C4` / `_8017E4D4` are successive
@@ -61,12 +61,12 @@ extern WorldCollisionTrigger D_shelter_1f_airlock_8017F430[6];
 extern WorldCollisionTrigger D_shelter_1f_airlock_8017F5F8[4];
 extern WorldCoordRoomLights  D_shelter_1f_airlock_8017F418[1];
 
-GpMsgEntry D_shelter_1f_airlock_8017E494[5] = {
+TaskMessageEntry D_shelter_1f_airlock_8017E494[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_airlock_8017D5D8 },
     { 5105, func_shelter_1f_airlock_8017D5D0 },
-    { 5103, func_shelter_1f_airlock_8017D624 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_airlock_8017D624 },
     { 5104, func_shelter_1f_airlock_8017D61C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_1f_airlock_8017E4BC[28] = {

@@ -21,12 +21,12 @@ s32  func_mist_r21_8017D60C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMess
 s32  func_mist_r21_8017D614(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3);
 void func_mist_r21_8017D760(Task* task);
 
-GpMsgEntry D_mist_r21_8017D770[] = {
+TaskMessageEntry D_mist_r21_8017D770[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_r21_8017D5E4 },
     { 0x13F1, func_mist_r21_8017D5DC },
-    { 0x13EF, func_mist_r21_8017D614 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_r21_8017D614 },
     { 0x13F0, func_mist_r21_8017D60C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// The one task the room task spawns on entry; its callback is the empty

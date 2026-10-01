@@ -96,12 +96,12 @@ AnimationSet D_neo_ark_power_plant_1_8017EAF0 = {
     { NULL, D_neo_ark_power_plant_1_8017E5AC, NULL, NULL, D_neo_ark_power_plant_1_8017E624, NULL, NULL, NULL },
 };
 
-GpMsgEntry D_neo_ark_power_plant_1_8017EB18[5] = {
-    { 5102, func_neo_ark_power_plant_1_8017D7B4 },
+TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_power_plant_1_8017D7B4 },
     { 5105, func_neo_ark_power_plant_1_8017D7AC },
-    { 5103, func_neo_ark_power_plant_1_8017D8C8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_power_plant_1_8017D8C8 },
     { 5104, func_neo_ark_power_plant_1_8017D7F8 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };

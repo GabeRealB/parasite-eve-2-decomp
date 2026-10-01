@@ -55,7 +55,7 @@ extern TaskDesc D_8016EA28;
 extern TaskDesc D_801718F0;
 
 /// The room's message table, published in `Task::msgTable`.
-extern GpMsgEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
+extern TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
 
 static void func_shelter_b1_pod_service_gantry_8017D628(Task* task);
 static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0);
@@ -73,12 +73,12 @@ s32 func_shelter_b1_pod_service_gantry_8017D814(Task*, s32, TaskMessageArg, Task
 extern WorldCoordPointLight                      D_shelter_b1_pod_service_gantry_80181DC8[9];
 extern ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128;
 
-GpMsgEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
+TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_pod_service_gantry_8017D7C8 },
     { 5105, func_shelter_b1_pod_service_gantry_8017D7C0 },
-    { 5103, func_shelter_b1_pod_service_gantry_8017D814 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_pod_service_gantry_8017D814 },
     { 5104, func_shelter_b1_pod_service_gantry_8017D80C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8* D_shelter_b1_pod_service_gantry_8017FB1C[1] = {

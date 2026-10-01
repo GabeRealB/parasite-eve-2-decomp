@@ -14,7 +14,7 @@ extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48;
 
 extern TaskDesc gRoomEventTaskDesc;
 
-extern GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[6];
+extern TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 

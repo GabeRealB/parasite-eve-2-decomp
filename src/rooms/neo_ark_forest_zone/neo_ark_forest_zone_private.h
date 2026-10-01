@@ -17,7 +17,7 @@ extern u16 gRoamerReserveHp[5];
 
 extern TaskDesc D_neo_ark_forest_zone_80181DBC;
 
-extern GpMsgEntry D_neo_ark_forest_zone_80181DC8[6];
+extern TaskMessageEntry D_neo_ark_forest_zone_80181DC8[6];
 
 extern s32 D_neo_ark_forest_zone_80181E30;
 

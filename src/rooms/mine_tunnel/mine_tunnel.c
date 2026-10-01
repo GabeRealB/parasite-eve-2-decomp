@@ -4,6 +4,7 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -26,7 +27,7 @@ extern EvsCommand D_mine_tunnel_8017E024[];
 /// The room's message table: 0x13EE is handled by `func_mine_tunnel_8017D5EC`,
 /// 0x13F1 by `func_mine_tunnel_8017D5E4`, 0x13EF by `func_mine_tunnel_8017D670`
 /// and 0x13F0 by `func_mine_tunnel_8017D630`.
-extern GpMsgEntry D_mine_tunnel_8017DFC4[];
+extern TaskMessageEntry D_mine_tunnel_8017DFC4[];
 
 s32 func_mine_tunnel_8017D5E4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_mine_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -61,12 +62,12 @@ AnimationSet D_mine_tunnel_8017DF9C = {
     { NULL, D_mine_tunnel_8017DB54, NULL, NULL, D_mine_tunnel_8017DBCC, NULL, NULL, NULL },
 };
 
-GpMsgEntry D_mine_tunnel_8017DFC4[5] = {
+TaskMessageEntry D_mine_tunnel_8017DFC4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_8017D5EC },
     { 5105, func_mine_tunnel_8017D5E4 },
-    { 5103, func_mine_tunnel_8017D670 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_tunnel_8017D670 },
     { 5104, func_mine_tunnel_8017D630 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationSet* D_mine_tunnel_8017DFEC[2] = {

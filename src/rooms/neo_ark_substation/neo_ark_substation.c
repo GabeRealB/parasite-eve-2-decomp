@@ -40,8 +40,8 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-/// The room's own `GpMsgEntry[]` - the message table the message task publishes.
-extern GpMsgEntry D_neo_ark_substation_8017E294[];
+/// The room's own `TaskMessageEntry[]` - the message table the message task publishes.
+extern TaskMessageEntry D_neo_ark_substation_8017E294[];
 /// Spawn table for the ambience task the message task starts.
 extern TaskDesc D_neo_ark_substation_8017E2BC[];
 /// The room's ambience table, one `(pan, vol)` entry per area.
@@ -77,12 +77,12 @@ extern WorldCollisionTrigger D_neo_ark_substation_8017FC5C[12];
 extern WorldCollisionTrigger D_neo_ark_substation_8017FFEC[10];
 extern WorldCoordRoomLights  D_neo_ark_substation_8017FC44[1];
 
-GpMsgEntry D_neo_ark_substation_8017E294[5] = {
+TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_substation_8017D724 },
     { 5105, func_neo_ark_substation_8017D71C },
-    { 5103, func_neo_ark_substation_8017D7A4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_substation_8017D7A4 },
     { 5104, func_neo_ark_substation_8017D768 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_neo_ark_substation_8017E2BC[1] = {

@@ -21,19 +21,19 @@
 #include "mapui/map_shelter.h"
 
 /// The room's message table, handed to its event task in state 0.
-extern GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[];
+extern TaskMessageEntry D_shelter_1f_heliport_s4_8017D6D0[];
 
 s32 func_shelter_1f_heliport_s4_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_1f_heliport_s4_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_1f_heliport_s4_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_1f_heliport_s4_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
+TaskMessageEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_s4_8017D5D8 },
     { 5105, func_shelter_1f_heliport_s4_8017D5D0 },
-    { 5103, func_shelter_1f_heliport_s4_8017D624 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_heliport_s4_8017D624 },
     { 5104, func_shelter_1f_heliport_s4_8017D61C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8* D_shelter_1f_heliport_s4_8017D6F8[1] = {

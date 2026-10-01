@@ -333,7 +333,7 @@ extern EvsCommand D_shelter_b1_underground_parking_80187544[];
 extern Task*    D_shelter_b1_underground_parking_8018D74C;
 extern TaskDesc D_shelter_b1_underground_parking_80187670;
 
-extern GpMsgEntry D_shelter_b1_underground_parking_80187230[];
+extern TaskMessageEntry D_shelter_b1_underground_parking_80187230[];
 
 extern DVECTOR        D_shelter_b1_underground_parking_801876D4[];
 extern u8             D_shelter_b1_underground_parking_8018D788;
@@ -428,13 +428,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_shelter_b1_underground_parking_80187230[6] = {
+TaskMessageEntry D_shelter_b1_underground_parking_80187230[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_underground_parking_80183360 },
     { 5105, func_shelter_b1_underground_parking_80183284 },
-    { 5103, func_shelter_b1_underground_parking_80182830 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_underground_parking_80182830 },
     { 5104, func_shelter_b1_underground_parking_80182A60 },
     { 5106, func_shelter_b1_underground_parking_801833DC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b1_underground_parking_80187260[1] = {

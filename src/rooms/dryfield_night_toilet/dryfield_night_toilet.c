@@ -38,7 +38,7 @@
 #include "../../shared/room_variants.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_dryfield_night_toilet_8017DA70[];
+extern TaskMessageEntry D_dryfield_night_toilet_8017DA70[];
 
 /// The room's two glow-sprite points, one per camera view group that shows
 /// one.
@@ -59,13 +59,13 @@ extern WorldCollisionTrigger D_dryfield_night_toilet_8017EE9C[6];
 extern WorldCollisionTrigger D_dryfield_night_toilet_8017F064[8];
 extern WorldCoordRoomLights  D_dryfield_night_toilet_8017EE84[1];
 
-GpMsgEntry D_dryfield_night_toilet_8017DA70[6] = {
+TaskMessageEntry D_dryfield_night_toilet_8017DA70[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
     { 5105, func_dryfield_night_toilet_8017D678 },
-    { 5103, func_dryfield_night_toilet_8017D688 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_toilet_8017D688 },
     { 5104, func_dryfield_night_toilet_8017D680 },
     { 5106, func_dryfield_night_toilet_8017D644 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_night_toilet_8017DAA0[1] = {

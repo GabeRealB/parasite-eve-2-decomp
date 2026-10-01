@@ -6,6 +6,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
@@ -26,7 +27,7 @@
 extern TaskDesc D_shelter_b2_breeding_room_80180444[];
 
 /// Message table `func_shelter_b2_breeding_room_8017D7EC` installs on its task.
-extern GpMsgEntry D_shelter_b2_breeding_room_80180414[];
+extern TaskMessageEntry D_shelter_b2_breeding_room_80180414[];
 
 s32  func_shelter_b2_breeding_room_8017D658(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_breeding_room_8017D660(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -58,13 +59,13 @@ u32 D_shelter_b2_breeding_room_801803C4[11] = {
 
 TmdSource D_shelter_b2_breeding_room_801803F0 = { 0, 40, 0, 1, D_shelter_b2_breeding_room_801803A0, D_shelter_b2_breeding_room_801803A4, &D_shelter_b2_breeding_room_801803A4[4], D_shelter_b2_breeding_room_8018037C, D_shelter_b2_breeding_room_801803C4 };
 
-GpMsgEntry D_shelter_b2_breeding_room_80180414[6] = {
+TaskMessageEntry D_shelter_b2_breeding_room_80180414[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_breeding_room_8017D660 },
     { 5105, func_shelter_b2_breeding_room_8017D658 },
-    { 5103, func_shelter_b2_breeding_room_8017D750 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_breeding_room_8017D750 },
     { 5104, func_shelter_b2_breeding_room_8017D6A4 },
     { 5106, func_shelter_b2_breeding_room_8017D758 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b2_breeding_room_80180444[1] = {

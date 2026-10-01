@@ -19,7 +19,7 @@
 #include "main/task_types.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
-extern GpMsgEntry D_dryfield_motel_room_3_8017D6B4[];
+extern TaskMessageEntry D_dryfield_motel_room_3_8017D6B4[];
 
 s32 func_dryfield_motel_room_3_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_room_3_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -31,12 +31,12 @@ extern WorldCollisionTrigger D_dryfield_motel_room_3_8017DFC4[11];
 extern WorldCollisionTrigger D_dryfield_motel_room_3_8017E308[1];
 extern WorldCoordRoomLights  D_dryfield_motel_room_3_8017E4D4[1];
 
-GpMsgEntry D_dryfield_motel_room_3_8017D6B4[5] = {
+TaskMessageEntry D_dryfield_motel_room_3_8017D6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_3_8017D5D8 },
     { 5105, func_dryfield_motel_room_3_8017D5D0 },
-    { 5103, func_dryfield_motel_room_3_8017D608 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_3_8017D608 },
     { 5104, func_dryfield_motel_room_3_8017D600 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 GpRoomObjRec D_dryfield_motel_room_3_8017D6DC[1] = {

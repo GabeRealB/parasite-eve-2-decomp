@@ -125,16 +125,16 @@ extern OverlayWaveCtx* gScreenWaveCtx;
 extern OverlayWaveRec6 gScreenWaveColumns[13];
 extern OverlayWaveRec6 gScreenWaveRows[32];
 
-extern GpMsgEntry D_shelter_b4_reservoir_801848BC[];
-extern TaskDesc   D_shelter_b4_reservoir_801848EC[];
-extern TaskDesc   D_shelter_b4_reservoir_80184920[];
-extern Task*      D_shelter_b4_reservoir_8018492C;
-extern Task*      D_shelter_b4_reservoir_80184930;
-extern EvsCommand D_shelter_b4_reservoir_80184948[];
-extern EvsCommand D_shelter_b4_reservoir_80184DC8[];
-extern u8         D_shelter_b4_reservoir_80184F78;
-extern u8         D_shelter_b4_reservoir_80184F79;
-extern u8         D_shelter_b4_reservoir_80184F7A;
+extern TaskMessageEntry D_shelter_b4_reservoir_801848BC[];
+extern TaskDesc         D_shelter_b4_reservoir_801848EC[];
+extern TaskDesc         D_shelter_b4_reservoir_80184920[];
+extern Task*            D_shelter_b4_reservoir_8018492C;
+extern Task*            D_shelter_b4_reservoir_80184930;
+extern EvsCommand       D_shelter_b4_reservoir_80184948[];
+extern EvsCommand       D_shelter_b4_reservoir_80184DC8[];
+extern u8               D_shelter_b4_reservoir_80184F78;
+extern u8               D_shelter_b4_reservoir_80184F79;
+extern u8               D_shelter_b4_reservoir_80184F7A;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -244,13 +244,13 @@ TmdSource D_shelter_b4_reservoir_80184898 = {
     D_shelter_b4_reservoir_801847E0,
 };
 
-GpMsgEntry D_shelter_b4_reservoir_801848BC[6] = {
+TaskMessageEntry D_shelter_b4_reservoir_801848BC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_reservoir_8017E264 },
     { 5105, func_shelter_b4_reservoir_8017E25C },
-    { 5103, func_shelter_b4_reservoir_8017E3C4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_reservoir_8017E3C4 },
     { 5104, func_shelter_b4_reservoir_8017E354 },
     { 5106, func_shelter_b4_reservoir_8017E3CC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b4_reservoir_801848EC[4] = {

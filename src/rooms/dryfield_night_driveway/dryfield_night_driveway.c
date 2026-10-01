@@ -88,7 +88,7 @@ extern EvsCommand D_dryfield_night_driveway_8017F998[];
 extern EvsCommand D_dryfield_night_driveway_8017FB00[];
 
 /// Message table the room task installs at `Task::msgTable`.
-extern GpMsgEntry D_dryfield_night_driveway_8017F7A4[];
+extern TaskMessageEntry D_dryfield_night_driveway_8017F7A4[];
 
 /// Three pairs of beam end points, back to back: the first pair at `B0[0]`,
 /// the second at `B0[2]` and the third at `D0`. `D0` is its own symbol because
@@ -289,13 +289,13 @@ EvsCommand gDrivewayBlackoutTail[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpMsgEntry D_dryfield_night_driveway_8017F7A4[6] = {
+TaskMessageEntry D_dryfield_night_driveway_8017F7A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
     { 5105, func_dryfield_night_driveway_8017DCE4 },
-    { 5103, func_dryfield_night_driveway_8017DCF4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_driveway_8017DCF4 },
     { 5104, func_dryfield_night_driveway_8017DCEC },
     { 5106, drivewayScriptSound },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 ActorTransform D_dryfield_night_driveway_8017F7D4 = { { -700, 0, 1320, 0 }, { 0, 1365, 0, 0 } };

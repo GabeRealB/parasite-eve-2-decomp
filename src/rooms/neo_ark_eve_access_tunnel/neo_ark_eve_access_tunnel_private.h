@@ -21,7 +21,7 @@ extern GpObj3A D_neo_ark_eve_access_tunnel_80180720[1];
 
 extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
 
-extern GpMsgEntry D_neo_ark_eve_access_tunnel_8017EA94[6];
+extern TaskMessageEntry D_neo_ark_eve_access_tunnel_8017EA94[6];
 
 extern TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[3];
 

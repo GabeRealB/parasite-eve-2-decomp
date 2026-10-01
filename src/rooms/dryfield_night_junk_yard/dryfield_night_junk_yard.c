@@ -3,6 +3,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
@@ -21,7 +22,7 @@
 
 /// The room's message table, published in `Task::msgTable` for
 /// `Gp_DispatchMsg` to walk.
-extern GpMsgEntry D_dryfield_night_junk_yard_8018055C[];
+extern TaskMessageEntry D_dryfield_night_junk_yard_8018055C[];
 /// Payload of the 0x7DA message the entry task sends to the slot-4 task.
 extern s32        D_dryfield_night_junk_yard_801805A0;
 extern EvsCommand D_dryfield_night_junk_yard_801805A4[];
@@ -36,12 +37,12 @@ extern ActorCommand         D_dryfield_night_junk_yard_80180598;
 extern ActorCommand         D_dryfield_night_junk_yard_8018059C;
 void                        func_dryfield_night_junk_yard_8017D894(u8);
 
-GpMsgEntry D_dryfield_night_junk_yard_8018055C[5] = {
+TaskMessageEntry D_dryfield_night_junk_yard_8018055C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_junk_yard_8017D6AC },
     { 5105, func_dryfield_night_junk_yard_8017D6A4 },
-    { 5103, func_dryfield_night_junk_yard_8017D82C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_junk_yard_8017D82C },
     { 5104, func_dryfield_night_junk_yard_8017D5F4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPlayRequest D_dryfield_night_junk_yard_80180584 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };

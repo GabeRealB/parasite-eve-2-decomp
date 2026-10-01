@@ -87,7 +87,7 @@ extern s32      D_8014CAF8;
 extern s32      D_8014D158;
 
 /// The room's message table, installed on the room task.
-extern GpMsgEntry D_shelter_r48_80182FB8[];
+extern TaskMessageEntry D_shelter_r48_80182FB8[];
 
 extern SVECTOR       D_shelter_r48_8018300C;
 extern u8            D_shelter_r48_8018BE54[6][16];
@@ -131,13 +131,13 @@ TmdSource D_shelter_r48_80182F88[1] = {
 
 TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_r48_8017D660, { .model = D_shelter_r48_80182F88 } };
 
-GpMsgEntry D_shelter_r48_80182FB8[6] = {
+TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r48_8017E044 },
     { 5105, func_shelter_r48_8017DF50 },
-    { 5103, func_shelter_r48_8017E090 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r48_8017E090 },
     { 5104, func_shelter_r48_8017E088 },
     { 5108, func_shelter_r48_8017E0EC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 RoomRingShape D_shelter_r48_80182FE8[6] = {

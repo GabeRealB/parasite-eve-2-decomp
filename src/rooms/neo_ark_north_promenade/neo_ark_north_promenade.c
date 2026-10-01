@@ -52,7 +52,7 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 
-extern GpMsgEntry D_neo_ark_north_promenade_80181D68[];
+extern TaskMessageEntry D_neo_ark_north_promenade_80181D68[];
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
 /// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
@@ -78,12 +78,12 @@ s32 func_neo_ark_north_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMs
 s32 func_neo_ark_north_promenade_8017D66C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_north_promenade_8017D674(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-GpMsgEntry D_neo_ark_north_promenade_80181D68[5] = {
+TaskMessageEntry D_neo_ark_north_promenade_80181D68[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_north_promenade_8017D5D8 },
     { 5105, func_neo_ark_north_promenade_8017D5D0 },
-    { 5103, func_neo_ark_north_promenade_8017D674 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_north_promenade_8017D674 },
     { 5104, func_neo_ark_north_promenade_8017D66C },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 473 }

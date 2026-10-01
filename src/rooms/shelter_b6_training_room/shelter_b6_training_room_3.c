@@ -11,6 +11,7 @@
 
 #include "shelter_b6_training_room_private.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -94,13 +95,13 @@ static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* co
 static void func_shelter_b6_training_room_80181BAC(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b6_training_room_80181FDC(GfxCoord* arg0, GfxCoord* arg1, s32 arg2, s16 arg3);
 
-GpMsgEntry D_shelter_b6_training_room_80182AF4[6] = {
-    { 5102, func_shelter_b6_training_room_8017D640 },
+TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_training_room_8017D640 },
     { 5105, func_shelter_b6_training_room_8017D638 },
-    { 5103, func_shelter_b6_training_room_8017D75C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_training_room_8017D75C },
     { 5104, func_shelter_b6_training_room_8017D684 },
     { 5108, func_shelter_b6_training_room_8017D764 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s32 D_shelter_b6_training_room_80182B24 = 0x11805;

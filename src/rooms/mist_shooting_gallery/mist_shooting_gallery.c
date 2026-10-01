@@ -193,7 +193,7 @@ extern UiList                    D_mist_shooting_gallery_8018503C;
 extern UiObjectDesc              D_mist_shooting_gallery_8018507C[];
 extern UiObjectDesc              D_mist_shooting_gallery_8018501C;
 extern MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13];
-extern GpMsgEntry                D_mist_shooting_gallery_801850E8[];
+extern TaskMessageEntry          D_mist_shooting_gallery_801850E8[];
 
 extern TaskDesc           D_mist_shooting_gallery_801850DC;
 extern WorldCollisionGrid D_mist_shooting_gallery_80185198;
@@ -737,12 +737,12 @@ TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, func_
 
 TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_8017FDD0, { .value = 0 } };
 
-GpMsgEntry D_mist_shooting_gallery_801850E8[5] = {
+TaskMessageEntry D_mist_shooting_gallery_801850E8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_shooting_gallery_8017FEB8 },
     { 5105, func_mist_shooting_gallery_8017FEB0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_shooting_gallery_8018008C },
     { 5104, func_mist_shooting_gallery_80180000 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_mist_shooting_gallery_80185110[3] = {

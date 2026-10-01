@@ -9,7 +9,7 @@
 
 extern TaskDesc gRoomEventTaskDesc;
 
-extern GpMsgEntry D_dryfield_night_water_tower_8017E6EC[6];
+extern TaskMessageEntry D_dryfield_night_water_tower_8017E6EC[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 

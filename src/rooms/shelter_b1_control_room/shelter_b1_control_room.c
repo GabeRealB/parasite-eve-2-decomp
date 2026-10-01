@@ -11,6 +11,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -104,10 +105,10 @@ typedef struct {
     s32     bottom;
 } _MirrorScratch;
 
-extern void       func_80131FB8(void);
-extern GpMsgEntry D_shelter_b1_control_room_80181B94[];
-extern s32        D_80132D70;
-extern s32        D_80133088;
+extern void             func_80131FB8(void);
+extern TaskMessageEntry D_shelter_b1_control_room_80181B94[];
+extern s32              D_80132D70;
+extern s32              D_80133088;
 
 static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg);
 
@@ -120,12 +121,12 @@ void func_shelter_b1_control_room_8017D7B8(Task*);
 
 TaskDesc D_shelter_b1_control_room_80181B88 = { { { TASK_BODY_NONE, 112 } }, func_shelter_b1_control_room_8017D7B8, { .value = 0 } };
 
-GpMsgEntry D_shelter_b1_control_room_80181B94[5] = {
+TaskMessageEntry D_shelter_b1_control_room_80181B94[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_8017ECD4 },
     { 5105, func_shelter_b1_control_room_8017ECCC },
-    { 5103, func_shelter_b1_control_room_8017EE24 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_control_room_8017EE24 },
     { 5104, func_shelter_b1_control_room_8017ED68 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out);

@@ -46,7 +46,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DryfieldNightMotelRoom2SpotLightStorage, 432);
 
 /// The room's message table, which the event task installs in state 0.
-extern GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[];
+extern TaskMessageEntry D_dryfield_night_motel_room_2_8017DA1C[];
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc. The
 /// visit the pair belongs to is `gGameSession->location.loc.view`.
@@ -66,12 +66,12 @@ extern WorldCoordRoomLights  D_dryfield_night_motel_room_2_80180928[1];
 extern DryfieldNightMotelRoom2SpotLightStorage D_dryfield_night_motel_room_2_80180778;
 extern WorldCoordPointLight                    D_dryfield_night_motel_room_2_801805F8[4];
 
-GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[5] = {
+TaskMessageEntry D_dryfield_night_motel_room_2_8017DA1C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
     { 5105, func_dryfield_night_motel_room_2_8017D5D0 },
-    { 5103, func_dryfield_night_motel_room_2_8017D668 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_2_8017D668 },
     { 5104, func_dryfield_night_motel_room_2_8017D660 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_night_motel_room_2_8017DA44[2] = {

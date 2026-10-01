@@ -40,10 +40,10 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/underpass_switches.h"
 
-extern TaskDesc   gUnderpassSwitchTaskDesc[];
-extern GpMsgEntry D_dryfield_night_underpass_8017DCF0[];
-extern SVECTOR    D_dryfield_night_underpass_8017DD20[8];
-extern s16        D_dryfield_night_underpass_8017DD60[8];
+extern TaskDesc         gUnderpassSwitchTaskDesc[];
+extern TaskMessageEntry D_dryfield_night_underpass_8017DCF0[];
+extern SVECTOR          D_dryfield_night_underpass_8017DD20[8];
+extern s16              D_dryfield_night_underpass_8017DD60[8];
 
 s32 func_dryfield_night_underpass_8017D8CC(Task*, s32, s32, s32);
 s32 func_dryfield_night_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -61,13 +61,13 @@ TaskDesc gUnderpassSwitchTaskDesc[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry D_dryfield_night_underpass_8017DCF0[6] = {
+TaskMessageEntry D_dryfield_night_underpass_8017DCF0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantUnderpassMsg },
     { 5105, func_dryfield_night_underpass_8017D900 },
-    { 5103, func_dryfield_night_underpass_8017D908 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_underpass_8017D908 },
     { 5104, underpassSwitchMsg },
     { 5106, func_dryfield_night_underpass_8017D8CC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_dryfield_night_underpass_8017DD20[8] = {

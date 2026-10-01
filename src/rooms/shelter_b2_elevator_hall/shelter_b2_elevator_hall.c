@@ -72,7 +72,7 @@
 extern TaskDesc gRoomEventTaskDesc;
 
 /// Message table `func_shelter_b2_elevator_hall_8017DCBC` installs on its task.
-extern GpMsgEntry D_shelter_b2_elevator_hall_801837A8[];
+extern TaskMessageEntry D_shelter_b2_elevator_hall_801837A8[];
 
 /// Copy of the message that fired a gated event, kept for the task
 /// `roomEventTask` to warp from.
@@ -109,13 +109,13 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskDesc D_shelter_b2_elevator_hall_8018379C = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b2_elevator_hall_801837A8[6] = {
+TaskMessageEntry D_shelter_b2_elevator_hall_801837A8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_hall_8017DAD4 },
     { 5105, func_shelter_b2_elevator_hall_8017DC70 },
-    { 5103, func_shelter_b2_elevator_hall_8017DC80 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_elevator_hall_8017DC80 },
     { 5104, func_shelter_b2_elevator_hall_8017DC78 },
     { 5106, func_shelter_b2_elevator_hall_8017DC88 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_b2_elevator_hall_801837D8[4] = {

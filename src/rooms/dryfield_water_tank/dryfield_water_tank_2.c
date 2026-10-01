@@ -138,12 +138,12 @@ EvsCommand D_dryfield_water_tank_8017F21C[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-GpMsgEntry D_dryfield_water_tank_8017F324[5] = {
-    { 5102, func_dryfield_water_tank_8017D7C4 },
+TaskMessageEntry D_dryfield_water_tank_8017F324[5] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_tank_8017D7C4 },
     { 5105, func_dryfield_water_tank_8017D7BC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_tank_8017D7EC },
     { 5104, func_dryfield_water_tank_8017D910 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_water_tank_8017F34C[2] = {

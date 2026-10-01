@@ -139,8 +139,8 @@ extern WorldCollisionGrid gFactoryLiftTemplate;
 extern WorldCollisionGrid gFactoryLiftTurnedTemplate;
 extern WorldCollisionGrid gFactoryBarrierTemplate;
 /// The room task's message table and the panel session's task descriptors.
-extern GpMsgEntry gFactoryMsgTable[];
-extern TaskDesc   gFactoryPanelSessionDesc[];
+extern TaskMessageEntry gFactoryMsgTable[];
+extern TaskDesc         gFactoryPanelSessionDesc[];
 /// The spawn table and panel descriptor picked for this stage, and the slot
 /// holding the panel task.
 extern TaskDesc* gFactorySpawnTable;

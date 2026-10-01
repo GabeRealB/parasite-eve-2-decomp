@@ -154,7 +154,7 @@ extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b1_armory_801824E8[];
 
 /// Message handlers the room's controller task installs in pointer slot 7.
-extern GpMsgEntry D_shelter_b1_armory_80182500[];
+extern TaskMessageEntry D_shelter_b1_armory_80182500[];
 
 /// The view index `func_shelter_b1_armory_8018034C` saves while it runs and
 /// restores when it finishes.
@@ -186,12 +186,12 @@ TaskDesc D_shelter_b1_armory_801824E8[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_armory_8018034C, { .value = 0 } },
 };
 
-GpMsgEntry D_shelter_b1_armory_80182500[5] = {
+TaskMessageEntry D_shelter_b1_armory_80182500[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_armory_801805A8 },
     { 5105, func_shelter_b1_armory_80180468 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_armory_801806F8 },
     { 5104, func_shelter_b1_armory_80180698 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static inline s32 Shop_AddItemCount(s32 item, s32 count);

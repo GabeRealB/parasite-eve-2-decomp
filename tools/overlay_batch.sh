@@ -369,7 +369,7 @@ functions dereferences `work`, record the anchor and do not invent a struct.
 Rooms differ: 80 of 168 allocate nothing at all, and the anchor is
 `Task::msgTable`, which 167 of 168 rooms load with an id/handler table.
 The slot borrows the table; its receiver-specific handler signatures vary.
-`include/gameplay/message.h` declares the dispatcher's `GpMsgEntry` view.
+`include/gameplay/message.h` declares the dispatcher's `TaskMessageEntry` view.
 
 `Task::extra` is a `TaskBody` union: `extra.tmd` selects a `TmdObject*` for
 `TASK_BODY_TMD`, and `extra.coordBody` selects the single-coordinate body for

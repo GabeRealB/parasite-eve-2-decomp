@@ -123,7 +123,7 @@ extern RoomDeparture D_shelter_b2_main_corridor_80189684;
 extern TaskDesc D_shelter_b2_main_corridor_80182C08;
 
 /// The room's message table, installed by its first task state.
-extern GpMsgEntry D_shelter_b2_main_corridor_80182C14[];
+extern TaskMessageEntry D_shelter_b2_main_corridor_80182C14[];
 
 /// Descriptor of the tasks the room's message handler spawns.
 extern TaskDesc D_shelter_b2_main_corridor_80182C44[];
@@ -199,13 +199,13 @@ AnimationSet D_shelter_b2_main_corridor_80182BE0 = {
 
 TaskDesc D_shelter_b2_main_corridor_80182C08 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b2_main_corridor_80182C14[6] = {
+TaskMessageEntry D_shelter_b2_main_corridor_80182C14[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_main_corridor_8017D9C4 },
     { 5105, func_shelter_b2_main_corridor_8017E1CC },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_main_corridor_8017DC88 },
     { 5104, func_shelter_b2_main_corridor_8017E1D4 },
     { 5106, func_shelter_b2_main_corridor_8017E1DC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b2_main_corridor_80182C44[2] = {

@@ -117,7 +117,7 @@ extern TaskDesc gMainStreetPlayTimeTaskDesc;
 
 /// Message table installed at `Task::msgTable` by the room task's state 0
 /// (ids `0x13EE`-`0x13F1`).
-extern GpMsgEntry D_dryfield_night_main_street_801820B0[];
+extern TaskMessageEntry D_dryfield_night_main_street_801820B0[];
 
 /// Per-nibble-value sprite patch lists, one table per game-flag nibble.
 extern u8** D_dryfield_night_main_street_80182168;
@@ -221,13 +221,13 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, mainStreetPlayTimeTask, { .value = 0 } };
 
-GpMsgEntry D_dryfield_night_main_street_801820B0[6] = {
+TaskMessageEntry D_dryfield_night_main_street_801820B0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
     { 5105, func_dryfield_night_main_street_8017E054 },
-    { 5103, func_dryfield_night_main_street_8017E05C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_main_street_8017E05C },
     { 5104, mainStreetTalkMsg },
     { 5106, mainStreetCapSoundCue },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8 D_dryfield_night_main_street_801820E0[16] = {

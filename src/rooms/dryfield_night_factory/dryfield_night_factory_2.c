@@ -231,13 +231,13 @@ TaskDesc gFactoryPanelSessionDesc[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-GpMsgEntry gFactoryMsgTable[6] = {
+TaskMessageEntry gFactoryMsgTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, factoryResolveWarp },
     { 5105, factoryIgnoreMessage },
     { 5104, factoryCommand },
     { 5106, factorySoundCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, factoryRoomAction },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gFactoryPromptDesc[1] = {

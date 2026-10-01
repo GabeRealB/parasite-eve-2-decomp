@@ -6,6 +6,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 
@@ -24,7 +25,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task);
 extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;
 
 /// The room's message table, which its cap scripts index.
-extern GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[];
+extern TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[];
 
 s32 func_shelter_b1_sleeping_quarters_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_sleeping_quarters_8017D670(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -65,12 +66,12 @@ TmdSource D_shelter_b1_sleeping_quarters_801804F4 = {
     D_shelter_b1_sleeping_quarters_801803BC,
 };
 
-GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
+TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_sleeping_quarters_8017D670 },
     { 5105, func_shelter_b1_sleeping_quarters_8017D668 },
-    { 5103, func_shelter_b1_sleeping_quarters_8017D770 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_sleeping_quarters_8017D770 },
     { 5104, func_shelter_b1_sleeping_quarters_8017D6FC },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b1_sleeping_quarters_80180540 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sleeping_quarters_8017D778, { .value = 0 } };

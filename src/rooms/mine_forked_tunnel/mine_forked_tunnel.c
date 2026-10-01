@@ -134,10 +134,10 @@ extern SVECTOR D_mine_forked_tunnel_80183614[];
 extern SVECTOR D_mine_forked_tunnel_8018361C[];
 extern SVECTOR D_mine_forked_tunnel_8018362C[];
 
-extern TaskDesc   D_mine_forked_tunnel_80183104[];
-extern GpMsgEntry D_mine_forked_tunnel_80181C80[];
-extern EvsCommand D_mine_forked_tunnel_801831AC[];
-extern EvsCommand D_mine_forked_tunnel_801834F4[];
+extern TaskDesc         D_mine_forked_tunnel_80183104[];
+extern TaskMessageEntry D_mine_forked_tunnel_80181C80[];
+extern EvsCommand       D_mine_forked_tunnel_801831AC[];
+extern EvsCommand       D_mine_forked_tunnel_801834F4[];
 
 static void func_mine_forked_tunnel_8017D5E8(Task* arg0);
 static void func_mine_forked_tunnel_8017D724(Task* arg0);
@@ -843,12 +843,12 @@ s16* D_mine_forked_tunnel_80181C58[1] = {
 
 WorldCollisionGrid D_mine_forked_tunnel_80181C5C = { NULL, D_mine_forked_tunnel_80181BD4, D_mine_forked_tunnel_80181BEC, D_mine_forked_tunnel_80181C2C, D_mine_forked_tunnel_80181C58, -1747, -7643, 1, 1, 4000, 3 };
 
-GpMsgEntry D_mine_forked_tunnel_80181C80[5] = {
+TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
     { 5105, func_mine_forked_tunnel_8017E0E8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_forked_tunnel_8017E19C },
     { 5104, func_mine_forked_tunnel_8017E134 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPackedPose D_mine_forked_tunnel_80181CA8[6] = {
@@ -1874,7 +1874,7 @@ s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, TaskMessageArg first
 }
 
 /// State 0 of the room's message-driven task family: park the room's
-/// `GpMsgEntry` table in `Task::msgTable`, publish the task in pointer slot 7,
+/// `TaskMessageEntry` table in `Task::msgTable`, publish the task in pointer slot 7,
 /// arm the message flag, then hand off to `func_mine_forked_tunnel_8017E48C`.
 static void func_mine_forked_tunnel_8017E1E8(Task* arg0)
 {

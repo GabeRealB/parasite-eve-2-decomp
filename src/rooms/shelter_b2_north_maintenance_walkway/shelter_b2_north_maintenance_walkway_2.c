@@ -11,6 +11,7 @@
 
 #include "shelter_b2_north_maintenance_walkway_private.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/effect_tasks.h"
@@ -63,13 +64,13 @@ TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { { { TASK_BODY_NONE,
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
-    { 5102, func_shelter_b2_north_maintenance_walkway_8017DA88 },
+TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
+    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_north_maintenance_walkway_8017DA88 },
     { 5105, func_shelter_b2_north_maintenance_walkway_8017DC44 },
-    { 5103, func_shelter_b2_north_maintenance_walkway_8017DC54 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_north_maintenance_walkway_8017DC54 },
     { 5104, func_shelter_b2_north_maintenance_walkway_8017DC4C },
     { 5106, func_shelter_b2_north_maintenance_walkway_8017DCE4 },
-    { 0x7FFFFFFF, NULL },
+    { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 SVECTOR D_shelter_b2_north_maintenance_walkway_80183B90[4] = {
