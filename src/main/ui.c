@@ -1801,8 +1801,14 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
 static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
 {
     enum {
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U    = 0x68,
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V    = 0x50,
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U = 0x68,
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V = 0x50,
+        /// Packed GPU texture-page selector for the horizontal separator's atlas.
+        ///
+        /// Depth 0 selects 4-bit texels at VRAM word X=896, row Y=256;
+        /// U/V index texels relative to that origin. Blend selector 0 encodes
+        /// half-background + half-foreground, ignored by this opaque quad.
+        /// The encoded value 0x001E fits the packet's unsigned 16-bit tpage.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE = getTPage(0, 0, 0x380, 0x100),
         /// GPU CLUT ID for the separator's 4-bit texture palette at VRAM (48, 240).
         ///
