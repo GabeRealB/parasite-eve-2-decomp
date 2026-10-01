@@ -1835,6 +1835,11 @@ static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
 
 void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 centerY)
 {
+    /// Horizontal separator layer relative to the panel's signed ordering-table base.
+    ///
+    /// Counts four-byte DMA tags, placing separators between the frame at base+3
+    /// and text at base+1. The signed base+2 index must select a writable tag in
+    /// the current table; foreground indices can be negative with a shifted base.
     enum { USER_INTERFACE_HORIZONTAL_SEPARATOR_OT_OFFSET = 2 };
     POLY_FT4* separator;
     s32       screenY;
