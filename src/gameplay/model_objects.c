@@ -729,8 +729,16 @@ u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
 u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     enum {
-        // Depth refs count bytes; low two bits are excluded, with no bounds check.
-        TMD_GT3_ENV_DEPTH_REFERENCE_MASK = 0xFFFC,
+        /// Extracts the aligned depth-cache byte offset from an environment triangle's corner reference.
+        ///
+        /// Each of the element's first three u16 references retains bits 15..2;
+        /// the discarded low bits' role is unproven. Results are 0..65532 bytes,
+        /// divided by sizeof(*vertexDepths) to select a four-byte `szTable` entry.
+        /// The draw pass supplies 1024 entries, so valid offsets are 0..4092 and
+        /// must name depths initialized earlier in the same draw walk. This mask
+        /// provides alignment without checking bounds or projection validity;
+        /// `TMD_VERTEX_DEPTH_INVALID` is tested in the selected cache entry.
+        TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK = 0xFFFC,
         // Fixed 15-bit additive environment pages at VRAM (448,256) and (576,256).
         TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(2, 1, 448, 256),
         TMD_GT3_ENV_SECOND_TEXTURE_PAGE = getTPage(2, 1, 576, 256),
@@ -799,15 +807,15 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
             _tmdStoreTexturedTriangleFacing(&(*packetPair)[0], gteResultDestination);
             if (workspace->gteResult > 0) {
                 vertexDepths       = workspace->szTable;
-                depthByteOffset    = depthRefs[0] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                depthByteOffset    = depthRefs[0] & TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK;
                 depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
                 if ((depthOrPageMarkers & invalidDepthMask) == 0) {
                     gte_ldSZ1(depthOrPageMarkers);
-                    depthByteOffset    = depthRefs[1] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                    depthByteOffset    = depthRefs[1] & TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK;
                     depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
                     if ((depthOrPageMarkers & invalidDepthMask) == 0) {
                         gte_ldSZ2(depthOrPageMarkers);
-                        depthByteOffset    = depthRefs[2] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                        depthByteOffset    = depthRefs[2] & TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK;
                         depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
                         if ((depthOrPageMarkers & invalidDepthMask) == 0) {
                             gte_ldSZ3(depthOrPageMarkers);
