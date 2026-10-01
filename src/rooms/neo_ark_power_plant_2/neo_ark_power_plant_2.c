@@ -885,10 +885,10 @@ void func_neo_ark_power_plant_2_8017D854(Task* task)
 
 void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
 {
-    u32                   rnd;
-    u16                   intensity;
-    WorldCoordPointLight* work;
-    GpCoord64*            light;
+    u32                            rnd;
+    u16                            intensity;
+    WorldCoordPointLight*          work;
+    WorldCoordTransientPointLight* lightSlot;
 
     if (arg0->state == 0) {
         D_80115758  = 0x601DC;
@@ -911,21 +911,21 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
             }
             break;
         case 8:
-            light                                          = &Gp_RoomCoords[4];
-            light->framesLeft                              = 4;
-            work                                           = &light->light;
-            work->inner                                    = 0x400;
-            work->outer                                    = 0x4000;
-            light->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            rnd                                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                                = rnd;
-            intensity                                      = ((rnd >> 16) & 0x700) + 0x800;
-            work->head.color.b                             = intensity;
-            work->head.color.r                             = intensity >> 1;
-            work->head.color.g                             = intensity >> 1;
-            work->head.transform.lighting.local.t[0]       = D_neo_ark_power_plant_2_80180668.vx;
-            work->head.transform.lighting.local.t[1]       = D_neo_ark_power_plant_2_80180668.vy;
-            work->head.transform.lighting.local.t[2]       = D_neo_ark_power_plant_2_80180668.vz;
+            lightSlot                                          = &Gp_RoomCoords[4];
+            lightSlot->framesLeft                              = 4;
+            work                                               = &lightSlot->light;
+            work->inner                                        = 0x400;
+            work->outer                                        = 0x4000;
+            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            rnd                                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                                    = rnd;
+            intensity                                          = ((rnd >> 16) & 0x700) + 0x800;
+            work->head.color.b                                 = intensity;
+            work->head.color.r                                 = intensity >> 1;
+            work->head.color.g                                 = intensity >> 1;
+            work->head.transform.lighting.local.t[0]           = D_neo_ark_power_plant_2_80180668.vx;
+            work->head.transform.lighting.local.t[1]           = D_neo_ark_power_plant_2_80180668.vy;
+            work->head.transform.lighting.local.t[2]           = D_neo_ark_power_plant_2_80180668.vz;
             break;
     }
 }

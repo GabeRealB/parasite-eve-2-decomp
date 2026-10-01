@@ -103,20 +103,30 @@ typedef struct {
 } WorldCoordSpotLight;
 STATIC_ASSERT_SIZEOF(WorldCoordSpotLight, 0x6C);
 
-/// One of the eight transient point lights gameplay keeps on top of a room's
-/// own lights, which effects, weapons, parasite energies, actors and rooms
-/// switch on for as long as something of theirs glows.
+/// Countdown value that disables a transient point-light slot.
+enum { WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE = 0 };
+
+/// An expiring point-light contribution alongside a room's authored lights.
 ///
-/// A slot is lit while `framesLeft` is non-zero. The per-frame gameplay tick
-/// counts it down outside events, so an owner keeps its light on by re-arming
-/// the count every frame it draws. While a slot is lit, gameplay re-evaluates
-/// `light.head.transform.coord` against the view each frame and ranks the slot with the room's
-/// point lights whenever a model is lit, reading it as `light`. Nothing
-/// allocates the slots: each kind of owner writes indices of its own.
-typedef struct _GpCoord64 {
-    s32                  framesLeft; // frames the light stays lit; 0 leaves the slot dark
-    WorldCoordPointLight light;      // Placement, colour and falloff radii of the transient light
-} GpCoord64;
-STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
+/// Effects, weapons, actors and rooms write directly into selected entries of
+/// the eight-slot `Gp_RoomCoords` pool. Slots are shared storage, with no
+/// allocation or reference count; another writer can replace a contribution.
+/// Set `framesLeft` to a positive frame count to enable the slot, or zero to
+/// disable it. The shared effect update decrements nonzero counts once per
+/// frame unless effect control is paused. An owner may also decrement or clear
+/// its count, or refresh it to keep a light alive. Expiration retains the light
+/// record and its transform; it releases no resource.
+///
+/// Initialization disables the slot and borrows the persistent view coordinate
+/// as its transform parent. Placement is local to that parent, and writers
+/// must mark `light.head.transform.coord.composeStamp` dirty after moving it.
+/// Active transforms are composed with the view ancestor excluded. Lighting
+/// ranks `light` as a point source using its position, RGB and distance radii;
+/// transient queries ignore `light.head.transform.lighting.viewId`.
+typedef struct {
+    s32                  framesLeft; // Expiry countdown in gameplay frames (0 inactive); owners may shorten or refresh it
+    WorldCoordPointLight light;      // Retained placement, RGB intensity and distance falloff; transform parent is borrowed
+} WorldCoordTransientPointLight;
+STATIC_ASSERT_SIZEOF(WorldCoordTransientPointLight, 0x64);
 
 #endif // GAMEPLAY_LIGHT_H

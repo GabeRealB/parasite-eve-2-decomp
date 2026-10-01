@@ -4353,26 +4353,26 @@ void func_acropolis_plaza_80180270(Task* arg0)
 
 void func_acropolis_plaza_801802C0(Task* task)
 {
-    GpCoord64*                 entry;
-    WorldCoordPointLight*      light;
-    GfxCoord*                  coord;
-    GfxCoord*                  lightCoord;
-    AcropolisPlazaBeamWork*    work;
-    AcropolisPlazaBeamScratch* blk;
-    SVECTOR*                   point;
-    POLY_G3*                   tri;
-    POLY_G4*                   prim;
-    s32                        i;
-    u32                        brightness;
-    u16                        red, green, blue;
-    s32                        slot, pulse;
-    u32                        pulse2;
-    s16                        spread, depthVal;
-    u16                        yaw;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          light;
+    GfxCoord*                      coord;
+    GfxCoord*                      lightCoord;
+    AcropolisPlazaBeamWork*        work;
+    AcropolisPlazaBeamScratch*     blk;
+    SVECTOR*                       point;
+    POLY_G3*                       tri;
+    POLY_G4*                       prim;
+    s32                            i;
+    u32                            brightness;
+    u16                            red, green, blue;
+    s32                            slot, pulse;
+    u32                            pulse2;
+    s16                            spread, depthVal;
+    u16                            yaw;
 
     slot       = task->spawnArg1.value;
-    entry      = &Gp_RoomCoords[slot & 7];
-    light      = &entry->light;
+    lightSlot  = &Gp_RoomCoords[slot & 7];
+    light      = &lightSlot->light;
     coord      = task->extra.coordBody->coord;
     work       = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
     lightCoord = &light->head.transform.coord;
@@ -4393,7 +4393,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     gte_rtps();
     gte_stsxy(&blk->sx);
     gte_stszotz(&blk->otz);
-    entry->framesLeft = 0;
+    lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -4416,7 +4416,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            entry->framesLeft        = 2;
+            lightSlot->framesLeft    = 2;
             light->inner             = 0x600;
             light->outer             = work->spread + 0x600;
             light->head.color.r      = red << 4;

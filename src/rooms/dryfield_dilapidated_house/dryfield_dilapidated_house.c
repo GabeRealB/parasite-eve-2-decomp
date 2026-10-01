@@ -4247,25 +4247,25 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// 0x580.
 void func_dryfield_dilapidated_house_80182744(Task* task)
 {
-    DdhEffWork*           work;
-    GfxCoord*             coord;
-    GpCoord64*            rc;
-    WorldCoordPointLight* tail;
-    EffectWork*           eff;
-    u16                   tick;
-    u16                   tick1;
-    s16                   size;
-    s32                   angle;
-    s32                   i;
-    u8                    rgb[3];
+    DdhEffWork*                    work;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          tail;
+    EffectWork*                    eff;
+    u16                            tick;
+    u16                            tick1;
+    s16                            size;
+    s32                            angle;
+    s32                            i;
+    u8                             rgb[3];
 
     work           = task->spawnArg2.pointer;
     coord          = task->extra.coordBody->coord;
     tick           = work->field_22;
     tick1          = tick + 1;
     work->field_22 = tick1;
-    rc             = &Gp_RoomCoords[0];
-    tail           = &rc->light;
+    lightSlot      = &Gp_RoomCoords[0];
+    tail           = &lightSlot->light;
 
     switch (task->state) {
         case 0:
@@ -4286,19 +4286,19 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
             Gp_DrawFadeQuad(rgb, 1);
-            Gp_RoomCoords[0].framesLeft                 = 4;
-            tail->inner                                 = 0x200;
-            tail->outer                                 = 0x2000;
-            gRandomLcgState                             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            size                                        = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            tail->head.color.r                          = size;
-            tail->head.color.g                          = size >> 1;
-            tail->head.color.b                          = size >> 2;
-            tail->head.transform.coord.coord.t[0]       = coord->coord.t[0];
-            tail->head.transform.coord.coord.t[1]       = coord->coord.t[1];
-            tail->head.transform.coord.coord.t[2]       = coord->coord.t[2];
-            rc->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            i                                           = 0;
+            Gp_RoomCoords[0].framesLeft                        = 4;
+            tail->inner                                        = 0x200;
+            tail->outer                                        = 0x2000;
+            gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            size                                               = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+            tail->head.color.r                                 = size;
+            tail->head.color.g                                 = size >> 1;
+            tail->head.color.b                                 = size >> 2;
+            tail->head.transform.coord.coord.t[0]              = coord->coord.t[0];
+            tail->head.transform.coord.coord.t[1]              = coord->coord.t[1];
+            tail->head.transform.coord.coord.t[2]              = coord->coord.t[2];
+            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            i                                                  = 0;
             func_dryfield_dilapidated_house_801832A8(coord, (s16)work->field_22, work->field_26, work->field_28);
             glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
             work->field_26 = 0x380;

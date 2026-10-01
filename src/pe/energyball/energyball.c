@@ -155,21 +155,21 @@ void func_energyball_8012EF48(Task* arg0)
 /// ball in flight (`D_80115724`) queues the row's stop sound.
 void func_energyball_8012F180(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    EnergyBallWork*       work;
-    GpCoord64*            slot;
-    GfxCoord*             sc;
-    WorldCoordPointLight* tail;
-    GfxCoord              ground;
-    VECTOR                vec;
-    GfxCoord*             player;
-    EffectWork*           spawned;
-    SVECTOR*              dir;
-    u16                   r;
-    s32*                  snd;
-    s16                   peEffectControl;
-    s32                   cur;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    EnergyBallWork*                work;
+    WorldCoordTransientPointLight* slot;
+    GfxCoord*                      sc;
+    WorldCoordPointLight*          tail;
+    GfxCoord                       ground;
+    VECTOR                         vec;
+    GfxCoord*                      player;
+    EffectWork*                    spawned;
+    SVECTOR*                       dir;
+    u16                            r;
+    s32*                           snd;
+    s16                            peEffectControl;
+    s32                            cur;
 
     slot            = &Gp_RoomCoords[arg0->spawnArg1.value + 4];
     sc              = &slot->light.head.transform.coord;

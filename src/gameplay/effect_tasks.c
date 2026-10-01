@@ -191,42 +191,42 @@ u16 Gp_FadeQuadColors[8] = {
 
 void Gp_EffCtlTask2B(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    s32                   temp;
-    s32                   idx;
-    s32                   t2;
-    s32                   rng;
-    s32                   count;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    s32                            temp;
+    s32                            idx;
+    s32                            t2;
+    s32                            rng;
+    s32                            count;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    base  = Gp_RoomCoords;
-    slot  = &base->light;
+    mem       = arg0->spawnArg2.pointer;
+    coord     = arg0->extra.coordBody->coord;
+    lightSlot = Gp_RoomCoords;
+    slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                                          = arg0->spawnArg1.halves.high;
-                mem->index                                    = temp;
-                arg0->spawnArg1.value                         = (u8)arg0->spawnArg1.value;
-                slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
-                slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
-                t2                                            = coord->coord.t[2];
-                base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                slot->head.color.r                            = 0xC00;
-                slot->head.color.g                            = 0xC00;
-                slot->head.color.b                            = 0xC00;
-                slot->inner                                   = 0xFA0;
-                slot->outer                                   = 0x12C0;
-                slot->head.transform.coord.coord.t[2]         = t2;
-                coord->parent                                 = mem->parent;
-                coord->coord.t[0]                             = D_801124DC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]                             = D_801124DC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]                             = D_801124DC[arg0->spawnArg1.value].vz;
-                coord->composeStamp                           = GRAPHICS_COORD_DIRTY;
+                temp                                               = arg0->spawnArg1.halves.high;
+                mem->index                                         = temp;
+                arg0->spawnArg1.value                              = (u8)arg0->spawnArg1.value;
+                slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
+                slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
+                t2                                                 = coord->coord.t[2];
+                lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                slot->head.color.r                                 = 0xC00;
+                slot->head.color.g                                 = 0xC00;
+                slot->head.color.b                                 = 0xC00;
+                slot->inner                                        = 0xFA0;
+                slot->outer                                        = 0x12C0;
+                slot->head.transform.coord.coord.t[2]              = t2;
+                coord->parent                                      = mem->parent;
+                coord->coord.t[0]                                  = D_801124DC[arg0->spawnArg1.value].vx;
+                coord->coord.t[1]                                  = D_801124DC[arg0->spawnArg1.value].vy;
+                coord->coord.t[2]                                  = D_801124DC[arg0->spawnArg1.value].vz;
+                coord->composeStamp                                = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 switch (arg0->spawnArg1.value) {
                     case 1:
@@ -237,8 +237,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                         idx         = arg0->spawnArg1.value;
                         arg0->state = 1;
                         Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
-                        mem->scale       = 4;
-                        base->framesLeft = 4;
+                        mem->scale            = 4;
+                        lightSlot->framesLeft = 4;
                         break;
                     case 2:
                     case 3:
@@ -248,8 +248,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                         idx         = arg0->spawnArg1.value;
                         arg0->state = 1;
                         Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
-                        mem->scale       = 4;
-                        base->framesLeft = 4;
+                        mem->scale            = 4;
+                        lightSlot->framesLeft = 4;
                         break;
                     case 30:
                     case 31:
@@ -260,15 +260,15 @@ void Gp_EffCtlTask2B(Task* arg0)
                         Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1.value;
                         Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
-                        mem->scale       = 2;
-                        base->framesLeft = 2;
+                        mem->scale            = 2;
+                        lightSlot->framesLeft = 2;
                         break;
                     case 5:
                         idx         = arg0->spawnArg1.value;
                         arg0->state = 1;
                         Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
-                        mem->scale       = 4;
-                        base->framesLeft = 0;
+                        mem->scale            = 4;
+                        lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
                         break;
                     case 33:
                         mem->index      = 1;
@@ -278,8 +278,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                         Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1.value;
                         Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
-                        mem->scale       = 4;
-                        base->framesLeft = 0;
+                        mem->scale            = 4;
+                        lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
                         break;
                 }
                 if (mem->index == 0) {
@@ -305,36 +305,36 @@ void Gp_EffCtlTask2B(Task* arg0)
 
 void Gp_EffCtlTask6A(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    s32                   t2;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    s32                            t2;
 
-    base  = Gp_RoomCoords;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    slot  = &base->light;
+    lightSlot = Gp_RoomCoords;
+    mem       = arg0->spawnArg2.pointer;
+    coord     = arg0->extra.coordBody->coord;
+    slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
-                slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
-                t2                                            = coord->coord.t[2];
-                base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                slot->head.color.b                            = 0xC00;
-                slot->head.color.g                            = 0xC00;
-                slot->head.color.r                            = 0xC00;
-                slot->inner                                   = 0xFA0;
-                slot->outer                                   = 0x12C0;
-                Gp_RoomCoords->framesLeft                     = 4;
-                slot->head.transform.coord.coord.t[2]         = t2;
-                coord->parent                                 = mem->parent;
-                coord->coord.t[0]                             = D_801124DC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]                             = D_801124DC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]                             = D_801124DC[arg0->spawnArg1.value].vz;
-                coord->composeStamp                           = GRAPHICS_COORD_DIRTY;
+                slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
+                slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
+                t2                                                 = coord->coord.t[2];
+                lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                slot->head.color.b                                 = 0xC00;
+                slot->head.color.g                                 = 0xC00;
+                slot->head.color.r                                 = 0xC00;
+                slot->inner                                        = 0xFA0;
+                slot->outer                                        = 0x12C0;
+                Gp_RoomCoords->framesLeft                          = 4;
+                slot->head.transform.coord.coord.t[2]              = t2;
+                coord->parent                                      = mem->parent;
+                coord->coord.t[0]                                  = D_801124DC[arg0->spawnArg1.value].vx;
+                coord->coord.t[1]                                  = D_801124DC[arg0->spawnArg1.value].vy;
+                coord->coord.t[2]                                  = D_801124DC[arg0->spawnArg1.value].vz;
+                coord->composeStamp                                = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
@@ -369,42 +369,42 @@ void Gp_EffCtlTask6A(Task* arg0)
 
 void Gp_EffCtlTask6B(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    RoomEffectState*      effectState;
-    s32                   temp;
-    s32                   idx;
-    s32                   t2;
-    s32                   count;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    RoomEffectState*               effectState;
+    s32                            temp;
+    s32                            idx;
+    s32                            t2;
+    s32                            count;
 
-    base        = Gp_RoomCoords;
-    slot        = &base->light;
+    lightSlot   = Gp_RoomCoords;
+    slot        = &lightSlot->light;
     mem         = arg0->spawnArg2.pointer;
     coord       = arg0->extra.coordBody->coord;
     effectState = gRoomEffectState;
     if (effectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         if (arg0->state == 0) {
-            temp                                          = arg0->spawnArg1.halves.high;
-            mem->index                                    = temp;
-            arg0->spawnArg1.value                         = (u8)arg0->spawnArg1.value;
-            slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
-            slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
-            t2                                            = coord->coord.t[2];
-            base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            slot->head.color.r                            = 0xC00;
-            slot->head.color.g                            = 0xC00;
-            slot->head.color.b                            = 0xC00;
-            slot->inner                                   = 0xFA0;
-            slot->outer                                   = 0x12C0;
-            slot->head.transform.coord.coord.t[2]         = t2;
-            coord->parent                                 = mem->parent;
-            coord->coord.t[0]                             = D_801124DC[arg0->spawnArg1.value].vx;
-            coord->coord.t[1]                             = D_801124DC[arg0->spawnArg1.value].vy;
-            coord->coord.t[2]                             = D_801124DC[arg0->spawnArg1.value].vz;
-            coord->composeStamp                           = GRAPHICS_COORD_DIRTY;
+            temp                                               = arg0->spawnArg1.halves.high;
+            mem->index                                         = temp;
+            arg0->spawnArg1.value                              = (u8)arg0->spawnArg1.value;
+            slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
+            slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
+            t2                                                 = coord->coord.t[2];
+            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->head.color.r                                 = 0xC00;
+            slot->head.color.g                                 = 0xC00;
+            slot->head.color.b                                 = 0xC00;
+            slot->inner                                        = 0xFA0;
+            slot->outer                                        = 0x12C0;
+            slot->head.transform.coord.coord.t[2]              = t2;
+            coord->parent                                      = mem->parent;
+            coord->coord.t[0]                                  = D_801124DC[arg0->spawnArg1.value].vx;
+            coord->coord.t[1]                                  = D_801124DC[arg0->spawnArg1.value].vy;
+            coord->coord.t[2]                                  = D_801124DC[arg0->spawnArg1.value].vz;
+            coord->composeStamp                                = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
@@ -440,42 +440,42 @@ void Gp_EffCtlTask6B(Task* arg0)
 
 void func_800ED42C(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    SVECTOR*              vec;
-    s32                   temp;
-    s32                   t2;
-    s32                   count;
-    s32                   i;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    SVECTOR*                       vec;
+    s32                            temp;
+    s32                            t2;
+    s32                            count;
+    s32                            i;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    base  = Gp_RoomCoords;
-    slot  = &base->light;
+    mem       = arg0->spawnArg2.pointer;
+    coord     = arg0->extra.coordBody->coord;
+    lightSlot = Gp_RoomCoords;
+    slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                                          = arg0->spawnArg1.halves.high;
-                mem->index                                    = temp;
-                arg0->spawnArg1.value                         = (u8)arg0->spawnArg1.value;
-                slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
-                slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
-                t2                                            = coord->coord.t[2];
-                base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                slot->head.color.r                            = 0xE00;
-                slot->head.color.g                            = 0xA00;
-                slot->head.color.b                            = 0xA00;
-                slot->inner                                   = 0xFA0;
-                slot->outer                                   = 0x12C0;
-                slot->head.transform.coord.coord.t[2]         = t2;
-                coord->parent                                 = mem->parent;
-                coord->coord.t[0]                             = D_801124DC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]                             = D_801124DC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]                             = D_801124DC[arg0->spawnArg1.value].vz;
-                coord->composeStamp                           = GRAPHICS_COORD_DIRTY;
+                temp                                               = arg0->spawnArg1.halves.high;
+                mem->index                                         = temp;
+                arg0->spawnArg1.value                              = (u8)arg0->spawnArg1.value;
+                slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
+                slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
+                t2                                                 = coord->coord.t[2];
+                lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                slot->head.color.r                                 = 0xE00;
+                slot->head.color.g                                 = 0xA00;
+                slot->head.color.b                                 = 0xA00;
+                slot->inner                                        = 0xFA0;
+                slot->outer                                        = 0x12C0;
+                slot->head.transform.coord.coord.t[2]              = t2;
+                coord->parent                                      = mem->parent;
+                coord->coord.t[0]                                  = D_801124DC[arg0->spawnArg1.value].vx;
+                coord->coord.t[1]                                  = D_801124DC[arg0->spawnArg1.value].vy;
+                coord->coord.t[2]                                  = D_801124DC[arg0->spawnArg1.value].vz;
+                coord->composeStamp                                = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 switch (arg0->spawnArg1.value) {
                     case 1:
@@ -607,7 +607,7 @@ void func_800ED42C(Task* arg0)
                         arg0->state = 2;
                         mem->scale  = 4;
                 }
-                base->framesLeft               = 4;
+                lightSlot->framesLeft          = 4;
                 gRoomEffectState->burstRequest = true;
                 break;
             case 1:
@@ -629,44 +629,44 @@ void func_800ED42C(Task* arg0)
 
 void Gp_EffCtlTask6C(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    s32                   temp;
-    s32                   idx;
-    s32                   t2;
-    s32                   rng;
-    s32                   rng2;
-    s32                   count;
-    s32                   i;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    s32                            temp;
+    s32                            idx;
+    s32                            t2;
+    s32                            rng;
+    s32                            rng2;
+    s32                            count;
+    s32                            i;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    base  = Gp_RoomCoords;
-    slot  = &base->light;
+    mem       = arg0->spawnArg2.pointer;
+    coord     = arg0->extra.coordBody->coord;
+    lightSlot = Gp_RoomCoords;
+    slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
         switch (arg0->state) {
             case 0:
-                temp                                          = arg0->spawnArg1.halves.high;
-                mem->index                                    = temp;
-                arg0->spawnArg1.value                         = (u8)arg0->spawnArg1.value;
-                slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
-                slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
-                t2                                            = coord->coord.t[2];
-                base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                slot->head.color.r                            = 0xC00;
-                slot->head.color.g                            = 0xC00;
-                slot->head.color.b                            = 0xC00;
-                slot->inner                                   = 0xFA0;
-                slot->outer                                   = 0x12C0;
-                slot->head.transform.coord.coord.t[2]         = t2;
-                coord->parent                                 = mem->parent;
-                coord->coord.t[0]                             = D_801126FC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]                             = D_801126FC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]                             = D_801126FC[arg0->spawnArg1.value].vz;
-                coord->composeStamp                           = GRAPHICS_COORD_DIRTY;
+                temp                                               = arg0->spawnArg1.halves.high;
+                mem->index                                         = temp;
+                arg0->spawnArg1.value                              = (u8)arg0->spawnArg1.value;
+                slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
+                slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
+                t2                                                 = coord->coord.t[2];
+                lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                slot->head.color.r                                 = 0xC00;
+                slot->head.color.g                                 = 0xC00;
+                slot->head.color.b                                 = 0xC00;
+                slot->inner                                        = 0xFA0;
+                slot->outer                                        = 0x12C0;
+                slot->head.transform.coord.coord.t[2]              = t2;
+                coord->parent                                      = mem->parent;
+                coord->coord.t[0]                                  = D_801126FC[arg0->spawnArg1.value].vx;
+                coord->coord.t[1]                                  = D_801126FC[arg0->spawnArg1.value].vy;
+                coord->coord.t[2]                                  = D_801126FC[arg0->spawnArg1.value].vz;
+                coord->composeStamp                                = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 idx             = ((u32)rng >> 16) & 0x1FF;
@@ -697,7 +697,7 @@ void Gp_EffCtlTask6C(Task* arg0)
                         mem->scale  = 0x18;
                         break;
                 }
-                base->framesLeft = 4;
+                lightSlot->framesLeft = 4;
                 if (mem->index == 0) {
                     gRoomEffectState->burstRequest = true;
                 }
@@ -2359,29 +2359,29 @@ void Gp_EffSprTask7C(Task* arg0)
 
 void func_800F4308(Task* arg0)
 {
-    u8                    rgb[3];
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    GfxCoord*             roomCoord;
-    GpCoord64*            room;
-    WorldCoordPointLight* slot;
-    ModelObjectCoordBody* body;
-    SVECTOR*              vec;
-    s16                   flag;
-    s32                   scale11;
-    s32                   scale12;
-    s32                   count;
-    s32                   cond;
-    s32                   condInc;
-    s32                   i;
-    s32                   t2_10;
-    s32                   t2_11;
-    s32                   t2_12;
-    s32                   rng;
-    s32                   tmp;
+    u8                             rgb[3];
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    GfxCoord*                      roomCoord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    ModelObjectCoordBody*          body;
+    SVECTOR*                       vec;
+    s16                            flag;
+    s32                            scale11;
+    s32                            scale12;
+    s32                            count;
+    s32                            cond;
+    s32                            condInc;
+    s32                            i;
+    s32                            t2_10;
+    s32                            t2_11;
+    s32                            t2_12;
+    s32                            rng;
+    s32                            tmp;
 
-    room      = &Gp_RoomCoords[1];
-    slot      = &room->light;
+    lightSlot = &Gp_RoomCoords[1];
+    slot      = &lightSlot->light;
     roomCoord = &slot->head.transform.coord;
     body      = arg0->extra.coordBody;
     mem       = arg0->spawnArg2.pointer;
@@ -2440,7 +2440,7 @@ void func_800F4308(Task* arg0)
                     }
                     break;
             }
-            room->framesLeft        = 0x10;
+            lightSlot->framesLeft   = 0x10;
             count                   = mem->age;
             slot->outer             = 0x2580;
             slot->head.color.r      = 0x1000;
@@ -2519,7 +2519,7 @@ void func_800F4308(Task* arg0)
                     i += 1;
                 } while (i < 3);
             }
-            room->framesLeft        = 0x10;
+            lightSlot->framesLeft   = 0x10;
             count                   = mem->age;
             slot->outer             = 0x2580;
             slot->head.color.r      = 0xC00;
@@ -2582,7 +2582,7 @@ void func_800F4308(Task* arg0)
                     Gp_DrawFadeQuad(rgb, 1);
                 }
             }
-            room->framesLeft        = 0x10;
+            lightSlot->framesLeft   = 0x10;
             count                   = mem->age;
             slot->outer             = 0x2580;
             slot->head.color.r      = 0x800;

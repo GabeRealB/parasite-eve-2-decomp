@@ -2,7 +2,7 @@
 
 /* Part of the muzzle flash library; see muzzle_flash.h. */
 
-/// Per-frame muzzle-flash task. Frame 0 claims room-coord slot 0
+/// Per-frame muzzle-flash task. Frame 0 enables transient point-light slot 0
 /// as a white 0x1000 light at the weapon's world position, parks the task's own
 /// coordinate on the muzzle offset under the hand frame, and rolls the flash
 /// size (`scale`), its spin (`angle`) and the four streak angles; every
@@ -14,17 +14,17 @@
 /// `ROOM_EFFECT_CONTROL_HIDDEN`).
 static inline void muzzleFlashTask(Task* task)
 {
-    EffectWork*           work;
-    GfxCoord*             coord;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    u8                    rgb[3];
-    s32                   i;
+    EffectWork*                    work;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    u8                             rgb[3];
+    s32                            i;
 
-    work  = (EffectWork*)task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    base  = &Gp_RoomCoords[0];
-    slot  = &base->light;
+    work      = (EffectWork*)task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    lightSlot = &Gp_RoomCoords[0];
+    slot      = &lightSlot->light;
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
@@ -33,16 +33,16 @@ static inline void muzzleFlashTask(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
-            slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
-            slot->head.transform.coord.coord.t[2]         = coord->coord.t[2];
-            base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            slot->head.color.r                            = 0x1000;
-            slot->head.color.g                            = 0x1000;
-            slot->head.color.b                            = 0x1000;
-            slot->inner                                   = 0xFA0;
-            slot->outer                                   = 0x12C0;
-            base->framesLeft                              = 4;
+            slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
+            slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
+            slot->head.transform.coord.coord.t[2]              = coord->coord.t[2];
+            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->head.color.r                                 = 0x1000;
+            slot->head.color.g                                 = 0x1000;
+            slot->head.color.b                                 = 0x1000;
+            slot->inner                                        = 0xFA0;
+            slot->outer                                        = 0x12C0;
+            lightSlot->framesLeft                              = 4;
 
             coord->parent       = work->parent;
             coord->coord.t[0]   = _gMuzzleOffset.vx;

@@ -157,22 +157,22 @@ static void func_hypervelocity_8011F724(Task* arg0);
 ///   flare is 0x6F frames old or the charge goes negative.
 void func_hypervelocity_8011D1E8(Task* task)
 {
-    u8                    rgb[3];
-    GfxCoord*             coord;
-    GfxCoord*             light;
-    GfxCoord*             player;
-    EffectWork*           work;
-    EffectWork*           eff;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    GfxRotationWords*     dstm;
-    s32                   pan;
+    u8                             rgb[3];
+    GfxCoord*                      coord;
+    GfxCoord*                      light;
+    GfxCoord*                      player;
+    EffectWork*                    work;
+    EffectWork*                    eff;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    GfxRotationWords*              dstm;
+    s32                            pan;
 
-    work  = task->spawnArg2.pointer;
-    base  = &Gp_RoomCoords[1];
-    light = &base->light.head.transform.coord;
-    slot  = &base->light;
-    coord = task->extra.coordBody->coord;
+    work      = task->spawnArg2.pointer;
+    lightSlot = &Gp_RoomCoords[1];
+    light     = &lightSlot->light.head.transform.coord;
+    slot      = &lightSlot->light;
+    coord     = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -209,13 +209,13 @@ void func_hypervelocity_8011D1E8(Task* task)
             if (work->age & 1) {
                 Gp_SpawnEff(0x600E1, coord, 0x180, &work->move);
             }
-            base->framesLeft   = 4;
-            slot->inner        = 0x100;
-            slot->outer        = 0x1000;
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x400;
-            slot->head.color.r = (u16)slot->head.color.b >> 1;
-            slot->head.color.g = slot->head.color.b >> 1;
+            lightSlot->framesLeft = 4;
+            slot->inner           = 0x100;
+            slot->outer           = 0x1000;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
+            slot->head.color.r    = (u16)slot->head.color.b >> 1;
+            slot->head.color.g    = slot->head.color.b >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->spawnArg1.value < 0) {
@@ -238,13 +238,13 @@ void func_hypervelocity_8011D1E8(Task* task)
             Gp_UpdateCoord(coord);
             work->move.vy = -((work->age & 0xF) << 6);
             Gp_SpawnEff(0x600E0, coord, 0x180, &work->move);
-            base->framesLeft   = 4;
-            slot->inner        = 0x400;
-            slot->outer        = 0x4000;
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.r = (u16)slot->head.color.b >> 1;
-            slot->head.color.g = slot->head.color.b >> 1;
+            lightSlot->framesLeft = 4;
+            slot->inner           = 0x400;
+            slot->outer           = 0x4000;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+            slot->head.color.r    = (u16)slot->head.color.b >> 1;
+            slot->head.color.g    = slot->head.color.b >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             work->scale        += work->step;
@@ -336,29 +336,29 @@ void func_hypervelocity_8011D1E8(Task* task)
 ///   per frame until the ring falls under 0x80.
 void func_hypervelocity_8011D830(Task* task)
 {
-    GfxCoord              ground;
-    SVECTOR               after;
-    SVECTOR               before;
-    u8                    rgb[3];
-    GfxCoord*             coord;
-    GfxCoord*             player;
-    GfxCoord*             light;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    EffectWork*           work;
-    EffectWork*           eff;
-    HyperBeam*            beam;
-    GfxRotationWords*     destinationRotation;
-    GfxRotationWords*     sourceRotation;
-    u32                   ang;
-    s32                   i;
+    GfxCoord                       ground;
+    SVECTOR                        after;
+    SVECTOR                        before;
+    u8                             rgb[3];
+    GfxCoord*                      coord;
+    GfxCoord*                      player;
+    GfxCoord*                      light;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    EffectWork*                    work;
+    EffectWork*                    eff;
+    HyperBeam*                     beam;
+    GfxRotationWords*              destinationRotation;
+    GfxRotationWords*              sourceRotation;
+    u32                            ang;
+    s32                            i;
 
-    beam  = (HyperBeam*)task->work;
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    base  = &Gp_RoomCoords[0];
-    light = &base->light.head.transform.coord;
-    slot  = &base->light;
+    beam      = (HyperBeam*)task->work;
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    lightSlot = &Gp_RoomCoords[0];
+    light     = &lightSlot->light.head.transform.coord;
+    slot      = &lightSlot->light;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         work->age = work->age - 1;
@@ -419,22 +419,22 @@ void func_hypervelocity_8011D830(Task* task)
             if (eff != NULL) {
                 Task_Reparent(task, eff->task);
             }
-            task->state         = 1;
-            base->framesLeft    = 4;
-            slot->inner         = (work->index << 9) + 0x200;
-            slot->outer         = slot->inner * 16;
-            ang                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b  = ((ang >> 16) & 0x700) + 0x800;
-            slot->head.color.r  = (u16)slot->head.color.b >> 1;
-            slot->head.color.g  = slot->head.color.b >> 1;
-            light->coord.t[0]   = coord->coord.t[0];
-            light->coord.t[1]   = coord->coord.t[1];
-            light->coord.t[2]   = coord->coord.t[2];
-            light->composeStamp = GRAPHICS_COORD_DIRTY;
-            rgb[0]              = work->scale >> 2;
-            rgb[1]              = work->scale >> 2;
-            rgb[2]              = work->scale >> 1;
-            gRandomLcgState     = ang;
+            task->state           = 1;
+            lightSlot->framesLeft = 4;
+            slot->inner           = (work->index << 9) + 0x200;
+            slot->outer           = slot->inner * 16;
+            ang                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slot->head.color.b    = ((ang >> 16) & 0x700) + 0x800;
+            slot->head.color.r    = (u16)slot->head.color.b >> 1;
+            slot->head.color.g    = slot->head.color.b >> 1;
+            light->coord.t[0]     = coord->coord.t[0];
+            light->coord.t[1]     = coord->coord.t[1];
+            light->coord.t[2]     = coord->coord.t[2];
+            light->composeStamp   = GRAPHICS_COORD_DIRTY;
+            rgb[0]                = work->scale >> 2;
+            rgb[1]                = work->scale >> 2;
+            rgb[2]                = work->scale >> 1;
+            gRandomLcgState       = ang;
             func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
             return;
@@ -469,15 +469,15 @@ void func_hypervelocity_8011D830(Task* task)
                     Task_Reparent(task, eff->task);
                 }
             }
-            light->coord.t[0]   = coord->coord.t[0];
-            light->coord.t[1]   = coord->coord.t[1];
-            light->coord.t[2]   = coord->coord.t[2];
-            light->composeStamp = GRAPHICS_COORD_DIRTY;
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b  = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.r  = (u16)slot->head.color.b >> 1;
-            base->framesLeft    = 4;
-            slot->head.color.g  = slot->head.color.b >> 1;
+            light->coord.t[0]     = coord->coord.t[0];
+            light->coord.t[1]     = coord->coord.t[1];
+            light->coord.t[2]     = coord->coord.t[2];
+            light->composeStamp   = GRAPHICS_COORD_DIRTY;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+            slot->head.color.r    = (u16)slot->head.color.b >> 1;
+            lightSlot->framesLeft = 4;
+            slot->head.color.g    = slot->head.color.b >> 1;
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
                 Gp_UnlinkObj(&beam->obj);
                 task->state = 2;

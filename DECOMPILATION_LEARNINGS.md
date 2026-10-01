@@ -35578,15 +35578,15 @@ LCG `addu` dest stays `v0` and the store sits immediately after it.
 
 ## Embedded point light so colour fields are `s5+0x50`, not `base+0x54`
 
-`Gp_RoomCoords` is an array of `GpCoord64` whose embedded point lights' colour and radius fields start at `+0x54`.
-Accessing them as `Gp_RoomCoords->light.head.color.r` uses the slot base (`sw 0x54(a0)`).
-The target computes `s5 = a0+4` (`&base->light`) and stores at `0x50(s5)`.
+`Gp_RoomCoords` is an array of `WorldCoordTransientPointLight` whose embedded point lights' colour and radius fields start at `+0x54`.
+Accessing them as `Gp_RoomCoords->light.head.color.r` uses the slot's address (`sw 0x54(a0)`).
+The target computes `s5 = a0+4` (`&lightSlot->light`) and stores at `0x50(s5)`.
 Hold the embedded point light as a `WorldCoordPointLight*` and assign it **before** the `if` so `addiu s5, a0, 4` fills the
 entry `beqz` delay:
 
 ```c
-base = Gp_RoomCoords;
-slot = &base->light;
+lightSlot = Gp_RoomCoords;
+slot = &lightSlot->light;
 st   = gRoomEffectState;
 if (st->effectControl < 2) {
     slot->head.color.r = 0xC00;
@@ -52412,8 +52412,8 @@ include when the body is ported.
 `include/`. `sym.gameplay.txt` places it inside `Gp_RoomCoords`
 (`0x80114F30`, size `0x320`): `0x801150C0 - 0x80114F30 = 0x190 = 4 * 0x64`,
 so it is `&Gp_RoomCoords[4]`, and the sibling imports `D_80115124` /
-`D_80115188` are slots 5 and 6. Writing it as `base = &Gp_RoomCoords[4];
-slot = &base->light;` — the shape gameplay's matched
+`D_80115188` are slots 5 and 6. Writing it as `lightSlot = &Gp_RoomCoords[4];
+slot = &lightSlot->light;` — the shape gameplay's matched
 `Gp_EffCtlTask6B` uses for slot 0 — reproduces the `lui/addiu` pair, the
 `%lo(sym)($s5)` store for `framesLeft` and the `4($s6)` store for `light.head.transform.coord.composeStamp`.
 
@@ -55598,11 +55598,11 @@ outranks one with the same number of uses spread over the whole function.
 the guard clauses, instead of after them:
 
 ```c
-work  = task->spawnArg2;
-coord = task->extra.coordBody->coord;
-base  = &Gp_RoomCoords[1];
-light = &base->light.head.transform.coord; /* not after the two `return`s */
-slot  = &base->light;
+work      = task->spawnArg2;
+coord     = task->extra.coordBody->coord;
+lightSlot = &Gp_RoomCoords[1];
+light     = &lightSlot->light.head.transform.coord; /* not after the two `return`s */
+slot      = &lightSlot->light;
 if ((((TmdObject*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra)->flags & 0x80) != 0) {
     return;
 }

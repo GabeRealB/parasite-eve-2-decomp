@@ -92,35 +92,35 @@ static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 /// cancelled (`gRoomEffectState->peEffectControl`).
 void func_pyrokinesis_8012EF48(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    PyroWork*             work;
-    ModelObjectCoordBody* body;
-    GfxCoord*             player;
-    GpCoord64*            base;
-    GfxCoord*             slotc;
-    WorldCoordPointLight* slot;
-    GfxRotationWords*     destinationRotation;
-    GfxRotationWords*     sourceRotation;
-    EffectWork*           spawned;
-    GfxCoord              ground;
-    u8                    rgb[3];
-    s32                   i;
-    s32                   pan;
-    s16                   peEffectControl;
-    s32                   tick;
-    s32                   radius;
-    s32                   next;
-    s16                   amp;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    PyroWork*                      work;
+    ModelObjectCoordBody*          body;
+    GfxCoord*                      player;
+    WorldCoordTransientPointLight* lightSlot;
+    GfxCoord*                      slotc;
+    WorldCoordPointLight*          slot;
+    GfxRotationWords*              destinationRotation;
+    GfxRotationWords*              sourceRotation;
+    EffectWork*                    spawned;
+    GfxCoord                       ground;
+    u8                             rgb[3];
+    s32                            i;
+    s32                            pan;
+    s16                            peEffectControl;
+    s32                            tick;
+    s32                            radius;
+    s32                            next;
+    s16                            amp;
 
-    work     = (PyroWork*)arg0->work;
-    mem      = arg0->spawnArg2.pointer;
-    body     = arg0->extra.coordBody;
-    coord    = body->coord;
-    mem->age = mem->age + 1;
-    base     = Gp_RoomCoords;
-    slotc    = &base->light.head.transform.coord;
-    slot     = &base->light;
+    work      = (PyroWork*)arg0->work;
+    mem       = arg0->spawnArg2.pointer;
+    body      = arg0->extra.coordBody;
+    coord     = body->coord;
+    mem->age  = mem->age + 1;
+    lightSlot = Gp_RoomCoords;
+    slotc     = &lightSlot->light.head.transform.coord;
+    slot      = &lightSlot->light;
     switch (arg0->state) {
         case 0:
             if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
@@ -257,18 +257,18 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     func_pyrokinesis_801304C4(&ground, mem->angle);
                 }
             }
-            base->framesLeft    = 4;
-            slot->inner         = (mem->index << 9) + 0x200;
-            slot->outer         = slot->inner * 16;
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            amp                 = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.r  = amp;
-            slot->head.color.g  = (u16)slot->head.color.r >> 1;
-            slot->head.color.b  = slot->head.color.r >> 2;
-            slotc->coord.t[0]   = coord->coord.t[0];
-            slotc->coord.t[1]   = coord->coord.t[1];
-            slotc->coord.t[2]   = coord->coord.t[2];
-            slotc->composeStamp = GRAPHICS_COORD_DIRTY;
+            lightSlot->framesLeft = 4;
+            slot->inner           = (mem->index << 9) + 0x200;
+            slot->outer           = slot->inner * 16;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            amp                   = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+            slot->head.color.r    = amp;
+            slot->head.color.g    = (u16)slot->head.color.r >> 1;
+            slot->head.color.b    = slot->head.color.r >> 2;
+            slotc->coord.t[0]     = coord->coord.t[0];
+            slotc->coord.t[1]     = coord->coord.t[1];
+            slotc->coord.t[2]     = coord->coord.t[2];
+            slotc->composeStamp   = GRAPHICS_COORD_DIRTY;
             if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {

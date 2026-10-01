@@ -2468,19 +2468,19 @@ static void func_mine_cavern_80181864(void)
 /// shared LCG.
 static void func_mine_cavern_80181CAC(s16 point)
 {
-    GpCoord64*            light = &Gp_RoomCoords[4 + point];
-    WorldCoordPointLight* work  = &light->light;
+    WorldCoordTransientPointLight* lightSlot = &Gp_RoomCoords[4 + point];
+    WorldCoordPointLight*          work      = &lightSlot->light;
 
-    light->framesLeft                              = 2;
-    work->inner                                    = D_mine_cavern_8018E366;
-    work->outer                                    = D_mine_cavern_8018E368 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
-    work->head.color.r                             = D_mine_cavern_8018E360;
-    work->head.color.g                             = D_mine_cavern_8018E362;
-    work->head.color.b                             = D_mine_cavern_8018E364;
-    work->head.transform.lighting.local.t[0]       = D_mine_cavern_8018E39C[point].vx;
-    work->head.transform.lighting.local.t[1]       = D_mine_cavern_8018E39C[point].vy;
-    work->head.transform.lighting.local.t[2]       = D_mine_cavern_8018E39C[point].vz;
-    light->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    lightSlot->framesLeft                              = 2;
+    work->inner                                        = D_mine_cavern_8018E366;
+    work->outer                                        = D_mine_cavern_8018E368 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
+    work->head.color.r                                 = D_mine_cavern_8018E360;
+    work->head.color.g                                 = D_mine_cavern_8018E362;
+    work->head.color.b                                 = D_mine_cavern_8018E364;
+    work->head.transform.lighting.local.t[0]           = D_mine_cavern_8018E39C[point].vx;
+    work->head.transform.lighting.local.t[1]           = D_mine_cavern_8018E39C[point].vy;
+    work->head.transform.lighting.local.t[2]           = D_mine_cavern_8018E39C[point].vz;
+    lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Draws a glow at cavern point `point` of `D_mine_cavern_8018E39C`: a fan of

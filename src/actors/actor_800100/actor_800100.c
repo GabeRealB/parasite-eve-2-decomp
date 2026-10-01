@@ -1069,20 +1069,20 @@ static void func_actor_800100_80166F50(Task* arg0);
 /// `age` back down instead of advancing.
 void func_actor_800100_80161F20(Task* task)
 {
-    EffectWork*           work;
-    GfxCoord*             coord;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    GfxCoord*             light;
-    GfxRotationWords*     rot;
-    EffectWork*           eff;
-    u32                   ang;
+    EffectWork*                    work;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    GfxCoord*                      light;
+    GfxRotationWords*              rot;
+    EffectWork*                    eff;
+    u32                            ang;
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    base  = &Gp_RoomCoords[3];
-    light = &base->light.head.transform.coord;
-    slot  = &base->light;
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    lightSlot = &Gp_RoomCoords[3];
+    light     = &lightSlot->light.head.transform.coord;
+    slot      = &lightSlot->light;
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return;
     }
@@ -1120,14 +1120,14 @@ void func_actor_800100_80161F20(Task* task)
                     }
                     pykeFlameDrawNozzle(
                         MATRIX_TRANS(&coord->workm), work->age, 0x80);
-                    base->framesLeft   = 4;
-                    slot->inner        = 0x80;
-                    slot->outer        = 0x400;
-                    ang                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState    = ang;
-                    slot->head.color.r = ((ang >> 16) & 0x700) + 0x400;
-                    slot->head.color.g = (u16)slot->head.color.r >> 1;
-                    slot->head.color.b = slot->head.color.r >> 2;
+                    lightSlot->framesLeft = 4;
+                    slot->inner           = 0x80;
+                    slot->outer           = 0x400;
+                    ang                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState       = ang;
+                    slot->head.color.r    = ((ang >> 16) & 0x700) + 0x400;
+                    slot->head.color.g    = (u16)slot->head.color.r >> 1;
+                    slot->head.color.b    = slot->head.color.r >> 2;
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                     light->composeStamp = GRAPHICS_COORD_DIRTY;
                     work->scale         = 0x40;
@@ -1144,14 +1144,14 @@ void func_actor_800100_80161F20(Task* task)
                     if (eff != NULL) {
                         Task_Reparent(task, eff->task);
                     }
-                    base->framesLeft   = 4;
-                    slot->inner        = 0x400;
-                    slot->outer        = 0x4000;
-                    ang                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState    = ang;
-                    slot->head.color.r = ((ang >> 16) & 0x700) + 0x800;
-                    slot->head.color.g = (u16)slot->head.color.r >> 1;
-                    slot->head.color.b = slot->head.color.r >> 2;
+                    lightSlot->framesLeft = 4;
+                    slot->inner           = 0x400;
+                    slot->outer           = 0x4000;
+                    ang                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState       = ang;
+                    slot->head.color.r    = ((ang >> 16) & 0x700) + 0x800;
+                    slot->head.color.g    = (u16)slot->head.color.r >> 1;
+                    slot->head.color.b    = slot->head.color.r >> 2;
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                     light->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;

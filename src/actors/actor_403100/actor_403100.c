@@ -7987,11 +7987,11 @@ static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 }
 static void func_actor_403100_8013D11C(Task* arg0)
 {
-    GfxCoord*             coords;
-    GpCoord64*            slot;
-    WorldCoordPointLight* light;
-    s16                   value;
-    u32                   random;
+    GfxCoord*                      coords;
+    WorldCoordTransientPointLight* slot;
+    WorldCoordPointLight*          light;
+    s16                            value;
+    u32                            random;
 
     coords                                        = arg0->extra.tmd->coords;
     slot                                          = &Gp_RoomCoords[2];

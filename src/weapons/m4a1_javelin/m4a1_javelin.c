@@ -118,28 +118,28 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0);
 ///   and releases the work block when the last step runs out.
 void func_m4a1_javelin_8011D1E4(Task* task)
 {
-    EffectWork*           work;
-    GfxCoord*             coord;
-    GameActor*            actor;
-    GpCoord64*            base;
-    GfxCoord*             light;
-    WorldCoordPointLight* slot;
-    GfxRotationWords*     dstm;
-    SVECTOR               pa;
-    SVECTOR               pb;
-    SVECTOR               qa;
-    SVECTOR               qb;
-    s32                   i;
-    s32                   lim;
-    s32                   t;
-    u16                   rnd;
+    EffectWork*                    work;
+    GfxCoord*                      coord;
+    GameActor*                     actor;
+    WorldCoordTransientPointLight* lightSlot;
+    GfxCoord*                      light;
+    WorldCoordPointLight*          slot;
+    GfxRotationWords*              dstm;
+    SVECTOR                        pa;
+    SVECTOR                        pb;
+    SVECTOR                        qa;
+    SVECTOR                        qb;
+    s32                            i;
+    s32                            lim;
+    s32                            t;
+    u16                            rnd;
 
-    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    base  = &Gp_RoomCoords[1];
-    slot  = &base->light;
-    light = &base->light.head.transform.coord;
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
+    actor     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    lightSlot = &Gp_RoomCoords[1];
+    slot      = &lightSlot->light;
+    light     = &lightSlot->light.head.transform.coord;
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -178,14 +178,14 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             /* fallthrough */
         case 1:
             Gp_UpdateCoord(coord);
-            base->framesLeft   = 4;
-            slot->inner        = 0x100;
-            slot->outer        = 0x1000;
-            t                  = slot->head.color.r >> 1;
-            slot->head.color.r = t;
-            slot->head.color.g = t >> 2;
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x400;
+            lightSlot->framesLeft = 4;
+            slot->inner           = 0x100;
+            slot->outer           = 0x1000;
+            t                     = slot->head.color.r >> 1;
+            slot->head.color.r    = t;
+            slot->head.color.g    = t >> 2;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             if (work->scale == 0xC0) {
@@ -214,14 +214,14 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             return;
         case 2:
             Gp_UpdateCoord(coord);
-            base->framesLeft   = 4;
-            slot->inner        = 0x400;
-            slot->outer        = 0x4000;
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd                = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.b = rnd;
-            slot->head.color.r = rnd >> 1;
-            slot->head.color.g = rnd >> 1;
+            lightSlot->framesLeft = 4;
+            slot->inner           = 0x400;
+            slot->outer           = 0x4000;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rnd                   = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+            slot->head.color.b    = rnd;
+            slot->head.color.r    = rnd >> 1;
+            slot->head.color.g    = rnd >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             D_m4a1_javelin_8012EB64 = 0;
             light->composeStamp     = GRAPHICS_COORD_DIRTY;

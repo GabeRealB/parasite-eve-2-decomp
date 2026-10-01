@@ -1569,28 +1569,28 @@ void func_800EA3A0(s32 arg0)
 
 static void Gp_DecRoomCoordRefs(void)
 {
-    s32        i;
-    GpCoord64* p;
+    s32                            i;
+    WorldCoordTransientPointLight* lightSlot;
 
-    p = Gp_RoomCoords;
-    for (i = 0; i < 8; i++) {
-        if (p->framesLeft != 0) {
-            p->framesLeft--;
+    lightSlot = Gp_RoomCoords;
+    for (i = 0; i < ARRAY_SIZE(Gp_RoomCoords); i++) {
+        if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
+            lightSlot->framesLeft--;
         }
-        p++;
+        lightSlot++;
     }
 }
 
 static void Gp_InitRoomCoords(void)
 {
-    s32        i;
-    GpCoord64* p;
+    s32                            i;
+    WorldCoordTransientPointLight* lightSlot;
 
-    p = Gp_RoomCoords;
-    for (i = 0; i < 8; i++) {
-        p->light.head.transform.coord.parent = &gGfxViewCoord;
-        p->framesLeft                        = 0;
-        p++;
+    lightSlot = Gp_RoomCoords;
+    for (i = 0; i < ARRAY_SIZE(Gp_RoomCoords); i++) {
+        lightSlot->light.head.transform.coord.parent = &gGfxViewCoord;
+        lightSlot->framesLeft                        = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
+        lightSlot++;
     }
 }
 

@@ -15,7 +15,7 @@
 
 struct Enemy;
 
-extern GpCoord64 Gp_RoomCoords[8];
+extern WorldCoordTransientPointLight Gp_RoomCoords[8];
 
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
