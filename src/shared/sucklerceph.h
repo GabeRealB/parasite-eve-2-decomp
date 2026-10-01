@@ -104,9 +104,10 @@ void sucklercephFallStep(Task* task);
 
 static __inline__ void sucklercephTickAnim(Task* task);
 
-/* Defined by each package. */
+void sucklercephTask(Task* arg0);
 void sucklercephAnimate(Task* arg0);
 void sucklercephColour(Enemy* arg0, Task* task);
 void sucklercephDrawShadow(Task* task);
+void sucklercephDropTask(Task* arg0);
 
 #endif /* SRC_SHARED_SUCKLERCEPH_H */

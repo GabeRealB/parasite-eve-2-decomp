@@ -304,8 +304,6 @@ extern AnimationSet Actor07000_D07E64;
 extern AnimationSet Actor07000_D08008;
 extern TmdSource    Actor07000_D079C8;
 s32                 Actor07000_Fn05AB8(Task*, s32, ActorCommand* request);
-void                Actor07000_Fn02548(Task*);
-void                Actor07000_Fn02D10(Task*);
 void                Actor07000_Fn05E6C(Task*);
 void                Actor07000_Fn06338(Task*);
 void                Actor07000_Fn067B4(Task*);
@@ -429,9 +427,9 @@ Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, Actor07000_Fn02548, { .model = &Actor07000_D079C8 } };
+TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &Actor07000_D079C8 } };
 
-TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor07000_Fn02D10, { .model = &Actor07000_D079C8 } };
+TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &Actor07000_D079C8 } };
 
 AnimationSet* gSucklercephAnimSets[4] = {
     NULL,
@@ -1092,16 +1090,16 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 
 #include "../../shared/sucklerceph_spawn_state.inc.c"
 
-/// Task states of the caged specimen as `Actor07000_Fn02548` dispatches
+/// Task states of the caged specimen as `sucklercephTask` dispatches
 /// them: spawn, per-frame update and teardown.
-static const GpEnemyTaskFuncTable3 Actor07000_D00004 = {
+static const GpEnemyTaskFuncTable3 gSucklercephTaskStates = {
     { sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
 };
 
-/// Task states of the caged specimen as `Actor07000_Fn02D10` dispatches them:
+/// Task states of the caged specimen as `sucklercephDropTask` dispatches them:
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
-static const GpEnemyTaskFuncTable4 Actor07000_D00010 = {
+static const GpEnemyTaskFuncTable4 gSucklercephDropTaskStates = {
     { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
 };
 
@@ -1265,16 +1263,7 @@ static const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
 
 #include "../../shared/sucklerceph_message.inc.c"
 
-/// Task handler of the caged specimen: runs the entry of `Actor07000_D00004`
-/// for the task's state - spawn, per-frame update or teardown - with the
-/// enemy and the task. The table is copied onto the stack before the call.
-void Actor07000_Fn02548(Task* task)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = Actor07000_D00004;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
-}
+#include "../../shared/sucklerceph_task.inc.c"
 
 #include "../../shared/sucklerceph_update_state.inc.c"
 
@@ -1282,51 +1271,11 @@ void Actor07000_Fn02548(Task* task)
 
 #include "../../shared/sucklerceph_step.inc.c"
 
-/// The specimen's animation rebind, `Actor107000_TickAnim`, as an
-/// out-of-line function.
-void sucklercephAnimate(Task* arg0)
-{
-    Actor107000_TickAnim(arg0);
-}
+#include "../../shared/sucklerceph_animate.inc.c"
 
-/// Colours the caged specimen from the world position of the model's second
-/// coordinate, staged in a `VECTOR` taken off the scratch stack; `arg0` is the
-/// colour target.
-void sucklercephColour(Enemy* arg0, Task* task)
-{
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
+#include "../../shared/sucklerceph_colour.inc.c"
 
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
-}
-
-/// Draws the specimen's ground shadow under the model root, at the world
-/// translation of the root part, staged in a `VECTOR3` taken off the scratch
-/// stack.
-void sucklercephDrawShadow(Task* task)
-{
-    GfxCoord* coord;
-    VECTOR3*  vec;
-
-    coord   = task->extra.tmd->coords;
-    vec     = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(0x18);
-    vec->vx = coord->workm.t[0];
-    vec->vy = coord->workm.t[1];
-    vec->vz = coord->workm.t[2];
-    Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/sucklerceph_draw_shadow.inc.c"
 
 #include "../../shared/sucklerceph_scale_part.inc.c"
 
@@ -1334,13 +1283,7 @@ void sucklercephDrawShadow(Task* task)
 
 #include "../../shared/sucklerceph_exit.inc.c"
 
-void Actor07000_Fn02D10(Task* arg0)
-{
-    GpEnemyTaskFuncTable4 sp;
-
-    sp = Actor07000_D00010;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/sucklerceph_drop_task.inc.c"
 
 #include "../../shared/sucklerceph_fall_step.inc.c"
 

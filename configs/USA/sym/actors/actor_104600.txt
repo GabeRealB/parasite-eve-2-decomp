@@ -3,8 +3,8 @@
 // file offset. Local labels are named only when something outside the
 // shared body reaches them.
 
-Actor04600_D00004 = 0x80131E24;
-Actor04600_D00010 = 0x80131E30;
+gSucklercephTaskStates = 0x80131E24;
+gSucklercephDropTaskStates = 0x80131E30;
 Actor04600_Jt00024 = 0x80131E44;
 Actor04600_D0003C = 0x80131E5C;
 sucklercephSpawnState = 0x80131E68;
@@ -20,7 +20,7 @@ sucklercephDropSpawnState = 0x801335EC;
 sucklercephDropState = 0x8013391C;
 sucklercephDropCollide = 0x80133C2C;
 sucklercephMessage = 0x80133D74;
-Actor04600_Fn024A4 = 0x801342C4;
+sucklercephTask = 0x801342C4;
 sucklercephUpdateState = 0x80134320;
 sucklercephReactionFlags = 0x80134438;
 sucklercephStep = 0x8013454C;
@@ -30,7 +30,7 @@ sucklercephDrawShadow = 0x80134700;
 sucklercephScalePart = 0x8013476C;
 sucklercephFlatten = 0x80134934;
 sucklercephExit = 0x80134A28;
-Actor04600_Fn02C6C = 0x80134A8C;
+sucklercephDropTask = 0x80134A8C;
 sucklercephFallStep = 0x80134AF4;
 skullStalkerSpawnState = 0x80134B88;
 skullStalkerIdleTick = 0x80134EC8;

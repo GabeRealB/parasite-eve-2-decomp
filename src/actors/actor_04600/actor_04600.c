@@ -102,8 +102,6 @@ extern AnimationSet Actor04600_D05554;
 extern AnimationSet Actor04600_D0569C;
 extern AnimationSet Actor04600_D05840;
 extern TmdSource    Actor04600_D05200;
-void                Actor04600_Fn024A4(Task*);
-void                Actor04600_Fn02C6C(Task*);
 void                Actor04600_Fn03B80(Task*);
 
 DamageAttack gSucklercephAttack = { 30, 7 };
@@ -225,9 +223,9 @@ Actor04600RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, Actor04600_Fn024A4, { .model = &Actor04600_D05200 } };
+TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &Actor04600_D05200 } };
 
-TaskDesc Actor04600_D05884 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor04600_Fn02C6C, { .model = &Actor04600_D05200 } };
+TaskDesc Actor04600_D05884 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &Actor04600_D05200 } };
 
 AnimationSet* gSucklercephAnimSets[4] = {
     NULL,
@@ -336,16 +334,16 @@ SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
 
 #include "../../shared/sucklerceph_spawn_state.inc.c"
 
-/// Task states of the first enemy as `Actor04600_Fn024A4` dispatches them:
+/// Task states of the first enemy as `sucklercephTask` dispatches them:
 /// spawn, per-frame update and death.
-static const GpEnemyTaskFuncTable3 Actor04600_D00004 = {
+static const GpEnemyTaskFuncTable3 gSucklercephTaskStates = {
     { sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
 };
 
-/// Task states of the dropping first enemy as `Actor04600_Fn02C6C` dispatches
+/// Task states of the dropping first enemy as `sucklercephDropTask` dispatches
 /// them: the same update and death after a spawn that parks the enemy hidden,
 /// and a fourth state for its drop into place.
-static const GpEnemyTaskFuncTable4 Actor04600_D00010 = {
+static const GpEnemyTaskFuncTable4 gSucklercephDropTaskStates = {
     { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
 };
 
@@ -373,16 +371,7 @@ static const GpEnemyTaskFuncTable4 Actor04600_D00010 = {
 
 #include "../../shared/sucklerceph_message.inc.c"
 
-/// Task handler of the first enemy: runs the entry of `Actor04600_D00004` for
-/// the task's state with the enemy and the task, from a copy of the table on
-/// the stack.
-void Actor04600_Fn024A4(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = Actor04600_D00004;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/sucklerceph_task.inc.c"
 
 #include "../../shared/sucklerceph_update_state.inc.c"
 
@@ -390,49 +379,11 @@ void Actor04600_Fn024A4(Task* arg0)
 
 #include "../../shared/sucklerceph_step.inc.c"
 
-/// The first enemy's animation rebind, `sucklercephTickAnim`, as an
-/// out-of-line function.
-void sucklercephAnimate(Task* arg0)
-{
-    sucklercephTickAnim(arg0);
-}
+#include "../../shared/sucklerceph_animate.inc.c"
 
-/// Colours the first enemy from the world position of its model's second
-/// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void sucklercephColour(Enemy* arg0, Task* task)
-{
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
+#include "../../shared/sucklerceph_colour.inc.c"
 
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
-}
-
-/// Draws the first enemy's ground shadow under the model root, at the world
-/// translation of the root part staged in a `VECTOR3` on the scratch stack.
-void sucklercephDrawShadow(Task* task)
-{
-    GfxCoord* coord;
-    VECTOR3*  vec;
-
-    coord   = task->extra.tmd->coords;
-    vec     = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(0x18);
-    vec->vx = coord->workm.t[0];
-    vec->vy = coord->workm.t[1];
-    vec->vz = coord->workm.t[2];
-    Gp_DrawEffGroundQuad(vec, 0x1C0, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/sucklerceph_draw_shadow.inc.c"
 
 #include "../../shared/sucklerceph_scale_part.inc.c"
 
@@ -440,16 +391,7 @@ void sucklercephDrawShadow(Task* task)
 
 #include "../../shared/sucklerceph_exit.inc.c"
 
-/// Task handler of the dropping first enemy: runs the entry of
-/// `Actor04600_D00010` for the task's state with the enemy and the task, from
-/// a copy of the table on the stack.
-void Actor04600_Fn02C6C(Task* arg0)
-{
-    GpEnemyTaskFuncTable4 sp;
-
-    sp = Actor04600_D00010;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/sucklerceph_drop_task.inc.c"
 
 #include "../../shared/sucklerceph_fall_step.inc.c"
 
@@ -493,26 +435,10 @@ void skullStalkerAnimate(Task* arg0)
     skullStalkerTickAnim(arg0);
 }
 
-/// Colours the second enemy from the world position of its model's second
-/// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void skullStalkerColour(Enemy* arg0, Task* task)
-{
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
-
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
-}
+/// A further copy, under this file's own name.
+#define sucklercephColour skullStalkerColour
+#include "../../shared/sucklerceph_colour.inc.c"
+#undef sucklercephColour
 
 #include "../../shared/skull_stalker_light_ramp.inc.c"
 
