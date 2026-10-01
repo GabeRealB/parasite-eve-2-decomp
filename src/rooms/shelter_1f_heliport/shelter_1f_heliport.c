@@ -215,6 +215,7 @@ static void func_shelter_1f_heliport_801807C0(void);
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0" \
                                 "2"
 #include "../../shared/shop.h"
+#include "../../shared/cap_dialogue.h"
 
 extern WorldCollisionGrid         gFollowCollisionGrid;
 extern WorldCollisionTrigger      D_shelter_1f_heliport_80182178[12];
@@ -225,8 +226,6 @@ s32                               func_shelter_1f_heliport_801800A0(Task*, s32, 
 s32                               func_shelter_1f_heliport_80180334(Task*, s32, s32, TaskMessageArg);
 s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, TaskMessageArg);
 s32                               func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, TaskMessageArg);
-
-void func_shelter_1f_heliport_80180594(Task*);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -244,7 +243,7 @@ TaskMessageEntry D_shelter_1f_heliport_801811A0[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_1f_heliport_801811C8 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_heliport_80180594, { .value = 0 } };
+TaskDesc D_shelter_1f_heliport_801811C8 = { { { TASK_BODY_NONE, 32 } }, capDialogueLoopTask, { .value = 0 } };
 
 u8 D_shelter_1f_heliport_801811D4[12][4] = {
     { 2, 2, 2, 2 },
@@ -765,33 +764,7 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, Ta
     return 0;
 }
 
-/// Runs cap command `spawnArg1` and waits for it to finish. When the cap
-/// reports event key 0xF it sends `Gp_MsgPlayerWeapon(1)`, undoing the
-/// `Gp_MsgPlayerWeapon(0)` its spawner sent, and kills itself; any other key
-/// runs the command again.
-void func_shelter_1f_heliport_80180594(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_RunCapCmd1(task->spawnArg1.value);
-            goto advance;
-        case 1:
-            if (Gp_CapBusy() != 0) {
-                break;
-            }
-        advance:
-            task->state += 1;
-            break;
-        case 2:
-            if (Gp_GetCapEventKey() == 0xF) {
-                Gp_MsgPlayerWeapon(1);
-                taskKill(task);
-            } else {
-                task->state = 0;
-            }
-            break;
-    }
-}
+#include "../../shared/cap_dialogue_loop.inc.c"
 
 static void func_shelter_1f_heliport_80180658(Task* arg0)
 {

@@ -367,6 +367,7 @@ static void func_shelter_b1_underground_parking_80186890(s16 arg0);
 
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0o"
 #include "../../shared/shop.h"
+#include "../../shared/cap_dialogue.h"
 
 extern WorldCollisionGrid         D_shelter_b1_underground_parking_80187E50[1];
 extern WorldCollisionGrid         D_shelter_b1_underground_parking_801884D4[1];
@@ -392,7 +393,6 @@ s32                               func_shelter_b1_underground_parking_80183360(T
 s32                               func_shelter_b1_underground_parking_801833DC(Task*, s32, s32, TaskMessageArg);
 void                              func_shelter_b1_underground_parking_80182DB4(Task*);
 void                              func_shelter_b1_underground_parking_80182FC8(Task*);
-void                              func_shelter_b1_underground_parking_80183410(Task*);
 void                              func_shelter_b1_underground_parking_801834D4(Task*);
 void                              func_shelter_b1_underground_parking_80183560(Task*);
 void                              func_shelter_b1_underground_parking_8018363C(Task*);
@@ -438,7 +438,7 @@ TaskMessageEntry D_shelter_b1_underground_parking_80187230[6] = {
 };
 
 TaskDesc D_shelter_b1_underground_parking_80187260[1] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80183410, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, capDialogueLoopTask, { .value = 0 } },
 };
 
 TaskDesc D_shelter_b1_underground_parking_8018726C[7] = {
@@ -2094,29 +2094,7 @@ s32 func_shelter_b1_underground_parking_801833DC(Task* arg0, s32 arg1, s32 arg2,
     return 0;
 }
 
-void func_shelter_b1_underground_parking_80183410(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_RunCapCmd1(task->spawnArg1.value);
-            goto advance;
-        case 1:
-            if (Gp_CapBusy() != 0) {
-                break;
-            }
-        advance:
-            task->state += 1;
-            break;
-        case 2:
-            if (Gp_GetCapEventKey() == 0xF) {
-                Gp_MsgPlayerWeapon(1);
-                taskKill(task);
-            } else {
-                task->state = 0;
-            }
-            break;
-    }
-}
+#include "../../shared/cap_dialogue_loop.inc.c"
 
 /// Spawns entry 0 of `D_shelter_b1_underground_parking_80187670` and kills
 /// itself once that task has gone.
