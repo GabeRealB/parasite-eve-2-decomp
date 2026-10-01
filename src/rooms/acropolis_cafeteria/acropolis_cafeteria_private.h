@@ -51,7 +51,16 @@ extern s32 D_acropolis_cafeteria_8018D6A4;
 
 extern s32 D_acropolis_cafeteria_8018D6A8;
 
-extern AcropolisCafeteriaSpotLightStorage D_acropolis_cafeteria_8018A3C4;
+/// Authored cone-light storage shared by all cafeteria lighting sets.
+///
+/// The room light collection borrows only the one-element `liveLights` array
+/// while the overlay is loaded; `inactiveSlots` is outside its live count.
+/// The light contributes in every view. Position and falloff radii use integer
+/// world units, RGB intensities use 12 fractional bits, and the full cone opening
+/// uses 0x1000 units per turn. Coordinate caches, parent links and query
+/// attenuation remain writable; pointers into this block must not outlive the
+/// overlay.
+extern AcropolisCafeteriaSpotLightStorage gAcropolisCafeteriaSpotLightStorage;
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_acropolis_cafeteria_8017E47C(Task*);

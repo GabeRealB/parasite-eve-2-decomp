@@ -933,9 +933,35 @@ WorldCoordPointLight gAcropolisCafeteriaPointLights[15] = {
     { .head = { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2998, -2336, -4692 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3400, 2990, 2371 }, { 0, 0 } }, .inner = 698, .outer = 5980 },
 };
 
-AcropolisCafeteriaSpotLightStorage D_acropolis_cafeteria_8018A3C4 = {
+AcropolisCafeteriaSpotLightStorage gAcropolisCafeteriaSpotLightStorage = {
     .liveLights = {
-        { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -1629, -3, 3766 }, { 3759, -23, 1629 }, { 17, 4097, 9 } }, { -388, -2188, -10 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4000, 3590, 721 }, { 0, 0 } }, { 3759, 1626, 9, 0 }, 1040, 3841, 910 },
+        {
+            .head = {
+                .transform = {
+                    .lighting = {
+                        .composeStamp = GRAPHICS_COORD_DIRTY,
+                        .local        = {
+                                   .m = { { -1629, -3, 3766 }, { 3759, -23, 1629 }, { 17, 4097, 9 } },
+                                   .t = { -388, -2188, -10 },
+                        },
+                        .composed = {
+                            .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } },
+                            .t = { 0, 0, 0 },
+                        },
+                        .viewId      = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                        .unknown_46  = { 0, 0, 0, 0 },
+                        .attenuation = 0,
+                        .parent      = NULL,
+                    },
+                },
+                .color      = { .r = 4000, .g = 3590, .b = 721 },
+                .unknown_56 = { 0, 0 },
+            },
+            .axis  = { 3759, 1626, 9, 0 },
+            .inner = 1040,
+            .outer = 3841,
+            .angle = 910,
+        },
     },
     .inactiveSlots = {
         { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x98, 0xAE, 0x1D, 0x80, 0x01, 0x00, 0x00, 0x00, 0x38, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x48, 0x00, 0x38, 0x00, 0xC5, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8F, 0x00, 0xC0, 0x3F, 0x48, 0x00, 0x00, 0x00, 0x48, 0x00, 0x40, 0x00, 0xA5, 0x02, 0x00, 0x00, 0x80, 0x80, 0x80, 0x00, 0x8F, 0x00, 0xC0, 0x3F, 0x40, 0x00, 0x10, 0x00 },
