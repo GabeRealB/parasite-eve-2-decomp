@@ -10,7 +10,7 @@
 /// placement record's `variant`, and `field_6A2` / `field_6A4` set to the
 /// current yaw and its opposite. State 2 turns at `field_69E` = 0x3B until
 /// `field_698` reaches 0x23, then returns to animation 2 and state 0. A set
-/// `field_6B2` or `Gp_StateF0.lungerDeathAlert` overrides everything with animation 2, entry 2
+/// `field_6B2` or `gSceneCombatState.lungerDeathAlert` overrides everything with animation 2, entry 2
 /// and the shared state-F0 slot.
 void lungerApproachState(Task* arg0)
 {
@@ -76,7 +76,7 @@ void lungerApproachState(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (Gp_StateF0.lungerDeathAlert != 0)) {
+    if ((work->field_6B2 != 0) || (gSceneCombatState.lungerDeathAlert != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;

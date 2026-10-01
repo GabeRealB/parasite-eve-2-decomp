@@ -24,10 +24,9 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1027,7 +1026,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
             return;
         case 1:
             if (GameFlag_GetNibble(0x77) == 0) {
-                if (gGameSession->eventState == 0 && Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                if (gGameSession->eventState == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     player = gameGetPtrSlot(3);
                     task->killCountdown++;
                     if (task->killCountdown == 0x78) {

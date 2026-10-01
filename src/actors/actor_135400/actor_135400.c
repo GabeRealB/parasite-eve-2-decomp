@@ -15,10 +15,9 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/gameflag.h"
@@ -770,14 +769,14 @@ void func_actor_135400_801324D4(Task* task)
 #undef modelPlacementAttachPart
 
 /// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
-/// from `D_actor_135400_80131E3C`, skipping the frame while `Gp_StateF0.actorControl` is
+/// from `D_actor_135400_80131E3C`, skipping the frame while `gSceneCombatState.actorControl` is
 /// set.
 void func_actor_135400_801325A8(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_135400_80131E3C;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }
@@ -955,13 +954,13 @@ static const TaskFuncTable3 D_actor_135400_80131E94 = { {
 
 /// Per-frame dispatcher of the task `func_actor_135400_80132B60` sets up: runs
 /// its spawn, tick or exit state from `D_actor_135400_80131E94`, skipping the
-/// frame while `Gp_StateF0.actorControl` is set.
+/// frame while `gSceneCombatState.actorControl` is set.
 void func_actor_135400_80132AF4(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_135400_80131E94;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

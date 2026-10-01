@@ -35,9 +35,9 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -2626,10 +2626,10 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 21:
             Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0xA);
-            gGameSession->flowFlags                |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-            Gp_StateF0.signals.bytes.endDelayFrames = 3;
-            D_acropolis_cafeteria_80184164          = 2;
-            task->state                            += 1;
+            gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+            gSceneCombatState.signals.bytes.endDelayFrames = 3;
+            D_acropolis_cafeteria_80184164                 = 2;
+            task->state                                   += 1;
             break;
         case 17:
         case 22:

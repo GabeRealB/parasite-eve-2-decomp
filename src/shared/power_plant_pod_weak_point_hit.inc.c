@@ -14,7 +14,7 @@ void podWeakPointHit(Enemy* arg0, Task* arg1)
 
     coord = arg1->extra.tmd->coords;
     part  = (Actor05300Part*)arg1->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:

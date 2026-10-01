@@ -35,11 +35,11 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -692,7 +692,7 @@ static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1)
     Actor403600Work* work;
     GfxCoord*        var_a0;
 
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     work  = arg1->work;
     if (state == 1) {
         goto case1;
@@ -4077,7 +4077,7 @@ static void func_actor_403600_8013FC2C(Enemy* arg0, Task* arg1)
 
     obj  = arg1->extra.tmd;
     work = arg1->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             _actor403600UpdateColor(arg0, arg1);
             return;
@@ -4278,7 +4278,7 @@ static void func_actor_403600_80140488(Enemy* arg0, Task* arg1)
     object     = arg1->extra.tmd;
     work       = arg1->work;
     globalWork = D_actor_403600_801606A8->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (globalWork->field_742 != 1) {
                 return;
@@ -4459,8 +4459,8 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             break;
         case 9:
             Gp_ReleaseStateF0Add(arg0, 0x24);
-            gGameSession->flowFlags                 = (u8)(gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON);
-            Gp_StateF0.signals.bytes.endDelayFrames = 5;
+            gGameSession->flowFlags                        = (u8)(gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON);
+            gSceneCombatState.signals.bytes.endDelayFrames = 5;
             break;
     }
     return 0;

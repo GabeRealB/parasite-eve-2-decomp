@@ -69,7 +69,7 @@ static void CapCaption_RunSchedule(Task* task)
                 CapCaption_SelectScript(script, key, (s16)task->spawnArg1.value);
                 CapCaption_DrawCurrent();
             }
-            if ((Gp_CapBusy() == 0) && (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
+            if ((Gp_CapBusy() == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
                 gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
             }
             break;

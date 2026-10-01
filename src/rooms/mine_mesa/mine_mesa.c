@@ -35,11 +35,11 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -2630,7 +2630,7 @@ static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
 /// the event parameters below into the room's pending event and starts the
 /// controller task; `field_5` set only suppresses that side effect. Answers 0
 /// without side effects while the request is already in flight (`field_9` is 1
-/// and `Gp_StateF0.signals.bytes.battlePhase` agrees with it), 2 for a stage-3 request and 1 for
+/// and `gSceneCombatState.signals.bytes.battlePhase` agrees with it), 2 for a stage-3 request and 1 for
 /// every other one.
 s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -2643,7 +2643,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
         return 1;
     }
     field9 = gGameSession->location.loc.variant;
-    if (field9 == 1 && Gp_StateF0.signals.bytes.battlePhase == field9) {
+    if (field9 == 1 && gSceneCombatState.signals.bytes.battlePhase == field9) {
         return 0;
     }
     event.capCmd   = 0xE;
@@ -3007,7 +3007,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
 /// including the frames the switch kills the task on -- only the colours differ
 /// there, since `r`/`g`/`b` are read before the switch.
 ///
-/// This is `func_actor_503500_80132990` minus its `Gp_StateF0.actorControl` gate and minus
+/// This is `func_actor_503500_80132990` minus its `gSceneCombatState.actorControl` gate and minus
 /// the `gGameSession->evtSkipped != 0` term of its state-1 test; the tile packet
 /// itself is built byte-for-byte the same way.
 void func_mine_mesa_8017E3E0(Task* arg0)
@@ -3555,7 +3555,7 @@ end:
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
     arg0->spawnArg2.pointer                                = &result;
     result.param                                           = NULL;
-    Gp_StateF0.battleRefs                                  = 1;
+    gSceneCombatState.battleRefs                           = 1;
     Gp_ReleaseStateF0(arg0, 0);
     gStageSceneMusicEntry = 1;
     arg0->state++;

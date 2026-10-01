@@ -29,10 +29,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -365,7 +365,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     arg0->state       += 1;
 }
 
-/// Per-frame update. `Gp_StateF0.actorControl` 1 pauses the boss (buffers kept, only
+/// Per-frame update. `gSceneCombatState.actorControl` 1 pauses the boss (buffers kept, only
 /// `func_actor_503500_80136AEC` runs), 2 hides it; anything else runs the
 /// normal chain. `field_7D9` counts down to the frame the TMD buffers are freed.
 static void func_actor_503500_80133270(Task* arg0)
@@ -377,7 +377,7 @@ static void func_actor_503500_80133270(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     tmd   = arg0->extra.tmd;
-    mode  = Gp_StateF0.actorControl;
+    mode  = gSceneCombatState.actorControl;
     work  = arg0->work;
 
     switch (mode) {
@@ -2983,7 +2983,7 @@ static void func_actor_503500_8013815C(Task* arg0)
         func_actor_503500_80135828(arg0, &work->field_15E);
     }
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 func_actor_503500_801382F4(arg0);
@@ -3248,7 +3248,7 @@ static void func_actor_503500_80138898(Task* arg0)
         func_actor_503500_80135828(arg0, &work->field_2EB);
     }
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 func_actor_503500_8013AAC0(arg0);

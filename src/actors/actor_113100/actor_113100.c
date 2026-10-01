@@ -17,12 +17,11 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/gameflag.h"
@@ -1284,7 +1283,7 @@ static void func_actor_113100_80131E58(Task* task)
 
 /// Per-frame tick of the actor's live state. While the model is not deferred
 /// (bit 0x80 of `TmdObject::flags`) it rebuilds part 1's world matrix and
-/// draws the ground shadow under that part. `Gp_StateF0.actorControl` gates the rest: a
+/// draws the ground shadow under that part. `gSceneCombatState.actorControl` gates the rest: a
 /// nonzero value skips it. The live path dispatches `func_actor_113100_80132F40`
 /// or `func_actor_113100_80132FB4` from a two-entry stack table indexed by
 /// `walk.motion`, integrates the 16.16 step at `walk.step` into `walk.acc[0].word` /
@@ -1314,7 +1313,7 @@ static void func_actor_113100_80132104(Task* task)
             Gp_DrawEffGroundQuad(&pos, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         funcs[work->walk.motion](task);
         coord                   = task->extra.tmd->coords;
         work->walk.acc[0].word += work->walk.step.vx;

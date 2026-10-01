@@ -20,10 +20,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1796,13 +1796,13 @@ static void Actor02100_Fn03168(Task* arg0)
     sp.funcs[arg0->state]((Enemy*)arg0->spawnArg2.pointer, arg0);
 }
 
-/// Per-frame tick, entry 1 of `Actor02100_D00004`. `Gp_StateF0.actorControl` is the global
+/// Per-frame tick, entry 1 of `Actor02100_D00004`. `gSceneCombatState.actorControl` is the global
 /// gameplay mode: mode 1 only refreshes the actor colour, mode 2 parks the
 /// actor (`field_C` 0x80, node not lockable) and returns, and mode 0 re-shows it
 /// (`field_C` 0, node HP hidden) before falling into the normal body. The body
 /// drains the pending translation delta at `field_118` into the actor's
 /// coordinate, runs the state machine, and switches to state 4 - handing the
-/// task over to `Actor02100_Fn035D4` - once `Gp_StateF0.podDeathStarted` reports the kill.
+/// task over to `Actor02100_Fn035D4` - once `gSceneCombatState.podDeathStarted` reports the kill.
 static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
@@ -1812,7 +1812,7 @@ static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
     s32             one;
 
     obj   = arg1->extra.tmd;
-    mode  = Gp_StateF0.actorControl;
+    mode  = gSceneCombatState.actorControl;
     work  = arg1->work;
     coord = obj->coords;
     one   = 1;
@@ -1851,7 +1851,7 @@ body:
     Gp_UpdateCoord(coord);
     Actor02100_Fn032E4(arg1);
     Actor02100_Fn03488(arg1);
-    if (Gp_StateF0.podDeathStarted == 1) {
+    if (gSceneCombatState.podDeathStarted == 1) {
         work->field_172 = 4;
         work->field_174 = 0;
         arg1->state     = 2;

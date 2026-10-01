@@ -25,10 +25,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -833,10 +833,10 @@ static void func_actor_503500_8013BBCC(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
@@ -1192,10 +1192,10 @@ static void func_actor_503500_8013C878(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
@@ -1626,10 +1626,10 @@ static void func_actor_503500_8013D7D4(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
@@ -2137,10 +2137,10 @@ static void func_actor_503500_8013E9A4(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
@@ -2536,10 +2536,10 @@ static void func_actor_503500_8013F6F0(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     coord = arg0->extra.tmd->coords;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
@@ -2816,7 +2816,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
         func_actor_503500_80135828(arg0, &work->field_3D7);
     }
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
                 func_actor_503500_801421A8(arg0);
@@ -4371,7 +4371,7 @@ void func_actor_503500_80143AC0(Task* arg0)
 
     work   = &D_actor_503500_80178F10;
     player = gameGetPtrSlot(3);
-    if (Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
     switch (arg0->state) {
@@ -4475,7 +4475,7 @@ static void func_actor_503500_80143EB4(Task* arg0)
     s32        mode;
 
     enemy = arg0->spawnArg2.pointer;
-    mode  = Gp_StateF0.actorControl;
+    mode  = gSceneCombatState.actorControl;
     tmd   = arg0->extra.tmd;
     switch (mode) {
         case 1:
@@ -4755,7 +4755,7 @@ static void func_actor_503500_801446E4(Task* arg0)
     s32       state;
 
     coord = arg0->extra.tmd->coords;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     if (state < 3) {
         if (state != 0) {
             return;
@@ -4958,7 +4958,7 @@ static void func_actor_503500_80144D50(Task* arg0)
     s32       state;
 
     coord = arg0->extra.tmd->coords;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     if (state < 3) {
         if (state != 0) {
             return;

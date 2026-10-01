@@ -30,11 +30,10 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -823,10 +822,10 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
                 Gp_MsgAlly3F3(1);
-                gGameSession->eventState = 0;
-                gGameSession->hideHud    = 0;
-                Gp_StateF0.actorControl  = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08               = 0xA;
+                gGameSession->eventState       = 0;
+                gGameSession->hideHud          = 0;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                D_80114D08                     = 0xA;
                 break;
             }
             func_800E8614(D_shelter_b4_upper_sewer_80186318, 0);
@@ -836,8 +835,8 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
             break;
         case 4:
             if (gGameSession->eventState == 0) {
-                D_80114D08              = 0xA;
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                D_80114D08                     = 0xA;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
             }
             break;
@@ -848,7 +847,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             arg0->state++;
@@ -862,11 +861,11 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08              = 0xA;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                D_80114D08                     = 0xA;
                 break;
             }
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_TriggerPeIfArmed();
             D_shelter_b4_upper_sewer_80188D1C.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_upper_sewer_80188D1C.fade.phase      = SCREEN_FADE_RUNNING;
@@ -937,7 +936,7 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, TaskMe
             Gp_MsgAlly3F3(0);
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
-            Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_HIDDEN;
+            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
             temp_a1                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
             D_shelter_b4_upper_sewer_80188D2C[0]                       = temp_a1;

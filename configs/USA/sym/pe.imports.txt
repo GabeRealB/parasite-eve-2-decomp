@@ -49,7 +49,7 @@ Gp_ReleaseState1CMem = 0x800EC7E4; // absolute:True
 Gp_AddTpageShift = 0x800EC914; // absolute:True
 Gp_StateC08 = 0x80114C08; // absolute:True
 Gp_RoomCoords = 0x80114F30; // absolute:True
-Gp_StateF0 = 0x801153F0; // absolute:True
+gSceneCombatState = 0x801153F0; // absolute:True
 gRoomEffectState = 0x80115740; // absolute:True
 
 // --- still unnamed in their own overlay (6)

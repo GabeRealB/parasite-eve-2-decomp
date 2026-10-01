@@ -1,7 +1,7 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Per-frame callback shaped like `func_actor_341700_80164CDC`, with a
-/// one-entry handler table. `Gp_StateF0.actorControl` 2 hides the model; 0 runs the state
+/// one-entry handler table. `gSceneCombatState.actorControl` 2 hides the model; 0 runs the state
 /// handler and the follow-up steps, then moves the task to state 4 when
 /// `field_448` requests it and the enemy is out of HP; 0 and 1 both colour
 /// it, run `hopperDrawLimbShadow` for three part pairs and unhide it. The work block is reloaded through its own local
@@ -14,7 +14,7 @@ void hopperDangleFrame(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFunc         sp[1] = { hopperDangleState };
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;

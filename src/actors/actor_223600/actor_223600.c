@@ -18,10 +18,10 @@
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1389,7 +1389,7 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
     work = (Actor223600Work*)task->work;
     fns  = D_actor_223600_80149E4C;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0) {
                 task->extra.tmd->flags = 0;

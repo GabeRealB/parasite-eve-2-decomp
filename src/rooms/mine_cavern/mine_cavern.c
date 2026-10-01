@@ -21,7 +21,7 @@ s32 D_mine_cavern_8018EB50;
 #include "gameplay/message.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/world_state.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/world_targets.h"
 
 #include "main/gameflag.h"
@@ -229,7 +229,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
                 return 0;
             }
             Gp_SetNibbleIf(in->flagId, 2);
-            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && gGameSession->location.loc.variant == Gp_StateF0.signals.bytes.battlePhase) {
+            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && gGameSession->location.loc.variant == gSceneCombatState.signals.bytes.battlePhase) {
                 Gp_RunCapCmd1(9);
                 return 0;
             }
@@ -249,7 +249,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
 
     if (in->areaId == 5) {
         if (gGameSession->location.loc.variant == 1 || gGameSession->location.loc.variant == 4) {
-            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                     Gp_RunCapCmd1(0xB);
                 }
@@ -270,7 +270,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         if (GameFlag_GetNibble(0xC7) != 0) {
             return 0;
         }
-        if (Gp_StateF0.signals.bytes.battlePhase == arg2) {
+        if (gSceneCombatState.signals.bytes.battlePhase == arg2) {
             temp = gGameSession->location.loc.variant;
             if (temp == arg2 || temp == 4) {
                 cmd = 0xA;
@@ -428,13 +428,13 @@ void func_mine_cavern_8017DFAC(s32 arg0)
     if ((GameFlag_GetNibble(0xE6) == 1 && D_mine_cavern_8018EB54 == 0) ||
         (GameFlag_GetNibble(0xE6) == 2 && D_mine_cavern_8018EB54 == 1)) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1E);
-        Gp_StateF0.signals.bytes.endDelayFrames = arg0;
-        gGameSession->flowFlags                |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        D_mine_cavern_8018EB54                 += 1;
+        gSceneCombatState.signals.bytes.endDelayFrames = arg0;
+        gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+        D_mine_cavern_8018EB54                        += 1;
         return;
     }
-    if (arg0 < Gp_StateF0.signals.bytes.endDelayFrames) {
-        Gp_StateF0.signals.bytes.endDelayFrames = arg0;
+    if (arg0 < gSceneCombatState.signals.bytes.endDelayFrames) {
+        gSceneCombatState.signals.bytes.endDelayFrames = arg0;
     }
 }
 
@@ -445,8 +445,8 @@ void func_mine_cavern_8017E088(s16 arg0)
 
 void func_mine_cavern_8017E0B4(void)
 {
-    Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
-    if (Gp_StateF0.battleRefs == 0) {
+    gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+    if (gSceneCombatState.battleRefs == 0) {
         (Gp_IncStateF0Ref)(0);
     }
     Gp_ArmStateF0(1);

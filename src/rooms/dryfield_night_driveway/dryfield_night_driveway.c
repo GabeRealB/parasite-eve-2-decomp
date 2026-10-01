@@ -27,9 +27,9 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -954,10 +954,10 @@ static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
 
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 
-/// Script callback: stores its argument into `Gp_StateF0.actor03700Wave`.
+/// Script callback: stores its argument into `gSceneCombatState.actor03700Wave`.
 void func_dryfield_night_driveway_8017DC6C(s32 arg0)
 {
-    Gp_StateF0.actor03700Wave = arg0;
+    gSceneCombatState.actor03700Wave = arg0;
 }
 
 /// Script callback: stores its argument into the session's `viewDirty`.

@@ -24,10 +24,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1466,7 +1466,7 @@ static void Actor00700_Fn01434(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     coord = obj->coords;
     if (state == 1) {
         goto case1;
@@ -1596,7 +1596,7 @@ static void Actor00700_Fn0188C(Enemy* arg0, Task* arg1)
     obj   = arg1->extra.tmd;
     coord = obj->coords;
     work  = arg1->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             obj->flags                   = 0;
             arg0->node.state.parts.flags = 0;
@@ -1955,7 +1955,7 @@ static void Actor00700_Fn02290(Enemy* arg0, Task* arg1)
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     coord = obj->coords;
     one   = 1;
     if (state == one) {
@@ -1987,7 +1987,7 @@ case2:
 default_body:
     Actor00700_Fn02414(arg1);
     Actor00700_Fn0268C(arg1);
-    if (work->field_2E6 == 0 && Gp_StateF0.actor00700DeathAlert != 0) {
+    if (work->field_2E6 == 0 && gSceneCombatState.actor00700DeathAlert != 0) {
         work->field_2E6 = 1;
         Gp_ArmStateF0(1);
     }
@@ -2295,7 +2295,7 @@ static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1)
 
     coord = arg1->extra.tmd->coords;
     work  = arg1->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -2308,14 +2308,14 @@ static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1)
             SCRATCH_STACK_CURSOR(SVECTOR) = rot;
             switch (work->field_2DE) {
                 case 0:
-                    Gp_StateF0.actor00700DeathAlert = 1;
-                    seed                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    rnd                             = seed >> 16;
-                    angle                           = rnd & 0xFF;
-                    arg1->extra.tmd->flags          = TMD_OBJECT_SEMI_TRANS;
-                    gRandomLcgState                 = seed;
-                    work->field_2E2                 = 0x1000;
-                    work->field_22C.matrix          = coord->coord;
+                    gSceneCombatState.actor00700DeathAlert = 1;
+                    seed                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    rnd                                    = seed >> 16;
+                    angle                                  = rnd & 0xFF;
+                    arg1->extra.tmd->flags                 = TMD_OBJECT_SEMI_TRANS;
+                    gRandomLcgState                        = seed;
+                    work->field_2E2                        = 0x1000;
+                    work->field_22C.matrix                 = coord->coord;
                     if (!(rnd & 0x100)) {
                         angle = -angle;
                     }

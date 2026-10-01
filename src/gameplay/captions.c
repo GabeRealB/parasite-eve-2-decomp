@@ -14,8 +14,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "message.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -698,7 +697,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                         }
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = sel;
                         gGameSession->hideHud                                      = 1;
-                        Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_HIDDEN;
+                        gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
                     }
                 }
                 i++;
@@ -882,7 +881,7 @@ void Gp_CapExit(Task* arg0)
         goto block_11;
     }
     if (D_80115690 == 0) {
-        Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+        gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
     }
     if (gGameSession->eventState == 0) {
         gGameSession->hideHud                                      = 0;

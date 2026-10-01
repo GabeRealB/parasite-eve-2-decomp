@@ -30,9 +30,9 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -551,7 +551,7 @@ s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
         return 0;
     }
     if (id == k) {
-        return Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
+        return gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
     }
     return 1;
 }
@@ -562,7 +562,7 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, TaskMessag
         case 2:
             if (GameFlag_GetNibble(0x144) != 0) {
                 Gp_RunCapCmd1(5);
-            } else if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+            } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(2);
             } else {
                 Gp_RunCapCmd1(8);
@@ -571,7 +571,7 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, TaskMessag
         case 3:
             if (GameFlag_GetNibble(0x145) != 0) {
                 Gp_RunCapCmd1(6);
-            } else if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+            } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(3);
             } else {
                 Gp_RunCapCmd1(9);
@@ -580,7 +580,7 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, TaskMessag
         case 4:
             if (GameFlag_GetNibble(0x146) != 0) {
                 Gp_RunCapCmd1(7);
-            } else if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
+            } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(0xA);
             } else {
                 Gp_RunCapCmd1(4);
@@ -650,8 +650,8 @@ void func_shelter_b6_corridor_8017E144(Task* task)
 void func_shelter_b6_corridor_8017E19C(s32 arg0)
 {
     if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON)) {
-        gGameSession->flowFlags                |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        Gp_StateF0.signals.bytes.endDelayFrames = arg0;
+        gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+        gSceneCombatState.signals.bytes.endDelayFrames = arg0;
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(1), 0x31);
         Task_CallExit(Gp_LookupSlot4(1));
     }

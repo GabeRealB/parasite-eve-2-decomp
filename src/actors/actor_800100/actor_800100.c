@@ -29,10 +29,10 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1598,7 +1598,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     }
     actor->pendingCollisionUpdates = 0;
 
-    if (D_80115768 == 0 && Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (D_80115768 == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         func_actor_800100_80165528(arg0);
     }
     func_actor_800100_80163A58(arg0);
@@ -2558,7 +2558,7 @@ static void func_actor_800100_80165010(Task* arg0)
                 actor->statePhase++;
                 actor->rotation.vy = companion->targetHeading;
                 actor->turnSign    = 0;
-                if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+                if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     slot                = 4;
                     actor->movementMode = 3;
                     rng                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2807,7 +2807,7 @@ static void func_actor_800100_80165748(Task* arg0)
 {
     GameActor* actor;
 
-    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+    if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
         actor                                                  = arg0->work;
         actor->state                                           = 3;
         actor->mode                                            = GAME_ACTOR_MODE_NORMAL;
@@ -2824,7 +2824,7 @@ static void func_actor_800100_80165748(Task* arg0)
 
 static void func_actor_800100_801657D8(Task* arg0)
 {
-    if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
+    if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
         func_actor_800100_80166E14(arg0);
         return;
     }

@@ -120,7 +120,7 @@ void screenWaveGridTask(Task* arg0)
                     break;
                 case 1:
                     if (ctx->frame > 0) {
-                        if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                        if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                             ctx->frame--;
                         }
                     } else {
@@ -134,13 +134,13 @@ void screenWaveGridTask(Task* arg0)
             }
             gScreenWaveRamp = gScreenWaveCtx->frame * gScreenWaveCtx->scale / gScreenWaveCtx->span;
             for (i = 0; i < 9; i++) {
-                if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     gScreenWaveColumns[i].phase += gScreenWaveColumns[i].speed;
                 }
                 *(s32*)&cols[i] = *(s32*)&gScreenWaveColumns[i];
             }
             for (i = 0; i < 30; i++) {
-                if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     gScreenWaveRows[i].phase += gScreenWaveRows[i].speed;
                 }
                 *(s32*)&scratch->rows[i] = *(s32*)&gScreenWaveRows[i];

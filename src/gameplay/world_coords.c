@@ -28,8 +28,8 @@
 #include "loading.h"
 #include "gameplay/room.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/weapon_data.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "gameplay/damage.h"
@@ -1322,7 +1322,7 @@ void Gp_UpdateActorColor(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
                 colorMtx->m[1][i] = block->col0.vy;
                 colorMtx->m[2][i] = block->col0.vz;
             }
-            if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+            if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                 arg0->colorBlend--;
             }
         }

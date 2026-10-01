@@ -17,11 +17,10 @@
 #include "gameplay/loading.h"
 #include "loading.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
 #include "world_collision.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/gameflag.h"
 #include "main/gameflow.h"
@@ -562,13 +561,13 @@ static void Gp_DirAction1(void)
     GpVoidFuncTable5 sp;
 
     sp = D_80093990;
-    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
+    if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
         if (D_80114CDE == 1) {
             D_80114CDD = D_80114CDE;
         }
     }
     if (D_80114CDD != 0) {
-        Gp_StateF0.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
+        gSceneCombatState.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
     }
     sp.funcs[(s16)Gp_DirPhase]();
 }

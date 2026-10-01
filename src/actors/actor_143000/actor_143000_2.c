@@ -26,8 +26,7 @@ s32 D_actor_143000_80135C1C;
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/player_actor.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/display.h"
 #include "main/display_types.h"
@@ -432,7 +431,7 @@ void func_actor_143000_8013450C(void)
 
 void func_actor_143000_8013452C(u8 arg0)
 {
-    Gp_StateF0.actorControl = arg0;
+    gSceneCombatState.actorControl = arg0;
 }
 
 void func_actor_143000_80134538(void)

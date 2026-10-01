@@ -1,6 +1,6 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
-/// Plays sound 2, releases `Gp_StateF0`'s hold if it is this enemy's,
+/// Plays sound 2, releases `gSceneCombatState`'s hold if it is this enemy's,
 /// unlinks the enemy node, detaches its records and unlinks its three hit
 /// bodies, hides the model and advances the state.
 void hopperVanish(Task* arg0)
@@ -15,8 +15,8 @@ void hopperVanish(Task* arg0)
     model           = arg0->extra.tmd;
     work->field_412 = 0;
     SndEvt_EnqueueType7(0x402C0002, 1);
-    if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.hopperAlertOwner = 0;
+    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.hopperAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     enemy->recs = 0;

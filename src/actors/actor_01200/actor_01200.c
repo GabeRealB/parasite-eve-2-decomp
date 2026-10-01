@@ -24,10 +24,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1503,7 +1503,7 @@ static const Actor01200StateTable Actor01200_D000E4 = {
 };
 
 /// Per-frame tick: refreshes the coordinate and color, handles the render
-/// mode in `Gp_StateF0.actorControl`, dispatches the substate handler and plays its sound.
+/// mode in `gSceneCombatState.actorControl`, dispatches the substate handler and plays its sound.
 static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
 {
     VECTOR               pos;
@@ -1521,7 +1521,7 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0 && work->field_0 != 6 && work->field_0 != 5) {
                 arg1->extra.tmd->flags = 0;

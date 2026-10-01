@@ -32,10 +32,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -4511,7 +4511,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
         } else {
             _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), 0x4000);
         }
-        if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+        if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
             if (Gp_FindRec18(entry->obj.context.contacts, 0) != 0) {
                 for (j = 0; j < 4; j++) {
                     if ((D_actor_403100_80155814[i].records[j].key.value & 0xFFFF0000) == 0x10000 && D_actor_403100_80155810 == 0) {
@@ -5385,7 +5385,7 @@ static void func_actor_403100_80136830(Task* arg0)
         }
         D_actor_403100_80155808->field_5E6 = (s16)((u16)D_actor_403100_80155808->field_5E6 - 1);
     }
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -8460,7 +8460,7 @@ static void func_actor_403100_8013E6F0(Task* arg0)
     u16       countdown;
 
     coord = arg0->extra.tmd->coords;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (!(arg0->killCountdown & 7)) {
             Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
@@ -8498,7 +8498,7 @@ static void func_actor_403100_8013E7C8(Task* arg0)
     coord2->composeStamp = GRAPHICS_COORD_DIRTY;
     arg0->state         += 1;
     coord                = arg0->extra.tmd->coords;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (!(arg0->killCountdown & 7)) {
             Gp_SpawnEff(0x60095, coord, 0x80020400, NULL);
@@ -8519,7 +8519,7 @@ static void func_actor_403100_8013E88C(Task* arg0)
     u16       countdown;
 
     coord = arg0->extra.tmd->coords;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (!(arg0->killCountdown & 7)) {
             Gp_SpawnEff(0x60095, coord, 0x20400, NULL);

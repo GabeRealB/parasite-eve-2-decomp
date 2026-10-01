@@ -28,11 +28,10 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -2517,7 +2516,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
+        if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
             return;
         }
         if (arg0->state == 0) {
@@ -2649,7 +2648,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
+        if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
             return;
         }
         if (arg0->state == 2) {

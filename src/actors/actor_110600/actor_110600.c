@@ -28,10 +28,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -3303,7 +3303,7 @@ static const Actor110600StateTable D_actor_110600_80131F3C = {
 /// triple `func_actor_110600_80134AB4` / this / `Gp_DestroyEnemy`: copies
 /// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
 /// coordinate and hands its translation to `Gp_UpdateActorColor`, then switches
-/// on `Gp_StateF0.actorControl`.
+/// on `gSceneCombatState.actorControl`.
 ///
 /// Modes 1 and 2 skip the state handler entirely — each clears the three
 /// `WorldCollisionContact` tables and returns, mode 2 stamping `field_C` to 0x80 for the
@@ -3336,7 +3336,7 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if ((work->field_0 != 0) && (work->field_0 != 0xC)) {
                 arg1->extra.tmd->flags = 0;

@@ -32,11 +32,10 @@ Task* D_shelter_b6_training_room_80185C5C;
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/fs.h"
@@ -376,7 +375,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
         case 5:
             if (GameFlag_GetNibble(0x153) != 0) {
                 Gp_RunCapCmd1(7);
-            } else if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+            } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(5);
             } else {
                 Gp_RunCapCmd1(7);
@@ -385,7 +384,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
         case 6:
             if (GameFlag_GetNibble(0x154) != 0) {
                 Gp_RunCapCmd1(8);
-            } else if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+            } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(6);
             } else {
                 Gp_RunCapCmd1(8);
@@ -394,7 +393,7 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, TaskM
         case 4:
             if (GameFlag_GetNibble(0x146) != 0) {
                 Gp_RunCapCmd1(7);
-            } else if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
+            } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                 Gp_RunCapCmd1(0xA);
             } else {
                 Gp_RunCapCmd1(4);
@@ -533,7 +532,7 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 {
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     if (arg0 != 0) {
-        Gp_StateF0.signals.bytes.endDelayFrames = arg0;
+        gSceneCombatState.signals.bytes.endDelayFrames = arg0;
     }
 }
 

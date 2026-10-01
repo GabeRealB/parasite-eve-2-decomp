@@ -27,12 +27,11 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -815,7 +814,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
     s32           want;
     s32           t;
 
-    if (gGameSession->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.field_9 != 0 || Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING || Gp_StateC08.field_A == 1) {
+    if (gGameSession->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.field_9 != 0 || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || Gp_StateC08.field_A == 1) {
         return;
     }
     switch (task->state) {
@@ -1051,7 +1050,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 }
 
 /// Does nothing while `gGameSession->sceneUpdatesPaused`, `Gp_StateC08.field_9`,
-/// `Gp_StateF0.actorControl` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
+/// `gSceneCombatState.actorControl` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
 /// fails), records `gameGetPtrSlot(3)` in `field_2C` and the task in
 /// `D_shelter_b3_garbage_incinerator_8018FC3C`, spawns the table entry and,
 /// with `spawnArg1` zero, queues sound event 0x54280005. State 1 advances once
@@ -1065,7 +1064,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
     s32                     ok;
     PlayerStatus*           ps;
 
-    if (session->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.field_9 != 0 || Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
+    if (session->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.field_9 != 0 || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
     switch (arg0->state) {

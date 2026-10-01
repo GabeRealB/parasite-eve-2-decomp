@@ -36,7 +36,7 @@ void podDeathState(Enemy* arg0, Task* arg1)
     work  = arg1->work;
     coord = obj->coords;
     scale = 0x1000;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
@@ -77,9 +77,9 @@ void podDeathState(Enemy* arg0, Task* arg1)
                 r               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = r;
             }
-            flag                       = 1;
-            work->field_32A            = (((u32)r >> 16) & 0xF) + 0xA;
-            Gp_StateF0.podDeathStarted = flag;
+            flag                              = 1;
+            work->field_32A                   = (((u32)r >> 16) & 0xF) + 0xA;
+            gSceneCombatState.podDeathStarted = flag;
             break;
         case 1:
             if ((s16)work->field_326 > 0x200) {

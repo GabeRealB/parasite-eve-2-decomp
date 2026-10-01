@@ -22,10 +22,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1064,7 +1064,7 @@ static void func_actor_300700_801648E4(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     coord = obj->coords;
     if (state == 1) {
         goto case1;
@@ -1194,7 +1194,7 @@ static void func_actor_300700_80164D3C(Enemy* arg0, Task* arg1)
     obj   = arg1->extra.tmd;
     coord = obj->coords;
     work  = arg1->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             obj->flags                   = 0;
             arg0->node.state.parts.flags = 0;

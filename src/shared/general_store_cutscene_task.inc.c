@@ -8,7 +8,7 @@
 /// State 0 silences the player's weapon messages and latches the save's stage
 /// byte into `gStoreSavedView` before forcing that byte to
 /// 0x10, the stage the cutscene belongs to. State 2 queues stage sound
-/// 0x5203000D, hands CAP command 0xF the screen and raises `Gp_StateF0.actorControl` /
+/// 0x5203000D, hands CAP command 0xF the screen and raises `gSceneCombatState.actorControl` /
 /// `D_80115690` with it.
 ///
 /// State 4 is the exit test. CAP event key 0xB means the script asked for the
@@ -39,7 +39,7 @@ void storeCutsceneTask(Task* arg0)
             return;
         case 2:
             Gp_EnqueueStageSnd6(0x5203000D, 0, 0);
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd1(0xF);
             D_80115690   = 1;
             arg0->state += 1;
@@ -53,7 +53,7 @@ void storeCutsceneTask(Task* arg0)
                 arg0->state += 1;
                 return;
             }
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
             gMcSaveData[0].state.location.loc.view = gStoreSavedView;
             Gp_MsgPlayerWeapon(1);

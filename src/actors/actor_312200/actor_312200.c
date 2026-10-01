@@ -14,10 +14,10 @@
 #include "gameplay/enemy.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -468,7 +468,7 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
 /// Per-tick handler and state dispatcher, called with the task second. The
 /// handler table is built in place - `func_actor_312200_80163778` at index 0,
 /// the tick handler at index 1 - and `field_0` selects from it, unless the global
-/// `Gp_StateF0.actorControl` holds the actor. `field_4` records whether the state moved
+/// `gSceneCombatState.actorControl` holds the actor. `field_4` records whether the state moved
 /// before it is re-latched into `field_2`. The tail clears the display node's
 /// `WorldCollisionContact` record while occupied, re-propagates the root coordinate's
 /// translation over the model's three part coordinates while `field_8AD` is
@@ -490,7 +490,7 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
         func_actor_312200_801637CC,
     };
 
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (work->field_2 != work->field_0) {
             work->field_4 = 1;
         } else {

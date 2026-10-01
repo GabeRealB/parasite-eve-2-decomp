@@ -2,7 +2,7 @@
 
 /// 0x13F4 handler of the first arming state's message table: a positive
 /// `arg2` fills the first free spawn slot with 110% of it, clamped to the
-/// room's ceiling, and releases the `Gp_StateF0` reference (or marks it for
+/// room's ceiling, and releases the `gSceneCombatState` reference (or marks it for
 /// release once that is allowed). The countdown is bumped by 0x5A unless every
 /// slot was already full.
 void roamerBankRetreat(Task* task, s32 arg1, s32 arg2)
@@ -18,7 +18,7 @@ void roamerBankRetreat(Task* task, s32 arg1, s32 arg2)
                 if (gRoamerParams.hpMax < v) {
                     ((s16*)gRoamerReserveHp)[i] = gRoamerParams.hpMax;
                 }
-                if (Gp_StateF0.battleRefs >= 2) {
+                if (gSceneCombatState.battleRefs >= 2) {
                     Gp_ReleaseStateF0(task, 0xD);
                 } else {
                     gRoamerReleasePending = 1;

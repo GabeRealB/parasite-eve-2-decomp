@@ -19,10 +19,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1096,7 +1096,7 @@ void func_actor_107600_801328CC(Task* arg0)
 }
 
 /// Update state of the `D_actor_107600_80131E24` table, switched on the scene
-/// mode `Gp_StateF0.actorControl`. Mode 0 runs the `field_13E` sub-state, copies the yaw and
+/// mode `gSceneCombatState.actorControl`. Mode 0 runs the `field_13E` sub-state, copies the yaw and
 /// roll onto the model root, rebuilds its rotation and scales `coord.m[1][1]`
 /// by the `field_14B` percent; modes 0 and 1 then refresh the colour and show
 /// the model, and mode 2 hides it.
@@ -1109,7 +1109,7 @@ static void func_actor_107600_80132930(Task* arg0)
     TmdObject*       obj;
 
     obj = ext;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             funcs[(s16)work->field_13E](arg0);
             coord->param.rot.vy = work->yaw;
@@ -1359,7 +1359,7 @@ static void func_actor_107600_80132ED0(Task* arg0)
     arg0->state += 1;
 }
 
-/// Per-frame update switched on the scene mode `Gp_StateF0.actorControl`, like
+/// Per-frame update switched on the scene mode `gSceneCombatState.actorControl`, like
 /// `func_actor_107600_80132930`. Mode 0 runs the `field_158` state out of
 /// `D_actor_107600_80131E84`, then (below state 7) takes hits, clears the collision records and enters state 9 once the enemy's
 /// HP is gone. Afterwards publishes the enemy's slot mask to the gallery and
@@ -1383,7 +1383,7 @@ static void func_actor_107600_80133024(Task* arg0)
     sp    = D_actor_107600_80131E84;
     SCRATCH_STACK_RESERVE_BYTES(8);
     v = SCRATCH_STACK_CURSOR(SVECTOR);
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             sp.funcs[work->field_158](arg0);
             if (work->field_158 < 7) {
@@ -2020,7 +2020,7 @@ static void func_actor_107600_80134608(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 
                 colorMtx->m[1][i] = block->col0.vy;
                 colorMtx->m[2][i] = block->col0.vz;
             }
-            if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+            if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                 arg0->colorBlend--;
             }
         }

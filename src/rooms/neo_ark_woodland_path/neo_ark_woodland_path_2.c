@@ -23,8 +23,8 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -160,7 +160,7 @@ extern NeoArkWoodlandPathSpawnPos gRoamerSpawnPointsA[];
 /// request past the fourth takes the last.
 extern NeoArkWoodlandPathSpawnPos D_neo_ark_woodland_path_80184A14[5];
 
-/// `Gp_StateF0.battleRefs` as `func_...801806D8` saw it on the previous frame, so
+/// `gSceneCombatState.battleRefs` as `func_...801806D8` saw it on the previous frame, so
 /// that it can tell the reference count was non-zero before the frame began.
 extern s16 gRoamerPrevBattleRefs;
 
@@ -409,7 +409,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
 
 /// Per-frame state of the arming sequence `func_...80180C6C` sets up, the
 /// sibling of `func_...801806D8`: counts the room's countdown down, and once the
-/// reference count on `Gp_StateF0` has dropped to zero folds the still-pending
+/// reference count on `gSceneCombatState` has dropped to zero folds the still-pending
 /// spawn slots back into game flags 0x167 and 0x10A. When a spawn point has
 /// been requested it hands the first pending slot to a waiting slot-4 task,
 /// sends it the 0x7DB message and places it at one of five fixed points.
@@ -430,7 +430,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
     if (gRoamerCooldown > 0) {
         gRoamerCooldown--;
     }
-    if (Gp_StateF0.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
+    if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         b     = GameFlag_GetNibble(0x10A);
         count = 0;
         for (k = 0; k < 5; k++) {
@@ -458,17 +458,17 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         areaSyncLocationVariant(&gGameSession->location.loc);
         gRoamerCooldown = 0x96;
     }
-    gRoamerPrevBattleRefs = Gp_StateF0.battleRefs;
+    gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;
     if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
-        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
-        Gp_StateF0.peTargetCount             = 0;
-        Gp_StateF0.battleRefs                = 0;
-        Gp_StateF0.expReward                 = 0;
-        Gp_StateF0.bpReward                  = 0;
-        Gp_StateF0.mpReward                  = 0;
-        gGameSession->battleResetPending     = 0;
+        gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+        gSceneCombatState.peTargetCount             = 0;
+        gSceneCombatState.battleRefs                = 0;
+        gSceneCombatState.expReward                 = 0;
+        gSceneCombatState.bpReward                  = 0;
+        gSceneCombatState.mpReward                  = 0;
+        gGameSession->battleResetPending            = 0;
     }
-    if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
+    if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
         gRoamerCommand.context.loc.stage = 5;
         gRoamerCommand.context.loc.area  = 0xB;
         gRoamerCommand.command           = 0xB;

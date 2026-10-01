@@ -36,11 +36,11 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "actors/companion.h"
@@ -3155,7 +3155,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 Gp_SpawnEff(0x600A7, coord, mem->step * 3 + 0x3000, 0);
                 return;
             case 1:
-                if (Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
+                if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
                     Gp_UpdateCoord(coord);
                     mem->age++;
                     if (mem->move.vz != 0) {
@@ -3177,7 +3177,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 }
                 goto do_fcd00;
             case 2:
-                if (Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
+                if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
                     Gp_UpdateCoord(coord);
                     mem->age++;
                     mem->angle  -= mem->age & 1;
@@ -4788,7 +4788,7 @@ void Gp_UpdatePlayerMove(void)
     vec   = SCRATCH_STACK_CURSOR(SVECTOR);
     coord = work->extra.tmd->coords;
     _gpCaptureActorPad(work);
-    Gp_StateF0.signals.bytes.actionFlags = 0;
+    gSceneCombatState.signals.bytes.actionFlags = 0;
     if (D_80115768 == 0) {
         Gp_TickPlayerActor(work);
     }
@@ -6181,7 +6181,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
     actor->animationRate                                = ANIMATION_RATE_ONE;
     actor->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
-    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+    if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
         func_800B3F84(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
                       actor->animationSlots);
         if (arg2 == mode) {
@@ -8126,7 +8126,7 @@ static void Gp_PlayerMode2StateA(Task* arg0)
 
     actor = arg0->work;
     if (gPlayerStatus.hp > 0) {
-        if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
+        if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
             actor->state          = 3;
             actor->turnRateIndex  = 2;
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
@@ -8249,7 +8249,7 @@ static void Gp_ArmLockOnState(Task* arg0)
     inner               = arg0->work;
     node                = Gp_FindLockNode(arg0);
     inner->movementSign = 0;
-    if ((node != NULL && Gp_StateF0.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, Gp_StateF0.signals.bytes.battlePhase == flag) ||
+    if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, gSceneCombatState.signals.bytes.battlePhase == flag) ||
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
         if (inner->statePhase != 0) {
             Gp_ArmStateF0(1);
@@ -8710,7 +8710,7 @@ static void Gp_PlayerNormalState1(Task* arg0)
     inner               = arg0->work;
     node                = Gp_FindLockNode(arg0);
     inner->movementSign = 0;
-    if ((node != NULL && Gp_StateF0.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, Gp_StateF0.signals.bytes.battlePhase == flag) ||
+    if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, gSceneCombatState.signals.bytes.battlePhase == flag) ||
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
         if (inner->statePhase != 0) {
             Gp_ArmStateF0(1);

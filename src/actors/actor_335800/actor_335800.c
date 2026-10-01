@@ -23,10 +23,10 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1386,7 +1386,7 @@ void func_actor_335800_80162F10(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_335800_80161E30;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }
@@ -1620,7 +1620,7 @@ void func_actor_335800_80163A34(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_335800_80161E5C;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

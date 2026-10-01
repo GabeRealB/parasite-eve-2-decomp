@@ -45,7 +45,7 @@ extern u16 D_80113D28[];
 /// per `Enemy.buildupGrade`: how far the buildup reaction builds up.
 extern u16 D_80113D30[];
 
-/// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `Gp_StateF0.difficulty`.
+/// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `gSceneCombatState.difficulty`.
 extern GpDmgRow Gp_DmgRows[];
 
 /// Column index table for `Gp_DmgRows`, indexed by signed HP / 10.
@@ -61,7 +61,7 @@ extern u16 D_80113CFC[];
 /// `field_0` and `Gp_RollEnemyChance` reads `field_2` of each 4-byte slot.
 extern u16 D_80113D0C[][2];
 
-/// Final percent scale applied by `Gp_ComputeDamage`, indexed by `Gp_StateF0.difficulty`.
+/// Final percent scale applied by `Gp_ComputeDamage`, indexed by `gSceneCombatState.difficulty`.
 extern u16 D_80113F90[];
 
 extern const GpHudStatusBits D_8009389C;

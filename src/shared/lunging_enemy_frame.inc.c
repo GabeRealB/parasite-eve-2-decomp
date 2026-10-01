@@ -12,7 +12,7 @@ void lungerFrameState(Enemy* ctx, Task* actor)
     work  = actor->work;
     model = actor->extra.tmd;
     coord = model->coords;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             model->flags                = 0;
             ctx->node.state.parts.flags = 0;

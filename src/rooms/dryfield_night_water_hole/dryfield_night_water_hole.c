@@ -31,10 +31,10 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1292,7 +1292,7 @@ static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list)
 /// through the view matrix. The seam between the strips is lifted by a sine
 /// wave that runs along X and scrolls with
 /// `D_dryfield_night_water_hole_8018362C[0]`, which only advances while
-/// `Gp_StateF0.actorControl` is clear. The outer edges are coloured (0xFF, 0, 0) and the seam
+/// `gSceneCombatState.actorControl` is clear. The outer edges are coloured (0xFF, 0, 0) and the seam
 /// (0x20, 0x20, 0x20); each quad is followed by a draw-mode packet selecting
 /// blend mode 2. Quads the projection flags as invalid are skipped. `task` is
 /// unused.
@@ -1317,7 +1317,7 @@ static void func_dryfield_night_water_hole_8017DF28(Task* task)
     } else {
         D_dryfield_night_water_hole_80183628 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         D_dryfield_night_water_hole_8018362C[0]++;
     }
     phase                      = -(D_dryfield_night_water_hole_8018362C[0] * 16);

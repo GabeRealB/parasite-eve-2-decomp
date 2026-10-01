@@ -21,10 +21,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1484,7 +1484,7 @@ TaskFunc Actor02000_D16064[15] = {
 /// byte 1, and `field_6A2` / `field_6A4` set to the actor's current yaw and its
 /// opposite. State 2 holds `field_69E` at 0x3B until `field_698` reaches 0x23,
 /// then returns to animation 2 and state 0. As in `Actor02000_Fn03268`, a set
-/// `field_6B2` or `Gp_StateF0.lungerDeathAlert` overrides everything with animation 2 and the
+/// `field_6B2` or `gSceneCombatState.lungerDeathAlert` overrides everything with animation 2 and the
 /// shared state-F0 slot.
 void Actor02000_Fn00AEC(Task* arg0)
 {
@@ -1550,7 +1550,7 @@ void Actor02000_Fn00AEC(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (Gp_StateF0.lungerDeathAlert != 0)) {
+    if ((work->field_6B2 != 0) || (gSceneCombatState.lungerDeathAlert != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;
@@ -1585,14 +1585,14 @@ static void Actor02000_Fn00CD0(Task* arg0)
     SCRATCH_STACK_CURSOR(VECTOR) = delta;
     distance                     = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
-        if (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_OTHER | SCENE_COMBAT_ACTION_FOOTSTEP)) {
+        if (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_OTHER | SCENE_COMBAT_ACTION_FOOTSTEP)) {
             work->field_6B2 = 1;
         }
     } else {
-        if (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
+        if (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
             trigger = 1;
         }
-        if ((Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_FOOTSTEP)) && (distance < 0xBB8)) {
+        if ((gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_FOOTSTEP)) && (distance < 0xBB8)) {
             trigger = 1;
         }
         if (trigger != 0) {
@@ -2038,7 +2038,7 @@ static void Actor02000_Fn01A20(Enemy* ctx, Task* actor)
     work    = actor->work;
     coord   = actor->extra.tmd->coords;
     scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             actor->extra.tmd->flags     = 0;
             ctx->node.state.parts.flags = 0;
@@ -2084,7 +2084,7 @@ static void Actor02000_Fn01A20(Enemy* ctx, Task* actor)
             work->field_6A8 = 1;
             ctx->spawnState = (u8)work->field_6B8;
             Gp_SaveEnemyPose(ctx);
-            Gp_StateF0.lungerDeathAlert = 1;
+            gSceneCombatState.lungerDeathAlert = 1;
             break;
         case 1:
             if (!(work->field_698 & 3)) {
@@ -2616,7 +2616,7 @@ static void Actor02000_Fn02A34(Enemy* ctx, Task* actor)
     work  = actor->work;
     model = actor->extra.tmd;
     coord = model->coords;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             model->flags                = 0;
             ctx->node.state.parts.flags = 0;
@@ -2819,7 +2819,7 @@ static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
 /// up to 0x5B frames and then hands over to state 1 with animation 4, running
 /// `Actor02000_Fn00CD0` every frame meanwhile; state 1 waits for `field_698`
 /// to reach 0x5E and drops back to state 0 with animation 1. Either way, once
-/// `field_6B2` or the global `Gp_StateF0.lungerDeathAlert` is set the actor switches to
+/// `field_6B2` or the global `gSceneCombatState.lungerDeathAlert` is set the actor switches to
 /// animation 2 and arms the shared state-F0 slot.
 void Actor02000_Fn03268(Task* arg0)
 {
@@ -2846,7 +2846,7 @@ void Actor02000_Fn03268(Task* arg0)
             break;
     }
 
-    if ((work->field_6B2 != 0) || (Gp_StateF0.lungerDeathAlert != 0)) {
+    if ((work->field_6B2 != 0) || (gSceneCombatState.lungerDeathAlert != 0)) {
         work->field_6A6 = 2;
         work->field_6A8 = 0;
         work->field_694 = 2;

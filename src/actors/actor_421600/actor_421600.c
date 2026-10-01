@@ -28,10 +28,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -3303,8 +3303,8 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
             break;
     }
 
-    Gp_StateF0.battleRefs   = 8;
-    D_actor_421600_80151268 = 8;
+    gSceneCombatState.battleRefs = 8;
+    D_actor_421600_80151268      = 8;
     actor->state++;
 }
 
@@ -4020,7 +4020,7 @@ static void func_actor_421600_801369A0(Task* arg0)
         work->field_6 = 0;
         do {
         } while (0);
-        if (Gp_StateF0.battleRefs >= 2U) {
+        if (gSceneCombatState.battleRefs >= 2U) {
             Gp_ReleaseStateF0Add(arg0, 1);
         }
         if (D_actor_421600_80151268 <= 0) {
@@ -6710,7 +6710,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0x15 && work->field_0 != 0 && work->field_0 != 0x16 && work->field_0 != 7 && work->field_0 != 8) {
                 height = actor->extra.tmd->coords->coord.t[1];

@@ -13,10 +13,9 @@
 #include "hud_sprites.h"
 #include "loading.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/display.h"
 #include "main/gameflow.h"
@@ -118,11 +117,11 @@ void func_800AD6BC(void)
                 Gp_DirPhase = 0;
                 flags       = Gp_DirFlags;
                 mask        = flags & 0x8000;
-                if (Gp_StateF0.signals.bytes.endDelayFrames == 0) {
+                if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
                     if (mask && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && !(gGameSession->padPressed & 0x10)) {
                         if (!(flags & 0x4000)) {
                             D_80114CF8 = 1;
-                        } else if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
+                        } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                             D_80114CF8 = 1;
                         }
                     } else if (cfg->interactionPressed != 0) {
@@ -132,7 +131,7 @@ void func_800AD6BC(void)
                                     D_80114CF8 = 1;
                                     D_80114D08 = 0xA;
                                 }
-                            } else if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
+                            } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                                 if (D_80114D08 == 0) {
                                     D_80114CF8 = 1;
                                     D_80114D08 = 0xA;
@@ -167,7 +166,7 @@ void func_800AD6BC(void)
         Gp_DirFlags     = 0;
         D_80114CD4      = 0;
     }
-    D_80114CDE = Gp_StateF0.signals.bytes.battlePhase;
+    D_80114CDE = gSceneCombatState.signals.bytes.battlePhase;
 }
 
 void Gp_SetupDirWarp(void)
@@ -249,9 +248,9 @@ void Gp_SetupDirWarp(void)
             } else {
                 D_80114CF0 = 0;
             }
-            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_WarpLoc.field_4   = Gp_StateF0.signals.bytes.battlePhase;
-                Gp_WarpLoc.room      = Gp_StateF0.signals.bytes.battlePhase;
+            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+                Gp_WarpLoc.field_4   = gSceneCombatState.signals.bytes.battlePhase;
+                Gp_WarpLoc.room      = gSceneCombatState.signals.bytes.battlePhase;
                 Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
                 Gp_WarpLoc.areaId    = Gp_DirByte;
                 Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
@@ -315,7 +314,7 @@ void Gp_FadeDirWaitMsg(void)
     }
     if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
         if (D_80114CF4 != 0) {
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         }
         Gp_DirPhase++;
     }

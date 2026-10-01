@@ -29,10 +29,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -978,7 +978,7 @@ static void func_actor_341700_80162DCC(Task* arg0)
     TaskFuncTable11  sp    = D_actor_341700_80161E64;
     s32              cur;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -1056,7 +1056,7 @@ static const TaskFuncTable9 D_actor_341700_80161F0C = { {
     hopperBurst,
 } };
 
-/// Per-frame callback of the main enemy. `Gp_StateF0.actorControl` 2 hides the model,
+/// Per-frame callback of the main enemy. `gSceneCombatState.actorControl` 2 hides the model,
 /// 0 runs the current state handler (then colours it), 1 only colours it.
 /// Unless `field_451` is set, it then runs `hopperDrawLimbShadow` for
 /// three part pairs.
@@ -1067,7 +1067,7 @@ static void func_actor_341700_80164CDC(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable9   sp    = D_actor_341700_80161F0C;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -1117,7 +1117,7 @@ static void func_actor_341700_80165388(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = D_actor_341700_80161F48;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -1269,7 +1269,7 @@ static void func_actor_341700_80165DDC(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable10  sp    = D_actor_341700_80161FA4;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -1344,7 +1344,7 @@ static void func_actor_341700_80167C30(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = D_actor_341700_80161FE4;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -1377,7 +1377,7 @@ static void func_actor_341700_80167E18(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable7   sp    = D_actor_341700_80161FF8;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -1412,11 +1412,11 @@ static void func_actor_341700_80168124(Task* arg0)
     states[(s16)work->field_420](arg0);
 }
 
-/// Once bit 7 of `Gp_StateF0.hopperAlertOwner` is set, puts the task in state 3 with
+/// Once bit 7 of `gSceneCombatState.hopperAlertOwner` is set, puts the task in state 3 with
 /// the state machine at state 5 and returns 1; otherwise returns 0.
 s16 hopperJoinAlert(Task* arg0)
 {
-    if ((s8)Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED) {
+    if ((s8)gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED) {
         hopperEnterState(arg0, 3);
         hopperSetStateS16(arg0, 5);
         return 1;

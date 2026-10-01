@@ -1,6 +1,6 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
-/// Releases the Gp_StateF0 reference and requests the settle animation that
+/// Releases the gSceneCombatState reference and requests the settle animation that
 /// follows the playing one (5 or 6 after animation 8), then ticks it and
 /// advances.
 void hopperDeathSettle(Task* arg0)

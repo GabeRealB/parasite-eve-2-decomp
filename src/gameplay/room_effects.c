@@ -21,10 +21,9 @@
 #include "player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "actors/actor_510900.h"
 
@@ -1426,7 +1425,7 @@ static void Gp_InitState1C(Task* arg0)
 static void Gp_TickState1C(Task* unused)
 {
     RoomEffectState*  effectState;
-    SceneCombatState* q;
+    SceneCombatState* combat;
     GpStateC08*       r;
     s16               previousBattleState;
 
@@ -1437,16 +1436,16 @@ static void Gp_TickState1C(Task* unused)
         gRoomEffectState->rumbleCount = 0;
     }
     previousBattleState = gRoomEffectState->battleState;
-    if ((previousBattleState == ROOM_EFFECT_BATTLE_ENGAGED) && (Gp_StateF0.signals.bytes.battlePhase != previousBattleState)) {
+    if ((previousBattleState == ROOM_EFFECT_BATTLE_ENGAGED) && (gSceneCombatState.signals.bytes.battlePhase != previousBattleState)) {
         SndEvt_EnqueueType7(0xFF0D, 1);
         gRoomEffectState->rumbleCount = 0;
     }
     // Publish cancellation for one update alongside the scene actor mode.
     effectState                     = gRoomEffectState;
-    q                               = &Gp_StateF0;
-    effectState->battleState        = q->signals.bytes.battlePhase;
-    effectState->effectControl      = q->actorControl | (effectState->pendingCancelFlags & ROOM_EFFECT_CANCEL_ALL);
-    effectState->peEffectControl    = q->actorControl | (effectState->pendingCancelFlags & (ROOM_EFFECT_CANCEL_PE | ROOM_EFFECT_CANCEL_ALL));
+    combat                          = &gSceneCombatState;
+    effectState->battleState        = combat->signals.bytes.battlePhase;
+    effectState->effectControl      = combat->actorControl | (effectState->pendingCancelFlags & ROOM_EFFECT_CANCEL_ALL);
+    effectState->peEffectControl    = combat->actorControl | (effectState->pendingCancelFlags & (ROOM_EFFECT_CANCEL_PE | ROOM_EFFECT_CANCEL_ALL));
     effectState->pendingCancelFlags = 0;
     if (!(effectState->effectControl & ROOM_EFFECT_CONTROL_PAUSED)) {
         Gp_DecRoomCoordRefs();

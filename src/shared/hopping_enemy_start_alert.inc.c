@@ -1,6 +1,6 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
-/// Requests animation 0xF, advances the sub-state and arms `Gp_StateF0`.
+/// Requests animation 0xF, advances the sub-state and arms `gSceneCombatState`.
 void hopperStartAlert(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;

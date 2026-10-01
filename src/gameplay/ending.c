@@ -9,8 +9,7 @@
 #include "items.h"
 #include "model_lighting.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/pad.h"
 #include "main/session.h"
@@ -263,17 +262,17 @@ void func_800A087C(Task* arg0)
         if (arg0->spawnArg1.value == 0) {
             D_80114BE2 = 0;
             D_80114BE4 = 0;
-            D_80114BDC = Gp_StateF0.bpReward;
-            D_80114BDE = Gp_StateF0.expReward;
-            D_80114BE0 = Gp_StateF0.mpReward;
+            D_80114BDC = gSceneCombatState.bpReward;
+            D_80114BDE = gSceneCombatState.expReward;
+            D_80114BE0 = gSceneCombatState.mpReward;
             if (func_800B9D80(0x8000) != 0) {
-                D_80114BE4 = ((u32)(Gp_StateF0.mpReward - 1) >> 2) + 1;
+                D_80114BE4 = ((u32)(gSceneCombatState.mpReward - 1) >> 2) + 1;
                 if (D_80114BE4 >= 100) {
                     D_80114BE4 = 99;
                 }
             }
             if (func_800B9D80(0x1000) != 0) {
-                add        = (u16)Gp_StateF0.mpReward;
+                add        = (u16)gSceneCombatState.mpReward;
                 D_80114BE2 = add;
                 cfg->hp   += add;
                 if (cfg->hp >= cfg->hpMax) {

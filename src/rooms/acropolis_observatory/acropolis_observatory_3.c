@@ -30,9 +30,9 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -934,7 +934,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &rec, 0);
             }
-            Gp_StateF0.actor03700Wave = 0;
+            gSceneCombatState.actor03700Wave = 0;
             /* fallthrough */
         case 1:
         case 2:
@@ -942,7 +942,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             task->state = task->state + 1;
             break;
         case 3:
-            if (Gp_StateF0.actor03700Wave == 2) {
+            if (gSceneCombatState.actor03700Wave == 2) {
                 Gp_ArmStateF0(1);
                 task->state = task->state + 1;
             }

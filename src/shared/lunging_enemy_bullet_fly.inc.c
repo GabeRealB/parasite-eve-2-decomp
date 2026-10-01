@@ -1,7 +1,7 @@
 /* Part of the lunging enemy library; see lunging_enemy.h. */
 
 /// Per-frame state of the effect child set up by `lungerBulletSpawn`, entry
-/// 1 of `Actor05600_D0008C`. `Gp_StateF0.actorControl` overrides it: 0 shows the child and
+/// 1 of `Actor05600_D0008C`. `gSceneCombatState.actorControl` overrides it: 0 shows the child and
 /// runs the tick, 1 only refreshes its colour, 2 hides it. The tick moves the
 /// child along its own Y axis, spawns a puff every fourth frame and ends the
 /// flight on a body contact, a surface that blocks probes, or after
@@ -24,7 +24,7 @@ void lungerBulletFly(Enemy* arg0, Task* arg1)
     coord = tmd->coords;
     work  = (Actor105600FxWork*)arg1->work;
     found = 0;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             tmd->flags = 0;
             break;

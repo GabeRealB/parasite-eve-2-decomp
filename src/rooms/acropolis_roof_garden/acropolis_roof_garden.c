@@ -32,11 +32,11 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1013,7 +1013,7 @@ s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, TaskMess
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 6);
         }
-        Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+        gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         Gp_RunCapCmd(4, 0);
         func_800E3FAC(0xA2, 7);
     }
@@ -1118,10 +1118,10 @@ void func_acropolis_roof_garden_8017DC74(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Room script callback: sets `Gp_StateF0.spiderEntranceReady` to 1.
+/// Room script callback: sets `gSceneCombatState.spiderEntranceReady` to 1.
 void func_acropolis_roof_garden_8017DCCC(void)
 {
-    Gp_StateF0.spiderEntranceReady = 1;
+    gSceneCombatState.spiderEntranceReady = 1;
 }
 
 /// Roof-garden ambient effect task. On its first frame it fires one effect per

@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-/// One damage-scale row of `Gp_DmgRows`, selected by `Gp_StateF0.difficulty`.
+/// One damage-scale row of `Gp_DmgRows`, selected by `gSceneCombatState.difficulty`.
 /// Each half holds five columns picked through `D_80113F54` by HP / 10:
 /// `field_A` scales against the player's HP, `field_0` against the companion's.
 typedef struct _GpDmgRow {

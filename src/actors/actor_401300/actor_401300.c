@@ -24,10 +24,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -3775,7 +3775,7 @@ static void func_actor_401300_80139520(Task* arg0)
     if (!overlayOutOfRange(d, 3000)) {
         work->field_0 = 6;
     }
-    if (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
+    if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3847,7 +3847,7 @@ static void func_actor_401300_801397F8(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    if (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
+    if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3931,7 +3931,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
             work->field_0 = 6;
         }
     }
-    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
+    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
         work->field_0 = 6;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -5499,7 +5499,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             state = work->field_0;
             if ((state != 0) && (state != 0x24) && (state != 0x15) && (state != 0x1D) && (state != 0x28)) {
@@ -5696,7 +5696,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
         Gp_ReleaseStateF0Add(actor, 0xD);
         work->field_C8A = 0;
     }
-    if ((Gp_StateF0.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
+    if ((gSceneCombatState.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

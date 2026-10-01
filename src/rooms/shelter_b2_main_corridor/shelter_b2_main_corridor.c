@@ -33,10 +33,9 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1752,7 +1751,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd1(arg0->spawnArg1.value);
             D_80115690 = 1;
             arg0->state++;
@@ -1765,7 +1764,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             break;
         case 2:
             if (Gp_GetCapEventKey() == 0xC) {
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 break;

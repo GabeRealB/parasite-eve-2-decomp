@@ -1,6 +1,6 @@
 /* Part of the glow pod library; see glow_pod.h. */
 
-/// Per-frame handler of the second enemy under the `Gp_StateF0.actorControl` mode byte:
+/// Per-frame handler of the second enemy under the `gSceneCombatState.actorControl` mode byte:
 /// mode 1 runs only the tail, mode 2 hides the model, sets the node flag and
 /// returns, mode 0 clears the node flag before falling into the update, and
 /// any other mode updates directly. The update raises the root's Y translation
@@ -12,7 +12,7 @@ void glowPodUpdateState(Enemy* arg0, Task* arg1)
     s32 state;
     s32 one;
 
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     one   = 1;
     if (state == one) {
         goto case1;

@@ -27,11 +27,10 @@
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1852,7 +1851,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
         case 0:
             gGameSession->eventState                   = 1;
             gGameSession->hideHud                      = 1;
-            Gp_StateF0.actorControl                    = SCENE_COMBAT_ACTORS_HIDDEN;
+            gSceneCombatState.actorControl             = SCENE_COMBAT_ACTORS_HIDDEN;
             save                                       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             temp                                       = save->state.location.loc.view;
             save->state.location.loc.view              = 0xC;
@@ -1878,7 +1877,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->eventState                                   = 0;
             gGameSession->hideHud                                      = 0;
             D_80114D08                                                 = 0xA;
-            Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_RUNNING;
+            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.value;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);

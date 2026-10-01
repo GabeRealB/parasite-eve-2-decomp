@@ -9,10 +9,9 @@
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1058,7 +1057,7 @@ void func_actor_503500_8013270C(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_503500_80131E24;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

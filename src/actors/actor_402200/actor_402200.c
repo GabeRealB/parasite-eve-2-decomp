@@ -29,11 +29,11 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1682,7 +1682,7 @@ void stalkerGrabSeq(Task* arg0)
                 timer           = work->field_6D4 - 1;
                 work->field_6D4 = timer;
                 if (timer <= 0) {
-                    if (gPlayerStatus.hp > D_actor_402200_80153C0C[Gp_StateF0.difficulty]) {
+                    if (gPlayerStatus.hp > D_actor_402200_80153C0C[gSceneCombatState.difficulty]) {
                         if (work->field_6F8 == 0) {
                             work->field_6F8 = 1;
                         } else {

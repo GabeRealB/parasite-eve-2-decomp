@@ -25,10 +25,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -2600,7 +2600,7 @@ static void Actor01900_Fn06904(Task* arg0)
     }
 }
 
-/// Arms `Gp_StateF0` and returns 1 when the player is within 500 units of the
+/// Arms `gSceneCombatState` and returns 1 when the player is within 500 units of the
 /// actor's height (and not in `field_954` state 2).
 static void Actor01900_Fn06B4C(Task* arg0)
 {
@@ -2672,7 +2672,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
             work->field_0 = 6;
         }
     }
-    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
+    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
         work->field_0 = 6;
     }
 }
@@ -2771,7 +2771,7 @@ static void Actor01900_Fn06F40(Task* arg0)
             }
         }
     }
-    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
+    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
         work->field_0 = 6;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -3289,7 +3289,7 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             state = work->field_0;
             if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x1E)) {
@@ -3349,7 +3349,7 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
     Gp_ClearRec18Occupied(&work->field_A28);
     Gp_ClearRec18Occupied(&work->field_8E8);
     Gp_ClearRec18Occupied(&work->field_B68);
-    if ((Gp_StateF0.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
+    if ((gSceneCombatState.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

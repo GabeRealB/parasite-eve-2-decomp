@@ -3,7 +3,7 @@
 /* Part of the glow pod library; see glow_pod.h. */
 
 /// Idle tick of the second enemy. A 0x10000-class hit on either of its two
-/// single-record tables sets `Gp_StateF0.signals.bytes.enemyAlert`, latches `field_2AA` and selects
+/// single-record tables sets `gSceneCombatState.signals.bytes.enemyAlert`, latches `field_2AA` and selects
 /// animation 2; if the light blend is fully up, one sound plays, the blend is
 /// turned to fall and a new 0x12..0x31 frame wait is rolled. A latched hit
 /// plays a second sound, clears the 0x8000 bit of the first two bodies and arms
@@ -25,9 +25,9 @@ void glowPodIdleTick(Task* arg0)
     SCRATCH_STACK_RESERVE_BYTES(8);
     obj = arg0->extra.tmd->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
-        Gp_StateF0.signals.bytes.enemyAlert = 1;
-        work->field_2AA                     = 1;
-        work->field_28C                     = 2;
+        gSceneCombatState.signals.bytes.enemyAlert = 1;
+        work->field_2AA                            = 1;
+        work->field_28C                            = 2;
         if (work->field_2A6 != 0 && work->field_2A4 == 0x12) {
             if (work->field_2AC != 0) {
                 ctx = arg0->spawnArg2.pointer;

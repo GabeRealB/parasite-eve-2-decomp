@@ -3,7 +3,7 @@
 /// Holds for `field_446` frames, then moves to state 2. Over the last 0x30
 /// frames the head yaw `field_424` eases back to zero; before that, while a
 /// player actor is within 0xDAC and roughly ahead, it turns toward it and
-/// after 16 such frames arms `Gp_StateF0` and moves to state 3, and
+/// after 16 such frames arms `gSceneCombatState` and moves to state 3, and
 /// otherwise it sways between two fixed yaws by bit 6 of `field_442`.
 void hopperLurkLookAround(Task* arg0)
 {

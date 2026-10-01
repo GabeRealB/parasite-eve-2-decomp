@@ -19,8 +19,7 @@
 #include "gameplay/pad_input.h"
 #include "gameplay/player_actor.h"
 #include "player_actor.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -585,7 +584,7 @@ void Gp_MenuRootTask(Task* arg0)
                 flag  = &D_8005ED8C;
                 *flag = 1;
                 Gp_SpawnWeaponEff();
-                if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+                if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     func_8010870C(gameGetPtrSlot(3), 5);
                 }
                 if (arg0->spawnArg1.value == 0x44) {

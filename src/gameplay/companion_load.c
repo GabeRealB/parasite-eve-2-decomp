@@ -11,10 +11,9 @@
 #include "player_state.h"
 #include "gameplay/room.h"
 #include "scene_runtime.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/world_collision.h"
 #include "world_collision.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -332,8 +331,8 @@ void Gp_ResumeSessionTask(Task* task)
         return;
     }
     if ((task->spawnArg1.value & 0x10) == 0) {
-        if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
-            Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_RESUMED;
+        if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
+            gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_RESUMED;
         }
         Gp_TriggerPeIfArmed();
     }
@@ -346,7 +345,7 @@ void func_800AC0F0(Task* task)
 
     sp = Gp_SessionStates;
     Pad_SetCooldown(0);
-    *(volatile u8*)&Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+    *(volatile u8*)&gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
     sp.funcs[((volatile Task*)task)->state](task);
 }
 

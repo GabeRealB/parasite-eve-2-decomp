@@ -36,10 +36,10 @@
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -2842,7 +2842,7 @@ void func_actor_444000_801321FC(s32 arg0)
 /// Task body of the overlay's event/controller task, run once per frame while
 /// the session is not paused (`GameSession::sceneUpdatesPaused`), no cutscene is active
 /// (`Gp_StateC08.field_9`) and the battle state is not frozen
-/// (`Gp_StateF0.actorControl`).
+/// (`gSceneCombatState.actorControl`).
 ///
 /// State 0 allocates the `Actor444000EventWork` block and publishes the task in
 /// `D_actor_444000_80161860`; a task spawned with `spawnArg1` set jumps
@@ -2865,7 +2865,7 @@ void func_actor_444000_80132358(Task* task)
     if (Gp_StateC08.field_9 != 0) {
         return;
     }
-    if (Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
 
@@ -2904,11 +2904,11 @@ void func_actor_444000_80132358(Task* task)
                 Gp_MsgPlayerWeapon(0);
                 other = (Actor444000EventWork*)D_actor_444000_80161860->work;
                 if (other->field_30 == 0) {
-                    Gp_StateF0.battleRefs                               = 0;
-                    Gp_StateF0.signals.bytes.endDelayFrames             = 0xF;
-                    Gp_StateF0.signals.bytes.battlePhase                = SCENE_COMBAT_BATTLE_IDLE;
-                    Gp_StateF0.signals.bytes.actionFlags                = 0;
-                    Gp_StateF0.signals.bytes.enemyAlert                 = 0;
+                    gSceneCombatState.battleRefs                        = 0;
+                    gSceneCombatState.signals.bytes.endDelayFrames      = 0xF;
+                    gSceneCombatState.signals.bytes.battlePhase         = SCENE_COMBAT_BATTLE_IDLE;
+                    gSceneCombatState.signals.bytes.actionFlags         = 0;
+                    gSceneCombatState.signals.bytes.enemyAlert          = 0;
                     gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
                     other->field_30                                     = state;
@@ -2991,7 +2991,7 @@ void func_actor_444000_80132724(s16 arg0)
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
-/// Arm the actor's death sequence once: reset the `Gp_StateF0` claim block,
+/// Arm the actor's death sequence once: reset the `gSceneCombatState` claim block,
 /// flag the session and pick area script 0xD, then latch `field_30` so a later
 /// call does nothing.
 void func_actor_444000_80132778(void)
@@ -2999,11 +2999,11 @@ void func_actor_444000_80132778(void)
     Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
     if (work->field_30 == 0) {
-        Gp_StateF0.battleRefs                               = 0;
-        Gp_StateF0.signals.bytes.endDelayFrames             = 0xF;
-        Gp_StateF0.signals.bytes.battlePhase                = SCENE_COMBAT_BATTLE_IDLE;
-        Gp_StateF0.signals.bytes.actionFlags                = 0;
-        Gp_StateF0.signals.bytes.enemyAlert                 = 0;
+        gSceneCombatState.battleRefs                        = 0;
+        gSceneCombatState.signals.bytes.endDelayFrames      = 0xF;
+        gSceneCombatState.signals.bytes.battlePhase         = SCENE_COMBAT_BATTLE_IDLE;
+        gSceneCombatState.signals.bytes.actionFlags         = 0;
+        gSceneCombatState.signals.bytes.enemyAlert          = 0;
         gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
         work->field_30                                      = 1;
@@ -4591,7 +4591,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
         work->field_EE8[k] = NULL;
     }
 
-    Gp_StateF0.battleRefs = 0xA;
+    gSceneCombatState.battleRefs = 0xA;
     Gp_ReleaseStateF0Add(task, 0x20);
     D_actor_444000_80161878.value = task;
     work->field_F1B = work->field_F1C = 0;
@@ -7225,7 +7225,7 @@ static void func_actor_444000_80142254(void)
 /// escorts, then runs the state handler `Actor403200Work::field_0` selects and
 /// republishes every collision group.
 ///
-/// `Gp_StateF0.actorControl` gates how much of that runs. While the controller task is
+/// `gSceneCombatState.actorControl` gates how much of that runs. While the controller task is
 /// suspended (1 or 2) the tick only pushes the host's `TmdObject::flags`
 /// onto the escorts and clears the collision tables, and returns; only the
 /// running case (0) and anything else falls through to the state machine.
@@ -7320,7 +7320,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         work->field_ECC[4]->task->extra.tmd->otOffset = 0;
     }
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0) {
                 if (view == 9) {
@@ -7855,7 +7855,7 @@ void func_actor_444000_801438E4(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = D_actor_444000_80131E9C;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         default:
         case SCENE_COMBAT_ACTORS_RUNNING:
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -7880,7 +7880,7 @@ void func_actor_444000_80143960(Task* arg0)
     sp   = D_actor_444000_80131EA8;
     work = arg0->work;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             arg0->extra.tmd->flags = 0;
             break;
@@ -7915,7 +7915,7 @@ void func_actor_444000_80143A6C(Task* arg0)
 
     sp = D_actor_444000_80131F0C;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
@@ -7946,7 +7946,7 @@ void func_actor_444000_80143B74(Task* arg0)
     GpEnemyTaskFuncTable5 sp;
 
     sp = D_actor_444000_80131F1C;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
@@ -7970,7 +7970,7 @@ void func_actor_444000_80143C64(Task* arg0)
 
     sp = D_actor_444000_80131F30;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             arg0->extra.tmd->flags = 0;
             break;

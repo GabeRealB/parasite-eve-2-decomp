@@ -25,10 +25,10 @@
 #include "player_state.h"
 #include "gameplay/room_effects.h"
 #include "room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "actors/companion.h"
@@ -634,7 +634,7 @@ void func_8010A670(Task* arg0)
                 }
             }
         }
-        if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+        if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
             if (inner->targetNode != NULL) {
                 if (rand() & 3) {
                     Gp_DetachLinkNode(arg0);

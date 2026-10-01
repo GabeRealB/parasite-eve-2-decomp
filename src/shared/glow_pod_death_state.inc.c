@@ -1,6 +1,6 @@
 /* Part of the glow pod library; see glow_pod.h. */
 
-/// Dying-state tick of the second enemy, under the `Gp_StateF0.actorControl` mode byte: 1
+/// Dying-state tick of the second enemy, under the `gSceneCombatState.actorControl` mode byte: 1
 /// does nothing and 2 hides the model. Otherwise the root's matrix is saved
 /// into `field_264` and refolded with the decaying Y scale. Once `field_288` is
 /// set the enemy is destroyed after 0x3D frames; before that, the kill
@@ -16,7 +16,7 @@ void glowPodDeathState(Enemy* arg0, Task* arg1)
     work  = arg1->work;
     obj   = arg1->extra.tmd;
     coord = obj->coords;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:

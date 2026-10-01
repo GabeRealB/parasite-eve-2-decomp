@@ -1,6 +1,6 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
-/// Death cry: plays sound 2, releases this enemy's `Gp_StateF0` hold and
+/// Death cry: plays sound 2, releases this enemy's `gSceneCombatState` hold and
 /// unlinks the enemy node. A pending request 4 hides the model and jumps to
 /// state 7; otherwise the state advances.
 void hopperDeathCry(Task* arg0)

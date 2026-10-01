@@ -26,10 +26,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1081,7 +1081,7 @@ static __inline__ void _actor01100SetSlotRates(ActorsShared80138efcWork* work, u
 }
 
 /// First enemy-task state: allocates the 0xBCC work block, enqueues the
-/// overlay's sound CD command once while `Gp_StateF0.enemySoundBankQueued` is clear,
+/// overlay's sound CD command once while `gSceneCombatState.enemySoundBankQueued` is clear,
 /// seeds both animation contexts, and hangs the work coordinate off model
 /// part 1. Spawn state 1/2 then writes 0x7F into slots 1..20 of each
 /// context. Placement `entryId` 0x31 selects the second param table and
@@ -1092,7 +1092,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     TmdObject*                extra;
     GfxCoord*                 parts;
     GpMtxWords*               mtx;
-    SceneCombatState*         st;
+    SceneCombatState*         combat;
     u8                        param1[8];
     u8                        param2[8];
     ActorsShared801385e0Scale scale;
@@ -1128,10 +1128,10 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
         param1[0]       = 1;
     }
 
-    st = &Gp_StateF0;
-    if (st->enemySoundBankQueued == 0) {
+    combat = &gSceneCombatState;
+    if (combat->enemySoundBankQueued == 0) {
         CdCmd_Enqueue(0x21, param1, param2);
-        st->enemySoundBankQueued = 1;
+        combat->enemySoundBankQueued = 1;
     }
 
     task->work      = work;
@@ -1751,7 +1751,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, ActorsShared80138efcWork
 /// cleared. `Task::spawnArg1` then picks the threshold: 0 takes 0x5F5E0F
 /// outright, 0x20000 takes 0x3D08FF, and anything else 0xF423FF while the
 /// player's `GameActor::movementMode` reads 3 and 0xF423F otherwise; the 0x20000
-/// case also closes in whenever the player flag at `Gp_StateF0.signals.bytes.actionFlags` reads 1
+/// case also closes in whenever the player flag at `gSceneCombatState.signals.bytes.actionFlags` reads 1
 /// without measuring at all. Either way the link transform is re-armed exactly
 /// as its siblings arm it - model part 3 through `TmdObject::coords[3]`, the
 /// 0xC8-box local offset through `src` - and `Actor01100_Fn00F58` runs last;
@@ -1796,7 +1796,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, ActorsShared80138efcWor
 
         if (player != NULL) {
             actor = (GameActor*)player->work;
-            if (((Gp_StateF0.signals.bytes.actionFlags ^ 1) == 0) || (((u16)actor->movementMode == 3) && dist <= 0x3D08FF)) {
+            if (((gSceneCombatState.signals.bytes.actionFlags ^ 1) == 0) || (((u16)actor->movementMode == 3) && dist <= 0x3D08FF)) {
                 flag = 1;
             }
         }
@@ -1976,12 +1976,12 @@ static const ActorsShared80138efcStateTable Actor01100_D00064 = { {
 } };
 
 /// Per-frame update. Does nothing while `field_BA0` is set. Otherwise it
-/// refreshes model part 3 and, while `Gp_StateF0.actorControl` is 0, steps both animation
+/// refreshes model part 3 and, while `gSceneCombatState.actorControl` is 0, steps both animation
 /// contexts over parts 1-20 (restarting the motion in `field_BA4` when it
 /// changed, and blending the second context in by `field_BA2`), fills
 /// `pan`/`depth` from part 1, runs the handler for `state`, then the arm
 /// `field_BA6` selects, and while `field_BB8` is 1 spawns the splash effects
-/// and sound. While `Gp_StateF0.actorControl` is 1 it only pushes the root out of its
+/// and sound. While `gSceneCombatState.actorControl` is 1 it only pushes the root out of its
 /// world contacts. Whatever the mode, it then refreshes the root, updates
 /// the actor colour from the root position, draws the floor quad unless bit
 /// 1 of the model's flags is set, and exits the task once `field_BA6`
@@ -2010,7 +2010,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
         return;
     }
     Gp_UpdateCoord(&task->extra.tmd->coords[3]);
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         randBit         = rand() & 1;
         work->field_BA9 = 0;
         work->field_BC9 = work->field_BA6;
@@ -2232,7 +2232,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
                 }
             }
         }
-    } else if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
+    } else if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         root   = task->extra.tmd->coords;
         savedY = root->coord.t[1];
         Gp_UpdateCoord(root);
@@ -3544,7 +3544,7 @@ static void Actor01100_Fn06198(Task* task)
     soundCoord    = coord;
     d4            = &work->rec;
     flag          = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         d4->ends[1].vx      = -work->vel.vx;
         d4->ends[1].vy      = -work->vel.vy;
         d4->ends[1].vz      = -work->vel.vz;
@@ -4263,7 +4263,7 @@ static void Actor01100_Fn073A8(Task* arg0)
 }
 
 /// Per-frame state of the actor's two-state controller (state 1). While
-/// `Gp_StateF0.actorControl` is zero the actor runs its self-destruct countdown: from
+/// `gSceneCombatState.actorControl` is zero the actor runs its self-destruct countdown: from
 /// `killCountdown` 0x15 and above it throws an effect burst (0x60070) at the
 /// model's root coordinate on every other frame and reparents the spawned
 /// effect onto itself, and a collision hit on the work block's `WorldCollisionContact` table
@@ -4281,7 +4281,7 @@ static void Actor01100_Fn073DC(Task* task)
     work  = (ActorsShared80137fb8Work*)task->work;
     coord = task->extra.tmd->coords;
 
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (task->killCountdown >= 0x15) {
             if (((u16)task->killCountdown & 1) == 0) {
                 eff = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);

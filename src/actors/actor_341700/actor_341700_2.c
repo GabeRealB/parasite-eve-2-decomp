@@ -13,11 +13,10 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/random.h"
@@ -1016,7 +1015,7 @@ static const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
 
 /// Per-frame callback of the `func_actor_341700_8016D130` task. It colours the
 /// model from the world position of its *second* attach coordinate and then,
-/// unless `Gp_StateF0.actorControl` hides the model, runs the handler `Actor341700SubWork::
+/// unless `gSceneCombatState.actorControl` hides the model, runs the handler `Actor341700SubWork::
 /// field_0` names.
 ///
 /// `case 0` is folded into `default` on purpose. The two bodies are the same,
@@ -1035,7 +1034,7 @@ static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
     block.vy = arg1->extra.tmd->coords[1].workm.t[1];
     block.vz = arg1->extra.tmd->coords[1].workm.t[2];
     Gp_UpdateActorColor(arg0, &block, 0, 0);
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;

@@ -1,6 +1,6 @@
 /* Part of the burster library; see burster.h. */
 
-/// Per-frame handler of the first enemy under the `Gp_StateF0.actorControl` mode byte: mode
+/// Per-frame handler of the first enemy under the `gSceneCombatState.actorControl` mode byte: mode
 /// 1 runs only the tail, mode 2 hides the model and sets the node flag and
 /// returns, mode 0 clears both before falling into the update, and any other
 /// mode updates directly. The update runs the reaction dispatch, the flag
@@ -13,7 +13,7 @@ void bursterUpdateState(Enemy* arg0, Task* arg1)
     s32 state;
     s32 one;
 
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     one   = 1;
     if (state == one) {
         goto case1;

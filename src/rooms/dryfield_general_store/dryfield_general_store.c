@@ -22,9 +22,9 @@
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
 #include "gameplay/room.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1609,7 +1609,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
             }
             break;
         case 2:
-            if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && GameFlag_GetNibble(0x5E) == 1) {
+            if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && GameFlag_GetNibble(0x5E) == 1) {
                 func_800E8614(D_dryfield_general_store_8017E568, 1);
             }
             GameFlag_SetNibble(0x5E, 2);
@@ -1692,7 +1692,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
     }
 }
 
-/// Arms `Gp_StateF0` with `arg0`.
+/// Arms `gSceneCombatState` with `arg0`.
 void func_dryfield_general_store_8017E130(s32 arg0)
 {
     Gp_ArmStateF0(arg0);

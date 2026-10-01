@@ -28,10 +28,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1677,7 +1677,7 @@ static inline void _actor05600Draw(Task* actor, GfxCoord* coord)
 /// Per-frame tick of the approach cycle: runs the collision and state handlers,
 /// drifts the root coordinate forward along its Z axis (and upward while
 /// `field_6DE` is below 2), reseeds or ticks the nineteen animation slots, then
-/// publishes the body's colour and its ground shadow. `Gp_StateF0.actorControl` overrides
+/// publishes the body's colour and its ground shadow. `gSceneCombatState.actorControl` overrides
 /// the whole state machine - 1 draws the body without advancing it and 2
 /// hides it. Entry 1 of `Actor05600_D00098`.
 static void Actor05600_Fn03EBC(Enemy* ctx, Task* actor)
@@ -1689,7 +1689,7 @@ static void Actor05600_Fn03EBC(Enemy* ctx, Task* actor)
     work  = (Actor105600Work*)actor->work;
     model = actor->extra.tmd;
     coord = model->coords;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             model->flags                = 0;
             ctx->node.state.parts.flags = 0;

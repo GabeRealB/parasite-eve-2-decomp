@@ -9,7 +9,7 @@
 /// buffer shifted vertically by a `rsin` / `rcos` wave that fades in over the
 /// first 8 rows of the range and of the split. The wave phases derive from
 /// `Task::killCountdown`, seeded from `rand()` on the first call and advanced
-/// by 0x20 per call while `Gp_StateF0.actorControl` is clear; views 6 and 7 of area 13
+/// by 0x20 per call while `gSceneCombatState.actorControl` is clear; views 6 and 7 of area 13
 /// advance them by 0x20 while it is set instead.
 ///
 /// Matching note: `wave = w` is written in both arms of the scale test and the
@@ -165,7 +165,7 @@ void waterRefractionTask(Task* task)
                 end   = 0xF0;
                 split = 0;
                 scale = 0x800;
-                if (Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
+                if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -174,7 +174,7 @@ void waterRefractionTask(Task* task)
                 end   = 0xF0;
                 kind  = 4;
                 scale = 0x800;
-                if (Gp_StateF0.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
+                if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
                     task->killCountdown += 0x20;
                 }
                 break;
@@ -256,7 +256,7 @@ void waterRefractionTask(Task* task)
         prim += 488;
     }
     prim--;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         task->killCountdown += 0x20;
     }
     sinArg = task->killCountdown * 2;

@@ -18,10 +18,9 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/gameflag.h"
@@ -2652,14 +2651,14 @@ void func_actor_443500_8013253C(Task* task)
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
 /// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
-/// from `D_actor_443500_80131E30`, skipping the frame while `Gp_StateF0.actorControl` is
+/// from `D_actor_443500_80131E30`, skipping the frame while `gSceneCombatState.actorControl` is
 /// set.
 void func_actor_443500_80132738(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_443500_80131E30;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

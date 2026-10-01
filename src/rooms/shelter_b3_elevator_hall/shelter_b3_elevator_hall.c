@@ -22,9 +22,8 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -168,7 +167,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state++;
             break;
         case 1:
@@ -198,7 +197,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             } else {
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
             }
             task->state++;

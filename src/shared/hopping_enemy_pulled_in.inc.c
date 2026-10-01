@@ -1,7 +1,7 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Death: plays sound 3 unless the enemy's HP is already negative, releases
-/// `Gp_StateF0`'s hold if it points at this enemy, unlinks the enemy node and
+/// `gSceneCombatState`'s hold if it points at this enemy, unlinks the enemy node and
 /// its three hit bodies, moves the task to state 5, tells slot-4 task 0 with
 /// message 0x13F4, and hides the model.
 void hopperPulledIn(Task* arg0)
@@ -22,8 +22,8 @@ void hopperPulledIn(Task* arg0)
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.hopperAlertOwner = 0;
+    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.hopperAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);

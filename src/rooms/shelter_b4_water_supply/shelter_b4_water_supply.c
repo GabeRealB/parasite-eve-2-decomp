@@ -29,11 +29,10 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -795,7 +794,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(arg0->spawnArg1.value, 0);
             arg0->state++;
@@ -809,11 +808,11 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08              = 0xA;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                D_80114D08                     = 0xA;
                 break;
             }
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_TriggerPeIfArmed();
             D_shelter_b4_water_supply_80184E34.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_water_supply_80184E34.fade.phase      = SCREEN_FADE_RUNNING;

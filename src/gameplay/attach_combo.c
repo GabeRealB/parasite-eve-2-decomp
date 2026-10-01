@@ -7,9 +7,8 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/player_state.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/weapon_data.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
@@ -55,10 +54,10 @@ static __inline__ s32 isStateF0Active_(void);
 /// Inline copy of `Gp_IsStateF0Active`.
 static __inline__ s32 isStateF0Active_(void)
 {
-    SceneCombatState* p;
+    SceneCombatState* combat;
 
-    p = &Gp_StateF0;
-    if ((p->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && p->battleRefs != 0) || p->signals.bytes.endDelayFrames != 0) {
+    combat = &gSceneCombatState;
+    if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
         return 1;
     }
     return 0;

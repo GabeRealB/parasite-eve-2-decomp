@@ -21,9 +21,9 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1021,7 +1021,7 @@ void func_actor_361100_80161E3C(Task* arg0)
 /// depth, and the strip samples the other display buffer (`otBuffer` picks the
 /// texture page row and the v offset) displaced by a wave built from `rsin` /
 /// `rcos` of two phases seeded from `Task::killCountdown`, which the task
-/// advances by 0x20 per call while `Gp_StateF0.actorControl` is clear.
+/// advances by 0x20 per call while `gSceneCombatState.actorControl` is clear.
 ///
 /// The row window, fade, clip and mode locals are fixed values in this build,
 /// so only the default arm of each mode switch ever runs.
@@ -1103,7 +1103,7 @@ static void func_actor_361100_80161FF8(Task* arg0)
             ptr += left >> 1;
         }
         prim = (POLY_FT4*)ptr - 1;
-        if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+        if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
             arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
         }
         ang2                                        = arg0->killCountdown * 2;
@@ -1545,13 +1545,13 @@ static void func_actor_361100_80162B18(Task* task)
 
 /// State dispatcher: runs `Task::state` through `D_actor_361100_80161E24` --
 /// setup (`func_actor_361100_80162D28`), per-frame tick (`func_actor_361100_80162B18`)
-/// and exit (`func_actor_361100_80162DE4`) -- while `Gp_StateF0.actorControl` is clear.
+/// and exit (`func_actor_361100_80162DE4`) -- while `gSceneCombatState.actorControl` is clear.
 void func_actor_361100_80162CBC(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_361100_80161E24;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }
@@ -1779,13 +1779,13 @@ static void func_actor_361100_801631C4(Task* task)
 
 /// State dispatcher: runs `Task::state` through `D_actor_361100_80161E30` --
 /// setup (`func_actor_361100_80163410`), per-frame tick (`func_actor_361100_801631C4`)
-/// and exit (`func_actor_361100_80163494`) -- while `Gp_StateF0.actorControl` is clear.
+/// and exit (`func_actor_361100_80163494`) -- while `gSceneCombatState.actorControl` is clear.
 void func_actor_361100_801633A4(Task* task)
 {
     TaskFuncTable3 sp;
 
     sp = D_actor_361100_80161E30;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

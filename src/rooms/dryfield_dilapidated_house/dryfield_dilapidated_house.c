@@ -38,11 +38,11 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1889,7 +1889,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
         case 1:
             if (gGameSession->eventState == 2) {
                 Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
-                Gp_StateF0.signals.bytes.endDelayFrames = 3;
+                gSceneCombatState.signals.bytes.endDelayFrames = 3;
                 goto advance;
             }
             return;
@@ -1951,7 +1951,7 @@ s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, TaskMessageA
 /// The copy is the `RoomEventMsg` assignment; the rest is two independent id
 /// checks. While the session is in the room (`gGameSession->location.loc.stage` is 2), a
 /// type-7 record with no sub-id answers 1, or the session's own value when flag
-/// nibble 0x3C is set. A type-7 record in play (`Gp_StateF0.signals.bytes.battlePhase` is 1) runs
+/// nibble 0x3C is set. A type-7 record in play (`gSceneCombatState.signals.bytes.battlePhase` is 1) runs
 /// CAP command 0x14 and a type-5 record runs 0x13, each only when the sub-id is
 /// clear; everything else is left to the caller and answers 1.
 s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -1971,7 +1971,7 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
             }
         }
     }
-    if ((in->areaId == 7) && (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
+    if ((in->areaId == 7) && (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SpawnIfCapIdle(0x14, 0);
         }

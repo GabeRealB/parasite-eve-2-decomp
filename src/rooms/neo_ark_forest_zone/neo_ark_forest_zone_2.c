@@ -23,10 +23,10 @@
 #include "gameplay/message.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/room.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -79,7 +79,7 @@ extern s16 gRoamerSpawnRequest;
 /// The value the 0x13EF handlers last saw in their message's third byte.
 extern s16 gRoamerLastRequest;
 
-/// Set when a spawn slot was filled while the `Gp_StateF0` reference could
+/// Set when a spawn slot was filled while the `gSceneCombatState` reference could
 /// not yet be released; the first arming task's tick releases it later.
 extern s16 gRoamerReleasePending;
 
@@ -104,7 +104,7 @@ extern GpMsgEntry                gRoamerMsgTableB[];
 extern NeoArkForestZoneSpawnPos gRoamerSpawnPointsA[];
 extern NeoArkForestZoneSpawnPos D_neo_ark_forest_zone_80182DE8[5];
 
-/// `Gp_StateF0.battleRefs` as seen on the previous frame.
+/// `gSceneCombatState.battleRefs` as seen on the previous frame.
 extern s16 gRoamerPrevBattleRefs;
 
 static void func_neo_ark_forest_zone_8018141C(Task* arg0);
@@ -623,7 +623,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     if (gRoamerCooldown > 0) {
         gRoamerCooldown--;
     }
-    if (Gp_StateF0.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
+    if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         b     = GameFlag_GetNibble(0x10A);
         count = 0;
         for (k = 0; k < 5; k++) {
@@ -651,17 +651,17 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
         areaSyncLocationVariant(&gGameSession->location.loc);
         gRoamerCooldown = 0x96;
     }
-    gRoamerPrevBattleRefs = Gp_StateF0.battleRefs;
+    gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;
     if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
-        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
-        Gp_StateF0.peTargetCount             = 0;
-        Gp_StateF0.battleRefs                = 0;
-        Gp_StateF0.expReward                 = 0;
-        Gp_StateF0.bpReward                  = 0;
-        Gp_StateF0.mpReward                  = 0;
-        gGameSession->battleResetPending     = 0;
+        gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+        gSceneCombatState.peTargetCount             = 0;
+        gSceneCombatState.battleRefs                = 0;
+        gSceneCombatState.expReward                 = 0;
+        gSceneCombatState.bpReward                  = 0;
+        gSceneCombatState.mpReward                  = 0;
+        gGameSession->battleResetPending            = 0;
     }
-    if (Gp_StateF0.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
+    if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
         gRoamerCommand.context.loc.stage = 5;
         gRoamerCommand.context.loc.area  = 0xB;
         gRoamerCommand.command           = 0xB;

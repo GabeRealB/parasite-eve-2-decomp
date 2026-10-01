@@ -26,10 +26,9 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -379,7 +378,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd(1, 0);
             D_80115690 = 1;
@@ -537,7 +536,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             Display_SpawnWithOt(D_shelter_1f_bulwark_80180360, 1, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             Gp_SpawnViewTasks();
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             /* fallthrough */
         case 1:
         case 2:

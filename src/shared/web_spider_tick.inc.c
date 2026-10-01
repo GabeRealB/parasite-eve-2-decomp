@@ -1,6 +1,6 @@
 /* Part of the web spider library; see web_spider.h. */
 
-/// Per-frame tick, selected by the global mode `Gp_StateF0.actorControl`. Mode 1 only
+/// Per-frame tick, selected by the global mode `gSceneCombatState.actorControl`. Mode 1 only
 /// updates the colour and the ground shadow; mode 2 sets the model's `field_C` to
 /// 0x80 and the context's `field_14` to 1 and stops there; mode 0 clears both
 /// and then runs the full tick like any other mode. The full tick applies the
@@ -16,7 +16,7 @@ void spiderTick(Enemy* arg0, Task* arg1)
     GfxCoord*        coord;
 
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     work  = arg1->work;
     coord = obj->coords;
     if (state == 1) {

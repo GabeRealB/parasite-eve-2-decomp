@@ -13,10 +13,9 @@
 #include "gameplay/items.h"
 #include "items.h"
 #include "message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/starter_inventory.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 /// Selects stage, area and room-local view while ignoring the room byte.
 #define GAME_LOCATION_STAGE_AREA_VIEW_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0xFF)
@@ -1311,7 +1310,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     coord        = extra->coords;
     rot          = coord + 2;
     room         = *&session->location.loc.view;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
         extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;

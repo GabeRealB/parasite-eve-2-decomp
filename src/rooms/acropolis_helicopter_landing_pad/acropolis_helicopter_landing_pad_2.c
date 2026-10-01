@@ -27,11 +27,11 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1165,7 +1165,7 @@ void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
 void func_acropolis_helicopter_landing_pad_8017E6F0(void)
 {
     Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
-    Gp_StateF0.signals.bytes.endDelayFrames = 3;
+    gSceneCombatState.signals.bytes.endDelayFrames = 3;
 }
 
 /// Pulses the gameplay state with `Gp_PulseState1C` and sets bit 0 of

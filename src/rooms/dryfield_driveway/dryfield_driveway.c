@@ -25,10 +25,10 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -632,10 +632,10 @@ static void func_dryfield_driveway_8017DE04(Task* task);
 
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 
-/// Script callback: stores its argument in the gameplay byte `Gp_StateF0.actor03700Wave`.
+/// Script callback: stores its argument in the gameplay byte `gSceneCombatState.actor03700Wave`.
 void func_dryfield_driveway_8017DC48(s32 arg0)
 {
-    Gp_StateF0.actor03700Wave = arg0;
+    gSceneCombatState.actor03700Wave = arg0;
 }
 
 /// Script callback: stores its argument in the session's `viewDirty` flag.

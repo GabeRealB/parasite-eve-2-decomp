@@ -30,11 +30,11 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -3090,7 +3090,7 @@ static void func_actor_400500_80135770(Task* arg0)
             break;
     }
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -5670,7 +5670,7 @@ static void func_actor_400500_8013A700(Task* arg0)
     extra = arg0->extra.tmd;
     work  = (Actor400500Work*)arg0->work;
     sp    = D_actor_400500_80131F7C;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;

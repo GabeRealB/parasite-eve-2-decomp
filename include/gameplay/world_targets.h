@@ -8,13 +8,10 @@
 #include "types.h"
 
 #include "gameplay/item_pickup.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets_types.h"
 
 #include "main/session_types.h"
 #include "main/task_types.h"
-
-extern SceneCombatState Gp_StateF0;
 
 void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 

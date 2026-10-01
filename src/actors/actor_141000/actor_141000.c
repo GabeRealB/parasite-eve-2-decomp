@@ -17,9 +17,9 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -2328,7 +2328,7 @@ void func_actor_141000_801330C0(Task* arg0)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->state        += 1;
     }
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         count               = arg0->killCountdown + 1;
         arg0->killCountdown = count;
         if ((s16)count >= 5) {
@@ -2540,7 +2540,7 @@ void func_actor_141000_801338C0(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_141000_80131E4C;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

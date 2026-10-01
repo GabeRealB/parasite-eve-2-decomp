@@ -274,7 +274,7 @@ segments:
       - [0x81A68, .bss, linked_actors]
       - [0x81A6C, pad]
       - [0x81A70, .bss, world_targets]
-      - [0x81C1C, pad] # eight possible trailing bytes of Gp_StateF0; next flag is independent
+      - [0x81C1C, pad] # eight possible trailing bytes of gSceneCombatState; next flag is independent
       - [0x81C24, .bss, world_collision]
       - [0x81C28, .bss, collision_grid]
       - [0x81D58, pad] # 20 unexplained bytes after the list-head pointer

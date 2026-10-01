@@ -1,6 +1,6 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
-/// hopperDeathSettle without releasing the Gp_StateF0 reference: requests the
+/// hopperDeathSettle without releasing the gSceneCombatState reference: requests the
 /// follow-up settle animation, ticks it and advances.
 void hopperDeathSettleQuiet(Task* arg0)
 {

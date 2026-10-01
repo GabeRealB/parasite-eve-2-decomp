@@ -3,7 +3,7 @@
 /// Answers the room message `in`, copying it to `out` first. For message 2 it
 /// reports in `out->room` how far nibble 0x61 has advanced (3 once nibble
 /// 0x7A reaches 4). Message 3 returns 2 when the session sits at stage 3,
-/// place 1 with `Gp_StateF0` agreeing, and 0 while nibble 0x3B is clear;
+/// place 1 with `gSceneCombatState` agreeing, and 0 while nibble 0x3B is clear;
 /// message 2 returns 0 while nibble 0x45 reads 1. The cap commands and nibble
 /// write that go with those answers run only when `in->queryOnly` is clear.
 /// Every other case returns 1.
@@ -24,7 +24,7 @@ s32 roomVariantGasStationMsg(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg*
     }
     if (in->areaId == 3) {
         if ((gGameSession->location.loc.stage == in->areaId) && (gGameSession->location.loc.variant == 1) &&
-            (Gp_StateF0.signals.bytes.battlePhase == gGameSession->location.loc.variant)) {
+            (gSceneCombatState.signals.bytes.battlePhase == gGameSession->location.loc.variant)) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x15);
             }

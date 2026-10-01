@@ -22,7 +22,7 @@ void spiderDyingState(Enemy* arg0, Task* arg1)
     obj   = arg1->extra.tmd;
     work  = arg1->work;
     coord = obj->coords;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];

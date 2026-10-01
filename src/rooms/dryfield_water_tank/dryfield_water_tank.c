@@ -34,11 +34,10 @@ Task* D_dryfield_water_tank_80188D4C;
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -981,13 +980,13 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             return;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
-                task->state             = task->state + 1;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
+                task->state                    = task->state + 1;
             }
             return;
         case 2:
             if (Gp_GetCapEventKey() == 0xA) {
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 GameFlag_SetNibble(0x55, 3);
                 SndEvt_EnqueueType6(0x52150004, 0, 0);
                 Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
@@ -995,7 +994,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             } else {
                 gGameSession->eventState                                   = 0;
                 gGameSession->hideHud                                      = 0;
-                Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_RUNNING;
+                gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);

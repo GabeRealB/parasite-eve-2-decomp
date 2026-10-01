@@ -25,10 +25,9 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -509,7 +508,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
             gGameSession->hideHud                                      = 1;
             gGameSession->eventState                                   = 1;
-            Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_HIDDEN;
+            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
             task->state++;
             break;
         case 1:
@@ -559,7 +558,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
             gGameSession->hideHud                                      = 0;
             gGameSession->eventState                                   = 0;
-            Gp_StateF0.actorControl                                    = SCENE_COMBAT_ACTORS_RUNNING;
+            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             taskKill(task);

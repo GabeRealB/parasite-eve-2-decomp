@@ -32,11 +32,11 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -2060,7 +2060,7 @@ static void func_actor_405800_80133800(Task* arg0)
     TaskFuncTable18  fns   = D_actor_405800_80131E64;
     Actor405800Work* w;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
@@ -2982,7 +2982,7 @@ static void func_actor_405800_801361F8(Task* arg0)
     }
     player = arg0->extra.tmd->coords;
     actor  = arg0->work;
-    if (player->coord.t[0] < 0x3A98 || Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
+    if (player->coord.t[0] < 0x3A98 || gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
         work->field_A8.vx = (u16)player->coord.t[0];
         work->field_A8.vy = (u16)player->coord.t[1];
         work->field_A8.vz = (u16)player->coord.t[2];
@@ -4146,7 +4146,7 @@ static void func_actor_405800_80138698(Task* arg0)
     Actor405800Work* work  = (Actor405800Work*)arg0->work;
     TaskFuncTable12  fns   = D_actor_405800_80131E24;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;

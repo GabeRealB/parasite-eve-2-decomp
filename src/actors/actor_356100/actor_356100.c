@@ -24,10 +24,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -2989,7 +2989,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     pos.vy = arg1->extra.tmd->coords[1].workm.t[1];
     pos.vz = arg1->extra.tmd->coords[1].workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->field_0 != 0 && work->field_0 != 0x15 && work->field_0 != 0x1E) {
                 arg1->extra.tmd->flags = 0;
@@ -3034,7 +3034,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     }
     work->field_2 = work->field_0;
     tbl.f[work->field_0](arg1);
-    if (Gp_StateF0.signals.bytes.enemyAlert == 1) {
+    if (gSceneCombatState.signals.bytes.enemyAlert == 1) {
         if (work->field_0 == 0x18) {
             work->field_0 = 6;
         }

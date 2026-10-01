@@ -23,7 +23,7 @@ void spiderPuffTick(Enemy* arg0, Task* arg1)
 
     coord = arg1->extra.tmd->coords;
     work  = arg1->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             spiderDrawPuff(arg1, work->field_38);
             return;

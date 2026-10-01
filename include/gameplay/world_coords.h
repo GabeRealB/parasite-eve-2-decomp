@@ -24,7 +24,7 @@ void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`colorMode` bits 2-3) toward the current mode (bits 0-1). Skips work
 /// when `gGameSession->sceneUpdatesPaused == 1` unless `TmdObject.flags` bit
-/// 0x80 is clear and `field_18` is set. `Gp_StateF0.actorControl` freezes the timer.
+/// 0x80 is clear and `field_18` is set. `gSceneCombatState.actorControl` freezes the timer.
 void Gp_UpdateActorColor(struct Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
 void Gp_SetLightMode(struct Enemy* arg0, s32 arg1);

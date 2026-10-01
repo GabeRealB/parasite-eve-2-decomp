@@ -12,8 +12,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/display.h"
 #include "main/display_types.h"
@@ -181,23 +180,23 @@ s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, DirectionAct
 }
 
 /// Script callback the room's script table names: stores its argument in
-/// `Gp_StateF0.actor01600Wave`.
+/// `gSceneCombatState.actor01600Wave`.
 void func_dryfield_night_parking_lot_8017DBA4(s32 arg0)
 {
-    Gp_StateF0.actor01600Wave = arg0;
+    gSceneCombatState.actor01600Wave = arg0;
 }
 
 /// Room entry task state 0: parks the room's message table in `Task::msgTable`
 /// and publishes the task in pointer slot 7. On the visit whose `place` is 3,
 /// once nibble 0x79 is set - the nibble the 0x13EF handler
 /// `func_dryfield_night_parking_lot_8017DB34` latches - it also sets
-/// `Gp_StateF0.actor01600Wave` to 2. The state then advances.
+/// `gSceneCombatState.actor01600Wave` to 2. The state then advances.
 static void func_dryfield_night_parking_lot_8017DBB0(Task* task)
 {
     task->msgTable = D_dryfield_night_parking_lot_8017EC60;
     Game_SetPtrSlot(task, 7);
     if ((gGameSession->location.loc.variant == 3) && (GameFlag_GetNibble(0x79) != 0)) {
-        Gp_StateF0.actor01600Wave = 2;
+        gSceneCombatState.actor01600Wave = 2;
     }
     task->state = (s32)(task->state + 1);
 }

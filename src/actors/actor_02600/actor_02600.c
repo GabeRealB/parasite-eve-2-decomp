@@ -27,10 +27,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -941,7 +941,7 @@ static void Actor02600_Fn00754(Task* arg0)
             dz                = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             delta->vz         = dz;
             dx                = scratchEnd[-1].vx;
-            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x9C4) || (work->field_3D0 != 0) || (Gp_StateF0.signals.bytes.enemyAlert == 2)) {
+            if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x9C4) || (work->field_3D0 != 0) || (gSceneCombatState.signals.bytes.enemyAlert == 2)) {
                 work->field_39C = 1;
                 work->field_392 = 0xD;
                 Gp_ArmStateF0(1);
@@ -1048,9 +1048,9 @@ static void Actor02600_Fn00A94(Task* actor)
                     value = 1;
                 }
             }
-            if ((value != 0) || (Gp_StateF0.spiderAmbushReady != 0) || (Gp_StateF0.expReward != 0)) {
+            if ((value != 0) || (gSceneCombatState.spiderAmbushReady != 0) || (gSceneCombatState.expReward != 0)) {
                 if (work->field_3C6 == 0) {
-                    Gp_StateF0.spiderAmbushReady = 1;
+                    gSceneCombatState.spiderAmbushReady = 1;
                 }
                 Gp_ArmStateF0(1);
                 work->field_39C        = 1;
@@ -1073,7 +1073,7 @@ static void Actor02600_Fn00A94(Task* actor)
             }
             if (work->field_3D0 != 0) {
                 if (work->field_3C6 == 0) {
-                    Gp_StateF0.spiderAmbushReady = 1;
+                    gSceneCombatState.spiderAmbushReady = 1;
                 }
                 Gp_ArmStateF0(1);
                 work->field_39C        = 2;

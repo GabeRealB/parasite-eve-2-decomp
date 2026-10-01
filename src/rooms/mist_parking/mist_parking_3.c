@@ -11,8 +11,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -334,7 +333,7 @@ void func_mist_parking_80183B40(Task* task)
 {
     TaskFunc states[3] = { func_mist_parking_801839CC, func_mist_parking_80183A28, taskKill };
 
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         states[task->state](task);
     }
 }

@@ -21,10 +21,9 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1831,7 +1830,7 @@ static void func_actor_215100_8014A398(void)
                         if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                             if ((u32)(facing - 0xA01) < 0x3FFU) {
                                 Gp_MsgPlayerWeapon(0);
-                                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+                                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
                                 Gp_RunCapCmd(0x14, 0);
                                 D_80115690 = 1;
                                 Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
@@ -1839,7 +1838,7 @@ static void func_actor_215100_8014A398(void)
                         }
                         if ((Pad_CheckButtons(0, 0, 0x4000) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
                             Gp_MsgPlayerWeapon(0);
-                            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+                            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
                             Gp_RunCapCmd(0x14, 0);
                             D_80115690 = 1;
                             Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
@@ -1858,7 +1857,7 @@ static void func_actor_215100_8014A398(void)
 /// `spawnArg1 == 0` is the interactive case. Otherwise it waits for
 /// `Gp_CapBusy` to drop and switches on the key `Gp_GetCapEventKey` returns.
 /// Key 1 is the plain "talk to me" — it takes the player's weapon away and
-/// clears `Gp_StateF0.actorControl`; every other key ends the encounter, and which ending
+/// clears `gSceneCombatState.actorControl`; every other key ends the encounter, and which ending
 /// depends on `spawnArg1`: non-zero plays caption command 0x17 behind story
 /// flag 0xED and steps to state 1, while zero starts the full ending from here
 /// (the caption system is stopped, the scene task `D_mist_shooting_gallery_8018E0C4` gets its exit,
@@ -1881,7 +1880,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             }
             if (Gp_GetCapEventKey() == 1) {
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(arg0);
                 break;
             }
@@ -1904,7 +1903,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             SndEvt_EnqueueType2(0, 0x1E);
             Gp_MsgPlayerWeapon(1);
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             taskKill(arg0);
             break;
         case 1:
@@ -2020,7 +2019,7 @@ static s32 func_actor_215100_8014AA54(Actor215100CharRec* arg0)
         }
         D_actor_215100_8015E678 = *arg0;
         Gp_MsgPlayerWeapon(0);
-        Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+        gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         Gp_RunCapCmd(0x14, 0);
         D_80115690 = 1;
         Task_SpawnFromTable(D_actor_215100_8014CF6C, 0, 1, 0);

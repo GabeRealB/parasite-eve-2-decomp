@@ -21,11 +21,10 @@
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1320,7 +1319,7 @@ static void func_actor_503500_80145428(Task* arg0)
     GfxCoord* coord;
     s32       state;
 
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     if (state < 3) {
         if (state != 0) {
             return;
@@ -1476,7 +1475,7 @@ static void func_actor_503500_801458F8(Task* arg0)
     s32       state;
 
     coord = arg0->extra.tmd->coords;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     if (state < 3) {
         if (state != 0) {
             return;
@@ -1645,7 +1644,7 @@ static void func_actor_503500_80145E1C(Task* arg0)
     s32       state;
 
     coord = arg0->extra.tmd->coords;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     if (state < 3) {
         if (state != 0) {
             return;
@@ -1834,7 +1833,7 @@ void func_actor_503500_801463C0(Task* task)
     TaskFuncTable3 sp;
 
     sp = D_actor_503500_80132230;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         sp.funcs[task->state](task);
     }
 }

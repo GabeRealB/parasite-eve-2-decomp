@@ -1,6 +1,6 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
-/// Once the hit flags are set, releases this enemy's `Gp_StateF0` hold,
+/// Once the hit flags are set, releases this enemy's `gSceneCombatState` hold,
 /// requests animation 0xF and advances the sub-state.
 void hopperAlertRelease(Task* arg0)
 {

@@ -30,10 +30,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -3318,7 +3318,7 @@ static void Actor00100_Fn04864(Task* arg0)
                 }
             }
         }
-        if (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE)
+        if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE)
             work->field_0 = 0x26;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -4512,7 +4512,7 @@ static void Actor00100_Fn0782C(Task* arg0)
         }
     } else {
     checkFlag:
-        if ((work->field_C26 <= 0) && (Gp_StateF0.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
+        if ((work->field_C26 <= 0) && (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
             work->field_0 = 0x1C;
         }
     }
@@ -5225,7 +5225,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             initialState = work->field_0;
             if (initialState != 21 && initialState != 0 && initialState != 6 && initialState != 3) {

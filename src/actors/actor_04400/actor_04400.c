@@ -27,10 +27,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1526,7 +1526,7 @@ static void Actor04400_Fn00F7C(Task* arg0)
     TaskFuncTable11  sp    = Actor04400_D00044;
     s32              cur;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -1845,7 +1845,7 @@ static void Actor04400_Fn01CA0(Task* arg0)
     }
 }
 
-/// Per-frame callback with a one-entry handler table. `Gp_StateF0.actorControl` 2 hides the model; 0 runs the state
+/// Per-frame callback with a one-entry handler table. `gSceneCombatState.actorControl` 2 hides the model; 0 runs the state
 /// handler and the follow-up steps, then moves the task to state 4 when
 /// `field_448` requests it and the enemy is out of HP; 0 and 1 both colour
 /// it, run `Actor04400_Fn00220` for three part pairs and unhide it. The work
@@ -1859,7 +1859,7 @@ static void Actor04400_Fn01E08(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFunc         sp[1] = { Actor04400_Fn07360 };
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -2228,7 +2228,7 @@ static const TaskFuncTable9 Actor04400_D000EC = { {
     hopperBurst,
 } };
 
-/// Per-frame callback of the main enemy. `Gp_StateF0.actorControl` 2 hides the model, 0 runs the current state handler
+/// Per-frame callback of the main enemy. `gSceneCombatState.actorControl` 2 hides the model, 0 runs the current state handler
 /// (then colours it), 1 only colours it. Unless `field_451` is set, it then
 /// runs `Actor04400_Fn00220` for three part pairs.
 static void Actor04400_Fn02E8C(Task* arg0)
@@ -2238,7 +2238,7 @@ static void Actor04400_Fn02E8C(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable9   sp    = Actor04400_D000EC;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -2405,7 +2405,7 @@ static void Actor04400_Fn03538(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = Actor04400_D00128;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -2688,7 +2688,7 @@ static void Actor04400_Fn03E20(Task* arg0)
 /// `Actor04400_Fn022A8` applies the frame's motion before the root coordinate
 /// is marked dirty. Mode 1 re-pushes the model's second coordinate for
 /// `Gp_UpdateActorColor` and rebuilds the part-pair colour quads while
-/// `field_451` is clear. `Gp_StateF0.actorControl` short-circuits both: 1 runs mode 1 only,
+/// `field_451` is clear. `gSceneCombatState.actorControl` short-circuits both: 1 runs mode 1 only,
 /// 2 hides the model instead.
 static void Actor04400_Fn03F8C(Task* arg0)
 {
@@ -2697,7 +2697,7 @@ static void Actor04400_Fn03F8C(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable10  sp    = Actor04400_D00184;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -3342,7 +3342,7 @@ static void Actor04400_Fn053FC(Task* arg0)
 }
 
 /// Death: marks `field_438`, plays sound 0x402C0003 unless the HP is below
-/// zero, releases the spawn place claimed in `Gp_StateF0.hopperAlertOwner`, unlinks
+/// zero, releases the spawn place claimed in `gSceneCombatState.hopperAlertOwner`, unlinks
 /// the enemy node and the three collision objects, puts the task in state 5,
 /// sends message 0x13F4 to slot 4's task and hides the model.
 static void Actor04400_Fn058F4(Task* arg0)
@@ -3363,8 +3363,8 @@ static void Actor04400_Fn058F4(Task* arg0)
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.hopperAlertOwner = 0;
+    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.hopperAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);
@@ -3485,7 +3485,7 @@ static void Actor04400_Fn05A40(Task* arg0)
 /// `Actor04400_D001C4` and spawns effect 3 on the model's second coordinate
 /// part every 32 frames, then falls into state 1, which re-pushes that
 /// coordinate's world position for `Gp_UpdateActorColor` and rebuilds the
-/// part-pair colour quads while `field_451` is clear. `Gp_StateF0.actorControl` short-
+/// part-pair colour quads while `field_451` is clear. `gSceneCombatState.actorControl` short-
 /// circuits both: nonzero runs state 1 only, 2 hides the model instead.
 static void Actor04400_Fn05DE0(Task* arg0)
 {
@@ -3494,7 +3494,7 @@ static void Actor04400_Fn05DE0(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = Actor04400_D001C4;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -3528,7 +3528,7 @@ static void Actor04400_Fn05FC8(Task* arg0)
     GfxCoord*        coord = obj->coords;
     TaskFuncTable7   sp    = Actor04400_D001D8;
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -3550,7 +3550,7 @@ static void Actor04400_Fn05FC8(Task* arg0)
     }
 }
 
-/// Queues CD command 0x21 once, guarded by `Gp_StateF0.enemySoundBankQueued`: the first parameter
+/// Queues CD command 0x21 once, guarded by `gSceneCombatState.enemySoundBankQueued`: the first parameter
 /// block selects 2 or 3 when session `field_7` is 4, `field_6` is 0x27 or 0x28
 /// and `field_9` is 1 or 2 respectively, and 1 otherwise.
 static void Actor04400_Fn061B4(void)
@@ -3558,7 +3558,7 @@ static void Actor04400_Fn061B4(void)
     u8 param1[8];
     u8 param2[8];
 
-    if (Gp_StateF0.enemySoundBankQueued == 0) {
+    if (gSceneCombatState.enemySoundBankQueued == 0) {
         /* Each branch makes its own call; jump2's cross-jumping merges the
          * identical tails after sched2, which is why the argument setup is
          * duplicated per branch in the target. */
@@ -3590,7 +3590,7 @@ static void Actor04400_Fn061B4(void)
             param2[1] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
         }
-        Gp_StateF0.enemySoundBankQueued = 1;
+        gSceneCombatState.enemySoundBankQueued = 1;
     }
 }
 
@@ -3607,11 +3607,11 @@ static void Actor04400_Fn062D4(Task* arg0)
     states[(s16)work->field_420](arg0);
 }
 
-/// Once bit 7 of `Gp_StateF0.hopperAlertOwner` is set, puts the task in state 3 with
+/// Once bit 7 of `gSceneCombatState.hopperAlertOwner` is set, puts the task in state 3 with
 /// its state machine at state 5 and returns 1; otherwise returns 0.
 static s16 Actor04400_Fn06328(Task* arg0)
 {
-    if ((s8)Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED) {
+    if ((s8)gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED) {
         Actor04400_SetTaskState(arg0, 3);
         Actor04400_SetWorkState(arg0, 5);
         return 1;
@@ -3619,7 +3619,7 @@ static s16 Actor04400_Fn06328(Task* arg0)
     return 0;
 }
 
-/// Claims or releases this actor's spawn place in `Gp_StateF0.hopperAlertOwner`:
+/// Claims or releases this actor's spawn place in `gSceneCombatState.hopperAlertOwner`:
 /// `arg1` non-zero sets bit 7 from the place id in bits 12+ of the spawn
 /// descriptor (unless the place is already claimed), and `arg1` zero clears the
 /// byte when its low nibble still matches that place. Spawn paths pass 1,
@@ -3627,11 +3627,11 @@ static s16 Actor04400_Fn06328(Task* arg0)
 static void Actor04400_Fn06374(Task* arg0, s32 arg1)
 {
     if ((arg1 << 0x10) != 0) {
-        if (!((s8)Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED)) {
-            Gp_StateF0.hopperAlertOwner = (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) | SCENE_COMBAT_HOPPER_ALERT_CLAIMED;
+        if (!((s8)gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED)) {
+            gSceneCombatState.hopperAlertOwner = (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) | SCENE_COMBAT_HOPPER_ALERT_CLAIMED;
         }
-    } else if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.hopperAlertOwner = 0;
+    } else if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.hopperAlertOwner = 0;
     }
 }
 
@@ -4288,7 +4288,7 @@ static void Actor04400_Fn07530(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-/// Releases the `Gp_StateF0` reference and requests the animation that
+/// Releases the `gSceneCombatState` reference and requests the animation that
 /// follows the current one: after animation 8, 5 or 6 by `field_440`,
 /// otherwise the entry of `Actor04400_D10828`. Applies it at once and
 /// advances the state.
@@ -4898,8 +4898,8 @@ static void Actor04400_Fn08718(Task* arg0)
     model           = arg0->extra.tmd;
     work->field_412 = 0;
     SndEvt_EnqueueType7(0x402C0002, 1);
-    if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.hopperAlertOwner = 0;
+    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.hopperAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     enemy->recs = 0;
@@ -4931,7 +4931,7 @@ static void Actor04400_Fn087E0(Task* arg0)
 }
 
 /// First step of the despawn: queues sound 0x402C0002, releases the spawn
-/// place claimed in `Gp_StateF0.hopperAlertOwner`, unlinks the enemy node and
+/// place claimed in `gSceneCombatState.hopperAlertOwner`, unlinks the enemy node and
 /// advances the state.
 static void Actor04400_Fn08870(Task* arg0)
 {
@@ -4941,8 +4941,8 @@ static void Actor04400_Fn08870(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor104400Work*)arg0->work;
     SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
-    if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.hopperAlertOwner = 0;
+    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.hopperAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     work->field_420 = work->field_420 + 1;
@@ -5017,8 +5017,8 @@ static void Actor04400_Fn08AA4(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor104400Work*)arg0->work;
     SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
-    if ((Gp_StateF0.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        Gp_StateF0.hopperAlertOwner = 0;
+    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.hopperAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     work->field_420 = work->field_420 + 1;

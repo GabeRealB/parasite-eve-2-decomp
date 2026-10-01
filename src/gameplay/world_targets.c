@@ -57,8 +57,9 @@ STATIC_ASSERT_SIZEOF(GpLockScanScratch, 0x38);
 /* Define BSS before API headers to preserve first-declaration order. */
 GpSlot70 Gp_LockSlots[32];
 
-SceneCombatState Gp_StateF0;
+SceneCombatState gSceneCombatState;
 
+#include "gameplay/scene_combat.h"
 #include "gameplay/world_targets.h"
 
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot);
@@ -876,37 +877,37 @@ void Gp_InitStateF0(void)
     McSaveData*       save;
     u8                difficulty;
 
-    combat                               = &Gp_StateF0;
-    Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
-    combat->signals.bytes.endDelayFrames = 0;
-    combat->signals.bytes.actionFlags    = 0;
-    combat->signals.bytes.enemyAlert     = 0;
-    combat->actorControl                 = SCENE_COMBAT_ACTORS_RUNNING;
-    combat->peTargetCount                = 0;
-    combat->battleRefs                   = 0;
-    combat->expReward                    = 0;
-    combat->bpReward                     = 0;
-    combat->mpReward                     = 0;
-    combat->lifeDrainHp                  = 0;
-    combat->actor00700DeathAlert         = 0;
-    combat->actor03700Flags              = 0;
-    combat->actor03700Wave               = 0;
-    combat->actor02400Alert              = 0;
-    combat->actor01600Wave               = 0;
-    combat->pairedEnemySignals           = 0;
-    combat->spiderEntranceReady          = 0;
-    combat->hopperAlertOwner             = 0;
-    combat->shrineEnemyPhase             = SCENE_COMBAT_SHRINE_HIDDEN;
-    combat->actor02500EntranceReady      = 0;
-    combat->spiderAmbushReady            = 0;
-    combat->actor00400HideRequested      = 0;
-    combat->bruteGroupPhase              = SCENE_COMBAT_BRUTE_WAITING;
-    combat->enemySoundBankQueued         = 0;
-    combat->podDeathStarted              = 0;
-    combat->bruteDeathAlert              = 0;
-    combat->actor00300AttackAlert        = 0;
-    combat->lungerDeathAlert             = 0;
-    combat->field_2A                     = 0;
+    combat                                      = &gSceneCombatState;
+    gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+    combat->signals.bytes.endDelayFrames        = 0;
+    combat->signals.bytes.actionFlags           = 0;
+    combat->signals.bytes.enemyAlert            = 0;
+    combat->actorControl                        = SCENE_COMBAT_ACTORS_RUNNING;
+    combat->peTargetCount                       = 0;
+    combat->battleRefs                          = 0;
+    combat->expReward                           = 0;
+    combat->bpReward                            = 0;
+    combat->mpReward                            = 0;
+    combat->lifeDrainHp                         = 0;
+    combat->actor00700DeathAlert                = 0;
+    combat->actor03700Flags                     = 0;
+    combat->actor03700Wave                      = 0;
+    combat->actor02400Alert                     = 0;
+    combat->actor01600Wave                      = 0;
+    combat->pairedEnemySignals                  = 0;
+    combat->spiderEntranceReady                 = 0;
+    combat->hopperAlertOwner                    = 0;
+    combat->shrineEnemyPhase                    = SCENE_COMBAT_SHRINE_HIDDEN;
+    combat->actor02500EntranceReady             = 0;
+    combat->spiderAmbushReady                   = 0;
+    combat->actor00400HideRequested             = 0;
+    combat->bruteGroupPhase                     = SCENE_COMBAT_BRUTE_WAITING;
+    combat->enemySoundBankQueued                = 0;
+    combat->podDeathStarted                     = 0;
+    combat->bruteDeathAlert                     = 0;
+    combat->actor00300AttackAlert               = 0;
+    combat->lungerDeathAlert                    = 0;
+    combat->field_2A                            = 0;
     if (Gp_IsDebugAttachRoom() == 1) {
         combat->difficulty = SCENE_COMBAT_DIFFICULTY_NORMAL;
     } else {
@@ -923,26 +924,26 @@ void Gp_InitStateF0(void)
 
 void Gp_ArmStateF0(s32 arg0)
 {
-    if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
-        Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_ENGAGED;
+    if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
+        gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_ENGAGED;
     }
 }
 
 void Gp_SetStateF0Bit(s32 arg0)
 {
     if (arg0 != 0) {
-        Gp_StateF0.signals.bytes.actionFlags |= 1 << (arg0 - 1);
+        gSceneCombatState.signals.bytes.actionFlags |= 1 << (arg0 - 1);
     }
 }
 
 void Gp_SetStateF0Byte3(s32 arg0)
 {
-    Gp_StateF0.signals.bytes.enemyAlert = arg0;
+    gSceneCombatState.signals.bytes.enemyAlert = arg0;
 }
 
 void Gp_IncStateF0Ref(s32 arg0)
 {
-    Gp_StateF0.battleRefs++;
+    gSceneCombatState.battleRefs++;
 }
 
 void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
@@ -951,21 +952,21 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
     SceneCombatState* rewards;
     EnemyParams*      params;
 
-    combat = &Gp_StateF0;
+    combat = &gSceneCombatState;
     if (combat->battleRefs != 0) {
         combat->battleRefs--;
         if (combat->battleRefs == 0) {
-            Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
-            combat->signals.bytes.actionFlags    = 0;
-            combat->signals.bytes.enemyAlert     = 0;
-            combat->signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
+            gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
+            combat->signals.bytes.actionFlags           = 0;
+            combat->signals.bytes.enemyAlert            = 0;
+            combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
         params = ((Enemy*)arg0->spawnArg2.pointer)->param;
         if (params != NULL) {
-            rewards             = &Gp_StateF0;
+            rewards             = &gSceneCombatState;
             rewards->expReward += params->exp;
             rewards->bpReward  += params->bp;
             rewards->mpReward  += params->mp;
@@ -977,17 +978,17 @@ void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg)
 {
     SceneCombatState* combat;
 
-    combat = &Gp_StateF0;
+    combat = &gSceneCombatState;
     if (combat->battleRefs != 0) {
         combat->battleRefs--;
         if (combat->battleRefs == 0) {
-            Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
-            combat->signals.bytes.actionFlags    = 0;
-            combat->signals.bytes.enemyAlert     = 0;
-            combat->signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
-            combat->expReward                    = 0;
-            combat->bpReward                     = 0;
-            combat->mpReward                     = 0;
+            gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
+            combat->signals.bytes.actionFlags           = 0;
+            combat->signals.bytes.enemyAlert            = 0;
+            combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
+            combat->expReward                           = 0;
+            combat->bpReward                            = 0;
+            combat->mpReward                            = 0;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
@@ -999,14 +1000,14 @@ void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
 {
     SceneCombatState* combat;
 
-    combat = &Gp_StateF0;
+    combat = &gSceneCombatState;
     if (combat->battleRefs != 0) {
         combat->battleRefs--;
         if (combat->battleRefs == 0) {
-            Gp_StateF0.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
-            combat->signals.bytes.actionFlags    = 0;
-            combat->signals.bytes.enemyAlert     = 0;
-            combat->signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
+            gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
+            combat->signals.bytes.actionFlags           = 0;
+            combat->signals.bytes.enemyAlert            = 0;
+            combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }

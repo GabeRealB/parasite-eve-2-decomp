@@ -2,7 +2,7 @@
 
 /* Part of the cloaked stalker library; see cloaked_stalker.h. */
 
-/// Frame handler for the scene's `Gp_StateF0.actorControl` mode. Mode 1 only refreshes the
+/// Frame handler for the scene's `gSceneCombatState.actorControl` mode. Mode 1 only refreshes the
 /// coordinates, tint and shadow and mode 2 hides the model, both returning
 /// without giving back the 8-byte scratch stack block. Otherwise the
 /// `field_6CE` sequence runs: state 0 unlinks the actor and saves its pose,
@@ -23,7 +23,7 @@ void stalkerDeadState(Enemy* arg0, Task* arg1)
     head                     = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8) = head - sizeof(SVECTOR);
     sc                       = (SVECTOR*)(head - sizeof(SVECTOR));
-    mode                     = Gp_StateF0.actorControl;
+    mode                     = gSceneCombatState.actorControl;
     switch (mode) {
         case 0:
             arg1->extra.tmd->flags = 0;

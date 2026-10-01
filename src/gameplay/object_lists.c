@@ -1,3 +1,4 @@
+#include "gameplay/scene_combat.h"
 #include "gameplay/world_collision.h"
 
 #include <psyq/libgte.h>
@@ -13,8 +14,6 @@
 #include "gameplay/geometry.h"
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "gameplay/damage.h"
 #include "main/mc.h"
@@ -995,7 +994,7 @@ void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
     WorldCollisionContact* slot;
     WorldCollisionContact* temp;
     s32                    one;
-    SceneCombatState*      p;
+    SceneCombatState*      combat;
 
     temp = arg0->recs;
     if (temp != NULL) {
@@ -1017,8 +1016,8 @@ void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
         slot->response.normal.vy = 0;
         slot->response.normal.vz = 0;
         slot->flags             |= WORLD_COLLISION_CONTACT_OCCUPIED;
-        p                        = &Gp_StateF0;
-        p->peTargetCount++;
+        combat                   = &gSceneCombatState;
+        combat->peTargetCount++;
     }
 }
 

@@ -21,8 +21,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/coord.h"
 #include "main/display.h"

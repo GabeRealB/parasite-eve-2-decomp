@@ -30,11 +30,10 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1319,7 +1318,7 @@ static void func_neo_ark_shrine_8017F21C(Task* task)
     timer     = st->timer + 1;
     st->timer = timer;
     if (timer == 0x1E) {
-        Gp_StateF0.shrineEnemyPhase = SCENE_COMBAT_SHRINE_REVEALED;
+        gSceneCombatState.shrineEnemyPhase = SCENE_COMBAT_SHRINE_REVEALED;
     }
     if (st->timer >= 0x3CU) {
         task->state++;
@@ -1328,7 +1327,7 @@ static void func_neo_ark_shrine_8017F21C(Task* task)
 
 static void func_neo_ark_shrine_8017F274(Task* task)
 {
-    Gp_StateF0.shrineEnemyPhase                                = SCENE_COMBAT_SHRINE_RELEASED;
+    gSceneCombatState.shrineEnemyPhase                         = SCENE_COMBAT_SHRINE_RELEASED;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
     gGameSession->location.loc.room                            = 6;
     gGameSession->roomObjsDirty                                = 1;

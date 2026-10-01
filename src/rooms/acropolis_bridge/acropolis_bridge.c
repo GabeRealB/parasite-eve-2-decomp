@@ -41,12 +41,12 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -4771,7 +4771,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
 /// (the bridge is being lowered) restores the model's default flag set while
 /// the enemy is still in one of its first three spawn variants, and message
 /// 0x0E01/2 (the bridge run has ended) decides whether the enemy is armed for
-/// this variant: variant 0 needs `Gp_StateF0.battleRefs` to be set at all, variant 1 needs
+/// this variant: variant 0 needs `gSceneCombatState.battleRefs` to be set at all, variant 1 needs
 /// it to be at least 2 and variant 2 at least 3. When it is, the enemy and the
 /// work block are given the stat block's starting HP and the behaviour state
 /// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
@@ -4800,19 +4800,19 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg)
             variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
             switch (variant) {
                 case 0:
-                    if (Gp_StateF0.battleRefs != 0) {
+                    if (gSceneCombatState.battleRefs != 0) {
                         break;
                     }
                     work->field_0 = 0;
                     goto hide;
                 case 1:
-                    if (Gp_StateF0.battleRefs >= 2) {
+                    if (gSceneCombatState.battleRefs >= 2) {
                         break;
                     }
                     work->field_0 = 0;
                     goto hide;
                 case 2:
-                    if (Gp_StateF0.battleRefs < 3) {
+                    if (gSceneCombatState.battleRefs < 3) {
                         goto reset;
                     }
                     break;
@@ -5071,7 +5071,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     _acropolisBridgeLightModel(task, task->extra.tmd->coords);
     axisY = 1;
-    if (Gp_StateF0.battleRefs < 3) {
+    if (gSceneCombatState.battleRefs < 3) {
         Gp_IncStateF0Ref(0);
     }
     if (gGameSession->location.loc.room == 2) {
@@ -5709,7 +5709,7 @@ void func_acropolis_bridge_80187078(Task* task)
 /// still live) it allocates the model's aux buffers, clears bit 15 of both
 /// behaviour flag words, tags the link node, seeds the three behaviour
 /// parameters, gives the model root coordinate a random yaw from the shared
-/// LCG, drops the enemy's actor slots, arms the pending `Gp_StateF0` request
+/// LCG, drops the enemy's actor slots, arms the pending `gSceneCombatState` request
 /// and restarts the frame counter. Every frame after that it ticks the counter
 /// up to 100, runs `func_acropolis_bridge_8018581C` and, on frames 10, 22, 28
 /// and 34, steps the light mode and model flags through the fade-out.
@@ -5731,7 +5731,7 @@ void func_acropolis_bridge_80187310(Task* task)
         gfxRotMatrixY(&task->extra.tmd->coords->coord, gRandomLcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_ClearNodeSlots(&enemy->node);
-        if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && Gp_StateF0.battleRefs != 0) {
+        if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && gSceneCombatState.battleRefs != 0) {
             Gp_ArmStateF0(1);
         }
         work->field_290 = 0;
@@ -5760,7 +5760,7 @@ void func_acropolis_bridge_80187310(Task* task)
 
 /// Runs the bridge enemy's death sequence. On the first frame (work block still
 /// live) it clears bit 15 of both behaviour flag words, tags the link node and
-/// drops its actor slots, arms the pending `Gp_StateF0` request, credits the
+/// drops its actor slots, arms the pending `gSceneCombatState` request, credits the
 /// kill if the enemy still had HP, spawns the death effect on the model's
 /// second part coordinate, switches the model to light mode 1, shakes the pad
 /// and restarts the frame counter. Every frame after that it ticks the counter
@@ -5777,7 +5777,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         Gp_ClearNodeSlots(&enemy->node);
-        if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && Gp_StateF0.battleRefs != 0) {
+        if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && gSceneCombatState.battleRefs != 0) {
             Gp_ArmStateF0(1);
         }
         if (enemy->hp > 0) {
@@ -5816,7 +5816,7 @@ void func_acropolis_bridge_801874DC(Task* task)
 /// rolls the damage for the incoming attack id, spawns the hit effect on the
 /// model's second part coordinate, quadruples the damage on a critical roll,
 /// credits it to the kill tally and the link node, and subtracts it from both
-/// the work block's and the enemy's HP; the pending `Gp_StateF0` request is
+/// the work block's and the enemy's HP; the pending `gSceneCombatState` request is
 /// armed once the HP runs out. When there is no HP left to take (before or
 /// after the hit) it steps the behaviour state instead: 5 and 6 are already
 /// reaction states and stay put, 4 and 8 advance to 6, everything else resets
@@ -5847,7 +5847,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
         if (work->field_10C > 0) {
             return;
         }
-        if (Gp_StateF0.battleRefs != 0) {
+        if (gSceneCombatState.battleRefs != 0) {
             Gp_ReleaseStateF0Add(task, 0x29);
         }
         if (work->field_10C > 0) {
@@ -5875,7 +5875,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 
 /// Ticks the bridge enemy once per frame. It refreshes the model's root
 /// coordinate and relights it, then branches on the global pause mode
-/// `Gp_StateF0.actorControl`: mode 1 only releases the collision records, mode 2 also hides
+/// `gSceneCombatState.actorControl`: mode 1 only releases the collision records, mode 2 also hides
 /// the mesh, and mode 0 keeps the model's visibility in step with the camera
 /// -- re-allocating or releasing the TMD's aux buffers when the view changes,
 /// and remembering the view it last synced to in `field_292`. Outside the
@@ -5884,7 +5884,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 /// it through `func_acropolis_bridge_801876A8`, raises `field_4` on the frame
 /// the behaviour state changes, runs the state's handler from
 /// `D_acropolis_bridge_8019175C`, clears both record tables and -- while no
-/// `Gp_StateF0` request is pending -- resets any state other than 5 or 6 back
+/// `gSceneCombatState` request is pending -- resets any state other than 5 or 6 back
 /// to 0.
 static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
 {
@@ -5908,7 +5908,7 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
     pos.vz = task->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    mode = Gp_StateF0.actorControl;
+    mode = gSceneCombatState.actorControl;
     if (mode == 1) {
         goto paused;
     }
@@ -6010,7 +6010,7 @@ hitTaken:
     D_acropolis_bridge_8019175C[work->field_0](task);
     Gp_ClearRec18Occupied(&work->recs[0]);
     Gp_ClearRec18Occupied(&work->hitRecs[0]);
-    if (Gp_StateF0.battleRefs == 0) {
+    if (gSceneCombatState.battleRefs == 0) {
         if ((u32)((u16)work->field_0 - 5) >= 2U) {
             work->field_0 = 0;
         }

@@ -12,9 +12,8 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/display.h"
 #include "main/display_types.h"

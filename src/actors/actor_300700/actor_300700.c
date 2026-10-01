@@ -25,10 +25,10 @@
 #include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -333,7 +333,7 @@ static void func_actor_300700_80162130(Enemy* arg0, Task* arg1)
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     coord = obj->coords;
     one   = 1;
     if (state == one) {
@@ -365,7 +365,7 @@ case2:
 default_body:
     func_actor_300700_801622B4(arg1);
     func_actor_300700_8016252C(arg1);
-    if (work->field_2E6 == 0 && Gp_StateF0.actor00700DeathAlert != 0) {
+    if (work->field_2E6 == 0 && gSceneCombatState.actor00700DeathAlert != 0) {
         work->field_2E6 = 1;
         Gp_ArmStateF0(1);
     }
@@ -688,7 +688,7 @@ static void func_actor_300700_80162BC8(Enemy* arg0, Task* arg1)
 
     coord = arg1->extra.tmd->coords;
     work  = arg1->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -701,14 +701,14 @@ static void func_actor_300700_80162BC8(Enemy* arg0, Task* arg1)
             SCRATCH_STACK_CURSOR(SVECTOR) = rot;
             switch (work->field_2DE) {
                 case 0:
-                    Gp_StateF0.actor00700DeathAlert = 1;
-                    seed                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    rnd                             = seed >> 16;
-                    angle                           = rnd & 0xFF;
-                    arg1->extra.tmd->flags          = TMD_OBJECT_SEMI_TRANS;
-                    gRandomLcgState                 = seed;
-                    work->field_2E2                 = 0x1000;
-                    work->field_22C.matrix          = coord->coord;
+                    gSceneCombatState.actor00700DeathAlert = 1;
+                    seed                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    rnd                                    = seed >> 16;
+                    angle                                  = rnd & 0xFF;
+                    arg1->extra.tmd->flags                 = TMD_OBJECT_SEMI_TRANS;
+                    gRandomLcgState                        = seed;
+                    work->field_2E2                        = 0x1000;
+                    work->field_22C.matrix                 = coord->coord;
                     if (!(rnd & 0x100)) {
                         angle = -angle;
                     }

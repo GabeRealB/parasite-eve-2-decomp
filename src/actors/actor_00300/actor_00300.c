@@ -34,10 +34,10 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1741,12 +1741,12 @@ static void Actor00300_Fn01678(Task* arg0)
             }
             break;
     }
-    if ((work->field_6A0 != 0) || (Gp_StateF0.actor00300AttackAlert != 0) || (work->field_690 != 0)) {
+    if ((work->field_6A0 != 0) || (gSceneCombatState.actor00300AttackAlert != 0) || (work->field_690 != 0)) {
         work->field_684 = 1;
         work->field_686 = 0;
         work->field_6A0 = 0x1C2;
         Gp_ArmStateF0(1);
-        Gp_StateF0.actor00300AttackAlert = 0;
+        gSceneCombatState.actor00300AttackAlert = 0;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
@@ -1838,11 +1838,11 @@ static void Actor00300_Fn019C0(Task* arg0)
             break;
     }
     if (work->field_6A0 == 0) {
-        work->field_684                  = 0;
-        work->field_686                  = 0;
-        work->field_690                  = 0;
-        Gp_StateF0.actor00300AttackAlert = 0;
-        work->field_688                  = 10;
+        work->field_684                         = 0;
+        work->field_686                         = 0;
+        work->field_690                         = 0;
+        gSceneCombatState.actor00300AttackAlert = 0;
+        work->field_688                         = 10;
     } else {
         timer           = (u16)work->field_68A - 1;
         work->field_68A = timer;
@@ -1958,9 +1958,9 @@ static void Actor00300_Fn01F9C(Task* arg0)
             angle           = magnitude >= 0x800 ? (delta > 0 ? 0x1000 - delta : delta + 0x1000)
                                                  : magnitude;
             if (angle < 0x100) {
-                work->field_686                  = 1;
-                work->field_66E                  = 4;
-                Gp_StateF0.actor00300AttackAlert = 1;
+                work->field_686                         = 1;
+                work->field_66E                         = 4;
+                gSceneCombatState.actor00300AttackAlert = 1;
             } else {
                 turnTimer       = (u16)work->field_688 - 1;
                 work->field_688 = turnTimer;
@@ -1975,8 +1975,8 @@ static void Actor00300_Fn01F9C(Task* arg0)
             }
             break;
         case 1:
-            Gp_StateF0.actor00300AttackAlert = 0;
-            work->field_67C                  = 0xF;
+            gSceneCombatState.actor00300AttackAlert = 0;
+            work->field_67C                         = 0xF;
             scratchEnd[-1].delta.vx =
                 (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
             scratch->delta.vy = 0;
@@ -2792,7 +2792,7 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    mode  = Gp_StateF0.actorControl;
+    mode  = gSceneCombatState.actorControl;
     coord = obj->coords;
     if (mode == 1)
         goto case1;
@@ -2898,7 +2898,7 @@ static __inline__ void Actor00300_UpdateTransform(Enemy* arg0, Task* arg1)
 
     saved    = arg1->extra.tmd->coords;
     obj      = arg1->extra.tmd;
-    disabled = Gp_StateF0.actorControl;
+    disabled = gSceneCombatState.actorControl;
     work     = arg1->parent->work;
     if (disabled == 0) {
         if (gGameSession->eventState != 0) {
@@ -3029,7 +3029,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
     coord   = arg1->extra.tmd->coords;
     work    = arg1->work;
     expired = 0;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             fireballDrawGlow(coord, 0x200);
             return;
@@ -3122,7 +3122,7 @@ static void Actor00300_Fn047CC(Enemy* arg0, Task* arg1)
     Actor100300Work* work;
 
     work = arg1->work;
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             arg1->extra.tmd->flags            = 0;
             work->field_43C->extra.tmd->flags = 0;

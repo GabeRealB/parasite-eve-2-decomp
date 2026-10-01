@@ -22,10 +22,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -1253,7 +1253,7 @@ static void Actor03800_Fn01150(Task* arg0)
             break;
     }
 
-    if (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
+    if (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
         work->field_352 = 2;
         work->field_354 = 0;
         if (work->field_36A == 0) {
@@ -1334,7 +1334,7 @@ static void Actor03800_Fn012B4(Task* arg0)
             break;
     }
 
-    if (Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
+    if (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
         work->field_352 = 2;
         work->field_354 = 0;
     }
@@ -1667,7 +1667,7 @@ static void Actor03800_Fn01EEC(Task* arg0)
             break;
     }
 
-    if ((Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->field_36C != 0) {
+    if ((gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->field_36C != 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_352 = 0xA;
         work->field_354 = 0;
@@ -1682,7 +1682,7 @@ static void Actor03800_Fn01EEC(Task* arg0)
 /// Idle "look around" tick. State 0 counts `field_356` down and, on expiry,
 /// picks a new facing `field_364` within +/-0x3FF of the current one; state 1
 /// waits for the turn to finish and re-arms the countdown. Either way, an
-/// active `Gp_StateF0.signals.bytes.actionFlags` bit (1 or 4) or a non-zero `field_36C` aborts
+/// active `gSceneCombatState.signals.bytes.actionFlags` bit (1 or 4) or a non-zero `field_36C` aborts
 /// back to state 0 with a short delay.
 static void Actor03800_Fn02068(Task* arg0)
 {
@@ -1729,7 +1729,7 @@ static void Actor03800_Fn02068(Task* arg0)
             break;
     }
 
-    if ((Gp_StateF0.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->field_36C != 0) {
+    if ((gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->field_36C != 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_352 = 0xA;
         work->field_354 = 0;
@@ -2025,7 +2025,7 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     coord = work->field_344;
     if (state == 1) {
         goto case1;
@@ -2158,8 +2158,8 @@ static void Actor03800_Fn02E50(Task* actor)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     first           = (u16)((gRandomLcgState >> 16) % 5);
     Actor03800_Fn03008(actor, first);
-    if (Gp_StateF0.battleRefs < 2) {
-        count = Actor03800_D05FA8[Gp_StateF0.battleRefs];
+    if (gSceneCombatState.battleRefs < 2) {
+        count = Actor03800_D05FA8[gSceneCombatState.battleRefs];
         out   = variants;
         for (i = 0; i < 5; i++) {
             if (i != first) {
@@ -2251,7 +2251,7 @@ static void Actor03800_Fn031B8(Enemy* arg0, Task* arg1)
     s32              state;
     s32              one;
 
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     one   = 1;
     work  = arg1->work;
     if (state == one) {
@@ -2393,7 +2393,7 @@ static void Actor03800_Fn034B0(Task* arg0)
     work = arg0->work;
     obj  = arg0->extra.tmd;
     ctx  = arg0->spawnArg2.pointer;
-    switch (Gp_StateF0.shrineEnemyPhase) {
+    switch (gSceneCombatState.shrineEnemyPhase) {
         case SCENE_COMBAT_SHRINE_HIDDEN:
             obj->flags                  = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;

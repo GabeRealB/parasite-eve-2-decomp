@@ -22,10 +22,10 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -86,7 +86,7 @@ typedef struct Actor311500Work {
     /* 0x4CC */ s32  field_4CC;
     /* 0x4D0 */ s32  field_4D0;
     /* 0x4D4 */ u16  field_4D4;
-    /// `Gp_StateF0.actorControl` as the previous frame saw it, so a mode change can be
+    /// `gSceneCombatState.actorControl` as the previous frame saw it, so a mode change can be
     /// detected.
     /* 0x4D6 */ u16 field_4D6;
 } Actor311500Work;
@@ -632,7 +632,7 @@ void func_actor_311500_80163334(Task* arg0)
 
     work  = actor->work;
     obj   = actor->extra.tmd;
-    state = Gp_StateF0.actorControl;
+    state = gSceneCombatState.actorControl;
     if (state == 1) {
         goto case1;
     }
@@ -720,7 +720,7 @@ case2:
     goto case1;
 
 case1:
-    work->field_4D6 = Gp_StateF0.actorControl;
+    work->field_4D6 = gSceneCombatState.actorControl;
 tail:
     enemy = actor->spawnArg2.pointer;
     Gp_UpdateCoord(&actor->extra.tmd->coords[1]);

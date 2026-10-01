@@ -7,8 +7,7 @@
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/gameflag.h"
 #include "main/session.h"
@@ -123,7 +122,7 @@ void Gp_EvtCapTask(Task* arg0)
             bit0 = flags & 1;
             if (bit0 != 0) {
                 Gp_MsgPlayerWeapon(0);
-                Gp_StateF0.actorControl = flag;
+                gSceneCombatState.actorControl = flag;
             }
             if (flags & 2) {
                 Gp_MsgPlayer3F3(0);
@@ -146,7 +145,7 @@ void Gp_EvtCapTask(Task* arg0)
         case 2:
             if (flags & 1) {
                 Gp_MsgPlayerWeapon(1);
-                Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             }
             if (flags & 2) {
                 Gp_MsgPlayer3F3(1);

@@ -25,10 +25,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -3346,7 +3346,7 @@ static void func_actor_401800_80139B18(Task* arg0)
 /// counter in state 0xE. The counter then runs to 0x961, rerolling the LCG each
 /// frame past it and bailing for that frame on every 0xF-th draw; the surviving
 /// frames re-test the squared XZ offset to the player against
-/// `field_C0E` and arm `Gp_StateF0` state 6 on a miss — bit 0x50000 there arms
+/// `field_C0E` and arm `gSceneCombatState` state 6 on a miss — bit 0x50000 there arms
 /// it the same way. After the shared per-frame tick the body flips between
 /// states 0xE and 0xF, one LCG draw per attempt, on the two `field_68` mask
 /// bits. Same shape as `func_actor_401800_8013A034`.
@@ -3395,7 +3395,7 @@ static void func_actor_401800_80139D60(Task* arg0)
     if (!Actor401800_OutOfRange(d, work->field_C0E)) {
         work->field_0 = 6;
     }
-    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
+    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
         work->field_0 = 6;
     }
     blendRigDrive(arg0);
@@ -3424,8 +3424,8 @@ static void func_actor_401800_80139D60(Task* arg0)
 /// tick, a `field_5A` state of 4 that differs from the last handled one
 /// (`field_8B4`) sends the 0x200-scale effect for the second coordinate part.
 /// Then, if the squared XZ offset to the player fits inside
-/// `field_C0E`, the actor plays 0x51030008 and arms `Gp_StateF0` in state 6 —
-/// bit 0x50000 of `Gp_StateF0` arms it the same way. Same shape as
+/// `field_C0E`, the actor plays 0x51030008 and arms `gSceneCombatState` in state 6 —
+/// bit 0x50000 of `gSceneCombatState` arms it the same way. Same shape as
 /// `Actor01900_Fn06B4C` and `func_actor_401300_801397F8`.
 static void func_actor_401800_8013A034(Task* arg0)
 {
@@ -3479,7 +3479,7 @@ static void func_actor_401800_8013A034(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
+    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
         work->field_0 = 6;
     }
 }
@@ -3586,7 +3586,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
             }
         }
     }
-    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
+    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
         work->field_0 = 6;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -4182,7 +4182,7 @@ static void func_actor_401800_8013D64C(Enemy* arg0, Task* arg1)
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             state = work->field_0;
             if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {
@@ -4250,7 +4250,7 @@ static void func_actor_401800_8013D64C(Enemy* arg0, Task* arg1)
     }
     Gp_ClearRec18Occupied(&work->field_A28);
     Gp_ClearRec18Occupied(&work->field_8E8);
-    if ((Gp_StateF0.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
+    if ((gSceneCombatState.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

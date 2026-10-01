@@ -23,10 +23,9 @@
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
 #include "gameplay/room.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -591,7 +590,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
                 Gp_MsgPlayerWeapon(1);
                 return;
             }
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             goto L_advance;
         case 3:
         L_advance:

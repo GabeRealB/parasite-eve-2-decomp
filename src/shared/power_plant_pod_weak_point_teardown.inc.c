@@ -1,7 +1,7 @@
 /* Part of the power plant pod library; see power_plant_pod.h. */
 
 /// Teardown handler of the part task (its state 2), ticking only while the
-/// gameplay mode `Gp_StateF0.actorControl` is 0. The first tick unlinks the enemy's lock-on
+/// gameplay mode `gSceneCombatState.actorControl` is 0. The first tick unlinks the enemy's lock-on
 /// node and the part's collision object, drops the enemy's `recs`, sends the
 /// main task's sound id `field_31C` a type-7 event, and undoes what the spawn
 /// did for this sub-state (chosen by `field_46`): the same room call with 0
@@ -15,7 +15,7 @@ void podWeakPointTeardown(Enemy* arg0, Task* arg1)
 
     part       = (Actor05300Part*)arg1->work;
     parentWork = (Actor05300Work*)arg1->parent->work;
-    if (Gp_StateF0.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         timer          = part->field_42 + 1;
         part->field_42 = timer;
         if ((s16)timer == 1) {

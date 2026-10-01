@@ -42,7 +42,7 @@ void spiderEntranceState(Task* arg0)
             work->field_214.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             obj->flags                  = (u16)obj->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.parts.flags = one;
-            if (Gp_StateF0.spiderEntranceReady == one) {
+            if (gSceneCombatState.spiderEntranceReady == one) {
                 if (work->field_3C2 == 0) {
                     work->field_39E = gSpiderLeapInDelay[work->field_3C4];
                 } else {

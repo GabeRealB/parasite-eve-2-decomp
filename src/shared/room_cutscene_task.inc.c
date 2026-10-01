@@ -35,9 +35,9 @@ void roomCutsceneTask(Task* task)
             } else {
                 D_80115694 = -script->field_0;
             }
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
-            Gp_StateF0.actorControl  = SCENE_COMBAT_ACTORS_HIDDEN;
+            gGameSession->hideHud          = 1;
+            gGameSession->eventState       = 1;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
             Gp_MsgPlayer3F3(0);
             Gp_MsgAlly3F3(0);
             if (script->field_4 != 0) {
@@ -157,9 +157,9 @@ void roomCutsceneTask(Task* task)
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
                 Gp_MsgAllyWeapon(1);
             }
-            gGameSession->hideHud    = 0;
-            gGameSession->eventState = 0;
-            Gp_StateF0.actorControl  = SCENE_COMBAT_ACTORS_RUNNING;
+            gGameSession->hideHud          = 0;
+            gGameSession->eventState       = 0;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             if (script->field_3 != 0) {
                 Gp_ResetCap();
             }

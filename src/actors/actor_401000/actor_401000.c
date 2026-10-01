@@ -24,10 +24,10 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
@@ -3324,7 +3324,7 @@ static void func_actor_401000_80138D08(Task* arg0)
 /// `field_BC8`, and restarts the 0xE / 0x898 animation slots; the body is then
 /// gated on the `field_6` countdown and a 0-15 `gRandomLcgState` draw. The XZ
 /// offset to `gPlayerStatus.coordMtx` is probed against `field_C16`, and an armed
-/// `Gp_StateF0` bit 0x50000, each dropping the actor to state 6. The tail runs
+/// `gSceneCombatState` bit 0x50000, each dropping the actor to state 6. The tail runs
 /// `blendRigDrive` and swaps `field_89E` between 0xE and 0xF on
 /// `flags_68` bits 1 and 2, re-running the tick after each swap.
 /// Same body as `func_actor_401300_80139520`, with the pose matrix in place of
@@ -3371,7 +3371,7 @@ static void func_actor_401000_80138F50(Task* arg0)
     if (!overlayOutOfRange(d, work->field_C16)) {
         work->field_0 = 6;
     }
-    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
+    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3443,7 +3443,7 @@ static void func_actor_401000_8013922C(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
+    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
@@ -3459,7 +3459,7 @@ static void func_actor_401000_8013922C(Task* arg0)
 /// sub-type is 0x10), and each arm counts `field_6` up while the yaw stays
 /// inside 0x80.
 /// The tail drops the actor to state 6 on the `gPlayerStatus` range checks and
-/// the `Gp_StateF0` bits, and the live-actor arm restarts the 0x1AE clip.
+/// the `gSceneCombatState` bits, and the live-actor arm restarts the 0x1AE clip.
 static void func_actor_401000_801394EC(Task* arg0)
 {
     Actor401000Work*       work;
@@ -3545,7 +3545,7 @@ static void func_actor_401000_801394EC(Task* arg0)
                 }
             }
         }
-        if (Gp_StateF0.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
+        if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
             work->field_0 = 6;
         }
         SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -4276,7 +4276,7 @@ static const Actor401000StateTable D_actor_401000_80131FF4 = { {
 
 /// The actor's per-frame tick, the 401000 twin of `func_actor_401300_801405DC`:
 /// copy the state table to the frame, advance the root coordinate and hand it
-/// to `Gp_UpdateActorColor`, then run the `Gp_StateF0.actorControl` arm. Arms 1 and 2 only
+/// to `Gp_UpdateActorColor`, then run the `gSceneCombatState.actorControl` arm. Arms 1 and 2 only
 /// drop the two obstacle records (2 also opening the `field_C` draw to 0x80)
 /// and return; arm 0 falls through into the common tail, which counts
 /// `field_BE8` down into `func_actor_401000_80133D50`, carries a new
@@ -4303,7 +4303,7 @@ static void func_actor_401000_8013D044(Enemy* enemy, Task* actor)
     pos.vz = actor->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    switch (Gp_StateF0.actorControl) {
+    switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             state = work->field_0;
             if ((state != 0) && (state != 0x15) && (state != 0x1D) && (state != 0x21)) {
@@ -4368,7 +4368,7 @@ static void func_actor_401000_8013D044(Enemy* enemy, Task* actor)
     Gp_ClearRec18Occupied(work->field_A30);
     Gp_ClearRec18Occupied(work->field_8F0);
 
-    if ((Gp_StateF0.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
+    if ((gSceneCombatState.signals.bytes.enemyAlert == 1) && (work->field_0 == 0x18)) {
         work->field_0 = 6;
     }
 

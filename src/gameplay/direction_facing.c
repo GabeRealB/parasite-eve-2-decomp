@@ -10,10 +10,9 @@
 #include "direction_input.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/mc.h"
 #include "main/session.h"
@@ -112,7 +111,7 @@ void Gp_MsgPlayerDirFacing(void)
         D_80114CDD      = 0;
     } else if (Gp_TakePendingObj4C(&D_80114CD4, &Gp_DirAlt, &Gp_DirAltNibble)) {
         if ((u8)D_80114CD4 == 0) {
-            Gp_StateF0.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_DirPhase++;
         }
     }

@@ -12,9 +12,8 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
-#include "gameplay/world_state.h"
-#include "gameplay/world_targets.h"
 
 #include "main/display.h"
 #include "main/display_types.h"
@@ -175,16 +174,16 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            if (Gp_StateF0.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
                 gGameSession->flowFlags |= GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON;
                 arg0->state++;
             }
             break;
         case 1:
-            if (Gp_StateF0.battleRefs == 0) {
-                Gp_StateF0.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
-                arg0->killCountdown                     = 0x3E;
+            if (gSceneCombatState.battleRefs == 0) {
+                gSceneCombatState.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
+                arg0->killCountdown                            = 0x3E;
                 arg0->state++;
             }
             break;
