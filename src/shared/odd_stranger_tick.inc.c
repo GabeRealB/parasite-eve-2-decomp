@@ -1,6 +1,6 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// The actor's per-frame tick, the 401000 twin of `func_actor_401300_801405DC`:
+/// The actor's per-frame tick, as in the Horned Stranger's `func_actor_401300_801405DC`:
 /// copy the state table to the frame, advance the root coordinate and hand it
 /// to `Gp_UpdateActorColor`, then run the `gSceneCombatState.actorControl` arm. Arms 1 and 2 only
 /// drop the two obstacle records (2 also opening the `field_C` draw to 0x80)

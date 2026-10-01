@@ -1,6 +1,6 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Aim step toward the player, the `func_actor_401300_8013A5C0` twin. Unlike
+/// Aim step toward the player, as in the Horned Stranger's `func_actor_401300_8013A5C0`. Unlike
 /// `oddStrangerFacePlayer` the wrapped turn is halved and clamped to
 /// +-0x80 instead of +-0x10, so the actor turns at half speed and only the
 /// 0x16/2 -> 0x16/0x11 spawn pair keys the follow-up; the spawn arm writes

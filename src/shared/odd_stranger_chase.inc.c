@@ -1,6 +1,6 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Turn-aim state body, the 401000 twin of `Actor01900_Fn04D14`: take a 0x10
+/// Turn-aim state body, as in `Actor01900_Fn04D14`: take a 0x10
 /// chase scratch off the scratch stack and, on the live-actor flag, key the
 /// two animation nodes, the frame counter and the `field_C06` clip phase.
 /// Once `field_8` has counted 7 frames the arm aims at the player - the yaw
