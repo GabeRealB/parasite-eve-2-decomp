@@ -1,0 +1,51 @@
+/* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
+
+/// Per-frame tick of the packages without the dust effect: obeys
+/// `gSceneCombatState.actorControl`, applies a pending reaction, runs the hit
+/// tick and the `field_6A6` state handler, turns toward `field_6A4` while
+/// `field_69E` is set, steps the root, ticks the animation, decays the hit tilt
+/// while `field_6B4` is set, plays the voice cues, marks the root and part 3
+/// dirty and draws. The same body as `golemPawnRookFrameState` without its
+/// `field_6C4` dust spawn.
+void golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor)
+{
+    TmdObject*       model;
+    Actor105600Work* work;
+    GfxCoord*        coord;
+
+    work  = actor->work;
+    model = actor->extra.tmd;
+    coord = model->coords;
+    switch (gSceneCombatState.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            model->flags                = 0;
+            ctx->node.state.parts.flags = 0;
+            break;
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            golemPawnRookDraw(actor, coord);
+            return;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            return;
+    }
+
+    if (ctx->reactionFlags != 0) {
+        golemPawnRookApplyReaction(actor);
+    }
+    golemPawnRookTakeHits(actor);
+    gGolemPawnRookStates[work->field_6A6](actor);
+    if (work->field_69E != 0) {
+        golemPawnRookTurnTowardTarget(actor);
+    }
+    golemPawnRookStepRoot(actor);
+    golemPawnRookTickAnim(actor);
+    if (work->field_6B4 != 0) {
+        golemPawnRookDecayHitTilt(actor);
+    }
+    golemPawnRookPlayAnimCues(actor);
+    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
+    actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_UpdateCoord(coord);
+    golemPawnRookDraw(actor, coord);
+}

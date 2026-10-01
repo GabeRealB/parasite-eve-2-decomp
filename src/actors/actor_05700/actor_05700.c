@@ -55,9 +55,6 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/golem_pawn_rook.h"
 
-static void Actor05700_Fn0509C(Enemy* arg0, Task* task);
-static void Actor05700_Fn052CC(Enemy* arg0, Task* task);
-
 /// Sound ids this actor's cues play, indexed by `Actor105600Work.field_6D6`
 /// (row `field_6D6` starts at the second word, the `- 1` in the body).
 extern s32 gGolemPawnRookVoiceCues[];
@@ -105,9 +102,6 @@ extern TmdSource    Actor05700_D0AB4C;
 extern TmdSource    Actor05700_D0AE78;
 void                Actor05700_Fn01E28(Task*);
 void                Actor05700_Fn04714(Task*);
-void                Actor05700_Fn04DA0(Task*);
-void                Actor05700_Fn04EF4(Task*);
-void                Actor05700_Fn05038(Task*);
 void                Actor05700_Fn05040(Task*);
 void                Actor05700_Fn0517C(Task*);
 void                Actor05700_Fn05270(Task*);
@@ -1236,14 +1230,14 @@ TaskFunc gGolemPawnRookStates[15] = {
     golemPawnRookIdleState,
     golemPawnRookApproachState,
     Actor05700_Fn04714,
-    Actor05700_Fn05038,
-    Actor05700_Fn05038,
+    golemPawnRookNopState,
+    golemPawnRookNopState,
     golemPawnRookSilenceScreamState,
     Actor05700_Fn01E28,
     golemPawnRookLungeStrikeState,
-    Actor05700_Fn04DA0,
+    golemPawnRookHitReactionState,
     golemPawnRookRecoilState,
-    Actor05700_Fn04EF4,
+    golemPawnRookFlagWaitState,
     golemPawnRookKnockdownState,
     golemPawnRookDownedShiftState,
     golemPawnRookCollapseState,
@@ -1480,7 +1474,7 @@ void Actor05700_Fn01E28(Task* arg0)
 /// State handlers of the model child hung off the actor's part 7 - spawn,
 /// per-frame tick and teardown - dispatched through by `Actor05700_Fn05040`.
 static const GpEnemyTaskFuncTable3 Actor05700_D00080 = {
-    Actor05700_Fn0509C,
+    golemPawnRookGunSpawn,
     golemPawnRookGunTick,
     Gp_DestroyEnemy,
 };
@@ -1860,76 +1854,15 @@ void Actor05700_Fn04714(Task* arg0)
 
 #include "../../shared/golem_pawn_rook_idle.inc.c"
 
-/// Hit-reaction state, entry 8 of the `field_6A6` table: step 0 starts
-/// animation 0x11 and clears both dwell counters; step 1 waits for frame 0x37,
-/// then parks on animation 2 (entry 2) or, with `field_6E0` set, on animation
-/// 0x14 (entry 0xA).
-void Actor05700_Fn04DA0(Task* arg0)
-{
-    Actor105600Work* work;
-    s16              state;
-
-    work  = arg0->work;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            work->field_694 = 0x11;
-            work->field_6A8 = 1;
-            work->field_69C = 0;
-            work->field_69E = 0;
-            break;
-        case 1:
-            if (work->field_698 >= 0x37) {
-                if (work->field_6E0 == 0) {
-                    work->field_694 = 2;
-                    work->field_6A6 = 2;
-                    work->field_6A8 = 0;
-                } else {
-                    work->field_694 = 0x14;
-                    work->field_6A6 = 0xA;
-                    work->field_6A8 = 0;
-                }
-            }
-            break;
-    }
-}
+#include "../../shared/golem_pawn_rook_hit_reaction.inc.c"
 
 #include "../../shared/golem_pawn_rook_recoil.inc.c"
 
-/// Entry 0xA of the `field_6A6` table: step 0 waits for `Gp_TickObjFlag2` on
-/// the spawn context to fire, then starts animation 0x13 and clears
-/// `field_6E0`; step 1 waits for frame 0x3B and parks on animation 2
-/// (entry 2).
-void Actor05700_Fn04EF4(Task* arg0)
-{
-    Actor105600Work* work;
-    s16              state;
-
-    work  = arg0->work;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-                work->field_694 = 0x13;
-                work->field_6A8 = 1;
-                work->field_6E0 = 0;
-            }
-            break;
-        case 1:
-            if (work->field_698 >= 0x3B) {
-                work->field_694 = 2;
-                work->field_6A6 = 2;
-                work->field_6A8 = 0;
-            }
-            break;
-    }
-}
+#include "../../shared/golem_pawn_rook_flag_wait.inc.c"
 
 #include "../../shared/golem_pawn_rook_downed_finish.inc.c"
 
-void Actor05700_Fn05038(Task* task)
-{
-}
+#include "../../shared/golem_pawn_rook_nop.inc.c"
 
 void Actor05700_Fn05040(Task* arg0)
 {
@@ -1939,30 +1872,7 @@ void Actor05700_Fn05040(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Spawn state of the model child hung off the actor: parents the child's
-/// root coordinate to part 7 of the actor's model, points the child's model
-/// at the actor's light and colour matrices and advances to state 1.
-static void Actor05700_Fn0509C(Enemy* arg0, Task* task)
-{
-    Task*            parent;
-    TmdObject*       obj;
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        parentCoords;
-
-    parent       = task->parent;
-    obj          = task->extra.tmd;
-    parentCoords = parent->extra.tmd->coords;
-    coord        = obj->coords;
-    work         = (Actor105600Work*)parent->work;
-
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = &parentCoords[7];
-    obj->lightMtx       = &work->field_45C;
-    obj->flags          = 0;
-    obj->colorMtx       = &work->field_43C;
-    task->state         = 1;
-}
+#include "../../shared/golem_pawn_rook_gun_spawn.inc.c"
 
 #include "../../shared/golem_pawn_rook_gun_tick.inc.c"
 
@@ -1987,7 +1897,7 @@ void Actor05700_Fn0517C(Task* arg0)
 /// State handlers of the burst child parented to the actor's part 11 - spawn,
 /// per-frame tick and teardown - dispatched through by `Actor05700_Fn05270`.
 static const GpEnemyTaskFuncTable3 Actor05700_D00098 = {
-    Actor05700_Fn052CC,
+    golemPawnRookBurstPartSpawn,
     golemPawnRookBurstPartTick,
     Gp_DestroyEnemy,
 };
@@ -2000,31 +1910,7 @@ void Actor05700_Fn05270(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Spawn state of the burst child driven by `golemPawnRookBurstPartTick`: parents the
-/// child's root coordinate to part 11 of the actor's model, points the
-/// child's model at the actor's light and colour matrices and advances to
-/// state 1.
-static void Actor05700_Fn052CC(Enemy* arg0, Task* task)
-{
-    Task*            parent;
-    TmdObject*       obj;
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        parentCoords;
-
-    parent       = task->parent;
-    obj          = task->extra.tmd;
-    parentCoords = parent->extra.tmd->coords;
-    coord        = obj->coords;
-    work         = (Actor105600Work*)parent->work;
-
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = &parentCoords[11];
-    obj->lightMtx       = &work->field_45C;
-    obj->flags          = 0;
-    obj->colorMtx       = &work->field_43C;
-    task->state         = 1;
-}
+#include "../../shared/golem_pawn_rook_burst_part_spawn.inc.c"
 
 /// The actor's own state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by `Actor05700_Fn05470`. The tick and

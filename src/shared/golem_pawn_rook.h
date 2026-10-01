@@ -67,4 +67,17 @@ static inline void golemPawnRookStepRoot(Task* actor);
 static inline void golemPawnRookTickAnim(Task* actor);
 static inline void golemPawnRookDraw(Task* actor, GfxCoord* coord);
 
+void golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor);
+void golemPawnRookBeamSwingState(Task* arg0);
+void golemPawnRookHitReactionState(Task* task);
+void golemPawnRookFlagWaitState(Task* task);
+void golemPawnRookNopState(Task* task);
+void golemPawnRookDelayedEffectSpawn(Enemy* arg0, Task* task);
+void golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task);
+void golemPawnRookGunSpawn(Enemy* arg0, Task* task);
+void golemPawnRookBurstPartSpawn(Enemy* arg0, Task* task);
+
+/* Defined by each package. */
+void golemPawnRookTakeHits(Task* arg0);
+
 #endif /* SRC_SHARED_GOLEM_PAWN_ROOK_H */

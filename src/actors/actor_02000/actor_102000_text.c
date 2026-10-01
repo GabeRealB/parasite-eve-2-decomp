@@ -47,7 +47,7 @@ static const GpEnemyTaskFuncTable3 Actor02000_D0006C;
 
 static s32 Actor02000_Fn0315C(SVECTOR* start, SVECTOR* end);
 
-extern DamageAttack Actor02000_D15CFC[];
+extern DamageAttack gGolemPawnRookAttacks[];
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -57,8 +57,7 @@ typedef struct {
 } Actor102000TextStorage7C50;
 STATIC_ASSERT_SIZEOF(Actor102000TextStorage7C50, 20);
 
-extern Actor102000TextStorage7C50 Actor02000_D15E30;
-void                              Actor02000_Fn02294(Task* actor);
+extern Actor102000TextStorage7C50 gGolemPawnRookSwingCue;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -119,15 +118,7 @@ void Actor02000_Fn00E0C(Task*);
 
 void Actor02000_Fn01DF0(Task*);
 
-void Actor02000_Fn02294(Task*);
-
 void Actor02000_Fn02D5C(Task*);
-
-void Actor02000_Fn03348(Task*);
-
-void Actor02000_Fn0349C(Task*);
-
-void Actor02000_Fn035E0(Task*);
 
 void Actor02000_Fn035E8(Task*);
 
@@ -141,18 +132,9 @@ extern u16* Actor02000_D15FB8[];
 
 extern EnemyParams Actor02000_D15D10;
 
-static void Actor02000_Fn00078(Task*);
+extern TaskFunc gGolemPawnRookStates[];
 
-extern TaskFunc Actor02000_D16064[];
-
-static void        Actor02000_Fn0251C(Enemy* ctx, Task* actor);
-static inline void _actor02000ApplyReaction(Task* actor);
-static inline void _actor02000StepRoot(Task* actor);
-static inline void _actor02000TickAnim(Task* actor);
-static inline void _actor02000Draw(Task* actor, GfxCoord* coord);
-static void        Actor02000_Fn02A34(Enemy* ctx, Task* actor);
-static void        Actor02000_Fn03644(Enemy* arg0, Task* task);
-static void        Actor02000_Fn03690(Enemy* arg0, Task* task);
+static void Actor02000_Fn0251C(Enemy* ctx, Task* actor);
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
 /// to the root coordinate, then walks the five `field_4EC` records: kind 2 is a
@@ -160,7 +142,7 @@ static void        Actor02000_Fn03690(Enemy* arg0, Task* task);
 /// reaction animation picked into `field_6A6`), kind 3 a push-out whose
 /// deepest overlap is applied to the root after the loop. Finally raises
 /// `field_6B2` when the player's segment test against `field_4B4` fails.
-static void Actor02000_Fn00078(Task* arg0)
+void golemPawnRookTakeHits(Task* arg0)
 {
     s32                    result;
     s32                    maxPush;
@@ -1048,7 +1030,7 @@ AnimationSet Actor02000_D15CD4 = {
     { NULL, Actor02000_D15B20, NULL, NULL, Actor02000_D15B38, NULL, NULL, NULL },
 };
 
-DamageAttack Actor02000_D15CFC[5] = {
+DamageAttack gGolemPawnRookAttacks[5] = {
     { 28, 5 },
     { 24, 5 },
     { 0, 8 },
@@ -1056,7 +1038,7 @@ DamageAttack Actor02000_D15CFC[5] = {
     { 5, 0 },
 };
 
-EnemyParams Actor02000_D15D10 = { Actor02000_D15CFC, 425, 125, 100, 5, 50, 6, 0, 0 };
+EnemyParams Actor02000_D15D10 = { gGolemPawnRookAttacks, 425, 125, 100, 5, 50, 6, 0, 0 };
 
 s16 Actor02000_D15D20[46] = {
     0,
@@ -1186,7 +1168,7 @@ s32 gGolemPawnRookVoiceCues[17] = {
     0x40140012,
 };
 
-Actor102000TextStorage7C50 Actor02000_D15E30 = { 0x40140007, { 0 } };
+Actor102000TextStorage7C50 gGolemPawnRookSwingCue = { 0x40140007, { 0 } };
 
 u16 Actor02000_D15E44[22] = {
     0,
@@ -1437,18 +1419,18 @@ AnimationSet* Actor02000_D15FE8[31] = {
     NULL,
 };
 
-TaskFunc Actor02000_D16064[15] = {
+TaskFunc gGolemPawnRookStates[15] = {
     golemPawnRookIdleState,
     golemPawnRookApproachState,
     Actor02000_Fn02D5C,
     Actor02000_Fn01DF0,
-    Actor02000_Fn02294,
-    Actor02000_Fn035E0,
-    Actor02000_Fn035E0,
-    Actor02000_Fn035E0,
-    Actor02000_Fn03348,
+    golemPawnRookBeamSwingState,
+    golemPawnRookNopState,
+    golemPawnRookNopState,
+    golemPawnRookNopState,
+    golemPawnRookHitReactionState,
     golemPawnRookRecoilState,
-    Actor02000_Fn0349C,
+    golemPawnRookFlagWaitState,
     Actor02000_Fn00E0C,
     golemPawnRookDownedShiftState,
     golemPawnRookCollapseState,
@@ -1711,8 +1693,8 @@ void Actor02000_Fn01DF0(Task* arg0)
             }
             if (work->field_698 == 0xD) {
                 work->field_5E4.flags = (u16)(work->field_5E4.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_5E4.key   = Gp_PackPair(Actor02000_D15CFC, 1);
-                sound                 = Actor02000_D15E30.value | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                work->field_5E4.key   = Gp_PackPair(gGolemPawnRookAttacks, 1);
+                sound                 = gGolemPawnRookSwingCue.value | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan                   = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(self));
             }
@@ -1741,69 +1723,7 @@ void Actor02000_Fn01DF0(Task* arg0)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-void Actor02000_Fn02294(Task* arg0)
-{
-    s16              startFrame;
-    s16              state;
-    s16              frame;
-    void**           scratch;
-    s32              dz;
-    s32              sound;
-    s32              dx;
-    s32              pan;
-    u8*              head;
-    Actor105600Work* work;
-    GfxCoord*        self;
-    VECTOR*          delta;
-
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = head - 0x10;
-    delta                      = (VECTOR*)(head - 0x10);
-    work                       = arg0->work;
-    state                      = work->field_6A8;
-    self                       = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            ((VECTOR*)(head - 0x10))->vx = (s32)(gPlayerStatus.coordMtx->t[0] - self->coord.t[0]);
-            dz                           = gPlayerStatus.coordMtx->t[2] - self->coord.t[2];
-            delta->vz                    = dz;
-            startFrame                   = gGolemPawnRookAnimBlendFrames[work->field_694];
-            frame                        = work->field_698;
-            if ((frame >= (startFrame + 0x22)) && ((startFrame + 0x26) >= frame) && (dx = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx * dx) + (dz * dz)) < 0x3E8) == 0))) {
-                work->field_69C = 0x84;
-            } else {
-                work->field_69C = 0;
-            }
-            work->field_69E = 0x14;
-            work->field_6A4 = (s16)(ratan2((s32)(s16)delta->vx, (s32)(s16)delta->vz) & 0xFFF);
-            if (work->field_698 == (gGolemPawnRookAnimBlendFrames[work->field_694] + 0x20)) {
-                work->field_5E4.flags = (u16)(work->field_5E4.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_5E4.key   = Gp_PackPair(Actor02000_D15CFC, 0);
-            }
-            if (work->field_698 == (gGolemPawnRookAnimBlendFrames[work->field_694] + 0x21)) {
-                sound = Actor02000_D15E30.value | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan   = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(self));
-            }
-            if (work->field_698 >= (gGolemPawnRookAnimBlendFrames[work->field_694] + 0x27)) {
-                work->field_6A8       = 1;
-                work->field_694       = 9;
-                work->field_5E4.flags = (u16)(work->field_5E4.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-            }
-            break;
-        case 1:
-            work->field_69C = 0;
-            work->field_69E = 0;
-            if (work->field_698 >= 0x5E) {
-                work->field_6A6 = 2;
-                work->field_6A8 = 2;
-                work->field_694 = 4;
-            }
-            break;
-    }
-    scratch = SCRATCH_HEAD_ADDR;
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
-}
+#include "../../shared/golem_pawn_rook_beam_swing.inc.c"
 
 /// Enemy init. Allocates the 0x6E4-byte work block, points the model object at
 /// the light / color matrices inside it, runs the animation context over its
@@ -1988,134 +1908,11 @@ case2:
     actor->state    = kind;
 }
 
-/// Takes a pending reaction: while `field_6B8` is 0, bit 1 of the spawn
-/// context's `reactionFlags` is cleared and the enemy switches to entry 0xA of
-/// the `field_6A6` table with animation 0x14.
-static inline void _actor02000ApplyReaction(Task* actor)
-{
-    Enemy*           spawn;
-    Actor105600Work* work;
-    u8               flags;
-
-    spawn = actor->spawnArg2.pointer;
-    flags = spawn->reactionFlags;
-    work  = actor->work;
-    if ((flags & ENEMY_REACTION_BUILDUP) && (work->field_6B8 == 0)) {
-        spawn->reactionFlags = flags & ENEMY_REACTION_BUILDUP_CLEAR;
-        work->field_6A6      = 0xA;
-        work->field_694      = 0x14;
-        work->field_6A8      = 0;
-        work->field_6E0      = 1;
-    }
-}
+#include "../../shared/golem_pawn_rook_inlines.inc.c"
 
 /// Saves the root coordinate's translation in `field_678`..`field_680`, then
-/// moves it `field_69C` along its facing, raising it by 0x80 while `field_6DE`
-/// is below 2.
-static inline void _actor02000StepRoot(Task* actor)
-{
-    GfxCoord*        coord;
-    Actor105600Work* work;
-
-    coord              = actor->extra.tmd->coords;
-    work               = actor->work;
-    work->field_678    = coord->coord.t[0];
-    work->field_67C    = coord->coord.t[1];
-    work->field_680    = coord->coord.t[2];
-    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_69C) >> 0xC;
-    if (work->field_6DE < 2) {
-        coord->coord.t[1] += 0x80;
-    }
-    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_69C) >> 0xC;
-}
-
-/// Advances animation slots 1..0x12 by one frame, or, when `field_694` names a
-/// new animation, restarts the frame count and cross-fades every slot to it
-/// over the animation's `gGolemPawnRookAnimBlendFrames` duration.
-static inline void _actor02000TickAnim(Task* actor)
-{
-    Actor105600Work* work;
-    s16              duration;
-    s32              i;
-
-    work = actor->work;
-    if (work->field_694 != work->field_696) {
-        work->field_696 = work->field_694;
-        work->field_698 = 0;
-        duration        = gGolemPawnRookAnimBlendFrames[work->field_694];
-        for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_694, 0, duration);
-        }
-    } else {
-        work->field_698++;
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-    }
-}
-
 /// Updates the enemy's colour from `coord`'s world position and draws the
-/// ground quad under part 3.
-static inline void _actor02000Draw(Task* actor, GfxCoord* coord)
-{
-    VECTOR3   pos;
-    GfxCoord* root;
-    GfxCoord* part;
-
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(actor->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
-    root   = actor->extra.tmd->coords;
-    part   = root + 3;
-    pos.vx = part->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = part->workm.t[2];
-    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-}
-
-static void Actor02000_Fn02A34(Enemy* ctx, Task* actor)
-{
-    TmdObject*       model;
-    Actor105600Work* work;
-    GfxCoord*        coord;
-
-    work  = actor->work;
-    model = actor->extra.tmd;
-    coord = model->coords;
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            model->flags                = 0;
-            ctx->node.state.parts.flags = 0;
-            break;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor02000Draw(actor, coord);
-            return;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            model->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            return;
-    }
-
-    if (ctx->reactionFlags != 0) {
-        _actor02000ApplyReaction(actor);
-    }
-    Actor02000_Fn00078(actor);
-    Actor02000_D16064[work->field_6A6](actor);
-    if (work->field_69E != 0) {
-        golemPawnRookTurnTowardTarget(actor);
-    }
-    _actor02000StepRoot(actor);
-    _actor02000TickAnim(actor);
-    if (work->field_6B4 != 0) {
-        golemPawnRookDecayHitTilt(actor);
-    }
-    golemPawnRookPlayAnimCues(actor);
-    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
-    actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    _actor02000Draw(actor, coord);
-}
+#include "../../shared/golem_pawn_rook_frame_no_dust.inc.c"
 
 void Actor02000_Fn02D5C(Task* arg0)
 {
@@ -2284,77 +2081,15 @@ static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
 
 #include "../../shared/golem_pawn_rook_idle.inc.c"
 
-/// Per-frame tick. State 0 selects animation 0x11, hands over to state 1 and
-/// clears the pair of counters at `field_69C`. State 1 waits for `field_698`
-/// to reach 0x37, then parks at animation 2 / `field_6A6` 2 when `field_6E0`
-/// is clear, or animation 0x14 / `field_6A6` 0xA otherwise, and drops back
-/// to state 0.
-void Actor02000_Fn03348(Task* arg0)
-{
-    Actor105600Work* work;
-    s16              state;
-
-    work  = arg0->work;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            work->field_694 = 0x11;
-            work->field_6A8 = 1;
-            work->field_69C = 0;
-            work->field_69E = 0;
-            break;
-        case 1:
-            if (work->field_698 >= 0x37) {
-                if (work->field_6E0 == 0) {
-                    work->field_694 = 2;
-                    work->field_6A6 = 2;
-                    work->field_6A8 = 0;
-                } else {
-                    work->field_694 = 0x14;
-                    work->field_6A6 = 0xA;
-                    work->field_6A8 = 0;
-                }
-            }
-            break;
-    }
-}
+#include "../../shared/golem_pawn_rook_hit_reaction.inc.c"
 
 #include "../../shared/golem_pawn_rook_recoil.inc.c"
 
-/// Per-frame tick. State 0 waits for `Gp_TickObjFlag2` on the spawn block to
-/// fire, then selects animation 0x13, clears `field_6E0` and advances to state
-/// 1. State 1 waits for `field_698` to reach 0x3B and drops back to state 0
-/// with animation 2.
-void Actor02000_Fn0349C(Task* arg0)
-{
-    Actor105600Work* work;
-    s16              state;
-
-    work  = arg0->work;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-                work->field_694 = 0x13;
-                work->field_6A8 = 1;
-                work->field_6E0 = 0;
-            }
-            break;
-        case 1:
-            if (work->field_698 >= 0x3B) {
-                work->field_694 = 2;
-                work->field_6A6 = 2;
-                work->field_6A8 = 0;
-            }
-            break;
-    }
-}
+#include "../../shared/golem_pawn_rook_flag_wait.inc.c"
 
 #include "../../shared/golem_pawn_rook_downed_finish.inc.c"
 
-void Actor02000_Fn035E0(Task* task)
-{
-}
+#include "../../shared/golem_pawn_rook_nop.inc.c"
 
 void Actor02000_Fn035E8(Task* arg0)
 {
@@ -2364,55 +2099,9 @@ void Actor02000_Fn035E8(Task* arg0)
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
 }
 
-/// Parents this actor's model to part 7 of its spawner's model, points the
-/// model at the spawner's light and colour matrices and seeds the spawner's
-/// dwell counter, then advances the task to state 1. `arg0` is the enemy
-/// context every state handler takes and is unused here.
-static void Actor02000_Fn03644(Enemy* arg0, Task* task)
-{
-    Task*            parent;
-    TmdObject*       obj;
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        parentCoords;
+#include "../../shared/golem_pawn_rook_delayed_effect_spawn.inc.c"
 
-    parent       = task->parent;
-    obj          = task->extra.tmd;
-    parentCoords = parent->extra.tmd->coords;
-    coord        = obj->coords;
-    work         = (Actor105600Work*)parent->work;
-
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = &parentCoords[7];
-    obj->lightMtx       = &work->field_45C;
-    obj->colorMtx       = &work->field_43C;
-    obj->flags          = 0;
-    task->state         = 1;
-    work->field_6D8     = 0xA;
-}
-
-static void Actor02000_Fn03690(Enemy* arg0, Task* task)
-{
-    EffectWork*      effect;
-    Task*            parent;
-    Actor105600Work* work;
-    s16              count;
-
-    parent                 = task->parent;
-    work                   = (Actor105600Work*)parent->work;
-    task->extra.tmd->flags = (u16)parent->extra.tmd->flags;
-    if (work->field_6D8 > 0) {
-        count           = (u16)work->field_6D8 - 1;
-        work->field_6D8 = count;
-        if (count == 0) {
-            effect = Gp_SpawnEff(D_8011572C | 0x80000000,
-                                 &task->parent->extra.tmd->coords[7], 0, NULL);
-            if (effect != NULL) {
-                Task_Reparent(task, effect->task);
-            }
-        }
-    }
-}
+#include "../../shared/golem_pawn_rook_delayed_effect_tick.inc.c"
 
 void Actor02000_Fn03728(Task* arg0)
 {
@@ -2423,13 +2112,13 @@ void Actor02000_Fn03728(Task* arg0)
 }
 
 static const GpEnemyTaskFuncTable3 Actor02000_D00060 = { {
-    Actor02000_Fn03644,
-    Actor02000_Fn03690,
+    golemPawnRookDelayedEffectSpawn,
+    golemPawnRookDelayedEffectTick,
     Gp_DestroyEnemy,
 } };
 
 static const GpEnemyTaskFuncTable3 Actor02000_D0006C = { {
     Actor02000_Fn0251C,
-    Actor02000_Fn02A34,
+    golemPawnRookFrameStateNoDust,
     golemPawnRookDeadState,
 } };

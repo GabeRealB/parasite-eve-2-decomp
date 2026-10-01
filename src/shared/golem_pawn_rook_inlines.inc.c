@@ -36,8 +36,8 @@ static inline void golemPawnRookApplyReaction(Task* actor)
     spawn = actor->spawnArg2.pointer;
     flags = spawn->reactionFlags;
     work  = actor->work;
-    if ((flags & 2) && (work->field_6B8 == 0)) {
-        spawn->reactionFlags = flags & 0xFD;
+    if ((flags & ENEMY_REACTION_BUILDUP) && (work->field_6B8 == 0)) {
+        spawn->reactionFlags = flags & ENEMY_REACTION_BUILDUP_CLEAR;
         work->field_6A6      = 0xA;
         work->field_694      = 0x14;
         work->field_6A8      = 0;
