@@ -12,7 +12,13 @@ extern WorldCollisionTrigger D_mist_shooting_gallery_8018BDE8[28];
 
 extern WorldCollisionTrigger D_mist_shooting_gallery_8018C638[21];
 
-extern WorldCoordRoomLights D_mist_shooting_gallery_8018D1B4;
+/// Default gallery room lighting: fourteen point lights contributing in every view.
+///
+/// Selected initially by the room table and restored by the lighting selector's
+/// zero option. There are no directional or cone lights. The loaded room overlay
+/// owns the collection and its mutable light array; borrowed pointers must not
+/// outlive the overlay. Coordinate updates and shading queries modify the lights.
+extern WorldCoordRoomLights gMistShootingGalleryDefaultRoomLights;
 
 extern WorldCoordRoomLights D_mist_shooting_gallery_8018DF38;
 

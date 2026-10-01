@@ -888,7 +888,7 @@ GpViewCountRec D_mist_shooting_gallery_801853BC[2] = {
 };
 
 WorldCoordRoomLighting D_mist_shooting_gallery_801853C0[1] = {
-    { &D_mist_shooting_gallery_8018D1B4, D_mist_shooting_gallery_8018DFD4 },
+    { &gMistShootingGalleryDefaultRoomLights, D_mist_shooting_gallery_8018DFD4 },
 };
 
 GpWarpRec D_mist_shooting_gallery_801853C8[7] = {
@@ -2548,7 +2548,7 @@ void func_mist_shooting_gallery_801810D8(Task* task)
 void func_mist_shooting_gallery_801811C0(s16 arg0)
 {
     if (arg0 == 0) {
-        D_mist_shooting_gallery_801853C0[0].lights = &D_mist_shooting_gallery_8018D1B4;
+        D_mist_shooting_gallery_801853C0[0].lights = &gMistShootingGalleryDefaultRoomLights;
         return;
     }
     D_mist_shooting_gallery_801853C0[0].lights = &D_mist_shooting_gallery_8018DF38;

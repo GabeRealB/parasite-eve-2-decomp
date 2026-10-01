@@ -2089,7 +2089,14 @@ static WorldCoordPointLight _gMistShootingGalleryDefaultPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_mist_shooting_gallery_8018D1B4 = { 0, NULL, ARRAY_SIZE(_gMistShootingGalleryDefaultPointLights), _gMistShootingGalleryDefaultPointLights, 0, NULL };
+WorldCoordRoomLights gMistShootingGalleryDefaultRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gMistShootingGalleryDefaultPointLights),
+    .pointLights           = _gMistShootingGalleryDefaultPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCoordLight D_mist_shooting_gallery_8018D1CC[1] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5655, -10, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } },
