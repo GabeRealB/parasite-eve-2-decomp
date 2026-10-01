@@ -141,11 +141,6 @@ enum {
     AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT   = 8
 };
 
-/// Relative-rotation cache decision for a buffered pose blend.
-enum {
-    ANIMATION_ROTATION_DELTA_REUSE = 0
-};
-
 /// Borrowed endpoints and output destinations for one model-part pose blend.
 ///
 /// `AnimationSlot.poseEncoding` selects the pointer views: encoding 1 uses
@@ -2225,6 +2220,15 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
 
 void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination, void* encodedDestination)
 {
+    /// Leaves the buffered transition's cached relative rotation unchanged.
+    ///
+    /// In `_AnimationBlendRequest.refreshRotationDelta`, zero reuses the slot's
+    /// `bufferedRotationDelta` when either endpoint is buffered; that cache must
+    /// already describe the transition. Bank-only blends ignore the request.
+    /// A tick requests reuse unless it enters buffered endpoints from a cleared
+    /// `usesBufferedPose` flag, when it requests a refresh with value 1 instead.
+    enum { ANIMATION_ROTATION_DELTA_REUSE = 0 };
+
     /// Unsupported track encoding that reports an error instead of producing a pose.
     ///
     /// The initial keyframe's low flags nibble supplies this selector. Playback
@@ -2338,6 +2342,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
         }
     }
 
+    // Preserve the previous buffered-endpoint flag in the request byte while resolving this tick's endpoints.
     // Bank offsets count words; buffered entries reserve four words per slot.
     poseEncoding                          = slot->poseEncoding;
     scratch->request.refreshRotationDelta = slot->usesBufferedPose;
@@ -2359,7 +2364,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
         poseBytes                       = set->poseBanks[poseEncoding];
         scratch->request.nextPose.bytes = &poseBytes[records[slot->nextPose.indices.recordIndex].wordOffset * sizeof(u32)];
     }
-    // Rebuild the cache only when this tick enters buffered endpoints.
+    // Convert the previous flag into a refresh request; continuing buffered blends retain their cached delta.
     if ((scratch->request.refreshRotationDelta == ANIMATION_ROTATION_DELTA_REUSE) && (slot->usesBufferedPose == 1)) {
         scratch->request.refreshRotationDelta = slot->usesBufferedPose;
     } else {
