@@ -36,7 +36,7 @@ static _TextClutRecord Text_OutlineClut;
 static s32 Text_ParseLine(u8** arg0, u8* arg1);
 
 /// One line of Text_DrawMultiLine or Text_DrawMultiLineScroll: relative to obj's origin, or at an absolute
-/// position when obj is NULL; skipped when obj is in mode 5.
+/// position when obj is NULL; skipped when `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4, s32 arg5, s32 arg6);
 
 static void Text_DrawPromptCompat(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
@@ -143,7 +143,7 @@ static s32 Text_ParseLine(u8** arg0, u8* arg1)
 }
 
 /// One line of Text_DrawMultiLine or Text_DrawMultiLineScroll: relative to obj's origin, or at an absolute
-/// position when obj is NULL; skipped when obj is in mode 5.
+/// position when obj is NULL; skipped when `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4, s32 arg5, s32 arg6)
 {
     TextDrawReq req;

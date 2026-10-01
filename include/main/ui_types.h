@@ -34,7 +34,13 @@ enum {
     USER_INTERFACE_PANEL_OPEN    = 2,
     USER_INTERFACE_PANEL_CLOSING = 3,
     USER_INTERFACE_PANEL_HIDING  = 4,
-    USER_INTERFACE_PANEL_HIDDEN  = 5
+    /// Retained panel with drawing suppressed and its content callback still running.
+    ///
+    /// Dispatch suspends input without releasing the panel or its owning task.
+    /// Positive `animationTicks` count down to `USER_INTERFACE_PANEL_ANIMATION_TICKS`
+    /// before reopening; negative values wait for active control after the callback.
+    /// Zero keeps the panel hidden until a callback or caller changes its state/counter.
+    USER_INTERFACE_PANEL_HIDDEN = 5
 };
 
 /// Common control modes; other values belong to the panel's content controller.

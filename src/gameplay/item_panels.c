@@ -671,7 +671,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     s32                       lines;
     s32                       saved;
     s32                       ten;
-    s32                       hiddenMode;
+    s32                       hiddenState;
     s32                       textY;
     u16                       cd;
     InventoryItemRange*       scan;
@@ -824,9 +824,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     work  = (GpUseCreateWork*)arg1->work;
     x     = arg0->panel.contentLeft.signedValue + 2;
     Ui_DrawText(&(arg0)->panel, Gp_StrNotice);
-    hiddenMode = USER_INTERFACE_PANEL_HIDDEN;
-    item       = work->field_4;
-    if (arg0->panel.state != hiddenMode) {
+    hiddenState = USER_INTERFACE_PANEL_HIDDEN;
+    item        = work->field_4;
+    if (arg0->panel.state != hiddenState) {
         sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
         textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;
@@ -842,10 +842,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         }
         Gp_DrawItemIcon(arg0, x, y, item, 0);
     }
-    hiddenMode = USER_INTERFACE_PANEL_HIDDEN;
-    item       = work->field_0;
-    y         += 0xF;
-    if (arg0->panel.state != hiddenMode) {
+    hiddenState = USER_INTERFACE_PANEL_HIDDEN;
+    item        = work->field_0;
+    y          += 0xF;
+    if (arg0->panel.state != hiddenState) {
         sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
         textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;
@@ -863,10 +863,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     }
     y += 0xF;
     Text_DrawPrompt(arg0, x, y, Gp_StrUsedDot, 0x606060, 1, 0);
-    hiddenMode = USER_INTERFACE_PANEL_HIDDEN;
-    item       = work->field_8;
-    y         += 0xF;
-    if (arg0->panel.state != hiddenMode) {
+    hiddenState = USER_INTERFACE_PANEL_HIDDEN;
+    item        = work->field_8;
+    y          += 0xF;
+    if (arg0->panel.state != hiddenState) {
         sp20.u.req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + x;
         textY                 = arg0->panel.contentOriginY.unsignedValue - 6;
         sp20.u.req.y          = textY + y;

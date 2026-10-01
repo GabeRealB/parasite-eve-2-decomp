@@ -22,7 +22,7 @@ extern char Gp_StrDetachArmorHelp[];
 
 /// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
-/// drawn while `obj` is in mode 5.
+/// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode);
 
 /// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
@@ -124,7 +124,7 @@ char Gp_StrChangeOrderHelp[36] = "Change the order of items carried.\000\335";
 
 /// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
-/// drawn while `obj` is in mode 5.
+/// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode)
 {
     TextDrawReq req;
