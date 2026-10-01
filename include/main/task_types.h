@@ -235,9 +235,8 @@ typedef struct Task {
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
 
-/// Encoding of a task descriptor's body selection, model option and list terminator.
+/// Shared model-buffer option and table terminator for task descriptors.
 enum {
-    TASK_DESC_BODY_KIND_MASK    = 0xFF,
     TASK_DESC_SKIP_MODEL_BUFFER = 0x100, // TMD body: disable automatic primitive-buffer allocation and recovery
     TASK_DESC_END               = 0xFFFF // Complete flags halfword ending a walked descriptor table; never spawn it
 };

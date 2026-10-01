@@ -34,6 +34,14 @@ static u8 D_800716E8[8];
 
 #include "main/task.h"
 
+/// Mask selecting the low-byte body kind from a task descriptor's flags halfword.
+///
+/// Excludes the upper-byte options from attachment dispatch and `Task::bodyKind`.
+/// Selectors are 0 (no body), 1 (TMD model) and 2 (coordinate body). Zero permits
+/// a bodyless spawn; every nonzero selector requires successful attachment, so
+/// other selector values fail to spawn.
+enum { TASK_DESC_BODY_KIND_MASK = 0xFF };
+
 /// Completed body teardown awaiting execution-list collection.
 ///
 /// Stored in `Task::bodyKind` once its owned body has been freed, or when
