@@ -196,9 +196,6 @@ STATIC_ASSERT_SIZEOF(_AnimationTickScratch, 0x18);
 enum { ANIMATION_BLEND_FRACTION_BITS = 12 };
 STATIC_ASSERT((1 << ANIMATION_BLEND_FRACTION_BITS) == ONE, animation_blend_fraction_matches_one);
 
-// Packed angle steps have three.
-enum { ANIMATION_PACKED_ANGLE_SHIFT = 3 };
-
 /// 8-byte mask/flag record. `Gp_SndMaskTable` is a 0-terminated table of these.
 /// `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks` walk it: if `arg0 & mask`, apply `flags`
 /// to `SndEvt_EnqueueType7` / `SndBank_SetEnableFlags`.
@@ -2081,6 +2078,14 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
 /// Blends encoding 4 without changing the part's local translation.
 static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
 {
+    /// Low angle bits omitted from encoding-4 packed rotations.
+    ///
+    /// All three signed components use 512 steps per turn. Shifting left by
+    /// this count converts them to 4096-unit Euler angles for blending. Shifting
+    /// the result right discards its low bits, rounding negative values down on
+    /// this compiler, before the 11/10/11-bit fields retain their own widths.
+    enum { ANIMATION_PACKED_ANGLE_SHIFT = 3 };
+
     _AnimationBlendScratch*        scratch;
     const AnimationPackedRotation* sourcePose;
     AnimationPackedRotation*       destinationPose;
