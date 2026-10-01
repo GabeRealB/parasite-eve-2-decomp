@@ -245,7 +245,13 @@ static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* e
 static inline void _modelLightingInitFt4Texture(POLY_FT4* quad, const u32* elementWords, const TmdStreamWorkspace* workspace)
 {
     enum {
-        MODEL_LIGHTING_FT4_UV0_CLUT_WORD  = 2, // U0/V0 in low half, CLUT address in high half
+        /// Element-word index of vertex 0's packed texture coordinates and CLUT.
+        ///
+        /// Zero-based u32-word index after the three-word `0x5C`/`0x5E` record
+        /// header. Bits 0..7 hold unsigned U and bits 8..15 unsigned V, in texels;
+        /// bits 16..31 hold the encoded CLUT before `encodedClutOffset` is added
+        /// modulo 65536. One palette row contributes 64 encoded units.
+        MODEL_LIGHTING_FT4_UV0_CLUT_WORD  = 2,
         MODEL_LIGHTING_FT4_UV1_TPAGE_WORD = 3, // U1/V1 in low half, texture-page settings in high half
         MODEL_LIGHTING_FT4_UV2_UV3_WORD   = 4  // U2/V2 in low half, U3/V3 in high half
     };
