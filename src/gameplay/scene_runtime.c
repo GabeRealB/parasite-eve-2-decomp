@@ -98,11 +98,22 @@
 /// so comparison with `AnimationRecord.flags` must retain its unsigned value.
 enum { ANIMATION_RECORD_END_THRESHOLD = ANIMATION_RECORD_CONTROL | ANIMATION_RECORD_STOP };
 
-// Playback timing in sixteenths of a normal-rate frame.
 enum {
+    /// Fractional bits of animation playback time, measured in normal-rate frames.
+    ///
+    /// Shifting a whole-frame keyframe or transition duration left by this
+    /// count converts it to the sixteenth-frame units shared by
+    /// `AnimationSlot.timeSpan`, signed `AnimationSlot.timeLeft` and signed
+    /// per-tick `AnimationSlot.rate`. Normal playback consumes
+    /// `ANIMATION_RATE_ONE` units per tick; negative rates walk backwards.
+    /// An 8-bit record duration expands to at most 4080 units. Explicit
+    /// transition durations must fit the signed remaining time after scaling
+    /// (0..2047 whole frames). Interpolation weights use the separate
+    /// `ANIMATION_BLEND_FRACTION_BITS` scale.
     ANIMATION_TIME_FRACTION_BITS   = 4,
     ANIMATION_TIME_UNITS_PER_FRAME = 1 << ANIMATION_TIME_FRACTION_BITS
 };
+STATIC_ASSERT((1 << ANIMATION_TIME_FRACTION_BITS) == ANIMATION_RATE_ONE, animation_time_fraction_matches_rate_one);
 
 /// Track encoding that supplies both local translation and Euler rotation.
 ///
