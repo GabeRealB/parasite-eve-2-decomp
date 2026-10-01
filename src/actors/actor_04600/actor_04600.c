@@ -49,8 +49,8 @@
 #include "rooms/shelter_b3_dumping_hole.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/burster.h"
-#include "../../shared/glow_pod.h"
+#include "../../shared/sucklerceph.h"
+#include "../../shared/skull_stalker.h"
 
 /// The 0x2E4-byte work block of the package's first enemy, which both of its
 /// spawn handlers allocate with `memCalloc` and park in `Task::work`. After the
@@ -108,13 +108,13 @@ STATIC_ASSERT_SIZEOF(Actor104600Work, 0x2E4);
 
 /// The first enemy's attack row, packed into its third body's key, and the
 /// enemy parameters whose `attacks` name it; `hpMax` seeds the enemy's HP.
-extern DamageAttack gBursterAttack;
-extern EnemyParams  gBursterParams;
+extern DamageAttack gSucklercephAttack;
+extern EnemyParams  gSucklercephParams;
 
 /// The two script arguments the first enemy's death hands to
 /// `Gp_SpawnScript18`.
-extern PadScriptCmd              gBursterBurstScriptA[];
-extern PadScriptVibrationSegment gBursterBurstScriptB[];
+extern PadScriptCmd              gSucklercephBurstScriptA[];
+extern PadScriptVibrationSegment gSucklercephBurstScriptB[];
 
 /// Message table the dropping first enemy's spawn parks in `Task::msgTable`.
 // Typed callback views for the task message dispatcher.
@@ -126,26 +126,26 @@ typedef struct {
 } Actor04600RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor04600RecoveredMsgEntry, 8);
 
-extern Actor04600RecoveredMsgEntry gBursterDropMsgTable[2];
+extern Actor04600RecoveredMsgEntry gSucklercephDropMsgTable[2];
 
 /// The animation data `func_800B3F84` seeds the first enemy's slots from.
-extern AnimationSet* gBursterAnimSets[4];
+extern AnimationSet* gSucklercephAnimSets[4];
 
 /// Offset of the 0x60030 effect the first enemy's death spawns.
-extern SVECTOR gBursterBurstFxOffset;
+extern SVECTOR gSucklercephBurstFxOffset;
 
 /// Offset of the 0x60080 effect the collapsing first enemy spawns.
-extern SVECTOR gBursterCollapseFxOffset;
+extern SVECTOR gSucklercephCollapseFxOffset;
 
 /// The second enemy's record; `hpMax` seeds its HP.
-extern EnemyParams gGlowPodParams;
+extern EnemyParams gSkullStalkerParams;
 
 /// The animation data `func_800B3F84` seeds the second enemy's slots from.
-extern AnimationSet* gGlowPodAnimSets[3];
+extern AnimationSet* gSkullStalkerAnimSets[3];
 
 /// Offsets of the spark and hit effects the second enemy's hit handler spawns.
-extern SVECTOR gGlowPodSparkOffset;
-extern SVECTOR gGlowPodHitFxOffset;
+extern SVECTOR gSkullStalkerSparkOffset;
+extern SVECTOR gSkullStalkerHitFxOffset;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -158,17 +158,17 @@ void                Actor04600_Fn024A4(Task*);
 void                Actor04600_Fn02C6C(Task*);
 void                Actor04600_Fn03B80(Task*);
 
-DamageAttack gBursterAttack = { 30, 7 };
+DamageAttack gSucklercephAttack = { 30, 7 };
 
-EnemyParams gBursterParams = { &gBursterAttack, 70, 6, 12, 3, 100, 20, 100, 0 };
+EnemyParams gSucklercephParams = { &gSucklercephAttack, 70, 6, 12, 3, 100, 20, 100, 0 };
 
-PadScriptCmd gBursterBurstScriptA[3] = {
+PadScriptCmd gSucklercephBurstScriptA[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
 };
 
-PadScriptVibrationSegment gBursterBurstScriptB[3] = {
+PadScriptVibrationSegment gSucklercephBurstScriptB[3] = {
     { 0, 0, 9, 0 },
     { 255, 255, 12, 1 },
     { 100, 50, 6, 1 },
@@ -272,8 +272,8 @@ AnimationSet Actor04600_D05840 = {
     { NULL, Actor04600_D056C4, NULL, NULL, Actor04600_D05778, NULL, NULL, NULL },
 };
 
-Actor04600RecoveredMsgEntry gBursterDropMsgTable[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = bursterMessage } },
+Actor04600RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = sucklercephMessage } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -281,20 +281,20 @@ TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, Actor04600_Fn024A4, { 
 
 TaskDesc Actor04600_D05884 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor04600_Fn02C6C, { .model = &Actor04600_D05200 } };
 
-AnimationSet* gBursterAnimSets[4] = {
+AnimationSet* gSucklercephAnimSets[4] = {
     NULL,
     &Actor04600_D05554,
     &Actor04600_D0569C,
     &Actor04600_D05840,
 };
 
-SVECTOR gBursterBurstFxOffset = { 0, -10, 0, 0 };
+SVECTOR gSucklercephBurstFxOffset = { 0, -10, 0, 0 };
 
-SVECTOR gBursterCollapseFxOffset = { 0, -300, 0, 0 };
+SVECTOR gSucklercephCollapseFxOffset = { 0, -300, 0, 0 };
 
 DamageAttack Actor04600_D058B0[1] = { 0 };
 
-EnemyParams gGlowPodParams = { Actor04600_D058B0, 1, 2, 32, 1, 100, 20, 100, 99 };
+EnemyParams gSkullStalkerParams = { Actor04600_D058B0, 1, 2, 32, 1, 100, 20, 100, 99 };
 
 TmdBone Actor04600_D058C4[3] = {
 #include "assets/actor_104600_model_061C0_skeleton.inc"
@@ -374,15 +374,15 @@ AnimationSet Actor04600_D06474 = {
 
 TaskDesc Actor04600_D0649C = { { { TASK_BODY_TMD, 96 } }, Actor04600_Fn03B80, { .model = &Actor04600_D061C0 } };
 
-AnimationSet* gGlowPodAnimSets[3] = {
+AnimationSet* gSkullStalkerAnimSets[3] = {
     NULL,
     &Actor04600_D06220,
     &Actor04600_D06474,
 };
 
-SVECTOR gGlowPodSparkOffset = { 0, -100, 0, 0 };
+SVECTOR gSkullStalkerSparkOffset = { 0, -100, 0, 0 };
 
-SVECTOR gGlowPodHitFxOffset = { 0, 0, 100, 0 };
+SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
 
 static __inline__ void Actor04600_TickAnim(Task* task);
 
@@ -410,44 +410,44 @@ static __inline__ void Actor04600_TickAnim(Task* task)
     }
 }
 
-#include "../../shared/burster_spawn_state.inc.c"
+#include "../../shared/sucklerceph_spawn_state.inc.c"
 
 /// Task states of the first enemy as `Actor04600_Fn024A4` dispatches them:
 /// spawn, per-frame update and death.
 static const GpEnemyTaskFuncTable3 Actor04600_D00004 = {
-    { bursterSpawnState, bursterUpdateState, bursterDeathState },
+    { sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
 };
 
 /// Task states of the dropping first enemy as `Actor04600_Fn02C6C` dispatches
 /// them: the same update and death after a spawn that parks the enemy hidden,
 /// and a fourth state for its drop into place.
 static const GpEnemyTaskFuncTable4 Actor04600_D00010 = {
-    { bursterDropSpawnState, bursterUpdateState, bursterDeathState, bursterDropState },
+    { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
 };
 
-#include "../../shared/burster_reaction_dispatch.inc.c"
+#include "../../shared/sucklerceph_reaction_dispatch.inc.c"
 
-#include "../../shared/burster_dormant_tick.inc.c"
+#include "../../shared/sucklerceph_dormant_tick.inc.c"
 
-#include "../../shared/burster_awake_tick.inc.c"
+#include "../../shared/sucklerceph_awake_tick.inc.c"
 
-#include "../../shared/burster_contacts.inc.c"
+#include "../../shared/sucklerceph_contacts.inc.c"
 
-#include "../../shared/burster_take_damage.inc.c"
+#include "../../shared/sucklerceph_take_damage.inc.c"
 
-#include "../../shared/burster_turn_to_player.inc.c"
+#include "../../shared/sucklerceph_turn_to_player.inc.c"
 
-#include "../../shared/burster_death_state.inc.c"
+#include "../../shared/sucklerceph_death_state.inc.c"
 
-#include "../../shared/burster_kill.inc.c"
+#include "../../shared/sucklerceph_kill.inc.c"
 
-#include "../../shared/burster_drop_spawn_state.inc.c"
+#include "../../shared/sucklerceph_drop_spawn_state.inc.c"
 
-#include "../../shared/burster_drop_state.inc.c"
+#include "../../shared/sucklerceph_drop_state.inc.c"
 
-#include "../../shared/burster_drop_collide.inc.c"
+#include "../../shared/sucklerceph_drop_collide.inc.c"
 
-#include "../../shared/burster_message.inc.c"
+#include "../../shared/sucklerceph_message.inc.c"
 
 /// Task handler of the first enemy: runs the entry of `Actor04600_D00004` for
 /// the task's state with the enemy and the task, from a copy of the table on
@@ -460,22 +460,22 @@ void Actor04600_Fn024A4(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/burster_update_state.inc.c"
+#include "../../shared/sucklerceph_update_state.inc.c"
 
-#include "../../shared/burster_reaction_flags.inc.c"
+#include "../../shared/sucklerceph_reaction_flags.inc.c"
 
-#include "../../shared/burster_step.inc.c"
+#include "../../shared/sucklerceph_step.inc.c"
 
 /// The first enemy's animation rebind, `Actor04600_TickAnim`, as an
 /// out-of-line function.
-void bursterAnimate(Task* arg0)
+void sucklercephAnimate(Task* arg0)
 {
     Actor04600_TickAnim(arg0);
 }
 
 /// Colours the first enemy from the world position of its model's second
 /// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void bursterColour(Enemy* arg0, Task* task)
+void sucklercephColour(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;
     void**    scratch;
@@ -496,7 +496,7 @@ void bursterColour(Enemy* arg0, Task* task)
 
 /// Draws the first enemy's ground shadow under the model root, at the world
 /// translation of the root part staged in a `VECTOR3` on the scratch stack.
-void bursterDrawShadow(Task* task)
+void sucklercephDrawShadow(Task* task)
 {
     GfxCoord* coord;
     VECTOR3*  vec;
@@ -510,11 +510,11 @@ void bursterDrawShadow(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-#include "../../shared/burster_scale_part.inc.c"
+#include "../../shared/sucklerceph_scale_part.inc.c"
 
-#include "../../shared/burster_flatten.inc.c"
+#include "../../shared/sucklerceph_flatten.inc.c"
 
-#include "../../shared/burster_exit.inc.c"
+#include "../../shared/sucklerceph_exit.inc.c"
 
 /// Task handler of the dropping first enemy: runs the entry of
 /// `Actor04600_D00010` for the task's state with the enemy and the task, from
@@ -527,22 +527,22 @@ void Actor04600_Fn02C6C(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/burster_fall_step.inc.c"
+#include "../../shared/sucklerceph_fall_step.inc.c"
 
-#include "../../shared/glow_pod_spawn_state.inc.c"
+#include "../../shared/skull_stalker_spawn_state.inc.c"
 
-#include "../../shared/glow_pod_idle_tick.inc.c"
+#include "../../shared/skull_stalker_idle_tick.inc.c"
 
-#include "../../shared/glow_pod_hits.inc.c"
+#include "../../shared/skull_stalker_hits.inc.c"
 
-#include "../../shared/glow_pod_inlines.inc.c"
+#include "../../shared/skull_stalker_inlines.inc.c"
 
-#include "../../shared/glow_pod_death_state.inc.c"
+#include "../../shared/skull_stalker_death_state.inc.c"
 
 /// Task states of the second enemy as `Actor04600_Fn03B80` dispatches them:
 /// spawn, per-frame update and the dying tick.
 static const GpEnemyTaskFuncTable3 Actor04600_D0003C = {
-    { glowPodSpawnState, glowPodUpdateState, glowPodDeathState },
+    { skullStalkerSpawnState, skullStalkerUpdateState, skullStalkerDeathState },
 };
 
 /// Task handler of the second enemy: runs the entry of `Actor04600_D0003C` for
@@ -556,22 +556,22 @@ void Actor04600_Fn03B80(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/glow_pod_update_state.inc.c"
+#include "../../shared/skull_stalker_update_state.inc.c"
 
-#include "../../shared/glow_pod_reaction_flags.inc.c"
+#include "../../shared/skull_stalker_reaction_flags.inc.c"
 
-#include "../../shared/glow_pod_reaction_dispatch.inc.c"
+#include "../../shared/skull_stalker_reaction_dispatch.inc.c"
 
-/// The second enemy's animation rebind, `glowEnemy2TickAnim`, as an
+/// The second enemy's animation rebind, `skullStalkerTickAnim`, as an
 /// out-of-line function.
-void glowPodAnimate(Task* arg0)
+void skullStalkerAnimate(Task* arg0)
 {
-    glowEnemy2TickAnim(arg0);
+    skullStalkerTickAnim(arg0);
 }
 
 /// Colours the second enemy from the world position of its model's second
 /// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void glowPodColour(Enemy* arg0, Task* task)
+void skullStalkerColour(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;
     void**    scratch;
@@ -590,8 +590,8 @@ void glowPodColour(Enemy* arg0, Task* task)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-#include "../../shared/glow_pod_light_ramp.inc.c"
+#include "../../shared/skull_stalker_light_ramp.inc.c"
 
-#include "../../shared/glow_pod_flatten.inc.c"
+#include "../../shared/skull_stalker_flatten.inc.c"
 
-#include "../../shared/glow_pod_exit.inc.c"
+#include "../../shared/skull_stalker_exit.inc.c"

@@ -55,7 +55,7 @@
 #include "../../shared/coord_math.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_contacts.h"
-#include "../../shared/patrol_walker.h"
+#include "../../shared/boss_stranger.h"
 
 /// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
 /// the scratch stack to lay one patrol node out: `m` receives a copy of the
@@ -377,7 +377,7 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
 /// own `field_5C * 4`, or a flat 300 -- and 0 once it is outside both.
 
 /// Steers the walker along its patrol route: resolves the node the route
-/// cursor names, and on the frame `patrolArrived` reports arrival
+/// cursor names, and on the frame `bossStrangerArrived` reports arrival
 /// it raises the route's `arrived` flag, clears the movement deltas and steps
 /// the cursor onto the next node — wrapping back to the first at the 0xFF
 /// terminator. `pos` receives the position of the node it is heading for, so
@@ -1175,21 +1175,21 @@ static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/patrol_walker_arrived.inc.c"
+#include "../../shared/boss_stranger_arrived.inc.c"
 
-#include "../../shared/patrol_walker_follow_route.inc.c"
+#include "../../shared/boss_stranger_follow_route.inc.c"
 
-#include "../../shared/patrol_walker_nearest_actor.inc.c"
+#include "../../shared/boss_stranger_nearest_actor.inc.c"
 
-#include "../../shared/patrol_walker_nearest_self.inc.c"
+#include "../../shared/boss_stranger_nearest_self.inc.c"
 
-#include "../../shared/patrol_walker_plan_toward.inc.c"
+#include "../../shared/boss_stranger_plan_toward.inc.c"
 
-#include "../../shared/patrol_walker_ground_step.inc.c"
+#include "../../shared/boss_stranger_ground_step.inc.c"
 
-#include "../../shared/patrol_walker_avoid_contacts.inc.c"
+#include "../../shared/boss_stranger_avoid_contacts.inc.c"
 
-#include "../../shared/patrol_walker_turn_toward.inc.c"
+#include "../../shared/boss_stranger_turn_toward.inc.c"
 
 /// Debug rebuild of the walker's patrol table. Node 0 takes the walker's own
 /// coordinate translation; every node above it takes that translation plus the
@@ -1235,9 +1235,9 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
     SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
-#include "../../shared/patrol_walker_inlines.inc.c"
+#include "../../shared/boss_stranger_inlines.inc.c"
 
-#include "../../shared/patrol_walker_tick.inc.c"
+#include "../../shared/boss_stranger_tick.inc.c"
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// rescales it uniformly: `ratan2` of the rotation's Z basis gives the yaw,
@@ -1950,7 +1950,7 @@ static void func_actor_110600_80135194(Task* arg0)
         work->walker.field_5A         = 0x10;
     }
     work->walker.field_5E = work->field_8B6;
-    patrolWalkerTick(&work->walker);
+    bossStrangerTick(&work->walker);
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
     delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
@@ -2067,7 +2067,7 @@ static void func_actor_110600_80135454(Task* arg0)
     walker->field_60 = 0;
     walker->field_5C = ramp;
     walker->field_5E = ramp;
-    patrolWalkerTick(walker);
+    bossStrangerTick(walker);
     work->field_BE0++;
     facing = arg0->extra.tmd->coords;
     angle  = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
@@ -2519,7 +2519,7 @@ static void func_actor_110600_80136888(Task* arg0)
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
-    patrolWalkerTick(&work->walker);
+    bossStrangerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x18) {
         if (work->field_5C & 2) {
@@ -2580,7 +2580,7 @@ static void func_actor_110600_801369D8(Task* arg0)
         work->field_8A2               = 0;
     }
     walker2 = &work->walker;
-    patrolWalkerTick(walker2);
+    bossStrangerTick(walker2);
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x1D) {
         if (work->field_5C & 1) {
@@ -3681,7 +3681,7 @@ static void func_actor_110600_80138980(Task* arg0)
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
-    patrolWalkerTick(&work->walker);
+    bossStrangerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_5C & 1) {
         if (enemy->hp > 0) {
@@ -3745,7 +3745,7 @@ static void func_actor_110600_80138AFC(Task* arg0)
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
-    patrolWalkerTick(&work->walker);
+    bossStrangerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_5C & 1) {
         work->field_0 = 3;
@@ -3779,7 +3779,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
-    patrolWalkerTick(&work->walker);
+    bossStrangerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_5C & 1) {
         work->field_0 = 3;

@@ -61,7 +61,7 @@
 #include "overlay.h"
 #include "../../shared/frame_capture.h"
 #include "../../shared/limb_shadows.h"
-#include "../../shared/leaping_brute.h"
+#include "../../shared/stalker_zebra_ivory.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
@@ -103,106 +103,106 @@ STATIC_ASSERT_SIZEOF(Actor405800PerspScratch, 0x18);
 /// `field_846` / `field_848` are the state and sub-state indices the handler
 /// table walks and `field_842` is the per-state frame counter.
 typedef struct Actor405800Work {
-    /* 0x000 */ MATRIX                matrix_0;  // copy of the root coordinate's local matrix
-    /* 0x020 */ MATRIX                matrix_20; // color matrix for the child models
-    /* 0x040 */ MATRIX                matrix_40; // light matrix for the child models
-    /* 0x060 */ byte                  pad_60[0x10];
-    /* 0x070 */ VECTOR                field_70;  // copy of the root coordinate's translation
-    /* 0x080 */ u16                   field_80;  // pitch, see bruteApplyRotation
-    /* 0x082 */ u16                   field_82;  // yaw, see bruteApplyRotation
-    /* 0x084 */ u16                   field_84;  // roll, see bruteApplyRotation
-    /* 0x086 */ byte                  pad_86[2];
-    /* 0x088 */ BruteViewPos          field_88;
-    /* 0x08E */ byte                  pad_8E[2];
-    /* 0x090 */ u16                   field_90; // spawn position X (low half)
-    /* 0x092 */ u16                   field_92; // copied into field_86A on state entry
-    /* 0x094 */ u16                   field_94; // spawn position Z (low half)
-    /* 0x096 */ byte                  pad_96[2];
-    /* 0x098 */ u16                   field_98; // low half of the root coordinate's world X
-    /* 0x09A */ s16                   field_9A;
-    /* 0x09C */ u16                   field_9C; // low half of the root coordinate's world Z
-    /* 0x09E */ byte                  pad_9E[0xA];
-    /* 0x0A8 */ SVECTOR               field_A8; // world point `bruteTurnToward` turns to face (it reads `vx` / `vz`)
-    /* 0x0B0 */ AnimationContext      anim;     // slots 1..0x11 reset by func_actor_405800_80138224
-    /* 0x0C4 */ AnimationSlot         slots[0x12];
-    /* 0x394 */ byte                  pad_394[0x120];
-    /* 0x4B4 */ WorldCollisionBody    obj_4B4;    // collision node; unlinked on death
-    /* 0x4D4 */ WorldCollisionContact rec_4D4[8]; // obj_4B4 table
-    /* 0x594 */ WorldCollisionBody    obj_594;    // collision node; unlinked on death
-    /* 0x5B4 */ WorldCollisionContact rec_5B4[8]; // obj_594 table
-    /* 0x674 */ WorldCollisionBody    obj_674;    // collision node; unlinked on death
-    /* 0x694 */ WorldCollisionBody    obj_694;    // collision node; unlinked on death
-    /* 0x6B4 */ WorldCollisionBody    obj_6B4;    // collision node; unlinked on death
-    /* 0x6D4 */ WorldCollisionBody    obj_6D4;    // collision node; unlinked on death
-    /* 0x6F4 */ WorldCollisionContact rec_6F4[1]; // obj_6B4 / obj_674 table
-    /* 0x70C */ WorldCollisionContact rec_70C[1]; // obj_6D4 / obj_694 table
-    /* 0x724 */ WorldCollisionBody    obj_724;    // collision node; flags bit 0x4000 cleared by func_actor_405800_801379F8
-    /* 0x744 */ WorldCollisionCapsule rec_744;    // obj_724 payload (flags kind 3)
-    /* 0x75C */ WorldCollisionContact rec_75C[8]; // occupancy table behind rec_744
-    /* 0x81C */ EffectSpawnArg        eff_81C;    // fourth model part's coordinate
-    /* 0x824 */ Task*                 field_824;  // child task, killed on state exit
-    /* 0x828 */ Task*                 field_828;  // child task, killed on state exit
-    /* 0x82C */ byte                  pad_82C[4];
-    /* 0x830 */ u16                   field_830;  // phase timer; lhu-incremented, compared as s16
-    /* 0x832 */ s16                   field_832;
-    /* 0x834 */ s16                   field_834;
-    /* 0x836 */ s16                   field_836;
-    /* 0x838 */ s16                   field_838;
-    /* 0x83A */ s16                   field_83A; // nonzero: skip the field_895 / field_896 reset
-    /* 0x83C */ Actor405800Flags83C   flags_83C;
-    /* 0x840 */ u16                   field_840; // LCG draw at spawn
-    /* 0x842 */ u16                   field_842; // per-state frame counter
-    /* 0x844 */ s16                   field_844; // cleared with field_842 on state entry
-    /* 0x846 */ u16                   field_846; // state index
-    /* 0x848 */ u16                   field_848; // sub-state index
-    /* 0x84A */ s16                   field_84A;
-    /* 0x84C */ s16                   field_84C;
-    /* 0x84E */ s16                   field_84E;
-    /* 0x850 */ s16                   field_850; // animation speed / step scale
-    /* 0x852 */ s16                   field_852; // compared against 2000 to pick state 8 vs 0xD
-    /* 0x854 */ u16                   field_854; // facing-delta halfword, range-checked vs 0x200..0xE00
-    /* 0x856 */ u16                   field_856; // facing-delta halfword, range-checked vs 0x200..0xE00
-    /* 0x858 */ s16                   field_858; // must be 1 for the pending field_85A transition
-    /* 0x85A */ s16                   field_85A; // pending transition: 3 -> state 5, 5 -> state 0xF
-    /* 0x85C */ s16                   field_85C; // countdown seeded by func_actor_405800_80137994, ticked by func_actor_405800_8013795C
-    /* 0x85E */ s16                   field_85E; // countdown, ticked by func_actor_405800_8013795C
-    /* 0x860 */ s16                   field_860; // model slot id handed to func_actor_405800_80138514
-    /* 0x862 */ byte                  pad_862[0x4];
-    /* 0x866 */ s16                   field_866;
-    /* 0x868 */ byte                  pad_868[0x2];
-    /* 0x86A */ s16                   field_86A; // seeded from field_92; set to -0x9C4 during the hop
-    /* 0x86C */ byte                  pad_86C[0x2];
-    /* 0x86E */ s16                   field_86E; // animation request kind
-    /* 0x870 */ s16                   field_870; // animation id now playing
-    /* 0x872 */ s16                   field_872; // animation id
-    /* 0x874 */ s16                   field_874; // sound step index
-    /* 0x876 */ s16                   field_876; // damage cooldown
-    /* 0x878 */ s16                   field_878;
-    /* 0x87A */ s16                   field_87A;
-    /* 0x87C */ u16                   field_87C; // down-counter
-    /* 0x87E */ s16                   field_87E;
-    /* 0x880 */ s16                   field_880;
-    /* 0x882 */ s16                   field_882; // randomised hold, 0x5A .. 0x99 frames
-    /* 0x884 */ s16                   field_884; // cleared on the state-entry path
-    /* 0x886 */ byte                  pad_886[0x2];
-    /* 0x888 */ s8                    field_888; // damage-over-time reaction active
-    /* 0x889 */ byte                  pad_889;
-    /* 0x88A */ u8                    field_88A;
-    /* 0x88B */ s8                    field_88B;
-    /* 0x88C */ u8                    field_88C;
-    /* 0x88D */ s8                    field_88D;
-    /* 0x88E */ s8                    field_88E;
-    /* 0x88F */ s8                    field_88F;
-    /* 0x890 */ u8                    field_890; // nonzero: allow the state-0xD transition when root X > 10000
-    /* 0x891 */ u8                    field_891;
-    /* 0x892 */ u8                    field_892; // distance mode: 0 none, 1 XZ, 2 XY
-    /* 0x893 */ u8                    field_893;
-    /* 0x894 */ byte                  pad_894;
-    /* 0x895 */ u8                    field_895;
-    /* 0x896 */ u8                    field_896;
-    /* 0x897 */ u8                    field_897; // 0: vanished and visible poses keep the node scanned; otherwise vanished is not lockable and visible is clear
-    /* 0x898 */ u8                    field_898;
-    /* 0x899 */ byte                  pad_899[0x3];
+    /* 0x000 */ MATRIX                   matrix_0;  // copy of the root coordinate's local matrix
+    /* 0x020 */ MATRIX                   matrix_20; // color matrix for the child models
+    /* 0x040 */ MATRIX                   matrix_40; // light matrix for the child models
+    /* 0x060 */ byte                     pad_60[0x10];
+    /* 0x070 */ VECTOR                   field_70;  // copy of the root coordinate's translation
+    /* 0x080 */ u16                      field_80;  // pitch, see stalkerZebraIvoryApplyRotation
+    /* 0x082 */ u16                      field_82;  // yaw, see stalkerZebraIvoryApplyRotation
+    /* 0x084 */ u16                      field_84;  // roll, see stalkerZebraIvoryApplyRotation
+    /* 0x086 */ byte                     pad_86[2];
+    /* 0x088 */ StalkerZebraIvoryViewPos field_88;
+    /* 0x08E */ byte                     pad_8E[2];
+    /* 0x090 */ u16                      field_90; // spawn position X (low half)
+    /* 0x092 */ u16                      field_92; // copied into field_86A on state entry
+    /* 0x094 */ u16                      field_94; // spawn position Z (low half)
+    /* 0x096 */ byte                     pad_96[2];
+    /* 0x098 */ u16                      field_98; // low half of the root coordinate's world X
+    /* 0x09A */ s16                      field_9A;
+    /* 0x09C */ u16                      field_9C; // low half of the root coordinate's world Z
+    /* 0x09E */ byte                     pad_9E[0xA];
+    /* 0x0A8 */ SVECTOR                  field_A8; // world point `stalkerZebraIvoryTurnToward` turns to face (it reads `vx` / `vz`)
+    /* 0x0B0 */ AnimationContext         anim;     // slots 1..0x11 reset by func_actor_405800_80138224
+    /* 0x0C4 */ AnimationSlot            slots[0x12];
+    /* 0x394 */ byte                     pad_394[0x120];
+    /* 0x4B4 */ WorldCollisionBody       obj_4B4;    // collision node; unlinked on death
+    /* 0x4D4 */ WorldCollisionContact    rec_4D4[8]; // obj_4B4 table
+    /* 0x594 */ WorldCollisionBody       obj_594;    // collision node; unlinked on death
+    /* 0x5B4 */ WorldCollisionContact    rec_5B4[8]; // obj_594 table
+    /* 0x674 */ WorldCollisionBody       obj_674;    // collision node; unlinked on death
+    /* 0x694 */ WorldCollisionBody       obj_694;    // collision node; unlinked on death
+    /* 0x6B4 */ WorldCollisionBody       obj_6B4;    // collision node; unlinked on death
+    /* 0x6D4 */ WorldCollisionBody       obj_6D4;    // collision node; unlinked on death
+    /* 0x6F4 */ WorldCollisionContact    rec_6F4[1]; // obj_6B4 / obj_674 table
+    /* 0x70C */ WorldCollisionContact    rec_70C[1]; // obj_6D4 / obj_694 table
+    /* 0x724 */ WorldCollisionBody       obj_724;    // collision node; flags bit 0x4000 cleared by func_actor_405800_801379F8
+    /* 0x744 */ WorldCollisionCapsule    rec_744;    // obj_724 payload (flags kind 3)
+    /* 0x75C */ WorldCollisionContact    rec_75C[8]; // occupancy table behind rec_744
+    /* 0x81C */ EffectSpawnArg           eff_81C;    // fourth model part's coordinate
+    /* 0x824 */ Task*                    field_824;  // child task, killed on state exit
+    /* 0x828 */ Task*                    field_828;  // child task, killed on state exit
+    /* 0x82C */ byte                     pad_82C[4];
+    /* 0x830 */ u16                      field_830;  // phase timer; lhu-incremented, compared as s16
+    /* 0x832 */ s16                      field_832;
+    /* 0x834 */ s16                      field_834;
+    /* 0x836 */ s16                      field_836;
+    /* 0x838 */ s16                      field_838;
+    /* 0x83A */ s16                      field_83A; // nonzero: skip the field_895 / field_896 reset
+    /* 0x83C */ Actor405800Flags83C      flags_83C;
+    /* 0x840 */ u16                      field_840; // LCG draw at spawn
+    /* 0x842 */ u16                      field_842; // per-state frame counter
+    /* 0x844 */ s16                      field_844; // cleared with field_842 on state entry
+    /* 0x846 */ u16                      field_846; // state index
+    /* 0x848 */ u16                      field_848; // sub-state index
+    /* 0x84A */ s16                      field_84A;
+    /* 0x84C */ s16                      field_84C;
+    /* 0x84E */ s16                      field_84E;
+    /* 0x850 */ s16                      field_850; // animation speed / step scale
+    /* 0x852 */ s16                      field_852; // compared against 2000 to pick state 8 vs 0xD
+    /* 0x854 */ u16                      field_854; // facing-delta halfword, range-checked vs 0x200..0xE00
+    /* 0x856 */ u16                      field_856; // facing-delta halfword, range-checked vs 0x200..0xE00
+    /* 0x858 */ s16                      field_858; // must be 1 for the pending field_85A transition
+    /* 0x85A */ s16                      field_85A; // pending transition: 3 -> state 5, 5 -> state 0xF
+    /* 0x85C */ s16                      field_85C; // countdown seeded by func_actor_405800_80137994, ticked by func_actor_405800_8013795C
+    /* 0x85E */ s16                      field_85E; // countdown, ticked by func_actor_405800_8013795C
+    /* 0x860 */ s16                      field_860; // model slot id handed to func_actor_405800_80138514
+    /* 0x862 */ byte                     pad_862[0x4];
+    /* 0x866 */ s16                      field_866;
+    /* 0x868 */ byte                     pad_868[0x2];
+    /* 0x86A */ s16                      field_86A; // seeded from field_92; set to -0x9C4 during the hop
+    /* 0x86C */ byte                     pad_86C[0x2];
+    /* 0x86E */ s16                      field_86E; // animation request kind
+    /* 0x870 */ s16                      field_870; // animation id now playing
+    /* 0x872 */ s16                      field_872; // animation id
+    /* 0x874 */ s16                      field_874; // sound step index
+    /* 0x876 */ s16                      field_876; // damage cooldown
+    /* 0x878 */ s16                      field_878;
+    /* 0x87A */ s16                      field_87A;
+    /* 0x87C */ u16                      field_87C; // down-counter
+    /* 0x87E */ s16                      field_87E;
+    /* 0x880 */ s16                      field_880;
+    /* 0x882 */ s16                      field_882; // randomised hold, 0x5A .. 0x99 frames
+    /* 0x884 */ s16                      field_884; // cleared on the state-entry path
+    /* 0x886 */ byte                     pad_886[0x2];
+    /* 0x888 */ s8                       field_888; // damage-over-time reaction active
+    /* 0x889 */ byte                     pad_889;
+    /* 0x88A */ u8                       field_88A;
+    /* 0x88B */ s8                       field_88B;
+    /* 0x88C */ u8                       field_88C;
+    /* 0x88D */ s8                       field_88D;
+    /* 0x88E */ s8                       field_88E;
+    /* 0x88F */ s8                       field_88F;
+    /* 0x890 */ u8                       field_890; // nonzero: allow the state-0xD transition when root X > 10000
+    /* 0x891 */ u8                       field_891;
+    /* 0x892 */ u8                       field_892; // distance mode: 0 none, 1 XZ, 2 XY
+    /* 0x893 */ u8                       field_893;
+    /* 0x894 */ byte                     pad_894;
+    /* 0x895 */ u8                       field_895;
+    /* 0x896 */ u8                       field_896;
+    /* 0x897 */ u8                       field_897; // 0: vanished and visible poses keep the node scanned; otherwise vanished is not lockable and visible is clear
+    /* 0x898 */ u8                       field_898;
+    /* 0x899 */ byte                     pad_899[0x3];
 } Actor405800Work;
 STATIC_ASSERT_SIZEOF(Actor405800Work, 0x89C);
 
@@ -298,7 +298,7 @@ static void func_actor_405800_801381BC(Task* task);
 static void func_actor_405800_80138224(Task* task);
 static void func_actor_405800_80138294(Task* arg0);
 static s16  func_actor_405800_8013836C(Task* arg0, s16 arg1);
-static void func_actor_405800_80138514(Task* arg0, s16 arg1, BruteViewPos* arg2);
+static void func_actor_405800_80138514(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
 static s32  func_actor_405800_801385F4(Task* arg0);
 void        func_actor_405800_80138634(Task* task);
 static void func_actor_405800_80138698(Task* arg0);
@@ -1467,7 +1467,7 @@ static __inline__ void Actor405800_TickAnim(Task* arg0);
 static __inline__ void Actor405800_ProjectPart(GfxCoord* part);
 static __inline__ void _actor405800SetBehaviour(Task* task, s16 id);
 
-/// `bruteApplyRotation`'s body, inlined: wrap the three angles to 12 bits and
+/// `stalkerZebraIvoryApplyRotation`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each
 /// the cursor slot access in the absolute `lui`/`lw` form instead of a
 /// register CSE would otherwise hoist the address into.
@@ -2497,7 +2497,7 @@ static void func_actor_405800_80134C00(Task* arg0)
         Actor405800_TickAnim(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
         work->field_891  = 0;
         work3            = (Actor405800Work*)arg0->work;
         work3->field_846 = 2;
@@ -2578,7 +2578,7 @@ static void func_actor_405800_801351BC(Task* arg0)
     work->field_842++;
     if ((s16)work->field_842 < 8) {
         work->field_866 = (u16)work->field_866 + (-work->field_866 >> 1);
-        bruteReadPartViewXZ(arg0, 3, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 3, &work->field_88);
         return;
     }
     work->field_866   = (u16)work->field_866 + ((0xFF - work->field_866) >> 1);
@@ -2832,7 +2832,7 @@ static void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
         work->field_850 = arg1;
     }
     if (work->field_874 == start0) {
-        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
         id = 0x40050001;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -2849,7 +2849,7 @@ static void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->field_874 == start1) {
-        bruteReadPartViewXZ(arg0, 8, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 8, &work->field_88);
         id = 0x40050002;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -2924,7 +2924,7 @@ static void func_actor_405800_80135E28(Task* arg0)
         work->field_874 = 0;
     }
     if (work->field_874 == start0) {
-        bruteReadPartViewXZ(arg0, 8, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 8, &work->field_88);
         id = 0x40050001;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -2939,7 +2939,7 @@ static void func_actor_405800_80135E28(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->field_874 == start1) {
-        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
         id = 0x40050002;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -3966,7 +3966,7 @@ static void func_actor_405800_80137E64(Task* task)
             work2->field_848 = 0;
             return;
         }
-        bruteTurnToward(task, &work->field_A8, 0x18);
+        stalkerZebraIvoryTurnToward(task, &work->field_A8, 0x18);
         func_actor_405800_80135E28(task);
     }
 }
@@ -4086,11 +4086,11 @@ static s16 func_actor_405800_8013836C(Task* arg0, s16 arg1)
     return ((arg1 << 8) / work->field_850 << 12) >> 16;
 }
 
-#include "../../shared/leaping_brute_turn_toward.inc.c"
+#include "../../shared/stalker_zebra_ivory_turn_toward.inc.c"
 
-#include "../../shared/leaping_brute_part_view_xz.inc.c"
+#include "../../shared/stalker_zebra_ivory_part_view_xz.inc.c"
 
-static void func_actor_405800_80138514(Task* arg0, s16 arg1, BruteViewPos* arg2)
+static void func_actor_405800_80138514(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
 {
     MATRIX    root;
     MATRIX    local;
@@ -4153,7 +4153,7 @@ static void func_actor_405800_80138698(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             fns.funcs[(s16)work->field_846](arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            bruteUpdateColor(arg0);
+            stalkerZebraIvoryUpdateColor(arg0);
             func_actor_405800_80132E3C(arg0, work->field_86A, work->field_866);
             break;
     }
@@ -4170,7 +4170,7 @@ static void func_actor_405800_80138788(Task* arg0)
     states[(s16)work->field_846](arg0);
 }
 
-#include "../../shared/leaping_brute_update_color.inc.c"
+#include "../../shared/stalker_zebra_ivory_update_color.inc.c"
 
 void func_actor_405800_80138854(Task* arg0, s32 arg1, u16* arg2)
 {
@@ -4371,7 +4371,7 @@ static void func_actor_405800_80138D54(Task* task)
         coord->coord.t[1] = (s16)work->field_92;
         func_actor_405800_8013A1E0(task, 0x13, 0x10);
         work->field_84 += 0x800;
-        bruteApplyRotation(task);
+        stalkerZebraIvoryApplyRotation(task);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         work->field_842 = 0;
@@ -4474,7 +4474,7 @@ static void func_actor_405800_8013902C(Task* task)
     if (work->field_87E < min) {
         work->field_87E = min;
     }
-    bruteTurnToward(task, &work->field_A8, work->field_880);
+    stalkerZebraIvoryTurnToward(task, &work->field_A8, work->field_880);
     func_actor_405800_80135A3C(task, work->field_87E);
 }
 
@@ -5091,7 +5091,7 @@ static void func_actor_405800_80139FB0(Task* task, s16 arg1)
     work->field_848 = 0;
 }
 
-#include "../../shared/leaping_brute_apply_rotation.inc.c"
+#include "../../shared/stalker_zebra_ivory_apply_rotation.inc.c"
 
 static void func_actor_405800_8013A0F4(Task* arg0)
 {

@@ -38,7 +38,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/blend_rig_creature.h"
+#include "../../shared/desert_chaser.h"
 
 /// Animation source `func_800B3F84` is handed for both of the work block's
 /// contexts.
@@ -90,7 +90,7 @@ STATIC_ASSERT_SIZEOF(Actor323000Storage3A14, 16);
 
 static Actor323000Storage3A14 ActorContact_ScratchPosition;
 
-/// Per-state animation table `rigAnimTick` reads when it
+/// Per-state animation table `desertChaserAnimTick` reads when it
 /// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
 extern s8 gRigClipStartFrames[];
 
@@ -115,7 +115,7 @@ static const GpEnemyTaskFuncTable4 D_actor_323000_80161E24 = {
 /// Task states `func_actor_323000_80164CE4` runs by `Task::state`: the spawn
 /// handler, the per-frame driver, then `Gp_DestroyEnemy`.
 static const GpEnemyTaskFuncTable3 D_actor_323000_80161E34 = {
-    rigSpawn,
+    desertChaserSpawn,
     func_actor_323000_801645A4,
     Gp_DestroyEnemy,
 };
@@ -3026,7 +3026,7 @@ u8 gRigAnimSource[340] = {
 
 Actor323000MessageEntry gRigMessages[7] = {
     { 2015, { .call5 = func_actor_323000_8016483C } },
-    { 2005, { .call4 = rigSetVisibility } },
+    { 2005, { .call4 = desertChaserSetVisibility } },
     { 2006, { .call0 = func_actor_323000_80164904 } },
     { 2004, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323000_80164A54 } },
@@ -3051,7 +3051,7 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2);
 
 #include "../../shared/actor_contacts.inc.c"
 
-#include "../../shared/blend_rig_creature_blend_tick.inc.c"
+#include "../../shared/desert_chaser_blend_tick.inc.c"
 
 /// Effect and sound step of the tick: for the clip in `field_82E`, watches
 /// the clip each relevant slot plays, and the first frame one reaches a
@@ -3059,7 +3059,7 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2);
 /// the `SndEvt_EnqueueType6` id to play (0 where only effects fire).
 /// `field_848` remembers each slot's last clip so the step fires once; it is
 /// cleared when none of the watched clips is playing.
-s32 rigAnimCues(Task* task, Actor323000Work* work)
+s32 desertChaserAnimCues(Task* task, Actor323000Work* work)
 {
     SVECTOR vec;
     s32     reset;
@@ -3290,9 +3290,9 @@ s32 rigAnimCues(Task* task, Actor323000Work* work)
     return 0;
 }
 
-#include "../../shared/blend_rig_creature_anim_tick.inc.c"
+#include "../../shared/desert_chaser_anim_tick.inc.c"
 
-#include "../../shared/blend_rig_creature_spawn.inc.c"
+#include "../../shared/desert_chaser_spawn.inc.c"
 
 /// State 1: on entry clears the enemy's link flag and the model's flags,
 /// rebuilds its buffers and asks the tick to reset the slots. Each frame it
@@ -3315,16 +3315,16 @@ static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
         work->field_828 = 2;
         work->field_83E = 0;
         work->field_840 = 0;
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
         return;
     }
-    rigAnimTick(task);
+    desertChaserAnimTick(task);
     if (work->slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         if (work->field_82E == 0xF) {
             work->field_828 = 2;
             work->field_82E = 0x10;
         }
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
     }
     if (work->field_82E == 0xE) {
         if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 7 || (work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 9) {
@@ -3368,10 +3368,10 @@ static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
         work->field_83E = 0;
         work->field_840 = 0;
         work->field_6   = 0;
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
         return;
     }
-    rigAnimTick(task);
+    desertChaserAnimTick(task);
     switch (++work->field_6) {
         case 29: {
             SVECTOR* p = &ofs;
@@ -3515,7 +3515,7 @@ void func_actor_323000_8016483C(void)
 {
 }
 
-#include "../../shared/blend_rig_creature_visibility.inc.c"
+#include "../../shared/desert_chaser_visibility.inc.c"
 
 /// Handler for message 0x7D6: returns 1 while the enemy still has hit points,
 /// and otherwise 1 only when the model has neither flag 0x80 nor flag 2 set.
@@ -3582,7 +3582,7 @@ s32 func_actor_323000_80164AF0(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 
 /// `Task::exitCallback` the spawn handler installs: destroys the enemy the
 /// task carries.
-void rigExit(Task* task)
+void desertChaserExit(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
@@ -3663,9 +3663,9 @@ static void func_actor_323000_80164C58(Enemy* enemy, Task* task)
         work->field_83E = 0;
         work->field_840 = 0;
         work->field_6   = 0;
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
     } else {
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
     }
 }
 

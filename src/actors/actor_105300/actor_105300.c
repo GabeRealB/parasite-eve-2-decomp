@@ -47,15 +47,15 @@
 
 #include "rooms/neo_ark_power_plant_2.h"
 #include "../../shared/model_placement.h"
-#include "../../shared/power_plant_pod.h"
+#include "../../shared/generator.h"
 
-extern EnemyParams        gPodWeakPointParams;
-extern Actor05300SpawnPos gPodWeakPointPos[2];
-extern Actor05300Clip     gPodIdlePulse[];
-extern Actor05300SndRow   gPodViewSound[];
-extern u32                gPodPulseSoundId;
-extern s32                gPodSoundIds[3];
-extern SVECTOR            gPodHitEffectOffsets[];
+extern EnemyParams        gGeneratorLifeSupportParams;
+extern Actor05300SpawnPos gGeneratorLifeSupportPos[2];
+extern Actor05300Clip     gGeneratorIdlePulse[];
+extern Actor05300SndRow   gGeneratorViewSound[];
+extern u32                gGeneratorPulseSoundId;
+extern s32                gGeneratorSoundIds[3];
+extern SVECTOR            gGeneratorHitEffectOffsets[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -77,9 +77,9 @@ extern TaskDesc            D_actor_105300_8013D3FC[2];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-extern Actor05300Clip gPodHitPulse[];
-extern s16            gPodPoseStartFrames[];
-extern s16            gPodReleaseIds[];
+extern Actor05300Clip gGeneratorHitPulse[];
+extern s16            gGeneratorPoseStartFrames[];
+extern s16            gGeneratorReleaseIds[];
 
 extern AnimationSet D_actor_105300_8013C9D0;
 extern AnimationSet D_actor_105300_8013CE8C;
@@ -91,24 +91,24 @@ void                func_actor_105300_801339A4(Task*);
 s16 Actor05300_Fn01B70(Task*);
 
 Actor105300MsgEntry D_actor_105300_80133A00[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = podSetReleaseBits } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = generatorSetReleaseBits } },
     { 2006, { .call0 = Actor05300_Fn01B70 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-s16 gPodPoseStartFrames[4] = {
+s16 gGeneratorPoseStartFrames[4] = {
     0,
     0,
     4,
     4,
 };
 
-Actor05300SpawnPos gPodWeakPointPos[2] = {
+Actor05300SpawnPos gGeneratorLifeSupportPos[2] = {
     { 6140, -6090, -8500 },
     { 1865, -1095, -4500 },
 };
 
-s16 gPodReleaseIds[2] = {
+s16 gGeneratorReleaseIds[2] = {
     53,
     54,
 };
@@ -118,7 +118,7 @@ SVECTOR D_actor_105300_80133A30[2] = {
     { 0, -1000, 1500, 0 },
 };
 
-SVECTOR gPodHitEffectOffsets[2] = {
+SVECTOR gGeneratorHitEffectOffsets[2] = {
     { 0, -500, 1400, 0 },
     { 0, -1000, 1600, 0 },
 };
@@ -223,19 +223,19 @@ AnimationSet D_actor_105300_8013D368 = {
 
 EnemyParams D_actor_105300_8013D390 = { NULL, 500, 400, 200, 100, 100, 0, 0, 0 };
 
-EnemyParams gPodWeakPointParams = { NULL, 250, 0, 0, 0, 100, 0, 0, 0 };
+EnemyParams gGeneratorLifeSupportParams = { NULL, 250, 0, 0, 0, 100, 0, 0, 0 };
 
-s32 gPodSoundIds[3] = {
+s32 gGeneratorSoundIds[3] = {
     0x55100003,
     0x55100004,
     0x55100005,
 };
 
-u32 gPodPulseSoundId = 0x55100008;
+u32 gGeneratorPulseSoundId = 0x55100008;
 
 u32 D_actor_105300_8013D3C0 = 0x55100009;
 
-Actor05300SndRow gPodViewSound[7] = {
+Actor05300SndRow gGeneratorViewSound[7] = {
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
     { 15, 0, 76, 0 },
@@ -245,13 +245,13 @@ Actor05300SndRow gPodViewSound[7] = {
     { 12, 0, 38, 0 },
 };
 
-Actor05300Clip gPodIdlePulse[3] = {
+Actor05300Clip gGeneratorIdlePulse[3] = {
     { 0, 4032 },
     { 0, 4096 },
     { 1, 4160 },
 };
 
-Actor05300Clip gPodHitPulse[4] = {
+Actor05300Clip gGeneratorHitPulse[4] = {
     { 0, 3968 },
     { 0, 3840 },
     { 0, 4096 },
@@ -272,17 +272,17 @@ AnimationSet* D_actor_105300_8013D414[4] = {
 
 static void func_actor_105300_8013310C(Enemy* arg0, Task* arg1);
 
-#include "../../shared/power_plant_pod_body_hit.inc.c"
+#include "../../shared/generator_body_hit.inc.c"
 
-#include "../../shared/power_plant_pod_pulse.inc.c"
+#include "../../shared/generator_pulse.inc.c"
 
-#include "../../shared/power_plant_pod_inlines.inc.c"
+#include "../../shared/generator_inlines.inc.c"
 
-#include "../../shared/power_plant_pod_death.inc.c"
+#include "../../shared/generator_death.inc.c"
 
-#include "../../shared/power_plant_pod_weak_point_spawn.inc.c"
+#include "../../shared/generator_weak_point_spawn.inc.c"
 
-#include "../../shared/power_plant_pod_weak_point_hit.inc.c"
+#include "../../shared/generator_weak_point_hit.inc.c"
 
 static void func_actor_105300_8013310C(Enemy* arg0, Task* arg1)
 {
@@ -375,19 +375,19 @@ static void func_actor_105300_8013310C(Enemy* arg0, Task* arg1)
     }
     sound           = D_actor_105300_8013D3C0 | ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     work->field_31C = sound;
-    SndEvt_EnqueueType6(sound, gPodViewSound[gGameSession->location.loc.view].field_0,
-                        gPodViewSound[gGameSession->location.loc.view].field_2);
+    SndEvt_EnqueueType6(sound, gGeneratorViewSound[gGameSession->location.loc.view].field_0,
+                        gGeneratorViewSound[gGameSession->location.loc.view].field_2);
     arg1->msgTable = D_actor_105300_80133A00;
     arg1->state    = 1;
 }
 
-#include "../../shared/power_plant_pod_tick.inc.c"
+#include "../../shared/generator_tick.inc.c"
 
-#include "../../shared/power_plant_pod_regenerate.inc.c"
+#include "../../shared/generator_regenerate.inc.c"
 
 /// Hands the model's world position (its coordinate's `workm` translation) to
 /// `Gp_UpdateActorColor` for the enemy, with no blend parameters.
-void podUpdateColor(Task* arg0)
+void generatorUpdateColor(Task* arg0)
 {
     GfxCoord* coord;
     VECTOR    vec;
@@ -399,7 +399,7 @@ void podUpdateColor(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
-#include "../../shared/power_plant_pod_tick_pose.inc.c"
+#include "../../shared/generator_tick_pose.inc.c"
 
 #include "../../shared/model_placement_scale.inc.c"
 
@@ -407,9 +407,9 @@ void podUpdateColor(Task* arg0)
 /// hit reaction and teardown.
 static const GpEnemyTaskFuncTable3 D_actor_105300_80131E24 = {
     {
-        podWeakPointSpawn,
-        podWeakPointHit,
-        podWeakPointTeardown,
+        generatorLifeSupportSpawn,
+        generatorLifeSupportHit,
+        generatorLifeSupportTeardown,
     },
 };
 
@@ -421,9 +421,9 @@ void func_actor_105300_801337DC(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/power_plant_pod_weak_point_teardown.inc.c"
+#include "../../shared/generator_weak_point_teardown.inc.c"
 
-#include "../../shared/power_plant_pod_release_bits.inc.c"
+#include "../../shared/generator_release_bits.inc.c"
 
 s16 Actor05300_Fn01B70(Task* arg0)
 {
@@ -435,8 +435,8 @@ s16 Actor05300_Fn01B70(Task* arg0)
 static const GpEnemyTaskFuncTable3 D_actor_105300_80131E30 = {
     {
         func_actor_105300_8013310C,
-        podTickState,
-        podDeathState,
+        generatorTickState,
+        generatorDeathState,
     },
 };
 

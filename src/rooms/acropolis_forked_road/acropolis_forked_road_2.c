@@ -1444,10 +1444,10 @@ void func_acropolis_forked_road_8017E220(Task* arg0)
     }
 }
 
-/// Room script callback: sets `gSceneCombatState.spiderEntranceReady` to 1.
+/// Room script callback: sets `gSceneCombatState.maggotCaterpillarEntranceReady` to 1.
 void func_acropolis_forked_road_8017E288(void)
 {
-    gSceneCombatState.spiderEntranceReady = 1;
+    gSceneCombatState.maggotCaterpillarEntranceReady = 1;
 }
 
 /// Forked-road ambient effect task. On its first frame it fires one effect per

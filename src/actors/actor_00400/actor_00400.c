@@ -75,7 +75,7 @@
 #include "rooms/shelter_b4_upper_sewer.h"
 #include "../../shared/limb_shadows.h"
 #include "../../shared/coord_math.h"
-#include "../../shared/striker_enemy.h"
+#include "../../shared/diver.h"
 
 typedef struct {
     TaskFunc funcs[15];
@@ -1194,11 +1194,11 @@ static void            Actor00400_Fn07400(Task* arg0);
 static void            Actor00400_Fn07518(Task* arg0);
 static inline s32      Actor00400_TakeStateRequest(Task* arg0);
 
-#include "../../shared/striker_enemy_inlines.inc.c"
+#include "../../shared/diver_inlines.inc.c"
 
-#include "../../shared/striker_enemy_impact_burst.inc.c"
+#include "../../shared/diver_impact_burst.inc.c"
 
-#include "../../shared/striker_enemy_draw_spark.inc.c"
+#include "../../shared/diver_draw_spark.inc.c"
 
 static void Actor00400_Fn00A14(Task* arg0)
 {
@@ -1488,8 +1488,8 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     Gp_UpdateCoord(c1);
     Gp_UpdateCoord(c2);
     Gp_UpdateCoord(c3);
-    strikerTurnJoint(c2, (s16)work->field_546 / 3);
-    strikerTurnJoint(c3, (s16)work->field_546 / 3);
+    diverTurnJoint(c2, (s16)work->field_546 / 3);
+    diverTurnJoint(c3, (s16)work->field_546 / 3);
 
     mc.ident.m00_m01 = 0x1000;
     mc.ident.m02_m10 = 0;
@@ -1811,7 +1811,7 @@ static s32 Actor00400_Fn02208(Task* arg0)
         return 1;
     } else {
         Actor00400_Fn0875C(arg0, &work->field_60C[work->field_65B], 0x2C, 0x100);
-        strikerStepForward(arg0, 0x60, work->field_556);
+        diverStepForward(arg0, 0x60, work->field_556);
         return 0;
     }
 }
@@ -2231,7 +2231,7 @@ static void Actor00400_Fn02D48(Task* arg0)
                 kind                = 2;
                 arg0->state        += 1;
             }
-            strikerImpactBurst(coord, work->field_60, kind, 0x1300);
+            diverImpactBurst(coord, work->field_60, kind, 0x1300);
             break;
     }
 }
@@ -2365,7 +2365,7 @@ static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corn
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor100400TextQuadScratch));
 }
 
-#include "../../shared/striker_enemy_turn_joint.inc.c"
+#include "../../shared/diver_turn_joint.inc.c"
 
 /* The state tables below are defined among the functions, not with the other
    declarations, because `.rodata` follows source order: each sits between the
@@ -2375,7 +2375,7 @@ static void Actor00400_Fn03318(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corn
 static const TaskFuncTable3 Actor00400_D0002C = { {
     Actor00400_Fn0A190,
     Actor00400_Fn02D48,
-    strikerStrikeTeardown,
+    diverStrikeTeardown,
 } };
 
 /// The eight states `Actor00400_Fn08948` dispatches on `field_30`. The zero
@@ -3633,7 +3633,7 @@ static void Actor00400_Fn05EA4(Task* arg0)
         w->field_624 = 1;
     }
     Actor00400_TurnToward(arg0, &work->field_56C, 0x30, 0x100);
-    strikerStepForward(arg0, 0x60, work->field_556);
+    diverStepForward(arg0, 0x60, work->field_556);
     if (!(work->field_630 & 0xF)) {
         id  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040001;
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -3875,7 +3875,7 @@ static void Actor00400_Fn06798(Task* arg0)
         } while (i < 0xF);
     }
     Actor00400_TurnToward(arg0, &work->field_60C[work->field_65B], 0x2C, 0x100);
-    strikerStepForward(arg0, 0x60, work->field_556);
+    diverStepForward(arg0, 0x60, work->field_556);
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
 }
 
@@ -4237,7 +4237,7 @@ static void Actor00400_Fn07518(Task* arg0)
     }
 }
 
-#include "../../shared/striker_enemy_step_forward.inc.c"
+#include "../../shared/diver_step_forward.inc.c"
 
 /// Two-state dispatcher over a handler table built on the stack.
 void Actor00400_Fn076E8(Task* task)
@@ -5599,7 +5599,7 @@ static void Actor00400_Fn09B74(Task* arg0)
 
     work = arg0->work;
     if (++work->field_636 < 0x30) {
-        strikerStepForward(arg0, 0xA0, work->field_556);
+        diverStepForward(arg0, 0xA0, work->field_556);
         return;
     }
     work->field_63A++;
@@ -5683,7 +5683,7 @@ static void Actor00400_Fn09D98(Task* arg0)
     count           = work->field_636 + 1;
     work->field_636 = count;
     if ((s16)count < 0x30) {
-        strikerStepForward(arg0, 0x60, work->field_556);
+        diverStepForward(arg0, 0x60, work->field_556);
         if (!(work->field_630 & 0xF)) {
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040001;
             pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -5783,7 +5783,7 @@ static void Actor00400_Fn0A034(Task* arg0)
 #include "../../shared/coord_math_local_to_world.inc.c"
 
 /// First kill-path state, entered the frame the marker task is spawned:
-/// `Actor00400_Fn02D48` walks it afterwards and `strikerStrikeTeardown` retires it.
+/// `Actor00400_Fn02D48` walks it afterwards and `diverStrikeTeardown` retires it.
 ///
 /// `task->work` is the 0x64-byte `Actor100400MarkerWork` block
 /// `Actor00400_SpawnMarker` allocated, and `task->extra` the `TmdObject`
@@ -5829,11 +5829,11 @@ static void Actor00400_Fn0A190(Task* task)
     work->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UpdateCoord(coord);
     work->field_5A = -0x14;
-    strikerImpactBurst(coord, (u16)work->field_60, 0, 0x1300);
+    diverImpactBurst(coord, (u16)work->field_60, 0, 0x1300);
     task->state++;
 }
 
-#include "../../shared/striker_enemy_strike_teardown.inc.c"
+#include "../../shared/diver_strike_teardown.inc.c"
 
 static void Actor00400_Fn0A2F4(Task* arg0)
 {

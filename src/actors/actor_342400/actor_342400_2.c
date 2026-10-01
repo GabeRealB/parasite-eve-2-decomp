@@ -59,13 +59,13 @@
 #include "rooms/shelter_b3_dumping_hole.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/hopping_enemy.h"
-#include "../../shared/hopper_waves.h"
+#include "../../shared/mad_chaser.h"
+#include "../../shared/mad_chaser_waves.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
 // the main enemy's `Enemy::param` record
-extern u8 gHopperAnimBank[]; // animation bank handed to `func_800B3F84`
+extern u8 gMadChaserAnimBank[]; // animation bank handed to `func_800B3F84`
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -76,9 +76,9 @@ typedef struct {
 } Actor3424002MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor3424002MessageEntry, 8);
 
-extern Actor3424002MessageEntry gHopperMsgTable[3];   // stored into `Task::msgTable` by hopperSpawn
-extern u8                       gHopperAnimStance[];  // per animation id (1-based): value for `field_44F`
-extern u8                       gHopperSettleAnims[]; // per animation id (1-based): the animation to follow it
+extern Actor3424002MessageEntry gMadChaserMsgTable[3];   // stored into `Task::msgTable` by madChaserSpawn
+extern u8                       gMadChaserAnimStance[];  // per animation id (1-based): value for `field_44F`
+extern u8                       gMadChaserSettleAnims[]; // per animation id (1-based): the animation to follow it
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -124,9 +124,9 @@ static void func_actor_342400_8016BED8(Task* arg0);
 /// Six task-state handlers of the first enemy form, dispatched by
 /// `func_actor_342400_80169810` on `Task::state`.
 static const TaskFuncTable6 D_actor_342400_80161E68 = { {
-    hopperSpawn,
+    madChaserSpawn,
     func_actor_342400_8016666C,
-    hopperDangleFrame,
+    madChaserDangleFrame,
     func_actor_342400_801640B0,
     func_actor_342400_80165FC0,
     func_actor_342400_80169880,
@@ -135,9 +135,9 @@ static const TaskFuncTable6 D_actor_342400_80161E68 = { {
 /// Ten task-state handlers of the second enemy form, dispatched by
 /// `func_actor_342400_8016978C` on `Task::state`.
 static const TaskFuncTable10 D_actor_342400_80161E80 = { {
-    hopperSpawnHidden,
+    madChaserSpawnHidden,
     func_actor_342400_8016666C,
-    hopperDangleFrame,
+    madChaserDangleFrame,
     func_actor_342400_801640B0,
     func_actor_342400_80165FC0,
     func_actor_342400_80169880,
@@ -165,42 +165,42 @@ static const TaskFuncTable11 D_actor_342400_80161EA8 = { {
 
 /// Sub-state handlers `func_actor_342400_80169C00` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161ED4 = { {
-    hopperKnockdownStart,
-    hopperKnockdownRise,
-    hopperKnockdownEnd,
+    madChaserKnockdownStart,
+    madChaserKnockdownRise,
+    madChaserKnockdownEnd,
 } };
 
 /// Sub-state handlers `func_actor_342400_801699A4` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161EE0 = { {
-    hopperWalkStart,
-    hopperWalkApproach,
-    hopperWalkFinish,
+    madChaserWalkStart,
+    madChaserWalkApproach,
+    madChaserWalkFinish,
 } };
 
 /// Sub-state handlers `func_actor_342400_80169A2C` dispatches by `field_422`.
 static const TaskFuncTable5 D_actor_342400_80161EEC = { {
-    hopperStartLeap,
-    hopperLeapAttack,
-    hopperLeapTurnAway,
-    hopperLeapRebound,
-    hopperLeapLand,
+    madChaserStartLeap,
+    madChaserLeapAttack,
+    madChaserLeapTurnAway,
+    madChaserLeapRebound,
+    madChaserLeapLand,
 } };
 
 /// Sub-state handlers `func_actor_342400_80169A98` dispatches by `field_422`.
 static const TaskFuncTable5 D_actor_342400_80161F00 = { {
-    hopperAlertCry,
+    madChaserAlertCry,
     func_actor_342400_8016A240,
-    hopperAlertRelease,
-    hopperAlertCrouch,
-    hopperAlertSidestep,
+    madChaserAlertRelease,
+    madChaserAlertCrouch,
+    madChaserAlertSidestep,
 } };
 
-/// Sub-state handlers `hopperDangleState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserDangleState` dispatches by `field_422`.
 static const TaskFuncTable4 D_actor_342400_80161F14 = { {
     func_actor_342400_8016A4FC,
-    hopperDangleSway,
-    hopperDangleFall,
-    hopperDangleLand,
+    madChaserDangleSway,
+    madChaserDangleFall,
+    madChaserDangleLand,
 } };
 
 void func_actor_342400_8016978C(Task*);
@@ -626,7 +626,7 @@ AnimationSet D_actor_342400_801739C0 = {
     { NULL, D_actor_342400_80173840, NULL, NULL, D_actor_342400_8017387C, NULL, NULL, NULL },
 };
 
-u8 gHopperAnimBank[84] = {
+u8 gMadChaserAnimBank[84] = {
     0,
     0,
     0,
@@ -713,9 +713,9 @@ u8 gHopperAnimBank[84] = {
     0,
 };
 
-Actor3424002MessageEntry gHopperMsgTable[3] = {
+Actor3424002MessageEntry gMadChaserMsgTable[3] = {
     { 2004, { .call0 = func_actor_342400_80169620 } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = hopperCommandMsg } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = madChaserCommandMsg } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -728,7 +728,7 @@ TaskDesc D_actor_342400_80173A6C = { { { TASK_BODY_COORD, 96 } }, taskKill, { .v
 
 TaskDesc D_actor_342400_80173A78 = { { { TASK_BODY_TMD, 96 } }, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } };
 
-u8 gHopperAnimStance[20] = {
+u8 gMadChaserAnimStance[20] = {
     0,
     1,
     0,
@@ -751,7 +751,7 @@ u8 gHopperAnimStance[20] = {
     0,
 };
 
-u8 gHopperSettleAnims[20] = {
+u8 gMadChaserSettleAnims[20] = {
     5,
     6,
     5,
@@ -774,7 +774,7 @@ u8 gHopperSettleAnims[20] = {
     1,
 };
 
-u16 gHopperWaveEnemyCount = 0;
+u16 gMadChaserWaveEnemyCount = 0;
 
 extern void* D_800678F0[1];
 
@@ -783,22 +783,22 @@ static __inline__ void update_rotation(Task* arg0);
 static __inline__ s16  take_hit_nibble3(Task* arg0);
 static __inline__ void set_state_s16(Task* arg0, s16 state);
 
-#include "../../shared/hopping_enemy_limb_shadow.inc.c"
+#include "../../shared/mad_chaser_limb_shadow.inc.c"
 
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` copies into
  * its effect's `TmdObject`. It is declared as a one-element array for the
  * same reason as in `actor_400500`: as a bare scalar, GCC 2.8.1 decides the
  * store cannot alias the `TmdObject` loads and sinks it past them. */
 
-#include "../../shared/hopping_enemy_spawn_gibs.inc.c"
+#include "../../shared/mad_chaser_spawn_gibs.inc.c"
 
-#include "../../shared/hopping_enemy_twist.inc.c"
+#include "../../shared/mad_chaser_twist.inc.c"
 
-#include "../../shared/hopping_enemy_spawn.inc.c"
+#include "../../shared/mad_chaser_spawn.inc.c"
 
-#include "../../shared/hopping_enemy_spawn_hidden.inc.c"
+#include "../../shared/mad_chaser_spawn_hidden.inc.c"
 
-#include "../../shared/hopping_enemy_inlines.inc.c"
+#include "../../shared/mad_chaser_inlines.inc.c"
 
 /// Message 0x2C00 (see `field_44C`) consumes the message and restarts the
 /// state machine: low nibble 2 enters state 3 at state index 10 unless
@@ -818,7 +818,7 @@ static __inline__ s16 take_hit(Task* arg0)
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
-            hopperEnterState(arg0, 3);
+            madChaserEnterState(arg0, 3);
             w2            = (Actor341700Work*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
@@ -826,7 +826,7 @@ static __inline__ s16 take_hit(Task* arg0)
         }
     } else if ((work->field_44C & 0xF) == 3) {
         work->field_44C = 0;
-        hopperEnterState(arg0, 7);
+        madChaserEnterState(arg0, 7);
         return 1;
     }
     return 0;
@@ -869,7 +869,7 @@ static __inline__ void update_rotation(Task* arg0)
 
 /// Per-frame callback for the main enemy, the eleven-state counterpart of
 /// `func_actor_342400_801670C0`. In mode 0 it aims at the nearest actor
-/// (`hopperTrackPlayer`), lets a pending hit (`take_hit`) replace the state
+/// (`madChaserTrackPlayer`), lets a pending hit (`take_hit`) replace the state
 /// handler, eases `field_424` toward zero, rebuilds the root rotation, and
 /// then picks the next state: the `field_448` request once dead, state 4 when
 /// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
@@ -888,81 +888,81 @@ static void func_actor_342400_801640B0(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
-            hopperTrackPlayer(arg0);
+            madChaserTrackPlayer(arg0);
             if (take_hit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            hopperTickAnim(arg0);
+            madChaserTickAnim(arg0);
             cur             = (u16)work->field_424;
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
-            hopperTwistSpine(arg0);
+            madChaserTwistSpine(arg0);
             if (work->field_432 == 1) {
-                hopperPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
+                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
             }
             update_rotation(arg0);
-            hopperApplyContacts(arg0, 0);
+            madChaserApplyContacts(arg0, 0);
             if (work->field_44A != 0) {
                 work->field_44A--;
             }
             if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                hopperEnterState(arg0, work->field_448);
+                madChaserEnterState(arg0, work->field_448);
             }
             if (work->field_438 == 0 && enemy->hp <= 0) {
-                hopperEnterState(arg0, 4);
+                madChaserEnterState(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
-                hopperEnterState(arg0, 8);
+                madChaserEnterState(arg0, 8);
             } else if (work->field_44C == 5 && work->field_438 == 0) {
-                hopperEnterState(arg0, 9);
+                madChaserEnterState(arg0, 9);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-            hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-            hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+            madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+            madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             return;
     }
 }
 
-#include "../../shared/hopping_enemy_walk_start.inc.c"
+#include "../../shared/mad_chaser_walk_start.inc.c"
 
-#include "../../shared/hopping_enemy_walk_approach.inc.c"
+#include "../../shared/mad_chaser_walk_approach.inc.c"
 
-#include "../../shared/hopping_enemy_leap_attack.inc.c"
+#include "../../shared/mad_chaser_leap_attack.inc.c"
 
-#include "../../shared/hopping_enemy_leap_turn_away.inc.c"
+#include "../../shared/mad_chaser_leap_turn_away.inc.c"
 
-#include "../../shared/hopping_enemy_leap_rebound.inc.c"
+#include "../../shared/mad_chaser_leap_rebound.inc.c"
 
-#include "../../shared/hopping_enemy_dangle_frame.inc.c"
+#include "../../shared/mad_chaser_dangle_frame.inc.c"
 
-#include "../../shared/hopping_enemy_dangle_fall.inc.c"
+#include "../../shared/mad_chaser_dangle_fall.inc.c"
 
-#include "../../shared/hopping_enemy_dangle_land.inc.c"
+#include "../../shared/mad_chaser_dangle_land.inc.c"
 
-#include "../../shared/hopping_enemy_contacts.inc.c"
+#include "../../shared/mad_chaser_contacts.inc.c"
 
-#include "../../shared/hopping_enemy_tick_anim.inc.c"
+#include "../../shared/mad_chaser_tick_anim.inc.c"
 
-#include "../../shared/hopping_enemy_bodies.inc.c"
+#include "../../shared/mad_chaser_bodies.inc.c"
 
 /// Nine state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
 static const TaskFuncTable9 D_actor_342400_80161F50 = { {
-    hopperDeathCry,
-    hopperDeathSettle,
-    hopperDeathWaitAnim,
-    hopperBeginDeath,
-    hopperDeathTurnTranslucent,
-    hopperShrinkWithDust,
+    madChaserDeathCry,
+    madChaserDeathSettle,
+    madChaserDeathWaitAnim,
+    madChaserBeginDeath,
+    madChaserDeathTurnTranslucent,
+    madChaserShrinkWithDust,
     func_actor_342400_8016A9AC,
     func_actor_342400_8016A9C4,
-    hopperBurst,
+    madChaserBurst,
 } };
 
 /// Per-frame callback of the main enemy. `gSceneCombatState.actorControl` 2 hides the model,
 /// 0 runs the current state handler (then colours it), 1 only colours it.
-/// Unless `field_451` is set, it then runs `hopperDrawLimbShadow` for
+/// Unless `field_451` is set, it then runs `madChaserDrawLimbShadow` for
 /// three part pairs.
 static void func_actor_342400_80165FC0(Task* arg0)
 {
@@ -980,35 +980,35 @@ static void func_actor_342400_80165FC0(Task* arg0)
             sp.funcs[(s16)work->field_420](arg0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-#include "../../shared/hopping_enemy_shrink_dust.inc.c"
+#include "../../shared/mad_chaser_shrink_dust.inc.c"
 
-#include "../../shared/hopping_enemy_track_player.inc.c"
+#include "../../shared/mad_chaser_track_player.inc.c"
 
-#include "../../shared/hopping_enemy_recoil_recover.inc.c"
+#include "../../shared/mad_chaser_recoil_recover.inc.c"
 
 /// The five state handlers of the second enemy form, indexed by
 /// `Actor341700Work::field_420`; copied to the stack before dispatch. It sits
-/// between `hopperRecoilRecover`'s jump table and this function's own.
+/// between `madChaserRecoilRecover`'s jump table and this function's own.
 static const TaskFuncTable5 D_actor_342400_80161F8C = { {
     func_actor_342400_8016AE24,
     func_actor_342400_8016AEAC,
-    hopperLurkRiseState,
+    madChaserLurkRiseState,
     func_actor_342400_8016AFA8,
     func_actor_342400_8016B038,
 } };
 
 /// Per-frame callback for the second enemy form, the five-state counterpart
-/// of `func_actor_342400_801640B0`: in mode 0 it aims (`hopperTrackPlayer`),
+/// of `func_actor_342400_801640B0`: in mode 0 it aims (`madChaserTrackPlayer`),
 /// lets a pending hit replace the state handler, rebuilds the root rotation,
 /// then picks the next state - 4 when dead, 8 / 9 for messages 4 / 5, and
 /// state 3 after a consumed `field_448` request. Mode 1 only recolours; both
@@ -1027,30 +1027,30 @@ static void func_actor_342400_8016666C(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
-            hopperTrackPlayer(arg0);
+            madChaserTrackPlayer(arg0);
             if (take_hit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            hopperTickAnim(arg0);
-            hopperTwistSpine(arg0);
+            madChaserTickAnim(arg0);
+            madChaserTwistSpine(arg0);
             update_rotation(arg0);
-            hopperApplyContacts(arg0, 0);
+            madChaserApplyContacts(arg0, 0);
             if (work->field_438 == 0 && enemy->hp <= 0) {
-                hopperEnterState(arg0, 4);
+                madChaserEnterState(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
-                hopperEnterState(arg0, 8);
+                madChaserEnterState(arg0, 8);
             } else if (work->field_44C == 5 && work->field_438 == 0) {
-                hopperEnterState(arg0, 9);
-            } else if (hopperTakeRequest(arg0)) {
+                madChaserEnterState(arg0, 9);
+            } else if (madChaserTakeRequest(arg0)) {
                 work->field_438 = 0;
-                hopperEnterState(arg0, 3);
+                madChaserEnterState(arg0, 3);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-            hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-            hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+            madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+            madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
@@ -1058,65 +1058,65 @@ static void func_actor_342400_8016666C(Task* arg0)
 
 /// Sub-state handlers `func_actor_342400_8016AE24` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FB4 = { {
-    hopperStartHold,
-    hopperLurkWait,
-    hopperLurkIdleEnd,
+    madChaserStartHold,
+    madChaserLurkWait,
+    madChaserLurkIdleEnd,
 } };
 
 /// Sub-state handlers `func_actor_342400_8016AEAC` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FC0 = { {
-    hopperLurkCrouch,
-    hopperLurkRaise,
-    hopperLurkLookAround,
+    madChaserLurkCrouch,
+    madChaserLurkRaise,
+    madChaserLurkLookAround,
 } };
 
-/// Sub-state handlers `hopperLurkRiseState` dispatches by `field_422`.
+/// Sub-state handlers `madChaserLurkRiseState` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FCC = { {
-    hopperStartAlert,
-    hopperLurkBrace,
-    hopperLurkSidestepToCombat,
+    madChaserStartAlert,
+    madChaserLurkBrace,
+    madChaserLurkSidestepToCombat,
 } };
 
 /// Sub-state handlers `func_actor_342400_8016B038` dispatches by `field_422`.
 static const TaskFuncTable4 D_actor_342400_80161FD8 = { {
-    hopperLurkShiftStart,
-    hopperLurkShiftBrace,
-    hopperLurkSidestepRight,
-    hopperLurkSidestepLeft,
+    madChaserLurkShiftStart,
+    madChaserLurkShiftBrace,
+    madChaserLurkSidestepRight,
+    madChaserLurkSidestepLeft,
 } };
 
 /// Ten state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
 static const TaskFuncTable10 D_actor_342400_80161FE8 = { {
-    hopperEmergeAtSpot,
-    hopperEmergeBackflip,
-    hopperEmergeHopForward,
-    hopperCreepUntilHit,
-    hopperEmergeArcBack,
-    hopperEmergeHopBack,
-    hopperEmergeBackOff,
-    hopperEmergeHighArc,
-    hopperEmergeFlipOver,
+    madChaserEmergeAtSpot,
+    madChaserEmergeBackflip,
+    madChaserEmergeHopForward,
+    madChaserCreepUntilHit,
+    madChaserEmergeArcBack,
+    madChaserEmergeHopBack,
+    madChaserEmergeBackOff,
+    madChaserEmergeHighArc,
+    madChaserEmergeFlipOver,
     func_actor_342400_80168394,
 } };
 
 /// Sub-state handlers `func_actor_342400_80169C84` dispatches by `field_422`.
 static const TaskFuncTable6 D_actor_342400_80162010 = { {
-    hopperPullStart,
-    hopperPullReact,
-    hopperPulledStruggle,
-    hopperPulledIn,
-    hopperPulledLimp,
-    hopperPulledIn,
+    madChaserPullStart,
+    madChaserPullReact,
+    madChaserPulledStruggle,
+    madChaserPulledIn,
+    madChaserPulledLimp,
+    madChaserPulledIn,
 } };
 
 /// Five state handlers, indexed by `Actor341700Work::field_420`; copied to
 /// the stack before dispatch.
 static const TaskFuncTable5 D_actor_342400_80162028 = { {
-    hopperDeathCryUnlink,
-    hopperDeathSettleQuiet,
+    madChaserDeathCryUnlink,
+    madChaserDeathSettleQuiet,
     func_actor_342400_8016BAF4,
-    hopperDropBodies,
+    madChaserDropBodies,
     func_actor_342400_8016BBD0,
 } };
 
@@ -1124,21 +1124,21 @@ static const TaskFuncTable5 D_actor_342400_80162028 = { {
 /// the stack before dispatch.
 static const TaskFuncTable7 D_actor_342400_8016203C = { {
     func_actor_342400_8016BBD8,
-    hopperDeathSettleQuiet,
+    madChaserDeathSettleQuiet,
     func_actor_342400_8016BAF4,
-    hopperBeginShrink,
+    madChaserBeginShrink,
     func_actor_342400_8016BD3C,
-    hopperShrink,
+    madChaserShrink,
     func_actor_342400_8016BED8,
 } };
 
-#include "../../shared/hopping_enemy_lurk_look.inc.c"
+#include "../../shared/mad_chaser_lurk_look.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_sidestep_combat.inc.c"
+#include "../../shared/mad_chaser_lurk_sidestep_combat.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_sidestep_right.inc.c"
+#include "../../shared/mad_chaser_lurk_sidestep_right.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_sidestep_left.inc.c"
+#include "../../shared/mad_chaser_lurk_sidestep_left.inc.c"
 
 /// Message 0x2C00 with low nibble 3 (see `field_44C`) consumes the message and
 /// moves the task to state 7 with a fresh state machine; returns 1 when it did,
@@ -1165,7 +1165,7 @@ static __inline__ s16 take_hit_nibble3(Task* arg0)
 /// Per-frame callback, the ten-state counterpart of
 /// `func_actor_342400_80165FC0`: in mode 0 a pending hit (`take_hit_nibble3`) replaces
 /// the state handler, and the root rotation is rebuilt from 0x78..0x7C before
-/// `hopperApplyContacts`.
+/// `madChaserApplyContacts`.
 static void func_actor_342400_801670C0(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
@@ -1182,23 +1182,23 @@ static void func_actor_342400_801670C0(Task* arg0)
             if (take_hit_nibble3(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            hopperTickAnim(arg0);
+            madChaserTickAnim(arg0);
             update_rotation(arg0);
-            hopperApplyContacts(arg0, 0);
+            madChaserApplyContacts(arg0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-/// `hopperSetStateS16` with an `s16` state. The narrower parameter is load-bearing:
-/// with the `s32` one, `hopperEmergeAtSpot` no longer matches. Each
+/// `madChaserSetStateS16` with an `s16` state. The narrower parameter is load-bearing:
+/// with the `s32` one, `madChaserEmergeAtSpot` no longer matches. Each
 /// call site reloads `work`, and cross-jumping merges the identical stores,
 /// which is what leaves one `lw` per arm in front of a shared tail.
 static __inline__ void set_state_s16(Task* arg0, s16 state)
@@ -1209,34 +1209,34 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
     w->field_422 = 0;
 }
 
-#include "../../shared/hopping_enemy_emerge_at_spot.inc.c"
+#include "../../shared/mad_chaser_emerge_at_spot.inc.c"
 
-#include "../../shared/hopping_enemy_emerge_backflip.inc.c"
+#include "../../shared/mad_chaser_emerge_backflip.inc.c"
 
-#include "../../shared/hopping_enemy_emerge_hop_forward.inc.c"
+#include "../../shared/mad_chaser_emerge_hop_forward.inc.c"
 
-#include "../../shared/hopping_enemy_creep.inc.c"
+#include "../../shared/mad_chaser_creep.inc.c"
 
-#include "../../shared/hopping_enemy_emerge_arc_back.inc.c"
+#include "../../shared/mad_chaser_emerge_arc_back.inc.c"
 
-#include "../../shared/hopping_enemy_emerge_hop_back.inc.c"
+#include "../../shared/mad_chaser_emerge_hop_back.inc.c"
 
-#include "../../shared/hopping_enemy_emerge_back_off.inc.c"
+#include "../../shared/mad_chaser_emerge_back_off.inc.c"
 
-#include "../../shared/hopping_enemy_emerge_high_arc.inc.c"
+#include "../../shared/mad_chaser_emerge_high_arc.inc.c"
 
-#include "../../shared/hopping_enemy_emerge_flip_over.inc.c"
+#include "../../shared/mad_chaser_emerge_flip_over.inc.c"
 
 /// The same creep as a second entry of the state table.
-#define hopperCreepUntilHit func_actor_342400_80168394
-#include "../../shared/hopping_enemy_creep.inc.c"
-#undef hopperCreepUntilHit
+#define madChaserCreepUntilHit func_actor_342400_80168394
+#include "../../shared/mad_chaser_creep.inc.c"
+#undef madChaserCreepUntilHit
 
-#include "../../shared/hopping_enemy_pulled_struggle.inc.c"
+#include "../../shared/mad_chaser_pulled_struggle.inc.c"
 
-#include "../../shared/hopping_enemy_pulled_in.inc.c"
+#include "../../shared/mad_chaser_pulled_in.inc.c"
 
-#include "../../shared/hopping_enemy_pulled_limp.inc.c"
+#include "../../shared/mad_chaser_pulled_limp.inc.c"
 
 /// Per-frame callback, the five-state counterpart of
 /// `func_actor_342400_801690FC`; unlike it, clears bit 0x80 of `field_C` on
@@ -1260,11 +1260,11 @@ static void func_actor_342400_80168F14(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -1293,46 +1293,46 @@ static void func_actor_342400_801690FC(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-#include "../../shared/hopping_enemy_sound_bank.inc.c"
+#include "../../shared/mad_chaser_sound_bank.inc.c"
 
 static void func_actor_342400_80169408(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        hopperVanish,
-        hopperVanishFree,
+        madChaserVanish,
+        madChaserVanishFree,
     };
 
     states[(s16)work->field_420](arg0);
 }
 
-/// Once bit 7 of `gSceneCombatState.hopperAlertOwner` is set, puts the task in state 3 with
+/// Once bit 7 of `gSceneCombatState.madChaserAlertOwner` is set, puts the task in state 3 with
 /// the state machine at state 5 and returns 1; otherwise returns 0.
-s16 hopperJoinAlert(Task* arg0)
+s16 madChaserJoinAlert(Task* arg0)
 {
-    if ((s8)gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED) {
-        hopperEnterState(arg0, 3);
-        hopperSetStateS16(arg0, 5);
+    if ((s8)gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED) {
+        madChaserEnterState(arg0, 3);
+        madChaserSetStateS16(arg0, 5);
         return 1;
     }
     return 0;
 }
 
-#include "../../shared/hopping_enemy_alert_hold.inc.c"
+#include "../../shared/mad_chaser_alert_hold.inc.c"
 
-#include "../../shared/hopping_enemy_take_request.inc.c"
+#include "../../shared/mad_chaser_take_request.inc.c"
 
-#include "../../shared/hopping_enemy_command_msg.inc.c"
+#include "../../shared/mad_chaser_command_msg.inc.c"
 
 /// Moves the model: writes `pos` into the root part's translation and marks
 /// the coordinate dirty. `part` is accepted but unused.
@@ -1347,17 +1347,17 @@ void func_actor_342400_80169620(Task* task, s16 part, VECTOR3* pos)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/hopping_enemy_pin_part.inc.c"
+#include "../../shared/mad_chaser_pin_part.inc.c"
 
 /// Scales `arg1` by the animation speed `field_41C`, in 1/16 units.
-s32 hopperScaleBySpeed(Task* arg0, s16 arg1)
+s32 madChaserScaleBySpeed(Task* arg0, s16 arg1)
 {
     return (s32)((((Actor341700Work*)arg0->work)->field_41C * arg1) << 0xC) >> 0x10;
 }
 
 /// Returns 1 when the hit flags are set - bit 0 of the flag halfword or bits
 /// 0x102 of the word - and 0 otherwise.
-s16 hopperAnimEnded(Task* arg0)
+s16 madChaserAnimEnded(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -1390,13 +1390,13 @@ static void func_actor_342400_80169880(Task* arg0)
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_342400_8016AA9C,
-        hopperDespawn,
+        madChaserDespawn,
     };
 
     states[(s16)work->field_420](arg0);
 }
 
-#include "../../shared/hopping_enemy_turn_to_player.inc.c"
+#include "../../shared/mad_chaser_turn_to_player.inc.c"
 
 static void func_actor_342400_80169968(Task* arg0)
 {
@@ -1422,7 +1422,7 @@ static void func_actor_342400_80169990(Task* arg0)
     work->field_422 = 0;
 }
 
-/// Unless `hopperTakeHitRequest` consumes a pending request, runs the
+/// Unless `madChaserTakeHitRequest` consumes a pending request, runs the
 /// sub-state handler for `field_422` from a three-entry table.
 static void func_actor_342400_801699A4(Task* arg0)
 {
@@ -1431,7 +1431,7 @@ static void func_actor_342400_801699A4(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     sp   = D_actor_342400_80161EE0;
-    if ((hopperTakeHitRequest(arg0) << 0x10) == 0) {
+    if ((madChaserTakeHitRequest(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
@@ -1462,8 +1462,8 @@ static void func_actor_342400_80169B04(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        hopperRecoilLight,
-        hopperRecoilRecover,
+        madChaserRecoilLight,
+        madChaserRecoilRecover,
     };
 
     states[(s16)work->field_422](arg0);
@@ -1473,8 +1473,8 @@ static void func_actor_342400_80169B58(Task* arg0)
 {
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        hopperRecoilHeavy,
-        hopperRecoilHeavyEnd,
+        madChaserRecoilHeavy,
+        madChaserRecoilHeavyEnd,
     };
 
     states[(s16)work->field_422](arg0);
@@ -1485,7 +1485,7 @@ static void func_actor_342400_80169BAC(Task* arg0)
     Actor341700Work* work                = (Actor341700Work*)arg0->work;
     void             (*states[2])(Task*) = {
         func_actor_342400_80169CF8,
-        hopperStatusHold,
+        madChaserStatusHold,
     };
 
     states[(s16)work->field_422](arg0);
@@ -1500,7 +1500,7 @@ static void func_actor_342400_80169C00(Task* arg0)
     sp   = D_actor_342400_80161ED4;
     sp.funcs[(s16)work->field_422](arg0);
     if (work->field_44F == 1) {
-        hopperTakeKnockdownRequest(arg0);
+        madChaserTakeKnockdownRequest(arg0);
     }
 }
 
@@ -1526,21 +1526,21 @@ static void func_actor_342400_80169CF8(Task* arg0)
     work->field_422 = work->field_422 + 1;
 }
 
-#include "../../shared/hopping_enemy_status_hold.inc.c"
+#include "../../shared/mad_chaser_status_hold.inc.c"
 
-#include "../../shared/hopping_enemy_knockdown_start.inc.c"
+#include "../../shared/mad_chaser_knockdown_start.inc.c"
 
-#include "../../shared/hopping_enemy_knockdown_rise.inc.c"
+#include "../../shared/mad_chaser_knockdown_rise.inc.c"
 
-#include "../../shared/hopping_enemy_knockdown_end.inc.c"
+#include "../../shared/mad_chaser_knockdown_end.inc.c"
 
-#include "../../shared/hopping_enemy_walk_finish.inc.c"
+#include "../../shared/mad_chaser_walk_finish.inc.c"
 
-#include "../../shared/hopping_enemy_start_leap.inc.c"
+#include "../../shared/mad_chaser_start_leap.inc.c"
 
-#include "../../shared/hopping_enemy_leap_land.inc.c"
+#include "../../shared/mad_chaser_leap_land.inc.c"
 
-#include "../../shared/hopping_enemy_alert_cry.inc.c"
+#include "../../shared/mad_chaser_alert_cry.inc.c"
 
 /// Advances the sub-state once the frame counter has passed 0x50.
 static void func_actor_342400_8016A240(Task* arg0)
@@ -1556,14 +1556,14 @@ static void func_actor_342400_8016A240(Task* arg0)
     }
 }
 
-#include "../../shared/hopping_enemy_alert_release.inc.c"
+#include "../../shared/mad_chaser_alert_release.inc.c"
 
-#include "../../shared/hopping_enemy_alert_crouch.inc.c"
+#include "../../shared/mad_chaser_alert_crouch.inc.c"
 
-#include "../../shared/hopping_enemy_alert_sidestep.inc.c"
+#include "../../shared/mad_chaser_alert_sidestep.inc.c"
 
 /// Runs the sub-state handler for `field_422` from a four-entry table.
-void hopperDangleState(Task* arg0)
+void madChaserDangleState(Task* arg0)
 {
     Actor341700Work* work;
     TaskFuncTable4   sp;
@@ -1588,17 +1588,17 @@ static void func_actor_342400_8016A4FC(Task* arg0)
     work->field_422  = work->field_422 + 1;
 }
 
-#include "../../shared/hopping_enemy_dangle_sway.inc.c"
+#include "../../shared/mad_chaser_dangle_sway.inc.c"
 
-#include "../../shared/hopping_enemy_death_cry.inc.c"
+#include "../../shared/mad_chaser_death_cry.inc.c"
 
-#include "../../shared/hopping_enemy_death_settle.inc.c"
+#include "../../shared/mad_chaser_death_settle.inc.c"
 
-#include "../../shared/hopping_enemy_death_wait_anim.inc.c"
+#include "../../shared/mad_chaser_death_wait_anim.inc.c"
 
-#include "../../shared/hopping_enemy_begin_death.inc.c"
+#include "../../shared/mad_chaser_begin_death.inc.c"
 
-#include "../../shared/hopping_enemy_death_translucent.inc.c"
+#include "../../shared/mad_chaser_death_translucent.inc.c"
 
 static void func_actor_342400_8016A9AC(Task* arg0)
 {
@@ -1624,7 +1624,7 @@ static void func_actor_342400_8016A9C4(Task* arg0)
     }
 }
 
-#include "../../shared/hopping_enemy_burst.inc.c"
+#include "../../shared/mad_chaser_burst.inc.c"
 
 static void func_actor_342400_8016AA9C(Task* arg0)
 {
@@ -1635,13 +1635,13 @@ static void func_actor_342400_8016AA9C(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-#include "../../shared/hopping_enemy_despawn.inc.c"
+#include "../../shared/mad_chaser_despawn.inc.c"
 
-#include "../../shared/hopping_enemy_recoil_light.inc.c"
+#include "../../shared/mad_chaser_recoil_light.inc.c"
 
-#include "../../shared/hopping_enemy_recoil_heavy.inc.c"
+#include "../../shared/mad_chaser_recoil_heavy.inc.c"
 
-#include "../../shared/hopping_enemy_recoil_heavy_end.inc.c"
+#include "../../shared/mad_chaser_recoil_heavy_end.inc.c"
 
 static void func_actor_342400_8016AE24(Task* arg0)
 {
@@ -1650,7 +1650,7 @@ static void func_actor_342400_8016AE24(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     sp   = D_actor_342400_80161FB4;
-    if ((hopperJoinAlert(arg0) << 0x10) == 0) {
+    if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
@@ -1662,12 +1662,12 @@ static void func_actor_342400_8016AEAC(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     sp   = D_actor_342400_80161FC0;
-    if ((hopperJoinAlert(arg0) << 0x10) == 0) {
+    if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
 
-#include "../../shared/hopping_enemy_lurk_rise_state.inc.c"
+#include "../../shared/mad_chaser_lurk_rise_state.inc.c"
 
 static void func_actor_342400_8016AFA8(Task* arg0)
 {
@@ -1676,7 +1676,7 @@ static void func_actor_342400_8016AFA8(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     sp   = D_actor_342400_80161FCC;
-    if ((hopperJoinAlert(arg0) << 0x10) != 0) {
+    if ((madChaserJoinAlert(arg0) << 0x10) != 0) {
         work->field_438 = 0;
         return;
     }
@@ -1694,18 +1694,18 @@ static void func_actor_342400_8016B038(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-#include "../../shared/hopping_enemy_start_hold.inc.c"
+#include "../../shared/mad_chaser_start_hold.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_wait.inc.c"
+#include "../../shared/mad_chaser_lurk_wait.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_idle_end.inc.c"
+#include "../../shared/mad_chaser_lurk_idle_end.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_crouch.inc.c"
+#include "../../shared/mad_chaser_lurk_crouch.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_raise.inc.c"
+#include "../../shared/mad_chaser_lurk_raise.inc.c"
 
 /// Requests animation 0xF and advances the sub-state.
-void hopperLurkRiseStart(Task* arg0)
+void madChaserLurkRiseStart(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
@@ -1716,34 +1716,34 @@ void hopperLurkRiseStart(Task* arg0)
     work->field_422 = work->field_422 + 1;
 }
 
-#include "../../shared/hopping_enemy_lurk_rise_end.inc.c"
+#include "../../shared/mad_chaser_lurk_rise_end.inc.c"
 
-#include "../../shared/hopping_enemy_start_alert.inc.c"
+#include "../../shared/mad_chaser_start_alert.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_brace.inc.c"
+#include "../../shared/mad_chaser_lurk_brace.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_shift_start.inc.c"
+#include "../../shared/mad_chaser_lurk_shift_start.inc.c"
 
-#include "../../shared/hopping_enemy_lurk_shift_brace.inc.c"
+#include "../../shared/mad_chaser_lurk_shift_brace.inc.c"
 
-#include "../../shared/hopping_enemy_pull_start.inc.c"
+#include "../../shared/mad_chaser_pull_start.inc.c"
 
-#include "../../shared/hopping_enemy_pull_react.inc.c"
+#include "../../shared/mad_chaser_pull_react.inc.c"
 
-#include "../../shared/hopping_enemy_vanish.inc.c"
+#include "../../shared/mad_chaser_vanish.inc.c"
 
-#include "../../shared/hopping_enemy_vanish_free.inc.c"
+#include "../../shared/mad_chaser_vanish_free.inc.c"
 
-#include "../../shared/hopping_enemy_death_cry_unlink.inc.c"
+#include "../../shared/mad_chaser_death_cry_unlink.inc.c"
 
-#include "../../shared/hopping_enemy_death_settle_quiet.inc.c"
+#include "../../shared/mad_chaser_death_settle_quiet.inc.c"
 
 /// A further copy, under this file's own name.
-#define hopperDeathWaitAnim func_actor_342400_8016BAF4
-#include "../../shared/hopping_enemy_death_wait_anim.inc.c"
-#undef hopperDeathWaitAnim
+#define madChaserDeathWaitAnim func_actor_342400_8016BAF4
+#include "../../shared/mad_chaser_death_wait_anim.inc.c"
+#undef madChaserDeathWaitAnim
 
-#include "../../shared/hopping_enemy_drop_bodies.inc.c"
+#include "../../shared/mad_chaser_drop_bodies.inc.c"
 
 /// Empty state handler.
 static void func_actor_342400_8016BBD0(Task* arg0)
@@ -1751,18 +1751,18 @@ static void func_actor_342400_8016BBD0(Task* arg0)
 }
 
 /// A further copy, under this file's own name.
-#define hopperDeathCryUnlink func_actor_342400_8016BBD8
-#include "../../shared/hopping_enemy_death_cry_unlink.inc.c"
-#undef hopperDeathCryUnlink
+#define madChaserDeathCryUnlink func_actor_342400_8016BBD8
+#include "../../shared/mad_chaser_death_cry_unlink.inc.c"
+#undef madChaserDeathCryUnlink
 
-#include "../../shared/hopping_enemy_begin_shrink.inc.c"
+#include "../../shared/mad_chaser_begin_shrink.inc.c"
 
 /// A further copy, under this file's own name.
-#define hopperDeathTurnTranslucent func_actor_342400_8016BD3C
-#include "../../shared/hopping_enemy_death_translucent.inc.c"
-#undef hopperDeathTurnTranslucent
+#define madChaserDeathTurnTranslucent func_actor_342400_8016BD3C
+#include "../../shared/mad_chaser_death_translucent.inc.c"
+#undef madChaserDeathTurnTranslucent
 
-#include "../../shared/hopping_enemy_shrink.inc.c"
+#include "../../shared/mad_chaser_shrink.inc.c"
 
 static void func_actor_342400_8016BED8(Task* arg0)
 {
@@ -1774,4 +1774,4 @@ static void func_actor_342400_8016BED8(Task* arg0)
     work->field_422 = 0;
 }
 
-#include "../../shared/hopping_enemy_take_knockdown_request.inc.c"
+#include "../../shared/mad_chaser_take_knockdown_request.inc.c"

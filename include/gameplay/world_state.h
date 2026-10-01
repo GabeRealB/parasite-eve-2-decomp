@@ -37,10 +37,10 @@ enum {
     SCENE_COMBAT_SIGNAL_CAST_FOOTSTEP_OR_ALERT = 0xFF140000U
 };
 
-/// Shared ownership of a hopper alert: low nibble is the enemy placement index.
+/// Shared ownership of a Mad Chaser alert: low nibble is the enemy placement index.
 enum {
-    SCENE_COMBAT_HOPPER_OWNER_MASK    = 0x0F,
-    SCENE_COMBAT_HOPPER_ALERT_CLAIMED = 0x80
+    SCENE_COMBAT_MAD_CHASER_OWNER_MASK    = 0x0F,
+    SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED = 0x80
 };
 
 /// Actor 03700 group alert and player-release signals.
@@ -64,11 +64,11 @@ enum {
     SCENE_COMBAT_SHRINE_RELEASED = 2
 };
 
-/// Group activation phases of the leaping brutes.
+/// Group activation phases of the Zebra Stalkers (actor_400600).
 enum {
-    SCENE_COMBAT_BRUTE_WAITING = 0,
-    SCENE_COMBAT_BRUTE_DELAYED = 1,
-    SCENE_COMBAT_BRUTE_ACTIVE  = 2
+    SCENE_COMBAT_ZEBRA_STALKER_WAITING = 0,
+    SCENE_COMBAT_ZEBRA_STALKER_DELAYED = 1,
+    SCENE_COMBAT_ZEBRA_STALKER_ACTIVE  = 2
 };
 
 /// Difficulty rows distinguish a first normal run from a replay.
@@ -86,40 +86,40 @@ enum {
 typedef struct {
     union {
         struct {
-            u8 battlePhase;      // Battle phase (0 idle, 1 engaged, 2 finished, 3 resumed).
-            u8 endDelayFrames;   // Remaining battle-end hold frames; pauses with actor updates.
-            u8 actionFlags;      // Stimuli (1 noise, 2 PE active, 4/8 PE cast, 16 running footstep).
-            u8 enemyAlert;       // Enemy stimulus (0 none, 1/2 alerts with per-kind reactions).
+            u8 battlePhase;             // Battle phase (0 idle, 1 engaged, 2 finished, 3 resumed).
+            u8 endDelayFrames;          // Remaining battle-end hold frames; pauses with actor updates.
+            u8 actionFlags;             // Stimuli (1 noise, 2 PE active, 4/8 PE cast, 16 running footstep).
+            u8 enemyAlert;              // Enemy stimulus (0 none, 1/2 alerts with per-kind reactions).
         } bytes;
-        u32 packed;              // Combined view of the four signal bytes.
+        u32 packed;                     // Combined view of the four signal bytes.
     } signals;
-    u8  actorControl;            // Actor control (0 update/draw, 1 pause/redraw, 2 hide).
-    u8  peTargetCount;           // Contact claims for the current PE cast; Life Drain's damage divisor.
-    u16 battleRefs;              // Outstanding enemy and encounter holds, including pending spawns.
-    s32 expReward;               // Experience accumulated for the battle result.
-    s32 bpReward;                // Battle points accumulated for the battle result.
-    s32 mpReward;                // MP accumulated for the battle result.
-    s32 lifeDrainHp;             // Drain damage capped per enemy at its remaining HP; paid to the player.
-    s8  actor00700DeathAlert;    // Group alert after an actor 00700/300700 enemy starts dying (0/1).
-    u8  actor03700Flags;         // Group signals (1 alert latched, 2 release the held player).
-    s8  actor03700Wave;          // Scripted entrance/wave stage (0 initial, 1 begin, 2+ wave thresholds).
-    s8  actor02400Alert;         // Group awakening latched when an actor 02400 projectile is spawned (0/1).
-    s8  actor01600Wave;          // Scripted activation (0 hold, 1 entrance, 2 engage, 3+ wave thresholds).
-    u8  pairedEnemySignals;      // Actor 105100/205200 handshake (1 charge, 2 heal request, 4 heal ready, 8 reset).
-    s8  spiderEntranceReady;     // Releases the scripted web-spider entrance (0 hold, 1 release).
-    u8  hopperAlertOwner;        // Hopper alert claim: bit 7 held, low nibble enemy placement index.
-    s8  shrineEnemyPhase;        // Shrine entrance (0 hidden, 1 reveal/reset delay, 2 run delay).
-    s8  actor02500EntranceReady; // Latched group entrance trigger for actor 02500 (0/1).
-    s8  spiderAmbushReady;       // Latched group ambush trigger for web spiders (0/1).
-    s8  actor00400HideRequested; // Hides the actor 00400 group and cuts short its death fade (0/1).
-    s8  bruteGroupPhase;         // Leaping-brute group activation (0 wait, 1 delayed, 2 active).
-    s8  enemySoundBankQueued;    // The scene's shared enemy sound-bank load has been queued (0/1).
-    s8  podDeathStarted;         // A power-plant pod has begun its death sequence (0/1).
-    s8  bruteDeathAlert;         // A leaping brute has reached its death cleanup; alerts the group (0/1).
-    s8  actor00300AttackAlert;   // Group attack trigger, cleared by actor 00300 patrols (0/1).
-    s8  lungerDeathAlert;        // Alerts surviving lunging enemies when one starts dying (0/1).
-    u8  field_2A;                // Initialized to zero; role unproven.
-    u8  difficulty;              // Damage/threshold row (saved modes 0..3, 4 normal replay).
+    u8  actorControl;                   // Actor control (0 update/draw, 1 pause/redraw, 2 hide).
+    u8  peTargetCount;                  // Contact claims for the current PE cast; Life Drain's damage divisor.
+    u16 battleRefs;                     // Outstanding enemy and encounter holds, including pending spawns.
+    s32 expReward;                      // Experience accumulated for the battle result.
+    s32 bpReward;                       // Battle points accumulated for the battle result.
+    s32 mpReward;                       // MP accumulated for the battle result.
+    s32 lifeDrainHp;                    // Drain damage capped per enemy at its remaining HP; paid to the player.
+    s8  actor00700DeathAlert;           // Group alert after an actor 00700/300700 enemy starts dying (0/1).
+    u8  actor03700Flags;                // Group signals (1 alert latched, 2 release the held player).
+    s8  actor03700Wave;                 // Scripted entrance/wave stage (0 initial, 1 begin, 2+ wave thresholds).
+    s8  actor02400Alert;                // Group awakening latched when an actor 02400 projectile is spawned (0/1).
+    s8  actor01600Wave;                 // Scripted activation (0 hold, 1 entrance, 2 engage, 3+ wave thresholds).
+    u8  pairedEnemySignals;             // Actor 105100/205200 handshake (1 charge, 2 heal request, 4 heal ready, 8 reset).
+    s8  maggotCaterpillarEntranceReady; // Releases the Maggot/Caterpillar scripted entrance (0 hold, 1 release).
+    u8  madChaserAlertOwner;            // Mad Chaser alert claim: bit 7 held, low nibble enemy placement index.
+    s8  shrineEnemyPhase;               // Shrine entrance (0 hidden, 1 reveal/reset delay, 2 run delay).
+    s8  actor02500EntranceReady;        // Latched group entrance trigger for actor 02500 (0/1).
+    s8  maggotCaterpillarAmbushReady;   // Latched Maggot/Caterpillar group ambush trigger (0/1).
+    s8  actor00400HideRequested;        // Hides the actor 00400 group and cuts short its death fade (0/1).
+    s8  zebraStalkerGroupPhase;         // Zebra Stalker group activation (0 wait, 1 delayed, 2 active).
+    s8  enemySoundBankQueued;           // The scene's shared enemy sound-bank load has been queued (0/1).
+    s8  generatorDeathStarted;          // A Generator has begun its death sequence (0/1).
+    s8  zebraStalkerDeathAlert;         // A Zebra Stalker has reached its death cleanup; alerts the group (0/1).
+    s8  actor00300AttackAlert;          // Group attack trigger, cleared by actor 00300 patrols (0/1).
+    s8  golemPawnRookDeathAlert;        // Alerts the surviving Pawn/Rook GOLEMs when one starts dying (0/1).
+    u8  field_2A;                       // Initialized to zero; role unproven.
+    u8  difficulty;                     // Damage/threshold row (saved modes 0..3, 4 normal replay).
 } SceneCombatState;
 STATIC_ASSERT_SIZEOF(SceneCombatState, 0x2C);
 

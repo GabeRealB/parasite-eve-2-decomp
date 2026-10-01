@@ -38,12 +38,12 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/glow_pod.h"
+#include "../../shared/skull_stalker.h"
 
-extern EnemyParams gGlowPodParams;
-extern u8          gGlowPodAnimSets[];
-extern SVECTOR     gGlowPodSparkOffset;
-extern SVECTOR     gGlowPodHitFxOffset;
+extern EnemyParams gSkullStalkerParams;
+extern u8          gSkullStalkerAnimSets[];
+extern SVECTOR     gSkullStalkerSparkOffset;
+extern SVECTOR     gSkullStalkerHitFxOffset;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -53,7 +53,7 @@ void             func_actor_207200_8014AC9C(Task*);
 
 DamageAttack D_actor_207200_8014DBB8[1] = { 0 };
 
-EnemyParams gGlowPodParams = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99 };
+EnemyParams gSkullStalkerParams = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99 };
 
 TmdBone D_actor_207200_8014DBCC[3] = {
 #include "assets/actor_207200_model_046A8_skeleton.inc"
@@ -133,7 +133,7 @@ AnimationSet D_actor_207200_8014E77C = {
 
 TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, func_actor_207200_8014AC9C, { .model = &D_actor_207200_8014E4C8 } };
 
-u8 gGlowPodAnimSets[12] = {
+u8 gSkullStalkerAnimSets[12] = {
     0,
     0,
     0,
@@ -148,26 +148,26 @@ u8 gGlowPodAnimSets[12] = {
     128,
 };
 
-SVECTOR gGlowPodSparkOffset = { 0, -100, 0, 0 };
+SVECTOR gSkullStalkerSparkOffset = { 0, -100, 0, 0 };
 
-SVECTOR gGlowPodHitFxOffset = { 0, 0, 100, 0 };
+SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
 
 DamageAttack D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
 
-#include "../../shared/glow_pod_spawn_state.inc.c"
+#include "../../shared/skull_stalker_spawn_state.inc.c"
 
-#include "../../shared/glow_pod_idle_tick.inc.c"
+#include "../../shared/skull_stalker_idle_tick.inc.c"
 
-#include "../../shared/glow_pod_hits.inc.c"
+#include "../../shared/skull_stalker_hits.inc.c"
 
-#include "../../shared/glow_pod_inlines.inc.c"
+#include "../../shared/skull_stalker_inlines.inc.c"
 
-#include "../../shared/glow_pod_death_state.inc.c"
+#include "../../shared/skull_stalker_death_state.inc.c"
 
 /// The small enemy's state handlers - spawn, live tick and dying tick - which
 /// `func_actor_207200_8014AC9C` dispatches through by task state.
 static const GpEnemyTaskFuncTable3 D_actor_207200_80149E24 = {
-    { glowPodSpawnState, glowPodUpdateState, glowPodDeathState }
+    { skullStalkerSpawnState, skullStalkerUpdateState, skullStalkerDeathState }
 };
 
 void func_actor_207200_8014AC9C(Task* arg0)
@@ -178,26 +178,26 @@ void func_actor_207200_8014AC9C(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/glow_pod_update_state.inc.c"
+#include "../../shared/skull_stalker_update_state.inc.c"
 
-#include "../../shared/glow_pod_reaction_flags.inc.c"
+#include "../../shared/skull_stalker_reaction_flags.inc.c"
 
-#include "../../shared/glow_pod_reaction_dispatch.inc.c"
+#include "../../shared/skull_stalker_reaction_dispatch.inc.c"
 
 /// Drives animation slots 1 and 2 from the work's animation id `field_28C`.
 /// When it differs from the remembered `field_28E` it is remembered, the
 /// frame counter restarts and both slots switch to it with a blend of 8;
 /// otherwise the counter ticks and both slots advance.
-void glowPodAnimate(Task* arg0)
+void skullStalkerAnimate(Task* arg0)
 {
-    glowEnemy2TickAnim(arg0);
+    skullStalkerTickAnim(arg0);
 }
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
 /// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
-void glowPodColour(Enemy* arg0, Task* task)
+void skullStalkerColour(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;
     void**    scratch;
@@ -216,8 +216,8 @@ void glowPodColour(Enemy* arg0, Task* task)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-#include "../../shared/glow_pod_light_ramp.inc.c"
+#include "../../shared/skull_stalker_light_ramp.inc.c"
 
-#include "../../shared/glow_pod_flatten.inc.c"
+#include "../../shared/skull_stalker_flatten.inc.c"
 
-#include "../../shared/glow_pod_exit.inc.c"
+#include "../../shared/skull_stalker_exit.inc.c"

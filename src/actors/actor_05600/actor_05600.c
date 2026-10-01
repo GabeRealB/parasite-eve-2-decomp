@@ -52,10 +52,10 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 #include "../../shared/player_detection.h"
-#include "../../shared/lunging_enemy.h"
+#include "../../shared/golem_pawn_rook.h"
 
 /// Placement descriptor for this actor.
-extern DamageAttack gLungerAttacks[5];
+extern DamageAttack gGolemPawnRookAttacks[5];
 
 /// Enemy parameters the approach cycle parks at `Enemy::param`; its `hpMax`
 /// becomes the enemy's `hp`.
@@ -73,18 +73,18 @@ extern AnimationSet* Actor05600_D164C4[31];
 
 /// Sound id of the burst cue, with the spawn context's room/channel bits packed
 /// in.
-extern s32 gLungerShotSound;
+extern s32 gGolemPawnRookShotSound;
 
 /// Frame counts of the actor's animations, indexed by `Actor105600Work.field_694`.
-extern s16 gLungerAnimBlendFrames[];
+extern s16 gGolemPawnRookAnimBlendFrames[];
 
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
 /// picked by the id's 0x8000 bit.
-extern s16 gLungerWeakPointWeapons[];
-extern s16 gLungerWeakPointPe[];
+extern s16 gGolemPawnRookWeakPointWeapons[];
+extern s16 gGolemPawnRookWeakPointPe[];
 
 /// Sound ids of the actor's cues, indexed from `Actor105600Work.field_6D6`.
-extern s32 gLungerVoiceCues[];
+extern s32 gGolemPawnRookVoiceCues[];
 
 /// The approach cycle's per-state handlers, indexed by `Actor105600Work.field_6A6`.
 extern TaskFunc Actor05600_D16540[];
@@ -126,7 +126,7 @@ void                Actor05600_Fn04A70(Task*);
 void                Actor05600_Fn04BAC(Task*);
 void                Actor05600_Fn04CA0(Task*);
 
-s16 gLungerAnimBlendFrames[32] = {
+s16 gGolemPawnRookAnimBlendFrames[32] = {
     0,
     8,
     8,
@@ -763,7 +763,7 @@ AnimationSet Actor05600_D16194 = {
     { NULL, Actor05600_D15A10, NULL, NULL, Actor05600_D15AC4, NULL, NULL, NULL },
 };
 
-DamageAttack gLungerAttacks[5] = {
+DamageAttack gGolemPawnRookAttacks[5] = {
     { 30, 5 },
     { 20, 5 },
     { 0, 8 },
@@ -772,10 +772,10 @@ DamageAttack gLungerAttacks[5] = {
 };
 
 EnemyParams Actor05600_D161D0[1] = {
-    { gLungerAttacks, 425, 125, 100, 5, 50, 6, 0, 0 },
+    { gGolemPawnRookAttacks, 425, 125, 100, 5, 50, 6, 0, 0 },
 };
 
-s16 gLungerWeakPointWeapons[46] = {
+s16 gGolemPawnRookWeakPointWeapons[46] = {
     0,
     1,
     0,
@@ -821,69 +821,69 @@ s16 gLungerWeakPointWeapons[46] = {
     0,
     1,
     1,
-    0,
-};
-
-s16 gLungerWeakPointPe[56] = {
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
     0,
 };
 
-s32 gLungerVoiceCues[17] = {
+s16 gGolemPawnRookWeakPointPe[56] = {
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+};
+
+s32 gGolemPawnRookVoiceCues[17] = {
     0,
     0x40380001,
     0x40380002,
@@ -903,7 +903,7 @@ s32 gLungerVoiceCues[17] = {
     0x40380012,
 };
 
-s32 gLungerShotSound = 0x40380007;
+s32 gGolemPawnRookShotSound = 0x40380007;
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -914,7 +914,7 @@ typedef struct {
 } Actor05600Storage8114;
 STATIC_ASSERT_SIZEOF(Actor05600Storage8114, 16);
 
-Actor05600Storage8114 gLungerImpactSound = { 0x40380008, { 0 } };
+Actor05600Storage8114 gGolemPawnRookImpactSound = { 0x40380008, { 0 } };
 
 u16 Actor05600_D16304[22] = {
     0,
@@ -1126,7 +1126,7 @@ u16* Actor05600_D16478[6] = {
     Actor05600_D16434,
 };
 
-s16 gLungerBeamRibbonCorners[2][4] = {
+s16 gGolemPawnRookBeamRibbonCorners[2][4] = {
     { 0, 1, 2, 3 },
     { 0, 1, 4, 5 },
 };
@@ -1173,30 +1173,30 @@ AnimationSet* Actor05600_D164C4[31] = {
 };
 
 TaskFunc Actor05600_D16540[15] = {
-    lungerIdleState,
-    lungerApproachState,
+    golemPawnRookIdleState,
+    golemPawnRookApproachState,
     Actor05600_Fn041E4,
     Actor05600_Fn04A68,
     Actor05600_Fn04A68,
     Actor05600_Fn04A68,
     Actor05600_Fn01E1C,
-    lungerLungeStrikeState,
+    golemPawnRookLungeStrikeState,
     Actor05600_Fn047D0,
-    lungerRecoilState,
+    golemPawnRookRecoilState,
     Actor05600_Fn04924,
-    lungerKnockdownState,
-    lungerDownedShiftState,
-    lungerCollapseState,
-    lungerDownedFinishState,
+    golemPawnRookKnockdownState,
+    golemPawnRookDownedShiftState,
+    golemPawnRookCollapseState,
+    golemPawnRookDownedFinishState,
 };
 
 /// Corner indices of the two ribbon polygons in the beam scratch's
 /// projected-point arrays.
-extern s16 gLungerBeamRibbonCorners[][4];
+extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 /// Sound id of the burst cue, with the spawn context's room/channel bits
 /// packed in.
-extern Actor05600Storage8114 gLungerImpactSound;
+extern Actor05600Storage8114 gGolemPawnRookImpactSound;
 
 static void        Actor05600_Fn03924(Enemy* ctx, Task* actor);
 static inline void _actor05600ApplyReaction(Task* actor);
@@ -1205,25 +1205,25 @@ static inline void _actor05600TickAnim(Task* actor);
 static inline void _actor05600Draw(Task* actor, GfxCoord* coord);
 static void        Actor05600_Fn03EBC(Enemy* ctx, Task* actor);
 
-#include "../../shared/lunging_enemy_hit_tick.inc.c"
+#include "../../shared/golem_pawn_rook_hit_tick.inc.c"
 
-#include "../../shared/lunging_enemy_approach.inc.c"
+#include "../../shared/golem_pawn_rook_approach.inc.c"
 
-#include "../../shared/lunging_enemy_proximity.inc.c"
+#include "../../shared/golem_pawn_rook_proximity.inc.c"
 
-#include "../../shared/lunging_enemy_knockdown.inc.c"
+#include "../../shared/golem_pawn_rook_knockdown.inc.c"
 
-#include "../../shared/lunging_enemy_downed_shift.inc.c"
+#include "../../shared/golem_pawn_rook_downed_shift.inc.c"
 
-#include "../../shared/lunging_enemy_collapse.inc.c"
+#include "../../shared/golem_pawn_rook_collapse.inc.c"
 
-#include "../../shared/lunging_enemy_turn.inc.c"
+#include "../../shared/golem_pawn_rook_turn.inc.c"
 
-#include "../../shared/lunging_enemy_hit_tilt.inc.c"
+#include "../../shared/golem_pawn_rook_hit_tilt.inc.c"
 
-#include "../../shared/lunging_enemy_anim_cues.inc.c"
+#include "../../shared/golem_pawn_rook_anim_cues.inc.c"
 
-#include "../../shared/lunging_enemy_dead.inc.c"
+#include "../../shared/golem_pawn_rook_dead.inc.c"
 
 /// Approach-cycle state machine, entry 6 of `Actor05600_D16540` for the
 /// second half of the fight. State 0 waits out the opening clip; state 1 backs
@@ -1266,7 +1266,7 @@ void Actor05600_Fn01E1C(Task* arg0)
             delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_6A4 = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
-            lungerAimLaserSight(arg0);
+            golemPawnRookAimLaserSight(arg0);
             work->field_6AE++;
             if (work->field_6AE >= 0x1E) {
                 work->field_6A8        = 2;
@@ -1331,7 +1331,7 @@ void Actor05600_Fn01E1C(Task* arg0)
                 work->field_6A4 = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
                 work->field_69E = 7;
             }
-            if (work->field_6BE != 0 && work->field_698 == gLungerAnimBlendFrames[13] - 1) {
+            if (work->field_6BE != 0 && work->field_698 == gGolemPawnRookAnimBlendFrames[13] - 1) {
                 work->field_6BA = 1;
                 work->field_6BC++;
                 work->field_6BE++;
@@ -1345,26 +1345,26 @@ void Actor05600_Fn01E1C(Task* arg0)
                 work->field_6CE        = 0;
                 work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else if (work->field_6BC >= 6) {
-                if (work->field_698 >= gLungerAnimBlendFrames[13] + 0x16) {
-                    work->field_6A8            = 4;
-                    work->field_694            = 0xF;
-                    work->field_6BC            = 0;
-                    work->field_6BE            = 0;
-                    gLungerAnimBlendFrames[13] = 0;
-                    work->field_6CC            = 0;
+                if (work->field_698 >= gGolemPawnRookAnimBlendFrames[13] + 0x16) {
+                    work->field_6A8                   = 4;
+                    work->field_694                   = 0xF;
+                    work->field_6BC                   = 0;
+                    work->field_6BE                   = 0;
+                    gGolemPawnRookAnimBlendFrames[13] = 0;
+                    work->field_6CC                   = 0;
                 }
             } else if (work->field_6BE < 6) {
-                if (work->field_698 >= gLungerAnimBlendFrames[13] + 3) {
-                    gLungerAnimBlendFrames[13] = 3;
-                    work->field_694            = 0xD;
-                    work->field_696            = 0x1E;
+                if (work->field_698 >= gGolemPawnRookAnimBlendFrames[13] + 3) {
+                    gGolemPawnRookAnimBlendFrames[13] = 3;
+                    work->field_694                   = 0xD;
+                    work->field_696                   = 0x1E;
                 }
-            } else if (work->field_698 >= gLungerAnimBlendFrames[13] + 0x16) {
-                work->field_6A8            = 1;
-                work->field_6BE            = 0;
-                work->field_694            = 0x1E;
-                gLungerAnimBlendFrames[13] = 0;
-                work->field_6CC            = 0;
+            } else if (work->field_698 >= gGolemPawnRookAnimBlendFrames[13] + 0x16) {
+                work->field_6A8                   = 1;
+                work->field_6BE                   = 0;
+                work->field_694                   = 0x1E;
+                gGolemPawnRookAnimBlendFrames[13] = 0;
+                work->field_6CC                   = 0;
             }
             break;
         case 4:
@@ -1392,15 +1392,15 @@ void Actor05600_Fn01E1C(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
-#include "../../shared/lunging_enemy_lunge_strike.inc.c"
+#include "../../shared/golem_pawn_rook_lunge_strike.inc.c"
 
-#include "../../shared/lunging_enemy_laser_sight.inc.c"
+#include "../../shared/golem_pawn_rook_laser_sight.inc.c"
 
-#include "../../shared/lunging_enemy_laser_beam.inc.c"
+#include "../../shared/golem_pawn_rook_laser_beam.inc.c"
 
-#include "../../shared/lunging_enemy_bullet_spawn.inc.c"
+#include "../../shared/golem_pawn_rook_bullet_spawn.inc.c"
 
-#include "../../shared/lunging_enemy_bullet_fly.inc.c"
+#include "../../shared/golem_pawn_rook_bullet_fly.inc.c"
 
 /// Spawn handler of the approach cycle: allocates the 0x6E4-byte work block,
 /// binds the animation set and reseeds the nineteen slots, then starts the
@@ -1631,7 +1631,7 @@ static inline void _actor05600StepRoot(Task* actor)
 
 /// Advances animation slots 1..0x12 by one frame, or, when `field_694` names a
 /// new animation, restarts the frame count and cross-fades every slot to it
-/// over the animation's `gLungerAnimBlendFrames` duration.
+/// over the animation's `gGolemPawnRookAnimBlendFrames` duration.
 static inline void _actor05600TickAnim(Task* actor)
 {
     Actor105600Work* work;
@@ -1642,7 +1642,7 @@ static inline void _actor05600TickAnim(Task* actor)
     if (work->field_694 != work->field_696) {
         work->field_696 = work->field_694;
         work->field_698 = 0;
-        duration        = gLungerAnimBlendFrames[work->field_694];
+        duration        = gGolemPawnRookAnimBlendFrames[work->field_694];
         for (i = 1; i < 0x13; i++) {
             func_800B4114(&work->rig.anim, i, work->field_694, 0, duration);
         }
@@ -1706,17 +1706,17 @@ static void Actor05600_Fn03EBC(Enemy* ctx, Task* actor)
     if (ctx->reactionFlags != 0) {
         _actor05600ApplyReaction(actor);
     }
-    lungerHitTick(actor);
+    golemPawnRookHitTick(actor);
     Actor05600_D16540[work->field_6A6](actor);
     if (work->field_69E != 0) {
-        lungerTurnTowardTarget(actor);
+        golemPawnRookTurnTowardTarget(actor);
     }
     _actor05600StepRoot(actor);
     _actor05600TickAnim(actor);
     if (work->field_6B4 != 0) {
-        lungerDecayHitTilt(actor);
+        golemPawnRookDecayHitTilt(actor);
     }
-    lungerPlayAnimCues(actor);
+    golemPawnRookPlayAnimCues(actor);
     coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
     actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
@@ -1760,7 +1760,7 @@ void Actor05600_Fn041E4(Task* arg0)
     switch (state) {
         case 0:
             speed = 0;
-            if (work->field_698 >= gLungerAnimBlendFrames[work->field_694]) {
+            if (work->field_698 >= gGolemPawnRookAnimBlendFrames[work->field_694]) {
                 speed = 0x14;
             }
             work->field_69C = speed;
@@ -1871,7 +1871,7 @@ void Actor05600_Fn041E4(Task* arg0)
 
 #include "../../shared/player_detection_segment.inc.c"
 
-#include "../../shared/lunging_enemy_idle.inc.c"
+#include "../../shared/golem_pawn_rook_idle.inc.c"
 
 /// Hit-reaction state, entry 8 of `Actor05600_D16540`: step 0 starts
 /// animation 0x11 and stops the actor; step 1 waits for frame 0x37, then parks
@@ -1907,7 +1907,7 @@ void Actor05600_Fn047D0(Task* task)
     }
 }
 
-#include "../../shared/lunging_enemy_recoil.inc.c"
+#include "../../shared/golem_pawn_rook_recoil.inc.c"
 
 /// Entry 0xA of `Actor05600_D16540`: step 0 waits for `Gp_TickObjFlag2` on
 /// the spawn context to fire, then starts animation 0x13 and clears
@@ -1938,7 +1938,7 @@ void Actor05600_Fn04924(Task* task)
     }
 }
 
-#include "../../shared/lunging_enemy_downed_finish.inc.c"
+#include "../../shared/golem_pawn_rook_downed_finish.inc.c"
 
 void Actor05600_Fn04A68(Task* task)
 {
@@ -1948,7 +1948,7 @@ void Actor05600_Fn04A68(Task* task)
 /// per-frame tick and teardown - dispatched through by `Actor05600_Fn04A70`.
 static const GpEnemyTaskFuncTable3 Actor05600_D00080 = {
     Actor05600_Fn04ACC,
-    lungerGunTick,
+    golemPawnRookGunTick,
     Gp_DestroyEnemy,
 };
 
@@ -1985,14 +1985,14 @@ static void Actor05600_Fn04ACC(Enemy* arg0, Task* task)
     task->state         = 1;
 }
 
-#include "../../shared/lunging_enemy_gun_tick.inc.c"
+#include "../../shared/golem_pawn_rook_gun_tick.inc.c"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
 static const GpEnemyTaskFuncTable3 Actor05600_D0008C = {
-    lungerBulletSpawn,
-    lungerBulletFly,
-    lungerBulletDestroy,
+    golemPawnRookBulletSpawn,
+    golemPawnRookBulletFly,
+    golemPawnRookBulletDestroy,
 };
 
 void Actor05600_Fn04BAC(Task* arg0)
@@ -2003,14 +2003,14 @@ void Actor05600_Fn04BAC(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/lunging_enemy_bullet_destroy.inc.c"
+#include "../../shared/golem_pawn_rook_bullet_destroy.inc.c"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
 static const GpEnemyTaskFuncTable3 Actor05600_D00098 = {
     Actor05600_Fn03924,
     Actor05600_Fn03EBC,
-    lungerDeadState,
+    golemPawnRookDeadState,
 };
 
 void Actor05600_Fn04CA0(Task* arg0)

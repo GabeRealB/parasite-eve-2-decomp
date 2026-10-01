@@ -66,7 +66,7 @@
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/actor_contacts.h"
-#include "../../shared/incinerator_boss.h"
+#include "../../shared/glutton.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
@@ -119,7 +119,7 @@ STATIC_ASSERT_SIZEOF(Actor444000RunScratch, 0x2C);
 
 /// Work block of the enemy dispatched through `D_actor_444000_80131F0C` --
 /// named for that table because the creature itself is not identified yet.
-/// `incinBossChunkSpawn` allocates it with `memCalloc(0x1C0, 0)` and
+/// `gluttonChunkSpawn` allocates it with `memCalloc(0x1C0, 0)` and
 /// parks it in that task's `Task::work` slot, so the size is anchored rather
 /// than guessed.
 ///
@@ -232,10 +232,10 @@ extern EnemyParams D_actor_444000_80144A38;
 extern EnemyParams D_actor_444000_80144A48;
 extern EnemyParams D_actor_444000_80144A58;
 
-extern s16                       gIncinBossEnded;
-extern s32                       gIncinBossGrabActive;
-extern s16                       gIncinBossLimbReach;
-extern s16                       gIncinBossSpinnersReleased;
+extern s16                       gGluttonEnded;
+extern s32                       gGluttonGrabActive;
+extern s16                       gGluttonLimbReach;
+extern s16                       gGluttonSpinnersReleased;
 extern PadScriptCmd              D_actor_444000_80144A74[2];
 extern PadScriptVibrationSegment D_actor_444000_80144A7C[2];
 extern PadScriptCmd              D_actor_444000_80144A84[2];
@@ -280,19 +280,19 @@ extern Actor444000Storage1888 D_actor_444000_80161888;
 /// Gameplay's escort `TaskDesc` table; entry 3 is the pair this boss spawns.
 extern TaskDesc D_80172604;
 
-extern AnimationSet* gIncinBossCaughtAnimSets[];
+extern AnimationSet* gGluttonCaughtAnimSets[];
 
 /// Which of the three drop-point groups the falling enemies use this round,
 /// rerolled off `gRandomLcgState` whenever a spawn arrives with `spawnArg1` 0.
-extern u8 gIncinBossRainGroup;
+extern u8 gGluttonRainGroup;
 /// Per-`spawnArg1` offset from the host model to the point the enemy is stood
 /// up at when it is spawned.
-extern SVECTOR gIncinBossRainLaunchOffsets[];
+extern SVECTOR gGluttonRainLaunchOffsets[];
 /// The drop points themselves: `vz` is added to the ring x coordinate and `vx`
 /// (less 0x189C) becomes the z coordinate.
-extern SVECTOR gIncinBossRainPoints[];
-/// `[group][spawnArg1]` index into `gIncinBossRainPoints`.
-extern u8 gIncinBossRainPointIndex[][8];
+extern SVECTOR gGluttonRainPoints[];
+/// `[group][spawnArg1]` index into `gGluttonRainPoints`.
+extern u8 gGluttonRainPointIndex[][8];
 /// Reply buffer the hold state hands message 0x3F8.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -303,11 +303,11 @@ typedef struct {
 } Actor444000Storage1898;
 STATIC_ASSERT_SIZEOF(Actor444000Storage1898, 32);
 
-extern Actor444000Storage1898 gIncinBossGrabQuery;
+extern Actor444000Storage1898 gGluttonGrabQuery;
 
 /// World point the spinner chases: written by `func_actor_444000_8013E058`,
 /// read by the spinner's tick as the target of its step.
-extern SVECTOR gIncinBossSpinnerTarget;
+extern SVECTOR gGluttonSpinnerTarget;
 
 /// Shared coordinate `func_actor_444000_80140BBC` rebuilds when the fight
 /// reaches sub-state 0x2D of state 9, parented to the host model's fifth part.
@@ -377,7 +377,7 @@ extern Actor444000Storage1928 D_actor_444000_80161928;
 
 /// Per-animation reset argument, a `[?][0x2D]` table of `field_7B3` indexed by
 /// the id that was playing before the switch.
-extern s8 gIncinBossAnimTransitions[][0x2D];
+extern s8 gGluttonAnimTransitions[][0x2D];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -604,13 +604,13 @@ EnemyParams D_actor_444000_80144A48 = { D_actor_444000_80144A00, 120, 0, 0, 0, 5
 
 EnemyParams D_actor_444000_80144A58 = { D_actor_444000_80144A00, 200, 0, 0, 0, 10, 0, 0, 0 };
 
-s16 gIncinBossEnded = 0;
+s16 gGluttonEnded = 0;
 
-s32 gIncinBossGrabActive = 0;
+s32 gGluttonGrabActive = 0;
 
-s16 gIncinBossLimbReach = 0;
+s16 gGluttonLimbReach = 0;
 
-s16 gIncinBossSpinnersReleased = 0;
+s16 gGluttonSpinnersReleased = 0;
 
 PadScriptCmd D_actor_444000_80144A74[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
@@ -2377,7 +2377,7 @@ AnimationSet D_actor_444000_80160C34 = {
     { NULL, D_actor_444000_801608C8, NULL, NULL, D_actor_444000_8016091C, NULL, NULL, NULL },
 };
 
-s8 gIncinBossAnimTransitions[45][45] = {
+s8 gGluttonAnimTransitions[45][45] = {
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -2583,9 +2583,9 @@ AnimationSet* D_actor_444000_80161670[8] = {
     NULL,
 };
 
-u8 gIncinBossRainGroup = 0;
+u8 gGluttonRainGroup = 0;
 
-AnimationSet* gIncinBossCaughtAnimSets[7] = {
+AnimationSet* gGluttonCaughtAnimSets[7] = {
     NULL,
     &D_actor_444000_8015E944,
     NULL,
@@ -2614,7 +2614,7 @@ TaskDesc D_actor_444000_801616B0[7] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_444000_80143888, { .model = &D_actor_444000_80161B50 } },
 };
 
-SVECTOR gIncinBossRainLaunchOffsets[8] = {
+SVECTOR gGluttonRainLaunchOffsets[8] = {
     { -1000, 0, -1800, 0 },
     { 800, 0, -800, 0 },
     { -1300, 0, 200, 0 },
@@ -2625,7 +2625,7 @@ SVECTOR gIncinBossRainLaunchOffsets[8] = {
     { -1100, 0, 900, 0 },
 };
 
-SVECTOR gIncinBossRainPoints[16] = {
+SVECTOR gGluttonRainPoints[16] = {
     { -2000, 0, -1800, 0 },
     { -1200, 0, -1900, 0 },
     { -80, 0, -1880, 0 },
@@ -2644,7 +2644,7 @@ SVECTOR gIncinBossRainPoints[16] = {
     { 0, 0, 0, 0 },
 };
 
-u8 gIncinBossRainPointIndex[3][8] = {
+u8 gGluttonRainPointIndex[3][8] = {
     { 7, 10, 8, 0, 4, 3, 12, 9 },
     { 2, 5, 12, 0, 6, 14, 13, 10 },
     { 14, 13, 9, 0, 12, 7, 10, 11 },
@@ -2687,9 +2687,9 @@ EffectSpawnArg D_actor_444000_80161880 = { NULL, 0, 0 };
 
 Actor444000Storage1888 D_actor_444000_80161888 = { { { .loc = { 0, 0 } }, 0 }, { 0, 0, 0, 0 } };
 
-SVECTOR gIncinBossSpinnerTarget = { 0, 0, 0, 0 };
+SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
-Actor444000Storage1898 gIncinBossGrabQuery = { { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+Actor444000Storage1898 gGluttonGrabQuery = { { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 Actor403200DropCoord D_actor_444000_801618B8 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
@@ -3024,29 +3024,29 @@ void func_actor_444000_801327E8(s16 action)
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/incinerator_boss_wall.inc.c"
+#include "../../shared/glutton_wall.inc.c"
 
-#include "../../shared/incinerator_boss_pose_limb.inc.c"
+#include "../../shared/glutton_pose_limb.inc.c"
 
-#include "../../shared/incinerator_boss_turn_neck.inc.c"
+#include "../../shared/glutton_turn_neck.inc.c"
 
-#include "../../shared/incinerator_boss_pitch_neck.inc.c"
+#include "../../shared/glutton_pitch_neck.inc.c"
 
-#include "../../shared/incinerator_boss_seed_blend.inc.c"
+#include "../../shared/glutton_seed_blend.inc.c"
 
-#include "../../shared/incinerator_boss_switch_anim.inc.c"
+#include "../../shared/glutton_switch_anim.inc.c"
 
-#include "../../shared/incinerator_boss_tick_blended.inc.c"
+#include "../../shared/glutton_tick_blended.inc.c"
 
-#include "../../shared/incinerator_boss_tick_anim.inc.c"
+#include "../../shared/glutton_tick_anim.inc.c"
 
-#include "../../shared/incinerator_boss_hit_effect.inc.c"
+#include "../../shared/glutton_hit_effect.inc.c"
 
 /// Walk `coord` a fixed 0x32/0x1000 of its own forward axis (column 2 of its
 /// rotation, normalised and GPF-scaled) and flag it for rebuild. The direction
 /// vector lives in an `SVECTOR` carved off the scratch stack and handed straight
 /// back; written as an inline so those scratch-head accesses stay absolute, the
-/// same reason as `incinShrinkRotation` above.
+/// same reason as `gluttonShrinkRotation` above.
 static __inline__ void Actor444000_StepForward(GfxCoord* coord)
 {
     u8*      head;
@@ -3124,7 +3124,7 @@ static void func_actor_444000_8013482C(Task* task)
         mat->ident.m22                = 0x1000;
     }
 
-    incinBossTickAnim(task);
+    gluttonTickAnim(task);
 
     frame = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x12 && work->field_7D8 != frame) {
@@ -3303,7 +3303,7 @@ static void func_actor_444000_8013482C(Task* task)
 
 /// Rebuild `coord`'s rotation around the yaw it already faces, left at full
 /// width but scaled by `y` vertically -- the squash the death sequence retracts
-/// each body with. The same shape as `incinScaleRotation` below, except
+/// each body with. The same shape as `gluttonScaleRotation` below, except
 /// the vertical scale arrives as an `s16`, which is what puts its sign
 /// extension at the `scale.vy` store rather than at the call site. The working
 /// matrix lives in a frame carved off the scratch stack, handed back once the
@@ -3350,7 +3350,7 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 /// animation slot: whether the collapse animation is still running or is
 /// holding its boundary pose.
 ///
-/// While it runs, `gIncinBossLimbReach` is walked down 0xC8 a step until it
+/// While it runs, `gGluttonLimbReach` is walked down 0xC8 a step until it
 /// is under 0x191, four one-shot cues fire on frames 0x33, 0x3D, 0x4E and 0x71
 /// of the fourth slot, and sub-states 0x14, 0x82, 0x14A and 0x1DC each hand one
 /// body over: 0x14 switches the host and escort 3 to light mode 1, while the
@@ -3358,7 +3358,7 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 /// reparenting is why both halves of the part's placement have to be resolved
 /// by hand -- `actorAccumulateToView` for the rotation it had up the
 /// chain and `actorLocalToView` for its origin -- the same pair
-/// `incinBossThrowSpawn` uses. Past each of those sub-states the body
+/// `gluttonThrowSpawn` uses. Past each of those sub-states the body
 /// sinks toward the host's own height 0x1E a step, clamped there, and squashes
 /// from 0x1000 to nothing over 0x28 steps, throwing effect 0x60196 at one of
 /// three offsets every fifth step and raising flag 0x80 on the last one.
@@ -3397,7 +3397,7 @@ static void func_actor_444000_80135448(Task* task)
         work->field_7B0               = 1;
         work->field_EFE               = 0;
 
-        incinBossTickAnim(task);
+        gluttonTickAnim(task);
 
         gGameSession->location.loc.variant = 3;
         id                                 = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54280007;
@@ -3408,15 +3408,15 @@ static void func_actor_444000_80135448(Task* task)
 
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_6 = 0;
-        incinBossTickAnim(task);
+        gluttonTickAnim(task);
     }
 
     if (!(work->slots0[1].flags & ANIMATION_SLOT_SETTLED)) {
-        if (gIncinBossLimbReach >= 0x191) {
-            gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
+        if (gGluttonLimbReach >= 0x191) {
+            gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         }
 
-        incinBossTickAnim(task);
+        gluttonTickAnim(task);
 
         frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x33 && work->field_7A8 != frame) {
@@ -3825,30 +3825,30 @@ static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
     norms[face + 1].vz = -0x1000;
 }
 
-#include "../../shared/incinerator_boss_throw_spawn.inc.c"
+#include "../../shared/glutton_throw_spawn.inc.c"
 
-#include "../../shared/incinerator_boss_throw_fly.inc.c"
+#include "../../shared/glutton_throw_fly.inc.c"
 
-#include "../../shared/incinerator_boss_inlines.inc.c"
+#include "../../shared/glutton_inlines.inc.c"
 
-#include "../../shared/incinerator_boss_glob_spawn.inc.c"
+#include "../../shared/glutton_glob_spawn.inc.c"
 
-#include "../../shared/incinerator_boss_glob_fall.inc.c"
+#include "../../shared/glutton_glob_fall.inc.c"
 
-#include "../../shared/incinerator_boss_glob_engulf.inc.c"
+#include "../../shared/glutton_glob_engulf.inc.c"
 
-#include "../../shared/incinerator_boss_glob_hold.inc.c"
+#include "../../shared/glutton_glob_hold.inc.c"
 
-#include "../../shared/incinerator_boss_chunk_spawn.inc.c"
+#include "../../shared/glutton_chunk_spawn.inc.c"
 
-#include "../../shared/incinerator_boss_chunk_fall.inc.c"
+#include "../../shared/glutton_chunk_fall.inc.c"
 
 /// State handlers of the textured prop sub-task: setup, per-frame refresh and
 /// teardown.
 static const GpEnemyTaskFuncTable3 D_actor_444000_80131E90 = {
     {
-        incinBossPropSetup,
-        incinBossPropTick,
+        gluttonPropSetup,
+        gluttonPropTick,
         Gp_DestroyEnemy,
     },
 };
@@ -3856,8 +3856,8 @@ static const GpEnemyTaskFuncTable3 D_actor_444000_80131E90 = {
 /// State handlers of the enemy `func_actor_444000_801438E4` dispatches.
 static const GpEnemyTaskFuncTable3 D_actor_444000_80131E9C = {
     {
-        incinBossThrowSpawn,
-        incinBossThrowFly,
+        gluttonThrowSpawn,
+        gluttonThrowFly,
         Gp_DestroyEnemy,
     },
 };
@@ -3866,29 +3866,29 @@ static const GpEnemyTaskFuncTable3 D_actor_444000_80131E9C = {
 /// teardown.
 static const GpEnemyTaskFuncTable5 D_actor_444000_80131EA8 = {
     {
-        incinBossGlobSpawn,
-        incinBossGlobFall,
-        incinBossGlobEngulf,
-        incinBossGlobHold,
+        gluttonGlobSpawn,
+        gluttonGlobFall,
+        gluttonGlobEngulf,
+        gluttonGlobHold,
         Gp_DestroyEnemy,
     },
 };
 
-#include "../../shared/incinerator_boss_chunk_settle.inc.c"
+#include "../../shared/glutton_chunk_settle.inc.c"
 
-#include "../../shared/incinerator_boss_rain_spawn.inc.c"
+#include "../../shared/glutton_rain_spawn.inc.c"
 
-#include "../../shared/incinerator_boss_rain_rise.inc.c"
+#include "../../shared/glutton_rain_rise.inc.c"
 
-#include "../../shared/incinerator_boss_rain_fall.inc.c"
+#include "../../shared/glutton_rain_fall.inc.c"
 
 /// State handlers of the enemy `func_actor_444000_80143A6C` dispatches: spawn,
 /// descent, settle and teardown.
 static const GpEnemyTaskFuncTable4 D_actor_444000_80131F0C = {
     {
-        incinBossChunkSpawn,
-        incinBossChunkFall,
-        incinBossChunkSettle,
+        gluttonChunkSpawn,
+        gluttonChunkFall,
+        gluttonChunkSettle,
         Gp_DestroyEnemy,
     },
 };
@@ -3897,10 +3897,10 @@ static const GpEnemyTaskFuncTable4 D_actor_444000_80131F0C = {
 /// teardown.
 static const GpEnemyTaskFuncTable5 D_actor_444000_80131F1C = {
     {
-        incinBossRainSpawn,
-        incinBossRainRise,
-        incinBossRainFall,
-        incinBossRainSplat,
+        gluttonRainSpawn,
+        gluttonRainRise,
+        gluttonRainFall,
+        gluttonRainSplat,
         Gp_DestroyEnemy,
     },
 };
@@ -3908,18 +3908,18 @@ static const GpEnemyTaskFuncTable5 D_actor_444000_80131F1C = {
 /// State handlers of the spinner enemy: spawn, hidden wait, chase and teardown.
 static const GpEnemyTaskFuncTable4 D_actor_444000_80131F30 = {
     {
-        incinBossSpinnerSpawn,
-        incinBossSpinnerWait,
-        incinBossSpinnerChase,
+        gluttonSpinnerSpawn,
+        gluttonSpinnerWait,
+        gluttonSpinnerChase,
         Gp_DestroyEnemy,
     },
 };
 
-#include "../../shared/incinerator_boss_rain_splat.inc.c"
+#include "../../shared/glutton_rain_splat.inc.c"
 
-#include "../../shared/incinerator_boss_spinner_spawn.inc.c"
+#include "../../shared/glutton_spinner_spawn.inc.c"
 
-#include "../../shared/incinerator_boss_spinner_chase.inc.c"
+#include "../../shared/glutton_spinner_chase.inc.c"
 
 /// Screen-shake driver for the enemy task: `func_actor_444000_80143490` writes a
 /// level into `field_EAC`, and a change from the armed level in `field_EAD`
@@ -4195,11 +4195,11 @@ s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg)
             case 1:
                 work->field_7B3 = 0xA;
                 work->field_7B0 = 2;
-                incinBossTickAnim(task);
-                incinBossTickAnim(task);
-                incinBossTickAnim(task);
+                gluttonTickAnim(task);
+                gluttonTickAnim(task);
+                gluttonTickAnim(task);
                 work->field_7B6 = 1;
-                incinBossTickAnim(task);
+                gluttonTickAnim(task);
                 work->field_7B6                       = 0x10;
                 task->extra.tmd->coords->coord.t[0]   = -0xBB8;
                 task->extra.tmd->coords->coord.t[1]   = 0;
@@ -4319,7 +4319,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     }
 
     (Gp_IncStateF0Ref)(0);
-    task->exitCallback = incinBossExit;
+    task->exitCallback = gluttonExit;
 
     enemy->field_4    = &task->extra.tmd->coords->coord;
     enemy->field_48   = 0;
@@ -4552,7 +4552,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 
     escorts = task->work;
 
-    gIncinBossEnded = 0;
+    gGluttonEnded = 0;
 
     task->extra.tmd->lightMtx = &escorts->lightMtx;
     task->extra.tmd->colorMtx = &escorts->colorMtx;
@@ -4579,7 +4579,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     } else {
         Gp_UpdateActorColor(work->field_ECC[3], &pos, 0, 0);
     }
-    incinBossTickAnim(task);
+    gluttonTickAnim(task);
 
     D_actor_444000_80161888.value.context.loc.stage = 0;
     D_actor_444000_80161888.value.context.loc.area  = 0x2C;
@@ -4600,7 +4600,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 
 /// Applies the single hit collision group 0 took this frame: the first of the
 /// group's five `WorldCollisionContact` records holding a type-2 attack id wins, and its
-/// contact point drives the hit effect `incinBossHitEffect` spawns on
+/// contact point drives the hit effect `gluttonHitEffect` spawns on
 /// the group's coordinate. Damage is `Gp_ComputeDamage` of the attack id scaled
 /// by the player's distance, quadrupled on a `Gp_RollEnemyChance` critical and
 /// doubled again before it is reported, and the leftover damage-over-time bits of
@@ -4660,7 +4660,7 @@ found:
     sc->id = id;
 
     if (id != 0) {
-        incinBossHitEffect(work->hits[0].obj.coord, id);
+        gluttonHitEffect(work->hits[0].obj.coord, id);
         work->field_E8C = Gp_GetIdParam2(sc->id);
         Gp_GetIdParam0(sc->id);
 
@@ -4816,7 +4816,7 @@ found2:
     }
     coord = work->hits[2].obj.coord;
 hit:
-    incinBossHitEffect(coord, id);
+    gluttonHitEffect(coord, id);
     if (sc->id != 0) {
         work->field_E92 = Gp_GetIdParam2(sc->id);
         switch (Gp_GetIdParam0(sc->id) & 0xFFFF) {
@@ -4997,7 +4997,7 @@ found2:
     if (id != 0) {
         coord = work->hits[4].obj.coord;
     hit:
-        incinBossHitEffect(coord, id);
+        gluttonHitEffect(coord, id);
         if (sc->id != 0) {
             goto body;
         }
@@ -5024,7 +5024,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    incinBossHitEffect(work->hits[5].obj.coord, id);
+    gluttonHitEffect(work->hits[5].obj.coord, id);
     if (sc->id == 0) {
         goto out;
     }
@@ -5200,7 +5200,7 @@ found2:
     if (id != 0) {
         coord = work->hits[7].obj.coord;
     hit:
-        incinBossHitEffect(coord, id);
+        gluttonHitEffect(coord, id);
         if (sc->id != 0) {
             goto body;
         }
@@ -5227,7 +5227,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    incinBossHitEffect(work->hits[8].obj.coord, id);
+    gluttonHitEffect(work->hits[8].obj.coord, id);
     if (sc->id == 0) {
         goto out;
     }
@@ -5345,10 +5345,10 @@ static void func_actor_444000_8013D810(Task* arg0)
         work->field_7B0 = 2;
         work->field_6   = 0;
         work->field_7B6 = 0x10;
-        incinBossTickAnim(arg0);
+        gluttonTickAnim(arg0);
     } else {
         if (work->field_6 < 0xA) {
-            incinBossTickAnim(arg0);
+            gluttonTickAnim(arg0);
         }
         if (work->field_6 == 2) {
             dying = arg0->work;
@@ -5433,7 +5433,7 @@ static void func_actor_444000_8013D96C(Task* arg0)
         work->field_EF6 = 0;
     }
 
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
 
     Actor444000_FlattenRotation(work->field_ECC[2]->task->extra.tmd->coords, 0);
     work->field_ECC[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5466,7 +5466,7 @@ static void func_actor_444000_8013D96C(Task* arg0)
 /// A reset request (`field_4`) re-arms the block on animation 3, clears the host
 /// model's flag word and pushes it onto each of the seven escorts' models, makes
 /// sure the host and every escort has its model buffers allocated, re-seeds the
-/// spinner target `gIncinBossSpinnerTarget` from the fourth part of slot 4's
+/// spinner target `gGluttonSpinnerTarget` from the fourth part of slot 4's
 /// model and announces sub-state 2 through message 0x7DA.
 ///
 /// Every tick then pins the player down to the arena floor, runs the ordinary
@@ -5541,7 +5541,7 @@ static void func_actor_444000_8013E058(Task* task)
         work->field_EF4 = 1;
         work->field_EF6 = 1;
         work->field_EFA = 0;
-        posp            = &gIncinBossSpinnerTarget;
+        posp            = &gGluttonSpinnerTarget;
         posp->vz        = 0;
         posp->vy        = 0;
         posp->vx        = 0;
@@ -5557,7 +5557,7 @@ static void func_actor_444000_8013E058(Task* task)
         coord->coord.t[1]                      = 0;
         slot3->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    incinBossTickAnim(task);
+    gluttonTickAnim(task);
 
     cfg        = &gPlayerStatus;
     facing     = task->extra.tmd->coords;
@@ -5964,7 +5964,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.value, ACTOR_COMMAND_MESSAGE_APPLY);
     } else {
         sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
-        incinBossTickAnim(arg0);
+        gluttonTickAnim(arg0);
 
         if ((work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_7B3 == 0xF) {
             work->field_7B0 = 2;
@@ -6058,7 +6058,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
 ///
 /// `field_6` then picks the blend weight in `field_7A4` (and hands over to
 /// state 0xA at 0xDC), and while it sits in 0x29..0x2E the shared timer
-/// `gIncinBossLimbReach` climbs by 0x258 a step up to 0x1770 -- past 0x39 it
+/// `gGluttonLimbReach` climbs by 0x258 a step up to 0x1770 -- past 0x39 it
 /// is wound back down again instead.
 ///
 /// The rest is the player hold: once one of the collision object's five records
@@ -6194,8 +6194,8 @@ static void func_actor_444000_8013FB74(Task* arg0)
 
     switch (work->field_6) {
         case 0x14:
-            gIncinBossLimbReach = 0x640;
-            work->field_7A4     = 0;
+            gGluttonLimbReach = 0x640;
+            work->field_7A4   = 0;
             break;
         case 0x22:
             work->field_7A4 = 1;
@@ -6223,11 +6223,11 @@ static void func_actor_444000_8013FB74(Task* arg0)
             break;
     }
 
-    if ((u32)((u16)work->field_6 - 0x29) < 6 && gIncinBossLimbReach < 0x1770) {
-        gIncinBossLimbReach = (u16)gIncinBossLimbReach + 0x258;
+    if ((u32)((u16)work->field_6 - 0x29) < 6 && gGluttonLimbReach < 0x1770) {
+        gGluttonLimbReach = (u16)gGluttonLimbReach + 0x258;
     }
 
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
 
     recs = work->recs2;
     for (k = 0; k < 5; k++) {
@@ -6307,10 +6307,10 @@ scanned:
     }
 
     if (work->field_6 >= 0x39) {
-        if (gIncinBossLimbReach >= 0xBB9) {
-            gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
+        if (gGluttonLimbReach >= 0xBB9) {
+            gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         } else {
-            gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0x1E;
+            gGluttonLimbReach = (u16)gGluttonLimbReach - 0x1E;
         }
     }
 
@@ -6439,7 +6439,7 @@ static void func_actor_444000_801404C0(Task* arg0)
         }
     }
 
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
 
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 0xA;
@@ -6526,10 +6526,10 @@ static void func_actor_444000_80140BBC(Task* arg0)
         work->field_7B3 = 0xD;
         work->field_7B0 = 1;
     }
-    if (gIncinBossLimbReach >= 0x191) {
-        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
+    if (gGluttonLimbReach >= 0x191) {
+        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -6584,15 +6584,15 @@ static void func_actor_444000_80140E28(Task* arg0)
         work->field_EF4 = 0;
         work->field_EF6 = 0;
         for (k = 0; k < work->field_F14 / 8; k++) {
-            incinBossTickAnim(arg0);
+            gluttonTickAnim(arg0);
         }
         work->field_7B6 = 0x10;
         SndEvt_EnqueueType7((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
     }
-    if (gIncinBossLimbReach >= 0x191) {
-        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
+    if (gGluttonLimbReach >= 0x191) {
+        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     frame                                 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x1C && work->field_7D8 != frame) {
@@ -6635,11 +6635,11 @@ static void func_actor_444000_8014105C(Task* arg0)
         return;
     }
     SCRATCH_STACK_RESERVE_BYTES(0xC);
-    if (gIncinBossLimbReach >= 0x191) {
-        work->field_7A4     = 0;
-        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
+    if (gGluttonLimbReach >= 0x191) {
+        work->field_7A4   = 0;
+        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 0xA;
     }
@@ -6715,11 +6715,11 @@ static void func_actor_444000_801411C8(Task* arg0)
     }
     work->field_7C4 = angle;
 
-    if (gIncinBossLimbReach >= 0x191) {
-        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
-        work->field_7A4     = 0;
+    if (gGluttonLimbReach >= 0x191) {
+        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
+        work->field_7A4   = 0;
     }
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
 
     if (work->field_F10 > 0) {
         work->field_F10 = work->field_F10 - 1;
@@ -6870,10 +6870,10 @@ static void func_actor_444000_80141618(Task* task)
         work->field_E96 = 0xC80;
         SndEvt_EnqueueType7((((u16)host->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
     }
-    if (gIncinBossLimbReach >= 0x191) {
-        gIncinBossLimbReach = (u16)gIncinBossLimbReach - 0xC8;
+    if (gGluttonLimbReach >= 0x191) {
+        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    incinBossTickAnim(task);
+    gluttonTickAnim(task);
     if (work->field_7B3 == 0x13 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && frame < 0xD) {
         work->field_EFA = 1;
     } else {
@@ -6904,7 +6904,7 @@ static void func_actor_444000_80141618(Task* task)
         work->field_7B3 = 1;
         work->field_7B0 = 1;
         work->field_7B6 = 0x10;
-        incinBossTickAnim(task);
+        gluttonTickAnim(task);
     }
     if (work->field_6 >= 0x14B || (work->field_7B3 == 1 && work->field_F1C == 0)) {
         work->field_0 = 3;
@@ -7133,7 +7133,7 @@ static void func_actor_444000_80141DFC(Task* arg0)
         }
     }
     work->field_7C4 = angle;
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
     if (work->field_7B3 == 0x10 && (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_7B3 = 0xE;
         work->field_7B0 = 1;
@@ -7244,7 +7244,7 @@ static void func_actor_444000_80142254(void)
 ///
 /// `field_F12` is the death timer, only started once the host's HP is gone:
 /// step 0 tells the scene (message 0x7DA, action 0x2C) and latches
-/// `gIncinBossEnded`, step 3 tells the player's task (0x13F4) and moves
+/// `gGluttonEnded`, step 3 tells the player's task (0x13F4) and moves
 /// the fight to state 0x12 with the two death cues.
 ///
 /// The dispatch table is a local, as in `func_actor_444000_80142F28`.
@@ -7434,13 +7434,13 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     }
     if (enemy->hp <= 0) {
         if (cfg->hp <= 0) {
-            enemy->hp       = 1;
-            gIncinBossEnded = 0;
+            enemy->hp     = 1;
+            gGluttonEnded = 0;
         }
         if (enemy->hp <= 0 && work->field_0 != 0) {
             switch (work->field_F12) {
                 case 0:
-                    gIncinBossEnded                                 = 1;
+                    gGluttonEnded                                   = 1;
                     D_actor_444000_80161888.value.context.loc.stage = 0;
                     D_actor_444000_80161888.value.context.loc.area  = 0x2C;
                     D_actor_444000_80161888.value.command           = 3;
@@ -7567,7 +7567,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
 /// until the two are within 0x33 of each other. `field_E98` is the companion
 /// height the floor-marker helpers take.
 ///
-/// Most states hand that pair to `incinBossBuildWall`, which rebuilds
+/// Most states hand that pair to `gluttonBuildWall`, which rebuilds
 /// grid quad 6 as a wall in front of the boss. The exception is pattern 1 in state 9: it uses
 /// `func_actor_444000_801371E8` instead, floors the player's own x at 0x2CEC,
 /// and pushes the player back by the boss part's view-space depth less 0x7D0 --
@@ -7668,7 +7668,7 @@ void func_actor_444000_80142F28(Task* arg0)
                             }
                         }
                     } else {
-                        incinBossBuildWall(arg0, work->field_E94, work->field_E98, 6);
+                        gluttonBuildWall(arg0, work->field_E94, work->field_E98, 6);
                     }
 
                     if (work->field_F08 == 0 || (work->field_F08 == 1 && work->field_0 != 9)) {
@@ -7719,7 +7719,7 @@ void func_actor_444000_80142F28(Task* arg0)
     skipGrid:
         state = work->field_0;
         if (state == 5) {
-            incinBossBuildWall(arg0, work->field_E94, work->field_E98, 6);
+            gluttonBuildWall(arg0, work->field_E94, work->field_E98, 6);
         }
     }
 
@@ -7744,7 +7744,7 @@ static void func_actor_444000_80143374(s32 arg0, s16 arg1)
     verts[arg1 * 4 + 7].vy = 800;
 }
 
-#include "../../shared/incinerator_boss_exit.inc.c"
+#include "../../shared/glutton_exit.inc.c"
 
 static void func_actor_444000_80143490(s8 arg0)
 {
@@ -7753,12 +7753,12 @@ static void func_actor_444000_80143490(s8 arg0)
 
 static void func_actor_444000_801434A8(s16 arg0)
 {
-    gIncinBossSpinnersReleased = arg0;
+    gGluttonSpinnersReleased = arg0;
 }
 
 static s16 func_actor_444000_801434B4(void)
 {
-    return gIncinBossSpinnersReleased;
+    return gGluttonSpinnersReleased;
 }
 
 /// The re-arm's counterpart: on a reset request it sets the two 0xEF4 counters
@@ -7783,7 +7783,7 @@ static void func_actor_444000_801434C4(Task* arg0)
         work->field_ECC[1]->task->extra.tmd->otOffset = 2;
         func_shelter_b3_garbage_incinerator_80185220();
     }
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
     tick = work->field_6;
     if (tick % 60 == 0) {
         if (tick % 120 == 0) {
@@ -7822,15 +7822,15 @@ static void func_actor_444000_801435CC(Task* arg0)
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    incinBossTickAnim(arg0);
+    gluttonTickAnim(arg0);
     if (work->slots0[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 9;
     }
 }
 
-#include "../../shared/incinerator_boss_prop_setup.inc.c"
+#include "../../shared/glutton_prop_setup.inc.c"
 
-#include "../../shared/incinerator_boss_prop_tick.inc.c"
+#include "../../shared/glutton_prop_tick.inc.c"
 
 void func_actor_444000_8014382C(Task* arg0)
 {
@@ -7957,7 +7957,7 @@ void func_actor_444000_80143B74(Task* arg0)
     }
 }
 
-#include "../../shared/incinerator_boss_spinner_wait.inc.c"
+#include "../../shared/glutton_spinner_wait.inc.c"
 
 /// Dispatcher of the spinner enemy `D_actor_444000_80131F30` drives: park the
 /// model object while the global game state is 1 or 2, otherwise note in the
@@ -8062,7 +8062,7 @@ s32 func_actor_444000_80143F38(Task* arg0)
 /// Reset handler: when the work block is asking for a reset, stop the enemy's
 /// own model drawing and push that same flag word onto each of the seven
 /// escorts' models, then clear the two counters at 0xEF4. Otherwise just run
-/// the ordinary re-arm in `incinBossTickAnim`.
+/// the ordinary re-arm in `gluttonTickAnim`.
 static void func_actor_444000_80143F4C(Task* arg0)
 {
     Actor403200Work* work;
@@ -8083,6 +8083,6 @@ static void func_actor_444000_80143F4C(Task* arg0)
         work->field_EF4 = 0;
         work->field_EF6 = 0;
     } else {
-        incinBossTickAnim(arg0);
+        gluttonTickAnim(arg0);
     }
 }

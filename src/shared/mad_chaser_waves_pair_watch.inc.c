@@ -1,0 +1,14 @@
+/* Part of the Mad Chaser waves library; see mad_chaser_waves.h. */
+
+/// Pair spawner: watches both Mad Chasers and, once both are gone, marks the slot
+/// done and ends.
+void madChaserWavePairWatch(Task* arg0)
+{
+    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
+
+    madChaserWavePairCull(arg0);
+    if (work->goneMask == 3) {
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        taskKill(arg0);
+    }
+}

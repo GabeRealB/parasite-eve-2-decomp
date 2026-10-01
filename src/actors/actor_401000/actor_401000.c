@@ -51,7 +51,7 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
-#include "../../shared/blend_rig.h"
+#include "../../shared/odd_stranger.h"
 
 /// An XZ pair: `field_C[0]` is the actor's spawn square and `field_C[1]` one
 /// step along its facing, both rebuilt by `func_actor_401000_80133274`. Same
@@ -123,19 +123,19 @@ typedef struct Actor401000Work {
     /* 0x894 */ s32                field_894;
     /* 0x898 */ s16                field_898;
     /* 0x89A */ s16                field_89A;
-    /// Clip the body slots are playing; `blendRigDrive` moves it
+    /// Clip the body slots are playing; `oddStrangerDrive` moves it
     /// to the requested `field_89E` when it applies a clip change.
     /* 0x89C */ s16 field_89C;
     /* 0x89E */ s16 field_89E;
     /// Frames since the last clip change: counted up every
-    /// `blendRigDrive` tick and cleared when a change is applied.
+    /// `oddStrangerDrive` tick and cleared when a change is applied.
     /* 0x8A0 */ u16 field_8A0;
     /* 0x8A2 */ s16 field_8A2;
     /* 0x8A4 */ s16 field_8A4;
     /* 0x8A6 */ s16 field_8A6;
     /* 0x8A8 */ s16 field_8A8;
     /// Playback rate of the blend slots, and the weight (out of 0x1000) the
-    /// blend pose gets when `blendRigTickBlended` mixes it into the
+    /// blend pose gets when `oddStrangerTickBlended` mixes it into the
     /// body pose; both are seeded (0x30, 0x800) when a blend clip starts.
     /* 0x8AA */ u16  field_8AA;
     /* 0x8AC */ s16  field_8AC;
@@ -386,7 +386,7 @@ extern GpDelayArg D_actor_401000_80155038;
 
 /// Transition table the clip change seeks through: one byte per
 /// (playing clip, requested clip) pair, 0x2D requested clips to a row.
-extern s8 gBlendRigTransitions[45][45];
+extern s8 gOddStrangerTransitions[45][45];
 
 extern TmdSource D_actor_401000_80143614;
 void             func_actor_401000_8013E038(Task*);
@@ -1163,7 +1163,7 @@ AnimationSet D_actor_401000_80154634 = {
     { NULL, D_actor_401000_80153800, NULL, NULL, D_actor_401000_801538D8, NULL, NULL, NULL },
 };
 
-s8 gBlendRigTransitions[45][45] = {
+s8 gOddStrangerTransitions[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 3, 3, 0, 0, 0, 0, 15, 5, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -1294,7 +1294,7 @@ s32  func_actor_401000_8013D958(Task*, s32, u16*);
 
 Actor401000MessageEntry D_actor_401000_80154F90[8] = {
     { 2015, { .call5 = func_actor_401000_8013D68C } },
-    { 2003, { .call1 = blendRigPlayMessage } },
+    { 2003, { .call1 = oddStrangerPlayMessage } },
     { 2005, { .call3 = actorMsgSetVisibility } },
     { 2006, { .call0 = func_actor_401000_8013D7C4 } },
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
@@ -1363,12 +1363,12 @@ static void            func_actor_401000_8013D044(Enemy* enemy, Task* actor);
 
 #include "../../shared/player_detection_sight.inc.c"
 
-#include "../../shared/blend_rig_tick_blended.inc.c"
+#include "../../shared/odd_stranger_tick_blended.inc.c"
 
 /// Returns the sound event the current clip (`field_89E`) has reached at its
 /// frame (`field_5A`), once per frame: the frame is latched in `field_8B4`, and
 /// a frame already latched, or one that carries no event, returns 0.
-s32 blendRigAnimEvent(BlendRigWork* work)
+s32 oddStrangerAnimEvent(OddStrangerWork* work)
 {
     s32 id;
     s32 prev;
@@ -1517,7 +1517,7 @@ s32 blendRigAnimEvent(BlendRigWork* work)
     return 0;
 }
 
-#include "../../shared/blend_rig_drive.inc.c"
+#include "../../shared/odd_stranger_drive.inc.c"
 
 /// Points the model's light and color matrices at the work block's copies.
 static __inline__ void Actor401000_BindMatrices(Task* actor)
@@ -1611,7 +1611,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
             work->field_8A4 = 0xE;
             break;
     }
-    blendRigDrive(actor);
+    oddStrangerDrive(actor);
 
     work->field_A10.context.contacts = work->field_A30;
     work->field_A10.coord            = root;
@@ -2153,7 +2153,7 @@ static void func_actor_401000_80133D50(Task* arg0)
 
 /// Enter the live-actor state: reinstate the model buffers, seed the
 /// `field_898` / `field_8A2` animation pair, fold the current `field_89E`
-/// state onto the 0x17/0x18 pair, then hold in `blendRigDrive`
+/// state onto the 0x17/0x18 pair, then hold in `oddStrangerDrive`
 /// until the clip's `field_5A` frame count passes 6 (state 0x17) or 9 (state
 /// 0x18), or the `flags_68` word reports the actor gone. The un-flagged path
 /// halves `field_8A2` down to the +-0x10 turntable step and retires the actor
@@ -2184,7 +2184,7 @@ static void func_actor_401000_80134DB4(Task* arg0)
             work->field_89E = 0x17;
         }
         do {
-            blendRigDrive(arg0);
+            oddStrangerDrive(arg0);
             if (work->field_89E == 0x17 && (work->field_5A & 0x3FF) >= 6) {
                 break;
             }
@@ -2203,7 +2203,7 @@ static void func_actor_401000_80134DB4(Task* arg0)
     if (work->field_8A2 == -1) {
         work->field_8A2 = 0x10;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if (Gp_TickObjFlag2(enemy) == 1) {
         enemy->reactionFlags &= ~ENEMY_REACTION_BUILDUP;
         work->field_0         = 0x11;
@@ -2236,7 +2236,7 @@ static void func_actor_401000_80134F98(Task* arg0)
         work->field_89A        = 0;
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         work->field_8D0.radius = 0x1AE;
         Gp_ArmStateF0(1);
         return;
@@ -2259,7 +2259,7 @@ static void func_actor_401000_80134F98(Task* arg0)
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
@@ -2473,7 +2473,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->field_8A2        = work->field_8A4;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         work->field_C24 = 0;
         work->field_6   = 0;
         work->field_8   = 0;
@@ -2485,7 +2485,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
     chase = (SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &head[-1].delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     chase->playerYaw = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
                               gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
@@ -2610,7 +2610,7 @@ static void func_actor_401000_801365C8(Task* arg0)
         work->field_89A        = 0;
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         work->field_C06         = 8;
         work->field_6           = 0;
         work->field_8           = 0;
@@ -2622,7 +2622,7 @@ static void func_actor_401000_801365C8(Task* arg0)
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
     chase                                   = head - 1;
     arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1) {
         work->field_8++;
     } else {
@@ -2746,7 +2746,7 @@ static void func_actor_401000_80136E20(Task* arg0)
         work->field_8AE        = 0;
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
         coord           = arg0->extra.tmd->coords;
         aim->turn       = actorNormalizeYaw(ratan2(head[-1].delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -2760,7 +2760,7 @@ static void func_actor_401000_80136E20(Task* arg0)
     head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
     aim                                     = head - 1;
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     if (work->field_C00 == work->field_C02) {
         if (work->field_C24 < 2 || overlayOutOfRange(&aim->delta, 0x384) || work->field_C1B != 0) {
@@ -2874,7 +2874,7 @@ static void func_actor_401000_801374D4(Task* arg0)
         work->field_898 = 1;
         work->field_8A2 = 0xC;
         work->field_89A = 0;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         gfxRotMatrixY(&mat, aim->turn, 1);
         dir = &work->field_BF0;
         Gfx_MatrixCol2(&mat, dir);
@@ -2883,7 +2883,7 @@ static void func_actor_401000_801374D4(Task* arg0)
         work->field_C26++;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89A == 0) {
         gte_lddp(work->field_C0A);
@@ -2933,7 +2933,7 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->field_898               = 1;
         work->field_8A2               = 0x10;
         work->field_89E               = 4;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         work->field_8AE                       = 0;
         work->field_8B0                       = 0;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2964,7 +2964,7 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->field_C28                       = 0;
         work->field_C1B                       = 0xA;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if ((work->field_5A & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &delta, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&delta, 0x44C)) {
@@ -3052,7 +3052,7 @@ static void func_actor_401000_801380B8(Task* arg0)
         Gp_DispatchMsgPtr(player, 0x3E9, msg, 0);
         Gp_SpawnPadLerp(0xC, 8, 0x8F);
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     Gfx_RotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, 0);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
@@ -3096,7 +3096,7 @@ static void func_actor_401000_801383F0(Task* arg0)
         work->field_0 = 0xE;
     }
     work->field_894 = work->field_5A & 0x3FF;
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     Gfx_RotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, 0);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
@@ -3120,7 +3120,7 @@ static void func_actor_401000_801385B0(Task* arg0)
         work->field_8A2 = 0x10;
         work->field_89E = 7;
         work->field_898 = 2;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         msg              = &D_actor_401000_80154F1C;
         msg->animationId = 3;
         if (cfg->hp > 0) {
@@ -3144,7 +3144,7 @@ static void func_actor_401000_801385B0(Task* arg0)
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         kind = enemy->node.state.parts.targeted;
         if (kind == 1) {
@@ -3193,7 +3193,7 @@ static void func_actor_401000_801388F4(Task* arg0)
         }
         work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     if (work->field_89E == 0xA && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0) {
@@ -3204,7 +3204,7 @@ static void func_actor_401000_801388F4(Task* arg0)
         if (work->field_89E == 0xA) {
             work->field_89E = 0xB;
             work->field_898 = 2;
-            blendRigDrive(arg0);
+            oddStrangerDrive(arg0);
         }
         if ((work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) && work->field_89E == 0xB) {
             work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -3250,7 +3250,7 @@ static void func_actor_401000_80138BB4(Task* arg0)
         }
         work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3325,7 +3325,7 @@ static void func_actor_401000_80138D08(Task* arg0)
 /// gated on the `field_6` countdown and a 0-15 `gRandomLcgState` draw. The XZ
 /// offset to `gPlayerStatus.coordMtx` is probed against `field_C16`, and an armed
 /// `gSceneCombatState` bit 0x50000, each dropping the actor to state 6. The tail runs
-/// `blendRigDrive` and swaps `field_89E` between 0xE and 0xF on
+/// `oddStrangerDrive` and swaps `field_89E` between 0xE and 0xF on
 /// `flags_68` bits 1 and 2, re-running the tick after each swap.
 /// Same body as `func_actor_401300_80139520`, with the pose matrix in place of
 /// that one's `field_C48` / `field_C68` pair and a `field_C16` radius in place
@@ -3375,19 +3375,19 @@ static void func_actor_401000_80138F50(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 6;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if (work->field_89E == 0xE && (work->flags_68.half & 2)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
             work->field_89E = 0xF;
             work->field_898 = 1;
-            blendRigDrive(arg0);
+            oddStrangerDrive(arg0);
         }
     }
     if (work->field_89E == 0xF && (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->field_89E = 0xE;
         work->field_898 = 1;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
     }
 }
 
@@ -3425,7 +3425,7 @@ static void func_actor_401000_8013922C(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_6 = 1;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if ((work->field_5A & 0x3FF) == 4 && work->field_8B4 != (work->field_5A & 0x3FF)) {
         work->field_8B8.coord      = arg0->extra.tmd->coords + 1;
         work->field_8B8.spawnArgLo = 0x100;
@@ -3481,7 +3481,7 @@ static void func_actor_401000_801394EC(Task* arg0)
         work->field_89A        = 0;
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         work->field_6 = 0;
         if ((arg0->spawnArg1.value >> 16) == 0x10) {
             work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -3500,7 +3500,7 @@ static void func_actor_401000_801394EC(Task* arg0)
             }
             work->field_6 = 0;
         }
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         coord           = arg0->extra.tmd->coords;
         turn->angle     = actorNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = turn->angle;
@@ -3611,7 +3611,7 @@ static void func_actor_401000_80139D10(Task* arg0)
             work->field_C04 = 0;
         }
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if ((work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) || work->field_C04 == 0) {
         work->field_0 = 9;
     }
@@ -3643,10 +3643,10 @@ static void func_actor_401000_8013A0C8(Task* arg0)
         work->field_89A        = 0;
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         return;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
@@ -3656,7 +3656,7 @@ static void func_actor_401000_8013A0C8(Task* arg0)
         work->field_89E = 0x11;
         work->field_898 = 1;
         work->field_6   = 0;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
     }
     if (aim->turn >= 0x81) {
         aim->turn = 0x80;
@@ -3717,7 +3717,7 @@ static void func_actor_401000_8013A5F0(Task* arg0)
         work->field_89A        = 0;
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
         work->field_6 = 0;
         return;
     }
@@ -3740,7 +3740,7 @@ static void func_actor_401000_8013A5F0(Task* arg0)
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
@@ -3774,8 +3774,8 @@ static void func_actor_401000_8013A930(Task* arg0)
         work->field_89A        = 0;
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        blendRigDrive(arg0);
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
+        oddStrangerDrive(arg0);
         work->field_6   = 0;
         work->field_8B0 = 0;
         return;
@@ -3799,7 +3799,7 @@ static void func_actor_401000_8013A930(Task* arg0)
     aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if (work->field_6 < 0x32) {
         Gfx_RotMatrixX(&arg0->extra.tmd->coords[1].coord, 0x40, 0);
         arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3917,7 +3917,7 @@ static void func_actor_401000_8013B1E4(Task* arg0)
 /// state-0x1A arm gates on `flags_68` bit 0x100, dispatches the one-shot actions
 /// off `field_6 - 0x19`, and from 0x1A on rebuilds the root coordinate through
 /// `ratan2` at scale `0x1194 - (field_6 - 0x14) * 0xB`. Both arms end in
-/// `blendRigDrive` and `actorResetYaw` on nodes 2..10.
+/// `oddStrangerDrive` and `actorResetYaw` on nodes 2..10.
 static void func_actor_401000_8013B61C(Task* arg0)
 {
     Actor401000Work* work;
@@ -4001,7 +4001,7 @@ static void func_actor_401000_8013B61C(Task* arg0)
             }
             break;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     actorResetYaw(arg0->extra.tmd->coords + 2);
     actorResetYaw(arg0->extra.tmd->coords + 3);
     actorResetYaw(arg0->extra.tmd->coords + 4);
@@ -4067,7 +4067,7 @@ static void func_actor_401000_8013C46C(Task* arg0)
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     s->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                           (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
@@ -4173,7 +4173,7 @@ static void func_actor_401000_8013CD9C(Task* arg0)
         }
         work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4218,7 +4218,7 @@ static void func_actor_401000_8013CEF0(Task* arg0)
         }
         work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC);
     ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4412,7 +4412,7 @@ static const GpEnemyTaskFuncTable3 D_actor_401000_8013207C = { {
     Gp_DestroyEnemy,
 } };
 
-#include "../../shared/blend_rig_play_message.inc.c"
+#include "../../shared/odd_stranger_play_message.inc.c"
 
 #include "../../shared/actor_messages_visibility.inc.c"
 
@@ -4556,10 +4556,10 @@ static void func_actor_401000_8013DB6C(Task* arg0)
         work->field_89A       = 0;
         work->field_B50.flags = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->field_A10.flags = (u16)(work->field_A10.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
     } else {
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
     }
 }
 
@@ -4580,10 +4580,10 @@ static void func_actor_401000_8013DC14(Task* arg0)
         work->field_89A       = 0;
         work->field_B50.flags = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->field_A10.flags = (u16)(work->field_A10.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
     } else {
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
     }
 }
 
@@ -4604,10 +4604,10 @@ static void func_actor_401000_8013DCC0(Task* arg0)
         work->field_89A       = 0;
         work->field_B50.flags = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->field_A10.flags = (u16)(work->field_A10.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
     } else {
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        blendRigDrive(arg0);
+        oddStrangerDrive(arg0);
     }
 }
 
@@ -4630,7 +4630,7 @@ static void func_actor_401000_8013DD6C(Task* arg0)
         work->field_A10.flags = (u16)(work->field_A10.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }
@@ -4655,7 +4655,7 @@ static void func_actor_401000_8013DE24(Task* arg0)
         work->field_8AE               = 0;
         work->field_8A2               = work->field_8A4;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }
@@ -4680,7 +4680,7 @@ static void func_actor_401000_8013DEC8(Task* arg0)
         work->field_8AE               = 0;
         work->field_8A2               = work->field_8A4;
     }
-    blendRigDrive(arg0);
+    oddStrangerDrive(arg0);
     if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->field_0 = 7;
     }

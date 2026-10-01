@@ -1,0 +1,20 @@
+/* Part of the Skull Stalker library; see skull_stalker.h. */
+
+/// Exit callback of the second enemy: detaches the enemy's contact records,
+/// unlinks its node and the work's three bodies, then runs the common enemy
+/// task exit.
+void skullStalkerExit(Task* task)
+{
+    SkullStalkerWork* work;
+    Enemy*            enemy;
+
+    enemy = task->spawnArg2.pointer;
+    work  = (SkullStalkerWork*)task->work;
+
+    enemy->recs = 0;
+    Gp_UnlinkNode(&enemy->node);
+    Gp_UnlinkObj(&work->field_14C);
+    Gp_UnlinkObj(&work->field_FC);
+    Gp_UnlinkObj(&work->field_184);
+    Gp_EnemyTaskExit(task);
+}

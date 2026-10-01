@@ -26,8 +26,8 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/hopper_waves.h"
-#include "../../shared/hopping_enemy.h"
+#include "../../shared/mad_chaser_waves.h"
+#include "../../shared/mad_chaser.h"
 
 /// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
 /// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares
@@ -49,7 +49,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor342400MessageEntry, 8);
 
 extern Actor342400MessageEntry D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by func_actor_342400_801628F0
-extern OverlayEncounterSlot    gHopperWaveSlots[];
+extern OverlayEncounterSlot    gMadChaserWaveSlots[];
 extern TaskDesc                D_actor_342400_8016BFE0[];
 extern Actor342400Limit        D_actor_342400_8016C010[];
 extern s16                     D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
@@ -79,7 +79,7 @@ Actor342400MessageEntry D_actor_342400_8016BF48[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-OverlayEncounterSlot gHopperWaveSlots[17] = {
+OverlayEncounterSlot gMadChaserWaveSlots[17] = {
     { 1, 1, { 0, 0 }, 0 },
     { 0, 1, { 0, 0 }, 0 },
     { 2, 1, { 0, 0 }, 0 },
@@ -160,7 +160,7 @@ u32 D_actor_342400_8016C3D4[486] = {
 #include "assets/actor_342400_model_0AD4C_stream.inc"
 };
 
-TmdSource gHopperChunkModel0 = {
+TmdSource gMadChaserChunkModel0 = {
     0,
     3260,
     0,
@@ -192,7 +192,7 @@ u32 D_actor_342400_8016CDC0[276] = {
 #include "assets/actor_342400_model_0B3F0_stream.inc"
 };
 
-TmdSource gHopperChunkModel1 = {
+TmdSource gMadChaserChunkModel1 = {
     0,
     1828,
     0,
@@ -224,7 +224,7 @@ u32 D_actor_342400_8016D424[215] = {
 #include "assets/actor_342400_model_0B960_stream.inc"
 };
 
-TmdSource gHopperChunkModel2 = {
+TmdSource gMadChaserChunkModel2 = {
     0,
     1448,
     0,
@@ -272,14 +272,14 @@ DamageAttack D_actor_342400_80170584[1] = {
     { 22, 0 },
 };
 
-EnemyParams gHopperEnemyParams = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0 };
+EnemyParams gMadChaserEnemyParams = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 static void func_actor_342400_80162324(Task* arg0);
 static void func_actor_342400_801631DC(s16 arg0);
 
-#include "../../shared/hopper_waves_pair_spawn.inc.c"
+#include "../../shared/mad_chaser_waves_pair_spawn.inc.c"
 
-void hopperWavePairCull(Task* arg0)
+void madChaserWavePairCull(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
     Enemy*                    enemy;
@@ -332,15 +332,15 @@ static void func_actor_342400_80162324(Task* arg0)
 
     count = 0;
     for (i = 0; i < 17; i++) {
-        if (gHopperWaveSlots[i].status == 1) {
+        if (gMadChaserWaveSlots[i].status == 1) {
             count++;
         }
     }
     if (count < 3) {
         idx = work->nextSlot;
         if (idx < 17 && gGameSession->sceneClock >= 0x3D) {
-            type = gHopperWaveSlots[idx].kind;
-            arg  = gHopperWaveSlots[idx].command;
+            type = gMadChaserWaveSlots[idx].kind;
+            arg  = gMadChaserWaveSlots[idx].command;
             switch (type) {
                 case 0:
                     Task_SpawnFromTable(D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
@@ -418,7 +418,7 @@ static s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
 /// `func_actor_342400_80162748` on `Task::state`.
 static const TaskFuncTable4 D_actor_342400_80161E24 = { {
     func_actor_342400_801628F0,
-    hopperWaveOpen,
+    madChaserWaveOpen,
     func_actor_342400_80162A34,
     func_actor_342400_80162AB0,
 } };
@@ -455,7 +455,7 @@ void func_actor_342400_801627C0(Task* arg0)
 /// `func_actor_342400_80162824`.
 static const TaskFuncTable4 D_actor_342400_80161E44 = { {
     func_actor_342400_80162DA0,
-    hopperWaveRevealSecond,
+    madChaserWaveRevealSecond,
     func_actor_342400_80162F08,
     func_actor_342400_80162F1C,
 } };
@@ -472,11 +472,11 @@ void func_actor_342400_80162824(Task* arg0)
 /// The five state handlers `func_actor_342400_80162888` dispatches through by
 /// `Task::state`.
 static const TaskFuncTable5 D_actor_342400_80161E54 = { {
-    hopperWavePairSpawn,
+    madChaserWavePairSpawn,
     func_actor_342400_80162FFC,
-    hopperWavePairRevealFirst,
-    hopperWavePairRevealSecond,
-    hopperWavePairWatch,
+    madChaserWavePairRevealFirst,
+    madChaserWavePairRevealSecond,
+    madChaserWavePairWatch,
 } };
 
 void func_actor_342400_80162888(Task* arg0)
@@ -498,15 +498,15 @@ static void func_actor_342400_801628F0(Task* arg0)
         return;
     }
     for (i = 16; i >= 0; i--) {
-        gHopperWaveSlots[i].status = 0;
+        gMadChaserWaveSlots[i].status = 0;
     }
-    gHopperWaveEnemyCount = 0;
-    arg0->work            = work;
-    arg0->msgTable        = D_actor_342400_8016BF48;
+    gMadChaserWaveEnemyCount = 0;
+    arg0->work               = work;
+    arg0->msgTable           = D_actor_342400_8016BF48;
     arg0->state++;
 }
 
-#include "../../shared/hopper_waves_open.inc.c"
+#include "../../shared/mad_chaser_waves_open.inc.c"
 
 static void func_actor_342400_80162A34(Task* arg0)
 {
@@ -530,7 +530,7 @@ static void func_actor_342400_80162AB0(Task* arg0)
     if (work->stop != 4) {
         func_actor_342400_80162324(arg0);
         for (i = 0; i < 17; i++) {
-            if (gHopperWaveSlots[i].status == 2) {
+            if (gMadChaserWaveSlots[i].status == 2) {
                 count++;
             }
         }
@@ -552,10 +552,10 @@ static void func_actor_342400_80162B60(Task* arg0)
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
-            gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            work->enemy                                                 = enemy;
-            enemy->placeKey                                             = gHopperWaveEnemyCount << 12;
-            gHopperWaveEnemyCount++;
+            gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+            work->enemy                                                    = enemy;
+            enemy->placeKey                                                = gMadChaserWaveEnemyCount << 12;
+            gMadChaserWaveEnemyCount++;
             arg0->state++;
             return;
         }
@@ -603,7 +603,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
     task  = enemy->task;
     coord = task->extra.tmd->coords;
     if (enemy->hp <= 0) {
-        gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
         return;
     }
@@ -612,7 +612,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
         msg.context.loc.area  = 0x2C;
         msg.command           = 5;
         Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -628,10 +628,10 @@ static void func_actor_342400_80162DA0(Task* arg0)
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
         if (enemy != NULL) {
-            gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            work->enemy                                                 = enemy;
-            enemy->placeKey                                             = gHopperWaveEnemyCount << 12;
-            gHopperWaveEnemyCount++;
+            gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+            work->enemy                                                    = enemy;
+            enemy->placeKey                                                = gMadChaserWaveEnemyCount << 12;
+            gMadChaserWaveEnemyCount++;
             obj                    = enemy->task->extra.tmd;
             obj->texturePageOffset = 2;
             obj->clutRowOffset     = 4;
@@ -642,7 +642,7 @@ static void func_actor_342400_80162DA0(Task* arg0)
     taskKill(arg0);
 }
 
-#include "../../shared/hopper_waves_reveal_second.inc.c"
+#include "../../shared/mad_chaser_waves_reveal_second.inc.c"
 
 static void func_actor_342400_80162F08(Task* arg0)
 {
@@ -661,7 +661,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
     task  = enemy->task;
     coord = task->extra.tmd->coords;
     if (enemy->hp <= 0) {
-        gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
         return;
     }
@@ -670,7 +670,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
         msg.context.loc.area  = 0;
         msg.command           = 5;
         Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -680,11 +680,11 @@ static void func_actor_342400_80162FFC(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-#include "../../shared/hopper_waves_pair_reveal_first.inc.c"
+#include "../../shared/mad_chaser_waves_pair_reveal_first.inc.c"
 
-#include "../../shared/hopper_waves_pair_reveal_second.inc.c"
+#include "../../shared/mad_chaser_waves_pair_reveal_second.inc.c"
 
-#include "../../shared/hopper_waves_pair_watch.inc.c"
+#include "../../shared/mad_chaser_waves_pair_watch.inc.c"
 
 static void func_actor_342400_801631DC(s16 arg0)
 {
@@ -695,7 +695,7 @@ static void func_actor_342400_801631DC(s16 arg0)
     D_shelter_b3_garbage_incinerator_80187328[1] = 0x11;
 }
 
-void hopperWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2)
+void madChaserWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2)
 {
     switch (arg1) {
         case 0:
@@ -710,4 +710,4 @@ void hopperWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-#include "../../shared/hopper_waves_pair_drop_dead.inc.c"
+#include "../../shared/mad_chaser_waves_pair_drop_dead.inc.c"

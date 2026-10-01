@@ -39,7 +39,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/blend_rig_creature.h"
+#include "../../shared/desert_chaser.h"
 
 /// Psy-Q `RotMatrixY`.
 
@@ -56,7 +56,7 @@ STATIC_ASSERT_SIZEOF(Actor323400Storage1218, 16);
 
 static Actor323400Storage1218 ActorContact_ScratchPosition;
 
-/// Per-state animation table `rigAnimTick` reads when it
+/// Per-state animation table `desertChaserAnimTick` reads when it
 /// re-seeds the slots: 0x2D bytes per `field_82C`, indexed by `field_82E`.
 extern s8 gRigClipStartFrames[];
 
@@ -116,7 +116,7 @@ static const GpEnemyTaskFuncTable4 D_actor_323400_80161E24 = {
 /// Task states `func_actor_323400_80164CEC` runs by `Task::state`: the spawn
 /// handler, the per-frame driver, then `Gp_DestroyEnemy`.
 static const GpEnemyTaskFuncTable3 D_actor_323400_80161E34 = {
-    rigSpawn,
+    desertChaserSpawn,
     func_actor_323400_801644C4,
     Gp_DestroyEnemy,
 };
@@ -3005,7 +3005,7 @@ u8 gRigAnimSource[340] = {
 
 Actor323400MessageEntry gRigMessages[7] = {
     { 2015, { .call5 = func_actor_323400_8016475C } },
-    { 2005, { .call4 = rigSetVisibility } },
+    { 2005, { .call4 = desertChaserSetVisibility } },
     { 2006, { .call0 = func_actor_323400_80164824 } },
     { 2004, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323400_80164974 } },
@@ -3030,7 +3030,7 @@ static void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2);
 
 #include "../../shared/actor_contacts.inc.c"
 
-#include "../../shared/blend_rig_creature_blend_tick.inc.c"
+#include "../../shared/desert_chaser_blend_tick.inc.c"
 
 /// Per-frame effect dispatch keyed on `field_82E` and the record each animation
 /// slot has reached. A recognised record is handled once: `field_848` remembers,
@@ -3040,7 +3040,7 @@ static void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2);
 /// when no case claimed a record.
 ///
 /// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
-s32 rigAnimCues(Task* task, Actor323000Work* work)
+s32 desertChaserAnimCues(Task* task, Actor323000Work* work)
 {
     SVECTOR vec;
     s32     reset;
@@ -3296,9 +3296,9 @@ s32 rigAnimCues(Task* task, Actor323000Work* work)
     return 0;
 }
 
-#include "../../shared/blend_rig_creature_anim_tick.inc.c"
+#include "../../shared/desert_chaser_anim_tick.inc.c"
 
-#include "../../shared/blend_rig_creature_spawn.inc.c"
+#include "../../shared/desert_chaser_spawn.inc.c"
 
 /// State 2 of `D_actor_323400_80161E24`. On entry it flags the enemy's link
 /// node, shows the model (clears its flags) and rebuilds its buffers, resets
@@ -3329,7 +3329,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
         work->field_83E = 0;
         work->field_840 = 0;
         work->field_6   = 0;
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
         return;
     }
     switch (++work->field_6) {
@@ -3387,7 +3387,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
             break;
         }
     }
-    rigAnimTick(task);
+    desertChaserAnimTick(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -3472,7 +3472,7 @@ void func_actor_323400_8016475C(void)
 {
 }
 
-#include "../../shared/blend_rig_creature_visibility.inc.c"
+#include "../../shared/desert_chaser_visibility.inc.c"
 
 /// Handler for message 0x7D6: returns 1 while the enemy still has hit points,
 /// and otherwise 1 only when the model has neither flag 0x80 nor flag 2 set.
@@ -3543,7 +3543,7 @@ s32 func_actor_323400_80164A50(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 
 /// `Task::exitCallback` the spawn handler installs: destroys the enemy the
 /// task carries.
-void rigExit(Task* task)
+void desertChaserExit(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
 }
@@ -3631,9 +3631,9 @@ static void func_actor_323400_80164BD0(Enemy* enemy, Task* task)
         work->field_828 = 2;
         work->field_83E = 0;
         work->field_840 = 0;
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
     } else {
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
     }
 }
 
@@ -3658,9 +3658,9 @@ static void func_actor_323400_80164C4C(Enemy* enemy, Task* task)
         work->field_828 = 1;
         work->field_83E = 0;
         work->field_840 = 0;
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
     } else {
-        rigAnimTick(task);
+        desertChaserAnimTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }

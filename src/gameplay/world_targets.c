@@ -896,18 +896,18 @@ void Gp_InitStateF0(void)
     combat->actor02400Alert                     = 0;
     combat->actor01600Wave                      = 0;
     combat->pairedEnemySignals                  = 0;
-    combat->spiderEntranceReady                 = 0;
-    combat->hopperAlertOwner                    = 0;
+    combat->maggotCaterpillarEntranceReady      = 0;
+    combat->madChaserAlertOwner                 = 0;
     combat->shrineEnemyPhase                    = SCENE_COMBAT_SHRINE_HIDDEN;
     combat->actor02500EntranceReady             = 0;
-    combat->spiderAmbushReady                   = 0;
+    combat->maggotCaterpillarAmbushReady        = 0;
     combat->actor00400HideRequested             = 0;
-    combat->bruteGroupPhase                     = SCENE_COMBAT_BRUTE_WAITING;
+    combat->zebraStalkerGroupPhase              = SCENE_COMBAT_ZEBRA_STALKER_WAITING;
     combat->enemySoundBankQueued                = 0;
-    combat->podDeathStarted                     = 0;
-    combat->bruteDeathAlert                     = 0;
+    combat->generatorDeathStarted               = 0;
+    combat->zebraStalkerDeathAlert              = 0;
     combat->actor00300AttackAlert               = 0;
-    combat->lungerDeathAlert                    = 0;
+    combat->golemPawnRookDeathAlert             = 0;
     combat->field_2A                            = 0;
     if (Gp_IsDebugAttachRoom() == 1) {
         combat->difficulty = SCENE_COMBAT_DIFFICULTY_NORMAL;

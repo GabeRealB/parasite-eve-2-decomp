@@ -54,7 +54,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_junk_yard.h"
-#include "../../shared/leaping_brute.h"
+#include "../../shared/stalker_zebra_ivory.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
@@ -92,96 +92,96 @@ STATIC_ASSERT_SIZEOF(Actor400600State, 0x4);
 /// pointer field for its own work block, so it is *not* a `TaskIdMap` here.
 /// Reach it with `(Actor400600Work*)task->work`.
 typedef struct Actor400600Work {
-    /* 0x000 */ MATRIX                matrix_0;  // copy of the root coordinate's local matrix
-    /* 0x020 */ MATRIX                matrix_20; // color matrix for the child models
-    /* 0x040 */ MATRIX                matrix_40; // light matrix for the child models
-    /* 0x060 */ byte                  pad_60[0x10];
-    /* 0x070 */ VECTOR                field_70;  // copy of the root coordinate's translation
-    /* 0x080 */ u16                   field_80;  // pitch, see bruteApplyRotation
-    /* 0x082 */ u16                   field_82;  // yaw, see bruteApplyRotation
-    /* 0x084 */ u16                   field_84;  // roll, see bruteApplyRotation
-    /* 0x086 */ byte                  pad_86[0x2];
-    /* 0x088 */ BruteViewPos          field_88;
-    /* 0x08E */ byte                  pad_8E[0x2];
-    /* 0x090 */ u16                   field_90; // spawn position X (low half)
-    /* 0x092 */ u16                   field_92; // seeds field_73E on state entry
-    /* 0x094 */ u16                   field_94; // spawn position Z (low half)
-    /* 0x096 */ byte                  pad_96[0x2];
-    /* 0x098 */ u16                   field_98; // low half of the root coordinate's world X
-    /* 0x09A */ u16                   field_9A; // copy of field_92
-    /* 0x09C */ u16                   field_9C; // low half of the root coordinate's world Z
-    /* 0x09E */ byte                  pad_9E[0xA];
-    /* 0x0A8 */ BruteViewPos          field_A8; // copied to the stack for bruteTurnToward
-    /* 0x0AE */ byte                  pad_AE[0x2];
-    /* 0x0B0 */ AnimationContext      anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
-    /* 0x0C4 */ AnimationSlot         slots[0x12];
-    /* 0x394 */ byte                  pad_394[0x120];
-    /* 0x4B4 */ WorldCollisionBody    obj_4B4;    // collision node; flags bit 0x8000 cleared
-    /* 0x4D4 */ WorldCollisionContact rec_4D4[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x594 */ WorldCollisionBody    obj_594;    // collision node; flags bit 0x8000 cleared
-    /* 0x5B4 */ WorldCollisionContact rec_5B4[1]; // obj_594's table (flags kind 1)
-    /* 0x5CC */ WorldCollisionBody    obj_5CC;    // collision node; flags bit 0x8000 cleared
-    /* 0x5EC */ WorldCollisionContact rec_5EC[1]; // obj_5CC's table (flags kind 1)
-    /* 0x604 */ WorldCollisionBody    obj_604;    // collision node; flags bit 0x4000 cleared
-    /* 0x624 */ WorldCollisionCapsule rec_624;    // obj_604's payload (flags kind 3)
-    /* 0x63C */ WorldCollisionContact rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x6FC */ EffectSpawnArg        eff_6FC;    // fourth model part's coordinate
-    /* 0x704 */ Task*                 field_704;  // child task, killed on death
-    /* 0x708 */ Task*                 field_708;  // child task, killed on death
-    /* 0x70C */ byte                  pad_70C[0x4];
-    /* 0x710 */ Actor400600Timer      field_710;
-    /* 0x714 */ s16                   field_714; // reset to 0x1000 on death
-    /* 0x716 */ u16                   field_716; // frame counter, bumped by func_actor_400600_80138D78
-    /* 0x718 */ u16                   field_718; // per-state frame counter
-    /* 0x71A */ s16                   field_71A;
-    /* 0x71C */ u16                   field_71C; // state index
-    /* 0x71E */ u16                   field_71E; // sub-state index
-    /* 0x720 */ s16                   field_720;
-    /* 0x722 */ s16                   field_722; // velocity step (can go negative)
-    /* 0x724 */ s16                   field_724; // accumulated step
-    /* 0x726 */ s16                   field_726;
-    /* 0x728 */ s16                   field_728;
-    /* 0x72A */ u16                   field_72A;
-    /* 0x72C */ u16                   field_72C;
-    /* 0x72E */ s16                   field_72E;
-    /* 0x730 */ s16                   field_730;
-    /* 0x732 */ s16                   field_732; // countdown seeded by func_actor_400600_80138AF0
-    /* 0x734 */ s16                   field_734; // model slot id handed to func_actor_400600_80139FE0
-    /* 0x736 */ byte                  pad_736[0x4];
-    /* 0x73A */ s16                   field_73A; // fade level, lerped toward 0xFF
-    /* 0x73C */ s16                   field_73C;
-    /* 0x73E */ u16                   field_73E;
-    /* 0x740 */ s16                   field_740;
-    /* 0x742 */ s16                   field_742; // animation request kind
-    /* 0x744 */ s16                   field_744; // animation id now playing
-    /* 0x746 */ s16                   field_746; // animation id
-    /* 0x748 */ s16                   field_748; // sound step index (func_actor_400600_801361AC)
-    /* 0x74A */ s16                   field_74A; // hit cooldown, seeded from Gp_GetIdParam2
-    /* 0x74C */ s16                   field_74C;
-    /* 0x74E */ s16                   field_74E;
-    /* 0x750 */ u16                   field_750; // countdown to state 0xB
-    /* 0x752 */ s16                   field_752;
-    /* 0x754 */ s16                   field_754;
-    /* 0x756 */ u16                   field_756; // countdown to the next state-2 transition
-    /* 0x758 */ s16                   field_758;
-    /* 0x75A */ s16                   field_75A;
-    /* 0x75C */ Actor400600State      field_75C;
-    /* 0x760 */ s8                    field_760;
-    /* 0x761 */ byte                  pad_761;
-    /* 0x762 */ u8                    field_762;
-    /* 0x763 */ u8                    field_763;
-    /* 0x764 */ u8                    field_764;
-    /* 0x765 */ s8                    field_765;
-    /* 0x766 */ s8                    field_766;
-    /* 0x767 */ s8                    field_767;
-    /* 0x768 */ u8                    field_768;
-    /* 0x769 */ u8                    field_769; // sub-variant flag, gates state indices
-    /* 0x76A */ u8                    field_76A; // distance mode: 0 none, 1 XZ, 2 XY
-    /* 0x76B */ u8                    field_76B;
-    /* 0x76C */ u8                    field_76C; // nonzero: landing spawns the dust ring
-    /* 0x76D */ u8                    field_76D;
-    /* 0x76E */ u8                    field_76E; // set when spawned in map 0x0314
-    /* 0x76F */ byte                  pad_76F;
+    /* 0x000 */ MATRIX                   matrix_0;  // copy of the root coordinate's local matrix
+    /* 0x020 */ MATRIX                   matrix_20; // color matrix for the child models
+    /* 0x040 */ MATRIX                   matrix_40; // light matrix for the child models
+    /* 0x060 */ byte                     pad_60[0x10];
+    /* 0x070 */ VECTOR                   field_70;  // copy of the root coordinate's translation
+    /* 0x080 */ u16                      field_80;  // pitch, see stalkerZebraIvoryApplyRotation
+    /* 0x082 */ u16                      field_82;  // yaw, see stalkerZebraIvoryApplyRotation
+    /* 0x084 */ u16                      field_84;  // roll, see stalkerZebraIvoryApplyRotation
+    /* 0x086 */ byte                     pad_86[0x2];
+    /* 0x088 */ StalkerZebraIvoryViewPos field_88;
+    /* 0x08E */ byte                     pad_8E[0x2];
+    /* 0x090 */ u16                      field_90; // spawn position X (low half)
+    /* 0x092 */ u16                      field_92; // seeds field_73E on state entry
+    /* 0x094 */ u16                      field_94; // spawn position Z (low half)
+    /* 0x096 */ byte                     pad_96[0x2];
+    /* 0x098 */ u16                      field_98; // low half of the root coordinate's world X
+    /* 0x09A */ u16                      field_9A; // copy of field_92
+    /* 0x09C */ u16                      field_9C; // low half of the root coordinate's world Z
+    /* 0x09E */ byte                     pad_9E[0xA];
+    /* 0x0A8 */ StalkerZebraIvoryViewPos field_A8; // copied to the stack for stalkerZebraIvoryTurnToward
+    /* 0x0AE */ byte                     pad_AE[0x2];
+    /* 0x0B0 */ AnimationContext         anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
+    /* 0x0C4 */ AnimationSlot            slots[0x12];
+    /* 0x394 */ byte                     pad_394[0x120];
+    /* 0x4B4 */ WorldCollisionBody       obj_4B4;    // collision node; flags bit 0x8000 cleared
+    /* 0x4D4 */ WorldCollisionContact    rec_4D4[8]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x594 */ WorldCollisionBody       obj_594;    // collision node; flags bit 0x8000 cleared
+    /* 0x5B4 */ WorldCollisionContact    rec_5B4[1]; // obj_594's table (flags kind 1)
+    /* 0x5CC */ WorldCollisionBody       obj_5CC;    // collision node; flags bit 0x8000 cleared
+    /* 0x5EC */ WorldCollisionContact    rec_5EC[1]; // obj_5CC's table (flags kind 1)
+    /* 0x604 */ WorldCollisionBody       obj_604;    // collision node; flags bit 0x4000 cleared
+    /* 0x624 */ WorldCollisionCapsule    rec_624;    // obj_604's payload (flags kind 3)
+    /* 0x63C */ WorldCollisionContact    rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
+    /* 0x6FC */ EffectSpawnArg           eff_6FC;    // fourth model part's coordinate
+    /* 0x704 */ Task*                    field_704;  // child task, killed on death
+    /* 0x708 */ Task*                    field_708;  // child task, killed on death
+    /* 0x70C */ byte                     pad_70C[0x4];
+    /* 0x710 */ Actor400600Timer         field_710;
+    /* 0x714 */ s16                      field_714; // reset to 0x1000 on death
+    /* 0x716 */ u16                      field_716; // frame counter, bumped by func_actor_400600_80138D78
+    /* 0x718 */ u16                      field_718; // per-state frame counter
+    /* 0x71A */ s16                      field_71A;
+    /* 0x71C */ u16                      field_71C; // state index
+    /* 0x71E */ u16                      field_71E; // sub-state index
+    /* 0x720 */ s16                      field_720;
+    /* 0x722 */ s16                      field_722; // velocity step (can go negative)
+    /* 0x724 */ s16                      field_724; // accumulated step
+    /* 0x726 */ s16                      field_726;
+    /* 0x728 */ s16                      field_728;
+    /* 0x72A */ u16                      field_72A;
+    /* 0x72C */ u16                      field_72C;
+    /* 0x72E */ s16                      field_72E;
+    /* 0x730 */ s16                      field_730;
+    /* 0x732 */ s16                      field_732; // countdown seeded by func_actor_400600_80138AF0
+    /* 0x734 */ s16                      field_734; // model slot id handed to func_actor_400600_80139FE0
+    /* 0x736 */ byte                     pad_736[0x4];
+    /* 0x73A */ s16                      field_73A; // fade level, lerped toward 0xFF
+    /* 0x73C */ s16                      field_73C;
+    /* 0x73E */ u16                      field_73E;
+    /* 0x740 */ s16                      field_740;
+    /* 0x742 */ s16                      field_742; // animation request kind
+    /* 0x744 */ s16                      field_744; // animation id now playing
+    /* 0x746 */ s16                      field_746; // animation id
+    /* 0x748 */ s16                      field_748; // sound step index (func_actor_400600_801361AC)
+    /* 0x74A */ s16                      field_74A; // hit cooldown, seeded from Gp_GetIdParam2
+    /* 0x74C */ s16                      field_74C;
+    /* 0x74E */ s16                      field_74E;
+    /* 0x750 */ u16                      field_750; // countdown to state 0xB
+    /* 0x752 */ s16                      field_752;
+    /* 0x754 */ s16                      field_754;
+    /* 0x756 */ u16                      field_756; // countdown to the next state-2 transition
+    /* 0x758 */ s16                      field_758;
+    /* 0x75A */ s16                      field_75A;
+    /* 0x75C */ Actor400600State         field_75C;
+    /* 0x760 */ s8                       field_760;
+    /* 0x761 */ byte                     pad_761;
+    /* 0x762 */ u8                       field_762;
+    /* 0x763 */ u8                       field_763;
+    /* 0x764 */ u8                       field_764;
+    /* 0x765 */ s8                       field_765;
+    /* 0x766 */ s8                       field_766;
+    /* 0x767 */ s8                       field_767;
+    /* 0x768 */ u8                       field_768;
+    /* 0x769 */ u8                       field_769; // sub-variant flag, gates state indices
+    /* 0x76A */ u8                       field_76A; // distance mode: 0 none, 1 XZ, 2 XY
+    /* 0x76B */ u8                       field_76B;
+    /* 0x76C */ u8                       field_76C; // nonzero: landing spawns the dust ring
+    /* 0x76D */ u8                       field_76D;
+    /* 0x76E */ u8                       field_76E; // set when spawned in map 0x0314
+    /* 0x76F */ byte                     pad_76F;
 } Actor400600Work;
 STATIC_ASSERT_SIZEOF(Actor400600Work, 0x770);
 
@@ -206,18 +206,18 @@ STATIC_ASSERT_SIZEOF(Actor400600QuadScratch, 0x3C);
 extern ActorZone D_actor_400600_80151B40[];
 
 /* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
- * source for the effect's own `TmdObject`; `gSceneCombatState.bruteGroupPhase` and `gSceneCombatState.bruteDeathAlert` are
+ * source for the effect's own `TmdObject`; `gSceneCombatState.zebraStalkerGroupPhase` and `gSceneCombatState.zebraStalkerDeathAlert` are
  * bytes of the run of gameplay flags at 0x80115408..0x8011541B.
  *
  * Storing to a bare `extern` global next to pointer-based struct traffic lets
  * GCC 2.8.1's `fixed_scalar_and_varying_struct_p` conclude the two cannot
  * alias, so the scheduler sinks the store past the `Actor400600Work` loads
  * that follow. Two remedies work and which one is needed was measured, not
- * chosen: the byte store to `gSceneCombatState.bruteDeathAlert` matches with `SOFT_BARRIER()` after
+ * chosen: the byte store to `gSceneCombatState.zebraStalkerDeathAlert` matches with `SOFT_BARRIER()` after
  * it, so that one is declared as the scalar it is; the pointer store to
  * `D_800678F0` checksums wrong with the barrier and matches only as an
  * aggregate, so its one-element array stays and is doing real work.
- * `gSceneCombatState.bruteGroupPhase` is the aggregate case too: one of its stores sits between
+ * `gSceneCombatState.zebraStalkerGroupPhase` is the aggregate case too: one of its stores sits between
  * struct stores on both sides, and the barrier trades the sink for a hoist
  * above the preceding flag updates. */
 extern void* D_800678F0[1];
@@ -335,9 +335,9 @@ static s16  func_actor_400600_80139BA0(Task* arg0, s16 arg1);
 static void func_actor_400600_80139CAC(Task* arg0);
 static void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2);
 static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_actor_400600_80139E68(Task* arg0, s16 arg1, BruteViewPos* arg2);
-static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, BruteViewPos* arg2);
-static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, BruteViewPos* arg2);
+static void func_actor_400600_80139E68(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
+static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
+static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2);
 static s32  func_actor_400600_8013A0B0(Task* arg0);
 void        func_actor_400600_8013A0F0(Task* arg0);
 static void func_actor_400600_8013A170(Task* arg0);
@@ -1628,7 +1628,7 @@ static __inline__ void Actor400600_RebuildRotation(Task* arg0);
 static __inline__ void Actor400600_TickAnim(Task* arg0);
 static inline void     _actor400600SetCoordRotation(GfxCoord* coord, s16 angle);
 
-/// `bruteApplyRotation`'s body, inlined: wrap the three angles to 12 bits and
+/// `stalkerZebraIvoryApplyRotation`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each
 /// the cursor slot access in the absolute `lui`/`lw` form instead of a
 /// register CSE would otherwise hoist the address into.
@@ -2136,21 +2136,21 @@ static void func_actor_400600_801332F4(Task* arg0)
         func_actor_400600_80138B5C(arg0, 0);
         work->field_71C = work->field_71C + 1;
     } else if (mode == 2) {
-        work->obj_4B4.flags              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj_594.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj_5CC.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        coord->coord.t[0]                 = -0x6A4;
-        coord->coord.t[2]                 = -0x514;
-        coord->coord.t[1]                 = 0;
-        work->field_82                    = 0x400;
-        work->field_73A                   = 0xFF;
-        work->field_80                    = 0;
-        work->field_84                    = 0;
-        gSceneCombatState.bruteGroupPhase = mode;
-        work2                             = (Actor400600Work*)arg0->work;
-        arg0->state                       = 1;
-        work2->field_71C                  = 0;
-        work2->field_71E                  = 0;
+        work->obj_4B4.flags                     |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj_594.flags                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj_5CC.flags                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        coord->coord.t[0]                        = -0x6A4;
+        coord->coord.t[2]                        = -0x514;
+        coord->coord.t[1]                        = 0;
+        work->field_82                           = 0x400;
+        work->field_73A                          = 0xFF;
+        work->field_80                           = 0;
+        work->field_84                           = 0;
+        gSceneCombatState.zebraStalkerGroupPhase = mode;
+        work2                                    = (Actor400600Work*)arg0->work;
+        arg0->state                              = 1;
+        work2->field_71C                         = 0;
+        work2->field_71E                         = 0;
     }
 }
 
@@ -2396,7 +2396,7 @@ static void func_actor_400600_80133B88(Task* arg0)
     u32              rnd;
 
     work = (Actor400600Work*)arg0->work;
-    if (work->field_728 < 0xBB8 || gSceneCombatState.bruteDeathAlert != 0) {
+    if (work->field_728 < 0xBB8 || gSceneCombatState.zebraStalkerDeathAlert != 0) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -2815,7 +2815,7 @@ static void func_actor_400600_80134B98(Task* arg0)
         Actor400600_TickAnim(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
         work->field_769  = 0;
         work3            = (Actor400600Work*)arg0->work;
         work3->field_71C = 2;
@@ -2888,7 +2888,7 @@ static void func_actor_400600_801350F4(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work->field_718++;
     if ((s16)work->field_718 < 8) {
-        bruteReadPartViewXZ(arg0, 3, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 3, &work->field_88);
         return;
     }
     work->field_88.x += ((s16)work->field_98 - work->field_88.x) >> 2;
@@ -3151,7 +3151,7 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
         work->field_726 = arg1;
     }
     if (work->field_748 == 0) {
-        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
         id = 0x40060001;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -3174,7 +3174,7 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
         }
     }
     if (work->field_748 == start1) {
-        bruteReadPartViewXZ(arg0, 8, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 8, &work->field_88);
         id = 0x40060002;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -3259,7 +3259,7 @@ static void func_actor_400600_80135DDC(Task* arg0)
         work->field_748 = 0;
     }
     if (work->field_748 == start0) {
-        bruteReadPartViewXZ(arg0, 8, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 8, &work->field_88);
         id = 0x40060001;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -3276,7 +3276,7 @@ static void func_actor_400600_80135DDC(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->field_748 == start1) {
-        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
+        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->field_88);
         id = 0x40060002;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -4569,11 +4569,11 @@ static void func_actor_400600_80138C34(Task* arg0)
             func_actor_400600_80139CAC(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
-            bruteApplyRotation(arg0);
+            stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            bruteUpdateColor(arg0);
+            stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80132704(arg0, work->field_73C, work->field_73A);
             break;
     }
@@ -4595,11 +4595,11 @@ static void func_actor_400600_80138D78(Task* arg0)
             func_actor_400600_80139CAC(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
-            bruteApplyRotation(arg0);
+            stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            bruteUpdateColor(arg0);
+            stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
     }
@@ -4621,11 +4621,11 @@ static void func_actor_400600_80138EA0(Task* arg0)
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80139CAC(arg0);
             func_actor_400600_80136558(arg0);
-            bruteApplyRotation(arg0);
+            stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            bruteUpdateColor(arg0);
+            stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, (u8)work->field_73A);
             break;
     }
@@ -4647,11 +4647,11 @@ static void func_actor_400600_80138FD4(Task* arg0)
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80139CAC(arg0);
             func_actor_400600_80136558(arg0);
-            bruteApplyRotation(arg0);
+            stalkerZebraIvoryApplyRotation(arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            bruteUpdateColor(arg0);
+            stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
     }
@@ -4768,7 +4768,7 @@ static void func_actor_400600_80139560(Task* arg0)
         pos.vx = work->field_A8.x;
         pos.vy = work->field_A8.y;
         pos.vz = work->field_A8.z;
-        bruteTurnToward(arg0, &pos, 0x18);
+        stalkerZebraIvoryTurnToward(arg0, &pos, 0x18);
         func_actor_400600_80135DDC(arg0);
     }
 }
@@ -4838,7 +4838,7 @@ static void func_actor_400600_801398E0(Task* arg0)
     fns[(s16)work->field_71E](arg0);
 }
 
-#include "../../shared/leaping_brute_apply_rotation.inc.c"
+#include "../../shared/stalker_zebra_ivory_apply_rotation.inc.c"
 
 static void func_actor_400600_80139A78(Task* arg0)
 {
@@ -4889,7 +4889,7 @@ static s16 func_actor_400600_80139BA0(Task* arg0, s16 arg1)
     return ((arg1 << 8) / work->field_726 << 12) >> 16;
 }
 
-#include "../../shared/leaping_brute_turn_toward.inc.c"
+#include "../../shared/stalker_zebra_ivory_turn_toward.inc.c"
 
 static void func_actor_400600_80139CAC(Task* arg0)
 {
@@ -4938,9 +4938,9 @@ static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
     work->field_742 = 1;
 }
 
-#include "../../shared/leaping_brute_part_view_xz.inc.c"
+#include "../../shared/stalker_zebra_ivory_part_view_xz.inc.c"
 
-static void func_actor_400600_80139E68(Task* arg0, s16 arg1, BruteViewPos* arg2)
+static void func_actor_400600_80139E68(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
 {
     MATRIX    root;
     MATRIX    local;
@@ -4963,7 +4963,7 @@ static void func_actor_400600_80139E68(Task* arg0, s16 arg1, BruteViewPos* arg2)
     Gp_UpdateCoord(coords);
 }
 
-static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, BruteViewPos* arg2)
+static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
 {
     MATRIX    local;
     GfxCoord* coord;
@@ -4979,7 +4979,7 @@ static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, BruteViewPos* arg2)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, BruteViewPos* arg2)
+static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, StalkerZebraIvoryViewPos* arg2)
 {
     MATRIX    root;
     MATRIX    local;
@@ -5036,7 +5036,7 @@ static void func_actor_400600_8013A170(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             fns.funcs[(s16)work->field_71C](arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            bruteUpdateColor(arg0);
+            stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
             break;
     }
@@ -5053,7 +5053,7 @@ static void func_actor_400600_8013A26C(Task* arg0)
     states[(s16)work->field_71C](arg0);
 }
 
-#include "../../shared/leaping_brute_update_color.inc.c"
+#include "../../shared/stalker_zebra_ivory_update_color.inc.c"
 
 void func_actor_400600_8013A338(Task* arg0, s32 arg1, u16* arg2)
 {
@@ -5282,7 +5282,7 @@ static void func_actor_400600_8013A990(Task* arg0)
         coord->coord.t[1] = (s16)work->field_92;
         func_actor_400600_80139D98(arg0, 0x13, 0x10);
         work->field_84 += 0x800;
-        bruteApplyRotation(arg0);
+        stalkerZebraIvoryApplyRotation(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         work->field_718 = 0;
@@ -5313,9 +5313,9 @@ static void func_actor_400600_8013AAD8(Task* arg0)
     Task*            child;
     Task*            child2;
 
-    work                              = (Actor400600Work*)arg0->work;
-    gSceneCombatState.bruteDeathAlert = 1;
-    child                             = work->field_704;
+    work                                     = (Actor400600Work*)arg0->work;
+    gSceneCombatState.zebraStalkerDeathAlert = 1;
+    child                                    = work->field_704;
     if (child != NULL) {
         taskKill(child);
     }
@@ -5670,17 +5670,17 @@ static void func_actor_400600_8013B520(Task* arg0)
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work->obj_4B4.flags              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj_594.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj_5CC.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        gSceneCombatState.bruteGroupPhase = SCENE_COMBAT_BRUTE_DELAYED;
-        work2                             = (Actor400600Work*)arg0->work;
-        arg0->state                       = 1;
-        work2->field_71C                  = 0;
-        work2->field_71E                  = 0;
-        work3                             = (Actor400600Work*)arg0->work;
-        work3->field_71C                  = 2;
-        work3->field_71E                  = 0;
+        work->obj_4B4.flags                     |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj_594.flags                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj_5CC.flags                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        gSceneCombatState.zebraStalkerGroupPhase = SCENE_COMBAT_ZEBRA_STALKER_DELAYED;
+        work2                                    = (Actor400600Work*)arg0->work;
+        arg0->state                              = 1;
+        work2->field_71C                         = 0;
+        work2->field_71E                         = 0;
+        work3                                    = (Actor400600Work*)arg0->work;
+        work3->field_71C                         = 2;
+        work3->field_71E                         = 0;
     }
 }
 
@@ -5754,7 +5754,7 @@ static void func_actor_400600_8013B740(Task* arg0)
     pos.vx = work->field_A8.x;
     pos.vy = work->field_A8.y;
     pos.vz = work->field_A8.z;
-    bruteTurnToward(arg0, &pos, work->field_754);
+    stalkerZebraIvoryTurnToward(arg0, &pos, work->field_754);
     func_actor_400600_80135998(arg0, work->field_752);
 }
 
@@ -6054,7 +6054,7 @@ static void func_actor_400600_8013BFD4(Task* arg0)
     work2->field_726 = 0x10;
     work2->field_746 = 0x16;
     work2->field_742 = 1;
-    bruteReadPartViewXZ(arg0, 0xE, &work->field_88);
+    stalkerZebraIvoryReadPartViewXZ(arg0, 0xE, &work->field_88);
     work->field_71E = work->field_71E + 1;
 }
 
@@ -6398,12 +6398,12 @@ static void func_actor_400600_8013C940(Task* arg0)
     u32              rnd;
 
     work = (Actor400600Work*)arg0->work;
-    if (gSceneCombatState.bruteGroupPhase == SCENE_COMBAT_BRUTE_DELAYED) {
+    if (gSceneCombatState.zebraStalkerGroupPhase == SCENE_COMBAT_ZEBRA_STALKER_DELAYED) {
         rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         work->field_718 = ((rnd >> 0x10) & 7) + 0x14;
         work->field_71C = work->field_71C + 1;
-    } else if (gSceneCombatState.bruteGroupPhase == SCENE_COMBAT_BRUTE_ACTIVE) {
+    } else if (gSceneCombatState.zebraStalkerGroupPhase == SCENE_COMBAT_ZEBRA_STALKER_ACTIVE) {
         work->obj_4B4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->obj_594.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj_5CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

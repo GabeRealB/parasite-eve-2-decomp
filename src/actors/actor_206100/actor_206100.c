@@ -64,7 +64,7 @@
 #include "rooms/neo_ark_submarine_gallery.h"
 #include "../../shared/screen_wave.h"
 #include "../../shared/coord_math.h"
-#include "../../shared/striker_enemy.h"
+#include "../../shared/diver.h"
 
 /// Shared stack storage for posing the actor, spawning its beam, and walking
 /// the parent coordinates to determine whether the actor can be locked onto.
@@ -467,7 +467,7 @@ STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
 /// stays zero.  `rec` is the two-entry `WorldCollisionContact` table `obj.context.contacts` points at.
 /// `field_58` / `field_5A` / `field_5C` are the view-space deltas the spawner
 /// stores from the actor's coordinate, `field_60` the pair index the setup
-/// hands to `strikerImpactBurst`, and `field_64` the scale word it
+/// hands to `diverImpactBurst`, and `field_64` the scale word it
 /// biases by 0x10002000.  The tick handler `func_actor_206100_8014B8B4`
 /// advances `field_5A` and adds `field_58` into the coordinate's `t[1]`.
 typedef struct Actor206100ChildWork {
@@ -529,7 +529,7 @@ static void func_actor_206100_8014EEC0(Task* task);
 
 /// Spawns the beam's impact effect burst at `coord`. `arg1` is
 /// `Actor206100ChildWork::field_60` (the `DamageAttack` index): `(arg1 >> 1) % 6`
-/// picks the spark frame `strikerDrawSpark` plays, bit 0 gates the
+/// picks the spark frame `diverDrawSpark` plays, bit 0 gates the
 /// puff and the low three bits the directional tail. `arg2` selects the burst
 /// - 0 a lone spark, 1 the spark plus those two extras, 2 a four-shot ring -
 /// and `arg3` is the biased `field_64` scale word, whose low 12 bits are the
@@ -703,7 +703,7 @@ static const TaskFuncTable3 D_actor_206100_80149E24 = {
     {
         func_actor_206100_8014EEC0,
         func_actor_206100_8014B8B4,
-        strikerStrikeTeardown,
+        diverStrikeTeardown,
     },
 };
 
@@ -1268,8 +1268,8 @@ static __inline__ s16  take_request(Task* task);
 
 #include "../../shared/screen_wave.inc.c"
 
-#include "../../shared/striker_enemy_impact_burst.inc.c"
-#include "../../shared/striker_enemy_draw_spark.inc.c"
+#include "../../shared/diver_impact_burst.inc.c"
+#include "../../shared/diver_draw_spark.inc.c"
 
 static void func_actor_206100_8014AF74(Task* task)
 {
@@ -1599,7 +1599,7 @@ static void func_actor_206100_8014B698(Task* task)
 /// `func_800E0C10`'s push-back says the beam is crowded, and retires the child
 /// - clearing the object's draw flags, bumping the task state and switching
 /// the effect kind to 2 - once `killCountdown` reaches 0x5B or the flag is up.
-/// `field_64` is the scale the setup hands to `strikerImpactBurst`
+/// `field_64` is the scale the setup hands to `diverImpactBurst`
 /// biased by 0x10002000; it ramps 0x100 a frame to 0x600 and then holds.
 static void func_actor_206100_8014B8B4(Task* task)
 {
@@ -1655,7 +1655,7 @@ static void func_actor_206100_8014B8B4(Task* task)
         } else {
             child->field_64 = 0x600;
         }
-        strikerImpactBurst(coord, child->field_60, mode, child->field_64 + 0x10002000);
+        diverImpactBurst(coord, child->field_60, mode, child->field_64 + 0x10002000);
     }
 }
 /// Damage / knock-back tick: walks the six contact records of the actor's
@@ -1816,9 +1816,9 @@ static void func_actor_206100_8014BAA8(Task* task)
         work->field_504 = 0;
     }
 }
-#include "../../shared/striker_enemy_inlines.inc.c"
+#include "../../shared/diver_inlines.inc.c"
 
-#include "../../shared/striker_enemy_turn_joint.inc.c"
+#include "../../shared/diver_turn_joint.inc.c"
 
 /// Services the animation request in the work block and steps animation slots
 /// 1 through 0xE once.  `field_50C` holds the request kind: kind 1 zeroes the
@@ -2291,7 +2291,7 @@ static void func_actor_206100_8014CD08(Task* task)
         return;
     }
     work->field_526 = (u16)(work->field_526 + ((s32)(0x1D4C - (s16)work->field_526) >> 2));
-    strikerStepForward(task, 0x30, work->field_43E);
+    diverStepForward(task, 0x30, work->field_43E);
 }
 /// State handler 4 of `D_actor_206100_80149E94`: clears the fixed-address
 /// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `field_51E` and seeds
@@ -2980,7 +2980,7 @@ static void func_actor_206100_8014DD3C(Task* task)
 /// planar distance below 0x3E8) advances `field_548` modulo 8 and the ring-step
 /// counter `field_54F`, which resets after its sixth step and re-arms the roll;
 /// otherwise it steers the yaw `field_43E` toward the vertex by 0x2C a frame
-/// and hands the actor to `strikerStepForward` for a 0x40 step.
+/// and hands the actor to `diverStepForward` for a 0x40 step.
 ///
 /// The three diffs are written into the `delta` `SVECTOR` although only `vx`
 /// and `vz` are read back -- the distance is planar, so `vy` is dead.  That
@@ -3054,7 +3054,7 @@ static void func_actor_206100_8014DEAC(Task* task)
         } else if (diff < -0x100) {
             work->field_43E = angle + 0x2C;
         }
-        strikerStepForward(task, 0x40, sub->field_43E);
+        diverStepForward(task, 0x40, sub->field_43E);
     }
 }
 /// Retarget tick: `func_actor_206100_8014EB48` arms the state to 1 with the
@@ -3229,8 +3229,8 @@ static void func_actor_206100_8014E228(Task* task)
     Gp_UpdateCoord(c1);
     Gp_UpdateCoord(c2);
     Gp_UpdateCoord(c3);
-    strikerTurnJoint(c2, (s16)(u16)work->field_35E / 3);
-    strikerTurnJoint(c3, (s16)(u16)work->field_35E / 3);
+    diverTurnJoint(c2, (s16)(u16)work->field_35E / 3);
+    diverTurnJoint(c3, (s16)(u16)work->field_35E / 3);
 
     mc.ident.m00_m01 = 0x1000;
     mc.ident.m02_m10 = 0;
@@ -3359,7 +3359,7 @@ static void func_actor_206100_8014E964(Task* task, void* unusedTable)
         work->field_520 = work->field_520 + 1;
     }
 }
-#include "../../shared/striker_enemy_step_forward.inc.c"
+#include "../../shared/diver_step_forward.inc.c"
 
 static void func_actor_206100_8014EB48(Task* task, s16 arg1)
 {
@@ -3446,7 +3446,7 @@ static void func_actor_206100_8014ED3C(Task* task, s16 arg1)
     SCRATCH_STACK_CURSOR(Actor206100DistScratch) = scratch;
     work                                         = (Actor206100Work*)task->work;
     coord                                        = task->extra.tmd->coords;
-    strikerStepForward(task, arg1, work->field_43E);
+    diverStepForward(task, arg1, work->field_43E);
     scratch->delta.vx = -(u16)coord->coord.t[0];
     scratch->delta.vz = -(u16)coord->coord.t[2];
     scratch->dist     = SquareRoot0(scratch->delta.vx * scratch->delta.vx +
@@ -3503,11 +3503,11 @@ static void func_actor_206100_8014EEC0(Task* task)
     Gp_InitRec18Table(rec, 2, 0);
     child->obj.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_UpdateCoord(coord);
-    strikerImpactBurst(coord, (u16)child->field_60, 0, child->field_64 + 0x10002000);
+    diverImpactBurst(coord, (u16)child->field_60, 0, child->field_64 + 0x10002000);
     task->state++;
 }
 
-#include "../../shared/striker_enemy_strike_teardown.inc.c"
+#include "../../shared/diver_strike_teardown.inc.c"
 
 #include "../../shared/coord_math_local_to_world.inc.c"
 

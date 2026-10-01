@@ -45537,7 +45537,7 @@ aggregate. `SCHED_BARRIER()` behaves like `SOFT_BARRIER()` wherever the barrier
 works at all; `volatile` works for neither and lands two instructions off.
 
 When the global is really one byte of a larger record, write it as that
-record's member: `D_80115417` is `gSceneCombatState.bruteDeathAlert`, and a member of a
+record's member: `D_80115417` is `gSceneCombatState.zebraStalkerDeathAlert`, and a member of a
 global struct is in-struct as well, so the heuristic does not fire for it
 either. Replacing the gameplay-state byte aliases with `gSceneCombatState` members
 kept every actor matching, including the ones that had declared an alias as a

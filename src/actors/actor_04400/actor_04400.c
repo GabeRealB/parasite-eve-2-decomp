@@ -55,7 +55,7 @@
 #include "rooms/shelter_b3_dumping_hole.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/hopping_enemy.h"
+#include "../../shared/mad_chaser.h"
 
 /// Status flags at `Actor104400Work` + 0xEC, read through two widths.
 ///
@@ -79,7 +79,7 @@ STATIC_ASSERT_SIZEOF(Actor104400Flags, 0x4);
 /// table walks, `field_412` is the per-state frame counter, and
 /// `field_414` .. `field_426` are the animation request the actor hands to
 /// its player. The three `WorldCollisionBody` nodes are the collision objects
-/// `hopperDropBodies` hands back to `Gp_UnlinkObj`. `obj_2AC` and
+/// `madChaserDropBodies` hands back to `Gp_UnlinkObj`. `obj_2AC` and
 /// `obj_2CC` share `rec_2EC`; `obj_3AC` has its own table at `rec_3CC`.
 typedef struct Actor104400Work {
     /* 0x000 */ MATRIX           matrix_0; // model root coord, copied out on the kill path
@@ -138,7 +138,7 @@ typedef struct Actor104400Work {
     /* 0x42C */ s16                   field_42C; // frames spent turning toward field_444; 16 enters state 3
     /* 0x42E */ byte                  pad_42E[0x2];
     /* 0x430 */ s16                   field_430;
-    /* 0x432 */ s16                   field_432; // 1 runs hopperPinPart on the spawn position
+    /* 0x432 */ s16                   field_432; // 1 runs madChaserPinPart on the spawn position
     /* 0x434 */ s16                   field_434; // pitch, eased back to zero while falling
     /* 0x436 */ s16                   field_436; // step picked from `field_43A`'s distance band
     /* 0x438 */ s16                   field_438; // 1 on the death path
@@ -303,9 +303,9 @@ static s32  Actor04400_Fn08DBC(Task* arg0);
  * cannot treat the store as a non-aliasing scalar and sink it past the
  * `TmdObject` loads. */
 extern void*     D_800678F0[1];
-extern TmdSource gHopperChunkModel0;
-extern TmdSource gHopperChunkModel1;
-extern TmdSource gHopperChunkModel2;
+extern TmdSource gMadChaserChunkModel0;
+extern TmdSource gMadChaserChunkModel1;
+extern TmdSource gMadChaserChunkModel2;
 
 static const TaskFuncTable3 Actor04400_D00070;
 static const TaskFuncTable3 Actor04400_D0007C;
@@ -344,7 +344,7 @@ u32 Actor04400_D09164[486] = {
 #include "assets/actor_104400_model_098FC_stream.inc"
 };
 
-TmdSource gHopperChunkModel0 = {
+TmdSource gMadChaserChunkModel0 = {
     0,
     3260,
     0,
@@ -376,7 +376,7 @@ u32 Actor04400_D09B50[276] = {
 #include "assets/actor_104400_model_09FA0_stream.inc"
 };
 
-TmdSource gHopperChunkModel1 = {
+TmdSource gMadChaserChunkModel1 = {
     0,
     1828,
     0,
@@ -408,7 +408,7 @@ u32 Actor04400_D0A1B4[215] = {
 #include "assets/actor_104400_model_0A510_stream.inc"
 };
 
-TmdSource gHopperChunkModel2 = {
+TmdSource gMadChaserChunkModel2 = {
     0,
     1448,
     0,
@@ -1237,7 +1237,7 @@ static const TaskFuncTable3 Actor04400_D0007C = { {
 
 /// Sub-state handlers `Actor04400_Fn068F8` dispatches by `field_422`.
 static const TaskFuncTable5 Actor04400_D00088 = { {
-    hopperStartLeap,
+    madChaserStartLeap,
     Actor04400_Fn017B0,
     Actor04400_Fn01B70,
     Actor04400_Fn01CA0,
@@ -1336,9 +1336,9 @@ static void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 
     }
 }
 
-#include "../../shared/hopping_enemy_spawn_gibs.inc.c"
+#include "../../shared/mad_chaser_spawn_gibs.inc.c"
 
-#include "../../shared/hopping_enemy_twist.inc.c"
+#include "../../shared/mad_chaser_twist.inc.c"
 
 /// Main enemy init. Allocates the 0x454-byte `Actor104400Work`, points the
 /// model at the light / color matrices inside it, runs the animation context,
@@ -1392,7 +1392,7 @@ static void Actor04400_Fn00B24(Task* arg0)
     w2->field_414 = 2;
     Actor04400_Fn02B8C(arg0);
     coord->parent = &gGfxViewCoord;
-    hopperLinkBodies(arg0);
+    madChaserLinkBodies(arg0);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy       = arg0->spawnArg2.pointer;
     Gp_LinkNode(&enemy->node);
@@ -1487,7 +1487,7 @@ static void Actor04400_Fn00D3C(Task* arg0)
     w2->field_414 = two;
     Actor04400_Fn02B8C(arg0);
     coord->parent = &gGfxViewCoord;
-    hopperLinkBodies(arg0);
+    madChaserLinkBodies(arg0);
     w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     (Gp_IncStateF0Ref)(0);
     e2 = arg0->spawnArg2.pointer;
@@ -1539,9 +1539,9 @@ static void Actor04400_Fn00F7C(Task* arg0)
             Actor04400_Fn02B8C(arg0);
             cur             = (u16)work->field_424;
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
-            hopperTwistSpine(arg0);
+            madChaserTwistSpine(arg0);
             if (work->field_432 == 1) {
-                hopperPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
+                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
             }
             Actor04400_UpdateRotation(arg0);
             Actor04400_Fn022A8(arg0, 0);
@@ -1876,7 +1876,7 @@ static void Actor04400_Fn01E08(Task* arg0)
             }
             Actor04400_Fn02B8C(arg0);
             if (work->field_432 == 1) {
-                hopperPinPart(arg0, 6, (SVECTOR3*)&work->field_80);
+                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->field_80);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -2213,19 +2213,19 @@ static void Actor04400_Fn02B8C(Task* arg0)
     }
 }
 
-#include "../../shared/hopping_enemy_bodies.inc.c"
+#include "../../shared/mad_chaser_bodies.inc.c"
 
 /// State handlers `Actor04400_Fn02E8C` dispatches by `field_420`.
 static const TaskFuncTable9 Actor04400_D000EC = { {
     Actor04400_Fn07530,
     Actor04400_Fn075F0,
     Actor04400_Fn076D0,
-    hopperBeginDeath,
+    madChaserBeginDeath,
     Actor04400_Fn0781C,
     Actor04400_Fn0304C,
     Actor04400_Fn07878,
     Actor04400_Fn07890,
-    hopperBurst,
+    madChaserBurst,
 } };
 
 /// Per-frame callback of the main enemy. `gSceneCombatState.actorControl` 2 hides the model, 0 runs the current state handler
@@ -2416,7 +2416,7 @@ static void Actor04400_Fn03538(Task* arg0)
                 sp.funcs[(s16)work->field_420](arg0);
             }
             Actor04400_Fn02B8C(arg0);
-            hopperTwistSpine(arg0);
+            madChaserTwistSpine(arg0);
             Actor04400_UpdateRotation(arg0);
             Actor04400_Fn022A8(arg0, 0);
             if (work->field_438 == 0 && enemy->hp <= 0) {
@@ -2442,7 +2442,7 @@ static void Actor04400_Fn03538(Task* arg0)
 
 /// Sub-state handlers `Actor04400_Fn07CF0` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D00150 = { {
-    hopperStartHold,
+    madChaserStartHold,
     Actor04400_Fn07FD0,
     Actor04400_Fn08094,
 } };
@@ -2456,7 +2456,7 @@ static const TaskFuncTable3 Actor04400_D0015C = { {
 
 /// Sub-state handlers `Actor04400_Fn07E74` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D00168 = { {
-    hopperStartAlert,
+    madChaserStartAlert,
     Actor04400_Fn082E0,
     Actor04400_Fn03B34,
 } };
@@ -2498,7 +2498,7 @@ static const TaskFuncTable5 Actor04400_D001C4 = { {
     Actor04400_Fn08870,
     Actor04400_Fn08908,
     Actor04400_Fn089C0,
-    hopperDropBodies,
+    madChaserDropBodies,
     Actor04400_Fn08A9C,
 } };
 
@@ -2507,7 +2507,7 @@ static const TaskFuncTable7 Actor04400_D001D8 = { {
     Actor04400_Fn08AA4,
     Actor04400_Fn08908,
     Actor04400_Fn089C0,
-    hopperBeginShrink,
+    madChaserBeginShrink,
     Actor04400_Fn08C08,
     Actor04400_Fn08C64,
     Actor04400_Fn08DA4,
@@ -3342,7 +3342,7 @@ static void Actor04400_Fn053FC(Task* arg0)
 }
 
 /// Death: marks `field_438`, plays sound 0x402C0003 unless the HP is below
-/// zero, releases the spawn place claimed in `gSceneCombatState.hopperAlertOwner`, unlinks
+/// zero, releases the spawn place claimed in `gSceneCombatState.madChaserAlertOwner`, unlinks
 /// the enemy node and the three collision objects, puts the task in state 5,
 /// sends message 0x13F4 to slot 4's task and hides the model.
 static void Actor04400_Fn058F4(Task* arg0)
@@ -3363,8 +3363,8 @@ static void Actor04400_Fn058F4(Task* arg0)
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.hopperAlertOwner = 0;
+    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.madChaserAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);
@@ -3607,11 +3607,11 @@ static void Actor04400_Fn062D4(Task* arg0)
     states[(s16)work->field_420](arg0);
 }
 
-/// Once bit 7 of `gSceneCombatState.hopperAlertOwner` is set, puts the task in state 3 with
+/// Once bit 7 of `gSceneCombatState.madChaserAlertOwner` is set, puts the task in state 3 with
 /// its state machine at state 5 and returns 1; otherwise returns 0.
 static s16 Actor04400_Fn06328(Task* arg0)
 {
-    if ((s8)gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED) {
+    if ((s8)gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED) {
         Actor04400_SetTaskState(arg0, 3);
         Actor04400_SetWorkState(arg0, 5);
         return 1;
@@ -3619,7 +3619,7 @@ static s16 Actor04400_Fn06328(Task* arg0)
     return 0;
 }
 
-/// Claims or releases this actor's spawn place in `gSceneCombatState.hopperAlertOwner`:
+/// Claims or releases this actor's spawn place in `gSceneCombatState.madChaserAlertOwner`:
 /// `arg1` non-zero sets bit 7 from the place id in bits 12+ of the spawn
 /// descriptor (unless the place is already claimed), and `arg1` zero clears the
 /// byte when its low nibble still matches that place. Spawn paths pass 1,
@@ -3627,11 +3627,11 @@ static s16 Actor04400_Fn06328(Task* arg0)
 static void Actor04400_Fn06374(Task* arg0, s32 arg1)
 {
     if ((arg1 << 0x10) != 0) {
-        if (!((s8)gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_ALERT_CLAIMED)) {
-            gSceneCombatState.hopperAlertOwner = (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) | SCENE_COMBAT_HOPPER_ALERT_CLAIMED;
+        if (!((s8)gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED)) {
+            gSceneCombatState.madChaserAlertOwner = (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) | SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED;
         }
-    } else if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.hopperAlertOwner = 0;
+    } else if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.madChaserAlertOwner = 0;
     }
 }
 
@@ -3724,7 +3724,7 @@ void Actor04400_Fn064EC(Task* task, s16 part, VECTOR3* pos)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/hopping_enemy_pin_part.inc.c"
+#include "../../shared/mad_chaser_pin_part.inc.c"
 
 /// Scales `value` by the animation speed `field_41C`, in 1/16 units.
 static s32 Actor04400_Fn065F4(Task* arg0, s16 value)
@@ -4051,7 +4051,7 @@ static void Actor04400_Fn06DFC(Task* arg0)
     }
 }
 
-#include "../../shared/hopping_enemy_start_leap.inc.c"
+#include "../../shared/mad_chaser_start_leap.inc.c"
 
 /// Counts `field_412` up, clearing the death flag `field_438` on the way. On
 /// frame 1 it plays the enemy's hit sound at the model's pan and depth, with
@@ -4350,7 +4350,7 @@ static void Actor04400_Fn076D0(Task* arg0)
     }
 }
 
-#include "../../shared/hopping_enemy_begin_death.inc.c"
+#include "../../shared/mad_chaser_begin_death.inc.c"
 
 /// Waits 0x18 frames on `field_412`, then hides the model by setting bit 1 of
 /// `TmdObject.flags` and returns the actor to the state that follows this one.
@@ -4395,7 +4395,7 @@ static void Actor04400_Fn07890(Task* arg0)
     }
 }
 
-#include "../../shared/hopping_enemy_burst.inc.c"
+#include "../../shared/mad_chaser_burst.inc.c"
 
 static void Actor04400_Fn07968(Task* arg0)
 {
@@ -4582,7 +4582,7 @@ static void Actor04400_Fn07F04(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-#include "../../shared/hopping_enemy_start_hold.inc.c"
+#include "../../shared/mad_chaser_start_hold.inc.c"
 
 /// Counts `field_412` against the hold `field_446`; once it runs out, enters
 /// state 4 or 1 at random. Before that, a target under 0xDAC away enters
@@ -4722,7 +4722,7 @@ static void Actor04400_Fn0823C(Task* arg0)
     }
 }
 
-#include "../../shared/hopping_enemy_start_alert.inc.c"
+#include "../../shared/mad_chaser_start_alert.inc.c"
 
 static void Actor04400_Fn082E0(Task* arg0)
 {
@@ -4898,8 +4898,8 @@ static void Actor04400_Fn08718(Task* arg0)
     model           = arg0->extra.tmd;
     work->field_412 = 0;
     SndEvt_EnqueueType7(0x402C0002, 1);
-    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.hopperAlertOwner = 0;
+    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.madChaserAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     enemy->recs = 0;
@@ -4931,7 +4931,7 @@ static void Actor04400_Fn087E0(Task* arg0)
 }
 
 /// First step of the despawn: queues sound 0x402C0002, releases the spawn
-/// place claimed in `gSceneCombatState.hopperAlertOwner`, unlinks the enemy node and
+/// place claimed in `gSceneCombatState.madChaserAlertOwner`, unlinks the enemy node and
 /// advances the state.
 static void Actor04400_Fn08870(Task* arg0)
 {
@@ -4941,8 +4941,8 @@ static void Actor04400_Fn08870(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor104400Work*)arg0->work;
     SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
-    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.hopperAlertOwner = 0;
+    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.madChaserAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     work->field_420 = work->field_420 + 1;
@@ -5002,7 +5002,7 @@ static void Actor04400_Fn089C0(Task* arg0)
     }
 }
 
-#include "../../shared/hopping_enemy_drop_bodies.inc.c"
+#include "../../shared/mad_chaser_drop_bodies.inc.c"
 
 static void Actor04400_Fn08A9C(Task* arg0)
 {
@@ -5017,14 +5017,14 @@ static void Actor04400_Fn08AA4(Task* arg0)
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor104400Work*)arg0->work;
     SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
-    if ((gSceneCombatState.hopperAlertOwner & SCENE_COMBAT_HOPPER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.hopperAlertOwner = 0;
+    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+        gSceneCombatState.madChaserAlertOwner = 0;
     }
     Gp_UnlinkNode(&enemy->node);
     work->field_420 = work->field_420 + 1;
 }
 
-#include "../../shared/hopping_enemy_begin_shrink.inc.c"
+#include "../../shared/mad_chaser_begin_shrink.inc.c"
 
 /// Waits 0x18 frames on `field_412`, then hides the model by setting bit 1 of
 /// `TmdObject.flags`. Body is identical to `Actor04400_Fn0781C`'s.

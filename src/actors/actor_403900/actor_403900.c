@@ -54,11 +54,11 @@
 
 #include "overlay.h"
 #include "../../shared/frame_capture.h"
-#include "../../shared/cloaked_stalker.h"
+#include "../../shared/golem_knight_bishop.h"
 
 extern Actor402200FrameStep D_actor_403900_801383DC[];
 
-/// Per-roll wait lengths the wait state of `stalkerIdleSeq`
+/// Per-roll wait lengths the wait state of `golemKnightBishopIdleSeq`
 /// scales by `16 - field_70C`, indexed by a 4-bit `gRandomLcgState` draw.
 extern s16 D_actor_403900_80153C3C[];
 
@@ -67,33 +67,33 @@ extern u16 D_actor_403900_80153C5C[];
 
 /// Cue word the countdown's expiry queues, a separate `D_` symbol in the
 /// overlay's data.
-extern s32 gStalkerPainCue;
+extern s32 gGolemKnightBishopPainCue;
 
 /// Cue word the approach's state 0 queues as it plants the actor on its box.
-extern s32 gStalkerApproachCue;
+extern s32 gGolemKnightBishopApproachCue;
 
-/// Cue word the fade-out in `stalkerCloakFade` queues.
-extern s32 gStalkerFadeCue;
+/// Cue word the fade-out in `golemKnightBishopTranslucencyFade` queues.
+extern s32 gGolemKnightBishopFadeCue;
 
 /// Cue word the approach's frame 0x12 queues.
-extern s32 gStalkerStrikeCue;
+extern s32 gGolemKnightBishopStrikeCue;
 
 /// Base id of the actor's vocal cue: the `Enemy` work id's high nibble is
 /// OR'd in as bits 8-11 of the cue id.
-extern s32 gStalkerHoldCue;
+extern s32 gGolemKnightBishopHoldCue;
 
 /// Cue-id table: `Actor402200Work::field_712` picks two adjacent words,
 /// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
 /// for the 0x10 one; the branch sequences read `[field_712 + 8]`.
-extern s32 gStalkerAnimCues[];
+extern s32 gGolemKnightBishopAnimCues[];
 
 /// Weighted 16-entry roll for `Actor402200Work::field_6E4`: indices 0-10 hold 0
 /// and 11-15 hold 1, so the short approach is taken about a third of the time.
-extern u16 gStalkerApproachRoll[];
+extern u16 gGolemKnightBishopApproachRoll[];
 
-/// Per-animation-id value `stalkerTickAnim` hands `func_800B4114`
+/// Per-animation-id value `golemKnightBishopTickAnim` hands `func_800B4114`
 /// as its fifth argument when it reseeds animation slots 1..0x12.
-extern s16 gStalkerAnimBlend[];
+extern s16 gGolemKnightBishopAnimBlend[];
 
 /// The spawn's tables: the task's next handler record, the `DamageAttack`
 /// `Gp_PackPair` packs into the third collision object, the `EnemyParams` whose
@@ -109,7 +109,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor403900MessageEntry, 8);
 
 extern Actor403900MessageEntry D_actor_403900_801383A0[2];
-extern DamageAttack            gStalkerAttacks[4];
+extern DamageAttack            gGolemKnightBishopAttacks[4];
 extern EnemyParams             D_actor_403900_80153C00;
 extern Actor402200Spot         D_actor_403900_80153C7C[];
 extern Actor402200Region*      D_actor_403900_80153F04[];
@@ -127,7 +127,7 @@ extern EffectSpawnArg D_actor_403900_801540C8;
 
 /// The two four-vertex index rows the trail's shaded quads take their corners
 /// from, into the scratch block's six-entry x / y runs.
-extern s16 gStalkerBeamQuadCorners[2][4];
+extern s16 gGolemKnightBishopBeamQuadCorners[2][4];
 
 /// Main-executable global with no module header yet: the remaining-enemy
 /// count. A grab only starts while it is positive.
@@ -165,7 +165,7 @@ extern AnimationSet D_actor_403900_80151998;
 extern AnimationSet D_actor_403900_80151F2C;
 extern AnimationSet D_actor_403900_8015298C;
 extern AnimationSet D_actor_403900_80153BC8;
-extern DamageAttack gStalkerAttacks[4];
+extern DamageAttack gGolemKnightBishopAttacks[4];
 extern TmdSource    D_actor_403900_8013DBD8;
 static void         func_actor_403900_80138344(Task*);
 
@@ -174,7 +174,7 @@ Actor403900MessageEntry D_actor_403900_801383A0[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-s16 gStalkerAnimBlend[22] = {
+s16 gGolemKnightBishopAnimBlend[22] = {
     0,
     0,
     0,
@@ -220,7 +220,7 @@ Actor402200FrameStep D_actor_403900_801383DC[18] = {
     { 109, 0xFFFA },
 };
 
-s32 gStalkerAnimCues[17] = {
+s32 gGolemKnightBishopAnimCues[17] = {
     0,
     0x40160001,
     0x40160002,
@@ -240,15 +240,15 @@ s32 gStalkerAnimCues[17] = {
     0,
 };
 
-s32 gStalkerApproachCue = 0x40160007;
+s32 gGolemKnightBishopApproachCue = 0x40160007;
 
-s32 gStalkerPainCue = 0x40160008;
+s32 gGolemKnightBishopPainCue = 0x40160008;
 
-s32 gStalkerFadeCue = 0x4016000F;
+s32 gGolemKnightBishopFadeCue = 0x4016000F;
 
-s32 gStalkerStrikeCue = 0x40160010;
+s32 gGolemKnightBishopStrikeCue = 0x40160010;
 
-s32 gStalkerHoldCue = 0x40160011;
+s32 gGolemKnightBishopHoldCue = 0x40160011;
 
 TmdBone D_actor_403900_8013847C[19] = {
 #include "assets/actor_403900_model_0BDB8_skeleton.inc"
@@ -832,9 +832,9 @@ AnimationSet D_actor_403900_80153BC8 = {
     { NULL, D_actor_403900_801529B4, NULL, NULL, D_actor_403900_80152B58, NULL, NULL, NULL },
 };
 
-DamageAttack gStalkerAttacks[4] = { { 10, 10 }, { 45, 2 }, { 58, 2 }, { 999, 0 } };
+DamageAttack gGolemKnightBishopAttacks[4] = { { 10, 10 }, { 45, 2 }, { 58, 2 }, { 999, 0 } };
 
-EnemyParams D_actor_403900_80153C00 = { gStalkerAttacks, 800, 400, 2500, 7, 100, 20, 0, 0 };
+EnemyParams D_actor_403900_80153C00 = { gGolemKnightBishopAttacks, 800, 400, 2500, 7, 100, 20, 0, 0 };
 
 s16 D_actor_403900_80153C10[6] = {
     6,
@@ -845,7 +845,7 @@ s16 D_actor_403900_80153C10[6] = {
     0,
 };
 
-u16 gStalkerApproachRoll[16] = {
+u16 gGolemKnightBishopApproachRoll[16] = {
     0,
     0,
     0,
@@ -1203,7 +1203,7 @@ AnimationSet* D_actor_403900_801540B4[5] = {
 
 EffectSpawnArg D_actor_403900_801540C8 = { NULL, 300, 1 };
 
-s16 gStalkerBeamQuadCorners[2][4] = {
+s16 gGolemKnightBishopBeamQuadCorners[2][4] = {
     { 0, 1, 2, 3 },
     { 0, 1, 4, 5 },
 };
@@ -1241,8 +1241,8 @@ AnimationSet* D_actor_403900_801540EC[22] = {
 /// countdown, and for each kind-2 hit record in `field_49C` computes the
 /// damage from the distance to the player, applies it to the `Enemy`,
 /// spawns the hit sparks once per distinct id and hands the damage to
-/// `stalkerPickHitReaction` unless the vocal cue is armed.
-void stalkerTakeHits(Task* arg0)
+/// `golemKnightBishopPickHitReaction` unless the vocal cue is armed.
+void golemKnightBishopTakeHits(Task* arg0)
 {
     s32                    lastId;
     Actor402200Work*       work;
@@ -1392,7 +1392,7 @@ void stalkerTakeHits(Task* arg0)
                     work->field_6EA = 2;
                 }
                 if (work->field_718 != 1) {
-                    stalkerPickHitReaction(arg0, damage);
+                    golemKnightBishopPickHitReaction(arg0, damage);
                 } else {
                     work->field_6F4 = 2;
                 }
@@ -1407,15 +1407,15 @@ void stalkerTakeHits(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(Actor402200HitScratch);
 }
 
-#include "../../shared/cloaked_stalker_hit_reaction.inc.c"
+#include "../../shared/golem_knight_bishop_hit_reaction.inc.c"
 
-#include "../../shared/cloaked_stalker_box_scan.inc.c"
+#include "../../shared/golem_knight_bishop_box_scan.inc.c"
 
 /// State machine on `field_6CE`: 0 rolls a `field_6D4` wait, 1 counts it
 /// down, 2 picks state 3 or 4 from `field_70E` and an LCG draw offset by
-/// `field_710` (or 5 when `stalkerPlayerInBox` reports a box hit), and 3-5
+/// `field_710` (or 5 when `golemKnightBishopPlayerInBox` reports a box hit), and 3-5
 /// settle the result, walking `field_70C` up to 8.
-void stalkerIdleSeq(Task* arg0)
+void golemKnightBishopIdleSeq(Task* arg0)
 {
     Actor402200Work* work;
 
@@ -1429,7 +1429,7 @@ void stalkerIdleSeq(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->field_6CE = D_actor_403900_80153C5C[(gRandomLcgState >> 16) & 0xF] + 2;
                 work->field_6EE = 1;
-                stalkerPlaceTarget(arg0);
+                golemKnightBishopPlaceTarget(arg0);
                 work->field_6E4 = 0;
             } else if (work->field_6E4 == 0) {
                 work->field_6D4 = (D_actor_403900_80153C3C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF] * (0x10 - work->field_70C)) / 16;
@@ -1448,7 +1448,7 @@ void stalkerIdleSeq(Task* arg0)
             }
             break;
         case 2:
-            if (work->field_70E != 3 && stalkerPlayerInBox(arg0) != 0) {
+            if (work->field_70E != 3 && golemKnightBishopPlayerInBox(arg0) != 0) {
                 work->field_6CE = 5;
                 work->field_710 = 0;
                 break;
@@ -1476,7 +1476,7 @@ void stalkerIdleSeq(Task* arg0)
                 work->field_6CE = ((gRandomLcgState >> 16) & 0xF) < 8 ? 3 : 4;
                 work->field_710 = 0;
             }
-            stalkerPlaceTarget(arg0);
+            golemKnightBishopPlaceTarget(arg0);
             break;
         case 3:
             if (work->field_5F4.key.value == 0) {
@@ -1525,12 +1525,12 @@ void stalkerIdleSeq(Task* arg0)
     }
 }
 
-#include "../../shared/cloaked_stalker_player_in_box.inc.c"
+#include "../../shared/golem_knight_bishop_player_in_box.inc.c"
 
-#include "../../shared/cloaked_stalker_place_target.inc.c"
+#include "../../shared/golem_knight_bishop_place_target.inc.c"
 
 /// Runs the actor's hold sequence on the player (the same 0x3F8 / 0x3FF
-/// message pair `stalkerGrabSeq` uses to take a hold). State 0
+/// message pair `golemKnightBishopGrabSeq` uses to take a hold). State 0
 /// asks the player for range 0x19 while enemies remain; on success it plants
 /// the display object at `field_6A4`, places the player 0x5AA in front of it
 /// with message 0x3E9 and queues a cue. States 1 and 2 step the player's
@@ -1541,7 +1541,7 @@ void stalkerIdleSeq(Task* arg0)
 /// ends it early. State 5 either reacts to `field_6F4` or, at frame 0x1A,
 /// spawns the spark, sends message 0x400 and clears `gPlayerStatus.hp`; state 7
 /// then loads file 9/0x1E and queues cue 0x70010001 once the CD is idle.
-void stalkerGrabSeq(Task* arg0)
+void golemKnightBishopGrabSeq(Task* arg0)
 {
     Actor402200Work*        work;
     GfxCoord*               coord;
@@ -1614,7 +1614,7 @@ void stalkerGrabSeq(Task* arg0)
             work->field_6DC = 0x3C;
             work->field_6DA = 1;
             work->field_6DE = 0x1E;
-            work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            work->field_6B8 = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             SndEvt_EnqueueType6(work->field_6B8, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             break;
         case 2:
@@ -1675,7 +1675,7 @@ void stalkerGrabSeq(Task* arg0)
                         Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
                     } else {
                         work->field_6D4 = 0x14;
-                        Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(gStalkerAttacks, 0), 0);
+                        Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
                         work->field_6F6++;
                     }
                 }
@@ -1699,11 +1699,11 @@ void stalkerGrabSeq(Task* arg0)
                         work->field_6DC = 0x4B;
                         work->field_71A = 0;
                         work->field_6DE = 0x1E;
-                        work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                        work->field_6BC = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                         SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     }
                 } else {
-                    stalkerPickHitReaction(arg0, work->field_70A);
+                    golemKnightBishopPickHitReaction(arg0, work->field_70A);
                     work->field_71A = 0;
                 }
                 work->field_718               = 2;
@@ -1728,7 +1728,7 @@ void stalkerGrabSeq(Task* arg0)
                 work->field_6CC = 0;
                 work->field_6CE = 0;
             }
-            stalkerHoldCueTimer(arg0);
+            golemKnightBishopHoldCueTimer(arg0);
             break;
         case 5:
             if (work->field_6C4 < 0x1A) {
@@ -1746,7 +1746,7 @@ void stalkerGrabSeq(Task* arg0)
                     work->field_6DC = 0x4B;
                     work->field_6CE = 4;
                     work->field_6DE = 0x1E;
-                    work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                    work->field_6BC = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             } else if (work->field_6C4 == 0x1A) {
@@ -1766,7 +1766,7 @@ void stalkerGrabSeq(Task* arg0)
             break;
         case 6:
             work->field_6C8 = -0xA;
-            stalkerHoldCueTimer(arg0);
+            golemKnightBishopHoldCueTimer(arg0);
             if (work->field_718 == 0) {
                 work->field_6C8 = 0;
                 work->field_6CC = 4;
@@ -1795,7 +1795,7 @@ void stalkerGrabSeq(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200GrabScratch));
 }
 
-#include "../../shared/cloaked_stalker_strike.inc.c"
+#include "../../shared/golem_knight_bishop_strike.inc.c"
 
 /// Runs the actor's approach sequence off the box it last hit. State 0 plants
 /// the display object on that box, faces it along the box heading and queues
@@ -1805,7 +1805,7 @@ void stalkerGrabSeq(Task* arg0)
 /// than 0x180 (state 4). State 3 steps `field_6C8` through the frame table
 /// `D_actor_403900_801383DC` and fires its per-frame events; state 4 counts
 /// `field_6D4` down back to state 0.
-void stalkerBoxApproachSeq(Task* arg0)
+void golemKnightBishopBoxApproachSeq(Task* arg0)
 {
     u8*                       head;
     Actor402200OffsetScratch* sc;
@@ -1849,7 +1849,7 @@ void stalkerBoxApproachSeq(Task* arg0)
             work->field_6DA = 1;
             work->field_6DC = 0x14;
             work->field_6DE = 0xA;
-            work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            work->field_6B8 = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             SndEvt_EnqueueType6(work->field_6B8, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_ArmStateF0(1);
             if (work->field_6C6 == 0) {
@@ -1907,7 +1907,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                     work->field_6F2  = 0;
                     work->field_6D4  = work->field_6DC + 0xA;
                     work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    work->field_6BC  = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                    work->field_6BC  = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
@@ -1924,7 +1924,7 @@ void stalkerBoxApproachSeq(Task* arg0)
             }
             work->field_6C8 = D_actor_403900_801383DC[i].value;
             if (work->field_6C4 == 0x12) {
-                snd = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                snd = gGolemKnightBishopStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->field_6C4 == 0x14) {
@@ -1933,7 +1933,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                 work->field_578  = 0x1F4;
                 work->field_574  = 0;
                 work->field_580  = 0x3E8;
-                work->field_57C  = Gp_PackPair(gStalkerAttacks, 2);
+                work->field_57C  = Gp_PackPair(gGolemKnightBishopAttacks, 2);
                 work->field_582 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             if (work->field_6C4 == 0x20) {
@@ -1946,7 +1946,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                 work->field_6DE = 0xA;
                 work->field_6CE = 4;
                 work->field_6D4 = work->field_6DC + 0xA;
-                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                work->field_6BC = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
@@ -1970,7 +1970,7 @@ void stalkerBoxApproachSeq(Task* arg0)
 /// runs out, arms the `field_6DA`/`field_6DC`/`field_6DE`/`field_6E0` timers,
 /// clears the cue state and `field_6CC`, and queues the actor's cue, panned
 /// and depth-attenuated from the display object.
-void stalkerRecoverSeq(Task* arg0)
+void golemKnightBishopRecoverSeq(Task* arg0)
 {
     Actor402200Work* work;
     GfxCoord*        coord;
@@ -2005,7 +2005,7 @@ void stalkerRecoverSeq(Task* arg0)
                 work->field_6CE = 0;
                 work->field_6DE = 5;
                 work->field_6E0 = 0;
-                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                work->field_6BC = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan             = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(work->field_6BC, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
@@ -2014,15 +2014,15 @@ void stalkerRecoverSeq(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-#include "../../shared/cloaked_stalker_cloak_fade.inc.c"
+#include "../../shared/golem_knight_bishop_translucency_fade.inc.c"
 
-#include "../../shared/cloaked_stalker_light_flinch.inc.c"
+#include "../../shared/golem_knight_bishop_light_flinch.inc.c"
 
-#include "../../shared/cloaked_stalker_heavy_flinch.inc.c"
+#include "../../shared/golem_knight_bishop_heavy_flinch.inc.c"
 
-#include "../../shared/cloaked_stalker_kneel.inc.c"
+#include "../../shared/golem_knight_bishop_kneel.inc.c"
 
-#include "../../shared/cloaked_stalker_kneel_hit.inc.c"
+#include "../../shared/golem_knight_bishop_kneel_hit.inc.c"
 
 /// The enemy task's three state handlers, which `func_actor_403900_80138344`
 /// picks by `Task::state`: the spawn setup, the frame handler that runs the
@@ -2030,13 +2030,13 @@ void stalkerRecoverSeq(Task* arg0)
 /// before running its own short sequence.
 static const GpEnemyTaskFuncTable3 D_actor_403900_80131F18 = {
     func_actor_403900_80137444,
-    stalkerFrameState,
-    stalkerDeadState,
+    golemKnightBishopFrameState,
+    golemKnightBishopDeadState,
 };
 
-#include "../../shared/cloaked_stalker_collapse_death.inc.c"
+#include "../../shared/golem_knight_bishop_collapse_death.inc.c"
 
-#include "../../shared/cloaked_stalker_anim_cues.inc.c"
+#include "../../shared/golem_knight_bishop_anim_cues.inc.c"
 
 /// Aims the actor: brings the root coordinate local to the fourth part to park
 /// the aim point in the work block, then resolves the ground record under the
@@ -2120,16 +2120,16 @@ static void func_actor_403900_80135D5C(Task* arg0)
             work->field_700[i] = sc->sxy >> 16;
             work->field_704[i] = sc->otz;
         }
-        stalkerDrawAimBeam(arg0);
+        golemKnightBishopDrawAimBeam(arg0);
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200AimScratch));
 }
 
-#include "../../shared/cloaked_stalker_aim_beam.inc.c"
+#include "../../shared/golem_knight_bishop_aim_beam.inc.c"
 
-#include "../../shared/cloaked_stalker_inlines.inc.c"
+#include "../../shared/golem_knight_bishop_inlines.inc.c"
 
-#include "../../shared/cloaked_stalker_dead.inc.c"
+#include "../../shared/golem_knight_bishop_dead.inc.c"
 
 #include "../../shared/frame_capture.inc.c"
 
@@ -2248,7 +2248,7 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
             work->field_574  = 0;
             work->field_576  = 0;
             work->field_578  = 0;
-            work->field_57C  = Gp_PackPair(gStalkerAttacks, 1);
+            work->field_57C  = Gp_PackPair(gGolemKnightBishopAttacks, 1);
             work->field_580  = 0x12C;
             work->field_582  = 1;
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_564);
@@ -2330,21 +2330,21 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
     }
 }
 
-#include "../../shared/cloaked_stalker_frame.inc.c"
+#include "../../shared/golem_knight_bishop_frame.inc.c"
 
-#include "../../shared/cloaked_stalker_run_sequence.inc.c"
+#include "../../shared/golem_knight_bishop_run_sequence.inc.c"
 
-#include "../../shared/cloaked_stalker_apply_scale.inc.c"
+#include "../../shared/golem_knight_bishop_apply_scale.inc.c"
 
-#include "../../shared/cloaked_stalker_kneel_death.inc.c"
+#include "../../shared/golem_knight_bishop_kneel_death.inc.c"
 
-#include "../../shared/cloaked_stalker_step_forward.inc.c"
+#include "../../shared/golem_knight_bishop_step_forward.inc.c"
 
 /// Reseeds animation slots 1..0x12 when the actor's animation id changes,
 /// handing each slot the blend weight the id selects from
-/// `gStalkerAnimBlend`; while the id is unchanged it instead ticks every
+/// `gGolemKnightBishopAnimBlend`; while the id is unchanged it instead ticks every
 /// slot one frame and walks the id's frame counter up.
-void stalkerTickAnim(Task* arg0)
+void golemKnightBishopTickAnim(Task* arg0)
 {
     Actor402200Work* work;
     s32              i;
@@ -2354,7 +2354,7 @@ void stalkerTickAnim(Task* arg0)
     if (work->field_6C0 != work->field_6C2) {
         work->field_6C2 = work->field_6C0;
         work->field_6C4 = 0;
-        value           = gStalkerAnimBlend[work->field_6C0];
+        value           = gGolemKnightBishopAnimBlend[work->field_6C0];
         for (i = 1; i < 0x13; i++) {
             func_800B4114(&work->rig.anim, i, work->field_6C0, 0, value);
         }
@@ -2367,14 +2367,14 @@ void stalkerTickAnim(Task* arg0)
 }
 
 /// Out-of-line `actor402200UpdateTint`, for the callers after the inline one.
-void stalkerUpdateTint(Task* arg0)
+void golemKnightBishopUpdateTint(Task* arg0)
 {
     actor402200UpdateTint(arg0);
 }
 
-#include "../../shared/cloaked_stalker_shadow.inc.c"
+#include "../../shared/golem_knight_bishop_shadow.inc.c"
 
-#include "../../shared/cloaked_stalker_hold_cue.inc.c"
+#include "../../shared/golem_knight_bishop_hold_cue.inc.c"
 
 /// Raises the actor's phase `field_6F4` to 1 while enemies remain.
 s32 func_actor_403900_801381E4(Task* task)
@@ -2385,7 +2385,7 @@ s32 func_actor_403900_801381E4(Task* task)
     return 0;
 }
 
-#include "../../shared/cloaked_stalker_frame_capture.inc.c"
+#include "../../shared/golem_knight_bishop_frame_capture.inc.c"
 
 /// Runs the enemy task's current state handler from
 /// `D_actor_403900_80131F18`, copying the table onto the stack first.

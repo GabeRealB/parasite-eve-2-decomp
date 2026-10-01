@@ -1,0 +1,60 @@
+/* Part of the Glutton library; see glutton.h. */
+
+/// Spawn state of the enemy dispatched through `D_actor_444000_80131EA8`:
+/// allocate its work block and stand the model up where the host's first
+/// escort is, in view space.
+///
+/// The model is reparented to `gGfxViewCoord`, so both halves of that escort's
+/// part 1 have to be resolved by hand: `actorAccumulateToView` walks
+/// the part's coordinate chain up to the view coordinate for the rotation and
+/// `actorLocalToView` carries its origin along the same chain for the
+/// translation. The model is then turned a quarter turn, its single display
+/// node is linked with a 0x394 extent, and that node is paired with the owning
+/// enemy so collisions against it reach this task.
+///
+/// Bails out -- destroying the enemy -- when the overlay is shutting down, the
+/// host actor has left the grab states, or the work block cannot be allocated.
+void gluttonThrowSpawn(Enemy* enemy, Task* task)
+{
+    Actor403200GrabWork* work;
+    Enemy*               owner;
+    Actor403200Work*     host;
+    SVECTOR              pos;
+    SVECTOR              vec;
+
+    owner = task->parent->spawnArg2.pointer;
+    host  = owner->task->work;
+
+    if (gGluttonEnded == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
+        host->field_0 == 0xC || host->field_0 == 0x12 ||
+        (work = memCalloc(sizeof(Actor403200GrabWork), false), task->work = work, work == NULL)) {
+        Gp_DestroyEnemy(enemy, task);
+        return;
+    }
+
+    work->field_1AC                 = 0;
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    task->extra.tmd->flags          = 0;
+
+    actorAccumulateToView(&host->field_ECC[0]->task->extra.tmd->coords[1],
+                          &task->extra.tmd->coords->coord);
+
+    vec.vx = vec.vy = vec.vz = 0;
+    actorLocalToView(&host->field_ECC[0]->task->extra.tmd->coords[1], &vec);
+
+    task->extra.tmd->coords->coord.t[0]   = vec.vx;
+    task->extra.tmd->coords->coord.t[1]   = vec.vy;
+    task->extra.tmd->coords->coord.t[2]   = vec.vz;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
+    Gp_UpdateCoord(task->extra.tmd->coords);
+
+    pos.vx = pos.vy = pos.vz = 0;
+    actorLinkWorkObj(task->extra.tmd->coords, &work->obj0, &work->rec0, &pos, 0x394, 3, 1);
+
+    work->obj0.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->obj0.key    = Gp_PackObjPair(owner, 2);
+    work->field_1A8   = 1;
+    task->state++;
+}

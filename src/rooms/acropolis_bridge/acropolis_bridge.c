@@ -93,7 +93,7 @@
 #include "../../shared/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
 
-#include "../../shared/patrol_walker.h"
+#include "../../shared/boss_stranger.h"
 
 /// Work block this room's script tasks keep at `Task::work`
 /// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
@@ -4629,24 +4629,24 @@ static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
 
-#include "../../shared/patrol_walker_arrived.inc.c"
+#include "../../shared/boss_stranger_arrived.inc.c"
 
-#include "../../shared/patrol_walker_follow_route.inc.c"
+#include "../../shared/boss_stranger_follow_route.inc.c"
 
-#include "../../shared/patrol_walker_nearest_actor.inc.c"
+#include "../../shared/boss_stranger_nearest_actor.inc.c"
 
-#include "../../shared/patrol_walker_nearest_self.inc.c"
+#include "../../shared/boss_stranger_nearest_self.inc.c"
 
-#include "../../shared/patrol_walker_plan_toward.inc.c"
+#include "../../shared/boss_stranger_plan_toward.inc.c"
 
-#include "../../shared/patrol_walker_ground_step.inc.c"
+#include "../../shared/boss_stranger_ground_step.inc.c"
 
-#include "../../shared/patrol_walker_avoid_contacts.inc.c"
+#include "../../shared/boss_stranger_avoid_contacts.inc.c"
 
-#include "../../shared/patrol_walker_turn_toward.inc.c"
+#include "../../shared/boss_stranger_turn_toward.inc.c"
 
 /// Runs the walker's per-frame step inside the 0x28-byte scratch frame
-/// `patrolWalkerTick` opened for it. `head` is the scratch head
+/// `bossStrangerTick` opened for it. `head` is the scratch head
 /// as it was before the frame was carved off, so the `SVECTOR3` the states
 /// steer towards is `head - 0x24` == `&block->pos`.
 ///
@@ -4689,27 +4689,27 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
             break;
         case 2:
             SCRATCH_STACK_RESERVE_BYTES(4);
-            walker->field_6F = patrolNodeNearestActor(walker, 1);
-            walker->field_70 = patrolNodeNearestSelf(walker);
+            walker->field_6F = bossStrangerNodeNearestActor(walker, 1);
+            walker->field_70 = bossStrangerNodeNearestSelf(walker);
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
                 walker->field_6F != walker->field_71) {
-                patrolPlanToward(walker, 1);
+                bossStrangerPlanToward(walker, 1);
                 walker->node = walker->nav->field_4[walker->cursor];
             }
             walker->field_69 = walker->state;
             walker->field_72 = walker->field_70;
             walker->field_71 = walker->field_6F;
-            if (patrolArrived(walker) != 0) {
+            if (bossStrangerArrived(walker) != 0) {
                 walker->cursor += (u8)walker->field_73;
                 walker->node    = walker->nav->field_4[walker->cursor];
                 SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;
         case 3:
-            patrolFollowRoute(walker, (SVECTOR3*)(head - 0x24));
+            bossStrangerFollowRoute(walker, (SVECTOR3*)(head - 0x24));
             break;
     }
-    patrolTurnToward(walker, &block->pos);
+    bossStrangerTurnToward(walker, &block->pos);
 
     cur    = walker->field_5C;
     target = walker->field_5E;
@@ -4756,16 +4756,16 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
         SCRATCH_STACK_RELEASE_BYTES(8);
     }
     if (walker->field_6C == 0) {
-        patrolApplyGroundStep(walker);
+        bossStrangerApplyGroundStep(walker);
     }
     if (walker->field_6D == 0) {
-        patrolAvoidContacts(walker);
+        bossStrangerAvoidContacts(walker);
     }
 }
 
-#include "../../shared/patrol_walker_inlines.inc.c"
+#include "../../shared/boss_stranger_inlines.inc.c"
 
-#include "../../shared/patrol_walker_tick.inc.c"
+#include "../../shared/boss_stranger_tick.inc.c"
 
 /// Handles the room's 0x7DB broadcast for the bridge enemy. Message 0x0B01/1
 /// (the bridge is being lowered) restores the model's default flag set while
@@ -5235,7 +5235,7 @@ void func_acropolis_bridge_80185F28(Task* task)
     } else {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
-    patrolWalkerTick(&work->walker);
+    bossStrangerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (cfg->coordMtx->t[1] >= 0x2BD) {
         work->field_0 = 2;
@@ -5338,7 +5338,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     if (work->walker.scale < 0x1000) {
         bridge_scale_up(work);
     }
-    patrolWalkerTick(&work->walker);
+    bossStrangerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (_acropolisBridgeWasHit(task)) {
         work->field_0 = 3;
@@ -5394,7 +5394,7 @@ void func_acropolis_bridge_801863A8(Task* task)
     } else if (enemy->node.state.parts.flags == 0) {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
-    patrolWalkerTick(&work->walker);
+    bossStrangerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (work->walker.routeData.cursor != 0) {
         if (cfg->coordMtx->t[1] < 0x321) {

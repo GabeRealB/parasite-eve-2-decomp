@@ -1118,10 +1118,10 @@ void func_acropolis_roof_garden_8017DC74(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Room script callback: sets `gSceneCombatState.spiderEntranceReady` to 1.
+/// Room script callback: sets `gSceneCombatState.maggotCaterpillarEntranceReady` to 1.
 void func_acropolis_roof_garden_8017DCCC(void)
 {
-    gSceneCombatState.spiderEntranceReady = 1;
+    gSceneCombatState.maggotCaterpillarEntranceReady = 1;
 }
 
 /// Roof-garden ambient effect task. On its first frame it fires one effect per

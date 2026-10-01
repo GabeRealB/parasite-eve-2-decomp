@@ -52,10 +52,10 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/web_spider.h"
+#include "../../shared/maggot_caterpillar.h"
 
-extern ActorSpriteUv gSpiderPuffCells[];
-extern s16           gSpiderPuffRadius[];
+extern ActorSpriteUv gMaggotCaterpillarPuffCells[];
+extern s16           gMaggotCaterpillarPuffRadius[];
 
 extern EnemyParams   Actor02600_D08968;
 extern SVECTOR       Actor02600_D089B0[];
@@ -64,23 +64,23 @@ extern SVECTOR       Actor02600_D089E8[];
 extern s16           Actor02600_D08A08[];
 extern TaskDesc      Actor02600_D08AB4;
 extern AnimationSet* Actor02600_D08ACC[15];
-extern u16           gSpiderIdleDelay[];
+extern u16           gMaggotCaterpillarIdleDelay[];
 extern u16           Actor02600_D08988[];
 extern u16           Actor02600_D08998[];
-extern s16           gSpiderLeapInDelay[];
-extern s16           gSpiderDropInDelay[];
-extern s16           gSpiderDropInSpeed[];
-extern s16           gSpiderSprayTail;
-extern s16           gSpiderPounceLead;
-extern s16           gSpiderPounceStride[][2];
-extern s16           gSpiderReboundStride[][2];
-extern DamageAttack  gSpiderAttacks[6];
+extern s16           gMaggotCaterpillarLeapInDelay[];
+extern s16           gMaggotCaterpillarDropInDelay[];
+extern s16           gMaggotCaterpillarDropInSpeed[];
+extern s16           gMaggotCaterpillarSprayTail;
+extern s16           gMaggotCaterpillarPounceLead;
+extern s16           gMaggotCaterpillarPounceStride[][2];
+extern s16           gMaggotCaterpillarReboundStride[][2];
+extern DamageAttack  gMaggotCaterpillarAttacks[6];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 /* Animation id -> slot blend value table in this overlay's own data. */
-extern s16 gSpiderAnimBlend[];
+extern s16 gMaggotCaterpillarAnimBlend[];
 
 /* `D_80067704` is the third word of a `D_800676A8` record: it selects the model
  * stream the next `Gp_SpawnEff` uses for the effect's own `TmdObject`. Declared
@@ -89,7 +89,7 @@ extern s16 gSpiderAnimBlend[];
 extern void* D_80067704[1];
 
 /* Model stream in this overlay's own data. */
-extern TmdSource gSpiderHuskModel;
+extern TmdSource gMaggotCaterpillarHuskModel;
 
 static void Actor02600_Fn02FFC(Enemy* ctx, Task* actor);
 
@@ -215,7 +215,7 @@ u32 Actor02600_D05A38[310] = {
 #include "assets/actor_102600_model_05F10_stream.inc"
 };
 
-TmdSource gSpiderHuskModel = {
+TmdSource gMaggotCaterpillarHuskModel = {
     0,
     2144,
     0,
@@ -513,7 +513,7 @@ AnimationSet Actor02600_D08928 = {
     { NULL, Actor02600_D087A0, NULL, NULL, Actor02600_D087DC, NULL, NULL, NULL },
 };
 
-DamageAttack gSpiderAttacks[6] = {
+DamageAttack gMaggotCaterpillarAttacks[6] = {
     { 14, 0 },
     { 20, 0 },
     { 10, 1 },
@@ -522,9 +522,9 @@ DamageAttack gSpiderAttacks[6] = {
     { 10, 0 },
 };
 
-EnemyParams Actor02600_D08968 = { gSpiderAttacks, 160, 16, 68, 1, 100, 10, 100, 5 };
+EnemyParams Actor02600_D08968 = { gMaggotCaterpillarAttacks, 160, 16, 68, 1, 100, 10, 100, 5 };
 
-u16 gSpiderIdleDelay[8] = {
+u16 gMaggotCaterpillarIdleDelay[8] = {
     25,
     10,
     10,
@@ -557,7 +557,7 @@ u16 Actor02600_D08998[8] = {
     100,
 };
 
-s16 gSpiderLeapInDelay[4] = {
+s16 gMaggotCaterpillarLeapInDelay[4] = {
     0,
     2,
     4,
@@ -578,14 +578,14 @@ s16 Actor02600_D089D0[4] = {
     3072,
 };
 
-s16 gSpiderDropInDelay[4] = {
+s16 gMaggotCaterpillarDropInDelay[4] = {
     5,
     10,
     15,
     20,
 };
 
-s16 gSpiderDropInSpeed[4] = {
+s16 gMaggotCaterpillarDropInSpeed[4] = {
     100,
     100,
     100,
@@ -606,15 +606,15 @@ s16 Actor02600_D08A08[4] = {
     1800,
 };
 
-s16 gSpiderAnimBlend[3] = {
+s16 gMaggotCaterpillarAnimBlend[3] = {
     0,
     10,
     0,
 };
 
-s16 gSpiderSprayTail = 8;
+s16 gMaggotCaterpillarSprayTail = 8;
 
-s16 gSpiderPounceLead = 8;
+s16 gMaggotCaterpillarPounceLead = 8;
 
 s32 Actor02600_D08A1C[5] = {
     0,
@@ -624,7 +624,7 @@ s32 Actor02600_D08A1C[5] = {
     4,
 };
 
-s16 gSpiderPounceStride[9][2] = {
+s16 gMaggotCaterpillarPounceStride[9][2] = {
     { 20, 0 },
     { 21, 180 },
     { 22, 300 },
@@ -636,7 +636,7 @@ s16 gSpiderPounceStride[9][2] = {
     { 50, 3 },
 };
 
-s16 gSpiderReboundStride[9][2] = {
+s16 gMaggotCaterpillarReboundStride[9][2] = {
     { 2, 250 },
     { 3, 10 },
     { 5, -30 },
@@ -648,7 +648,7 @@ s16 gSpiderReboundStride[9][2] = {
     { 18, -10 },
 };
 
-ActorSpriteUv gSpiderPuffCells[8] = {
+ActorSpriteUv gMaggotCaterpillarPuffCells[8] = {
     { 0, 0, 0, 0 },
     { 32, 0, 0, 0 },
     { 64, 0, 0, 0 },
@@ -659,7 +659,7 @@ ActorSpriteUv gSpiderPuffCells[8] = {
     { 96, 0, 32, 0 },
 };
 
-s16 gSpiderPuffRadius[14] = {
+s16 gMaggotCaterpillarPuffRadius[14] = {
     8,
     12,
     16,
@@ -703,7 +703,7 @@ static void Actor02600_Fn00914(Task* arg0);
 static void Actor02600_Fn00A94(Task* actor);
 static void Actor02600_Fn00FA0(Task* arg0);
 
-void spiderResolveContacts(Task* arg0)
+void maggotCaterpillarResolveContacts(Task* arg0)
 {
     Actor105500Work*       work;
     Actor105500HitScratch* head;
@@ -900,8 +900,8 @@ void spiderResolveContacts(Task* arg0)
 /// indexed by `Task::state`: setup, per-frame tick and `Gp_DestroyEnemy`.
 static const GpEnemyTaskFuncTable3 Actor02600_D0002C = {
     {
-        spiderPuffSetup,
-        spiderPuffTick,
+        maggotCaterpillarPuffSetup,
+        maggotCaterpillarPuffTick,
         Gp_DestroyEnemy,
     },
 };
@@ -911,8 +911,8 @@ static const GpEnemyTaskFuncTable3 Actor02600_D0002C = {
 static const GpEnemyTaskFuncTable3 Actor02600_D00038 = {
     {
         Actor02600_Fn02FFC,
-        spiderTick,
-        spiderDyingState,
+        maggotCaterpillarTick,
+        maggotCaterpillarDyingState,
     },
 };
 
@@ -958,7 +958,7 @@ static void Actor02600_Fn00754(Task* arg0)
                 index           = ((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex;
                 random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = random;
-                work->field_39E = gSpiderIdleDelay[index] + ((random >> 0x10) & 0xF);
+                work->field_39E = gMaggotCaterpillarIdleDelay[index] + ((random >> 0x10) & 0xF);
             }
             break;
     }
@@ -1048,9 +1048,9 @@ static void Actor02600_Fn00A94(Task* actor)
                     value = 1;
                 }
             }
-            if ((value != 0) || (gSceneCombatState.spiderAmbushReady != 0) || (gSceneCombatState.expReward != 0)) {
+            if ((value != 0) || (gSceneCombatState.maggotCaterpillarAmbushReady != 0) || (gSceneCombatState.expReward != 0)) {
                 if (work->field_3C6 == 0) {
-                    gSceneCombatState.spiderAmbushReady = 1;
+                    gSceneCombatState.maggotCaterpillarAmbushReady = 1;
                 }
                 Gp_ArmStateF0(1);
                 work->field_39C        = 1;
@@ -1059,7 +1059,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_2E4.coord  = coord;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.pos.vy = -0x12C;
-                work->field_2E4.key    = Gp_PackPair(gSpiderAttacks, 5);
+                work->field_2E4.key    = Gp_PackPair(gMaggotCaterpillarAttacks, 5);
                 work->field_2E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
@@ -1073,7 +1073,7 @@ static void Actor02600_Fn00A94(Task* actor)
             }
             if (work->field_3D0 != 0) {
                 if (work->field_3C6 == 0) {
-                    gSceneCombatState.spiderAmbushReady = 1;
+                    gSceneCombatState.maggotCaterpillarAmbushReady = 1;
                 }
                 Gp_ArmStateF0(1);
                 work->field_39C        = 2;
@@ -1083,7 +1083,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.coord  = coord;
                 work->field_2E4.pos.vy = -0x12C;
-                work->field_2E4.key    = Gp_PackPair(gSpiderAttacks, 5);
+                work->field_2E4.key    = Gp_PackPair(gMaggotCaterpillarAttacks, 5);
                 work->field_2E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
@@ -1128,7 +1128,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_39A        = state;
                 work->field_39C        = 0;
                 work->field_392        = 1;
-                work->field_39E        = gSpiderIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
+                work->field_39E        = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
                 work->field_2E4.coord  = actor->extra.tmd->coords + 4;
                 work->field_2E4.radius = 0xC8;
                 work->field_2E4.pos.vy = 0;
@@ -1141,7 +1141,7 @@ static void Actor02600_Fn00A94(Task* actor)
             }
             break;
     }
-    spiderDrawThread(actor);
+    maggotCaterpillarDrawThread(actor);
     *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1;
 }
 
@@ -1199,7 +1199,7 @@ static void Actor02600_Fn00FA0(Task* arg0)
                 work->field_39C = 0;
                 work->field_392 = state;
                 random2         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random2 >> 0x10) & 0xF);
+                work->field_39E = gMaggotCaterpillarIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random2 >> 0x10) & 0xF);
                 gRandomLcgState = random2;
                 return;
             }
@@ -1233,27 +1233,27 @@ static void Actor02600_Fn00FA0(Task* arg0)
     }
 }
 
-#include "../../shared/web_spider_spray.inc.c"
+#include "../../shared/maggot_caterpillar_spray.inc.c"
 
-#include "../../shared/web_spider_pounce.inc.c"
+#include "../../shared/maggot_caterpillar_pounce.inc.c"
 
-#include "../../shared/web_spider_hurt.inc.c"
+#include "../../shared/maggot_caterpillar_hurt.inc.c"
 
-#include "../../shared/web_spider_entrance.inc.c"
+#include "../../shared/maggot_caterpillar_entrance.inc.c"
 
-#include "../../shared/web_spider_burn.inc.c"
+#include "../../shared/maggot_caterpillar_burn.inc.c"
 
-#include "../../shared/web_spider_turn.inc.c"
+#include "../../shared/maggot_caterpillar_turn.inc.c"
 
-#include "../../shared/web_spider_inlines.inc.c"
+#include "../../shared/maggot_caterpillar_inlines.inc.c"
 
-#include "../../shared/web_spider_dying.inc.c"
+#include "../../shared/maggot_caterpillar_dying.inc.c"
 
-#include "../../shared/web_spider_puff_tick.inc.c"
+#include "../../shared/maggot_caterpillar_puff_tick.inc.c"
 
-#include "../../shared/web_spider_draw_puff.inc.c"
+#include "../../shared/maggot_caterpillar_draw_puff.inc.c"
 
-#include "../../shared/web_spider_draw_thread.inc.c"
+#include "../../shared/maggot_caterpillar_draw_thread.inc.c"
 
 /// Spawn handler: allocates the actor's work block, links the four `WorldCollisionBody`
 /// nodes (two collision-record tables, the coordinates and the effect arg) and
@@ -1446,13 +1446,13 @@ static void Actor02600_Fn02FFC(Enemy* ctx, Task* actor)
     actor->state           = 1;
 }
 
-#include "../../shared/web_spider_tick.inc.c"
+#include "../../shared/maggot_caterpillar_tick.inc.c"
 
-#include "../../shared/web_spider_status.inc.c"
+#include "../../shared/maggot_caterpillar_status.inc.c"
 
 /// Runs the handler of the work's current behaviour state (`field_39A`, 0-8);
 /// state 9, entered when the hit points run out, runs nothing.
-void spiderRunBehaviour(Task* arg0)
+void maggotCaterpillarRunBehaviour(Task* arg0)
 {
     switch (((Actor105500Work*)arg0->work)->field_39A) {
         case 0:
@@ -1468,39 +1468,39 @@ void spiderRunBehaviour(Task* arg0)
             Actor02600_Fn00FA0(arg0);
             break;
         case 4:
-            spiderSprayState(arg0);
+            maggotCaterpillarSprayState(arg0);
             break;
         case 5:
-            spiderPounceState(arg0);
+            maggotCaterpillarPounceState(arg0);
             break;
         case 6:
-            spiderHurtState(arg0);
+            maggotCaterpillarHurtState(arg0);
             break;
         case 7:
-            spiderStunState(arg0);
+            maggotCaterpillarStunState(arg0);
             break;
         case 8:
-            spiderEntranceState(arg0);
+            maggotCaterpillarEntranceState(arg0);
             break;
         case 9:
             break;
     }
 }
 
-#include "../../shared/web_spider_stun.inc.c"
+#include "../../shared/maggot_caterpillar_stun.inc.c"
 
-#include "../../shared/web_spider_move.inc.c"
+#include "../../shared/maggot_caterpillar_move.inc.c"
 
-/// Out-of-line form of `spiderTickAnimInline`: switches the work's animation
+/// Out-of-line form of `maggotCaterpillarTickAnimInline`: switches the work's animation
 /// id, or ticks every slot one frame when it is unchanged.
-void spiderTickAnim(Task* arg0)
+void maggotCaterpillarTickAnim(Task* arg0)
 {
-    spiderTickAnimInline(arg0);
+    maggotCaterpillarTickAnimInline(arg0);
 }
 
 /// Passes the world position of the model's root coordinate to
 /// `Gp_UpdateActorColor` for the context, with both trailing arguments 0.
-void spiderUpdateColor(Task* arg0)
+void maggotCaterpillarUpdateColor(Task* arg0)
 {
     GfxCoord* coord;
     VECTOR    vec;
@@ -1512,13 +1512,13 @@ void spiderUpdateColor(Task* arg0)
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
-#include "../../shared/web_spider_shadow.inc.c"
+#include "../../shared/maggot_caterpillar_shadow.inc.c"
 
-#include "../../shared/web_spider_squash.inc.c"
+#include "../../shared/maggot_caterpillar_squash.inc.c"
 
-#include "../../shared/web_spider_husk.inc.c"
+#include "../../shared/maggot_caterpillar_husk.inc.c"
 
-#include "../../shared/web_spider_shrink_node.inc.c"
+#include "../../shared/maggot_caterpillar_shrink_node.inc.c"
 
 void Actor02600_Fn03DD0(Task* arg0)
 {
@@ -1528,7 +1528,7 @@ void Actor02600_Fn03DD0(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/web_spider_puff_setup.inc.c"
+#include "../../shared/maggot_caterpillar_puff_setup.inc.c"
 
 void Actor02600_Fn03F80(Task* arg0)
 {

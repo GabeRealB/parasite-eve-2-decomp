@@ -1802,7 +1802,7 @@ static void Actor02100_Fn03168(Task* arg0)
 /// (`field_C` 0, node HP hidden) before falling into the normal body. The body
 /// drains the pending translation delta at `field_118` into the actor's
 /// coordinate, runs the state machine, and switches to state 4 - handing the
-/// task over to `Actor02100_Fn035D4` - once `gSceneCombatState.podDeathStarted` reports the kill.
+/// task over to `Actor02100_Fn035D4` - once `gSceneCombatState.generatorDeathStarted` reports the kill.
 static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
@@ -1851,7 +1851,7 @@ body:
     Gp_UpdateCoord(coord);
     Actor02100_Fn032E4(arg1);
     Actor02100_Fn03488(arg1);
-    if (gSceneCombatState.podDeathStarted == 1) {
+    if (gSceneCombatState.generatorDeathStarted == 1) {
         work->field_172 = 4;
         work->field_174 = 0;
         arg1->state     = 2;
