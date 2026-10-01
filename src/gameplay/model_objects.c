@@ -589,8 +589,15 @@ u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     enum {
-        TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK = 0xFFFC, // Aligned byte offset; low-bit meanings unproven.
-        TMD_F3_PRE_XFORM_OT_DEPTH_SHIFT       = 4       // Sixteen scaled depth units per OT entry before wrapping.
+        /// Selects the aligned byte offset in a pre-transformed flat triangle's depth reference.
+        ///
+        /// Each u16 corner reference selects a four-byte `szTable` entry after
+        /// clearing bits 0..1; their meaning is unproven. The result is 0..65532
+        /// bytes, divided by sizeof(*vertexDepths) for indexing. Valid offsets
+        /// are only 0..4092 and must name a depth initialized earlier in this
+        /// draw walk; masking provides alignment without checking that range.
+        TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK = 0xFFFC,
+        TMD_F3_PRE_XFORM_OT_DEPTH_SHIFT       = 4 // Sixteen scaled depth units per OT entry before wrapping.
     };
     POLY_F3*            packet;
     s32*                gteResultDestination;
