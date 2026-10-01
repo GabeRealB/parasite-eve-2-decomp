@@ -1316,18 +1316,28 @@ void Gp_LoadStageView(void)
     PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Writes the reference-relative translation using the saved rotation.
+/// Writes the translation component of a reference-relative transform.
 ///
-/// `scratch->transposedRotation` must already hold the reference rotation's
-/// transpose. All three origin differences are saved before writing `out`,
-/// preserving complete-matrix aliasing with either input.
+/// The input origins share a containing frame. Computes
+/// `out->t = scratch->transposedRotation.m * (target->t - reference->t)`
+/// with GTE long-vector arithmetic, preserving signed 32-bit coordinate units.
+/// The caller must supply the reference rotation's transpose in
+/// `scratch->transposedRotation`, with `ONE` (4096) representing 1.0.
+/// The transpose gives an inverse frame conversion for orthonormal rotations.
+///
+/// All pointers must be word-aligned and the caller-owned workspace disjoint
+/// from the matrices. Overwrites `scratch->originDelta` XYZ; its fourth word
+/// is unused. Saves all three differences before storing the three `out->t`
+/// words, so `out` may equal either input matrix. Leaves the output rotation
+/// and alignment bytes untouched. Changes GTE rotation and arithmetic state;
+/// retains no pointers and does not reserve or release the workspace.
 static __inline__ void _gfxWriteRelativeTranslation(const MATRIX* reference, const MATRIX* target, MATRIX* out,
                                                     _GfxRelativeTransformScratch* scratch)
 {
     scratch->originDelta.vx = target->t[0] - reference->t[0];
     scratch->originDelta.vy = target->t[1] - reference->t[1];
     scratch->originDelta.vz = target->t[2] - reference->t[2];
-    // The SDK writes only XYZ into the matrix's three-word translation.
+    // The SDK output view writes XYZ only, without a VECTOR's fourth word.
     ApplyMatrixLV(&scratch->transposedRotation, &scratch->originDelta, (VECTOR*)out->t);
 }
 
