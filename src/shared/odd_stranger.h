@@ -248,6 +248,20 @@ typedef struct OddStrangerWork {
 } OddStrangerWork;
 STATIC_ASSERT_SIZEOF(OddStrangerWork, ODD_STRANGER_HIT_FX_OFFSET ? 0xC80 : 0xC78);
 
+/// The actor's state handlers, indexed by `OddStrangerWork::field_0`.
+/// `func_actor_401000_8013D044` copies the table to its frame before
+/// dispatching. Same shape as `Actor01900StateTable` / `Actor401300StateTable`.
+typedef struct OddStrangerStateTable {
+    TaskFunc fn[34];
+} OddStrangerStateTable;
+STATIC_ASSERT_SIZEOF(OddStrangerStateTable, 0x88);
+
+typedef struct {
+    ActorTransform value;
+    u8             retained[8];
+} OddStrangerTransformStorage;
+STATIC_ASSERT_SIZEOF(OddStrangerTransformStorage, 32);
+
 /// Animation-state view shared by actor_401000 and actor_401800. Each actor
 /// owns a larger work block; these are the fields their animation driver uses.
 typedef struct OddStrangerRigWork {
@@ -300,5 +314,8 @@ void oddStrangerDrive(Task* arg0);
 s32  oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 
 s32 oddStrangerAnimEvent(OddStrangerRigWork* work);
+
+/* Defined by each package. */
+s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count);
 
 #endif /* SRC_SHARED_ODD_STRANGER_H */

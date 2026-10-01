@@ -55,18 +55,12 @@
 #define ODD_STRANGER_VARIANT 2
 #include "../../shared/odd_stranger.h"
 
-/// The 34 state handlers copied to the frame before the per-frame dispatch.
-typedef struct Actor401800StateTable {
-    TaskFunc fn[34];
-} Actor401800StateTable;
-STATIC_ASSERT_SIZEOF(Actor401800StateTable, 0x88);
-
-static const Actor401800StateTable D_actor_401800_80131FDC;
+static const OddStrangerStateTable gOddStrangerStates;
 
 /// Payload of the `0x3FF` message `func_actor_401800_80138F5C` sends: the same
 /// 0x14-byte animation record other actors keep as `AnimationPlayRequest` data
 /// (`D_actor_356100_80173244` and friends); `field_4` is the animation id.
-extern AnimationPlayRequest D_actor_401800_80155A0C;
+extern AnimationPlayRequest gOddStrangerPlayerAnim;
 
 extern AnimationSet* D_actor_401800_801559F8[];
 extern AnimationSet* D_actor_401800_801559F0[];
@@ -77,11 +71,11 @@ extern AnimationSet* D_actor_401800_801559F0[];
 /// between. The fourth halfword (`pad`, unused by the effect itself) is the
 /// model part index `func_800FDB18` anchors the spawned effect to. Same role
 /// `Actor00100_D1B9F4` plays for `Actor00100_Fn03340`.
-extern SVECTOR D_actor_401800_80155A20[12];
+extern SVECTOR gOddStrangerHitOffsets[12];
 
 /// Animation bank both `func_800B3F84` contexts are initialised from. Same
 /// role `Actor01900_D17174` plays for actor 01900.
-extern AnimationSet* D_actor_401800_80155938[46];
+extern AnimationSet* gOddStrangerAnimSets[46];
 
 /// Enemy description record the init body copies `hpMax` out of into
 /// `Enemy.hp` and points `Enemy.param` at. Same role
@@ -115,23 +109,18 @@ extern Actor401800MessageEntry D_actor_401800_80155A80[8];
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
-typedef struct {
-    ActorTransform value;
-    u8             retained[8];
-} Actor401800Storage5AD8;
-STATIC_ASSERT_SIZEOF(Actor401800Storage5AD8, 32);
 
 /// Frame counter the chase body of `func_actor_80136EAC` accumulates its step
 /// `field_C04` into and the init body clears; the aim-and-rescale body reads it
 /// back as the phase of the step it walks. Same role `Actor01900_D172FC` plays
 /// for actor 01900.
-extern u16 D_actor_401800_80155AC0;
+extern u16 gOddStrangerChaseDistance;
 
-/// The block `func_actor_401800_8013A034` posts into `D_actor_401800_80155938[16]`
+/// The block `func_actor_401800_8013A034` posts into `gOddStrangerAnimSets[16]`
 /// when the actor's live flag is set, taking over the animation the actor had
 /// been running. Same pair `Actor401300` keeps as `D_actor_401300_80158878` /
 /// `D_actor_401300_80152BB8`.
-extern AnimationSet D_actor_401800_80155124;
+extern AnimationSet gOddStrangerDormantAnimSet;
 
 /// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
 /// each spawn in `func_actor_401800_8013BB10`.
@@ -140,13 +129,12 @@ extern AnimationSet D_actor_401800_80155124;
 /// `func_actor_401800_8013BB10` points `D_80114B34[5].data.model` at before spawning: the
 /// 0x60030 debris burst, then the 0xA0005 fan the step counter trips at 3 and 5
 /// and the two 0xA0005 bursts at 7 and 9.
-extern TmdSource D_actor_401800_80143E9C;
+extern TmdSource gOddStrangerBurstModelA;
 extern TmdSource D_actor_401800_80144434;
-extern TmdSource D_actor_401800_80144F24;
+extern TmdSource gOddStrangerBurstModelC;
 
 #include "../../shared/actor_contacts.h"
 
-static s32  func_actor_401800_8013629C(Task* arg0, WorldCollisionContact* recs, s16 count);
 static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2);
 
 static void func_actor_401800_8013423C(Enemy* enemy, Task* actor);
@@ -167,7 +155,7 @@ static void func_actor_401800_801381E4(Task* arg0);
 /// applied, nudged one unit outward where the step had a fractional part.
 static SVECTOR ActorContact_ScratchPosition;
 
-extern Actor401800Storage5AD8 D_actor_401800_80155AD8;
+extern OddStrangerTransformStorage gOddStrangerGrabTransform;
 
 extern GpDelayArg D_actor_401800_80155AF8;
 
@@ -273,7 +261,7 @@ u32 D_actor_401800_80143B34[218] = {
 #include "assets/actor_401800_model_1207C_stream.inc"
 };
 
-TmdSource D_actor_401800_80143E9C = {
+TmdSource gOddStrangerBurstModelA = {
     0,
     1452,
     0,
@@ -337,7 +325,7 @@ u32 D_actor_401800_80144818[451] = {
 #include "assets/actor_401800_model_13104_stream.inc"
 };
 
-TmdSource D_actor_401800_80144F24 = {
+TmdSource gOddStrangerBurstModelC = {
     0,
     3064,
     0,
@@ -981,7 +969,7 @@ u16 D_actor_401800_801550FC[20] = {
 #include "assets/actor_401800_animation_23304_indices.inc"
 };
 
-AnimationSet D_actor_401800_80155124 = {
+AnimationSet gOddStrangerDormantAnimSet = {
     D_actor_401800_8015496C,
     D_actor_401800_801550FC,
     { NULL, D_actor_401800_801542F0, NULL, NULL, D_actor_401800_801543C8, NULL, NULL, NULL },
@@ -1035,7 +1023,7 @@ s8 gOddStrangerTransitions[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AnimationSet* D_actor_401800_80155938[46] = {
+AnimationSet* gOddStrangerAnimSets[46] = {
     NULL,
     NULL,
     &D_actor_401800_80152F00,
@@ -1094,9 +1082,9 @@ AnimationSet* D_actor_401800_801559F8[5] = {
     NULL,
 };
 
-AnimationPlayRequest D_actor_401800_80155A0C = { { .sets = D_actor_401800_801559F0 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gOddStrangerPlayerAnim = { { .sets = D_actor_401800_801559F0 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
-SVECTOR D_actor_401800_80155A20[12] = {
+SVECTOR gOddStrangerHitOffsets[12] = {
     { 60, -12, 30, 2 },
     { -50, -130, 29, 2 },
     { 20, -70, 25, 2 },
@@ -1122,7 +1110,7 @@ Actor401800MessageEntry D_actor_401800_80155A80[8] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-u16 D_actor_401800_80155AC0 = 0;
+u16 gOddStrangerChaseDistance = 0;
 
 TaskDesc D_actor_401800_80155AC4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_401800_8013E68C, { .model = &D_actor_401800_80143918 } };
 
@@ -1133,7 +1121,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-Actor401800Storage5AD8 D_actor_401800_80155AD8;
+OddStrangerTransformStorage gOddStrangerGrabTransform;
 
 GpDelayArg D_actor_401800_80155AF8;
 
@@ -1235,9 +1223,9 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_401800_8013E6F0.hpMax;
     enemy->param                  = &D_actor_401800_8013E6F0;
     enemy->recs                   = work->field_8F0;
-    func_800B3F84(&((OddStrangerAnimWork*)work)->rig.anim, D_actor_401800_80155938, obj,
+    func_800B3F84(&((OddStrangerAnimWork*)work)->rig.anim, gOddStrangerAnimSets, obj,
                   ((OddStrangerAnimWork*)work)->rig.poses, ((OddStrangerAnimWork*)work)->rig.slots);
-    func_800B3F84(&((OddStrangerAnimWork*)work)->blend.anim, D_actor_401800_80155938, obj,
+    func_800B3F84(&((OddStrangerAnimWork*)work)->blend.anim, gOddStrangerAnimSets, obj,
                   ((OddStrangerAnimWork*)work)->blend.poses, ((OddStrangerAnimWork*)work)->blend.slots);
     work->field_898 = 2;
     work->field_89E = 2;
@@ -1362,7 +1350,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     actor->state++;
 }
 
-/// Picks one of twelve hit positions out of `D_actor_401800_80155A20` by damage
+/// Picks one of twelve hit positions out of `gOddStrangerHitOffsets` by damage
 /// magnitude `arg1`, copies it to an 8-byte scratch vector, then arms the
 /// `field_8B8` spawn record with the actor's part-1 coordinate as its anchor
 /// and hands it to `func_800FDB18` to spawn effect `Gp_GetIdParam1(arg2)`.
@@ -1382,47 +1370,47 @@ static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
-                *sc = D_actor_401800_80155A20[0];
+                *sc = gOddStrangerHitOffsets[0];
                 break;
             case 1:
-                *sc = D_actor_401800_80155A20[1];
+                *sc = gOddStrangerHitOffsets[1];
                 break;
             case 2:
-                *sc = D_actor_401800_80155A20[2];
+                *sc = gOddStrangerHitOffsets[2];
                 break;
             case 3:
-                *sc = D_actor_401800_80155A20[3];
+                *sc = gOddStrangerHitOffsets[3];
                 break;
             default:
-                *sc = D_actor_401800_80155A20[4];
+                *sc = gOddStrangerHitOffsets[4];
                 break;
         }
     } else if (mag > 0x600) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
-                *sc = D_actor_401800_80155A20[5];
+                *sc = gOddStrangerHitOffsets[5];
                 break;
             case 1:
-                *sc = D_actor_401800_80155A20[6];
+                *sc = gOddStrangerHitOffsets[6];
                 break;
             default:
-                *sc = D_actor_401800_80155A20[7];
+                *sc = gOddStrangerHitOffsets[7];
                 break;
         }
     } else if (arg1 > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *sc = D_actor_401800_80155A20[8];
+            *sc = gOddStrangerHitOffsets[8];
         } else {
-            *sc = D_actor_401800_80155A20[9];
+            *sc = gOddStrangerHitOffsets[9];
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *sc = D_actor_401800_80155A20[10];
+            *sc = gOddStrangerHitOffsets[10];
         } else {
-            *sc = D_actor_401800_80155A20[11];
+            *sc = gOddStrangerHitOffsets[11];
         }
     }
     work->field_8B8.coord      = &arg0->extra.tmd->coords[1];
@@ -1906,7 +1894,7 @@ static void func_actor_401800_80135F58(Task* arg0)
 /// that; `hit` reports whether one was seen.
 /// Same body as `Actor01900_Fn03FF8` / `func_actor_401300_80132910`, with the
 /// coordinate update written out in both arms of the length test.
-static s32 func_actor_401800_8013629C(Task* arg0, WorldCollisionContact* recs, s16 count)
+s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
     ActorPushScratch* head;
     ActorPushScratch* s;
@@ -2041,7 +2029,7 @@ static void func_actor_401800_80136560(Task* arg0)
     SCRATCH_HEAD_AT(scratch, void) = block;
     s                              = (ActorChaseScratch*)block;
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-        func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+        oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
     }
     coord                                         = arg0->extra.tmd->coords;
     ((ActorChaseScratch*)(head - 0x10))->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -2141,10 +2129,10 @@ static void func_actor_401800_80136EAC(Task* arg0)
         work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         oddStrangerDrive(arg0);
-        work->field_C06         = 8;
-        work->field_6           = 0;
-        work->field_8           = 0;
-        D_actor_401800_80155AC0 = 0;
+        work->field_C06           = 8;
+        work->field_6             = 0;
+        work->field_8             = 0;
+        gOddStrangerChaseDistance = 0;
         work->field_C24++;
         return;
     }
@@ -2156,7 +2144,7 @@ static void func_actor_401800_80136EAC(Task* arg0)
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 0) {
         work->field_8++;
     } else {
-        func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+        oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     if (work->field_8 >= 7) {
@@ -2205,7 +2193,7 @@ static void func_actor_401800_80136EAC(Task* arg0)
     if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C04) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_C04);
     }
-    D_actor_401800_80155AC0 += work->field_C04;
+    gOddStrangerChaseDistance += work->field_C04;
     if (work->field_C06 == 8 && work->field_8A2 >= 0x18) {
         work->field_C06 = -1;
     }
@@ -2326,7 +2314,7 @@ static void func_actor_401800_80137714(Task* arg0)
         }
     }
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-        func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+        oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
     }
     if (work->field_8CA != 0) {
         work->field_8CA--;
@@ -2498,9 +2486,9 @@ static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECT
 static __inline__ void Actor401800_SetGrabAnim(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-        D_actor_401800_80155A0C.source.sets = D_actor_401800_801559F8;
+        gOddStrangerPlayerAnim.source.sets = D_actor_401800_801559F8;
     } else {
-        D_actor_401800_80155A0C.source.sets = D_actor_401800_801559F0;
+        gOddStrangerPlayerAnim.source.sets = D_actor_401800_801559F0;
     }
 }
 
@@ -2574,10 +2562,10 @@ static void func_actor_401800_801381E4(Task* arg0)
                 D_actor_401800_80155AF8.field_14 = 8;
                 do {
                     if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_401800_80155AF8, 0) == 0) {
-                        work->field_0                       = 0xC;
-                        work->field_C28                     = 1;
-                        D_actor_401800_80155A0C.animationId = 1;
-                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401800_80155A0C, 0);
+                        work->field_0                      = 0xC;
+                        work->field_C28                    = 1;
+                        gOddStrangerPlayerAnim.animationId = 1;
+                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
                     }
                 } while (0);
             }
@@ -2601,7 +2589,7 @@ static void func_actor_401800_801381E4(Task* arg0)
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-            func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
         }
     }
 }
@@ -2632,25 +2620,25 @@ static void func_actor_401800_80138C28(Task* arg0)
         work->field_89E                         = 5;
         player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(player->extra.tmd->coords);
-        D_actor_401800_80155AD8.value.pos.vx = player->extra.tmd->coords->coord.t[0];
-        D_actor_401800_80155AD8.value.pos.vy = player->extra.tmd->coords->coord.t[1];
-        D_actor_401800_80155AD8.value.pos.vz = player->extra.tmd->coords->coord.t[2];
-        pdir                                 = &dir;
-        dir.vx                               = (u16)arg0->extra.tmd->coords->coord.t[0] - (u16)player->extra.tmd->coords->coord.t[0];
-        dir.vy                               = 0;
-        dir.vz                               = (u16)arg0->extra.tmd->coords->coord.t[2] - (u16)player->extra.tmd->coords->coord.t[2];
+        gOddStrangerGrabTransform.value.pos.vx = player->extra.tmd->coords->coord.t[0];
+        gOddStrangerGrabTransform.value.pos.vy = player->extra.tmd->coords->coord.t[1];
+        gOddStrangerGrabTransform.value.pos.vz = player->extra.tmd->coords->coord.t[2];
+        pdir                                   = &dir;
+        dir.vx                                 = (u16)arg0->extra.tmd->coords->coord.t[0] - (u16)player->extra.tmd->coords->coord.t[0];
+        dir.vy                                 = 0;
+        dir.vz                                 = (u16)arg0->extra.tmd->coords->coord.t[2] - (u16)player->extra.tmd->coords->coord.t[2];
         VectorNormalSS(pdir, pdir);
         gte_lddp(0x3E8);
         gte_ldsv(pdir);
         gte_gpf12();
         gte_stsv(pdir);
-        arg0->extra.tmd->coords->coord.t[0]   = player->extra.tmd->coords->coord.t[0] + dir.vx;
-        arg0->extra.tmd->coords->coord.t[2]   = player->extra.tmd->coords->coord.t[2] + dir.vz;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        D_actor_401800_80155AD8.value.rot.vx  = 0;
-        D_actor_401800_80155AD8.value.rot.vy  = ratan2(dir.vx, dir.vz);
-        D_actor_401800_80155AD8.value.rot.vz  = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_401800_80155AD8.value, 0);
+        arg0->extra.tmd->coords->coord.t[0]    = player->extra.tmd->coords->coord.t[0] + dir.vx;
+        arg0->extra.tmd->coords->coord.t[2]    = player->extra.tmd->coords->coord.t[2] + dir.vz;
+        arg0->extra.tmd->coords->composeStamp  = GRAPHICS_COORD_DIRTY;
+        gOddStrangerGrabTransform.value.rot.vx = 0;
+        gOddStrangerGrabTransform.value.rot.vy = ratan2(dir.vx, dir.vz);
+        gOddStrangerGrabTransform.value.rot.vz = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &gOddStrangerGrabTransform.value, 0);
         Gp_SpawnPadLerp(0xC, 8, 0x8F);
     }
     oddStrangerDrive(arg0);
@@ -2688,7 +2676,7 @@ static void func_actor_401800_80138F5C(Task* arg0)
         work->field_8A2  = 0x10;
         work->field_89E  = 6;
         work->field_898  = 2;
-        msg              = &D_actor_401800_80155A0C;
+        msg              = &gOddStrangerPlayerAnim;
         msg->animationId = 2;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -2737,9 +2725,9 @@ static void func_actor_401800_80139118(Task* arg0)
         work->field_89E = 7;
         work->field_898 = 2;
         oddStrangerDrive(arg0);
-        D_actor_401800_80155A0C.animationId = 3;
+        gOddStrangerPlayerAnim.animationId = 3;
         if (config->hp > 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401800_80155A0C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
         }
         work->field_C0C        = -0x78;
         work->field_6          = 0;
@@ -3090,7 +3078,7 @@ static void func_actor_401800_80139D60(Task* arg0)
 }
 
 /// Walking body: on the live-actor flag re-allocates the model's buffers,
-/// hands the actor the `D_actor_401800_80155124` animation block and zeroes the
+/// hands the actor the `gOddStrangerDormantAnimSet` animation block and zeroes the
 /// step counter and the 0x8A2..0x8B0 pose slots, otherwise plays the actor's
 /// 0x51030008 spawn sound once on the first frame. After the shared per-frame
 /// tick, a `field_5A` state of 4 that differs from the last handled one
@@ -3113,11 +3101,11 @@ static void func_actor_401800_8013A034(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        obj                         = arg0->extra.tmd;
-        D_actor_401800_80155938[16] = &D_actor_401800_80155124;
-        work->field_89E             = 0x10;
-        work->field_898             = 2;
-        obj->flags                  = 0;
+        obj                      = arg0->extra.tmd;
+        gOddStrangerAnimSets[16] = &gOddStrangerDormantAnimSet;
+        work->field_89E          = 0x10;
+        work->field_898          = 2;
+        obj->flags               = 0;
         Tmd_AllocBuffers(obj);
         work->field_8D0.radius        = 0x12C;
         work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3162,7 +3150,7 @@ static void func_actor_401800_8013A034(Task* arg0)
 /// which is rebuilt at scale 0x1194, and the actor steps 7 units along its own
 /// local Z while `detectPlayerOutOfReach` reports the path clear. The
 /// `field_A30` / `field_8F0` contact records then decide whether `field_6`
-/// counts up or `func_actor_401800_8013629C` re-seeds them. In the tail the
+/// counts up or `oddStrangerPushContacts` re-seeds them. In the tail the
 /// `gPlayerStatus` offset arms state 6 within `field_C16`, or within 0xFA0 when
 /// the aim toward the player is under 0x300. Same body as
 /// `Actor01900_Fn06F40` / `func_actor_401300_80139AB0`, with the aim and step
@@ -3234,7 +3222,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
             ABS(work->field_8AE) < 0x80) {
             work->field_6++;
         } else {
-            func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
         }
     } else {
         if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1 ||
@@ -3242,7 +3230,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
             ABS(work->field_8AE) < 0x80) {
             work->field_6++;
         } else {
-            func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3307,7 +3295,7 @@ static void func_actor_401800_8013AB64(Task* arg0)
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-        func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+        oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
     }
     if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C04) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_C04);
@@ -3390,7 +3378,7 @@ static void func_actor_401800_8013AF1C(Task* arg0)
             actorStepForward(arg0->extra.tmd->coords, -0x10);
         }
         if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-            func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if (work->field_6 >= 0x13) {
@@ -3543,7 +3531,7 @@ static void func_actor_401800_8013BB10(Task* arg0)
     next          = work->field_6 + 1;
     work->field_6 = next;
     if ((s16)next == 3) {
-        D_80114B34[5].data.model = &D_actor_401800_80143E9C;
+        D_80114B34[5].data.model = &gOddStrangerBurstModelA;
         vec.vz                   = 0x64;
         vec.vy                   = 0;
         vec.vx                   = 0;
@@ -3556,11 +3544,11 @@ static void func_actor_401800_8013BB10(Task* arg0)
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->field_6 == 7) {
-        D_80114B34[5].data.model = &D_actor_401800_80143E9C;
+        D_80114B34[5].data.model = &gOddStrangerBurstModelA;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->field_6 == 9) {
-        D_80114B34[5].data.model = &D_actor_401800_80144F24;
+        D_80114B34[5].data.model = &gOddStrangerBurstModelC;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->field_6 >= 0x3D) {
@@ -3617,18 +3605,18 @@ static void func_actor_401800_8013BF48(Task* arg0)
             }
             ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
             if (work->field_6 == 3) {
-                D_80114B34[5].data.model = &D_actor_401800_80143E9C;
+                D_80114B34[5].data.model = &gOddStrangerBurstModelA;
                 vec.vz                   = 0x64;
                 vec.vy                   = 0;
                 vec.vx                   = 0;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
             }
             if (work->field_6 == 5) {
-                D_80114B34[5].data.model = &D_actor_401800_80143E9C;
+                D_80114B34[5].data.model = &gOddStrangerBurstModelA;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
             }
             if (work->field_6 == 6) {
-                D_80114B34[5].data.model = &D_actor_401800_80144F24;
+                D_80114B34[5].data.model = &gOddStrangerBurstModelC;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
             }
             break;
@@ -3717,7 +3705,7 @@ static void func_actor_401800_8013CD98(Task* arg0)
     s = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
         if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC) != 1) {
-            func_actor_401800_8013629C(arg0, work->field_8F0, 0xC);
+            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
         }
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
@@ -3796,7 +3784,7 @@ static void func_actor_401800_8013CD98(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-static const Actor401800StateTable D_actor_401800_80131FDC = { {
+static const OddStrangerStateTable gOddStrangerStates = { {
     func_actor_401800_8013E138,
     func_actor_401800_8013E194,
     func_actor_401800_8013E23C,
@@ -3836,7 +3824,7 @@ static const Actor401800StateTable D_actor_401800_80131FDC = { {
 static void func_actor_401800_8013D64C(Enemy* arg0, Task* arg1)
 {
     VECTOR                pos;
-    Actor401800StateTable states;
+    OddStrangerStateTable states;
     OddStrangerWork*      work;
     ActorViewScratch*     scratch;
     ActorViewScratch*     head;
@@ -3845,7 +3833,7 @@ static void func_actor_401800_8013D64C(Enemy* arg0, Task* arg1)
     s32                   index;
 
     work   = arg1->work;
-    states = D_actor_401800_80131FDC;
+    states = gOddStrangerStates;
 
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
