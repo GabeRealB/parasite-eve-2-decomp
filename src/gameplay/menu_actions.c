@@ -617,10 +617,10 @@ void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1)
     id  = (u16)arg1->owner->spawnArg1.value;
     if ((idx < 2) && (id < 0x100)) {
         text = Gp_GetItemText(id, idx + 1, 1);
-        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, text, 0x606060, 3, 0);
+        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, 0);
     } else {
         text = Text_SkipLines(Fs_GetChunkPayload(), arg0->field_8 + 5);
-        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, text, 0x606060, 3, 0);
+        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, 0);
     }
 }
 
@@ -2447,7 +2447,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
         cost = (cost * 2) / 5;
     }
-    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
+    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y += 0xF;
 
@@ -2474,7 +2474,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     col2     = ((id + 1) & 0xC) >> 2;
     lvl2     = (id + 1) & 3;
     Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].field[bonusIdx]),
-                    0x606060, 3, TEXT_ALIGNMENT_RIGHT);
+                    0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     if (arg0->firstChild != NULL) {
         child = arg0->firstChild;
@@ -3380,9 +3380,9 @@ void Gp_DrawNextLevelCmd(Task* arg0)
     func_800D3D98(obj, spawnArg, 1);
     y    = obj->panel.contentBottom.signedValue;
     text = Gp_GetItemText(spawnArg + 1, 1, 1);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, y - 0xF, text, 0x606060, 3, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, y - 0xF, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, 0);
     text = Gp_GetItemText(spawnArg + 1, 2, 1);
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, y, text, 0x606060, 3, 0);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, y, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, 0);
 }
 
 void func_800D573C(Task* arg0)
@@ -3410,7 +3410,7 @@ void Gp_DrawSpecsCmd(Task* arg0)
     func_800D3D98(obj, spawnArg, 0);
     if (CdCmd_IsIdle() & 0xFFFF) {
         text = Text_SkipLines(Fs_GetChunkPayload(), 4);
-        Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, 0x14, text, 0x606060, 3, 0);
+        Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, 0x14, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, 0);
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel | 0x10) != 0) {

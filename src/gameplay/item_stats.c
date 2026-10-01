@@ -296,7 +296,7 @@ void func_800C5F70(Task* arg0)
             }
             if (item >= 0x500) {
                 Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, 0x34, Text_SkipLines(payload, 5),
-                                   0x606060, 3, 0);
+                                   0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, 0);
             } else {
                 saved                   = obj->panel.control.word;
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;

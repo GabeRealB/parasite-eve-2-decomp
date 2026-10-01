@@ -367,7 +367,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         Gp_DrawQty(obj, prompt->field_18, prompt->field_1A, gpItemStock(itemId)->perBuy, prompt->field_1C);
     }
     Text_ItoaUnsigned(buf, price);
-    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
+    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, buf, prompt->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
 /// Adds an item id to the room's shop list, keeping one entry per item kind:
@@ -775,7 +775,7 @@ static void Shop_BalanceTask(Task* task)
     Text_DrawString(&req0, Shop_Data_8017D6D8);
 
     Text_ItoaUnsigned((u8*)digits, cfg->bp);
-    Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
+    Text_DrawPrompt(obj, col, y + 0x19, (u8*)digits, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     y2              = y + 0x28;
     req1.x          = obj->panel.contentOriginX.unsignedValue + x;
@@ -797,7 +797,7 @@ static void Shop_BalanceTask(Task* task)
     }
     *p = '/';
     Text_ItoaUnsigned((u8*)(p + 1), capacity);
-    Text_DrawPrompt(obj, col, y2 + 0xA, (u8*)total, 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
+    Text_DrawPrompt(obj, col, y2 + 0xA, (u8*)total, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
 /// Row handler of the buy prompt. On confirm it checks the price against the
@@ -1043,7 +1043,7 @@ static void Shop_PreviewTask(Task* task)
         Text_DrawString(&req, Shop_Data_80181AC4);
         count = 0;
         count = Shop_AddItemCount(item, count);
-        Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, 3,
+        Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
                         TEXT_ALIGNMENT_RIGHT);
     }
 }
@@ -1119,8 +1119,8 @@ static void Shop_QuantityTask(Task* task)
     }
 
     count = task->extraState.value;
-    Text_DrawPrompt(obj, left + 0x98, y, Shop_Data_80181AD0, 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
-    Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
+    Text_DrawPrompt(obj, left + 0x98, y, Shop_Data_80181AD0, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
 
     req.x          = obj->panel.contentOriginX.unsignedValue - x;
@@ -1133,7 +1133,7 @@ static void Shop_QuantityTask(Task* task)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req, Shop_Data_8017D6D8);
 
-    Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
+    Text_DrawPrompt(obj, -x, top + 0x2B, Text_ItoaSigned(buf, count * price), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         parentObj = task->parent->spawnArg2.pointer;
