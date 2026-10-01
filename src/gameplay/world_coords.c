@@ -1383,8 +1383,15 @@ s32 worldCoordGetOriginAudioDepth(const GfxCoord* coord)
 {
     // Signed game-coordinate limits and the shift for 256 coordinates per depth unit.
     enum {
-        WORLD_COORDINATE_AUDIO_DEPTH_MIN   = -0x7FFF,
-        WORLD_COORDINATE_AUDIO_DEPTH_MAX   = 0x7FFF,
+        WORLD_COORDINATE_AUDIO_DEPTH_MIN = -0x7FFF,
+
+        /// Inclusive pre-shift audio-depth ceiling in game-coordinate units.
+        ///
+        /// The eight-bit shift maps this ceiling to +127, the silent attenuation
+        /// endpoint. Saturating the projection-plane Z difference at 32767 keeps
+        /// farther origins from wrapping when stored in a sound event's signed byte.
+        WORLD_COORDINATE_AUDIO_DEPTH_MAX = 0x7FFF,
+
         WORLD_COORDINATE_AUDIO_DEPTH_SHIFT = 8
     };
     s32 depthFromPlane;
