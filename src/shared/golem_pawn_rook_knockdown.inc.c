@@ -24,7 +24,7 @@ void golemPawnRookKnockdownState(Task* arg0)
     GolemPawnRookWork* work;
     GfxCoord*          self;
 
-    work  = (GolemPawnRookWork*)arg0->work;
+    work  = arg0->work;
     self  = arg0->extra.tmd->coords;
     state = work->field_6A8;
     switch (state) {
@@ -51,12 +51,12 @@ void golemPawnRookKnockdownState(Task* arg0)
             break;
         case 1:
             if (work->field_698 == 0x14) {
-                snd = gGolemPawnRookVoiceCues[work->field_6D6 + 0xC] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                snd = gGolemPawnRookVoiceCues[work->field_6D6 + 0xC] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan, (s8)worldCoordGetOriginAudioDepth(self));
             }
             if (work->field_698 == 0x2C) {
-                snd  = gGolemPawnRookVoiceCues[work->field_6D6 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                snd  = gGolemPawnRookVoiceCues[work->field_6D6 + 8] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan2 = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(self));
             }
@@ -80,7 +80,7 @@ void golemPawnRookKnockdownState(Task* arg0)
             break;
         case 2:
             if (work->field_698 == 0x19) {
-                snd  = gGolemPawnRookVoiceCues[work->field_6D6 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                snd  = gGolemPawnRookVoiceCues[work->field_6D6 + 8] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan3 = (s8)worldCoordGetOriginAudioPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan3, (s8)worldCoordGetOriginAudioDepth(self));
             }

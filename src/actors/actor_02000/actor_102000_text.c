@@ -40,6 +40,8 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN
+#define GOLEM_PAWN_ROOK_WEAPON GOLEM_BEAM_SWORD
 #include "../../shared/golem_pawn_rook.h"
 
 static const GpEnemyTaskFuncTable3 Actor02000_D00060;
@@ -113,10 +115,6 @@ extern AnimationSet Actor02000_D15CD4;
 extern TmdSource Actor02000_D08AA8;
 
 extern TmdSource Actor02000_D08FEC;
-
-void Actor02000_Fn00E0C(Task*);
-
-void Actor02000_Fn01DF0(Task*);
 
 void Actor02000_Fn02D5C(Task*);
 
@@ -1423,7 +1421,7 @@ TaskFunc gGolemPawnRookStates[15] = {
     golemPawnRookIdleState,
     golemPawnRookApproachState,
     Actor02000_Fn02D5C,
-    Actor02000_Fn01DF0,
+    golemPawnRookChargeState,
     golemPawnRookBeamSwingState,
     golemPawnRookNopState,
     golemPawnRookNopState,
@@ -1431,7 +1429,7 @@ TaskFunc gGolemPawnRookStates[15] = {
     golemPawnRookHitReactionState,
     golemPawnRookRecoilState,
     golemPawnRookFlagWaitState,
-    Actor02000_Fn00E0C,
+    golemPawnRookKnockdownState,
     golemPawnRookDownedShiftState,
     golemPawnRookCollapseState,
     golemPawnRookDownedFinishState,
@@ -1441,131 +1439,7 @@ TaskFunc gGolemPawnRookStates[15] = {
 
 #include "../../shared/golem_pawn_rook_proximity.inc.c"
 
-void Actor02000_Fn00E0C(Task* arg0)
-{
-    s16                state;
-    s16                nextAnim;
-    s16                nextAnim2;
-    s32                snd;
-    s32                random3;
-    s32                pan;
-    s32                pan2;
-    s32                pan3;
-    u16                timer;
-    u16                timer2;
-    u32                random;
-    u32                random2;
-    GolemPawnRookWork* work;
-    GfxCoord*          self;
-
-    work  = arg0->work;
-    self  = arg0->extra.tmd->coords;
-    state = work->field_6A8;
-    switch (state) {
-        case 0:
-            if (work->field_6AA == 0) {
-                work->field_694        = 0x16;
-                work->field_6A8        = 1;
-                work->field_6B8        = 1;
-                work->field_4CC.pos.vz = -0xA7;
-            } else {
-                work->field_694        = 0x1A;
-                work->field_6A8        = 2;
-                work->field_6B8        = 2;
-                work->field_4CC.pos.vz = 0x109;
-            }
-            work->field_4CC.radius                           = 0x15E;
-            work->field_69C                                  = 0;
-            work->field_69E                                  = 0;
-            work->field_6DE                                  = 1;
-            work->field_4CC.flags                            = (u16)(work->field_4CC.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-            work->field_564.flags                            = (u16)(work->field_564.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-            ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
-            work->field_6D4                                  = 1;
-            break;
-        case 1:
-            if (work->field_698 == 0x14) {
-                snd = gGolemPawnRookVoiceCues[work->field_6D6 + 0xC] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(snd, (s32)pan, (s8)worldCoordGetOriginAudioDepth(self));
-            }
-            if (work->field_698 == 0x2C) {
-                snd  = gGolemPawnRookVoiceCues[work->field_6D6 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan2 = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(snd, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(self));
-            }
-            if (work->field_698 >= 0x42) {
-                work->field_694 = 0x19;
-                work->field_6D4 = 0;
-                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->field_6AE = (u16)((random >> 0x10) & 0x3F);
-                gRandomLcgState = random;
-                if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
-                    work->field_6A8 = 3;
-                } else {
-                    arg0->state     = 2;
-                    work->field_6A8 = 0;
-                }
-            }
-            if (work->field_6DE == 1) {
-                work->field_6DE = 2;
-                break;
-            }
-            break;
-        case 2:
-            if (work->field_698 == 0x19) {
-                snd  = gGolemPawnRookVoiceCues[work->field_6D6 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan3 = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(snd, (s32)pan3, (s8)worldCoordGetOriginAudioDepth(self));
-            }
-            if (work->field_698 >= 0x31) {
-                work->field_694 = 0x1D;
-                work->field_6D4 = 0;
-                random2         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->field_6AE = (u16)((random2 >> 0x10) & 0x3F);
-                gRandomLcgState = random2;
-                if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
-                    work->field_6A8 = 3;
-                } else {
-                    arg0->state     = 2;
-                    work->field_6A8 = 0;
-                }
-            }
-            if (work->field_6DE == 1) {
-                work->field_6DE = 2;
-            }
-            break;
-        case 3:
-            timer           = work->field_6AE - 1;
-            work->field_6AE = timer;
-            if ((s16)timer <= 0) {
-                nextAnim = 0x1C;
-                if (work->field_6B8 == 1) {
-                    nextAnim = 0x18;
-                }
-                work->field_6AE = 0xAU;
-                work->field_694 = nextAnim;
-                work->field_6A8 = 4;
-                break;
-            }
-            break;
-        case 4:
-            timer2          = work->field_6AE - 1;
-            work->field_6AE = timer2;
-            if ((s16)timer2 <= 0) {
-                nextAnim2 = 0x1D;
-                if (work->field_6B8 == 1) {
-                    nextAnim2 = 0x19;
-                }
-                work->field_694 = nextAnim2;
-                work->field_6A8 = 3;
-                random3         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = random3;
-                work->field_6AE = (u16)(((u32)random3 >> 0x10) & 0x3F);
-            }
-            break;
-    }
-}
+#include "../../shared/golem_pawn_rook_knockdown.inc.c"
 
 #include "../../shared/golem_pawn_rook_downed_shift.inc.c"
 
@@ -1579,149 +1453,7 @@ void Actor02000_Fn00E0C(Task* arg0)
 
 #include "../../shared/golem_pawn_rook_dead.inc.c"
 
-void Actor02000_Fn01DF0(Task* arg0)
-{
-    s16                state;
-    s16                yawDiff;
-    s32                magnitude;
-    s16                angle;
-    s16                wrapped;
-    void**             scratch;
-    s32                sound;
-    s32                dx0;
-    s32                dx2;
-    s32                dz2;
-    s32                dx1;
-    s32                dz1;
-    s32                dist;
-    s32                dz0;
-    s32                pan;
-    u8*                head;
-    GolemPawnRookWork* work;
-    GfxCoord*          self;
-    VECTOR*            delta;
-
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = head - 0x10;
-    delta                      = (VECTOR*)(head - 0x10);
-    work                       = arg0->work;
-    state                      = work->field_6A8;
-    self                       = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            if ((work->field_698 >= 0x47) && (work->field_6CE = (s16)(work->field_6D0 > 0), ((VECTOR*)(head - 0x10))->vx = (s32)(gPlayerStatus.coordMtx->t[0] - self->coord.t[0]), dz0 = gPlayerStatus.coordMtx->t[2] - self->coord.t[2], delta->vz = dz0, dx0 = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x3E8) == 0))) {
-                work->field_69C = 0x84;
-            } else {
-                work->field_69C = 0;
-            }
-            work->field_69E = 0;
-            if (work->field_698 == 0x46) {
-                work->field_6B6 = 0;
-                work->field_6CC = 1;
-            }
-            if ((work->field_698 >= 0x47) && (work->field_6B6 >= 0x4C)) {
-                work->field_6A6        = 8;
-                work->field_6A8        = 0;
-                work->field_69C        = 0;
-                work->field_69E        = 0;
-                work->field_6CC        = 0;
-                work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                break;
-            }
-            if (work->field_698 >= (gGolemPawnRookAnimBlendFrames[work->field_694] + 0x52)) {
-                work->field_6A8 = 1;
-                work->field_694 = 6;
-            }
-            break;
-        case 1:
-            work->field_69C              = 0x84;
-            work->field_69E              = 0xF;
-            ((VECTOR*)(head - 0x10))->vx = (s32)(gPlayerStatus.coordMtx->t[0] - self->coord.t[0]);
-            delta->vz                    = (s32)(gPlayerStatus.coordMtx->t[2] - self->coord.t[2]);
-            work->field_6A4              = (s16)(ratan2((s32)(s16)((VECTOR*)(head - 0x10))->vx, (s32)(s16)delta->vz) & 0xFFF);
-            dx1                          = ((VECTOR*)(head - 0x10))->vx;
-            dz1                          = delta->vz;
-            dist                         = SquareRoot0((dx1 * dx1) + (dz1 * dz1));
-            if (work->field_6B6 < 0x4C) {
-                if (dist < 0x5DC) {
-                    work->field_6A8 = 2;
-                    work->field_694 = 7;
-                    work->field_69C = 0;
-                } else {
-                    yawDiff   = (ratan2((s32)(s16)((VECTOR*)(head - 0x10))->vx, (s32)(s16)delta->vz) & 0xFFF) - work->field_6A2;
-                    magnitude = __builtin_abs(yawDiff);
-                    if (magnitude < 0x800) {
-                        angle = magnitude;
-                    } else {
-                        if (yawDiff > 0) {
-                            wrapped = 0x1000 - yawDiff;
-                        } else {
-                            wrapped = yawDiff + 0x1000;
-                        }
-                        angle = wrapped;
-                    }
-                    if ((s16)angle >= 0x101) {
-                        work->field_6A6 = 2;
-                        work->field_6A8 = 2;
-                        work->field_694 = 4;
-                        work->field_6CC = 0;
-                        work->field_6CE = 0;
-                    }
-                }
-            } else {
-                work->field_6A6       = 8;
-                work->field_6A8       = 0;
-                work->field_69C       = 0;
-                work->field_69E       = 0;
-                work->field_6CC       = 0;
-                work->field_6CE       = 0;
-                work->field_5E4.flags = (u16)(work->field_5E4.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-            }
-            break;
-        case 2:
-            work->field_69C = 0;
-            work->field_69E = 0;
-            if ((work->field_698 < 0xD) && (work->field_6B6 >= 0x4C)) {
-                work->field_6A6        = 8;
-                work->field_6A8        = 0;
-                work->field_69C        = 0;
-                work->field_69E        = 0;
-                work->field_6CC        = 0;
-                work->field_6CE        = 0;
-                work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                break;
-            }
-            if (work->field_698 == 0xD) {
-                work->field_5E4.flags = (u16)(work->field_5E4.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_5E4.key   = Gp_PackPair(gGolemPawnRookAttacks, 1);
-                sound                 = gGolemPawnRookSwingCue.value | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan                   = (s8)worldCoordGetOriginAudioPan(self);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(self));
-            }
-            if (work->field_698 == 0x1E) {
-                work->field_5E4.flags = (u16)(work->field_5E4.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-            }
-            if (work->field_698 >= 0x3B) {
-                work->field_6CE = 0;
-                dx2             = gPlayerStatus.coordMtx->t[0] - self->coord.t[0];
-                delta->vx       = dx2;
-                dz2             = gPlayerStatus.coordMtx->t[2] - self->coord.t[2];
-                delta->vz       = dz2;
-                if (SquareRoot0((dx2 * dx2) + (dz2 * dz2)) < 0xBB8) {
-                    work->field_6A6 = 4;
-                    work->field_6A8 = 0;
-                    work->field_694 = 8;
-                } else {
-                    work->field_6A6 = 2;
-                    work->field_6A8 = 2;
-                    work->field_694 = 4;
-                }
-            }
-            break;
-    }
-    scratch = SCRATCH_HEAD_ADDR;
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
-}
+#include "../../shared/golem_pawn_rook_charge_state.inc.c"
 
 #include "../../shared/golem_pawn_rook_beam_swing.inc.c"
 
