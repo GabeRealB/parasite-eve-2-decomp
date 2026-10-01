@@ -549,21 +549,42 @@ u32* tmdDrawStreamPrimGt4OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* strea
 /// goes unread.
 u32* tmdDrawStreamPrimGt4OneNormalSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's textured-triangle records that carry a colour per
-/// corner (`0x130`): each element contributes one triangle, projected, shaded
-/// and linked into the ordering table.
+/// Projects, lights and links Gouraud textured triangles with per-corner material colours.
 ///
-/// The element names a vertex, a normal and a colour for each of the triangle's
-/// three corners, so every corner is shaded from a pair of its own where the
-/// record families that carry one colour for the whole element shade all three
-/// from that one colour. An element whose vertices fall behind the camera, or
-/// whose triangle faces away, contributes nothing. The model's flags choose
-/// between the opaque and the semi-transparent form of the primitive.
+/// Draw resolution selects this callback for opcode `0x130`. `elements` starts
+/// after the three-word record header. `workspace->elemCount` supplies 0..65535
+/// elements and `elemStride` their stride in u32 words. Words 0..2 pack six u16
+/// byte offsets in order: vertex 0, vertex 1, vertex 2, normal 0, normal 1,
+/// normal 2. Each must address a complete, word-aligned eight-byte vector in
+/// the borrowed `verts` or `normals` array. Words 3..5 supply the respective
+/// corners' material RGB and command bytes for independent NCCS lighting.
+/// Drawing reads these first six words; the complete record needs at least
+/// nine words per element because `tmdBuildStreamGt3CornerColors` reads the
+/// texture words at 6..8. Stream and geometry extents are caller obligations.
 ///
-/// The element's texture words are not this handler's: the other pass over the
-/// same stream copies them into the model's buffer when the model is created,
-/// and this one leaves them where they lie.
-u32* tmdDrawStreamPrimGt3CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `primWrite` must address one writable, word-aligned `POLY_GT3` slot per
+/// element in the selected buffer half's second region, with texture fields
+/// already initialized by construction. The caller sets the GTE part transform,
+/// light/colour matrices, background colour and three-vertex depth-average scale.
+/// Projection errors (`TMD_GTE_ERROR_FLAG`) and nonpositive NCLIP areas reject
+/// a triangle. `objectFlags` carries `TmdObject.flags`; only
+/// `TMD_OBJECT_SEMI_TRANS` is read, selecting GPU code 0x36 instead of 0x34.
+/// Reverse-culling and other object bits are ignored; texture-page blend mode
+/// is preserved.
+///
+/// Every element consumes its 40-byte packet slot, even when rejected. Accepted
+/// packets receive screen coordinates, three lit colour words, the selected
+/// code and a nine-word DMA length. They prepend to `workspace->ot` at bucket
+/// `((OTZ << (otDepthShift & 31)) & 0x3FFF) >> 4`. The displaced OT base and
+/// wrapped bucket (0..1023) must fit the backing table. Packet links encode
+/// 24-bit GPU DMA addresses; keep the packets alive until the GPU finishes.
+///
+/// Returns `elements + elemCount * elemStride`, leaving the next record or
+/// marker unconsumed, and advances `workspace->primWrite` past all slots.
+/// Counts, saved GTE results and the pre-transformed cursor remain unchanged.
+/// An empty record reads no payload and advances neither cursor. All storage
+/// is borrowed for the call; no pointer is retained by the callback.
+u32* tmdDrawStreamPrimGt3CornerColors(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Handler of a stream's textured-quad records that name one colour per corner
 /// (`0x170`): each element contributes one quad to the buffer half's second
