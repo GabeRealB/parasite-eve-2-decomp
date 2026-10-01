@@ -574,7 +574,7 @@ range-check in §3.1.
 | `0x70` | POLY_GT4 | 4 | 4v + 4n, colour | u0=w5 u1=w6 u2=w7 lo u3=w7 hi | `0x70` | 22 |
 | `0x71` | POLY_GT4 | 4 | 4v (cache) | u0=w2 u1=w3 u2=w4 lo u3=w4 hi | `0x71` `0x79` `0x7B` `0x171` `0x8079` | 3566 |
 | `0x78` | POLY_GT4 | 4 | 4v + 4n | u0=w4 u1=w5 u2=w6 lo u3=w6 hi | `0x78` `0x7A` `0x8078` `0x10078` `0x20078` | 13103 |
-| `0x130` | POLY_GT3 | 3 | 3v + 9n | u0=w6 u1=w7 u2=w8 lo | `0x130` | — |
+| `0x130` | POLY_GT3 | 3 | 3v + 3n, 3 colours | u0=w6 u1=w7 u2=w8 lo | `0x130` | — |
 | `0x156` | POLY_GT4 | 4 | 4v + 8n | u0=w6 u1=w7 u2=w8 lo u3=w8 hi | `0x156` | 16 |
 | `0x170` | POLY_GT4 | 4 | 4v + 12n | u0=w8 u1=w9 u2=w10 lo u3=w10 hi | `0x170` | — |
 | `0x4038` | POLY_GT3 | 3 | 3v + 3n | u0=w3 u1=w4 u2=w5 lo | `0x4038` | 460 |

@@ -134125,7 +134125,7 @@ triangle a normal per corner where `0x0` has one, so the two light it differentl
 share a body. The kind comes from the process arm, the modifier from the opcode's
 bit - `tmdDrawStreamPrimG3CornerNormals` beside `tmdDrawStreamPrimG3` for `0x20`
 and `0x0` - which is how the process-pass names read too
-(`gpStreamPrimGt3OneNormal` beside `gpStreamPrimGt3CornerColors`).
+(`gpStreamPrimGt3OneNormal` beside `tmdBuildStreamGt3CornerColors`).
 
 A draw body names its own packet without help from the twin: the primitive
 cursor's increment and the `lui` tag word give the packet's size and length, and
