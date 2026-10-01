@@ -53,7 +53,16 @@ enum {
     /// medium metrics without changing `glyphTable`, so measurement and pair
     /// tightening still follow the request's initial selector.
     TEXT_GLYPH_V_BIAS_MEDIUM = 38,
-    TEXT_GLYPH_V_BIAS_SMALL  = 0,
+    /// Small-face texture V translation in page-local texels.
+    ///
+    /// Zero leaves `_FontGlyph::v` unchanged in the sprite's unsigned V byte.
+    /// Drawing stores it in `TextDrawReq::vBias` for initial
+    /// `TEXT_GLYPH_TABLE_SMALL` selection or an inline \sS command (either
+    /// letter's case). The command selects small metrics without changing
+    /// `glyphTable`, so alignment measurement and pair tightening retain the
+    /// initial selector. Glyph bytes must be in 0x20..0x7A while this face is
+    /// active; each sprite stores the glyph V plus this bias modulo 256.
+    TEXT_GLYPH_V_BIAS_SMALL = 0,
     /// Large-face texture V translation in page-local texels.
     ///
     /// Stored in `TextDrawReq::vBias` as -128 (byte 0x80). Adding it to a

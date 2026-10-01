@@ -498,7 +498,7 @@ Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 |---|---|---|---|---|
 | `_gFontGlyphsMedium` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 (`TEXT_GLYPH_TABLE_MEDIUM`) | 38 (`TEXT_GLYPH_V_BIAS_MEDIUM`) |
 | `_gFontGlyphsLarge` | `0x8005FA30` | 224 (`0x20`…`0xFF`) | any value other than `TEXT_GLYPH_TABLE_MEDIUM` (0) and `TEXT_GLYPH_TABLE_SMALL` (5) | `-128` (byte `0x80`) |
-| `_gFontGlyphsSmall` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 (`TEXT_GLYPH_TABLE_SMALL`) | `0` |
+| `_gFontGlyphsSmall` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 (`TEXT_GLYPH_TABLE_SMALL`) | 0 (`TEXT_GLYPH_V_BIAS_SMALL`) |
 
 `Ui_DrawTextUnderline` sets `glyphTable` to `TEXT_GLYPH_TABLE_SMALL`.
 Medium-face drawing adds `TEXT_GLYPH_V_BIAS_MEDIUM` (38 texels) to each glyph's
@@ -510,6 +510,11 @@ and stores the result in an unsigned sprite byte: `-128` is equivalent to
 adding 128 modulo 256. The large-face metrics have V origins 0..116, which
 therefore become page-local rows 128..244. Inline `\sL` commands (either
 letter's case) select the same bias without changing `glyphTable`.
+
+Small-face drawing uses `TEXT_GLYPH_V_BIAS_SMALL` (0 texels), leaving its
+metric V origins 0..114 unchanged in the unsigned sprite byte. Initial
+`TEXT_GLYPH_TABLE_SMALL` selection and inline `\sS` commands (either letter's
+case) use this bias; inline commands leave `glyphTable` unchanged.
 
 `_FontGlyph` `u`/`v` are **page-local texels** in the 4bpp page at
 `(960, 256)`, with `vBias` added to `v`. SPRT `w`/`h` are
