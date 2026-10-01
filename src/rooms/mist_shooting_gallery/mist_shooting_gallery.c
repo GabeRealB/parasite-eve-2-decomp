@@ -888,7 +888,7 @@ GpViewCountRec D_mist_shooting_gallery_801853BC[2] = {
 };
 
 WorldCoordRoomLighting D_mist_shooting_gallery_801853C0[1] = {
-    { &gMistShootingGalleryDefaultRoomLights, D_mist_shooting_gallery_8018DFD4 },
+    { &gMistShootingGalleryDefaultRoomLights, gMistShootingGalleryViewAmbientTable },
 };
 
 GpWarpRec D_mist_shooting_gallery_801853C8[7] = {

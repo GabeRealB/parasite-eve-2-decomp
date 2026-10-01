@@ -22,7 +22,15 @@ extern WorldCoordRoomLights gMistShootingGalleryDefaultRoomLights;
 
 extern WorldCoordRoomLights D_mist_shooting_gallery_8018DF38;
 
-extern WorldCoordRoomAmbientEntry D_mist_shooting_gallery_8018DFD4[19];
+enum { MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT = 18 };
+
+/// Minimum ambient model-shading colours for the gallery's 18 views.
+///
+/// Entry zero stores the view count; entries 1..18 use the room's 1-based view
+/// index. RGB components use 16 units per 8-bit colour level; stored brightness
+/// in the fourth component is unused by lighting. Both room light collections
+/// share this table. Borrowed pointers are valid only while the overlay is loaded.
+extern const WorldCoordRoomAmbientEntry gMistShootingGalleryViewAmbientTable[MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT + 1];
 
 extern s32 D_mist_shooting_gallery_8018E0BC;
 

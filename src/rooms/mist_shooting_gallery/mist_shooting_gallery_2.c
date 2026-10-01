@@ -2164,26 +2164,27 @@ GpAreaVariant D_mist_shooting_gallery_8018DF74[12] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_mist_shooting_gallery_8018DFD4[19] = {
-    { .viewCount = ARRAY_SIZE(D_mist_shooting_gallery_8018DFD4) - 1 },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 340, 340, 350, 341 } },
-    { .color = { 800, 820, 820, 812 } },
-    { .color = { 600, 600, 600, 600 } },
-    { .color = { 500, 500, 500, 500 } },
-    { .color = { 500, 500, 500, 500 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 600, 600, 600, 600 } },
+// Keep the read-only table at its original position among the overlay's data.
+const WorldCoordRoomAmbientEntry gMistShootingGalleryViewAmbientTable[MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT + 1] SECTION(".data") = {
+    [0]  = { .viewCount = ARRAY_SIZE(gMistShootingGalleryViewAmbientTable) - 1 },
+    [1]  = { .color = { 16, 16, 16, 16 } },
+    [2]  = { .color = { 16, 16, 16, 16 } },
+    [3]  = { .color = { 16, 16, 16, 16 } },
+    [4]  = { .color = { 16, 16, 16, 16 } },
+    [5]  = { .color = { 16, 16, 16, 16 } },
+    [6]  = { .color = { 16, 16, 16, 16 } },
+    [7]  = { .color = { 340, 340, 350, 341 } },
+    [8]  = { .color = { 800, 820, 820, 812 } },
+    [9]  = { .color = { 600, 600, 600, 600 } },
+    [10] = { .color = { 500, 500, 500, 500 } },
+    [11] = { .color = { 500, 500, 500, 500 } },
+    [12] = { .color = { 16, 16, 16, 16 } },
+    [13] = { .color = { 16, 16, 16, 16 } },
+    [14] = { .color = { 16, 16, 16, 16 } },
+    [15] = { .color = { 16, 16, 16, 16 } },
+    [16] = { .color = { 16, 16, 16, 16 } },
+    [17] = { .color = { 16, 16, 16, 16 } },
+    [18] = { .color = { 600, 600, 600, 600 } },
 };
 
 WorldCollisionFootstepSounds D_mist_shooting_gallery_8018E06C = {
