@@ -44,8 +44,9 @@ enum {
     /// Sends a synchronous task message to a registered task or a scene child.
     ///
     /// Operand 0 is a resident task-slot index in 0..15, or
-    /// `EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD`. Slot 4 selects a type-9
-    /// actor by operand 1's placement index (0..15) in the current stage/area;
+    /// `EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD`. `GAME_TASK_SLOT_SCENE`
+    /// selects a type-9 actor by operand 1's placement index (0..15) in the
+    /// current stage/area;
     /// `EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER` instead selects the manager.
     /// The other-child target selects a child outside type 9 by operand 1's
     /// byte ID (0..255). Other slots ignore operand 1. Child lookups require a
@@ -117,7 +118,7 @@ enum {
 /// Special recipient selectors for `EVENT_SCRIPT_OPCODE_SEND_MESSAGE`.
 enum {
     EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD = -1, // Operand 0: resolve a non-type-9 child by operand 1's byte ID
-    EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER     = -1, // Operand 1 with task slot 4: address the manager itself
+    EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER     = -1, // Operand 1 with GAME_TASK_SLOT_SCENE: address the manager itself
 };
 
 /// One four-byte event-script operand, interpreted by its instruction's opcode.
