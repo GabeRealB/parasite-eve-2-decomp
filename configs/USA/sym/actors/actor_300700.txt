@@ -102,3 +102,4 @@ ratShadow = 0x8016534C; // type:func
 ratSquash = 0x8016539C; // type:func
 ratContacts = 0x801637E4; // type:func
 ratBehavior = 0x80164F68; // type:func
+mothUpdateColor = 0x801633B8; // type:func
