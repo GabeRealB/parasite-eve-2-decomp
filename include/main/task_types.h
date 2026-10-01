@@ -10,6 +10,14 @@ struct Task;
 
 /// Recognized body kinds in `Task::bodyKind`.
 enum {
+    /// Body kind for a live task without an attached model or coordinate body.
+    ///
+    /// Zero in the low byte of `TaskDesc::header.fields.flags` requests no body
+    /// allocation: spawning sets `Task::extra.allocation` to NULL and ignores
+    /// `TaskDesc::data`. The task can still own callback work and children.
+    /// A successful later body attachment replaces this byte-sized kind.
+    /// Teardown still releases work and collects the task; the separate 0xFF
+    /// body-kind marker denotes completed teardown, even for a bodyless task.
     TASK_BODY_NONE = 0,
     /// Body kind for an owned runtime TMD model in `Task::extra.tmd`.
     ///

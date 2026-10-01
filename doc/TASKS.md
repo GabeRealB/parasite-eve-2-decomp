@@ -89,7 +89,7 @@ Spawn type (low byte of `header.fields.flags`, stored as `Task::bodyKind`) is th
 
 | Type | Attach (`Task::extra`) | Kill teardown |
 |------|------------------------|---------------|
-| 0 | none | free the `Task` |
+| 0 (`TASK_BODY_NONE`) | no body allocation; `extra.allocation = NULL` | no body to release; normal teardown marks the task for collection, immediate teardown frees it |
 | 1 (`TASK_BODY_TMD`) | `Gp_AttachTmdFlags(task, data.model, flags)` — `extra.tmd` | unlink + free TMD (normal teardown waits two countdown-callback dispatches) |
 | 2 | `gpAttachDisp2d(task)` — `extra.coordBody` | unlink + free coordinate body immediately |
 
@@ -99,8 +99,10 @@ exactly one. `extra.allocation` supplies the kind-independent NULL check during
 spawn. A copy of this union borrows the body; teardown leaves the pointer bits
 unchanged, so the release marker (`bodyKind` 0xFF, privately named
 `TASK_BODY_RELEASED` in `src/main/task.c`) forbids further body access. It marks
-a task ready for collection even if that task never had a body; kind 0 instead
-denotes a live task without a body.
+a task ready for collection even if that task never had a body;
+`TASK_BODY_NONE` instead denotes a live task without an attached body. Such a
+task can still own callback work and children, and a successful later body
+attachment replaces this kind.
 
 If attach fails, spawn returns NULL and frees the `Task`. `exitCallback`
 defaults to `taskKill`.
