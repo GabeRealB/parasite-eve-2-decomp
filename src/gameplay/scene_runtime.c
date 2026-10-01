@@ -2318,16 +2318,25 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     s32                    poseEncoding;
     u16                    timeLeftMinusOne;
 
-    /// Resolves this tick's forward control chain, accumulating flags on `playbackSlot`.
+    /// Resolves a forward control chain to this tick's next keyframe or retained endpoint.
     ///
-    /// `candidateIndex` must be a writable u16 absolute-index lvalue. `recordArray`
-    /// borrows the selected set's records; all visited indices must fit, and the
-    /// chain must terminate at a keyframe or stop. A stop retains the slot's prior
-    /// next record; a jump to that record reports a boundary as well as a jump.
-    /// Arguments are evaluated repeatedly and must be stable and free of side
-    /// effects. Only the index and slot flags change; no caller locals are captured.
-    /// The internal break exits only the control walk, and flags are not cleared.
-    /// Negated-index subtraction preserves the compiler's address-add operand order.
+    /// `playbackSlot` is a live writable `AnimationSlot*`; `recordArray` is its
+    /// next set's borrowed `const AnimationRecord*`. `candidateIndex` is a
+    /// writable `u16` absolute element index, separate from the slot and records.
+    /// All visited indices and the slot's prior next index must fit that array;
+    /// no length is available here. The control chain must reach a keyframe or stop.
+    /// Jumps replace the index and add `ANIMATION_SLOT_FOLLOWED_JUMP`; a jump to
+    /// the prior next index also adds `ANIMATION_SLOT_REACHED_BOUNDARY`. Stops
+    /// restore that prior index, add the boundary flag and ignore their offset.
+    /// The endpoint itself is left for the caller to install; flags accumulate.
+    ///
+    /// Arguments are evaluated repeatedly: pointer values and the index lvalue
+    /// must stay stable, have no side effects and not refer to `controlRecord`,
+    /// the block-local temporary. Only the candidate index and slot flags change;
+    /// the internal break leaves only the control walk. The signed-byte cast tests
+    /// the control bit; the stop threshold compares the original unsigned flags.
+    /// Negating the `u16` index in `s32` is representable and preserves the matching
+    /// address-add operand order without converting a pointer to an integer.
 #define ANIMATION_RESOLVE_TICK_NEXT_RECORD(playbackSlot, recordArray, candidateIndex)   \
     do {                                                                                \
         const AnimationRecord* controlRecord;                                           \
@@ -2379,6 +2388,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             nextSetIndex          = slot->nextPose.indices.setIndex;
             records               = slot->sets[nextSetIndex]->records;
             ANIMATION_RESOLVE_TICK_NEXT_RECORD(slot, records, nextRecordIndex);
+#undef ANIMATION_RESOLVE_TICK_NEXT_RECORD
             slot->nextPose.indices.setIndex    = nextSetIndex;
             slot->nextPose.indices.recordIndex = nextRecordIndex;
             records                            = slot->sets[slot->nextPose.indices.setIndex]->records;
@@ -2420,7 +2430,6 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             slot->atEnd = 0;
         }
     }
-#undef ANIMATION_RESOLVE_TICK_NEXT_RECORD
 
     // Preserve the previous buffered-endpoint flag in the request byte while resolving this tick's endpoints.
     // Bank offsets count words; buffered entries reserve four words per slot.
