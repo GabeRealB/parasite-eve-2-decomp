@@ -152,8 +152,6 @@ void func_80701400(Task* arg0);
 
 static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, const _FontGlyph* glyphTable);
 
-static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
-
 /// Writes `value` in decimal to `arg0` and terminates it; values past nine
 /// digits are written as all nines.
 static inline u8* _textItoaUnsigned(u8* arg0, u32 value);
@@ -571,47 +569,75 @@ static void _textDrawGlyphOutlined(TextDrawReq* request, const _FontGlyph* glyph
     addPrim(gGpuCurrentOt + request->otIndex, fill);
 }
 
-static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
+/// Queues an opaque glyph fill and subtractive outline in one OT entry.
+///
+/// Borrows `request` and `glyph` without modifying or retaining them or advancing
+/// the pen. Pen coordinates and glyph offsets are draw-environment pixels;
+/// U/V and dimensions are texels. Screen X/Y narrow to signed 16-bit fields,
+/// V wraps modulo 256 after the signed bias, and minus-one dimensions decode
+/// to 1..256. `colorRgb` supplies modulation RGB in bits 0..23 (red low); its
+/// high byte is replaced by the sprite command. The raw outline ignores RGB.
+///
+/// Reserves two `SPRT` and two `DR_TPAGE` packets (56 bytes) from the word-aligned
+/// `gGpuPrimCursor`. The arena and signed `request->otIndex` entry in
+/// `gGpuCurrentOt` must be writable and in bounds; no adjacent entry is used.
+/// Font textures and palettes must already be loaded. Each pass sets the font
+/// page before drawing, so the caller need not supply per-pass page commands.
+/// Keep the packets intact until GPU drawing completes.
+static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb)
 {
-    SPRT*     p;
-    SPRT*     p2;
-    DR_TPAGE* dr;
-    s32       temp;
+    /// Palette selectors and draw-mode commands for the two glyph passes.
+    enum {
+        TEXT_SINGLE_ENTRY_GLYPH_TEXTURE_DEPTH_4BIT = 0,
+        /// Color-modulated fill palette at VRAM word X=976, row Y=511.
+        TEXT_SINGLE_ENTRY_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
+        /// Raw subtractive outline palette at VRAM word X=1008, row Y=511.
+        TEXT_SINGLE_ENTRY_GLYPH_OUTLINE_CLUT = getClut(0x3F0, 0x1FF),
+        /// Fill draw mode on the 4bpp font page at VRAM word X=960, Y=256.
+        ///
+        /// Enables dithering and disables drawing into the display area.
+        /// The opaque fill ignores the additive blend selection.
+        TEXT_SINGLE_ENTRY_GLYPH_FILL_PAGE_COMMAND =
+            _get_mode(false, true, getTPage(TEXT_SINGLE_ENTRY_GLYPH_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 0x3C0, 0x100)),
+        /// Raw outline's subtractive draw mode on the same font page.
+        TEXT_SINGLE_ENTRY_GLYPH_OUTLINE_PAGE_COMMAND =
+            _get_mode(false, true, getTPage(TEXT_SINGLE_ENTRY_GLYPH_TEXTURE_DEPTH_4BIT, GPU_BLEND_SUBTRACT, 0x3C0, 0x100)),
+    };
 
-    p                              = gGpuPrimCursor;
-    gGpuPrimCursor                 = p + 1;
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
-    setlen(p, 4);
-    setcode(p, 0x64);
+    SPRT*     fill;
+    SPRT*     outline;
+    DR_TPAGE* page;
 
-    p2             = gGpuPrimCursor;
-    gGpuPrimCursor = p2 + 1;
-    setlen(p2, 4);
-    setcode(p2, 0x67);
+    fill                              = gGpuPrimCursor;
+    gGpuPrimCursor                    = fill + 1;
+    GPU_PRIMITIVE_COLOR_WORD(fill, 0) = colorRgb;
+    setSprt(fill);
 
-    p2->x0 = p->x0 = request->x + glyph->xOffset;
-    p2->y0 = p->y0 = (request->y - glyph->heightMinusOne) + glyph->yOffset;
-    p2->u0 = p->u0 = glyph->u;
-    p2->v0 = p->v0 = glyph->v + request->vBias;
-    p2->w = p->w = glyph->widthMinusOne + 1;
-    temp         = glyph->heightMinusOne;
-    p2->h = p->h = temp + 1;
-    p2->clut     = 0x7FFF;
-    p->clut      = 0x7FFD;
+    outline        = gGpuPrimCursor;
+    gGpuPrimCursor = outline + 1;
+    setSprt(outline);
+    setSemiTrans(outline, true);
+    setShadeTex(outline, true);
 
-    addPrim(gGpuCurrentOt + request->otIndex, p);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE100023F;
-    addPrim(gGpuCurrentOt + request->otIndex, dr);
+    // Both passes share geometry; the raw outline uses its own palette.
+    _textSetOutlinedGlyphRectangle(fill, outline, request, glyph);
+    outline->clut = TEXT_SINGLE_ENTRY_GLYPH_OUTLINE_CLUT;
+    fill->clut    = TEXT_SINGLE_ENTRY_GLYPH_FILL_CLUT;
 
-    addPrim(gGpuCurrentOt + request->otIndex, p2);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE100025F;
-    addPrim(gGpuCurrentOt + request->otIndex, dr);
+    // Prepend in reverse execution order: outline page, outline, fill page, fill.
+    addPrim(gGpuCurrentOt + request->otIndex, fill);
+    page           = gGpuPrimCursor;
+    gGpuPrimCursor = page + 1;
+    setlen(page, ARRAY_SIZE(page->code));
+    page->code[0] = TEXT_SINGLE_ENTRY_GLYPH_FILL_PAGE_COMMAND;
+    addPrim(gGpuCurrentOt + request->otIndex, page);
+
+    addPrim(gGpuCurrentOt + request->otIndex, outline);
+    page           = gGpuPrimCursor;
+    gGpuPrimCursor = page + 1;
+    setlen(page, ARRAY_SIZE(page->code));
+    page->code[0] = TEXT_SINGLE_ENTRY_GLYPH_OUTLINE_PAGE_COMMAND;
+    addPrim(gGpuCurrentOt + request->otIndex, page);
 }
 
 void Text_DrawString(TextDrawReq* request, u8* text)
@@ -662,7 +688,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
             draw = _textDrawGlyphOutlined;
             break;
         case TEXT_DRAW_OUTLINED_SINGLE_ENTRY:
-            draw = Text_DrawGlyphDualSprtTpage;
+            draw = _textDrawGlyphOutlinedSingleEntry;
             break;
         case TEXT_DRAW_TRANSLUCENT_OUTLINED:
             draw = _textDrawGlyphTranslucentOutlined;

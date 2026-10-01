@@ -22027,31 +22027,31 @@ live early rather than hoisting a whole sub-expression.
 ## Reuse one `DR_TPAGE*` for sequential tpage prims
 
 When a function allocates and inserts two (or more) `DR_TPAGE` primitives in
-sequence — e.g. after each of two SPRTs — declare a **single** `DR_TPAGE* dr`
-and reassign it for each block rather than `dr` / `dr2`:
+sequence — e.g. after each of two SPRTs — declare a **single** `DR_TPAGE* page`
+and reassign it for each block rather than `page` / `page2`:
 
 ```c
-addPrim(ot, p);
-dr         = gGpuPrimCursor;
-gGpuPrimCursor = dr + 1;
-setlen(dr, 1);
-dr->code[0] = 0xE100023F;
-addPrim(ot, dr);
+addPrim(ot, fill);
+page           = gGpuPrimCursor;
+gGpuPrimCursor = page + 1;
+setlen(page, ARRAY_SIZE(page->code));
+page->code[0] = TEXT_SINGLE_ENTRY_GLYPH_FILL_PAGE_COMMAND;
+addPrim(ot, page);
 
-addPrim(ot, p2);
-dr         = gGpuPrimCursor;
-gGpuPrimCursor = dr + 1;
-setlen(dr, 1);
-dr->code[0] = 0xE100025F;
-addPrim(ot, dr);
+addPrim(ot, outline);
+page           = gGpuPrimCursor;
+gGpuPrimCursor = page + 1;
+setlen(page, ARRAY_SIZE(page->code));
+page->code[0] = TEXT_SINGLE_ENTRY_GLYPH_OUTLINE_PAGE_COMMAND;
+addPrim(ot, page);
 ```
 
 Two live pointers force extra registers and scramble constant hoisting
 (`0xE100023F` early into `$t6`, `0xFFFFFF` into freed `$a2`, `0xFF000000` after
-the second SPRT alloc). One reused `dr` matches the target's `$t7` reuse and
-~100% schedule. Prefer raw `setlen` + `dr->code[0] = 0xE1000xxx` over
+the second SPRT alloc). One reused `page` matches the target's `$t7` reuse and
+~100% schedule. Prefer raw `setlen` + `page->code[0] = 0xE1000xxx` over
 `setDrawTPage` when the target stores the full GPU word as a constant (same
-pattern as `Display_StepFadeOverlay` / `Text_DrawGlyphDualSprtTpage`).
+pattern as `Display_StepFadeOverlay` / `_textDrawGlyphOutlinedSingleEntry`).
 
 ## Empty `asm volatile` after field reads blocks pointer strength-reduction
 
