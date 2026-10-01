@@ -122,3 +122,5 @@ diverDrawSpark = 0x8014AB3C; // type:func
 diverTurnJoint = 0x8014BEC4; // type:func
 diverStepForward = 0x8014EA8C; // type:func
 diverStrikeTeardown = 0x8014EFC8; // type:func
+diverRestartClip = 0x8014F284; // type:func
+diverState7Enter = 0x8014F8BC; // type:func

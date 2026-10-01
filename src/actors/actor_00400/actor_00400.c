@@ -202,18 +202,18 @@ typedef struct Actor100400Work {
     /* 0x61E */ s16                   field_61E;
     /* 0x620 */ s16                   field_620;
     /* 0x622 */ s16                   field_622;
-    /* 0x624 */ s16                   field_624;
-    /* 0x626 */ s16                   field_626;
-    /* 0x628 */ s16                   field_628;
+    /* 0x624 */ s16                   animRequest;
+    /* 0x626 */ s16                   animPlaying;
+    /* 0x628 */ s16                   animClip;
     /* 0x62A */ s16                   field_62A;
     /* 0x62C */ Actor100400Flags      flags_62C;
     /* 0x630 */ s16                   field_630;
-    /* 0x632 */ s16                   field_632;
+    /* 0x632 */ s16                   animStep;
     /* 0x634 */ u16                   field_634;
     /* 0x636 */ s16                   field_636;
     /* 0x638 */ s16                   field_638;
-    /* 0x63A */ u16                   field_63A;
-    /* 0x63C */ s16                   field_63C;
+    /* 0x63A */ u16                   subState;
+    /* 0x63C */ s16                   animBlend;
     /* 0x63E */ s16                   field_63E;
     /* 0x640 */ s16                   field_640;
     /* 0x642 */ s16                   field_642;
@@ -242,6 +242,9 @@ typedef struct Actor100400Work {
     /* 0x665 */ s8                    field_665;
     /* 0x666 */ u8                    field_666;
 } Actor100400Work;
+
+/// The Diver library's name for this package's work block (see diver.h).
+typedef Actor100400Work DiverWork;
 
 /// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
 /// state walks until `area` reads 0xFF. A row matches when its `area` / `room`
@@ -275,7 +278,6 @@ static void Actor00400_Fn04E18(Task* arg0);
 static void Actor00400_Fn040DC(Task* arg0);
 static void Actor00400_Fn06B7C(Task* arg0);
 static void Actor00400_Fn070C0(Task* arg0);
-static void Actor00400_Fn085B8(Task* arg0);
 static void Actor00400_Fn08624(Task* arg0);
 static s16  Actor00400_Fn086FC(Task* arg0, s16 arg1);
 static void Actor00400_Fn08814(Task* arg0);
@@ -283,7 +285,6 @@ static s16  Actor00400_Fn08908(Task* arg0);
 static void Actor00400_Fn0824C(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3);
 static void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3);
 static void Actor00400_Fn060CC(Task* arg0);
-static void Actor00400_Fn09714(Task* arg0);
 static void Actor00400_Fn097C8(Task* arg0);
 static void Actor00400_Fn06EA4(Task* arg0);
 static void Actor00400_Fn08ADC(Task* arg0);
@@ -1279,7 +1280,7 @@ static void Actor00400_Fn00C84(Task* arg0)
     player = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     work   = actor->work;
     coord  = actor->extra.tmd->coords;
-    if (work->field_628 != 4) {
+    if (work->animClip != 4) {
         Actor00400_Fn088EC(actor, 4, 0x20, 0xA);
         Actor00400_Fn08814(actor);
     }
@@ -1771,7 +1772,7 @@ static s16 Actor00400_Fn02154(Task* arg0)
         goto other;
     }
     work->field_638 = state;
-    work->field_63A = 0;
+    work->subState  = 0;
     work->field_644 = 0;
     goto ok;
 other:
@@ -1801,7 +1802,7 @@ static s32 Actor00400_Fn02208(Task* arg0)
     vec.vx = (u16)work->field_60C[work->field_65B].vx - coord->coord.t[0];
     vec.vy = (u16)work->field_60C[work->field_65B].vy - coord->coord.t[1];
     vec.vz = (u16)work->field_60C[work->field_65B].vz - coord->coord.t[2];
-    if (work->field_628 != 3) {
+    if (work->animClip != 3) {
         Actor00400_Fn088EC(arg0, 3, 0x10, 0xE);
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
@@ -2498,14 +2499,14 @@ static void Actor00400_Fn03920(Task* arg0)
             work->field_664 = 1;
             work->field_63E = (u16)work->field_64E;
             Actor00400_AttachHead(arg0, obj, work, 0);
-            w            = arg0->work;
-            w->field_632 = 0x10;
-            w->field_628 = 0x10;
-            w->field_624 = 2;
-            w            = arg0->work;
-            arg0->state  = 7;
-            w->field_638 = 0;
-            w->field_63A = 0;
+            w              = arg0->work;
+            w->animStep    = 0x10;
+            w->animClip    = 0x10;
+            w->animRequest = 2;
+            w              = arg0->work;
+            arg0->state    = 7;
+            w->field_638   = 0;
+            w->subState    = 0;
             Gp_IncStateF0Ref(0);
             obj->hp = (s16)obj->hpMax / 8;
             break;
@@ -2513,14 +2514,14 @@ static void Actor00400_Fn03920(Task* arg0)
             work->field_666 = 0;
             work->field_664 = 1;
             Actor00400_AttachHead(arg0, obj, work, 1);
-            w            = arg0->work;
-            w->field_632 = 0x10;
-            w->field_628 = 0xF;
-            w->field_624 = 2;
-            w            = arg0->work;
-            arg0->state  = 6;
-            w->field_638 = 0;
-            w->field_63A = 0;
+            w              = arg0->work;
+            w->animStep    = 0x10;
+            w->animClip    = 0xF;
+            w->animRequest = 2;
+            w              = arg0->work;
+            arg0->state    = 6;
+            w->field_638   = 0;
+            w->subState    = 0;
             Gp_IncStateF0Ref(0);
             obj->hp   = (s16)obj->hpMax / 8;
             pos       = arg0->extra.tmd->coords;
@@ -2554,9 +2555,9 @@ static void Actor00400_Fn03920(Task* arg0)
             work->field_666 = 0;
             work->field_661 = 1;
             w               = arg0->work;
-            w->field_632    = 0x10;
-            w->field_628    = 2;
-            w->field_624    = 2;
+            w->animStep     = 0x10;
+            w->animClip     = 2;
+            w->animRequest  = 2;
             arg0->state     = arg0->state + 1;
             break;
         case 4:
@@ -2565,25 +2566,25 @@ static void Actor00400_Fn03920(Task* arg0)
             if (nibble != 2) {
                 obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 w                           = arg0->work;
-                w->field_632                = 0x10;
-                w->field_628                = 1;
-                w->field_624                = 2;
+                w->animStep                 = 0x10;
+                w->animClip                 = 1;
+                w->animRequest              = 2;
                 w                           = arg0->work;
                 arg0->state                 = 3;
                 w->field_638                = 0;
-                w->field_63A                = 0;
+                w->subState                 = 0;
                 w                           = arg0->work;
                 w->field_638                = 0xD;
-                w->field_63A                = 0;
+                w->subState                 = 0;
             } else {
-                w            = arg0->work;
-                w->field_632 = 0x10;
-                w->field_628 = 1;
-                w->field_624 = nibble;
-                w            = arg0->work;
-                arg0->state  = 3;
-                w->field_638 = 0;
-                w->field_63A = 0;
+                w              = arg0->work;
+                w->animStep    = 0x10;
+                w->animClip    = 1;
+                w->animRequest = nibble;
+                w              = arg0->work;
+                arg0->state    = 3;
+                w->field_638   = 0;
+                w->subState    = 0;
             }
             break;
         case 5:
@@ -2593,25 +2594,25 @@ static void Actor00400_Fn03920(Task* arg0)
                 obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 work->field_666             = 1;
                 w                           = arg0->work;
-                w->field_632                = 0x10;
-                w->field_628                = 1;
-                w->field_624                = 2;
+                w->animStep                 = 0x10;
+                w->animClip                 = 1;
+                w->animRequest              = 2;
                 w                           = arg0->work;
                 arg0->state                 = 3;
                 w->field_638                = 0;
-                w->field_63A                = 0;
+                w->subState                 = 0;
                 w                           = arg0->work;
                 w->field_638                = 0xE;
-                w->field_63A                = 0;
+                w->subState                 = 0;
             } else {
-                w            = arg0->work;
-                w->field_632 = 0x10;
-                w->field_628 = 1;
-                w->field_624 = nibble;
-                w            = arg0->work;
-                arg0->state  = 3;
-                w->field_638 = 0;
-                w->field_63A = 0;
+                w              = arg0->work;
+                w->animStep    = 0x10;
+                w->animClip    = 1;
+                w->animRequest = nibble;
+                w              = arg0->work;
+                arg0->state    = 3;
+                w->field_638   = 0;
+                w->subState    = 0;
             }
             break;
         case 1:
@@ -2619,44 +2620,44 @@ static void Actor00400_Fn03920(Task* arg0)
                 if (GameFlag_GetNibble(0xB7) == 0) {
                     work->field_666 = 1;
                     w               = arg0->work;
-                    w->field_632    = 0x10;
-                    w->field_628    = 1;
-                    w->field_624    = 2;
+                    w->animStep     = 0x10;
+                    w->animClip     = 1;
+                    w->animRequest  = 2;
                     w               = arg0->work;
                     arg0->state     = 3;
                     w->field_638    = 0;
-                    w->field_63A    = 0;
+                    w->subState     = 0;
                 } else {
                     work->field_661   = 1;
                     w                 = arg0->work;
-                    w->field_632      = 0x10;
-                    w->field_628      = 2;
-                    w->field_624      = 2;
+                    w->animStep       = 0x10;
+                    w->animClip       = 2;
+                    w->animRequest    = 2;
                     work->field_666   = 0;
                     coord->coord.t[1] = 0;
                     w                 = arg0->work;
                     arg0->state       = 1;
                     w->field_638      = 0;
-                    w->field_63A      = 0;
+                    w->subState       = 0;
                 }
             } else {
                 work->field_666 = 1;
                 w               = arg0->work;
-                w->field_632    = 0x10;
-                w->field_628    = 1;
-                w->field_624    = 2;
+                w->animStep     = 0x10;
+                w->animClip     = 1;
+                w->animRequest  = 2;
                 w               = arg0->work;
                 arg0->state     = 3;
                 w->field_638    = 0;
-                w->field_63A    = 0;
+                w->subState     = 0;
             }
             break;
         case 3:
             work->field_666 = 1;
             w               = arg0->work;
-            w->field_632    = 0x10;
-            w->field_628    = 3;
-            w->field_624    = 2;
+            w->animStep     = 0x10;
+            w->animClip     = 3;
+            w->animRequest  = 2;
             Actor00400_Fn02FF8(arg0);
             coord->coord.t[0] = work->field_56C.vx;
             work->field_63E   = (u16)work->field_64E;
@@ -2666,48 +2667,48 @@ static void Actor00400_Fn03920(Task* arg0)
             w            = arg0->work;
             arg0->state  = 3;
             w->field_638 = 0;
-            w->field_63A = 0;
+            w->subState  = 0;
             w            = arg0->work;
             w->field_638 = 4;
-            w->field_63A = 0;
+            w->subState  = 0;
             break;
         case 2:
             work->field_666 = 1;
             work->field_65F = 1;
             w               = arg0->work;
-            w->field_632    = 0x10;
-            w->field_628    = 3;
-            w->field_624    = 2;
+            w->animStep     = 0x10;
+            w->animClip     = 3;
+            w->animRequest  = 2;
             w               = arg0->work;
             arg0->state     = 3;
             w->field_638    = 0;
-            w->field_63A    = 0;
+            w->subState     = 0;
             if ((arg0->spawnArg1.value & 0xF0) == 0) {
                 w            = arg0->work;
                 w->field_638 = 0xC;
-                w->field_63A = 0;
+                w->subState  = 0;
             } else {
                 w            = arg0->work;
                 w->field_638 = 0xB;
-                w->field_63A = 0;
+                w->subState  = 0;
             }
             break;
     }
 
     anim = arg0->work;
-    if (anim->field_624 == 1) {
-        if (anim->field_626 != anim->field_628) {
+    if (anim->animRequest == 1) {
+        if (anim->animPlaying != anim->animClip) {
             anim->field_62A = 0;
         } else {
             anim->field_62A = Actor00400_Fn086FC(arg0, anim->field_62A);
         }
         Actor00400_Fn08624(arg0);
-        anim->field_624 = 3;
-    } else if (anim->field_624 == 2) {
-        Actor00400_Fn085B8(arg0);
-        anim->field_624 = 3;
-        anim->field_62A = 0;
-    } else if (anim->field_624 == 3) {
+        anim->animRequest = 3;
+    } else if (anim->animRequest == 2) {
+        diverRestartClip(arg0);
+        anim->animRequest = 3;
+        anim->field_62A   = 0;
+    } else if (anim->animRequest == 3) {
         anim->field_62A = (u16)anim->field_62A + 1;
     }
     for (index = 1; index < 0xF; index++) {
@@ -2816,7 +2817,7 @@ static void Actor00400_Fn042C0(Task* arg0)
     if (work->field_644 == 4) {
         Actor100400Work* w = arg0->work;
         w->field_638       = 7;
-        w->field_63A       = 0;
+        w->subState        = 0;
         return;
     }
     if (arg0->spawnArg1.value != 7) {
@@ -2824,11 +2825,11 @@ static void Actor00400_Fn042C0(Task* arg0)
         id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
         SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        w            = arg0->work;
-        w->field_632 = 0x30;
-        w->field_63C = 4;
-        w->field_628 = 1;
-        w->field_624 = 1;
+        w              = arg0->work;
+        w->animStep    = 0x30;
+        w->animBlend   = 4;
+        w->animClip    = 1;
+        w->animRequest = 1;
     }
     work->field_638++;
 }
@@ -2843,19 +2844,19 @@ static void Actor00400_Fn04414(Task* arg0)
 
     work = arg0->work;
     w    = arg0->work;
-    if (w->field_624 == 1) {
-        if (w->field_626 != w->field_628) {
+    if (w->animRequest == 1) {
+        if (w->animPlaying != w->animClip) {
             w->field_62A = 0;
         } else {
             w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
         }
         Actor00400_Fn08624(arg0);
-        w->field_624 = 3;
-    } else if (w->field_624 == 2) {
-        Actor00400_Fn085B8(arg0);
-        w->field_624 = 3;
-        w->field_62A = 0;
-    } else if (w->field_624 == 3) {
+        w->animRequest = 3;
+    } else if (w->animRequest == 2) {
+        diverRestartClip(arg0);
+        w->animRequest = 3;
+        w->field_62A   = 0;
+    } else if (w->animRequest == 3) {
         w->field_62A++;
     }
     i = 1;
@@ -2874,11 +2875,11 @@ static void Actor00400_Fn04414(Task* arg0)
         if (cond == 0) {
             return;
         }
-        w2            = arg0->work;
-        w2->field_63C = 4;
-        w2->field_632 = 0x10;
-        w2->field_628 = 0xE;
-        w2->field_624 = 1;
+        w2              = arg0->work;
+        w2->animBlend   = 4;
+        w2->animStep    = 0x10;
+        w2->animClip    = 0xE;
+        w2->animRequest = 1;
     }
     work->field_638++;
 }
@@ -2929,19 +2930,19 @@ static void Actor00400_Fn04580(Task* arg0)
             fns.funcs[work->field_638](arg0);
             Actor00400_Fn00A14(arg0);
             w = arg0->work;
-            if (w->field_624 == 1) {
-                if (w->field_626 != w->field_628) {
+            if (w->animRequest == 1) {
+                if (w->animPlaying != w->animClip) {
                     w->field_62A = 0;
                 } else {
                     w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
                 }
                 Actor00400_Fn08624(arg0);
-                w->field_624 = 3;
-            } else if (w->field_624 == 2) {
-                Actor00400_Fn085B8(arg0);
-                w->field_624 = 3;
-                w->field_62A = 0;
-            } else if (w->field_624 == 3) {
+                w->animRequest = 3;
+            } else if (w->animRequest == 2) {
+                diverRestartClip(arg0);
+                w->animRequest = 3;
+                w->field_62A   = 0;
+            } else if (w->animRequest == 3) {
                 w->field_62A++;
             }
             i = 1;
@@ -2977,7 +2978,7 @@ static void Actor00400_Fn04580(Task* arg0)
                 w3            = arg0->work;
                 arg0->state   = 2;
                 w3->field_638 = 0;
-                w3->field_63A = 0;
+                w3->subState  = 0;
             }
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -2999,10 +3000,10 @@ static void Actor00400_Fn04900(Task* arg0)
 
     work = arg0->work;
     if (work->field_642 != 0 && work->field_644 == 1) {
-        work->field_632 = 0x10;
-        work->field_628 = 0xC;
-        work->field_624 = 2;
-        id              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
+        work->animStep    = 0x10;
+        work->animClip    = 0xC;
+        work->animRequest = 2;
+        id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
         SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         return;
@@ -3018,7 +3019,7 @@ static void Actor00400_Fn04900(Task* arg0)
         if (cond) {
             work2            = arg0->work;
             work2->field_638 = 2;
-            work2->field_63A = 0;
+            work2->subState  = 0;
         }
     }
 }
@@ -3035,11 +3036,11 @@ static void Actor00400_Fn04A1C(Task* arg0)
         id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
         SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work2            = arg0->work;
-        work2->field_63C = 6;
-        work2->field_632 = 0x10;
-        work2->field_628 = 0xD;
-        work2->field_624 = 1;
+        work2              = arg0->work;
+        work2->animBlend   = 6;
+        work2->animStep    = 0x10;
+        work2->animClip    = 0xD;
+        work2->animRequest = 1;
         return;
     }
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
@@ -3053,7 +3054,7 @@ static void Actor00400_Fn04A1C(Task* arg0)
         if (cond) {
             work2            = arg0->work;
             work2->field_638 = 2;
-            work2->field_63A = 0;
+            work2->subState  = 0;
         }
     }
 }
@@ -3128,14 +3129,14 @@ static void Actor00400_Fn04CF8(Task* arg0)
     if (work->field_644 == 4) {
         w            = arg0->work;
         w->field_638 = 6;
-        w->field_63A = 0;
+        w->subState  = 0;
         return;
     }
     w               = arg0->work;
-    w->field_63C    = 8;
-    w->field_632    = 0x10;
-    w->field_628    = 0xF;
-    w->field_624    = 1;
+    w->animBlend    = 8;
+    w->animStep     = 0x10;
+    w->animClip     = 0xF;
+    w->animRequest  = 1;
     work->field_636 = 0;
     id              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
     SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
@@ -3211,19 +3212,19 @@ static void Actor00400_Fn04E18(Task* arg0)
                 wA->field_64C--;
             }
             w = arg0->work;
-            if (w->field_624 == 1) {
-                if (w->field_626 != w->field_628) {
+            if (w->animRequest == 1) {
+                if (w->animPlaying != w->animClip) {
                     w->field_62A = 0;
                 } else {
                     w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
                 }
                 Actor00400_Fn08624(arg0);
-                w->field_624 = 3;
-            } else if (w->field_624 == 2) {
-                Actor00400_Fn085B8(arg0);
-                w->field_624 = 3;
-                w->field_62A = 0;
-            } else if (w->field_624 == 3) {
+                w->animRequest = 3;
+            } else if (w->animRequest == 2) {
+                diverRestartClip(arg0);
+                w->animRequest = 3;
+                w->field_62A   = 0;
+            } else if (w->animRequest == 3) {
                 w->field_62A++;
             }
             i = 1;
@@ -3259,7 +3260,7 @@ static void Actor00400_Fn04E18(Task* arg0)
                 w3            = arg0->work;
                 arg0->state   = 4;
                 w3->field_638 = 0;
-                w3->field_63A = 0;
+                w3->subState  = 0;
             }
             coord0->coord.t[1] += (work->field_63E - coord0->coord.t[1]) >> 4;
             if (work->field_638 < 0xB) {
@@ -3376,7 +3377,7 @@ static void Actor00400_Fn05320(Task* arg0)
             armed         = 1;
             w2            = arg0->work;
             w2->field_638 = 4;
-            w2->field_63A = 0;
+            w2->subState  = 0;
         }
         if (armed) {
             return;
@@ -3411,11 +3412,11 @@ static void Actor00400_Fn05320(Task* arg0)
         SndEvt_EnqueueType6(sound3, pan3, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_63E = (u16)work->field_60C[work->field_65B].vy + work->field_64E;
         w5              = arg0->work;
-        w5->field_63C   = 4;
-        w5->field_632   = 0x10;
-        w5->field_628   = 1;
-        w5->field_624   = 1;
-        work->field_63A++;
+        w5->animBlend   = 4;
+        w5->animStep    = 0x10;
+        w5->animClip    = 1;
+        w5->animRequest = 1;
+        work->subState++;
     }
 }
 
@@ -3439,14 +3440,14 @@ static void Actor00400_Fn05728(Task* arg0)
             if ((random >> 16) & 1) {
                 work2                              = arg0->work;
                 work2->field_638                   = 0xA;
-                work2->field_63A                   = 0;
+                work2->subState                    = 0;
                 work2->field_614[work2->field_65A] = work2->field_638;
                 next                               = 4;
                 if (work2->field_614[0] == work2->field_614[1] &&
                     work2->field_614[0] == work2->field_614[2] && work2->field_614[0] == 0xA) {
                     state                              = arg0->work;
                     state->field_638                   = next;
-                    state->field_63A                   = 0;
+                    state->subState                    = 0;
                     work2->field_614[work2->field_65A] = next;
                     work2->field_64C                   = 0x5A;
                 }
@@ -3459,12 +3460,12 @@ static void Actor00400_Fn05728(Task* arg0)
                 work->field_64C   = 0x5A;
                 state2            = arg0->work;
                 state2->field_638 = 4;
-                state2->field_63A = 0;
+                state2->subState  = 0;
             }
         } else {
             state3                           = arg0->work;
             state3->field_638                = 4;
-            state3->field_63A                = 0;
+            state3->subState                 = 0;
             work->field_614[work->field_65A] = work->field_638;
             idx2                             = work->field_65A + 1;
             work->field_65A                  = idx2;
@@ -3521,14 +3522,14 @@ static void Actor00400_Fn058C4(Task* arg0)
     if (work->field_640 < 0x2710 && (u32)(work->field_634 - 0xC0) >= 0xE81U) {
         work2                              = arg0->work;
         work2->field_638                   = 0xA;
-        work2->field_63A                   = 0;
+        work2->subState                    = 0;
         work2->field_614[work2->field_65A] = work2->field_638;
         next                               = 4;
         if (work2->field_614[0] == work2->field_614[1] &&
             work2->field_614[0] == work2->field_614[2] && work2->field_614[0] == 0xA) {
             state                              = arg0->work;
             state->field_638                   = next;
-            state->field_63A                   = 0;
+            state->subState                    = 0;
             work2->field_614[work2->field_65A] = next;
             work2->field_64C                   = 0x5A;
         }
@@ -3547,7 +3548,7 @@ static void Actor00400_Fn058C4(Task* arg0)
             Actor00400_Fn02FF8(arg0);
             state2            = arg0->work;
             state2->field_638 = 4;
-            state2->field_63A = 0;
+            state2->subState  = 0;
         }
         work->field_614[work->field_65A] = work->field_638;
         idx2                             = work->field_65A + 1;
@@ -3575,7 +3576,7 @@ static void Actor00400_Fn05D00(Task* arg0)
     work->field_660 = 1;
     work->field_63E = (u16)work->field_60C[work->field_65B].vy + work->field_64E;
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-    if (work->field_628 != 3) {
+    if (work->animClip != 3) {
         i      = 0;
         y      = work->field_64E - coord->coord.t[1] + 0xFA;
         coord2 = arg0->extra.tmd->coords;
@@ -3589,15 +3590,15 @@ static void Actor00400_Fn05D00(Task* arg0)
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        w            = arg0->work;
-        w->field_63C = 4;
-        w->field_632 = 0x10;
-        w->field_628 = 1;
-        w->field_624 = 1;
+        w              = arg0->work;
+        w->animBlend   = 4;
+        w->animStep    = 0x10;
+        w->animClip    = 1;
+        w->animRequest = 1;
     } else {
-        work->field_63A++;
+        work->subState++;
     }
-    work->field_63A++;
+    work->subState++;
 }
 
 static void Actor00400_Fn05EA4(Task* arg0)
@@ -3621,16 +3622,16 @@ static void Actor00400_Fn05EA4(Task* arg0)
         work->field_636 = 0;
         w               = arg0->work;
         w->field_638    = 3;
-        w->field_63A    = 0;
+        w->subState     = 0;
         return;
     }
-    if (work->field_628 != 3) {
+    if (work->animClip != 3) {
         Actor100400Work* w;
-        w            = arg0->work;
-        w->field_63C = 10;
-        w->field_632 = 0x10;
-        w->field_628 = 3;
-        w->field_624 = 1;
+        w              = arg0->work;
+        w->animBlend   = 10;
+        w->animStep    = 0x10;
+        w->animClip    = 3;
+        w->animRequest = 1;
     }
     Actor00400_TurnToward(arg0, &work->field_56C, 0x30, 0x100);
     diverStepForward(arg0, 0x60, work->field_556);
@@ -3650,10 +3651,10 @@ static void Actor00400_Fn060CC(Task* arg0)
 
     work = arg0->work;
     if (work->field_642 != 0 && work->field_644 == 1) {
-        work->field_632 = 0x20;
-        work->field_628 = 0xA;
-        work->field_624 = 2;
-        id              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
+        work->animStep    = 0x20;
+        work->animClip    = 0xA;
+        work->animRequest = 2;
+        id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
         SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         return;
@@ -3669,7 +3670,7 @@ static void Actor00400_Fn060CC(Task* arg0)
         if (cond) {
             work2            = arg0->work;
             work2->field_638 = 2;
-            work2->field_63A = 0;
+            work2->subState  = 0;
         }
     }
 }
@@ -3687,15 +3688,15 @@ static void Actor00400_Fn061E8(Task* arg0)
     s32              i;
     s16              y;
 
-    work            = arg0->work;
-    coord           = arg0->extra.tmd->coords;
-    work->field_63C = 3;
-    work->field_632 = 0x10;
-    work->field_628 = 0xB;
-    work->field_624 = 1;
-    sound           = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    i               = 0;
-    pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+    work              = arg0->work;
+    coord             = arg0->extra.tmd->coords;
+    work->animBlend   = 3;
+    work->animStep    = 0x10;
+    work->animClip    = 0xB;
+    work->animRequest = 1;
+    sound             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
+    i                 = 0;
+    pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     y      = work->field_64E - coord->coord.t[1] + 0xFA;
     coord2 = arg0->extra.tmd->coords;
@@ -3709,7 +3710,7 @@ static void Actor00400_Fn061E8(Task* arg0)
     sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
     pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    work->field_63A++;
+    work->subState++;
 }
 
 static void Actor00400_Fn06380(Task* arg0)
@@ -3726,11 +3727,11 @@ static void Actor00400_Fn06380(Task* arg0)
     if (work->field_636 >= 0x24) {
         work->field_636 = 0;
         w               = arg0->work;
-        w->field_63C    = 8;
-        w->field_632    = 0x10;
-        w->field_628    = 7;
-        w->field_624    = 1;
-        work->field_63A++;
+        w->animBlend    = 8;
+        w->animStep     = 0x10;
+        w->animClip     = 7;
+        w->animRequest  = 1;
+        work->subState++;
     }
 }
 
@@ -3820,7 +3821,7 @@ static void Actor00400_Fn064B0(Task* arg0)
     if (cond) {
         work2            = arg0->work;
         work2->field_638 = 2;
-        work2->field_63A = 0;
+        work2->subState  = 0;
     }
 }
 
@@ -3841,31 +3842,31 @@ static void Actor00400_Fn06798(Task* arg0)
         work->field_65B = (work->field_65B + 1) & 7;
         return;
     }
-    if (work->field_628 != 3) {
+    if (work->animClip != 3) {
         Actor100400Work* w;
         Actor100400Work* a;
         s32              i;
 
-        w            = arg0->work;
-        w->field_63C = 10;
-        w->field_632 = 0x10;
-        w->field_628 = 3;
-        w->field_624 = 1;
+        w              = arg0->work;
+        w->animBlend   = 10;
+        w->animStep    = 0x10;
+        w->animClip    = 3;
+        w->animRequest = 1;
 
         a = arg0->work;
-        if (a->field_624 == 1) {
-            if (a->field_626 != a->field_628) {
+        if (a->animRequest == 1) {
+            if (a->animPlaying != a->animClip) {
                 a->field_62A = 0;
             } else {
                 a->field_62A = Actor00400_Fn086FC(arg0, a->field_62A);
             }
             Actor00400_Fn08624(arg0);
-            a->field_624 = 3;
-        } else if (a->field_624 == 2) {
-            Actor00400_Fn085B8(arg0);
-            a->field_624 = 3;
-            a->field_62A = 0;
-        } else if (a->field_624 == 3) {
+            a->animRequest = 3;
+        } else if (a->animRequest == 2) {
+            diverRestartClip(arg0);
+            a->animRequest = 3;
+            a->field_62A   = 0;
+        } else if (a->animRequest == 3) {
             a->field_62A++;
         }
         i = 1;
@@ -3900,12 +3901,12 @@ static void Actor00400_Fn06A44(Task* arg0)
     if (work->field_636 == 0x14) {
         work->field_646 = 0x18;
         w               = arg0->work;
-        w->field_63C    = 4;
-        w->field_632    = 0x10;
-        w->field_628    = 7;
-        w->field_624    = 1;
+        w->animBlend    = 4;
+        w->animStep     = 0x10;
+        w->animClip     = 7;
+        w->animRequest  = 1;
         work->field_636 = 0;
-        work->field_63A++;
+        work->subState++;
     }
 }
 
@@ -3940,19 +3941,19 @@ static void Actor00400_Fn06B7C(Task* arg0)
             Actor00400_Fn01454(arg0);
             fns[work->field_638](arg0);
             w = arg0->work;
-            if (w->field_624 == 1) {
-                if (w->field_626 != w->field_628) {
+            if (w->animRequest == 1) {
+                if (w->animPlaying != w->animClip) {
                     w->field_62A = 0;
                 } else {
                     w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
                 }
                 Actor00400_Fn08624(arg0);
-                w->field_624 = 3;
-            } else if (w->field_624 == 2) {
-                Actor00400_Fn085B8(arg0);
-                w->field_624 = 3;
-                w->field_62A = 0;
-            } else if (w->field_624 == 3) {
+                w->animRequest = 3;
+            } else if (w->animRequest == 2) {
+                diverRestartClip(arg0);
+                w->animRequest = 3;
+                w->field_62A   = 0;
+            } else if (w->animRequest == 3) {
                 w->field_62A++;
             }
             i = 1;
@@ -3987,7 +3988,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
                 w3            = arg0->work;
                 arg0->state   = 2;
                 w3->field_638 = 0;
-                w3->field_63A = 0;
+                w3->subState  = 0;
             }
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -4024,7 +4025,7 @@ set:
        pointer outrank `req` in global.c's allocation order. */
     do {
         work->field_638 = state;
-        work->field_63A = 0;
+        work->subState  = 0;
     } while (0);
 other:
     work->field_644 = 0;
@@ -4047,11 +4048,11 @@ static void Actor00400_Fn06EA4(Task* arg0)
             cond = 0;
         }
         if (cond) {
-            work2            = arg0->work;
-            work2->field_63C = 8;
-            work2->field_632 = 4;
-            work2->field_628 = 0xF;
-            work2->field_624 = 1;
+            work2              = arg0->work;
+            work2->animBlend   = 8;
+            work2->animStep    = 4;
+            work2->animClip    = 0xF;
+            work2->animRequest = 1;
         }
     }
 }
@@ -4065,11 +4066,11 @@ static void Actor00400_Fn06F64(Task* arg0)
 
     work = arg0->work;
     if (work->field_642 != 0 && work->field_644 == 1) {
-        work->field_63C = 2;
-        work->field_632 = 0x10;
-        work->field_628 = 0x13;
-        work->field_624 = 1;
-        id              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
+        work->animBlend   = 2;
+        work->animStep    = 0x10;
+        work->animClip    = 0x13;
+        work->animRequest = 1;
+        id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
         SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         return;
@@ -4085,7 +4086,7 @@ static void Actor00400_Fn06F64(Task* arg0)
         if (cond) {
             work2            = arg0->work;
             work2->field_638 = 0;
-            work2->field_63A = 0;
+            work2->subState  = 0;
         }
     }
 }
@@ -4122,19 +4123,19 @@ static void Actor00400_Fn070C0(Task* arg0)
             Actor00400_Fn01454(arg0);
             fns[work->field_638](arg0);
             w = arg0->work;
-            if (w->field_624 == 1) {
-                if (w->field_626 != w->field_628) {
+            if (w->animRequest == 1) {
+                if (w->animPlaying != w->animClip) {
                     w->field_62A = 0;
                 } else {
                     w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
                 }
                 Actor00400_Fn08624(arg0);
-                w->field_624 = 3;
-            } else if (w->field_624 == 2) {
-                Actor00400_Fn085B8(arg0);
-                w->field_624 = 3;
-                w->field_62A = 0;
-            } else if (w->field_624 == 3) {
+                w->animRequest = 3;
+            } else if (w->animRequest == 2) {
+                diverRestartClip(arg0);
+                w->animRequest = 3;
+                w->field_62A   = 0;
+            } else if (w->animRequest == 3) {
                 w->field_62A++;
             }
             i = 1;
@@ -4169,7 +4170,7 @@ static void Actor00400_Fn070C0(Task* arg0)
                 w3            = arg0->work;
                 arg0->state   = 4;
                 w3->field_638 = 0;
-                w3->field_63A = 0;
+                w3->subState  = 0;
             }
             coord0->coord.t[1] += (work->field_63E - coord0->coord.t[1]) >> 4;
             /* fallthrough */
@@ -4203,11 +4204,11 @@ static void Actor00400_Fn07400(Task* arg0)
             cond = 0;
         }
         if (cond) {
-            work3            = arg0->work;
-            work3->field_63C = 8;
-            work3->field_632 = 2;
-            work3->field_628 = 0x10;
-            work3->field_624 = 1;
+            work3              = arg0->work;
+            work3->animBlend   = 8;
+            work3->animStep    = 2;
+            work3->animClip    = 0x10;
+            work3->animRequest = 1;
         }
     }
 }
@@ -4220,10 +4221,10 @@ static void Actor00400_Fn07518(Task* arg0)
 
     work = arg0->work;
     if (work->field_642 != 0 && work->field_644 == 1) {
-        work->field_63C = 2;
-        work->field_632 = 0x10;
-        work->field_628 = 0x12;
-        work->field_624 = 1;
+        work->animBlend   = 2;
+        work->animStep    = 0x10;
+        work->animClip    = 0x12;
+        work->animRequest = 1;
     }
     if (Actor00400_ConsumeStateRequest(arg0->work) == 0) {
         phase           = (u16)work->field_636 + 1;
@@ -4232,7 +4233,7 @@ static void Actor00400_Fn07518(Task* arg0)
         if (work->field_636 >= 0x79) {
             work2            = arg0->work;
             work2->field_638 = 0;
-            work2->field_63A = 0;
+            work2->subState  = 0;
         }
     }
 }
@@ -4267,16 +4268,16 @@ static void Actor00400_Fn07738(Task* arg0)
     gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->field_630              = gRandomLcgState >> 16;
     state                        = arg0->work;
-    state->field_632             = 0x10;
-    state->field_628             = 1;
-    state->field_624             = 2;
+    state->animStep              = 0x10;
+    state->animClip              = 1;
+    state->animRequest           = 2;
     state2                       = arg0->work;
     state2->field_638            = 1;
-    state2->field_63A            = 0;
+    state2->subState             = 0;
     work->field_63E              = coord->coord.t[1];
 }
 
-/// States `Actor00400_Fn077F4` dispatches on `Actor100400Work.field_63A`.
+/// States `Actor00400_Fn077F4` dispatches on `Actor100400Work.subState`.
 static const TaskFuncTable4 Actor00400_D00134 = { {
     Actor00400_Fn094C0,
     Actor00400_Fn094DC,
@@ -4298,9 +4299,9 @@ static void Actor00400_Fn077F4(Task* arg0)
     } else if (gSceneCombatState.signals.bytes.enemyAlert != 0) {
         work2            = arg0->work;
         work2->field_638 = 4;
-        work2->field_63A = 0;
+        work2->subState  = 0;
     } else {
-        fns.funcs[(s16)work->field_63A](arg0);
+        fns.funcs[(s16)work->subState](arg0);
     }
 }
 
@@ -4313,11 +4314,11 @@ static void Actor00400_Fn078C8(Task* arg0)
     };
 
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
-        states[(s16)work->field_63A](arg0);
+        states[(s16)work->subState](arg0);
     }
 }
 
-/// States `Actor00400_Fn0793C` and `Actor00400_Fn09C04` dispatch on `Actor100400Work.field_63A`.
+/// States `Actor00400_Fn0793C` and `Actor00400_Fn09C04` dispatch on `Actor100400Work.subState`.
 static const TaskFuncTable3 Actor00400_D00144 = { {
     Actor00400_Fn05D00,
     Actor00400_Fn096C0,
@@ -4331,7 +4332,7 @@ static void Actor00400_Fn0793C(Task* arg0)
 
     work = arg0->work;
     fns  = Actor00400_D00144;
-    fns.funcs[(s16)work->field_63A](arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn07998(Task* task)
@@ -4346,11 +4347,11 @@ static void Actor00400_Fn079A8(Task* arg0)
 {
     Actor100400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn09714,
+        diverState7Enter,
         Actor00400_Fn060CC,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static inline s32 Actor00400_TakeStateRequest(Task* arg0)
@@ -4362,12 +4363,12 @@ static inline s32 Actor00400_TakeStateRequest(Task* arg0)
         switch (work->field_644) {
             case 2:
                 work->field_638 = 8;
-                work->field_63A = 0;
+                work->subState  = 0;
                 work->field_644 = 0;
                 return 1;
             case 3:
                 work->field_638 = 9;
-                work->field_63A = 0;
+                work->subState  = 0;
                 work->field_644 = 0;
                 return 1;
         }
@@ -4387,7 +4388,7 @@ static void Actor00400_Fn079FC(Task* arg0)
 
     taken = Actor00400_TakeStateRequest(arg0);
     if (taken == 0) {
-        states[(s16)work->field_63A](arg0);
+        states[(s16)work->subState](arg0);
     }
 }
 
@@ -4399,10 +4400,10 @@ static void Actor00400_Fn07ABC(Task* arg0)
         Actor00400_Fn09924,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
-/// States `Actor00400_Fn07B10` dispatches on `Actor100400Work.field_63A`.
+/// States `Actor00400_Fn07B10` dispatches on `Actor100400Work.subState`.
 static const TaskFuncTable3 Actor00400_D00150 = { {
     Actor00400_Fn09A1C,
     Actor00400_Fn06380,
@@ -4417,11 +4418,11 @@ static void Actor00400_Fn07B10(Task* arg0)
     work = arg0->work;
     fns  = Actor00400_D00150;
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
-        fns.funcs[(s16)work->field_63A](arg0);
+        fns.funcs[(s16)work->subState](arg0);
     }
 }
 
-/// States `Actor00400_Fn07B98` dispatches on `Actor100400Work.field_63A`.
+/// States `Actor00400_Fn07B98` dispatches on `Actor100400Work.subState`.
 static const TaskFuncTable3 Actor00400_D0015C = { {
     Actor00400_Fn09A48,
     Actor00400_Fn09A8C,
@@ -4439,10 +4440,10 @@ static void Actor00400_Fn07B98(Task* arg0)
     fns                         = Actor00400_D0015C;
     work->field_660             = 1;
     obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    fns.funcs[(s16)work->field_63A](arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
-/// States `Actor00400_Fn07C04` dispatches on `Actor100400Work.field_63A`.
+/// States `Actor00400_Fn07C04` dispatches on `Actor100400Work.subState`.
 static const TaskFuncTable4 Actor00400_D00168 = { {
     Actor00400_Fn09AE0,
     Actor00400_Fn09B44,
@@ -4463,11 +4464,11 @@ static void Actor00400_Fn07C04(Task* arg0)
     if (GameFlag_GetNibble(0xBC) != 0) {
         work2            = arg0->work;
         work2->field_638 = 0xB;
-        work2->field_63A = 0;
+        work2->subState  = 0;
     } else {
         work->field_660             = 1;
         obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        fns.funcs[(s16)work->field_63A](arg0);
+        fns.funcs[(s16)work->subState](arg0);
     }
 }
 
@@ -4480,19 +4481,19 @@ static void Actor00400_Fn07CC4(Task* arg0)
     work = arg0->work;
     work->field_636++;
     w = arg0->work;
-    if (w->field_624 == 1) {
-        if (w->field_626 != w->field_628) {
+    if (w->animRequest == 1) {
+        if (w->animPlaying != w->animClip) {
             w->field_62A = 0;
         } else {
             w->field_62A = Actor00400_Fn086FC(arg0, w->field_62A);
         }
         Actor00400_Fn08624(arg0);
-        w->field_624 = 3;
-    } else if (w->field_624 == 2) {
-        Actor00400_Fn085B8(arg0);
-        w->field_624 = 3;
-        w->field_62A = 0;
-    } else if (w->field_624 == 3) {
+        w->animRequest = 3;
+    } else if (w->animRequest == 2) {
+        diverRestartClip(arg0);
+        w->animRequest = 3;
+        w->field_62A   = 0;
+    } else if (w->animRequest == 3) {
         w->field_62A++;
     }
     i = 1;
@@ -4552,7 +4553,7 @@ static void Actor00400_Fn07EE8(Task* arg0)
     work            = arg0->work;
     arg0->state     = 5;
     work->field_638 = 0;
-    work->field_63A = 0;
+    work->subState  = 0;
 }
 
 static void Actor00400_Fn07F18(Task* arg0)
@@ -4597,7 +4598,7 @@ static void Actor00400_Fn07FEC(Task* arg0)
     work            = arg0->work;
     arg0->state     = 5;
     work->field_638 = 0;
-    work->field_63A = 0;
+    work->subState  = 0;
 }
 
 void Actor00400_Fn08004(Task* arg0)
@@ -4608,7 +4609,7 @@ void Actor00400_Fn08004(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-/// States `Actor00400_Fn09C04` dispatches on `Actor100400Work.field_63A`.
+/// States `Actor00400_Fn09C04` dispatches on `Actor100400Work.subState`.
 static const TaskFuncTable7 Actor00400_D00178 = { {
     Actor00400_Fn09CCC,
     Actor00400_Fn09D3C,
@@ -4654,10 +4655,10 @@ void Actor00400_Fn0805C(Task* arg0, s32 arg1, ActorCommand* request)
             arg0->state       = 1;
             state             = arg0->work;
             state->field_638  = 0;
-            state->field_63A  = 0;
+            state->subState   = 0;
             state             = arg0->work;
             state->field_638  = 2;
-            state->field_63A  = 0;
+            state->subState   = 0;
             break;
     }
 }
@@ -4778,60 +4779,47 @@ static void Actor00400_Fn08464(Task* arg0, s16 arg1, s16 arg2, SVECTOR* arg3)
     Gp_UpdateCoord(coords);
 }
 
-static void Actor00400_Fn085B8(Task* arg0)
-{
-    Actor100400Work* work;
-    s32              i;
+#include "../../shared/diver_restart_clip.inc.c"
 
-    work = arg0->work;
-    i    = 1;
-    do {
-        animationResetSlot(&work->anim, i, work->field_628);
-        work->slots[i].rate = work->field_632;
-        i++;
-    } while (i < 0xF);
-    work->field_626 = (u16)work->field_628;
-}
-
-/// Like `Actor00400_Fn085B8`, but restarts every slot through `func_800B4114`
-/// with the pending blend value `field_63C`, which is consumed (cleared) only
-/// when the requested clip `field_628` differs from the current `field_626`.
+/// Like `diverRestartClip`, but restarts every slot through `func_800B4114`
+/// with the pending blend value `animBlend`, which is consumed (cleared) only
+/// when the requested clip `animClip` differs from the current `animPlaying`.
 static void Actor00400_Fn08624(Task* arg0)
 {
     Actor100400Work* work;
     s32              i;
 
     work = arg0->work;
-    if (work->field_626 == work->field_628) {
+    if (work->animPlaying == work->animClip) {
         i = 1;
         do {
-            work->slots[i].rate = work->field_632;
-            func_800B4114(&work->anim, i, work->field_628, 0, work->field_63C);
+            work->slots[i].rate = work->animStep;
+            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
-            work->slots[i].rate = work->field_632;
-            func_800B4114(&work->anim, i, work->field_628, 0, work->field_63C);
+            work->slots[i].rate = work->animStep;
+            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0xF);
-        work->field_63C = 0;
+        work->animBlend = 0;
     }
-    work->field_626 = (u16)work->field_628;
+    work->animPlaying = (u16)work->animClip;
 }
 
-/// Scales `arg1` (a 12-bit angle) by the ratio `work->field_632`, returning 0
+/// Scales `arg1` (a 12-bit angle) by the ratio `work->animStep`, returning 0
 /// while that field is unset.
 static s16 Actor00400_Fn086FC(Task* arg0, s16 arg1)
 {
     Actor100400Work* work;
 
     work = arg0->work;
-    if (work->field_632 == 0) {
+    if (work->animStep == 0) {
         return 0;
     }
-    return ((arg1 << 8) / work->field_632 << 12) >> 16;
+    return ((arg1 << 8) / work->animStep << 12) >> 16;
 }
 
 /// Turns `work->field_556` toward `arg1` by at most `arg2` per call, but only
@@ -4866,7 +4854,7 @@ static void Actor00400_Fn0875C(Task* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
     }
 }
 
-/// One animation-step: state 1 starts the clip `field_628` (or advances the
+/// One animation-step: state 1 starts the clip `animClip` (or advances the
 /// current one through `Actor00400_Fn086FC` when it is already in place, and
 /// resets `field_62A` when it is not), state 2 finishes the old clip and state
 /// 3 counts `field_62A` up a frame at a time. All three land in state 3 and
@@ -4877,19 +4865,19 @@ static void Actor00400_Fn08814(Task* arg0)
     s32              i;
 
     work = arg0->work;
-    if (work->field_624 == 1) {
-        if (work->field_626 != work->field_628) {
+    if (work->animRequest == 1) {
+        if (work->animPlaying != work->animClip) {
             work->field_62A = 0;
         } else {
             work->field_62A = Actor00400_Fn086FC(arg0, work->field_62A);
         }
         Actor00400_Fn08624(arg0);
-        work->field_624 = 3;
-    } else if (work->field_624 == 2) {
-        Actor00400_Fn085B8(arg0);
-        work->field_624 = 3;
-        work->field_62A = 0;
-    } else if (work->field_624 == 3) {
+        work->animRequest = 3;
+    } else if (work->animRequest == 2) {
+        diverRestartClip(arg0);
+        work->animRequest = 3;
+        work->field_62A   = 0;
+    } else if (work->animRequest == 3) {
         work->field_62A++;
     }
     i = 1;
@@ -4903,11 +4891,11 @@ static void Actor00400_Fn088EC(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     Actor100400Work* work;
 
-    work            = arg0->work;
-    work->field_63C = arg3;
-    work->field_632 = arg2;
-    work->field_628 = arg1;
-    work->field_624 = 1;
+    work              = arg0->work;
+    work->animBlend   = arg3;
+    work->animStep    = arg2;
+    work->animClip    = arg1;
+    work->animRequest = 1;
 }
 
 /// Same body as src/lib/actors_shared_8016974c.c.
@@ -4964,7 +4952,7 @@ static void Actor00400_Fn08A88(Task* arg0)
         Actor00400_Fn06EA4,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn08ADC(Task* arg0)
@@ -4973,16 +4961,16 @@ static void Actor00400_Fn08ADC(Task* arg0)
     Actor100400Work* work;
     u32              random;
 
-    work             = arg0->work;
-    random           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gRandomLcgState  = random;
-    state            = arg0->work;
-    state->field_63C = 8;
-    state->field_632 = ((random >> 16) & 3) + 3;
-    state->field_628 = 0xF;
-    state->field_624 = 1;
-    work->field_636  = 0;
-    work->field_63A++;
+    work               = arg0->work;
+    random             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState    = random;
+    state              = arg0->work;
+    state->animBlend   = 8;
+    state->animStep    = ((random >> 16) & 3) + 3;
+    state->animClip    = 0xF;
+    state->animRequest = 1;
+    work->field_636    = 0;
+    work->subState++;
 }
 
 static void Actor00400_Fn08B40(Task* arg0)
@@ -4993,7 +4981,7 @@ static void Actor00400_Fn08B40(Task* arg0)
         Actor00400_Fn06F64,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn08B94(Task* arg0)
@@ -5007,12 +4995,12 @@ static void Actor00400_Fn08B94(Task* arg0)
     sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
     pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    state            = arg0->work;
-    state->field_63C = 2;
-    state->field_632 = 0x10;
-    state->field_628 = 0x13;
-    state->field_624 = 1;
-    work->field_63A++;
+    state              = arg0->work;
+    state->animBlend   = 2;
+    state->animStep    = 0x10;
+    state->animClip    = 0x13;
+    state->animRequest = 1;
+    work->subState++;
 }
 
 static void Actor00400_Fn08C54(Task* arg0)
@@ -5026,19 +5014,19 @@ static void Actor00400_Fn08C54(Task* arg0)
     work->field_636++;
 
     state = arg0->work;
-    mode  = state->field_624;
+    mode  = state->animRequest;
     if (mode == 1) {
-        if (state->field_626 != state->field_628) {
+        if (state->animPlaying != state->animClip) {
             state->field_62A = 0;
         } else {
             state->field_62A = Actor00400_Fn086FC(arg0, state->field_62A);
         }
         Actor00400_Fn08624(arg0);
-        state->field_624 = 3;
+        state->animRequest = 3;
     } else if (mode == 2) {
-        Actor00400_Fn085B8(arg0);
-        state->field_624 = 3;
-        state->field_62A = 0;
+        diverRestartClip(arg0);
+        state->animRequest = 3;
+        state->field_62A   = 0;
     } else if (mode == 3) {
         state->field_62A++;
     }
@@ -5125,7 +5113,7 @@ static void Actor00400_Fn08FB0(Task* arg0)
     work            = arg0->work;
     arg0->state     = 5;
     work->field_638 = 0;
-    work->field_63A = 0;
+    work->subState  = 0;
 }
 
 static void Actor00400_Fn08FC8(Task* arg0)
@@ -5170,7 +5158,7 @@ static void Actor00400_Fn0909C(Task* arg0)
     work            = arg0->work;
     arg0->state     = 5;
     work->field_638 = 0;
-    work->field_63A = 0;
+    work->subState  = 0;
 }
 
 static void Actor00400_Fn090B4(Task* arg0)
@@ -5185,12 +5173,12 @@ static void Actor00400_Fn090B4(Task* arg0)
     work->flags_62C.hi.field_62E = 0;
     work->field_630              = 0x174B;
     state                        = arg0->work;
-    state->field_632             = 0x10;
-    state->field_628             = 2;
-    state->field_624             = 2;
+    state->animStep              = 0x10;
+    state->animClip              = 2;
+    state->animRequest           = 2;
     state2                       = arg0->work;
     state2->field_638            = 1;
-    state2->field_63A            = 0;
+    state2->subState             = 0;
 }
 
 /// Every path out of the range test funnels through `set`, where the arm flag
@@ -5218,7 +5206,7 @@ static void Actor00400_Fn09124(Task* arg0)
         active           = 1;
         state            = arg0->work;
         state->field_638 = 2;
-        state->field_63A = 0;
+        state->subState  = 0;
     }
 set:
     done = active;
@@ -5230,7 +5218,7 @@ set:
         if (work->field_642 != 0) {
             state2            = arg0->work;
             state2->field_638 = 2;
-            state2->field_63A = 0;
+            state2->subState  = 0;
         }
     }
 }
@@ -5243,7 +5231,7 @@ static void Actor00400_Fn091F8(Task* arg0)
     };
 
     if (Actor00400_Fn02154(arg0) == 0) {
-        states[(s16)work->field_63A](arg0);
+        states[(s16)work->subState](arg0);
     }
 }
 
@@ -5256,7 +5244,7 @@ static void Actor00400_Fn09260(Task* arg0)
     };
 
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
-        states[(s16)work->field_63A](arg0);
+        states[(s16)work->subState](arg0);
     }
 }
 
@@ -5269,7 +5257,7 @@ static void Actor00400_Fn092D4(Task* arg0)
     };
 
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
-        states[(s16)work->field_63A](arg0);
+        states[(s16)work->subState](arg0);
     }
 }
 
@@ -5282,7 +5270,7 @@ static void Actor00400_Fn09348(Task* arg0)
     };
 
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
-        states[(s16)work->field_63A](arg0);
+        states[(s16)work->subState](arg0);
     }
 }
 
@@ -5298,7 +5286,7 @@ static void Actor00400_Fn093C4(Task* arg0)
         Actor00400_Fn04900,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn09418(Task* arg0)
@@ -5309,7 +5297,7 @@ static void Actor00400_Fn09418(Task* arg0)
         Actor00400_Fn04A1C,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn0946C(Task* arg0)
@@ -5320,7 +5308,7 @@ static void Actor00400_Fn0946C(Task* arg0)
         Actor00400_Fn0AA40,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn094C0(Task* arg0)
@@ -5329,7 +5317,7 @@ static void Actor00400_Fn094C0(Task* arg0)
 
     work            = arg0->work;
     work->field_65B = 0;
-    work->field_63A = work->field_63A + 1;
+    work->subState  = work->subState + 1;
 }
 
 static void Actor00400_Fn094DC(Task* arg0)
@@ -5341,17 +5329,17 @@ static void Actor00400_Fn094DC(Task* arg0)
 
     work = arg0->work;
     if ((Actor00400_Fn02208(arg0) << 0x10) != 0) {
-        if (work->field_628 != 5) {
-            work2            = arg0->work;
-            work2->field_63C = 0x10;
-            work2->field_632 = 0x10;
-            work2->field_628 = 5;
-            work2->field_624 = 1;
+        if (work->animClip != 5) {
+            work2              = arg0->work;
+            work2->animBlend   = 0x10;
+            work2->animStep    = 0x10;
+            work2->animClip    = 5;
+            work2->animRequest = 1;
         }
         work->field_63E = work->field_64E;
         Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         work->field_636 = 0;
-        work->field_63A = work->field_63A + 1;
+        work->subState  = work->subState + 1;
         return;
     }
     work->field_660 = 1;
@@ -5378,7 +5366,7 @@ static void Actor00400_Fn095D8(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->field_63A = 1;
+        work->subState = 1;
     }
 }
 
@@ -5397,11 +5385,11 @@ static void Actor00400_Fn0962C(Task* arg0)
     coord->coord.t[0] += ((s16)work->field_574.vx - coord->coord.t[0]) >> 2;
     coord->coord.t[2] += ((s16)work->field_574.vz - coord->coord.t[2]) >> 2;
     state              = arg0->work;
-    state->field_63C   = 0xA;
-    state->field_632   = 0x10;
-    state->field_628   = 1;
-    state->field_624   = 1;
-    work->field_63A    = work->field_63A + 1;
+    state->animBlend   = 0xA;
+    state->animStep    = 0x10;
+    state->animClip    = 1;
+    state->animRequest = 1;
+    work->subState     = work->subState + 1;
 }
 
 static void Actor00400_Fn096C0(Task* arg0)
@@ -5417,26 +5405,11 @@ static void Actor00400_Fn096C0(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        work->field_63A = work->field_63A + 1;
+        work->subState = work->subState + 1;
     }
 }
 
-static void Actor00400_Fn09714(Task* arg0)
-{
-    s32              sound;
-    s32              pan;
-    Actor100400Work* work;
-
-    work            = arg0->work;
-    work->field_63C = 6;
-    work->field_632 = 0x10;
-    work->field_628 = 0xA;
-    work->field_624 = 1;
-    sound           = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    work->field_63A++;
-}
+#include "../../shared/diver_state7_enter.inc.c"
 
 static void Actor00400_Fn097C8(Task* arg0)
 {
@@ -5462,7 +5435,7 @@ static void Actor00400_Fn097C8(Task* arg0)
     if (cond) {
         state            = arg0->work;
         state->field_638 = 2;
-        state->field_63A = 0;
+        state->subState  = 0;
     }
 }
 
@@ -5470,17 +5443,17 @@ static void Actor00400_Fn098A8(Task* arg0)
 {
     Actor100400Work* work;
 
-    work            = arg0->work;
-    work->field_63C = 8;
-    work->field_632 = 0x10;
-    work->field_628 = 0xE;
-    work->field_624 = 1;
-    work->field_63E = (u16)work->field_64E + 0x64;
+    work              = arg0->work;
+    work->animBlend   = 8;
+    work->animStep    = 0x10;
+    work->animClip    = 0xE;
+    work->animRequest = 1;
+    work->field_63E   = (u16)work->field_64E + 0x64;
     Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     work->field_610 = 0x64;
     work->field_636 = 0;
     work->field_664 = 1;
-    work->field_63A = work->field_63A + 1;
+    work->subState  = work->subState + 1;
 }
 
 static void Actor00400_Fn09924(Task* arg0)
@@ -5494,11 +5467,11 @@ static void Actor00400_Fn09924(Task* arg0)
     mode = work->field_642;
     work->field_636++;
     if (mode == 1) {
-        state            = arg0->work;
-        state->field_63C = 2;
-        state->field_632 = 0x10;
-        state->field_628 = 0x12;
-        state->field_624 = mode;
+        state              = arg0->work;
+        state->animBlend   = 2;
+        state->animStep    = 0x10;
+        state->animClip    = 0x12;
+        state->animRequest = mode;
     } else {
         state = arg0->work;
         if ((state->flags_62C.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
@@ -5508,11 +5481,11 @@ static void Actor00400_Fn09924(Task* arg0)
             cond = 0;
         }
         if (cond) {
-            state            = arg0->work;
-            state->field_63C = 8;
-            state->field_632 = 0x10;
-            state->field_628 = 0x10;
-            state->field_624 = 1;
+            state              = arg0->work;
+            state->animBlend   = 8;
+            state->animStep    = 0x10;
+            state->animClip    = 0x10;
+            state->animRequest = 1;
         }
     }
     if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
@@ -5520,7 +5493,7 @@ static void Actor00400_Fn09924(Task* arg0)
         work->field_664  = 4;
         state            = arg0->work;
         state->field_638 = 4;
-        state->field_63A = 0;
+        state->subState  = 0;
     }
 }
 
@@ -5532,7 +5505,7 @@ static void Actor00400_Fn09A1C(Task* arg0)
     work->field_660 = 0;
     work->field_636 = 0;
     work->field_63E = (u16)work->field_64E + 0x64;
-    work->field_63A = work->field_63A + 1;
+    work->subState  = work->subState + 1;
 }
 
 static void Actor00400_Fn09A48(Task* arg0)
@@ -5540,14 +5513,14 @@ static void Actor00400_Fn09A48(Task* arg0)
     Actor100400Work* work;
     Actor100400Work* state;
 
-    work             = arg0->work;
-    work->field_65B  = 0;
-    state            = arg0->work;
-    state->field_63C = 0xA;
-    state->field_632 = 0x10;
-    state->field_628 = 3;
-    state->field_624 = 1;
-    work->field_63A  = work->field_63A + 1;
+    work               = arg0->work;
+    work->field_65B    = 0;
+    state              = arg0->work;
+    state->animBlend   = 0xA;
+    state->animStep    = 0x10;
+    state->animClip    = 3;
+    state->animRequest = 1;
+    work->subState     = work->subState + 1;
 }
 
 static void Actor00400_Fn09A8C(Task* arg0)
@@ -5556,7 +5529,7 @@ static void Actor00400_Fn09A8C(Task* arg0)
 
     work = arg0->work;
     if (work->field_65E == 2 || GameFlag_GetNibble(0xBC) != 0) {
-        work->field_63A = work->field_63A + 1;
+        work->subState = work->subState + 1;
     }
 }
 
@@ -5566,21 +5539,21 @@ static void Actor00400_Fn09AE0(Task* arg0)
     GfxCoord*        coord;
     Actor100400Work* state;
 
-    work              = arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    coord->coord.t[0] = 0x10E0;
-    coord->coord.t[1] = 0x178;
-    work->field_63E   = 0x178;
-    coord->coord.t[2] = -0xDAC;
-    work->field_554   = 0;
-    work->field_556   = 0;
-    work->field_558   = 0;
-    state             = arg0->work;
-    state->field_632  = 0x10;
-    state->field_628  = 3;
-    state->field_624  = 2;
-    work->field_636   = 0;
-    work->field_63A   = work->field_63A + 1;
+    work               = arg0->work;
+    coord              = arg0->extra.tmd->coords;
+    coord->coord.t[0]  = 0x10E0;
+    coord->coord.t[1]  = 0x178;
+    work->field_63E    = 0x178;
+    coord->coord.t[2]  = -0xDAC;
+    work->field_554    = 0;
+    work->field_556    = 0;
+    work->field_558    = 0;
+    state              = arg0->work;
+    state->animStep    = 0x10;
+    state->animClip    = 3;
+    state->animRequest = 2;
+    work->field_636    = 0;
+    work->subState     = work->subState + 1;
 }
 
 static void Actor00400_Fn09B44(Task* arg0)
@@ -5589,7 +5562,7 @@ static void Actor00400_Fn09B44(Task* arg0)
 
     work = arg0->work;
     if (work->field_65E == 1) {
-        work->field_63A = work->field_63A + 1;
+        work->subState = work->subState + 1;
     }
 }
 
@@ -5602,7 +5575,7 @@ static void Actor00400_Fn09B74(Task* arg0)
         diverStepForward(arg0, 0xA0, work->field_556);
         return;
     }
-    work->field_63A++;
+    work->subState++;
 }
 
 static void Actor00400_Fn09BDC(Task* arg0)
@@ -5612,7 +5585,7 @@ static void Actor00400_Fn09BDC(Task* arg0)
     work = arg0->work;
     if (work->field_65E == 2) {
         work->field_638 = 0xB;
-        work->field_63A = 0;
+        work->subState  = 0;
     }
 }
 
@@ -5623,7 +5596,7 @@ static void Actor00400_Fn09C04(Task* arg0)
 
     work = arg0->work;
     fns  = Actor00400_D00178;
-    fns.funcs[(s16)work->field_63A](arg0);
+    fns.funcs[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn09C84(Task* arg0)
@@ -5633,7 +5606,7 @@ static void Actor00400_Fn09C84(Task* arg0)
         Actor00400_Fn0A034,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn09CCC(Task* arg0)
@@ -5642,22 +5615,22 @@ static void Actor00400_Fn09CCC(Task* arg0)
     GfxCoord*        coord;
     Actor100400Work* state;
 
-    work              = arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    work->field_660   = 1;
-    coord->coord.t[0] = -0x6C0;
-    coord->coord.t[1] = 0x3E8;
-    work->field_63E   = 0x3E8;
-    coord->coord.t[2] = -0xBB8;
-    work->field_554   = 0;
-    work->field_556   = 0x800;
-    work->field_558   = 0;
-    state             = arg0->work;
-    state->field_632  = 0x10;
-    state->field_628  = 3;
-    state->field_624  = 2;
-    work->field_636   = 0;
-    work->field_63A   = work->field_63A + 1;
+    work               = arg0->work;
+    coord              = arg0->extra.tmd->coords;
+    work->field_660    = 1;
+    coord->coord.t[0]  = -0x6C0;
+    coord->coord.t[1]  = 0x3E8;
+    work->field_63E    = 0x3E8;
+    coord->coord.t[2]  = -0xBB8;
+    work->field_554    = 0;
+    work->field_556    = 0x800;
+    work->field_558    = 0;
+    state              = arg0->work;
+    state->animStep    = 0x10;
+    state->animClip    = 3;
+    state->animRequest = 2;
+    work->field_636    = 0;
+    work->subState     = work->subState + 1;
 }
 
 static void Actor00400_Fn09D3C(Task* arg0)
@@ -5666,9 +5639,9 @@ static void Actor00400_Fn09D3C(Task* arg0)
 
     work = arg0->work;
     if (GameFlag_GetNibble(0xEB) == 1) {
-        work->field_63A = 3;
+        work->subState = 3;
     } else if (work->field_65E == 3) {
-        work->field_63A = work->field_63A + 1;
+        work->subState = work->subState + 1;
     }
 }
 
@@ -5690,7 +5663,7 @@ static void Actor00400_Fn09D98(Task* arg0)
             SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         }
     } else {
-        work->field_63A += 1;
+        work->subState += 1;
     }
 }
 
@@ -5703,19 +5676,19 @@ static void Actor00400_Fn09E70(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->field_65E == 4) {
-        work->field_636   = 0;
-        work->field_63E   = work->field_64E;
-        coord->coord.t[0] = -0x6C0;
-        coord->coord.t[2] = -0x2008;
-        work->field_554   = 0;
-        work->field_556   = 0;
-        work->field_558   = 0;
-        state             = arg0->work;
-        state->field_63C  = 8;
-        state->field_632  = 0x10;
-        state->field_628  = 1;
-        state->field_624  = 1;
-        work->field_63A   = work->field_63A + 1;
+        work->field_636    = 0;
+        work->field_63E    = work->field_64E;
+        coord->coord.t[0]  = -0x6C0;
+        coord->coord.t[2]  = -0x2008;
+        work->field_554    = 0;
+        work->field_556    = 0;
+        work->field_558    = 0;
+        state              = arg0->work;
+        state->animBlend   = 8;
+        state->animStep    = 0x10;
+        state->animClip    = 1;
+        state->animRequest = 1;
+        work->subState     = work->subState + 1;
     } else {
         work->field_636   = 0;
         coord->coord.t[0] = -0x6C0;
@@ -5744,7 +5717,7 @@ static void Actor00400_Fn09F18(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if ((s16)work->field_636 == 0x30) {
-        work->field_63A += 1;
+        work->subState += 1;
     }
 }
 
@@ -5760,7 +5733,7 @@ static void Actor00400_Fn09FDC(Task* arg0)
         Gp_IncStateF0Ref(0);
         work            = arg0->work;
         work->field_638 = 4;
-        work->field_63A = 0;
+        work->subState  = 0;
     }
 }
 
@@ -5776,7 +5749,7 @@ static void Actor00400_Fn0A034(Task* arg0)
         Gp_IncStateF0Ref(0);
         work            = arg0->work;
         work->field_638 = 4;
-        work->field_63A = 0;
+        work->subState  = 0;
     }
 }
 
@@ -5899,7 +5872,7 @@ static void Actor00400_Fn0A468(Task* arg0)
         Actor00400_Fn07400,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn0A4BC(Task* arg0)
@@ -5910,7 +5883,7 @@ static void Actor00400_Fn0A4BC(Task* arg0)
         Actor00400_Fn07518,
     };
 
-    states[(s16)work->field_63A](arg0);
+    states[(s16)work->subState](arg0);
 }
 
 static void Actor00400_Fn0A510(Task* arg0)
@@ -5919,30 +5892,30 @@ static void Actor00400_Fn0A510(Task* arg0)
     Actor100400Work* work;
     u32              random;
 
-    work             = arg0->work;
-    random           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_63E  = work->field_64E;
-    state            = arg0->work;
-    state->field_63C = 8;
-    state->field_632 = ((random >> 16) & 3) + 3;
-    state->field_628 = 0x10;
-    state->field_624 = 1;
-    gRandomLcgState  = random;
-    work->field_636  = 0;
-    work->field_63A++;
+    work               = arg0->work;
+    random             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_63E    = work->field_64E;
+    state              = arg0->work;
+    state->animBlend   = 8;
+    state->animStep    = ((random >> 16) & 3) + 3;
+    state->animClip    = 0x10;
+    state->animRequest = 1;
+    gRandomLcgState    = random;
+    work->field_636    = 0;
+    work->subState++;
 }
 
 static void Actor00400_Fn0A57C(Task* arg0)
 {
     Actor100400Work* work;
 
-    work            = arg0->work;
-    work->field_63C = 2;
-    work->field_632 = 0x10;
-    work->field_628 = 0x12;
-    work->field_624 = 1;
-    work->field_636 = 0;
-    work->field_63A++;
+    work              = arg0->work;
+    work->animBlend   = 2;
+    work->animStep    = 0x10;
+    work->animClip    = 0x12;
+    work->animRequest = 1;
+    work->field_636   = 0;
+    work->subState++;
 }
 
 static void Actor00400_Fn0A5B8(Task* arg0)
@@ -5953,19 +5926,19 @@ static void Actor00400_Fn0A5B8(Task* arg0)
     work = arg0->work;
     if (work->field_640 < 0x4E2) {
         work->field_638                  = 5;
-        work->field_63A                  = 0;
+        work->subState                   = 0;
         work->field_614[work->field_65A] = work->field_638;
         if (work->field_614[0] == work->field_614[1] &&
             work->field_614[0] == work->field_614[2] &&
             work->field_614[0] == 5) {
             state                            = arg0->work;
             state->field_638                 = 4;
-            state->field_63A                 = 0;
+            state->subState                  = 0;
             work->field_614[work->field_65A] = work->field_638;
         }
     } else {
         work->field_638                  = 4;
-        work->field_63A                  = 0;
+        work->subState                   = 0;
         work->field_614[work->field_65A] = work->field_638;
     }
     work->field_65A++;
@@ -5978,12 +5951,12 @@ static void Actor00400_Fn0A680(Task* arg0)
 {
     Actor100400Work* work;
 
-    work            = arg0->work;
-    work->field_63C = 6;
-    work->field_632 = 0x10;
-    work->field_628 = 6;
-    work->field_624 = 1;
-    work->field_63A++;
+    work              = arg0->work;
+    work->animBlend   = 6;
+    work->animStep    = 0x10;
+    work->animClip    = 6;
+    work->animRequest = 1;
+    work->subState++;
 }
 
 static void Actor00400_Fn0A6B0(Task* arg0)
@@ -6001,7 +5974,7 @@ static void Actor00400_Fn0A6B0(Task* arg0)
     if (cond) {
         work            = arg0->work;
         work->field_638 = 2;
-        work->field_63A = 0;
+        work->subState  = 0;
     }
 }
 
@@ -6012,11 +5985,11 @@ static void Actor00400_Fn0A704(Task* arg0)
     work = arg0->work;
     if (work->field_640 < 0x3B4) {
         work->field_638 = 2;
-        work->field_63A = 0;
+        work->subState  = 0;
         return;
     }
     Actor00400_Fn00C84(arg0);
-    work->field_63A++;
+    work->subState++;
 }
 
 static void Actor00400_Fn0A760(Task* arg0)
@@ -6027,7 +6000,7 @@ static void Actor00400_Fn0A760(Task* arg0)
     work = arg0->work;
     if (work->field_640 < 0x3B4) {
         work->field_638 = 2;
-        work->field_63A = 0;
+        work->subState  = 0;
         return;
     }
     Actor00400_Fn00C84(arg0);
@@ -6041,7 +6014,7 @@ static void Actor00400_Fn0A760(Task* arg0)
     if (cond) {
         work            = arg0->work;
         work->field_638 = 2;
-        work->field_63A = 0;
+        work->subState  = 0;
     }
 }
 
@@ -6049,13 +6022,13 @@ static void Actor00400_Fn0A7F0(Task* arg0)
 {
     Actor100400Work* work;
 
-    work            = arg0->work;
-    work->field_63C = 6;
-    work->field_632 = 0x10;
-    work->field_628 = 9;
-    work->field_624 = 1;
-    work->field_646 = 0x18;
-    work->field_63A++;
+    work              = arg0->work;
+    work->animBlend   = 6;
+    work->animStep    = 0x10;
+    work->animClip    = 9;
+    work->animRequest = 1;
+    work->field_646   = 0x18;
+    work->subState++;
 }
 
 static void Actor00400_Fn0A82C(Task* arg0)
@@ -6073,7 +6046,7 @@ static void Actor00400_Fn0A82C(Task* arg0)
     if (cond) {
         work            = arg0->work;
         work->field_638 = 2;
-        work->field_63A = 0;
+        work->subState  = 0;
     }
 }
 
@@ -6088,12 +6061,12 @@ static void Actor00400_Fn0A880(Task* arg0)
     sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
     pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    state            = arg0->work;
-    state->field_63C = 6;
-    state->field_632 = 0x10;
-    state->field_628 = 0xC;
-    state->field_624 = 1;
-    work->field_63A++;
+    state              = arg0->work;
+    state->animBlend   = 6;
+    state->animStep    = 0x10;
+    state->animClip    = 0xC;
+    state->animRequest = 1;
+    work->subState++;
 }
 
 static void Actor00400_Fn0A940(Task* arg0)
@@ -6102,15 +6075,15 @@ static void Actor00400_Fn0A940(Task* arg0)
     s32              pan;
     Actor100400Work* work;
 
-    work            = arg0->work;
-    work->field_63C = 4;
-    work->field_632 = 0x10;
-    work->field_628 = 0xD;
-    work->field_624 = 1;
-    sound           = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+    work              = arg0->work;
+    work->animBlend   = 4;
+    work->animStep    = 0x10;
+    work->animClip    = 0xD;
+    work->animRequest = 1;
+    sound             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
+    pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    work->field_63A++;
+    work->subState++;
 }
 
 static void Actor00400_Fn0A9F4(Task* arg0)
@@ -6118,16 +6091,16 @@ static void Actor00400_Fn0A9F4(Task* arg0)
     Actor100400Work* work;
     Actor100400Work* state;
 
-    work             = arg0->work;
-    work->field_665  = 1;
-    state            = arg0->work;
-    state->field_63C = 8;
-    state->field_632 = 0x10;
-    state->field_628 = 0xF;
-    state->field_624 = 1;
-    work->field_610  = 0x64;
-    work->field_636  = 0;
-    work->field_63A++;
+    work               = arg0->work;
+    work->field_665    = 1;
+    state              = arg0->work;
+    state->animBlend   = 8;
+    state->animStep    = 0x10;
+    state->animClip    = 0xF;
+    state->animRequest = 1;
+    work->field_610    = 0x64;
+    work->field_636    = 0;
+    work->subState++;
 }
 
 static void Actor00400_Fn0AA40(Task* arg0)
@@ -6146,17 +6119,17 @@ static void Actor00400_Fn0AA40(Task* arg0)
         cond = 0;
     }
     if (cond) {
-        state            = arg0->work;
-        state->field_63C = 8;
-        state->field_632 = 0x10;
-        state->field_628 = 0x11;
-        state->field_624 = 1;
+        state              = arg0->work;
+        state->animBlend   = 8;
+        state->animStep    = 0x10;
+        state->animClip    = 0x11;
+        state->animRequest = 1;
     }
     if (Gp_TickObjFlag2(arg0->spawnArg2.pointer)) {
         work->field_610  = 0;
         work->field_665  = 0;
         state            = arg0->work;
         state->field_638 = 2;
-        state->field_63A = 0;
+        state->subState  = 0;
     }
 }

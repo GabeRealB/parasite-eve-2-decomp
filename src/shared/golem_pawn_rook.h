@@ -8,6 +8,11 @@
  * package defines its own voice-cue table and per-animation blend lengths
  * under the shared names.
  *
+ * Each package states its type and weapon before including this header:
+ * GOLEM_PAWN_ROOK_TYPE is GOLEM_PAWN or GOLEM_ROOK, GOLEM_PAWN_ROOK_WEAPON is
+ * GOLEM_BEAM_SWORD (actor_02000, actor_02300) or GOLEM_GRENADE_LAUNCHER
+ * (actor_05600, actor_05700); the parameters below follow from them.
+ *
  * Include this header in the prologue and each fragment at its function's
  * position. The package defines its tables at its own positions under these
  * names:
@@ -18,6 +23,55 @@
 
 #ifndef SRC_SHARED_GOLEM_PAWN_ROOK_H
 #define SRC_SHARED_GOLEM_PAWN_ROOK_H
+
+#define GOLEM_PAWN             1
+#define GOLEM_ROOK             2
+#define GOLEM_BEAM_SWORD       1
+#define GOLEM_GRENADE_LAUNCHER 2
+
+/* Per weapon: the lunge cycle's wind-up turn rate and lunge range, and the
+ * state and animation it hands over to for the lunge and for the walk-in (the
+ * Grenade Launcher's state table is the longer one). The Beam Sword's charge
+ * turns at GOLEM_PAWN_ROOK_CHARGE_TURN, which only the Pawn does, and a hit
+ * that leaves it under GOLEM_PAWN_ROOK_LOW_HP of its maximum takes the heavy
+ * reaction. */
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_BEAM_SWORD
+#define GOLEM_PAWN_ROOK_WIND_UP_TURN 0x3C
+#define GOLEM_PAWN_ROOK_LUNGE_RANGE  0x8CA
+#define GOLEM_PAWN_ROOK_LUNGE_STATE  4
+#define GOLEM_PAWN_ROOK_LUNGE_ANIM   8
+#define GOLEM_PAWN_ROOK_WALK_STATE   3
+#define GOLEM_PAWN_ROOK_WALK_ANIM    5
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN
+#define GOLEM_PAWN_ROOK_CHARGE_TURN 0xF
+#define GOLEM_PAWN_ROOK_LOW_HP(max) ((max) * 15 / 100)
+#else
+#define GOLEM_PAWN_ROOK_CHARGE_TURN 0
+#define GOLEM_PAWN_ROOK_LOW_HP(max) ((max) / 4)
+#endif
+#else
+#define GOLEM_PAWN_ROOK_WIND_UP_TURN 0x1E
+#define GOLEM_PAWN_ROOK_LUNGE_RANGE  0x7D0
+#define GOLEM_PAWN_ROOK_LUNGE_STATE  7
+#define GOLEM_PAWN_ROOK_LUNGE_ANIM   0x10
+#define GOLEM_PAWN_ROOK_WALK_STATE   6
+#define GOLEM_PAWN_ROOK_WALK_ANIM    0xC
+#endif
+
+/* Per build: the type id (also in its collision keys, 0x30000 | id); and for
+ * the Grenade Launcher's approach cycle, how long it backs away and how many
+ * strikes it counts before the follow-up. */
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_GRENADE_LAUNCHER
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN
+#define GOLEM_PAWN_ROOK_ID             0x38
+#define GOLEM_PAWN_ROOK_BACKOFF_FRAMES 0x1E
+#define GOLEM_PAWN_ROOK_STRIKE_LIMIT   6
+#else
+#define GOLEM_PAWN_ROOK_ID             0x39
+#define GOLEM_PAWN_ROOK_BACKOFF_FRAMES 0x3C
+#define GOLEM_PAWN_ROOK_STRIKE_LIMIT   3
+#endif
+#endif
 
 /// The impact cue's sound id, as the bullet reads it. A package whose symbol
 /// is a wider object holding the id defines this as the member before
@@ -228,6 +282,10 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1);
 /* Implemented by each package's hit and push handler. */
 void golemPawnRookTakeHits(Task* arg0);
 void golemPawnRookKnockdownState(Task* arg0);
+void golemPawnRookChargeState(Task* arg0);
+void golemPawnRookLungeCycle(Task* arg0);
+void golemPawnRookCompanionCycle(Task* arg0);
+void golemPawnRookSpawn(Enemy* ctx, Task* actor);
 void golemPawnRookLungeStrikeState(Task* arg0);
 void golemPawnRookAimLaserSight(Task* arg0);
 void golemPawnRookDrawLaserBeam(Task* arg0, SVECTOR* arg1, SVECTOR* arg2);

@@ -2,9 +2,20 @@
  * (actor_405800) share. It leaps and lands with a slam that raises dust, and carries
  * two child models parented to root parts 10 and 7. The helpers turn it toward
  * a point, read a part's view-space position, light it from its body part and
- * rebuild its root rotation from pitch, yaw and roll. The packages use
- * different work types, so the fragments reach the block through a type name
- * each package defines (only the angles at 0x80-0x84 are touched).
+ * rebuild its root rotation from pitch, yaw and roll. The shared behaviour
+ * covers the animation request (play, blend or restart a clip, tick the
+ * slots, scale the frame counter, report the clip done), the pending-action
+ * dispatch, the state handlers that wait on a clip, right the Stalker from
+ * its back or pick its range, the hold release, the wall-contact distance and
+ * the footstep windows of clip 4.
+ *
+ * The packages use different work types: each names its own
+ * `StalkerZebraIvoryWork` before including the fragments, and both name the
+ * members the fragments reach alike - the root angles `pitch`, `yaw`, `roll`
+ * at 0x80; the state and sub-state; the animation request `animRequest`,
+ * `animClip`, `animStep`, `animBlend`, `animPlaying` and frame `animFrame`;
+ * the pending action and its arming flag; the hold flags; the posture flags
+ * `onCeiling` and `onBack`; and the capsule body with its contact table.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -12,6 +23,36 @@
 
 #ifndef SRC_SHARED_STALKER_ZEBRA_IVORY_H
 #define SRC_SHARED_STALKER_ZEBRA_IVORY_H
+
+#define STALKER_ZEBRA 1
+#define STALKER_IVORY 2
+#ifndef STALKER_ZEBRA_IVORY_KIND
+#error "define STALKER_ZEBRA_IVORY_KIND (STALKER_ZEBRA or STALKER_IVORY) before including stalker_zebra_ivory.h"
+#endif
+
+/* Per kind: the sound bank of the clip-4 footstep cues (cue | 1, cue | 2); and
+ * where the two builds' shared code differs -
+ *   RIGHTING_PINS_PART  righting itself first pins part 0xE to its view spot
+ *   REBLEND_SAME_CLIP   a request for the clip already playing blends again
+ *   PIN_UPDATES_ROOT    pinning a part recomposes the root afterwards (else it
+ *                       marks the root dirty before measuring)
+ *   TIMER_BASE          the type of the random timer's base
+ *   TIMER_ZERO_STOPS    a zero base stops the timer instead of seeding it */
+#if STALKER_ZEBRA_IVORY_KIND == STALKER_ZEBRA
+#define STALKER_ZEBRA_IVORY_STEP_SOUNDS        0x40060000
+#define STALKER_ZEBRA_IVORY_RIGHTING_PINS_PART 1
+#define STALKER_ZEBRA_IVORY_REBLEND_SAME_CLIP  0
+#define STALKER_ZEBRA_IVORY_PIN_UPDATES_ROOT   1
+#define STALKER_ZEBRA_IVORY_TIMER_BASE         s32
+#define STALKER_ZEBRA_IVORY_TIMER_ZERO_STOPS   0
+#else
+#define STALKER_ZEBRA_IVORY_STEP_SOUNDS        0x40050000
+#define STALKER_ZEBRA_IVORY_RIGHTING_PINS_PART 0
+#define STALKER_ZEBRA_IVORY_REBLEND_SAME_CLIP  1
+#define STALKER_ZEBRA_IVORY_PIN_UPDATES_ROOT   0
+#define STALKER_ZEBRA_IVORY_TIMER_BASE         s16
+#define STALKER_ZEBRA_IVORY_TIMER_ZERO_STOPS   1
+#endif
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -29,20 +70,37 @@ typedef struct StalkerZebraIvoryViewPos {
 } StalkerZebraIvoryViewPos;
 STATIC_ASSERT_SIZEOF(StalkerZebraIvoryViewPos, 0x6);
 
-/// The part of the Stalker's work block the pose helpers touch: its root
-/// rotation as pitch, yaw and roll. The rest is each package's own.
-typedef struct StalkerZebraIvoryWork {
-    /* 0x00 */ byte pad_0[0x80];
-    /* 0x80 */ u16  pitch;
-    /* 0x82 */ u16  yaw;
-    /* 0x84 */ u16  roll;
-} StalkerZebraIvoryWork;
-
 #include "main/task_types.h"
 
 void stalkerZebraIvoryTurnToward(Task* arg0, SVECTOR* target, s32 step);
 void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, StalkerZebraIvoryViewPos* out);
 void stalkerZebraIvoryUpdateColor(Task* task);
 void stalkerZebraIvoryApplyRotation(Task* arg0);
+void stalkerZebraIvoryStepClip4(Task* arg0);
+void stalkerZebraIvoryRightItself(Task* arg0);
+s32  stalkerZebraIvoryTakePending(Task* arg0);
+s32  stalkerZebraIvoryWallDistance(Task* arg0);
+void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 index, StalkerZebraIvoryViewPos* pos);
+void stalkerZebraIvoryWaitClipThenRest(Task* arg0);
+void stalkerZebraIvoryReleaseHold(Task* arg0);
+void stalkerZebraIvoryRunSubStates(Task* arg0);
+void stalkerZebraIvorySetMoveMode(Task* arg0, s32 arg1, u16* arg2);
+void stalkerZebraIvoryRestartClip(Task* arg0);
+void stalkerZebraIvoryResumeClip(Task* arg0);
+void stalkerZebraIvoryPickRange(Task* arg0);
+void stalkerZebraIvoryAnimateUntilDone(Task* arg0);
+void stalkerZebraIvoryWaitClip(Task* arg0);
+void stalkerZebraIvoryClearQueued(Task* arg0);
+void stalkerZebraIvorySeedTimer(Task* arg0, STALKER_ZEBRA_IVORY_TIMER_BASE base);
+void stalkerZebraIvoryDropCapsuleGrid(Task* arg0);
+void stalkerZebraIvoryTickAnim(Task* arg0);
+void stalkerZebraIvoryPlayClip(Task* arg0, s16 clip, s16 step);
+s32  stalkerZebraIvoryClipDone(Task* arg0);
+s32  stalkerZebraIvoryTakeArmedPending(Task* arg0);
+void stalkerZebraIvoryBlendClip(Task* arg0);
+s16  stalkerZebraIvoryScaleFrame(Task* arg0, s16 frame);
+
+static __inline__ void stalkerZebraIvoryTickAnimInline(Task* arg0);
+static __inline__ void stalkerZebraIvoryApplyRotationInline(Task* arg0);
 
 #endif /* SRC_SHARED_STALKER_ZEBRA_IVORY_H */

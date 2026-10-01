@@ -204,17 +204,17 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// task that `Task_SpawnFromTable` returns there, so it is a different `Task`
 /// and a different block.)
 ///
-/// `field_520` / `field_522` are the state and sub-state indices the handler
+/// `field_520` / `subState` are the state and sub-state indices the handler
 /// table walks and `field_51E` is the per-state frame counter -- the same
-/// layout the other enemy overlays use.  `field_50C`, `field_50E`, `field_510`
-/// and `field_51A` are the animation request the actor hands to its player:
-/// `func_actor_206100_8014C274` writes `field_50C` as the request kind and then
-/// reads `field_50E` and `field_510` as the clip to play, with `field_51A` the
+/// layout the other enemy overlays use.  `animRequest`, `animPlaying`, `animClip`
+/// and `animStep` are the animation request the actor hands to its player:
+/// `func_actor_206100_8014C274` writes `animRequest` as the request kind and then
+/// reads `animPlaying` and `animClip` as the clip to play, with `animStep` the
 /// step scale and `field_512` the clip phase the idle handler
 /// `func_actor_206100_8014FCD4` ramps -- zeroed when the requested clip is not
 /// the one playing, otherwise advanced by `func_actor_206100_8014F3C8` and
 /// stepped once per frame in sub-state 3.
-/// `flags_514` sits between `field_510` and `field_51A` and is
+/// `flags_514` sits between `animClip` and `animStep` and is
 /// status, not part of the request: `func_actor_206100_8014F970` tests bit 0 of
 /// its halfword or bits 0x102 of its word to decide whether to advance the
 /// actor to state 2.
@@ -318,24 +318,24 @@ typedef struct Actor206100Work {
     /// either one back.
     /* 0x508 */ s16              field_508;
     /* 0x50A */ s16              field_50A;
-    /* 0x50C */ s16              field_50C; // animation request kind
-    /* 0x50E */ s16              field_50E; // clip the request plays, latched from field_510
-    /* 0x510 */ s16              field_510; // animation clip id
+    /* 0x50C */ s16              animRequest; // animation request kind
+    /* 0x50E */ s16              animPlaying; // clip the request plays, latched from animClip
+    /* 0x510 */ s16              animClip;    // animation clip id
     /* 0x512 */ s16              field_512;
     /* 0x514 */ Actor206100Flags flags_514;
     /// Second half of the per-frame counter pair the state dispatcher
     /// `func_actor_206100_8014DA28` and the spawn state `func_actor_206100_8014C458`
     /// both bump: the two advance together, ahead of the sub-state handler.
     /* 0x518 */ u16 field_518;
-    /* 0x51A */ s16 field_51A; // animation step scale
+    /* 0x51A */ s16 animStep;  // animation step scale
                                /// Yaw to the walk target, latched with the distance below by
                                /// `func_actor_206100_8014B698` from `ratan2` of the player delta it
                                /// normalises.
     /* 0x51C */ s16 field_51C;
     /* 0x51E */ u16 field_51E; // per-state frame counter
     /* 0x520 */ s16 field_520; // state index
-    /* 0x522 */ u16 field_522; // sub-state index
-    /* 0x524 */ s16 field_524;
+    /* 0x522 */ u16 subState;  // sub-state index
+    /* 0x524 */ s16 animBlend;
     /* 0x526 */ u16 field_526;
     /// XZ distance to the walk target the yaw above was taken from, the
     /// shorter of the two `gPlayerActorTasks` distances.
@@ -448,13 +448,16 @@ typedef struct Actor206100Work {
     /// *unsigned* -- the dispatch load and the 2's increment are both `lbu` --
     /// so this is a `u8`, not the `s8` the neighbours are.
     /* 0x556 */ u8 field_556;
-    /// Animation step the spawn state leaves at 4 (`func_actor_206100_8014F284`
+    /// Animation step the spawn state leaves at 4 (`diverRestartClip`
     /// copies it into every slot's `rate`) and `func_actor_206100_8014BAA8`
     /// also reads as a part index into the root coordinate array, so the load
     /// there is `lbu` and the field is unsigned.
     /* 0x557 */ u8 field_557;
 } Actor206100Work;
 STATIC_ASSERT_SIZEOF(Actor206100Work, 0x558);
+
+/// The Diver library's name for this package's work block (see diver.h).
+typedef Actor206100Work DiverWork;
 
 /// Work block of the beam task `func_actor_206100_8014C458` spawns off
 /// `D_actor_206100_80158B0C` when `Actor206100Work::field_555` is set: it
@@ -555,7 +558,7 @@ static void func_actor_206100_8014EEC0(Task* task);
 /// reaches 0x22, walks the actor out of the scene -- parks its model coordinate
 /// at y 0x1B58, clears the counter, hands the area record to the light mode,
 /// tells slot 3 (message 0x3E9) to place the player, and advances the sub-state
-/// `field_522`.  Before that, the counter passing 3 fires the overlay's sound
+/// `subState`.  Before that, the counter passing 3 fires the overlay's sound
 /// event.  Every other frame ramps `field_526` toward 0x1D4C by a quarter of the
 /// remaining distance and steps the actor `0x30` along its heading.
 ///
@@ -660,7 +663,6 @@ static Enemy* func_actor_206100_8014EE2C(s32 arg0);
 static void func_actor_206100_8014D574(Task* task);
 static void func_actor_206100_8014EB48(Task* task, s16 arg1);
 static void func_actor_206100_8014ED3C(Task* task, s16 arg1);
-static void func_actor_206100_8014F284(Task* task);
 static void func_actor_206100_8014F2F0(Task* task);
 static s16  func_actor_206100_8014F3C8(Task* task, s16 arg1);
 static void func_actor_206100_8014F738(Task* task);
@@ -689,10 +691,8 @@ extern OverlayWaveRec6 gScreenWaveRows[32];
 /// Task table `func_actor_206100_8014FDE8` spawns the shockwave from.
 
 static void func_actor_206100_8014DEAC(Task* task);
-static void func_actor_206100_8014F284(Task* task);
 static void func_actor_206100_8014F2F0(Task* task);
 static s16  func_actor_206100_8014F3C8(Task* task, s16 arg1);
-static void func_actor_206100_8014F8BC(Task* task);
 static void func_actor_206100_8014F970(Task* task);
 static void func_actor_206100_8014F9C4(Task* task);
 static void func_actor_206100_8014FA08(Task* task);
@@ -1821,11 +1821,11 @@ static void func_actor_206100_8014BAA8(Task* task)
 #include "../../shared/diver_turn_joint.inc.c"
 
 /// Services the animation request in the work block and steps animation slots
-/// 1 through 0xE once.  `field_50C` holds the request kind: kind 1 zeroes the
-/// clip phase `field_512` when the clip playing (`field_50E`) is not the
-/// requested one (`field_510`), otherwise hands it to
+/// 1 through 0xE once.  `animRequest` holds the request kind: kind 1 zeroes the
+/// clip phase `field_512` when the clip playing (`animPlaying`) is not the
+/// requested one (`animClip`), otherwise hands it to
 /// `func_actor_206100_8014F3C8`, and then calls `func_actor_206100_8014F2F0`;
-/// kind 2 calls `func_actor_206100_8014F284` and zeroes the phase.  Both leave
+/// kind 2 calls `diverRestartClip` and zeroes the phase.  Both leave
 /// kind 3, which advances the phase by one each call.
 static inline void _actor206100AnimUpdate(Task* task)
 {
@@ -1834,19 +1834,19 @@ static inline void _actor206100AnimUpdate(Task* task)
     s32              i;
 
     work = (Actor206100Work*)task->work;
-    kind = work->field_50C;
+    kind = work->animRequest;
     if (kind == 1) {
-        if (work->field_50E != work->field_510) {
+        if (work->animPlaying != work->animClip) {
             work->field_512 = 0;
         } else {
             work->field_512 = func_actor_206100_8014F3C8(task, work->field_512);
         }
         func_actor_206100_8014F2F0(task);
-        work->field_50C = 3;
+        work->animRequest = 3;
     } else if (kind == 2) {
-        func_actor_206100_8014F284(task);
-        work->field_50C = 3;
-        work->field_512 = 0;
+        diverRestartClip(task);
+        work->animRequest = 3;
+        work->field_512   = 0;
     } else if (kind == 3) {
         work->field_512 = work->field_512 + 1;
     }
@@ -1862,8 +1862,8 @@ static inline void _actor206100AnimUpdate(Task* task)
 /// induction variable of its own) and calls the setup `func_actor_206100_8014AF74`
 /// with the block in place.
 ///
-/// It then requests the first clip -- kind 2 in `field_50C`, `field_510` as the
-/// clip and `field_51A` the step scale -- and services the request at once.
+/// It then requests the first clip -- kind 2 in `animRequest`, `animClip` as the
+/// clip and `animStep` the step scale -- and services the request at once.
 ///
 /// The tail seeds the walk/HP scales (`field_508`, `field_50A`, `field_526` and
 /// `field_53E`), zeroes the root coordinate's translation, takes the state-0
@@ -1896,10 +1896,10 @@ static void func_actor_206100_8014C274(Task* task)
         D_actor_206100_80158CBC[i].timer = 0;
     }
     func_actor_206100_8014AF74(task);
-    req            = (Actor206100Work*)task->work;
-    req->field_51A = 0x10;
-    req->field_510 = 3;
-    req->field_50C = 2;
+    req              = (Actor206100Work*)task->work;
+    req->animStep    = 0x10;
+    req->animClip    = 3;
+    req->animRequest = 2;
     _actor206100AnimUpdate(task);
     work->field_508   = 0x1000;
     work->field_50A   = 0x1000;
@@ -1913,10 +1913,10 @@ static void func_actor_206100_8014C274(Task* task)
     state            = (Actor206100Work*)task->work;
     task->state      = 1;
     state->field_520 = 0;
-    state->field_522 = 0;
+    state->subState  = 0;
     tail             = (Actor206100Work*)task->work;
     tail->field_520  = 0;
-    tail->field_522  = 0;
+    tail->subState   = 0;
 }
 
 /// The actor's five top-level states, dispatched on `Task::state` by its task
@@ -2042,19 +2042,19 @@ static void func_actor_206100_8014C458(Task* task)
                 next->field_534 = (s16)((u16)next->field_534 - 1);
             }
             anim  = (Actor206100Work*)task->work;
-            state = anim->field_50C;
+            state = anim->animRequest;
             if (state == 1) {
-                if (anim->field_50E != anim->field_510) {
+                if (anim->animPlaying != anim->animClip) {
                     anim->field_512 = 0;
                 } else {
                     anim->field_512 = func_actor_206100_8014F3C8(task, anim->field_512);
                 }
                 func_actor_206100_8014F2F0(task);
-                anim->field_50C = 3;
+                anim->animRequest = 3;
             } else if (state == 2) {
-                func_actor_206100_8014F284(task);
-                anim->field_50C = 3;
-                anim->field_512 = 0;
+                diverRestartClip(task);
+                anim->animRequest = 3;
+                anim->field_512   = 0;
             } else if (state == 3) {
                 anim->field_512 = anim->field_512 + 1;
             }
@@ -2137,7 +2137,7 @@ static void func_actor_206100_8014C458(Task* task)
                 dying            = (Actor206100Work*)task->work;
                 task->state      = 3;
                 dying->field_520 = 0;
-                dying->field_522 = 0;
+                dying->subState  = 0;
             }
             coord->coord.t[1] =
                 coord->coord.t[1] + (((s16)work->field_526 - coord->coord.t[1]) >> 4);
@@ -2227,9 +2227,9 @@ static void func_actor_206100_8014CB68(Task* task)
         msg.rot.vz           = 0;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
         work2                                                      = (Actor206100Work*)task->work;
-        work2->field_51A                                           = 0x10;
-        work2->field_510                                           = 3;
-        work2->field_50C                                           = 2;
+        work2->animStep                                            = 0x10;
+        work2->animClip                                            = 3;
+        work2->animRequest                                         = 2;
         coord->coord.t[1]                                          = 0xDAC;
         work->field_526                                            = 0xDAC;
         coord->coord.t[0]                                          = 0x157C;
@@ -2241,7 +2241,7 @@ static void func_actor_206100_8014CB68(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
         work->field_51E                                            = 0;
         work->field_54D                                            = 0;
-        work->field_522                                            = work->field_522 + 1;
+        work->subState                                             = work->subState + 1;
         D_actor_206100_80158CCC.span                               = 1;
         D_actor_206100_80158CCC.scale                              = 0x60;
         D_actor_206100_80158CCC.r                                  = 0x40;
@@ -2283,11 +2283,11 @@ static void func_actor_206100_8014CD08(Task* task)
         msg.rot.vy = 0xA00;
         msg.rot.vz = 0;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
-        work2            = (Actor206100Work*)task->work;
-        work2->field_51A = 0x10;
-        work2->field_510 = 1;
-        work2->field_50C = 2;
-        work->field_522  = work->field_522 + 1;
+        work2              = (Actor206100Work*)task->work;
+        work2->animStep    = 0x10;
+        work2->animClip    = 1;
+        work2->animRequest = 2;
+        work->subState     = work->subState + 1;
         return;
     }
     work->field_526 = (u16)(work->field_526 + ((s32)(0x1D4C - (s16)work->field_526) >> 2));
@@ -2356,10 +2356,10 @@ static void func_actor_206100_8014CE60(Task* task)
         coord->coord.t[2]                                          = 0;
         next                                                       = (Actor206100Work*)task->work;
         next->field_520                                            = 1;
-        next->field_522                                            = 0;
+        next->subState                                             = 0;
     }
 }
-/// Clears `field_522` and hands `field_520` the new state, reloading the work
+/// Clears `subState` and hands `field_520` the new state, reloading the work
 /// block through the task rather than taking the caller's pointer: the fresh
 /// load is what makes `state` a block-local quantity, which is what lets
 /// local-alloc hand it `$v0` (see `take_request` below).
@@ -2368,7 +2368,7 @@ static __inline__ void set_state(Task* task, s32 state)
     Actor206100Work* next = (Actor206100Work*)task->work;
 
     next->field_520 = state;
-    next->field_522 = 0;
+    next->subState  = 0;
 }
 
 /// Consumes the pending sub-state request in `field_52C`, which is only
@@ -2431,7 +2431,7 @@ static void func_actor_206100_8014CFF4(Task* task)
     };
 
     if (take_request(task) == 0) {
-        states[(s16)sub->field_522](task);
+        states[(s16)sub->subState](task);
     }
 }
 /// Sub-state 1 of `func_actor_206100_8014CFF4`'s table: ticks the per-state
@@ -2530,7 +2530,7 @@ static void func_actor_206100_8014D14C(Task* task)
 }
 
 /// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
-/// copies the table onto its stack and calls `funcs[(s16)field_522]`.
+/// copies the table onto its stack and calls `funcs[(s16)subState]`.
 static const TaskFuncTable5 D_actor_206100_80149E94 = {
     {
         func_actor_206100_8014F65C,
@@ -2623,7 +2623,7 @@ static void func_actor_206100_8014D380(Task* task)
     s32              diff;
 
     if (take_request(task) == 0) {
-        states.funcs[(s16)sub->field_522](task);
+        states.funcs[(s16)sub->subState](task);
         work                = (Actor206100Work*)task->work;
         coord               = task->extra.tmd->coords;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2675,7 +2675,7 @@ static void func_actor_206100_8014D574(Task* task)
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         work->field_51E = 0;
         work->field_526 = 0x1E78;
-        work->field_522 = work->field_522 + 1;
+        work->subState  = work->subState + 1;
     }
 }
 /// State handler of the second table, `D_actor_206100_80149EB4`: consumes a
@@ -2703,7 +2703,7 @@ static void func_actor_206100_8014D6F4(Task* task)
     s32              diff;
 
     if (take_request(task) == 0) {
-        states.funcs[(s16)sub->field_522](task);
+        states.funcs[(s16)sub->subState](task);
         work                = (Actor206100Work*)task->work;
         coord               = task->extra.tmd->coords;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2772,7 +2772,7 @@ static void func_actor_206100_8014D8E8(Task* task)
             return;
         }
         work->field_51E = 0;
-        work->field_522 = work->field_522 + 1;
+        work->subState  = work->subState + 1;
     }
 }
 /// State-2 tick: the `gSceneCombatState.actorControl` effect mode 0 arm bumps the actor's two frame
@@ -2791,7 +2791,7 @@ static void func_actor_206100_8014D8E8(Task* task)
 /// initialiser is emitted where the declaration is.
 ///
 /// From the request kind down the body is `func_actor_206100_8014E964`'s word
-/// for word: the same `field_50C` re-arm / ramp / reset chain over a second
+/// for word: the same `animRequest` re-arm / ramp / reset chain over a second
 /// `task->work` load, and the same `for (i = 1; i < 0xF; i++)` slot tick whose
 /// initialiser sits *after* the chain for the reason
 /// `func_actor_206100_8014FCD4` documents.  The chain is the only reader of
@@ -2842,19 +2842,19 @@ static void func_actor_206100_8014DA28(Task* task)
             work->field_518                 = work->field_518 + 1;
             funcs[(s16)work->field_520](task);
             next  = (Actor206100Work*)task->work;
-            state = next->field_50C;
+            state = next->animRequest;
             if (state == 1) {
-                if (next->field_50E != next->field_510) {
+                if (next->animPlaying != next->animClip) {
                     next->field_512 = 0;
                 } else {
                     next->field_512 = func_actor_206100_8014F3C8(task, next->field_512);
                 }
                 func_actor_206100_8014F2F0(task);
-                next->field_50C = 3;
+                next->animRequest = 3;
             } else if (state == 2) {
-                func_actor_206100_8014F284(task);
-                next->field_50C = 3;
-                next->field_512 = 0;
+                diverRestartClip(task);
+                next->animRequest = 3;
+                next->field_512   = 0;
             } else if (state == 3) {
                 next->field_512 = next->field_512 + 1;
             }
@@ -2967,7 +2967,7 @@ static void func_actor_206100_8014DD3C(Task* task)
                 next            = (Actor206100Work*)task->work;
                 task->state     = 2;
                 next->field_520 = 0;
-                next->field_522 = 0;
+                next->subState  = 0;
             }
         }
         j++;
@@ -3334,19 +3334,19 @@ static void func_actor_206100_8014E964(Task* task, void* unusedTable)
     coord           = task->extra.tmd->coords;
     work->field_51E = work->field_51E + 1;
     next            = (Actor206100Work*)task->work;
-    state           = next->field_50C;
+    state           = next->animRequest;
     if (state == 1) {
-        if (next->field_50E != next->field_510) {
+        if (next->animPlaying != next->animClip) {
             next->field_512 = 0;
         } else {
             next->field_512 = func_actor_206100_8014F3C8(task, next->field_512);
         }
         func_actor_206100_8014F2F0(task);
-        next->field_50C = 3;
+        next->animRequest = 3;
     } else if (state == 2) {
-        func_actor_206100_8014F284(task);
-        next->field_50C = 3;
-        next->field_512 = 0;
+        diverRestartClip(task);
+        next->animRequest = 3;
+        next->field_512   = 0;
     } else if (state == 3) {
         next->field_512 = next->field_512 + 1;
     }
@@ -3551,26 +3551,13 @@ static void func_actor_206100_8014F18C(Task* task)
     work->obj_414.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
-static void func_actor_206100_8014F284(Task* task)
-{
-    Actor206100Work* work;
-    s32              i;
-
-    work = (Actor206100Work*)task->work;
-    i    = 1;
-    do {
-        animationResetSlot(&work->anim, i, work->field_510);
-        work->slots[i].rate = work->field_51A;
-        i++;
-    } while (i < 0xF);
-    work->field_50E = (u16)work->field_510;
-}
+#include "../../shared/diver_restart_clip.inc.c"
 
 /// Re-arms every animation slot for the pending request: writes the request's
-/// step scale (`field_51A`) into each slot's `rate` and re-seeks the slot to
+/// step scale (`animStep`) into each slot's `rate` and re-seeks the slot to
 /// the requested clip with `func_800B4114`, whose fifth argument is the request's
-/// own value at `field_524`.  When the clip already playing (`field_50E`) is not
-/// the one requested, `field_524` is cleared as well.  `field_50E` latches the
+/// own value at `animBlend`.  When the clip already playing (`animPlaying`) is not
+/// the one requested, `animBlend` is cleared as well.  `animPlaying` latches the
 /// clip either way, which is what lets the next frame tell the two cases apart.
 /// The call sits *inside* the loop and takes a fresh `work` in `$a0` each
 /// iteration, the same shape `func_actor_405800_80138294` has.
@@ -3580,32 +3567,32 @@ static void func_actor_206100_8014F2F0(Task* arg0)
     s32              i;
 
     work = (Actor206100Work*)arg0->work;
-    if (work->field_50E == work->field_510) {
+    if (work->animPlaying == work->animClip) {
         i = 1;
         do {
-            work->slots[i].rate = work->field_51A;
-            func_800B4114(&work->anim, i, work->field_510, 0, work->field_524);
+            work->slots[i].rate = work->animStep;
+            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
-            work->slots[i].rate = work->field_51A;
-            func_800B4114(&work->anim, i, work->field_510, 0, work->field_524);
+            work->slots[i].rate = work->animStep;
+            func_800B4114(&work->anim, i, work->animClip, 0, work->animBlend);
             i++;
         } while (i < 0xF);
-        work->field_524 = 0;
+        work->animBlend = 0;
     }
-    work->field_50E = work->field_510;
+    work->animPlaying = work->animClip;
 }
 static s16 func_actor_206100_8014F3C8(Task* arg0, s16 arg1)
 {
     Actor206100Work* work = (Actor206100Work*)arg0->work;
 
-    if (work->field_51A == 0) {
+    if (work->animStep == 0) {
         return 0;
     }
-    return ((arg1 << 8) / work->field_51A << 12) >> 16;
+    return ((arg1 << 8) / work->animStep << 12) >> 16;
 }
 
 /// The actor's task callback: runs its current top-level state out of
@@ -3636,7 +3623,7 @@ static void func_actor_206100_8014F4B8(MATRIX* src, MATRIX* dst)
     dst->m[2][2] = src->m[2][2];
 }
 
-/// Runs the actor's sub-state handler for the current `field_522`, after
+/// Runs the actor's sub-state handler for the current `subState`, after
 /// marking the enemy's list node so the exit path tears the actor down.
 static void func_actor_206100_8014F524(Task* task)
 {
@@ -3648,7 +3635,7 @@ static void func_actor_206100_8014F524(Task* task)
     enemy                         = (Enemy*)task->spawnArg2.pointer;
     sp                            = D_actor_206100_80149E94;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    sp.funcs[(s16)work->field_522](task);
+    sp.funcs[(s16)work->subState](task);
 }
 
 static void func_actor_206100_8014F59C(Task* task)
@@ -3667,11 +3654,11 @@ static void func_actor_206100_8014F5B4(Task* task)
 {
     Actor206100Work* work                = (Actor206100Work*)task->work;
     void             (*states[2])(Task*) = {
-        func_actor_206100_8014F8BC,
+        diverState7Enter,
         func_actor_206100_8014F970,
     };
 
-    states[(s16)work->field_522](task);
+    states[(s16)work->subState](task);
 }
 
 static void func_actor_206100_8014F608(Task* task)
@@ -3682,7 +3669,7 @@ static void func_actor_206100_8014F608(Task* task)
         func_actor_206100_8014FA08,
     };
 
-    states[(s16)work->field_522](task);
+    states[(s16)work->subState](task);
 }
 
 static void func_actor_206100_8014F65C(Task* task)
@@ -3692,7 +3679,7 @@ static void func_actor_206100_8014F65C(Task* task)
     func_actor_206100_8014DEAC(task);
     Gp_MsgPlayerWeapon(0);
     work->field_51E = 0;
-    work->field_522 = work->field_522 + 1;
+    work->subState  = work->subState + 1;
 }
 
 static void func_actor_206100_8014F69C(Task* task)
@@ -3705,7 +3692,7 @@ static void func_actor_206100_8014F69C(Task* task)
     work->field_51E = timer;
     if ((s16)timer >= 0x5A) {
         work->field_51E = 0;
-        work->field_522 = work->field_522 + 1;
+        work->subState  = work->subState + 1;
     }
 }
 
@@ -3714,26 +3701,26 @@ static void func_actor_206100_8014F6F8(Task* task)
     Actor206100Work* work;
     Actor206100Work* anim;
 
-    work            = (Actor206100Work*)task->work;
-    work->field_51E = 0;
-    anim            = (Actor206100Work*)task->work;
-    anim->field_524 = 8;
-    anim->field_51A = 8;
-    anim->field_510 = 7;
-    anim->field_50C = 1;
-    work->field_522 = work->field_522 + 1;
+    work              = (Actor206100Work*)task->work;
+    work->field_51E   = 0;
+    anim              = (Actor206100Work*)task->work;
+    anim->animBlend   = 8;
+    anim->animStep    = 8;
+    anim->animClip    = 7;
+    anim->animRequest = 1;
+    work->subState    = work->subState + 1;
 }
 
 static void func_actor_206100_8014F738(Task* task)
 {
     Actor206100Work* work = (Actor206100Work*)task->work;
 
-    work->field_524 = 0xA;
-    work->field_51A = 0x10;
-    work->field_510 = 1;
-    work->field_50C = 1;
-    work->field_51E = 0;
-    work->field_522 = work->field_522 + 1;
+    work->animBlend   = 0xA;
+    work->animStep    = 0x10;
+    work->animClip    = 1;
+    work->animRequest = 1;
+    work->field_51E   = 0;
+    work->subState    = work->subState + 1;
 }
 
 static void func_actor_206100_8014F770(Task* task)
@@ -3748,7 +3735,7 @@ static void func_actor_206100_8014F770(Task* task)
     if ((s16)timer >= 0x5B) {
         next            = (Actor206100Work*)task->work;
         next->field_520 = 3;
-        next->field_522 = 0;
+        next->subState  = 0;
     }
 }
 
@@ -3764,14 +3751,14 @@ static void func_actor_206100_8014F7B4(Task* task)
     pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(soundId, pan,
                         (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
-    next            = (Actor206100Work*)task->work;
-    next->field_524 = 0xA;
-    next->field_51A = 0x10;
-    next->field_510 = 1;
-    next->field_50C = 1;
-    work->field_526 = 0x1388;
-    work->field_51E = 0;
-    work->field_522 = work->field_522 + 1;
+    next              = (Actor206100Work*)task->work;
+    next->animBlend   = 0xA;
+    next->animStep    = 0x10;
+    next->animClip    = 1;
+    next->animRequest = 1;
+    work->field_526   = 0x1388;
+    work->field_51E   = 0;
+    work->subState    = work->subState + 1;
 }
 
 static void func_actor_206100_8014F878(Task* task)
@@ -3786,27 +3773,11 @@ static void func_actor_206100_8014F878(Task* task)
     if ((s16)timer >= 0x3D) {
         next            = (Actor206100Work*)task->work;
         next->field_520 = 1;
-        next->field_522 = 0;
+        next->subState  = 0;
     }
 }
 
-static void func_actor_206100_8014F8BC(Task* task)
-{
-    Actor206100Work* work;
-    s32              soundId;
-    s32              pan;
-
-    work            = (Actor206100Work*)task->work;
-    work->field_524 = 6;
-    work->field_51A = 0x10;
-    work->field_510 = 0xA;
-    work->field_50C = 1;
-    soundId         = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan             = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan,
-                        (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
-    work->field_522 = work->field_522 + 1;
-}
+#include "../../shared/diver_state7_enter.inc.c"
 
 static void func_actor_206100_8014F970(Task* task)
 {
@@ -3823,7 +3794,7 @@ static void func_actor_206100_8014F970(Task* task)
     if (cond) {
         work            = (Actor206100Work*)task->work;
         work->field_520 = 2;
-        work->field_522 = 0;
+        work->subState  = 0;
     }
 }
 
@@ -3831,13 +3802,13 @@ static void func_actor_206100_8014F9C4(Task* task)
 {
     Actor206100Work* work = (Actor206100Work*)task->work;
 
-    work->field_524 = 8;
-    work->field_51A = 0x10;
-    work->field_510 = 0xE;
-    work->field_50C = 1;
-    work->field_51E = 0;
-    work->field_526 = work->field_536;
-    work->field_522 = work->field_522 + 1;
+    work->animBlend   = 8;
+    work->animStep    = 0x10;
+    work->animClip    = 0xE;
+    work->animRequest = 1;
+    work->field_51E   = 0;
+    work->field_526   = work->field_536;
+    work->subState    = work->subState + 1;
 }
 
 static void func_actor_206100_8014FA08(Task* task)
@@ -3861,17 +3832,17 @@ static void func_actor_206100_8014FA08(Task* task)
         cond = 0;
     }
     if (cond != 0) {
-        next            = (Actor206100Work*)task->work;
-        next->field_524 = 8;
-        next->field_51A = 8;
-        next->field_510 = 0x10;
-        next->field_50C = 1;
+        next              = (Actor206100Work*)task->work;
+        next->animBlend   = 8;
+        next->animStep    = 8;
+        next->animClip    = 0x10;
+        next->animRequest = 1;
     }
     if (Gp_TickObjFlag2(task->spawnArg2.pointer) != 0) {
         work->field_557 = 4;
         next            = (Actor206100Work*)task->work;
         next->field_520 = 1;
-        next->field_522 = 0;
+        next->subState  = 0;
     }
 }
 /// Ring-spawn state: seeds `field_4F4` and `field_548` from the eight-point ring
@@ -3901,9 +3872,9 @@ static void func_actor_206100_8014FAE4(Task* task)
     work->field_548               = 0;
     work->field_4F4               = D_actor_206100_80158B68;
     next                          = (Actor206100Work*)task->work;
-    next->field_51A               = 0x10;
-    next->field_510               = 3;
-    next->field_50C               = 2;
+    next->animStep                = 0x10;
+    next->animClip                = 3;
+    next->animRequest             = 2;
     work->field_43E               = 0x400;
     coord->coord.t[0]             = work->field_4F4[work->field_548].field_0;
     coord->coord.t[1]             = work->field_4F4[work->field_548].field_2;
@@ -3913,7 +3884,7 @@ static void func_actor_206100_8014FAE4(Task* task)
     work->field_51E = 0;
     last            = (Actor206100Work*)task->work;
     last->field_520 = 1;
-    last->field_522 = 0;
+    last->subState  = 0;
 }
 
 static void func_actor_206100_8014FBE4(Task* task, void* unusedTable)
@@ -3967,25 +3938,25 @@ static void func_actor_206100_8014FCD4(Task* task, void* unusedTable)
     s32              i;
     s16              state;
 
-    work            = (Actor206100Work*)task->work;
-    work->field_524 = 4;
-    work->field_51A = 0x10;
-    work->field_510 = 0xE;
-    work->field_50C = 1;
-    next            = (Actor206100Work*)task->work;
-    state           = next->field_50C;
+    work              = (Actor206100Work*)task->work;
+    work->animBlend   = 4;
+    work->animStep    = 0x10;
+    work->animClip    = 0xE;
+    work->animRequest = 1;
+    next              = (Actor206100Work*)task->work;
+    state             = next->animRequest;
     if (state == 1) {
-        if (next->field_50E != next->field_510) {
+        if (next->animPlaying != next->animClip) {
             next->field_512 = 0;
         } else {
             next->field_512 = func_actor_206100_8014F3C8(task, next->field_512);
         }
         func_actor_206100_8014F2F0(task);
-        next->field_50C = 3;
+        next->animRequest = 3;
     } else if (state == 2) {
-        func_actor_206100_8014F284(task);
-        next->field_50C = 3;
-        next->field_512 = 0;
+        diverRestartClip(task);
+        next->animRequest = 3;
+        next->field_512   = 0;
     } else if (state == 3) {
         next->field_512 = next->field_512 + 1;
     }
@@ -4024,6 +3995,6 @@ static void func_actor_206100_8014FDE8(Task* task, void* unusedTable)
         task->state     = 4;
         next            = (Actor206100Work*)task->work;
         next->field_520 = 0;
-        next->field_522 = 0;
+        next->subState  = 0;
     }
 }

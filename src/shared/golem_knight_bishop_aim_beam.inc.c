@@ -1,6 +1,6 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Draws the red trail between the two points `func_actor_402200_80135D5C`
+/// Draws the red trail between the two points `golemKnightBishopAimFromPart`
 /// projects into `field_6FC`..`field_704`: eight segments, each skipped while
 /// its interpolated depth is below 0x1E, and each drawn as two shaded quads
 /// offset along the screen normal, a centre line and a tpage.
