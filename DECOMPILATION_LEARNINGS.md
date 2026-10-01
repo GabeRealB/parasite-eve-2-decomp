@@ -6375,7 +6375,7 @@ if (f2 == 0) {
 ```
 
 Parenthesizing `c | (a | b)` without pins reshuffles the loads.
-`gpDrawStreamPrimGt3PreXformFixedLayer` is the example.
+`tmdDrawStreamPrimGt3PreXformEnvLayer` is the example.
 
 ## Subtract a constant from a saved coord via `base + (saved - K)`
 
@@ -6563,7 +6563,7 @@ parameter's own register (`register s32 sz asm("a0")`), that copy is the
 parameter being moved out of the pinned register's way and GCC emits it with or
 without the source-level copy: naming the parameter and deleting both the local
 declaration and the assignment left the body byte-identical in
-`gpDrawStreamPrimGt3PreXformFixedLayer`, whose m2c form had `ws = index` and
+`tmdDrawStreamPrimGt3PreXformEnvLayer`, whose m2c form had `ws = index` and
 whose `sz` is pinned to `$a0`.
 
 So the shape is load-bearing only where something pins *it* — `TOUCH_REG(ws)` or
@@ -37484,7 +37484,7 @@ were scaffolding and are gone.)
 
 `gpDrawStreamPrimGt4PreXformLayer` is the pure example: it is the POLY_GT4 (0x34 stride, `avsz4`,
 len 12 / code 0x3C-0x3E, 4-iteration u-fixup loop) sibling of the POLY_GT3
-`gpDrawStreamPrimGt3PreXformFixedLayer`, and porting that function with the
+`tmdDrawStreamPrimGt3PreXformEnvLayer`, and porting that function with the
 type, stride and loop bound swapped matched on the first attempt. When a TU holds a family
 of these clippers, diff the target against the nearest already-matched sibling
 before writing anything from scratch.
@@ -142948,7 +142948,7 @@ try the parameter at the width of the field the callers pass before reaching
 for a block-scoped copy of the body - both a hand-inlined copy and a `{ }`
 block scored worse than either helper form here.
 
-### A second-primitive pointer local (`xy = poly + 1`) blocks its own strength reduction; write `&poly[1]` (gpDrawStreamPrimGt3PreXformFixedLayer, 2026-09-26)
+### A second-primitive pointer local (`xy = poly + 1`) blocks its own strength reduction; write `&(*packetPair)[1]` (tmdDrawStreamPrimGt3PreXformEnvLayer, 2026-09-26)
 
 **Symptom.** A loop filling primitive pairs keeps `poly + 1` in its own register, stepped by
 the pair stride beside `poly`, and every field of both primitives is addressed off it. A
@@ -142961,7 +142961,8 @@ absorbs the `xy = poly + 1` DEST_REG giv - set once (`n_times_used` is really a 
 and mentioned by the representative's own insn - it *replaces* the summed benefit with
 that giv's 2, and `2 - add_cost` is 0.
 
-**Fix.** No local: write `poly->...` and `&poly[1]` (e.g. `addPrim(ot, &poly[1])`). The
+**Fix.** No second-packet local: write `(*packetPair)[0].…` and `&(*packetPair)[1]`
+(e.g. `addPrim(ot, &(*packetPair)[1])`). The
 representative no longer mentions a single-set register, the benefits sum, and the giv is
 reduced to the retail separate register.
 ## A walk to a terminator flag: index it, and exit with `break` from `for (;;)` (Gp_LinkRoomObjects, 2026-09-26)

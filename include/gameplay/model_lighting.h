@@ -583,7 +583,7 @@ u32* gpStreamPrimGt4Base(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// model's texture page and CLUT added to the primitive's own, and the layer's page
 /// and CLUT are written here as fixed values rather than from the object's extra
 /// page and CLUT offsets. The pair is drawn by
-/// `gpDrawStreamPrimGt3PreXformFixedLayer`, which settles the page the layer is
+/// `tmdDrawStreamPrimGt3PreXformEnvLayer`, which settles the page the layer is
 /// finally drawn from.
 u32* gpStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 

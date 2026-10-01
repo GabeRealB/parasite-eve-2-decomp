@@ -242,6 +242,23 @@ static inline void _tmdStoreFlatQuadFirstTriangleFacing(const POLY_F4* packet, s
     gte_stopz(facingArea);
 }
 
+/// Stores the signed double area of a projected Gouraud textured triangle.
+///
+/// `packet` supplies word-aligned signed 16-bit XY pairs in pixels for corners
+/// 0..2; `facingArea` receives the signed 32-bit NCLIP result in square pixels.
+/// This handler accepts only positive results. Overflow is not checked.
+/// Reads all three coordinate pairs before storing; buffers may overlap.
+/// Replaces SXY0..SXY2 and clobbers MAC0/FLAG, with no projection or lighting.
+/// Both pointers are borrowed for the call and are not retained.
+static inline void _tmdStoreTexturedTriangleFacing(const POLY_GT3* packet, s32* facingArea)
+{
+    gte_ldSXYP(*(const u32*)&packet->x0);
+    gte_ldSXYP(*(const u32*)&packet->x1);
+    gte_ldSXYP(*(const u32*)&packet->x2);
+    gte_nclip();
+    gte_stopz(facingArea);
+}
+
 static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2)
 {
     s32  prev;
@@ -708,92 +725,110 @@ u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
     return elements;
 }
 
-u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3*     poly;
-    s32*          opz;
-    u32           clipMask;
-    s32           len;
-    s32           code;
-    DisplayState* ds;
-    u16*          rec;
-    s32           sz;
-    s32           idx;
-    s32*          szTable;
-    u8*           flagp;
-    u8*           up;
-    s32           i;
-    s32           tpage;
+    enum {
+        // Depth refs count bytes; low two bits are excluded, with no bounds check.
+        TMD_GT3_ENV_DEPTH_REFERENCE_MASK = 0xFFFC,
+        // Fixed 15-bit additive environment pages at VRAM (448,256) and (576,256).
+        TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(2, 1, 448, 256),
+        TMD_GT3_ENV_SECOND_TEXTURE_PAGE = getTPage(2, 1, 576, 256),
+        TMD_GT3_ENV_PAGE_U_DISPLACEMENT = 128,
+        TMD_GT3_ENV_BASE_COMMAND        = 0x34,
+        TMD_GT3_ENV_LAYER_COMMAND       = 0x36,
+        TMD_GT3_ENV_CORNER_COUNT        = 3,
+        TMD_GT3_ENV_PACKET_COUNT        = 2,
+        TMD_GT3_ENV_CORNER_BYTES        = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0),
+        // Sixteen scaled OTZ units select one four-byte OT tag.
+        TMD_GT3_ENV_OT_INDEX_SHIFT = 4
+    };
+    /// One element's environment packet followed by its opaque base packet.
+    typedef POLY_GT3 _TmdEnvTrianglePair[TMD_GT3_ENV_PACKET_COUNT];
 
-    poly = (POLY_GT3*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        opz      = &ws->gteResult;
-        clipMask = TMD_VERTEX_DEPTH_INVALID;
-        len      = 9;
-        code     = 0x34;
-        ds       = &gDisplayState;
+    _TmdEnvTrianglePair* packetPair;
+    s32*                 gteResultDestination;
+    u32                  invalidDepthMask;
+    s32                  packetWordCount;
+    s32                  baseCommand;
+    const DisplayState*  displayState;
+    const u16*           depthRefs;
+    s32                  depthOrPageMarkers;
+    u32                  depthByteOffset;
+    const s32*           vertexDepths;
+    u8*                  pageMarker;
+    u8*                  textureU;
+    s32                  cornerIndex;
+    s32                  texturePage;
+
+    packetPair = (_TmdEnvTrianglePair*)workspace->preXformWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        invalidDepthMask     = TMD_VERTEX_DEPTH_INVALID;
+        packetWordCount      = (sizeof((*packetPair)[0]) - sizeof((*packetPair)[0].tag)) / sizeof(u32);
+        baseCommand          = TMD_GT3_ENV_BASE_COMMAND;
+        displayState         = &gDisplayState;
         do {
-            rec = (u16*)stream;
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
-            gte_nclip();
-            gte_stopz(opz);
-            if (ws->gteResult > 0) {
-                szTable = ws->szTable;
-                idx     = rec[0] & 0xFFFC;
-                sz      = szTable[(u32)idx / sizeof(*szTable)];
-                if ((sz & clipMask) == 0) {
-                    gte_ldSZ1(sz);
-                    idx = rec[1] & 0xFFFC;
-                    sz  = szTable[(u32)idx / sizeof(*szTable)];
-                    if ((sz & clipMask) == 0) {
-                        gte_ldSZ2(sz);
-                        idx = rec[2] & 0xFFFC;
-                        sz  = szTable[(u32)idx / sizeof(*szTable)];
-                        if ((sz & clipMask) == 0) {
-                            gte_ldSZ3(sz);
+            depthRefs = (const u16*)elements;
+            // Cull from the environment packet's projected winding.
+            _tmdStoreTexturedTriangleFacing(&(*packetPair)[0], gteResultDestination);
+            if (workspace->gteResult > 0) {
+                vertexDepths       = workspace->szTable;
+                depthByteOffset    = depthRefs[0] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                if ((depthOrPageMarkers & invalidDepthMask) == 0) {
+                    gte_ldSZ1(depthOrPageMarkers);
+                    depthByteOffset    = depthRefs[1] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                    depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                    if ((depthOrPageMarkers & invalidDepthMask) == 0) {
+                        gte_ldSZ2(depthOrPageMarkers);
+                        depthByteOffset    = depthRefs[2] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                        depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                        if ((depthOrPageMarkers & invalidDepthMask) == 0) {
+                            gte_ldSZ3(depthOrPageMarkers);
                             gte_avsz3();
-                            // code, p1 and p2 each follow a vertex colour and hold that vertex's flag.
-                            sz = poly->code | poly->p1 | poly->p2;
-                            if (sz == 0) {
-                                tpage = 0x137;
+                            // Projection leaves second-page markers in the colour groups' high bytes.
+                            depthOrPageMarkers = (*packetPair)[0].code | (*packetPair)[0].p1 | (*packetPair)[0].p2;
+                            if (depthOrPageMarkers == 0) {
+                                texturePage = TMD_GT3_ENV_FIRST_TEXTURE_PAGE;
                             } else {
-                                flagp = &poly->code;
-                                i     = 0;
-                                up    = &poly->u0;
+                                // Use the pair byte view: even the final cursor increments stay in bounds.
+                                pageMarker  = (u8*)packetPair + OFFSET_OF(POLY_GT3, code);
+                                cornerIndex = 0;
+                                textureU    = (u8*)packetPair + OFFSET_OF(POLY_GT3, u0);
                                 do {
-                                    if (*flagp == 0) {
-                                        if ((s8)*up < 0) {
-                                            *up += 0x80;
+                                    if (*pageMarker == 0) {
+                                        if ((s8)*textureU < 0) {
+                                            *textureU += TMD_GT3_ENV_PAGE_U_DISPLACEMENT;
                                         } else {
-                                            *up = 0;
+                                            *textureU = 0;
                                         }
                                     }
-                                    up += 0xC;
-                                    i++;
-                                    flagp += 0xC;
-                                } while (i < 3);
-                                tpage = 0x139;
+                                    textureU += TMD_GT3_ENV_CORNER_BYTES;
+                                    cornerIndex++;
+                                    pageMarker += TMD_GT3_ENV_CORNER_BYTES;
+                                } while (cornerIndex < TMD_GT3_ENV_CORNER_COUNT);
+                                texturePage = TMD_GT3_ENV_SECOND_TEXTURE_PAGE;
                             }
-                            poly->tpage = tpage;
-                            setlen(poly, len);
-                            setcode(poly, 0x36);
-                            setlen(&poly[1], len);
-                            setcode(&poly[1], code);
-                            gte_stotz(opz);
-                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
-                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], &poly[1]);
+                            (*packetPair)[0].tpage = texturePage;
+                            // Stamp both commands; head insertion puts the base before its environment layer.
+                            setlen(&(*packetPair)[0], packetWordCount);
+                            setcode(&(*packetPair)[0], TMD_GT3_ENV_LAYER_COMMAND);
+                            setlen(&(*packetPair)[1], packetWordCount);
+                            setcode(&(*packetPair)[1], baseCommand);
+                            gte_stotz(gteResultDestination);
+                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_GT3_ENV_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], &(*packetPair)[0]);
+                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_GT3_ENV_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], &(*packetPair)[1]);
                         }
                     }
                 }
             }
-            poly   += 2;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Culled elements consume both packet slots too.
+            packetPair++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)packetPair;
+    return elements;
 }
 
 u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
