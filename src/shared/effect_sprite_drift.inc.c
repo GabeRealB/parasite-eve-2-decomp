@@ -1,6 +1,25 @@
 #include "main/random.h"
 
-/* Part of the effect sprite library; see effect_sprite.h. */
+/* Part of the effect sprite library; see effect_sprite.h.
+ *
+ * A room whose gameplay table names its own task defines
+ * EFFECT_SPRITE_DRIFT_TASK to that name; EFFECT_SPRITE_DRIFT_DRAW_A / _B name the room's own
+ * drawers when it does not use effectSpriteDrawBanked / effectSpriteDrawRotated.
+ * EFFECT_SPRITE_DRIFT_PAUSED_PLAIN 1 redraws a paused sprite with the first
+ * drawer and the bare cell index (Dryfield R08). EFFECT_SPRITE_DRIFT_SIGN_BANK 1
+ * takes the drawer from the top four bits of the spawn argument and the bank
+ * from its sign alone, and EFFECT_SPRITE_DRIFT_STEADY_RISE 1 rises at a
+ * constant rate for every kind (Shelter R48). */
+
+#ifndef EFFECT_SPRITE_DRIFT_TASK
+#define EFFECT_SPRITE_DRIFT_TASK effectSpriteDriftTask
+#endif
+#ifndef EFFECT_SPRITE_DRIFT_DRAW_A
+#define EFFECT_SPRITE_DRIFT_DRAW_A effectSpriteDrawBanked
+#endif
+#ifndef EFFECT_SPRITE_DRIFT_DRAW_B
+#define EFFECT_SPRITE_DRIFT_DRAW_B effectSpriteDrawRotated
+#endif
 
 /// Per-frame handler for one animated sprite effect, drawn by
 /// `effectSpriteDrawBanked` (state 1) or
@@ -14,22 +33,36 @@
 /// coordinate by the velocity and bends its Y component, then frees the effect
 /// after the drawer's last cell (12 or 10). While the player is in an event it
 /// only draws, and frees once the event state reaches 4.
-void effectSpriteDriftTask(Task* task)
+void EFFECT_SPRITE_DRIFT_TASK(Task* task)
 {
     EffectWork* work;
     GfxCoord*   coord;
     SVECTOR*    vec;
     s32         step;
     s32         level;
+#if EFFECT_SPRITE_DRIFT_SIGN_BANK
+    s32 zero;
+#endif
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (task->state < 2) {
-            effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
+#if EFFECT_SPRITE_DRIFT_PAUSED_PLAIN
+        /* this build redraws a paused sprite with the first drawer, unbanked */
+        EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index, work->scale, work->angle);
+#elif EFFECT_SPRITE_DRIFT_SIGN_BANK
+        if (task->spawnArg1.value < 0) {
+            EFFECT_SPRITE_DRIFT_DRAW_B(coord, work->index | work->pos.vx, work->scale, work->angle);
         } else {
-            effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
+            EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
+#else
+        if (task->state < 2) {
+            EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index | work->pos.vx, work->scale, work->angle);
+        } else {
+            EFFECT_SPRITE_DRIFT_DRAW_B(coord, work->index | work->pos.vx, work->scale, work->angle);
+        }
+#endif
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             effectKillTask(work, task);
         }
@@ -48,9 +81,17 @@ void effectSpriteDriftTask(Task* task)
             }
             work->period = step;
             work->age    = 0;
+#if EFFECT_SPRITE_DRIFT_SIGN_BANK
+            /* any of the top four bits picks the second drawer, and the sign
+               alone the second bank */
+            task->state  = task->spawnArg1.value & 0xF0000000 ? 2 : 1;
+            zero         = 0;
+            work->pos.vx = (task->spawnArg1.value < zero) << 12;
+#else
             task->state  = 1;
             task->state  = task->spawnArg1.value < 0 ? 2 : 1;
             work->pos.vx = (task->spawnArg1.value >> 16) & 0x7000;
+#endif
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1.value & 0xFF0000) {
                     level = (task->spawnArg1.value >> 16) & 0xFF;
@@ -110,17 +151,21 @@ void effectSpriteDriftTask(Task* task)
             }
             break;
         case 1:
-            effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
+            EFFECT_SPRITE_DRIFT_DRAW_A(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
                 coord->coord.t[0]  += work->move.vx;
                 coord->coord.t[1]  += work->move.vy;
                 coord->coord.t[2]  += work->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
+#if EFFECT_SPRITE_DRIFT_STEADY_RISE
+                work->move.vy -= 2;
+#else
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
                     work->move.vy -= 2;
                 }
+#endif
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
@@ -130,17 +175,21 @@ void effectSpriteDriftTask(Task* task)
             }
             break;
         case 2:
-            effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
+            EFFECT_SPRITE_DRIFT_DRAW_B(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
                 coord->coord.t[0]  += work->move.vx;
                 coord->coord.t[1]  += work->move.vy;
                 coord->coord.t[2]  += work->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
+#if EFFECT_SPRITE_DRIFT_STEADY_RISE
+                work->move.vy -= 1;
+#else
                 if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
                     work->move.vy += work->age / 10;
                 } else {
                     work->move.vy -= 1;
                 }
+#endif
             }
             if ((work->age % work->period) == 0) {
                 work->index++;
@@ -151,3 +200,10 @@ void effectSpriteDriftTask(Task* task)
             break;
     }
 }
+
+#undef EFFECT_SPRITE_DRIFT_TASK
+#undef EFFECT_SPRITE_DRIFT_PAUSED_PLAIN
+#undef EFFECT_SPRITE_DRIFT_SIGN_BANK
+#undef EFFECT_SPRITE_DRIFT_STEADY_RISE
+#undef EFFECT_SPRITE_DRIFT_DRAW_A
+#undef EFFECT_SPRITE_DRIFT_DRAW_B
