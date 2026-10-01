@@ -326,7 +326,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         setlen(p, 9);
         setcode(p, 0x2D);
     } else {
-        GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x40, 0x40, 0x40, 0);
+        GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0x40, 0);
         setlen(p, 9);
         setcode(p, 0x2C);
     }
@@ -338,7 +338,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         q->w                           = p->x1 - p->x0 + 2;
         q->h                           = p->y2 - p->y0 + 2;
         gGpuPrimCursor                 = q + 1;
-        GPU_PRIMITIVE_COLOR_WORD(q, 0) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
+        GPU_PRIMITIVE_COLOR_WORD(q, 0) = GPU_PACK_COLOR_WORD(0xc0, 0xc0, 0xc0, 0);
         setlen(q, 3);
         setcode(q, 0x60);
         addPrim(gGpuCurrentOt + arg0->panel.otIndex.signedValue + 1, q);
@@ -906,7 +906,7 @@ void Gp_PeGridPanelTask(Task* arg0)
         p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         setlen(p, 4);
-        GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
+        GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
         setcode(p, 0x64);
         addPrim(gGpuCurrentOt + obj->panel.otIndex.signedValue + 1, p);
         p->x0   = D_8010E844[iconCol].xOffset + (obj->panel.contentOriginX.unsignedValue + startX + iconCol * colStep);
@@ -939,7 +939,7 @@ void Gp_PeGridPanelTask(Task* arg0)
                 p->v0          = 0x88;
                 p->clut        = 0x3C02;
                 setlen(p, 4);
-                GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
+                GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
                 setcode(p, 0x64);
                 p->y0 = capY;
                 addPrim(gGpuCurrentOt + obj->panel.otIndex.signedValue + 1, p);

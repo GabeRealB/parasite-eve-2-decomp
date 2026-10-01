@@ -939,7 +939,7 @@ static void Gp_DrawPeGauge(GpIdMapC* arg0, s32 arg1, s32 arg2)
             tile->w        = Gp_StateC08.field_2;
             tile->h        = 1;
             setlen(tile, 3);
-            GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0, 0xc0, 0xff, 0);
+            GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0, 0xc0, 0xff, 0);
             setcode(tile, 0x60);
             addPrim(gGpuCurrentOt - 2, tile);
         }

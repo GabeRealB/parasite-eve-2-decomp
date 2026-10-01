@@ -238,7 +238,7 @@ void Gp_AllocSprtLists(void)
             for (i = 0; i < batch->spriteCount; i++) {
                 dest               = buf[bufIdx];
                 sprt               = &dest->sprt;
-                sprt->packed.color = PRIM_RGBC(0, 0x80, 0, 0);
+                sprt->packed.color = GPU_PACK_COLOR_WORD(0, 0x80, 0, 0);
                 setlen(&dest->tpage, 1);
                 tpage = source->tpage;
                 setlen(&dest->sprt.fields, 4);

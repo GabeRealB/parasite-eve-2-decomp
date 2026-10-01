@@ -1453,7 +1453,7 @@ void Ui_DrawBeveledRect(UiPanel* panel, s32 x, s32 y, s32 width, s32 height, u32
     t                              = panel->contentOriginY.unsignedValue + (y + height);
     l->y2                          = t;
     l->y1                          = t;
-    GPU_PRIMITIVE_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? PRIM_RGBC(0x58, 0x60, 0x50, 0) : PRIM_RGBC(0x10, 0x18, 0x10, 0);
+    GPU_PRIMITIVE_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? GPU_PACK_COLOR_WORD(0x58, 0x60, 0x50, 0) : GPU_PACK_COLOR_WORD(0x10, 0x18, 0x10, 0);
     setLineF3(l);
     addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, l);
 
@@ -1467,7 +1467,7 @@ void Ui_DrawBeveledRect(UiPanel* panel, s32 x, s32 y, s32 width, s32 height, u32
     l->y1                          = t;
     l->y0                          = t;
     l->y2                          = panel->contentOriginY.unsignedValue + (y + height);
-    GPU_PRIMITIVE_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? PRIM_RGBC(0x10, 0x18, 0x10, 0) : PRIM_RGBC(0x58, 0x60, 0x50, 0);
+    GPU_PRIMITIVE_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? GPU_PACK_COLOR_WORD(0x10, 0x18, 0x10, 0) : GPU_PACK_COLOR_WORD(0x58, 0x60, 0x50, 0);
     setLineF3(l);
     addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, l);
 }
@@ -1862,7 +1862,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
     textX         = req.x;
     // The original reservation is larger than the flat packet written here.
     gGpuPrimCursor                 = (u8*)p + sizeof(POLY_FT4);
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x02, 0x10, 0x02, 0);
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x02, 0x10, 0x02, 0);
     p->y2 = p->y3 = y + 7;
     setPolyF4(p);
     p->y0 = p->y1 = y;

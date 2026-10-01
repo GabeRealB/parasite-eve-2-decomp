@@ -2969,11 +2969,11 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
                         p4->v2 = p4->y2 - 0x78;
                         p4->v3 = p4->y3 - 0x78;
                         if (mode == 1) {
-                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = PRIM_RGBC(0x20, 0x20, 0x20, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = GPU_PACK_COLOR_WORD(0x20, 0x20, 0x20, 0);
                         } else if (mode == 2) {
-                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = PRIM_RGBC(0x40, 0x40, 0xff, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0xff, 0);
                         } else {
-                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = PRIM_RGBC(0xff, 0x40, 0x40, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = GPU_PACK_COLOR_WORD(0xff, 0x40, 0x40, 0);
                         }
                         p4->clut = 0x4000;
                     }
@@ -3060,11 +3060,11 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
                         p3->v1 = p3->y1 - 0x78;
                         p3->v2 = p3->y2 - 0x78;
                         if (mode == 1) {
-                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = PRIM_RGBC(0x20, 0x20, 0x20, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = GPU_PACK_COLOR_WORD(0x20, 0x20, 0x20, 0);
                         } else if (mode == 2) {
-                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = PRIM_RGBC(0x40, 0x40, 0xff, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0xff, 0);
                         } else {
-                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = PRIM_RGBC(0xff, 0x40, 0x40, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = GPU_PACK_COLOR_WORD(0xff, 0x40, 0x40, 0);
                         }
                         p3->clut = 0x4000;
                     }

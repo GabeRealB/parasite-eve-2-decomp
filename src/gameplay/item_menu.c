@@ -1150,7 +1150,7 @@ void func_800BDF6C(Task* task)
     Ui_DrawFlatCaret(&(obj)->panel, caretX, panelY + 0x1E, 0x606060, 0);
     line                              = gGpuPrimCursor;
     gGpuPrimCursor                    = line + 1;
-    GPU_PRIMITIVE_COLOR_WORD(line, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
+    GPU_PRIMITIVE_COLOR_WORD(line, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
     coord                             = obj->panel.contentOriginX.unsignedValue + caretX;
     line->x1                          = coord;
     line->x0                          = coord;

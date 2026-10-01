@@ -314,16 +314,16 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 gGpuPrimCursor = p + 1;
                 if (selVal < itemVal) {
                     p->u0                          = 0x30;
-                    GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
+                    GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x1f, 0x74, 0x01, 0);
                     if (swap != 0) {
-                        GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x7f, 0x28, 0x0d, 0);
+                        GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x7f, 0x28, 0x0d, 0);
                     }
                 } else if (itemVal < selVal) {
                     p->u0                          = 0xA0;
-                    GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x7f, 0x28, 0x0d, 0);
+                    GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x7f, 0x28, 0x0d, 0);
                     p->y0                          = p->y0 - 1;
                     if (swap != 0) {
-                        GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
+                        GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x1f, 0x74, 0x01, 0);
                     }
                 } else {
                     p->u0                          = 0x78;

@@ -320,10 +320,10 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     }
     poly                              = gGpuPrimCursor;
     gGpuPrimCursor                    = poly + 1;
-    GPU_PRIMITIVE_COLOR_WORD(poly, 2) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
-    GPU_PRIMITIVE_COLOR_WORD(poly, 3) = PRIM_RGBC(0x80, 0x80, 0x80, 0);
-    GPU_PRIMITIVE_COLOR_WORD(poly, 0) = PRIM_RGBC(0x40, 0x40, 0x40, 0);
-    GPU_PRIMITIVE_COLOR_WORD(poly, 1) = PRIM_RGBC(0x30, 0x30, 0x30, 0);
+    GPU_PRIMITIVE_COLOR_WORD(poly, 2) = GPU_PACK_COLOR_WORD(0xc0, 0xc0, 0xc0, 0);
+    GPU_PRIMITIVE_COLOR_WORD(poly, 3) = GPU_PACK_COLOR_WORD(0x80, 0x80, 0x80, 0);
+    GPU_PRIMITIVE_COLOR_WORD(poly, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0x40, 0);
+    GPU_PRIMITIVE_COLOR_WORD(poly, 1) = GPU_PACK_COLOR_WORD(0x30, 0x30, 0x30, 0);
     poly->x1 = poly->x3 = x + 0x40;
     poly->y2 = poly->y3 = y + 0x40;
     poly->tpage         = 0x1E;
@@ -473,9 +473,9 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
             tile->w  = w;
             tile->h  = 2;
             if (kind == 0) {
-                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
+                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0x1f, 0x74, 0x01, 0);
             } else {
-                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0x80, 0, 0, 0);
+                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0x80, 0, 0, 0);
             }
             setlen(tile, 3);
             setcode(tile, 0x60);
