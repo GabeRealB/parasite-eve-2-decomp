@@ -297,7 +297,15 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
         /// the signed `workspace->texturePageOffset` (-128..127 encoded units)
         /// is then added only to its u16 `tpage`, wrapping without changing U/V.
         TMD_GT3_UV1_TPAGE_WORD = 4,
-        TMD_GT3_UV2_WORD       = 5 // U2/V2 in low half; high half is not copied
+        /// Element-relative u32 index of vertex 2's packed U/V texel coordinates.
+        ///
+        /// The three-word record header is excluded: index 5 selects byte offset
+        /// 20 in a 0x38-family triangle element. Complete elements supply at least
+        /// six aligned u32 words. On the little-endian target, bits 0..7 hold
+        /// unsigned U texels and bits 8..15 hold unsigned V texels; the high half
+        /// is ignored. Truncating to u16 and storing through the packed halfword
+        /// view copies only `POLY_GT3.u2` and `v2`, preserving the adjacent `pad2`.
+        TMD_GT3_UV2_WORD = 5
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_UV0_CLUT_WORD];
