@@ -41,6 +41,8 @@
 
 #include "overlay.h"
 
+#include "rooms/shelter_b1_pod_service_gantry_light_types.h"
+
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
@@ -52,14 +54,6 @@ static SVECTOR              D_shelter_r47_80187624[10];
 static WorldCoordPointLight D_shelter_r47_80189E90[9];
 static void                 func_shelter_r47_80185214(Task*);
 static void                 func_shelter_r47_8018580C(Task*);
-
-// Retained exporter slots follow the active spotlights. Their contents
-// include stale/incomplete addresses; preserve them as bytes pending review.
-typedef struct {
-    WorldCoordSpotLight active[2];
-    u8                  retained[756];
-} ShelterR47SpotLightStorage;
-STATIC_ASSERT_SIZEOF(ShelterR47SpotLightStorage, 972);
 
 static void func_shelter_r47_8018431C(Task* task);
 static void func_shelter_r47_801844A0(Task* task);
@@ -808,12 +802,12 @@ static WorldCoordPointLight D_shelter_r47_80189E90[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x35EA, -1128, 2778 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1944, 1895, 1866 }, { 0, 0 } }, 5201, 9559 },
 };
 
-ShelterR47SpotLightStorage D_shelter_r47_8018A1F0 = {
-    {
+ShelterB1PodServiceGantrySpotLightStorage D_shelter_r47_8018A1F0 = {
+    .coneLights = {
         { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4003, -2, 873 }, { 869, 266, 4000 }, { -59, 4087, -261 } }, { 3412, -0x5063, 9454 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2764, 2764, 2425 }, { 0, 0 } }, { 872, 3993, -260, 0 }, 0x4E20, 0x7530, 0x2C71 },
         { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4092, 0, -222 }, { 215, -909, -3996 }, { -50, -3996, 908 } }, { 8054, 5038, 1813 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 226, 226, 198 }, { 0, 0 } }, { -221, -3988, 907, 0 }, 10, 0x4E20, 0x2C71 },
     },
-    {
+    .unknown_D8 = {
         0x00,
         0x00,
         0x00,
@@ -1573,7 +1567,7 @@ ShelterR47SpotLightStorage D_shelter_r47_8018A1F0 = {
     },
 };
 
-WorldCoordRoomLights D_shelter_r47_8018A5BC = { 0, NULL, ARRAY_SIZE(D_shelter_r47_80189E90), D_shelter_r47_80189E90, ARRAY_SIZE(D_shelter_r47_8018A1F0.active), D_shelter_r47_8018A1F0.active };
+WorldCoordRoomLights D_shelter_r47_8018A5BC = { 0, NULL, ARRAY_SIZE(D_shelter_r47_80189E90), D_shelter_r47_80189E90, ARRAY_SIZE(D_shelter_r47_8018A1F0.coneLights), D_shelter_r47_8018A1F0.coneLights };
 
 WorldCollisionFootstepSounds D_shelter_r47_8018A5D4 = {
     0x10000059,
