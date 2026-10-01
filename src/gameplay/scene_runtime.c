@@ -337,9 +337,6 @@ static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, 
 
 static void func_800B28E0(Task* task);
 
-static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot,
-                                    _AnimationBlendScratch* scratch);
-
 static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
 static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
@@ -1965,26 +1962,52 @@ Task* func_800B2968(void)
     return Task_SpawnFromTable(D_80119218, 0, 0, 0);
 }
 
-/// Blends decoded angles into the model coordinate or an unpacked pose.
-static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot,
+/// Caches next * inverse(current) as Euler angles for a buffered transition.
+///
+/// `scratch->currentMatrix` must already contain the decoded starting rotation.
+/// The cache uses 4096 units per turn; matrix translation is neither read nor set.
+static inline void _animationCacheRotationDelta(AnimationSlot* slot, _AnimationBlendScratch* scratch)
+{
+    RotMatrix_gte(&scratch->nextRotation, &scratch->nextMatrix);
+    TransposeMatrix(&scratch->currentMatrix, &scratch->deltaMatrix);
+    gte_MulMatrix0(&scratch->nextMatrix, &scratch->deltaMatrix, &scratch->deltaMatrix);
+    gfxMatrixToEuler(&scratch->deltaMatrix, &slot->bufferedRotationDelta);
+}
+
+/// Blends one part's decoded rotations into its local matrix or an unpacked pose.
+///
+/// `scratch` supplies both XYZ Euler endpoints in 4096 units per turn and their
+/// complementary 12-fractional-bit weights (0..ONE). Bank-only endpoints blend
+/// their components directly, without wrapping the angles. Buffered endpoints
+/// instead scale the slot's cached next * inverse(current) Euler rotation, then
+/// compose it with the current rotation. Refreshing that cache requires
+/// `request->refreshRotationDelta` to equal 1; otherwise it must already describe
+/// this transition.
+///
+/// A null unpacked destination updates `coord->coord.m` and marks its composition
+/// stale; a non-null destination receives the rotation instead. Translation and
+/// parent links are preserved. `scratch->nextRotation` holds the blended Euler
+/// result whenever an unpacked or encoded destination is non-null. With only a
+/// matrix output on the buffered path, it retains the scaled relative rotation.
+/// The caller encodes any requested compact output after this call.
+/// Unpacked output copies the full `SVECTOR`, including its untouched pad.
+///
+/// All objects are borrowed for the call. The caller owns the live scratch-stack
+/// block and leaves room for matrix-to-Euler conversion's nested reservation;
+/// this helper neither reserves nor releases it. GTE registers are clobbered.
+static void _animationBlendRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot,
                                     _AnimationBlendScratch* scratch)
 {
-    /// Requests rebuilding the relative rotation for a blend with a buffered endpoint.
+    /// Rebuilds the cached relative rotation on entry to buffered endpoints.
     ///
-    /// Playback emits this on entry to buffered endpoints, including a new
-    /// transition after a seek. The cache stores next * inverse(current) as
-    /// Euler angles in 1/4096 turns; later buffered ticks reuse it. The request
-    /// byte must equal this value exactly, and bank-only blends ignore it.
+    /// The request byte must equal this value exactly; bank-only blends ignore it.
     enum { ANIMATION_ROTATION_DELTA_REFRESH = 1 };
 
     if (slot->usesBufferedPose != 0) {
-        // Interpolate a relative rotation when either endpoint comes from the pose buffer.
+        // Scale the buffered transition's relative rotation, then compose with its start.
         RotMatrix_gte(&scratch->currentRotation, &scratch->currentMatrix);
         if (request->refreshRotationDelta == ANIMATION_ROTATION_DELTA_REFRESH) {
-            RotMatrix_gte(&scratch->nextRotation, &scratch->nextMatrix);
-            TransposeMatrix(&scratch->currentMatrix, &scratch->deltaMatrix);
-            gte_MulMatrix0(&scratch->nextMatrix, &scratch->deltaMatrix, &scratch->deltaMatrix);
-            gfxMatrixToEuler(&scratch->deltaMatrix, &slot->bufferedRotationDelta);
+            _animationCacheRotationDelta(slot, scratch);
         }
         gte_lddp(scratch->nextWeight);
         gte_ldsv(&slot->bufferedRotationDelta);
@@ -2003,14 +2026,9 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* c
             request->unpackedDestination->rotation = scratch->nextRotation;
         }
     } else {
-        // Ordinary keyframes interpolate their Euler components directly.
-        gte_lddp(scratch->currentWeight);
-        gte_ldsv(&scratch->currentRotation);
-        gte_gpf12();
-        gte_lddp(scratch->nextWeight);
-        gte_ldsv(&scratch->nextRotation);
-        gte_gpl12();
-        gte_stsv(&scratch->nextRotation);
+        // Blend bank keyframes directly in Euler space, preserving their angle representation.
+        gte_LoadAverageShort12(&scratch->currentRotation, &scratch->nextRotation,
+                               scratch->currentWeight, scratch->nextWeight, &scratch->nextRotation);
         if (request->unpackedDestination == NULL) {
             RotMatrix_gte(&scratch->nextRotation, &coord->coord);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

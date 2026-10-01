@@ -178,10 +178,11 @@ Two consequences:
   viewer both apply it, so exports and the Model tab show standing figures
   rather than a heap.
 
-  Animation replaces the *local* matrix of each bone and leaves the parent
-  links alone: `_animationBlendRotation` writes `GfxCoord.coord`, the same
-  slot the rest pose initialises. So playback is this
-  same composition with `coord` overwritten per frame, and an animation set
+  Animation updates each bone's *local* transform and preserves its parent
+  links: `_animationBlendRotation` writes the rotation in `GfxCoord.coord.m`
+  and marks the cached composition stale, unless an unpacked pose is requested
+  instead. Encoding 1 also updates local translation. Playback uses this
+  same parent composition with the animated local transform, and an animation set
   carries exactly one track per bone (`ASSET_FORMATS.md` §9.3.1).
 
 The final **command group** has no skeletal part: it can carry the

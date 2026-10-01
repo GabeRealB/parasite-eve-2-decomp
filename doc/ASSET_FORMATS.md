@@ -753,12 +753,18 @@ is `AnimationPackedRotation`, one word split 11/10/11 with each component shifte
 it has no translation, so the bone keeps its rest offset. The root comes out
 kind 1 and the limbs kind 4.
 
-**Playback interpolates.** `_animationBlendTranslationRotation` / `_animationBlendPackedRotation` hold a
-current and a next pose and blend with a GTE `GPF`/`GPL` pair over
-`timeLeft / timeSpan`, interpolating the Euler angles themselves rather than the
-matrices. `sample_animation` does the same and takes a fractional frame, so
-motion is smooth rather than stepped. A track shorter than its set holds its
-last pose; the set loops as a whole.
+**Playback interpolates.** `_animationBlendTranslationRotation` / `_animationBlendPackedRotation` decode
+the current and next poses and pass their angles to `_animationBlendRotation`.
+For two bank keyframes, it blends the Euler components with a GTE `GPF`/`GPL`
+pair, using `timeLeft / timeSpan` as the current pose's weight. When either
+endpoint is the context's buffered pose, it caches next * inverse(current) as
+Euler angles on entry to that transition, scales those angles by the next
+pose's weight, and composes the resulting rotation with the current pose.
+The local coordinate's rotation is updated and its composition marked stale,
+or the result is returned as an unpacked pose; the decoders separately write
+any requested encoded pose. `sample_animation` blends bank keyframes and takes
+a fractional frame, so motion is smooth rather than stepped. A track shorter
+than its set holds its last pose; the set loops as a whole.
 
 A frame is then: sample each bone's track, build a local matrix, and run the
 same parent composition the rest pose uses. The viewer's Model tab has an
@@ -776,17 +782,14 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
 - **The `flags` cue bits.** `0x10` and `0x20` appear on some keyframes and
   are not decoded; a frame handler reads them off the record `Gp_AnimGetRec`
-  hands it, so what each one means is the handler's own. `_animationBlendRotation`
-  has a second path (`AnimationSlot.usesBufferedPose`) that blends through a delta matrix
-  rather than the Euler angles, taken when the pose comes from the context's
-  pose buffer instead of a keyframe.
+  hands it, so what each one means is the handler's own.
 - **Pose banks.** The per-model bone count is now available — it is the number
   of `0xFFFFFFFE`-delimited parts in the model stream
   ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)), and §9.3.1 binds tracks to parts —
   but the per-part block that `Tmd_SetupGteMatrices` consumes is a
   `GfxCoord` (0x50 bytes, `workm` at `+0x24`) whose parent links
-  (`.parent`) are built at runtime, and how the animation fills its local
-  `coord` is not yet traced. `0xC8` turned out
+  (`.parent`) are built at runtime. Animation writes the local rotation as
+  described above; encoding 1 also writes translation. `0xC8` turned out
   to be a vertex transform pass rather than bone data
   ([`TMD_FORMAT.md` §3.0](TMD_FORMAT.md#35-the-transform-pre-pass--0xc0--0xc4--0xc8)), so the count has
   to come from somewhere else — the animation side, or one of the remaining
