@@ -88,7 +88,7 @@ static void func_pa3_8011D1DC(Task* arg0)
             break;
         case 2:
             actor->statePhase++;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
                           ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
@@ -99,7 +99,7 @@ static void func_pa3_8011D1DC(Task* arg0)
             break;
         case 3:
             actor->statePhase++;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (gPlayerStatus.weaponSlotItem != 0xD) {
                 hit = Gp_PickNearestRec18(actor->weaponContacts, coord, spot);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {

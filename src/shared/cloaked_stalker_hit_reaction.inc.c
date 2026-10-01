@@ -48,17 +48,17 @@ void stalkerPickHitReaction(Task* arg0, s32 arg1)
         case 1:
             work->field_6CC  = 5;
             work->field_6CE  = 0;
-            work->field_582 &= 0x7FFF;
+            work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
         case 2:
             work->field_6CC  = 6;
             work->field_6CE  = 0;
-            work->field_582 &= 0x7FFF;
+            work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
         case 3:
             work->field_6CC  = 7;
             work->field_6CE  = 0;
-            work->field_582 &= 0x7FFF;
+            work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
         case 4:
             if (work->field_6F2 == 0) {
@@ -69,7 +69,7 @@ void stalkerPickHitReaction(Task* arg0, s32 arg1)
         case 5:
             work->field_6CC  = 9;
             work->field_6CE  = 0;
-            work->field_582 &= 0x7FFF;
+            work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
         case 6:
             if (work->field_6F2 == 0) {

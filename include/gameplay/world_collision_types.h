@@ -104,8 +104,8 @@ STATIC_ASSERT_SIZEOF(WorldCollisionMotionContext, 0xC);
 /// contact; SINGLE_CONTACT also clips it at a pair contact and replaces the
 /// first contact while retaining the other body's encoded address.
 /// ROOM_TRIGGER_ENABLED tests room-transition quads, and VIEW_TRIGGER_ENABLED
-/// tests saved-view quads. GRID_ENABLED and PAIR_ENABLED gate the collision
-/// passes independently. FLAGS_MASK preserves the width of explicit masks.
+/// tests saved-view quads. GRID_ENABLED gates room-grid collision tests.
+/// FLAGS_MASK preserves the width of explicit masks.
 enum {
     WORLD_COLLISION_BODY_NONE                 = 0,
     WORLD_COLLISION_BODY_SPHERE               = 1,
@@ -119,8 +119,15 @@ enum {
     WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED = 0x1000,
     WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED = 0x2000,
     WORLD_COLLISION_BODY_GRID_ENABLED         = 0x4000,
-    WORLD_COLLISION_BODY_PAIR_ENABLED         = 0x8000,
-    WORLD_COLLISION_BODY_FLAGS_MASK           = 0xFFFF
+    /// Enables a body in list-driven pair tests and room/view trigger scans.
+    ///
+    /// Pair tests require this bit on both bodies and kinds 1..4; kind 2
+    /// currently has no pair handler. Trigger scans additionally require a
+    /// motion sphere and the corresponding trigger-enable bit. Clearing this
+    /// bit leaves the body linked and existing contacts intact; grid tests
+    /// use `WORLD_COLLISION_BODY_GRID_ENABLED` independently.
+    WORLD_COLLISION_BODY_PAIR_ENABLED = 0x8000,
+    WORLD_COLLISION_BODY_FLAGS_MASK   = 0xFFFF
 };
 
 /// A borrowed collision body linked into one of the world's object lists.

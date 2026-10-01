@@ -3023,7 +3023,7 @@ static void func_actor_800100_80165C38(Task* arg0)
             companion->activity.combat.attacksRemaining -= 1;
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             func_80106238(arg0, 0, 0);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC800;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40650001, 1);
             Gp_SpawnEff(0x6002B, coord, 0x21, NULL);
             break;
@@ -3140,7 +3140,7 @@ static void func_actor_800100_80165F50(Task* arg0)
             if (actor->stateTimer == 0) {
                 actor->stateAux                                      += 1;
                 companion->activity.combat.attacksRemaining          -= 1;
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40670001, 1);
                 Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
@@ -3234,7 +3234,7 @@ static void func_actor_800100_80166190(Task* arg0)
                 if (actor->stateTimer == 0) {
                     actor->actionValue                                    = (u16)actor->actionValue - 1;
                     actor->stateTimer                                     = 3;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     companion->activity.combat.attacksRemaining          -= 1;
                     if ((s8)companion->activity.combat.attacksRemaining == 0) {
                         actor->actionValue = 0;

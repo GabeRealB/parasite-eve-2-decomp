@@ -522,7 +522,7 @@ static void func_actor_300700_801637E4(Task* actor)
                         work->field_37A = 4;
                         work->field_37C = 0;
                     }
-                    work->field_31A &= 0x7FFF;
+                    work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     switch (Gp_GetIdParam0(work->field_22C.contacts.recs[i].key.value) & 0xFFFF) {
                         case 0:
                         case 4:
@@ -574,13 +574,13 @@ static void func_actor_300700_801637E4(Task* actor)
     }
     Gp_ClearRec18Occupied(work->field_22C.contacts.recs);
     if (Gp_FindRec18(work->attackContacts, 0) != 0) {
-        work->field_31A &= 0x7FFF;
+        work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(work->attackContacts);
     }
     if (Gp_CountRec18Hi(work->sensorContacts, 0x10000) != 0) {
         target           = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
         work->field_394  = 1;
-        work->field_1FA &= 0x7FFF;
+        work->field_1FA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_33C  = target;
     }
     Gp_ClearRec18Occupied(work->sensorContacts);
@@ -631,7 +631,7 @@ ge2:
 case0:
     flags           = work->field_1FA;
     work->field_384 = 0;
-    work->field_1FA = flags | 0x8000;
+    work->field_1FA = flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
     timer           = work->field_38C + 1;
     work->field_38C = timer;
     if ((s16)timer < 0x1E) {
@@ -800,14 +800,14 @@ dist:
     goto pop;
 case1:
     if ((s16)work->field_382 == 0x14) {
-        work->field_31A |= 0x8000;
+        work->field_31A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
     if ((s16)work->field_382 < 0x20) {
         goto pop;
     }
     work->field_37E  = 3;
     work->field_37C  = 2;
-    work->field_31A &= 0x7FFF;
+    work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     goto pop;
 case2:
     vel = 0;

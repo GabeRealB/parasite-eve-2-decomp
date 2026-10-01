@@ -140,7 +140,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
                     actor->actionValue--;
                     actor->stateTimer                                     = 3;
                     actor->rumblePosted                                   = 0;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     Gp_ConsumeSlotQty(0x9A, 1);
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
@@ -154,7 +154,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
                 } else {
                     actor->stateTimer = delay - 1;
                     if (delay - 1 == 2) {
-                        actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                        actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                         if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                             Gp_PlayObjSfx(spot, 0x17, 1);
                         }
@@ -166,7 +166,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
         case 4:
             actor->statePhase                                     = 5;
             actor->actionValue                                    = 0;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }

@@ -106,7 +106,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                     actor->stateTimer                                     = 3;
                     actor->rumblePosted                                   = 0;
                     rec->ends[0].vz                                       = rec->ends[1].vz + D_80112F60[26];
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     Gp_ConsumeSlotQty(0x99, 1);
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
@@ -120,7 +120,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                 }
                 actor->stateTimer = delay - 1;
                 if (delay - 1 == 2) {
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                     if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                         Gp_PlayObjSfx(spot, 0x17, 1);
                     }
@@ -130,7 +130,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
             /* fallthrough */
         case 4:
             actor->statePhase                                     = 7;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }
@@ -143,7 +143,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                 if (actor->statePhase == 5) {
                     actor->statePhase++;
                     actor->actionValue                                    = 0xA;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0006, 0);
                     eff = Gp_SpawnEff(0x6003E,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
@@ -153,7 +153,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                     }
                 } else {
                     actor->statePhase                                     = 7;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 }
             }
             if (Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {

@@ -553,9 +553,8 @@ static void func_actor_323300_80161FE8(Task* arg0)
 ///
 /// The node's `WorldCollisionBody::flags` halfword is the induction variable, strided by one
 /// `WorldCollisionBody` per step: the block owns a single node, so the walk covers one
-/// element, but retail keeps the array shape. Bit 0x8000 is the one
-/// `Gp_RunPairHandler` tests before pairing the node up, so this switch is what
-/// takes the node in and out of the pair walk.
+/// element, but retail keeps the array shape. `WORLD_COLLISION_BODY_PAIR_ENABLED`
+/// takes the node in and out of body-pair tests without unlinking it.
 s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 {
     Actor323300Work* work;
@@ -573,7 +572,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= 0x7FFF;
+                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -581,7 +580,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= 0x8000;
+                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             Tmd_AllocBuffers(extra);
             extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -590,7 +589,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= 0x7FFF;
+                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             work->field_502 = 2;
             extra->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -599,7 +598,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
             extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= 0x8000;
+                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

@@ -1501,7 +1501,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->collision.obj.pos.vy           = -0x190;
     work->collision.obj.pos.vz           = 0;
     work->collision.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->field_2BA                     |= 0xC000;
+    work->field_2BA                     |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(2, &work->collision.obj);
     Gp_InitRec18Table(table2, 8, 0);
     table3                     = &work->capsuleContact;
@@ -1527,13 +1527,13 @@ static void Actor01600_Fn00480(Task* actor)
     work->field_3DC  = 0;
     work->field_3DE  = -0x186;
     work->field_3E0  = 0;
-    work->field_42A &= 0x3FFF;
+    work->field_42A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     work->field_3E4  = Gp_PackPair(Actor01600_D09F04, 1);
     work->field_3E8  = 0x12C;
     work->field_3EA  = 1;
     Gp_LinkObj(3, (struct WorldCollisionBody*)work->field_3CC);
     Gp_InitRec18Table(table4, 1, 0);
-    work->field_3EA &= 0x7FFF;
+    work->field_3EA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
 static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
@@ -1799,7 +1799,7 @@ mode_end:
                         work->field_4CC = ((gRandomLcgState >> 11) & 0x60) + 0x100;
                     }
                     if (work->field_4FE != 0 && work->field_528 != 0) {
-                        work->field_3EA &= 0x7FFF;
+                        work->field_3EA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         Gp_ClearRec18Occupied(&work->contact_3EC);
                         work->field_4FA  = 0;
                         work->field_51E += 20;
@@ -1868,7 +1868,7 @@ mode_end:
         work->collision.obj.pos.vy = -400;
         work->collision.obj.radius = 400;
         work->field_52A            = 1;
-        work->field_3EA           &= 0x7FFF;
+        work->field_3EA           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(&work->contact_3EC);
         if (work->field_50A < 15) {
             work->field_516  = 8;
@@ -1915,7 +1915,7 @@ static void Actor01600_Fn0131C(Task* arg0, s32 damage)
     if ((s16)ctx->hp <= 0) {
         work->field_500  = 1;
         work->field_502  = 0;
-        work->field_3EA &= 0x7FFF;
+        work->field_3EA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         id               = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000A;
         SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     } else {
@@ -1985,7 +1985,7 @@ static void Actor01600_Fn01420(Task* arg0)
                 work->field_506  = 0x19;
                 work->field_4FE  = 0;
                 work->field_504  = 0;
-                work->field_2BA |= 0x8000;
+                work->field_2BA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             goto clear;
         case 3:
@@ -1994,7 +1994,7 @@ static void Actor01600_Fn01420(Task* arg0)
             if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
                 work->field_4FE  = 0;
                 work->field_506  = 0x19;
-                work->field_2BA |= 0x8000;
+                work->field_2BA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             goto clear;
         case 4:
@@ -2013,7 +2013,7 @@ static void Actor01600_Fn01420(Task* arg0)
                 if (work->field_50A >= 0x32) {
                     work->field_4FE  = 0;
                     work->field_506  = 0x19;
-                    work->field_2BA |= 0x8000;
+                    work->field_2BA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
             }
             if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
@@ -2109,8 +2109,8 @@ static void Actor01600_Fn017BC(Task* actor)
         work->field_520  = 0;
         work->field_50A  = 0;
         work->field_4EA  = 0;
-        work->field_2BA &= 0x3FFF;
-        work->field_42A &= 0x3FFF;
+        work->field_2BA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->field_42A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ArmStateF0(1);
     }
     Gp_ClearRec18Occupied(rec);
@@ -2153,7 +2153,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_50A  = 0;
                 work->field_4EA  = 0;
                 work->field_514  = 1;
-                work->field_42A |= 0xC000;
+                work->field_42A |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             break;
         case 24:
@@ -2162,7 +2162,7 @@ static void Actor01600_Fn017BC(Task* actor)
             work->field_4FA = 0;
             contact         = Actor01600_Fn04EB0(actor) & 0xFF;
             if (contact != 0) {
-                flags           = work->field_42A & 0x3FFF;
+                flags           = work->field_42A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 work->field_42A = flags;
                 if (contact != 0xFF) {
                     distance        = work->field_4E0;
@@ -2181,7 +2181,7 @@ static void Actor01600_Fn017BC(Task* actor)
                         work->field_506 = 4;
                     }
                 } else {
-                    work->field_42A = flags | 0xC000;
+                    work->field_42A = flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->field_4EA = 0;
                 }
             }
@@ -2249,7 +2249,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_50C = 0;
                 work->field_50A = 0;
                 work->field_548 = (u16)(work->field_548 + 1);
-                work->field_2BA = (work->field_2BA | 0x8000) & 0xBFFF;
+                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
             }
             break;
         case 22:
@@ -2307,7 +2307,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 } else {
                     work->field_506 = 0x17;
                 }
-                work->field_2BA = (work->field_2BA | 0x8000) & 0xBFFF;
+                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
             }
             break;
         case 23:
@@ -2319,8 +2319,8 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_514  = 1;
                 work->field_51A  = 0;
                 work->field_4EA  = 0;
-                work->field_42A |= 0xC000;
-                work->field_2BA  = (work->field_2BA | 0x8000) & 0xBFFF;
+                work->field_42A |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->field_2BA  = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
             }
             break;
         case 6:
@@ -2357,7 +2357,7 @@ static void Actor01600_Fn017BC(Task* actor)
             if (work->field_50A >= 0x1C) {
                 work->field_508  = 0;
                 work->field_50A  = 0;
-                work->field_2BA |= 0x8000;
+                work->field_2BA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if (work->field_510 == 7) {
                     work->field_514 = 0;
                     work->field_50A = 0;
@@ -2703,11 +2703,11 @@ static void Actor01600_Fn020F8(Task* actor)
                 Actor01600_Fn03A60(actor);
             }
             if ((work->field_50A == 9) && (work->field_53C == 0)) {
-                work->field_3EA |= 0x8000;
+                work->field_3EA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             if (work->field_50A == 0x17) {
                 work->collision.obj.flags = (u16)(work->collision.obj.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-                work->field_3EA          &= 0x7FFF;
+                work->field_3EA          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if (work->field_50A >= 0x34) {
                 if (work->field_53C != 0) {
@@ -2780,11 +2780,11 @@ static void Actor01600_Fn020F8(Task* actor)
                         }
                     }
                     if ((work->field_50A == 9) && (work->field_53C == 0)) {
-                        work->field_3EA |= 0x8000;
+                        work->field_3EA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     }
                     if (work->field_50A == 0x17) {
                         work->collision.obj.flags = (u16)(work->collision.obj.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-                        work->field_3EA          &= 0x7FFF;
+                        work->field_3EA          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     }
                     if (work->field_50A >= 0x19) {
                         work->field_506 = 0x1B;
@@ -3639,7 +3639,7 @@ static s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
                     tmp      = angle >= 0;
                     angleAbs = tmp ? angle : -angle;
                     if (angleAbs < 0x101) {
-                        work->field_42A |= 0xC000;
+                        work->field_42A |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                         Actor01600_Fn04EB0(actor);
                         if (work->field_4EA >= 2) {
                             work->field_506  = 0x19;
@@ -3647,7 +3647,7 @@ static s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
                             work->field_4FE  = 0;
                             work->field_4EA  = 0;
                             work->field_514  = 1;
-                            work->field_2BA &= 0x3FFF;
+                            work->field_2BA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                             done             = 1;
                         } else {
                             done = 0;
@@ -4765,7 +4765,7 @@ static s32 Actor01600_Fn06C1C(Task* arg0)
     Actor01600Work* work;
 
     work            = arg0->work;
-    work->field_42A = (u16)(work->field_42A | 0xC000);
+    work->field_42A = (u16)(work->field_42A | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     Actor01600_Fn04EB0(arg0);
     if (work->field_4EA >= 2) {
         work->field_506 = 0x19;
@@ -4773,7 +4773,7 @@ static s32 Actor01600_Fn06C1C(Task* arg0)
         work->field_4FE = 0;
         work->field_4EA = 0;
         work->field_514 = 1;
-        work->field_2BA = (u16)(work->field_2BA & 0x3FFF);
+        work->field_2BA = (u16)(work->field_2BA & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
         return 1;
     }
     return 0;
@@ -4827,7 +4827,7 @@ static s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
     if (arg2 < 0x7D1) {
         angle = (arg1 >= 0 ? arg1 : -arg1);
         if (angle < 0x201) {
-            work->field_42A |= 0xC000;
+            work->field_42A |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Actor01600_Fn04EB0(arg0);
             handled = 0;
             if (work->field_4EA >= 2) {
@@ -4836,7 +4836,7 @@ static s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
                 work->field_4FE  = 0;
                 work->field_4EA  = 0;
                 work->field_514  = 1;
-                work->field_2BA &= 0x3FFF;
+                work->field_2BA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 handled          = 1;
             }
             if ((u8)handled) {

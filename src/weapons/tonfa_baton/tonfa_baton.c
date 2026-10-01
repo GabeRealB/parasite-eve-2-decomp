@@ -290,7 +290,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                 actor->stateTimer = delay;
                 if (delay == 0) {
                     actor->equipmentTasks[1]->spawnArg1.value             = 1;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x8000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     func_80106238(arg0, 0, 0);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130001, 0);
                     eff = Gp_SpawnEff(0x6003A,
@@ -306,7 +306,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130003, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x7FFF;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (actor->statePhase == 2) {
                     actor->statePhase = 3;
                     actor->stateTimer = 0xC;
@@ -334,7 +334,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                 step                = actor->stateTimer - 1;
                 actor->stateTimer   = step;
                 if (step == 3) {
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x8000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     func_80106238(arg0, 0, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130002, 0);
                 } else if (step == 0) {
@@ -350,7 +350,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
                 fade--;
                 actor->stateTimer = fade;
                 if (fade == 0) {
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x7FFF;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 }
             }
             if (actor->actionValue != 2 && Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {

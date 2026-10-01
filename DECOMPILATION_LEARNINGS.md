@@ -693,8 +693,8 @@ matched the same way — `next = D_80114C68; TOUCH_REG(next);` ahead of
 ticks.)
 ## A loop that walks one field per step needs the *field* address computed before the index, or the member offset stays a displacement
 
-`func_actor_323300_80162208` (actors/actor_323300) sets or clears bit 0x8000 of
-the halfword at 0x49E of its 0x504 work block, stepped by 0x20: one `WorldCollisionBody`'s
+`func_actor_323300_80162208` (actors/actor_323300) sets or clears
+`WORLD_COLLISION_BODY_PAIR_ENABLED` in the halfword at 0x49E of its 0x504 work block, stepped by 0x20: one `WorldCollisionBody`'s
 `flags` (`WorldCollisionBody` is 0x20 bytes, `flags` at 0x1E) on the collision body at 0x480.
 Retail's induction variable is the *field* address, carrying both offsets:
 
@@ -721,7 +721,7 @@ pointer plus two constant offsets is one `addsi`:
 ```c
 u16* flags = &work->obj.flags;      /* (plus (reg work) (const 0x49E)) */
 for (i = 0; i < 1; i++) {
-    flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= 0x7FFF;
+    flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 ```
 

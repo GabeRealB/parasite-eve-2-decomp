@@ -79,7 +79,7 @@ void stalkerStrikeSeq(Task* arg0)
             if (work->field_6D6 != 0) {
                 if (work->field_6C6 == 0) {
                     work->field_494  = 0;
-                    work->field_49A |= 0x8000;
+                    work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
                 work->field_6D6 = 0;
             }
@@ -112,7 +112,7 @@ void stalkerStrikeSeq(Task* arg0)
         case 3:
             if (work->field_6D6 != 0) {
                 if (work->field_6C6 == 0) {
-                    work->field_49A |= 0x8000;
+                    work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     work->field_494  = work->field_716 | 0x30000;
                 }
                 work->field_6D6 = 0;
@@ -136,7 +136,7 @@ void stalkerStrikeSeq(Task* arg0)
         case 4:
             if (work->field_6D6 != 0) {
                 if (work->field_6C6 == 0) {
-                    work->field_49A |= 0x8000;
+                    work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     work->field_494  = work->field_716 | 0x30000;
                 }
                 work->field_6D6 = 0;
@@ -161,7 +161,7 @@ void stalkerStrikeSeq(Task* arg0)
                 work->field_578  = 0;
                 work->field_580  = 0x12C;
                 work->field_57C  = Gp_PackPair(gStalkerAttacks, 1);
-                work->field_582 |= 0x8000;
+                work->field_582 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 cue              = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (work->field_6C4 == 0x1C) {
@@ -175,7 +175,7 @@ void stalkerStrikeSeq(Task* arg0)
                 work->field_6DA  = 3;
                 work->field_6DC  = 0x14;
                 work->field_6DE  = 0xA;
-                work->field_582 &= 0x7FFF;
+                work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->field_6BC  = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }

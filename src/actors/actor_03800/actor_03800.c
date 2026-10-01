@@ -754,19 +754,19 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
     Gp_InitRec18Table(records2, 4, 0);
     switch (work->field_350) {
         case 0:
-            work->field_1C2 |= 0x8000;
+            work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->field_22A |= 0x4200;
             break;
         case 1:
-            work->field_1C2 |= 0x8000;
+            work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->field_22A &= ~0x4200;
             break;
         case 2:
-            work->field_1C2 |= 0x8000;
+            work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->field_22A &= ~0x4200;
             break;
         case 3:
-            work->field_1C2 &= ~0x8000;
+            work->field_1C2 &= ~WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->field_22A &= ~0x4200;
             break;
     }
@@ -782,7 +782,7 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
     work->field_2AA = 1U;
     Gp_LinkObj(3, obj);
     Gp_InitRec18Table(records3, 1, 0);
-    work->field_2AA = (u16)(work->field_2AA | 0x8000);
+    work->field_2AA = (u16)(work->field_2AA | WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg1->state     = 1;
 }
 
@@ -1408,7 +1408,7 @@ static void Actor03800_Fn0166C(Task* arg0)
             work->field_354  = 1;
             work->field_36A  = 0;
             work->field_36E  = 1;
-            work->field_2AA &= 0x7FFF;
+            work->field_2AA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             snd              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260003;
             pan              = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
@@ -1769,7 +1769,7 @@ static void Actor03800_Fn021E4(Task* arg0)
                 work->field_374  = 0;
                 work->field_354  = 2;
                 work->field_366  = 0x80;
-                work->field_2AA &= 0x7FFF;
+                work->field_2AA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 sound            = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260002;
                 pan              = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(coord));
@@ -1846,7 +1846,7 @@ static void Actor03800_Fn02584(Task* arg0)
                 work->field_354 =
                     ((vec.vx * coord->coord.m[0][2]) + (vec.vz * coord->coord.m[2][2]) > 0) ? 1 : 2;
             }
-            work->field_2AA &= 0x7FFF;
+            work->field_2AA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
 
         case 1:
@@ -1873,7 +1873,7 @@ static void Actor03800_Fn02584(Task* arg0)
                 work->field_352  = 1;
                 work->field_354  = 0;
                 work->field_372  = 0x80;
-                work->field_2AA |= 0x8000;
+                work->field_2AA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             break;
     }
@@ -2378,7 +2378,7 @@ static void Actor03800_Fn03420(Task* arg0)
                 if (work->field_36A == 0) {
                     work->field_36A = state;
                 }
-                work->field_2AA |= 0x8000;
+                work->field_2AA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             break;
     }
@@ -2400,9 +2400,9 @@ static void Actor03800_Fn034B0(Task* arg0)
             return;
         case SCENE_COMBAT_SHRINE_REVEALED:
             obj->flags       = 0;
-            work->field_1C2 |= 0x8000;
+            work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->field_22A |= 0x4200;
-            work->field_2AA |= 0x8000;
+            work->field_2AA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             Gp_ArmStateF0(1);
             work->field_366 = 0x80;
             work->field_356 = 0x5A;

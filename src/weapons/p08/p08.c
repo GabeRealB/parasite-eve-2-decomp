@@ -76,7 +76,7 @@ static void func_p08_8011D1D8(Task* arg0)
             break;
         case 3:
             actor->statePhase++;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }

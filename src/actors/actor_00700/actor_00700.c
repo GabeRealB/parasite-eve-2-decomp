@@ -890,7 +890,7 @@ static void Actor00700_Fn00334(Task* actor)
                         work->field_37A = 4;
                         work->field_37C = 0;
                     }
-                    work->field_31A &= 0x7FFF;
+                    work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     switch (Gp_GetIdParam0(work->field_22C.contacts.recs[i].key.value) & 0xFFFF) {
                         case 0:
                         case 4:
@@ -968,14 +968,14 @@ static void Actor00700_Fn00334(Task* actor)
     Gp_ClearRec18Occupied(work->field_22C.contacts.recs);
     effectRec = work->attackContacts;
     if (Gp_FindRec18(effectRec, 0) != 0) {
-        work->field_31A &= 0x7FFF;
+        work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(effectRec);
     }
     contactRec = work->sensorContacts;
     if (Gp_CountRec18Hi(contactRec, 0x10000) != 0) {
         sourceCoord      = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
         work->field_394  = 1;
-        work->field_1FA &= 0x7FFF;
+        work->field_1FA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_33C  = sourceCoord;
     }
     Gp_ClearRec18Occupied(contactRec);
@@ -1026,7 +1026,7 @@ ge2:
 case0:
     flags           = work->field_1FA;
     work->field_384 = 0;
-    work->field_1FA = flags | 0x8000;
+    work->field_1FA = flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
     timer           = work->field_38C + 1;
     work->field_38C = timer;
     if ((s16)timer < 0x1E) {
@@ -1195,14 +1195,14 @@ dist:
     goto pop;
 case1:
     if ((s16)work->field_382 == 0x14) {
-        work->field_31A |= 0x8000;
+        work->field_31A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
     if ((s16)work->field_382 < 0x20) {
         goto pop;
     }
     work->field_37E  = 3;
     work->field_37C  = 2;
-    work->field_31A &= 0x7FFF;
+    work->field_31A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     goto pop;
 case2:
     vel = 0;
@@ -1926,7 +1926,7 @@ static void Actor00700_Fn01FE0(Enemy* ctx, Task* actor)
     work->field_184 = 0x30008;
     work->field_188 = 0xFA;
     work->field_18A = 1U;
-    work->field_152 = (u16)(work->field_152 | 0x8000);
+    work->field_152 = (u16)(work->field_152 | WORLD_COLLISION_BODY_PAIR_ENABLED);
     Gp_LinkObj(2, &work->field_16C);
     Gp_InitRec18Table(rec2, 4, 0);
     rec3            = &work->field_20C;
@@ -1941,7 +1941,7 @@ static void Actor00700_Fn01FE0(Enemy* ctx, Task* actor)
     work->field_20A = 1U;
     Gp_LinkObj(3, &work->field_1EC);
     Gp_InitRec18Table(rec3, 1, 0);
-    work->field_20A = (u16)(work->field_20A & 0x7FFF);
+    work->field_20A = (u16)(work->field_20A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     actor->state    = 1;
 }
 
@@ -2321,9 +2321,9 @@ static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1)
                     }
                     work->field_2E4                         = angle;
                     arg0->recs                              = 0;
-                    ((Actor00700SpawnWork*)work)->field_152 = ((Actor00700SpawnWork*)work)->field_152 & 0x7FFF;
+                    ((Actor00700SpawnWork*)work)->field_152 = ((Actor00700SpawnWork*)work)->field_152 & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     ((Actor00700SpawnWork*)work)->field_18A = ((Actor00700SpawnWork*)work)->field_18A & 0xBFFF;
-                    ((Actor00700SpawnWork*)work)->field_20A = ((Actor00700SpawnWork*)work)->field_20A | 0x8000;
+                    ((Actor00700SpawnWork*)work)->field_20A = ((Actor00700SpawnWork*)work)->field_20A | WORLD_COLLISION_BODY_PAIR_ENABLED;
                     id                                      = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
                     pan                                     = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));

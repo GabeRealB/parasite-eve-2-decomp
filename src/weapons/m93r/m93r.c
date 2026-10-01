@@ -84,7 +84,7 @@ static void func_m93r_8011D1C4(Task* arg0)
                     actor->actionValue--;
                     actor->stateTimer                                     = 1;
                     actor->rumblePosted                                   = 0;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     Gp_ConsumeSlotQty(0x81, 1);
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
@@ -103,7 +103,7 @@ static void func_m93r_8011D1C4(Task* arg0)
                 delay--;
                 actor->stateTimer = delay;
                 if (delay == 0) {
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                     if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                         Gp_PlayObjSfx(spot, 0x17, 1);
                     }
@@ -113,7 +113,7 @@ static void func_m93r_8011D1C4(Task* arg0)
                    GCC cross-jumps the common tail itself, keeping only the
                    `field_12A` load duplicated, which is what the ROM has. */
                 actor->statePhase                                     = 3;
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                     Gp_PlayObjSfx(spot, 0x17, 1);
                 }

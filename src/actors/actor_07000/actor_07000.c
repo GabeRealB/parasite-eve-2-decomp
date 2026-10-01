@@ -1432,7 +1432,7 @@ static void Actor07000_Fn00654(Task* arg0)
     if (work->field_2D8 != 0) {
         work->field_2B2 = 1;
         work->field_2C8 = 1;
-        work->field_11A = (u16)(work->field_11A & 0x7FFF);
+        work->field_11A = (u16)(work->field_11A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ArmStateF0(1);
     }
     Gp_ClearRec18Occupied(&work->field_11C);
@@ -1710,7 +1710,7 @@ contact_loop:
     Gp_ClearRec18Occupied(work->field_154);
     effectRec = &work->field_1D4;
     if ((work->field_2C8 != 0) && (Gp_FindRec18(effectRec, 0) != 0)) {
-        work->field_1D2 = (u16)((u16)work->field_1D2 & 0x7FFF);
+        work->field_1D2 = (u16)((u16)work->field_1D2 & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ClearRec18Occupied(effectRec);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x4C);
@@ -1854,7 +1854,7 @@ static void Actor07000_Fn011B4(Enemy* enemy, Task* task)
         default:
             switch (work->field_2B4) {
                 case 0:
-                    work->field_20A &= 0x7FFF;
+                    work->field_20A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->field_2AC -= 0x12C;
                     task->killCountdown--;
                     if ((u32)((u16)work->field_2B2 - 5) >= 2 && task->killCountdown == 3) {
@@ -1943,8 +1943,8 @@ static void Actor07000_Fn016A8(Task* arg0, u8 arg1)
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0003;
             SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
-        work->field_1D2 |= 0x8000;
-        work->field_20A |= 0x8000;
+        work->field_1D2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->field_20A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 1, NULL);
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x300, &Actor07000_D08068);
         Gp_SpawnScript18(&Actor07000_D06938, Actor07000_D06944);
@@ -2276,8 +2276,8 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, ActorCommand* request)
             arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.parts.flags = 0;
-            work->field_11A              |= 0x8000;
-            work->field_152              |= 0xC200;
+            work->field_11A              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->field_152              |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             RotMatrix(&rot, &coord->coord);
             work->field_2BE                       = 0xC8;
             work->field_2E2                       = 1;
@@ -2294,8 +2294,8 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, ActorCommand* request)
         arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_11A              &= 0x7FFF;
-        work->field_152              &= 0x3DFF;
+        work->field_11A              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_152              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         rot.vz                        = 0;
         rot.vy                        = 0;
         rot.vx                        = 0;
@@ -3637,7 +3637,7 @@ default_body:
             }
         }
     block_16:
-        work->field_26      = work->field_26 & 0x3FFF;
+        work->field_26      = work->field_26 & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         arg0->killCountdown = 0x1E;
         arg0->state         = arg0->state + 1;
     }

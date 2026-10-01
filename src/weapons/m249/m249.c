@@ -70,7 +70,7 @@ static void func_m249_8011D1DC(Task* arg0)
         case 3:
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_ConsumeSlotQty(0x90, 1);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20110004, 1);
                 Gp_SpawnEff(0x6006B,
@@ -83,7 +83,7 @@ static void func_m249_8011D1DC(Task* arg0)
             spot                = &scratch->coord;
             actor->movementSign = 0;
             actor->statePhase++;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }

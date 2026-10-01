@@ -150,7 +150,7 @@ static void func_gunblade_8011E040(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
             }
             Gp_ConsumeSlotQty(0x96, 1);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
             Gp_SpawnEff(0x600A1, actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 16) | 0x17, NULL);
@@ -164,7 +164,7 @@ static void func_gunblade_8011E040(Task* arg0)
                 if (actor->statePhase == 3) {
                     actor->statePhase                                     = 4;
                     actor->stateTimer                                     = 8;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170006, 0);
                     eff = Gp_SpawnEff(0x60186,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
@@ -219,7 +219,7 @@ static void func_gunblade_8011E040(Task* arg0)
             }
             /* fallthrough */
         case 7:
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }

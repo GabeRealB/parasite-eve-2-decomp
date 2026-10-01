@@ -1335,7 +1335,7 @@ void stalkerTakeHits(Task* arg0)
         t               = work->field_6C6 - 1;
         work->field_6C6 = t;
         if (t <= 0) {
-            work->field_49A |= 0x8000;
+            work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->field_6C6  = 0;
             work->field_494  = work->field_716 | 0x30000;
         }
@@ -1435,7 +1435,7 @@ void stalkerTakeHits(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->field_49C);
     if (work->field_584.flags & 1) {
-        work->field_582 &= 0x7FFF;
+        work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(&work->field_584);
     }
     SCRATCH_STACK_RELEASE_BLOCK(Actor402200HitScratch);
@@ -1667,7 +1667,7 @@ void stalkerGrabSeq(Task* arg0)
                 Gp_ArmStateF0(1);
                 work->field_70A = 0;
                 if (work->field_6C6 == 0) {
-                    work->field_49A |= 0x8000;
+                    work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     work->field_494  = work->field_716 | 0x30000;
                 }
             }
@@ -1887,7 +1887,7 @@ void stalkerBoxApproachSeq(Task* arg0)
             SndEvt_EnqueueType6(work->field_6B8, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_ArmStateF0(1);
             if (work->field_6C6 == 0) {
-                work->field_49A |= 0x8000;
+                work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->field_494  = work->field_716 | 0x30000;
             }
             work->field_6D6 = 0x14;
@@ -1910,7 +1910,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                 work->field_6CE  = 0;
                 work->field_6DA  = 7;
                 work->field_6C8  = 0;
-                work->field_62A &= 0x3FFF;
+                work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             break;
         case 2:
@@ -1928,7 +1928,7 @@ void stalkerBoxApproachSeq(Task* arg0)
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xA8C) {
                 work->field_6C0  = 7;
                 work->field_6CE  = 3;
-                work->field_62A &= 0x3FFF;
+                work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             } else {
                 diff = (ratan2((s16)sc->out.vx, (s16)sc->out.vz) & 0xFFF) - work->field_6B4[work->field_708].field_2;
                 dist = (abs(diff) >= 0x800) ? ((diff > 0) ? 0x1000 - diff : diff + 0x1000) : abs(diff);
@@ -1940,7 +1940,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                     work->field_6DE  = 0xA;
                     work->field_6F2  = 0;
                     work->field_6D4  = work->field_6DC + 0xA;
-                    work->field_62A &= 0x3FFF;
+                    work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                     work->field_6BC  = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
@@ -1950,7 +1950,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                 work->field_6CE  = 0;
                 work->field_6DA  = 7;
                 work->field_6C8  = 0;
-                work->field_62A &= 0x3FFF;
+                work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             break;
         case 3:
@@ -1968,11 +1968,11 @@ void stalkerBoxApproachSeq(Task* arg0)
                 work->field_574  = 0;
                 work->field_580  = 0x3E8;
                 work->field_57C  = Gp_PackPair(gStalkerAttacks, 2);
-                work->field_582 |= 0x8000;
+                work->field_582 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             if (work->field_6C4 == 0x20) {
                 work->field_6F2  = 0;
-                work->field_582 &= 0x7FFF;
+                work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if (work->field_6C4 == 0x5A) {
                 work->field_6DA = 3;
@@ -2025,7 +2025,7 @@ void stalkerRecoverSeq(Task* arg0)
             gRandomLcgState = random;
             work->field_6D4 = (u16)(((random >> 16) & 0x1F) + 0x4B);
             if (work->field_6C6 == 0) {
-                work->field_49A |= 0x8000;
+                work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->field_494  = work->field_716 | 0x30000;
             }
             break;
@@ -2109,9 +2109,9 @@ static void func_actor_402200_80135D5C(Task* arg0)
         work->field_634  = sc->m.t[0] + sc->out.vx;
         work->field_636  = sc->m.t[1] + sc->out.vy;
         work->field_638  = sc->m.t[2] + sc->out.vz;
-        work->field_62A |= 0xC000;
+        work->field_62A |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else {
-        work->field_62A &= 0x3FFF;
+        work->field_62A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
     if (work->field_6D6 < 0x13) {
         sc->pts[1].vx = -0x28;
@@ -2266,7 +2266,7 @@ static void func_actor_402200_80137444(Enemy* arg0, Task* arg1)
             work->field_49A = 1;
             Gp_LinkObj(2, (WorldCollisionBody*)work->field_47C);
             Gp_InitRec18Table(records1, 3, 0);
-            work->field_49A |= 0x8000;
+            work->field_49A |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->field_4EC  = arg1->extra.tmd->coords;
             records2         = work->field_504;
             work->field_4F0  = records2;
@@ -2290,7 +2290,7 @@ static void func_actor_402200_80137444(Enemy* arg0, Task* arg1)
             work->field_582  = 1;
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_564);
             Gp_InitRec18Table(records3, 1, 0);
-            work->field_582 &= 0x7FFF;
+            work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->field_5DC  = 0;
             work->field_5DE  = -0x3E8;
             work->field_5E0  = -0x7D0;
@@ -2342,7 +2342,7 @@ static void func_actor_402200_80137444(Enemy* arg0, Task* arg1)
             work->field_5DA &= 0xBFFF;
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_60C);
             Gp_InitRec18Table(records5, 1, 0);
-            work->field_62A = (work->field_62A & 0x3FFF) | 0xC00;
+            work->field_62A = (work->field_62A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | 0xC00;
             arg1->msgTable  = D_actor_402200_8013839C;
             arg1->state     = 1;
             break;

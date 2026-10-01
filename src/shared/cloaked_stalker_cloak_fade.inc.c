@@ -33,7 +33,7 @@ void stalkerCloakFade(Task* arg0)
         case 0:
             arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_6E2        = -1;
-            work->field_49A       &= 0x7FFF;
+            work->field_49A       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             if (work->field_6B8 != 0) {
                 SndEvt_EnqueueType7(work->field_6B8, 1);
                 work->field_6B8 = 0;
@@ -121,7 +121,7 @@ void stalkerCloakFade(Task* arg0)
             work->field_6E2 = -1;
             break;
         case 6:
-            work->field_49A &= 0x7FFF;
+            work->field_49A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             switch (work->field_6D0) {
                 case 0:
                     y = work->scale.vy;

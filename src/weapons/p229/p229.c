@@ -152,7 +152,7 @@ static void func_p229_8011DDA0(Task* arg0)
                     Task_Reparent(actor->equipmentTasks[1], eff->task);
                 }
             }
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
         case 3:
         case 4:
@@ -160,7 +160,7 @@ static void func_p229_8011DDA0(Task* arg0)
                 Gp_PlayObjSfx(spot, 0x17, 0);
             }
             actor->statePhase                                     = 5;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             /* fallthrough */
         case 5:
             if (actor->attackCancelTicks != 0) {

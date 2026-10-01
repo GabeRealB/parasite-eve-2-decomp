@@ -165,7 +165,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
                         Task_Reparent(actor->equipmentTasks[1], eff->task);
                     }
                 }
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             break;
         case 4:
@@ -174,7 +174,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }
             actor->statePhase                                     = 6;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             /* fallthrough */
         case 6:
             if ((s8)func_801060E0(arg0) == 1 && func_80106264(1) > 0 && actor->attackControl.cooldownTicks == 0) {

@@ -79,7 +79,7 @@ static void func_as12_8011D1DC(Task* arg0)
             /* fallthrough */
         case 3:
             actor->statePhase++;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_ConsumeSlotQty(0x8E, 1);
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
                           ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0005, 1);
@@ -91,7 +91,7 @@ static void func_as12_8011D1DC(Task* arg0)
         case 4:
             actor->attackCancelTicks = 0x16;
             actor->statePhase++;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (gPlayerStatus.weaponSlotItem != 0xD) {
                 hit = Gp_PickNearestRec18(actor->weaponContacts, coord, spot);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {
