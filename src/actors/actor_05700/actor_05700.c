@@ -2299,7 +2299,7 @@ static void Actor05700_Fn031BC(Enemy* arg0, Task* arg1)
 /// Per-frame tick of the placed effect body from `Actor05700_Fn031BC`.
 /// Mode 0 of `gSceneCombatState.actorControl` drifts the root coordinate along its Y axis, puffs
 /// an effect every fourth frame and ends the cycle - burst, sound cue and
-/// state 2 - on a hit, an empty room-parameter slot, or after 0x5A frames.
+/// state 2 - on a body hit, a surface that blocks probes, or after 0x5A frames.
 
 static void Actor05700_Fn035FC(Enemy* arg0, Task* arg1)
 {

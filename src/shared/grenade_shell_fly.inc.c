@@ -1,7 +1,7 @@
 /* Part of the grenade shell library; see grenade_shell.h. */
 
 /// Flight state of the projectile. Detonates when the shot
-/// has touched world geometry (`rec0` with 0x30000), when a wall record it hit
+/// has touched world geometry (`rec0` with 0x30000), when a blocking surface
 /// enables weapon impacts, or when the flight timer runs past 0xDFFFF; otherwise it steps
 /// the projectile by `dir / field_88.halves.integer`, lets gravity pull `dir.vy` down,
 /// and trails smoke every `field_8C` frames — a divisor that grows by one

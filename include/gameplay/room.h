@@ -55,6 +55,14 @@ STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
 
 /// Independent policies stored in the surface record's three flag bytes.
 enum {
+    /// Makes a surface block segment probes and clipped capsule contacts.
+    ///
+    /// Stored in `WorldCollisionSurfaceProperties.probePassThrough`: zero
+    /// blocks, and every nonzero value passes. Capsule grid tests honor this
+    /// policy only with `WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT`; otherwise
+    /// they collect contacts with either policy. Projectile handlers also use
+    /// blocking contacts to end flight or select their impact response.
+    /// Pushback and weapon hit effects have independent surface policies.
     WORLD_COLLISION_SURFACE_BLOCK_PROBES          = 0,
     WORLD_COLLISION_SURFACE_PASS_PROBES           = 1,
     WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS = 0,
