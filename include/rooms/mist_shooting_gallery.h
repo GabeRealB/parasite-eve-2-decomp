@@ -60,7 +60,13 @@ extern u8* D_mist_shooting_gallery_801853B8[];
 
 extern GpViewCountRec D_mist_shooting_gallery_801853BC[];
 
-extern WorldCoordRoomLighting D_mist_shooting_gallery_801853C0[];
+/// Light collection and per-view ambient minima for the gallery's single room.
+///
+/// Indexed by the 1-based room ID minus one; only room 1 is valid. The mutable
+/// `lights` pointer initially selects the default collection and may switch to
+/// the alternate collection. Both share `ambientTable` for views 1..18.
+/// The table and its borrowed data are valid only while the room overlay is loaded.
+extern WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1];
 
 extern GpWarpRec D_mist_shooting_gallery_801853C8[];
 

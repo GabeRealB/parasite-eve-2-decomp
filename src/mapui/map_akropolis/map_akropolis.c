@@ -684,7 +684,7 @@ WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
     D_acropolis_west_elevator_hall_8018503C,
     D_mist_r18_80186624,
     D_mist_parking_801915C8,
-    D_mist_shooting_gallery_801853C0,
+    gMistShootingGalleryRoomLightingTable,
 };
 
 static GpRoomObjRec* D_map_akropolis_8017AA78[20] = {
