@@ -93,10 +93,10 @@ static s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
 static s16  func_neo_ark_altar_8017E260(Task* task);
 static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
 
-extern GpGridParams   D_neo_ark_altar_8017F57C[1];
-extern GpObj4C        D_neo_ark_altar_8017FF08[4];
-extern GpRoomCoordSet D_neo_ark_altar_8017FEF0[1];
-void                  func_neo_ark_altar_8017ECE0(Task*);
+extern WorldCollisionGrid D_neo_ark_altar_8017F57C[1];
+extern GpObj4C            D_neo_ark_altar_8017FF08[4];
+extern GpRoomCoordSet     D_neo_ark_altar_8017FEF0[1];
+void                      func_neo_ark_altar_8017ECE0(Task*);
 
 void func_neo_ark_altar_8017DA40(Task*);
 void func_neo_ark_altar_8017DBF0(Task*);
@@ -231,7 +231,7 @@ s16* D_neo_ark_altar_8017F564[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_altar_8017F57C[1] = {
+WorldCollisionGrid D_neo_ark_altar_8017F57C[1] = {
     { NULL, D_neo_ark_altar_8017F134, D_neo_ark_altar_8017F17C, D_neo_ark_altar_8017F34C, D_neo_ark_altar_8017F564, -2640, 0x2710, 3, 2, 4000, 29 },
 };
 

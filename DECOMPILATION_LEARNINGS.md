@@ -7123,9 +7123,9 @@ shifts every subsequent field load and the second call's
 `lw a0, 0(p)` / `move a2, out`. Pin the pointer:
 
 ```c
-register GpGridParams* p asm("a2");
+register WorldCollisionGrid* p asm("a2");
 
-ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, in, out);
+ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, in, out);
 p = Gp_GridParams;
 ```
 
@@ -40718,10 +40718,10 @@ did not.
 
 ## Read a global directly instead of through a local when the pointer must die
 
-`p = Gp_GridParams; gte_ldv0(&p->field_8[...]);` gives every use of `p` one hard
+`p = Gp_GridParams; gte_ldv0(&p->vertices[...]);` gives every use of `p` one hard
 register, so a load whose value the target drops immediately (`lw $v1, %lo(...)`
 / `lw $v1, 8($v1)`) stays pinned in a callee-saved-ish temp. Writing
-`Gp_GridParams->field_8[...]` inline creates a short-lived pseudo that dies into
+`Gp_GridParams->vertices[...]` inline creates a short-lived pseudo that dies into
 `$v1`. In `Gp_CollideObjGrid` every site had to be the direct form; introducing the
 local anywhere shifted `$a0`/`$a1` across the whole function.
 
@@ -40738,7 +40738,7 @@ the real outer-product word `0x4B78000C` (`gte_ldopv1` / `gte_ldopv2` /
 When every temp in a function is one register off the target (`$t2/$t1/$t0`
 where the target has `$t1/$t0/$a3`), the cause is usually a single pseudo that
 was still live — or already dead — at the *first* load, not a hundred bad
-allocations. In `func_800DD324` the culprit was `face = &Gp_GridParams->field_C[faceId]`.
+allocations. In `func_800DD324` the culprit was `face = &Gp_GridParams->faces[faceId]`.
 Written directly after the scratch-head bookkeeping, the pre-reload scheduler
 hoisted the whole `faceId * 12` chain (`sll`/`addu`/`sll`) into the prologue's
 `sw` delay slots, so `$a0` was dead by the time `Gp_GridParams` was loaded and
@@ -40753,7 +40753,7 @@ assignment of the scratch pointer — left `addu v0, v0, a0` after the
 ```c
     head     = *scratch;
     *scratch = head - 0x70;
-    face     = &Gp_GridParams->field_C[faceId];   /* not before, not after */
+    face     = &Gp_GridParams->faces[faceId];   /* not before, not after */
     block    = (GpGridRayScratch*)(head - 0x70);
 ```
 
@@ -50710,9 +50710,9 @@ for (i = 0; i < 2; i++) {
     gte_ldv0(&block->src[i]);
     gte_rtv0();
     gte_stlvnl(&block->pos[i]);
-    block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->field_14;
+    block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->xBias;
     block->pos[i].vy = 0;
-    block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->field_18;
+    block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->zBias;
 }
 ```
 
@@ -71721,7 +71721,7 @@ it gives the size.
 
 ## `addu dst, idx, base`: subscript the pointer, do not assign the sum to a local
 
-`func_actor_444000_80143374` writes the `vy` of eight `GpGridParams.field_8`
+`func_actor_444000_80143374` writes the `vy` of eight `WorldCollisionGrid.vertices`
 corners starting at `value * 4`. The target computes the address as
 
 ```
@@ -71732,7 +71732,7 @@ addu  a1, a1, v0     /* index first, and the dest is the index register */
 sh    v1, 0x2(a1)
 ```
 
-The obvious C, `SVECTOR *verts = &Gp_GridParams->field_8[value * 4];`, always
+The obvious C, `SVECTOR *verts = &Gp_GridParams->vertices[value * 4];`, always
 emits `addu v0, v0, a1` instead - base first, dest tied to the base. No amount
 of reordering the source fixes it: `pointer_int_sum` (c-typeck.c) puts the
 pointer operand first unconditionally, so `i + ptr` and `ptr + i` build the same
@@ -71759,7 +71759,7 @@ So write the subscript at each use site and let CSE share the address:
 ```c
 SVECTOR* verts;
 
-verts = Gp_GridParams->field_8;
+verts = Gp_GridParams->vertices;
 verts[arg1 * 4].vy     = 500;
 verts[arg1 * 4 + 1].vy = 500;
 verts[arg1 * 4 + 2].vy = 800;
@@ -95916,8 +95916,8 @@ for `insn_cost` cycles before it can be picked (the `;; launching N before M`
 lines in a `-dS` dump). A preheader like
 
 ```c
-normals = Gp_GridParams->field_4;
-verts   = Gp_GridParams->field_8;
+normals = Gp_GridParams->normals;
+verts   = Gp_GridParams->vertices;
 normals[3].vx = 0; normals[3].vy = 0; normals[3].vz = 0;
 for (k = 0; k < 4; k++) { verts[12 + k].vx = 0; ... }
 ```
@@ -95939,7 +95939,7 @@ lw    v0, 4(v0)        ;             lw   v0, 8(v0)
 
 Swapping the two source statements changes nothing: the order is decided by
 which pointer feeds the stores and which feeds the loop, not by LUID. Wrapping
-the second `Gp_GridParams->field_4` read in `do { ... } while (0)` cuts the
+the second `Gp_GridParams->normals` read in `do { ... } while (0)` cuts the
 basic block so it is scheduled on its own; `verts` then ends the temp's live
 range, takes `$v0`, and the giv - which conflicts with `$v0` through the loop
 body's scratch - is forced to `$v1`, restoring the `move`.
@@ -133231,9 +133231,9 @@ Use an aggregate initializer when constructing the complete local record:
 
 ```c
 SVECTOR dir;
-SVECTOR* norms = Gp_GridParams->field_4;
-SVECTOR* corners = Gp_GridParams->field_8;
-WorldCollisionGridFace* faces = Gp_GridParams->field_C;
+SVECTOR* norms = Gp_GridParams->normals;
+SVECTOR* corners = Gp_GridParams->vertices;
+WorldCollisionGridFace* faces = Gp_GridParams->faces;
 WorldCollisionGridFace quad0 = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
 WorldCollisionGridFace quad1 = {
     { (face + 1) * 4, (face + 1) * 4 + 1, (face + 1) * 4 + 2, (face + 1) * 4 + 3 }, face + 1, 2

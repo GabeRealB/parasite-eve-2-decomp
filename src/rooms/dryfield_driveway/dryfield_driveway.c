@@ -70,7 +70,7 @@ extern RoomLatchedEvent gRoomEventLatched;
 extern AnimationPlayRequest D_dryfield_driveway_8017E330;
 extern AnimationPlayRequest D_dryfield_driveway_8017E358;
 extern GpCopyArg            D_dryfield_driveway_8017E328;
-extern GpGridParams         D_dryfield_driveway_8017ED74[1];
+extern WorldCollisionGrid   D_dryfield_driveway_8017ED74[1];
 extern GpObj4C              D_dryfield_driveway_8017FC98[6];
 extern GpObj4C              D_dryfield_driveway_801802F8[11];
 extern GpRoomCoordSet       D_dryfield_driveway_801802E0[1];
@@ -247,7 +247,7 @@ s16* D_dryfield_driveway_8017ED20[21] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_driveway_8017ED74[1] = {
+WorldCollisionGrid D_dryfield_driveway_8017ED74[1] = {
     { NULL, D_dryfield_driveway_8017E870, D_dryfield_driveway_8017E8D8, D_dryfield_driveway_8017EAD8, D_dryfield_driveway_8017ED20, 0x2B16, 5210, 7, 3, 4000, 23 },
 };
 

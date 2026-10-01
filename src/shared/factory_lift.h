@@ -135,9 +135,9 @@ STATIC_ASSERT_SIZEOF(FactoryControlMessageEntry, 8);
 /* Defined by each build. */
 /// Collision templates the lift and barrier rebuild their grid faces from:
 /// the lift raised, the lift turned, and the barrier.
-extern GpGridParams gFactoryLiftTemplate;
-extern GpGridParams gFactoryLiftTurnedTemplate;
-extern GpGridParams gFactoryBarrierTemplate;
+extern WorldCollisionGrid gFactoryLiftTemplate;
+extern WorldCollisionGrid gFactoryLiftTurnedTemplate;
+extern WorldCollisionGrid gFactoryBarrierTemplate;
 /// The room task's message table and the panel session's task descriptors.
 extern GpMsgEntry gFactoryMsgTable[];
 extern TaskDesc   gFactoryPanelSessionDesc[];
@@ -160,8 +160,8 @@ extern TaskDesc                  gFactoryDaySpawnTable[];
 extern TaskDesc                  gFactoryNightSpawnTable[];
 extern TaskDesc                  gFactoryDayPanelDesc[];
 extern TaskDesc                  gFactoryNightPanelDesc[];
-extern GpGridParams              gFactoryDayGrid;
-extern GpGridParams              gFactoryNightGrid;
+extern WorldCollisionGrid        gFactoryDayGrid;
+extern WorldCollisionGrid        gFactoryNightGrid;
 extern PadScriptCmd              gFactoryDayJoltCmds[3];
 extern PadScriptCmd              gFactoryNightJoltCmds[3];
 extern PadScriptVibrationSegment gFactoryDayJoltRecs[3];

@@ -115,7 +115,7 @@ s16* D_shelter_b3_incinerator_control_room_80181CA0[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b3_incinerator_control_room_80181CC0 = { NULL, D_shelter_b3_incinerator_control_room_80181A0C, D_shelter_b3_incinerator_control_room_80181A5C, D_shelter_b3_incinerator_control_room_80181B34, D_shelter_b3_incinerator_control_room_80181CA0, 6742, 3500, 4, 2, 4000, 19 };
+WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0 = { NULL, D_shelter_b3_incinerator_control_room_80181A0C, D_shelter_b3_incinerator_control_room_80181A5C, D_shelter_b3_incinerator_control_room_80181B34, D_shelter_b3_incinerator_control_room_80181CA0, 6742, 3500, 4, 2, 4000, 19 };
 
 GpViewRec D_shelter_b3_incinerator_control_room_80181CE4[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1000, 0x7530, 0 } }, 541 },

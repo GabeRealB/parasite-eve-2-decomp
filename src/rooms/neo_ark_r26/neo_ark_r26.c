@@ -47,7 +47,7 @@ s32 func_neo_ark_r26_8017D650(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_r26_8017D694(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_r26_8017D69C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams               D_neo_ark_r26_8017E19C[1];
+extern WorldCollisionGrid         D_neo_ark_r26_8017E19C[1];
 extern WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5];
 extern GpRoomCoordSet             D_neo_ark_r26_8017E928[1];
 
@@ -251,7 +251,7 @@ s16* D_neo_ark_r26_8017E178[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_r26_8017E19C[1] = {
+WorldCollisionGrid D_neo_ark_r26_8017E19C[1] = {
     { NULL, D_neo_ark_r26_8017E124, D_neo_ark_r26_8017E12C, D_neo_ark_r26_8017E14C, D_neo_ark_r26_8017E178, 4000, 4000, 3, 3, 4000, 1 },
 };
 

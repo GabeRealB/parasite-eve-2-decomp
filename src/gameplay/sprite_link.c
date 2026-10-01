@@ -259,13 +259,13 @@ void Gp_AllocSprtLists(void)
 
 static void Gp_LinkRoomObjects(Task* task)
 {
-    GameLocationKey* sess;
-    GpRoomObjRec*    recs;
-    GpGridParams*    grid;
-    GpObj4A*         list1;
-    GpObj4A*         list2;
-    GpObj3A*         list3;
-    s32              i;
+    GameLocationKey*    sess;
+    GpRoomObjRec*       recs;
+    WorldCollisionGrid* grid;
+    GpObj4A*            list1;
+    GpObj4A*            list2;
+    GpObj3A*            list3;
+    s32                 i;
 
     sess = &gGameSession->location.loc;
     Gp_LoadStageView();
@@ -280,8 +280,9 @@ static void Gp_LinkRoomObjects(Task* task)
         list2 = recs[sess->room - 1].field_8;
         list3 = recs[sess->room - 1].field_C;
         if (grid != NULL) {
-            grid->field_0 = &gGfxViewCoord;
-            Gp_GridParams = grid;
+            // Bind the room mesh to the current view before publishing it.
+            grid->viewCoord = &gGfxViewCoord;
+            Gp_GridParams   = grid;
         }
         if (list1 != NULL) {
             for (i = 0;; i++) {

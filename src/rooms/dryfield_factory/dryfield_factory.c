@@ -80,7 +80,7 @@ s16* D_dryfield_factory_80187BD8[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFactoryDayGrid = { NULL, D_dryfield_factory_80187008, D_dryfield_factory_801870E8, D_dryfield_factory_80187638, D_dryfield_factory_80187BD8, 444, 222, 2, 4, 4000, 72 };
+WorldCollisionGrid gFactoryDayGrid = { NULL, D_dryfield_factory_80187008, D_dryfield_factory_801870E8, D_dryfield_factory_80187638, D_dryfield_factory_80187BD8, 444, 222, 2, 4, 4000, 72 };
 
 GpViewRec D_dryfield_factory_80187C1C[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3057, 0x44F4, -6028 } }, 240 },

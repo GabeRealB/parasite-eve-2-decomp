@@ -99,10 +99,10 @@ extern s16 D_acropolis_observatory_8017FE68[];
 extern SVECTOR D_acropolis_observatory_8017FE78[8];
 extern u16     D_acropolis_observatory_8017FEB8[8];
 
-extern GpGridParams   D_acropolis_observatory_80180A50[1];
-extern GpObj4C        D_acropolis_observatory_80180A74[10];
-extern GpObj4C        D_acropolis_observatory_80180D6C[9];
-extern GpRoomCoordSet D_acropolis_observatory_8018177C[1];
+extern WorldCollisionGrid D_acropolis_observatory_80180A50[1];
+extern GpObj4C            D_acropolis_observatory_80180A74[10];
+extern GpObj4C            D_acropolis_observatory_80180D6C[9];
+extern GpRoomCoordSet     D_acropolis_observatory_8018177C[1];
 
 void func_acropolis_observatory_8017E19C(Task*);
 
@@ -201,7 +201,7 @@ s16* D_acropolis_observatory_80180A2C[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_observatory_80180A50[1] = {
+WorldCollisionGrid D_acropolis_observatory_80180A50[1] = {
     { NULL, D_acropolis_observatory_8017FFEC, D_acropolis_observatory_8018009C, D_acropolis_observatory_80180574, D_acropolis_observatory_80180A2C, 8340, 0x2D57, 3, 3, 4000, 62 },
 };
 

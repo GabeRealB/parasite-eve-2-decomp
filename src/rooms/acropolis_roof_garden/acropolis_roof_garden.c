@@ -110,11 +110,11 @@ static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
 
 static const RgSpriteLevels D_acropolis_roof_garden_8017D5D0 = { { 0x40, 0x60, 0x10 } };
 
-extern GpGridParams   D_acropolis_roof_garden_801854A4[1];
-extern GpObj3A        D_acropolis_roof_garden_80186D14[2];
-extern GpObj4C        D_acropolis_roof_garden_801854C8[6];
-extern GpObj4C        D_acropolis_roof_garden_80185690[7];
-extern GpRoomCoordSet D_acropolis_roof_garden_80186BDC[1];
+extern WorldCollisionGrid D_acropolis_roof_garden_801854A4[1];
+extern GpObj3A            D_acropolis_roof_garden_80186D14[2];
+extern GpObj4C            D_acropolis_roof_garden_801854C8[6];
+extern GpObj4C            D_acropolis_roof_garden_80185690[7];
+extern GpRoomCoordSet     D_acropolis_roof_garden_80186BDC[1];
 
 extern AnimationPlayRequest D_acropolis_roof_garden_80184ACC;
 extern AnimationPlayRequest D_acropolis_roof_garden_80184AE0;
@@ -510,7 +510,7 @@ s16* D_acropolis_roof_garden_80185480[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_roof_garden_801854A4[1] = {
+WorldCollisionGrid D_acropolis_roof_garden_801854A4[1] = {
     { NULL, D_acropolis_roof_garden_80184D1C, D_acropolis_roof_garden_80184E14, D_acropolis_roof_garden_801850F4, D_acropolis_roof_garden_80185480, 0x28DD, 0x299C, 3, 3, 4000, 53 },
 };
 

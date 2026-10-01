@@ -22,7 +22,7 @@ extern GpViewCountRec D_shelter_b2_breeding_room_80180560[];
 
 extern GpWarpRec D_shelter_b2_breeding_room_80180564[];
 
-extern GpGridParams D_shelter_b2_breeding_room_801810F4;
+extern WorldCollisionGrid D_shelter_b2_breeding_room_801810F4;
 
 extern GpViewRec D_shelter_b2_breeding_room_80181118[];
 

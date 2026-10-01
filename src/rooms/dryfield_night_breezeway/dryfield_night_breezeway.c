@@ -66,10 +66,10 @@ s32 func_dryfield_night_breezeway_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventM
 s32 func_dryfield_night_breezeway_8017D600(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_night_breezeway_8017D62C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_night_breezeway_8017EBC4[1];
-extern GpObj4C        D_dryfield_night_breezeway_80180170[4];
-extern GpObj4C        D_dryfield_night_breezeway_801802A0[3];
-extern GpRoomCoordSet D_dryfield_night_breezeway_80180158[1];
+extern WorldCollisionGrid D_dryfield_night_breezeway_8017EBC4[1];
+extern GpObj4C            D_dryfield_night_breezeway_80180170[4];
+extern GpObj4C            D_dryfield_night_breezeway_801802A0[3];
+extern GpRoomCoordSet     D_dryfield_night_breezeway_80180158[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -135,7 +135,7 @@ s16* D_dryfield_night_breezeway_8017EBA4[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_breezeway_8017EBC4[1] = {
+WorldCollisionGrid D_dryfield_night_breezeway_8017EBC4[1] = {
     { NULL, D_dryfield_night_breezeway_8017E774, D_dryfield_night_breezeway_8017E7F4, D_dryfield_night_breezeway_8017E974, D_dryfield_night_breezeway_8017EBA4, -5000, 1000, 4, 2, 4000, 25 },
 };
 

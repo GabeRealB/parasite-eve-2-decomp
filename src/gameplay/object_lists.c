@@ -305,28 +305,29 @@ s32 Gp_PairNop(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
 
 void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 {
-    u8*           head;
-    VECTOR*       vec;
-    GpGridParams* p;
-    s32           val;
+    u8*                 head;
+    VECTOR*             vec;
+    WorldCollisionGrid* grid;
+    s32                 val;
 
     head = SCRATCH_STACK_CURSOR(u8);
     vec = SCRATCH_STACK_CURSOR(VECTOR) = (VECTOR*)(head - 0x10);
-    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (VECTOR*)arg0, vec);
-    p   = Gp_GridParams;
-    val = ((VECTOR*)(head - 0x10))->vx + p->field_14 - p->field_0->coord.t[0];
+    // Recover room XZ coordinates before applying the grid-origin biases.
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (VECTOR*)arg0, vec);
+    grid = Gp_GridParams;
+    val  = ((VECTOR*)(head - 0x10))->vx + grid->xBias - grid->viewCoord->coord.t[0];
     if (val >= 0) {
-        arg1->vx = val / p->field_20;
+        arg1->vx = val / grid->cellSize;
     } else {
-        arg1->vx = -1;
+        arg1->vx = WORLD_COLLISION_GRID_INVALID_CELL;
     }
-    p        = Gp_GridParams;
+    grid     = Gp_GridParams;
     arg1->vy = 0;
-    val      = vec->vz + p->field_18 - p->field_0->coord.t[2];
+    val      = vec->vz + grid->zBias - grid->viewCoord->coord.t[2];
     if (val >= 0) {
-        arg1->vz = val / p->field_20;
+        arg1->vz = val / grid->cellSize;
     } else {
-        arg1->vz = -1;
+        arg1->vz = WORLD_COLLISION_GRID_INVALID_CELL;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
@@ -389,23 +390,23 @@ void Gp_ClearPendingObj4C(void)
 
 static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 {
-    s32           val;
-    GpGridParams* p;
+    s32                 val;
+    WorldCollisionGrid* grid;
 
-    p   = Gp_GridParams;
-    val = arg0->vx + p->field_14;
+    grid = Gp_GridParams;
+    val  = arg0->vx + grid->xBias;
     if (val >= 0) {
-        arg1->vx = val / p->field_20;
+        arg1->vx = val / grid->cellSize;
     } else {
-        arg1->vx = -1;
+        arg1->vx = WORLD_COLLISION_GRID_INVALID_CELL;
     }
-    p        = Gp_GridParams;
+    grid     = Gp_GridParams;
     arg1->vy = 0;
-    val      = arg0->vz + p->field_18;
+    val      = arg0->vz + grid->zBias;
     if (val >= 0) {
-        arg1->vz = val / p->field_20;
+        arg1->vz = val / grid->cellSize;
     } else {
-        arg1->vz = -1;
+        arg1->vz = WORLD_COLLISION_GRID_INVALID_CELL;
     }
 }
 

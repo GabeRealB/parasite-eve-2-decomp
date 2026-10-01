@@ -34,10 +34,10 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-extern GpGridParams   D_shelter_r49_8017DAAC[1];
-extern GpRoomCoordSet D_shelter_r49_8017DD24[1];
-void                  func_shelter_r49_8017D71C(Task*);
-void                  func_shelter_r49_8017D8D8(Task*);
+extern WorldCollisionGrid D_shelter_r49_8017DAAC[1];
+extern GpRoomCoordSet     D_shelter_r49_8017DD24[1];
+void                      func_shelter_r49_8017D71C(Task*);
+void                      func_shelter_r49_8017D8D8(Task*);
 
 TaskDesc D_shelter_r49_8017DA00[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_r49_8017D8D8, { .value = 0 } },
@@ -86,7 +86,7 @@ s16* D_shelter_r49_8017DAA8[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_r49_8017DAAC[1] = {
+WorldCollisionGrid D_shelter_r49_8017DAAC[1] = {
     { NULL, D_shelter_r49_8017DA70, D_shelter_r49_8017DA78, D_shelter_r49_8017DA98, D_shelter_r49_8017DAA8, 4000, 4000, 1, 1, 0x7530, 1 },
 };
 

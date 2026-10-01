@@ -115,7 +115,7 @@ s16* D_neo_ark_woodland_path_80181D0C[20] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_woodland_path_80181D5C = { NULL, D_neo_ark_woodland_path_8018170C, D_neo_ark_woodland_path_80181794, D_neo_ark_woodland_path_801819EC, D_neo_ark_woodland_path_80181D0C, 7600, 7000, 4, 5, 4000, 35 };
+WorldCollisionGrid D_neo_ark_woodland_path_80181D5C = { NULL, D_neo_ark_woodland_path_8018170C, D_neo_ark_woodland_path_80181794, D_neo_ark_woodland_path_801819EC, D_neo_ark_woodland_path_80181D0C, 7600, 7000, 4, 5, 4000, 35 };
 
 GpViewRec D_neo_ark_woodland_path_80181D80[10] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 1610, 0x7530, -1510 } }, 329 },

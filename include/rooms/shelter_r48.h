@@ -12,7 +12,7 @@
 
 #include "main/task_types.h"
 
-extern GpGridParams D_shelter_r48_80183EEC[1];
+extern WorldCollisionGrid D_shelter_r48_80183EEC[1];
 
 extern TaskDesc D_shelter_r48_80182FAC;
 

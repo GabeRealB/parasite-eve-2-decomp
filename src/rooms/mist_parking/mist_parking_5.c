@@ -209,7 +209,7 @@ s16* D_mist_parking_80192194[28] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mist_parking_80192204 = { NULL, D_mist_parking_801916C8, D_mist_parking_80191730, D_mist_parking_80191B18, D_mist_parking_80192194, 0x2AF8, 7000, 7, 4, 4000, 66 };
+WorldCollisionGrid D_mist_parking_80192204 = { NULL, D_mist_parking_801916C8, D_mist_parking_80191730, D_mist_parking_80191B18, D_mist_parking_80192194, 0x2AF8, 7000, 7, 4, 4000, 66 };
 
 GpViewRec D_mist_parking_80192228[20] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6978, 0 } }, 257 },

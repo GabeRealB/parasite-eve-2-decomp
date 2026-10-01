@@ -21,7 +21,7 @@ extern GpViewCountRec D_shelter_b1_pod_access_tunnel_80183A18[];
 
 extern GpWarpRec D_shelter_b1_pod_access_tunnel_80183A1C[];
 
-extern GpGridParams D_shelter_b1_pod_access_tunnel_80183C24;
+extern WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24;
 
 extern GpViewRec D_shelter_b1_pod_access_tunnel_80183C48[];
 

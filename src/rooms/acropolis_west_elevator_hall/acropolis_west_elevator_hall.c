@@ -147,7 +147,7 @@ extern TmdSource    D_acropolis_west_elevator_hall_8018077C;
 void                func_acropolis_west_elevator_hall_8017F418(Task*);
 
 extern AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04;
-extern GpGridParams                     D_acropolis_west_elevator_hall_801852FC[1];
+extern WorldCollisionGrid               D_acropolis_west_elevator_hall_801852FC[1];
 extern GpObj4C                          D_acropolis_west_elevator_hall_80185320[4];
 extern GpObj4C                          D_acropolis_west_elevator_hall_80185450[5];
 extern GpRoomCoordSet                   D_acropolis_west_elevator_hall_801869E4[1];
@@ -638,7 +638,7 @@ s16* D_acropolis_west_elevator_hall_801852E4[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_west_elevator_hall_801852FC[1] = {
+WorldCollisionGrid D_acropolis_west_elevator_hall_801852FC[1] = {
     { NULL, D_acropolis_west_elevator_hall_801850B4, D_acropolis_west_elevator_hall_801850EC, D_acropolis_west_elevator_hall_801851D4, D_acropolis_west_elevator_hall_801852E4, 5480, 2000, 3, 2, 4000, 14 },
 };
 

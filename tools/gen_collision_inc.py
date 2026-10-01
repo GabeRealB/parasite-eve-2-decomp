@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate typed C initializers for a room collision grid embedded in C data.
 
-Only the declarations and the grid's `GpGridParams` header live in source
+Only the declarations and the grid's `WorldCollisionGrid` header live in source
 control. The grid itself - normals, vertices, faces, the per-cell face lists
 and the table pointing at them - is geometry, an asset like a model's arrays,
 so its initializers come from the extracted package.

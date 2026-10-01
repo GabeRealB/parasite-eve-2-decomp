@@ -142,10 +142,10 @@ static void func_dryfield_water_tank_8017DB48(void);
 
 extern GpAreaTmdRec D_dryfield_water_tank_80188BCC[2];
 
-extern GpGridParams   D_dryfield_water_tank_80186EBC[1];
-extern GpObj4C        D_dryfield_water_tank_80187FF8[4];
-extern GpObj4C        D_dryfield_water_tank_80188920[9];
-extern GpRoomCoordSet D_dryfield_water_tank_80188908[1];
+extern WorldCollisionGrid D_dryfield_water_tank_80186EBC[1];
+extern GpObj4C            D_dryfield_water_tank_80187FF8[4];
+extern GpObj4C            D_dryfield_water_tank_80188920[9];
+extern GpRoomCoordSet     D_dryfield_water_tank_80188908[1];
 
 extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
 
@@ -512,7 +512,7 @@ s16* D_dryfield_water_tank_80186EAC[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_water_tank_80186EBC[1] = {
+WorldCollisionGrid D_dryfield_water_tank_80186EBC[1] = {
     { NULL, D_dryfield_water_tank_80186970, D_dryfield_water_tank_801869E0, D_dryfield_water_tank_80186C10, D_dryfield_water_tank_80186EAC, 3500, 3300, 2, 2, 4000, 36 },
 };
 

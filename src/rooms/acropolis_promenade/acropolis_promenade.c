@@ -138,11 +138,11 @@ void func_acropolis_promenade_8017DB9C(Task*);
 void func_acropolis_promenade_8017DF74(Task*);
 void func_acropolis_promenade_8017DFD4(Task*);
 
-extern GpGridParams   D_acropolis_promenade_801823DC[1];
-extern GpGridParams   D_acropolis_promenade_80182BD0[1];
-extern GpObj4C        D_acropolis_promenade_80182BF4[6];
-extern GpObj4C        D_acropolis_promenade_80182DBC[6];
-extern GpRoomCoordSet D_acropolis_promenade_80183A08[1];
+extern WorldCollisionGrid D_acropolis_promenade_801823DC[1];
+extern WorldCollisionGrid D_acropolis_promenade_80182BD0[1];
+extern GpObj4C            D_acropolis_promenade_80182BF4[6];
+extern GpObj4C            D_acropolis_promenade_80182DBC[6];
+extern GpRoomCoordSet     D_acropolis_promenade_80183A08[1];
 
 extern AnimationPlayRequest D_acropolis_promenade_80180EBC;
 
@@ -688,7 +688,7 @@ s16* D_acropolis_promenade_801823B4[10] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_promenade_801823DC[1] = {
+WorldCollisionGrid D_acropolis_promenade_801823DC[1] = {
     { NULL, D_acropolis_promenade_80181CF4, D_acropolis_promenade_80181DE4, D_acropolis_promenade_801820CC, D_acropolis_promenade_801823B4, 2780, 8590, 2, 5, 4000, 38 },
 };
 
@@ -714,7 +714,7 @@ s16* D_acropolis_promenade_80182BA8[10] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_promenade_80182BD0[1] = {
+WorldCollisionGrid D_acropolis_promenade_80182BD0[1] = {
     { NULL, D_acropolis_promenade_80182400, D_acropolis_promenade_801824F0, D_acropolis_promenade_80182828, D_acropolis_promenade_80182BA8, 2780, 8590, 2, 5, 4000, 46 },
 };
 

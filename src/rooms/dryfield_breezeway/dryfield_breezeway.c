@@ -66,11 +66,11 @@ extern GpAreaTmdRec D_dryfield_breezeway_80184268[3];
 extern GpAreaTmdRec D_dryfield_breezeway_8018428C[2];
 extern GpAreaTmdRec D_dryfield_breezeway_801842A4[3];
 
-extern GpGridParams   D_dryfield_breezeway_80183628[1];
-extern GpObj4C        D_dryfield_breezeway_80183DE4[4];
-extern GpObj4C        D_dryfield_breezeway_80183F14[5];
-extern GpRoomCoordSet D_dryfield_breezeway_80184250[1];
-extern TaskDesc       D_8014D8A4;
+extern WorldCollisionGrid D_dryfield_breezeway_80183628[1];
+extern GpObj4C            D_dryfield_breezeway_80183DE4[4];
+extern GpObj4C            D_dryfield_breezeway_80183F14[5];
+extern GpRoomCoordSet     D_dryfield_breezeway_80184250[1];
+extern TaskDesc           D_8014D8A4;
 
 u_long D_dryfield_breezeway_80182F44[128] = {
     0x430000,
@@ -263,7 +263,7 @@ s16* D_dryfield_breezeway_80183608[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_breezeway_80183628[1] = {
+WorldCollisionGrid D_dryfield_breezeway_80183628[1] = {
     { NULL, D_dryfield_breezeway_801831FC, D_dryfield_breezeway_8018327C, D_dryfield_breezeway_801833EC, D_dryfield_breezeway_80183608, -5000, 1000, 4, 2, 4000, 24 },
 };
 

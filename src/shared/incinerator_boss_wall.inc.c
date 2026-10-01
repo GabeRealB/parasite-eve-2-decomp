@@ -14,9 +14,9 @@ void incinBossBuildWall(Task* task, s16 scale, s16 drop, s16 index)
     WorldCollisionGridFace* faces;
     SVECTOR*                d;
 
-    normal = &Gp_GridParams->field_4[index];
-    verts  = Gp_GridParams->field_8;
-    faces  = Gp_GridParams->field_C;
+    normal = &Gp_GridParams->normals[index];
+    verts  = Gp_GridParams->vertices;
+    faces  = Gp_GridParams->faces;
 
     face.vertexIndices[0] = index * 4;
     face.vertexIndices[1] = index * 4 + 1;

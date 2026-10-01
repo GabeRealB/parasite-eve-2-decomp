@@ -15,7 +15,7 @@ extern EvsCommand D_dryfield_toilet_80180C58[31];
 
 extern EvsCommand D_dryfield_toilet_80180F40[20];
 
-extern GpGridParams D_dryfield_toilet_80181404;
+extern WorldCollisionGrid D_dryfield_toilet_80181404;
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_toilet_8017DA3C(s32);

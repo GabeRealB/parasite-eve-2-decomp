@@ -6,7 +6,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/room.h"
 
-extern GpGridParams D_mist_shooting_gallery_80189968;
+extern WorldCollisionGrid D_mist_shooting_gallery_80189968;
 
 extern GpObj4C D_mist_shooting_gallery_8018BDE8[28];
 

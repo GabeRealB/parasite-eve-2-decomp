@@ -122,7 +122,7 @@ void bursterContacts(Task* arg0)
                 scratch->delta.vy.word = coord->workm.t[1] - work->rec154[i].point.vy;
                 scratch->delta.vz.word = coord->workm.t[2] - work->rec154[i].point.vz;
                 VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, (VECTOR*)&scratch->delta);
+                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, (VECTOR*)&scratch->delta);
                 if (work->field_2B8 == 1 || work->field_2B8 == 2) {
                     coord->coord.t[0] += (distance * scratch->delta.vx.word) >> 12;
                     pushY              = distance * scratch->delta.vy.word;

@@ -205,7 +205,7 @@ extern EvsCommand           D_acropolis_sanctuary_80180B0C[];
 extern EvsCommand           D_acropolis_sanctuary_80181664[];
 extern EvsCommand           D_acropolis_sanctuary_80181814[];
 extern TaskDesc             D_acropolis_sanctuary_80182240;
-extern GpGridParams         D_acropolis_sanctuary_801822EC;
+extern WorldCollisionGrid   D_acropolis_sanctuary_801822EC;
 extern GpMsgEntry           D_acropolis_sanctuary_80182310[];
 extern AcsTile              D_acropolis_sanctuary_80182320[];
 extern AcsQuad              D_acropolis_sanctuary_80182710[];
@@ -213,7 +213,7 @@ extern s16                  D_acropolis_sanctuary_80182750[];
 extern s32                  D_acropolis_sanctuary_80182770;
 extern SVECTOR              D_acropolis_sanctuary_80182774[];
 extern u16                  D_acropolis_sanctuary_801827D4[];
-extern GpGridParams         D_acropolis_sanctuary_80183568;
+extern WorldCollisionGrid   D_acropolis_sanctuary_80183568;
 extern GpAreaApplyRec       D_acropolis_sanctuary_80186418[];
 extern Task*                D_acropolis_sanctuary_80186C90;
 
@@ -261,9 +261,9 @@ void func_acropolis_sanctuary_8017DA40(Task*);
 
 void func_acropolis_sanctuary_8017DCE0(s32);
 
-extern GpGridParams   D_acropolis_sanctuary_80183568;
-extern GpObj4C        D_acropolis_sanctuary_8018358C[18];
-extern GpRoomCoordSet D_acropolis_sanctuary_801843EC[1];
+extern WorldCollisionGrid D_acropolis_sanctuary_80183568;
+extern GpObj4C            D_acropolis_sanctuary_8018358C[18];
+extern GpRoomCoordSet     D_acropolis_sanctuary_801843EC[1];
 
 extern AnimationPlayRequest D_acropolis_sanctuary_80180904;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180944;
@@ -664,7 +664,7 @@ s16* D_acropolis_sanctuary_801822E8[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_sanctuary_801822EC = { NULL, D_acropolis_sanctuary_8018224C, D_acropolis_sanctuary_8018226C, D_acropolis_sanctuary_801822AC, D_acropolis_sanctuary_801822E8, 4941, 8914, 1, 1, 4000, 4 };
+WorldCollisionGrid D_acropolis_sanctuary_801822EC = { NULL, D_acropolis_sanctuary_8018224C, D_acropolis_sanctuary_8018226C, D_acropolis_sanctuary_801822AC, D_acropolis_sanctuary_801822E8, 4941, 8914, 1, 1, 4000, 4 };
 
 GpMsgEntry D_acropolis_sanctuary_80182310[2] = {
     { 3101, func_acropolis_sanctuary_8017F918 },
@@ -846,7 +846,7 @@ s16* D_acropolis_sanctuary_80183544[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_sanctuary_80183568 = { NULL, D_acropolis_sanctuary_801828B4, D_acropolis_sanctuary_80182A04, D_acropolis_sanctuary_80182E44, D_acropolis_sanctuary_80183544, 0x2A44, 0x332D, 3, 3, 4000, 85 };
+WorldCollisionGrid D_acropolis_sanctuary_80183568 = { NULL, D_acropolis_sanctuary_801828B4, D_acropolis_sanctuary_80182A04, D_acropolis_sanctuary_80182E44, D_acropolis_sanctuary_80183544, 0x2A44, 0x332D, 3, 3, 4000, 85 };
 
 GpObj4C D_acropolis_sanctuary_8018358C[18] = {
     { NULL, NULL, NULL, { -7168, -1376, -8000, 0 }, { { 0, -2048, -1504, 0 }, { 0, 2048, -1504, 0 }, { 0, -2048, 1504, 0 }, { 0, 2048, 1504, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 0, 0 }, 2534, 0, 2, 3, 1, 0 },
@@ -1888,23 +1888,23 @@ void func_acropolis_sanctuary_8017DCE0(s32 arg0)
 /// doorway, afterwards it is pushed 3000 units aside and out of the way.
 static void func_acropolis_sanctuary_8017DD78(void)
 {
-    GpGridParams*   dst = &D_acropolis_sanctuary_80183568;
-    GpGridParams*   src = &D_acropolis_sanctuary_801822EC;
-    AcsBlockerShift shift;
-    s32             i;
+    WorldCollisionGrid* dst = &D_acropolis_sanctuary_80183568;
+    WorldCollisionGrid* src = &D_acropolis_sanctuary_801822EC;
+    AcsBlockerShift     shift;
+    s32                 i;
 
     for (i = 0; i < 4; i++) {
-        dst->field_4[i].vx           = src->field_4[i].vx;
-        dst->field_4[i].vy           = src->field_4[i].vy;
-        dst->field_4[i].vz           = src->field_4[i].vz;
-        dst->field_8[i * 2].vx       = src->field_8[i * 2].vx;
-        dst->field_8[i * 2].vy       = src->field_8[i * 2].vy;
-        dst->field_8[i * 2].vz       = src->field_8[i * 2].vz;
-        dst->field_8[(i * 2) + 1].vx = src->field_8[(i * 2) + 1].vx;
-        dst->field_8[(i * 2) + 1].vy = src->field_8[(i * 2) + 1].vy;
-        dst->field_8[(i * 2) + 1].vz = src->field_8[(i * 2) + 1].vz;
-        dst->field_C[i]              = src->field_C[i];
-        dst->field_C[i].surfaceClass = 1;
+        dst->normals[i].vx            = src->normals[i].vx;
+        dst->normals[i].vy            = src->normals[i].vy;
+        dst->normals[i].vz            = src->normals[i].vz;
+        dst->vertices[i * 2].vx       = src->vertices[i * 2].vx;
+        dst->vertices[i * 2].vy       = src->vertices[i * 2].vy;
+        dst->vertices[i * 2].vz       = src->vertices[i * 2].vz;
+        dst->vertices[(i * 2) + 1].vx = src->vertices[(i * 2) + 1].vx;
+        dst->vertices[(i * 2) + 1].vy = src->vertices[(i * 2) + 1].vy;
+        dst->vertices[(i * 2) + 1].vz = src->vertices[(i * 2) + 1].vz;
+        dst->faces[i]                 = src->faces[i];
+        dst->faces[i].surfaceClass    = 1;
     }
 
     if (GameFlag_GetNibble(6) == 0) {
@@ -1918,9 +1918,9 @@ static void func_acropolis_sanctuary_8017DD78(void)
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx += shift.vx;
-        dst->field_8[i].vy += shift.vy;
-        dst->field_8[i].vz += shift.vz;
+        dst->vertices[i].vx += shift.vx;
+        dst->vertices[i].vy += shift.vy;
+        dst->vertices[i].vz += shift.vz;
     }
 }
 

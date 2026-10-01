@@ -163,7 +163,7 @@ s16* D_dryfield_night_factory_80186C1C[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFactoryBarrierTemplate = { NULL, D_dryfield_night_factory_80186BAC, D_dryfield_night_factory_80186BBC, D_dryfield_night_factory_80186BFC, D_dryfield_night_factory_80186C1C, -4464, -3949, 1, 1, 4000, 2 };
+WorldCollisionGrid gFactoryBarrierTemplate = { NULL, D_dryfield_night_factory_80186BAC, D_dryfield_night_factory_80186BBC, D_dryfield_night_factory_80186BFC, D_dryfield_night_factory_80186C1C, -4464, -3949, 1, 1, 4000, 2 };
 
 SVECTOR D_dryfield_night_factory_80186C44[4] = {
 #include "assets/dryfield_night_factory_collision_09730_normals.inc"
@@ -187,7 +187,7 @@ s16* D_dryfield_night_factory_80186CE8[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFactoryLiftTemplate = { NULL, D_dryfield_night_factory_80186C44, D_dryfield_night_factory_80186C64, D_dryfield_night_factory_80186CA4, D_dryfield_night_factory_80186CE8, 750, 2191, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTemplate = { NULL, D_dryfield_night_factory_80186C44, D_dryfield_night_factory_80186C64, D_dryfield_night_factory_80186CA4, D_dryfield_night_factory_80186CE8, 750, 2191, 1, 2, 4000, 4 };
 
 SVECTOR D_dryfield_night_factory_80186D14[4] = {
 #include "assets/dryfield_night_factory_collision_097FC_normals.inc"
@@ -211,7 +211,7 @@ s16* D_dryfield_night_factory_80186DB4[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFactoryLiftTurnedTemplate = { NULL, D_dryfield_night_factory_80186D14, D_dryfield_night_factory_80186D34, D_dryfield_night_factory_80186D74, D_dryfield_night_factory_80186DB4, 750, 1950, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTurnedTemplate = { NULL, D_dryfield_night_factory_80186D14, D_dryfield_night_factory_80186D34, D_dryfield_night_factory_80186D74, D_dryfield_night_factory_80186DB4, 750, 1950, 1, 2, 4000, 4 };
 
 TaskDesc gFactoryNightSpawnTable[8] = {
     { { { TASK_BODY_NONE, 192 } }, factoryPowerScene, { .value = 0 } },
@@ -316,7 +316,7 @@ s16* D_dryfield_night_factory_80187BD0[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFactoryNightGrid = { NULL, D_dryfield_night_factory_80187000, D_dryfield_night_factory_801870E0, D_dryfield_night_factory_80187630, D_dryfield_night_factory_80187BD0, 444, 222, 2, 4, 4000, 72 };
+WorldCollisionGrid gFactoryNightGrid = { NULL, D_dryfield_night_factory_80187000, D_dryfield_night_factory_801870E0, D_dryfield_night_factory_80187630, D_dryfield_night_factory_80187BD0, 444, 222, 2, 4, 4000, 72 };
 
 GpViewRec D_dryfield_night_factory_80187C14[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3057, 0x44F4, -6028 } }, 240 },

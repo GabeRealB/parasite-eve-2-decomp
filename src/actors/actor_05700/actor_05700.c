@@ -1579,7 +1579,7 @@ void lungerTakeHits(Task* arg0)
                 if (maxPush < push) {
                     maxPush = push;
                     VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, &scratch->push);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->push);
                 }
                 break;
         }
@@ -1808,7 +1808,7 @@ void Actor05700_Fn01E28(Task* arg0)
             delta->vy       = target->workm.t[1] - coord->workm.t[1];
             delta->vz       = target->workm.t[2] - coord->workm.t[2];
             VectorNormal(delta, normal);
-            ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, delta);
+            ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, delta);
             dx = delta->vx;
             dz = delta->vz;
             if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) {
@@ -1853,7 +1853,7 @@ void Actor05700_Fn01E28(Task* arg0)
                 delta->vy = target->workm.t[1] - coord->workm.t[1];
                 delta->vz = target->workm.t[2] - coord->workm.t[2];
                 VectorNormal(delta, normal2);
-                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal2, delta);
+                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal2, delta);
                 work->field_6A4 = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
                 work->field_69E = 7;
             }

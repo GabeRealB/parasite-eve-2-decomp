@@ -78,7 +78,7 @@ static void func_dryfield_garage_8017DC08(Task* task);
 
 extern TaskDesc D_8014D8A4;
 
-extern GpGridParams               D_dryfield_garage_8017E64C[1];
+extern WorldCollisionGrid         D_dryfield_garage_8017E64C[1];
 extern GpObj4C                    D_dryfield_garage_8017F69C[14];
 extern GpObj4C                    D_dryfield_garage_8017FD1C[11];
 extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
@@ -151,7 +151,7 @@ s16* D_dryfield_garage_8017E628[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_garage_8017E64C[1] = {
+WorldCollisionGrid D_dryfield_garage_8017E64C[1] = {
     { NULL, D_dryfield_garage_8017DD6C, D_dryfield_garage_8017DEA4, D_dryfield_garage_8017E1F4, D_dryfield_garage_8017E628, 150, 0, 3, 3, 4000, 54 },
 };
 

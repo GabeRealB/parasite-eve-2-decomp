@@ -194,7 +194,7 @@ s16* D_shelter_r48_80183E60[35] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_r48_80183EEC[1] = {
+WorldCollisionGrid D_shelter_r48_80183EEC[1] = {
     { NULL, D_shelter_r48_8018306C, D_shelter_r48_801831AC, D_shelter_r48_801835EC, D_shelter_r48_80183E60, 145, 6073, 5, 7, 4000, 83 },
 };
 

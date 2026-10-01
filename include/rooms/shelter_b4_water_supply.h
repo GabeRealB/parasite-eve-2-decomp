@@ -23,7 +23,7 @@ extern GpViewCountRec D_shelter_b4_water_supply_80182740[];
 
 extern GpWarpRec D_shelter_b4_water_supply_80182744[];
 
-extern GpGridParams D_shelter_b4_water_supply_80182E3C;
+extern WorldCollisionGrid D_shelter_b4_water_supply_80182E3C;
 
 extern GpViewRec D_shelter_b4_water_supply_80182E60[];
 

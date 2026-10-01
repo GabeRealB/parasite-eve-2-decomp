@@ -45,8 +45,8 @@ extern SVECTOR D_mine_gorge_8017E788[];
 extern SVECTOR D_mine_gorge_8017E790[];
 extern SVECTOR D_mine_gorge_8017E798[];
 
-extern GpGridParams               D_mine_gorge_8017F184[1];
-extern GpGridParams               D_mine_gorge_8017F9F0[1];
+extern WorldCollisionGrid         D_mine_gorge_8017F184[1];
+extern WorldCollisionGrid         D_mine_gorge_8017F9F0[1];
 extern GpObj4C                    D_mine_gorge_80182AD4[8];
 extern GpObj4C                    D_mine_gorge_80182D34[8];
 extern GpObj4C                    D_mine_gorge_80182F94[5];
@@ -149,7 +149,7 @@ s16* D_mine_gorge_8017F154[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_gorge_8017F184[1] = {
+WorldCollisionGrid D_mine_gorge_8017F184[1] = {
     { NULL, D_mine_gorge_8017E898, D_mine_gorge_8017E988, D_mine_gorge_8017ED48, D_mine_gorge_8017F154, 1244, 2085, 6, 2, 4000, 49 },
 };
 
@@ -175,7 +175,7 @@ s16* D_mine_gorge_8017F9C0[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_gorge_8017F9F0[1] = {
+WorldCollisionGrid D_mine_gorge_8017F9F0[1] = {
     { NULL, D_mine_gorge_8017F1A8, D_mine_gorge_8017F288, D_mine_gorge_8017F5E8, D_mine_gorge_8017F9C0, 1244, 2085, 6, 2, 4000, 46 },
 };
 

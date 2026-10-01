@@ -172,7 +172,7 @@ static const TaskFuncTable4 D_mist_r18_8017D5DC = {
 
 extern GpAreaTmdRec D_mist_r18_80186BD8[3];
 
-extern GpGridParams D_mist_r18_801866F8[1];
+extern WorldCollisionGrid D_mist_r18_801866F8[1];
 
 extern AnimationSet* D_mist_r18_80184F64[11];
 void                 func_mist_r18_8017E6D8(s32);
@@ -939,7 +939,7 @@ s16* D_mist_r18_801866C8[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mist_r18_801866F8[1] = {
+WorldCollisionGrid D_mist_r18_801866F8[1] = {
     { NULL, D_mist_r18_80186664, D_mist_r18_8018666C, D_mist_r18_8018668C, D_mist_r18_801866C8, 7000, 5000, 4, 3, 4000, 1 },
 };
 

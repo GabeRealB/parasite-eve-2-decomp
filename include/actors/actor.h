@@ -2094,7 +2094,7 @@ static __inline__ void actorCalcPush(SVECTOR* pos, WorldCollisionContact* rec, S
     d.vy = pos->vy - rec->point.vy;
     d.vz = pos->vz - rec->point.vz;
     VectorNormal(&d, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &n, &d);
     out->vx = (pen * d.vx) >> 12;
     out->vy = 0;
     out->vz = (pen * d.vz) >> 12;

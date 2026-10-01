@@ -37,8 +37,8 @@
 
 #include "mapui/map_dryfield_full.h"
 
-extern GpGridParams D_dryfield_night_water_tank_8017E08C;
-extern GpGridParams D_dryfield_night_water_tank_8017F4B0;
+extern WorldCollisionGrid D_dryfield_night_water_tank_8017E08C;
+extern WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0;
 
 /// 0xFF-terminated `GpAreaApplyRec` list the room applies when the scripted end
 /// of the visit fires.
@@ -85,13 +85,13 @@ extern s32 D_dryfield_night_water_tank_8017EE4C;
 
 static void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
 
-extern GpGridParams   D_dryfield_night_water_tank_8017F4B0;
-extern GpObj3A        D_dryfield_night_water_tank_801807CC[2];
-extern GpObj4C        D_dryfield_night_water_tank_8018038C[4];
-extern GpObj4C        D_dryfield_night_water_tank_801804BC[8];
-extern GpRoomCoordSet D_dryfield_night_water_tank_80180374[1];
-extern TmdSource      D_dryfield_night_water_tank_8017EE04;
-void                  func_dryfield_night_water_tank_8017DB8C(Task*);
+extern WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0;
+extern GpObj3A            D_dryfield_night_water_tank_801807CC[2];
+extern GpObj4C            D_dryfield_night_water_tank_8018038C[4];
+extern GpObj4C            D_dryfield_night_water_tank_801804BC[8];
+extern GpRoomCoordSet     D_dryfield_night_water_tank_80180374[1];
+extern TmdSource          D_dryfield_night_water_tank_8017EE04;
+void                      func_dryfield_night_water_tank_8017DB8C(Task*);
 
 s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_water_tank_8017D714(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -168,7 +168,7 @@ s16* D_dryfield_night_water_tank_8017E088[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_water_tank_8017E08C = { NULL, D_dryfield_night_water_tank_8017E028, D_dryfield_night_water_tank_8017E038, D_dryfield_night_water_tank_8017E068, D_dryfield_night_water_tank_8017E088, -1016, 2444, 1, 1, 4000, 2 };
+WorldCollisionGrid D_dryfield_night_water_tank_8017E08C = { NULL, D_dryfield_night_water_tank_8017E028, D_dryfield_night_water_tank_8017E038, D_dryfield_night_water_tank_8017E068, D_dryfield_night_water_tank_8017E088, -1016, 2444, 1, 1, 4000, 2 };
 
 TmdBone D_dryfield_night_water_tank_8017E0B0[1] = {
 #include "assets/dryfield_night_water_tank_model_01844_skeleton.inc"
@@ -273,7 +273,7 @@ s16* D_dryfield_night_water_tank_8017F4A0[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_water_tank_8017F4B0 = { NULL, D_dryfield_night_water_tank_8017EEEC, D_dryfield_night_water_tank_8017EF6C, D_dryfield_night_water_tank_8017F1DC, D_dryfield_night_water_tank_8017F4A0, 3500, 3300, 2, 2, 4000, 38 };
+WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0 = { NULL, D_dryfield_night_water_tank_8017EEEC, D_dryfield_night_water_tank_8017EF6C, D_dryfield_night_water_tank_8017F1DC, D_dryfield_night_water_tank_8017F4A0, 3500, 3300, 2, 2, 4000, 38 };
 
 GpViewRec D_dryfield_night_water_tank_8017F4D4[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x5DC0, 0 } }, 322 },
@@ -760,25 +760,25 @@ void func_dryfield_night_water_tank_8017D984(Task* task)
 /// `field_8` coordinates by (0, 0, -0xC8) when `arg0` is non-zero.
 static void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_dryfield_night_water_tank_8017F4B0;
     src = &D_dryfield_night_water_tank_8017E08C;
 
     for (i = 0; i < 2; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
 
     if (arg0 == 0) {
@@ -792,9 +792,9 @@ static void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
     }
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }
 

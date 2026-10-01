@@ -79,11 +79,11 @@ s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_pyramid_8017DA44(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 
-extern GpGridParams   D_neo_ark_pyramid_801802C4[1];
-extern GpObj3A        D_neo_ark_pyramid_80181790[3];
-extern GpObj4C        D_neo_ark_pyramid_801812B0[6];
-extern GpObj4C        D_neo_ark_pyramid_80181478[7];
-extern GpRoomCoordSet D_neo_ark_pyramid_80181298[1];
+extern WorldCollisionGrid D_neo_ark_pyramid_801802C4[1];
+extern GpObj3A            D_neo_ark_pyramid_80181790[3];
+extern GpObj4C            D_neo_ark_pyramid_801812B0[6];
+extern GpObj4C            D_neo_ark_pyramid_80181478[7];
+extern GpRoomCoordSet     D_neo_ark_pyramid_80181298[1];
 
 GpMsgEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
@@ -155,7 +155,7 @@ s16* D_neo_ark_pyramid_80180288[15] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_pyramid_801802C4[1] = {
+WorldCollisionGrid D_neo_ark_pyramid_801802C4[1] = {
     { NULL, D_neo_ark_pyramid_8017FCDC, D_neo_ark_pyramid_8017FD44, D_neo_ark_pyramid_8017FF54, D_neo_ark_pyramid_80180288, 4000, 0x2CEC, 5, 3, 4000, 36 },
 };
 

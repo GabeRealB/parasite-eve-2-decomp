@@ -420,7 +420,7 @@ extern s16 D_actor_503500_8016EF50[4];
 
 extern SVECTOR D_actor_503500_8016EF58[7];
 
-extern GpGridParams D_actor_503500_8016F03C;
+extern WorldCollisionGrid D_actor_503500_8016F03C;
 
 extern SVECTOR D_actor_503500_8016F060;
 

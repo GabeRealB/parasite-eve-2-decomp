@@ -56,11 +56,11 @@ s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_1f_airlock_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_1f_airlock_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_shelter_1f_airlock_8017E838[1];
-extern GpObj3A        D_shelter_1f_airlock_8017F7B8[2];
-extern GpObj4C        D_shelter_1f_airlock_8017F430[6];
-extern GpObj4C        D_shelter_1f_airlock_8017F5F8[4];
-extern GpRoomCoordSet D_shelter_1f_airlock_8017F418[1];
+extern WorldCollisionGrid D_shelter_1f_airlock_8017E838[1];
+extern GpObj3A            D_shelter_1f_airlock_8017F7B8[2];
+extern GpObj4C            D_shelter_1f_airlock_8017F430[6];
+extern GpObj4C            D_shelter_1f_airlock_8017F5F8[4];
+extern GpRoomCoordSet     D_shelter_1f_airlock_8017F418[1];
 
 GpMsgEntry D_shelter_1f_airlock_8017E494[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_airlock_8017D5D8 },
@@ -144,7 +144,7 @@ s16* D_shelter_1f_airlock_8017E82C[3] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_1f_airlock_8017E838[1] = {
+WorldCollisionGrid D_shelter_1f_airlock_8017E838[1] = {
     { NULL, D_shelter_1f_airlock_8017E62C, D_shelter_1f_airlock_8017E65C, D_shelter_1f_airlock_8017E75C, D_shelter_1f_airlock_8017E82C, 5750, -2500, 3, 1, 4000, 13 },
 };
 

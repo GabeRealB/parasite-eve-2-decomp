@@ -90,7 +90,7 @@ extern ActorTransform       D_dryfield_general_store_8017E53C;
 extern s32                  D_dryfield_general_store_8017E560;
 void                        func_dryfield_general_store_8017E130(s32);
 
-extern GpGridParams               D_dryfield_general_store_8017F238[1];
+extern WorldCollisionGrid         D_dryfield_general_store_8017F238[1];
 extern GpObj3A                    D_dryfield_general_store_80184F78[4];
 extern GpObj4C                    D_dryfield_general_store_801840EC[28];
 extern GpObj4C                    D_dryfield_general_store_8018493C[21];
@@ -232,7 +232,7 @@ s16* D_dryfield_general_store_8017F214[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_general_store_8017F238[1] = {
+WorldCollisionGrid D_dryfield_general_store_8017F238[1] = {
     { NULL, D_dryfield_general_store_8017E738, D_dryfield_general_store_8017E7A0, D_dryfield_general_store_8017EBE8, D_dryfield_general_store_8017F214, 0, 0, 3, 3, 4000, 83 },
 };
 

@@ -51,7 +51,7 @@ static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 
 extern TaskDesc D_80135E78;
 
 /// The layout template and the live copy the reset below restores from it.
-extern GpGridParams D_shelter_b6_growth_room_8017F234;
+extern WorldCollisionGrid D_shelter_b6_growth_room_8017F234;
 
 SVECTOR D_shelter_b6_growth_room_8017F194[4] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_normals.inc"
@@ -75,7 +75,7 @@ s16* D_shelter_b6_growth_room_8017F230[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b6_growth_room_8017F234 = { NULL, D_shelter_b6_growth_room_8017F194, D_shelter_b6_growth_room_8017F1B4, D_shelter_b6_growth_room_8017F1F4, D_shelter_b6_growth_room_8017F230, -3145, -6145, 1, 1, 4000, 4 };
+WorldCollisionGrid D_shelter_b6_growth_room_8017F234 = { NULL, D_shelter_b6_growth_room_8017F194, D_shelter_b6_growth_room_8017F1B4, D_shelter_b6_growth_room_8017F1F4, D_shelter_b6_growth_room_8017F230, -3145, -6145, 1, 1, 4000, 4 };
 
 /// World positions shared by the view-specific starts below.
 SVECTOR D_shelter_b6_growth_room_8017F258[36] = {
@@ -151,7 +151,7 @@ s16* D_shelter_b6_growth_room_8017FAD0[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b6_growth_room_8017FAF0 = { NULL, D_shelter_b6_growth_room_8017F3B8, D_shelter_b6_growth_room_8017F428, D_shelter_b6_growth_room_8017F6A8, D_shelter_b6_growth_room_8017FAD0, 500, 4000, 2, 4, 4000, 54 };
+WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0 = { NULL, D_shelter_b6_growth_room_8017F3B8, D_shelter_b6_growth_room_8017F428, D_shelter_b6_growth_room_8017F6A8, D_shelter_b6_growth_room_8017FAD0, 500, 4000, 2, 4, 4000, 54 };
 
 GpViewRec D_shelter_b6_growth_room_8017FB14[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x61A8, -3500 } }, 289 },
@@ -418,25 +418,25 @@ GpAreaApplyRec D_shelter_b6_growth_room_801807C8[58] = {
 /// raised by 0x7D0 on y when `arg0` is nonzero.
 void func_shelter_b6_growth_room_8017D82C(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_shelter_b6_growth_room_8017FAF0;
     src = &D_shelter_b6_growth_room_8017F234;
 
     for (i = 0; i < 4; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
 
     if (arg0 == 0) {
@@ -449,9 +449,9 @@ void func_shelter_b6_growth_room_8017D82C(s32 arg0)
     d.vz = 0;
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }
 

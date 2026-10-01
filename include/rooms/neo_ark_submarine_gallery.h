@@ -42,7 +42,7 @@ extern GpViewCountRec D_neo_ark_submarine_gallery_80181A0C[];
 
 extern GpWarpRec D_neo_ark_submarine_gallery_80181A10[];
 
-extern GpGridParams D_neo_ark_submarine_gallery_8018239C;
+extern WorldCollisionGrid D_neo_ark_submarine_gallery_8018239C;
 
 extern GpViewRec D_neo_ark_submarine_gallery_801823C0[];
 

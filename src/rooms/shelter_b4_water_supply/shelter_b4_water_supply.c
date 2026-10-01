@@ -313,7 +313,7 @@ s16* D_shelter_b4_water_supply_80182DFC[16] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b4_water_supply_80182E3C = { NULL, D_shelter_b4_water_supply_801827EC, D_shelter_b4_water_supply_8018284C, D_shelter_b4_water_supply_80182A24, D_shelter_b4_water_supply_80182DFC, -400, 0x364C, 4, 4, 4000, 45 };
+WorldCollisionGrid D_shelter_b4_water_supply_80182E3C = { NULL, D_shelter_b4_water_supply_801827EC, D_shelter_b4_water_supply_8018284C, D_shelter_b4_water_supply_80182A24, D_shelter_b4_water_supply_80182DFC, -400, 0x364C, 4, 4, 4000, 45 };
 
 GpViewRec D_shelter_b4_water_supply_80182E60[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6828, 0x7D00, 6785 } }, 447 },

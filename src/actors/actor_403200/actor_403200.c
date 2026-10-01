@@ -7557,9 +7557,9 @@ static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 inde
 {
     SVECTOR                 dir;
     SVECTOR                 normal;
-    SVECTOR*                pool  = Gp_GridParams->field_4;
-    SVECTOR*                verts = Gp_GridParams->field_8;
-    WorldCollisionGridFace* faces = Gp_GridParams->field_C;
+    SVECTOR*                pool  = Gp_GridParams->normals;
+    SVECTOR*                verts = Gp_GridParams->vertices;
+    WorldCollisionGridFace* faces = Gp_GridParams->faces;
     WorldCollisionGridFace  face  = {
         { index * 4, index * 4 + 1, index * 4 + 2, index * 4 + 3 }, index, 3
     };
@@ -7704,7 +7704,7 @@ static void func_actor_403200_80140FD4(s32 arg0, s16 arg1)
 {
     SVECTOR* verts;
 
-    verts                  = Gp_GridParams->field_8;
+    verts                  = Gp_GridParams->vertices;
     verts[arg1 * 4].vy     = 500;
     verts[arg1 * 4 + 1].vy = 500;
     verts[arg1 * 4 + 2].vy = 800;

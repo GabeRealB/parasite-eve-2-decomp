@@ -92,12 +92,12 @@ static const TaskFuncTable3 D_acropolis_cafeteria_8017D5C4 = {
 
 static const char CafeteriaPlayerLabel[12] = "Player";
 
-extern GpGridParams D_acropolis_cafeteria_801887A8[1];
-extern GpObj3A      D_acropolis_cafeteria_80189C94[2];
-extern GpObj4C      D_acropolis_cafeteria_801887CC[16];
-extern GpObj4C      D_acropolis_cafeteria_80188C8C[18];
-extern GpObj4C      D_acropolis_cafeteria_801891E4[16];
-extern GpObj4C      D_acropolis_cafeteria_801896A4[20];
+extern WorldCollisionGrid D_acropolis_cafeteria_801887A8[1];
+extern GpObj3A            D_acropolis_cafeteria_80189C94[2];
+extern GpObj4C            D_acropolis_cafeteria_801887CC[16];
+extern GpObj4C            D_acropolis_cafeteria_80188C8C[18];
+extern GpObj4C            D_acropolis_cafeteria_801891E4[16];
+extern GpObj4C            D_acropolis_cafeteria_801896A4[20];
 
 extern AnimationSet D_acropolis_cafeteria_80184CC4;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -777,7 +777,7 @@ s16* D_acropolis_cafeteria_80188784[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_cafeteria_801887A8[1] = {
+WorldCollisionGrid D_acropolis_cafeteria_801887A8[1] = {
     { NULL, D_acropolis_cafeteria_8018768C, D_acropolis_cafeteria_801877AC, D_acropolis_cafeteria_80187E24, D_acropolis_cafeteria_80188784, 5600, 6098, 3, 3, 4000, 120 },
 };
 

@@ -51,8 +51,8 @@
 
 extern SVECTOR D_dryfield_night_r08_8018056C[];
 
-extern GpGridParams   D_dryfield_night_r08_80181474[1];
-extern GpRoomCoordSet D_dryfield_night_r08_8018189C[1];
+extern WorldCollisionGrid D_dryfield_night_r08_80181474[1];
+extern GpRoomCoordSet     D_dryfield_night_r08_8018189C[1];
 
 SVECTOR D_dryfield_night_r08_8018056C[8] = {
     { -667, -1910, -0x4A3D, 0 },
@@ -137,7 +137,7 @@ s16* D_dryfield_night_r08_8018142C[18] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_r08_80181474[1] = {
+WorldCollisionGrid D_dryfield_night_r08_80181474[1] = {
     { NULL, D_dryfield_night_r08_801806D4, D_dryfield_night_r08_801807E4, D_dryfield_night_r08_80180D44, D_dryfield_night_r08_8018142C, 5398, 0x4D03, 3, 6, 4000, 82 },
 };
 

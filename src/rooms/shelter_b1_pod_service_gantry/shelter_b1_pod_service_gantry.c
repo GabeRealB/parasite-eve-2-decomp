@@ -147,7 +147,7 @@ s16* D_shelter_b1_pod_service_gantry_80180188[15] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_pod_service_gantry_801801C4 = { NULL, D_shelter_b1_pod_service_gantry_8017FC50, D_shelter_b1_pod_service_gantry_8017FCB8, D_shelter_b1_pod_service_gantry_8017FEC8, D_shelter_b1_pod_service_gantry_80180188, 1003, -1010, 5, 3, 4000, 30 };
+WorldCollisionGrid D_shelter_b1_pod_service_gantry_801801C4 = { NULL, D_shelter_b1_pod_service_gantry_8017FC50, D_shelter_b1_pod_service_gantry_8017FCB8, D_shelter_b1_pod_service_gantry_8017FEC8, D_shelter_b1_pod_service_gantry_80180188, 1003, -1010, 5, 3, 4000, 30 };
 
 GpViewRec D_shelter_b1_pod_service_gantry_801801E8[46] = {
     { { { { 1403, 0, 3848 }, { 2757, 2857, -1005 }, { -2684, 2934, 978 } }, { -0x2DC3, 4293, -2180 } }, 207 },

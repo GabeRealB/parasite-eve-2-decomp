@@ -179,7 +179,7 @@ static void func_dryfield_motel_room_6_80181910(Task* arg0, s32 arg1, s32 arg2, 
 static void func_dryfield_motel_room_6_80181AC4(Task* task);
 static void func_dryfield_motel_room_6_80181B10(Task* task);
 
-extern GpGridParams               D_dryfield_motel_room_6_8018381C[1];
+extern WorldCollisionGrid         D_dryfield_motel_room_6_8018381C[1];
 extern GpObj4C                    D_dryfield_motel_room_6_8018575C[10];
 extern GpObj4C                    D_dryfield_motel_room_6_80185A54[15];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13];
@@ -275,7 +275,7 @@ s16* D_dryfield_motel_room_6_80183804[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_motel_room_6_8018381C[1] = {
+WorldCollisionGrid D_dryfield_motel_room_6_8018381C[1] = {
     { NULL, D_dryfield_motel_room_6_80182E28, D_dryfield_motel_room_6_80182EE8, D_dryfield_motel_room_6_801833D8, D_dryfield_motel_room_6_80183804, 0, 0, 2, 3, 4000, 56 },
 };
 

@@ -345,11 +345,11 @@ void func_acropolis_bridge_8017DEE4(Task*);
 void func_acropolis_bridge_8017F280(Task*);
 s32  func_acropolis_bridge_801820A0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams D_acropolis_bridge_8018A89C[1];
-extern GpGridParams D_acropolis_bridge_8018B694[1];
-extern GpObj4C      D_acropolis_bridge_8018B6B8[4];
-extern GpObj4C      D_acropolis_bridge_8018B7E8[7];
-extern GpObj4C      D_acropolis_bridge_8018B9FC[7];
+extern WorldCollisionGrid D_acropolis_bridge_8018A89C[1];
+extern WorldCollisionGrid D_acropolis_bridge_8018B694[1];
+extern GpObj4C            D_acropolis_bridge_8018B6B8[4];
+extern GpObj4C            D_acropolis_bridge_8018B7E8[7];
+extern GpObj4C            D_acropolis_bridge_8018B9FC[7];
 
 extern GpRoomCoordSet            D_acropolis_bridge_80190A0C[1];
 extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
@@ -884,7 +884,7 @@ s16* D_acropolis_bridge_8018A838[25] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_bridge_8018A89C[1] = {
+WorldCollisionGrid D_acropolis_bridge_8018A89C[1] = {
     { NULL, D_acropolis_bridge_80189B24, D_acropolis_bridge_80189BBC, D_acropolis_bridge_8018A1C4, D_acropolis_bridge_8018A838, 0x3E94, 8470, 5, 5, 4000, 92 },
 };
 
@@ -910,7 +910,7 @@ s16* D_acropolis_bridge_8018B630[25] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_bridge_8018B694[1] = {
+WorldCollisionGrid D_acropolis_bridge_8018B694[1] = {
     { NULL, D_acropolis_bridge_8018A8C0, D_acropolis_bridge_8018A948, D_acropolis_bridge_8018AFB0, D_acropolis_bridge_8018B630, 0x3E94, 8470, 5, 5, 4000, 93 },
 };
 

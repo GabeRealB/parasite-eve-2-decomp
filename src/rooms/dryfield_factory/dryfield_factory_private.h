@@ -27,11 +27,11 @@ extern TaskDesc D_dryfield_factory_801826BC[2];
 
 extern GpMsgEntry D_dryfield_factory_801826D4[6];
 
-extern GpGridParams D_dryfield_factory_80186C68;
+extern WorldCollisionGrid D_dryfield_factory_80186C68;
 
-extern GpGridParams D_dryfield_factory_80186D38;
+extern WorldCollisionGrid D_dryfield_factory_80186D38;
 
-extern GpGridParams D_dryfield_factory_80186E04;
+extern WorldCollisionGrid D_dryfield_factory_80186E04;
 
 extern TaskDesc D_dryfield_factory_80186E94[1];
 

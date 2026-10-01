@@ -150,9 +150,9 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task*);
 
 extern GpRoomCoordSet D_dryfield_night_saloon_g_r_80188304[1];
 
-extern GpGridParams D_dryfield_night_saloon_g_r_80185B50[1];
-extern GpObj3A      D_dryfield_night_saloon_g_r_80188E18[2];
-extern GpObj4C      D_dryfield_night_saloon_g_r_8018831C[16];
+extern WorldCollisionGrid D_dryfield_night_saloon_g_r_80185B50[1];
+extern GpObj3A            D_dryfield_night_saloon_g_r_80188E18[2];
+extern GpObj4C            D_dryfield_night_saloon_g_r_8018831C[16];
 
 extern SpriteBatch  D_dryfield_night_saloon_g_r_80185D48[2];
 extern SpriteBatch  D_dryfield_night_saloon_g_r_80185EAC[3];
@@ -1113,7 +1113,7 @@ s16* D_dryfield_night_saloon_g_r_80185B20[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_saloon_g_r_80185B50[1] = {
+WorldCollisionGrid D_dryfield_night_saloon_g_r_80185B50[1] = {
     { NULL, D_dryfield_night_saloon_g_r_8018522C, D_dryfield_night_saloon_g_r_80185274, D_dryfield_night_saloon_g_r_80185614, D_dryfield_night_saloon_g_r_80185B20, 4500, 5400, 3, 4, 4000, 61 },
 };
 

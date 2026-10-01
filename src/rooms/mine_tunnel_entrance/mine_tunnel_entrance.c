@@ -70,7 +70,7 @@ s32 func_mine_tunnel_entrance_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*)
 s32 func_mine_tunnel_entrance_8017D634(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_mine_tunnel_entrance_8017D63C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams               D_mine_tunnel_entrance_8017E0C0[1];
+extern WorldCollisionGrid         D_mine_tunnel_entrance_8017E0C0[1];
 extern GpObj4C                    D_mine_tunnel_entrance_8017ECEC[8];
 extern GpObj4C                    D_mine_tunnel_entrance_8017EF4C[4];
 extern WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7];
@@ -150,7 +150,7 @@ s16* D_mine_tunnel_entrance_8017E098[10] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_tunnel_entrance_8017E0C0[1] = {
+WorldCollisionGrid D_mine_tunnel_entrance_8017E0C0[1] = {
     { NULL, D_mine_tunnel_entrance_8017DC20, D_mine_tunnel_entrance_8017DCD8, D_mine_tunnel_entrance_8017DE88, D_mine_tunnel_entrance_8017E098, 630, 1791, 5, 2, 4000, 30 },
 };
 

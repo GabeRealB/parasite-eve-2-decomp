@@ -65,7 +65,7 @@
 #   { kind = "collision", at = "..." }   a room's collision grid: its normals,
 #       vertices, faces and per-cell face lists - geometry, so an asset
 #   { kind = "collisionSource", at = "..." }
-#       the grid's header (`GpGridParams`), which points at those arrays and
+#       the grid's header (`WorldCollisionGrid`), which points at those arrays and
 #       gives the grid's size; the room's records name it
 #       `in_c = true` on both means a code unit declares the arrays and header;
 #       the arrays' initializers are generated (tools/gen_collision_inc.py).

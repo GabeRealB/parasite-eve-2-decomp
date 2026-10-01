@@ -9,7 +9,7 @@
 
 #include "main/task_types.h"
 
-extern GpGridParams D_neo_ark_island_801826C8[1];
+extern WorldCollisionGrid D_neo_ark_island_801826C8[1];
 
 extern GpRoomCoordSet D_neo_ark_island_80183CB0[1];
 

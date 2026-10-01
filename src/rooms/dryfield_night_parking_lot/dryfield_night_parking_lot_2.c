@@ -59,11 +59,11 @@ extern SVECTOR D_dryfield_night_parking_lot_8017EDFC[];
 
 static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
 
-extern GpGridParams   D_dryfield_night_parking_lot_8017FAD0[1];
-extern GpObj3A        D_dryfield_night_parking_lot_80181330[2];
-extern GpObj4C        D_dryfield_night_parking_lot_80180CA8[10];
-extern GpObj4C        D_dryfield_night_parking_lot_80180FA0[12];
-extern GpRoomCoordSet D_dryfield_night_parking_lot_80180C90[1];
+extern WorldCollisionGrid D_dryfield_night_parking_lot_8017FAD0[1];
+extern GpObj3A            D_dryfield_night_parking_lot_80181330[2];
+extern GpObj4C            D_dryfield_night_parking_lot_80180CA8[10];
+extern GpObj4C            D_dryfield_night_parking_lot_80180FA0[12];
+extern GpRoomCoordSet     D_dryfield_night_parking_lot_80180C90[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -219,7 +219,7 @@ s16* D_dryfield_night_parking_lot_8017FA1C[45] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_parking_lot_8017FAD0[1] = {
+WorldCollisionGrid D_dryfield_night_parking_lot_8017FAD0[1] = {
     { NULL, D_dryfield_night_parking_lot_8017EF70, D_dryfield_night_parking_lot_8017F000, D_dryfield_night_parking_lot_8017F420, D_dryfield_night_parking_lot_8017FA1C, 0x4588, 8900, 9, 5, 4000, 55 },
 };
 

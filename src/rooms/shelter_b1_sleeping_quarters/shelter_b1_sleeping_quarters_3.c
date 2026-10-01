@@ -74,7 +74,7 @@ s16* D_shelter_b1_sleeping_quarters_801810A4[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_sleeping_quarters_801810D4 = { NULL, D_shelter_b1_sleeping_quarters_801806D0, D_shelter_b1_sleeping_quarters_80180708, D_shelter_b1_sleeping_quarters_80180B80, D_shelter_b1_sleeping_quarters_801810A4, 1400, 4400, 4, 3, 4000, 64 };
+WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4 = { NULL, D_shelter_b1_sleeping_quarters_801806D0, D_shelter_b1_sleeping_quarters_80180708, D_shelter_b1_sleeping_quarters_80180B80, D_shelter_b1_sleeping_quarters_801810A4, 1400, 4400, 4, 3, 4000, 64 };
 
 GpViewRec D_shelter_b1_sleeping_quarters_801810F8[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },

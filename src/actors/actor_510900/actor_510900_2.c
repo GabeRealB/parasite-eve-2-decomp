@@ -246,27 +246,27 @@ STATIC_ASSERT_SIZEOF(Actor510900PatrolBox, 0x8);
 extern Actor510900PatrolBox D_actor_510900_80167BA4[4];
 
 /// The three face normals `func_actor_510900_8013B524` copies into
-/// `Gp_GridParams->field_4`, restoring the collision grid this actor edited.
+/// `Gp_GridParams->normals`, restoring the collision grid this actor edited.
 extern SVECTOR D_actor_510900_80167BC4[3];
 
 /// The twelve face corners `func_actor_510900_8013B524` copies into
-/// `Gp_GridParams->field_8`.
+/// `Gp_GridParams->vertices`.
 extern SVECTOR D_actor_510900_80167BDC[12];
 
 /// The three `WorldCollisionGridFace` records `func_actor_510900_8013B524` copies into
-/// `Gp_GridParams->field_C`.
+/// `Gp_GridParams->faces`.
 extern WorldCollisionGridFace D_actor_510900_80167C3C[3];
 
 /// The extra face normal `func_actor_510900_8013B424` installs as
-/// `Gp_GridParams->field_4[3]` while the actor's own face is in the grid.
+/// `Gp_GridParams->normals[3]` while the actor's own face is in the grid.
 extern SVECTOR D_actor_510900_80167C60;
 
 /// The four face corners that face uses, copied into
-/// `Gp_GridParams->field_8[12..15]`.
+/// `Gp_GridParams->vertices[12..15]`.
 extern SVECTOR D_actor_510900_80167C68[4];
 
 /// The `WorldCollisionGridFace` record for that face, copied into
-/// `Gp_GridParams->field_C[3]`.
+/// `Gp_GridParams->faces[3]`.
 extern WorldCollisionGridFace D_actor_510900_80167C88;
 
 static s32  func_actor_510900_8013691C(Task* arg0);
@@ -2456,7 +2456,7 @@ static void func_actor_510900_80138D38(Task* arg0)
 /// body's current position and facing. `center` is the fixed local footprint
 /// offset rotated into world space, translated by the coordinate and clamped to
 /// the grid extent; the twelve corners in `D_actor_510900_80167BDC` are rotated
-/// and offset from it into `Gp_GridParams->field_8`, and the three face normals
+/// and offset from it into `Gp_GridParams->vertices`, and the three face normals
 /// in `D_actor_510900_80167BC4` are rotated in place into `field_4`.
 static void func_actor_510900_80138F44(Task* arg0)
 {
@@ -2468,8 +2468,8 @@ static void func_actor_510900_80138F44(Task* arg0)
 
     scratch = (Actor510900GridScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor510900GridScratch));
     coord   = arg0->extra.tmd->coords;
-    normals = Gp_GridParams->field_4;
-    corners = Gp_GridParams->field_8;
+    normals = Gp_GridParams->normals;
+    corners = Gp_GridParams->vertices;
 
     scratch->center.vx = -0x258;
     scratch->center.vy = 0;
@@ -2534,7 +2534,7 @@ static void func_actor_510900_80138F44(Task* arg0)
 /// `vec` is one `SVECTOR*` serving two unrelated roles - the scratch rotation
 /// state 1 builds the head matrix from, and the extra face normal state 2
 /// clears - which is what puts it in `$a0` in both. The `do`/`while (0)` cuts
-/// the basic block so the second `Gp_GridParams->field_4` read is scheduled on
+/// the basic block so the second `Gp_GridParams->normals` read is scheduled on
 /// its own; without it the corner pointer and its walking copy coalesce.
 s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
 {
@@ -2626,9 +2626,9 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             work->obj504.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
 
-            normals = Gp_GridParams->field_4;
-            verts   = Gp_GridParams->field_8;
-            faces   = Gp_GridParams->field_C;
+            normals = Gp_GridParams->normals;
+            verts   = Gp_GridParams->vertices;
+            faces   = Gp_GridParams->faces;
             for (j = 0; j < 12; j++) {
                 verts[j] = D_actor_510900_80167BDC[j];
             }
@@ -2638,9 +2638,9 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             }
 
             do {
-                vec = Gp_GridParams->field_4;
+                vec = Gp_GridParams->normals;
             } while (0);
-            corners   = Gp_GridParams->field_8;
+            corners   = Gp_GridParams->vertices;
             vec[3].vx = 0;
             vec[3].vy = 0;
             vec[3].vz = 0;
@@ -3675,9 +3675,9 @@ void func_actor_510900_8013B3D0(Task* task)
 void func_actor_510900_8013B424(s32 arg0)
 {
     s32                     i;
-    SVECTOR*                normals = Gp_GridParams->field_4;
-    SVECTOR*                verts   = Gp_GridParams->field_8;
-    WorldCollisionGridFace* faces   = Gp_GridParams->field_C;
+    SVECTOR*                normals = Gp_GridParams->normals;
+    SVECTOR*                verts   = Gp_GridParams->vertices;
+    WorldCollisionGridFace* faces   = Gp_GridParams->faces;
 
     if (arg0 == 1) {
         for (i = 0; i < 4; i++) {
@@ -3703,9 +3703,9 @@ void func_actor_510900_8013B424(s32 arg0)
 void func_actor_510900_8013B524(Task* arg0)
 {
     s32                     i;
-    SVECTOR*                normals = Gp_GridParams->field_4;
-    SVECTOR*                verts   = Gp_GridParams->field_8;
-    WorldCollisionGridFace* faces   = Gp_GridParams->field_C;
+    SVECTOR*                normals = Gp_GridParams->normals;
+    SVECTOR*                verts   = Gp_GridParams->vertices;
+    WorldCollisionGridFace* faces   = Gp_GridParams->faces;
 
     for (i = 0; i < 12; i++) {
         verts[i] = D_actor_510900_80167BDC[i];

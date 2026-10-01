@@ -82,11 +82,11 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void func_shelter_1f_bulwark_8017DBD4(Task* task);
 static void func_shelter_1f_bulwark_8017DC18(Task* task);
 
-extern GpGridParams   D_shelter_1f_bulwark_80180648[1];
-extern GpObj3A        D_shelter_1f_bulwark_80180E08[2];
-extern GpObj4C        D_shelter_1f_bulwark_80180A8C[2];
-extern GpObj4C        D_shelter_1f_bulwark_80180B24[8];
-extern GpRoomCoordSet D_shelter_1f_bulwark_80180A74[1];
+extern WorldCollisionGrid D_shelter_1f_bulwark_80180648[1];
+extern GpObj3A            D_shelter_1f_bulwark_80180E08[2];
+extern GpObj4C            D_shelter_1f_bulwark_80180A8C[2];
+extern GpObj4C            D_shelter_1f_bulwark_80180B24[8];
+extern GpRoomCoordSet     D_shelter_1f_bulwark_80180A74[1];
 
 s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -169,7 +169,7 @@ s16* D_shelter_1f_bulwark_80180630[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_1f_bulwark_80180648[1] = {
+WorldCollisionGrid D_shelter_1f_bulwark_80180648[1] = {
     { NULL, D_shelter_1f_bulwark_80180440, D_shelter_1f_bulwark_80180470, D_shelter_1f_bulwark_80180520, D_shelter_1f_bulwark_80180630, 4250, 3500, 3, 2, 4000, 12 },
 };
 

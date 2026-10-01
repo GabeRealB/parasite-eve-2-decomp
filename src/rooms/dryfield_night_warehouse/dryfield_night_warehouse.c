@@ -57,7 +57,7 @@ s32 func_dryfield_night_warehouse_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventM
 s32 func_dryfield_night_warehouse_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_warehouse_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams               D_dryfield_night_warehouse_8017EF08[1];
+extern WorldCollisionGrid         D_dryfield_night_warehouse_8017EF08[1];
 extern GpObj4C                    D_dryfield_night_warehouse_8017F6F4[4];
 extern GpObj4C                    D_dryfield_night_warehouse_8017F84C[10];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_warehouse_8017F824[5];
@@ -152,7 +152,7 @@ s16* D_dryfield_night_warehouse_8017EEF8[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_warehouse_8017EF08[1] = {
+WorldCollisionGrid D_dryfield_night_warehouse_8017EF08[1] = {
     { NULL, D_dryfield_night_warehouse_8017E9B4, D_dryfield_night_warehouse_8017EA04, D_dryfield_night_warehouse_8017EC54, D_dryfield_night_warehouse_8017EEF8, 0, 4100, 2, 2, 4000, 39 },
 };
 

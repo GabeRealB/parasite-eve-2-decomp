@@ -315,7 +315,7 @@ extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183118;
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183318;
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183518;
 extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183718;
-extern GpGridParams                 D_acropolis_security_room_80183D94[1];
+extern WorldCollisionGrid           D_acropolis_security_room_80183D94[1];
 extern GpObj4C                      D_acropolis_security_room_80183DB8[4];
 extern GpObj4C                      D_acropolis_security_room_80183EE8[5];
 extern GpRoomCoordSet               D_acropolis_security_room_801841C8[1];
@@ -1526,7 +1526,7 @@ s16* D_acropolis_security_room_80183D8C[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_security_room_80183D94[1] = {
+WorldCollisionGrid D_acropolis_security_room_80183D94[1] = {
     { NULL, D_acropolis_security_room_80183A28, D_acropolis_security_room_80183A80, D_acropolis_security_room_80183C10, D_acropolis_security_room_80183D8C, 1250, 3250, 1, 2, 4000, 24 },
 };
 

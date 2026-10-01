@@ -51,13 +51,13 @@ s32 func_dryfield_night_cellar_8017D62C(Task*, s32, TaskMessageArg, TaskMessageA
 s32 func_dryfield_night_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_night_cellar_8017DE60[1];
-extern GpObj3A        D_dryfield_night_cellar_801802F4[1];
-extern GpObj4C        D_dryfield_night_cellar_8017FB3C[6];
-extern GpObj4C        D_dryfield_night_cellar_8017FD04[10];
-extern GpObj4C        D_dryfield_night_cellar_8017FFFC[10];
-extern GpRoomCoordSet D_dryfield_night_cellar_80180510[1];
-extern GpRoomCoordSet D_dryfield_night_cellar_80180708[1];
+extern WorldCollisionGrid D_dryfield_night_cellar_8017DE60[1];
+extern GpObj3A            D_dryfield_night_cellar_801802F4[1];
+extern GpObj4C            D_dryfield_night_cellar_8017FB3C[6];
+extern GpObj4C            D_dryfield_night_cellar_8017FD04[10];
+extern GpObj4C            D_dryfield_night_cellar_8017FFFC[10];
+extern GpRoomCoordSet     D_dryfield_night_cellar_80180510[1];
+extern GpRoomCoordSet     D_dryfield_night_cellar_80180708[1];
 
 GpMsgEntry D_dryfield_night_cellar_8017DAA8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_cellar_8017D634 },
@@ -134,7 +134,7 @@ s16* D_dryfield_night_cellar_8017DE48[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_cellar_8017DE60[1] = {
+WorldCollisionGrid D_dryfield_night_cellar_8017DE60[1] = {
     { NULL, D_dryfield_night_cellar_8017DB6C, D_dryfield_night_cellar_8017DBA4, D_dryfield_night_cellar_8017DCDC, D_dryfield_night_cellar_8017DE48, 0, 0, 3, 2, 4000, 20 },
 };
 

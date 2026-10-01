@@ -143,15 +143,15 @@ static const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
     { func_neo_ark_shrine_8017F688, func_neo_ark_shrine_8017F738, taskKill },
 };
 
-extern GpGridParams   D_neo_ark_shrine_80182D2C[1];
-extern GpGridParams   D_neo_ark_shrine_801831D8[1];
-extern GpGridParams   D_neo_ark_shrine_80183698[1];
-extern GpObj3A        D_neo_ark_shrine_80186730[4];
-extern GpObj4C        D_neo_ark_shrine_80185A80[14];
-extern GpObj4C        D_neo_ark_shrine_80185EA8[9];
-extern GpObj4C        D_neo_ark_shrine_80186154[8];
-extern GpObj4C        D_neo_ark_shrine_801863B4[8];
-extern GpRoomCoordSet D_neo_ark_shrine_80185A68[1];
+extern WorldCollisionGrid D_neo_ark_shrine_80182D2C[1];
+extern WorldCollisionGrid D_neo_ark_shrine_801831D8[1];
+extern WorldCollisionGrid D_neo_ark_shrine_80183698[1];
+extern GpObj3A            D_neo_ark_shrine_80186730[4];
+extern GpObj4C            D_neo_ark_shrine_80185A80[14];
+extern GpObj4C            D_neo_ark_shrine_80185EA8[9];
+extern GpObj4C            D_neo_ark_shrine_80186154[8];
+extern GpObj4C            D_neo_ark_shrine_801863B4[8];
+extern GpRoomCoordSet     D_neo_ark_shrine_80185A68[1];
 
 SVECTOR D_neo_ark_shrine_8018268C[1] = {
     { 3560, -1200, 6310, 0 },
@@ -326,7 +326,7 @@ s16* D_neo_ark_shrine_80182CFC[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_shrine_80182D2C[1] = {
+WorldCollisionGrid D_neo_ark_shrine_80182D2C[1] = {
     { NULL, D_neo_ark_shrine_801828BC, D_neo_ark_shrine_8018290C, D_neo_ark_shrine_80182A7C, D_neo_ark_shrine_80182CFC, 0, 5000, 4, 3, 4000, 30 },
 };
 
@@ -352,7 +352,7 @@ s16* D_neo_ark_shrine_801831A8[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_shrine_801831D8[1] = {
+WorldCollisionGrid D_neo_ark_shrine_801831D8[1] = {
     { NULL, D_neo_ark_shrine_80182D50, D_neo_ark_shrine_80182D98, D_neo_ark_shrine_80182F18, D_neo_ark_shrine_801831A8, 0, 5000, 4, 3, 4000, 31 },
 };
 
@@ -378,7 +378,7 @@ s16* D_neo_ark_shrine_80183668[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_shrine_80183698[1] = {
+WorldCollisionGrid D_neo_ark_shrine_80183698[1] = {
     { NULL, D_neo_ark_shrine_801831FC, D_neo_ark_shrine_80183244, D_neo_ark_shrine_801833D4, D_neo_ark_shrine_80183668, 0, 5000, 4, 3, 4000, 31 },
 };
 

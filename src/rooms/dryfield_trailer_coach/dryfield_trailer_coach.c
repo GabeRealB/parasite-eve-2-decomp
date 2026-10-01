@@ -221,7 +221,7 @@ extern ActorCommand                        D_dryfield_trailer_coach_8018518C;
 extern ActorCommand                        D_dryfield_trailer_coach_80185190;
 extern ActorCommand                        D_dryfield_trailer_coach_80185194;
 extern ActorCommand                        D_dryfield_trailer_coach_80185198;
-extern GpGridParams                        D_dryfield_trailer_coach_801876B4[1];
+extern WorldCollisionGrid                  D_dryfield_trailer_coach_801876B4[1];
 extern GpObj4C                             D_dryfield_trailer_coach_80189254[4];
 extern GpObj4C                             D_dryfield_trailer_coach_80189384[12];
 extern WorldCoordRoomAmbientEntry          D_dryfield_trailer_coach_80189BAC[12];
@@ -835,7 +835,7 @@ s16* D_dryfield_trailer_coach_801876A8[3] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_trailer_coach_801876B4[1] = {
+WorldCollisionGrid D_dryfield_trailer_coach_801876B4[1] = {
     { NULL, D_dryfield_trailer_coach_8018725C, D_dryfield_trailer_coach_801872AC, D_dryfield_trailer_coach_801874B4, D_dryfield_trailer_coach_801876A8, 200, 3450, 3, 1, 4000, 32 },
 };
 

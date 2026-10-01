@@ -87,9 +87,9 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view);
 void func_acropolis_fountain_8017E3D4(Task*);
 void func_acropolis_fountain_8017E72C(Task*);
 
-extern GpGridParams   D_acropolis_fountain_8017F60C[1];
-extern GpObj4C        D_acropolis_fountain_8017F630[12];
-extern GpRoomCoordSet D_acropolis_fountain_8017FF34[1];
+extern WorldCollisionGrid D_acropolis_fountain_8017F60C[1];
+extern GpObj4C            D_acropolis_fountain_8017F630[12];
+extern GpRoomCoordSet     D_acropolis_fountain_8017FF34[1];
 
 extern SpriteBatch  D_acropolis_fountain_8017FF4C[2];
 extern SpriteBatch  D_acropolis_fountain_8017FF5C[2];
@@ -204,7 +204,7 @@ s16* D_acropolis_fountain_8017F5CC[16] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_fountain_8017F60C[1] = {
+WorldCollisionGrid D_acropolis_fountain_8017F60C[1] = {
     { NULL, D_acropolis_fountain_8017E980, D_acropolis_fountain_8017EA80, D_acropolis_fountain_8017F028, D_acropolis_fountain_8017F5CC, 6000, 8530, 4, 4, 4000, 66 },
 };
 

@@ -37,7 +37,7 @@
 /// draws a subset of them.
 
 // Indexed views below share one contiguous table.
-extern GpGridParams               D_mine_tunnel_8017E86C[1];
+extern WorldCollisionGrid         D_mine_tunnel_8017E86C[1];
 extern GpObj3A                    D_mine_tunnel_8018025C[3];
 extern GpObj4C                    D_mine_tunnel_8017FBD8[6];
 extern GpObj4C                    D_mine_tunnel_8017FDA0[4];
@@ -99,7 +99,7 @@ s16* D_mine_tunnel_8017E844[10] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_tunnel_8017E86C[1] = {
+WorldCollisionGrid D_mine_tunnel_8017E86C[1] = {
     { NULL, D_mine_tunnel_8017E1E4, D_mine_tunnel_8017E2CC, D_mine_tunnel_8017E54C, D_mine_tunnel_8017E844, 1000, 1000, 5, 2, 4000, 37 },
 };
 

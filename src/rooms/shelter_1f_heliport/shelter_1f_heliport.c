@@ -193,8 +193,8 @@ extern u8 D_shelter_1f_heliport_801811D4[][4];
 extern SVECTOR D_shelter_1f_heliport_80181204;
 
 /// The mesh's pristine source and the working copy rebuilt from it.
-extern GpGridParams gFollowCollisionSource;
-extern GpGridParams gFollowCollisionGrid;
+extern WorldCollisionGrid gFollowCollisionSource;
+extern WorldCollisionGrid gFollowCollisionGrid;
 
 /// Work pair of the charge panel `func_shelter_1f_heliport_8017F2D4`: the
 /// animated quantity in 24.8 fixed point, and the item map of the slot being
@@ -217,7 +217,7 @@ static void func_shelter_1f_heliport_801807C0(void);
                                 "2"
 #include "../../shared/shop.h"
 
-extern GpGridParams               gFollowCollisionGrid;
+extern WorldCollisionGrid         gFollowCollisionGrid;
 extern GpObj4C                    D_shelter_1f_heliport_80182178[12];
 extern GpObj4C                    D_shelter_1f_heliport_80182508[21];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
@@ -286,7 +286,7 @@ s16* D_shelter_1f_heliport_801812A8[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFollowCollisionSource = { NULL, D_shelter_1f_heliport_8018120C, D_shelter_1f_heliport_8018122C, D_shelter_1f_heliport_8018126C, D_shelter_1f_heliport_801812A8, 131, 227, 1, 1, 4000, 4 };
+WorldCollisionGrid gFollowCollisionSource = { NULL, D_shelter_1f_heliport_8018120C, D_shelter_1f_heliport_8018122C, D_shelter_1f_heliport_8018126C, D_shelter_1f_heliport_801812A8, 131, 227, 1, 1, 4000, 4 };
 
 GpRoomObjRec D_shelter_1f_heliport_801812D0[1] = {
     { &gFollowCollisionGrid, D_shelter_1f_heliport_80182178, D_shelter_1f_heliport_80182508, NULL },
@@ -331,7 +331,7 @@ s16* D_shelter_1f_heliport_80181950[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFollowCollisionGrid = { NULL, D_shelter_1f_heliport_80181360, D_shelter_1f_heliport_801813C0, D_shelter_1f_heliport_80181618, D_shelter_1f_heliport_80181950, 0, 2800, 3, 3, 4000, 40 };
+WorldCollisionGrid gFollowCollisionGrid = { NULL, D_shelter_1f_heliport_80181360, D_shelter_1f_heliport_801813C0, D_shelter_1f_heliport_80181618, D_shelter_1f_heliport_80181950, 0, 2800, 3, 3, 4000, 40 };
 
 GpViewRec D_shelter_1f_heliport_80181998[12] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x3CE8, -3400 } }, 235 },

@@ -66,12 +66,12 @@ typedef struct _DryfieldNightMotelLoftShard {
 
 /// The room's grid params: `8017ED54` is the template, `8017F120` the live
 /// copy `func_dryfield_night_motel_loft_8017D9BC` rebuilds from it.
-extern GpGridParams D_dryfield_night_motel_loft_8017ED54;
-extern GpGridParams D_dryfield_night_motel_loft_8017F120;
+extern WorldCollisionGrid D_dryfield_night_motel_loft_8017ED54;
+extern WorldCollisionGrid D_dryfield_night_motel_loft_8017F120;
 
 static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, s16 shade);
 
-extern GpGridParams D_dryfield_night_motel_loft_8017F120;
+extern WorldCollisionGrid D_dryfield_night_motel_loft_8017F120;
 
 TmdBone D_dryfield_night_motel_loft_8017E888[1] = {
 #include "assets/dryfield_night_motel_loft_model_01538_skeleton.inc"
@@ -165,7 +165,7 @@ s16* D_dryfield_night_motel_loft_8017ED4C[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_motel_loft_8017ED54 = { NULL, D_dryfield_night_motel_loft_8017ED10, D_dryfield_night_motel_loft_8017ED18, D_dryfield_night_motel_loft_8017ED38, D_dryfield_night_motel_loft_8017ED4C, 5872, 2740, 1, 2, 4000, 1 };
+WorldCollisionGrid D_dryfield_night_motel_loft_8017ED54 = { NULL, D_dryfield_night_motel_loft_8017ED10, D_dryfield_night_motel_loft_8017ED18, D_dryfield_night_motel_loft_8017ED38, D_dryfield_night_motel_loft_8017ED4C, 5872, 2740, 1, 2, 4000, 1 };
 
 SVECTOR D_dryfield_night_motel_loft_8017ED78[7] = {
     { 5200, -2110, -1240, 0 },
@@ -242,7 +242,7 @@ s16* D_dryfield_night_motel_loft_8017F108[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_motel_loft_8017F120 = { NULL, D_dryfield_night_motel_loft_8017EE34, D_dryfield_night_motel_loft_8017EE7C, D_dryfield_night_motel_loft_8017EF8C, D_dryfield_night_motel_loft_8017F108, 6000, 2500, 3, 2, 4000, 18 };
+WorldCollisionGrid D_dryfield_night_motel_loft_8017F120 = { NULL, D_dryfield_night_motel_loft_8017EE34, D_dryfield_night_motel_loft_8017EE7C, D_dryfield_night_motel_loft_8017EF8C, D_dryfield_night_motel_loft_8017F108, 6000, 2500, 3, 2, 4000, 18 };
 
 GpViewRec D_dryfield_night_motel_loft_8017F144[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6978, 0 } }, 541 },
@@ -432,25 +432,25 @@ SpriteBatch D_dryfield_night_motel_loft_8017FB64[4] = {
 /// `arg0` is set.
 void func_dryfield_night_motel_loft_8017D9BC(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_dryfield_night_motel_loft_8017F120;
     src = &D_dryfield_night_motel_loft_8017ED54;
 
     for (i = 0; i < 1; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
 
     for (i = 0; i < 4; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
 
     if (arg0 == 0) {
@@ -463,9 +463,9 @@ void func_dryfield_night_motel_loft_8017D9BC(s32 arg0)
     d.vz = 0;
 
     for (i = 0; i < 4; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }
 

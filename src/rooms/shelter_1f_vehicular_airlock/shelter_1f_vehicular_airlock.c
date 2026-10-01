@@ -97,7 +97,7 @@ extern SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116];
 extern TmdBone D_shelter_1f_vehicular_airlock_80180C50[1];
 extern u32     D_shelter_1f_vehicular_airlock_80181018[1019];
 
-extern GpGridParams               D_shelter_1f_vehicular_airlock_80182438[1];
+extern WorldCollisionGrid         D_shelter_1f_vehicular_airlock_80182438[1];
 extern GpObj4C                    D_shelter_1f_vehicular_airlock_80182714[2];
 extern GpObj4C                    D_shelter_1f_vehicular_airlock_801827AC[7];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4];
@@ -211,7 +211,7 @@ s16* D_shelter_1f_vehicular_airlock_80182414[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_1f_vehicular_airlock_80182438[1] = {
+WorldCollisionGrid D_shelter_1f_vehicular_airlock_80182438[1] = {
     { NULL, D_shelter_1f_vehicular_airlock_801821C4, D_shelter_1f_vehicular_airlock_80182214, D_shelter_1f_vehicular_airlock_8018231C, D_shelter_1f_vehicular_airlock_80182414, 0x2CEC, 3000, 3, 3, 4000, 12 },
 };
 

@@ -1238,7 +1238,7 @@ s16* D_mist_shooting_gallery_801898F8[28] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mist_shooting_gallery_80189968 = { NULL, D_mist_shooting_gallery_80188DA8, D_mist_shooting_gallery_80188E58, D_mist_shooting_gallery_80189298, D_mist_shooting_gallery_801898F8, 0x2EE0, 7000, 7, 4, 4000, 57 };
+WorldCollisionGrid D_mist_shooting_gallery_80189968 = { NULL, D_mist_shooting_gallery_80188DA8, D_mist_shooting_gallery_80188E58, D_mist_shooting_gallery_80189298, D_mist_shooting_gallery_801898F8, 0x2EE0, 7000, 7, 4, 4000, 57 };
 
 GpViewRec D_mist_shooting_gallery_8018998C[18] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -500, 0x7530, 0 } }, 289 },

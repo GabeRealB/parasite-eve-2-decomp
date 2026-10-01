@@ -125,10 +125,10 @@ static void Actor05500_Fn02FFC(Enemy* ctx, Task* actor);
 
 /// Normalises `delta` into `unit` and expresses the direction in the frame of
 /// the collision grid, into `out`.
-#define ACTOR05500_GRID_DIRECTION(delta, unit, out)                            \
-    do {                                                                       \
-        VectorNormal((VECTOR*)(delta), (unit));                                \
-        ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (unit), (out)); \
+#define ACTOR05500_GRID_DIRECTION(delta, unit, out)                              \
+    do {                                                                         \
+        VectorNormal((VECTOR*)(delta), (unit));                                  \
+        ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (unit), (out)); \
     } while (0)
 
 /// Sets `work->field_3CE` when contact `rec` is a body, or a face of the

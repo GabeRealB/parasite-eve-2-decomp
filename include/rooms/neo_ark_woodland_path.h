@@ -23,7 +23,7 @@ extern GpViewCountRec D_neo_ark_woodland_path_80181698[];
 
 extern GpWarpRec D_neo_ark_woodland_path_8018169C[];
 
-extern GpGridParams D_neo_ark_woodland_path_80181D5C;
+extern WorldCollisionGrid D_neo_ark_woodland_path_80181D5C;
 
 extern GpViewRec D_neo_ark_woodland_path_80181D80[];
 

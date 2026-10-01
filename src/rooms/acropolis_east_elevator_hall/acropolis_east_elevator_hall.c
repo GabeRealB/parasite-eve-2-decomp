@@ -107,7 +107,7 @@ extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C64;
 extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C78;
 extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C;
 extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185CA0;
-extern GpGridParams         D_acropolis_east_elevator_hall_80186838[1];
+extern WorldCollisionGrid   D_acropolis_east_elevator_hall_80186838[1];
 extern GpObj4C              D_acropolis_east_elevator_hall_8018685C[6];
 extern GpObj4C              D_acropolis_east_elevator_hall_80186A24[7];
 extern EvsSceneKey          D_acropolis_east_elevator_hall_80185CB4;
@@ -366,7 +366,7 @@ s16* D_acropolis_east_elevator_hall_80186818[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_east_elevator_hall_80186838[1] = {
+WorldCollisionGrid D_acropolis_east_elevator_hall_80186838[1] = {
     { NULL, D_acropolis_east_elevator_hall_80186378, D_acropolis_east_elevator_hall_801863C8, D_acropolis_east_elevator_hall_801865D8, D_acropolis_east_elevator_hall_80186818, 6390, 3090, 4, 2, 4000, 33 },
 };
 

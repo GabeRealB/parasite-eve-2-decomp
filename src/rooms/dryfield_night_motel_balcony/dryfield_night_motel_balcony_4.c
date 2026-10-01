@@ -89,8 +89,8 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
 static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
 static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
 
-extern GpGridParams               D_dryfield_night_motel_balcony_80183750[1];
-extern GpGridParams               D_dryfield_night_motel_balcony_80183FE0[1];
+extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183750[1];
+extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183FE0[1];
 extern GpObj3A                    D_dryfield_night_motel_balcony_8018EF70[2];
 extern GpObj4C                    D_dryfield_night_motel_balcony_8018E2FC[8];
 extern GpObj4C                    D_dryfield_night_motel_balcony_8018E55C[10];
@@ -301,7 +301,7 @@ s16* D_dryfield_night_motel_balcony_80183650[64] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_motel_balcony_80183750[1] = {
+WorldCollisionGrid D_dryfield_night_motel_balcony_80183750[1] = {
     { NULL, D_dryfield_night_motel_balcony_80182FC4, D_dryfield_night_motel_balcony_80182FFC, D_dryfield_night_motel_balcony_80183224, D_dryfield_night_motel_balcony_80183650, 0x32BE, 0x341C, 8, 8, 4000, 32 },
 };
 
@@ -327,7 +327,7 @@ s16* D_dryfield_night_motel_balcony_80183EE0[64] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_motel_balcony_80183FE0[1] = {
+WorldCollisionGrid D_dryfield_night_motel_balcony_80183FE0[1] = {
     { NULL, D_dryfield_night_motel_balcony_80183774, D_dryfield_night_motel_balcony_801837CC, D_dryfield_night_motel_balcony_80183A54, D_dryfield_night_motel_balcony_80183EE0, 0x32BE, 0x341C, 8, 8, 4000, 37 },
 };
 

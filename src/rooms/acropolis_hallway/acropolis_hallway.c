@@ -65,13 +65,13 @@ extern SVECTOR D_acropolis_hallway_8017F950[6];
 extern TmdBone D_acropolis_hallway_8017F880[1];
 extern u32     D_acropolis_hallway_8017F980[42];
 
-extern GpGridParams   D_acropolis_hallway_8017E5D0[1];
-extern GpObj4C        D_acropolis_hallway_8017E5F4[4];
-extern GpObj4C        D_acropolis_hallway_8017E724[9];
-extern GpRoomCoordSet D_acropolis_hallway_8017EBC4[1];
-s32                   func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_acropolis_hallway_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_acropolis_hallway_8017D734(Task*, s32, s32, TaskMessageArg);
+extern WorldCollisionGrid D_acropolis_hallway_8017E5D0[1];
+extern GpObj4C            D_acropolis_hallway_8017E5F4[4];
+extern GpObj4C            D_acropolis_hallway_8017E724[9];
+extern GpRoomCoordSet     D_acropolis_hallway_8017EBC4[1];
+s32                       func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                       func_acropolis_hallway_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_acropolis_hallway_8017D734(Task*, s32, s32, TaskMessageArg);
 
 GpMsgEntry D_acropolis_hallway_8017E238[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
@@ -125,7 +125,7 @@ s16* D_acropolis_hallway_8017E5C8[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_hallway_8017E5D0[1] = {
+WorldCollisionGrid D_acropolis_hallway_8017E5D0[1] = {
     { NULL, D_acropolis_hallway_8017E358, D_acropolis_hallway_8017E3A8, D_acropolis_hallway_8017E4C0, D_acropolis_hallway_8017E5C8, 3250, 1250, 2, 1, 4000, 17 },
 };
 

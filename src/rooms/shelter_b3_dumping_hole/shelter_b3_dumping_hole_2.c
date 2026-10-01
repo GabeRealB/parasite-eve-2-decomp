@@ -462,9 +462,9 @@ void                                       func_shelter_b3_dumping_hole_80181A18
 void                                       func_shelter_b3_dumping_hole_80181B04(s16);
 void                                       func_shelter_b3_dumping_hole_80181B44(s32);
 
-extern GpGridParams D_shelter_b3_dumping_hole_8018C3EC[1];
-extern GpObj4C      D_shelter_b3_dumping_hole_8018E88C[8];
-extern GpObj4C      D_shelter_b3_dumping_hole_8018EF9C[8];
+extern WorldCollisionGrid D_shelter_b3_dumping_hole_8018C3EC[1];
+extern GpObj4C            D_shelter_b3_dumping_hole_8018E88C[8];
+extern GpObj4C            D_shelter_b3_dumping_hole_8018EF9C[8];
 
 void func_shelter_b3_dumping_hole_80183530(Task*, s32, ActorCommand* request);
 void func_shelter_b3_dumping_hole_80183550(Task*);
@@ -1139,7 +1139,7 @@ s16* D_shelter_b3_dumping_hole_8018C38C[24] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b3_dumping_hole_8018C3EC[1] = {
+WorldCollisionGrid D_shelter_b3_dumping_hole_8018C3EC[1] = {
     { NULL, D_shelter_b3_dumping_hole_8018B9CC, D_shelter_b3_dumping_hole_8018BAE4, D_shelter_b3_dumping_hole_8018BDB4, D_shelter_b3_dumping_hole_8018C38C, 100, 0x2F44, 6, 4, 4000, 56 },
 };
 

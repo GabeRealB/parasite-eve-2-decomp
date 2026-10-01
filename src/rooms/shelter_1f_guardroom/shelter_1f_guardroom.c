@@ -49,7 +49,7 @@ static const TaskFuncTable3 D_shelter_1f_guardroom_8017D5C4 = {
     },
 };
 
-extern GpGridParams               D_shelter_1f_guardroom_8017DBF0[1];
+extern WorldCollisionGrid         D_shelter_1f_guardroom_8017DBF0[1];
 extern GpObj4C                    D_shelter_1f_guardroom_8017DE3C[2];
 extern GpObj4C                    D_shelter_1f_guardroom_8017DED4[3];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4];
@@ -117,7 +117,7 @@ s16* D_shelter_1f_guardroom_8017DBEC[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_1f_guardroom_8017DBF0[1] = {
+WorldCollisionGrid D_shelter_1f_guardroom_8017DBF0[1] = {
     { NULL, D_shelter_1f_guardroom_8017DAD0, D_shelter_1f_guardroom_8017DB08, D_shelter_1f_guardroom_8017DB78, D_shelter_1f_guardroom_8017DBEC, 0x2904, 4500, 1, 1, 4000, 8 },
 };
 

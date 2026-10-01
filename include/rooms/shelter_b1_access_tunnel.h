@@ -21,7 +21,7 @@ extern GpViewCountRec D_shelter_b1_access_tunnel_8017E7E8[];
 
 extern GpWarpRec D_shelter_b1_access_tunnel_8017E7EC[];
 
-extern GpGridParams D_shelter_b1_access_tunnel_8017EB24;
+extern WorldCollisionGrid D_shelter_b1_access_tunnel_8017EB24;
 
 extern GpViewRec D_shelter_b1_access_tunnel_8017EB48[];
 

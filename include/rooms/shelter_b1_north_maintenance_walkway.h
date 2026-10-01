@@ -21,7 +21,7 @@ extern GpViewCountRec D_shelter_b1_north_maintenance_walkway_80184B84[];
 
 extern GpWarpRec D_shelter_b1_north_maintenance_walkway_80184B88[];
 
-extern GpGridParams D_shelter_b1_north_maintenance_walkway_80184F40;
+extern WorldCollisionGrid D_shelter_b1_north_maintenance_walkway_80184F40;
 
 extern GpViewRec D_shelter_b1_north_maintenance_walkway_80184F64[];
 

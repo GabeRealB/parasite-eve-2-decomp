@@ -35,7 +35,7 @@ extern GpViewCountRec D_neo_ark_bridge_80181F84[];
 
 extern GpWarpRec D_neo_ark_bridge_80181F88[];
 
-extern GpGridParams D_neo_ark_bridge_80182814;
+extern WorldCollisionGrid D_neo_ark_bridge_80182814;
 
 extern GpViewRec D_neo_ark_bridge_80182838[];
 

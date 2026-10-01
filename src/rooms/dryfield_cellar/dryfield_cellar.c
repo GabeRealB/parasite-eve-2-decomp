@@ -56,13 +56,13 @@ s32 func_dryfield_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_cellar_8017D6FC(Task*, s32, s32, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_cellar_8017DF54[1];
-extern GpObj3A        D_dryfield_cellar_8018067C[1];
-extern GpObj4C        D_dryfield_cellar_8017FEC4[6];
-extern GpObj4C        D_dryfield_cellar_8018008C[10];
-extern GpObj4C        D_dryfield_cellar_80180384[10];
-extern GpRoomCoordSet D_dryfield_cellar_80180898[1];
-extern GpRoomCoordSet D_dryfield_cellar_80180A90[1];
+extern WorldCollisionGrid D_dryfield_cellar_8017DF54[1];
+extern GpObj3A            D_dryfield_cellar_8018067C[1];
+extern GpObj4C            D_dryfield_cellar_8017FEC4[6];
+extern GpObj4C            D_dryfield_cellar_8018008C[10];
+extern GpObj4C            D_dryfield_cellar_80180384[10];
+extern GpRoomCoordSet     D_dryfield_cellar_80180898[1];
+extern GpRoomCoordSet     D_dryfield_cellar_80180A90[1];
 
 GpMsgEntry D_dryfield_cellar_8017DB8C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_cellar_8017D634 },
@@ -140,7 +140,7 @@ s16* D_dryfield_cellar_8017DF3C[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_cellar_8017DF54[1] = {
+WorldCollisionGrid D_dryfield_cellar_8017DF54[1] = {
     { NULL, D_dryfield_cellar_8017DC58, D_dryfield_cellar_8017DC98, D_dryfield_cellar_8017DDD0, D_dryfield_cellar_8017DF3C, 0, 0, 3, 2, 4000, 20 },
 };
 

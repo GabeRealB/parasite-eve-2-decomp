@@ -51,7 +51,7 @@ extern SVECTOR D_dryfield_night_trailer_coach_80189480[];
 /// Glow markers the room's view handler draws at world-space points.
 static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1);
 
-extern GpGridParams               D_dryfield_night_trailer_coach_80189A20[1];
+extern WorldCollisionGrid         D_dryfield_night_trailer_coach_80189A20[1];
 extern GpObj4C                    D_dryfield_night_trailer_coach_8018BBA4[4];
 extern GpObj4C                    D_dryfield_night_trailer_coach_8018BD1C[14];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_trailer_coach_8018BCD4[9];
@@ -299,7 +299,7 @@ s16* D_dryfield_night_trailer_coach_80189A14[3] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_trailer_coach_80189A20[1] = {
+WorldCollisionGrid D_dryfield_night_trailer_coach_80189A20[1] = {
     { NULL, D_dryfield_night_trailer_coach_801895C8, D_dryfield_night_trailer_coach_80189618, D_dryfield_night_trailer_coach_80189820, D_dryfield_night_trailer_coach_80189A14, 200, 3450, 3, 1, 4000, 32 },
 };
 

@@ -54,11 +54,11 @@ s32 func_dryfield_night_toilet_8017D678(Task*, s32, TaskMessageArg, TaskMessageA
 s32 func_dryfield_night_toilet_8017D680(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_toilet_8017D688(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_night_toilet_8017DD88[1];
-extern GpObj3A        D_dryfield_night_toilet_8017F2C4[1];
-extern GpObj4C        D_dryfield_night_toilet_8017EE9C[6];
-extern GpObj4C        D_dryfield_night_toilet_8017F064[8];
-extern GpRoomCoordSet D_dryfield_night_toilet_8017EE84[1];
+extern WorldCollisionGrid D_dryfield_night_toilet_8017DD88[1];
+extern GpObj3A            D_dryfield_night_toilet_8017F2C4[1];
+extern GpObj4C            D_dryfield_night_toilet_8017EE9C[6];
+extern GpObj4C            D_dryfield_night_toilet_8017F064[8];
+extern GpRoomCoordSet     D_dryfield_night_toilet_8017EE84[1];
 
 GpMsgEntry D_dryfield_night_toilet_8017DA70[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
@@ -119,7 +119,7 @@ s16* D_dryfield_night_toilet_8017DD80[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_toilet_8017DD88[1] = {
+WorldCollisionGrid D_dryfield_night_toilet_8017DD88[1] = {
     { NULL, D_dryfield_night_toilet_8017DB08, D_dryfield_night_toilet_8017DB40, D_dryfield_night_toilet_8017DC60, D_dryfield_night_toilet_8017DD80, 2970, 2300, 1, 2, 4000, 18 },
 };
 

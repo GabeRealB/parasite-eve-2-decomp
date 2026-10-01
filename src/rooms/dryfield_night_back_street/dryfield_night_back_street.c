@@ -64,7 +64,7 @@ s32 func_dryfield_night_back_street_8017D724(Task*, s32, TaskMessageArg, TaskMes
 s32 func_dryfield_night_back_street_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_back_street_8017D734(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams               D_dryfield_night_back_street_80180B34[1];
+extern WorldCollisionGrid         D_dryfield_night_back_street_80180B34[1];
 extern GpObj4C                    D_dryfield_night_back_street_80180D70[6];
 extern GpObj4C                    D_dryfield_night_back_street_80180F38[10];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_back_street_801815C8[6];
@@ -140,7 +140,7 @@ s16* D_dryfield_night_back_street_80180AC4[28] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_back_street_80180B34[1] = {
+WorldCollisionGrid D_dryfield_night_back_street_80180B34[1] = {
     { NULL, D_dryfield_night_back_street_801804AC, D_dryfield_night_back_street_80180544, D_dryfield_night_back_street_80180784, D_dryfield_night_back_street_80180AC4, 0x2AFE, 100, 7, 4, 4000, 32 },
 };
 

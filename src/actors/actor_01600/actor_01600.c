@@ -1836,7 +1836,7 @@ mode_end:
                 scratch->delta.v.vy = coord->workm.t[1] - work->collision.contacts[contactIndex].point.vy;
                 scratch->delta.v.vz = coord->workm.t[2] - work->collision.contacts[contactIndex].point.vz;
                 VectorNormal(&scratch->delta.v, &scratch->normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, &scratch->delta.v);
+                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.v);
                 if (work->field_506 == 23 || work->field_506 == 5 || work->field_506 == 6) {
                     coord->coord.t[0] += (push * scratch->delta.v.vx) >> 12;
                     product            = push * scratch->delta.v.vy;

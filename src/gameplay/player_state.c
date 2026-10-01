@@ -63,7 +63,7 @@ STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
 /// `coord->workm`, plus that matrix's translation), later
 /// reused to save the actor's pre-push `coord.t[0]` / `t[2]`. `delta` is
 /// `pos` minus the contact point, `unit` its `VectorNormal`, and `local`
-/// that direction in grid space via `Gp_GridParams->field_0->workm`.
+/// that direction in grid space via `Gp_GridParams->viewCoord->workm`.
 typedef struct _GpPushBackScratch {
     /* 0x00 */ VECTOR pos;
     /* 0x10 */ VECTOR delta;
@@ -289,7 +289,7 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
                         if (best < push) {
                             best = push;
                             VectorNormal(delta, &s->unit);
-                            ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm,
+                            ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm,
                                                    &s->unit, &s->local);
                         }
                     }

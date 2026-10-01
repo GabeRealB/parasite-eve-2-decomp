@@ -114,7 +114,7 @@ static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord);
 void func_acropolis_helicopter_landing_pad_8017EB58(Task*);
 void func_acropolis_helicopter_landing_pad_8017ED00(Task*);
 
-extern GpGridParams D_acropolis_helicopter_landing_pad_80185998[1];
+extern WorldCollisionGrid D_acropolis_helicopter_landing_pad_80185998[1];
 
 extern GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16];
 
@@ -602,7 +602,7 @@ s16* D_acropolis_helicopter_landing_pad_80185908[36] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_helicopter_landing_pad_80185998[1] = {
+WorldCollisionGrid D_acropolis_helicopter_landing_pad_80185998[1] = {
     { NULL, D_acropolis_helicopter_landing_pad_80184FF4, D_acropolis_helicopter_landing_pad_8018506C, D_acropolis_helicopter_landing_pad_8018534C, D_acropolis_helicopter_landing_pad_80185908, 0x2710, 0x2710, 6, 6, 4000, 37 },
 };
 

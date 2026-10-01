@@ -336,8 +336,8 @@ void func_acropolis_plaza_8017FF18(Task*);
 void func_acropolis_plaza_80180054(Task*);
 void func_acropolis_plaza_80180270(Task*);
 
-extern GpGridParams   D_acropolis_plaza_80199180[1];
-extern GpRoomCoordSet D_acropolis_plaza_80199EE8[1];
+extern WorldCollisionGrid D_acropolis_plaza_80199180[1];
+extern GpRoomCoordSet     D_acropolis_plaza_80199EE8[1];
 
 extern SVECTOR D_acropolis_plaza_80198AA0[30];
 extern SVECTOR D_acropolis_plaza_80198B90[80];
@@ -2691,7 +2691,7 @@ s16* D_acropolis_plaza_80199110[28] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_plaza_80199180[1] = {
+WorldCollisionGrid D_acropolis_plaza_80199180[1] = {
     { NULL, D_acropolis_plaza_80198AA0, D_acropolis_plaza_80198B90, D_acropolis_plaza_80198E10, D_acropolis_plaza_80199110, 0, 0, 7, 4, 4000, 32 },
 };
 

@@ -64,7 +64,7 @@ extern SVECTOR D_mine_secret_passage_80180F08[];
 /// Shift per colour channel for each of the halo's tints, indexed by the tint
 /// selector the spawn argument carries.
 
-extern GpGridParams               D_mine_secret_passage_801815E0[1];
+extern WorldCollisionGrid         D_mine_secret_passage_801815E0[1];
 extern GpObj3A                    D_mine_secret_passage_801831A8[2];
 extern GpObj4C                    D_mine_secret_passage_80182DCC[10];
 extern GpObj4C                    D_mine_secret_passage_801830C4[3];
@@ -174,7 +174,7 @@ s16* D_mine_secret_passage_80181580[24] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_secret_passage_801815E0[1] = {
+WorldCollisionGrid D_mine_secret_passage_801815E0[1] = {
     { NULL, D_mine_secret_passage_8018102C, D_mine_secret_passage_801810D4, D_mine_secret_passage_801812E4, D_mine_secret_passage_80181580, 1210, -30, 6, 4, 4000, 27 },
 };
 

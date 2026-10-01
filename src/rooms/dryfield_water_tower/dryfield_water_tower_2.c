@@ -384,15 +384,15 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0);
 
 extern GpRoomCoordSet D_dryfield_water_tower_801874E4[1];
 
-extern GpGridParams D_dryfield_water_tower_801835C4[1];
-extern GpObj4C      D_dryfield_water_tower_8018665C[14];
-void                func_dryfield_water_tower_8017FD64(Task*);
-void                func_dryfield_water_tower_80180114(void);
-void                func_dryfield_water_tower_80180134(void);
-void                func_dryfield_water_tower_80180154(void);
-void                func_dryfield_water_tower_80180174(s16);
-void                func_dryfield_water_tower_80180194(void);
-void                func_dryfield_water_tower_80180220(void);
+extern WorldCollisionGrid D_dryfield_water_tower_801835C4[1];
+extern GpObj4C            D_dryfield_water_tower_8018665C[14];
+void                      func_dryfield_water_tower_8017FD64(Task*);
+void                      func_dryfield_water_tower_80180114(void);
+void                      func_dryfield_water_tower_80180134(void);
+void                      func_dryfield_water_tower_80180154(void);
+void                      func_dryfield_water_tower_80180174(s16);
+void                      func_dryfield_water_tower_80180194(void);
+void                      func_dryfield_water_tower_80180220(void);
 
 extern TmdSource D_dryfield_water_tower_80180DC8;
 extern TmdSource D_dryfield_water_tower_80181A1C;
@@ -809,7 +809,7 @@ s16* D_dryfield_water_tower_80183584[16] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_water_tower_801835C4[1] = {
+WorldCollisionGrid D_dryfield_water_tower_801835C4[1] = {
     { NULL, D_dryfield_water_tower_801828CC, D_dryfield_water_tower_801829B4, D_dryfield_water_tower_80182F2C, D_dryfield_water_tower_80183584, 7000, 7000, 4, 4, 4000, 73 },
 };
 

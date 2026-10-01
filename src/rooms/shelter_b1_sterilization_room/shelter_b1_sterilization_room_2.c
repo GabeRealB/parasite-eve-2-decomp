@@ -394,7 +394,7 @@ s16* D_shelter_b1_sterilization_room_80189E24[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_sterilization_room_80189E44 = { NULL, D_shelter_b1_sterilization_room_80189488, D_shelter_b1_sterilization_room_801894F8, D_shelter_b1_sterilization_room_801898D8, D_shelter_b1_sterilization_room_80189E24, 0, -500, 2, 4, 4000, 68 };
+WorldCollisionGrid D_shelter_b1_sterilization_room_80189E44 = { NULL, D_shelter_b1_sterilization_room_80189488, D_shelter_b1_sterilization_room_801894F8, D_shelter_b1_sterilization_room_801898D8, D_shelter_b1_sterilization_room_80189E24, 0, -500, 2, 4, 4000, 68 };
 
 GpViewRec D_shelter_b1_sterilization_room_80189E68[24] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -7000 } }, 329 },

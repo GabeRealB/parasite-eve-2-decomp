@@ -77,9 +77,9 @@
 
 #define MINE_MESA_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
-extern GpGridParams D_mine_mesa_801864A4;
+extern WorldCollisionGrid D_mine_mesa_801864A4;
 
-extern GpGridParams D_mine_mesa_8018700C;
+extern WorldCollisionGrid D_mine_mesa_8018700C;
 
 extern RoomEventMsg gRoomEventStagedMsg;
 
@@ -1087,7 +1087,7 @@ s16* D_mine_mesa_801864A0[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_mesa_801864A4 = { NULL, D_mine_mesa_8018641C, D_mine_mesa_80186434, D_mine_mesa_80186474, D_mine_mesa_801864A0, 250, 150, 1, 1, 4000, 3 };
+WorldCollisionGrid D_mine_mesa_801864A4 = { NULL, D_mine_mesa_8018641C, D_mine_mesa_80186434, D_mine_mesa_80186474, D_mine_mesa_801864A0, 250, 150, 1, 1, 4000, 3 };
 
 SVECTOR D_mine_mesa_801864C8[1] = {
     { 4000, -650, 4780, 0 },
@@ -1161,7 +1161,7 @@ s16* D_mine_mesa_80186FCC[16] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_mesa_8018700C = { NULL, D_mine_mesa_801865C8, D_mine_mesa_801866F0, D_mine_mesa_80186A98, D_mine_mesa_80186FCC, 800, 4070, 4, 4, 4000, 53 };
+WorldCollisionGrid D_mine_mesa_8018700C = { NULL, D_mine_mesa_801865C8, D_mine_mesa_801866F0, D_mine_mesa_80186A98, D_mine_mesa_80186FCC, 800, 4070, 4, 4, 4000, 53 };
 
 GpViewRec D_mine_mesa_80187030[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6000, 0x34BC, -4000 } }, 257 },
@@ -3265,27 +3265,26 @@ static void func_mine_mesa_8017EB38(void)
     D_mine_mesa_80189B5C = NULL;
 }
 
-/// Refreshes the live layout from the template. It copies the three `field_4`
-/// entries with their `field_C` records and the eight `field_8` entries, then
-/// shifts every `field_8` entry by (0x1838, -0xB4, 0x9F6), or by
+/// Refreshes the live collision mesh from the template: three normals and
+/// faces and eight vertices, then shifts every vertex by (0x1838, -0xB4, 0x9F6), or by
 /// (0x1838, 0x7D0, 0x9F6) when `arg0` is non-zero.
 void func_mine_mesa_8017EB54(s32 arg0)
 {
-    GpGridParams* dst = &D_mine_mesa_8018700C;
-    GpGridParams* src = &D_mine_mesa_801864A4;
-    SVECTOR       ofs;
-    s32           i;
+    WorldCollisionGrid* dst = &D_mine_mesa_8018700C;
+    WorldCollisionGrid* src = &D_mine_mesa_801864A4;
+    SVECTOR             ofs;
+    s32                 i;
 
     for (i = 0; i < 3; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
     if (arg0 == 0) {
         ofs.vx = 0x1838;
@@ -3296,9 +3295,9 @@ void func_mine_mesa_8017EB54(s32 arg0)
     }
     ofs.vz = 0x9F6;
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx += ofs.vx;
-        dst->field_8[i].vy += ofs.vy;
-        dst->field_8[i].vz += ofs.vz;
+        dst->vertices[i].vx += ofs.vx;
+        dst->vertices[i].vy += ofs.vy;
+        dst->vertices[i].vz += ofs.vz;
     }
 }
 
@@ -3425,9 +3424,9 @@ void func_mine_mesa_801811C4(s32 height)
     s16                     i;
     s16                     face;
 
-    normals = Gp_GridParams->field_4;
-    verts   = Gp_GridParams->field_8;
-    faces   = Gp_GridParams->field_C;
+    normals = Gp_GridParams->normals;
+    verts   = Gp_GridParams->vertices;
+    faces   = Gp_GridParams->faces;
     for (i = 0; i < 4; i++) {
         face               = i + 3;
         verts[face * 4].vx = verts[face * 4 + 2].vx = D_mine_mesa_80189A9C[i].start.vx;

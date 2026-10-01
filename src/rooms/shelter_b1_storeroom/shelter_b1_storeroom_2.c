@@ -61,7 +61,7 @@ static RoomHaloShade _gRoomEffectHaloShades[3];
 #include "../../shared/room_visual_effects.h"
 
 // Indexed views below share one contiguous table.
-extern GpGridParams               D_shelter_b1_storeroom_801850D8[1];
+extern WorldCollisionGrid         D_shelter_b1_storeroom_801850D8[1];
 extern GpObj3A                    D_shelter_b1_storeroom_80186D94[1];
 extern GpObj4C                    D_shelter_b1_storeroom_801862E0[12];
 extern GpObj4C                    D_shelter_b1_storeroom_80186670[15];
@@ -183,7 +183,7 @@ s16* D_shelter_b1_storeroom_801850B8[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_storeroom_801850D8[1] = {
+WorldCollisionGrid D_shelter_b1_storeroom_801850D8[1] = {
     { NULL, D_shelter_b1_storeroom_80184C18, D_shelter_b1_storeroom_80184CA8, D_shelter_b1_storeroom_80184EA8, D_shelter_b1_storeroom_801850B8, 5082, 3225, 4, 2, 4000, 26 },
 };
 

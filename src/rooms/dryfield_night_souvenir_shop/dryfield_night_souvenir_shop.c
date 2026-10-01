@@ -51,7 +51,7 @@ s32 func_dryfield_night_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEv
 s32 func_dryfield_night_souvenir_shop_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_souvenir_shop_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams               D_dryfield_night_souvenir_shop_8017E604[1];
+extern WorldCollisionGrid         D_dryfield_night_souvenir_shop_8017E604[1];
 extern GpObj4C                    D_dryfield_night_souvenir_shop_8017F190[2];
 extern GpObj4C                    D_dryfield_night_souvenir_shop_8017F248[12];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_souvenir_shop_8017F228[4];
@@ -126,7 +126,7 @@ s16* D_dryfield_night_souvenir_shop_8017E5F4[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_souvenir_shop_8017E604[1] = {
+WorldCollisionGrid D_dryfield_night_souvenir_shop_8017E604[1] = {
     { NULL, D_dryfield_night_souvenir_shop_8017E13C, D_dryfield_night_souvenir_shop_8017E194, D_dryfield_night_souvenir_shop_8017E384, D_dryfield_night_souvenir_shop_8017E5F4, 100, 4100, 2, 2, 4000, 34 },
 };
 

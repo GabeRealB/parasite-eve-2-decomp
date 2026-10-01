@@ -75,9 +75,9 @@ extern GpAreaTmdRec D_dryfield_night_garage_801874A4[2];
 
 extern TaskDesc D_8013B11C[];
 
-extern GpGridParams D_dryfield_night_garage_801843D4[1];
-extern GpObj4C      D_dryfield_night_garage_8018630C[14];
-extern GpObj4C      D_dryfield_night_garage_80186734[12];
+extern WorldCollisionGrid D_dryfield_night_garage_801843D4[1];
+extern GpObj4C            D_dryfield_night_garage_8018630C[14];
+extern GpObj4C            D_dryfield_night_garage_80186734[12];
 
 extern GpObj4C                    D_dryfield_night_garage_8018723C[7];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16];
@@ -301,7 +301,7 @@ s16* D_dryfield_night_garage_80183DB0[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_garage_80183DD4 = { NULL, D_dryfield_night_garage_801834B0, D_dryfield_night_garage_801835F0, D_dryfield_night_garage_80183960, D_dryfield_night_garage_80183DB0, 150, 0, 3, 3, 4000, 55 };
+WorldCollisionGrid D_dryfield_night_garage_80183DD4 = { NULL, D_dryfield_night_garage_801834B0, D_dryfield_night_garage_801835F0, D_dryfield_night_garage_80183960, D_dryfield_night_garage_80183DB0, 150, 0, 3, 3, 4000, 55 };
 
 SVECTOR D_dryfield_night_garage_80183DF8[29] = {
 #include "assets/dryfield_night_garage_collision_06E14_normals.inc"
@@ -325,7 +325,7 @@ s16* D_dryfield_night_garage_801843B0[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_garage_801843D4[1] = {
+WorldCollisionGrid D_dryfield_night_garage_801843D4[1] = {
     { NULL, D_dryfield_night_garage_80183DF8, D_dryfield_night_garage_80183EE0, D_dryfield_night_garage_80184130, D_dryfield_night_garage_801843B0, 150, 0, 3, 3, 4000, 34 },
 };
 

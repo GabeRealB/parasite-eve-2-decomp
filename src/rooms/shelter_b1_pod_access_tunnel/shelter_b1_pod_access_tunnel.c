@@ -596,7 +596,7 @@ s16* D_shelter_b1_pod_access_tunnel_80183C14[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_pod_access_tunnel_80183C24 = { NULL, D_shelter_b1_pod_access_tunnel_80183AC4, D_shelter_b1_pod_access_tunnel_80183AF4, D_shelter_b1_pod_access_tunnel_80183B54, D_shelter_b1_pod_access_tunnel_80183C14, -750, 6500, 2, 2, 4000, 10 };
+WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24 = { NULL, D_shelter_b1_pod_access_tunnel_80183AC4, D_shelter_b1_pod_access_tunnel_80183AF4, D_shelter_b1_pod_access_tunnel_80183B54, D_shelter_b1_pod_access_tunnel_80183C14, -750, 6500, 2, 2, 4000, 10 };
 
 GpViewRec D_shelter_b1_pod_access_tunnel_80183C48[14] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4000, 0x37D3, 2550 } }, 296 },

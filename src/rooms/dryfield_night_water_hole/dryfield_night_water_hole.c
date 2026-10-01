@@ -170,7 +170,7 @@ static void func_dryfield_night_water_hole_8017E690(Task* arg0);
 
 void func_dryfield_night_water_hole_8017E630(Task*);
 
-extern GpGridParams               D_dryfield_night_water_hole_80180F50[1];
+extern WorldCollisionGrid         D_dryfield_night_water_hole_80180F50[1];
 extern GpObj3A                    D_dryfield_night_water_hole_80182D58[2];
 extern GpObj4C                    D_dryfield_night_water_hole_801824BC[12];
 extern GpObj4C                    D_dryfield_night_water_hole_8018284C[9];
@@ -431,7 +431,7 @@ s16* D_dryfield_night_water_hole_80180F20[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_water_hole_80180F50[1] = {
+WorldCollisionGrid D_dryfield_night_water_hole_80180F50[1] = {
     { NULL, D_dryfield_night_water_hole_80180B54, D_dryfield_night_water_hole_80180BA4, D_dryfield_night_water_hole_80180D54, D_dryfield_night_water_hole_80180F20, -4000, 5000, 6, 2, 4000, 23 },
 };
 

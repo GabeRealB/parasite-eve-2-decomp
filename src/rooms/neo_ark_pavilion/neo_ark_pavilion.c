@@ -103,12 +103,12 @@ s32 func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, TaskMessageArg);
 s32 func_neo_ark_pavilion_8017EB78(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_neo_ark_pavilion_801841E4[1];
-extern GpObj3A        D_neo_ark_pavilion_8018798C[1];
-extern GpObj4C        D_neo_ark_pavilion_80187584[2];
-extern GpObj4C        D_neo_ark_pavilion_8018772C[4];
-extern GpObj4C        D_neo_ark_pavilion_8018785C[4];
-extern GpRoomCoordSet D_neo_ark_pavilion_8018756C[1];
+extern WorldCollisionGrid D_neo_ark_pavilion_801841E4[1];
+extern GpObj3A            D_neo_ark_pavilion_8018798C[1];
+extern GpObj4C            D_neo_ark_pavilion_80187584[2];
+extern GpObj4C            D_neo_ark_pavilion_8018772C[4];
+extern GpObj4C            D_neo_ark_pavilion_8018785C[4];
+extern GpRoomCoordSet     D_neo_ark_pavilion_8018756C[1];
 
 extern TaskDesc D_80147E48;
 
@@ -248,7 +248,7 @@ s16* D_neo_ark_pavilion_801841CC[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_pavilion_801841E4[1] = {
+WorldCollisionGrid D_neo_ark_pavilion_801841E4[1] = {
     { NULL, D_neo_ark_pavilion_80183AB4, D_neo_ark_pavilion_80183AF4, D_neo_ark_pavilion_80183E24, D_neo_ark_pavilion_801841CC, 5100, -6900, 3, 2, 4000, 52 },
 };
 

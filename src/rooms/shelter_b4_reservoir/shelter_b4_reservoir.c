@@ -183,15 +183,15 @@ static const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
 
 void func_shelter_b4_reservoir_8017FADC(Task*);
 
-extern GpGridParams   D_shelter_b4_reservoir_80185AB8[1];
-extern GpObj3A        D_shelter_b4_reservoir_801873B0[2];
-extern GpObj4C        D_shelter_b4_reservoir_80186AC0[8];
-extern GpObj4C        D_shelter_b4_reservoir_80186D20[7];
-extern GpObj4C        D_shelter_b4_reservoir_80186F34[9];
-extern GpRoomCoordSet D_shelter_b4_reservoir_80186AA8[1];
-extern TaskDesc       D_80142604;
-extern TaskDesc       D_80147E48;
-extern TaskDesc       D_801575F0;
+extern WorldCollisionGrid D_shelter_b4_reservoir_80185AB8[1];
+extern GpObj3A            D_shelter_b4_reservoir_801873B0[2];
+extern GpObj4C            D_shelter_b4_reservoir_80186AC0[8];
+extern GpObj4C            D_shelter_b4_reservoir_80186D20[7];
+extern GpObj4C            D_shelter_b4_reservoir_80186F34[9];
+extern GpRoomCoordSet     D_shelter_b4_reservoir_80186AA8[1];
+extern TaskDesc           D_80142604;
+extern TaskDesc           D_80147E48;
+extern TaskDesc           D_801575F0;
 
 s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -531,7 +531,7 @@ s16* D_shelter_b4_reservoir_80185A54[25] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b4_reservoir_80185AB8[1] = {
+WorldCollisionGrid D_shelter_b4_reservoir_80185AB8[1] = {
     { NULL, D_shelter_b4_reservoir_8018520C, D_shelter_b4_reservoir_801852BC, D_shelter_b4_reservoir_801855CC, D_shelter_b4_reservoir_80185A54, 0x2AC6, 6000, 5, 5, 4000, 45 },
 };
 

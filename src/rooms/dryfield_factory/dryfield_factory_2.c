@@ -177,7 +177,7 @@ s16* D_dryfield_factory_80186C64[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFactoryBarrierTemplate = { NULL, D_dryfield_factory_80186BF4, D_dryfield_factory_80186C04, D_dryfield_factory_80186C44, D_dryfield_factory_80186C64, -4464, -3949, 1, 1, 4000, 2 };
+WorldCollisionGrid gFactoryBarrierTemplate = { NULL, D_dryfield_factory_80186BF4, D_dryfield_factory_80186C04, D_dryfield_factory_80186C44, D_dryfield_factory_80186C64, -4464, -3949, 1, 1, 4000, 2 };
 
 SVECTOR D_dryfield_factory_80186C8C[4] = {
 #include "assets/dryfield_factory_collision_09778_normals.inc"
@@ -201,7 +201,7 @@ s16* D_dryfield_factory_80186D30[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFactoryLiftTemplate = { NULL, D_dryfield_factory_80186C8C, D_dryfield_factory_80186CAC, D_dryfield_factory_80186CEC, D_dryfield_factory_80186D30, 750, 2191, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTemplate = { NULL, D_dryfield_factory_80186C8C, D_dryfield_factory_80186CAC, D_dryfield_factory_80186CEC, D_dryfield_factory_80186D30, 750, 2191, 1, 2, 4000, 4 };
 
 SVECTOR D_dryfield_factory_80186D5C[4] = {
 #include "assets/dryfield_factory_collision_09844_normals.inc"
@@ -225,7 +225,7 @@ s16* D_dryfield_factory_80186DFC[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFactoryLiftTurnedTemplate = { NULL, D_dryfield_factory_80186D5C, D_dryfield_factory_80186D7C, D_dryfield_factory_80186DBC, D_dryfield_factory_80186DFC, 750, 1950, 1, 2, 4000, 4 };
+WorldCollisionGrid gFactoryLiftTurnedTemplate = { NULL, D_dryfield_factory_80186D5C, D_dryfield_factory_80186D7C, D_dryfield_factory_80186DBC, D_dryfield_factory_80186DFC, 750, 1950, 1, 2, 4000, 4 };
 
 TaskDesc gFactoryDaySpawnTable[8] = {
     { { { TASK_BODY_NONE, 192 } }, factoryPowerScene, { .value = 0 } },

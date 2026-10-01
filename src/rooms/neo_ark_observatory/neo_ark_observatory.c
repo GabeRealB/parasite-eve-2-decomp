@@ -125,18 +125,18 @@ extern GpMsgEntry D_neo_ark_observatory_801811B8[];
 /// `vy` is ever set.
 extern SVECTOR D_neo_ark_observatory_80181368;
 
-extern GpGridParams gFollowCollisionSource;
-extern GpGridParams gFollowCollisionGrid;
-extern SVECTOR      D_neo_ark_observatory_80181434[];
-extern SVECTOR      D_neo_ark_observatory_801814E4[];
-extern SVECTOR      D_neo_ark_observatory_801814F4[];
-extern SVECTOR      D_neo_ark_observatory_801814FC[];
-extern SVECTOR      D_neo_ark_observatory_8018150C[];
-extern SVECTOR      D_neo_ark_observatory_8018151C[];
-extern SVECTOR      D_neo_ark_observatory_80181524[];
-extern SVECTOR      D_neo_ark_observatory_80181564[];
-extern SVECTOR      D_neo_ark_observatory_80181574[];
-extern SVECTOR      D_neo_ark_observatory_8018157C[];
+extern WorldCollisionGrid gFollowCollisionSource;
+extern WorldCollisionGrid gFollowCollisionGrid;
+extern SVECTOR            D_neo_ark_observatory_80181434[];
+extern SVECTOR            D_neo_ark_observatory_801814E4[];
+extern SVECTOR            D_neo_ark_observatory_801814F4[];
+extern SVECTOR            D_neo_ark_observatory_801814FC[];
+extern SVECTOR            D_neo_ark_observatory_8018150C[];
+extern SVECTOR            D_neo_ark_observatory_8018151C[];
+extern SVECTOR            D_neo_ark_observatory_80181524[];
+extern SVECTOR            D_neo_ark_observatory_80181564[];
+extern SVECTOR            D_neo_ark_observatory_80181574[];
+extern SVECTOR            D_neo_ark_observatory_8018157C[];
 
 extern GpAreaApplyRec D_neo_ark_observatory_80187A28[];
 extern RoomDeparture  gRoomDeparture;
@@ -151,12 +151,12 @@ static void func_neo_ark_observatory_8017F3FC(Task* task);
 
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 
-extern GpGridParams   gFollowCollisionGrid;
-extern GpObj3A        D_neo_ark_observatory_801878D4[4];
-extern GpObj4C        D_neo_ark_observatory_80186ED4[18];
-extern GpObj4C        D_neo_ark_observatory_8018742C[14];
-extern GpRoomCoordSet D_neo_ark_observatory_80186844[1];
-extern GpRoomCoordSet D_neo_ark_observatory_80186EBC[1];
+extern WorldCollisionGrid gFollowCollisionGrid;
+extern GpObj3A            D_neo_ark_observatory_801878D4[4];
+extern GpObj4C            D_neo_ark_observatory_80186ED4[18];
+extern GpObj4C            D_neo_ark_observatory_8018742C[14];
+extern GpRoomCoordSet     D_neo_ark_observatory_80186844[1];
+extern GpRoomCoordSet     D_neo_ark_observatory_80186EBC[1];
 
 extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
 s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, DirectionActionRequest* request, s32);
@@ -248,7 +248,7 @@ s16* D_neo_ark_observatory_8018140C[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFollowCollisionSource = { NULL, D_neo_ark_observatory_80181370, D_neo_ark_observatory_80181390, D_neo_ark_observatory_801813D0, D_neo_ark_observatory_8018140C, 399, 500, 1, 1, 4000, 4 };
+WorldCollisionGrid gFollowCollisionSource = { NULL, D_neo_ark_observatory_80181370, D_neo_ark_observatory_80181390, D_neo_ark_observatory_801813D0, D_neo_ark_observatory_8018140C, 399, 500, 1, 1, 4000, 4 };
 
 SVECTOR D_neo_ark_observatory_80181434[22] = {
     { 512, -5120, 8192, 0 },
@@ -399,7 +399,7 @@ s16* D_neo_ark_observatory_80181F54[20] = {
 };
 #undef GRID_CELL
 
-GpGridParams gFollowCollisionGrid = { NULL, D_neo_ark_observatory_80181690, D_neo_ark_observatory_80181760, D_neo_ark_observatory_80181AB0, D_neo_ark_observatory_80181F54, 0, 0, 4, 5, 4000, 48 };
+WorldCollisionGrid gFollowCollisionGrid = { NULL, D_neo_ark_observatory_80181690, D_neo_ark_observatory_80181760, D_neo_ark_observatory_80181AB0, D_neo_ark_observatory_80181F54, 0, 0, 4, 5, 4000, 48 };
 
 GpViewRec D_neo_ark_observatory_80181FC8[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x61A8, -8000 } }, 329 },

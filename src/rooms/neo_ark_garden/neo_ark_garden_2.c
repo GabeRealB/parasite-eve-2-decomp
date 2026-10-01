@@ -57,10 +57,10 @@ extern SVECTOR D_neo_ark_garden_801813D8;
 
 static void func_neo_ark_garden_8017F42C(SVECTOR* arg0);
 
-extern GpGridParams   D_neo_ark_garden_801816C4[1];
-extern GpObj4C        D_neo_ark_garden_8018270C[6];
-extern GpObj4C        D_neo_ark_garden_801828D4[7];
-extern GpRoomCoordSet D_neo_ark_garden_801826F4[1];
+extern WorldCollisionGrid D_neo_ark_garden_801816C4[1];
+extern GpObj4C            D_neo_ark_garden_8018270C[6];
+extern GpObj4C            D_neo_ark_garden_801828D4[7];
+extern GpRoomCoordSet     D_neo_ark_garden_801826F4[1];
 
 TaskDesc D_neo_ark_garden_80181398 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
@@ -130,7 +130,7 @@ s16* D_neo_ark_garden_80181694[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_garden_801816C4[1] = {
+WorldCollisionGrid D_neo_ark_garden_801816C4[1] = {
     { NULL, D_neo_ark_garden_801814D4, D_neo_ark_garden_801814FC, D_neo_ark_garden_801815AC, D_neo_ark_garden_80181694, 0x2710, 0x4E20, 4, 3, 4000, 9 },
 };
 

@@ -346,7 +346,7 @@ s16* D_shelter_b6_nursery_80185890[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b6_nursery_801858A0 = { NULL, D_shelter_b6_nursery_8018537C, D_shelter_b6_nursery_801853EC, D_shelter_b6_nursery_8018559C, D_shelter_b6_nursery_80185890, -50, 1450, 2, 2, 4000, 43 };
+WorldCollisionGrid D_shelter_b6_nursery_801858A0 = { NULL, D_shelter_b6_nursery_8018537C, D_shelter_b6_nursery_801853EC, D_shelter_b6_nursery_8018559C, D_shelter_b6_nursery_80185890, -50, 1450, 2, 2, 4000, 43 };
 
 GpViewRec D_shelter_b6_nursery_801858C4[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -2500 } }, 447 },

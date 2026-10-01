@@ -77,7 +77,7 @@ s16* D_shelter_b2_breeding_room_801810C4[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b2_breeding_room_801810F4 = { NULL, D_shelter_b2_breeding_room_801805D4, D_shelter_b2_breeding_room_801806AC, D_shelter_b2_breeding_room_80180AB4, D_shelter_b2_breeding_room_801810C4, 890, 2602, 4, 3, 4000, 75 };
+WorldCollisionGrid D_shelter_b2_breeding_room_801810F4 = { NULL, D_shelter_b2_breeding_room_801805D4, D_shelter_b2_breeding_room_801806AC, D_shelter_b2_breeding_room_80180AB4, D_shelter_b2_breeding_room_801810C4, 890, 2602, 4, 3, 4000, 75 };
 
 GpViewRec D_shelter_b2_breeding_room_80181118[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },

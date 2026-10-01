@@ -82,15 +82,15 @@ extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-extern GpGridParams   D_shelter_b1_south_maintenance_walkway_801827B8[1];
-extern GpObj3A        D_shelter_b1_south_maintenance_walkway_80183274[1];
-extern GpObj4C        D_shelter_b1_south_maintenance_walkway_801830AC[6];
-extern GpObj4C        D_shelter_b1_south_maintenance_walkway_801832B0[2];
-extern GpRoomCoordSet D_shelter_b1_south_maintenance_walkway_80183094[1];
-s32                   func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid D_shelter_b1_south_maintenance_walkway_801827B8[1];
+extern GpObj3A            D_shelter_b1_south_maintenance_walkway_80183274[1];
+extern GpObj4C            D_shelter_b1_south_maintenance_walkway_801830AC[6];
+extern GpObj4C            D_shelter_b1_south_maintenance_walkway_801832B0[2];
+extern GpRoomCoordSet     D_shelter_b1_south_maintenance_walkway_80183094[1];
+s32                       func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                       func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -173,7 +173,7 @@ s16* D_shelter_b1_south_maintenance_walkway_801827A0[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_south_maintenance_walkway_801827B8[1] = {
+WorldCollisionGrid D_shelter_b1_south_maintenance_walkway_801827B8[1] = {
     { NULL, D_shelter_b1_south_maintenance_walkway_80182484, D_shelter_b1_south_maintenance_walkway_801824F4, D_shelter_b1_south_maintenance_walkway_80182624, D_shelter_b1_south_maintenance_walkway_801827A0, 2872, 5300, 2, 3, 4000, 18 },
 };
 

@@ -111,7 +111,7 @@ extern EvsCommand D_mist_parking_8018F0A4[10];
 
 extern EvsCommand D_mist_parking_8018F194[10];
 
-extern GpGridParams D_mist_parking_8018FCB8;
+extern WorldCollisionGrid D_mist_parking_8018FCB8;
 
 extern AnimationSet D_mist_parking_8018FFB8;
 
@@ -141,7 +141,7 @@ extern EvsCommand D_mist_parking_80191304[8];
 
 extern EvsCommand D_mist_parking_801913C4[8];
 
-extern GpGridParams D_mist_parking_80192204;
+extern WorldCollisionGrid D_mist_parking_80192204;
 
 extern s32 Shop_Data_80187628;
 

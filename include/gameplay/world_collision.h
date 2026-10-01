@@ -20,7 +20,7 @@ void Gp_TickWorldCollision(struct Task* unused);
 
 extern s32 Gp_RoomParams[8];
 
-extern GpGridParams* Gp_GridParams;
+extern WorldCollisionGrid* Gp_GridParams;
 
 extern GpObj3A* D_80115550;
 

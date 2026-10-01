@@ -147,7 +147,7 @@ s16* D_neo_ark_island_80182678[20] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_island_801826C8[1] = {
+WorldCollisionGrid D_neo_ark_island_801826C8[1] = {
     { NULL, D_neo_ark_island_80181D30, D_neo_ark_island_80181D98, D_neo_ark_island_80182190, D_neo_ark_island_80182678, 5100, 7000, 4, 5, 4000, 61 },
 };
 

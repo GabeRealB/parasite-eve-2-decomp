@@ -21,7 +21,7 @@ extern GpViewCountRec D_shelter_b1_main_corridor_801831FC[];
 
 extern GpWarpRec D_shelter_b1_main_corridor_80183200[];
 
-extern GpGridParams D_shelter_b1_main_corridor_801840F0;
+extern WorldCollisionGrid D_shelter_b1_main_corridor_801840F0;
 
 extern GpViewRec D_shelter_b1_main_corridor_80184114[];
 

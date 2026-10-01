@@ -12,7 +12,7 @@
 #include "gameplay/view.h"
 
 /// The location's collision grid header, defined after the grid it points at.
-extern GpGridParams D_dryfield_r04_8017E1F4;
+extern WorldCollisionGrid D_dryfield_r04_8017E1F4;
 
 /* Dryfield room 4 has no code. Its package holds only the room records the
  * stage tables point at: one location with its collision grid, two views with
@@ -57,7 +57,7 @@ s16* D_dryfield_r04_8017E0B0[81] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_r04_8017E1F4 = {
+WorldCollisionGrid D_dryfield_r04_8017E1F4 = {
     NULL,
     D_dryfield_r04_8017D61C,
     D_dryfield_r04_8017D624,

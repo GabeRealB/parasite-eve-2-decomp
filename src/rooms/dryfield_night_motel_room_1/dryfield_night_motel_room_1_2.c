@@ -37,11 +37,11 @@ STATIC_ASSERT_SIZEOF(DryfieldNightMotelRoom1SpotLightStorage, 432);
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA54[];
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA5C[];
 
-extern GpGridParams   D_dryfield_night_motel_room_1_8017E098[1];
-extern GpObj3A        D_dryfield_night_motel_room_1_801806C0[1];
-extern GpObj4C        D_dryfield_night_motel_room_1_8017FF04[8];
-extern GpObj4C        D_dryfield_night_motel_room_1_801804AC[7];
-extern GpRoomCoordSet D_dryfield_night_motel_room_1_80180494[1];
+extern WorldCollisionGrid D_dryfield_night_motel_room_1_8017E098[1];
+extern GpObj3A            D_dryfield_night_motel_room_1_801806C0[1];
+extern GpObj4C            D_dryfield_night_motel_room_1_8017FF04[8];
+extern GpObj4C            D_dryfield_night_motel_room_1_801804AC[7];
+extern GpRoomCoordSet     D_dryfield_night_motel_room_1_80180494[1];
 
 extern DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4;
 extern WorldCoordPointLight                    D_dryfield_night_motel_room_1_80180164[4];
@@ -113,7 +113,7 @@ s16* D_dryfield_night_motel_room_1_8017E088[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_motel_room_1_8017E098[1] = {
+WorldCollisionGrid D_dryfield_night_motel_room_1_8017E098[1] = {
     { NULL, D_dryfield_night_motel_room_1_8017DAE0, D_dryfield_night_motel_room_1_8017DB28, D_dryfield_night_motel_room_1_8017DDD0, D_dryfield_night_motel_room_1_8017E088, -200, -200, 2, 2, 4000, 38 },
 };
 

@@ -990,13 +990,13 @@ static void Actor03800_Fn00974(Task* arg0)
 /// becomes the new `best`, and `frame->dir` the direction to push out along -
 /// the offset in `frame->delta` normalised and carried into the collision
 /// grid's frame.
-#define _ACTOR03800_KEEP_DEEPEST(best, depth, frame)                                                 \
-    do {                                                                                             \
-        if ((best) < (depth)) {                                                                      \
-            (best) = (depth);                                                                        \
-            VectorNormal((VECTOR*)&(frame)->delta, &(frame)->normal);                                \
-            ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &(frame)->normal, &(frame)->dir); \
-        }                                                                                            \
+#define _ACTOR03800_KEEP_DEEPEST(best, depth, frame)                                                   \
+    do {                                                                                               \
+        if ((best) < (depth)) {                                                                        \
+            (best) = (depth);                                                                          \
+            VectorNormal((VECTOR*)&(frame)->delta, &(frame)->normal);                                  \
+            ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &(frame)->normal, &(frame)->dir); \
+        }                                                                                              \
     } while (0)
 
 static void Actor03800_Fn00A98(Task* arg0)

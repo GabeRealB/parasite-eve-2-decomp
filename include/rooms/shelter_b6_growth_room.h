@@ -21,7 +21,7 @@ extern GpViewCountRec D_shelter_b6_growth_room_8017F37C[];
 
 extern GpWarpRec D_shelter_b6_growth_room_8017F380[];
 
-extern GpGridParams D_shelter_b6_growth_room_8017FAF0;
+extern WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0;
 
 extern GpViewRec D_shelter_b6_growth_room_8017FB14[];
 

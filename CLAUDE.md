@@ -603,7 +603,7 @@ settled asset categories are **fonts** (glyph pixels *and* glyph metrics),
 **images**, **CLUTs**, **models**, **animations** and **collision geometry**.
 Collision geometry is a room's grid - normals, vertices, faces and per-cell face
 lists - which describes a shape the way a model does; the manifest cuts it out as
-a `collision` object with its `GpGridParams` header as a `collisionSource`.
+a `collision` object with its `WorldCollisionGrid` header as a `collisionSource`.
 Where a C unit owns the grid (`in_c = true`), the arrays keep their C
 declarations but take their initializers from includes that
 `tools/gen_collision_inc.py` writes from the package, after checking the grid's

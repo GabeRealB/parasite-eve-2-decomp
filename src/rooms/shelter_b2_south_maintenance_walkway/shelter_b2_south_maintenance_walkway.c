@@ -182,7 +182,7 @@ s16* D_shelter_b2_south_maintenance_walkway_801829D0[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b2_south_maintenance_walkway_801829E8 = { NULL, D_shelter_b2_south_maintenance_walkway_801826B4, D_shelter_b2_south_maintenance_walkway_80182724, D_shelter_b2_south_maintenance_walkway_80182854, D_shelter_b2_south_maintenance_walkway_801829D0, 2872, 5300, 2, 3, 4000, 18 };
+WorldCollisionGrid D_shelter_b2_south_maintenance_walkway_801829E8 = { NULL, D_shelter_b2_south_maintenance_walkway_801826B4, D_shelter_b2_south_maintenance_walkway_80182724, D_shelter_b2_south_maintenance_walkway_80182854, D_shelter_b2_south_maintenance_walkway_801829D0, 2872, 5300, 2, 3, 4000, 18 };
 
 GpViewRec D_shelter_b2_south_maintenance_walkway_80182A0C[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x35D2, 0 } }, 235 },

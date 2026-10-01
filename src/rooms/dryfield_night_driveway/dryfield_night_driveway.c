@@ -107,7 +107,7 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
 static void func_dryfield_night_driveway_8017DD7C(Task* task);
 
-extern GpGridParams               D_dryfield_night_driveway_80180C0C[1];
+extern WorldCollisionGrid         D_dryfield_night_driveway_80180C0C[1];
 extern GpObj3A                    D_dryfield_night_driveway_80181FFC[2];
 extern GpObj4C                    D_dryfield_night_driveway_801818E8[6];
 extern GpObj4C                    D_dryfield_night_driveway_80181DC8[4];
@@ -553,7 +553,7 @@ s16* D_dryfield_night_driveway_80180BB8[21] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_driveway_80180C0C[1] = {
+WorldCollisionGrid D_dryfield_night_driveway_80180C0C[1] = {
     { NULL, D_dryfield_night_driveway_80180708, D_dryfield_night_driveway_80180770, D_dryfield_night_driveway_80180970, D_dryfield_night_driveway_80180BB8, 0x2B16, 5210, 7, 3, 4000, 23 },
 };
 

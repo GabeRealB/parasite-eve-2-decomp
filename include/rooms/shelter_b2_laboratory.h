@@ -29,7 +29,7 @@ extern GpViewCountRec D_shelter_b2_laboratory_80182C0C[];
 
 extern GpWarpRec D_shelter_b2_laboratory_80182C10[];
 
-extern GpGridParams D_shelter_b2_laboratory_8018355C;
+extern WorldCollisionGrid D_shelter_b2_laboratory_8018355C;
 
 extern GpViewRec D_shelter_b2_laboratory_80183580[];
 

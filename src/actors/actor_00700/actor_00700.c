@@ -937,7 +937,7 @@ static void Actor00700_Fn00334(Task* actor)
                 if (push < depth) {
                     push = depth;
                     VectorNormal((VECTOR*)&frame->delta, &frame->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &frame->normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->dir);
                 }
                 break;
             case 3:
@@ -956,7 +956,7 @@ static void Actor00700_Fn00334(Task* actor)
                 if (push < depth) {
                     push = depth;
                     VectorNormal((VECTOR*)&frame->delta, &frame->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &frame->normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->dir);
                 }
                 break;
         }

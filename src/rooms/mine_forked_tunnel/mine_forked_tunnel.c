@@ -124,8 +124,8 @@ typedef struct MineForkedTunnelWork {
 } MineForkedTunnelWork;
 STATIC_ASSERT_SIZEOF(MineForkedTunnelWork, 0x48);
 
-extern GpGridParams D_mine_forked_tunnel_80181C5C;
-extern GpGridParams D_mine_forked_tunnel_80183D70;
+extern WorldCollisionGrid D_mine_forked_tunnel_80181C5C;
+extern WorldCollisionGrid D_mine_forked_tunnel_80183D70;
 
 /// The tunnel's per-view effect anchors, projected by
 /// `func_mine_forked_tunnel_8017E78C` with `glowDrawFlare`
@@ -186,7 +186,7 @@ void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
 
 extern GpCopyArg                  D_mine_forked_tunnel_8018312C;
-extern GpGridParams               D_mine_forked_tunnel_80183D70;
+extern WorldCollisionGrid         D_mine_forked_tunnel_80183D70;
 extern GpObj4C                    D_mine_forked_tunnel_80184F50[6];
 extern GpObj4C                    D_mine_forked_tunnel_80185118[6];
 extern WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8];
@@ -842,7 +842,7 @@ s16* D_mine_forked_tunnel_80181C58[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_forked_tunnel_80181C5C = { NULL, D_mine_forked_tunnel_80181BD4, D_mine_forked_tunnel_80181BEC, D_mine_forked_tunnel_80181C2C, D_mine_forked_tunnel_80181C58, -1747, -7643, 1, 1, 4000, 3 };
+WorldCollisionGrid D_mine_forked_tunnel_80181C5C = { NULL, D_mine_forked_tunnel_80181BD4, D_mine_forked_tunnel_80181BEC, D_mine_forked_tunnel_80181C2C, D_mine_forked_tunnel_80181C58, -1747, -7643, 1, 1, 4000, 3 };
 
 GpMsgEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
@@ -1058,7 +1058,7 @@ s16* D_mine_forked_tunnel_80183D50[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_forked_tunnel_80183D70 = { NULL, D_mine_forked_tunnel_8018368C, D_mine_forked_tunnel_80183794, D_mine_forked_tunnel_80183A54, D_mine_forked_tunnel_80183D50, 650, 520, 2, 4, 4000, 37 };
+WorldCollisionGrid D_mine_forked_tunnel_80183D70 = { NULL, D_mine_forked_tunnel_8018368C, D_mine_forked_tunnel_80183794, D_mine_forked_tunnel_80183A54, D_mine_forked_tunnel_80183D50, 650, 520, 2, 4, 4000, 37 };
 
 GpViewRec D_mine_forked_tunnel_80183D94[7] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -1500, 0x40CA, -5500 } }, 289 },
@@ -1793,30 +1793,30 @@ static void func_mine_forked_tunnel_8017DE54(Task* task)
     task->state       = task->state + 1;
 }
 
-/// Restores the room's layout lists from their template, then offsets the eight
-/// `field_8` coordinates by (0, 0, -0xC8), or by (0, -0xBB8, -0xC8) when `arg0`
+/// Restores the room's collision mesh from its template, then offsets its eight
+/// vertices by (0, 0, -0xC8), or by (0, -0xBB8, -0xC8) when `arg0`
 /// is non-zero. The callers pass game-flag nibble 0x75.
 static void func_mine_forked_tunnel_8017DF34(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_mine_forked_tunnel_80183D70;
     src = &D_mine_forked_tunnel_80181C5C;
 
     for (i = 0; i < 3; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
 
     if (arg0 == 0) {
@@ -1830,9 +1830,9 @@ static void func_mine_forked_tunnel_8017DF34(s32 arg0)
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }
 

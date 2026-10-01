@@ -168,10 +168,10 @@ static void func_dryfield_night_main_street_8017E118(void);
 s32 func_dryfield_night_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_main_street_8017E05C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams D_dryfield_night_main_street_801833D0[1];
-extern GpGridParams D_dryfield_night_main_street_80184540[1];
-extern GpObj4C      D_dryfield_night_main_street_80187704[26];
-extern GpObj4C      D_dryfield_night_main_street_80187EBC[12];
+extern WorldCollisionGrid D_dryfield_night_main_street_801833D0[1];
+extern WorldCollisionGrid D_dryfield_night_main_street_80184540[1];
+extern GpObj4C            D_dryfield_night_main_street_80187704[26];
+extern GpObj4C            D_dryfield_night_main_street_80187EBC[12];
 
 extern WorldCoordRoomAmbientEntry D_dryfield_night_main_street_80188A70[25];
 extern GpRoomCoordSet             D_dryfield_night_main_street_8018899C[1];
@@ -577,7 +577,7 @@ s16* D_dryfield_night_main_street_80183328[42] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_main_street_801833D0[1] = {
+WorldCollisionGrid D_dryfield_night_main_street_801833D0[1] = {
     { NULL, D_dryfield_night_main_street_80182498, D_dryfield_night_main_street_80182538, D_dryfield_night_main_street_80182AD8, D_dryfield_night_main_street_80183328, 0x2EE6, 0x2C4C, 6, 7, 4000, 85 },
 };
 
@@ -603,7 +603,7 @@ s16* D_dryfield_night_main_street_80184498[42] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_main_street_80184540[1] = {
+WorldCollisionGrid D_dryfield_night_main_street_80184540[1] = {
     { NULL, D_dryfield_night_main_street_801833F4, D_dryfield_night_main_street_801834AC, D_dryfield_night_main_street_80183ACC, D_dryfield_night_main_street_80184498, 0x2EE6, 0x2C4C, 6, 7, 4000, 89 },
 };
 

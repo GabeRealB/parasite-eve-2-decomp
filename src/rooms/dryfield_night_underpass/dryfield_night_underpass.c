@@ -50,12 +50,12 @@ s32 func_dryfield_night_underpass_8017D8CC(Task*, s32, s32, s32);
 s32 func_dryfield_night_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_underpass_8017D908(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_night_underpass_8017E6D4[1];
-extern GpObj3A        D_dryfield_night_underpass_8017FBE0[3];
-extern GpObj4C        D_dryfield_night_underpass_8017F558[16];
-extern GpObj4C        D_dryfield_night_underpass_8017FA18[6];
-extern GpRoomCoordSet D_dryfield_night_underpass_8017FFF4[1];
-extern GpRoomCoordSet D_dryfield_night_underpass_8018024C[1];
+extern WorldCollisionGrid D_dryfield_night_underpass_8017E6D4[1];
+extern GpObj3A            D_dryfield_night_underpass_8017FBE0[3];
+extern GpObj4C            D_dryfield_night_underpass_8017F558[16];
+extern GpObj4C            D_dryfield_night_underpass_8017FA18[6];
+extern GpRoomCoordSet     D_dryfield_night_underpass_8017FFF4[1];
+extern GpRoomCoordSet     D_dryfield_night_underpass_8018024C[1];
 
 TaskDesc gUnderpassSwitchTaskDesc[2] = {
     { { { TASK_BODY_NONE, 32 } }, underpassSwitchTask, { .value = 0 } },
@@ -232,7 +232,7 @@ s16* D_dryfield_night_underpass_8017E674[24] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_underpass_8017E6D4[1] = {
+WorldCollisionGrid D_dryfield_night_underpass_8017E6D4[1] = {
     { NULL, D_dryfield_night_underpass_8017DF08, D_dryfield_night_underpass_8017DF68, D_dryfield_night_underpass_8017E198, D_dryfield_night_underpass_8017E674, 3000, 0x32C8, 6, 4, 4000, 46 },
 };
 

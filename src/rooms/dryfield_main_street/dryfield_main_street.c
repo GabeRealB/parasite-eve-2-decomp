@@ -157,10 +157,10 @@ static void func_dryfield_main_street_8017E0D8(Task* task);
 static void func_dryfield_main_street_8017E158(Task* task);
 static void func_dryfield_main_street_8017E4A4(s32 arg0);
 
-extern GpGridParams   D_dryfield_main_street_80182C9C[1];
-extern GpObj4C        D_dryfield_main_street_801843A4[26];
-extern GpObj4C        D_dryfield_main_street_80184B5C[10];
-extern GpRoomCoordSet D_dryfield_main_street_80185588[1];
+extern WorldCollisionGrid D_dryfield_main_street_80182C9C[1];
+extern GpObj4C            D_dryfield_main_street_801843A4[26];
+extern GpObj4C            D_dryfield_main_street_80184B5C[10];
+extern GpRoomCoordSet     D_dryfield_main_street_80185588[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -392,7 +392,7 @@ s16* D_dryfield_main_street_80182BF4[42] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_main_street_80182C9C[1] = {
+WorldCollisionGrid D_dryfield_main_street_80182C9C[1] = {
     { NULL, D_dryfield_main_street_80181D64, D_dryfield_main_street_80181E04, D_dryfield_main_street_801823A4, D_dryfield_main_street_80182BF4, 0x2EE6, 0x2C4C, 6, 7, 4000, 85 },
 };
 

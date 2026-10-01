@@ -222,7 +222,7 @@ s16* D_neo_ark_submarine_gallery_80182378[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_submarine_gallery_8018239C = { NULL, D_neo_ark_submarine_gallery_80181B4C, D_neo_ark_submarine_gallery_80181C44, D_neo_ark_submarine_gallery_80181F84, D_neo_ark_submarine_gallery_80182378, 5000, 5000, 3, 3, 4000, 50 };
+WorldCollisionGrid D_neo_ark_submarine_gallery_8018239C = { NULL, D_neo_ark_submarine_gallery_80181B4C, D_neo_ark_submarine_gallery_80181C44, D_neo_ark_submarine_gallery_80181F84, D_neo_ark_submarine_gallery_80182378, 5000, 5000, 3, 3, 4000, 50 };
 
 GpViewRec D_neo_ark_submarine_gallery_801823C0[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x4E20, 0 } }, 603 },

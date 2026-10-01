@@ -69,7 +69,7 @@ extern GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[];
 /// frame and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]`
 /// is `[1]` under its own name, which the per-frame path reads directly.
 
-extern GpGridParams               D_neo_ark_savanna_zone_8017FBD0[1];
+extern WorldCollisionGrid         D_neo_ark_savanna_zone_8017FBD0[1];
 extern GpObj3A                    D_neo_ark_savanna_zone_801808CC[1];
 extern GpObj4C                    D_neo_ark_savanna_zone_801804EC[4];
 extern GpObj4C                    D_neo_ark_savanna_zone_8018061C[5];
@@ -136,7 +136,7 @@ s16* D_neo_ark_savanna_zone_8017FBC0[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_savanna_zone_8017FBD0[1] = {
+WorldCollisionGrid D_neo_ark_savanna_zone_8017FBD0[1] = {
     { NULL, D_neo_ark_savanna_zone_8017FA74, D_neo_ark_savanna_zone_8017FA9C, D_neo_ark_savanna_zone_8017FAFC, D_neo_ark_savanna_zone_8017FBC0, 50, 50, 4, 1, 4000, 11 },
 };
 

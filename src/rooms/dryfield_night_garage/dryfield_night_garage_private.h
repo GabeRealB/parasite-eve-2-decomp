@@ -28,7 +28,7 @@ extern EvsCommand D_dryfield_night_garage_80182DF8[40];
 
 extern EvsCommand D_dryfield_night_garage_801831B8[19];
 
-extern GpGridParams D_dryfield_night_garage_80183DD4;
+extern WorldCollisionGrid D_dryfield_night_garage_80183DD4;
 
 extern GpObj4C D_dryfield_night_garage_80186D7C[16];
 

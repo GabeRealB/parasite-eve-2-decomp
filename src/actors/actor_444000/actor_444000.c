@@ -3748,7 +3748,7 @@ static void func_actor_444000_80135448(Task* task)
             } else if (step == 0x5A) {
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
-                verts        = Gp_GridParams->field_8;
+                verts        = Gp_GridParams->vertices;
                 verts[24].vy = 0x1F4;
                 verts[25].vy = 0x1F4;
                 verts[26].vy = 0x320;
@@ -3769,9 +3769,9 @@ static void func_actor_444000_80135448(Task* task)
 static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
 {
     SVECTOR                 dir;
-    SVECTOR*                norms   = Gp_GridParams->field_4;
-    SVECTOR*                corners = Gp_GridParams->field_8;
-    WorldCollisionGridFace* faces   = Gp_GridParams->field_C;
+    SVECTOR*                norms   = Gp_GridParams->normals;
+    SVECTOR*                corners = Gp_GridParams->vertices;
+    WorldCollisionGridFace* faces   = Gp_GridParams->faces;
     WorldCollisionGridFace  quad0   = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
     WorldCollisionGridFace  quad1   = {
         { (face + 1) * 4, (face + 1) * 4 + 1, (face + 1) * 4 + 2, (face + 1) * 4 + 3 }, face + 1, 2
@@ -4218,7 +4218,7 @@ s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg)
                 work->field_F04 = 1;
                 SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54280007, 1);
 
-                verts        = Gp_GridParams->field_8;
+                verts        = Gp_GridParams->vertices;
                 verts[24].vy = 0x1F4;
                 verts[25].vy = 0x1F4;
                 verts[26].vy = 0x320;
@@ -5884,7 +5884,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
     if (work->field_4 != 0) {
         sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
 
-        verts        = Gp_GridParams->field_8;
+        verts        = Gp_GridParams->vertices;
         verts[24].vy = 0x1F4;
         verts[25].vy = 0x1F4;
         verts[26].vy = 0x320;
@@ -7706,7 +7706,7 @@ void func_actor_444000_80142F28(Task* arg0)
             }
         }
 
-        verts        = Gp_GridParams->field_8;
+        verts        = Gp_GridParams->vertices;
         verts[24].vy = 0x1F4;
         verts[25].vy = 0x1F4;
         verts[26].vy = 0x320;
@@ -7733,7 +7733,7 @@ static void func_actor_444000_80143374(s32 arg0, s16 arg1)
 {
     SVECTOR* verts;
 
-    verts                  = Gp_GridParams->field_8;
+    verts                  = Gp_GridParams->vertices;
     verts[arg1 * 4].vy     = 500;
     verts[arg1 * 4 + 1].vy = 500;
     verts[arg1 * 4 + 2].vy = 800;

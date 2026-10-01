@@ -100,15 +100,15 @@ extern SVECTOR D_dryfield_gas_station_80183144;
 void func_dryfield_gas_station_80180944(void);
 void func_dryfield_gas_station_80180B2C(s16);
 
-extern GpGridParams   D_dryfield_gas_station_80183EA4[1];
-extern GpObj4C        D_dryfield_gas_station_80184350[11];
-extern GpObj4C        D_dryfield_gas_station_80184694[10];
-extern GpRoomCoordSet D_dryfield_gas_station_80184B48[1];
-extern TaskDesc       D_80142604;
-extern TaskDesc       D_8014D8A4;
-void                  func_dryfield_gas_station_801807E0(Task*);
-void                  func_dryfield_gas_station_80180984(Task*);
-void                  func_dryfield_gas_station_80180A60(void);
+extern WorldCollisionGrid D_dryfield_gas_station_80183EA4[1];
+extern GpObj4C            D_dryfield_gas_station_80184350[11];
+extern GpObj4C            D_dryfield_gas_station_80184694[10];
+extern GpRoomCoordSet     D_dryfield_gas_station_80184B48[1];
+extern TaskDesc           D_80142604;
+extern TaskDesc           D_8014D8A4;
+void                      func_dryfield_gas_station_801807E0(Task*);
+void                      func_dryfield_gas_station_80180984(Task*);
+void                      func_dryfield_gas_station_80180A60(void);
 
 TaskDesc D_dryfield_gas_station_80181E7C[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_gas_station_801802C0, { .value = 0 } },
@@ -303,7 +303,7 @@ s16* D_dryfield_gas_station_80183DE4[48] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_gas_station_80183EA4[1] = {
+WorldCollisionGrid D_dryfield_gas_station_80183EA4[1] = {
     { NULL, D_dryfield_gas_station_80183214, D_dryfield_gas_station_80183314, D_dryfield_gas_station_80183704, D_dryfield_gas_station_80183DE4, 5300, 0x3A98, 8, 6, 4000, 63 },
 };
 

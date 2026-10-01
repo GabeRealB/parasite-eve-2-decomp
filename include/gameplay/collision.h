@@ -8,8 +8,6 @@
 
 #include "main/coord.h"
 
-struct GfxCoord;
-
 /// One attack delivered through a collision body's key.
 ///
 /// The packed identity has contact category 4 in the high halfword
@@ -107,7 +105,7 @@ enum { WORLD_COLLISION_GRID_FACE_NO_VERTEX = 0xFFFF };
 
 /// An indexed triangle or quad in a room's collision grid.
 ///
-/// Indices refer to the owning `GpGridParams` vertex and normal pools, whose
+/// Indices refer to the owning `WorldCollisionGrid` vertex and normal pools, whose
 /// storage must remain alive with the face table. Vertices use grid-local game
 /// coordinates; normals use 4096 for unit length. The fourth vertex is
 /// `WORLD_COLLISION_GRID_FACE_NO_VERTEX` for a triangle. Sphere-grid passes
@@ -123,32 +121,47 @@ typedef struct {
 } WorldCollisionGridFace;
 STATIC_ASSERT_SIZEOF(WorldCollisionGridFace, 0xC);
 
-/// Grid conversion params pointed to by `Gp_GridParams`.
-/// `Gp_WorldToGrid` writes `out.vx = (pos.vx + field_14) / field_20` (or -1
-/// if that sum is negative), `out.vy = 0`, and
-/// `out.vz = (pos.vz + field_18) / field_20` (or -1). `Gp_LocalToGrid`
-/// applies `field_0->workm` with `ApplyTransposeMatrixLV`, then subtracts
-/// `field_0->coord.t[0]` / `t[2]` from the transformed X / Z.
-/// `func_800DEAFC` does the same transform on two `SVECTOR`s, keeping only
-/// the low 16 bits. `field_4` and `field_8` are `SVECTOR` pools holding face
-/// normals and face corners; `field_C` is the `WorldCollisionGridFace` table indexed by
-/// the face ids stored in the `field_10` cell grid. That grid is
-/// `field_1C` by `field_1E` cells of `s16*` face-id lists, each terminated by
-/// -1, indexed as `field_10[x * field_1E + z]`. `field_22` is the face count.
-typedef struct _GpGridParams {
-    /* 0x00 */ struct GfxCoord*        field_0;
-    /* 0x04 */ SVECTOR*                field_4;
-    /* 0x08 */ SVECTOR*                field_8;
-    /* 0x0C */ WorldCollisionGridFace* field_C;
-    /* 0x10 */ s16**                   field_10;
-    /* 0x14 */ s32                     field_14;
-    /* 0x18 */ s32                     field_18;
-    /* 0x1C */ u16                     field_1C;
-    /* 0x1E */ u16                     field_1E;
-    /* 0x20 */ u16                     field_20;
-    /* 0x22 */ u16                     field_22;
-} GpGridParams;
-STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
+/// End of a cell's signed face-index list; NULL denotes an empty cell.
+enum { WORLD_COLLISION_GRID_CELL_END = -1 };
+
+/// Cell coordinate returned when the position lies below the grid's origin.
+enum { WORLD_COLLISION_GRID_INVALID_CELL = -1 };
+
+/// A room collision mesh and the XZ cell index used to select its faces.
+///
+/// Storage is borrowed: the descriptor, mesh pools, cell table and face-index
+/// lists must remain live while the grid is active. Templates may have a NULL
+/// `viewCoord`; activation binds it to `gGfxViewCoord`. Its composed matrix
+/// maps room vertices and normals into view space. Room and actor updates may
+/// rebuild the mesh pools in place without changing the cell lists.
+///
+/// Cell coordinates are `(roomX + xBias) / cellSize` and
+/// `(roomZ + zBias) / cellSize`, with `WORLD_COLLISION_GRID_INVALID_CELL` for
+/// a negative numerator. `cellSize` must be nonzero. View-space queries first
+/// apply the transpose of `viewCoord->workm` and subtract `viewCoord->coord.t`
+/// on X and Z. A cell needs `0 <= x < cellCountX` and `0 <= z < cellCountZ`;
+/// the cell table
+/// has `cellCountX * cellCountZ` entries, indexed as `x * cellCountZ + z`.
+///
+/// Nonempty cells hold signed indices in `[0, faceCount)`, terminated by
+/// `WORLD_COLLISION_GRID_CELL_END`. Active grids must fit the collision pass's
+/// 256-face candidate array. Vertex and normal pool lengths are asset-specific,
+/// are not stored here, and need not equal `faceCount`; face indices and any
+/// runtime edits must fit those pools.
+typedef struct WorldCollisionGrid {
+    GfxCoord*               viewCoord;   // Borrowed view transform; NULL before binding to the current view
+    SVECTOR*                normals;     // Writable room-space normals, 4096 for unit length
+    SVECTOR*                vertices;    // Writable room-space vertices in signed game coordinates
+    WorldCollisionGridFace* faces;       // Writable indexed triangles/quads; faceCount entries
+    s16**                   cellFaceIds; // X-major cell table of face-index lists; NULL entries are empty
+    s32                     xBias;       // Additive X offset in game coordinates; negative of the grid origin
+    s32                     zBias;       // Additive Z offset in game coordinates; negative of the grid origin
+    u16                     cellCountX;  // Number of cells along X
+    u16                     cellCountZ;  // Number of cells along Z; stride between X rows
+    u16                     cellSize;    // Square cell side length in game coordinates, nonzero
+    u16                     faceCount;   // Face-table length; at most 256 for an active grid
+} WorldCollisionGrid;
+STATIC_ASSERT_SIZEOF(WorldCollisionGrid, 0x24);
 
 /// The setup argument of a `D_8010FABC` descriptor: the location whose entry
 /// starts the task, packed in decimal as `stage * 10000 + area * 100 + room`,

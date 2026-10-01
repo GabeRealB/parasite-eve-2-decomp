@@ -84,9 +84,9 @@ extern SVECTOR gGlowPrismCorners[];
 /// Ring radii, parallel to the centres.
 extern s16 D_dryfield_warehouse_8017FBAC[];
 
-extern GpGridParams D_dryfield_warehouse_801802A8[1];
-extern GpGridParams D_dryfield_warehouse_801809AC[1];
-extern GpGridParams D_dryfield_warehouse_80181038[1];
+extern WorldCollisionGrid D_dryfield_warehouse_801802A8[1];
+extern WorldCollisionGrid D_dryfield_warehouse_801809AC[1];
+extern WorldCollisionGrid D_dryfield_warehouse_80181038[1];
 
 void func_dryfield_warehouse_8017E090(Task*);
 void func_dryfield_warehouse_8017E308(Task*);
@@ -286,7 +286,7 @@ s16* D_dryfield_warehouse_801802A0[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_warehouse_801802A8[1] = {
+WorldCollisionGrid D_dryfield_warehouse_801802A8[1] = {
     { NULL, D_dryfield_warehouse_8017FCA0, D_dryfield_warehouse_8017FCD8, D_dryfield_warehouse_8017FFA8, D_dryfield_warehouse_801802A0, 0, 4000, 2, 1, 4000, 50 },
 };
 
@@ -312,7 +312,7 @@ s16* D_dryfield_warehouse_8018099C[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_warehouse_801809AC[1] = {
+WorldCollisionGrid D_dryfield_warehouse_801809AC[1] = {
     { NULL, D_dryfield_warehouse_801802CC, D_dryfield_warehouse_80180304, D_dryfield_warehouse_8018061C, D_dryfield_warehouse_8018099C, 0, 4100, 2, 2, 4000, 56 },
 };
 
@@ -338,7 +338,7 @@ s16* D_dryfield_warehouse_80181028[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_warehouse_80181038[1] = {
+WorldCollisionGrid D_dryfield_warehouse_80181038[1] = {
     { NULL, D_dryfield_warehouse_801809D0, D_dryfield_warehouse_80180A08, D_dryfield_warehouse_80180CE0, D_dryfield_warehouse_80181028, 0, 4100, 2, 2, 4000, 52 },
 };
 

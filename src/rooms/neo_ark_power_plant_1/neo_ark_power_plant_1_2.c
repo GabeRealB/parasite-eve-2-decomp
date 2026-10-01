@@ -63,11 +63,11 @@ extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
 extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
 
-extern GpGridParams   D_neo_ark_power_plant_1_80180090[1];
-extern GpObj3A        D_neo_ark_power_plant_1_80181B60[1];
-extern GpObj4C        D_neo_ark_power_plant_1_8018155C[10];
-extern GpObj4C        D_neo_ark_power_plant_1_80181854[7];
-extern GpRoomCoordSet D_neo_ark_power_plant_1_8017FB80[1];
+extern WorldCollisionGrid D_neo_ark_power_plant_1_80180090[1];
+extern GpObj3A            D_neo_ark_power_plant_1_80181B60[1];
+extern GpObj4C            D_neo_ark_power_plant_1_8018155C[10];
+extern GpObj4C            D_neo_ark_power_plant_1_80181854[7];
+extern GpRoomCoordSet     D_neo_ark_power_plant_1_8017FB80[1];
 
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
@@ -321,7 +321,7 @@ s16* D_neo_ark_power_plant_1_80180060[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_power_plant_1_80180090[1] = {
+WorldCollisionGrid D_neo_ark_power_plant_1_80180090[1] = {
     { NULL, D_neo_ark_power_plant_1_8017FB98, D_neo_ark_power_plant_1_8017FBE8, D_neo_ark_power_plant_1_8017FDB8, D_neo_ark_power_plant_1_80180060, 100, 0x2EE0, 3, 4, 4000, 30 },
 };
 

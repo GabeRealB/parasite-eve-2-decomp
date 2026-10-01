@@ -50,10 +50,10 @@
 /// `E744` are only reached by name.
 extern SVECTOR D_dryfield_night_water_tower_8017E744;
 
-extern GpGridParams   D_dryfield_night_water_tower_8017F3F4[1];
-extern GpObj4C        D_dryfield_night_water_tower_80182410[14];
-extern GpObj4C        D_dryfield_night_water_tower_80182838[9];
-extern GpRoomCoordSet D_dryfield_night_water_tower_801823F8[1];
+extern WorldCollisionGrid D_dryfield_night_water_tower_8017F3F4[1];
+extern GpObj4C            D_dryfield_night_water_tower_80182410[14];
+extern GpObj4C            D_dryfield_night_water_tower_80182838[9];
+extern GpRoomCoordSet     D_dryfield_night_water_tower_801823F8[1];
 
 extern TaskDesc D_80142604;
 
@@ -123,7 +123,7 @@ s16* D_dryfield_night_water_tower_8017F3B4[16] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_water_tower_8017F3F4[1] = {
+WorldCollisionGrid D_dryfield_night_water_tower_8017F3F4[1] = {
     { NULL, D_dryfield_night_water_tower_8017E84C, D_dryfield_night_water_tower_8017E914, D_dryfield_night_water_tower_8017EE0C, D_dryfield_night_water_tower_8017F3B4, 7000, 7000, 4, 4, 4000, 69 },
 };
 

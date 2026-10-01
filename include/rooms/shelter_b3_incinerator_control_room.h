@@ -21,7 +21,7 @@ extern GpViewCountRec D_shelter_b3_incinerator_control_room_80181928[];
 
 extern GpWarpRec D_shelter_b3_incinerator_control_room_8018192C[];
 
-extern GpGridParams D_shelter_b3_incinerator_control_room_80181CC0;
+extern WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0;
 
 extern GpViewRec D_shelter_b3_incinerator_control_room_80181CE4[];
 

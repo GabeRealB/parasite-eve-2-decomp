@@ -65,11 +65,11 @@ s32 func_neo_ark_south_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMs
 s32 func_neo_ark_south_promenade_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_south_promenade_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_neo_ark_south_promenade_8017FD8C[1];
-extern GpObj3A        D_neo_ark_south_promenade_8018094C[1];
-extern GpObj4C        D_neo_ark_south_promenade_801804E8[6];
-extern GpObj4C        D_neo_ark_south_promenade_801806B0[6];
-extern GpRoomCoordSet D_neo_ark_south_promenade_801804D0[1];
+extern WorldCollisionGrid D_neo_ark_south_promenade_8017FD8C[1];
+extern GpObj3A            D_neo_ark_south_promenade_8018094C[1];
+extern GpObj4C            D_neo_ark_south_promenade_801804E8[6];
+extern GpObj4C            D_neo_ark_south_promenade_801806B0[6];
+extern GpRoomCoordSet     D_neo_ark_south_promenade_801804D0[1];
 
 GpMsgEntry D_neo_ark_south_promenade_8017F6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_south_promenade_8017D5D8 },
@@ -124,7 +124,7 @@ s16* D_neo_ark_south_promenade_8017FD4C[16] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_south_promenade_8017FD8C[1] = {
+WorldCollisionGrid D_neo_ark_south_promenade_8017FD8C[1] = {
     { NULL, D_neo_ark_south_promenade_8017F77C, D_neo_ark_south_promenade_8017F7E4, D_neo_ark_south_promenade_8017FA6C, D_neo_ark_south_promenade_8017FD4C, -700, -500, 4, 4, 4000, 35 },
 };
 

@@ -137,12 +137,12 @@ static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { func_acropolis_patio_8017D5EC, func_acropolis_patio_8017DF7C, taskKill },
 };
 
-extern GpGridParams   D_acropolis_patio_80183DF8[1];
-extern GpObj3A        D_acropolis_patio_80184964[2];
-extern GpObj4C        D_acropolis_patio_80183E1C[14];
-extern GpObj4C        D_acropolis_patio_80184244[12];
-extern GpObj4C        D_acropolis_patio_801845D4[12];
-extern GpRoomCoordSet D_acropolis_patio_80186D44[1];
+extern WorldCollisionGrid D_acropolis_patio_80183DF8[1];
+extern GpObj3A            D_acropolis_patio_80184964[2];
+extern GpObj4C            D_acropolis_patio_80183E1C[14];
+extern GpObj4C            D_acropolis_patio_80184244[12];
+extern GpObj4C            D_acropolis_patio_801845D4[12];
+extern GpRoomCoordSet     D_acropolis_patio_80186D44[1];
 
 extern AnimationPlayRequest D_acropolis_patio_8018261C;
 extern ActorTransform       D_acropolis_patio_80182690;
@@ -900,7 +900,7 @@ s16* D_acropolis_patio_80183D88[28] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_patio_80183DF8[1] = {
+WorldCollisionGrid D_acropolis_patio_80183DF8[1] = {
     { NULL, D_acropolis_patio_80182FCC, D_acropolis_patio_801830D4, D_acropolis_patio_8018371C, D_acropolis_patio_80183D88, 9010, 7675, 7, 4, 4000, 70 },
 };
 

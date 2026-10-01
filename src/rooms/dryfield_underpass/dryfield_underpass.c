@@ -54,13 +54,13 @@ extern EvsCommand D_dryfield_underpass_8017E8D8[];
 extern SVECTOR    D_dryfield_underpass_8017EAD0[8];
 extern s16        D_dryfield_underpass_8017EB10[8];
 
-extern GpGridParams   D_dryfield_underpass_8017F484[1];
-extern GpObj3A        D_dryfield_underpass_80180AA8[3];
-extern GpObj4C        D_dryfield_underpass_80180388[16];
-extern GpObj4C        D_dryfield_underpass_80180848[2];
-extern GpObj4C        D_dryfield_underpass_801808E0[6];
-extern GpRoomCoordSet D_dryfield_underpass_80180EBC[1];
-extern GpRoomCoordSet D_dryfield_underpass_80181114[1];
+extern WorldCollisionGrid D_dryfield_underpass_8017F484[1];
+extern GpObj3A            D_dryfield_underpass_80180AA8[3];
+extern GpObj4C            D_dryfield_underpass_80180388[16];
+extern GpObj4C            D_dryfield_underpass_80180848[2];
+extern GpObj4C            D_dryfield_underpass_801808E0[6];
+extern GpRoomCoordSet     D_dryfield_underpass_80180EBC[1];
+extern GpRoomCoordSet     D_dryfield_underpass_80181114[1];
 
 extern AnimationPlayRequest D_dryfield_underpass_8017E870;
 extern AnimationPlayRequest D_dryfield_underpass_8017E884;
@@ -342,7 +342,7 @@ s16* D_dryfield_underpass_8017F424[24] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_underpass_8017F484[1] = {
+WorldCollisionGrid D_dryfield_underpass_8017F484[1] = {
     { NULL, D_dryfield_underpass_8017ECB8, D_dryfield_underpass_8017ED18, D_dryfield_underpass_8017EF48, D_dryfield_underpass_8017F424, 3000, 0x32C8, 6, 4, 4000, 46 },
 };
 

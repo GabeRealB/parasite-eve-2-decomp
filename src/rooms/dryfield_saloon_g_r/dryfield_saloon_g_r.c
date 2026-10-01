@@ -75,11 +75,11 @@ s32 func_dryfield_saloon_g_r_8017D994(Task*, s32, TaskMessageArg, TaskMessageArg
 s32 func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_saloon_g_r_8017D9C4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_saloon_g_r_8017F780[1];
-extern GpObj3A        D_dryfield_saloon_g_r_801817B0[2];
-extern GpObj4C        D_dryfield_saloon_g_r_80180EC8[16];
-extern GpObj4C        D_dryfield_saloon_g_r_80181388[14];
-extern GpRoomCoordSet D_dryfield_saloon_g_r_80181AC8[1];
+extern WorldCollisionGrid D_dryfield_saloon_g_r_8017F780[1];
+extern GpObj3A            D_dryfield_saloon_g_r_801817B0[2];
+extern GpObj4C            D_dryfield_saloon_g_r_80180EC8[16];
+extern GpObj4C            D_dryfield_saloon_g_r_80181388[14];
+extern GpRoomCoordSet     D_dryfield_saloon_g_r_80181AC8[1];
 
 extern SpriteBatch  D_dryfield_saloon_g_r_8017F978[2];
 extern SpriteBatch  D_dryfield_saloon_g_r_8017FADC[3];
@@ -206,7 +206,7 @@ s16* D_dryfield_saloon_g_r_8017F750[12] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_saloon_g_r_8017F780[1] = {
+WorldCollisionGrid D_dryfield_saloon_g_r_8017F780[1] = {
     { NULL, D_dryfield_saloon_g_r_8017EE5C, D_dryfield_saloon_g_r_8017EEA4, D_dryfield_saloon_g_r_8017F244, D_dryfield_saloon_g_r_8017F750, 4500, 5400, 3, 4, 4000, 61 },
 };
 

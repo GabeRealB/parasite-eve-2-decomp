@@ -65,7 +65,7 @@ s16* D_mist_parking_8018FCB4[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mist_parking_8018FCB8 = { NULL, D_mist_parking_8018FC54, D_mist_parking_8018FC64, D_mist_parking_8018FC94, D_mist_parking_8018FCB4, -4800, 6558, 1, 1, 4000, 2 };
+WorldCollisionGrid D_mist_parking_8018FCB8 = { NULL, D_mist_parking_8018FC54, D_mist_parking_8018FC64, D_mist_parking_8018FC94, D_mist_parking_8018FCB4, -4800, 6558, 1, 1, 4000, 2 };
 
 AnimationPackedPose D_mist_parking_8018FCDC[6] = {
 #include "assets/mist_parking_animation_129F8_bank1.inc"

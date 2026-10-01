@@ -51,8 +51,8 @@ s32 func_shelter_b2_pod_bottom_8017D5F4(Task*, s32, RoomEventMsg*, RoomEventMsg*
 s32 func_shelter_b2_pod_bottom_8017D638(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b2_pod_bottom_8017D640(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams D_shelter_b2_pod_bottom_80182B5C[1];
-extern GpObj4C      D_shelter_b2_pod_bottom_80186FA8[20];
+extern WorldCollisionGrid D_shelter_b2_pod_bottom_80182B5C[1];
+extern GpObj4C            D_shelter_b2_pod_bottom_80186FA8[20];
 
 extern GpRoomCoordSet D_shelter_b2_pod_bottom_80186F90[1];
 
@@ -133,7 +133,7 @@ s16* D_shelter_b2_pod_bottom_80182AD0[35] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b2_pod_bottom_80182B5C[1] = {
+WorldCollisionGrid D_shelter_b2_pod_bottom_80182B5C[1] = {
     { NULL, D_shelter_b2_pod_bottom_80181D6C, D_shelter_b2_pod_bottom_80181EAC, D_shelter_b2_pod_bottom_801822CC, D_shelter_b2_pod_bottom_80182AD0, 0, 6000, 5, 7, 4000, 88 },
 };
 

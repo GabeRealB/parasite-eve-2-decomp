@@ -425,7 +425,7 @@ s16* D_shelter_b2_septic_tank_80183DC4[18] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b2_septic_tank_80183E0C = { NULL, D_shelter_b2_septic_tank_80183714, D_shelter_b2_septic_tank_801837A4, D_shelter_b2_septic_tank_80183A34, D_shelter_b2_septic_tank_80183DC4, 5374, 0x47A9, 3, 6, 4000, 31 };
+WorldCollisionGrid D_shelter_b2_septic_tank_80183E0C = { NULL, D_shelter_b2_septic_tank_80183714, D_shelter_b2_septic_tank_801837A4, D_shelter_b2_septic_tank_80183A34, D_shelter_b2_septic_tank_80183DC4, 5374, 0x47A9, 3, 6, 4000, 31 };
 
 GpViewRec D_shelter_b2_septic_tank_80183E30[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 34, 0x510F, 6334 } }, 230 },

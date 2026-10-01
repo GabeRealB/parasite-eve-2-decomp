@@ -1031,7 +1031,7 @@ static void Actor01500_Fn004EC(Task* actor)
                 if (push < depth) {
                     push = depth;
                     VectorNormal((VECTOR*)&frame->delta, normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->dir);
                 }
                 break;
         }

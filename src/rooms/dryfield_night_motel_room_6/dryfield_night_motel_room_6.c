@@ -169,15 +169,15 @@ static s32  func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 
 static void func_dryfield_night_motel_room_6_80181C34(Task* task);
 static void func_dryfield_night_motel_room_6_80181C78(Task* task);
 
-extern GpGridParams   D_dryfield_night_motel_room_6_80183984[1];
-extern GpObj4C        D_dryfield_night_motel_room_6_80185A48[10];
-extern GpObj4C        D_dryfield_night_motel_room_6_80185D40[15];
-extern GpRoomCoordSet D_dryfield_night_motel_room_6_80185A30[1];
-s32                   func_dryfield_night_motel_room_6_8018175C(Task*, s32, s32, s32);
-s32                   func_dryfield_night_motel_room_6_80181B74(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_dryfield_night_motel_room_6_80181BF8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, TaskMessageArg);
-void                  func_dryfield_night_motel_room_6_8018189C(Task*);
+extern WorldCollisionGrid D_dryfield_night_motel_room_6_80183984[1];
+extern GpObj4C            D_dryfield_night_motel_room_6_80185A48[10];
+extern GpObj4C            D_dryfield_night_motel_room_6_80185D40[15];
+extern GpRoomCoordSet     D_dryfield_night_motel_room_6_80185A30[1];
+s32                       func_dryfield_night_motel_room_6_8018175C(Task*, s32, s32, s32);
+s32                       func_dryfield_night_motel_room_6_80181B74(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_dryfield_night_motel_room_6_80181BF8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, TaskMessageArg);
+void                      func_dryfield_night_motel_room_6_8018189C(Task*);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -259,7 +259,7 @@ s16* D_dryfield_night_motel_room_6_8018396C[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_motel_room_6_80183984[1] = {
+WorldCollisionGrid D_dryfield_night_motel_room_6_80183984[1] = {
     { NULL, D_dryfield_night_motel_room_6_80182F90, D_dryfield_night_motel_room_6_80183050, D_dryfield_night_motel_room_6_80183540, D_dryfield_night_motel_room_6_8018396C, 0, 0, 2, 3, 4000, 56 },
 };
 

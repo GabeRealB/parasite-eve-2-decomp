@@ -451,7 +451,7 @@ static void Actor02000_Fn00078(Task* arg0)
                 if (maxPush < push) {
                     maxPush = push;
                     VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, &scratch->push);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->push);
                 }
                 break;
         }

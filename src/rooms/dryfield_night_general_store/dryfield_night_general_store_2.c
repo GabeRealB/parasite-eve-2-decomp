@@ -42,7 +42,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/general_store.h"
 
-extern GpGridParams               D_dryfield_night_general_store_8017F484[1];
+extern WorldCollisionGrid         D_dryfield_night_general_store_8017F484[1];
 extern GpObj3A                    D_dryfield_night_general_store_801855C4[4];
 extern GpObj4C                    D_dryfield_night_general_store_801847D0[28];
 extern GpObj4C                    D_dryfield_night_general_store_80185020[19];
@@ -110,7 +110,7 @@ s16* D_dryfield_night_general_store_8017F460[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_general_store_8017F484[1] = {
+WorldCollisionGrid D_dryfield_night_general_store_8017F484[1] = {
     { NULL, D_dryfield_night_general_store_8017E8F4, D_dryfield_night_general_store_8017E95C, D_dryfield_night_general_store_8017EDD4, D_dryfield_night_general_store_8017F460, 0, 0, 3, 3, 4000, 88 },
 };
 

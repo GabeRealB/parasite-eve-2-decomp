@@ -348,25 +348,25 @@ EvsCommand D_mist_parking_80191034[12] = {
 
 void func_mist_parking_80183BAC(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_mist_parking_80192204;
     src = &D_mist_parking_8018FCB8;
 
     for (i = 0; i < 2; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
 
     if (arg0 == 0) {
@@ -379,9 +379,9 @@ void func_mist_parking_80183BAC(s32 arg0)
     d.vz = 0;
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }
 

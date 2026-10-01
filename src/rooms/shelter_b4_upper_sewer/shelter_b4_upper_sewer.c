@@ -332,7 +332,7 @@ s16* D_shelter_b4_upper_sewer_80186E80[30] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b4_upper_sewer_80186EF8 = { NULL, D_shelter_b4_upper_sewer_80186750, D_shelter_b4_upper_sewer_80186788, D_shelter_b4_upper_sewer_80186A40, D_shelter_b4_upper_sewer_80186E80, 0x271A, 6000, 6, 5, 4000, 42 };
+WorldCollisionGrid D_shelter_b4_upper_sewer_80186EF8 = { NULL, D_shelter_b4_upper_sewer_80186750, D_shelter_b4_upper_sewer_80186788, D_shelter_b4_upper_sewer_80186A40, D_shelter_b4_upper_sewer_80186E80, 0x271A, 6000, 6, 5, 4000, 42 };
 
 GpViewRec D_shelter_b4_upper_sewer_80186F1C[14] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, -1010 } }, 230 },

@@ -58,7 +58,7 @@ static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
 static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-extern GpGridParams D_dryfield_r08_8017FB98[1];
+extern WorldCollisionGrid D_dryfield_r08_8017FB98[1];
 
 extern GpAreaTmdRec D_dryfield_r08_80180B70[2];
 
@@ -193,7 +193,7 @@ s16* D_dryfield_r08_8017FB78[8] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_r08_8017FB98[1] = {
+WorldCollisionGrid D_dryfield_r08_8017FB98[1] = {
     { NULL, D_dryfield_r08_8017F750, D_dryfield_r08_8017F780, D_dryfield_r08_8017F958, D_dryfield_r08_8017FB78, 500, -500, 4, 2, 4000, 31 },
 };
 

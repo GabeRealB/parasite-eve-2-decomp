@@ -12,8 +12,8 @@ void factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useAltTemplate)
     long                    flag;
     GfxCoord*               coord;
     MATRIX*                 m;
-    GpGridParams*           geom;
-    GpGridParams*           src;
+    WorldCollisionGrid*     geom;
+    WorldCollisionGrid*     src;
     SVECTOR*                s;
     SVECTOR*                d;
     WorldCollisionGridFace* sourceFace;
@@ -36,8 +36,8 @@ void factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useAltTemplate)
     }
 
     m = &coord->coord;
-    s = src->field_4;
-    d = geom->field_4 + 2;
+    s = src->normals;
+    d = geom->normals + 2;
     for (i = 0; i < 4; i++) {
         gte_SetRotMatrix(m);
         gte_ldv0(s);
@@ -49,15 +49,15 @@ void factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useAltTemplate)
 
     gte_SetRotMatrix(m);
     gte_SetTransMatrix(m);
-    s = src->field_8;
-    d = geom->field_8 + 8;
+    s = src->vertices;
+    d = geom->vertices + 8;
     for (i = 0; i < 8; i++) {
         RotTransSV(s++, d++, &flag);
     }
 
     if (remapFaces != 0) {
-        sourceFace = src->field_C;
-        destFace   = geom->field_C + 2;
+        sourceFace = src->faces;
+        destFace   = geom->faces + 2;
         for (i = 0; i < 4; i++) {
             j             = 0;
             destIndices   = destFace->vertexIndices;

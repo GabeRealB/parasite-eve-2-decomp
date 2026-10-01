@@ -121,10 +121,10 @@ s32 func_neo_ark_forest_zone_801813BC(Task*, s32, TaskMessageArg, TaskMessageArg
 s32 func_neo_ark_forest_zone_80181494(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_forest_zone_801814B0(Task*, s32, u8*, TaskMessageArg);
 
-extern GpGridParams   D_neo_ark_forest_zone_80182274[1];
-extern GpObj4C        D_neo_ark_forest_zone_801826B4[6];
-extern GpObj4C        D_neo_ark_forest_zone_801829D0[10];
-extern GpRoomCoordSet D_neo_ark_forest_zone_8018269C[1];
+extern WorldCollisionGrid D_neo_ark_forest_zone_80182274[1];
+extern GpObj4C            D_neo_ark_forest_zone_801826B4[6];
+extern GpObj4C            D_neo_ark_forest_zone_801829D0[10];
+extern GpRoomCoordSet     D_neo_ark_forest_zone_8018269C[1];
 
 void func_neo_ark_forest_zone_80181430(Task*);
 void func_neo_ark_forest_zone_8018151C(Task*);
@@ -279,7 +279,7 @@ s16* D_neo_ark_forest_zone_80182260[5] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_forest_zone_80182274[1] = {
+WorldCollisionGrid D_neo_ark_forest_zone_80182274[1] = {
     { NULL, D_neo_ark_forest_zone_8018216C, D_neo_ark_forest_zone_8018219C, D_neo_ark_forest_zone_801821DC, D_neo_ark_forest_zone_80182260, 8000, 1300, 5, 1, 4000, 6 },
 };
 

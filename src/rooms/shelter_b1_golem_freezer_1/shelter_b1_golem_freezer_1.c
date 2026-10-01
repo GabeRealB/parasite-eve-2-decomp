@@ -52,10 +52,10 @@ extern void func_80131E24(void);
 /// The room's message table, installed on the room task.
 extern GpMsgEntry D_shelter_b1_golem_freezer_1_8017E6A8[];
 
-extern s16          D_shelter_b1_golem_freezer_1_8017E6D0[3];
-extern GpGridParams D_shelter_b1_golem_freezer_1_8017E714;
-extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E738[];
-extern SVECTOR      D_shelter_b1_golem_freezer_1_8017E740[];
+extern s16                D_shelter_b1_golem_freezer_1_8017E6D0[3];
+extern WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E714;
+extern SVECTOR            D_shelter_b1_golem_freezer_1_8017E738[];
+extern SVECTOR            D_shelter_b1_golem_freezer_1_8017E740[];
 
 static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
 static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* arg0, s16* arg1);
@@ -102,7 +102,7 @@ s16* D_shelter_b1_golem_freezer_1_8017E710[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_golem_freezer_1_8017E714 = { NULL, D_shelter_b1_golem_freezer_1_8017E6D8, D_shelter_b1_golem_freezer_1_8017E6E0, D_shelter_b1_golem_freezer_1_8017E700, D_shelter_b1_golem_freezer_1_8017E710, 679, -454, 1, 1, 4000, 1 };
+WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E714 = { NULL, D_shelter_b1_golem_freezer_1_8017E6D8, D_shelter_b1_golem_freezer_1_8017E6E0, D_shelter_b1_golem_freezer_1_8017E700, D_shelter_b1_golem_freezer_1_8017E710, 679, -454, 1, 1, 4000, 1 };
 
 SVECTOR D_shelter_b1_golem_freezer_1_8017E738[1] = {
     { 385, -3495, 555, 0 },
@@ -156,7 +156,7 @@ s16* D_shelter_b1_golem_freezer_1_8017E9B8[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_golem_freezer_1_8017E9C0 = { NULL, D_shelter_b1_golem_freezer_1_8017E7D0, D_shelter_b1_golem_freezer_1_8017E818, D_shelter_b1_golem_freezer_1_8017E8F8, D_shelter_b1_golem_freezer_1_8017E9B8, -470, -280, 2, 1, 4000, 12 };
+WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E9C0 = { NULL, D_shelter_b1_golem_freezer_1_8017E7D0, D_shelter_b1_golem_freezer_1_8017E818, D_shelter_b1_golem_freezer_1_8017E8F8, D_shelter_b1_golem_freezer_1_8017E9B8, -470, -280, 2, 1, 4000, 12 };
 
 GpViewRec D_shelter_b1_golem_freezer_1_8017E9E4[7] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3740, 0x61A8, -960 } }, 853 },
@@ -443,27 +443,27 @@ static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
 
 static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* coord, s16* arg1)
 {
-    MATRIX        m;
-    long          flag;
-    s32           i;
-    SVECTOR*      d;
-    SVECTOR*      s;
-    GpGridParams* dst = &D_shelter_b1_golem_freezer_1_8017E9C0;
-    GpGridParams* src = &D_shelter_b1_golem_freezer_1_8017E714;
+    MATRIX              m;
+    long                flag;
+    s32                 i;
+    SVECTOR*            d;
+    SVECTOR*            s;
+    WorldCollisionGrid* dst = &D_shelter_b1_golem_freezer_1_8017E9C0;
+    WorldCollisionGrid* src = &D_shelter_b1_golem_freezer_1_8017E714;
 
     i = 0;
     do {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
         i++;
     } while (i <= 0);
 
     for (i = 0; i < 4; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
 
     m = coord->coord;
@@ -474,8 +474,8 @@ static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* coord, s16* arg1)
         m.t[2] += arg1[2];
     }
 
-    d = dst->field_4;
-    s = src->field_4;
+    d = dst->normals;
+    s = src->normals;
     i = 0;
     do {
         gte_SetRotMatrix(&m);
@@ -489,8 +489,8 @@ static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* coord, s16* arg1)
 
     gte_SetRotMatrix(&m);
     gte_SetTransMatrix(&m);
-    d = dst->field_8;
-    s = src->field_8;
+    d = dst->vertices;
+    s = src->vertices;
     for (i = 0; i < 4; i++) {
         RotTransSV(s++, d++, &flag);
     }

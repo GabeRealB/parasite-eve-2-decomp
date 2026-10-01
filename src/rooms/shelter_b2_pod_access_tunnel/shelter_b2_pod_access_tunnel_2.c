@@ -68,12 +68,12 @@ extern SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[];
 /// reaches `[1]` under its own name,
 /// `RoomFx_TrailOffsets[1]`.
 
-extern GpGridParams   D_shelter_b2_pod_access_tunnel_801841B4[1];
-extern GpObj3A        D_shelter_b2_pod_access_tunnel_80185664[1];
-extern GpObj4C        D_shelter_b2_pod_access_tunnel_80184FD8[4];
-extern GpObj4C        D_shelter_b2_pod_access_tunnel_80185108[3];
-extern GpObj4C        D_shelter_b2_pod_access_tunnel_801851EC[3];
-extern GpRoomCoordSet D_shelter_b2_pod_access_tunnel_80184FC0[1];
+extern WorldCollisionGrid D_shelter_b2_pod_access_tunnel_801841B4[1];
+extern GpObj3A            D_shelter_b2_pod_access_tunnel_80185664[1];
+extern GpObj4C            D_shelter_b2_pod_access_tunnel_80184FD8[4];
+extern GpObj4C            D_shelter_b2_pod_access_tunnel_80185108[3];
+extern GpObj4C            D_shelter_b2_pod_access_tunnel_801851EC[3];
+extern GpRoomCoordSet     D_shelter_b2_pod_access_tunnel_80184FC0[1];
 
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -227,7 +227,7 @@ s16* D_shelter_b2_pod_access_tunnel_8018419C[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b2_pod_access_tunnel_801841B4[1] = {
+WorldCollisionGrid D_shelter_b2_pod_access_tunnel_801841B4[1] = {
     { NULL, D_shelter_b2_pod_access_tunnel_80183ED8, D_shelter_b2_pod_access_tunnel_80183F00, D_shelter_b2_pod_access_tunnel_80184040, D_shelter_b2_pod_access_tunnel_8018419C, -500, 0x2B8E, 2, 3, 4000, 17 },
 };
 

@@ -112,7 +112,7 @@ extern Actor443500MessageEntry D_actor_443500_80158754[4];
 extern AnimationSet*  D_actor_443500_80158694[36];
 extern AnimationSet** D_actor_443500_80158724[1];
 
-extern GpGridParams D_actor_443500_801587D8;
+extern WorldCollisionGrid D_actor_443500_801587D8;
 
 extern TmdSource D_actor_443500_8014977C;
 void             func_actor_443500_80132738(Task*);
@@ -2413,7 +2413,7 @@ s16* D_actor_443500_801587D4[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_actor_443500_801587D8 = { NULL, D_actor_443500_80158774, D_actor_443500_80158784, D_actor_443500_801587B4, D_actor_443500_801587D4, -0x3EF8, -5156, 1, 1, 4000, 2 };
+WorldCollisionGrid D_actor_443500_801587D8 = { NULL, D_actor_443500_80158774, D_actor_443500_80158784, D_actor_443500_801587B4, D_actor_443500_801587D4, -0x3EF8, -5156, 1, 1, 4000, 2 };
 
 void func_actor_443500_80131E3C(s32 arg0)
 {
@@ -2778,25 +2778,25 @@ s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
 /// with 0 before showing the model.
 static void func_actor_443500_80132A68(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_shelter_r47_8018828C;
     src = &D_actor_443500_801587D8;
 
     for (i = 0; i < 2; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
 
     if (arg0 == 0) {
@@ -2809,8 +2809,8 @@ static void func_actor_443500_80132A68(s32 arg0)
     d.vz = 0;
 
     for (i = 0; i < 6; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }

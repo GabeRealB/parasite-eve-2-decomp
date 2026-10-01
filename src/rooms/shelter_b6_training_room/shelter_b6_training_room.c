@@ -91,7 +91,7 @@ s16* D_shelter_b6_training_room_8018471C[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b6_training_room_80184734 = { NULL, D_shelter_b6_training_room_80184490, D_shelter_b6_training_room_801844C8, D_shelter_b6_training_room_80184578, D_shelter_b6_training_room_8018471C, 0, -750, 2, 3, 4000, 21 };
+WorldCollisionGrid D_shelter_b6_training_room_80184734 = { NULL, D_shelter_b6_training_room_80184490, D_shelter_b6_training_room_801844C8, D_shelter_b6_training_room_80184578, D_shelter_b6_training_room_8018471C, 0, -750, 2, 3, 4000, 21 };
 
 GpViewRec D_shelter_b6_training_room_80184758[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x61A8, -5250 } }, 380 },

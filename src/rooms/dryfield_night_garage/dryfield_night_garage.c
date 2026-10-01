@@ -173,8 +173,8 @@ extern AnimationPlayRequest D_dryfield_night_garage_80181C68;
 extern EvsCommand D_dryfield_night_garage_80181C7C[];
 
 /// Two layout templates and the live copy the resets restore from them.
-extern GpGridParams D_dryfield_night_garage_80181D7C;
-extern GpGridParams D_dryfield_night_garage_80181E40;
+extern WorldCollisionGrid D_dryfield_night_garage_80181D7C;
+extern WorldCollisionGrid D_dryfield_night_garage_80181E40;
 
 /// The room's display nodes; bit 0x40 of a node's `field_4A` shows it. The
 /// room toggles the first node and the third.
@@ -236,7 +236,7 @@ s16* D_dryfield_night_garage_80181D78[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_garage_80181D7C = { NULL, D_dryfield_night_garage_80181CDC, D_dryfield_night_garage_80181CFC, D_dryfield_night_garage_80181D3C, D_dryfield_night_garage_80181D78, 722, 250, 1, 1, 4000, 4 };
+WorldCollisionGrid D_dryfield_night_garage_80181D7C = { NULL, D_dryfield_night_garage_80181CDC, D_dryfield_night_garage_80181CFC, D_dryfield_night_garage_80181D3C, D_dryfield_night_garage_80181D78, 722, 250, 1, 1, 4000, 4 };
 
 SVECTOR D_dryfield_night_garage_80181DA0[4] = {
 #include "assets/dryfield_night_garage_collision_04880_normals.inc"
@@ -260,7 +260,7 @@ s16* D_dryfield_night_garage_80181E3C[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_garage_80181E40 = { NULL, D_dryfield_night_garage_80181DA0, D_dryfield_night_garage_80181DC0, D_dryfield_night_garage_80181E00, D_dryfield_night_garage_80181E3C, -1900, -4890, 1, 1, 4000, 4 };
+WorldCollisionGrid D_dryfield_night_garage_80181E40 = { NULL, D_dryfield_night_garage_80181DA0, D_dryfield_night_garage_80181DC0, D_dryfield_night_garage_80181E00, D_dryfield_night_garage_80181E3C, -1900, -4890, 1, 1, 4000, 4 };
 
 AnimationPackedPose D_dryfield_night_garage_80181E64[6] = {
 #include "assets/dryfield_night_garage_animation_04B80_bank1.inc"
@@ -515,25 +515,25 @@ void func_dryfield_night_garage_801803BC(Task* task)
 /// is 0x170C when `arg0` is zero and 0x2710 otherwise.
 void func_dryfield_night_garage_80180414(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_dryfield_night_garage_80183DD4;
     src = &D_dryfield_night_garage_80181D7C;
 
     for (i = 0; i < 4; i++) {
-        dst->field_4[i].vx         = src->field_4[i].vx;
-        dst->field_4[i].vy         = src->field_4[i].vy;
-        dst->field_4[i].vz         = src->field_4[i].vz;
-        dst->field_8[i * 2].vx     = src->field_8[i * 2].vx;
-        dst->field_8[i * 2].vy     = src->field_8[i * 2].vy;
-        dst->field_8[i * 2].vz     = src->field_8[i * 2].vz;
-        dst->field_8[i * 2 + 1].vx = src->field_8[i * 2 + 1].vx;
-        dst->field_8[i * 2 + 1].vy = src->field_8[i * 2 + 1].vy;
-        dst->field_8[i * 2 + 1].vz = src->field_8[i * 2 + 1].vz;
-        dst->field_C[i]            = src->field_C[i];
+        dst->normals[i].vx          = src->normals[i].vx;
+        dst->normals[i].vy          = src->normals[i].vy;
+        dst->normals[i].vz          = src->normals[i].vz;
+        dst->vertices[i * 2].vx     = src->vertices[i * 2].vx;
+        dst->vertices[i * 2].vy     = src->vertices[i * 2].vy;
+        dst->vertices[i * 2].vz     = src->vertices[i * 2].vz;
+        dst->vertices[i * 2 + 1].vx = src->vertices[i * 2 + 1].vx;
+        dst->vertices[i * 2 + 1].vy = src->vertices[i * 2 + 1].vy;
+        dst->vertices[i * 2 + 1].vz = src->vertices[i * 2 + 1].vz;
+        dst->faces[i]               = src->faces[i];
     }
 
     if (arg0 == 0) {
@@ -547,9 +547,9 @@ void func_dryfield_night_garage_80180414(s32 arg0)
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }
 
@@ -558,25 +558,25 @@ void func_dryfield_night_garage_80180414(s32 arg0)
 /// eight-entry list is then raised by 0x7D0 on y when `arg0` is nonzero.
 static void func_dryfield_night_garage_80180604(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_dryfield_night_garage_80183DD4;
     src = &D_dryfield_night_garage_80181E40;
 
     for (i = 0; i < 4; i++) {
-        dst->field_4[i].vx         = src->field_4[i].vx;
-        dst->field_4[i].vy         = src->field_4[i].vy;
-        dst->field_4[i].vz         = src->field_4[i].vz;
-        dst->field_8[i * 2].vx     = src->field_8[i * 2].vx;
-        dst->field_8[i * 2].vy     = src->field_8[i * 2].vy;
-        dst->field_8[i * 2].vz     = src->field_8[i * 2].vz;
-        dst->field_8[i * 2 + 1].vx = src->field_8[i * 2 + 1].vx;
-        dst->field_8[i * 2 + 1].vy = src->field_8[i * 2 + 1].vy;
-        dst->field_8[i * 2 + 1].vz = src->field_8[i * 2 + 1].vz;
-        dst->field_C[i]            = src->field_C[i];
+        dst->normals[i].vx          = src->normals[i].vx;
+        dst->normals[i].vy          = src->normals[i].vy;
+        dst->normals[i].vz          = src->normals[i].vz;
+        dst->vertices[i * 2].vx     = src->vertices[i * 2].vx;
+        dst->vertices[i * 2].vy     = src->vertices[i * 2].vy;
+        dst->vertices[i * 2].vz     = src->vertices[i * 2].vz;
+        dst->vertices[i * 2 + 1].vx = src->vertices[i * 2 + 1].vx;
+        dst->vertices[i * 2 + 1].vy = src->vertices[i * 2 + 1].vy;
+        dst->vertices[i * 2 + 1].vz = src->vertices[i * 2 + 1].vz;
+        dst->faces[i]               = src->faces[i];
     }
 
     if (arg0 == 0) {
@@ -589,9 +589,9 @@ static void func_dryfield_night_garage_80180604(s32 arg0)
     d.vz = 0;
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }
 

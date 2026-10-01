@@ -59,7 +59,7 @@ static __inline__ void hopperCalcPush(Task* arg0, GfxCoord* coord, WorldCollisio
     d.vy = c2->workm.t[1] - rec->point.vy;
     d.vz = c2->workm.t[2] - rec->point.vz;
     VectorNormal(&d, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &d);
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &n, &d);
     out->vx = (pen * d.vx) >> 12;
     out->vy = 0;
     out->vz = (pen * d.vz) >> 12;

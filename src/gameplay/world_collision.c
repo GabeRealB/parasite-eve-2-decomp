@@ -118,7 +118,7 @@ STATIC_ASSERT_SIZEOF(_WorldCollisionCapsuleScratch, 0x8C);
 /// 0x88-byte scratch from the scratch stack used by `Gp_CollideObjGrid`.
 /// `pos` is the object's world position (`Gp_ObjWorldPos`) and `grid` its cell
 /// (`Gp_LocalToGrid`). `verts` holds the face corners rotated by
-/// `Gp_GridParams->field_0->workm` and translated by that matrix, `normal` the
+/// `Gp_GridParams->viewCoord->workm` and translated by that matrix, `normal` the
 /// rotated face normal. Per edge, `delta` is the corner difference, `unit` its
 /// `VectorNormal`, and `delta` is then reused for the `normal x unit` inward
 /// edge plane.
@@ -137,7 +137,7 @@ STATIC_ASSERT_SIZEOF(GpGridHitScratch, 0x88);
 /// 0x70-byte scratch from the scratch stack used by `func_800DD324`, the
 /// ray / face intersection test. Same tail layout as `GpGridHitScratch`
 /// without the object position and cell: `verts` are the face corners rotated
-/// by `Gp_GridParams->field_0->workm` and translated by that matrix, `normal`
+/// by `Gp_GridParams->viewCoord->workm` and translated by that matrix, `normal`
 /// the rotated face normal, and per edge `delta` is the corner difference,
 /// `unit` its `VectorNormal`, then `delta` is reused for the `normal x unit`
 /// inward edge plane.
@@ -532,29 +532,29 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
     Gp_ObjWorldPos(arg0, pos);
     Gp_LocalToGrid(pos, &block->grid);
 
-    if ((u16)block->grid.vx < Gp_GridParams->field_1C && (u16)block->grid.vz < Gp_GridParams->field_1E) {
-        cell = Gp_GridParams->field_10[block->grid.vx * Gp_GridParams->field_1E + block->grid.vz];
+    if ((u16)block->grid.vx < Gp_GridParams->cellCountX && (u16)block->grid.vz < Gp_GridParams->cellCountZ) {
+        cell = Gp_GridParams->cellFaceIds[block->grid.vx * Gp_GridParams->cellCountZ + block->grid.vz];
         if (cell != NULL) {
             for (;;) {
                 id = *cell;
-                if (id == -1) {
+                if (id == WORLD_COLLISION_GRID_CELL_END) {
                     goto done;
                 }
-                face = &Gp_GridParams->field_C[id];
+                face = &Gp_GridParams->faces[id];
                 if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
                     cell++;
                     continue;
                 }
 
-                gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
-                gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[0]]);
+                gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
+                gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
                 gte_rtv0();
                 gte_stlvnl(&block->verts[0]);
-                block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
-                block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
-                block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
+                block->verts[0].vx += Gp_GridParams->viewCoord->workm.t[0];
+                block->verts[0].vy += Gp_GridParams->viewCoord->workm.t[1];
+                block->verts[0].vz += Gp_GridParams->viewCoord->workm.t[2];
 
-                gte_ldv0(&Gp_GridParams->field_4[face->normalIndex]);
+                gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
                 gte_rtv0();
                 gte_stlvnl(&block->normal);
 
@@ -581,18 +581,18 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
                 slot->point.vx        = 0;
                 slot->point.vy        = 0;
                 slot->point.vz        = 0;
-                slot->response.normal = Gp_GridParams->field_4[face->normalIndex];
+                slot->response.normal = Gp_GridParams->normals[face->normalIndex];
                 goto next_face;
 
             edges:
                 n = (face->vertexIndices[3] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 4 : 3;
                 for (i = 1; i < n; i++) {
-                    gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[i]]);
+                    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
                     gte_rtv0();
                     gte_stlvnl(&block->verts[i]);
-                    block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
-                    block->verts[i].vy += Gp_GridParams->field_0->workm.t[1];
-                    block->verts[i].vz += Gp_GridParams->field_0->workm.t[2];
+                    block->verts[i].vx += Gp_GridParams->viewCoord->workm.t[0];
+                    block->verts[i].vy += Gp_GridParams->viewCoord->workm.t[1];
+                    block->verts[i].vz += Gp_GridParams->viewCoord->workm.t[2];
                 }
 
                 outside = 0;
@@ -678,33 +678,33 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
     Gp_ObjWorldPos(arg0, pos);
     Gp_LocalToGrid(pos, &block->grid);
 
-    if ((u16)block->grid.vx < Gp_GridParams->field_1C && (u16)block->grid.vz < Gp_GridParams->field_1E) {
-        cell = Gp_GridParams->field_10[block->grid.vx * Gp_GridParams->field_1E + block->grid.vz];
+    if ((u16)block->grid.vx < Gp_GridParams->cellCountX && (u16)block->grid.vz < Gp_GridParams->cellCountZ) {
+        cell = Gp_GridParams->cellFaceIds[block->grid.vx * Gp_GridParams->cellCountZ + block->grid.vz];
         if (cell != NULL) {
             for (;;) {
                 id = *cell;
-                if (id == -1) {
+                if (id == WORLD_COLLISION_GRID_CELL_END) {
                     goto done;
                 }
-                face = &Gp_GridParams->field_C[id];
+                face = &Gp_GridParams->faces[id];
                 if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
                     cell++;
                     continue;
                 }
-                if (Gp_GridParams->field_4[face->normalIndex].vy < -0xDDA) {
+                if (Gp_GridParams->normals[face->normalIndex].vy < -0xDDA) {
                     cell++;
                     continue;
                 }
 
-                gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
-                gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[0]]);
+                gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
+                gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
                 gte_rtv0();
                 gte_stlvnl(&block->verts[0]);
-                block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
-                block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
-                block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
+                block->verts[0].vx += Gp_GridParams->viewCoord->workm.t[0];
+                block->verts[0].vy += Gp_GridParams->viewCoord->workm.t[1];
+                block->verts[0].vz += Gp_GridParams->viewCoord->workm.t[2];
 
-                gte_ldv0(&Gp_GridParams->field_4[face->normalIndex]);
+                gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
                 gte_rtv0();
                 gte_stlvnl(&block->normal);
 
@@ -734,12 +734,12 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
             edges:
                 n = (face->vertexIndices[3] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 4 : 3;
                 for (i = 1; i < n; i++) {
-                    gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[i]]);
+                    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
                     gte_rtv0();
                     gte_stlvnl(&block->verts[i]);
-                    block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
-                    block->verts[i].vy += Gp_GridParams->field_0->workm.t[1];
-                    block->verts[i].vz += Gp_GridParams->field_0->workm.t[2];
+                    block->verts[i].vx += Gp_GridParams->viewCoord->workm.t[0];
+                    block->verts[i].vy += Gp_GridParams->viewCoord->workm.t[1];
+                    block->verts[i].vz += Gp_GridParams->viewCoord->workm.t[2];
                 }
 
                 extra   = 0;
@@ -787,9 +787,9 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                     flags = slot->flags;
                     if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                         if ((slot->key.value & -0x100) == (extra | WORLD_COLLISION_CONTACT_GRID)) {
-                            if (slot->response.normal.vx == Gp_GridParams->field_4[face->normalIndex].vx &&
-                                slot->response.normal.vy == Gp_GridParams->field_4[face->normalIndex].vy &&
-                                slot->response.normal.vz == Gp_GridParams->field_4[face->normalIndex].vz) {
+                            if (slot->response.normal.vx == Gp_GridParams->normals[face->normalIndex].vx &&
+                                slot->response.normal.vy == Gp_GridParams->normals[face->normalIndex].vy &&
+                                slot->response.normal.vz == Gp_GridParams->normals[face->normalIndex].vz) {
                                 if (slot->distance < (s32)arg0->radius - (s16)dist) {
                                     slot->distance = arg0->radius - dist;
                                 }
@@ -804,7 +804,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                         slot->point.vx        = 0;
                         slot->point.vy        = 0;
                         slot->point.vz        = 0;
-                        slot->response.normal = Gp_GridParams->field_4[face->normalIndex];
+                        slot->response.normal = Gp_GridParams->normals[face->normalIndex];
                         goto next_face;
                     }
                     if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
@@ -839,18 +839,18 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
 
     head                       = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(void) = head - 0x70;
-    face                       = &Gp_GridParams->field_C[faceId];
+    face                       = &Gp_GridParams->faces[faceId];
     block                      = (GpGridRayScratch*)(head - 0x70);
 
-    gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
-    gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[0]]);
+    gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
+    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[0]]);
     gte_rtv0();
     gte_stlvnl(&block->verts[0]);
-    block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
-    block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
-    block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
+    block->verts[0].vx += Gp_GridParams->viewCoord->workm.t[0];
+    block->verts[0].vy += Gp_GridParams->viewCoord->workm.t[1];
+    block->verts[0].vz += Gp_GridParams->viewCoord->workm.t[2];
 
-    gte_ldv0(&Gp_GridParams->field_4[face->normalIndex]);
+    gte_ldv0(&Gp_GridParams->normals[face->normalIndex]);
     gte_rtv0();
     gte_stlvnl(&block->normal);
 
@@ -883,14 +883,14 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
 
     n = (face->vertexIndices[3] == WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 3 : 4;
 
-    gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
+    gte_SetRotMatrix(&Gp_GridParams->viewCoord->workm);
     for (i = 1; i < n; i++) {
-        gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[i]]);
+        gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
         gte_rtv0();
         gte_stlvnl(&block->verts[i]);
-        block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
-        block->verts[i].vy += Gp_GridParams->field_0->workm.t[1];
-        block->verts[i].vz += Gp_GridParams->field_0->workm.t[2];
+        block->verts[i].vx += Gp_GridParams->viewCoord->workm.t[0];
+        block->verts[i].vy += Gp_GridParams->viewCoord->workm.t[1];
+        block->verts[i].vz += Gp_GridParams->viewCoord->workm.t[2];
     }
 
     for (i = n - 3; i < n * 2 - 3; i++) {

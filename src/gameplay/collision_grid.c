@@ -142,7 +142,7 @@ STATIC_ASSERT_SIZEOF(_GpQuadDirScratch, 0xB0);
 /* Define BSS before API headers to preserve first-declaration order. */
 s32 Gp_RoomParams[8];
 
-GpGridParams* Gp_GridParams;
+WorldCollisionGrid* Gp_GridParams;
 
 u8 D_80115450[256];
 
@@ -193,7 +193,7 @@ void func_800DD940(WorldCollisionBody* arg0)
     head                       = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(void) = head - 0x50;
     block                      = (GpFloorScratch*)(head - 0x50);
-    for (i = 0; i < Gp_GridParams->field_22; i++) {
+    for (i = 0; i < Gp_GridParams->faceCount; i++) {
         D_80115450[i] = 0;
     }
     func_800DDC2C(arg0);
@@ -201,23 +201,23 @@ void func_800DD940(WorldCollisionBody* arg0)
     block->origin.vx = block->seg[0].vx;
     block->origin.vy = block->seg[0].vy;
     block->origin.vz = block->seg[0].vz;
-    for (i = 0; i < Gp_GridParams->field_22; i++) {
+    for (i = 0; i < Gp_GridParams->faceCount; i++) {
         if (D_80115450[i] &&
-            Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vy < -0xDDA &&
+            Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vy < -0xDDA &&
             func_800DD324(i, block->seg, block->ray, arg0)) {
             slot  = arg0->context.motion->contacts;
             flags = slot->flags;
             if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                 // Overlapping floors retain the higher class using unsigned comparison.
-                if ((u32)(slot->key.value & WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK) < (u32)Gp_GridParams->field_C[i].surfaceClass) {
-                    slot->key.value = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
+                if ((u32)(slot->key.value & WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK) < (u32)Gp_GridParams->faces[i].surfaceClass) {
+                    slot->key.value = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
                 }
             } else {
                 slot->flags     = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                slot->key.value = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
+                slot->key.value = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
             }
             slot->point           = block->ray[1];
-            slot->response.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex];
+            slot->response.normal = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
             block->delta.vx       = block->origin.vx - block->ray[1].vx;
             block->delta.vy       = block->origin.vy - block->ray[1].vy;
             block->delta.vz       = block->origin.vz - block->ray[1].vz;
@@ -253,9 +253,9 @@ static void func_800DDC2C(WorldCollisionBody* arg0)
         gte_ldv0(&block->src[i]);
         gte_rtv0();
         gte_stlvnl(&block->pos[i]);
-        block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->field_14;
+        block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->xBias;
         block->pos[i].vy = 0;
-        block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->field_18;
+        block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->zBias;
     }
     func_800DE2C0(block->pos, 0);
     SCRATCH_STACK_RELEASE_BLOCK(GpEdgeScratch);
@@ -269,25 +269,25 @@ void func_800DDDF8(WorldCollisionBody* obj)
     s32                    i;
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GpSegmentHitScratch);
-    for (i = 0; i < Gp_GridParams->field_22; i++) {
+    for (i = 0; i < Gp_GridParams->faceCount; i++) {
         D_80115450[i] = 0;
     }
 
     func_800DE150(obj);
     func_800DEC80(obj, block->pos, block->ray, 1);
 
-    for (i = 0; i < Gp_GridParams->field_22; i++) {
+    for (i = 0; i < Gp_GridParams->faceCount; i++) {
         if (D_80115450[i] != 0 && func_800DD324(i, block->pos, block->ray, obj) != 0) {
             slot = obj->context.capsule->contacts;
             if (obj->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                                      [Gp_GridParams->field_C[i].surfaceClass]
+                                      [Gp_GridParams->faces[i].surfaceClass]
                                           ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
                     slot->distance        = 0;
                     slot->flags          |= WORLD_COLLISION_CONTACT_OCCUPIED;
-                    slot->key.value       = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                    slot->key.value       = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
                     slot->point           = block->ray[1];
-                    slot->response.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex];
+                    slot->response.normal = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
                     block->pos[0].vx      = block->ray[1].vx;
                     block->pos[0].vy      = block->ray[1].vy;
                     block->pos[0].vz      = block->ray[1].vz;
@@ -298,9 +298,9 @@ void func_800DDDF8(WorldCollisionBody* obj)
                     if (!(flags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
                         slot->flags           = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
                         slot->distance        = 0;
-                        slot->key.value       = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                        slot->key.value       = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
                         slot->point           = block->ray[1];
-                        slot->response.normal = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex];
+                        slot->response.normal = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
                         if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
                             void** head = SCRATCH_HEAD_ADDR;
 
@@ -347,9 +347,9 @@ static void func_800DE150(WorldCollisionBody* arg0)
         gte_ldv0(&block->src[i]);
         gte_rtv0();
         gte_stlvnl(&block->pos[i]);
-        block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->field_14;
+        block->pos[i].vx = block->pos[i].vx + block->mat.t[0] + Gp_GridParams->xBias;
         block->pos[i].vy = 0;
-        block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->field_18;
+        block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->zBias;
     }
     func_800DE2C0(block->pos, 1);
     SCRATCH_STACK_RELEASE_BYTES(0x50);
@@ -357,26 +357,26 @@ static void func_800DE150(WorldCollisionBody* arg0)
 
 static void func_800DE2C0(VECTOR* arg0, s32 arg1)
 {
-    u8*            head;
-    GpMarkScratch* block;
-    GpGridParams*  p;
-    GpGridParams*  p2;
-    s32            thresh2;
-    u32            cellSize;
-    s32            half;
-    s32            range;
-    s32            thresh;
-    s32            i;
-    s32            j;
-    s32            dot;
-    s32            proj;
-    s32            vz0;
-    s32            vz1;
-    s16*           ids;
-    s16            id;
+    u8*                 head;
+    GpMarkScratch*      block;
+    WorldCollisionGrid* pointGrid;
+    WorldCollisionGrid* segmentGrid;
+    s32                 thresh2;
+    u32                 cellSize;
+    s32                 half;
+    s32                 range;
+    s32                 thresh;
+    s32                 i;
+    s32                 j;
+    s32                 dot;
+    s32                 proj;
+    s32                 vz0;
+    s32                 vz1;
+    s16*                ids;
+    s16                 id;
 
     head          = SCRATCH_STACK_CURSOR(u8);
-    cellSize      = Gp_GridParams->field_20;
+    cellSize      = Gp_GridParams->cellSize;
     block         = (GpMarkScratch*)(SCRATCH_STACK_CURSOR(void) = head - 0x28);
     block->vec.vx = arg0[0].vx - arg0[1].vx;
     block->vec.vy = 0;
@@ -388,18 +388,19 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
     VectorNormalS(&block->vec, &block->nrm);
 
     if ((block->nrm.vx == 0) && (block->nrm.vz == 0)) {
-        for (i = 0; i < Gp_GridParams->field_1C; i++) {
+        for (i = 0; i < Gp_GridParams->cellCountX; i++) {
             thresh = range * range;
-            for (j = 0; j < Gp_GridParams->field_1E; j++) {
-                p              = Gp_GridParams;
-                block->cell.vx = i * p->field_20 + (p->field_20 >> 1);
-                block->cell.vz = j * p->field_20 + (p->field_20 >> 1);
+            for (j = 0; j < Gp_GridParams->cellCountZ; j++) {
+                pointGrid      = Gp_GridParams;
+                block->cell.vx = i * pointGrid->cellSize + (pointGrid->cellSize >> 1);
+                block->cell.vz = j * pointGrid->cellSize + (pointGrid->cellSize >> 1);
                 block->d.vx    = (u16)block->cell.vx - (u16)arg0[0].vx;
                 block->d.vz    = (u16)block->cell.vz - (u16)arg0[0].vz;
                 if ((block->d.vx * block->d.vx) + (block->d.vz * block->d.vz) < thresh) {
-                    ids = p->field_10[i * p->field_1E + j];
+                    ids = pointGrid->cellFaceIds[i * pointGrid->cellCountZ + j];
                     if (ids != NULL) {
-                        while (*ids != -1) {
+                        // Cell lists select face candidates; their indices are signed.
+                        while (*ids != WORLD_COLLISION_GRID_CELL_END) {
                             id             = *ids;
                             D_80115450[id] = 1;
                             ids++;
@@ -415,12 +416,12 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
         arg0[0].vz += block->d.vz;
         arg0[1].vx -= block->d.vx;
         arg0[1].vz -= block->d.vz;
-        for (i = 0; i < Gp_GridParams->field_1C; i++) {
+        for (i = 0; i < Gp_GridParams->cellCountX; i++) {
             thresh2 = range * range;
-            for (j = 0; j < Gp_GridParams->field_1E; j++) {
-                p2             = Gp_GridParams;
-                block->cell.vx = i * p2->field_20 + (p2->field_20 >> 1);
-                block->cell.vz = j * p2->field_20 + (p2->field_20 >> 1);
+            for (j = 0; j < Gp_GridParams->cellCountZ; j++) {
+                segmentGrid    = Gp_GridParams;
+                block->cell.vx = i * segmentGrid->cellSize + (segmentGrid->cellSize >> 1);
+                block->cell.vz = j * segmentGrid->cellSize + (segmentGrid->cellSize >> 1);
                 dot            = ((block->cell.vx - arg0[0].vx) * block->nrm.vx) + ((block->cell.vz - arg0[0].vz) * block->nrm.vz);
                 if (dot <= 0) {
                     proj = (((block->cell.vx - arg0[1].vx) * block->nrm.vx) + ((block->cell.vz - arg0[1].vz) * block->nrm.vz)) >> 12;
@@ -428,9 +429,9 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
                         block->d.vx = ((u16)arg0[1].vx + ((block->nrm.vx * proj) >> 12)) - (u16)block->cell.vx;
                         block->d.vz = ((u16)arg0[1].vz + ((block->nrm.vz * proj) >> 12)) - (u16)block->cell.vz;
                         if ((block->d.vx * block->d.vx) + (block->d.vz * block->d.vz) < thresh2) {
-                            ids = p2->field_10[i * p2->field_1E + j];
+                            ids = segmentGrid->cellFaceIds[i * segmentGrid->cellCountZ + j];
                             if (ids != NULL) {
-                                while (*ids != -1) {
+                                while (*ids != WORLD_COLLISION_GRID_CELL_END) {
                                     id             = *ids++;
                                     D_80115450[id] = 1;
                                 }
@@ -447,14 +448,14 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
 
 s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
 {
-    GpGridParams*    params;
-    s32              ret;
-    GpRayHitScratch* block;
-    s32              i;
+    WorldCollisionGrid* grid;
+    s32                 ret;
+    GpRayHitScratch*    block;
+    s32                 i;
 
-    params = Gp_GridParams;
-    ret    = 0;
-    if (params == NULL) {
+    grid = Gp_GridParams;
+    ret  = 0;
+    if (grid == NULL) {
         return ret;
     }
 
@@ -466,11 +467,11 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
         head                    -= 0x40;
         SCRATCH_STACK_CURSOR(u8) = head;
         block                    = (GpRayHitScratch*)head;
-        if (ret < params->field_22) {
+        if (ret < grid->faceCount) {
             do {
                 D_80115450[i] = 0;
                 i++;
-            } while (i < Gp_GridParams->field_22);
+            } while (i < Gp_GridParams->faceCount);
         }
     }
     func_800DEAFC(arg0, arg1);
@@ -484,12 +485,12 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
     block->delta.vy = block->from.vy - block->to.vy;
     block->delta.vz = block->from.vz - block->to.vz;
     VectorNormalS(&block->delta, &block->dir);
-    for (i = 0; i < Gp_GridParams->field_22; i++) {
+    for (i = 0; i < Gp_GridParams->faceCount; i++) {
         if (D_80115450[i] == 0) {
             continue;
         }
         if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                              [Gp_GridParams->field_C[i].surfaceClass]
+                              [Gp_GridParams->faces[i].surfaceClass]
                                   ->probePassThrough != WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             continue;
         }
@@ -502,9 +503,9 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
             arg2->vz = block->hit.vz;
         }
         if (arg3 != NULL) {
-            arg3->vx = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vx;
-            arg3->vy = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vy;
-            arg3->vz = Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vz;
+            arg3->vx = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vx;
+            arg3->vy = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vy;
+            arg3->vz = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vz;
         }
         block->from.vx = block->hit.vx;
         block->from.vy = block->hit.vy;
@@ -528,24 +529,24 @@ static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
     block->in.vz                            = arg0->vz;
     out                                     = (VECTOR*)(head - 0x30);
     SCRATCH_STACK_CURSOR(GpGridPairScratch) = block;
-    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &block->in, out);
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &block->in, out);
     {
-        GpGridParams* p = Gp_GridParams;
+        WorldCollisionGrid* grid = Gp_GridParams;
 
-        block->pos0.vx = (s16)(block->out.vx + p->field_14 - p->field_0->coord.t[0]);
+        block->pos0.vx = (s16)(block->out.vx + grid->xBias - grid->viewCoord->coord.t[0]);
         block->pos0.vy = 0;
-        block->pos0.vz = (s16)(block->out.vz + p->field_18 - p->field_0->coord.t[2]);
+        block->pos0.vz = (s16)(block->out.vz + grid->zBias - grid->viewCoord->coord.t[2]);
     }
     block->in.vx = arg1->vx;
     block->in.vy = arg1->vy;
     block->in.vz = arg1->vz;
-    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &block->in, out);
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &block->in, out);
     {
-        GpGridParams* p = Gp_GridParams;
+        WorldCollisionGrid* grid = Gp_GridParams;
 
-        block->pos1.vx = (s16)(block->out.vx + p->field_14 - p->field_0->coord.t[0]);
+        block->pos1.vx = (s16)(block->out.vx + grid->xBias - grid->viewCoord->coord.t[0]);
         block->pos1.vy = 0;
-        block->pos1.vz = (s16)(block->out.vz + p->field_18 - p->field_0->coord.t[2]);
+        block->pos1.vz = (s16)(block->out.vz + grid->zBias - grid->viewCoord->coord.t[2]);
     }
     func_800DE2C0((VECTOR*)(head - 0x20), 0);
     SCRATCH_STACK_RELEASE_BYTES(0x40);

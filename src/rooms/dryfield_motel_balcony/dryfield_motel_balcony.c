@@ -84,7 +84,7 @@ extern RoomEventReq gRoomEventReq;
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
 
-extern GpGridParams               D_dryfield_motel_balcony_80182B5C[1];
+extern WorldCollisionGrid         D_dryfield_motel_balcony_80182B5C[1];
 extern GpObj3A                    D_dryfield_motel_balcony_80186130[2];
 extern GpObj4C                    D_dryfield_motel_balcony_80185DA0[8];
 extern GpObj4C                    D_dryfield_motel_balcony_80186000[4];
@@ -168,7 +168,7 @@ s16* D_dryfield_motel_balcony_80182A5C[64] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_motel_balcony_80182B5C[1] = {
+WorldCollisionGrid D_dryfield_motel_balcony_80182B5C[1] = {
     { NULL, D_dryfield_motel_balcony_801823D0, D_dryfield_motel_balcony_80182408, D_dryfield_motel_balcony_80182630, D_dryfield_motel_balcony_80182A5C, 0x32BE, 0x341C, 8, 8, 4000, 32 },
 };
 

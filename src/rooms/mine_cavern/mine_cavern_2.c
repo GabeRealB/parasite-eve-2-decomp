@@ -189,12 +189,12 @@ typedef struct _MineCavernHitScratch {
     s16     damage;
 } _MineCavernHitScratch;
 
-extern GpGridParams   D_mine_cavern_8018981C[1];
-extern GpObj3A        D_mine_cavern_8018E078[2];
-extern GpObj4C        D_mine_cavern_8018D154[20];
-extern GpObj4C        D_mine_cavern_8018D744[18];
-extern GpObj4C        D_mine_cavern_8018DC9C[13];
-extern GpRoomCoordSet D_mine_cavern_8018D13C[1];
+extern WorldCollisionGrid D_mine_cavern_8018981C[1];
+extern GpObj3A            D_mine_cavern_8018E078[2];
+extern GpObj4C            D_mine_cavern_8018D154[20];
+extern GpObj4C            D_mine_cavern_8018D744[18];
+extern GpObj4C            D_mine_cavern_8018DC9C[13];
+extern GpRoomCoordSet     D_mine_cavern_8018D13C[1];
 
 extern SpriteBatch  D_mine_cavern_80189BC4[2];
 extern SpriteBatch  D_mine_cavern_80189FA8[4];
@@ -1098,7 +1098,7 @@ s16* D_mine_cavern_801897D4[18] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_cavern_8018981C[1] = {
+WorldCollisionGrid D_mine_cavern_8018981C[1] = {
     { NULL, D_mine_cavern_801890E4, D_mine_cavern_801891D4, D_mine_cavern_80189494, D_mine_cavern_801897D4, 1000, 1200, 6, 3, 4000, 38 },
 };
 

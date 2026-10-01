@@ -115,7 +115,7 @@ extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD9C;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDB0;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDC4;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDEC;
-extern GpGridParams               D_dryfield_junk_yard_8017F4C8[1];
+extern WorldCollisionGrid         D_dryfield_junk_yard_8017F4C8[1];
 extern GpObj3A                    D_dryfield_junk_yard_80181518[1];
 extern GpObj4C                    D_dryfield_junk_yard_80180C7C[10];
 extern GpObj4C                    D_dryfield_junk_yard_80180F74[19];
@@ -353,7 +353,7 @@ s16* D_dryfield_junk_yard_8017F490[14] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_junk_yard_8017F4C8[1] = {
+WorldCollisionGrid D_dryfield_junk_yard_8017F4C8[1] = {
     { NULL, D_dryfield_junk_yard_8017EDCC, D_dryfield_junk_yard_8017EED4, D_dryfield_junk_yard_8017F194, D_dryfield_junk_yard_8017F490, 2400, 608, 7, 2, 4000, 36 },
 };
 

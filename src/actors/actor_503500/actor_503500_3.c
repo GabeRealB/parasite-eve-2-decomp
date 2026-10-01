@@ -2308,17 +2308,17 @@ static void func_actor_503500_80136AEC(Task* arg0)
 /// four `field_C` records; `arg2` raises the offset by 0x1F40 in Y.
 static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 {
-    MATRIX        mtx;
-    SVECTOR       ofs;
-    s32           i;
-    SVECTOR*      src;
-    SVECTOR*      dst;
-    GpGridParams* out = D_shelter_r48_80183EEC;
-    GpGridParams* in  = &D_actor_503500_8016F03C;
+    MATRIX              mtx;
+    SVECTOR             ofs;
+    s32                 i;
+    SVECTOR*            src;
+    SVECTOR*            dst;
+    WorldCollisionGrid* out = D_shelter_r48_80183EEC;
+    WorldCollisionGrid* in  = &D_actor_503500_8016F03C;
 
     if (arg1 != 0) {
         for (i = 0; i < 4; i++) {
-            out->field_C[i] = in->field_C[i];
+            out->faces[i] = in->faces[i];
         }
     }
     Gp_ComposeParentWorld(&arg0->extra.tmd->coords[1], &mtx, &ofs);
@@ -2326,15 +2326,15 @@ static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
         ofs.vy += 0x1F40;
     }
     gte_SetRotMatrix(&mtx);
-    dst = out->field_4;
-    src = in->field_4;
+    dst = out->normals;
+    src = in->normals;
     for (i = 0; i < 4; i++, dst++, src++) {
         gte_ldv0(src);
         gte_rtv0();
         gte_stsv(dst);
     }
-    dst = out->field_8;
-    src = in->field_8;
+    dst = out->vertices;
+    src = in->vertices;
     for (i = 0; i < 8; i++, dst++, src++) {
         gte_ldv0(src);
         gte_rtv0();

@@ -81,10 +81,10 @@ s32 func_dryfield_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*)
 s32 func_dryfield_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_g_r_kitchen_8017EEC0[1];
-extern GpObj4C        D_dryfield_g_r_kitchen_8017F038[2];
-extern GpObj4C        D_dryfield_g_r_kitchen_8017F0D0[7];
-extern GpRoomCoordSet D_dryfield_g_r_kitchen_8017F464[1];
+extern WorldCollisionGrid D_dryfield_g_r_kitchen_8017EEC0[1];
+extern GpObj4C            D_dryfield_g_r_kitchen_8017F038[2];
+extern GpObj4C            D_dryfield_g_r_kitchen_8017F0D0[7];
+extern GpRoomCoordSet     D_dryfield_g_r_kitchen_8017F464[1];
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -150,7 +150,7 @@ s16* D_dryfield_g_r_kitchen_8017EEB8[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_g_r_kitchen_8017EEC0[1] = {
+WorldCollisionGrid D_dryfield_g_r_kitchen_8017EEC0[1] = {
     { NULL, D_dryfield_g_r_kitchen_8017ECB8, D_dryfield_g_r_kitchen_8017ECE8, D_dryfield_g_r_kitchen_8017EDB8, D_dryfield_g_r_kitchen_8017EEB8, 1800, 3000, 1, 2, 4000, 16 },
 };
 

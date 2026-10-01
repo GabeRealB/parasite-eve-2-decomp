@@ -176,7 +176,7 @@ s16* D_shelter_b2_elevator_8017E0E0[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b2_elevator_8017E0E4 = { NULL, D_shelter_b2_elevator_8017E018, D_shelter_b2_elevator_8017E048, D_shelter_b2_elevator_8017E088, D_shelter_b2_elevator_8017E0E0, -0x2AF8, 1450, 1, 1, 4000, 6 };
+WorldCollisionGrid D_shelter_b2_elevator_8017E0E4 = { NULL, D_shelter_b2_elevator_8017E018, D_shelter_b2_elevator_8017E048, D_shelter_b2_elevator_8017E088, D_shelter_b2_elevator_8017E0E0, -0x2AF8, 1450, 1, 1, 4000, 6 };
 
 GpViewRec D_shelter_b2_elevator_8017E108[15] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2EE0, 0x7530, 450 } }, 2748 },

@@ -106,14 +106,14 @@ extern GpMsgEntry D_dryfield_motel_lobby_8017F810[];
 static void func_dryfield_motel_lobby_8017F44C(Task* task);
 static void func_dryfield_motel_lobby_8017F490(Task* task);
 
-extern GpGridParams   D_dryfield_motel_lobby_8017FBE4[1];
-extern GpObj4C        D_dryfield_motel_lobby_80180AEC[4];
-extern GpObj4C        D_dryfield_motel_lobby_80180C1C[7];
-extern GpRoomCoordSet D_dryfield_motel_lobby_80181010[1];
-s32                   func_dryfield_motel_lobby_8017F40C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_dryfield_motel_lobby_8017F414(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_dryfield_motel_lobby_8017F43C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_dryfield_motel_lobby_8017F444(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid D_dryfield_motel_lobby_8017FBE4[1];
+extern GpObj4C            D_dryfield_motel_lobby_80180AEC[4];
+extern GpObj4C            D_dryfield_motel_lobby_80180C1C[7];
+extern GpRoomCoordSet     D_dryfield_motel_lobby_80181010[1];
+s32                       func_dryfield_motel_lobby_8017F40C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_dryfield_motel_lobby_8017F414(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                       func_dryfield_motel_lobby_8017F43C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_dryfield_motel_lobby_8017F444(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -167,7 +167,7 @@ s16* D_dryfield_motel_lobby_8017FBD4[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_motel_lobby_8017FBE4[1] = {
+WorldCollisionGrid D_dryfield_motel_lobby_8017FBE4[1] = {
     { NULL, D_dryfield_motel_lobby_8017F890, D_dryfield_motel_lobby_8017F8D8, D_dryfield_motel_lobby_8017FA28, D_dryfield_motel_lobby_8017FBD4, 0, 0, 2, 2, 4000, 25 },
 };
 

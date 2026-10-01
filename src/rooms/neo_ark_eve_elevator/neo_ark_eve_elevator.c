@@ -43,9 +43,9 @@ s32 func_neo_ark_eve_elevator_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*)
 s32 func_neo_ark_eve_elevator_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_eve_elevator_8017D670(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_neo_ark_eve_elevator_8017DA2C[1];
-extern GpObj4C        D_neo_ark_eve_elevator_8017DBC8[1];
-extern GpRoomCoordSet D_neo_ark_eve_elevator_8017DBB0[1];
+extern WorldCollisionGrid D_neo_ark_eve_elevator_8017DA2C[1];
+extern GpObj4C            D_neo_ark_eve_elevator_8017DBC8[1];
+extern GpRoomCoordSet     D_neo_ark_eve_elevator_8017DBB0[1];
 
 GpMsgEntry D_neo_ark_eve_elevator_8017D724[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_eve_elevator_8017D5D8 },
@@ -97,7 +97,7 @@ s16* D_neo_ark_eve_elevator_8017DA28[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_eve_elevator_8017DA2C[1] = {
+WorldCollisionGrid D_neo_ark_eve_elevator_8017DA2C[1] = {
     { NULL, D_neo_ark_eve_elevator_8017D7A4, D_neo_ark_eve_elevator_8017D814, D_neo_ark_eve_elevator_8017D8D4, D_neo_ark_eve_elevator_8017DA28, 2050, 1050, 1, 1, 4000, 24 },
 };
 

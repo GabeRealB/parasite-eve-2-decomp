@@ -1139,7 +1139,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 sc->d.delta.vy.word = coord->workm.t[1] - work->rec2[i].point.vy;
                 sc->d.delta.vz.word = coord->workm.t[2] - work->rec2[i].point.vz;
                 VectorNormal(&sc->d.vec, &sc->norm);
-                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &sc->norm, &sc->d.vec);
+                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &sc->norm, &sc->d.vec);
                 if (work->field_48C == 2) {
                     coord->coord.t[0] += (damage * sc->d.vec.vx) >> 12;
                     n                  = damage * sc->d.vec.vy;

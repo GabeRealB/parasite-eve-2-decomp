@@ -1692,7 +1692,7 @@ contact_loop:
                 scratch->delta.vy.word = (s32)(coord->workm.t[1] - contact->field_154[0].point.vy);
                 scratch->delta.vz.word = (s32)(coord->workm.t[2] - contact->field_154[0].point.vz);
                 VectorNormal(delta, &scratch->normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, delta);
+                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, delta);
                 if ((u32)((u16)work->field_2B8 - 1) < 2U) {
                     coord->coord.t[0] = (s32)(coord->coord.t[0] + ((s32)(distance * scratch->delta.vx.word) >> 0xC));
                     pushY             = distance * scratch->delta.vy.word;

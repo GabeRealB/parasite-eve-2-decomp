@@ -494,7 +494,7 @@ static void func_actor_300700_801637E4(Task* actor)
                 if (bestPush < push) {
                     bestPush = push;
                     VectorNormal((VECTOR*)scratch, (VECTOR*)(scratch + 1));
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (VECTOR*)(scratch + 1), (VECTOR*)(scratch + 2));
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (VECTOR*)(scratch + 1), (VECTOR*)(scratch + 2));
                 }
                 break;
             case 2:
@@ -563,7 +563,7 @@ static void func_actor_300700_801637E4(Task* actor)
                 if (bestPush < push) {
                     bestPush = push;
                     VectorNormal((VECTOR*)scratch, (VECTOR*)(scratch + 1));
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (VECTOR*)(scratch + 1), (VECTOR*)(scratch + 2));
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (VECTOR*)(scratch + 1), (VECTOR*)(scratch + 2));
                 }
                 break;
         }

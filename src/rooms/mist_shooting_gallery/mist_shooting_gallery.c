@@ -195,9 +195,9 @@ extern UiObjectDesc              D_mist_shooting_gallery_8018501C;
 extern MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13];
 extern GpMsgEntry                D_mist_shooting_gallery_801850E8[];
 
-extern TaskDesc     D_mist_shooting_gallery_801850DC;
-extern GpGridParams D_mist_shooting_gallery_80185198;
-extern GpGridParams D_mist_shooting_gallery_801851F8;
+extern TaskDesc           D_mist_shooting_gallery_801850DC;
+extern WorldCollisionGrid D_mist_shooting_gallery_80185198;
+extern WorldCollisionGrid D_mist_shooting_gallery_801851F8;
 
 /// The jukebox's track lists, one per game mode, each a run of track id and
 /// name pairs.
@@ -767,7 +767,7 @@ s16* D_mist_shooting_gallery_80185194[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mist_shooting_gallery_80185198 = { NULL, D_mist_shooting_gallery_80185110, D_mist_shooting_gallery_80185128, D_mist_shooting_gallery_80185168, D_mist_shooting_gallery_80185194, 0x28B9, -4925, 1, 1, 4000, 3 };
+WorldCollisionGrid D_mist_shooting_gallery_80185198 = { NULL, D_mist_shooting_gallery_80185110, D_mist_shooting_gallery_80185128, D_mist_shooting_gallery_80185168, D_mist_shooting_gallery_80185194, 0x28B9, -4925, 1, 1, 4000, 3 };
 
 SVECTOR D_mist_shooting_gallery_801851BC[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_normals.inc"
@@ -791,7 +791,7 @@ s16* D_mist_shooting_gallery_801851F4[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mist_shooting_gallery_801851F8 = { NULL, D_mist_shooting_gallery_801851BC, D_mist_shooting_gallery_801851C4, D_mist_shooting_gallery_801851E4, D_mist_shooting_gallery_801851F4, 6500, -3680, 1, 1, 4000, 1 };
+WorldCollisionGrid D_mist_shooting_gallery_801851F8 = { NULL, D_mist_shooting_gallery_801851BC, D_mist_shooting_gallery_801851C4, D_mist_shooting_gallery_801851E4, D_mist_shooting_gallery_801851F4, 6500, -3680, 1, 1, 4000, 1 };
 
 RoomsShared8018055cCourse gJukeboxTracksAttach0[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
@@ -2098,21 +2098,21 @@ void func_mist_shooting_gallery_8018018C(Task* task)
 
 static void func_mist_shooting_gallery_801801E4(s32 arg0)
 {
-    GpGridParams* dst = &D_mist_shooting_gallery_80189968;
-    GpGridParams* src = &D_mist_shooting_gallery_80185198;
-    SVECTOR       ofs;
-    s32           i;
+    WorldCollisionGrid* dst = &D_mist_shooting_gallery_80189968;
+    WorldCollisionGrid* src = &D_mist_shooting_gallery_80185198;
+    SVECTOR             ofs;
+    s32                 i;
 
     for (i = 0; i < 3; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
     if (arg0 == 0) {
         ofs.vx = 0;
@@ -2123,26 +2123,26 @@ static void func_mist_shooting_gallery_801801E4(s32 arg0)
     }
     ofs.vz = 0;
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx += ofs.vx;
-        dst->field_8[i].vy += ofs.vy;
-        dst->field_8[i].vz += ofs.vz;
+        dst->vertices[i].vx += ofs.vx;
+        dst->vertices[i].vy += ofs.vy;
+        dst->vertices[i].vz += ofs.vz;
     }
 }
 
 void func_mist_shooting_gallery_80180390(s32 arg0)
 {
-    GpGridParams*           dst        = &D_mist_shooting_gallery_80189968;
-    GpGridParams*           src        = &D_mist_shooting_gallery_801851F8;
-    WorldCollisionGridFace* destFace   = &D_mist_shooting_gallery_80189968.field_C[3];
-    WorldCollisionGridFace* sourceFace = D_mist_shooting_gallery_801851F8.field_C;
+    WorldCollisionGrid*     dst        = &D_mist_shooting_gallery_80189968;
+    WorldCollisionGrid*     src        = &D_mist_shooting_gallery_801851F8;
+    WorldCollisionGridFace* destFace   = &D_mist_shooting_gallery_80189968.faces[3];
+    WorldCollisionGridFace* sourceFace = D_mist_shooting_gallery_801851F8.faces;
     SVECTOR                 ofs;
     s32                     i;
     s32                     j;
 
     for (i = 0; i < 1; i++) {
-        dst->field_4[i + 3].vx = src->field_4[i].vx;
-        dst->field_4[i + 3].vy = src->field_4[i].vy;
-        dst->field_4[i + 3].vz = src->field_4[i].vz;
+        dst->normals[i + 3].vx = src->normals[i].vx;
+        dst->normals[i + 3].vy = src->normals[i].vy;
+        dst->normals[i + 3].vz = src->normals[i].vz;
         for (j = 0; j < ARRAY_SIZE(destFace->vertexIndices); j++) {
             destFace->vertexIndices[j] = sourceFace->vertexIndices[j] + 8;
         }
@@ -2152,9 +2152,9 @@ void func_mist_shooting_gallery_80180390(s32 arg0)
         sourceFace++;
     }
     for (i = 0; i < 4; i++) {
-        dst->field_8[i + 8].vx = src->field_8[i].vx;
-        dst->field_8[i + 8].vy = src->field_8[i].vy;
-        dst->field_8[i + 8].vz = src->field_8[i].vz;
+        dst->vertices[i + 8].vx = src->vertices[i].vx;
+        dst->vertices[i + 8].vy = src->vertices[i].vy;
+        dst->vertices[i + 8].vz = src->vertices[i].vz;
     }
     if (arg0 == 0) {
         ofs.vx = 0;
@@ -2165,9 +2165,9 @@ void func_mist_shooting_gallery_80180390(s32 arg0)
     }
     ofs.vz = 0;
     for (i = 0; i < 8; i++) {
-        dst->field_8[i + 8].vx += ofs.vx;
-        dst->field_8[i + 8].vy += ofs.vy;
-        dst->field_8[i + 8].vz += ofs.vz;
+        dst->vertices[i + 8].vx += ofs.vx;
+        dst->vertices[i + 8].vy += ofs.vy;
+        dst->vertices[i + 8].vz += ofs.vz;
     }
 }
 

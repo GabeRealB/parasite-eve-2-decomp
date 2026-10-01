@@ -52,7 +52,7 @@
 /// The prism corners, eight per prism: a lit ring of four, then the far ring.
 extern SVECTOR gGlowPrismCorners[];
 
-extern GpGridParams D_dryfield_night_dilapidated_house_80187D44[1];
+extern WorldCollisionGrid D_dryfield_night_dilapidated_house_80187D44[1];
 
 extern GpObj4C D_dryfield_night_dilapidated_house_801892A0[8];
 
@@ -1250,7 +1250,7 @@ s16* D_dryfield_night_dilapidated_house_80187D2C[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_dilapidated_house_80187D44[1] = {
+WorldCollisionGrid D_dryfield_night_dilapidated_house_80187D44[1] = {
     { NULL, D_dryfield_night_dilapidated_house_80187454, D_dryfield_night_dilapidated_house_801874A4, D_dryfield_night_dilapidated_house_80187844, D_dryfield_night_dilapidated_house_80187D2C, 6000, 3200, 3, 2, 4000, 70 },
 };
 

@@ -28,7 +28,7 @@ extern GpViewCountRec D_shelter_b1_control_room_80181C74[];
 
 extern GpWarpRec D_shelter_b1_control_room_80181C78[];
 
-extern GpGridParams D_shelter_b1_control_room_801820F8;
+extern WorldCollisionGrid D_shelter_b1_control_room_801820F8;
 
 extern GpViewRec D_shelter_b1_control_room_8018211C[];
 

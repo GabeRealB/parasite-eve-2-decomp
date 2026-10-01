@@ -21,7 +21,7 @@ extern TaskDesc D_shelter_b3_garbage_incinerator_801855E0;
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_80185BA0;
 
-extern GpGridParams D_shelter_b3_garbage_incinerator_80188388[1];
+extern WorldCollisionGrid D_shelter_b3_garbage_incinerator_80188388[1];
 
 extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018DCF0[1];
 

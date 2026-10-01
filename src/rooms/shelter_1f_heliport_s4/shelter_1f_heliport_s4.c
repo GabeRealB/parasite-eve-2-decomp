@@ -71,7 +71,7 @@ s16* D_shelter_1f_heliport_s4_8017D9A4[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_1f_heliport_s4_8017D9C8 = { NULL, D_shelter_1f_heliport_s4_8017D738, D_shelter_1f_heliport_s4_8017D770, D_shelter_1f_heliport_s4_8017D880, D_shelter_1f_heliport_s4_8017D9A4, 0, 2000, 3, 3, 4000, 15 };
+WorldCollisionGrid D_shelter_1f_heliport_s4_8017D9C8 = { NULL, D_shelter_1f_heliport_s4_8017D738, D_shelter_1f_heliport_s4_8017D770, D_shelter_1f_heliport_s4_8017D880, D_shelter_1f_heliport_s4_8017D9A4, 0, 2000, 3, 3, 4000, 15 };
 
 GpViewRec D_shelter_1f_heliport_s4_8017D9EC[5] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x3CE8, -3400 } }, 235 },

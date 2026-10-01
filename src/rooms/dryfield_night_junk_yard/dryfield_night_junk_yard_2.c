@@ -47,11 +47,11 @@
 extern SVECTOR D_dryfield_night_junk_yard_8018073C[];
 extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 
-extern GpGridParams   D_dryfield_night_junk_yard_801811B8[1];
-extern GpObj3A        D_dryfield_night_junk_yard_80184318[1];
-extern GpObj4C        D_dryfield_night_junk_yard_80183778[10];
-extern GpObj4C        D_dryfield_night_junk_yard_80183D28[20];
-extern GpRoomCoordSet D_dryfield_night_junk_yard_80183D10[1];
+extern WorldCollisionGrid D_dryfield_night_junk_yard_801811B8[1];
+extern GpObj3A            D_dryfield_night_junk_yard_80184318[1];
+extern GpObj4C            D_dryfield_night_junk_yard_80183778[10];
+extern GpObj4C            D_dryfield_night_junk_yard_80183D28[20];
+extern GpRoomCoordSet     D_dryfield_night_junk_yard_80183D10[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -133,7 +133,7 @@ s16* D_dryfield_night_junk_yard_80181180[14] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_junk_yard_801811B8[1] = {
+WorldCollisionGrid D_dryfield_night_junk_yard_801811B8[1] = {
     { NULL, D_dryfield_night_junk_yard_80180874, D_dryfield_night_junk_yard_801809A4, D_dryfield_night_junk_yard_80180D2C, D_dryfield_night_junk_yard_80181180, 2400, 610, 7, 2, 4000, 54 },
 };
 

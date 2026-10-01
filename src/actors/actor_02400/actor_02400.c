@@ -584,7 +584,7 @@ move_done:
                 if (push < reach) {
                     push = reach;
                     VectorNormal((VECTOR*)&scratch->delta, &scratch->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &scratch->normal, &scratch->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->dir);
                 }
                 break;
         }

@@ -174,7 +174,7 @@ static void func_mine_refuge_8017FE78(s32 arg0);
 static void func_mine_refuge_8017FF4C(Task* task);
 static void func_mine_refuge_8017FFAC(Task* task);
 
-extern GpGridParams               D_mine_refuge_80181BA4[1];
+extern WorldCollisionGrid         D_mine_refuge_80181BA4[1];
 extern GpObj4C                    D_mine_refuge_80182778[2];
 extern GpObj4C                    D_mine_refuge_80182810[6];
 extern WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8];
@@ -259,7 +259,7 @@ s16* D_mine_refuge_80181B9C[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_mine_refuge_80181BA4[1] = {
+WorldCollisionGrid D_mine_refuge_80181BA4[1] = {
     { NULL, D_mine_refuge_80181948, D_mine_refuge_801819A8, D_mine_refuge_80181AB8, D_mine_refuge_80181B9C, 200, 200, 1, 2, 4000, 15 },
 };
 

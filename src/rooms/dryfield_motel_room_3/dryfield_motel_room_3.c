@@ -27,10 +27,10 @@ s32 func_dryfield_motel_room_3_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*
 s32 func_dryfield_motel_room_3_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_room_3_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_motel_room_3_8017DDA0[1];
-extern GpObj4C        D_dryfield_motel_room_3_8017DFC4[11];
-extern GpObj4C        D_dryfield_motel_room_3_8017E308[1];
-extern GpRoomCoordSet D_dryfield_motel_room_3_8017E4D4[1];
+extern WorldCollisionGrid D_dryfield_motel_room_3_8017DDA0[1];
+extern GpObj4C            D_dryfield_motel_room_3_8017DFC4[11];
+extern GpObj4C            D_dryfield_motel_room_3_8017E308[1];
+extern GpRoomCoordSet     D_dryfield_motel_room_3_8017E4D4[1];
 
 GpMsgEntry D_dryfield_motel_room_3_8017D6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_3_8017D5D8 },
@@ -82,7 +82,7 @@ s16* D_dryfield_motel_room_3_8017DD90[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_motel_room_3_8017DDA0[1] = {
+WorldCollisionGrid D_dryfield_motel_room_3_8017DDA0[1] = {
     { NULL, D_dryfield_motel_room_3_8017D734, D_dryfield_motel_room_3_8017D79C, D_dryfield_motel_room_3_8017DAD4, D_dryfield_motel_room_3_8017DD90, -200, -100, 2, 2, 4000, 45 },
 };
 

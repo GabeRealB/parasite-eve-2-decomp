@@ -223,7 +223,7 @@ s16* D_shelter_b3_garbage_incinerator_801882FC[35] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b3_garbage_incinerator_80188388[1] = {
+WorldCollisionGrid D_shelter_b3_garbage_incinerator_80188388[1] = {
     { NULL, D_shelter_b3_garbage_incinerator_801877BC, D_shelter_b3_garbage_incinerator_801878A4, D_shelter_b3_garbage_incinerator_80187B44, D_shelter_b3_garbage_incinerator_801882FC, 0, 0x6590, 5, 7, 4000, 64 },
 };
 
@@ -2584,9 +2584,9 @@ static void func_shelter_b3_garbage_incinerator_80184EEC(void)
     s16                     i;
     SVECTOR*                np;
 
-    normals = Gp_GridParams->field_4;
-    verts   = Gp_GridParams->field_8;
-    faces   = Gp_GridParams->field_C;
+    normals = Gp_GridParams->normals;
+    verts   = Gp_GridParams->vertices;
+    faces   = Gp_GridParams->faces;
     if (gGameSession->location.loc.variant == 2) {
         i = 6;
         do {
@@ -2625,9 +2625,9 @@ void func_shelter_b3_garbage_incinerator_8018507C(void)
     SVECTOR*                np;
 
     i       = 0;
-    normals = Gp_GridParams->field_4;
-    verts   = Gp_GridParams->field_8;
-    faces   = Gp_GridParams->field_C;
+    normals = Gp_GridParams->normals;
+    verts   = Gp_GridParams->vertices;
+    faces   = Gp_GridParams->faces;
     np      = &normal;
     func_shelter_b3_garbage_incinerator_80184EEC();
     do {
@@ -2664,9 +2664,9 @@ void func_shelter_b3_garbage_incinerator_80185220(void)
     SVECTOR*                np;
 
     i       = 0;
-    normals = Gp_GridParams->field_4;
-    verts   = Gp_GridParams->field_8;
-    faces   = Gp_GridParams->field_C;
+    normals = Gp_GridParams->normals;
+    verts   = Gp_GridParams->vertices;
+    faces   = Gp_GridParams->faces;
     np      = &normal;
     func_shelter_b3_garbage_incinerator_80184EEC();
     do {
@@ -2702,9 +2702,9 @@ void func_shelter_b3_garbage_incinerator_801853C4(void)
     s16                     i;
 
     i       = 0;
-    normals = Gp_GridParams->field_4;
-    verts   = Gp_GridParams->field_8;
-    faces   = Gp_GridParams->field_C;
+    normals = Gp_GridParams->normals;
+    verts   = Gp_GridParams->vertices;
+    faces   = Gp_GridParams->faces;
     func_shelter_b3_garbage_incinerator_80184EEC();
     do {
         verts[i * 4].vx = verts[i * 4 + 2].vx = D_shelter_b3_garbage_incinerator_8018FBFC[i][0];

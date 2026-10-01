@@ -112,7 +112,7 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
 };
 
 // Indexed views below share one contiguous table.
-extern GpGridParams               D_dryfield_night_motel_lobby_80182DB4[1];
+extern WorldCollisionGrid         D_dryfield_night_motel_lobby_80182DB4[1];
 extern GpObj4C                    D_dryfield_night_motel_lobby_80184034[4];
 extern GpObj4C                    D_dryfield_night_motel_lobby_80184164[8];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8];
@@ -195,7 +195,7 @@ s16* D_dryfield_night_motel_lobby_80182DA4[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_motel_lobby_80182DB4[1] = {
+WorldCollisionGrid D_dryfield_night_motel_lobby_80182DB4[1] = {
     { NULL, D_dryfield_night_motel_lobby_80182960, D_dryfield_night_motel_lobby_801829A8, D_dryfield_night_motel_lobby_80182B50, D_dryfield_night_motel_lobby_80182DA4, 0, 0, 2, 2, 4000, 33 },
 };
 

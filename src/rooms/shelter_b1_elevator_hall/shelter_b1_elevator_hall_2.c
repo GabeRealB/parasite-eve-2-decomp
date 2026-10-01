@@ -67,11 +67,11 @@
 /// is also reached through its own name.
 
 // Indexed views below share one contiguous table.
-extern GpGridParams   D_shelter_b1_elevator_hall_80183414[1];
-extern GpObj3A        D_shelter_b1_elevator_hall_80184748[1];
-extern GpObj4C        D_shelter_b1_elevator_hall_80184288[10];
-extern GpObj4C        D_shelter_b1_elevator_hall_80184580[6];
-extern GpRoomCoordSet D_shelter_b1_elevator_hall_80184270[1];
+extern WorldCollisionGrid D_shelter_b1_elevator_hall_80183414[1];
+extern GpObj3A            D_shelter_b1_elevator_hall_80184748[1];
+extern GpObj4C            D_shelter_b1_elevator_hall_80184288[10];
+extern GpObj4C            D_shelter_b1_elevator_hall_80184580[6];
+extern GpRoomCoordSet     D_shelter_b1_elevator_hall_80184270[1];
 
 TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
@@ -177,7 +177,7 @@ s16* D_shelter_b1_elevator_hall_801833DC[14] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_elevator_hall_80183414[1] = {
+WorldCollisionGrid D_shelter_b1_elevator_hall_80183414[1] = {
     { NULL, D_shelter_b1_elevator_hall_80182EF8, D_shelter_b1_elevator_hall_80182F38, D_shelter_b1_elevator_hall_80183108, D_shelter_b1_elevator_hall_801833DC, 0x33A6, 1641, 7, 2, 4000, 32 },
 };
 

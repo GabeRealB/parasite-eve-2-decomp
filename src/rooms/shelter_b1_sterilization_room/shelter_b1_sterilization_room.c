@@ -146,7 +146,7 @@ extern ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80
 extern TaskDesc                               D_shelter_b1_sterilization_room_80184E70;
 extern s32                                    D_shelter_b1_sterilization_room_80184E7C;
 extern s16                                    D_shelter_b1_sterilization_room_80184E80[3];
-extern GpGridParams                           D_shelter_b1_sterilization_room_80184F28;
+extern WorldCollisionGrid                     D_shelter_b1_sterilization_room_80184F28;
 
 extern AnimationPlayRequest            D_shelter_b1_sterilization_room_80188624;
 extern _ShelterB1SterilizationRoomMsg  D_shelter_b1_sterilization_room_80188668[];
@@ -267,7 +267,7 @@ s16* D_shelter_b1_sterilization_room_80184F24[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_b1_sterilization_room_80184F28 = { NULL, D_shelter_b1_sterilization_room_80184E88, D_shelter_b1_sterilization_room_80184EA8, D_shelter_b1_sterilization_room_80184EE8, D_shelter_b1_sterilization_room_80184F24, 641, 540, 1, 1, 4000, 4 };
+WorldCollisionGrid D_shelter_b1_sterilization_room_80184F28 = { NULL, D_shelter_b1_sterilization_room_80184E88, D_shelter_b1_sterilization_room_80184EA8, D_shelter_b1_sterilization_room_80184EE8, D_shelter_b1_sterilization_room_80184F24, 641, 540, 1, 1, 4000, 4 };
 
 AnimationPackedPose D_shelter_b1_sterilization_room_80184F4C[6] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_bank1.inc"
@@ -821,28 +821,28 @@ void func_shelter_b1_sterilization_room_80180518(Task* task)
 
 static void func_shelter_b1_sterilization_room_80180570(GfxCoord* coord, s16* arg1)
 {
-    MATRIX        m;
-    long          flag;
-    s32           i;
-    SVECTOR*      d;
-    SVECTOR*      s;
-    GpGridParams* dst = &D_shelter_b1_sterilization_room_80189E44;
-    GpGridParams* src = &D_shelter_b1_sterilization_room_80184F28;
+    MATRIX              m;
+    long                flag;
+    s32                 i;
+    SVECTOR*            d;
+    SVECTOR*            s;
+    WorldCollisionGrid* dst = &D_shelter_b1_sterilization_room_80189E44;
+    WorldCollisionGrid* src = &D_shelter_b1_sterilization_room_80184F28;
 
     i = 0;
     do {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
         i++;
     } while (i < 4);
 
     i = 0;
     do {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
         i++;
     } while (i < 8);
 
@@ -854,8 +854,8 @@ static void func_shelter_b1_sterilization_room_80180570(GfxCoord* coord, s16* ar
         m.t[2] += arg1[2];
     }
 
-    d = dst->field_4;
-    s = src->field_4;
+    d = dst->normals;
+    s = src->normals;
     i = 0;
     do {
         gte_SetRotMatrix(&m);
@@ -869,8 +869,8 @@ static void func_shelter_b1_sterilization_room_80180570(GfxCoord* coord, s16* ar
 
     gte_SetRotMatrix(&m);
     gte_SetTransMatrix(&m);
-    d = dst->field_8;
-    s = src->field_8;
+    d = dst->vertices;
+    s = src->vertices;
     for (i = 0; i < 8; i++) {
         RotTransSV(s++, d++, &flag);
     }

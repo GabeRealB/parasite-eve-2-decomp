@@ -50,10 +50,10 @@ s32 func_dryfield_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg
 s32 func_dryfield_souvenir_shop_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_souvenir_shop_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern GpGridParams   D_dryfield_souvenir_shop_8017E5DC[1];
-extern GpObj4C        D_dryfield_souvenir_shop_8017EEF4[2];
-extern GpObj4C        D_dryfield_souvenir_shop_8017EF8C[12];
-extern GpRoomCoordSet D_dryfield_souvenir_shop_8017F55C[1];
+extern WorldCollisionGrid D_dryfield_souvenir_shop_8017E5DC[1];
+extern GpObj4C            D_dryfield_souvenir_shop_8017EEF4[2];
+extern GpObj4C            D_dryfield_souvenir_shop_8017EF8C[12];
+extern GpRoomCoordSet     D_dryfield_souvenir_shop_8017F55C[1];
 
 GpMsgEntry D_dryfield_souvenir_shop_8017E014[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_souvenir_shop_8017D5D8 },
@@ -124,7 +124,7 @@ s16* D_dryfield_souvenir_shop_8017E5CC[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_souvenir_shop_8017E5DC[1] = {
+WorldCollisionGrid D_dryfield_souvenir_shop_8017E5DC[1] = {
     { NULL, D_dryfield_souvenir_shop_8017E114, D_dryfield_souvenir_shop_8017E16C, D_dryfield_souvenir_shop_8017E35C, D_dryfield_souvenir_shop_8017E5CC, 100, 4100, 2, 2, 4000, 34 },
 };
 

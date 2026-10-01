@@ -31,7 +31,7 @@ extern GpViewCountRec D_shelter_b4_lower_sewer_80181FA8[];
 
 extern GpWarpRec D_shelter_b4_lower_sewer_80181FAC[];
 
-extern GpGridParams D_shelter_b4_lower_sewer_801828E4;
+extern WorldCollisionGrid D_shelter_b4_lower_sewer_801828E4;
 
 extern GpViewRec D_shelter_b4_lower_sewer_80182908[];
 

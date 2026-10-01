@@ -22,7 +22,7 @@ extern GpViewCountRec D_shelter_b6_training_room_8018441C[];
 
 extern GpWarpRec D_shelter_b6_training_room_80184420[];
 
-extern GpGridParams D_shelter_b6_training_room_80184734;
+extern WorldCollisionGrid D_shelter_b6_training_room_80184734;
 
 extern GpViewRec D_shelter_b6_training_room_80184758[];
 

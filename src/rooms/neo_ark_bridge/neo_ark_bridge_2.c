@@ -159,7 +159,7 @@ s16* D_neo_ark_bridge_801827C0[21] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_bridge_80182814 = { NULL, D_neo_ark_bridge_80182114, D_neo_ark_bridge_8018213C, D_neo_ark_bridge_80182444, D_neo_ark_bridge_801827C0, 5100, 0x2FA8, 3, 7, 4000, 43 };
+WorldCollisionGrid D_neo_ark_bridge_80182814 = { NULL, D_neo_ark_bridge_80182114, D_neo_ark_bridge_8018213C, D_neo_ark_bridge_80182444, D_neo_ark_bridge_801827C0, 5100, 0x2FA8, 3, 7, 4000, 43 };
 
 GpViewRec D_neo_ark_bridge_80182838[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 2070, 0x7530, 2510 } }, 329 },

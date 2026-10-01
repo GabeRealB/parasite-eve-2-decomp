@@ -43,7 +43,7 @@ extern s32                        D_dryfield_toilet_801802D4;
 
 /// The template the room's collision grid is restored from, and the grid
 /// itself.
-extern GpGridParams D_dryfield_toilet_80180314;
+extern WorldCollisionGrid D_dryfield_toilet_80180314;
 
 static void func_dryfield_toilet_8017D940(Task* arg0);
 static void func_dryfield_toilet_8017D9D4(Task* task);
@@ -91,7 +91,7 @@ s16* D_dryfield_toilet_80180310[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_toilet_80180314 = { NULL, D_dryfield_toilet_801802D8, D_dryfield_toilet_801802E0, D_dryfield_toilet_80180300, D_dryfield_toilet_80180310, 2250, 590, 1, 1, 4000, 1 };
+WorldCollisionGrid D_dryfield_toilet_80180314 = { NULL, D_dryfield_toilet_801802D8, D_dryfield_toilet_801802E0, D_dryfield_toilet_80180300, D_dryfield_toilet_80180310, 2250, 590, 1, 1, 4000, 1 };
 
 AnimationPackedPose D_dryfield_toilet_80180338[6] = {
 #include "assets/dryfield_toilet_animation_03054_bank1.inc"
@@ -144,31 +144,31 @@ static void func_dryfield_toilet_8017D5E4(void);
 /// negative x once game flag nibble 0x60 is set.
 static void func_dryfield_toilet_8017D5E4(void)
 {
-    GpGridParams* geom = &D_dryfield_toilet_80181404;
-    GpGridParams* src  = &D_dryfield_toilet_80180314;
-    s32           i;
+    WorldCollisionGrid* geom = &D_dryfield_toilet_80181404;
+    WorldCollisionGrid* src  = &D_dryfield_toilet_80180314;
+    s32                 i;
 
     for (i = 0; i < 1; i++) {
-        geom->field_4[i].vx         = src->field_4[i].vx;
-        geom->field_4[i].vy         = src->field_4[i].vy;
-        geom->field_4[i].vz         = src->field_4[i].vz;
-        geom->field_8[i * 4 + 0].vx = src->field_8[i * 4 + 0].vx;
-        geom->field_8[i * 4 + 0].vy = src->field_8[i * 4 + 0].vy;
-        geom->field_8[i * 4 + 0].vz = src->field_8[i * 4 + 0].vz;
-        geom->field_8[i * 4 + 1].vx = src->field_8[i * 4 + 1].vx;
-        geom->field_8[i * 4 + 1].vy = src->field_8[i * 4 + 1].vy;
-        geom->field_8[i * 4 + 1].vz = src->field_8[i * 4 + 1].vz;
-        geom->field_8[i * 4 + 2].vx = src->field_8[i * 4 + 2].vx;
-        geom->field_8[i * 4 + 2].vy = src->field_8[i * 4 + 2].vy;
-        geom->field_8[i * 4 + 2].vz = src->field_8[i * 4 + 2].vz;
-        geom->field_8[i * 4 + 3].vx = src->field_8[i * 4 + 3].vx;
-        geom->field_8[i * 4 + 3].vy = src->field_8[i * 4 + 3].vy;
-        geom->field_8[i * 4 + 3].vz = src->field_8[i * 4 + 3].vz;
-        geom->field_C[i]            = src->field_C[i];
+        geom->normals[i].vx          = src->normals[i].vx;
+        geom->normals[i].vy          = src->normals[i].vy;
+        geom->normals[i].vz          = src->normals[i].vz;
+        geom->vertices[i * 4 + 0].vx = src->vertices[i * 4 + 0].vx;
+        geom->vertices[i * 4 + 0].vy = src->vertices[i * 4 + 0].vy;
+        geom->vertices[i * 4 + 0].vz = src->vertices[i * 4 + 0].vz;
+        geom->vertices[i * 4 + 1].vx = src->vertices[i * 4 + 1].vx;
+        geom->vertices[i * 4 + 1].vy = src->vertices[i * 4 + 1].vy;
+        geom->vertices[i * 4 + 1].vz = src->vertices[i * 4 + 1].vz;
+        geom->vertices[i * 4 + 2].vx = src->vertices[i * 4 + 2].vx;
+        geom->vertices[i * 4 + 2].vy = src->vertices[i * 4 + 2].vy;
+        geom->vertices[i * 4 + 2].vz = src->vertices[i * 4 + 2].vz;
+        geom->vertices[i * 4 + 3].vx = src->vertices[i * 4 + 3].vx;
+        geom->vertices[i * 4 + 3].vy = src->vertices[i * 4 + 3].vy;
+        geom->vertices[i * 4 + 3].vz = src->vertices[i * 4 + 3].vz;
+        geom->faces[i]               = src->faces[i];
     }
     if (GameFlag_GetNibble(0x60) != 0) {
         for (i = 0; i < 4; i++) {
-            geom->field_8[i].vx -= 2000;
+            geom->vertices[i].vx -= 2000;
         }
     }
 }
@@ -249,32 +249,32 @@ void func_dryfield_toilet_8017D9E4(Task* task)
 /// the grid's four corners 2000 units toward negative x.
 void func_dryfield_toilet_8017DA3C(s32 arg0)
 {
-    GpGridParams* geom = &D_dryfield_toilet_80181404;
-    GpGridParams* src  = &D_dryfield_toilet_80180314;
-    s32           i;
+    WorldCollisionGrid* geom = &D_dryfield_toilet_80181404;
+    WorldCollisionGrid* src  = &D_dryfield_toilet_80180314;
+    s32                 i;
 
     if (arg0 == 0) {
         for (i = 0; i < 1; i++) {
-            geom->field_4[i].vx         = src->field_4[i].vx;
-            geom->field_4[i].vy         = src->field_4[i].vy;
-            geom->field_4[i].vz         = src->field_4[i].vz;
-            geom->field_8[i * 4 + 0].vx = src->field_8[i * 4 + 0].vx;
-            geom->field_8[i * 4 + 0].vy = src->field_8[i * 4 + 0].vy;
-            geom->field_8[i * 4 + 0].vz = src->field_8[i * 4 + 0].vz;
-            geom->field_8[i * 4 + 1].vx = src->field_8[i * 4 + 1].vx;
-            geom->field_8[i * 4 + 1].vy = src->field_8[i * 4 + 1].vy;
-            geom->field_8[i * 4 + 1].vz = src->field_8[i * 4 + 1].vz;
-            geom->field_8[i * 4 + 2].vx = src->field_8[i * 4 + 2].vx;
-            geom->field_8[i * 4 + 2].vy = src->field_8[i * 4 + 2].vy;
-            geom->field_8[i * 4 + 2].vz = src->field_8[i * 4 + 2].vz;
-            geom->field_8[i * 4 + 3].vx = src->field_8[i * 4 + 3].vx;
-            geom->field_8[i * 4 + 3].vy = src->field_8[i * 4 + 3].vy;
-            geom->field_8[i * 4 + 3].vz = src->field_8[i * 4 + 3].vz;
-            geom->field_C[i]            = src->field_C[i];
+            geom->normals[i].vx          = src->normals[i].vx;
+            geom->normals[i].vy          = src->normals[i].vy;
+            geom->normals[i].vz          = src->normals[i].vz;
+            geom->vertices[i * 4 + 0].vx = src->vertices[i * 4 + 0].vx;
+            geom->vertices[i * 4 + 0].vy = src->vertices[i * 4 + 0].vy;
+            geom->vertices[i * 4 + 0].vz = src->vertices[i * 4 + 0].vz;
+            geom->vertices[i * 4 + 1].vx = src->vertices[i * 4 + 1].vx;
+            geom->vertices[i * 4 + 1].vy = src->vertices[i * 4 + 1].vy;
+            geom->vertices[i * 4 + 1].vz = src->vertices[i * 4 + 1].vz;
+            geom->vertices[i * 4 + 2].vx = src->vertices[i * 4 + 2].vx;
+            geom->vertices[i * 4 + 2].vy = src->vertices[i * 4 + 2].vy;
+            geom->vertices[i * 4 + 2].vz = src->vertices[i * 4 + 2].vz;
+            geom->vertices[i * 4 + 3].vx = src->vertices[i * 4 + 3].vx;
+            geom->vertices[i * 4 + 3].vy = src->vertices[i * 4 + 3].vy;
+            geom->vertices[i * 4 + 3].vz = src->vertices[i * 4 + 3].vz;
+            geom->faces[i]               = src->faces[i];
         }
     } else {
         for (i = 0; i < 4; i++) {
-            geom->field_8[i].vx -= 2000;
+            geom->vertices[i].vx -= 2000;
         }
     }
 }

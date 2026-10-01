@@ -82,7 +82,7 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
 static void func_shelter_1f_parking_garage_8017DF04(Task* task);
 
-extern GpGridParams               D_shelter_1f_parking_garage_80180FE8[1];
+extern WorldCollisionGrid         D_shelter_1f_parking_garage_80180FE8[1];
 extern GpObj4C                    D_shelter_1f_parking_garage_801815F8[4];
 extern GpObj4C                    D_shelter_1f_parking_garage_80181728[5];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5];
@@ -175,7 +175,7 @@ s16* D_shelter_1f_parking_garage_80180FA8[16] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_shelter_1f_parking_garage_80180FE8[1] = {
+WorldCollisionGrid D_shelter_1f_parking_garage_80180FE8[1] = {
     { NULL, D_shelter_1f_parking_garage_80180CF4, D_shelter_1f_parking_garage_80180D4C, D_shelter_1f_parking_garage_80180E5C, D_shelter_1f_parking_garage_80180FA8, 500, 6250, 4, 4, 4000, 13 },
 };
 

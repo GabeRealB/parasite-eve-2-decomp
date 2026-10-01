@@ -175,8 +175,8 @@ extern EvsCommand                          D_dryfield_night_gas_station_801841FC
 
 /// The layout template and the live copy that
 /// `func_dryfield_night_gas_station_8017FBD4` restores from it.
-extern GpGridParams D_dryfield_night_gas_station_80184374;
-extern GpGridParams D_dryfield_night_gas_station_8018ABBC;
+extern WorldCollisionGrid D_dryfield_night_gas_station_80184374;
+extern WorldCollisionGrid D_dryfield_night_gas_station_8018ABBC;
 
 extern SVECTOR        D_dryfield_night_gas_station_80188580[];
 extern ActorTransform D_dryfield_night_gas_station_80188B0C;
@@ -255,8 +255,8 @@ extern AnimationPlayRequest       D_dryfield_night_gas_station_80188AB8;
 extern AnimationPlayRequest       D_dryfield_night_gas_station_80188AE0;
 extern GpCopyArg                  D_dryfield_night_gas_station_801888E8;
 extern GpCopyArg                  D_dryfield_night_gas_station_80188A10;
-extern GpGridParams               D_dryfield_night_gas_station_8018ABBC;
-extern GpGridParams               D_dryfield_night_gas_station_8018B75C[1];
+extern WorldCollisionGrid         D_dryfield_night_gas_station_8018ABBC;
+extern WorldCollisionGrid         D_dryfield_night_gas_station_8018B75C[1];
 extern GpObj4C                    D_dryfield_night_gas_station_8018FD90[11];
 extern GpObj4C                    D_dryfield_night_gas_station_801900D4[16];
 extern GpOverrideArg              D_dryfield_night_gas_station_801889DC;
@@ -370,7 +370,7 @@ s16* D_dryfield_night_gas_station_80184370[1] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_gas_station_80184374 = { NULL, D_dryfield_night_gas_station_801842D4, D_dryfield_night_gas_station_801842F4, D_dryfield_night_gas_station_80184334, D_dryfield_night_gas_station_80184370, -0x3534, 312, 1, 1, 4000, 4 };
+WorldCollisionGrid D_dryfield_night_gas_station_80184374 = { NULL, D_dryfield_night_gas_station_801842D4, D_dryfield_night_gas_station_801842F4, D_dryfield_night_gas_station_80184334, D_dryfield_night_gas_station_80184370, -0x3534, 312, 1, 1, 4000, 4 };
 
 AnimationPackedPose D_dryfield_night_gas_station_80184398[6] = {
 #include "assets/dryfield_night_gas_station_animation_070B4_bank1.inc"
@@ -1338,7 +1338,7 @@ s16* D_dryfield_night_gas_station_8018AB5C[24] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_gas_station_8018ABBC = { NULL, D_dryfield_night_gas_station_80189F30, D_dryfield_night_gas_station_8018A040, D_dryfield_night_gas_station_8018A4C0, D_dryfield_night_gas_station_8018AB5C, 5043, 6369, 6, 4, 4000, 65 };
+WorldCollisionGrid D_dryfield_night_gas_station_8018ABBC = { NULL, D_dryfield_night_gas_station_80189F30, D_dryfield_night_gas_station_8018A040, D_dryfield_night_gas_station_8018A4C0, D_dryfield_night_gas_station_8018AB5C, 5043, 6369, 6, 4, 4000, 65 };
 
 SVECTOR D_dryfield_night_gas_station_8018ABE0[32] = {
 #include "assets/dryfield_night_gas_station_collision_0E19C_normals.inc"
@@ -1362,7 +1362,7 @@ s16* D_dryfield_night_gas_station_8018B6FC[24] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_night_gas_station_8018B75C[1] = {
+WorldCollisionGrid D_dryfield_night_gas_station_8018B75C[1] = {
     { NULL, D_dryfield_night_gas_station_8018ABE0, D_dryfield_night_gas_station_8018ACE0, D_dryfield_night_gas_station_8018B118, D_dryfield_night_gas_station_8018B6FC, 5043, 6369, 6, 4, 4000, 64 },
 };
 
@@ -2732,25 +2732,25 @@ void func_dryfield_night_gas_station_8017FB70(Task* arg0)
 /// raised by 0xBB8 on y when `arg0` is nonzero.
 void func_dryfield_night_gas_station_8017FBD4(s32 arg0)
 {
-    GpGridParams* dst;
-    GpGridParams* src;
-    SVECTOR       d;
-    s32           i;
+    WorldCollisionGrid* dst;
+    WorldCollisionGrid* src;
+    SVECTOR             d;
+    s32                 i;
 
     dst = &D_dryfield_night_gas_station_8018ABBC;
     src = &D_dryfield_night_gas_station_80184374;
 
     for (i = 0; i < 4; i++) {
-        dst->field_4[i].vx = src->field_4[i].vx;
-        dst->field_4[i].vy = src->field_4[i].vy;
-        dst->field_4[i].vz = src->field_4[i].vz;
-        dst->field_C[i]    = src->field_C[i];
+        dst->normals[i].vx = src->normals[i].vx;
+        dst->normals[i].vy = src->normals[i].vy;
+        dst->normals[i].vz = src->normals[i].vz;
+        dst->faces[i]      = src->faces[i];
     }
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx = src->field_8[i].vx;
-        dst->field_8[i].vy = src->field_8[i].vy;
-        dst->field_8[i].vz = src->field_8[i].vz;
+        dst->vertices[i].vx = src->vertices[i].vx;
+        dst->vertices[i].vy = src->vertices[i].vy;
+        dst->vertices[i].vz = src->vertices[i].vz;
     }
 
     if (arg0 == 0) {
@@ -2763,9 +2763,9 @@ void func_dryfield_night_gas_station_8017FBD4(s32 arg0)
     d.vz = 0;
 
     for (i = 0; i < 8; i++) {
-        dst->field_8[i].vx += d.vx;
-        dst->field_8[i].vy += d.vy;
-        dst->field_8[i].vz += d.vz;
+        dst->vertices[i].vx += d.vx;
+        dst->vertices[i].vy += d.vy;
+        dst->vertices[i].vz += d.vz;
     }
 }
 

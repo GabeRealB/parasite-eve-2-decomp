@@ -101,7 +101,7 @@ void func_acropolis_forked_road_8017E220(Task*);
 
 extern AnimationPlayRequest D_acropolis_forked_road_8018207C;
 extern GpCopyArg            D_acropolis_forked_road_80182060;
-extern GpGridParams         D_acropolis_forked_road_80182BF0[1];
+extern WorldCollisionGrid   D_acropolis_forked_road_80182BF0[1];
 extern GpObj4C              D_acropolis_forked_road_80182C14[6];
 extern GpObj4C              D_acropolis_forked_road_80182DDC[7];
 extern GpRoomCoordSet       D_acropolis_forked_road_80184E70[1];
@@ -629,7 +629,7 @@ s16* D_acropolis_forked_road_80182B90[24] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_forked_road_80182BF0[1] = {
+WorldCollisionGrid D_acropolis_forked_road_80182BF0[1] = {
     { NULL, D_acropolis_forked_road_801823A0, D_acropolis_forked_road_80182430, D_acropolis_forked_road_801827E0, D_acropolis_forked_road_80182B90, 0x303E, 6900, 6, 4, 4000, 38 },
 };
 

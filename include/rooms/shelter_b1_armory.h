@@ -23,7 +23,7 @@ extern GpViewCountRec D_shelter_b1_armory_80182584[];
 
 extern GpWarpRec D_shelter_b1_armory_80182588[];
 
-extern GpGridParams D_shelter_b1_armory_80182ED0;
+extern WorldCollisionGrid D_shelter_b1_armory_80182ED0;
 
 extern GpViewRec D_shelter_b1_armory_80182EF4[];
 

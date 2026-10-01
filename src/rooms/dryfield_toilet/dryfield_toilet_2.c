@@ -214,7 +214,7 @@ s16* D_dryfield_toilet_801813FC[2] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_toilet_80181404 = { NULL, D_dryfield_toilet_80181184, D_dryfield_toilet_801811BC, D_dryfield_toilet_801812EC, D_dryfield_toilet_801813FC, 2970, 2300, 1, 2, 4000, 17 };
+WorldCollisionGrid D_dryfield_toilet_80181404 = { NULL, D_dryfield_toilet_80181184, D_dryfield_toilet_801811BC, D_dryfield_toilet_801812EC, D_dryfield_toilet_801813FC, 2970, 2300, 1, 2, 4000, 17 };
 
 GpViewRec D_dryfield_toilet_80181428[11] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1524 },

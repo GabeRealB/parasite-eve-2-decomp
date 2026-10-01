@@ -207,7 +207,7 @@ void func_acropolis_square_80181DD0(Task*);
 void func_acropolis_square_80182148(Task*);
 void func_acropolis_square_80182200(s32);
 
-extern GpGridParams               D_acropolis_square_8018519C[1];
+extern WorldCollisionGrid         D_acropolis_square_8018519C[1];
 extern GpObj4C                    D_acropolis_square_801851C0[16];
 extern GpObj4C                    D_acropolis_square_80185680[26];
 extern WorldCoordRoomAmbientEntry D_acropolis_square_80186480[16];
@@ -394,7 +394,7 @@ s16* D_acropolis_square_8018515C[16] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_square_8018519C[1] = {
+WorldCollisionGrid D_acropolis_square_8018519C[1] = {
     { NULL, D_acropolis_square_80183D44, D_acropolis_square_80183FD4, D_acropolis_square_80184804, D_acropolis_square_8018515C, 7000, 8000, 4, 4, 4000, 115 },
 };
 

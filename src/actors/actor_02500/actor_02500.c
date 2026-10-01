@@ -862,7 +862,7 @@ static void Actor02500_Fn00494(Task* actor)
                 if (bestPush < push) {
                     bestPush = push;
                     VectorNormal((VECTOR*)&frame->delta, normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->dir);
                 }
                 break;
             case 3:
@@ -876,7 +876,7 @@ static void Actor02500_Fn00494(Task* actor)
                 if (bestPush < push) {
                     bestPush = push;
                     VectorNormal((VECTOR*)&frame->delta, normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, normal, &frame->dir);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->dir);
                 }
                 break;
         }

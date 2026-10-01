@@ -6335,7 +6335,7 @@ static void func_actor_400600_8013C6B0(SVECTOR* pos, WorldCollisionContact* rec,
     v.vy = pos->vy - rec->point.vy;
     v.vz = pos->vz - rec->point.vz;
     VectorNormal(&v, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &n, &v);
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &n, &v);
     out->vx = (dist * v.vx) >> 12;
     out->vy = 0;
     out->vz = (dist * v.vz) >> 12;

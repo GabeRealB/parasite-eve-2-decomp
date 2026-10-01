@@ -41,7 +41,7 @@ extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB08[];
 extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB28[];
 extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[];
 
-extern GpGridParams D_neo_ark_eve_access_tunnel_8017F05C[1];
+extern WorldCollisionGrid D_neo_ark_eve_access_tunnel_8017F05C[1];
 
 TaskDesc D_neo_ark_eve_access_tunnel_8017EA88 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
@@ -133,7 +133,7 @@ s16* D_neo_ark_eve_access_tunnel_8017F04C[4] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_eve_access_tunnel_8017F05C[1] = {
+WorldCollisionGrid D_neo_ark_eve_access_tunnel_8017F05C[1] = {
     { NULL, D_neo_ark_eve_access_tunnel_8017EC08, D_neo_ark_eve_access_tunnel_8017ECA0, D_neo_ark_eve_access_tunnel_8017EE58, D_neo_ark_eve_access_tunnel_8017F04C, 4452, 146, 2, 2, 4000, 28 },
 };
 

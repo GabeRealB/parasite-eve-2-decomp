@@ -464,7 +464,7 @@ def asset_groups(root, nodes, edges):
     A model's skeleton, vertices, normals and packet stream, an animation set's
     banks, records and indices, a collision grid's arrays: nothing reaches them
     except through the asset's record (`TmdSource`, `AnimationSet`, the grid's
-    `GpGridParams`), apart from the few functions that edit a live grid in
+    `WorldCollisionGrid`), apart from the few functions that edit a live grid in
     place. Naming them is one decision - what the asset is - so they are one
     unit of work with their record, as a cycle is. The record is the data item
     whose references into asset parts all go to a single asset.

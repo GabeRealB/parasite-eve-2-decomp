@@ -48,11 +48,11 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/screen_wave.h"
 
-extern GpGridParams   D_neo_ark_submarine_tunnel_801824DC[1];
-extern GpObj3A        D_neo_ark_submarine_tunnel_8018781C[3];
-extern GpObj4C        D_neo_ark_submarine_tunnel_80187248[6];
-extern GpObj4C        D_neo_ark_submarine_tunnel_801874D8[11];
-extern GpRoomCoordSet D_neo_ark_submarine_tunnel_80187230[1];
+extern WorldCollisionGrid D_neo_ark_submarine_tunnel_801824DC[1];
+extern GpObj3A            D_neo_ark_submarine_tunnel_8018781C[3];
+extern GpObj4C            D_neo_ark_submarine_tunnel_80187248[6];
+extern GpObj4C            D_neo_ark_submarine_tunnel_801874D8[11];
+extern GpRoomCoordSet     D_neo_ark_submarine_tunnel_80187230[1];
 
 extern TaskDesc D_80147E48;
 
@@ -156,7 +156,7 @@ s16* D_neo_ark_submarine_tunnel_801824C4[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_neo_ark_submarine_tunnel_801824DC[1] = {
+WorldCollisionGrid D_neo_ark_submarine_tunnel_801824DC[1] = {
     { NULL, D_neo_ark_submarine_tunnel_80181FA4, D_neo_ark_submarine_tunnel_8018207C, D_neo_ark_submarine_tunnel_80182284, D_neo_ark_submarine_tunnel_801824C4, 0x2710, 1000, 6, 1, 4000, 31 },
 };
 

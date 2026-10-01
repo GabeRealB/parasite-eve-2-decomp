@@ -70,17 +70,17 @@ extern RoomEventReq gRoomEventReq;
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
 
-extern GpGridParams   D_dryfield_parking_lot_8017E8DC[1];
-extern GpObj3A        D_dryfield_parking_lot_8017F6E4[2];
-extern GpObj4C        D_dryfield_parking_lot_8017F0A8[10];
-extern GpObj4C        D_dryfield_parking_lot_8017F3A0[11];
-extern GpRoomCoordSet D_dryfield_parking_lot_8017F9FC[1];
-extern TaskDesc       D_8014D8A4;
-s32                   func_dryfield_parking_lot_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_dryfield_parking_lot_8017DAA0(Task*, s32, s32, TaskMessageArg);
-s32                   func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid D_dryfield_parking_lot_8017E8DC[1];
+extern GpObj3A            D_dryfield_parking_lot_8017F6E4[2];
+extern GpObj4C            D_dryfield_parking_lot_8017F0A8[10];
+extern GpObj4C            D_dryfield_parking_lot_8017F3A0[11];
+extern GpRoomCoordSet     D_dryfield_parking_lot_8017F9FC[1];
+extern TaskDesc           D_8014D8A4;
+s32                       func_dryfield_parking_lot_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                       func_dryfield_parking_lot_8017DAA0(Task*, s32, s32, TaskMessageArg);
+s32                       func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                       func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -150,7 +150,7 @@ s16* D_dryfield_parking_lot_8017E828[45] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_parking_lot_8017E8DC[1] = {
+WorldCollisionGrid D_dryfield_parking_lot_8017E8DC[1] = {
     { NULL, D_dryfield_parking_lot_8017DD7C, D_dryfield_parking_lot_8017DE0C, D_dryfield_parking_lot_8017E22C, D_dryfield_parking_lot_8017E828, 0x4588, 8900, 9, 5, 4000, 55 },
 };
 

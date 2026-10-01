@@ -179,10 +179,10 @@ s32 func_acropolis_fire_escape_8017FE48(Task*, s32, s32, s32);
 
 void func_acropolis_fire_escape_8017FB40(Task*);
 
-extern GpGridParams   D_acropolis_fire_escape_801822A8[1];
-extern GpObj3A        D_acropolis_fire_escape_801828BC[2];
-extern GpObj4C        D_acropolis_fire_escape_801822CC[8];
-extern GpRoomCoordSet D_acropolis_fire_escape_80182B54[1];
+extern WorldCollisionGrid D_acropolis_fire_escape_801822A8[1];
+extern GpObj3A            D_acropolis_fire_escape_801828BC[2];
+extern GpObj4C            D_acropolis_fire_escape_801822CC[8];
+extern GpRoomCoordSet     D_acropolis_fire_escape_80182B54[1];
 
 extern SpriteDrawArea D_acropolis_fire_escape_80182D44[2];
 extern SpriteDrawArea D_acropolis_fire_escape_80182DF4[2];
@@ -291,7 +291,7 @@ s16* D_acropolis_fire_escape_80182284[9] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_acropolis_fire_escape_801822A8[1] = {
+WorldCollisionGrid D_acropolis_fire_escape_801822A8[1] = {
     { NULL, D_acropolis_fire_escape_80181E74, D_acropolis_fire_escape_80181EC4, D_acropolis_fire_escape_8018207C, D_acropolis_fire_escape_80182284, 5000, 3800, 3, 3, 4000, 23 },
 };
 

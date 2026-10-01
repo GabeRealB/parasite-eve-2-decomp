@@ -268,7 +268,7 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
 static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
 
-extern GpGridParams               D_dryfield_dilapidated_house_801872E4[1];
+extern WorldCollisionGrid         D_dryfield_dilapidated_house_801872E4[1];
 extern GpObj3A                    D_dryfield_dilapidated_house_80189260[1];
 extern GpObj4C                    D_dryfield_dilapidated_house_80188D08[9];
 extern GpObj4C                    D_dryfield_dilapidated_house_80188FB4[9];
@@ -1005,7 +1005,7 @@ s16* D_dryfield_dilapidated_house_801872CC[6] = {
 };
 #undef GRID_CELL
 
-GpGridParams D_dryfield_dilapidated_house_801872E4[1] = {
+WorldCollisionGrid D_dryfield_dilapidated_house_801872E4[1] = {
     { NULL, D_dryfield_dilapidated_house_801869E4, D_dryfield_dilapidated_house_80186A44, D_dryfield_dilapidated_house_80186DE4, D_dryfield_dilapidated_house_801872CC, 6000, 3200, 3, 2, 4000, 70 },
 };
 
