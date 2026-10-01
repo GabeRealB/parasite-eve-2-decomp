@@ -42,13 +42,23 @@
 /// packet construction selects its callbacks directly from the opcode.
 typedef u32* (*_TmdModelStreamHandler)(TmdStreamWorkspace* scratch, s32 objectFlags, u32* elements);
 
-/// A model-stream word is normally serialized data. Resolution writes a draw
-/// callback into the second word of each command, which Tmd_DispatchStream calls.
+/// One four-byte TMD command-stream word, viewed as data or a resolved draw callback.
+///
+/// Each command has an opcode, a callback slot and packed dimensions, followed
+/// by its payload. The dimensions' high 16 bits count elements; the low 16 bits
+/// give each element's stride in u32 words. Only a command's second word uses
+/// `drawHandler`: resolution overwrites it before drawing, and packet construction
+/// skips it. Opcodes, dimensions, payload and the single-word `TMD_STREAM_GROUP_END`
+/// and `TMD_STREAM_END` markers use `dataWord`.
+///
+/// This is the resolver's view of the borrowed `TmdSource.stream` word storage.
+/// The stream must be word-aligned, writable and contain complete records through
+/// `TMD_STREAM_END`; its descriptor supplies no length for bounds checking.
 typedef union {
-    u32                    value;
-    _TmdModelStreamHandler handler;
-} TmdStreamWord;
-STATIC_ASSERT_SIZEOF(TmdStreamWord, 4);
+    u32                    dataWord;    // Opcode, marker, packed count/word stride or payload word
+    _TmdModelStreamHandler drawHandler; // Resolved callback in a command's second word; ignored during packet construction
+} _TmdStreamWord;
+STATIC_ASSERT_SIZEOF(_TmdStreamWord, 4);
 
 enum {
     /// Initial state of a shared TMD source whose draw-handler slots need resolution.
@@ -135,14 +145,14 @@ static const TaskFuncTable3 Tmd_TaskStates = { {
 
 static void Tmd_InitSourceStream(TmdSource* src)
 {
-    TmdStreamWord*         stream;
+    _TmdStreamWord*        stream;
     u32                    id;
     u32                    dims;
     _TmdModelStreamHandler handler;
     s32                    flag;
     u32                    locationDifference;
 
-    stream = (TmdStreamWord*)src->stream;
+    stream = (_TmdStreamWord*)src->stream;
     if (src->handlersResolved == TMD_SOURCE_HANDLERS_UNRESOLVED) {
         locationDifference = GAME_LOCATION_WORD(gGameSession->location.loc);
         locationDifference = (locationDifference & GAME_LOCATION_STAGE_AREA_MASK) ^ GAME_LOCATION_KEY(2, 16, 0, 0);
@@ -338,14 +348,15 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     break;
             }
 
+            // Resolve the draw slot, then skip the count * stride payload words.
             stream++;
-            stream->handler = handler;
+            stream->drawHandler = handler;
             stream++;
-            dims = stream->value;
+            dims = stream->dataWord;
             stream++;
             id      = dims & 0xFFFF;
             stream += (dims >> 16) * id;
-            id      = stream->value;
+            id      = stream->dataWord;
 
             while (1) {
                 if (id != TMD_STREAM_GROUP_END) {
@@ -353,7 +364,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                 }
                 stream++;
             read_id:
-                id = stream->value;
+                id = stream->dataWord;
                 // Terminator at entry, or after a group marker. Leave the word in place.
                 if (id == TMD_STREAM_END) {
                     goto done;

@@ -103,6 +103,10 @@ at the stride interval — every 7 words in an `0x78` packet, not every 20.
 into `handler_slot`**, so a stream that has run once no longer matches its
 on-disc form. Decode from the extracted file, never from a RAM dump.
 
+The resolver uses the private `_TmdStreamWord` union to view the source's `u32`
+storage as either `dataWord` or `drawHandler`. Only the second word of a command
+holds a callback; group and stream terminators occupy one data word each.
+
 ### 2.2 `0xFFFFFFFE` terminates a command group
 
 Reading it as "skip a word and carry on" merges the whole skeleton into one
