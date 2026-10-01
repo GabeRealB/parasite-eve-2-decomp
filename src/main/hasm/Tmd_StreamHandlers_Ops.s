@@ -33,7 +33,42 @@
 
 .section .text, "ax"
 
+/* POLY_G3 includes its DMA tag; the GPU length excludes that word. */
+.equ TMD_DRAW_STREAM_G3_CORNER_NORMALS_PACKET_BYTES, 28
+.equ TMD_DRAW_STREAM_G3_CORNER_NORMALS_PACKET_WORDS, (TMD_DRAW_STREAM_G3_CORNER_NORMALS_PACKET_BYTES / 4) - 1
+/* Wrap scaled depth to 14 bits, then quantize by 16 into 1024 OT buckets. */
+.equ TMD_DRAW_STREAM_G3_CORNER_NORMALS_DEPTH_MASK, 0x3FFF
+.equ TMD_DRAW_STREAM_G3_CORNER_NORMALS_DEPTH_SHIFT, 4
+.equ TMD_DRAW_STREAM_G3_CORNER_NORMALS_DMA_ADDRESS_BITS, 24
+
+/*
+ * Complete and prepend a G3 packet, keeping NCCT's colour result per corner.
+ * Inputs: t8 packet, t1 its 24-bit DMA address, t7 displaced OT base,
+ * t2 OTZ, a1 depth shift, v0 six-word DMA length in bits 24..31,
+ * GTE RGB0..2 from the preceding NCCT. Clobbers t0 and t2; writes the
+ * OT head, packet tag and three colour words. The link arithmetic runs
+ * while NCCT completes; keep the colour stores after it without extra delays.
+ * Fixed registers and constants belong to this handler; expansion emits no call.
+ */
+.macro TMD_DRAW_STREAM_G3_CORNER_NORMALS_LINK_PACKET
+    sllv        $t2, $t2, $a1
+    andi        $t2, $t2, TMD_DRAW_STREAM_G3_CORNER_NORMALS_DEPTH_MASK
+    srl         $t2, $t2, TMD_DRAW_STREAM_G3_CORNER_NORMALS_DEPTH_SHIFT
+    sll         $t2, $t2, 2
+    addu        $t2, $t2, $t7
+    lw          $t0, 0x0($t2)
+    sw          $t1, 0x0($t2)
+    sll         $t0, $t0, (32 - TMD_DRAW_STREAM_G3_CORNER_NORMALS_DMA_ADDRESS_BITS)
+    srl         $t0, $t0, (32 - TMD_DRAW_STREAM_G3_CORNER_NORMALS_DMA_ADDRESS_BITS)
+    or          $t0, $v0, $t0
+    sw          $t0, 0x0($t8)
+    swc2        $20, 0x4($t8)
+    swc2        $21, 0xC($t8)
+    swc2        $22, 0x14($t8)
+.endm
+
 glabel tmdDrawStreamPrimG3CornerNormals
+    /* a0 workspace, a1 ignored object flags, a2 first element word. */
     /* 1290 80010A90 */  lw          $t9, 0x18($a0)
     /* 1294 80010A94 */  lw          $a3, 0x1C($a0)
     /* 1298 80010A98 */  lw          $t8, 0x0($a0)
@@ -41,17 +76,18 @@ glabel tmdDrawStreamPrimG3CornerNormals
     /* 12A0 80010AA0 */  lw          $t6, 0x8($a0)
     /* 12A4 80010AA4 */  lw          $t5, 0xC($a0)
     /* 12A8 80010AA8 */  sll         $t9, $t9, 2
-    /* 12AC 80010AAC */  lui         $v0, 0x600
-    /* 12B0 80010AB0 */  j           .L80010AC0
+    /* 12AC 80010AAC */  lui         $v0, (TMD_DRAW_STREAM_G3_CORNER_NORMALS_PACKET_WORDS << 8)
+    /* 12B0 80010AB0 */  j           .LtmdG3CornerNormalsLoop
     /* 12B4 80010AB4 */  lw          $a1, 0x84($a0)
-  .L80010AB8:
-    /* 12B8 80010AB8 */  addiu       $t8, $t8, 0x1C
-  .L80010ABC:
+  .LtmdG3CornerNormalsAdvance:
+    /* Rejection consumes the same packet slot as an accepted triangle. */
+    /* 12B8 80010AB8 */  addiu       $t8, $t8, TMD_DRAW_STREAM_G3_CORNER_NORMALS_PACKET_BYTES
     /* 12BC 80010ABC */  addu        $a2, $t9, $a2
-  .L80010AC0:
-    /* 12C0 80010AC0 */  beq         $zero, $a3, .L80010BE4
+  .LtmdG3CornerNormalsLoop:
+    /* 12C0 80010AC0 */  beq         $zero, $a3, .LtmdG3CornerNormalsDone
     /* 12C4 80010AC4 */  nop
     /* 12C8 80010AC8 */  addiu       $a3, $a3, -0x1
+    /* Unpack three vertex and three normal byte offsets from the element. */
     /* 12CC 80010ACC */  lw          $t1, 0x0($a2)
     /* 12D0 80010AD0 */  lw          $t3, 0x4($a2)
     /* 12D4 80010AD4 */  srl         $t2, $t1, 16
@@ -71,7 +107,8 @@ glabel tmdDrawStreamPrimG3CornerNormals
     /* 130C 80010B0C */  lwc2        $5, 0x4($t3)
     /* 1310 80010B10 */  lw          $t2, 0x8($a2)
     /* 1314 80010B14 */  sll         $t1, $t4, 0
-    /* 1318 80010B18 */  .word 0x4A280030
+    /* Project all corners; retain normal addresses while RTPT completes. */
+    /* 1318 80010B18 */  rtpt
     /* 131C 80010B1C */  addu        $t1, $t5, $t1
     /* 1320 80010B20 */  srl         $t3, $t2, 16
     /* 1324 80010B24 */  addu        $t3, $t5, $t3
@@ -80,21 +117,23 @@ glabel tmdDrawStreamPrimG3CornerNormals
     /* 1330 80010B30 */  addu        $t2, $t5, $t2
     /* 1334 80010B34 */  cfc2        $t0, $31
     /* 1338 80010B38 */  nop
-    /* 133C 80010B3C */  bltz        $t0, .L80010AB8
+    /* Reject the signed GTE error summary before testing positive winding. */
+    /* 133C 80010B3C */  bltz        $t0, .LtmdG3CornerNormalsAdvance
     /* 1340 80010B40 */  nop
     /* 1344 80010B44 */  nop
     /* 1348 80010B48 */  nop
-    /* 134C 80010B4C */  .word 0x4B400006
+    /* 134C 80010B4C */  nclip
     /* 1350 80010B50 */  mfc2        $t0, $24
     /* 1354 80010B54 */  nop
-    /* 1358 80010B58 */  blez        $t0, .L80010AB8
+    /* 1358 80010B58 */  blez        $t0, .LtmdG3CornerNormalsAdvance
     /* 135C 80010B5C */  nop
     /* 1360 80010B60 */  swc2        $12, 0x8($t8)
     /* 1364 80010B64 */  swc2        $13, 0x10($t8)
     /* 1368 80010B68 */  swc2        $14, 0x18($t8)
     /* 136C 80010B6C */  nop
     /* 1370 80010B70 */  nop
-    /* 1374 80010B74 */  .word 0x4B58002D
+    /* Average projected depths, then light the material colour with all three normals. */
+    /* 1374 80010B74 */  avsz3
     /* 1378 80010B78 */  lwc2        $6, 0xC($a2)
     /* 137C 80010B7C */  lwc2        $0, 0x0($t1)
     /* 1380 80010B80 */  lwc2        $1, 0x4($t1)
@@ -103,31 +142,20 @@ glabel tmdDrawStreamPrimG3CornerNormals
     /* 138C 80010B8C */  lwc2        $4, 0x0($t3)
     /* 1390 80010B90 */  lwc2        $5, 0x4($t3)
     /* 1394 80010B94 */  mfc2        $t2, $7
-    /* 1398 80010B98 */  sll         $t1, $t8, 8
-    /* 139C 80010B9C */  srl         $t1, $t1, 8
-    /* 13A0 80010BA0 */  .word 0x4B18043F
-    /* 13A4 80010BA4 */  sllv        $t2, $t2, $a1
-    /* 13A8 80010BA8 */  andi        $t2, $t2, 0x3FFF
-    /* 13AC 80010BAC */  srl         $t2, $t2, 4
-    /* 13B0 80010BB0 */  sll         $t2, $t2, 2
-    /* 13B4 80010BB4 */  addu        $t2, $t2, $t7
-    /* 13B8 80010BB8 */  lw          $t0, 0x0($t2)
-    /* 13BC 80010BBC */  sw          $t1, 0x0($t2)
-    /* 13C0 80010BC0 */  sll         $t0, $t0, 8
-    /* 13C4 80010BC4 */  srl         $t0, $t0, 8
-    /* 13C8 80010BC8 */  or          $t0, $v0, $t0
-    /* 13CC 80010BCC */  sw          $t0, 0x0($t8)
-    /* 13D0 80010BD0 */  swc2        $20, 0x4($t8)
-    /* 13D4 80010BD4 */  swc2        $21, 0xC($t8)
-    /* 13D8 80010BD8 */  swc2        $22, 0x14($t8)
-    /* 13DC 80010BDC */  j           .L80010AB8
+    /* 1398 80010B98 */  sll         $t1, $t8, (32 - TMD_DRAW_STREAM_G3_CORNER_NORMALS_DMA_ADDRESS_BITS)
+    /* 139C 80010B9C */  srl         $t1, $t1, (32 - TMD_DRAW_STREAM_G3_CORNER_NORMALS_DMA_ADDRESS_BITS)
+    /* 13A0 80010BA0 */  ncct
+    /* 13A4..13D8 80010BA4..80010BD8 */  TMD_DRAW_STREAM_G3_CORNER_NORMALS_LINK_PACKET
+    /* 13DC 80010BDC */  j           .LtmdG3CornerNormalsAdvance
     /* 13E0 80010BE0 */  nop
-  .L80010BE4:
+  .LtmdG3CornerNormalsDone:
     /* 13E4 80010BE4 */  sw          $t8, 0x0($a0)
-  .L80010BE8:
     /* 13E8 80010BE8 */  addu        $v0, $zero, $a2
     /* 13EC 80010BEC */  jr          $ra
     /* 13F0 80010BF0 */  nop
+endlabel tmdDrawStreamPrimG3CornerNormals
+.purgem TMD_DRAW_STREAM_G3_CORNER_NORMALS_LINK_PACKET
+
 glabel tmdDrawStreamPrimG4CornerNormals
     /* 13F4 80010BF4 */  lw          $t9, 0x18($a0)
     /* 13F8 80010BF8 */  lw          $a3, 0x1C($a0)

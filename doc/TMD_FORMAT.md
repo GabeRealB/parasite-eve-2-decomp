@@ -613,7 +613,7 @@ transform, a cull, a packet's filing and its ordering-table link.
 | Opcode | Init handler | Stride | Elements | Role |
 |---|---|---:|---:|---|
 | `0x21` | `tmdDrawStreamPrimG3PreXform` | 2 | 2 | pre-transformed `POLY_G3`: the vertex pass already placed the corners, so the handler culls the triangle, averages the cached depths and links the packet — **solved**, §3.5 |
-| `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | the `0x20` triangle in its semi-transparent form; the two opcodes resolve to one body |
+| `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | per-corner-lit `POLY_G3`; the element's RGB/code word supplies blending, and drawing consumes one packet slot per element despite skipped construction |
 | `0x61` | `tmdDrawStreamPrimG4PreXform` | — | — | the pre-transformed untextured quad — face-tested, coded and linked into the ordering table — **solved**, §3.2 |
 | `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | ? |
 | `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
