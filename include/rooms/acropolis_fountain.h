@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_acropolis_fountain_8017E858[];
 
 extern GpWarpRec D_acropolis_fountain_8017E868[];
 
-extern GpSprtRec D_acropolis_fountain_8018375C[];
+extern SpriteView D_acropolis_fountain_8018375C[];
 
 extern GpViewRec D_acropolis_fountain_80183864[];
 

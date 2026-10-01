@@ -546,7 +546,7 @@ SpriteBatch D_dryfield_factory_80189580[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_factory_801895B0[19] = {
+SpriteView D_dryfield_factory_801895B0[19] = {
     { { .empty = D_dryfield_factory_80187EC8 }, D_dryfield_factory_80187EC8, NULL },
     { { .elements = D_dryfield_factory_80187ED8 }, D_dryfield_factory_80187FDC, NULL },
     { { .elements = D_dryfield_factory_8018800C }, D_dryfield_factory_801880D4, NULL },

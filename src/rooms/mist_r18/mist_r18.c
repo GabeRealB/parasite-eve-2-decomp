@@ -1042,7 +1042,7 @@ SpriteBatch D_mist_r18_80186B50[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mist_r18_80186B60[10] = {
+SpriteView D_mist_r18_80186B60[10] = {
     { { .empty = D_mist_r18_80186884 }, D_mist_r18_80186884, NULL },
     { { .empty = D_mist_r18_80186894 }, D_mist_r18_80186894, NULL },
     { { .empty = D_mist_r18_801868B4 }, D_mist_r18_801868B4, NULL },
@@ -1056,7 +1056,7 @@ GpSprtRec D_mist_r18_80186B60[10] = {
 };
 
 AreaResource D_mist_r18_80186BD8[3] = {
-    { 144, 130, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013ABB4 },
+    { 144, 130, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013ABB4 },
     { 105, 130, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80157DE0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

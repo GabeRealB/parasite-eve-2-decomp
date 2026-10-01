@@ -83,7 +83,7 @@ typedef struct Actor510900GridScratch {
 STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
 
 /// `Task::work` of the child task `func_actor_510900_8013A85C` drives: an
-/// animation context `Gp_AnimTickIndex` ticks slots 1..10 of, with a pair of
+/// animation context `animationTickSlot` ticks slots 1..10 of, with a pair of
 /// words past it. Below 2, `field_334` + 0xB is the game-flag nibble index
 /// `field_336` is written to; otherwise `field_336` goes to the parent work's
 /// `field_5C2`.
@@ -2550,7 +2550,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             coord->coord.t[1] = 0;
             coord->coord.t[2] = 0;
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->field_586);
+                animationResetSlot(&work->rig.anim, i, work->field_586);
             }
             if (work->field_594 == 0) {
                 work->field_594 = 1;
@@ -3032,7 +3032,7 @@ static void func_actor_510900_8013A310(Task* task)
                     work->field_CA = 3;
                     break;
                 }
-                Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
+                taskMessageDispatch(player, 0x3F9, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
                 scratch->anim.source.sets          = D_actor_510900_80167B2C;
                 scratch->anim.animationId          = 1;
                 scratch->anim.blend                = ANIMATION_BLEND_RESET;
@@ -3067,8 +3067,8 @@ static void func_actor_510900_8013A310(Task* task)
             tick           = work->field_CE + 1;
             work->field_CE = tick;
             if ((s16)tick >= 0x15) {
-                if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                    Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                    taskMessageDispatch(player, 0x3F1, 0, 0);
                     work->field_CA = 3;
                 }
             }
@@ -3126,7 +3126,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     coords->parent     = &gGfxViewCoord;
     func_800B3F84(&work->anim, D_actor_510900_80167CAC, tmd, work->poses, work->slots);
     do {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->anim, i, 1);
         i++;
     } while (i < 0xB);
     work->obj2BC.pos.vx           = -0xC8;
@@ -3195,7 +3195,7 @@ case0:
     if (func_actor_510900_8013C240(arg1) == 0) {
         i = 1;
         do {
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
             i++;
         } while (i < 0xB);
         return;
@@ -3216,7 +3216,7 @@ body:
     }
     i = 1;
     do {
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
         i++;
     } while (i < 0xB);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3914,7 +3914,7 @@ static void func_actor_510900_8013BB20(Task* arg0)
     } else {
         work->field_58A++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

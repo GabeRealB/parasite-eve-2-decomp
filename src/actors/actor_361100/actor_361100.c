@@ -1524,7 +1524,7 @@ static void func_actor_361100_80162B18(Task* task)
     }
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -1758,7 +1758,7 @@ static void func_actor_361100_801631C4(Task* task)
     }
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -1852,11 +1852,11 @@ s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg)
         }
     } else {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+            animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
     return 0;

@@ -85,8 +85,6 @@ void Gp_AnimInitCtxSlots(AnimationContext* ctx, void* sets, TmdObject* model, vo
 /// rather than its own.
 void func_800B3F84(AnimationContext* context, void* arg1, TmdObject* arg2, void* arg3, AnimationSlot* arg4);
 
-void Gp_AnimResetSlot(AnimationContext* context, s32 arg1, s32 arg2);
-
 void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
@@ -94,8 +92,6 @@ void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* a
 
 void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
                           s32 arg5);
-
-void Gp_AnimTickIndex(AnimationContext* context, s32 arg1);
 
 void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5,
                    s32 arg6);

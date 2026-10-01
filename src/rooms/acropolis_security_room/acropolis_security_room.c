@@ -1770,7 +1770,7 @@ SpriteBatch D_acropolis_security_room_80184BD8[15] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_security_room_80184C50[16] = {
+SpriteView D_acropolis_security_room_80184C50[16] = {
     { { .empty = D_acropolis_security_room_801841E0 }, D_acropolis_security_room_801841E0, NULL },
     { { .elements = D_acropolis_security_room_801841F0 }, D_acropolis_security_room_80184358, NULL },
     { { .empty = D_acropolis_security_room_80184370 }, D_acropolis_security_room_80184370, NULL },
@@ -1921,7 +1921,7 @@ s32 func_acropolis_security_room_8017D6D4(Task* task, s32 msgId, s32 arg2, s32 a
     if (target == NULL) {
         ret = 0;
     } else {
-        ret = Gp_DispatchMsg(target, msgId, arg2, arg3);
+        ret = taskMessageDispatch(target, msgId, arg2, arg3);
     }
     return ret;
 }
@@ -1993,8 +1993,8 @@ void func_acropolis_security_room_8017D834(Task* arg0)
             return;
         case 1:
             if (Task_PollKill(D_acropolis_security_room_801855AC, &sp10) != 0) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 D_acropolis_security_room_801855AC = NULL;
@@ -2260,9 +2260,8 @@ static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8
 /// block's `cameraId` biased by -0x7F -- as a semi-transparent `POLY_F4`
 /// covering (-0x66, -0x5F) to (0x6C, 0x3C) in `gGpuCurrentOt[0xC]`, followed by
 /// the drawing-mode packet that restores the panel's texture page. A negative
-/// `id` uses its magnitude and the other semi-transparency rate (0xE100004A
-/// rather than 0xE100002A), which is what makes the "no signal" panel read
-/// differently from a live camera. The strip below the panel (y 0x3C to 0x38)
+/// `id` selects `GPU_BLEND_SUBTRACT`, darkening the "no signal" panel.
+/// The strip below the panel (y 0x3C to 0x38)
 /// is then blacked out with an opaque quad in `gGpuCurrentOt[0xB]`.
 static void func_acropolis_security_room_8017E0C4(s16 id)
 {
@@ -2316,7 +2315,7 @@ static void func_acropolis_security_room_8017E0C4(s16 id)
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;
         setlen(dr, 1);
-        dr->code[0] = 0xE100004A;
+        dr->code[0] = _get_mode(false, false, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));
         addPrim(gGpuCurrentOt + 0xC, dr);
     }
 
@@ -2815,7 +2814,7 @@ static void func_acropolis_security_room_8017FD64(s32 flags)
     GameLocationKey* sess = &g->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][5].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][5].batches;
     switch (flags & 0xFF) {
         case 0:
             batches[1].hidden = 1;

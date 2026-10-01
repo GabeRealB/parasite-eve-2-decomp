@@ -808,7 +808,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
 
 GpViewIndexTbl D_map_neo_ark_8017ADB0 = { D_map_neo_ark_8017AD2C };
 
-static GpSprtRec* D_map_neo_ark_8017ADB4[33] = {
+static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     D_shelter_1f_parking_garage_80181430,
     D_shelter_1f_vehicular_airlock_801824F8,
     D_shelter_1f_bulwark_801807B0,

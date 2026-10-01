@@ -61,10 +61,10 @@ STATIC_ASSERT_SIZEOF(DryfieldToiletAnimStorage0B8C, 20);
 
 extern DryfieldToiletAnimStorage0B8C D_dryfield_toilet_80180B8C;
 
-extern GpObj3A               D_dryfield_toilet_801826F0[1];
-extern WorldCollisionTrigger D_dryfield_toilet_8018227C[6];
-extern WorldCollisionTrigger D_dryfield_toilet_80182444[9];
-extern WorldCoordRoomLights  D_dryfield_toilet_801828AC[1];
+extern WorldCollisionOccluder D_dryfield_toilet_801826F0[1];
+extern WorldCollisionTrigger  D_dryfield_toilet_8018227C[6];
+extern WorldCollisionTrigger  D_dryfield_toilet_80182444[9];
+extern WorldCoordRoomLights   D_dryfield_toilet_801828AC[1];
 
 extern WorldCollisionGridFace D_dryfield_toilet_801812EC[17];
 extern SVECTOR                D_dryfield_toilet_80181184[7];
@@ -453,7 +453,7 @@ SpriteBatch D_dryfield_toilet_801821E8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_toilet_801821F8[11] = {
+SpriteView D_dryfield_toilet_801821F8[11] = {
     { { .empty = D_dryfield_toilet_801815B4 }, D_dryfield_toilet_801815B4, NULL },
     { { .elements = D_dryfield_toilet_801815C4 }, D_dryfield_toilet_80181948, NULL },
     { { .elements = D_dryfield_toilet_80181968 }, D_dryfield_toilet_80181D14, NULL },
@@ -488,8 +488,8 @@ WorldCollisionTrigger D_dryfield_toilet_80182444[9] = {
     { NULL, NULL, NULL, { -1856, -64, -1344, 0 }, { { -320, 0, -704, 0 }, { 320, 0, -704, 0 }, { -320, 0, 704, 0 }, { 320, 0, 704, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 773, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_toilet_801826F0[1] = {
-    { NULL, NULL, { -864, -1488, 624, 0 }, { { 0, 1904, -1520, 0 }, { 0, -1904, -1520, 0 }, { 0, 1904, 1520, 0 }, { 0, -1904, 1520, 0 } }, { 4109, 0, 0, 0 }, { 124, 9 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_toilet_801826F0[1] = {
+    { NULL, NULL, { -864, -1488, 624, 0 }, { { 0, 1904, -1520, 0 }, { 0, -1904, -1520, 0 }, { 0, 1904, 1520, 0 }, { 0, -1904, 1520, 0 } }, { 4109, 0, 0, 0 }, 2428, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_toilet_8018272C[4] = {
@@ -510,12 +510,12 @@ AreaResource D_dryfield_toilet_801828C4[3] = {
 };
 
 AreaResource D_dryfield_toilet_801828E8[2] = {
-    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138E98 },
+    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80138E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_toilet_80182900[2] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

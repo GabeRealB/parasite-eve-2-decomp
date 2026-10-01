@@ -748,7 +748,7 @@ static u8** D_map_dryfield_8017AB64[38] = {
 
 GpViewIndexTbl D_map_dryfield_8017ABFC = { D_map_dryfield_8017AB64 };
 
-static GpSprtRec* D_map_dryfield_8017AC00[38] = {
+static SpriteView* D_map_dryfield_8017AC00[38] = {
     D_dryfield_gas_station_801842A8,
     D_dryfield_main_street_80184308,
     D_dryfield_general_store_8018402C,

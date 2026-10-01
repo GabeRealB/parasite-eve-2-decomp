@@ -843,7 +843,7 @@ SpriteBatch D_mine_gorge_801827E8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_gorge_801827F8[11] = {
+SpriteView D_mine_gorge_801827F8[11] = {
     { { .empty = D_mine_gorge_8017FBA0 }, D_mine_gorge_8017FBA0, NULL },
     { { .elements = D_mine_gorge_8017FBB0 }, D_mine_gorge_80180268, NULL },
     { { .elements = D_mine_gorge_801802A0 }, D_mine_gorge_80180854, NULL },
@@ -901,28 +901,28 @@ WorldCollisionTrigger D_mine_gorge_80182F94[5] = {
 };
 
 AreaResource D_mine_gorge_80183110[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_gorge_80183128[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_gorge_80183140[2] = {
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_gorge_80183158[3] = {
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_gorge_8018317C[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

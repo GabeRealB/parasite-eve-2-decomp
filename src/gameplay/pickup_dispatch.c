@@ -157,7 +157,7 @@ void Gp_MenuExitCallback(Task* arg0)
         Gp_RelatedPending = 0;
     }
     if (Gp_HealPending == 1) {
-        Gp_DispatchMsg(playerTask, 0x402, 0, 0);
+        taskMessageDispatch(playerTask, 0x402, 0, 0);
         Gp_HealPending = 0;
     }
     if (Gp_UsedItemId != 0) {

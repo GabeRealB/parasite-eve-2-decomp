@@ -9,7 +9,7 @@ static __inline__ void animDriverResetSlots(AnimDriverWork* arg0)
 
     for (i = 1; i < 6; i++) {
         work->slots[i].rate = work->rate + work->rateBias;
-        Gp_AnimResetSlot(&work->anim, i, work->requested);
+        animationResetSlot(&work->anim, i, work->requested);
     }
     work->playing = work->requested;
 }
@@ -23,7 +23,7 @@ static __inline__ void animDriverTickSlots(Task* arg0)
     work = arg0->work;
     for (i = 1; i < 6; i++) {
         work->slots[i].rate = work->rate + work->rateBias;
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
     }
 }
 

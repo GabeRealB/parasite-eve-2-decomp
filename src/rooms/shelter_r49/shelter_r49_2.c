@@ -129,7 +129,7 @@ SpriteBatch D_shelter_r49_8017DC90[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_r49_8017DCA0[3] = {
+SpriteView D_shelter_r49_8017DCA0[3] = {
     { { .empty = D_shelter_r49_8017DB3C }, D_shelter_r49_8017DB3C, NULL },
     { { .elements = D_shelter_r49_8017DB4C }, D_shelter_r49_8017DC78, NULL },
     { { .empty = D_shelter_r49_8017DC90 }, D_shelter_r49_8017DC90, NULL },
@@ -144,7 +144,7 @@ WorldCoordRoomLights D_shelter_r49_8017DD24[1] = {
 };
 
 AreaResource D_shelter_r49_8017DD3C[2] = {
-    { 111, 439, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801413EC },
+    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801413EC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

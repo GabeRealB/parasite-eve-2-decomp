@@ -8,6 +8,8 @@
 
 #include "shelter_b1_pod_service_gantry_private.h"
 
+#include "rooms/shelter_b1_pod_service_gantry_light_types.h"
+
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
@@ -33,15 +35,6 @@
 #include "main/task_types.h"
 
 #include "mapui/map_shelter.h"
-
-// Two live spotlights are followed by retained exporter data in whole
-// spotlight-sized slots. Its original role is unresolved; keep the bytes
-// without treating stale pointer-looking words as live C pointers.
-typedef struct {
-    WorldCoordSpotLight active[2];
-    u8                  retained[756];
-} ShelterB1PodServiceGantrySpotLightStorage;
-STATIC_ASSERT_SIZEOF(ShelterB1PodServiceGantrySpotLightStorage, 972);
 
 /// Work block of the room task, allocated zeroed by its first state: the
 /// child task the current step spawned, and the step it dispatches on.
@@ -685,7 +678,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80181B90[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_pod_service_gantry_80181BA0[46] = {
+SpriteView D_shelter_b1_pod_service_gantry_80181BA0[46] = {
     { { .elements = D_shelter_b1_pod_service_gantry_80180860 }, D_shelter_b1_pod_service_gantry_80180A2C, NULL },
     { { .elements = D_shelter_b1_pod_service_gantry_80180A4C }, D_shelter_b1_pod_service_gantry_80180AEC, NULL },
     { { .elements = D_shelter_b1_pod_service_gantry_80180B04 }, D_shelter_b1_pod_service_gantry_80180BF4, D_shelter_b1_pod_service_gantry_80180C14 },
@@ -747,11 +740,11 @@ WorldCoordPointLight D_shelter_b1_pod_service_gantry_80181DC8[9] = {
 };
 
 ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128 = {
-    {
+    .coneLights = {
         { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4003, -2, 873 }, { 869, 266, 4000 }, { -59, 4087, -261 } }, { 3412, -0x5063, 9454 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2764, 2764, 2425 }, { 0, 0 } }, { 872, 3993, -260, 0 }, 0x4E20, 0x7530, 0x2C71 },
         { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4092, 0, -222 }, { 215, -909, -3996 }, { -50, -3996, 908 } }, { 8054, 5038, 1813 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 226, 226, 198 }, { 0, 0 } }, { -221, -3988, 907, 0 }, 10, 0x4E20, 0x2C71 },
     },
-    {
+    .unknown_D8 = {
         0x00,
         0x00,
         0x00,
@@ -1511,7 +1504,7 @@ ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_801821
     },
 };
 
-WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80181DC8), D_shelter_b1_pod_service_gantry_80181DC8, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80182128.active), D_shelter_b1_pod_service_gantry_80182128.active };
+WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80181DC8), D_shelter_b1_pod_service_gantry_80181DC8, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80182128.coneLights), D_shelter_b1_pod_service_gantry_80182128.coneLights };
 
 static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
 {

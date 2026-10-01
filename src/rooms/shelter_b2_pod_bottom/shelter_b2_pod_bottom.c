@@ -842,7 +842,7 @@ SpriteBatch D_shelter_b2_pod_bottom_801858F4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_pod_bottom_80185904[16] = {
+SpriteView D_shelter_b2_pod_bottom_80185904[16] = {
     { { .empty = D_shelter_b2_pod_bottom_80182DC0 }, D_shelter_b2_pod_bottom_80182DC0, NULL },
     { { .elements = D_shelter_b2_pod_bottom_80182DD0 }, D_shelter_b2_pod_bottom_80183208, NULL },
     { { .elements = D_shelter_b2_pod_bottom_80183260 }, D_shelter_b2_pod_bottom_80183620, NULL },

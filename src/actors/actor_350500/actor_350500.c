@@ -36,7 +36,7 @@ typedef GpSpawnAnimArg Actor350500SpawnAnim;
 extern AnimationSet*  D_actor_350500_80168E8C[5];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -290,7 +290,7 @@ void reverseWalkRunStep(Task* arg0)
 
 #include "../../shared/reversing_walker_visibility.inc.c"
 
-/// `Gp_DispatchMsg` handler: latches the variant the message's halfword at
+/// `taskMessageDispatch` handler: latches the variant the message's halfword at
 /// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
 /// leaves it. Always returns 0.
 s32 func_actor_350500_80162ABC(Task* task, s32 arg1, ActorCommand* msg)

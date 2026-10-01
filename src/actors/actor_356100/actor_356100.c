@@ -1060,7 +1060,7 @@ static void func_actor_356100_801633DC(Task* arg0)
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->slots[i].rate = (work->field_982 - 3);
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }
@@ -1094,7 +1094,7 @@ static void func_actor_356100_80163508(Task* arg0)
         anim = (Actor356100AnimWork*)arg0->work;
         for (i = 1; i < 0x15; i++) {
             anim->slots[i].rate = anim->field_982;
-            Gp_AnimResetSlot(&anim->anim, i, anim->field_97E);
+            animationResetSlot(&anim->anim, i, anim->field_97E);
         }
         anim->field_97C = anim->field_97E;
         work->field_978 = 3;
@@ -1110,7 +1110,7 @@ static void func_actor_356100_80163508(Task* arg0)
         blend->field_98C = 0x800;
         for (i = 1; i < 0x15; i++) {
             blend->slots[i].rate = blend->field_98A;
-            Gp_AnimResetSlot(&blend->blendAnim, i, blend->field_988);
+            animationResetSlot(&blend->blendAnim, i, blend->field_988);
         }
         work->field_986 = 3;
     }
@@ -1122,7 +1122,7 @@ static void func_actor_356100_80163508(Task* arg0)
         tick = (Actor356100AnimWork*)arg0->work;
         for (i = 1; i < 0x15; i++) {
             tick->slots[i].rate = tick->field_982;
-            Gp_AnimTickIndex(&tick->anim, i);
+            animationTickSlot(&tick->anim, i);
         }
     } else {
         func_actor_356100_801633DC(arg0);
@@ -2072,9 +2072,9 @@ static void func_actor_356100_801668FC(Task* actor)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
         }
         work->field_6 = 0;
-    } else if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0 &&
+    } else if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0 &&
                playerStatus->hp > 0 && work->field_B68 == 1) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         work->field_B68 = 0;
     }
     if ((u32)(work->field_5A & 0x3FF) - 0x10 < 7U) {
@@ -2165,7 +2165,7 @@ static void func_actor_356100_801668FC(Task* actor)
         }
         work->field_0 = nextState;
         if (playerStatus->hp > 0 && work->field_B68 == 1) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             work->field_B68 = 0;
         }
     }
@@ -3239,7 +3239,7 @@ static void func_actor_356100_8016A468(Task* arg0)
         msg->animationId = 2;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        Gp_DispatchMsg(playerTask, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
+        taskMessageDispatch(playerTask, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
     }
     if (work->field_68 & 2) {
         work->field_0 = 0xE;

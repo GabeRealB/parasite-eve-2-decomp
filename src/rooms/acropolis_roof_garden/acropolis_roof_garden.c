@@ -109,11 +109,11 @@ static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
 
 static const RgSpriteLevels D_acropolis_roof_garden_8017D5D0 = { { 0x40, 0x60, 0x10 } };
 
-extern WorldCollisionGrid    D_acropolis_roof_garden_801854A4[1];
-extern GpObj3A               D_acropolis_roof_garden_80186D14[2];
-extern WorldCollisionTrigger D_acropolis_roof_garden_801854C8[6];
-extern WorldCollisionTrigger D_acropolis_roof_garden_80185690[7];
-extern WorldCoordRoomLights  D_acropolis_roof_garden_80186BDC[1];
+extern WorldCollisionGrid     D_acropolis_roof_garden_801854A4[1];
+extern WorldCollisionOccluder D_acropolis_roof_garden_80186D14[2];
+extern WorldCollisionTrigger  D_acropolis_roof_garden_801854C8[6];
+extern WorldCollisionTrigger  D_acropolis_roof_garden_80185690[7];
+extern WorldCoordRoomLights   D_acropolis_roof_garden_80186BDC[1];
 
 extern AnimationPlayRequest D_acropolis_roof_garden_80184ACC;
 extern AnimationPlayRequest D_acropolis_roof_garden_80184AE0;
@@ -533,25 +533,25 @@ WorldCollisionTrigger D_acropolis_roof_garden_80185690[7] = {
 };
 
 AreaResource D_acropolis_roof_garden_801858A4[3] = {
-    { 110, 108, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139EDC },
+    { 110, 108, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139EDC },
     { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_roof_garden_801858C8[3] = {
-    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8DC },
+    { 55, 55, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8DC },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_roof_garden_801858EC[3] = {
-    { 110, 108, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139EDC },
+    { 110, 108, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139EDC },
     { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_roof_garden_80185910[3] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -784,7 +784,7 @@ SpriteBatch D_acropolis_roof_garden_80186638[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_roof_garden_80186648[7] = {
+SpriteView D_acropolis_roof_garden_80186648[7] = {
     { { .empty = D_acropolis_roof_garden_80185994 }, D_acropolis_roof_garden_80185994, NULL },
     { { .elements = D_acropolis_roof_garden_801859A4 }, D_acropolis_roof_garden_80185BAC, NULL },
     { { .elements = D_acropolis_roof_garden_80185BC4 }, D_acropolis_roof_garden_80186038, NULL },
@@ -826,9 +826,9 @@ GpViewRec D_acropolis_roof_garden_80186BF4[8] = {
     { { { { -3750, 0, 1646 }, { 1161, 2905, 2643 }, { -1168, 2887, -2659 } }, { 3260, 3610, 2030 } }, 230 },
 };
 
-GpObj3A D_acropolis_roof_garden_80186D14[2] = {
-    { NULL, NULL, { -5888, -4064, -8128, 0 }, { { -4256, 0, -2848, 0 }, { 4256, 0, -2848, 0 }, { -4256, 0, 2848, 0 }, { 4256, 0, 2848, 0 } }, { 0, 4105, 0, 0 }, { 0, 20 }, 1, 0 },
-    { NULL, NULL, { -4576, -496, -4400, 0 }, { { -576, 928, 0, 0 }, { 576, 928, 0, 0 }, { -576, -928, 0, 0 }, { 576, -928, 0, 0 } }, { 0, 0, 4111, 0 }, { 62, 4 }, 129, 0 },
+WorldCollisionOccluder D_acropolis_roof_garden_80186D14[2] = {
+    { NULL, NULL, { -5888, -4064, -8128, 0 }, { { -4256, 0, -2848, 0 }, { 4256, 0, -2848, 0 }, { -4256, 0, 2848, 0 }, { 4256, 0, 2848, 0 } }, { 0, 4105, 0, 0 }, 5120, 1, 0 },
+    { NULL, NULL, { -4576, -496, -4400, 0 }, { { -576, 928, 0, 0 }, { 576, 928, 0, 0 }, { -576, -928, 0, 0 }, { 576, -928, 0, 0 } }, { 0, 0, 4111, 0 }, 1086, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_acropolis_roof_garden_80186D8C = {

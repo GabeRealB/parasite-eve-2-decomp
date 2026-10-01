@@ -37,7 +37,7 @@
 
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_mine_tunnel_8017E86C[1];
-extern GpObj3A                    D_mine_tunnel_8018025C[3];
+extern WorldCollisionOccluder     D_mine_tunnel_8018025C[3];
 extern WorldCollisionTrigger      D_mine_tunnel_8017FBD8[6];
 extern WorldCollisionTrigger      D_mine_tunnel_8017FDA0[4];
 extern WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6];
@@ -364,7 +364,7 @@ SpriteBatch D_mine_tunnel_8017F97C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_tunnel_8017F9A4[5] = {
+SpriteView D_mine_tunnel_8017F9A4[5] = {
     { { .empty = D_mine_tunnel_8017E944 }, D_mine_tunnel_8017E944, NULL },
     { { .elements = D_mine_tunnel_8017E954 }, D_mine_tunnel_8017EA1C, NULL },
     { { .elements = D_mine_tunnel_8017EA3C }, D_mine_tunnel_8017EE38, NULL },
@@ -401,29 +401,29 @@ WorldCollisionTrigger D_mine_tunnel_8017FDA0[4] = {
 };
 
 AreaResource D_mine_tunnel_8017FED0[2] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_tunnel_8017FEE8[2] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_tunnel_8017FF00[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80151DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_tunnel_8017FF24[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_tunnel_8017FF48[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80151DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -505,10 +505,10 @@ WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6] = {
     { .color = { 420, 420, 350, 411 } },
 };
 
-GpObj3A D_mine_tunnel_8018025C[3] = {
-    { NULL, NULL, { 4416, 0, 416, 0 }, { { 0, -1024, 1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, 1024, -1024, 0 } }, { -4096, 0, 0, 0 }, { -88, 5 }, 1, 0 },
-    { NULL, NULL, { 7455, 0, 3568, 0 }, { { -9, -1024, 1509, 0 }, { 10, -1024, -1509, 0 }, { -9, 1024, 1509, 0 }, { 10, 1024, -1509, 0 } }, { -4110, 0, -28, 0 }, { 27, 7 }, 1, 0 },
-    { NULL, NULL, { 0x2C80, 0, 640, 0 }, { { -392, -1024, 946, 0 }, { 391, -1024, -946, 0 }, { -392, 1024, 946, 0 }, { 391, 1024, -946, 0 } }, { -3784, 0, -1568, 0 }, { -88, 5 }, 129, 0 },
+WorldCollisionOccluder D_mine_tunnel_8018025C[3] = {
+    { NULL, NULL, { 4416, 0, 416, 0 }, { { 0, -1024, 1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, 1024, -1024, 0 } }, { -4096, 0, 0, 0 }, 1448, 1, 0 },
+    { NULL, NULL, { 7455, 0, 3568, 0 }, { { -9, -1024, 1509, 0 }, { 10, -1024, -1509, 0 }, { -9, 1024, 1509, 0 }, { 10, 1024, -1509, 0 } }, { -4110, 0, -28, 0 }, 1819, 1, 0 },
+    { NULL, NULL, { 0x2C80, 0, 640, 0 }, { { -392, -1024, 946, 0 }, { 391, -1024, -946, 0 }, { -392, 1024, 946, 0 }, { 391, 1024, -946, 0 } }, { -3784, 0, -1568, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_mine_tunnel_80180310 = {

@@ -2112,14 +2112,14 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request)
             }
         blockDE0:
             if (D_actor_421600_80151268 == 0) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
             }
             return 1;
 
         case 3:
             if (work->reported == 1) {
                 work->reported = 0;
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
             }
             if (work->field_0 != 0x14 && work->field_0 != 0x11 && work->field_0 != 0x15 &&
                 work->field_0 != 0x16 && work->field_0 != 0 && work->field_0 != 8) {
@@ -2360,7 +2360,7 @@ static void func_actor_421600_80133B30(Task* arg0)
             Gp_AnimWritePoseCopy(&work->anim, index, &pose, &blendPose, blend, invBlend);
         } else {
             work->slots[index].rate = (work->field_832 - 3);
-            Gp_AnimTickIndex(&work->anim, index);
+            animationTickSlot(&work->anim, index);
         }
         next  = index + 1;
         index = next;
@@ -2753,7 +2753,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
             resetSlot      += sizeof(AnimationSlot);
-            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
+            animationResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
         resetWork->field_82C = resetWork->field_82E;
@@ -2771,7 +2771,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
             secondarySlotIndex  = secondaryIndex;
             secondarySlot[0x39] = (u8)secondaryWork->field_83A;
             secondarySlot      += sizeof(AnimationSlot);
-            Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
+            animationResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
         work->field_836 = 3;
@@ -2784,7 +2784,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
         do {
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
-            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
+            animationTickSlot(&tickWork->anim, tickSlotIndex);
             tickSlot  += sizeof(AnimationSlot);
             tickIndex += 1;
         } while (tickIndex < 0x12);
@@ -3710,7 +3710,7 @@ static void func_actor_421600_801369A0(Task* arg0)
             Gp_ReleaseStateF0Add(arg0, 1);
         }
         if (D_actor_421600_80151268 <= 0) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
             work->field_8A0 = 1;
             work->field_0   = 0;
             return;
@@ -4182,9 +4182,9 @@ static void func_actor_421600_8013A554(Task* arg0)
                     closeDistance = scratch->yaw - scratch->playerYaw;
                     closeDistance = abs(closeDistance);
                     if (closeDistance < 0x400) {
-                        scratch->reply = Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
+                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
                     } else {
-                        scratch->reply = Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
                     }
                 }
                 if (scratch->reply != 1) {
@@ -4206,9 +4206,9 @@ static void func_actor_421600_8013A554(Task* arg0)
                     farDistance = scratch->yaw - scratch->playerYaw;
                     farDistance = abs(farDistance);
                     if (farDistance < 0x400) {
-                        scratch->reply = Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 0), 0);
+                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 0), 0);
                     } else {
-                        scratch->reply = Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 1), 0);
+                        scratch->reply = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 1), 0);
                     }
                 }
                 if (scratch->reply == 1) {
@@ -5211,7 +5211,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
         work->actorId.bytes[3] = (u8)(work->actorId.bytes[3] + 1);
         if (contactKind == 1) {
             if (D_dryfield_water_tower_801876AA == (D_dryfield_water_tower_801876A8 + 1)) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, NULL, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, NULL, 0);
                 work->reported = 0;
             }
             if ((work->actorId.bytes[2] == contactKind) && ((s32)D_dryfield_water_tower_801876AA < (D_dryfield_water_tower_801876A8 + 3))) {
@@ -5272,12 +5272,12 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 break;
             case 5:
                 if ((config->hp > 0) && ((u8)work->actorId.bytes[3] >= 7U)) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                     work->reported = 0;
                 }
                 break;
         }
-        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, NULL, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, NULL, 0) == 0) {
             nextAction = work->params[0];
             switch (nextAction) {
                 case 1:
@@ -5310,7 +5310,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 case 4:
                 case 7:
                     if (config->hp > 0) {
-                        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                         work->reported = 0;
                     }
                     break;

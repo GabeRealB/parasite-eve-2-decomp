@@ -431,7 +431,7 @@ static void func_actor_213100_80149E3C(Task* task)
     extra = task->extra.tmd;
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {

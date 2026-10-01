@@ -85,7 +85,7 @@ static inline void golemPawnRookTickAnim(Task* actor)
     } else {
         work->field_698++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

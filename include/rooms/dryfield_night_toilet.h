@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_night_toilet_8017DAD0[];
 
 extern GpViewRec D_dryfield_night_toilet_8017DDAC[];
 
-extern GpSprtRec D_dryfield_night_toilet_8017EC40[];
+extern SpriteView D_dryfield_night_toilet_8017EC40[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_toilet_8017F3D8[];
 

@@ -437,7 +437,7 @@ SpriteBatch D_mine_refuge_8018263C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_refuge_8018264C[7] = {
+SpriteView D_mine_refuge_8018264C[7] = {
     { { .empty = D_mine_refuge_80181CC4 }, D_mine_refuge_80181CC4, NULL },
     { { .elements = D_mine_refuge_80181CD4 }, D_mine_refuge_80182300, NULL },
     { { .elements = D_mine_refuge_80182340 }, D_mine_refuge_801825D4, NULL },
@@ -615,7 +615,7 @@ s32 func_mine_refuge_8017FBB4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (D_mine_refuge_80182AD8 == NULL) {
         ret = 0;
     } else {
-        ret = Gp_DispatchMsg(D_mine_refuge_80182AD8, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_mine_refuge_80182AD8, msgId, arg2, arg3);
     }
     return ret;
 }

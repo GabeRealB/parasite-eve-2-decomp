@@ -70,7 +70,7 @@ void desertChaserAnimTick(Task* task)
         do {
             resetSlotIndex               = resetIndex;
             work->slots[resetIndex].rate = resetWork->field_832;
-            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
+            animationResetSlot(&resetWork->anim, resetSlotIndex, resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
         resetWork->field_82C = resetWork->field_82E;
@@ -86,7 +86,7 @@ void desertChaserAnimTick(Task* task)
         do {
             secondarySlotIndex                        = secondaryIndex;
             secondaryWork->slots[secondaryIndex].rate = secondaryWork->field_83A;
-            Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
+            animationResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, secondaryWork->field_838);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
         work->field_836 = 3;
@@ -98,7 +98,7 @@ void desertChaserAnimTick(Task* task)
         do {
             tickSlotIndex                   = tickIndex;
             tickWork->slots[tickIndex].rate = tickWork->field_832;
-            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
+            animationTickSlot(&tickWork->anim, tickSlotIndex);
             tickIndex += 1;
         } while (tickIndex < 0x12);
     } else {

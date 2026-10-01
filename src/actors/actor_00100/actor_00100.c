@@ -1713,7 +1713,7 @@ static void Actor00100_Fn01D74(Task* arg0)
         } else {
             offset                       = index * 0x28;
             *(s8*)(work + offset + 0x39) = (s8)(((DesertChaserWork*)work)->field_832 - 3);
-            Gp_AnimTickIndex(&((DesertChaserWork*)work)->anim, (s32)index);
+            animationTickSlot(&((DesertChaserWork*)work)->anim, (s32)index);
         }
     }
 }
@@ -2091,7 +2091,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
             resetSlot      += sizeof(AnimationSlot);
-            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
+            animationResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
         resetWork->field_82C = resetWork->field_82E;
@@ -2107,7 +2107,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
             secondarySlotIndex  = secondaryIndex;
             secondarySlot[0x39] = (u8)secondaryWork->field_83A;
             secondarySlot      += sizeof(AnimationSlot);
-            Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
+            animationResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
         work->field_836 = 3;
@@ -2120,7 +2120,7 @@ static void desertChaserArmedAnimTick(Task* arg0)
         do {
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
-            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
+            animationTickSlot(&tickWork->anim, tickSlotIndex);
             tickSlot  += sizeof(AnimationSlot);
             tickIndex += 1;
         } while (tickIndex < 0x12);
@@ -2732,7 +2732,7 @@ static void Actor00100_Fn04270(Task* arg0)
     }
     if (work->field_6 >= 0x3D && work->reported == 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
         }
         arg0->state++;
         return;
@@ -3300,7 +3300,7 @@ static void Actor00100_Fn09310(Task* arg0)
     }
     if ((work->field_6 >= 0x1F) && (work->reported == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
         }
         arg0->state++;
     }
@@ -3456,7 +3456,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
                 finishedObj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             if ((work->field_6 >= 0x79) && (work->reported != 1) && (Gp_StateC08.field_A != 1) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
                 work->field_C2A = 1;
                 arg0->state++;
             }
@@ -3647,7 +3647,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                             for (i = 0; i < 10; i++) {
                                 gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
                                 playerSlot                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                                if (Gp_DispatchMsg(playerSlot, 0x3F9, Gp_PackObjPair(enemy, 4), 0) == 1)
+                                if (taskMessageDispatch(playerSlot, 0x3F9, Gp_PackObjPair(enemy, 4), 0) == 1)
                                     break;
                             }
                         }
@@ -3730,12 +3730,12 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 break;
             case 5:
                 if ((config->hp > 0) && (work->field_C28 >= 7)) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                     work->reported = 0;
                 }
                 break;
         }
-        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             nextAction = work->params[0];
             switch (nextAction) {
                 case 1:
@@ -3767,7 +3767,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 case 4:
                 case 7:
                     if (config->hp > 0) {
-                        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                         work->reported = 0;
                     }
                     break;

@@ -123,7 +123,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// `D_actor_342000_80165070`, which is how the leaf helpers below reach it:
 /// `(Actor342000EventWork*)D_actor_342000_80165070->work`.
 ///
-/// `field_48` is the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task every `Gp_DispatchMsg` in the
+/// `field_48` is the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task every `taskMessageDispatch` in the
 /// overlay is aimed at; `field_50` / `field_5C` / `field_60` / `field_64` are
 /// spawned child tasks the teardown helpers kill. `field_7A` and `field_7C`
 /// are once-only latches guarding a sound cue and the fade-out setup.
@@ -157,7 +157,7 @@ STATIC_ASSERT_SIZEOF(Actor342000EventWork, 0x80);
 /// `func_actor_342000_8016382C`.
 extern Task* D_actor_342000_80165070;
 
-/// Message 0x7D4's static payload, handed to `Gp_DispatchMsg` by the actor's
+/// Message 0x7D4's static payload, handed to `taskMessageDispatch` by the actor's
 /// spawn tick. The same record the handler takes.
 extern ActorTransform D_actor_342000_801648B8;
 
@@ -464,7 +464,7 @@ static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
     start = anim;
     work  = (Actor342000Work*)arg0->work;
     for (i = start; i < arg1; i++) {
-        Gp_AnimTickIndex(&work->ctx, i);
+        animationTickSlot(&work->ctx, i);
     }
     i    = start;
     done = 1;
@@ -604,7 +604,7 @@ static void func_actor_342000_80162158(Task* arg0)
             ctx = (Actor342000Work*)arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+                animationResetSlot(&ctx->ctx, i, 0);
             }
             break;
             do {
@@ -617,7 +617,7 @@ static void func_actor_342000_80162158(Task* arg0)
             ctx2 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx2->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx2->ctx, i, 0);
+                animationResetSlot(&ctx2->ctx, i, 0);
             }
             break;
             do {
@@ -630,7 +630,7 @@ static void func_actor_342000_80162158(Task* arg0)
             ctx3 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx3->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx3->ctx, i, 0);
+                animationResetSlot(&ctx3->ctx, i, 0);
             }
             break;
         default:
@@ -758,7 +758,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
 
     work = (Actor342000EventWork*)arg0->work;
     if (work->field_48 != NULL) {
-        Gp_DispatchMsg(work->field_48, 0x3ED, 0, 0);
+        taskMessageDispatch(work->field_48, 0x3ED, 0, 0);
     }
     switch (work->field_68) {
         case 0:
@@ -775,7 +775,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
                     work->field_6A++;
                     return;
                 case 1:
-                    if (Gp_DispatchMsg(work->field_48, 0x3F0, 0, 0) == 0) {
+                    if (taskMessageDispatch(work->field_48, 0x3F0, 0, 0) == 0) {
                         work->field_6C = 0;
                         work->field_6A++;
                     }
@@ -884,7 +884,7 @@ static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     if (blend == 0) {
         for (i = first; i < n; i++) {
             ctx->slots[i].rate = ANIMATION_RATE_ONE;
-            Gp_AnimResetSlot(&ctx->ctx, i, anim);
+            animationResetSlot(&ctx->ctx, i, anim);
         }
     } else {
         for (i = first; i < n; i++) {
@@ -924,9 +924,9 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 1:
             switch ((u16)work->field_72) {
                 case 0:
-                    Gp_DispatchMsg(work->field_50, 0x7D5, 1, 0);
-                    Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
-                    Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_50, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_5C, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_60, 0x7D5, 1, 0);
                     Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164818[0]);
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164818[1]);
                     actor->field_264.vx   = 0x1000;
@@ -960,8 +960,8 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 2:
             switch ((u16)work->field_72) {
                 case 0:
-                    Gp_DispatchMsg(work->field_5C, 0x7D5, 0, 0);
-                    Gp_DispatchMsg(work->field_60, 0x7D5, 0, 0);
+                    taskMessageDispatch(work->field_5C, 0x7D5, 0, 0);
+                    taskMessageDispatch(work->field_60, 0x7D5, 0, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_50, 0x7D4, &D_actor_342000_801648D0, 0);
                     Actor342000_SetAnim(work->field_50, 0, 0, 8);
                     Actor342000_SetAnim(work->field_54, 0, 0, 4);
@@ -975,8 +975,8 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 3:
             switch ((u16)work->field_72) {
                 case 0:
-                    Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
-                    Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_5C, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_60, 0x7D5, 1, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_50, 0x7D4, &D_actor_342000_801648B8, 0);
                     Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164848[0]);
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164848[1]);
@@ -1012,11 +1012,11 @@ static void func_actor_342000_80162F28(Task* arg0)
                 work->field_72++;
             }
             if (gGameSession->location.loc.view == 0xF) {
-                Gp_DispatchMsg(work->field_5C, 0x7D5, 0, 0);
-                Gp_DispatchMsg(work->field_60, 0x7D5, 0, 0);
+                taskMessageDispatch(work->field_5C, 0x7D5, 0, 0);
+                taskMessageDispatch(work->field_60, 0x7D5, 0, 0);
             } else {
-                Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_5C, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_60, 0x7D5, 1, 0);
             }
             work->field_0[0].pos.vx += 5;
             work->field_0[1].pos.vx -= 5;
@@ -1029,8 +1029,8 @@ static void func_actor_342000_80162F28(Task* arg0)
         case 8:
             switch ((u16)work->field_72) {
                 case 0:
-                    Gp_DispatchMsg(work->field_5C, 0x7D5, 1, 0);
-                    Gp_DispatchMsg(work->field_60, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_5C, 0x7D5, 1, 0);
+                    taskMessageDispatch(work->field_60, 0x7D5, 1, 0);
                     Actor342000_CopyMove(&work->field_0[0], &D_actor_342000_80164878[0]);
                     Actor342000_CopyMove(&work->field_0[1], &D_actor_342000_80164878[1]);
                     work->field_72++;
@@ -1245,7 +1245,7 @@ void func_actor_342000_8016382C(Task* arg0)
             if (timer >= 2) {
                 Actor342000_SetMode(9);
                 func_shelter_b3_garbage_incinerator_8018507C();
-                Gp_DispatchMsg(work->field_48, 0x3F1, 0, 0);
+                taskMessageDispatch(work->field_48, 0x3F1, 0, 0);
                 gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
                 goto next;
             }
@@ -1432,7 +1432,7 @@ void func_actor_342000_80164364(s32 arg0)
     Actor342000EventWork* work;
 
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
-    Gp_DispatchMsg(work->field_48, 0x3F3, arg0, 0);
+    taskMessageDispatch(work->field_48, 0x3F3, arg0, 0);
 }
 
 /// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs
@@ -1458,7 +1458,7 @@ void func_actor_342000_8016439C(void)
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
-    Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
+    taskMessageDispatch(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
     if (work->field_64 != NULL) {
         taskKill(work->field_64);
         work->field_64 = NULL;

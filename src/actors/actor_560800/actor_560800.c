@@ -71,7 +71,7 @@
 /// 0x40/0x42 with the same (value, 0) shape this unit uses for 0x58/0x5A and
 /// for 0x60/0x62, and `func_actor_560800_80136818` sets 0x64.
 ///
-/// The three pointer slots at 0x1C/0x20/0x24 are `Gp_DispatchMsg` targets, not
+/// The three pointer slots at 0x1C/0x20/0x24 are `taskMessageDispatch` targets, not
 /// flags: `func_actor_560800_80133540` sends the message its switch picks to
 /// one of them, `func_actor_560800_8013631C` sends 0x7DB to `field_24`, and
 /// `func_actor_560800_801362E0` sends 0x7DB to `field_20`.
@@ -161,7 +161,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// `field_270` / `field_274` / `field_278` are the three `gRandomLcgState` draws
 /// `func_actor_560800_801376E0` takes at spawn; `field_280` is the slot count it
 /// seeds from the spawner's `spawnArg1`, which `func_actor_560800_80137820` then
-/// walks 1..count with `Gp_AnimResetSlot`. `field_27C` / `field_27E` and the
+/// walks 1..count with `animationResetSlot`. `field_27C` / `field_27E` and the
 /// 0x38 bytes of `rot` (`Mem_CopyUnaligned`'s source and destination in
 /// `func_actor_560800_80136AA8`) belong to the handlers, not to the spawner.
 typedef struct Actor560800ModelWork {
@@ -4259,7 +4259,7 @@ static s32 func_actor_560800_80132340(Task* arg0)
             work->field_62 += 1;
         }
     } else {
-        if (Gp_DispatchMsg(work->field_0, 0x3ED, 0, 0) != 0) {
+        if (taskMessageDispatch(work->field_0, 0x3ED, 0, 0) != 0) {
             return 0;
         }
         entry2 = &D_actor_560800_8016EBE8[(u16)work->field_60];
@@ -4344,7 +4344,7 @@ static s32 func_actor_560800_80132498(Task* arg0)
         return 0;
     }
     for (i = 1; i < work->field_4BA; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
@@ -4439,7 +4439,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 w->field_4BE = 0;
                 for (i = 1; i < w->field_4BA; i++) {
                     w->rig.slots[i].rate = fade;
-                    Gp_AnimResetSlot(&w->rig.anim, i, 0);
+                    animationResetSlot(&w->rig.anim, i, 0);
                 }
             } else {
                 Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
@@ -4451,7 +4451,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 w->field_4BE = 0;
                 for (i = 1; i < w->field_4BA; i++) {
                     w->rig.slots[i].rate = fade;
-                    Gp_AnimResetSlot(&w->rig.anim, i, 2);
+                    animationResetSlot(&w->rig.anim, i, 2);
                 }
             }
             arg0->state += 1;
@@ -4615,7 +4615,7 @@ void func_actor_560800_80132C60(Task* arg0)
             w->field_4BE = 0;
             for (i = 1; i < w->field_4BA; i++) {
                 w->rig.slots[i].rate = fade;
-                Gp_AnimResetSlot(&w->rig.anim, i, 0);
+                animationResetSlot(&w->rig.anim, i, 0);
             }
         }
         arg0->state += 1;
@@ -4705,7 +4705,7 @@ void func_actor_560800_80132F64(Task* arg0)
             w->field_4BE = 0;
             for (i = 1; i < w->field_4BA; i++) {
                 w->rig.slots[i].rate = fade;
-                Gp_AnimResetSlot(&w->rig.anim, i, 0);
+                animationResetSlot(&w->rig.anim, i, 0);
             }
         }
         arg0->state += 1;
@@ -4810,30 +4810,30 @@ static void func_actor_560800_80133540(u32 arg0)
 
     switch (arg0) {
         case 0:
-            Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
+            taskMessageDispatch(work->field_0, 0x3F3, 1, 0);
             break;
         case 1:
-            Gp_DispatchMsg(work->field_4, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_4, 0x7D5, 1, 0);
             break;
         case 2:
-            Gp_DispatchMsg(work->field_8, 0x7D5, 1, 0);
-            Gp_DispatchMsg(work->field_10, 0x7D5, 1, 0);
-            Gp_DispatchMsg(work->field_14, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_8, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_10, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_14, 0x7D5, 1, 0);
             if (work->field_18 != NULL) {
-                Gp_DispatchMsg(work->field_18, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_18, 0x7D5, 1, 0);
             }
             break;
         case 3:
-            Gp_DispatchMsg(work->field_C, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_C, 0x7D5, 1, 0);
             if (work->field_1C != NULL) {
-                Gp_DispatchMsg(work->field_1C, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_1C, 0x7D5, 1, 0);
             }
             break;
         case 4:
-            Gp_DispatchMsg(work->field_20, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_20, 0x7D5, 1, 0);
             break;
         case 5:
-            Gp_DispatchMsg(work->field_24, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_24, 0x7D5, 1, 0);
             break;
     }
 }
@@ -4844,30 +4844,30 @@ void func_actor_560800_80133648(u32 arg0)
 
     switch (arg0) {
         case 0:
-            Gp_DispatchMsg(work->field_0, 0x3F3, 2, 0);
+            taskMessageDispatch(work->field_0, 0x3F3, 2, 0);
             break;
         case 1:
-            Gp_DispatchMsg(work->field_4, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_4, 0x7D5, 2, 0);
             break;
         case 2:
-            Gp_DispatchMsg(work->field_8, 0x7D5, 2, 0);
-            Gp_DispatchMsg(work->field_10, 0x7D5, 2, 0);
-            Gp_DispatchMsg(work->field_14, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_8, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_10, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_14, 0x7D5, 2, 0);
             if (work->field_18 != NULL) {
-                Gp_DispatchMsg(work->field_18, 0x7D5, 2, 0);
+                taskMessageDispatch(work->field_18, 0x7D5, 2, 0);
             }
             break;
         case 3:
-            Gp_DispatchMsg(work->field_C, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_C, 0x7D5, 2, 0);
             if (work->field_1C != NULL) {
-                Gp_DispatchMsg(work->field_1C, 0x7D5, 2, 0);
+                taskMessageDispatch(work->field_1C, 0x7D5, 2, 0);
             }
             break;
         case 4:
-            Gp_DispatchMsg(work->field_20, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_20, 0x7D5, 2, 0);
             break;
         case 5:
-            Gp_DispatchMsg(work->field_24, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_24, 0x7D5, 2, 0);
             break;
     }
 }
@@ -5075,7 +5075,7 @@ static void func_actor_560800_80133970(Task* arg0)
             switch ((u16)work->field_2A) {
                 case 0:
                     Actor560800_PlaySe(3);
-                    Gp_DispatchMsg(work->field_0, 0x3FD, 8, 0);
+                    taskMessageDispatch(work->field_0, 0x3FD, 8, 0);
                     work->field_2C = 0;
                     work->field_2A++;
                     return;
@@ -5123,7 +5123,7 @@ static void func_actor_560800_80133970(Task* arg0)
             switch ((u16)work->field_2A) {
                 case 0:
                     Actor560800_PlaySeB(8);
-                    Gp_DispatchMsg(work->field_0, 0x3FD, 8, 0);
+                    taskMessageDispatch(work->field_0, 0x3FD, 8, 0);
                     work->field_2C = 0;
                     work->field_2A++;
                     return;
@@ -5167,7 +5167,7 @@ static void func_actor_560800_80134258(Task* task)
             break;
         case 22:
         case 24:
-            Gp_DispatchMsg(work->field_20, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_20, 0x7D5, 2, 0);
             break;
         case 28:
             ctx2            = (Actor560800AnimWork*)work->field_4->work;
@@ -5182,7 +5182,7 @@ static void func_actor_560800_80134258(Task* task)
             if (i < anim->field_4BA) {
                 do {
                     anim->rig.slots[i].rate = rate;
-                    Gp_AnimResetSlot(&anim->rig.anim, i, 3);
+                    animationResetSlot(&anim->rig.anim, i, 3);
                     i++;
                 } while (i < anim->field_4BA);
             }
@@ -5204,7 +5204,7 @@ static inline void Actor560800_ResetAnimSlots(Actor560800AnimWork* anim, s16 cli
     if (i < anim->field_4BA) {
         do {
             anim->rig.slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->rig.anim, i, clip);
+            animationResetSlot(&anim->rig.anim, i, clip);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -5271,7 +5271,7 @@ static void func_actor_560800_80134384(Task* task)
                     }
                     for (;;) {
                         anim->rig.slots[i].rate = rate;
-                        Gp_AnimResetSlot(&anim->rig.anim, i, 0x2D);
+                        animationResetSlot(&anim->rig.anim, i, 0x2D);
                         i++;
                         if (i < anim->field_4BA) {
                             continue;
@@ -5308,7 +5308,7 @@ static void func_actor_560800_80134384(Task* task)
 ///
 /// The rate is held in a local rather than written as two literals: both uses
 /// have to reach the same register, and 0x10 is live across the loop's
-/// `Gp_AnimResetSlot` call. `unused` is declared and never referenced - the
+/// `animationResetSlot` call. `unused` is declared and never referenced - the
 /// ROM's frame is 0x30 and the local is what reserves its 8 bytes.
 void func_actor_560800_80134B14(s32 arg0)
 {
@@ -5329,7 +5329,7 @@ void func_actor_560800_80134B14(s32 arg0)
     if (i < anim->field_4BA) {
         do {
             anim->rig.slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->rig.anim, i, 0x20);
+            animationResetSlot(&anim->rig.anim, i, 0x20);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -5372,7 +5372,7 @@ static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate)
     if (i < anim->field_4BA) {
         do {
             anim->rig.slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->rig.anim, i, id);
+            animationResetSlot(&anim->rig.anim, i, id);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -5460,7 +5460,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                 case 0:
                     ((Actor560800AnimWork*)work->field_8->work)->field_4BC = 1;
                     Actor560800_PlaySeB(3);
-                    Gp_DispatchMsg(work->field_0, 0x3FD, 8, 0);
+                    taskMessageDispatch(work->field_0, 0x3FD, 8, 0);
                     work->field_44 = 0;
                     work->field_42++;
                     return;
@@ -5501,19 +5501,19 @@ static void func_actor_560800_80134BFC(Task* arg0)
             Actor560800_ResetSlots(work->field_8, 0xB, 0x10);
             break;
         case 23:
-            Gp_DispatchMsg(work->field_8, 0x7D5, 2, 0);
-            Gp_DispatchMsg(work->field_10, 0x7D5, 2, 0);
-            Gp_DispatchMsg(work->field_14, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_8, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_10, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_14, 0x7D5, 2, 0);
             if (work->field_18 != NULL) {
-                Gp_DispatchMsg(work->field_18, 0x7D5, 2, 0);
+                taskMessageDispatch(work->field_18, 0x7D5, 2, 0);
             }
             break;
         case 24:
-            Gp_DispatchMsg(work->field_8, 0x7D5, 1, 0);
-            Gp_DispatchMsg(work->field_10, 0x7D5, 1, 0);
-            Gp_DispatchMsg(work->field_14, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_8, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_10, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_14, 0x7D5, 1, 0);
             if (work->field_18 != NULL) {
-                Gp_DispatchMsg(work->field_18, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_18, 0x7D5, 1, 0);
             }
             ctx2            = (Actor560800AnimWork*)work->field_8->work;
             ctx2->field_4C0 = 0x155;
@@ -5731,7 +5731,7 @@ void func_actor_560800_80135D54(Task* arg0)
             func_800E6D4C(0x180, 0);
             arg0->state++;
         case 1:
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             func_800E8634(D_actor_560800_8016F5E0, 1, D_actor_560800_80171800);
             arg0->state++;
             break;
@@ -6478,7 +6478,7 @@ void func_actor_560800_80137820(Task* arg0)
             anim = (Actor560800ModelWork*)arg0->work;
             do {
                 anim->slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&anim->anim, i & 0xFFFF, id);
+                animationResetSlot(&anim->anim, i & 0xFFFF, id);
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);
             arg0->state++;
@@ -6487,7 +6487,7 @@ void func_actor_560800_80137820(Task* arg0)
             anim = (Actor560800ModelWork*)arg0->work;
             i    = 1;
             do {
-                Gp_AnimTickIndex(&anim->anim, i & 0xFFFF);
+                animationTickSlot(&anim->anim, i & 0xFFFF);
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);
             for (i = 1; (u32)(i & 0xFFFF) < 7U; i++) {
@@ -6959,7 +6959,7 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg)
             task->state = 1;
             break;
         case 2:
-            Gp_DispatchMsg(task, 0x7D5, 1, 0);
+            taskMessageDispatch(task, 0x7D5, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_801756FC, 0);
             work->field_278 = 0x1000;
             task->state     = 2;
@@ -6971,13 +6971,13 @@ void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg)
             task->state = 4;
             break;
         case 5:
-            Gp_DispatchMsg(task, 0x7D5, 1, 0);
+            taskMessageDispatch(task, 0x7D5, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_80175714, 0);
             work->field_278 = 0x1000;
             task->state     = 5;
             break;
         case 6:
-            Gp_DispatchMsg(task, 0x7D5, 1, 0);
+            taskMessageDispatch(task, 0x7D5, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_8017572C, 0);
             work->field_282 = 0;
             task->state     = 6;

@@ -1429,7 +1429,7 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     work->hitEffect.coord       = next_coord;
     func_800B3F84(&work->anim, Actor01600_D127EC, obj, work->pad_17C, work->slots);
     for (i = 1; i < 9; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->anim, i, 1);
     }
     Gp_IncStateF0Ref(0);
     work->field_506 = 1;
@@ -2849,7 +2849,7 @@ static void Actor01600_Fn020F8(Task* actor)
                             targetKind = work->field_53E;
                             if (targetKind == 1) {
                                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0) {
-                                    if (Gp_DispatchMsg(work->field_4D4, 0x3F9, Gp_PackObjPair(ctx, 0), 0) == targetKind) {
+                                    if (taskMessageDispatch(work->field_4D4, 0x3F9, Gp_PackObjPair(ctx, 0), 0) == targetKind) {
                                         work->field_506 = 9;
                                         work->field_50E = 0;
                                         work->field_50A = 0;
@@ -2922,7 +2922,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         pan25 = (s8)worldCoordGetOriginAudioPan(coord);
                         SndEvt_EnqueueType6(id, (s32)pan25, (s8)worldCoordGetOriginAudioDepth(coord));
                         if (work->field_53E == 0) {
-                            Gp_DispatchMsg(work->field_4D4, 0x3F9, Gp_PackObjPair(ctx, 0), 0);
+                            taskMessageDispatch(work->field_4D4, 0x3F9, Gp_PackObjPair(ctx, 0), 0);
                         }
                         if (config->hp <= 0) {
                             if (work->field_53E == 0) {
@@ -2935,7 +2935,7 @@ static void Actor01600_Fn020F8(Task* actor)
                                 Actor01600_D127D8.animationId = 0;
                                 Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
                                 Actor01600_D127D8.blendFrames = 0;
-                                Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
+                                taskMessageDispatch(work->field_4D4, 0x3F1, 0, 0);
                                 return;
                             }
                             goto block_156;
@@ -2971,7 +2971,7 @@ static void Actor01600_Fn020F8(Task* actor)
                             Actor01600_D127D8.animationId = 0;
                             Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
                             Actor01600_D127D8.blendFrames = 0;
-                            Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
+                            taskMessageDispatch(work->field_4D4, 0x3F1, 0, 0);
                             return;
                         }
                         if (work->field_50A >= 0x31) {
@@ -3003,7 +3003,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         Actor01600_D127D8.animationId = 0;
                         Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
                         Actor01600_D127D8.blendFrames = 0;
-                        Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
+                        taskMessageDispatch(work->field_4D4, 0x3F1, 0, 0);
                     }
                     if (work->field_50A >= 0x38) {
                         work->field_506   = 9;
@@ -3304,7 +3304,7 @@ static void Actor01600_Fn03D48(Task* arg0)
             work->field_50A = (u16)work->field_50A + 1;
             for (i = 1; i < 9; i++) {
                 work->slots[i].rate = work->field_538;
-                Gp_AnimTickIndex(&work->anim, i);
+                animationTickSlot(&work->anim, i);
             }
         }
         anim = work->field_506;
@@ -4889,7 +4889,7 @@ static void Actor01600_Fn06F10(Task* arg0)
 
     work = arg0->work;
     if (work->field_534 != 0) {
-        Gp_DispatchMsg(work->field_4D4, 0x3F1, 0, 0);
+        taskMessageDispatch(work->field_4D4, 0x3F1, 0, 0);
         Actor01600_D127D8.animationId = 0;
         work->field_534               = 0;
         Actor01600_D12870             = 0;

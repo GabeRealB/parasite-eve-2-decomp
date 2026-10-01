@@ -120,7 +120,7 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                 Gp_StartCapSlot(arg0, arg1, val);
                 return;
             case 3:
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, arg0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, arg0, 0);
                 return;
             case 4:
                 val = 0;
@@ -162,14 +162,14 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             }
             recB              = D_8010FB10;
             recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
             arg0->state++;
             break;
         case 1:
             arg0->state++;
             break;
         case 2:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 arg0->state++;
             }
             if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
@@ -181,7 +181,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             }
             if ((flags & 2) && (flags != 0xFF)) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 0, 0);
             }
             if ((flags & 4) && (flags != 0xFF)) {
                 mode = 2;
@@ -191,7 +191,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
                 mode = 0;
             }
             if (flags == 0xFF) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, arg0->spawnArg1.value, mode);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, arg0->spawnArg1.value, mode);
             } else {
                 Gp_RunCapCmd(arg0->spawnArg1.value, mode);
             }
@@ -199,24 +199,24 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             break;
         case 4:
             if (Gp_CapBusy() == 0) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
                 arg0->state++;
             }
             break;
         case 5:
             if (D_80115598 != 0) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
             }
             recB              = D_8010FB24;
             recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
             arg0->state++;
             break;
         case 6:
             arg0->state++;
             break;
         case 7:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 arg0->state++;
             }
             if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
@@ -227,7 +227,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
         case 8:
             taskKill(arg0);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             break;
     }
 }
@@ -256,7 +256,7 @@ void Gp_RunCapCmd1(s32 arg0)
 
 void Gp_MsgPlayer3F3(s32 arg0)
 {
-    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, arg0, 0);
+    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, arg0, 0);
 }
 
 void Gp_MsgPlayerWeapon(s32 arg0)
@@ -268,7 +268,7 @@ void Gp_MsgPlayerWeapon(s32 arg0)
         sp.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &sp, 0);
     } else {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
     }
 }
 
@@ -279,7 +279,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
     arg0 = (arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
     Gp_DispatchMsgReply(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D0, arg0, &out);
     if (out != 0) {
-        Gp_DispatchMsg(out, 0x7D5, arg1, 0);
+        taskMessageDispatch(out, 0x7D5, arg1, 0);
     }
 }
 
@@ -347,7 +347,7 @@ void Gp_MsgAlly3F3(s32 arg0)
 
     slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (slot != NULL) {
-        Gp_DispatchMsg(slot, 0x3F3, arg0, 0);
+        taskMessageDispatch(slot, 0x3F3, arg0, 0);
     }
 }
 
@@ -363,7 +363,7 @@ void Gp_MsgAllyWeapon(s32 arg0)
             sp.source.index = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
             TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &sp, 0);
         } else {
-            Gp_DispatchMsg(slot, 0x3F1, 0, 0);
+            taskMessageDispatch(slot, 0x3F1, 0, 0);
         }
     }
 }

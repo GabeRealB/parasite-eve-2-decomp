@@ -1808,7 +1808,7 @@ SpriteBatch D_mist_shooting_gallery_8018BD00[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mist_shooting_gallery_8018BD10[18] = {
+SpriteView D_mist_shooting_gallery_8018BD10[18] = {
     { { .empty = D_mist_shooting_gallery_80189C14 }, D_mist_shooting_gallery_80189C14, NULL },
     { { .empty = D_mist_shooting_gallery_80189C24 }, D_mist_shooting_gallery_80189C24, NULL },
     { { .empty = D_mist_shooting_gallery_80189C34 }, D_mist_shooting_gallery_80189C34, NULL },
@@ -2089,7 +2089,14 @@ static WorldCoordPointLight _gMistShootingGalleryDefaultPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_mist_shooting_gallery_8018D1B4 = { 0, NULL, ARRAY_SIZE(_gMistShootingGalleryDefaultPointLights), _gMistShootingGalleryDefaultPointLights, 0, NULL };
+WorldCoordRoomLights gMistShootingGalleryDefaultRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gMistShootingGalleryDefaultPointLights),
+    .pointLights           = _gMistShootingGalleryDefaultPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCoordLight D_mist_shooting_gallery_8018D1CC[1] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5655, -10, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } },
@@ -2137,7 +2144,7 @@ WorldCoordSpotLight D_mist_shooting_gallery_8018D8E4[15] = {
 WorldCoordRoomLights D_mist_shooting_gallery_8018DF38 = { ARRAY_SIZE(D_mist_shooting_gallery_8018D1CC), D_mist_shooting_gallery_8018D1CC, ARRAY_SIZE(D_mist_shooting_gallery_8018D224), D_mist_shooting_gallery_8018D224, ARRAY_SIZE(D_mist_shooting_gallery_8018D8E4), D_mist_shooting_gallery_8018D8E4 };
 
 AreaResource D_mist_shooting_gallery_8018DF50[3] = {
-    { 76, 76, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80134F94 },
+    { 76, 76, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80134F94 },
     { 143, 151, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015E5D0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -2157,26 +2164,27 @@ GpAreaVariant D_mist_shooting_gallery_8018DF74[12] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_mist_shooting_gallery_8018DFD4[19] = {
-    { .viewCount = ARRAY_SIZE(D_mist_shooting_gallery_8018DFD4) - 1 },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 340, 340, 350, 341 } },
-    { .color = { 800, 820, 820, 812 } },
-    { .color = { 600, 600, 600, 600 } },
-    { .color = { 500, 500, 500, 500 } },
-    { .color = { 500, 500, 500, 500 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 16, 16, 16, 16 } },
-    { .color = { 600, 600, 600, 600 } },
+// Keep the read-only table at its original position among the overlay's data.
+const WorldCoordRoomAmbientEntry gMistShootingGalleryViewAmbientTable[MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT + 1] SECTION(".data") = {
+    [0]  = { .viewCount = ARRAY_SIZE(gMistShootingGalleryViewAmbientTable) - 1 },
+    [1]  = { .color = { 16, 16, 16, 16 } },
+    [2]  = { .color = { 16, 16, 16, 16 } },
+    [3]  = { .color = { 16, 16, 16, 16 } },
+    [4]  = { .color = { 16, 16, 16, 16 } },
+    [5]  = { .color = { 16, 16, 16, 16 } },
+    [6]  = { .color = { 16, 16, 16, 16 } },
+    [7]  = { .color = { 340, 340, 350, 341 } },
+    [8]  = { .color = { 800, 820, 820, 812 } },
+    [9]  = { .color = { 600, 600, 600, 600 } },
+    [10] = { .color = { 500, 500, 500, 500 } },
+    [11] = { .color = { 500, 500, 500, 500 } },
+    [12] = { .color = { 16, 16, 16, 16 } },
+    [13] = { .color = { 16, 16, 16, 16 } },
+    [14] = { .color = { 16, 16, 16, 16 } },
+    [15] = { .color = { 16, 16, 16, 16 } },
+    [16] = { .color = { 16, 16, 16, 16 } },
+    [17] = { .color = { 16, 16, 16, 16 } },
+    [18] = { .color = { 600, 600, 600, 600 } },
 };
 
 WorldCollisionFootstepSounds D_mist_shooting_gallery_8018E06C = {

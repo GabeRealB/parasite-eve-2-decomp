@@ -417,7 +417,7 @@ SpriteBatch D_shelter_b1_armory_80184210[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_armory_80184220[13] = {
+SpriteView D_shelter_b1_armory_80184220[13] = {
     { { .empty = D_shelter_b1_armory_801830C8 }, D_shelter_b1_armory_801830C8, NULL },
     { { .elements = D_shelter_b1_armory_801830D8 }, D_shelter_b1_armory_801832E0, NULL },
     { { .elements = D_shelter_b1_armory_80183300 }, D_shelter_b1_armory_8018342C, NULL },

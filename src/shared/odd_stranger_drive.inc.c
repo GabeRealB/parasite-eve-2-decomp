@@ -69,8 +69,8 @@ void oddStrangerDrive(Task* arg0)
         do {
             resetSlotIndex                   = resetIndex;
             work->rig.slots[resetIndex].rate = resetWork->field_8A2;
-            Gp_AnimResetSlot(&resetWork->rig.anim, resetSlotIndex,
-                             (s32)(s16)resetWork->field_89E);
+            animationResetSlot(&resetWork->rig.anim, resetSlotIndex,
+                               (s16)resetWork->field_89E);
             resetIndex += 1;
         } while (resetIndex < 0x13);
         resetWork->field_89C = (s16)resetWork->field_89E;
@@ -86,8 +86,8 @@ void oddStrangerDrive(Task* arg0)
         do {
             secondarySlotIndex                            = secondaryIndex;
             secondaryWork->rig.slots[secondaryIndex].rate = secondaryWork->field_8AA;
-            Gp_AnimResetSlot(&secondaryWork->blend.anim, secondarySlotIndex,
-                             (s32)secondaryWork->field_8A8);
+            animationResetSlot(&secondaryWork->blend.anim, secondarySlotIndex,
+                               secondaryWork->field_8A8);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x13);
         work->field_8A6 = 3;
@@ -99,7 +99,7 @@ void oddStrangerDrive(Task* arg0)
         do {
             tickSlotIndex                       = tickIndex;
             tickWork->rig.slots[tickIndex].rate = tickWork->field_8A2;
-            Gp_AnimTickIndex(&tickWork->rig.anim, tickSlotIndex);
+            animationTickSlot(&tickWork->rig.anim, tickSlotIndex);
             tickIndex += 1;
         } while (tickIndex < 0x13);
     } else {

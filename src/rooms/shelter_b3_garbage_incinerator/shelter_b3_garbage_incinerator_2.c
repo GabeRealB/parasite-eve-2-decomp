@@ -855,7 +855,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
                     goto kill;
             }
-            Gp_DispatchMsg(task, 0x7D5, 1, 0);
+            taskMessageDispatch(task, 0x7D5, 1, 0);
             break;
         case 1:
             if (Gp_TakePendingObj4C(&id, (u8*)&kind, &arg) == 0) {
@@ -984,7 +984,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     ret1:
         return 1;
     }
-    if (Gp_DispatchMsg(work->field_2C, 0x3ED, 0, 0) != 0) {
+    if (taskMessageDispatch(work->field_2C, 0x3ED, 0, 0) != 0) {
         return 0;
     }
     if (work->field_38 < 0x2F) {
@@ -1035,7 +1035,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
             work->field_3A = work->field_3A + 1;
             break;
@@ -1145,7 +1145,7 @@ void func_shelter_b3_garbage_incinerator_8017F930(s32 arg0)
 {
     GarbageIncineratorWork* work = (GarbageIncineratorWork*)D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
-    Gp_DispatchMsg(work->field_34, 0x7DB, arg0, 0);
+    taskMessageDispatch(work->field_34, 0x7DB, arg0, 0);
 }
 
 /// Seed the spawn entry's two parameters and start the task that consumes

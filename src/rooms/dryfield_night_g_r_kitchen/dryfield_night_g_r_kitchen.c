@@ -180,7 +180,7 @@ SpriteBatch D_dryfield_night_g_r_kitchen_8017E698[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_g_r_kitchen_8017E6A8[3] = {
+SpriteView D_dryfield_night_g_r_kitchen_8017E6A8[3] = {
     { { .empty = D_dryfield_night_g_r_kitchen_8017E5E4 }, D_dryfield_night_g_r_kitchen_8017E5E4, NULL },
     { { .elements = D_dryfield_night_g_r_kitchen_8017E5F4 }, D_dryfield_night_g_r_kitchen_8017E680, NULL },
     { { .empty = D_dryfield_night_g_r_kitchen_8017E698 }, D_dryfield_night_g_r_kitchen_8017E698, NULL },
@@ -213,20 +213,20 @@ WorldCollisionTrigger D_dryfield_night_g_r_kitchen_8017E8FC[7] = {
 };
 
 AreaResource D_dryfield_night_g_r_kitchen_8017EB10[3] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_g_r_kitchen_8017EB34[4] = {
-    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013E500 },
+    { 40, 40, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013E500 },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_g_r_kitchen_8017EB64[3] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80156500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

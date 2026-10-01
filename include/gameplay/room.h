@@ -6,7 +6,7 @@
 #include "gameplay/light.h"
 
 struct WorldCollisionGrid;
-struct _GpObj3A;
+struct WorldCollisionOccluder;
 struct WorldCollisionTrigger;
 
 /// Entry in a room's table of minimum ambient light levels.
@@ -77,8 +77,27 @@ enum {
     /// they collect contacts with either policy. Projectile handlers also use
     /// blocking contacts to end flight or select their impact response.
     /// Pushback and weapon hit effects have independent surface policies.
-    WORLD_COLLISION_SURFACE_BLOCK_PROBES          = 0,
-    WORLD_COLLISION_SURFACE_PASS_PROBES           = 1,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES = 0,
+    /// Lets segment probes and grid-clipped capsules pass through a surface.
+    ///
+    /// Canonical nonzero value for the byte
+    /// `WorldCollisionSurfaceProperties.probePassThrough`; readers accept any
+    /// nonzero value. Segment queries skip these surfaces. Capsules omit their
+    /// contacts and remain unshortened only with
+    /// `WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT`; unclipped capsules, spheres
+    /// and floor queries still record contacts.
+    /// Projectile handlers skip their blocking-surface response; grenades retain
+    /// separate actor-hit, timeout and scripted detonation rules. Pushback,
+    /// weapon hit effects and footstep cues have independent surface policies.
+    WORLD_COLLISION_SURFACE_PASS_PROBES = 1,
+    /// Suppresses weapon hit effects and grenade detonation at surface contacts.
+    ///
+    /// Zero value for `WorldCollisionSurfaceProperties.weaponImpactEnabled`;
+    /// every nonzero value enables the response. Weapon hit effects skip these
+    /// contacts independently of probe passage and pushback. Grenades consult
+    /// this policy only at blocking surfaces: zero selects their exit state,
+    /// with movement and the flight-timeout check still run in that update.
+    /// Actor hits and the scripted pass-through detonation bypass this policy.
     WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS = 0,
     /// Allows weapon hit effects and grenade detonation at surface contacts.
     ///
@@ -136,12 +155,12 @@ STATIC_ASSERT_SIZEOF(WorldCollisionSurfaceProperties, 8);
 /// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
 /// Indexed 1-based by `GameSession.location.loc.room` / `GameLocationKey.room`.
 /// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` bind the grid's `viewCoord` to `&gGfxViewCoord` and
-/// link the `field_4` / `field_8` (`WorldCollisionTrigger`) and `field_C` (`GpObj3A`) arrays.
+/// link the `field_4` / `field_8` (`WorldCollisionTrigger`) and `field_C` (`WorldCollisionOccluder`) arrays.
 typedef struct _GpRoomObjRec {
-    /* 0x0 */ struct WorldCollisionGrid*    field_0;
-    /* 0x4 */ struct WorldCollisionTrigger* field_4;
-    /* 0x8 */ struct WorldCollisionTrigger* field_8;
-    /* 0xC */ struct _GpObj3A*              field_C;
+    /* 0x0 */ struct WorldCollisionGrid*     field_0;
+    /* 0x4 */ struct WorldCollisionTrigger*  field_4;
+    /* 0x8 */ struct WorldCollisionTrigger*  field_8;
+    /* 0xC */ struct WorldCollisionOccluder* field_C;
 } GpRoomObjRec;
 STATIC_ASSERT_SIZEOF(GpRoomObjRec, 0x10);
 

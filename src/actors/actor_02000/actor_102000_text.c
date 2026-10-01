@@ -1771,7 +1771,7 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
     work->field_670.spawnArgHi = 2;
     func_800B3F84(&work->rig.anim, Actor02000_D15FE8, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
     }
     eff = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
     actorTintTask(eff->task, ctx);
@@ -2056,9 +2056,9 @@ void Actor02000_Fn02D5C(Task* arg0)
 
 static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
 {
-    VECTOR*  vec;
-    GpObj3A* node;
-    s32      ret;
+    VECTOR*                 vec;
+    WorldCollisionOccluder* node;
+    s32                     ret;
 
     ret     = 0;
     node    = D_80115550;
@@ -2068,7 +2068,7 @@ static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
     vec->vz = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
-        if (node->field_3A & 0x40) {
+        if (node->flags & WORLD_COLLISION_OCCLUDER_ENABLED) {
             ret = func_800DFCCC(node, arg0, arg1, vec);
             if (ret == 1) {
                 break;

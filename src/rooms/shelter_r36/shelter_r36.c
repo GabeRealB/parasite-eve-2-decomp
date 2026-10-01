@@ -478,7 +478,7 @@ SpriteBatch D_shelter_r36_8017F308[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_r36_8017F318[11] = {
+SpriteView D_shelter_r36_8017F318[11] = {
     { { .empty = D_shelter_r36_8017EC60 }, D_shelter_r36_8017EC60, NULL },
     { { .elements = D_shelter_r36_8017EC70 }, D_shelter_r36_8017F148, NULL },
     { { .elements = D_shelter_r36_8017F168 }, D_shelter_r36_8017F280, NULL },
@@ -523,7 +523,7 @@ WorldCollisionTrigger D_shelter_r36_8017F6F4[10] = {
 };
 
 AreaResource D_shelter_r36_8017F9EC[3] = {
-    { 111, 439, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801413EC },
+    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801413EC },
     { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80149664 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

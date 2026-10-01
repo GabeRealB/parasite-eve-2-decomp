@@ -47,11 +47,11 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/screen_wave.h"
 
-extern WorldCollisionGrid    D_neo_ark_submarine_tunnel_801824DC[1];
-extern GpObj3A               D_neo_ark_submarine_tunnel_8018781C[3];
-extern WorldCollisionTrigger D_neo_ark_submarine_tunnel_80187248[6];
-extern WorldCollisionTrigger D_neo_ark_submarine_tunnel_801874D8[11];
-extern WorldCoordRoomLights  D_neo_ark_submarine_tunnel_80187230[1];
+extern WorldCollisionGrid     D_neo_ark_submarine_tunnel_801824DC[1];
+extern WorldCollisionOccluder D_neo_ark_submarine_tunnel_8018781C[3];
+extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_80187248[6];
+extern WorldCollisionTrigger  D_neo_ark_submarine_tunnel_801874D8[11];
+extern WorldCoordRoomLights   D_neo_ark_submarine_tunnel_80187230[1];
 
 extern TaskDesc D_80147E48;
 
@@ -1134,7 +1134,7 @@ SpriteBatch D_neo_ark_submarine_tunnel_80186B68[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_submarine_tunnel_80186B78[10] = {
+SpriteView D_neo_ark_submarine_tunnel_80186B78[10] = {
     { { .empty = D_neo_ark_submarine_tunnel_80182668 }, D_neo_ark_submarine_tunnel_80182668, NULL },
     { { .elements = D_neo_ark_submarine_tunnel_80182678 }, D_neo_ark_submarine_tunnel_80183190, NULL },
     { { .elements = D_neo_ark_submarine_tunnel_801831C0 }, D_neo_ark_submarine_tunnel_80183D00, NULL },
@@ -1184,12 +1184,12 @@ WorldCollisionTrigger D_neo_ark_submarine_tunnel_80187248[6] = {
 };
 
 AreaResource D_neo_ark_submarine_tunnel_80187410[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_submarine_tunnel_80187428[2] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1233,10 +1233,10 @@ WorldCollisionTrigger D_neo_ark_submarine_tunnel_801874D8[11] = {
     { NULL, NULL, NULL, { 0, 2944, -448, 0 }, { { -6544, 0, -416, 0 }, { 6544, 0, -416, 0 }, { -6544, 0, 416, 0 }, { 6544, 0, 416, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 6556, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_neo_ark_submarine_tunnel_8018781C[3] = {
-    { NULL, NULL, { 0, 576, 0, 0 }, { { -0x2720, 0, -1024, 0 }, { 0x2720, 0, -1024, 0 }, { -0x2720, 0, 1024, 0 }, { 0x2720, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, { 48, 39 }, 1, 0 },
-    { NULL, NULL, { 0, 1904, 896, 0 }, { { -0x2720, -1456, -224, 0 }, { 0x2720, -1456, -224, 0 }, { -0x2720, 1456, 224, 0 }, { 0x2720, 1456, 224, 0 } }, { 0, 622, -4048, 0 }, { 100, 39 }, 1, 0 },
-    { NULL, NULL, { 0, 1920, -832, 0 }, { { -0x2720, -1459, 208, 0 }, { 0x2720, -1459, 208, 0 }, { -0x2720, 1458, -209, 0 }, { 0x2720, 1458, -209, 0 } }, { 0, -580, -4055, 0 }, { 100, 39 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_submarine_tunnel_8018781C[3] = {
+    { NULL, NULL, { 0, 576, 0, 0 }, { { -0x2720, 0, -1024, 0 }, { 0x2720, 0, -1024, 0 }, { -0x2720, 0, 1024, 0 }, { 0x2720, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, 10032, 1, 0 },
+    { NULL, NULL, { 0, 1904, 896, 0 }, { { -0x2720, -1456, -224, 0 }, { 0x2720, -1456, -224, 0 }, { -0x2720, 1456, 224, 0 }, { 0x2720, 1456, 224, 0 } }, { 0, 622, -4048, 0 }, 10084, 1, 0 },
+    { NULL, NULL, { 0, 1920, -832, 0 }, { { -0x2720, -1459, 208, 0 }, { 0x2720, -1459, 208, 0 }, { -0x2720, 1458, -209, 0 }, { 0x2720, 1458, -209, 0 } }, { 0, -580, -4055, 0 }, 10084, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_submarine_tunnel_801878D0 = {

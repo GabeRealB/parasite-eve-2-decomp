@@ -241,7 +241,7 @@ static inline void _actor111800TickAnim(Task* task)
     u16              i;
 
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->field_492 = work->rig.slots[1].currentPose.indices.recordIndex;
 }
@@ -381,7 +381,7 @@ static void func_actor_111800_80132390(Task* task)
     work2->field_492 = 0;
     do {
         work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, 5);
+        animationResetSlot(&work2->rig.anim, i & 0xFFFF, 5);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;
@@ -458,7 +458,7 @@ void func_actor_111800_8013251C(Task* task)
             ctx = work;
             i   = 1;
             do {
-                Gp_AnimTickIndex(&ctx->rig.anim, i & 0xFFFF);
+                animationTickSlot(&ctx->rig.anim, i & 0xFFFF);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
             ctx->field_492 = ctx->rig.slots[1].currentPose.indices.recordIndex;

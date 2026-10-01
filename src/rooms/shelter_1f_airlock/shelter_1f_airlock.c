@@ -55,11 +55,11 @@ s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_1f_airlock_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_1f_airlock_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_shelter_1f_airlock_8017E838[1];
-extern GpObj3A               D_shelter_1f_airlock_8017F7B8[2];
-extern WorldCollisionTrigger D_shelter_1f_airlock_8017F430[6];
-extern WorldCollisionTrigger D_shelter_1f_airlock_8017F5F8[4];
-extern WorldCoordRoomLights  D_shelter_1f_airlock_8017F418[1];
+extern WorldCollisionGrid     D_shelter_1f_airlock_8017E838[1];
+extern WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2];
+extern WorldCollisionTrigger  D_shelter_1f_airlock_8017F430[6];
+extern WorldCollisionTrigger  D_shelter_1f_airlock_8017F5F8[4];
+extern WorldCoordRoomLights   D_shelter_1f_airlock_8017F418[1];
 
 TaskMessageEntry D_shelter_1f_airlock_8017E494[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_airlock_8017D5D8 },
@@ -295,7 +295,7 @@ SpriteDrawArea D_shelter_1f_airlock_8017F068[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_shelter_1f_airlock_8017F07C[5] = {
+SpriteView D_shelter_1f_airlock_8017F07C[5] = {
     { { .empty = D_shelter_1f_airlock_8017E910 }, D_shelter_1f_airlock_8017E910, NULL },
     { { .empty = D_shelter_1f_airlock_8017E920 }, D_shelter_1f_airlock_8017E920, NULL },
     { { .elements = D_shelter_1f_airlock_8017E930 }, D_shelter_1f_airlock_8017EB10, D_shelter_1f_airlock_8017EB30 },
@@ -360,9 +360,9 @@ GpAreaVariant D_shelter_1f_airlock_8017F758[12] = {
     { NULL, NULL },
 };
 
-GpObj3A D_shelter_1f_airlock_8017F7B8[2] = {
-    { NULL, NULL, { -64, -1264, 3072, 0 }, { { -1216, 2480, -832, 0 }, { 1216, 2480, 832, 0 }, { -1216, -2480, -832, 0 }, { 1216, -2480, 832, 0 } }, { -2315, 0, 3382, 0 }, { 57, 11 }, 1, 0 },
-    { NULL, NULL, { -2801, -1440, 3071, 0 }, { { -1433, 2480, 833, 0 }, { 1434, 2480, -832, 0 }, { -1433, -2480, 833, 0 }, { 1434, -2480, -832, 0 } }, { 2060, 0, 3547, 0 }, { -98, 11 }, 129, 0 },
+WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2] = {
+    { NULL, NULL, { -64, -1264, 3072, 0 }, { { -1216, 2480, -832, 0 }, { 1216, 2480, 832, 0 }, { -1216, -2480, -832, 0 }, { 1216, -2480, 832, 0 } }, { -2315, 0, 3382, 0 }, 2873, 1, 0 },
+    { NULL, NULL, { -2801, -1440, 3071, 0 }, { { -1433, 2480, 833, 0 }, { 1434, 2480, -832, 0 }, { -1433, -2480, 833, 0 }, { 1434, -2480, -832, 0 } }, { 2060, 0, 3547, 0 }, 2974, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_1f_airlock_8017F830 = {

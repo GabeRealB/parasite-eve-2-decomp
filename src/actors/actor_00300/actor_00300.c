@@ -1322,7 +1322,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     func_800B3F84(&work->rig.anim, Actor00300_D1633C, obj,
                   work->rig.poses, work->rig.slots);
     do {
-        Gp_AnimResetSlot(&work->rig.anim, slot, 1);
+        animationResetSlot(&work->rig.anim, slot, 1);
         slot += 1;
     } while (slot < 0x13);
     (Gp_IncStateF0Ref)(0);
@@ -3374,7 +3374,7 @@ static void Actor00300_Fn04ED4(Task* arg0)
     } else {
         work->field_672++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

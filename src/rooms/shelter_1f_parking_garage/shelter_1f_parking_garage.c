@@ -256,7 +256,7 @@ SpriteBatch D_shelter_1f_parking_garage_80181420[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_1f_parking_garage_80181430[4] = {
+SpriteView D_shelter_1f_parking_garage_80181430[4] = {
     { { .empty = D_shelter_1f_parking_garage_8018109C }, D_shelter_1f_parking_garage_8018109C, NULL },
     { { .elements = D_shelter_1f_parking_garage_801810AC }, D_shelter_1f_parking_garage_801811B0, NULL },
     { { .elements = D_shelter_1f_parking_garage_801811D0 }, D_shelter_1f_parking_garage_80181400, NULL },

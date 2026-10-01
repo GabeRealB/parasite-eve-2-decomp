@@ -18,7 +18,7 @@ void oddStrangerGrabHold(Task* arg0)
         msg->animationId = 2;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
+        taskMessageDispatch(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
     }
     if (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY) {

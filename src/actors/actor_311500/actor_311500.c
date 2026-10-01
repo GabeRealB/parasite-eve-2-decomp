@@ -54,7 +54,7 @@
 
 typedef struct Actor311500Work {
     /// Animation context the block itself begins with: `func_actor_311500_80162F28`
-    /// hands the block straight to `func_800B4114` / `Gp_AnimTickIndex`.
+    /// hands the block straight to `func_800B4114` / `animationTickSlot`.
     /* 0x000 */ ActorAnimRig19 rig;
     /// List node `func_actor_311500_801630A4` unlinks on the first step of
     /// state 1. Sits directly in front of the collision table.
@@ -306,7 +306,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     work3            = (Actor311500Work*)arg0->work;
     do {
         work3->rig.slots[i & 0xFFFF].rate = rate;
-        Gp_AnimResetSlot(&work3->rig.anim, i & 0xFFFF, 0);
+        animationResetSlot(&work3->rig.anim, i & 0xFFFF, 0);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     enemy->field_48   = 0;
@@ -349,7 +349,7 @@ static inline void _actor311500ResetAnim(Task* task, u8 rate)
     i = 1;
     do {
         work->rig.slots[i & 0xFFFF].rate = rate;
-        Gp_AnimResetSlot(&work->rig.anim, i & 0xFFFF, 0);
+        animationResetSlot(&work->rig.anim, i & 0xFFFF, 0);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
 }
@@ -363,7 +363,7 @@ static inline u16 _actor311500TickAnim(Task* task)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&work->rig.anim, i & 0xFFFF);
+        animationTickSlot(&work->rig.anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     if (work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
@@ -663,7 +663,7 @@ case0:
             anim = work;
             i    = 1;
             do {
-                Gp_AnimTickIndex(&anim->rig.anim, i & 0xFFFF);
+                animationTickSlot(&anim->rig.anim, i & 0xFFFF);
                 i += 1;
             } while (((u32)(i & 0xFFFF)) < 0x13U);
             actor->state += 1;

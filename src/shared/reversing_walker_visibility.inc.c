@@ -1,6 +1,6 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
-/// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
+/// `taskMessageDispatch` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`.
 /// Mode 0 sets the 0x80 flag, under which the tick skips the shadow and the
 /// part update, and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 clears 0x80, allocates the model

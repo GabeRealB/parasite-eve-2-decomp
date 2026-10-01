@@ -31,7 +31,7 @@ extern GpWarpRec D_dryfield_night_factory_80186F58[];
 
 extern GpViewRec D_dryfield_night_factory_80187C14[];
 
-extern GpSprtRec D_dryfield_night_factory_80189A24[];
+extern SpriteView D_dryfield_night_factory_80189A24[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[];
 

@@ -74,7 +74,7 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 ///
 /// `func_actor_160900_8013418C` allocates it with `Mem_Malloc(0x68, 0)` and
 /// zeroes all 0x68 bytes, so the size below is the allocation. That function
-/// fills `field_34` with `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` -- the task every `Gp_DispatchMsg`
+/// fills `field_34` with `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` -- the task every `taskMessageDispatch`
 /// in this overlay targets -- and 0x38/0x3C/0x40 with the tasks it spawns from
 /// `D_actor_160900_8013FB50` indices 3, 5 and 6.
 ///
@@ -88,7 +88,7 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 typedef struct Actor160900Work {
     /* 0x00 */ OverlayWaveCtx wave;
     /* 0x0C */ Task*          field_C[10]; // child tasks, killed on death
-    /* 0x34 */ Task*          field_34;    // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), Gp_DispatchMsg target
+    /* 0x34 */ Task*          field_34;    // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), taskMessageDispatch target
     /* 0x38 */ Task*          field_38;    // D_actor_160900_8013FB50[3]
     /* 0x3C */ Task*          field_3C;    // D_actor_160900_8013FB50[5]
     /* 0x40 */ Task*          field_40;    // D_actor_160900_8013FB50[6]
@@ -1011,7 +1011,7 @@ static s32 func_actor_160900_801326EC(Task* arg0)
             work->field_66 += 1;
         }
     } else {
-        if (Gp_DispatchMsg(work->field_34, 0x3ED, 0, 0) != 0) {
+        if (taskMessageDispatch(work->field_34, 0x3ED, 0, 0) != 0) {
             return 0;
         }
         entry2 = &D_actor_160900_8013F1CC[work->field_64];
@@ -1062,7 +1062,7 @@ static s32 func_actor_160900_80132844(Task* arg0)
         return 0;
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
@@ -1169,7 +1169,7 @@ static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
     work->field_4BA = 0;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work->rig.anim, (u16)i, 0);
+        animationResetSlot(&work->rig.anim, (u16)i, 0);
         i++;
     } while ((u16)i < 0x14U);
 }
@@ -1521,16 +1521,16 @@ static void func_actor_160900_8013358C(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsg(work->field_38, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_38, 0x7D5, 2, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_38, 0x7D4, D_actor_160900_8013F240, 0);
             break;
         case 2:
-            Gp_DispatchMsg(work->field_3C, 0x7D5, 1, 0);
-            Gp_DispatchMsg(work->field_40, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_3C, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_40, 0x7D5, 1, 0);
             if (work->field_44 != NULL) {
-                Gp_DispatchMsg(work->field_44, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_44, 0x7D5, 1, 0);
             }
-            Gp_DispatchMsg(work->field_38, 0x7D5, 1, 0);
+            taskMessageDispatch(work->field_38, 0x7D5, 1, 0);
             ofs.vx = -100;
             ofs.vy = 100;
             ofs.vz = -1200;

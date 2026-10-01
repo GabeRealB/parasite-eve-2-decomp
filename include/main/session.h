@@ -72,7 +72,17 @@ enum {
     /// by the next successful spawn and cleared by `Game_ClearPtrSlots`;
     /// task exit does not clear it. Use it only while that task remains alive.
     /// `gPlayerActorTasks` publishes the player separately during its first tick.
-    GAME_TASK_SLOT_PLAYER      = 3,
+    GAME_TASK_SLOT_PLAYER = 3,
+    /// Session task-table index for the current scene manager.
+    ///
+    /// Registered when spawned, before area actors are created. Top-level
+    /// enemy tasks join its child ring; it routes child lookups and actor
+    /// broadcasts once its first tick installs the message table. Registration
+    /// does not retain the task and is cleared by `Game_ClearPtrSlots`, not by
+    /// task exit. Use it only while the manager is live.
+    ///
+    /// Event-script sends use the following operand as a placed-actor index
+    /// (0..15); -1 addresses the manager itself.
     GAME_TASK_SLOT_SCENE       = 4,
     GAME_TASK_SLOT_ROOM_EFFECT = 5,
     GAME_TASK_SLOT_CAP_CONTROL = 6,

@@ -240,7 +240,7 @@ AreaResource D_acropolis_fountain_8017FC6C[2] = {
 };
 
 AreaResource D_acropolis_fountain_8017FC84[2] = {
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1165,7 +1165,7 @@ SpriteBatch D_acropolis_fountain_8018374C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_fountain_8018375C[22] = {
+SpriteView D_acropolis_fountain_8018375C[22] = {
     { { .empty = D_acropolis_fountain_8017FF4C }, D_acropolis_fountain_8017FF4C, NULL },
     { { .empty = D_acropolis_fountain_8017FF5C }, D_acropolis_fountain_8017FF5C, NULL },
     { { .elements = D_acropolis_fountain_8017FF6C }, D_acropolis_fountain_801806D8, NULL },
@@ -1294,7 +1294,7 @@ static void func_acropolis_fountain_8017DAA4(Task* arg0)
 
 static void func_acropolis_fountain_8017DB00(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -1313,7 +1313,7 @@ static void func_acropolis_fountain_8017DB54(Task* arg0)
 
 static void func_acropolis_fountain_8017DBAC(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -1337,8 +1337,8 @@ static void func_acropolis_fountain_8017DC6C(Task* arg0)
     Task* temp_v0;
 
     temp_v0 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (Gp_DispatchMsg(temp_v0, 0x3F0, 0, 0) == 0) {
-        Gp_DispatchMsg(temp_v0, 0x3F1, 0, 0);
+    if (taskMessageDispatch(temp_v0, 0x3F0, 0, 0) == 0) {
+        taskMessageDispatch(temp_v0, 0x3F1, 0, 0);
         taskKill(arg0);
     }
 }

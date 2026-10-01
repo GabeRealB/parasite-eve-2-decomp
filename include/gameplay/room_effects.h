@@ -127,8 +127,14 @@ enum {
     /// RGB channels saturate at their maximum. Pass this unshifted ABR value
     /// to `gpuSetPrimitiveBlendMode` or `getTPage`; the packet stores it in
     /// bits 5..6. The primitive must also have semitransparency enabled.
-    GPU_BLEND_ADD         = 1,
-    GPU_BLEND_SUBTRACT    = 2, // B - F
+    GPU_BLEND_ADD = 1,
+    /// GPU semitransparency selector subtracting primitive colour from framebuffer colour.
+    ///
+    /// Both colours contribute at full strength. Pass this unshifted ABR value
+    /// to `gpuSetPrimitiveBlendMode` or `getTPage`; it occupies packet bits
+    /// 5..6. The primitive must also have semitransparency enabled. Textured
+    /// primitives blend only texels whose texture colour has bit 15 set.
+    GPU_BLEND_SUBTRACT    = 2,
     GPU_BLEND_ADD_QUARTER = 3, // B + F/4
 };
 

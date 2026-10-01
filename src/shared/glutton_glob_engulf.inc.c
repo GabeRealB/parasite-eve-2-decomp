@@ -31,7 +31,7 @@ void gluttonGlobEngulf(Enemy* enemy, Task* task)
 
     if (gGluttonEnded == 1) {
         if (work->field_1B2 == 1) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
             work->field_1B2 = 0;
         }
         Gp_DestroyEnemy(enemy, task);

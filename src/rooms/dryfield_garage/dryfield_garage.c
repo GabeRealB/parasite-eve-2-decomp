@@ -436,7 +436,7 @@ SpriteBatch D_dryfield_garage_8017F5C8[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_garage_8017F5E8[15] = {
+SpriteView D_dryfield_garage_8017F5E8[15] = {
     { { .empty = D_dryfield_garage_8017E88C }, D_dryfield_garage_8017E88C, NULL },
     { { .elements = D_dryfield_garage_8017E89C }, D_dryfield_garage_8017EBD0, NULL },
     { { .elements = D_dryfield_garage_8017EBF0 }, D_dryfield_garage_8017EE20, NULL },
@@ -499,17 +499,17 @@ WorldCollisionTrigger D_dryfield_garage_8017FD1C[11] = {
 };
 
 AreaResource D_dryfield_garage_80180060[2] = {
-    { 106, 203, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80141B6C },
+    { 106, 203, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80141B6C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_garage_80180078[2] = {
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_garage_80180090[2] = {
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

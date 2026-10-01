@@ -315,7 +315,7 @@ SpriteBatch D_neo_ark_eve_access_tunnel_80180090[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_eve_access_tunnel_801800A0[7] = {
+SpriteView D_neo_ark_eve_access_tunnel_801800A0[7] = {
     { { .empty = D_neo_ark_eve_access_tunnel_8017F17C }, D_neo_ark_eve_access_tunnel_8017F17C, NULL },
     { { .elements = D_neo_ark_eve_access_tunnel_8017F18C }, D_neo_ark_eve_access_tunnel_8017F6F0, NULL },
     { { .elements = D_neo_ark_eve_access_tunnel_8017F720 }, D_neo_ark_eve_access_tunnel_8017FAE0, NULL },
@@ -356,12 +356,12 @@ WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801804B4[6] = {
 };
 
 AreaResource D_neo_ark_eve_access_tunnel_8018067C[2] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_eve_access_tunnel_80180694[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014CA60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -382,8 +382,8 @@ GpAreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_eve_access_tunnel_80180720[1] = {
-    { NULL, NULL, { -3712, -1376, 3440, 0 }, { { -1664, 2368, 1296, 0 }, { 1664, 2368, -1296, 0 }, { -1664, -2368, 1296, 0 }, { 1664, -2368, -1296, 0 } }, { 2527, 0, 3244, 0 }, { 94, 12 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_eve_access_tunnel_80180720[1] = {
+    { NULL, NULL, { -3712, -1376, 3440, 0 }, { { -1664, 2368, 1296, 0 }, { 1664, 2368, -1296, 0 }, { -1664, -2368, 1296, 0 }, { 1664, -2368, -1296, 0 } }, { 2527, 0, 3244, 0 }, 3166, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_eve_access_tunnel_8018075C = {

@@ -50,13 +50,13 @@ s32 func_dryfield_night_cellar_8017D62C(Task*, s32, TaskMessageArg, TaskMessageA
 s32 func_dryfield_night_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_dryfield_night_cellar_8017DE60[1];
-extern GpObj3A               D_dryfield_night_cellar_801802F4[1];
-extern WorldCollisionTrigger D_dryfield_night_cellar_8017FB3C[6];
-extern WorldCollisionTrigger D_dryfield_night_cellar_8017FD04[10];
-extern WorldCollisionTrigger D_dryfield_night_cellar_8017FFFC[10];
-extern WorldCoordRoomLights  D_dryfield_night_cellar_80180510[1];
-extern WorldCoordRoomLights  D_dryfield_night_cellar_80180708[1];
+extern WorldCollisionGrid     D_dryfield_night_cellar_8017DE60[1];
+extern WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1];
+extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FB3C[6];
+extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FD04[10];
+extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FFFC[10];
+extern WorldCoordRoomLights   D_dryfield_night_cellar_80180510[1];
+extern WorldCoordRoomLights   D_dryfield_night_cellar_80180708[1];
 
 TaskMessageEntry D_dryfield_night_cellar_8017DAA8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_cellar_8017D634 },
@@ -578,7 +578,7 @@ SpriteBatch D_dryfield_night_cellar_8017FAA8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_cellar_8017FAB8[11] = {
+SpriteView D_dryfield_night_cellar_8017FAB8[11] = {
     { { .empty = D_dryfield_night_cellar_8017E010 }, D_dryfield_night_cellar_8017E010, NULL },
     { { .elements = D_dryfield_night_cellar_8017E020 }, D_dryfield_night_cellar_8017E4A8, NULL },
     { { .elements = D_dryfield_night_cellar_8017E4E0 }, D_dryfield_night_cellar_8017E8B4, NULL },
@@ -627,8 +627,8 @@ WorldCollisionTrigger D_dryfield_night_cellar_8017FFFC[10] = {
     { NULL, NULL, NULL, { 7376, -64, 192, 0 }, { { -2192, 0, -303, 0 }, { 2192, 0, -303, 0 }, { -2192, 0, 304, 0 }, { 2192, 0, 304, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_cellar_801802F4[1] = {
-    { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, { 75, 10 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1] = {
+    { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, 2635, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_night_cellar_80180330[5] = {
@@ -656,18 +656,18 @@ WorldCoordRoomLights D_dryfield_night_cellar_80180708[1] = {
 };
 
 AreaResource D_dryfield_night_cellar_80180720[2] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_cellar_80180738[3] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_cellar_8018075C[3] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80151DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

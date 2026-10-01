@@ -889,7 +889,7 @@ WorldCollisionTrigger D_acropolis_sanctuary_80183AE4[17] = {
 };
 
 AreaResource D_acropolis_sanctuary_80183FF0[3] = {
-    { 27, 107, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BF94 },
+    { 27, 107, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BF94 },
     { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801585CC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -1432,7 +1432,7 @@ SpriteBatch D_acropolis_sanctuary_801860A0[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_sanctuary_801860C8[16] = {
+SpriteView D_acropolis_sanctuary_801860C8[16] = {
     { { .empty = D_acropolis_sanctuary_80184404 }, D_acropolis_sanctuary_80184404, NULL },
     { { .elements = D_acropolis_sanctuary_80184414 }, D_acropolis_sanctuary_80184734, NULL },
     { { .elements = D_acropolis_sanctuary_80184764 }, D_acropolis_sanctuary_80184B4C, NULL },
@@ -1933,7 +1933,7 @@ static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
     GameLocationKey* sess = &g->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][(arg1 & 0xFF) - 1].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][(arg1 & 0xFF) - 1].batches;
     if ((arg0 & 0xFF) == 0) {
         batches[1].hidden = 0;
         batches[2].hidden = 1;

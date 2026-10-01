@@ -127,7 +127,7 @@ SpriteBatch D_neo_ark_eve_elevator_8017DB10[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_eve_elevator_8017DB20[4] = {
+SpriteView D_neo_ark_eve_elevator_8017DB20[4] = {
     { { .empty = D_neo_ark_eve_elevator_8017DAE0 }, D_neo_ark_eve_elevator_8017DAE0, NULL },
     { { .empty = D_neo_ark_eve_elevator_8017DAF0 }, D_neo_ark_eve_elevator_8017DAF0, NULL },
     { { .empty = D_neo_ark_eve_elevator_8017DB00 }, D_neo_ark_eve_elevator_8017DB00, NULL },

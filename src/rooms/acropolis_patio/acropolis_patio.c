@@ -136,12 +136,12 @@ static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { func_acropolis_patio_8017D5EC, func_acropolis_patio_8017DF7C, taskKill },
 };
 
-extern WorldCollisionGrid    D_acropolis_patio_80183DF8[1];
-extern GpObj3A               D_acropolis_patio_80184964[2];
-extern WorldCollisionTrigger D_acropolis_patio_80183E1C[14];
-extern WorldCollisionTrigger D_acropolis_patio_80184244[12];
-extern WorldCollisionTrigger D_acropolis_patio_801845D4[12];
-extern WorldCoordRoomLights  D_acropolis_patio_80186D44[1];
+extern WorldCollisionGrid     D_acropolis_patio_80183DF8[1];
+extern WorldCollisionOccluder D_acropolis_patio_80184964[2];
+extern WorldCollisionTrigger  D_acropolis_patio_80183E1C[14];
+extern WorldCollisionTrigger  D_acropolis_patio_80184244[12];
+extern WorldCollisionTrigger  D_acropolis_patio_801845D4[12];
+extern WorldCoordRoomLights   D_acropolis_patio_80186D44[1];
 
 extern AnimationPlayRequest D_acropolis_patio_8018261C;
 extern ActorTransform       D_acropolis_patio_80182690;
@@ -950,26 +950,26 @@ WorldCollisionTrigger D_acropolis_patio_801845D4[12] = {
     { NULL, NULL, NULL, { -7201, -384, -2240, 0 }, { { -1586, 0, -428, 0 }, { 1574, 0, -446, 0 }, { -1572, 0, 446, 0 }, { 1587, 0, 429, 0 } }, { 0, 4112, 0, 0 }, { -1189, 0, -3920, 0 }, 1639, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_acropolis_patio_80184964[2] = {
-    { NULL, NULL, { -1184, -1760, -2112, 0 }, { { -3904, -1984, 0, 0 }, { 3904, -1984, 0, 0 }, { -3904, 1984, 0, 0 }, { 3904, 1984, 0, 0 } }, { 0, 0, -4098, 0 }, { 22, 17 }, 1, 0 },
-    { NULL, NULL, { 2336, -1728, -5888, 0 }, { { 0, -1984, 3904, 0 }, { 0, -1984, -3904, 0 }, { 0, 1984, 3904, 0 }, { 0, 1984, -3904, 0 } }, { -4098, 0, 0, 0 }, { 22, 17 }, 129, 0 },
+WorldCollisionOccluder D_acropolis_patio_80184964[2] = {
+    { NULL, NULL, { -1184, -1760, -2112, 0 }, { { -3904, -1984, 0, 0 }, { 3904, -1984, 0, 0 }, { -3904, 1984, 0, 0 }, { 3904, 1984, 0, 0 } }, { 0, 0, -4098, 0 }, 4374, 1, 0 },
+    { NULL, NULL, { 2336, -1728, -5888, 0 }, { { 0, -1984, 3904, 0 }, { 0, -1984, -3904, 0 }, { 0, 1984, 3904, 0 }, { 0, 1984, -3904, 0 } }, { -4098, 0, 0, 0 }, 4374, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_acropolis_patio_801849DC[3] = {
-    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80149120 },
+    { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80149120 },
     { 107, 122, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80169F7C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_patio_80184A00[3] = {
     { 10, 170, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016CF44 },
-    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80149120 },
+    { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80149120 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_patio_80184A24[3] = {
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138C80 },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801393C8 },
+    { 7, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80138C80 },
+    { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801393C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1458,7 +1458,7 @@ SpriteBatch D_acropolis_patio_80186348[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_patio_80186360[19] = {
+SpriteView D_acropolis_patio_80186360[19] = {
     { { .empty = D_acropolis_patio_80184AF0 }, D_acropolis_patio_80184AF0, NULL },
     { { .elements = D_acropolis_patio_80184B00 }, D_acropolis_patio_80184D1C, NULL },
     { { .elements = D_acropolis_patio_80184D54 }, D_acropolis_patio_801850D8, NULL },
@@ -1592,7 +1592,7 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
+            taskMessageDispatch(Gp_LookupSlot4(0), 0x7D5, 1, 0);
             D_acropolis_patio_80187060 = Task_SpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
         }
         temp = Gp_LookupSlot4(1);
@@ -1745,7 +1745,7 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
-        (Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
+        (taskMessageDispatch(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
         GameFlag_SetNibble(0x21, 4);
         func_800E8634(D_acropolis_patio_8018082C, 0, D_acropolis_patio_80180C64);
     }

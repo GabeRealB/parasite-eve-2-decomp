@@ -895,7 +895,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->rig.anim, D_actor_105100_80141488, obj, work->rig.poses,
                   work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->field_560               = coord->coord;
@@ -1686,8 +1686,8 @@ static void func_actor_105100_80133CE4(Task* arg0)
             break;
         case 2:
             if ((s16)++work->field_5A6 >= 0x25) {
-                if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                    Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                    taskMessageDispatch(player, 0x3F1, 0, 0);
                     work->field_5A4 = 0;
                     work->field_5A6 = 0;
                     work->field_5A2 = 0;
@@ -1746,7 +1746,7 @@ static inline void _actor105100AnimUpdate(Task* task)
     } else {
         work->field_592++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }
@@ -1817,7 +1817,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             flag = work->field_5BA;
             if ((flag == 1) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != flag) &&
                 (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
                 work->field_5BA = 0;
             }
             if ((s16)work->field_592 == 0xB) {

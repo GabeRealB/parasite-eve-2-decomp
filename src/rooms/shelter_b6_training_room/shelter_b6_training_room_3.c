@@ -1476,7 +1476,7 @@ void func_shelter_b6_training_room_8018294C(Task* task)
 void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    SpriteView*      rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;
     s32              flag;
@@ -1484,32 +1484,32 @@ void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1)
     if (run == 0) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[2].hidden = 1;
-            batches           = rec[6].field_4;
+            batches           = rec[6].batches;
             batches[1].hidden = 1;
             return;
         }
         if (flag == 1) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[2].hidden = 0;
-            batches           = rec[6].field_4;
+            batches           = rec[6].batches;
             batches[1].hidden = 0;
             return;
         }
     } else if (run == 1) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[1].hidden = run;
-            batches           = rec[6].field_4;
+            batches           = rec[6].batches;
             batches[2].hidden = run;
             return;
         }
         if (flag == run) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[1].hidden = 0;
-            batches           = rec[6].field_4;
+            batches           = rec[6].batches;
             batches[2].hidden = 0;
         }
     }

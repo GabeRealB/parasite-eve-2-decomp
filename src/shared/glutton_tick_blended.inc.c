@@ -22,7 +22,7 @@ void gluttonTickBlended(Task* arg0)
             Gp_AnimWritePoseCopy(&work->anim0, i, &pose0, &pose1, blend, invBlend);
         } else {
             work->slots0[i].rate = work->field_7B6 - 3;
-            Gp_AnimTickIndex(&work->anim0, i);
+            animationTickSlot(&work->anim0, i);
         }
     }
 

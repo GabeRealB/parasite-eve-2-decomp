@@ -627,7 +627,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     work->field_31C = 1;
     work->field_31E = 1;
     for (i = 1; i < 5; i++) {
-        Gp_AnimResetSlot(&work->anim, i, work->field_31C);
+        animationResetSlot(&work->anim, i, work->field_31C);
     }
     Gp_IncStateF0Ref(0);
     switch (ctx->place->mode) {
@@ -1782,7 +1782,7 @@ static void Actor02500_Fn02318(Task* arg0)
     j = 1;
     work->field_320++;
     do {
-        Gp_AnimTickIndex(&work->anim, j);
+        animationTickSlot(&work->anim, j);
         j++;
     } while (j < 5);
 }

@@ -188,12 +188,12 @@ typedef struct _MineCavernHitScratch {
     s16     damage;
 } _MineCavernHitScratch;
 
-extern WorldCollisionGrid    D_mine_cavern_8018981C[1];
-extern GpObj3A               D_mine_cavern_8018E078[2];
-extern WorldCollisionTrigger D_mine_cavern_8018D154[20];
-extern WorldCollisionTrigger D_mine_cavern_8018D744[18];
-extern WorldCollisionTrigger D_mine_cavern_8018DC9C[13];
-extern WorldCoordRoomLights  D_mine_cavern_8018D13C[1];
+extern WorldCollisionGrid     D_mine_cavern_8018981C[1];
+extern WorldCollisionOccluder D_mine_cavern_8018E078[2];
+extern WorldCollisionTrigger  D_mine_cavern_8018D154[20];
+extern WorldCollisionTrigger  D_mine_cavern_8018D744[18];
+extern WorldCollisionTrigger  D_mine_cavern_8018DC9C[13];
+extern WorldCoordRoomLights   D_mine_cavern_8018D13C[1];
 
 extern SpriteBatch  D_mine_cavern_80189BC4[2];
 extern SpriteBatch  D_mine_cavern_80189FA8[4];
@@ -1931,7 +1931,7 @@ SpriteBatch D_mine_cavern_8018CD00[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_cavern_8018CD10[25] = {
+SpriteView D_mine_cavern_8018CD10[25] = {
     { { .empty = D_mine_cavern_80189BC4 }, D_mine_cavern_80189BC4, NULL },
     { { .elements = D_mine_cavern_80189BD4 }, D_mine_cavern_80189FA8, NULL },
     { { .elements = D_mine_cavern_80189FC8 }, D_mine_cavern_8018A4C8, NULL },
@@ -2034,9 +2034,9 @@ WorldCollisionTrigger D_mine_cavern_8018DC9C[13] = {
     { NULL, NULL, NULL, { 0x3300, -64, 6112, 0 }, { { -1472, 0, -448, 0 }, { 1472, 0, -448, 0 }, { -1472, 0, 448, 0 }, { 1472, 0, 448, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_mine_cavern_8018E078[2] = {
-    { NULL, NULL, { 9216, -2384, 4448, 0 }, { { -5856, -3408, -1088, 0 }, { 5856, -3408, 1088, 0 }, { -5856, 3408, -1088, 0 }, { 5856, 3408, 1088, 0 } }, { 750, 0, -4041, 0 }, { -62, 26 }, 1, 0 },
-    { NULL, NULL, { 9183, -2320, 4399, 0 }, { { -5890, -3344, 1060, 0 }, { 5891, -3344, -1059, 0 }, { -5890, 3344, 1060, 0 }, { 5891, 3344, -1059, 0 } }, { -726, 0, -4034, 0 }, { -62, 26 }, 129, 0 },
+WorldCollisionOccluder D_mine_cavern_8018E078[2] = {
+    { NULL, NULL, { 9216, -2384, 4448, 0 }, { { -5856, -3408, -1088, 0 }, { 5856, -3408, 1088, 0 }, { -5856, 3408, -1088, 0 }, { 5856, 3408, 1088, 0 } }, { 750, 0, -4041, 0 }, 6850, 1, 0 },
+    { NULL, NULL, { 9183, -2320, 4399, 0 }, { { -5890, -3344, 1060, 0 }, { 5891, -3344, -1059, 0 }, { -5890, 3344, 1060, 0 }, { 5891, 3344, -1059, 0 } }, { -726, 0, -4034, 0 }, 6850, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_mine_cavern_8018E0F0[2] = {
@@ -2055,7 +2055,7 @@ AreaResource D_mine_cavern_8018E120[2] = {
 };
 
 AreaResource D_mine_cavern_8018E138[2] = {
-    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
+    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2199,7 +2199,7 @@ void func_mine_cavern_8017E394(void)
 void func_mine_cavern_8017E3A0(s32 arg0)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     s32              v;
 
     sess = &gGameSession->location.loc;
@@ -2207,19 +2207,19 @@ void func_mine_cavern_8017E3A0(s32 arg0)
     v    = arg0 & 0xFF;
 
     if (v == 1) {
-        rec[3].field_4[5].hidden  = v;
-        rec[4].field_4[6].hidden  = v;
-        rec[21].field_4[5].hidden = v;
-        rec[22].field_4[3].hidden = v;
-        rec[23].field_4[4].hidden = v;
+        rec[3].batches[5].hidden  = v;
+        rec[4].batches[6].hidden  = v;
+        rec[21].batches[5].hidden = v;
+        rec[22].batches[3].hidden = v;
+        rec[23].batches[4].hidden = v;
         return;
     }
     if (v == 0) {
-        rec[3].field_4[5].hidden  = 0;
-        rec[4].field_4[6].hidden  = 0;
-        rec[21].field_4[5].hidden = 0;
-        rec[22].field_4[3].hidden = 0;
-        rec[23].field_4[4].hidden = 0;
+        rec[3].batches[5].hidden  = 0;
+        rec[4].batches[6].hidden  = 0;
+        rec[21].batches[5].hidden = 0;
+        rec[22].batches[3].hidden = 0;
+        rec[23].batches[4].hidden = 0;
     }
 }
 

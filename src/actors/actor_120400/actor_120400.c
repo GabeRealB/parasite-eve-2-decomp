@@ -1007,7 +1007,7 @@ static void func_actor_120400_80132050(Task* arg0)
     work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -1040,7 +1040,7 @@ static void func_actor_120400_80132050(Task* arg0)
 /// `gActorMotionAnimBanks` selects; `model.animId` takes the preset's animation
 /// id, and a preset asking for slots while `model.ticking` says the slots are
 /// already ticking is pushed onto `func_800B4114`'s per-slot loop instead of
-/// the `Gp_AnimResetSlot` one, followed by a `Gp_AnimTickIndex` pass over the
+/// the `animationResetSlot` one, followed by a `animationTickSlot` pass over the
 /// same 0x14 slots and `model.ticking` raised. Returns 0 either way.
 s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Actor120400SpawnAnim* anim)
 {
@@ -1087,11 +1087,11 @@ s32 func_actor_120400_80132398(Task* task, s32 arg1, ActorTransform* place, Acto
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+            animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
     return 0;

@@ -53,13 +53,13 @@ extern EvsCommand       D_dryfield_underpass_8017E8D8[];
 extern SVECTOR          D_dryfield_underpass_8017EAD0[8];
 extern s16              D_dryfield_underpass_8017EB10[8];
 
-extern WorldCollisionGrid    D_dryfield_underpass_8017F484[1];
-extern GpObj3A               D_dryfield_underpass_80180AA8[3];
-extern WorldCollisionTrigger D_dryfield_underpass_80180388[16];
-extern WorldCollisionTrigger D_dryfield_underpass_80180848[2];
-extern WorldCollisionTrigger D_dryfield_underpass_801808E0[6];
-extern WorldCoordRoomLights  D_dryfield_underpass_80180EBC[1];
-extern WorldCoordRoomLights  D_dryfield_underpass_80181114[1];
+extern WorldCollisionGrid     D_dryfield_underpass_8017F484[1];
+extern WorldCollisionOccluder D_dryfield_underpass_80180AA8[3];
+extern WorldCollisionTrigger  D_dryfield_underpass_80180388[16];
+extern WorldCollisionTrigger  D_dryfield_underpass_80180848[2];
+extern WorldCollisionTrigger  D_dryfield_underpass_801808E0[6];
+extern WorldCoordRoomLights   D_dryfield_underpass_80180EBC[1];
+extern WorldCoordRoomLights   D_dryfield_underpass_80181114[1];
 
 extern AnimationPlayRequest D_dryfield_underpass_8017E870;
 extern AnimationPlayRequest D_dryfield_underpass_8017E884;
@@ -657,7 +657,7 @@ SpriteBatch D_dryfield_underpass_80180240[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_underpass_80180250[26] = {
+SpriteView D_dryfield_underpass_80180250[26] = {
     { { .empty = D_dryfield_underpass_8017F8D0 }, D_dryfield_underpass_8017F8D0, NULL },
     { { .empty = D_dryfield_underpass_8017F8E0 }, D_dryfield_underpass_8017F8E0, NULL },
     { { .elements = D_dryfield_underpass_8017F8F0 }, D_dryfield_underpass_8017FA30, NULL },
@@ -719,10 +719,10 @@ WorldCollisionTrigger D_dryfield_underpass_801808E0[6] = {
     { NULL, NULL, NULL, { 0x40C0, -1056, -6240, 0 }, { { 1808, 0, -384, 0 }, { 1808, 0, 384, 0 }, { -1808, 0, -384, 0 }, { -1808, 0, 384, 0 } }, { 0, 4099, 0, 0 }, { 3166, 0, -2598, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_underpass_80180AA8[3] = {
-    { NULL, NULL, { 1184, -2304, -0x2840, 0 }, { { -2912, -3328, 0, 0 }, { 2912, -3328, 0, 0 }, { -2912, 3328, 0, 0 }, { 2912, 3328, 0, 0 } }, { 0, 0, -4106, 0 }, { 52, 17 }, 1, 0 },
-    { NULL, NULL, { 0x2FB0, -2240, -0x2820, 0 }, { { -5840, -3264, 0, 0 }, { 5840, -3264, 0, 0 }, { -5840, 3264, 0, 0 }, { 5840, 3264, 0, 0 } }, { 0, 0, -4111, 0 }, { 19, 26 }, 1, 0 },
-    { NULL, NULL, { 8992, -3328, -4416, 0 }, { { -5840, -2848, 2496, 0 }, { 5840, -2848, -2496, 0 }, { -5840, 2848, 2496, 0 }, { 5840, 2848, -2496, 0 } }, { -1614, 0, -3777, 0 }, { 33, 27 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_underpass_80180AA8[3] = {
+    { NULL, NULL, { 1184, -2304, -0x2840, 0 }, { { -2912, -3328, 0, 0 }, { 2912, -3328, 0, 0 }, { -2912, 3328, 0, 0 }, { 2912, 3328, 0, 0 } }, { 0, 0, -4106, 0 }, 4404, 1, 0 },
+    { NULL, NULL, { 0x2FB0, -2240, -0x2820, 0 }, { { -5840, -3264, 0, 0 }, { 5840, -3264, 0, 0 }, { -5840, 3264, 0, 0 }, { 5840, 3264, 0, 0 } }, { 0, 0, -4111, 0 }, 6675, 1, 0 },
+    { NULL, NULL, { 8992, -3328, -4416, 0 }, { { -5840, -2848, 2496, 0 }, { 5840, -2848, -2496, 0 }, { -5840, 2848, 2496, 0 }, { 5840, 2848, -2496, 0 } }, { -1614, 0, -3777, 0 }, 6945, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_underpass_80180B5C[9] = {

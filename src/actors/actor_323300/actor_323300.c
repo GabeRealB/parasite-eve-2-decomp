@@ -94,7 +94,7 @@ typedef struct Actor323300MtxWork {
 STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
 /// Message table `func_actor_323300_80161E78` parks in `Task::msgTable`:
-/// `Gp_DispatchMsg` matches an incoming id against these and calls the handler.
+/// `taskMessageDispatch` matches an incoming id against these and calls the handler.
 /// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `actorMotionPlayAnim19`,
 /// `actorMsgPlaceEuler`, `func_actor_323300_80162208` and
 /// `func_actor_323300_80162360`; the `TASK_MESSAGE_TABLE_END` terminator ends the walk.
@@ -500,7 +500,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
     states[(s16)work->walk.motion](arg0);
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         if (work->field_500 != 0) {
             if (work->rig.slots[1].flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
@@ -677,11 +677,11 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
                     }
                 } else {
                     for (i = 1; i < 0x13; i++) {
-                        Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+                        animationResetSlot(&work->rig.anim, i, work->model.animId);
                     }
                 }
                 for (i = 1; i < 0x13; i++) {
-                    Gp_AnimTickIndex(&work->rig.anim, i);
+                    animationTickSlot(&work->rig.anim, i);
                 }
                 work->model.ticking = 1;
             }
@@ -984,7 +984,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
 
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 
@@ -1159,7 +1159,7 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 /// `func_800B3F84` with the block's context, slots and matrix table. A
 /// different animation id then restarts every slot 1..0x12 -- through
 /// `func_800B4114` when the preset asks for it and the block has been started
-/// before, through `Gp_AnimResetSlot` otherwise -- ticks them once and latches
+/// before, through `animationResetSlot` otherwise -- ticks them once and latches
 /// `field_43C` so the next preset takes the first branch.
 static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
 {
@@ -1183,11 +1183,11 @@ static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->field_444);
+                animationResetSlot(&work->rig.anim, i, work->field_444);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->field_43C = 1;
     }

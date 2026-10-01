@@ -110,8 +110,7 @@ enum {
     /// transition durations must fit the signed remaining time after scaling
     /// (0..2047 whole frames). Interpolation weights use the separate
     /// `ANIMATION_BLEND_FRACTION_BITS` scale.
-    ANIMATION_TIME_FRACTION_BITS   = 4,
-    ANIMATION_TIME_UNITS_PER_FRAME = 1 << ANIMATION_TIME_FRACTION_BITS
+    ANIMATION_TIME_FRACTION_BITS = 4
 };
 STATIC_ASSERT((1 << ANIMATION_TIME_FRACTION_BITS) == ANIMATION_RATE_ONE, animation_time_fraction_matches_rate_one);
 
@@ -2483,11 +2482,12 @@ static inline void _gpAnimSeekSlot(AnimationContext* context, s32 arg1, u16 arg2
     const AnimationRecord* rec;
     u16                    recordIndex;
     u16                    blendTime;
-    s32                    poseBufferOffset;
+    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-    poseBufferOffset = arg1 * ANIMATION_POSE_BUFFER_BYTES;
-    slot             = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, 0, (u8*)context->poseBuffer + poseBufferOffset);
+    // Capture this slot's encoded blend before replacing its destination keyframe.
+    bufferedPose = context->poseBuffer + arg1;
+    slot         = &context->slots[arg1];
+    animationTickSlotPose(context, arg1, 0, bufferedPose);
     slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
     set                                = slot->sets[arg2];
     recs                               = set->records;
@@ -2541,17 +2541,18 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
     s32                    setIndex;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
-        u8  slotIndex;
-        s32 poseBufferOffset;
+        u8 slotIndex;
+        u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
         slotIndex        = arg1->trackIndex;
         setIndex         = arg3;
         context->slots   = arg1 - slotIndex;
         arg1->coordIndex = arg2;
         slotIndex        = arg1->trackIndex;
-        poseBufferOffset = slotIndex * ANIMATION_POSE_BUFFER_BYTES;
-        slot             = &context->slots[slotIndex];
-        animationTickSlotPose(context, slotIndex, 0, (u8*)context->poseBuffer + poseBufferOffset);
+        // Capture this slot's encoded blend before replacing its destination keyframe.
+        bufferedPose = context->poseBuffer + slotIndex;
+        slot         = &context->slots[slotIndex];
+        animationTickSlotPose(context, slotIndex, 0, bufferedPose);
         slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
         set                                = slot->sets[(u16)setIndex];
         recs                               = set->records;
@@ -2583,7 +2584,7 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
             arg3 = -arg3;
         }
 
-        arg1->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+        arg1->rate                            = ANIMATION_RATE_ONE;
         arg1->timeLeft                        = 0;
         arg1->currentPose.indices.setIndex    = arg3;
         arg1->currentPose.indices.recordIndex = 0;
@@ -2621,7 +2622,7 @@ void Gp_AnimInitSlot(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s
         arg3 = -arg3;
     }
 
-    arg1->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+    arg1->rate                            = ANIMATION_RATE_ONE;
     arg1->timeLeft                        = 0;
     arg1->currentPose.indices.setIndex    = arg3;
     arg1->currentPose.indices.recordIndex = 0;
@@ -2704,28 +2705,44 @@ void func_800B3F84(AnimationContext* context, void* arg1, TmdObject* arg2, void*
     Gp_AnimInitCtxSlots(context, arg1, arg2, arg3, arg4);
 }
 
-void Gp_AnimResetSlot(AnimationContext* context, s32 arg1, s32 arg2)
+/// Primes a slot's rate, time and endpoint sets for a model-part track restart.
+///
+/// `slot` is writable. `partIndex` selects both the source track and destination
+/// coordinate and must fit their arrays. `setIndex` is a loaded set-table index,
+/// including zero, excluding `ANIMATION_SET_BUFFERED_POSE`.
+///
+/// The caller must bind the set table, install the track start as the next
+/// record, select its pose encoding and clear the boundary state before ticking.
+/// Zero remaining time makes the first forward tick begin its segment walk
+/// from that track start; the zero current record is replaced before pose lookup.
+static inline void _animationPrimeSlotTrack(AnimationSlot* slot, u8 partIndex, u16 setIndex)
+{
+    slot->rate                            = ANIMATION_RATE_ONE;
+    slot->timeLeft                        = 0;
+    slot->currentPose.indices.setIndex    = setIndex;
+    slot->currentPose.indices.recordIndex = 0;
+    slot->coordIndex                      = partIndex;
+    slot->trackIndex                      = partIndex;
+    slot->nextPose.indices.setIndex       = setIndex;
+}
+
+void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex)
 {
     AnimationSlot* slot;
     AnimationSet** sets;
     u8             recordFlags;
 
-    slot                                  = &context->slots[arg1];
-    slot->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
-    slot->timeLeft                        = 0;
-    slot->currentPose.indices.setIndex    = arg2;
-    slot->currentPose.indices.recordIndex = 0;
-    slot->coordIndex                      = arg1;
-    slot->trackIndex                      = arg1;
-    slot->nextPose.indices.setIndex       = arg2;
-    sets                                  = context->sets;
-    slot->sets                            = sets;
-    slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
-    recordFlags                           = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
-    slot->flags                           = 0;
-    slot->atEnd                           = 0;
-    slot->field_12                        = 0;
-    slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+    slot = &context->slots[slotIndex];
+    _animationPrimeSlotTrack(slot, slotIndex, setIndex);
+    // Bind the track start and its encoding before clearing the prior playback results.
+    sets                               = context->sets;
+    slot->sets                         = sets;
+    slot->nextPose.indices.recordIndex = sets[setIndex]->trackStartIndices[slot->trackIndex];
+    recordFlags                        = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
+    slot->flags                        = 0;
+    slot->atEnd                        = 0;
+    slot->field_12                     = 0;
+    slot->poseEncoding                 = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
 }
 
 void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
@@ -2735,7 +2752,7 @@ void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3,
     u8             recordFlags;
 
     slot                                  = &context->slots[arg1];
-    slot->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+    slot->rate                            = ANIMATION_RATE_ONE;
     slot->timeLeft                        = 0;
     slot->currentPose.indices.setIndex    = arg2;
     slot->currentPose.indices.recordIndex = 0;
@@ -2839,9 +2856,9 @@ void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, AnimationPose* ar
     SCRATCH_STACK_RELEASE_BLOCK(AnimationPose);
 }
 
-void Gp_AnimTickIndex(AnimationContext* context, s32 arg1)
+void animationTickSlot(AnimationContext* context, s32 slotIndex)
 {
-    animationTickSlotPose(context, arg1, 0, 0);
+    animationTickSlotPose(context, slotIndex, NULL, NULL);
 }
 
 void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6)
@@ -2852,11 +2869,12 @@ void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16
     const AnimationRecord* rec;
     u16                    recordIndex;
     u16                    blendTime;
-    s32                    poseBufferOffset;
+    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-    poseBufferOffset = arg1 * ANIMATION_POSE_BUFFER_BYTES;
-    slot             = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, arg2, (u8*)context->poseBuffer + poseBufferOffset);
+    // Capture this slot's encoded blend before replacing its destination keyframe.
+    bufferedPose = context->poseBuffer + arg1;
+    slot         = &context->slots[arg1];
+    animationTickSlotPose(context, arg1, arg2, bufferedPose);
     slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
     set                                = slot->sets[arg3];
     recs                               = set->records;
@@ -2943,11 +2961,12 @@ void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, AnimationPose* arg2, u
     const AnimationRecord* rec;
     u16                    recordIndex;
     u16                    blendTime;
-    s32                    poseBufferOffset;
+    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-    poseBufferOffset = arg1 * ANIMATION_POSE_BUFFER_BYTES;
-    slot             = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, arg2, (u8*)context->poseBuffer + poseBufferOffset);
+    // Capture this slot's encoded blend before replacing its destination keyframe.
+    bufferedPose = context->poseBuffer + arg1;
+    slot         = &context->slots[arg1];
+    animationTickSlotPose(context, arg1, arg2, bufferedPose);
     slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
     if (arg7 != NULL) {
         context->sets = arg7;
@@ -3771,7 +3790,7 @@ s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         type = work->field_A >> 8;
         next = arg0->nextSibling;
         if (type == 9) {
-            Gp_DispatchMsg(arg0, arg3, arg2, 0);
+            taskMessageDispatch(arg0, arg3, arg2, 0);
         }
         arg0 = next;
     } while (arg0 != child);
@@ -3847,7 +3866,7 @@ void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContac
     // Rotate and scale the offset in the view coordinate frame.
     VectorNormalSS(&scratch->vec, &scratch->vec);
     TransposeMatrix(&viewCoord->workm, &scratch->mtx);
-    gfxLoadRotSv(&scratch->mtx, &scratch->vec);
+    _gfxLoadRotSv(&scratch->mtx, &scratch->vec);
     gte_rtv0();
     gte_stsv(delta);
     gte_lddp(scale);
@@ -4022,7 +4041,7 @@ GpBit2Bank Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameF
 
 void Gp_BindSlot4(Task* task)
 {
-    Game_SetPtrSlot(task, 4);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_SCENE);
     task->msgTable = Gp_Slot4MsgTable;
     task->state++;
 }

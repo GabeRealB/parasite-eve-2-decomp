@@ -1589,7 +1589,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80189204[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_dilapidated_house_8018921C[11] = {
+SpriteView D_dryfield_night_dilapidated_house_8018921C[11] = {
     { { .empty = D_dryfield_night_dilapidated_house_80187EF4 }, D_dryfield_night_dilapidated_house_80187EF4, NULL },
     { { .elements = D_dryfield_night_dilapidated_house_80187F04 }, D_dryfield_night_dilapidated_house_80188490, NULL },
     { { .elements = D_dryfield_night_dilapidated_house_801884B8 }, D_dryfield_night_dilapidated_house_80188990, NULL },

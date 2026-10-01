@@ -71,8 +71,8 @@ extern WorldCoordRoomLights       D_shelter_b1_sterilization_room_8018B630[1];
 void func_shelter_b1_sterilization_room_801814B0(void);
 void func_shelter_b1_sterilization_room_80181698(s32);
 
-extern GpObj3A               D_shelter_b1_sterilization_room_8018C1A4[2];
-extern WorldCollisionTrigger D_shelter_b1_sterilization_room_8018B648[8];
+extern WorldCollisionOccluder D_shelter_b1_sterilization_room_8018C1A4[2];
+extern WorldCollisionTrigger  D_shelter_b1_sterilization_room_8018B648[8];
 
 void func_shelter_b1_sterilization_room_801815EC(void);
 void func_shelter_b1_sterilization_room_80181658(void);
@@ -718,7 +718,7 @@ SpriteBatch D_shelter_b1_sterilization_room_8018AFFC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_sterilization_room_8018B00C[24] = {
+SpriteView D_shelter_b1_sterilization_room_8018B00C[24] = {
     { { .empty = D_shelter_b1_sterilization_room_8018A1C8 }, D_shelter_b1_sterilization_room_8018A1C8, NULL },
     { { .empty = D_shelter_b1_sterilization_room_8018A1D8 }, D_shelter_b1_sterilization_room_8018A1D8, NULL },
     { { .empty = D_shelter_b1_sterilization_room_8018A1E8 }, D_shelter_b1_sterilization_room_8018A1E8, NULL },
@@ -814,7 +814,7 @@ AreaResource D_shelter_b1_sterilization_room_8018C0F8[1] = {
 };
 
 AreaResource D_shelter_b1_sterilization_room_8018C104[2] = {
-    { 117, 606, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013DFA0 },
+    { 117, 606, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013DFA0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -841,9 +841,9 @@ GpAreaVariant D_shelter_b1_sterilization_room_8018C14C[11] = {
     { NULL, NULL },
 };
 
-GpObj3A D_shelter_b1_sterilization_room_8018C1A4[2] = {
-    { NULL, NULL, { 3536, -1424, 6048, 0 }, { { -3888, 2448, 0, 0 }, { 3888, 2448, 0, 0 }, { -3888, -2448, 0, 0 }, { 3888, -2448, 0, 0 } }, { 0, 0, 4104, 0 }, { -29, 17 }, 1, 0 },
-    { NULL, NULL, { 3488, -1360, 0x2B00, 0 }, { { -3888, 2384, 0, 0 }, { 3888, 2384, 0, 0 }, { -3888, -2384, 0, 0 }, { 3888, -2384, 0, 0 } }, { 0, 0, 4099, 0 }, { -58, 17 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b1_sterilization_room_8018C1A4[2] = {
+    { NULL, NULL, { 3536, -1424, 6048, 0 }, { { -3888, 2448, 0, 0 }, { 3888, 2448, 0, 0 }, { -3888, -2448, 0, 0 }, { 3888, -2448, 0, 0 } }, { 0, 0, 4104, 0 }, 4579, 1, 0 },
+    { NULL, NULL, { 3488, -1360, 0x2B00, 0 }, { { -3888, 2384, 0, 0 }, { 3888, 2384, 0, 0 }, { -3888, -2384, 0, 0 }, { 3888, -2384, 0, 0 } }, { 0, 0, 4099, 0 }, 4550, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25] = {

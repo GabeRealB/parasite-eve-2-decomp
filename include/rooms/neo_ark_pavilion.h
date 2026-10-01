@@ -40,7 +40,7 @@ extern GpWarpRec D_neo_ark_pavilion_801838F8[];
 
 extern GpViewRec D_neo_ark_pavilion_80184208[];
 
-extern GpSprtRec D_neo_ark_pavilion_801873B8[];
+extern SpriteView D_neo_ark_pavilion_801873B8[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_pavilion_801879EC[];
 

@@ -26,7 +26,7 @@ extern GpWarpRec D_neo_ark_pyramid_8017FC6C[];
 
 extern GpViewRec D_neo_ark_pyramid_801802E8[];
 
-extern GpSprtRec D_neo_ark_pyramid_80180E18[];
+extern SpriteView D_neo_ark_pyramid_80180E18[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_pyramid_80181884[];
 

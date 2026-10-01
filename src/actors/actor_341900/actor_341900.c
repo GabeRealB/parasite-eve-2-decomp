@@ -465,7 +465,7 @@ static s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
     start = anim;
     work  = (Actor341900AnimWork*)arg0->work;
     for (i = start; i < arg1; i++) {
-        Gp_AnimTickIndex(&work->ctx, i);
+        animationTickSlot(&work->ctx, i);
     }
     i    = start;
     done = 1;
@@ -506,7 +506,7 @@ static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     if (blend == 0) {
         for (i = n == 8; i < n; i++) {
             ctx->slots[i].rate = ANIMATION_RATE_ONE;
-            Gp_AnimResetSlot(&ctx->ctx, i, anim);
+            animationResetSlot(&ctx->ctx, i, anim);
         }
     } else {
         for (i = n == 8; i < n; i++) {
@@ -608,7 +608,7 @@ static void func_actor_341900_80162330(Task* arg0)
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+                animationResetSlot(&ctx->ctx, i, 0);
             }
             break;
             /* The empty loop's notes before `case 1:` make reorg predict the
@@ -621,7 +621,7 @@ static void func_actor_341900_80162330(Task* arg0)
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+                animationResetSlot(&ctx->ctx, i, 0);
             }
             break;
         case 2:
@@ -630,7 +630,7 @@ static void func_actor_341900_80162330(Task* arg0)
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+                animationResetSlot(&ctx->ctx, i, 0);
             }
             break;
     }
@@ -735,7 +735,7 @@ static void func_actor_341900_801628B8(Task* arg0)
 
     work = (Actor341900Work*)arg0->work;
     if (work->field_0 != NULL) {
-        Gp_DispatchMsg(work->field_0, 0x3ED, 0, 0);
+        taskMessageDispatch(work->field_0, 0x3ED, 0, 0);
     }
     switch ((u16)work->field_5C) {
         case 0:
@@ -886,7 +886,7 @@ static void func_actor_341900_80162AD4(Task* arg0)
         case 3:
             TASK_MESSAGE_DISPATCH_POINTER(work->field_C, 0x7D4, &D_actor_341900_801639D8[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_10, 0x7D4, &D_actor_341900_801639D8[1], 0);
-            Gp_DispatchMsg(work->field_4, 0x7D5, 2, 0);
+            taskMessageDispatch(work->field_4, 0x7D5, 2, 0);
             work->field_64 = 0;
             break;
         case 4:
@@ -1050,14 +1050,14 @@ void func_actor_341900_80163388(s32 arg0)
 {
     Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
-    Gp_DispatchMsg(work->field_8, 0x7D5, arg0, 0);
+    taskMessageDispatch(work->field_8, 0x7D5, arg0, 0);
 }
 
 void func_actor_341900_801633C0(s32 arg0)
 {
     Actor341900Work* work = (Actor341900Work*)D_actor_341900_80164208->work;
 
-    Gp_DispatchMsg(work->field_0, 0x3F3, arg0, 0);
+    taskMessageDispatch(work->field_0, 0x3F3, arg0, 0);
 }
 
 void func_actor_341900_801633F8(void)

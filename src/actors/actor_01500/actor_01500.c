@@ -826,7 +826,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->anim, Actor01500_D0A014, obj, work->field_12C,
                   work->slots);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot(&work->anim, i, (s16)work->field_352);
+        animationResetSlot(&work->anim, i, (s16)work->field_352);
     }
     if (work->field_382 == 0) {
         draw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2087,7 +2087,7 @@ static void Actor01500_Fn02958(Task* arg0)
     } else {
         work->field_356++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }

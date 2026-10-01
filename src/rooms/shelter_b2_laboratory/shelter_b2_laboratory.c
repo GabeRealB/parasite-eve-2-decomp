@@ -873,7 +873,7 @@ SpriteDrawArea D_shelter_b2_laboratory_801854BC[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_shelter_b2_laboratory_801854D0[15] = {
+SpriteView D_shelter_b2_laboratory_801854D0[15] = {
     { { .empty = D_shelter_b2_laboratory_8018379C }, D_shelter_b2_laboratory_8018379C, NULL },
     { { .elements = D_shelter_b2_laboratory_801837AC }, D_shelter_b2_laboratory_80183BA8, NULL },
     { { .elements = D_shelter_b2_laboratory_80183BD0 }, D_shelter_b2_laboratory_80183D60, NULL },
@@ -946,7 +946,7 @@ WorldCollisionTrigger D_shelter_b2_laboratory_80185D84[19] = {
 };
 
 AreaResource D_shelter_b2_laboratory_80186328[2] = {
-    { 101, 430, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801350B0 },
+    { 101, 430, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801350B0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

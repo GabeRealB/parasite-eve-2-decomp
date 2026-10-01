@@ -444,7 +444,7 @@ SpriteBatch D_neo_ark_island_80183B04[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_island_80183B14[5] = {
+SpriteView D_neo_ark_island_80183B14[5] = {
     { { .empty = D_neo_ark_island_801827A0 }, D_neo_ark_island_801827A0, NULL },
     { { .elements = D_neo_ark_island_801827B0 }, D_neo_ark_island_80182A44, NULL },
     { { .elements = D_neo_ark_island_80182A64 }, D_neo_ark_island_80182FB4, NULL },
@@ -477,7 +477,7 @@ WorldCollisionTrigger D_neo_ark_island_80183DF8[3] = {
 };
 
 AreaResource D_neo_ark_island_80183EDC[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -487,7 +487,7 @@ AreaResource D_neo_ark_island_80183EF4[2] = {
 };
 
 AreaResource D_neo_ark_island_80183F0C[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -496,7 +496,7 @@ AreaResource D_neo_ark_island_80183F24[1] = {
 };
 
 AreaResource D_neo_ark_island_80183F30[2] = {
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
+    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801491F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

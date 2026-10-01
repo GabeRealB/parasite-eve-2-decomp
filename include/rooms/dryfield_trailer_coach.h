@@ -31,7 +31,7 @@ extern GpWarpRec D_dryfield_trailer_coach_801871EC[];
 
 extern GpViewRec D_dryfield_trailer_coach_80187758[];
 
-extern GpSprtRec D_dryfield_trailer_coach_801891D0[];
+extern SpriteView D_dryfield_trailer_coach_801891D0[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_trailer_coach_80189C30[];
 

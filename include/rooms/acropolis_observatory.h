@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_acropolis_observatory_8017FEFC[];
 
 extern GpWarpRec D_acropolis_observatory_8017FF0C[];
 
-extern GpSprtRec D_acropolis_observatory_80183300[];
+extern SpriteView D_acropolis_observatory_80183300[];
 
 extern GpViewRec D_acropolis_observatory_80183360[];
 

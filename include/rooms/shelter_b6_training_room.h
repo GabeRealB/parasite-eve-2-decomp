@@ -26,7 +26,7 @@ extern WorldCollisionGrid D_shelter_b6_training_room_80184734;
 
 extern GpViewRec D_shelter_b6_training_room_80184758[];
 
-extern GpSprtRec D_shelter_b6_training_room_80184D78[];
+extern SpriteView D_shelter_b6_training_room_80184D78[];
 
 extern WorldCoordRoomLights D_shelter_b6_training_room_80185768;
 

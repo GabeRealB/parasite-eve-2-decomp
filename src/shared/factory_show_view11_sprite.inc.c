@@ -10,7 +10,7 @@ void factoryShowView11Sprite(s32 show)
     g    = gGameSession;
     sess = &g->location.loc;
     if (sess->stage == 2) {
-        batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][10].field_4;
+        batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][10].batches;
         if (!(show & 0xFF)) {
             batches[1].hidden = 1;
             return;

@@ -414,7 +414,7 @@ SpriteBatch D_dryfield_gas_station_80184298[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_gas_station_801842A8[14] = {
+SpriteView D_dryfield_gas_station_801842A8[14] = {
     { { .empty = D_dryfield_gas_station_801840C0 }, D_dryfield_gas_station_801840C0, NULL },
     { { .elements = D_dryfield_gas_station_801840D0 }, D_dryfield_gas_station_80184148, NULL },
     { { .elements = D_dryfield_gas_station_80184160 }, D_dryfield_gas_station_801841D8, NULL },
@@ -463,7 +463,7 @@ AreaResource D_dryfield_gas_station_8018498C[1] = {
 };
 
 AreaResource D_dryfield_gas_station_80184998[2] = {
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -607,7 +607,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
             }
-            Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
+            taskMessageDispatch((Task*)work->owner, 0x3FD, 8, 0);
             break;
         case 3:
             SndEvt_EnqueueType6(0x52010013, 0, 0);
@@ -635,8 +635,8 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                         msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER((Task*)cur->owner, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
                     }
-                    Gp_DispatchMsg((Task*)work->owner, 0x3FD, 8, 0);
-                    Gp_DispatchMsg((Task*)work->owner, 0x3FC, 0, 0);
+                    taskMessageDispatch((Task*)work->owner, 0x3FD, 8, 0);
+                    taskMessageDispatch((Task*)work->owner, 0x3FC, 0, 0);
                     work->field_8 = 0;
                     work->field_6++;
                     return;

@@ -684,7 +684,7 @@ WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
     D_acropolis_west_elevator_hall_8018503C,
     D_mist_r18_80186624,
     D_mist_parking_801915C8,
-    D_mist_shooting_gallery_801853C0,
+    gMistShootingGalleryRoomLightingTable,
 };
 
 static GpRoomObjRec* D_map_akropolis_8017AA78[20] = {
@@ -712,7 +712,7 @@ static GpRoomObjRec* D_map_akropolis_8017AA78[20] = {
 
 GpRoomObjTbl D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA78 };
 
-static GpSprtRec* D_map_akropolis_8017AACC[20] = {
+static SpriteView* D_map_akropolis_8017AACC[20] = {
     D_acropolis_square_8018857C,
     D_acropolis_east_elevator_hall_80187870,
     D_acropolis_patio_80186360,

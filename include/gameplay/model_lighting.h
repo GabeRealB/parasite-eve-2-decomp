@@ -110,7 +110,7 @@ u32* func_8009C414(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 /// grey. Its extended form is the record that carries a colour and a normal per
 /// corner (`tmdDrawStreamPrimGt3CornerColors`). Nothing of the packet's texture is
 /// settled here: the process pass copies the element's texture words into it and
-/// biases its page and CLUT (`gpStreamPrimGt3ElemColor` steps over the colour word
+/// biases its page and CLUT (`tmdBuildStreamGt3ElemColor` steps over the colour word
 /// to reach them), so what this handler writes is the half a frame produces — the
 /// projected corner coordinates, the corner colours and the packet's length and
 /// primitive code.
@@ -312,18 +312,30 @@ u32* tmdBuildStreamGt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elem
 /// stored relative to the model.
 u32* gpStreamPrimGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's colour-carrying textured-triangle records (`0x30`):
-/// each element contributes one triangle to the buffer half's second region,
-/// with the element's texture words written into it.
+/// Initializes persistent texture fields for Gouraud textured triangles with one material colour per element.
 ///
-/// The element carries a colour of its own — the colour the triangle's vertices
-/// are lit from — so its texture words sit one word further into the element than
-/// `tmdBuildStreamGt3`'s, whose record is lit from a constant. The record is not
-/// pre-transformed, so its triangle is built in the region the draw pass
-/// transforms; this command writes only the polygon's `u`/`v` fields, and adds
-/// the model's texture page and CLUT to the primitive's own, which are stored
-/// relative to the model.
-u32* gpStreamPrimGt3ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Construction selects this callback for opcode `0x30`. `elements` begins
+/// after the three-word record header; `workspace->elemCount` supplies 0..65535
+/// elements and `elemStride` their stride in u32 words, at least seven. The
+/// first three words pack three vertex then three normal u16 byte offsets.
+/// Word 3 supplies the draw pass's material colour. Words 4 and 5 pack unsigned
+/// byte U/V texel coordinates with encoded CLUT and texture-page settings;
+/// word 6's low half supplies U2/V2 and its high half is ignored.
+///
+/// `primWrite` must address one writable, four-byte-aligned `POLY_GT3` slot per
+/// element in the selected buffer half's second region. The workspace supplies
+/// signed encoded-address displacements: `texturePageOffset` (-128..127) and
+/// `encodedClutOffset` (-8192..8128, 64 per palette row). Sums wrap in the u16
+/// packet fields. Drawing supplies positions, lit colours, length/code and
+/// links later; construction preserves those fields and all packet pad fields.
+///
+/// Advances `primWrite` by one 40-byte packet per element and returns the cursor
+/// advanced by the original count times the word stride. Consumes `elemCount`
+/// to -1 even for an empty record. `objectFlags` is the shared callback argument,
+/// passed as zero during construction and ignored here. Stream and packet
+/// capacities are caller obligations; seven words is a minimum readable extent,
+/// not a fixed element size. All storage is borrowed; no pointer is retained.
+u32* tmdBuildStreamGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Initializes persistent texture fields for a record of gouraud textured triangles with per-corner colours.
 ///

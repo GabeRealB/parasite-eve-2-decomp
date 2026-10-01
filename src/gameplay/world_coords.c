@@ -834,7 +834,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     block->local.vz = pos->vz - gGfxViewCoord.workm.t[2];
     gte_TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
 
-    gfxLoadRotSv(&block->mtx, &block->local);
+    _gfxLoadRotSv(&block->mtx, &block->local);
     gte_rtv0();
     gte_stsv(&block->local);
 

@@ -91,12 +91,12 @@ static const TaskFuncTable3 D_acropolis_cafeteria_8017D5C4 = {
 
 static const char CafeteriaPlayerLabel[12] = "Player";
 
-extern WorldCollisionGrid    D_acropolis_cafeteria_801887A8[1];
-extern GpObj3A               D_acropolis_cafeteria_80189C94[2];
-extern WorldCollisionTrigger D_acropolis_cafeteria_801887CC[16];
-extern WorldCollisionTrigger D_acropolis_cafeteria_80188C8C[18];
-extern WorldCollisionTrigger D_acropolis_cafeteria_801891E4[16];
-extern WorldCollisionTrigger D_acropolis_cafeteria_801896A4[20];
+extern WorldCollisionGrid     D_acropolis_cafeteria_801887A8[1];
+extern WorldCollisionOccluder D_acropolis_cafeteria_80189C94[2];
+extern WorldCollisionTrigger  D_acropolis_cafeteria_801887CC[16];
+extern WorldCollisionTrigger  D_acropolis_cafeteria_80188C8C[18];
+extern WorldCollisionTrigger  D_acropolis_cafeteria_801891E4[16];
+extern WorldCollisionTrigger  D_acropolis_cafeteria_801896A4[20];
 
 extern AnimationSet D_acropolis_cafeteria_80184CC4;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -862,20 +862,20 @@ WorldCollisionTrigger D_acropolis_cafeteria_801896A4[20] = {
     { NULL, NULL, NULL, { -3488, -384, -1728, 0 }, { { -240, 0, -720, 0 }, { 240, 0, -720, 0 }, { -240, 0, 720, 0 }, { 240, 0, 720, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_acropolis_cafeteria_80189C94[2] = {
-    { NULL, NULL, { -384, -304, -1136, 0 }, { { 0, 752, -4816, 0 }, { 0, 752, 4816, 0 }, { 0, -752, -4816, 0 }, { 0, -752, 4816, 0 } }, { -4106, 0, 0, 0 }, { -7, 18 }, 1, 0 },
-    { NULL, NULL, { -352, -1456, -3920, 0 }, { { 0, 2208, -2400, 0 }, { 0, 2208, 2400, 0 }, { 0, -2208, -2400, 0 }, { 0, -2208, 2400, 0 } }, { -4099, 0, 0, 0 }, { -70, 12 }, 129, 0 },
+WorldCollisionOccluder D_acropolis_cafeteria_80189C94[2] = {
+    { NULL, NULL, { -384, -304, -1136, 0 }, { { 0, 752, -4816, 0 }, { 0, 752, 4816, 0 }, { 0, -752, -4816, 0 }, { 0, -752, 4816, 0 } }, { -4106, 0, 0, 0 }, 4857, 1, 0 },
+    { NULL, NULL, { -352, -1456, -3920, 0 }, { { 0, 2208, -2400, 0 }, { 0, 2208, 2400, 0 }, { 0, -2208, -2400, 0 }, { 0, -2208, 2400, 0 } }, { -4099, 0, 0, 0 }, 3258, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_acropolis_cafeteria_80189D0C[4] = {
-    { 10, 106, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148670 },
+    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148670 },
     { 29, 29, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80156E24 },
     { 102, 106, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801796A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_cafeteria_80189D3C[4] = {
-    { 10, 106, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148670 },
+    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148670 },
     { 19, 106, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015A4EC },
     { 102, 106, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801796A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -892,12 +892,12 @@ AreaResource D_acropolis_cafeteria_80189D84[2] = {
 };
 
 AreaResource D_acropolis_cafeteria_80189D9C[2] = {
-    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138E98 },
+    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80138E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_cafeteria_80189DB4[2] = {
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
+    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801491F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1056,7 +1056,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 3:
             blackout = 1;
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
             task->state += 1;
             break;
         case 4:
@@ -1114,7 +1114,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 18:
-            if (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 &&
+            if (taskMessageDispatch(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 &&
                 gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_MsgPlayerWeapon(0);
                 task->state += 1;
@@ -1141,7 +1141,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             task->state += 1;
             break;
         case 27:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 func_800E3FAC(0xA2, 3);
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
@@ -1170,7 +1170,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
     switch (task->state) {
         case 0:
             if (Gp_GetCurBit2Flag(3) == 1) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
                 task->state = task->state + 1;
             } else {
                 taskKill(task);
@@ -1178,7 +1178,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 1:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 Gp_RunCapCmd1(3);
                 task->state = task->state + 1;
             }
@@ -1187,7 +1187,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
         case 2:
             if (Gp_CapBusy() == 0) {
                 if (Gp_GetCurBit2Flag(3) == 1) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
                     task->state = task->state + 1;
                 } else {
                     task->state = 6;
@@ -1196,7 +1196,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 3:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
             }

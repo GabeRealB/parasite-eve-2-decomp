@@ -1781,7 +1781,7 @@ void func_actor_503500_80132990(Task* task)
     addPrim(gGpuCurrentOt + 3, tile);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 1, 0, getTPage(0, 2, 320, 0));
+    setDrawTPage(dr, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, 320, 0));
     addPrim(gGpuCurrentOt + 3, dr);
 }
 

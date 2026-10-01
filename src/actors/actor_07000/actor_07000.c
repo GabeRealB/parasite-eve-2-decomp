@@ -1078,7 +1078,7 @@ static __inline__ void Actor107000_TickAnim(Task* task)
         } else {
             work->field_2BC++;
             for (i = 1; i < 3; i++) {
-                Gp_AnimTickIndex((AnimationContext*)work, i);
+                animationTickSlot((AnimationContext*)work, i);
             }
         }
     }
@@ -1335,7 +1335,7 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->context, Actor07000_D0D77C, obj,
                   work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot(&work->context, i, 1);
+        animationResetSlot(&work->context, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->field_370            = 1;
@@ -1965,7 +1965,7 @@ static __inline__ void update_animation(Task* task)
     } else {
         work->field_374++;
         for (i = 1; i < 7; i++)
-            Gp_AnimTickIndex(&work->context, i);
+            animationTickSlot(&work->context, i);
     }
 }
 
@@ -2379,7 +2379,7 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
                   &work->slots[0]);
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->context, i, 1);
+        animationResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 7);
     (Gp_IncStateF0Ref)(0);
@@ -2734,7 +2734,7 @@ static void Actor07000_Fn05ED4(Task* arg0)
     } else {
         work->field_374++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((AnimationContext*)work, i);
+            animationTickSlot((AnimationContext*)work, i);
         }
     }
 }

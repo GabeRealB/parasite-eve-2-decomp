@@ -445,7 +445,7 @@ SpriteBatch D_shelter_1f_tent_801838D4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_1f_tent_801838E4[10] = {
+SpriteView D_shelter_1f_tent_801838E4[10] = {
     { { .empty = D_shelter_1f_tent_8018247C }, D_shelter_1f_tent_8018247C, NULL },
     { { .elements = D_shelter_1f_tent_8018248C }, D_shelter_1f_tent_80182AA4, NULL },
     { { .elements = D_shelter_1f_tent_80182ADC }, D_shelter_1f_tent_80183018, NULL },

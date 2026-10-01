@@ -129,7 +129,7 @@ extern TaskDesc D_801351FC[];
 /// callback is that same task, `roomDepartureTask`.
 extern TaskDesc D_dryfield_night_water_hole_801805EC;
 /// The room's message table, the `TaskMessageEntry` list the room task publishes in
-/// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and
+/// `Task::msgTable` for `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0.
 extern TaskMessageEntry D_dryfield_night_water_hole_801805F8[];
 /// The two four-byte records this room hands the slot-4 task as the message
@@ -171,7 +171,7 @@ static void func_dryfield_night_water_hole_8017E690(Task* arg0);
 void func_dryfield_night_water_hole_8017E630(Task*);
 
 extern WorldCollisionGrid         D_dryfield_night_water_hole_80180F50[1];
-extern GpObj3A                    D_dryfield_night_water_hole_80182D58[2];
+extern WorldCollisionOccluder     D_dryfield_night_water_hole_80182D58[2];
 extern WorldCollisionTrigger      D_dryfield_night_water_hole_801824BC[12];
 extern WorldCollisionTrigger      D_dryfield_night_water_hole_8018284C[9];
 extern WorldCollisionTrigger      D_dryfield_night_water_hole_80182AF8[8];
@@ -818,7 +818,7 @@ SpriteBatch D_dryfield_night_water_hole_80182374[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_water_hole_80182384[26] = {
+SpriteView D_dryfield_night_water_hole_80182384[26] = {
     { { .empty = D_dryfield_night_water_hole_8018131C }, D_dryfield_night_water_hole_8018131C, NULL },
     { { .empty = D_dryfield_night_water_hole_8018132C }, D_dryfield_night_water_hole_8018132C, NULL },
     { { .elements = D_dryfield_night_water_hole_8018133C }, D_dryfield_night_water_hole_801814E0, NULL },
@@ -885,9 +885,9 @@ WorldCollisionTrigger D_dryfield_night_water_hole_80182AF8[8] = {
     { NULL, NULL, NULL, { 7376, -64, -2240, 0 }, { { -959, 0, 208, 0 }, { 960, 0, 208, 0 }, { -959, 0, 976, 0 }, { 960, 0, 976, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1366, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 18, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_water_hole_80182D58[2] = {
-    { NULL, NULL, { 8544, -1520, -3664, 0 }, { { -1536, -2224, -1840, 0 }, { -1536, 2224, -1840, 0 }, { 1536, -2224, 1840, 0 }, { 1536, 2224, 1840, 0 } }, { -3150, 0, 2629, 0 }, { -60, 12 }, 1, 0 },
-    { NULL, NULL, { 0x34E0, -1568, -176, 0 }, { { -1504, -2224, -1936, 0 }, { -1504, 2224, -1936, 0 }, { 1504, -2224, 1936, 0 }, { 1504, 2224, 1936, 0 } }, { -3237, 0, 2514, 0 }, { -20, 12 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_water_hole_80182D58[2] = {
+    { NULL, NULL, { 8544, -1520, -3664, 0 }, { { -1536, -2224, -1840, 0 }, { -1536, 2224, -1840, 0 }, { 1536, -2224, 1840, 0 }, { 1536, 2224, 1840, 0 } }, { -3150, 0, 2629, 0 }, 3268, 1, 0 },
+    { NULL, NULL, { 0x34E0, -1568, -176, 0 }, { { -1504, -2224, -1936, 0 }, { -1504, 2224, -1936, 0 }, { 1504, -2224, 1936, 0 }, { 1504, 2224, 1936, 0 } }, { -3237, 0, 2514, 0 }, 3308, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_night_water_hole_80182DD0[6] = {
@@ -931,12 +931,12 @@ AreaResource D_dryfield_night_water_hole_801833B8[2] = {
 };
 
 AreaResource D_dryfield_night_water_hole_801833D0[2] = {
-    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_water_hole_801833E8[2] = {
-    { 101, 460, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801351FC },
+    { 101, 460, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801351FC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

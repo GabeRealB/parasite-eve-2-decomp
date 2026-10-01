@@ -102,7 +102,7 @@ SpriteBatch D_shelter_b1_control_room_access_tunnel_80182120[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_control_room_access_tunnel_80182130[3] = {
+SpriteView D_shelter_b1_control_room_access_tunnel_80182130[3] = {
     { { .empty = D_shelter_b1_control_room_access_tunnel_80182100 }, D_shelter_b1_control_room_access_tunnel_80182100, NULL },
     { { .empty = D_shelter_b1_control_room_access_tunnel_80182110 }, D_shelter_b1_control_room_access_tunnel_80182110, NULL },
     { { .empty = D_shelter_b1_control_room_access_tunnel_80182120 }, D_shelter_b1_control_room_access_tunnel_80182120, NULL },
@@ -128,24 +128,24 @@ WorldCollisionTrigger D_shelter_b1_control_room_access_tunnel_80182384[2] = {
 };
 
 AreaResource D_shelter_b1_control_room_access_tunnel_8018241C[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E47C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_control_room_access_tunnel_80182440[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_control_room_access_tunnel_80182464[2] = {
-    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_control_room_access_tunnel_8018247C[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FDF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

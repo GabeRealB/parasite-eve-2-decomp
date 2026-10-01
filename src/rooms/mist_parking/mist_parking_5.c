@@ -623,7 +623,7 @@ SpriteBatch D_mist_parking_8019398C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mist_parking_8019399C[20] = {
+SpriteView D_mist_parking_8019399C[20] = {
     { { .empty = D_mist_parking_801924F8 }, D_mist_parking_801924F8, NULL },
     { { .elements = D_mist_parking_80192508 }, D_mist_parking_801926AC, NULL },
     { { .empty = D_mist_parking_801926C4 }, D_mist_parking_801926C4, NULL },
@@ -739,7 +739,7 @@ WorldCoordRoomLights D_mist_parking_80195178[1] = {
 };
 
 AreaResource D_mist_parking_80195190[3] = {
-    { 143, 131, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80144308 },
+    { 143, 131, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80144308 },
     { 115, 131, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801521A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

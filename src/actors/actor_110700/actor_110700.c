@@ -292,7 +292,7 @@ static void func_actor_110700_80131F44(Enemy* enemy, Task* task)
     block = SCRATCH_STACK_CURSOR(VECTOR);
     if (work->animId != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     block->vx = coord->workm.t[0];
@@ -313,7 +313,7 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args
     work->animId = args->animationId;
     i            = 1;
     do {
-        Gp_AnimResetSlot(&work->rig.anim, i, work->animId);
+        animationResetSlot(&work->rig.anim, i, work->animId);
         i++;
     } while (i < 0x13);
     return 0;

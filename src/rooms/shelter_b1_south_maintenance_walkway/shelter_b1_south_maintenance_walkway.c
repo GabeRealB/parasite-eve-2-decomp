@@ -81,15 +81,15 @@ extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-extern WorldCollisionGrid    D_shelter_b1_south_maintenance_walkway_801827B8[1];
-extern GpObj3A               D_shelter_b1_south_maintenance_walkway_80183274[1];
-extern WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801830AC[6];
-extern WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801832B0[2];
-extern WorldCoordRoomLights  D_shelter_b1_south_maintenance_walkway_80183094[1];
-s32                          func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid     D_shelter_b1_south_maintenance_walkway_801827B8[1];
+extern WorldCollisionOccluder D_shelter_b1_south_maintenance_walkway_80183274[1];
+extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801830AC[6];
+extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801832B0[2];
+extern WorldCoordRoomLights   D_shelter_b1_south_maintenance_walkway_80183094[1];
+s32                           func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -280,7 +280,7 @@ SpriteBatch D_shelter_b1_south_maintenance_walkway_80182E08[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_south_maintenance_walkway_80182E18[5] = {
+SpriteView D_shelter_b1_south_maintenance_walkway_80182E18[5] = {
     { { .empty = D_shelter_b1_south_maintenance_walkway_80182890 }, D_shelter_b1_south_maintenance_walkway_80182890, NULL },
     { { .empty = D_shelter_b1_south_maintenance_walkway_801828A0 }, D_shelter_b1_south_maintenance_walkway_801828A0, NULL },
     { { .empty = D_shelter_b1_south_maintenance_walkway_801828B0 }, D_shelter_b1_south_maintenance_walkway_801828B0, NULL },
@@ -310,8 +310,8 @@ WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801830AC[6] = {
     { NULL, NULL, NULL, { 1120, -1600, -4176, 0 }, { { -100, -1904, 1323, 0 }, { 98, -1904, -1325, 0 }, { -100, 1904, 1323, 0 }, { 98, 1904, -1325, 0 } }, { -4084, 0, -307, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_shelter_b1_south_maintenance_walkway_80183274[1] = {
-    { NULL, NULL, { -1504, -1344, -1424, 0 }, { { -2080, -2368, 1200, 0 }, { 2080, -2368, -1200, 0 }, { -2080, 2368, 1200, 0 }, { 2080, 2368, -1200, 0 } }, { -2053, 0, -3558, 0 }, { 39, 13 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b1_south_maintenance_walkway_80183274[1] = {
+    { NULL, NULL, { -1504, -1344, -1424, 0 }, { { -2080, -2368, 1200, 0 }, { 2080, -2368, -1200, 0 }, { -2080, 2368, 1200, 0 }, { 2080, 2368, -1200, 0 } }, { -2053, 0, -3558, 0 }, 3367, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801832B0[2] = {
@@ -320,25 +320,25 @@ WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801832B0[2] = {
 };
 
 AreaResource D_shelter_b1_south_maintenance_walkway_80183348[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_south_maintenance_walkway_8018336C[3] = {
-    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147400 },
     { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E47C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_south_maintenance_walkway_80183390[3] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_south_maintenance_walkway_801833B4[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FDF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

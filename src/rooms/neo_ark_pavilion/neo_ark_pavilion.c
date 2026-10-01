@@ -102,12 +102,12 @@ s32 func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, TaskMessageArg);
 s32 func_neo_ark_pavilion_8017EB78(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_neo_ark_pavilion_801841E4[1];
-extern GpObj3A               D_neo_ark_pavilion_8018798C[1];
-extern WorldCollisionTrigger D_neo_ark_pavilion_80187584[2];
-extern WorldCollisionTrigger D_neo_ark_pavilion_8018772C[4];
-extern WorldCollisionTrigger D_neo_ark_pavilion_8018785C[4];
-extern WorldCoordRoomLights  D_neo_ark_pavilion_8018756C[1];
+extern WorldCollisionGrid     D_neo_ark_pavilion_801841E4[1];
+extern WorldCollisionOccluder D_neo_ark_pavilion_8018798C[1];
+extern WorldCollisionTrigger  D_neo_ark_pavilion_80187584[2];
+extern WorldCollisionTrigger  D_neo_ark_pavilion_8018772C[4];
+extern WorldCollisionTrigger  D_neo_ark_pavilion_8018785C[4];
+extern WorldCoordRoomLights   D_neo_ark_pavilion_8018756C[1];
 
 extern TaskDesc D_80147E48;
 
@@ -945,7 +945,7 @@ SpriteBatch D_neo_ark_pavilion_801873A0[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_pavilion_801873B8[7] = {
+SpriteView D_neo_ark_pavilion_801873B8[7] = {
     { { .empty = D_neo_ark_pavilion_80184304 }, D_neo_ark_pavilion_80184304, NULL },
     { { .elements = D_neo_ark_pavilion_80184314 }, D_neo_ark_pavilion_80184EB8, NULL },
     { { .elements = D_neo_ark_pavilion_80184EF8 }, D_neo_ark_pavilion_8018568C, NULL },
@@ -972,34 +972,34 @@ WorldCollisionTrigger D_neo_ark_pavilion_80187584[2] = {
 };
 
 AreaResource D_neo_ark_pavilion_8018761C[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_pavilion_80187634[3] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014FD74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_pavilion_80187658[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_pavilion_80187670[3] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_pavilion_80187694[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_pavilion_801876AC[2] = {
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
+    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801491F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1033,8 +1033,8 @@ WorldCollisionTrigger D_neo_ark_pavilion_8018785C[4] = {
     { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_neo_ark_pavilion_8018798C[1] = {
-    { NULL, NULL, { 3520, -200, 9440, 0 }, { { -1024, 1224, 0, 0 }, { 1024, 1224, 0, 0 }, { -1024, -1912, 0, 0 }, { 1024, -536, 0, 0 } }, { 0, 0, 4096, 0 }, { 109, 8 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_pavilion_8018798C[1] = {
+    { NULL, NULL, { 3520, -200, 9440, 0 }, { { -1024, 1224, 0, 0 }, { 1024, 1224, 0, 0 }, { -1024, -1912, 0, 0 }, { 1024, -536, 0, 0 } }, { 0, 0, 4096, 0 }, 2157, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_pavilion_801879C8 = {

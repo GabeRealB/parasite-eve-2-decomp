@@ -25,7 +25,7 @@ extern WorldCollisionGrid D_shelter_b3_elevator_hall_801834C8;
 
 extern GpViewRec D_shelter_b3_elevator_hall_801834EC[];
 
-extern GpSprtRec D_shelter_b3_elevator_hall_801841DC[];
+extern SpriteView D_shelter_b3_elevator_hall_801841DC[];
 
 extern WorldCoordRoomLights D_shelter_b3_elevator_hall_80184410;
 
@@ -33,7 +33,7 @@ extern WorldCollisionTrigger D_shelter_b3_elevator_hall_80184428[];
 
 extern WorldCollisionTrigger D_shelter_b3_elevator_hall_801847DC[];
 
-extern GpObj3A D_shelter_b3_elevator_hall_8018490C[];
+extern WorldCollisionOccluder D_shelter_b3_elevator_hall_8018490C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b3_elevator_hall_801849E0[];
 

@@ -73,7 +73,7 @@ s32 Gp_PairNop(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind);
 
 void Gp_ClearObj4AList(s32 arg0);
 
-void Gp_LinkObj3A(s32 arg0, GpObj3A* arg1);
+void Gp_LinkObj3A(s32 arg0, WorldCollisionOccluder* occluder);
 
 void Gp_ClearObj3AList(s32 arg0);
 

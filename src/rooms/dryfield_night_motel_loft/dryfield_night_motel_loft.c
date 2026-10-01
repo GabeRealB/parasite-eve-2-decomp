@@ -59,7 +59,7 @@ SpriteBatch D_dryfield_night_motel_loft_8017FBD4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_motel_loft_8017FBE4[14] = {
+SpriteView D_dryfield_night_motel_loft_8017FBE4[14] = {
     { { .empty = D_dryfield_night_motel_loft_8017F2D0 }, D_dryfield_night_motel_loft_8017F2D0, NULL },
     { { .empty = D_dryfield_night_motel_loft_8017F2E0 }, D_dryfield_night_motel_loft_8017F2E0, NULL },
     { { .elements = D_dryfield_night_motel_loft_8017F2F0 }, D_dryfield_night_motel_loft_8017F390, NULL },
@@ -137,12 +137,12 @@ AreaResource D_dryfield_night_motel_loft_80180834[3] = {
 };
 
 AreaResource D_dryfield_night_motel_loft_80180858[2] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_motel_loft_80180870[2] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

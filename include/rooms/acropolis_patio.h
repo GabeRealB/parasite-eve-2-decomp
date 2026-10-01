@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_acropolis_patio_80182ED4[];
 
 extern GpWarpRec D_acropolis_patio_80182EEC[];
 
-extern GpSprtRec D_acropolis_patio_80186360[];
+extern SpriteView D_acropolis_patio_80186360[];
 
 extern GpViewRec D_acropolis_patio_80186D5C[];
 

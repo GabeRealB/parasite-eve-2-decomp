@@ -553,7 +553,7 @@ SpriteBatch D_shelter_b4_upper_sewer_801879AC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b4_upper_sewer_801879BC[14] = {
+SpriteView D_shelter_b4_upper_sewer_801879BC[14] = {
     { { .empty = D_shelter_b4_upper_sewer_80187114 }, D_shelter_b4_upper_sewer_80187114, NULL },
     { { .elements = D_shelter_b4_upper_sewer_80187124 }, D_shelter_b4_upper_sewer_80187174, NULL },
     { { .elements = D_shelter_b4_upper_sewer_8018718C }, D_shelter_b4_upper_sewer_801871F0, NULL },
@@ -627,40 +627,40 @@ WorldCollisionTrigger D_shelter_b4_upper_sewer_801886F4[8] = {
 };
 
 AreaResource D_shelter_b4_upper_sewer_80188954[3] = {
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013F5F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139E60 },
+    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013F5F0 },
+    { 71, 71, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139E60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_upper_sewer_80188978[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_upper_sewer_80188990[3] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FE48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_upper_sewer_801889B4[3] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_upper_sewer_801889D8[2] = {
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
+    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147AB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_upper_sewer_801889F0[2] = {
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
+    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147AB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_upper_sewer_80188A08[3] = {
-    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
+    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148110 },
     { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FE48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -724,10 +724,10 @@ GpAreaVariant D_shelter_b4_upper_sewer_80188B9C[12] = {
     { D_shelter_b4_upper_sewer_80188B6C, D_shelter_b4_upper_sewer_80188A08 },
 };
 
-GpObj3A D_shelter_b4_upper_sewer_80188BFC[3] = {
-    { NULL, NULL, { -4928, -3088, 208, 0 }, { { -3680, 4656, -4624, 0 }, { 3680, 4656, 4624, 0 }, { -3680, -4656, -4624, 0 }, { 3680, -4656, 4624, 0 } }, { -3206, 0, 2551, 0 }, { 83, 29 }, 1, 0 },
-    { NULL, NULL, { 4464, -176, 2784, 0 }, { { -3216, 1920, -4624, 0 }, { 3216, 1920, 4624, 0 }, { -3216, -1920, -4624, 0 }, { 3216, -1920, 4624, 0 } }, { -3368, 0, 2342, 0 }, { 60, 23 }, 1, 0 },
-    { NULL, NULL, { -9041, -1824, 6399, 0 }, { { -1056, 8, -992, 0 }, { -1056, -7, 993, 0 }, { 1056, 8, -992, 0 }, { 1056, -7, 993, 0 } }, { 0, -4096, -32, 0 }, { -88, 5 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b4_upper_sewer_80188BFC[3] = {
+    { NULL, NULL, { -4928, -3088, 208, 0 }, { { -3680, 4656, -4624, 0 }, { 3680, 4656, 4624, 0 }, { -3680, -4656, -4624, 0 }, { 3680, -4656, 4624, 0 } }, { -3206, 0, 2551, 0 }, 7507, 1, 0 },
+    { NULL, NULL, { 4464, -176, 2784, 0 }, { { -3216, 1920, -4624, 0 }, { 3216, 1920, 4624, 0 }, { -3216, -1920, -4624, 0 }, { 3216, -1920, 4624, 0 } }, { -3368, 0, 2342, 0 }, 5948, 1, 0 },
+    { NULL, NULL, { -9041, -1824, 6399, 0 }, { { -1056, 8, -992, 0 }, { -1056, -7, 993, 0 }, { 1056, 8, -992, 0 }, { 1056, -7, 993, 0 } }, { 0, -4096, -32, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b4_upper_sewer_80188CB0 = {
@@ -1171,7 +1171,7 @@ static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
     GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].batches;
     if ((arg0 & 0xFF) == 0) {
         batches[1].hidden = 0;
     } else {

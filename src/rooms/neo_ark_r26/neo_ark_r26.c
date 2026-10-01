@@ -366,7 +366,7 @@ SpriteBatch D_neo_ark_r26_8017E888[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_r26_8017E898[4] = {
+SpriteView D_neo_ark_r26_8017E898[4] = {
     { { .empty = D_neo_ark_r26_8017E250 }, D_neo_ark_r26_8017E250, NULL },
     { { .elements = D_neo_ark_r26_8017E260 }, D_neo_ark_r26_8017E738, NULL },
     { { .elements = D_neo_ark_r26_8017E758 }, D_neo_ark_r26_8017E870, NULL },
@@ -382,7 +382,7 @@ WorldCoordRoomLights D_neo_ark_r26_8017E928[1] = {
 };
 
 AreaResource D_neo_ark_r26_8017E940[3] = {
-    { 111, 439, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801413EC },
+    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801413EC },
     { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80149664 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

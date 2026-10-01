@@ -114,7 +114,7 @@ STATIC_ASSERT_SIZEOF(Dmr1DriverBuf, 0x1C);
 /// The room's script-driver task, whose `work` holds a `Dmr1Work`.
 extern Task* D_dryfield_motel_room_1_8018159C;
 
-/// The two objects the room task places, passed as `Gp_DispatchMsg`'s `arg2`
+/// The two objects the room task places, passed as `taskMessageDispatch`'s `arg2`
 /// for message 0x7D4 - `[0]` to `Dmr1Work::field_C`, `[1]` to `field_10`.
 extern ActorTransform D_dryfield_motel_room_1_8017E130[2];
 
@@ -160,11 +160,11 @@ void func_dryfield_motel_room_1_8017DF08(void);
 extern EvsCommand D_dryfield_motel_room_1_8017E160[];
 extern EvsCommand D_dryfield_motel_room_1_8017E340[];
 
-extern WorldCollisionGrid    D_dryfield_motel_room_1_8017EABC[1];
-extern GpObj3A               D_dryfield_motel_room_1_801811BC[1];
-extern WorldCollisionTrigger D_dryfield_motel_room_1_80180CFC[8];
-extern WorldCollisionTrigger D_dryfield_motel_room_1_80180F5C[8];
-extern WorldCoordRoomLights  D_dryfield_motel_room_1_801813D8[1];
+extern WorldCollisionGrid     D_dryfield_motel_room_1_8017EABC[1];
+extern WorldCollisionOccluder D_dryfield_motel_room_1_801811BC[1];
+extern WorldCollisionTrigger  D_dryfield_motel_room_1_80180CFC[8];
+extern WorldCollisionTrigger  D_dryfield_motel_room_1_80180F5C[8];
+extern WorldCoordRoomLights   D_dryfield_motel_room_1_801813D8[1];
 
 extern SpriteBatch  D_dryfield_motel_room_1_8017EC24[2];
 extern SpriteBatch  D_dryfield_motel_room_1_8017EC34[2];
@@ -803,7 +803,7 @@ SpriteBatch D_dryfield_motel_room_1_80180C40[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_motel_room_1_80180C90[9] = {
+SpriteView D_dryfield_motel_room_1_80180C90[9] = {
     { { .empty = D_dryfield_motel_room_1_8017EC24 }, D_dryfield_motel_room_1_8017EC24, NULL },
     { { .empty = D_dryfield_motel_room_1_8017EC34 }, D_dryfield_motel_room_1_8017EC34, NULL },
     { { .empty = D_dryfield_motel_room_1_8017EC44 }, D_dryfield_motel_room_1_8017EC44, NULL },
@@ -837,8 +837,8 @@ WorldCollisionTrigger D_dryfield_motel_room_1_80180F5C[8] = {
     { NULL, NULL, NULL, { 4176, -64, 5600, 0 }, { { -736, 0, -256, 0 }, { 736, 0, -256, 0 }, { -736, 0, 256, 0 }, { 736, 0, 256, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_motel_room_1_801811BC[1] = {
-    { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, { 102, 11 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_motel_room_1_801811BC[1] = {
+    { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, 2918, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_motel_room_1_801811F8[5] = {
@@ -864,7 +864,7 @@ AreaResource D_dryfield_motel_room_1_801813FC[3] = {
 };
 
 AreaResource D_dryfield_motel_room_1_80181420[3] = {
-    { 112, 232, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137234 },
+    { 112, 232, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137234 },
     { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -876,7 +876,7 @@ AreaResource D_dryfield_motel_room_1_80181444[3] = {
 };
 
 AreaResource D_dryfield_motel_room_1_80181468[3] = {
-    { 112, 232, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137234 },
+    { 112, 232, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137234 },
     { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -983,7 +983,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
             buf.msg.context.loc.area  = gGameSession->location.loc.area;
             buf.msg.command           = 2;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
+            taskMessageDispatch(work->field_0, 0x3F3, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E100[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E100[1], 0);
             break;
@@ -1022,7 +1022,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         rec->blendFrames                     = 5;
                         buf.shifted.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.shifted.rec, 0);
-                        Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
+                        taskMessageDispatch(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 1;
                     } else {
                         weaponId = cfg->weapon;
@@ -1037,7 +1037,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blendFrames          = 5;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
-                        Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
+                        taskMessageDispatch(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 2;
                     }
                     return;

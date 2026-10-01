@@ -26,7 +26,7 @@ extern GpWarpRec D_neo_ark_south_promenade_8017F70C[];
 
 extern GpViewRec D_neo_ark_south_promenade_8017FDB0[];
 
-extern GpSprtRec D_neo_ark_south_promenade_801803E4[];
+extern SpriteView D_neo_ark_south_promenade_801803E4[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_south_promenade_801809AC[];
 

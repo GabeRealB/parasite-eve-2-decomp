@@ -28,13 +28,13 @@ extern WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4;
 
 extern GpViewRec D_shelter_b1_sleeping_quarters_801810F8[];
 
-extern GpSprtRec D_shelter_b1_sleeping_quarters_80182E70[];
+extern SpriteView D_shelter_b1_sleeping_quarters_80182E70[];
 
 extern WorldCoordRoomLights D_shelter_b1_sleeping_quarters_80183234;
 
 extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_8018324C[];
 
-extern GpObj3A D_shelter_b1_sleeping_quarters_801837A4[];
+extern WorldCollisionOccluder D_shelter_b1_sleeping_quarters_801837A4[];
 
 extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_801838D0[];
 

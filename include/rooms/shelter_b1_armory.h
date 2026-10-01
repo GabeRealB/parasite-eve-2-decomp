@@ -27,7 +27,7 @@ extern WorldCollisionGrid D_shelter_b1_armory_80182ED0;
 
 extern GpViewRec D_shelter_b1_armory_80182EF4[];
 
-extern GpSprtRec D_shelter_b1_armory_80184220[];
+extern SpriteView D_shelter_b1_armory_80184220[];
 
 extern WorldCoordRoomLights D_shelter_b1_armory_80184AFC;
 

@@ -28,7 +28,7 @@ extern GpWarpRec D_dryfield_motel_room_6_80182DB8[];
 
 extern GpViewRec D_dryfield_motel_room_6_80183840[];
 
-extern GpSprtRec D_dryfield_motel_room_6_801856CC[];
+extern SpriteView D_dryfield_motel_room_6_801856CC[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_6_80186808[];
 

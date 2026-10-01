@@ -778,7 +778,7 @@ SpriteBatch D_dryfield_night_water_tower_80182020[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_water_tower_80182040[10] = {
+SpriteView D_dryfield_night_water_tower_80182040[10] = {
     { { .empty = D_dryfield_night_water_tower_8017F580 }, D_dryfield_night_water_tower_8017F580, NULL },
     { { .elements = D_dryfield_night_water_tower_8017F590 }, D_dryfield_night_water_tower_8017FA18, NULL },
     { { .elements = D_dryfield_night_water_tower_8017FA48 }, D_dryfield_night_water_tower_8017FE08, NULL },
@@ -840,7 +840,7 @@ WorldCollisionTrigger D_dryfield_night_water_tower_80182838[9] = {
 };
 
 AreaResource D_dryfield_night_water_tower_80182AE4[3] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -851,7 +851,7 @@ AreaResource D_dryfield_night_water_tower_80182B08[2] = {
 };
 
 AreaResource D_dryfield_night_water_tower_80182B20[2] = {
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

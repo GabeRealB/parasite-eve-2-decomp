@@ -28,7 +28,7 @@ extern GpWarpRec D_neo_ark_garden_8018142C[];
 
 extern GpViewRec D_neo_ark_garden_801816E8[];
 
-extern GpSprtRec D_neo_ark_garden_80182540[];
+extern SpriteView D_neo_ark_garden_80182540[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[];
 

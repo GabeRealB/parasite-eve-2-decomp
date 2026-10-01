@@ -37,7 +37,7 @@ extern GpWarpRec D_shelter_b1_underground_parking_8018794C[];
 
 extern GpViewRec D_shelter_b1_underground_parking_80189778[];
 
-extern GpSprtRec D_shelter_b1_underground_parking_8018AB9C[];
+extern SpriteView D_shelter_b1_underground_parking_8018AB9C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_underground_parking_8018D724[];
 

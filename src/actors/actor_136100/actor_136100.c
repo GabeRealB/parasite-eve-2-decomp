@@ -1236,7 +1236,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     ret1:
         return 1;
     }
-    if (Gp_DispatchMsg(work->field_4B4, 0x3ED, 0, 0) != 0) {
+    if (taskMessageDispatch(work->field_4B4, 0x3ED, 0, 0) != 0) {
         return 0;
     }
     if ((u16)work->field_4DE < 0x2FU) {
@@ -1275,7 +1275,7 @@ static s32 func_actor_136100_80131FBC(Task* arg0)
 
     work = (Actor136100Work*)arg0->work;
     for (i = 1; i < 20; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     for (done = i = 1; i < 20; i++) {
         if (!(work->rig.slots[i].flags & ANIMATION_SLOT_SETTLED)) {
@@ -1456,7 +1456,7 @@ static void func_actor_136100_801323F8(Task* arg0)
                     work->field_4C6++;
                     return;
                 case 1:
-                    if (Gp_DispatchMsg(work->field_4B4, 0x3F0, 0, 0) == 0) {
+                    if (taskMessageDispatch(work->field_4B4, 0x3F0, 0, 0) == 0) {
                         work->field_4C6++;
                     }
                     return;
@@ -1541,7 +1541,7 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
     i               = 1;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work->rig.anim, (u16)i, count);
+        animationResetSlot(&work->rig.anim, (u16)i, count);
         i++;
     } while ((u16)i < 0x14U);
 }
@@ -1639,7 +1639,7 @@ static void func_actor_136100_80132748(Task* arg0)
             animWork->field_4E0 = 1;
             for (i = 1; (u16)i < 0x14U; i++) {
                 animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 1);
+                animationResetSlot(&animWork->rig.anim, (u16)i, 1);
             }
         } break;
     }
@@ -1675,7 +1675,7 @@ static void func_actor_136100_80132BC0(Task* arg0)
     s16              anim;
 
     work = (Actor136100Work*)arg0->work;
-    if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
+    if (work->field_4C0 != NULL && taskMessageDispatch(work->field_4C0, 0x3ED, 0, 0) == 0) {
         anim = D_actor_136100_8013F218[work->field_4E2];
         if (anim >= 0) {
             func_actor_136100_PlayAnim(arg0, anim, 1, 0xA);
@@ -1736,20 +1736,20 @@ static void func_actor_136100_80132E78(Task* arg0)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsg(work->field_4B4, 0x3F3, 0, 0);
+            taskMessageDispatch(work->field_4B4, 0x3F3, 0, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
         case 2:
             switch ((u16)work->field_4C6) {
                 case 0:
-                    Gp_DispatchMsg(work->field_4B4, 0x3F3, 1, 0);
+                    taskMessageDispatch(work->field_4B4, 0x3F3, 1, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3E9, &D_actor_136100_8013F334[0], 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_4B4, 0x3F2, &D_actor_136100_8013F334[1], 0);
                     work->field_4C8 = 0;
                     work->field_4C6++;
                     return;
                 case 1:
-                    if (Gp_DispatchMsg(work->field_4B4, 0x3F0, 0, 0) == 0) {
+                    if (taskMessageDispatch(work->field_4B4, 0x3F0, 0, 0) == 0) {
                         work->field_4C6++;
                     }
                     return;
@@ -1865,7 +1865,7 @@ static void func_actor_136100_80133558(Task* arg0)
     u16                  anim;
 
     work = (Actor136100Work*)arg0->work;
-    if (work->field_4C0 != NULL && Gp_DispatchMsg(work->field_4C0, 0x3ED, 0, 0) == 0) {
+    if (work->field_4C0 != NULL && taskMessageDispatch(work->field_4C0, 0x3ED, 0, 0) == 0) {
         anim = D_actor_136100_8013F218[work->field_4E2];
         if (D_actor_136100_8013F218[work->field_4E2] >= 0) {
             msgWork = (Actor136100Work*)arg0->work;
@@ -1899,7 +1899,7 @@ static void func_actor_136100_80133558(Task* arg0)
 /// Reset the cutscene actor's animation state and re-send the weapon record.
 ///
 /// Clears the first two value/countdown pairs, re-arms all nineteen animation
-/// slots through `Gp_AnimResetSlot` with the work block's slot count at 1, then
+/// slots through `animationResetSlot` with the work block's slot count at 1, then
 /// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
 /// (`AnimationPlayRequest`) built from the equip-slot addend (`gPlayerStatus.weapon`), the pair
 /// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
@@ -1932,7 +1932,7 @@ void func_actor_136100_80133690(void)
     i                   = 1;
     do {
         animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 1);
+        animationResetSlot(&animWork->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
 
@@ -1986,7 +1986,7 @@ void func_actor_136100_8013379C(s32 arg0)
     i                   = 1;
     do {
         animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 3);
+        animationResetSlot(&animWork->rig.anim, (u16)i, 3);
         i++;
     } while ((u16)i < 0x14U);
 
@@ -2236,9 +2236,9 @@ void func_actor_136100_80133BC8(Task* arg0)
         case 1:
             if (work->field_4E4 == 0) {
                 func_800E3FAC(0xA2, 0x19);
-                Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
+                taskMessageDispatch(arg0, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_4B8, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_4BC, 0x7D5, 1, 0);
                 TASK_MESSAGE_DISPATCH_POINTER(work->field_4BC, 0x7D4, &D_actor_136100_8013F454, 0);
                 if (work->field_4C0 != NULL) {
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F3F4, 0);
@@ -2248,9 +2248,9 @@ void func_actor_136100_80133BC8(Task* arg0)
                 ACTOR_136100_RESET_LINKED_ANIMATION(arg0, 1, message.animation);
             } else {
                 func_800E3FAC(0xA2, 0x1A);
-                Gp_DispatchMsg(arg0, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4B8, 0x7D5, 1, 0);
-                Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
+                taskMessageDispatch(arg0, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_4B8, 0x7D5, 1, 0);
+                taskMessageDispatch(work->field_4BC, 0x7D5, 1, 0);
                 if (work->field_4C0 != NULL) {
                     TASK_MESSAGE_DISPATCH_POINTER(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
                 }
@@ -2411,7 +2411,7 @@ void func_actor_136100_801347B8(void)
     i               = 1;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work->rig.anim, (u16)i, 1);
+        animationResetSlot(&work->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
 }

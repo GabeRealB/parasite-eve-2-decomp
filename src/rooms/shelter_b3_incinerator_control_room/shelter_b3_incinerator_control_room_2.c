@@ -214,7 +214,7 @@ SpriteBatch D_shelter_b3_incinerator_control_room_80182130[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b3_incinerator_control_room_80182140[8] = {
+SpriteView D_shelter_b3_incinerator_control_room_80182140[8] = {
     { { .empty = D_shelter_b3_incinerator_control_room_80181E04 }, D_shelter_b3_incinerator_control_room_80181E04, NULL },
     { { .empty = D_shelter_b3_incinerator_control_room_80181E14 }, D_shelter_b3_incinerator_control_room_80181E14, NULL },
     { { .elements = D_shelter_b3_incinerator_control_room_80181E24 }, D_shelter_b3_incinerator_control_room_80181F28, NULL },
@@ -246,7 +246,7 @@ WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801824B8[4] = {
 };
 
 AreaResource D_shelter_b3_incinerator_control_room_801825E8[2] = {
-    { 101, 426, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135E24 },
+    { 101, 426, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135E24 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -285,8 +285,8 @@ WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801827E4[6] = {
     { NULL, NULL, NULL, { -4288, -64, -2080, 0 }, { { 832, 0, -1008, 0 }, { 832, 0, 1008, 0 }, { -832, 0, -1008, 0 }, { -832, 0, 1008, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_shelter_b3_incinerator_control_room_801829AC[1] = {
-    { NULL, NULL, { -1312, -95, 368, 0 }, { { -2752, 4576, -2416, 0 }, { 2752, 4576, 2416, 0 }, { -2752, -4576, -2416, 0 }, { 2752, -4576, 2416, 0 } }, { -2705, 0, 3080, 0 }, { -28, 22 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b3_incinerator_control_room_801829AC[1] = {
+    { NULL, NULL, { -1312, -95, 368, 0 }, { { -2752, 4576, -2416, 0 }, { 2752, 4576, 2416, 0 }, { -2752, -4576, -2416, 0 }, { 2752, -4576, 2416, 0 } }, { -2705, 0, 3080, 0 }, 5860, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b3_incinerator_control_room_801829E8 = {

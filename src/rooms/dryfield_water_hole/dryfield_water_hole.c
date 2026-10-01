@@ -57,14 +57,17 @@
 #define D_dryfield_water_hole_8017FCDC (D_dryfield_water_hole_8017FCBC + 4)
 #define D_dryfield_water_hole_8017FD04 (D_dryfield_water_hole_8017FCBC + 9)
 
-// One live spotlight is followed by retained exporter data in whole
-// spotlight-sized slots. Its original role is unresolved; keep the bytes
-// without treating stale pointer-looking words as live C pointers.
+/// The water-hole room's single cone light and adjacent uninterpreted image bytes.
+///
+/// The light stays writable for coordinate composition and attenuation queries;
+/// its borrowed address is valid only while the room overlay is loaded. The
+/// remaining bytes are outside the live light count; their original layout and
+/// relationship to the light are unproven.
 typedef struct {
-    WorldCoordSpotLight active[1];
-    u8                  retained[540];
-} DryfieldWaterHoleSpotLightStorage;
-STATIC_ASSERT_SIZEOF(DryfieldWaterHoleSpotLightStorage, 648);
+    WorldCoordSpotLight coneLights[1];   // One mutable cone light, contributing in every view
+    u8                  unknown_6C[540]; // Uninterpreted image bytes; purpose and internal boundaries unproven
+} _DryfieldWaterHoleSpotLightStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterHoleSpotLightStorage, 648);
 
 /// One rectangle of water surface drawn by `func_dryfield_water_hole_8017D898`,
 /// in world coordinates: it spans `width` along X from `x` and `depth` along Z
@@ -87,7 +90,7 @@ typedef struct {
 } _DryfieldWaterHoleSplash;
 
 /// The room's message table, the `TaskMessageEntry` list the room task publishes in
-/// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF, 0x13F0
+/// `Task::msgTable` for `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF, 0x13F0
 /// and 0x13F2.
 extern TaskMessageEntry D_dryfield_water_hole_8017FC5C[];
 /// Descriptor of the room's water task, spawned by the room task's entry tick.
@@ -111,7 +114,7 @@ static void func_dryfield_water_hole_8017E000(Task* arg0);
 
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_dryfield_water_hole_80180260[1];
-extern GpObj3A                    D_dryfield_water_hole_80181F28[2];
+extern WorldCollisionOccluder     D_dryfield_water_hole_80181F28[2];
 extern WorldCollisionTrigger      D_dryfield_water_hole_80181724[14];
 extern WorldCollisionTrigger      D_dryfield_water_hole_80181B4C[7];
 extern WorldCollisionTrigger      D_dryfield_water_hole_80181D60[6];
@@ -126,8 +129,8 @@ s32  func_dryfield_water_hole_8017D784(Task*, s32, TaskMessageArg, TaskMessageAr
 s32  func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
 void func_dryfield_water_hole_8017DFA0(Task*);
 
-extern DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
-extern WorldCoordPointLight              D_dryfield_water_hole_80181FA0[6];
+extern _DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
+extern WorldCoordPointLight               D_dryfield_water_hole_80181FA0[6];
 
 TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_hole_8017D5F0 },
@@ -611,7 +614,7 @@ SpriteBatch D_dryfield_water_hole_80181624[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_water_hole_80181634[20] = {
+SpriteView D_dryfield_water_hole_80181634[20] = {
     { { .empty = D_dryfield_water_hole_8018062C }, D_dryfield_water_hole_8018062C, NULL },
     { { .empty = D_dryfield_water_hole_8018063C }, D_dryfield_water_hole_8018063C, NULL },
     { { .elements = D_dryfield_water_hole_8018064C }, D_dryfield_water_hole_801807F0, NULL },
@@ -670,9 +673,9 @@ WorldCollisionTrigger D_dryfield_water_hole_80181D60[6] = {
     { NULL, NULL, NULL, { 7776, -64, -2208, 0 }, { { -1055, 0, 176, 0 }, { 1056, 0, 176, 0 }, { -1055, 0, 1040, 0 }, { 1056, 0, 1040, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1481, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 18, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_water_hole_80181F28[2] = {
-    { NULL, NULL, { 8544, -1520, -3664, 0 }, { { -1536, -2224, -1840, 0 }, { -1536, 2224, -1840, 0 }, { 1536, -2224, 1840, 0 }, { 1536, 2224, 1840, 0 } }, { -3150, 0, 2629, 0 }, { -60, 12 }, 1, 0 },
-    { NULL, NULL, { 0x34E0, -1568, -176, 0 }, { { -1504, -2224, -1936, 0 }, { -1504, 2224, -1936, 0 }, { 1504, -2224, 1936, 0 }, { 1504, 2224, 1936, 0 } }, { -3237, 0, 2514, 0 }, { -20, 12 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_water_hole_80181F28[2] = {
+    { NULL, NULL, { 8544, -1520, -3664, 0 }, { { -1536, -2224, -1840, 0 }, { -1536, 2224, -1840, 0 }, { 1536, -2224, 1840, 0 }, { 1536, 2224, 1840, 0 } }, { -3150, 0, 2629, 0 }, 3268, 1, 0 },
+    { NULL, NULL, { 0x34E0, -1568, -176, 0 }, { { -1504, -2224, -1936, 0 }, { -1504, 2224, -1936, 0 }, { 1504, -2224, 1936, 0 }, { 1504, 2224, 1936, 0 } }, { -3237, 0, 2514, 0 }, 3308, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_water_hole_80181FA0[6] = {
@@ -684,7 +687,7 @@ WorldCoordPointLight D_dryfield_water_hole_80181FA0[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2B64, -1277, -2296 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1441, 1146 }, { 0, 0 } }, 1000, 2700 },
 };
 
-DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
+_DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
     {
         { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4096, 0, 0 }, { 0, 0, 4096 }, { 0, 4096, 0 } }, { 7394, -3968, -1496 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3604, 2867 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 3000, 6000, 113 },
     },
@@ -1233,7 +1236,7 @@ DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
 };
 
 WorldCoordRoomLights D_dryfield_water_hole_80182468[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80181FA0), D_dryfield_water_hole_80181FA0, ARRAY_SIZE(D_dryfield_water_hole_801821E0.active), D_dryfield_water_hole_801821E0.active },
+    { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80181FA0), D_dryfield_water_hole_80181FA0, ARRAY_SIZE(D_dryfield_water_hole_801821E0.coneLights), D_dryfield_water_hole_801821E0.coneLights },
 };
 
 WorldCoordPointLight D_dryfield_water_hole_80182480[7] = {
@@ -1255,7 +1258,7 @@ WorldCoordRoomLights D_dryfield_water_hole_8018278C[1] = {
 };
 
 AreaResource D_dryfield_water_hole_801827A4[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -85,13 +85,13 @@ extern s32 D_dryfield_night_water_tank_8017EE4C;
 
 static void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
 
-extern WorldCollisionGrid    D_dryfield_night_water_tank_8017F4B0;
-extern GpObj3A               D_dryfield_night_water_tank_801807CC[2];
-extern WorldCollisionTrigger D_dryfield_night_water_tank_8018038C[4];
-extern WorldCollisionTrigger D_dryfield_night_water_tank_801804BC[8];
-extern WorldCoordRoomLights  D_dryfield_night_water_tank_80180374[1];
-extern TmdSource             D_dryfield_night_water_tank_8017EE04;
-void                         func_dryfield_night_water_tank_8017DB8C(Task*);
+extern WorldCollisionGrid     D_dryfield_night_water_tank_8017F4B0;
+extern WorldCollisionOccluder D_dryfield_night_water_tank_801807CC[2];
+extern WorldCollisionTrigger  D_dryfield_night_water_tank_8018038C[4];
+extern WorldCollisionTrigger  D_dryfield_night_water_tank_801804BC[8];
+extern WorldCoordRoomLights   D_dryfield_night_water_tank_80180374[1];
+extern TmdSource              D_dryfield_night_water_tank_8017EE04;
+void                          func_dryfield_night_water_tank_8017DB8C(Task*);
 
 s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_water_tank_8017D714(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -480,7 +480,7 @@ SpriteBatch D_dryfield_night_water_tank_801801BC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_water_tank_801801CC[6] = {
+SpriteView D_dryfield_night_water_tank_801801CC[6] = {
     { { .empty = D_dryfield_night_water_tank_8017F5AC }, D_dryfield_night_water_tank_8017F5AC, NULL },
     { { .elements = D_dryfield_night_water_tank_8017F5BC }, D_dryfield_night_water_tank_8017F954, NULL },
     { { .elements = D_dryfield_night_water_tank_8017F974 }, D_dryfield_night_water_tank_8017FED8, NULL },
@@ -523,13 +523,13 @@ AreaResource D_dryfield_night_water_tank_8018071C[1] = {
 };
 
 AreaResource D_dryfield_night_water_tank_80180728[3] = {
-    { 143, 463, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801427C8 },
+    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801427C8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_water_tank_8018074C[2] = {
-    { 143, 463, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801427C8 },
+    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801427C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -549,9 +549,9 @@ GpAreaVariant D_dryfield_night_water_tank_80180764[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_dryfield_night_water_tank_801807CC[2] = {
-    { NULL, NULL, { -256, -0x35A0, 0, 0 }, { { -2080, 2560, 0, 0 }, { 2080, 2560, 0, 0 }, { -2080, -2560, 0, 0 }, { 2080, -2560, 0, 0 } }, { 0, 0, 4098, 0 }, { -30, 12 }, 1, 0 },
-    { NULL, NULL, { 0, -0x35A0, 0, 0 }, { { 0, 2560, 1840, 0 }, { 0, 2560, -1840, 0 }, { 0, -2560, 1840, 0 }, { 0, -2560, -1840, 0 } }, { 4113, 0, 0, 0 }, { 73, 12 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_water_tank_801807CC[2] = {
+    { NULL, NULL, { -256, -0x35A0, 0, 0 }, { { -2080, 2560, 0, 0 }, { 2080, 2560, 0, 0 }, { -2080, -2560, 0, 0 }, { 2080, -2560, 0, 0 } }, { 0, 0, 4098, 0 }, 3298, 1, 0 },
+    { NULL, NULL, { 0, -0x35A0, 0, 0 }, { { 0, 2560, 1840, 0 }, { 0, 2560, -1840, 0 }, { 0, -2560, 1840, 0 }, { 0, -2560, -1840, 0 } }, { 4113, 0, 0, 0 }, 3145, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_dryfield_night_water_tank_80180844 = {

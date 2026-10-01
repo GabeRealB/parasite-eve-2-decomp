@@ -284,7 +284,7 @@ SpriteBatch D_shelter_b2_south_maintenance_walkway_80183008[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_south_maintenance_walkway_80183018[5] = {
+SpriteView D_shelter_b2_south_maintenance_walkway_80183018[5] = {
     { { .empty = D_shelter_b2_south_maintenance_walkway_80182AC0 }, D_shelter_b2_south_maintenance_walkway_80182AC0, NULL },
     { { .empty = D_shelter_b2_south_maintenance_walkway_80182AD0 }, D_shelter_b2_south_maintenance_walkway_80182AD0, NULL },
     { { .elements = D_shelter_b2_south_maintenance_walkway_80182AE0 }, D_shelter_b2_south_maintenance_walkway_80182FE0, NULL },
@@ -318,32 +318,32 @@ WorldCollisionTrigger D_shelter_b2_south_maintenance_walkway_80183474[2] = {
 };
 
 AreaResource D_shelter_b2_south_maintenance_walkway_8018350C[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E47C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_south_maintenance_walkway_80183530[3] = {
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147400 },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_south_maintenance_walkway_80183554[4] = {
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_south_maintenance_walkway_80183584[3] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_south_maintenance_walkway_801835A8[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -418,8 +418,8 @@ GpAreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22] = {
     { D_shelter_b2_south_maintenance_walkway_8018374C, D_shelter_b2_south_maintenance_walkway_801835A8 },
 };
 
-GpObj3A D_shelter_b2_south_maintenance_walkway_8018385C[1] = {
-    { NULL, NULL, { -1616, -1280, -544, 0 }, { { -2384, 2304, 2240, 0 }, { 2384, 2304, -2240, 0 }, { -2384, -2304, 2240, 0 }, { 2384, -2304, -2240, 0 } }, { 2809, 0, 2989, 0 }, { -98, 15 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b2_south_maintenance_walkway_8018385C[1] = {
+    { NULL, NULL, { -1616, -1280, -544, 0 }, { { -2384, 2304, 2240, 0 }, { 2384, 2304, -2240, 0 }, { -2384, -2304, 2240, 0 }, { 2384, -2304, -2240, 0 } }, { 2809, 0, 2989, 0 }, 3998, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b2_south_maintenance_walkway_80183898 = {

@@ -147,7 +147,7 @@ SpriteBatch D_shelter_1f_guardroom_8017DCC8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_1f_guardroom_8017DCE0[3] = {
+SpriteView D_shelter_1f_guardroom_8017DCE0[3] = {
     { { .empty = D_shelter_1f_guardroom_8017DC80 }, D_shelter_1f_guardroom_8017DC80, NULL },
     { { .empty = D_shelter_1f_guardroom_8017DC90 }, D_shelter_1f_guardroom_8017DC90, NULL },
     { { .elements = D_shelter_1f_guardroom_8017DCA0 }, D_shelter_1f_guardroom_8017DCC8, NULL },
@@ -366,7 +366,7 @@ static void func_shelter_1f_guardroom_8017D9CC(s32 arg0)
     GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][2].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][2].batches;
     if ((arg0 & 0xFF) == 0) {
         batches[1].hidden = 1;
     } else {

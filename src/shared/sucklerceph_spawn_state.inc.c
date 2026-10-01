@@ -49,7 +49,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->context, gSucklercephAnimSets, obj, work->field_8C, work->slots);
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->context, i, 1);
+        animationResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 3);
     (Gp_IncStateF0Ref)(0);

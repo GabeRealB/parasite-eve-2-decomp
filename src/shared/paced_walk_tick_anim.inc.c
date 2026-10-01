@@ -9,7 +9,7 @@ void pacedWalkTickAnim(Task* task)
     work = (Actor160600Work*)task->work;
     i    = 1;
     do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
         i++;
     } while (i < 0x14);
 }

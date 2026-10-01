@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_r08_8017F718[];
 
 extern GpViewRec D_dryfield_r08_8017FBBC[];
 
-extern GpSprtRec D_dryfield_r08_80180918[];
+extern SpriteView D_dryfield_r08_80180918[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_r08_80180C04[];
 

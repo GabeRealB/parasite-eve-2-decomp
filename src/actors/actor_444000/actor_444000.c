@@ -68,7 +68,13 @@
 #include "../../shared/actor_contacts.h"
 /// Binds the shared shake helper to this instance's borrowed host task pointer.
 #define GLUTTON_HOST_TASK (_gGluttonHostTask.task)
-#define GLUTTON_ROOM      GLUTTON_INCINERATOR
+
+/// Selects garbage-incinerator behavior for this compiled Glutton instance.
+///
+/// Define before `glutton.h` and retain through every shared fragment. The
+/// header defines `GLUTTON_INCINERATOR` as the dimensionless integer 2;
+/// the binding must remain a macro for the shared code's `#if` comparisons.
+#define GLUTTON_ROOM GLUTTON_INCINERATOR
 #include "../../shared/glutton.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
@@ -82,14 +88,14 @@
 /// the size is anchored; the same function stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
 /// task in `field_20` and publishes its owning task in
 /// `D_actor_444000_80161860`. `field_20` is the target of every
-/// `Gp_DispatchMsg` the leaf helpers send, and they null-check it first
+/// `taskMessageDispatch` the leaf helpers send, and they null-check it first
 /// (`func_actor_444000_801321FC`). `field_2C` is the action index
 /// `func_actor_444000_80132054` switches on, with `field_2E` the sub-state
 /// counter reset alongside it. `field_2A` is a one-shot flag guarding the sound
 /// cue `func_actor_444000_80132608` enqueues.
 typedef struct Actor444000EventWork {
     /* 0x00 */ byte  pad_0[0x20];
-    /* 0x20 */ Task* field_20; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task, the Gp_DispatchMsg target
+    /* 0x20 */ Task* field_20; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task, the taskMessageDispatch target
     /* 0x24 */ Task* field_24; // subordinate task, killed and cleared by func_actor_444000_80132694
                                /// Area-record id published to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` on every enter/re-enter. The
                                /// spawn state writes it as a halfword, clearing the byte at 0x29 with it,
@@ -2937,7 +2943,7 @@ void func_actor_444000_8013265C(s32 arg0)
 {
     Actor444000EventWork* work = (Actor444000EventWork*)D_actor_444000_80161860->work;
 
-    Gp_DispatchMsg(work->field_20, 0x3F3, arg0, 0);
+    taskMessageDispatch(work->field_20, 0x3F3, arg0, 0);
 }
 
 /// Kill the subordinate task the event work block carries, if it is still alive.
@@ -3275,7 +3281,7 @@ static void func_actor_444000_8013482C(Task* task)
             if (task->extra.tmd->coords->coord.t[2] < -0x4203) {
                 work->field_0 = 0x10;
                 work->field_F08++;
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
             }
             break;
     }
@@ -5345,7 +5351,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         if (work->field_7B3 == 0xF) {
             if (cfg->hp > 0) {
                 target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+                taskMessageDispatch(target, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
                 if (cfg->hp <= 0) {
                     ((GameActor*)player->work)->state = 0xA;
                     gGameSession->deathSoundCountdown = 0x1E;
@@ -5387,7 +5393,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
             work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         }
 
-        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             D_actor_444000_80161908.value.pos.vx = arg0->extra.tmd->coords->coord.t[0];
             D_actor_444000_80161908.value.pos.vy = arg0->extra.tmd->coords->coord.t[1];
             D_actor_444000_80161908.value.pos.vz = arg0->extra.tmd->coords->coord.t[2];
@@ -5615,7 +5621,7 @@ missed:
 scanned:
     if (found != 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_444000_80161928.value, 0) == 0) {
         target          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        work->field_ECA = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
+        work->field_ECA = taskMessageDispatch(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
         if (work->field_ECA == 1) {
             ((GameActor*)player->work)->state = 0xA;
         }
@@ -5647,7 +5653,7 @@ scanned:
             TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         }
 
-        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             switch (work->anim.animationId) {
                 case 2:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
@@ -5664,7 +5670,7 @@ scanned:
                     break;
                 case 4:
                     if (work->field_ECA != 1) {
-                        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                         work->field_EC8 = 0;
                     }
                     break;
@@ -6681,9 +6687,9 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
                 case 3:
                     if (cfg->hp > 0) {
                         if (work->field_F08 == 6) {
-                            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 2, 0);
+                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 2, 0);
                         } else {
-                            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 1, 0);
+                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 1, 0);
                         }
                         work->field_0 = 0x12;
                         SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);

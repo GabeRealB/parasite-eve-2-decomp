@@ -1529,7 +1529,7 @@ static __inline__ void Actor405800_TickAnim(Task* arg0)
     i = 1;
     do {
         work->slots[i].rate = work->field_850;
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
         i++;
     } while (i < 0x12);
 }
@@ -2224,7 +2224,7 @@ static void func_actor_405800_801340E0(Task* arg0)
     }
     query.field_14 = 0x18;
     if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         if (work->field_890 == 0) {
             work3            = (Actor405800Work*)arg0->work;
             work3->field_846 = 2;
@@ -2331,7 +2331,7 @@ static void func_actor_405800_80134314(Task* arg0)
         sound2 = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 2), 0);
         vec.vx         = 0;
         vec.vy         = -200;
         vec.vz         = 0;
@@ -4045,7 +4045,7 @@ static void func_actor_405800_80138224(Task* task)
     i    = 1;
     do {
         work->slots[i].rate = work->field_850;
-        Gp_AnimResetSlot(&work->anim, i, work->field_872);
+        animationResetSlot(&work->anim, i, work->field_872);
         i++;
     } while (i < 0x12);
     work->field_870 = work->field_872;
@@ -4739,9 +4739,9 @@ static void func_actor_405800_80139700(Task* task)
     Actor405800Work* work2;
 
     work->field_84 += -(s16)work->field_84 >> 2;
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
         if (work->field_88C == 0) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         }
         func_actor_405800_80137994(task, 0x3C);
         work->field_84   = 0;
@@ -5116,7 +5116,7 @@ static void func_actor_405800_8013A0F4(Task* arg0)
     i = 1;
     do {
         work->slots[i].rate = work->field_850;
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
         i++;
     } while (i < 0x12);
 }

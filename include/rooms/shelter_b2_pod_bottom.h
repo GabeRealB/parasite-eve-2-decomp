@@ -35,7 +35,7 @@ extern GpWarpRec D_shelter_b2_pod_bottom_80181D34[];
 
 extern GpViewRec D_shelter_b2_pod_bottom_80182B80[];
 
-extern GpSprtRec D_shelter_b2_pod_bottom_80185904[];
+extern SpriteView D_shelter_b2_pod_bottom_80185904[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_bottom_80188770[];
 

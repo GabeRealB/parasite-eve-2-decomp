@@ -407,7 +407,7 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 | `extraState` | A payload the task carries; `Task_PollKill` hands it back with the stop request |
 
 Message tables use an id word followed by a handler address, but their handler
-parameter counts, payload types and return types vary. `Gp_DispatchMsg` reads
+parameter counts, payload types and return types vary. `taskMessageDispatch` reads
 through a const `TaskMessageEntry` view and supplies four ABI words. A caller must use
 an id supported by the receiver or a table with the dispatcher's
 `TASK_MESSAGE_TABLE_END` (`0x7FFFFFFF`) terminator; some installed tables have no

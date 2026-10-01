@@ -23,7 +23,7 @@ extern GpWarpRec D_shelter_1f_guardroom_8017DA98[];
 
 extern GpViewRec D_shelter_1f_guardroom_8017DC14[];
 
-extern GpSprtRec D_shelter_1f_guardroom_8017DCE0[];
+extern SpriteView D_shelter_1f_guardroom_8017DCE0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_guardroom_8017DFF4[];
 

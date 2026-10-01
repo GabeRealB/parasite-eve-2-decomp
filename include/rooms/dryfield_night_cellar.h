@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_night_cellar_8017DB34[];
 
 extern GpViewRec D_dryfield_night_cellar_8017DE84[];
 
-extern GpSprtRec D_dryfield_night_cellar_8017FAB8[];
+extern SpriteView D_dryfield_night_cellar_8017FAB8[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_cellar_801807F4[];
 

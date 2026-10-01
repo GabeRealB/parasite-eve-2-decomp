@@ -219,7 +219,7 @@ SpriteBatch D_acropolis_hallway_8017EC1C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_hallway_8017EC2C[5] = {
+SpriteView D_acropolis_hallway_8017EC2C[5] = {
     { { .empty = D_acropolis_hallway_8017EBDC }, D_acropolis_hallway_8017EBDC, NULL },
     { { .empty = D_acropolis_hallway_8017EBEC }, D_acropolis_hallway_8017EBEC, NULL },
     { { .empty = D_acropolis_hallway_8017EBFC }, D_acropolis_hallway_8017EBFC, NULL },

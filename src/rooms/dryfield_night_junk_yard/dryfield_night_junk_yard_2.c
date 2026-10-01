@@ -46,11 +46,11 @@
 extern SVECTOR D_dryfield_night_junk_yard_8018073C[];
 extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 
-extern WorldCollisionGrid    D_dryfield_night_junk_yard_801811B8[1];
-extern GpObj3A               D_dryfield_night_junk_yard_80184318[1];
-extern WorldCollisionTrigger D_dryfield_night_junk_yard_80183778[10];
-extern WorldCollisionTrigger D_dryfield_night_junk_yard_80183D28[20];
-extern WorldCoordRoomLights  D_dryfield_night_junk_yard_80183D10[1];
+extern WorldCollisionGrid     D_dryfield_night_junk_yard_801811B8[1];
+extern WorldCollisionOccluder D_dryfield_night_junk_yard_80184318[1];
+extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183778[10];
+extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183D28[20];
+extern WorldCoordRoomLights   D_dryfield_night_junk_yard_80183D10[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -698,7 +698,7 @@ SpriteBatch D_dryfield_night_junk_yard_801836A0[12] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_junk_yard_80183700[10] = {
+SpriteView D_dryfield_night_junk_yard_80183700[10] = {
     { { .empty = D_dryfield_night_junk_yard_80181368 }, D_dryfield_night_junk_yard_80181368, NULL },
     { { .elements = D_dryfield_night_junk_yard_80181378 }, D_dryfield_night_junk_yard_801815D0, NULL },
     { { .elements = D_dryfield_night_junk_yard_80181608 }, D_dryfield_night_junk_yard_80181A90, NULL },
@@ -761,8 +761,8 @@ WorldCollisionTrigger D_dryfield_night_junk_yard_80183D28[20] = {
     { NULL, NULL, NULL, { 0x52C0, -64, 2144, 0 }, { { -368, 0, -976, 0 }, { 624, 0, -976, 0 }, { -624, 0, 976, 0 }, { 368, 0, 976, 0 } }, { 0, 4100, 0, 0 }, { 4051, 0, -601, 0 }, 1152, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_junk_yard_80184318[1] = {
-    { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, { -88, 5 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_junk_yard_80184318[1] = {
+    { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_dryfield_night_junk_yard_80184354[2] = {
@@ -782,7 +782,7 @@ AreaResource D_dryfield_night_junk_yard_80184390[2] = {
 };
 
 AreaResource D_dryfield_night_junk_yard_801843A8[3] = {
-    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801482C0 },
+    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801482C0 },
     { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

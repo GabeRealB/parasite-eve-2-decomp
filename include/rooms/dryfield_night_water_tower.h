@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_night_water_tower_8017E76C[];
 
 extern GpViewRec D_dryfield_night_water_tower_8017F418[];
 
-extern GpSprtRec D_dryfield_night_water_tower_80182040[];
+extern SpriteView D_dryfield_night_water_tower_80182040[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_water_tower_80182C30[];
 

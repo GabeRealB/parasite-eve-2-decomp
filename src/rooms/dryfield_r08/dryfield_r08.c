@@ -415,7 +415,7 @@ SpriteBatch D_dryfield_r08_80180900[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_r08_80180918[6] = {
+SpriteView D_dryfield_r08_80180918[6] = {
     { { .empty = D_dryfield_r08_8017FC94 }, D_dryfield_r08_8017FC94, NULL },
     { { .elements = D_dryfield_r08_8017FCA4 }, D_dryfield_r08_80180348, NULL },
     { { .elements = D_dryfield_r08_80180368 }, D_dryfield_r08_80180458, NULL },
@@ -424,23 +424,101 @@ GpSprtRec D_dryfield_r08_80180918[6] = {
     { { .elements = D_dryfield_r08_801806A8 }, D_dryfield_r08_80180900, NULL },
 };
 
-WorldCoordPointLight D_dryfield_r08_80180960[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5215, -1041, 3017 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x3000, 0x3000, 0x3000 }, { 0, 0 } }, 381, 1500 },
+/// The default lighting bank's white point light, contributing in every room view.
+///
+/// Position and falloff radii use integer world units; RGB intensities use
+/// 12 fractional bits, with each channel initially at three times `ONE`.
+/// The loaded room overlay owns this mutable array: coordinate updates parent
+/// and compose its transform, and lighting queries overwrite attenuation.
+static WorldCoordPointLight _gDryfieldR08DefaultPointLights[] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5215, -1041, 3017 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 3 * ONE, 3 * ONE, 3 * ONE },
+        },
+        .inner = 381,
+        .outer = 1500,
+    },
 };
 
-WorldCoordRoomLights D_dryfield_r08_801809C0 = { 0, NULL, ARRAY_SIZE(D_dryfield_r08_80180960), D_dryfield_r08_80180960, 0, NULL };
+WorldCoordRoomLights D_dryfield_r08_801809C0 = { 0, NULL, ARRAY_SIZE(_gDryfieldR08DefaultPointLights), _gDryfieldR08DefaultPointLights, 0, NULL };
 
-WorldCoordPointLight D_dryfield_r08_801809D8[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5781, 225, 2364 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 4096 }, { 0, 0 } }, 400, 1150 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4644, 204, 2683 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 4096 }, { 0, 0 } }, 400, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6730, -2042, 2920 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 409, 163 }, { 0, 0 } }, 0, 2200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3860, -2042, 2980 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 409, 163 }, { 0, 0 } }, 0, 2700 },
+/// The alternate lighting bank's two cyan and two red point lights.
+///
+/// All four accept every room view. Positions and falloff radii use integer
+/// world units; RGB intensities have 12 fractional bits. The loaded room
+/// overlay owns this mutable array: coordinate updates parent and compose its
+/// transforms, and lighting queries overwrite attenuation. Pointers must not
+/// survive unloading the overlay.
+static WorldCoordPointLight _gDryfieldR08AlternatePointLights[] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5781, 225, 2364 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 3440, ONE, ONE },
+        },
+        .inner = 400,
+        .outer = 1150,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4644, 204, 2683 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 3440, ONE, ONE },
+        },
+        .inner = 400,
+        .outer = 1000,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6730, -2042, 2920 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, 409, 163 },
+        },
+        .inner = 0,
+        .outer = 2200,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3860, -2042, 2980 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, 409, 163 },
+        },
+        .inner = 0,
+        .outer = 2700,
+    },
 };
 
-WorldCoordRoomLights D_dryfield_r08_80180B58 = { 0, NULL, ARRAY_SIZE(D_dryfield_r08_801809D8), D_dryfield_r08_801809D8, 0, NULL };
+WorldCoordRoomLights D_dryfield_r08_80180B58 = { 0, NULL, ARRAY_SIZE(_gDryfieldR08AlternatePointLights), _gDryfieldR08AlternatePointLights, 0, NULL };
 
 AreaResource D_dryfield_r08_80180B70[2] = {
-    { 132, 213, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013D390 },
+    { 132, 213, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013D390 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -990,7 +1068,7 @@ void func_dryfield_r08_8017F334(s32 arg0)
 /// Sets the skip-OT-link byte (`SpriteBatch.hidden`) of command record
 /// `arg0` + 1 in this room's sprite-table command list: non-zero leaves that
 /// record's prims out of the ordering table. `arg0` is a view index below
-/// 0xB; the record the table yields is larger than its `GpSprtRec` prefix,
+/// 0xB; the record the table yields is larger than its `SpriteView` prefix,
 /// so `[3].field_4` reaches the command list its tail holds there.
 void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 {
@@ -999,7 +1077,7 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 
     sess = &gGameSession->location.loc;
     if ((u32)(arg0 & 0xFF) < 0xBU) {
-        batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].field_4;
+        batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].batches;
         if (arg1 & 0xFF) {
             batches[arg0 + 1].hidden = 1;
             return;
@@ -1011,16 +1089,16 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
 
     sess = &gGameSession->location.loc;
     if ((u32)(arg0 & 0xFF) < 3U) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if ((u32)(arg0 & 0xFF) == 0U) {
-            batches = rec[1].field_4;
+            batches = rec[1].batches;
         } else {
-            batches = rec[2].field_4;
+            batches = rec[2].batches;
         }
         if (arg1 & 0xFF) {
             batches[1].hidden = 1;

@@ -35,7 +35,7 @@ extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F228[17];
 
 extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F734[6];
 
-extern GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1];
+extern WorldCollisionOccluder D_shelter_b3_garbage_incinerator_8018FAD8[1];
 
 extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
 

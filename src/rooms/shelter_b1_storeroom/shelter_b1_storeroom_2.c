@@ -61,7 +61,7 @@ static RoomHaloShade _gRoomEffectHaloShades[3];
 
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_shelter_b1_storeroom_801850D8[1];
-extern GpObj3A                    D_shelter_b1_storeroom_80186D94[1];
+extern WorldCollisionOccluder     D_shelter_b1_storeroom_80186D94[1];
 extern WorldCollisionTrigger      D_shelter_b1_storeroom_801862E0[12];
 extern WorldCollisionTrigger      D_shelter_b1_storeroom_80186670[15];
 extern WorldCoordRoomAmbientEntry D_shelter_b1_storeroom_80186D4C[9];
@@ -445,7 +445,7 @@ SpriteBatch D_shelter_b1_storeroom_80186080[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_storeroom_80186090[8] = {
+SpriteView D_shelter_b1_storeroom_80186090[8] = {
     { { .empty = D_shelter_b1_storeroom_8018521C }, D_shelter_b1_storeroom_8018521C, NULL },
     { { .elements = D_shelter_b1_storeroom_8018522C }, D_shelter_b1_storeroom_8018563C, NULL },
     { { .elements = D_shelter_b1_storeroom_8018566C }, D_shelter_b1_storeroom_80185950, NULL },
@@ -511,17 +511,17 @@ AreaResource D_shelter_b1_storeroom_80186AE4[3] = {
 };
 
 AreaResource D_shelter_b1_storeroom_80186B08[2] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_storeroom_80186B20[2] = {
-    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
+    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_storeroom_80186B38[3] = {
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147DF0 },
     { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801602C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -595,8 +595,8 @@ WorldCoordRoomAmbientEntry D_shelter_b1_storeroom_80186D4C[9] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-GpObj3A D_shelter_b1_storeroom_80186D94[1] = {
-    { NULL, NULL, { 1568, -240, 0, 0 }, { { -2976, 1840, 0, 0 }, { 2976, 1840, 0, 0 }, { -2976, -1840, 0, 0 }, { 2976, -1840, 0, 0 } }, { 0, 0, 4096, 0 }, { -93, 13 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b1_storeroom_80186D94[1] = {
+    { NULL, NULL, { 1568, -240, 0, 0 }, { { -2976, 1840, 0, 0 }, { 2976, 1840, 0, 0 }, { -2976, -1840, 0, 0 }, { 2976, -1840, 0, 0 } }, { 0, 0, 4096, 0 }, 3491, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b1_storeroom_80186DD0 = {

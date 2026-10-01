@@ -60,6 +60,11 @@
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+/// Selects dumping-hole behavior for this compiled Glutton instance.
+///
+/// Define before `glutton.h` and retain through every shared fragment. The
+/// header defines `GLUTTON_DUMPING_HOLE` as the dimensionless integer 1;
+/// the binding must remain a macro for the shared code's `#if` comparisons.
 #define GLUTTON_ROOM GLUTTON_DUMPING_HOLE
 #include "../../shared/glutton.h"
 
@@ -5103,7 +5108,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
     }
     if (work->field_7B3 == 0xF) {
         if (cfg->hp > 0) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
             if (cfg->hp <= 0) {
                 ((GameActor*)task->work)->state   = 0xA;
                 gGameSession->deathSoundCountdown = 0x1E;
@@ -5149,7 +5154,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         }
         work->field_7A8 = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
-    if ((Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) && (cfg->hp > 0)) {
+    if ((taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) && (cfg->hp > 0)) {
         D_actor_403200_8015F9C0.value.pos.vx = arg0->extra.tmd->coords[0].coord.t[0];
         D_actor_403200_8015F9C0.value.pos.vy = arg0->extra.tmd->coords[0].coord.t[1];
         D_actor_403200_8015F9C0.value.pos.vz = arg0->extra.tmd->coords[0].coord.t[2];
@@ -5367,7 +5372,7 @@ scanned:
     if (found != 0 && enemy->hp > 0 &&
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_403200_8015FA00, 0) == 0) {
         target          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
+        reply           = taskMessageDispatch(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
         work->field_ECA = reply;
         if (reply == 1) {
             ((GameActor*)task->work)->state = 0xA;
@@ -6681,7 +6686,7 @@ after_mode:
             TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         }
 
-        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             switch (work->anim.animationId) {
                 case 2:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
@@ -6699,7 +6704,7 @@ after_mode:
                     break;
                 case 4:
                     if (work->field_ECA != 1) {
-                        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+                        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                         work->field_EC8 = 0;
                     }
                     break;
@@ -6709,7 +6714,7 @@ after_mode:
 
     if (gGluttonEnded == 1) {
         if (work->field_EC8 == gGluttonEnded) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
             work->field_EC8 = 0;
         }
     }
@@ -6940,7 +6945,7 @@ static void func_actor_403200_8014123C(Task* arg0)
     }
     gluttonTickAnim(arg0);
     if (work->field_6 == 8) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
         SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
     }
 }

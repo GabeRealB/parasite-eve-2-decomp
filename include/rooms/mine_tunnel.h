@@ -26,7 +26,7 @@ extern GpWarpRec D_mine_tunnel_8017E174[];
 
 extern GpViewRec D_mine_tunnel_8017E890[];
 
-extern GpSprtRec D_mine_tunnel_8017F9A4[];
+extern SpriteView D_mine_tunnel_8017F9A4[];
 
 extern WorldCollisionSurfaceProperties* D_mine_tunnel_8018032C[];
 

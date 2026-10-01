@@ -389,7 +389,7 @@ WorldCollisionTrigger D_acropolis_east_elevator_hall_80186A24[7] = {
 };
 
 AreaResource D_acropolis_east_elevator_hall_80186C38[2] = {
-    { 110, 103, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A06C },
+    { 110, 103, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A06C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -598,7 +598,7 @@ SpriteBatch D_acropolis_east_elevator_hall_80187860[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_east_elevator_hall_80187870[7] = {
+SpriteView D_acropolis_east_elevator_hall_80187870[7] = {
     { { .empty = D_acropolis_east_elevator_hall_80186C68 }, D_acropolis_east_elevator_hall_80186C68, NULL },
     { { .elements = D_acropolis_east_elevator_hall_80186C78 }, D_acropolis_east_elevator_hall_80186F84, NULL },
     { { .elements = D_acropolis_east_elevator_hall_80186FA4 }, D_acropolis_east_elevator_hall_801872D8, NULL },

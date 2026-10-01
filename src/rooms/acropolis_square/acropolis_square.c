@@ -447,7 +447,7 @@ WorldCollisionTrigger D_acropolis_square_80185680[26] = {
 };
 
 AreaResource D_acropolis_square_80185E38[2] = {
-    { 19, 118, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A468 },
+    { 19, 118, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A468 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1027,7 +1027,7 @@ SpriteBatch D_acropolis_square_8018856C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_square_8018857C[15] = {
+SpriteView D_acropolis_square_8018857C[15] = {
     { { .empty = D_acropolis_square_80186500 }, D_acropolis_square_80186500, NULL },
     { { .empty = D_acropolis_square_80186510 }, D_acropolis_square_80186510, NULL },
     { { .elements = D_acropolis_square_80186520 }, D_acropolis_square_80186AD4, NULL },
@@ -1322,7 +1322,7 @@ void func_acropolis_square_80181AEC(Task* task)
                     GameFlag_SetNibble(0x155, 2);
                     D_acropolis_square_8018382C = 0;
                 }
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xC1F, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xC1F, 0, 0);
                 SndEvt_EnqueueType7(0x51010009, 1);
                 taskKill(task);
                 return;

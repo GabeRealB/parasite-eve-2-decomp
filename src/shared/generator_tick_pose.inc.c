@@ -22,7 +22,7 @@ void generatorTickPose(Task* arg0)
     } else {
         work->field_324++;
         for (i = 1; i < 10; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }

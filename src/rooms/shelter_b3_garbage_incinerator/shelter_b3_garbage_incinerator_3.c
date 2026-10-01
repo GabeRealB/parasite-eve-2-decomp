@@ -1496,7 +1496,7 @@ SpriteDrawArea D_shelter_b3_garbage_incinerator_8018D0EC[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_shelter_b3_garbage_incinerator_8018D100[40] = {
+SpriteView D_shelter_b3_garbage_incinerator_8018D100[40] = {
     { { .empty = D_shelter_b3_garbage_incinerator_8018894C }, D_shelter_b3_garbage_incinerator_8018894C, NULL },
     { { .empty = D_shelter_b3_garbage_incinerator_8018895C }, D_shelter_b3_garbage_incinerator_8018895C, NULL },
     { { .empty = D_shelter_b3_garbage_incinerator_8018896C }, D_shelter_b3_garbage_incinerator_8018896C, NULL },
@@ -1756,8 +1756,8 @@ TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_80184ECC, { .value = 0 } },
 };
 
-GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1] = {
-    { NULL, NULL, { 4624, -2864, -5504, 0 }, { { -5200, 3888, 0, 0 }, { 5200, 3888, 0, 0 }, { -5200, -3888, 0, 0 }, { 5200, -3888, 0, 0 } }, { 0, 0, 4116, 0 }, { 76, 25 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b3_garbage_incinerator_8018FAD8[1] = {
+    { NULL, NULL, { 4624, -2864, -5504, 0 }, { { -5200, 3888, 0, 0 }, { 5200, 3888, 0, 0 }, { -5200, -3888, 0, 0 }, { 5200, -3888, 0, 0 } }, { 0, 0, 4116, 0 }, 6476, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b3_garbage_incinerator_8018FB14 = {

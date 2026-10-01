@@ -364,7 +364,7 @@ void Gp_FadeDirWaitMsg(void)
             Gp_DirFadeLevel = 0xFF;
         }
     }
-    if (Gp_DispatchMsg(playerTask, 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(playerTask, 0x3F0, 0, 0) == 0) {
         if (D_80114CF4 != 0) {
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         }
@@ -414,7 +414,7 @@ void Gp_CommitWarp(void)
     }
 
     if (D_80114CF4 == 0) {
-        Gp_DispatchMsg(slot3, 0x3F1, 0, 0);
+        taskMessageDispatch(slot3, 0x3F1, 0, 0);
         D_80114CF8              = 0;
         Gp_DirNibble            = 0;
         Gp_DirByte              = 0;

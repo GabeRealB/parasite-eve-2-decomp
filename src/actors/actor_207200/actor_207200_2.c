@@ -647,7 +647,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     func_800B3F84((AnimationContext*)work, D_actor_207200_80153ED4, obj,
                   work->field_12C, (AnimationSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot((AnimationContext*)work, i, 1);
+        animationResetSlot((AnimationContext*)work, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
 
@@ -1287,7 +1287,7 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
     } else {
         work->field_490++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((AnimationContext*)work, i);
+            animationTickSlot((AnimationContext*)work, i);
         }
     }
 }

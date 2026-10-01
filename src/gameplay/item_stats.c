@@ -646,7 +646,7 @@ void Gp_UseKeyItemRow(Task* arg0)
         menu     = &D_8010E960;
         roomTask = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
         item     = Gp_NthCollectedId(menu->field_10, 0);
-        ret      = Gp_DispatchMsg(roomTask, 0x13F1, item, 0);
+        ret      = taskMessageDispatch(roomTask, 0x13F1, item, 0);
         if (ret == 1) {
             arg0->spawnArg1.value = item;
             width                 = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + 0xB;

@@ -235,7 +235,7 @@ SpriteBatch D_shelter_1f_vehicular_airlock_801824E8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_1f_vehicular_airlock_801824F8[3] = {
+SpriteView D_shelter_1f_vehicular_airlock_801824F8[3] = {
     { { .empty = D_shelter_1f_vehicular_airlock_801824C8 }, D_shelter_1f_vehicular_airlock_801824C8, NULL },
     { { .empty = D_shelter_1f_vehicular_airlock_801824D8 }, D_shelter_1f_vehicular_airlock_801824D8, NULL },
     { { .empty = D_shelter_1f_vehicular_airlock_801824E8 }, D_shelter_1f_vehicular_airlock_801824E8, NULL },
@@ -276,7 +276,7 @@ WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4] = {
 };
 
 AreaResource D_shelter_1f_vehicular_airlock_801829E0[3] = {
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147DF0 },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

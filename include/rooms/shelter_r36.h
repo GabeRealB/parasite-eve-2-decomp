@@ -25,7 +25,7 @@ extern WorldCollisionGrid D_shelter_r36_8017EAB0;
 
 extern GpViewRec D_shelter_r36_8017EAD4[];
 
-extern GpSprtRec D_shelter_r36_8017F318[];
+extern SpriteView D_shelter_r36_8017F318[];
 
 extern WorldCoordRoomLights D_shelter_r36_8017F6DC;
 

@@ -608,7 +608,7 @@ SpriteBatch D_shelter_b2_breeding_room_801833C4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_breeding_room_801833D4[10] = {
+SpriteView D_shelter_b2_breeding_room_801833D4[10] = {
     { { .empty = D_shelter_b2_breeding_room_80181280 }, D_shelter_b2_breeding_room_80181280, NULL },
     { { .elements = D_shelter_b2_breeding_room_80181290 }, D_shelter_b2_breeding_room_80181420, NULL },
     { { .elements = D_shelter_b2_breeding_room_80181440 }, D_shelter_b2_breeding_room_8018174C, NULL },
@@ -653,25 +653,25 @@ WorldCollisionTrigger D_shelter_b2_breeding_room_801837C4[14] = {
 };
 
 AreaResource D_shelter_b2_breeding_room_80183BEC[2] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_breeding_room_80183C04[3] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E47C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_breeding_room_80183C28[4] = {
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_80151E60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_breeding_room_80183C58[4] = {
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -683,7 +683,7 @@ AreaResource D_shelter_b2_breeding_room_80183C88[2] = {
 };
 
 AreaResource D_shelter_b2_breeding_room_80183CA0[3] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014FD74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -811,12 +811,12 @@ WorldCoordRoomAmbientEntry D_shelter_b2_breeding_room_80184624[11] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-GpObj3A D_shelter_b2_breeding_room_8018467C[5] = {
-    { NULL, NULL, { 4448, -1664, -176, 0 }, { { -1376, 2688, 3056, 0 }, { 1376, 2688, -3056, 0 }, { -1376, -2688, 3056, 0 }, { 1376, -2688, -3056, 0 } }, { 3755, 0, 1690, 0 }, { -69, 16 }, 1, 0 },
-    { NULL, NULL, { 3935, -1504, -289, 0 }, { { 1033, 2688, 3189, 0 }, { -1032, 2688, -3188, 0 }, { 1033, -2688, 3189, 0 }, { -1032, -2688, -3188, 0 } }, { 3917, 0, -1270, 0 }, { -69, 16 }, 1, 0 },
-    { NULL, NULL, { 8894, -1504, -161, 0 }, { { 63, 2688, 2967, 0 }, { -62, 2688, -2967, 0 }, { 63, -2688, 2967, 0 }, { -62, -2688, -2967, 0 } }, { 4097, 0, -87, 0 }, { -98, 15 }, 1, 0 },
-    { NULL, NULL, { 8415, -1472, 2831, 0 }, { { 1111, 2688, -29, 0 }, { -1110, 2688, 29, 0 }, { 1111, -2688, -29, 0 }, { -1110, -2688, 29, 0 } }, { -109, 0, -4108, 0 }, { 91, 11 }, 1, 0 },
-    { NULL, NULL, { 0x30A0, -1152, 2880, 0 }, { { 1111, 2688, -29, 0 }, { -1110, 2688, 29, 0 }, { 1111, -2688, -29, 0 }, { -1110, -2688, 29, 0 } }, { -109, 0, -4108, 0 }, { 91, 11 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b2_breeding_room_8018467C[5] = {
+    { NULL, NULL, { 4448, -1664, -176, 0 }, { { -1376, 2688, 3056, 0 }, { 1376, 2688, -3056, 0 }, { -1376, -2688, 3056, 0 }, { 1376, -2688, -3056, 0 } }, { 3755, 0, 1690, 0 }, 4283, 1, 0 },
+    { NULL, NULL, { 3935, -1504, -289, 0 }, { { 1033, 2688, 3189, 0 }, { -1032, 2688, -3188, 0 }, { 1033, -2688, 3189, 0 }, { -1032, -2688, -3188, 0 } }, { 3917, 0, -1270, 0 }, 4283, 1, 0 },
+    { NULL, NULL, { 8894, -1504, -161, 0 }, { { 63, 2688, 2967, 0 }, { -62, 2688, -2967, 0 }, { 63, -2688, 2967, 0 }, { -62, -2688, -2967, 0 } }, { 4097, 0, -87, 0 }, 3998, 1, 0 },
+    { NULL, NULL, { 8415, -1472, 2831, 0 }, { { 1111, 2688, -29, 0 }, { -1110, 2688, 29, 0 }, { 1111, -2688, -29, 0 }, { -1110, -2688, 29, 0 } }, { -109, 0, -4108, 0 }, 2907, 1, 0 },
+    { NULL, NULL, { 0x30A0, -1152, 2880, 0 }, { { 1111, 2688, -29, 0 }, { -1110, 2688, 29, 0 }, { 1111, -2688, -29, 0 }, { -1110, -2688, 29, 0 } }, { -109, 0, -4108, 0 }, 2907, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b2_breeding_room_801847A8 = {

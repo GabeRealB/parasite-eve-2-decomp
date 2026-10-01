@@ -112,6 +112,23 @@ typedef struct AnimationSet {
 } AnimationSet;
 STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 
+/// Restarts a slot on the same-numbered model-part track and coordinate.
+///
+/// Rebinds the slot to the context's borrowed set table, selects the track's
+/// first keyframe and encoding, clears its boundary state and result flags,
+/// and sets normal playback rate (`ANIMATION_RATE_ONE`), replacing any prior rate.
+/// The current record is left at zero and the segment duration is unchanged;
+/// the first forward pose tick establishes the interpolation segment.
+/// This call does not write a model coordinate or capture a transition pose.
+///
+/// `slotIndex` must be in 0..255 and fit the slot array, model coordinates and
+/// selected set's track-start table. `setIndex` must be a loaded table index
+/// representable in `u16`, excluding `ANIMATION_SET_BUFFERED_POSE`; zero is used
+/// unchanged. The selected track start must name a keyframe in the record array.
+/// The caller owns the writable slot; the set table and clip data must remain
+/// live during playback. Capacities are neither stored nor checked here.
+void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex);
+
 /// Advances one playback slot and writes its interpolated pose.
 ///
 /// Clears the slot's result flags, consumes its signed `rate` in sixteenths of
@@ -154,6 +171,22 @@ STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 /// all reservations are released before returning. Pose blending clobbers the GTE.
 void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination,
                            void* encodedDestination);
+
+/// Advances one animation slot and applies its blended pose to the model coordinate.
+///
+/// Consumes the slot's signed `rate` in sixteenths of a frame, with the death
+/// playback adjustment and boundary flags described by `animationTickSlotPose`.
+/// Encoding 1 writes local translation and rotation; encoding 4 writes rotation
+/// and preserves translation. Both mark the coordinate dirty. Zero `timeSpan`
+/// and unsupported encodings skip pose writes. No transition pose is captured.
+///
+/// `slotIndex` is a nonnegative element index into `context->slots` and its
+/// corresponding encoded pose-buffer entry; zero is valid. The slot's
+/// `coordIndex` selects the destination and must be below `context->partCount`.
+/// The context's bindings are retained. Borrowed storage, loaded clip data,
+/// record bounds, scratch-stack capacity and GTE requirements are those of
+/// `animationTickSlotPose`; no array lengths are checked here.
+void animationTickSlot(AnimationContext* context, s32 slotIndex);
 
 /// Persistent head-tracking state for `func_800B17D4`, allocated by the task
 /// that drives the head turn and kept in its `Task::work`. `yawLimit` /

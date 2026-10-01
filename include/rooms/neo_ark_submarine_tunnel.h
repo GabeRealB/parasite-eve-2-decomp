@@ -38,7 +38,7 @@ extern GpWarpRec D_neo_ark_submarine_tunnel_80181E20[];
 
 extern GpViewRec D_neo_ark_submarine_tunnel_80182500[];
 
-extern GpSprtRec D_neo_ark_submarine_tunnel_80186B78[];
+extern SpriteView D_neo_ark_submarine_tunnel_80186B78[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_tunnel_801878EC[];
 

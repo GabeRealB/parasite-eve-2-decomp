@@ -26,7 +26,7 @@ extern GpWarpRec D_shelter_b2_pod_access_tunnel_80183E30[];
 
 extern GpViewRec D_shelter_b2_pod_access_tunnel_801841D8[];
 
-extern GpSprtRec D_shelter_b2_pod_access_tunnel_80184C6C[];
+extern SpriteView D_shelter_b2_pod_access_tunnel_80184C6C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_access_tunnel_801856D8[];
 

@@ -10,7 +10,7 @@ void pairWalkResetAnim(Task* task)
     work = (Actor150400Work*)task->work;
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
+        animationResetSlot(&work->rig.anim, i, work->st.animId);
     }
     work->st.appliedAnimId = work->st.animId;
 }

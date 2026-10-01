@@ -25,7 +25,7 @@ extern WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E9C0;
 
 extern GpViewRec D_shelter_b1_golem_freezer_1_8017E9E4[];
 
-extern GpSprtRec D_shelter_b1_golem_freezer_1_8017EDB0[];
+extern SpriteView D_shelter_b1_golem_freezer_1_8017EDB0[];
 
 extern WorldCoordRoomLights D_shelter_b1_golem_freezer_1_8017EE64;
 

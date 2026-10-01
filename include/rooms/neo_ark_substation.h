@@ -23,7 +23,7 @@ extern GpWarpRec D_neo_ark_substation_8017E410[];
 
 extern GpViewRec D_neo_ark_substation_8017E8C8[];
 
-extern GpSprtRec D_neo_ark_substation_8017F584[];
+extern SpriteView D_neo_ark_substation_8017F584[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[];
 

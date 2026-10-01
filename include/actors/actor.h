@@ -463,7 +463,7 @@ STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 typedef struct ActorAnimRig20 {
     AnimationContext anim;
     AnimationSlot    slots[0x14];
-    byte             poses[0x14][0x10];
+    byte             poses[0x14][ANIMATION_POSE_BUFFER_BYTES];
 } ActorAnimRig20;
 STATIC_ASSERT_SIZEOF(ActorAnimRig20, 0x474);
 
@@ -1310,7 +1310,7 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 static __inline__ s32 actorPlayerContactMessage(Enemy* ctx, s32 mode)
 {
     Task* player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
+    return taskMessageDispatch(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
 }
 
 /// Relights `enemy` for the world position of `coord`.

@@ -189,7 +189,7 @@ static void func_actor_503500_80136AEC(Task* arg0);
 static void func_actor_503500_80136D30(Task* arg0);
 static void func_actor_503500_80136DDC(Task* arg0);
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `func_actor_503500_80132F64`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -537,7 +537,7 @@ static s32 func_actor_503500_80133684(Task* arg0)
             (gPlayerStatus.hp > 0) && (Gp_StateC08.field_A != 1)) {
             ret = 1;
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
                 work->field_774 |= 8;
                 /* `ret` has to be dead across the call for GCC to keep it in
                  * $a1: it is re-set on the way out of both arms. */
@@ -991,7 +991,7 @@ static void func_actor_503500_80134408(Task* arg0)
             if (++work->field_7BC >= 0x1F &&
                 ((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
                 gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
                 SndEvt_EnqueueType7(0x40230010, 0x2D);
                 work->field_7DA = work->field_7DA + 1;
             }
@@ -1632,11 +1632,11 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot((AnimationContext*)work, i, work->field_7D5);
+            animationResetSlot((AnimationContext*)work, i, work->field_7D5);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex((AnimationContext*)work, i);
+        animationTickSlot((AnimationContext*)work, i);
     }
     work->field_7D4 = 1;
     work2           = arg0->work;
@@ -1811,7 +1811,7 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 }
 
 /// Sets the per-slot playback rate `AnimationSlot.rate` on animation slots 1..16 of the
-/// boss block -- `rate` of 0 meaning `Gp_AnimResetSlot`'s own 0x10 default,
+/// boss block -- `rate` of 0 meaning `animationResetSlot`'s own 0x10 default,
 /// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
 void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 {
@@ -2349,8 +2349,8 @@ static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 /// (`field_7D4`), a clear 0x100 bit in the animation flags means the clip is
 /// still running, so every slot 1..0x13 is ticked; once the bit is set the clip
 /// has finished, and in state 0 the boss resets the slot rates and re-applies
-/// preset `D_actor_503500_8016EAD4`. The block is passed to `Gp_AnimTickIndex`
-/// as the `AnimationContext` it is fronted by (`ActorAnimRig20::anim`).
+/// preset `D_actor_503500_8016EAD4`. `animationTickSlot` uses the animation
+/// context at the start of the boss block.
 static void func_actor_503500_80136D30(Task* arg0)
 {
     Actor503500Work* work;
@@ -2365,7 +2365,7 @@ static void func_actor_503500_80136D30(Task* arg0)
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimTickIndex((AnimationContext*)work, i);
+                animationTickSlot((AnimationContext*)work, i);
             }
         }
     }
@@ -2469,7 +2469,7 @@ static s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
     return ret;
 }
 
-/// Sets `AnimationSlot.rate` -- the per-slot value `Gp_AnimResetSlot` seeds
+/// Sets `AnimationSlot.rate` -- the per-slot value `animationResetSlot` seeds
 /// with 0x10 -- on animation slots 1..16 of the boss block, `rate` of 0
 /// meaning that default.
 static void func_actor_503500_80137048(Task* arg0, s32 rate)

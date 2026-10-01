@@ -19,7 +19,7 @@ static inline void maggotCaterpillarTickAnimInline(Task* task)
     } else {
         work->field_396++;
         for (i = 1; i < 8; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }

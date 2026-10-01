@@ -107,7 +107,7 @@ static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
 static void func_dryfield_night_driveway_8017DD7C(Task* task);
 
 extern WorldCollisionGrid         D_dryfield_night_driveway_80180C0C[1];
-extern GpObj3A                    D_dryfield_night_driveway_80181FFC[2];
+extern WorldCollisionOccluder     D_dryfield_night_driveway_80181FFC[2];
 extern WorldCollisionTrigger      D_dryfield_night_driveway_801818E8[6];
 extern WorldCollisionTrigger      D_dryfield_night_driveway_80181DC8[4];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_driveway_80182074[11];
@@ -792,7 +792,7 @@ SpriteDrawArea D_dryfield_night_driveway_8018185C[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_dryfield_night_driveway_80181870[10] = {
+SpriteView D_dryfield_night_driveway_80181870[10] = {
     { { .empty = D_dryfield_night_driveway_80180D98 }, D_dryfield_night_driveway_80180D98, NULL },
     { { .elements = D_dryfield_night_driveway_80180DA8 }, D_dryfield_night_driveway_80180E5C, NULL },
     { { .elements = D_dryfield_night_driveway_80180E7C }, D_dryfield_night_driveway_80180FD0, D_dryfield_night_driveway_80181008 },
@@ -837,17 +837,17 @@ WorldCollisionTrigger D_dryfield_night_driveway_80181DC8[4] = {
 };
 
 AreaResource D_dryfield_night_driveway_80181EF8[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_driveway_80181F10[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_driveway_80181F28[3] = {
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
     { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014F9A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -877,9 +877,9 @@ GpAreaVariant D_dryfield_night_driveway_80181F4C[22] = {
     { D_map_dryfield_full_8017C768, D_dryfield_night_driveway_80181F28 },
 };
 
-GpObj3A D_dryfield_night_driveway_80181FFC[2] = {
-    { NULL, NULL, { -5648, -2128, 1792, 0 }, { { -1648, 3152, 2624, 0 }, { 1648, 3152, -2624, 0 }, { -1648, -3152, 2624, 0 }, { 1648, -3152, -2624, 0 } }, { 3483, 0, 2187, 0 }, { 52, 17 }, 1, 0 },
-    { NULL, NULL, { 1824, -2160, -2656, 0 }, { { -1648, 3184, 2624, 0 }, { 1648, 3184, -2624, 0 }, { -1648, -3184, 2624, 0 }, { 1648, -3184, -2624, 0 } }, { 3478, 0, 2184, 0 }, { 82, 17 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_driveway_80181FFC[2] = {
+    { NULL, NULL, { -5648, -2128, 1792, 0 }, { { -1648, 3152, 2624, 0 }, { 1648, 3152, -2624, 0 }, { -1648, -3152, 2624, 0 }, { 1648, -3152, -2624, 0 } }, { 3483, 0, 2187, 0 }, 4404, 1, 0 },
+    { NULL, NULL, { 1824, -2160, -2656, 0 }, { { -1648, 3184, 2624, 0 }, { 1648, 3184, -2624, 0 }, { -1648, -3184, 2624, 0 }, { 1648, -3184, -2624, 0 } }, { 3478, 0, 2184, 0 }, 4434, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_night_driveway_80182074[11] = {

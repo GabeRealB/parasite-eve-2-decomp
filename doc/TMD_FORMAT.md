@@ -362,7 +362,7 @@ directions.
 |---|---|---|---|
 | `tmdDrawStreamPrimG3CornerNormals` | `0x8`, `0x10`, `0x18` | `POLY_G3` | triangle |
 | `tmdDrawStreamGt3` | `0x8`, `0x14`, `0x20` | `POLY_GT3` | triangle |
-| `tmdDrawStreamPrimG4CornerNormals` | `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
+| `tmdDrawStreamPrimG4CornerNormals` | `0x8`, `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
 | `tmdDrawStreamGt4` | `0x8`, `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 | `tmdDrawStreamPrimGt4OneNormal` | `0x8`, `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 
@@ -612,16 +612,16 @@ transform, a cull, a packet's filing and its ordering-table link.
 
 | Opcode | Init handler | Stride | Elements | Role |
 |---|---|---:|---:|---|
-| `0x21` | `tmdDrawStreamPrimG3PreXform` | 2 | 2 | pre-transformed `POLY_G3`: the vertex pass already placed the corners, so the handler culls the triangle, averages the cached depths and links the packet — **solved**, §3.5 |
+| `0x21` | `tmdDrawStreamPrimG3PreXform` | 2 | 2 | pre-transformed opaque `POLY_G3`: three u16 byte offsets address the depth cache; positive winding and depths without `TMD_VERTEX_DEPTH_INVALID` permit an `AVSZ3` OT link. Every element consumes 28 packet bytes; object blend/reverse-culling flags are ignored — **solved**, §3.5 |
 | `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | per-corner-lit `POLY_G3`; the element's RGB/code word supplies blending, and drawing consumes one packet slot per element despite skipped construction |
-| `0x61` | `tmdDrawStreamPrimG4PreXform` | — | — | the pre-transformed untextured quad — face-tested, coded and linked into the ordering table — **solved**, §3.2 |
-| `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | ? |
+| `0x61` | `tmdDrawStreamPrimG4PreXform` | — | — | pre-transformed opaque `POLY_G4`: four u16 byte offsets address the depth cache. Facing requires `NCLIP(0,1,2) > 0` or `NCLIP(1,2,3) < 0`; all four depths must lack `TMD_VERTEX_DEPTH_INVALID` for an `AVSZ4` OT link. Every element consumes 36 packet bytes; object blend/reverse-culling flags are ignored — **solved**, §3.2 |
+| `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | per-corner-lit `POLY_G4`: four u16 vertex byte offsets, four u16 normal byte offsets, then one RGB/code word; shares the `0x60` draw body. The material command byte supplies blending. Drawing consumes 36 packet bytes per element despite skipped construction, including rejected quads |
 | `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
 | `0xC4` | `gpXformStreamVertsUnlit` | — | — | the `0xC8` pre-pass with the lighting dropped; never seen in data — **solved**, §3.5 |
 | `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |
-| `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | the `0x21` triangle in the opcode form that names a colour per corner; the colour is the vertex pass's business, so the two forms resolve to one body |
+| `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | resolves to the same opaque `0x21` handler: both retain the corner RGB already written by the vertex pass and read only the three depth-cache offsets |
 | `0x122` | `D_8009E274` | — | — | ? |
-| `0x161` | `tmdDrawStreamPrimG4PreXform` | — | — | the `0x61` record with the per-corner colour bit; the two opcodes resolve to one body |
+| `0x161` | `tmdDrawStreamPrimG4PreXform` | — | — | resolves to the same opaque `0x61` handler: both retain corner RGB already written by the projection pass and read only the four depth-cache offsets |
 | `0x162` | `gpDrawStreamPrimG4CornerColorsSemiTrans` | — | — | the `0x60` quad's record with the per-corner colour bit, in its semi-transparent form: a vertex, a normal and a colour per corner, so each corner is lit from the pair it names — read from the handler, never seen in data |
 | `0x40C8` | `D_8009AF90` | 2 | 1568 | `0xC8` with a different shading path |
 | `0x200C8` | `D_801386EC` | 2 | 607 | `0xC8` with a different shading path |

@@ -7,12 +7,14 @@
 #include <psyq/inline_c.h>
 #include <psyq/stdio.h>
 
+#include "common.h"
 #include "gte.h"
 #include "types.h"
 
 #include "gameplay/actor_render.h"
 #include "actor_render.h"
 #include "model_objects.h"
+#include "gameplay/room_effects.h"
 
 #include "main/display.h"
 #include "main/gfx.h"
@@ -728,10 +730,28 @@ u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
 u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     enum {
-        // Depth refs count bytes; low two bits are excluded, with no bounds check.
-        TMD_GT3_ENV_DEPTH_REFERENCE_MASK = 0xFFFC,
-        // Fixed 15-bit additive environment pages at VRAM (448,256) and (576,256).
-        TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(2, 1, 448, 256),
+        /// Extracts the aligned depth-cache byte offset from an environment triangle's corner reference.
+        ///
+        /// Each of the element's first three u16 references retains bits 15..2;
+        /// the discarded low bits' role is unproven. Results are 0..65532 bytes,
+        /// divided by sizeof(*vertexDepths) to select a four-byte `szTable` entry.
+        /// The draw pass supplies 1024 entries, so valid offsets are 0..4092 and
+        /// must name depths initialized earlier in the same draw walk. This mask
+        /// provides alignment without checking bounds or projection validity;
+        /// `TMD_VERTEX_DEPTH_INVALID` is tested in the selected cache entry.
+        TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK = 0xFFFC,
+        /// Direct-colour texture mode: 15 RGB bits per 16-bit VRAM texel.
+        TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT = 2,
+        /// Packed GPU texture-page settings for environment triangles with no second-page markers.
+        ///
+        /// Encodes `0x137`: direct colour and additive semitransparency at
+        /// VRAM word coordinates (448,256). Projection supplies U in 0..255
+        /// and V in 0..239 relative to this origin; the model's texture-page
+        /// offset is not applied. Written to the layer's unsigned 16-bit
+        /// `POLY_GT3.tpage`, with semitransparency enabled by the layer command.
+        /// Any marked corner instead selects `TMD_GT3_ENV_SECOND_TEXTURE_PAGE`,
+        /// whose origin is 128 texels to the right, overlapping this page.
+        TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT, GPU_BLEND_ADD, 448, 256),
         TMD_GT3_ENV_SECOND_TEXTURE_PAGE = getTPage(2, 1, 576, 256),
         TMD_GT3_ENV_PAGE_U_DISPLACEMENT = 128,
         /// GPU command byte for the opaque, colour-modulated Gouraud-textured base triangle.
@@ -739,16 +759,52 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// Bits 1 and 0 are clear: semi-transparency is disabled and vertex colours
         /// modulate the texture. The second `POLY_GT3` in each pair uses the model's
         /// texture and is linked ahead of the environment layer.
-        TMD_GT3_ENV_BASE_COMMAND  = 0x34,
+        TMD_GT3_ENV_BASE_COMMAND = 0x34,
+        /// GPU command byte for the colour-modulated, semitransparent environment triangle.
+        ///
+        /// Bit 1 enables semitransparency; bit 0 stays clear so lit vertex colours
+        /// modulate the texture. The layer's `tpage` selects additive blending.
+        /// Written to the first `POLY_GT3` of each pair after its code byte has
+        /// been read as a second-page marker. The opaque base is drawn first.
+        /// This command is fixed, independent of `objectFlags`.
         TMD_GT3_ENV_LAYER_COMMAND = 0x36,
-        TMD_GT3_ENV_CORNER_COUNT  = 3,
-        TMD_GT3_ENV_PACKET_COUNT  = 2,
-        TMD_GT3_ENV_CORNER_BYTES  = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0),
-        // Sixteen scaled OTZ units select one four-byte OT tag.
+        /// Number of environment-triangle corners visited during second-page U adjustment.
+        ///
+        /// Covers `u0/u1/u2` and their `code/p1/p2` page markers in the
+        /// environment packet of each environment/base pair.
+        TMD_GT3_ENV_CORNER_COUNT = 3,
+        TMD_GT3_ENV_PACKET_COUNT = 2,
+        /// Byte stride between corresponding fields of successive environment-triangle corners.
+        ///
+        /// Advances the U and 0/1 second-page-marker cursors through `u0/u1/u2`
+        /// and `code/p1/p2` in the layer packet. The byte view covers the complete
+        /// packet pair, including the final undereferenced cursor advances.
+        TMD_GT3_ENV_CORNER_STRIDE_BYTES = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0),
+        /// Right shift converting scaled GTE OTZ to an ordering-table tag index.
+        ///
+        /// Applied after the u32 left shift by `gDisplayState.otDepthShift`:
+        /// sixteen scaled OTZ units select one four-byte tag. This combines
+        /// the depth-to-byte-offset right shift by two with bytes-to-tags
+        /// conversion. The following mask, `GPU_ORDERING_TABLE_DEPTH_BYTE_MASK`
+        /// divided by sizeof(*workspace->ot), keeps scaled-depth bits 4..13
+        /// and wraps indices to 0..1023; it does not clamp depth. Both packets
+        /// use the same index relative to `workspace->ot`, already displaced
+        /// by the model's signed tag offset. The selected OT must contain it.
         TMD_GT3_ENV_OT_INDEX_SHIFT = 4
     };
     /// One element's environment packet followed by its opaque base packet.
     typedef POLY_GT3 _TmdEnvTrianglePair[TMD_GT3_ENV_PACKET_COUNT];
+
+    STATIC_ASSERT(OFFSET_OF(POLY_GT3, u2) - OFFSET_OF(POLY_GT3, u1) == TMD_GT3_ENV_CORNER_STRIDE_BYTES &&
+                      OFFSET_OF(POLY_GT3, p1) - OFFSET_OF(POLY_GT3, code) == TMD_GT3_ENV_CORNER_STRIDE_BYTES &&
+                      OFFSET_OF(POLY_GT3, p2) - OFFSET_OF(POLY_GT3, p1) == TMD_GT3_ENV_CORNER_STRIDE_BYTES,
+                  tmdGt3EnvCornerStride);
+    STATIC_ASSERT(OFFSET_OF(POLY_GT3, u0) + (TMD_GT3_ENV_CORNER_COUNT - 1) * TMD_GT3_ENV_CORNER_STRIDE_BYTES == OFFSET_OF(POLY_GT3, u2) &&
+                      OFFSET_OF(POLY_GT3, code) + (TMD_GT3_ENV_CORNER_COUNT - 1) * TMD_GT3_ENV_CORNER_STRIDE_BYTES == OFFSET_OF(POLY_GT3, p2),
+                  tmdGt3EnvCornerCount);
+    STATIC_ASSERT(OFFSET_OF(POLY_GT3, code) + TMD_GT3_ENV_CORNER_COUNT * TMD_GT3_ENV_CORNER_STRIDE_BYTES <= sizeof(_TmdEnvTrianglePair) &&
+                      OFFSET_OF(POLY_GT3, u0) + TMD_GT3_ENV_CORNER_COUNT * TMD_GT3_ENV_CORNER_STRIDE_BYTES <= sizeof(_TmdEnvTrianglePair),
+                  tmdGt3EnvCornerCursorBounds);
 
     _TmdEnvTrianglePair* packetPair;
     s32*                 gteResultDestination;
@@ -778,15 +834,15 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
             _tmdStoreTexturedTriangleFacing(&(*packetPair)[0], gteResultDestination);
             if (workspace->gteResult > 0) {
                 vertexDepths       = workspace->szTable;
-                depthByteOffset    = depthRefs[0] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                depthByteOffset    = depthRefs[0] & TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK;
                 depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
                 if ((depthOrPageMarkers & invalidDepthMask) == 0) {
                     gte_ldSZ1(depthOrPageMarkers);
-                    depthByteOffset    = depthRefs[1] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                    depthByteOffset    = depthRefs[1] & TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK;
                     depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
                     if ((depthOrPageMarkers & invalidDepthMask) == 0) {
                         gte_ldSZ2(depthOrPageMarkers);
-                        depthByteOffset    = depthRefs[2] & TMD_GT3_ENV_DEPTH_REFERENCE_MASK;
+                        depthByteOffset    = depthRefs[2] & TMD_GT3_ENV_DEPTH_BYTE_OFFSET_MASK;
                         depthOrPageMarkers = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
                         if ((depthOrPageMarkers & invalidDepthMask) == 0) {
                             gte_ldSZ3(depthOrPageMarkers);
@@ -808,9 +864,9 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
                                             *textureU = 0;
                                         }
                                     }
-                                    textureU += TMD_GT3_ENV_CORNER_BYTES;
+                                    textureU += TMD_GT3_ENV_CORNER_STRIDE_BYTES;
                                     cornerIndex++;
-                                    pageMarker += TMD_GT3_ENV_CORNER_BYTES;
+                                    pageMarker += TMD_GT3_ENV_CORNER_STRIDE_BYTES;
                                 } while (cornerIndex < TMD_GT3_ENV_CORNER_COUNT);
                                 texturePage = TMD_GT3_ENV_SECOND_TEXTURE_PAGE;
                             }
@@ -821,8 +877,14 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
                             setlen(&(*packetPair)[1], packetWordCount);
                             setcode(&(*packetPair)[1], baseCommand);
                             gte_stotz(gteResultDestination);
-                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_GT3_ENV_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], &(*packetPair)[0]);
-                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_GT3_ENV_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], &(*packetPair)[1]);
+                            addPrim(&workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >>
+                                                    TMD_GT3_ENV_OT_INDEX_SHIFT) &
+                                                   (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                    &(*packetPair)[0]);
+                            addPrim(&workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >>
+                                                    TMD_GT3_ENV_OT_INDEX_SHIFT) &
+                                                   (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                    &(*packetPair)[1]);
                         }
                     }
                 }

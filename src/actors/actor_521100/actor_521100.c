@@ -1668,7 +1668,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->field_688 = 0x15;
     i               = 1;
     do {
-        Gp_AnimResetSlot(&work->rig.anim, i, work->field_686);
+        animationResetSlot(&work->rig.anim, i, work->field_686);
         i++;
     } while (i < 0x13);
     work->field_6B2 = 1;
@@ -2690,7 +2690,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                     flag = 1;
                 } else {
                     work->field_68E = 0x20;
-                    Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_521100_8015F550, 3), 0);
+                    taskMessageDispatch(player, 0x3F9, Gp_PackPair(D_actor_521100_8015F550, 3), 0);
                 }
             }
             if (flag != 1) {
@@ -2787,8 +2787,8 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->aim.rot.vz = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->aim, 0);
             }
-            if (((s16)work->field_68A >= 0x6F) && (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0)) {
-                Gp_DispatchMsg(player, 0x3F1, 0, 0);
+            if (((s16)work->field_68A >= 0x6F) && (taskMessageDispatch(player, 0x3ED, 0, 0) == 0)) {
+                taskMessageDispatch(player, 0x3F1, 0, 0);
             }
             if ((s16)work->field_68A >= 0xA4) {
                 tbl             = D_actor_521100_8015F5F4;
@@ -2839,7 +2839,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 func_800FDB18(1, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 4, &sc->vec,
                               &D_actor_521100_8015F804);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
-                Gp_DispatchMsg(player, 0x400, 0, 0);
+                taskMessageDispatch(player, 0x400, 0, 0);
                 gPlayerStatus.hp = 0;
             }
             break;
@@ -3593,7 +3593,7 @@ static void func_actor_521100_80135964(Task* arg0)
     i                = 1;
     work->field_68A += i;
     do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
         i++;
     } while (i < 0x13);
 }

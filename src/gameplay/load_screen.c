@@ -164,7 +164,7 @@ void func_800AA548(s32 arg0)
     tmdProcessStream(model);
     tmdProcessStream(model);
     Gp_LoadStageView();
-    Game_SetPtrSlot(Task_Spawn(1, 0x23, 0, 0), 4);
+    Game_SetPtrSlot(Task_Spawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
     Game_SetPtrSlot(Task_Spawn(6, 4, 0, 0), 5);
     Task_Spawn(9, 6, 0, 0);
     Task_Spawn(9, 0x11, 0, 0);

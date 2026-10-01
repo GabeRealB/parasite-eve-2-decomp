@@ -64,7 +64,7 @@
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
-extern GpObj3A                    D_neo_ark_power_plant_2_80182E78[1];
+extern WorldCollisionOccluder     D_neo_ark_power_plant_2_80182E78[1];
 extern WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10];
 
 extern TaskMessageEntry D_neo_ark_power_plant_2_801801F8[];
@@ -592,7 +592,7 @@ SpriteBatch D_neo_ark_power_plant_2_80182044[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_power_plant_2_8018205C[9] = {
+SpriteView D_neo_ark_power_plant_2_8018205C[9] = {
     { { .empty = D_neo_ark_power_plant_2_80180F2C }, D_neo_ark_power_plant_2_80180F2C, NULL },
     { { .elements = D_neo_ark_power_plant_2_80180F3C }, D_neo_ark_power_plant_2_8018143C, NULL },
     { { .elements = D_neo_ark_power_plant_2_8018148C }, D_neo_ark_power_plant_2_80181A04, NULL },
@@ -655,13 +655,13 @@ WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8] = {
 };
 
 AreaResource D_neo_ark_power_plant_2_80182D80[3] = {
-    { 53, 53, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013D3FC },
+    { 53, 53, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013D3FC },
     { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_power_plant_2_80182DA4[3] = {
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
+    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801491F8 },
     { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -693,8 +693,8 @@ GpAreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_power_plant_2_80182E78[1] = {
-    { NULL, NULL, { 6064, -6976, -6944, 0 }, { { 208, 2944, 1760, 0 }, { -208, 2944, -1760, 0 }, { 208, -2944, 1760, 0 }, { -208, -2944, -1760, 0 } }, { 4068, 0, -481, 0 }, { 106, 13 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_power_plant_2_80182E78[1] = {
+    { NULL, NULL, { 6064, -6976, -6944, 0 }, { { 208, 2944, 1760, 0 }, { -208, 2944, -1760, 0 }, { 208, -2944, 1760, 0 }, { -208, -2944, -1760, 0 } }, { 4068, 0, -481, 0 }, 3434, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10] = {
@@ -855,7 +855,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
 
     if (GameFlag_GetNibble(0xDF) == 0) {
         temp_v0 = Gp_LookupSlot4(0);
-        if ((temp_v0 != 0) && (Gp_DispatchMsg(temp_v0, 0x7D6, 0, 0) == 0) && (Gp_StateC08.field_A != 1) &&
+        if ((temp_v0 != 0) && (taskMessageDispatch(temp_v0, 0x7D6, 0, 0) == 0) && (Gp_StateC08.field_A != 1) &&
             (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
             GameFlag_SetNibble(0xDF, 1);
             GameFlag_SetNibble(0xB9, 1);
@@ -966,7 +966,7 @@ void func_neo_ark_power_plant_2_8017FD88(s32 arg0)
     SpriteBatch*     batches;
     s32              mode;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][5].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][5].batches;
     mode    = arg0 & 0xFF;
     if (mode == 0) {
         batches[2].hidden = 0;

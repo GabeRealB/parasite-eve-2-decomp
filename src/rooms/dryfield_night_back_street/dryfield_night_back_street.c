@@ -194,7 +194,7 @@ SpriteBatch D_dryfield_night_back_street_80180D1C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_back_street_80180D34[5] = {
+SpriteView D_dryfield_night_back_street_80180D34[5] = {
     { { .empty = D_dryfield_night_back_street_80180C0C }, D_dryfield_night_back_street_80180C0C, NULL },
     { { .empty = D_dryfield_night_back_street_80180C1C }, D_dryfield_night_back_street_80180C1C, NULL },
     { { .empty = D_dryfield_night_back_street_80180C2C }, D_dryfield_night_back_street_80180C2C, NULL },
@@ -238,7 +238,7 @@ WorldCoordRoomLights D_dryfield_night_back_street_80181470[1] = {
 };
 
 AreaResource D_dryfield_night_back_street_80181488[2] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -255,12 +255,12 @@ AreaResource D_dryfield_night_back_street_801814C4[3] = {
 };
 
 AreaResource D_dryfield_night_back_street_801814E8[2] = {
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
+    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801491F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_back_street_80181500[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

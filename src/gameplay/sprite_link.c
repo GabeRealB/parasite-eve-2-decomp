@@ -63,7 +63,7 @@ void Gp_LinkViewSprts(void)
     DisplayState*    ds;
     GpSprtPrim**     table;
     GpSprtTbl*       tbl;
-    GpSprtRec*       recs;
+    SpriteView*      recs;
     SpriteBatch*     batch;
     SpriteSource*    sources;
 
@@ -74,8 +74,8 @@ void Gp_LinkViewSprts(void)
     Gp_SprtCursor = table[ds->drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
-    batch         = recs[(u8)view - 1].field_4;
-    sources       = recs[(u8)view - 1].field_0.elements;
+    batch         = recs[(u8)view - 1].batches;
+    sources       = recs[(u8)view - 1].sources.elements;
     // The first count selects decoded strips or the cached sprite background.
     if (batch->spriteCount == 0) {
         batch++;
@@ -147,7 +147,7 @@ static void Gp_SetSprtShadeBits(s32 arg0)
     s32              view;
     GpSprtPrim*      prim;
     GpSprtTbl*       tbl;
-    GpSprtRec*       recs;
+    SpriteView*      recs;
     SpriteBatch*     batch;
     u32              i;
 
@@ -156,7 +156,7 @@ static void Gp_SetSprtShadeBits(s32 arg0)
     Gp_SprtCursor = Gp_SprtLists[gDisplayState.drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
-    batch         = recs[(u8)view - 1].field_4;
+    batch         = recs[(u8)view - 1].batches;
     prim          = Gp_SprtCursor;
     if (batch->firstSprite != SPRITE_BATCH_END) {
         do {
@@ -186,7 +186,7 @@ void Gp_AllocSprtLists(void)
         GpSprtPrim* records;
     } count;
     s32             i;
-    GpSprtRec*      recs;
+    SpriteView*     recs;
     SpriteBatch*    batch;
     SpriteSource*   sources;
     SpriteSource*   source;
@@ -200,8 +200,8 @@ void Gp_AllocSprtLists(void)
     count.address = 0;
     view          = Gp_GetViewIndex();
     recs          = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    batch         = recs[view - 1].field_4;
-    sources       = recs[view - 1].field_0.elements;
+    batch         = recs[view - 1].batches;
+    sources       = recs[view - 1].sources.elements;
     while (batch->firstSprite != SPRITE_BATCH_END) {
         count.address += batch->spriteCount;
         batch++;
@@ -228,7 +228,7 @@ void Gp_AllocSprtLists(void)
         buf[0]          = Gp_SprtLists[0];
         buf[1]          = count.records;
     }
-    for (batch = recs[view - 1].field_4; batch->firstSprite != SPRITE_BATCH_END; batch++) {
+    for (batch = recs[view - 1].batches; batch->firstSprite != SPRITE_BATCH_END; batch++) {
         if (batch->skipCachedPackets != 0) {
             continue;
         }
@@ -259,13 +259,13 @@ void Gp_AllocSprtLists(void)
 
 static void Gp_LinkRoomObjects(Task* task)
 {
-    GameLocationKey*       sess;
-    GpRoomObjRec*          recs;
-    WorldCollisionGrid*    grid;
-    WorldCollisionTrigger* list1;
-    WorldCollisionTrigger* list2;
-    GpObj3A*               list3;
-    s32                    i;
+    GameLocationKey*        sess;
+    GpRoomObjRec*           recs;
+    WorldCollisionGrid*     grid;
+    WorldCollisionTrigger*  list1;
+    WorldCollisionTrigger*  list2;
+    WorldCollisionOccluder* occluders;
+    s32                     i;
 
     sess = &gGameSession->location.loc;
     Gp_LoadStageView();
@@ -275,10 +275,10 @@ static void Gp_LinkRoomObjects(Task* task)
     Gp_ClearObj3AList(0);
     recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
     if (recs != NULL) {
-        grid  = recs[sess->room - 1].field_0;
-        list1 = recs[sess->room - 1].field_4;
-        list2 = recs[sess->room - 1].field_8;
-        list3 = recs[sess->room - 1].field_C;
+        grid      = recs[sess->room - 1].field_0;
+        list1     = recs[sess->room - 1].field_4;
+        list2     = recs[sess->room - 1].field_8;
+        occluders = recs[sess->room - 1].field_C;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
             grid->viewCoord = &gGfxViewCoord;
@@ -304,11 +304,11 @@ static void Gp_LinkRoomObjects(Task* task)
                 }
             }
         }
-        if (list3 != NULL) {
+        if (occluders != NULL) {
             for (i = 0;; i++) {
-                Gp_LinkObj3A(0, &list3[i]);
-                list3[i].field_3A |= 0x40;
-                if (list3[i].field_3A & 0x80) {
+                Gp_LinkObj3A(0, &occluders[i]);
+                occluders[i].flags |= WORLD_COLLISION_OCCLUDER_ENABLED;
+                if (occluders[i].flags & WORLD_COLLISION_OCCLUDER_LAST) {
                     break;
                 }
             }
@@ -352,8 +352,8 @@ static s32 Gp_ViewSprtCmdEmpty(void)
     u8*              bytes;
     u8               idx;
     GpSprtTbl*       tbl2;
-    GpSprtRec**      mid2;
-    GpSprtRec*       recs;
+    SpriteView**     mid2;
+    SpriteView*      recs;
 
     session = gGameSession;
     tbl68   = Gp_SprtTables;
@@ -368,7 +368,7 @@ static s32 Gp_ViewSprtCmdEmpty(void)
     tbl2    = *tbl68;
     mid2    = tbl2->field_0;
     recs    = mid2[sess->area - 1];
-    return recs[idx - 1].field_4->spriteCount == 0;
+    return recs[idx - 1].batches->spriteCount == 0;
 }
 
 static void func_800AD024(void)
@@ -382,8 +382,8 @@ static void func_800AD024(void)
     u8*              bytes;
     u8               idx;
     GpSprtTbl*       tbl2;
-    GpSprtRec**      mid2;
-    GpSprtRec*       recs;
+    SpriteView**     mid2;
+    SpriteView*      recs;
     SpriteDrawArea*  drawArea;
     DR_AREA*         prim;
 
@@ -397,7 +397,7 @@ static void func_800AD024(void)
     tbl2     = Gp_SprtTables[sess->stage - 1];
     mid2     = tbl2->field_0;
     recs     = mid2[sess->area - 1];
-    drawArea = recs[idx - 1].field_8;
+    drawArea = recs[idx - 1].drawAreas;
     if (drawArea != NULL) {
         for (; drawArea->restoreDepth != SPRITE_DRAW_AREA_END; drawArea++) {
             // Apply the view clip before depth-sorted drawing begins.
@@ -454,8 +454,8 @@ void* Gp_GetViewSprtExtra(void)
     u8*              bytes;
     u8               idx;
     GpSprtTbl*       tbl2;
-    GpSprtRec**      mid2;
-    GpSprtRec*       recs;
+    SpriteView**     mid2;
+    SpriteView*      recs;
 
     session = gGameSession;
     sess    = &session->location.loc;
@@ -467,7 +467,7 @@ void* Gp_GetViewSprtExtra(void)
     tbl2    = Gp_SprtTables[sess->stage - 1];
     mid2    = tbl2->field_0;
     recs    = mid2[sess->area - 1];
-    return recs[idx - 1].field_8;
+    return recs[idx - 1].drawAreas;
 }
 
 void Gp_RoomObjState1(Task* task)

@@ -48,7 +48,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->anim, gMothAnimSets, obj,
                   work->field_B4, work->slots);
     for (i = 1; i < 4; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->anim, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->field_2D6               = 1;

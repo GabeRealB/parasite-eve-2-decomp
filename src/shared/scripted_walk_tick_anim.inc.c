@@ -7,7 +7,7 @@ void scriptedWalkTickAnim(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&gScriptedWalkWork->rig.anim, i);
+        animationTickSlot(&gScriptedWalkWork->rig.anim, i);
         i++;
     } while (i < 0x14);
 }

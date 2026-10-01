@@ -124,7 +124,7 @@ STATIC_ASSERT_SIZEOF(Actor335800MsgEntry, 8);
 
 extern Actor335800MsgEntry D_actor_335800_8016EB00[];
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `func_actor_335800_80163AA0`; terminator id `TASK_MESSAGE_TABLE_END`.
 extern Actor335800MsgEntry D_actor_335800_80172EA8[];
 
@@ -1104,7 +1104,7 @@ void func_actor_335800_801622C0(s32 arg0)
 {
     GameSession*     g;
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
 
     g    = gGameSession;
@@ -1112,12 +1112,12 @@ void func_actor_335800_801622C0(s32 arg0)
     rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
     switch (arg0) {
         case 0:
-            batches           = rec[38].field_4;
+            batches           = rec[38].batches;
             batches[2].hidden = 0;
             batches[3].hidden = 0;
             break;
         case 1:
-            batches           = rec[38].field_4;
+            batches           = rec[38].batches;
             batches[2].hidden = arg0;
             batches[3].hidden = arg0;
             GameFlag_SetNibble(0x7F, 1);
@@ -1318,7 +1318,7 @@ static void func_actor_335800_80162844(Task* task)
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimTickIndex(&work->rig.anim, i);
+                animationTickSlot(&work->rig.anim, i);
             }
             rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
             if (rec != NULL) {
@@ -1533,7 +1533,7 @@ static void func_actor_335800_80163568(Task* task)
     work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -1602,11 +1602,11 @@ s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, Acto
         }
     } else {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+            animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
     return 0;
@@ -1820,11 +1820,11 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
         }
     } else {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+            animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
     return 0;

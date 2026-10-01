@@ -40,7 +40,7 @@ extern GpWarpRec D_neo_ark_island_80181BB4[];
 
 extern GpViewRec D_neo_ark_island_801826EC[];
 
-extern GpSprtRec D_neo_ark_island_80183B14[];
+extern SpriteView D_neo_ark_island_80183B14[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_island_80183FE8[];
 

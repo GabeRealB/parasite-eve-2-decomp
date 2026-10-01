@@ -7,7 +7,7 @@ void footstepWalkTickAnim(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&gFootstepWalkWork->rig.anim, i);
+        animationTickSlot(&gFootstepWalkWork->rig.anim, i);
         i++;
     } while (i < 0x13);
 }

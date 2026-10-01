@@ -1167,7 +1167,7 @@ static u8** D_map_shelter_8017B484[49] = {
 
 GpViewIndexTbl D_map_shelter_8017B548 = { D_map_shelter_8017B484 };
 
-static GpSprtRec* D_map_shelter_8017B54C[49] = {
+static SpriteView* D_map_shelter_8017B54C[49] = {
     D_mine_mesa_80188744,
     D_mine_cavern_8018CD10,
     D_mine_tunnel_entrance_8017EA4C,

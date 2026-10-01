@@ -28,7 +28,7 @@ extern GpWarpRec D_neo_ark_observatory_801815E8[];
 
 extern GpViewRec D_neo_ark_observatory_80181FC8[];
 
-extern GpSprtRec D_neo_ark_observatory_801860E8[];
+extern SpriteView D_neo_ark_observatory_801860E8[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_observatory_80187A08[];
 

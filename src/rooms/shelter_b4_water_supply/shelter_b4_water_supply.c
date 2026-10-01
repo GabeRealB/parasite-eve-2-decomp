@@ -588,7 +588,7 @@ SpriteBatch D_shelter_b4_water_supply_80183F80[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b4_water_supply_80183F90[11] = {
+SpriteView D_shelter_b4_water_supply_80183F90[11] = {
     { { .empty = D_shelter_b4_water_supply_80182FEC }, D_shelter_b4_water_supply_80182FEC, NULL },
     { { .empty = D_shelter_b4_water_supply_80182FFC }, D_shelter_b4_water_supply_80182FFC, NULL },
     { { .empty = D_shelter_b4_water_supply_8018300C }, D_shelter_b4_water_supply_8018300C, NULL },
@@ -649,23 +649,23 @@ WorldCollisionTrigger D_shelter_b4_water_supply_80184944[7] = {
 };
 
 AreaResource D_shelter_b4_water_supply_80184B58[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_water_supply_80184B70[3] = {
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013F5F0 },
+    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013F5F0 },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_water_supply_80184B94[2] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_water_supply_80184BAC[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -710,9 +710,9 @@ GpAreaVariant D_shelter_b4_water_supply_80184CA4[12] = {
     { D_shelter_b4_water_supply_80184C74, D_shelter_b4_water_supply_80184BAC },
 };
 
-GpObj3A D_shelter_b4_water_supply_80184D04[2] = {
-    { NULL, NULL, { 4608, -3408, -7120, 0 }, { { -4256, 4336, -4880, 0 }, { 4256, 4336, 4880, 0 }, { -4256, -4336, -4880, 0 }, { 4256, -4336, 4880, 0 } }, { -3089, 0, 2693, 0 }, { 101, 30 }, 1, 0 },
-    { NULL, NULL, { 0x371F, -3712, -7649, 0 }, { { 3162, 4336, -5651, 0 }, { -3161, 4336, 5652, 0 }, { 3162, -4336, -5651, 0 }, { -3161, -4336, 5652, 0 } }, { -3578, 0, -2002, 0 }, { 101, 30 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b4_water_supply_80184D04[2] = {
+    { NULL, NULL, { 4608, -3408, -7120, 0 }, { { -4256, 4336, -4880, 0 }, { 4256, 4336, 4880, 0 }, { -4256, -4336, -4880, 0 }, { 4256, -4336, 4880, 0 } }, { -3089, 0, 2693, 0 }, 7781, 1, 0 },
+    { NULL, NULL, { 0x371F, -3712, -7649, 0 }, { { 3162, 4336, -5651, 0 }, { -3161, 4336, 5652, 0 }, { 3162, -4336, -5651, 0 }, { -3161, -4336, 5652, 0 } }, { -3578, 0, -2002, 0 }, 7781, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_shelter_b4_water_supply_80184D7C[12] = {

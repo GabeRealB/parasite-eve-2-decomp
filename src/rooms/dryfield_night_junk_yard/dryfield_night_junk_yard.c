@@ -21,7 +21,7 @@
 #include "main/task_types.h"
 
 /// The room's message table, published in `Task::msgTable` for
-/// `Gp_DispatchMsg` to walk.
+/// `taskMessageDispatch` to walk.
 extern TaskMessageEntry D_dryfield_night_junk_yard_8018055C[];
 /// Payload of the 0x7DA message the entry task sends to the slot-4 task.
 extern s32        D_dryfield_night_junk_yard_801805A0;
@@ -241,7 +241,7 @@ void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
     GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][6].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][6].batches;
     if (arg0 == 0) {
         batches[5].hidden = 0;
     } else {

@@ -45,7 +45,7 @@ extern GpWarpRec D_dryfield_toilet_8018114C[];
 
 extern GpViewRec D_dryfield_toilet_80181428[];
 
-extern GpSprtRec D_dryfield_toilet_801821F8[];
+extern SpriteView D_dryfield_toilet_801821F8[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_toilet_8018660C[];
 

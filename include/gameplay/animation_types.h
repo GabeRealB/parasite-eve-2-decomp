@@ -126,6 +126,17 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(AnimationSlot, 0x28);
 
 /// Bytes reserved for one slot's encoded transition pose, independent of encoding.
+///
+/// This is the buffer-entry capacity and byte stride, not the complete buffer
+/// length or an encoded pose's length. Slot `i` uses entry `i`: encoding 1
+/// stores `AnimationPackedPose` (12 bytes) at its start, and encoding 4 stores
+/// `AnimationPackedRotation` (4 bytes). Playback leaves the remaining bytes
+/// untouched; their role is unproven. Entries do not hold unpacked
+/// `AnimationPose` values, despite sharing their 16-byte size.
+///
+/// The caller supplies a writable, word-aligned entry for every valid slot
+/// index and keeps it live while its context uses it. Playback stores no
+/// capacity. The byte-array declaration itself does not guarantee alignment.
 enum { ANIMATION_POSE_BUFFER_BYTES = 16 };
 
 /// Playback bindings and encoded transition poses for one model's part animations.

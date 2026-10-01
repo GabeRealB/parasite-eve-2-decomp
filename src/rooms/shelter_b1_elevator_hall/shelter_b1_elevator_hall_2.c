@@ -66,11 +66,11 @@
 /// is also reached through its own name.
 
 // Indexed views below share one contiguous table.
-extern WorldCollisionGrid    D_shelter_b1_elevator_hall_80183414[1];
-extern GpObj3A               D_shelter_b1_elevator_hall_80184748[1];
-extern WorldCollisionTrigger D_shelter_b1_elevator_hall_80184288[10];
-extern WorldCollisionTrigger D_shelter_b1_elevator_hall_80184580[6];
-extern WorldCoordRoomLights  D_shelter_b1_elevator_hall_80184270[1];
+extern WorldCollisionGrid     D_shelter_b1_elevator_hall_80183414[1];
+extern WorldCollisionOccluder D_shelter_b1_elevator_hall_80184748[1];
+extern WorldCollisionTrigger  D_shelter_b1_elevator_hall_80184288[10];
+extern WorldCollisionTrigger  D_shelter_b1_elevator_hall_80184580[6];
+extern WorldCoordRoomLights   D_shelter_b1_elevator_hall_80184270[1];
 
 TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
@@ -339,7 +339,7 @@ SpriteBatch D_shelter_b1_elevator_hall_80183CB4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_elevator_hall_80183CC4[9] = {
+SpriteView D_shelter_b1_elevator_hall_80183CC4[9] = {
     { { .empty = D_shelter_b1_elevator_hall_8018357C }, D_shelter_b1_elevator_hall_8018357C, NULL },
     { { .elements = D_shelter_b1_elevator_hall_8018358C }, D_shelter_b1_elevator_hall_80183938, NULL },
     { { .empty = D_shelter_b1_elevator_hall_80183960 }, D_shelter_b1_elevator_hall_80183960, NULL },
@@ -394,8 +394,8 @@ WorldCollisionTrigger D_shelter_b1_elevator_hall_80184580[6] = {
     { NULL, NULL, NULL, { 7488, -64, 4256, 0 }, { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_shelter_b1_elevator_hall_80184748[1] = {
-    { NULL, NULL, { 2768, -1360, 3664, 0 }, { { -1968, -2384, 1936, 0 }, { 1968, -2384, -1936, 0 }, { -1968, 2384, 1936, 0 }, { 1968, 2384, -1936, 0 } }, { -2879, 0, -2926, 0 }, { 63, 14 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b1_elevator_hall_80184748[1] = {
+    { NULL, NULL, { 2768, -1360, 3664, 0 }, { { -1968, -2384, 1936, 0 }, { 1968, -2384, -1936, 0 }, { -1968, 2384, 1936, 0 }, { 1968, 2384, -1936, 0 } }, { -2879, 0, -2926, 0 }, 3647, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_shelter_b1_elevator_hall_80184784[2] = {
@@ -404,17 +404,17 @@ AreaResource D_shelter_b1_elevator_hall_80184784[2] = {
 };
 
 AreaResource D_shelter_b1_elevator_hall_8018479C[2] = {
-    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
+    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_elevator_hall_801847B4[2] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_elevator_hall_801847CC[3] = {
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
+    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147AB8 },
     { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801602C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

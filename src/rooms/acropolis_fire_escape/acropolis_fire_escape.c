@@ -179,10 +179,10 @@ s32 func_acropolis_fire_escape_8017FE48(Task*, s32, s32, s32);
 
 void func_acropolis_fire_escape_8017FB40(Task*);
 
-extern WorldCollisionGrid    D_acropolis_fire_escape_801822A8[1];
-extern GpObj3A               D_acropolis_fire_escape_801828BC[2];
-extern WorldCollisionTrigger D_acropolis_fire_escape_801822CC[8];
-extern WorldCoordRoomLights  D_acropolis_fire_escape_80182B54[1];
+extern WorldCollisionGrid     D_acropolis_fire_escape_801822A8[1];
+extern WorldCollisionOccluder D_acropolis_fire_escape_801828BC[2];
+extern WorldCollisionTrigger  D_acropolis_fire_escape_801822CC[8];
+extern WorldCoordRoomLights   D_acropolis_fire_escape_80182B54[1];
 
 extern SpriteDrawArea D_acropolis_fire_escape_80182D44[2];
 extern SpriteDrawArea D_acropolis_fire_escape_80182DF4[2];
@@ -321,9 +321,9 @@ WorldCollisionTrigger D_acropolis_fire_escape_8018252C[12] = {
     { NULL, NULL, NULL, { 2016, -64, -1712, 0 }, { { -686, 0, -384, 0 }, { 686, 0, -384, 0 }, { -686, 0, 384, 0 }, { 686, 0, 384, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_acropolis_fire_escape_801828BC[2] = {
-    { NULL, NULL, { -944, -2320, 2624, 0 }, { { -1808, -3344, 0, 0 }, { 1808, -3344, 0, 0 }, { -1808, 3344, 0, 0 }, { 1808, 3344, 0, 0 } }, { 0, 0, -4096, 0 }, { -43, 14 }, 1, 0 },
-    { NULL, NULL, { -864, -2272, -448, 0 }, { { 0, -3296, 3088, 0 }, { 0, -3296, -3088, 0 }, { 0, 3296, 3088, 0 }, { 0, 3296, -3088, 0 } }, { -4101, 0, 0, 0 }, { -116, 17 }, 129, 0 },
+WorldCollisionOccluder D_acropolis_fire_escape_801828BC[2] = {
+    { NULL, NULL, { -944, -2320, 2624, 0 }, { { -1808, -3344, 0, 0 }, { 1808, -3344, 0, 0 }, { -1808, 3344, 0, 0 }, { 1808, 3344, 0, 0 } }, { 0, 0, -4096, 0 }, 3797, 1, 0 },
+    { NULL, NULL, { -864, -2272, -448, 0 }, { { 0, -3296, 3088, 0 }, { 0, -3296, -3088, 0 }, { 0, 3296, 3088, 0 }, { 0, 3296, -3088, 0 } }, { -4101, 0, 0, 0 }, 4492, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_acropolis_fire_escape_80182934[2] = {
@@ -446,7 +446,7 @@ SpriteBatch D_acropolis_fire_escape_80182E08[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_fire_escape_80182E18[10] = {
+SpriteView D_acropolis_fire_escape_80182E18[10] = {
     { { .empty = D_acropolis_fire_escape_80182B6C }, D_acropolis_fire_escape_80182B6C, NULL },
     { { .empty = D_acropolis_fire_escape_80182B7C }, D_acropolis_fire_escape_80182B7C, NULL },
     { { .elements = D_acropolis_fire_escape_80182B8C }, D_acropolis_fire_escape_80182C90, NULL },
@@ -589,7 +589,7 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
         slot = Gp_LookupSlot4(0);
         cap  = 1;
         if (slot != NULL) {
-            result = Gp_DispatchMsg(slot, 0x7D6, 0, 0);
+            result = taskMessageDispatch(slot, 0x7D6, 0, 0);
             cap    = 9;
             if (result == 0) {
                 cap = 1;
@@ -719,7 +719,7 @@ static void func_acropolis_fire_escape_8017FECC(Task* task)
     Task* slot;
 
     slot = Gp_LookupSlot4(0);
-    if (slot == NULL || Gp_DispatchMsg(slot, 0x7D6, 0, 0) == 0) {
+    if (slot == NULL || taskMessageDispatch(slot, 0x7D6, 0, 0) == 0) {
         {
             WorldCollisionTrigger* object = &D_acropolis_fire_escape_8018252C[5];
             object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);

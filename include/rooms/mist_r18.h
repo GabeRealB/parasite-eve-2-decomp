@@ -26,7 +26,7 @@ extern GpWarpRec D_mist_r18_8018662C[];
 
 extern GpViewRec D_mist_r18_8018671C[];
 
-extern GpSprtRec D_mist_r18_80186B60[];
+extern SpriteView D_mist_r18_80186B60[];
 
 extern WorldCollisionSurfaceProperties* D_mist_r18_80186E70[];
 

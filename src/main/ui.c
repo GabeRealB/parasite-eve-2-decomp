@@ -1794,29 +1794,46 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     }
 }
 
-/// Initializes a textured quad with the horizontal UI separator's unmodulated texture.
+/// Initializes the texture and GPU command for a horizontal UI separator quad.
 ///
-/// Uses the 4-bit atlas at VRAM (896, 256) and the palette at (48, 240).
-/// Leaves screen vertices unchanged; raw-texture drawing ignores colour bytes.
+/// `separator` borrows one writable `POLY_FT4`. Sets UVs, texture page, CLUT and
+/// the nine-word DMA payload length. Raw-texture drawing ignores the untouched
+/// RGB bytes, and semitransparency is disabled. Screen vertices and the DMA link
+/// are preserved for the caller to set before submitting the packet.
+/// Drawing requires the 4-bit texture page at VRAM (896, 256) and its palette
+/// at (48, 240); this helper neither allocates storage nor loads the texture.
 static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
 {
     enum {
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U    = 0x68,
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V    = 0x50,
+        // Page-relative texture coordinates, in texels.
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U = 0x68,
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V = 0x50,
+        // Difference between the texture endpoints on both axes, in texels.
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN = 7,
+        // 4-bit page at VRAM word X=896, row Y=256; blending is disabled.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE = getTPage(0, 0, 0x380, 0x100),
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_PALETTE      = getClut(0x30, 0xF0)
+        // Palette selector for VRAM word X=48, row Y=240.
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID     = getClut(0x30, 0xF0),
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_RAW_TEXTURE = 1
     };
 
     setUVWH(separator, USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U,
-            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V, 7, 7);
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V,
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN,
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN);
     separator->tpage = USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE;
-    separator->clut  = USER_INTERFACE_HORIZONTAL_SEPARATOR_PALETTE;
+    separator->clut  = USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID;
     setPolyFT4(separator);
-    setShadeTex(separator, 1);
+    setShadeTex(separator, USER_INTERFACE_HORIZONTAL_SEPARATOR_RAW_TEXTURE);
 }
 
 void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 centerY)
 {
+    /// Horizontal separator layer relative to the panel's signed ordering-table base.
+    ///
+    /// Counts four-byte DMA tags, placing separators between the frame at base+3
+    /// and text at base+1. The signed base+2 index must select a writable tag in
+    /// the current table; foreground indices can be negative with a shifted base.
     enum { USER_INTERFACE_HORIZONTAL_SEPARATOR_OT_OFFSET = 2 };
     POLY_FT4* separator;
     s32       screenY;

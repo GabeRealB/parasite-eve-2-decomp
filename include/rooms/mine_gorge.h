@@ -26,7 +26,7 @@ extern GpWarpRec D_mine_gorge_8017E7F0[];
 
 extern GpViewRec D_mine_gorge_8017FA14[];
 
-extern GpSprtRec D_mine_gorge_801827F8[];
+extern SpriteView D_mine_gorge_801827F8[];
 
 extern WorldCollisionSurfaceProperties* D_mine_gorge_80183644[];
 

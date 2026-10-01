@@ -663,18 +663,18 @@ AreaResource D_acropolis_forked_road_80183008[3] = {
 };
 
 AreaResource D_acropolis_forked_road_8018302C[2] = {
-    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8DC },
+    { 55, 55, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_80183044[3] = {
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147DF0 },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_80183068[2] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -684,55 +684,55 @@ AreaResource D_acropolis_forked_road_80183080[2] = {
 };
 
 AreaResource D_acropolis_forked_road_80183098[3] = {
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138C80 },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801393C8 },
+    { 7, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80138C80 },
+    { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801393C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_801830BC[2] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_801830D4[2] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_801830EC[2] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_80183104[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_8018311C[2] = {
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_80183134[2] = {
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_8018314C[2] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_80183164[3] = {
-    { 46, 46, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137698 },
-    { 47, 47, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801382BC },
+    { 46, 46, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137698 },
+    { 47, 47, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801382BC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_forked_road_80183188[5] = {
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013F5F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139E60 },
+    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013F5F0 },
+    { 71, 71, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139E60 },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -1078,7 +1078,7 @@ SpriteBatch D_acropolis_forked_road_801844D0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_forked_road_801844E0[12] = {
+SpriteView D_acropolis_forked_road_801844E0[12] = {
     { { .empty = D_acropolis_forked_road_80183284 }, D_acropolis_forked_road_80183284, NULL },
     { { .elements = D_acropolis_forked_road_80183294 }, D_acropolis_forked_road_80183938, NULL },
     { { .elements = D_acropolis_forked_road_80183998 }, D_acropolis_forked_road_80183A10, NULL },
@@ -1231,7 +1231,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             gSceneCombatState.actorControl        = SCENE_COMBAT_ACTORS_HIDDEN;
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             place.rot.vy = 0x400;
             place.rot.vx = 0;
             place.rot.vz = 0;
@@ -1252,7 +1252,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             break;
 
         case 2:
-            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
+            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
                 slot = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0);
                 CdCmd_Enqueue(0x61, 0, &slot);
                 task->state = task->state + 1;
@@ -1333,7 +1333,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             }
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             weaponId                 = gPlayerStatus.weapon;
             rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId          = 1;
@@ -1396,10 +1396,10 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             break;
 
         case 3:
-            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
+            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
+                taskMessageDispatch(work->target, 0x3F1, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(5);
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);

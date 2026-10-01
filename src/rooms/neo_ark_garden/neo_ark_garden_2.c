@@ -359,7 +359,7 @@ SpriteBatch D_neo_ark_garden_80182530[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_garden_80182540[7] = {
+SpriteView D_neo_ark_garden_80182540[7] = {
     { { .empty = D_neo_ark_garden_801817E4 }, D_neo_ark_garden_801817E4, NULL },
     { { .elements = D_neo_ark_garden_801817F4 }, D_neo_ark_garden_80181CCC, NULL },
     { { .elements = D_neo_ark_garden_80181D14 }, D_neo_ark_garden_80182264, NULL },

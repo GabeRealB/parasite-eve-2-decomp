@@ -391,7 +391,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     func_800B3F84(&work->rig.anim, D_actor_205200_801567E8, tmd, work->rig.poses, work->rig.slots);
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
         i++;
     } while (i < 0x13);
     work->field_596                  = enemy->place->mode;
@@ -633,8 +633,8 @@ static void func_actor_205200_8014C0C0(Task* arg0)
             break;
         case 2:
             if ((s16)++work->field_58C >= 0x25) {
-                if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                    Gp_DispatchMsg(player, 0x3F1, 0, 0);
+                if (taskMessageDispatch(player, 0x3ED, 0, 0) == 0) {
+                    taskMessageDispatch(player, 0x3F1, 0, 0);
                     work->field_58A = 0;
                     work->field_58C = 0;
                     work->field_588 = 0;
@@ -788,7 +788,7 @@ static void func_actor_205200_8014C7CC(Task* arg0)
     } else {
         work->field_582++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

@@ -190,7 +190,7 @@ s32 func_neo_ark_forest_zone_8017DA14(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (D_neo_ark_forest_zone_80181E68 == NULL) {
         ret = -1;
     } else {
-        ret = Gp_DispatchMsg(D_neo_ark_forest_zone_80181E68, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_neo_ark_forest_zone_80181E68, msgId, arg2, arg3);
     }
     return ret;
 }

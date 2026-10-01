@@ -40,7 +40,7 @@ extern GpWarpRec D_shelter_b4_reservoir_80185124[];
 
 extern GpViewRec D_shelter_b4_reservoir_80185ADC[];
 
-extern GpSprtRec D_shelter_b4_reservoir_80186730[];
+extern SpriteView D_shelter_b4_reservoir_80186730[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b4_reservoir_80187480[];
 

@@ -26,7 +26,7 @@ extern GpWarpRec D_shelter_1f_parking_garage_80180C84[];
 
 extern GpViewRec D_shelter_1f_parking_garage_8018100C[];
 
-extern GpSprtRec D_shelter_1f_parking_garage_80181430[];
+extern SpriteView D_shelter_1f_parking_garage_80181430[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_parking_garage_80181954[];
 

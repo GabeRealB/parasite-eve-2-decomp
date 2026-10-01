@@ -62,11 +62,11 @@ extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
 extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
 
-extern WorldCollisionGrid    D_neo_ark_power_plant_1_80180090[1];
-extern GpObj3A               D_neo_ark_power_plant_1_80181B60[1];
-extern WorldCollisionTrigger D_neo_ark_power_plant_1_8018155C[10];
-extern WorldCollisionTrigger D_neo_ark_power_plant_1_80181854[7];
-extern WorldCoordRoomLights  D_neo_ark_power_plant_1_8017FB80[1];
+extern WorldCollisionGrid     D_neo_ark_power_plant_1_80180090[1];
+extern WorldCollisionOccluder D_neo_ark_power_plant_1_80181B60[1];
+extern WorldCollisionTrigger  D_neo_ark_power_plant_1_8018155C[10];
+extern WorldCollisionTrigger  D_neo_ark_power_plant_1_80181854[7];
+extern WorldCoordRoomLights   D_neo_ark_power_plant_1_8017FB80[1];
 
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
@@ -646,7 +646,7 @@ SpriteBatch D_neo_ark_power_plant_1_801814E0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_power_plant_1_801814F0[9] = {
+SpriteView D_neo_ark_power_plant_1_801814F0[9] = {
     { { .empty = D_neo_ark_power_plant_1_801801F8 }, D_neo_ark_power_plant_1_801801F8, NULL },
     { { .elements = D_neo_ark_power_plant_1_80180208 }, D_neo_ark_power_plant_1_801803E8, NULL },
     { { .elements = D_neo_ark_power_plant_1_80180408 }, D_neo_ark_power_plant_1_801806D8, NULL },
@@ -682,29 +682,29 @@ WorldCollisionTrigger D_neo_ark_power_plant_1_80181854[7] = {
 };
 
 AreaResource D_neo_ark_power_plant_1_80181A68[3] = {
-    { 54, 54, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013CEA0 },
+    { 54, 54, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013CEA0 },
     { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_power_plant_1_80181A8C[2] = {
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_power_plant_1_80181AA4[2] = {
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_power_plant_1_80181ABC[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014FD74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_power_plant_1_80181AE0[2] = {
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -724,8 +724,8 @@ GpAreaVariant D_neo_ark_power_plant_1_80181AF8[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_power_plant_1_80181B60[1] = {
-    { NULL, NULL, { 2080, -2432, -5472, 0 }, { { 384, 3456, 2880, 0 }, { -384, 3456, -2880, 0 }, { 384, -3456, 2880, 0 }, { -384, -3456, -2880, 0 } }, { 4075, 0, -544, 0 }, { -116, 17 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_power_plant_1_80181B60[1] = {
+    { NULL, NULL, { 2080, -2432, -5472, 0 }, { { 384, 3456, 2880, 0 }, { -384, 3456, -2880, 0 }, { 384, -3456, 2880, 0 }, { -384, -3456, -2880, 0 } }, { 4075, 0, -544, 0 }, 4492, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181B9C = {
@@ -881,7 +881,7 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
 void func_neo_ark_power_plant_1_8017E524(s32 arg0)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
     s32              v;
 
@@ -890,16 +890,16 @@ void func_neo_ark_power_plant_1_8017E524(s32 arg0)
     v    = arg0 & 0xFF;
 
     if (v == 0) {
-        batches           = rec[5].field_4;
+        batches           = rec[5].batches;
         batches[1].hidden = 0;
-        batches           = rec[6].field_4;
+        batches           = rec[6].batches;
         batches[1].hidden = 0;
         return;
     }
     if (v == 1) {
-        batches           = rec[5].field_4;
+        batches           = rec[5].batches;
         batches[1].hidden = v;
-        batches           = rec[6].field_4;
+        batches           = rec[6].batches;
         batches[1].hidden = v;
     }
 }

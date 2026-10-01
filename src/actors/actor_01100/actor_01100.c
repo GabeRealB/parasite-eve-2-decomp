@@ -1177,8 +1177,8 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
 
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->anim, i, work->field_BA4);
-        Gp_AnimResetSlot(&work->anim2, i, work->field_BA4);
+        animationResetSlot(&work->anim, i, work->field_BA4);
+        animationResetSlot(&work->anim2, i, work->field_BA4);
         i++;
     } while (i < 0x15);
 
@@ -2071,7 +2071,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
                     func_800B4538(&work->anim, slot, pose, work->field_BA4, 0, 0, randBit + 8);
                 } else if ((u32)((u8)work->field_BA4 - 0x15) < 2) {
                     pose = 0;
-                    Gp_AnimResetSlot(&work->anim, slot, work->field_BA4);
+                    animationResetSlot(&work->anim, slot, work->field_BA4);
                 } else if ((slot != 6) && (slot != 0xA)) {
                     func_800B4538(&work->anim, slot, pose, work->field_BA4, 0, 0, 1);
                 } else {
@@ -2713,7 +2713,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, ActorsShared80138efcWor
             arg->vec.vz  = 0;
             actorPart    = &actorCoords[10];
             playerPart   = &playerCoords[1];
-            gfxLoadRotSv(&actorPart->workm, &arg->vec);
+            _gfxLoadRotSv(&actorPart->workm, &arg->vec);
             gte_rtv0();
             gte_stsv(vec);
             arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
@@ -2855,7 +2855,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, ActorsShared80138efcWor
             arg->vec.vz  = 0;
             actorPart    = &actorCoords[6];
             playerPart   = &playerCoords[1];
-            gfxLoadRotSv(&actorPart->workm, &arg->vec);
+            _gfxLoadRotSv(&actorPart->workm, &arg->vec);
             gte_rtv0();
             gte_stsv(vec);
             arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
@@ -3270,7 +3270,7 @@ static void Actor01100_Fn05678(
         actor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
         status = &gPlayerStatus;
         if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
             work->field_BC8 = 1;
         }
     }
@@ -3832,7 +3832,7 @@ static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
     matrix = &blk->frame;
     TransposeMatrix(&arg0->workm, matrix);
 
-    gfxLoadRotSv(matrix, &blk->delta);
+    _gfxLoadRotSv(matrix, &blk->delta);
     gte_rtv0();
     gte_stsv(&blk->delta);
 

@@ -260,7 +260,7 @@ static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts)
 static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
 
 extern WorldCollisionGrid         D_dryfield_dilapidated_house_801872E4[1];
-extern GpObj3A                    D_dryfield_dilapidated_house_80189260[1];
+extern WorldCollisionOccluder     D_dryfield_dilapidated_house_80189260[1];
 extern WorldCollisionTrigger      D_dryfield_dilapidated_house_80188D08[9];
 extern WorldCollisionTrigger      D_dryfield_dilapidated_house_80188FB4[9];
 extern WorldCoordRoomAmbientEntry D_dryfield_dilapidated_house_801899A0[22];
@@ -1436,7 +1436,7 @@ SpriteBatch D_dryfield_dilapidated_house_80188BFC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_dilapidated_house_80188C0C[21] = {
+SpriteView D_dryfield_dilapidated_house_80188C0C[21] = {
     { { .empty = D_dryfield_dilapidated_house_801875FC }, D_dryfield_dilapidated_house_801875FC, NULL },
     { { .elements = D_dryfield_dilapidated_house_8018760C }, D_dryfield_dilapidated_house_80187B48, NULL },
     { { .elements = D_dryfield_dilapidated_house_80187B70 }, D_dryfield_dilapidated_house_8018805C, NULL },
@@ -1484,8 +1484,8 @@ WorldCollisionTrigger D_dryfield_dilapidated_house_80188FB4[9] = {
     { NULL, NULL, NULL, { -5232, -64, -2816, 0 }, { { -720, 0, -352, 0 }, { 720, 0, -352, 0 }, { -720, 0, 352, 0 }, { 720, 0, 352, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, 4091, 0 }, 799, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 16, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_dilapidated_house_80189260[1] = {
-    { NULL, NULL, { -4096, -2000, 1232, 0 }, { { 0, 2576, -2544, 0 }, { 0, -2576, -2544, 0 }, { 0, 2576, 2544, 0 }, { 0, -2576, 2544, 0 } }, { 4097, 0, 0, 0 }, { 36, 14 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_dilapidated_house_80189260[1] = {
+    { NULL, NULL, { -4096, -2000, 1232, 0 }, { { 0, 2576, -2544, 0 }, { 0, -2576, -2544, 0 }, { 0, 2576, 2544, 0 }, { 0, -2576, 2544, 0 } }, { 4097, 0, 0, 0 }, 3620, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_dilapidated_house_8018929C[8] = {
@@ -2543,7 +2543,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
         if (D_dryfield_dilapidated_house_80183EFC == 1) {
             D_dryfield_dilapidated_house_80183EFC = 2;
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
-                   (Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
+                   (taskMessageDispatch(Gp_LookupSlot4(0), 0x7D6, 0, 0) == 0)) {
             if (Gp_StateC08.field_A != 1) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;

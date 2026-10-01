@@ -1240,7 +1240,7 @@ static void func_actor_113000_80132070(Task* task)
     extra = task->extra.tmd;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -1287,7 +1287,7 @@ static void func_actor_113000_801321A8(Task* task)
 /// bank's animation source goes to `func_800B3F84` with the block's context,
 /// its pose buffer and its slots. The preset's
 /// animation id is then latched, every slot 1..0x13 restarted -- through
-/// `func_800B4114` when the preset asks for it, through `Gp_AnimResetSlot`
+/// `func_800B4114` when the preset asks for it, through `animationResetSlot`
 /// otherwise -- ticked once, and `field_474` raised.
 s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg, s32 arg3)
 {
@@ -1310,11 +1310,11 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->field_478);
+            animationResetSlot(&work->rig.anim, i, work->field_478);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->field_474 = 1;
     return 0;

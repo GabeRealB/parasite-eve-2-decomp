@@ -49,6 +49,7 @@ u8 D_801156A4;
 s32 D_801156A8;
 
 #include "gameplay/captions.h"
+#include "gameplay/room_effects.h"
 
 #include "captions.h"
 
@@ -140,7 +141,7 @@ void func_800E44A0(Task* task)
         }
         D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 0, 0);
         Stage_RequestImageCapture();
         Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
     }
@@ -169,7 +170,7 @@ void func_800E44A0(Task* task)
         goto resumeView;
     }
     D_8011566E = nextPhase + 1;
-    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA7, (s32)(s8)D_801155BB, 0);
+    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA7, (s32)(s8)D_801155BB, 0);
     return;
 resumeView:
     if (D_801156A4 & 0x20) {
@@ -258,7 +259,7 @@ resumeView:
         } else {
             if (D_80115648 == 0) {
                 if (Gp_CapTable[(s16)D_801155AE].field_4 & 0xFE) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F2, (s32)((u8)Gp_CapTable[(s16)D_801155AE].field_4 >> 1), 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F2, (s32)((u8)Gp_CapTable[(s16)D_801155AE].field_4 >> 1), 0);
                     D_80115648 = 1;
                 }
             }
@@ -794,7 +795,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 gt2            = gGpuPrimCursor;
                 gGpuPrimCursor = gt2 + 1;
                 *gt2           = *gt;
-                gt2->tpage     = getTPage(0, 2, D_80115654, D_80115656);
+                gt2->tpage     = getTPage(0, GPU_BLEND_SUBTRACT, D_80115654, D_80115656);
                 addPrim(&gGpuCurrentOt[2], gt2);
                 if (layout->vertical == 0) {
                     x = Gp_CapGlyphs[(s16)code].w + x - 1;
@@ -869,7 +870,7 @@ void Gp_CapExit(Task* arg0)
 
     queue = &gCdCmdQueue;
     if (D_80115666 == 2) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 0, 0);
     }
     if (D_80115666 != 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == D_8011566C) {
@@ -1266,16 +1267,16 @@ void Gp_DelayedMsgTask(Task* task)
                 mode = (task->spawnArg1.value >> 16) & 0xFF;
                 val  = task->spawnArg1.value & 0xFF;
                 if (mode == 0) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x401, val, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x401, val, 0);
                 } else if (mode == 1) {
                     slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
                     if (slot != NULL) {
-                        Gp_DispatchMsg(slot, 0x401, val, 0);
+                        taskMessageDispatch(slot, 0x401, val, 0);
                     }
                 } else {
                     slot = Gp_LookupSlot4(mode - 2);
                     if (slot != NULL) {
-                        Gp_DispatchMsg(slot, 0x7E0, val, 0);
+                        taskMessageDispatch(slot, 0x7E0, val, 0);
                     }
                 }
                 taskKill(task);

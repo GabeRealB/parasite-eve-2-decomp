@@ -134,7 +134,7 @@ extern TaskDesc D_actor_141000_801348D8[];
 extern AnimationSet*  D_actor_141000_8013D74C[11];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `func_actor_141000_8013392C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -2397,7 +2397,7 @@ static void func_actor_141000_801332A0(Task* task)
     work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -2521,11 +2521,11 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Acto
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+                animationResetSlot(&work->rig.anim, i, work->model.animId);
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->model.ticking = 1;
     }
@@ -2727,7 +2727,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
+/// `taskMessageDispatch` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`.
 /// Mode 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows it,
 /// allocates the buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it,

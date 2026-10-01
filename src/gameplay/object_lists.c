@@ -117,15 +117,15 @@ extern WorldCollisionBody** Gp_ObjLists[9];
 /// `Gp_Obj4ALists[index]`; `Gp_ClearObj4AList` walks and clears that list.
 extern WorldCollisionTrigger** Gp_Obj4ALists[2];
 
-/// One-entry table of `GpObj3A` list heads. `Gp_LinkObj3A` appends to
+/// One-entry table of `WorldCollisionOccluder` list heads. `Gp_LinkObj3A` appends to
 /// `Gp_Obj3ALists[index]`; `Gp_ClearObj3AList` walks and clears that list.
-extern GpObj3A** Gp_Obj3ALists[1];
+extern WorldCollisionOccluder** Gp_Obj3ALists[1];
 
 static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 
 static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1);
 
-static void Gp_UnlinkObj3A(s32 arg0, GpObj3A* arg1);
+static void Gp_UnlinkObj3A(s32 arg0, WorldCollisionOccluder* occluder);
 
 WorldCollisionBody** Gp_ObjLists[9] = {
     &Gp_ObjList0,
@@ -142,7 +142,7 @@ WorldCollisionTrigger** Gp_Obj4ALists[2] = {
     &Gp_PendingObj4C,
     &Gp_Obj4CList,
 };
-GpObj3A** Gp_Obj3ALists[1] = {
+WorldCollisionOccluder** Gp_Obj3ALists[1] = {
     &D_80115550,
 };
 
@@ -166,9 +166,9 @@ void Gp_ClearObjHeads(void)
 
 s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
 {
-    VECTOR*  vec;
-    GpObj3A* node;
-    s32      ret;
+    VECTOR*                 vec;
+    WorldCollisionOccluder* node;
+    s32                     ret;
 
     ret     = 0;
     node    = D_80115550;
@@ -178,7 +178,7 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
     vec->vz = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
-        if (node->field_3A & 0x40) {
+        if (node->flags & WORLD_COLLISION_OCCLUDER_ENABLED) {
             ret = func_800DFCCC(node, arg0, arg1, vec);
             if (ret == 1) {
                 break;
@@ -771,76 +771,76 @@ void Gp_ClearObj4AList(s32 arg0)
     }
 }
 
-void Gp_LinkObj3A(s32 arg0, GpObj3A* arg1)
+void Gp_LinkObj3A(s32 arg0, WorldCollisionOccluder* occluder)
 {
-    u8        flags;
-    GpObj3A** head;
-    GpObj3A*  node;
-    GpObj3A*  temp;
+    u8                       flags;
+    WorldCollisionOccluder** head;
+    WorldCollisionOccluder*  tail;
+    WorldCollisionOccluder*  first;
 
     head  = Gp_Obj3ALists[arg0];
-    flags = arg1->field_3A;
-    if (!(flags & 0x20)) {
-        arg1->field_3A = flags | 0x20;
-        temp           = *head;
-        if (temp != NULL) {
-            node = temp;
-            while (node->next != NULL) {
-                node = node->next;
+    flags = occluder->flags;
+    if (!(flags & WORLD_COLLISION_OCCLUDER_LINKED)) {
+        occluder->flags = flags | WORLD_COLLISION_OCCLUDER_LINKED;
+        first           = *head;
+        if (first != NULL) {
+            tail = first;
+            while (tail->next != NULL) {
+                tail = tail->next;
             }
-            node->next = arg1;
-            arg1->prev = &node->next;
+            tail->next         = occluder;
+            occluder->prevLink = &tail->next;
         } else {
-            *head      = arg1;
-            arg1->prev = head;
+            *head              = occluder;
+            occluder->prevLink = head;
         }
-        arg1->next = NULL;
+        occluder->next = NULL;
     }
 }
 
-static void Gp_UnlinkObj3A(s32 arg0, GpObj3A* arg1)
+static void Gp_UnlinkObj3A(s32 arg0, WorldCollisionOccluder* occluder)
 {
-    u8        flags;
-    GpObj3A*  next;
-    GpObj3A** prev;
+    u8                       flags;
+    WorldCollisionOccluder*  next;
+    WorldCollisionOccluder** prevLink;
 
-    flags = arg1->field_3A;
-    if (flags & 0x20) {
-        next           = arg1->next;
-        arg1->field_3A = flags & 0x87;
-        prev           = arg1->prev;
+    flags = occluder->flags;
+    if (flags & WORLD_COLLISION_OCCLUDER_LINKED) {
+        next            = occluder->next;
+        occluder->flags = flags & WORLD_COLLISION_OCCLUDER_PERSISTENT_FLAGS;
+        prevLink        = occluder->prevLink;
         if (next != NULL) {
-            *prev      = next;
-            next->prev = arg1->prev;
-            arg1->next = NULL;
+            *prevLink      = next;
+            next->prevLink = occluder->prevLink;
+            occluder->next = NULL;
         } else {
-            *prev = NULL;
+            *prevLink = NULL;
         }
-        arg1->prev = NULL;
+        occluder->prevLink = NULL;
     }
 }
 
 void Gp_ClearObj3AList(s32 arg0)
 {
-    GpObj3A** head;
-    GpObj3A*  node;
-    GpObj3A*  next;
-    GpObj3A*  temp;
-    s32       flags;
-    s32       mask;
+    WorldCollisionOccluder** head;
+    WorldCollisionOccluder*  node;
+    WorldCollisionOccluder*  next;
+    WorldCollisionOccluder*  first;
+    s32                      flags;
+    s32                      mask;
 
-    head = Gp_Obj3ALists[arg0];
-    temp = *head;
-    if (temp != NULL) {
-        node  = temp;
+    head  = Gp_Obj3ALists[arg0];
+    first = *head;
+    if (first != NULL) {
+        node  = first;
         *head = NULL;
-        mask  = ~0x78;
+        mask  = ~(0xFF ^ WORLD_COLLISION_OCCLUDER_PERSISTENT_FLAGS);
     loop:
-        flags          = node->field_3A;
+        flags          = node->flags;
         next           = node->next;
-        node->prev     = NULL;
+        node->prevLink = NULL;
         flags         &= mask;
-        node->field_3A = flags;
+        node->flags    = flags;
         if (next != NULL) {
             node->next = NULL;
             node       = next;

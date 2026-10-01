@@ -40,7 +40,7 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 extern AnimationSet*  D_actor_350700_801708C0[6];
 extern AnimationSet** gActorMotionAnimBanks[1];
 
-/// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
+/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -619,7 +619,7 @@ void reverseWalkRunStep(Task* arg0)
 
 #include "../../shared/reversing_walker_visibility.inc.c"
 
-/// `Gp_DispatchMsg` handler: latches the variant the message's halfword at
+/// `taskMessageDispatch` handler: latches the variant the message's halfword at
 /// 0x2 selects into `field_4C4` -- 1 clears it, 2 sets it, anything else
 /// leaves it. Always returns 0.
 s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg)
@@ -766,7 +766,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
     work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -896,7 +896,7 @@ static void func_actor_350700_80163528(Task* task)
 #include "../../shared/actor_messages_place_euler.inc.c"
 #undef actorMsgPlaceEuler
 
-/// `Gp_DispatchMsg` handler: the four-way visibility/mode switch on the
+/// `taskMessageDispatch` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`,
 /// then the resulting flags are republished onto the objects of the three
 /// child tasks the spawn handler parked at `child0` / `child1` /

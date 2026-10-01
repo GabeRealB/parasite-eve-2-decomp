@@ -1862,7 +1862,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
     work->field_670.spawnArgHi = 2;
     func_800B3F84(&work->rig.anim, Actor02300_D15CBC, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
     }
 
     eff = Gp_SpawnEnemyFromTable(Actor02300_D15C98, 2, 0, enemy);

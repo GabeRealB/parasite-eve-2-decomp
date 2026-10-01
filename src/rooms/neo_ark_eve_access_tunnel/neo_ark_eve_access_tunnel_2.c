@@ -158,7 +158,7 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017F17C[2] = {
 void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    SpriteView*      rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;
     s32              flag;
@@ -166,28 +166,28 @@ void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
     if (run == 0) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[4].hidden = 1;
             return;
         }
         if (flag == 1) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[4].hidden = 0;
             return;
         }
     } else if (run == 1) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            batches           = rec[3].field_4;
+            batches           = rec[3].batches;
             batches[3].hidden = run;
-            batches           = rec[4].field_4;
+            batches           = rec[4].batches;
             batches[2].hidden = run;
             return;
         }
         if (flag == run) {
-            batches           = rec[3].field_4;
+            batches           = rec[3].batches;
             batches[3].hidden = 0;
-            batches           = rec[4].field_4;
+            batches           = rec[4].batches;
             batches[2].hidden = 0;
         }
     }

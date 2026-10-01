@@ -270,7 +270,7 @@ SpriteBatch D_shelter_b2_elevator_8017E7AC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_elevator_8017E7BC[3] = {
+SpriteView D_shelter_b2_elevator_8017E7BC[3] = {
     { { .empty = D_shelter_b2_elevator_8017E324 }, D_shelter_b2_elevator_8017E324, NULL },
     { { .elements = D_shelter_b2_elevator_8017E334 }, D_shelter_b2_elevator_8017E794, NULL },
     { { .empty = D_shelter_b2_elevator_8017E7AC }, D_shelter_b2_elevator_8017E7AC, NULL },
@@ -292,7 +292,7 @@ WorldCollisionTrigger D_shelter_b2_elevator_8017E8F0[1] = {
 };
 
 AreaResource D_shelter_b2_elevator_8017E93C[2] = {
-    { 101, 429, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137600 },
+    { 101, 429, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137600 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

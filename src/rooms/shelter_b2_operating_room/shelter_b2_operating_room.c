@@ -688,7 +688,7 @@ SpriteBatch D_shelter_b2_operating_room_80183154[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_operating_room_80183184[7] = {
+SpriteView D_shelter_b2_operating_room_80183184[7] = {
     { { .empty = D_shelter_b2_operating_room_80181538 }, D_shelter_b2_operating_room_80181538, NULL },
     { { .elements = D_shelter_b2_operating_room_80181548 }, D_shelter_b2_operating_room_8018173C, NULL },
     { { .elements = D_shelter_b2_operating_room_8018175C }, D_shelter_b2_operating_room_801818B0, NULL },
@@ -730,10 +730,10 @@ WorldCollisionTrigger D_shelter_b2_operating_room_80183730[10] = {
     { NULL, NULL, NULL, { 0x28C0, -1408, 3200, 0 }, { { -1473, -1936, 84, 0 }, { 1465, -1936, -92, 0 }, { -1473, 1937, 84, 0 }, { 1465, 1937, -92, 0 } }, { -246, 0, -4093, 0 }, { 0, 0, 4096, 0 }, 2428, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_shelter_b2_operating_room_80183A28[3] = {
-    { NULL, NULL, { 2144, -1648, 3968, 0 }, { { 0, 2672, 1920, 0 }, { 0, 2672, -1920, 0 }, { 0, -2672, 1920, 0 }, { 0, -2672, -1920, 0 } }, { 4110, 0, 0, 0 }, { -40, 12 }, 1, 0 },
-    { NULL, NULL, { 8576, -1504, 4640, 0 }, { { 0, 2528, 1840, 0 }, { 0, 2528, -1840, 0 }, { 0, -2528, 1840, 0 }, { 0, -2528, -1840, 0 } }, { 4113, 0, 0, 0 }, { 52, 12 }, 1, 0 },
-    { NULL, NULL, { 8576, 0, 400, 0 }, { { 0, 2672, 864, 0 }, { 0, 2672, -864, 0 }, { 0, -2672, 864, 0 }, { 0, -2672, -864, 0 } }, { 4109, 0, 0, 0 }, { -12, 10 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b2_operating_room_80183A28[3] = {
+    { NULL, NULL, { 2144, -1648, 3968, 0 }, { { 0, 2672, 1920, 0 }, { 0, 2672, -1920, 0 }, { 0, -2672, 1920, 0 }, { 0, -2672, -1920, 0 } }, { 4110, 0, 0, 0 }, 3288, 1, 0 },
+    { NULL, NULL, { 8576, -1504, 4640, 0 }, { { 0, 2528, 1840, 0 }, { 0, 2528, -1840, 0 }, { 0, -2528, 1840, 0 }, { 0, -2528, -1840, 0 } }, { 4113, 0, 0, 0 }, 3124, 1, 0 },
+    { NULL, NULL, { 8576, 0, 400, 0 }, { { 0, 2672, 864, 0 }, { 0, 2672, -864, 0 }, { 0, -2672, 864, 0 }, { 0, -2672, -864, 0 } }, { 4109, 0, 0, 0 }, 2804, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionTrigger D_shelter_b2_operating_room_80183ADC[13] = {
@@ -753,25 +753,25 @@ WorldCollisionTrigger D_shelter_b2_operating_room_80183ADC[13] = {
 };
 
 AreaResource D_shelter_b2_operating_room_80183EB8[5] = {
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013F5F0 },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139E60 },
+    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013F5F0 },
+    { 71, 71, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139E60 },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_operating_room_80183EF4[2] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_operating_room_80183F0C[2] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b2_operating_room_80183F24[4] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_80151E60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },

@@ -54,7 +54,7 @@ extern RoomEventReq gRoomEventReq;
 /// `D_dryfield_breezeway_80182E18` in its state 0 and drops again once
 /// `Task_PollKill` reaps it; `func_dryfield_breezeway_8017DDB0` clears it when
 /// the message task starts. `func_dryfield_breezeway_8017D90C` forwards message
-/// 0x13F1 to it through `Gp_DispatchMsg`, answering 0 while there is none.
+/// 0x13F1 to it through `taskMessageDispatch`, answering 0 while there is none.
 extern Task* D_dryfield_breezeway_801843A8;
 
 /// Raised by the room's event gate `roomEventGate` when it
@@ -395,7 +395,7 @@ SpriteBatch D_dryfield_breezeway_80183D84[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_breezeway_80183D9C[6] = {
+SpriteView D_dryfield_breezeway_80183D9C[6] = {
     { { .empty = D_dryfield_breezeway_80183724 }, D_dryfield_breezeway_80183724, NULL },
     { { .elements = D_dryfield_breezeway_80183734 }, D_dryfield_breezeway_801837C0, NULL },
     { { .elements = D_dryfield_breezeway_801837E0 }, D_dryfield_breezeway_80183A4C, NULL },
@@ -441,7 +441,7 @@ AreaResource D_dryfield_breezeway_80184268[3] = {
 };
 
 AreaResource D_dryfield_breezeway_8018428C[2] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -522,7 +522,7 @@ s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (D_dryfield_breezeway_801843A8 == NULL) {
         ret = 0;
     } else {
-        ret = Gp_DispatchMsg(D_dryfield_breezeway_801843A8, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_dryfield_breezeway_801843A8, msgId, arg2, arg3);
     }
     return ret;
 }

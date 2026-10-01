@@ -364,7 +364,7 @@ SpriteBatch D_shelter_b1_control_room_801833AC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_control_room_801833BC[8] = {
+SpriteView D_shelter_b1_control_room_801833BC[8] = {
     { { .empty = D_shelter_b1_control_room_8018223C }, D_shelter_b1_control_room_8018223C, NULL },
     { { .elements = D_shelter_b1_control_room_8018224C }, D_shelter_b1_control_room_80182A08, NULL },
     { { .elements = D_shelter_b1_control_room_80182A30 }, D_shelter_b1_control_room_80182D8C, NULL },
@@ -401,28 +401,28 @@ WorldCollisionTrigger D_shelter_b1_control_room_80183624[8] = {
 };
 
 AreaResource D_shelter_b1_control_room_80183884[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E47C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_control_room_801838A8[2] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_control_room_801838C0[2] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_control_room_801838D8[2] = {
-    { 34, 504, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013C8F4 },
+    { 34, 504, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013C8F4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_control_room_801838F0[2] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

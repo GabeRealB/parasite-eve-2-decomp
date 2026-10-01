@@ -389,7 +389,7 @@ SpriteBatch D_dryfield_motel_lobby_80180AA0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_motel_lobby_80180AB0[5] = {
+SpriteView D_dryfield_motel_lobby_80180AB0[5] = {
     { { .empty = D_dryfield_motel_lobby_8017FCBC }, D_dryfield_motel_lobby_8017FCBC, NULL },
     { { .elements = D_dryfield_motel_lobby_8017FCCC }, D_dryfield_motel_lobby_801800B4, NULL },
     { { .elements = D_dryfield_motel_lobby_801800D4 }, D_dryfield_motel_lobby_801804E4, NULL },

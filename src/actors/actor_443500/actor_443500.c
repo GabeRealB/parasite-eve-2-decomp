@@ -2582,7 +2582,7 @@ static void func_actor_443500_801321F0(Task* task)
     }
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         if (gGameSession->eventState == 0 && (work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
             func_actor_443500_801327E0(task, 0x7D3, &D_actor_443500_80158728, 0);
@@ -2708,11 +2708,11 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+            animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
     work->field_4BA     = 0;

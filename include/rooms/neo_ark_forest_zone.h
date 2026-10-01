@@ -26,7 +26,7 @@ extern GpWarpRec D_neo_ark_forest_zone_801820C4[];
 
 extern GpViewRec D_neo_ark_forest_zone_80182298[];
 
-extern GpSprtRec D_neo_ark_forest_zone_80182594[];
+extern SpriteView D_neo_ark_forest_zone_80182594[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_forest_zone_80182CE4[];
 

@@ -40,7 +40,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     work->field_334             = coord;
     func_800B3F84(&work->anim, gRatAnimSets, obj, &work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->anim, i, 1);
     }
     Gp_IncStateF0Ref(0);
     work->field_37E             = 1;

@@ -747,7 +747,7 @@ AreaResource D_acropolis_promenade_80182F9C[3] = {
 };
 
 AreaResource D_acropolis_promenade_80182FC0[3] = {
-    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8DC },
+    { 55, 55, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8DC },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -758,7 +758,7 @@ AreaResource D_acropolis_promenade_80182FE4[2] = {
 };
 
 AreaResource D_acropolis_promenade_80182FFC[3] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -1407,7 +1407,7 @@ SpriteBatch D_acropolis_promenade_80185FA4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_promenade_80185FB4[13] = {
+SpriteView D_acropolis_promenade_80185FB4[13] = {
     { { .empty = D_acropolis_promenade_80183A20 }, D_acropolis_promenade_80183A20, NULL },
     { { .elements = D_acropolis_promenade_80183A30 }, D_acropolis_promenade_80183FF8, NULL },
     { { .elements = D_acropolis_promenade_80184050 }, D_acropolis_promenade_801841A4, NULL },
@@ -1776,7 +1776,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 taskKill(task);
                 break;
             }
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             weaponId                              = gPlayerStatus.weapon;
@@ -1834,9 +1834,9 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             break;
 
         case 3:
-            if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+            if (taskMessageDispatch(work->target, 0x3F0, 0, 0) == 0) {
+                taskMessageDispatch(work->target, 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

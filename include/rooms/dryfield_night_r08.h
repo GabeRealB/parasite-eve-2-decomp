@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_night_r08_8018069C[];
 
 extern GpViewRec D_dryfield_night_r08_80181498[];
 
-extern GpSprtRec D_dryfield_night_r08_80181728[];
+extern SpriteView D_dryfield_night_r08_80181728[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_r08_8018195C[];
 

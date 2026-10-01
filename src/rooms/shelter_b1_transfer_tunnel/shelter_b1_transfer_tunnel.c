@@ -186,7 +186,7 @@ SpriteBatch D_shelter_b1_transfer_tunnel_80182BD0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_transfer_tunnel_80182BE0[4] = {
+SpriteView D_shelter_b1_transfer_tunnel_80182BE0[4] = {
     { { .empty = D_shelter_b1_transfer_tunnel_80182BA0 }, D_shelter_b1_transfer_tunnel_80182BA0, NULL },
     { { .empty = D_shelter_b1_transfer_tunnel_80182BB0 }, D_shelter_b1_transfer_tunnel_80182BB0, NULL },
     { { .empty = D_shelter_b1_transfer_tunnel_80182BC0 }, D_shelter_b1_transfer_tunnel_80182BC0, NULL },
@@ -215,13 +215,13 @@ WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182ED8[2] = {
 };
 
 AreaResource D_shelter_b1_transfer_tunnel_80182F70[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80160110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b1_transfer_tunnel_80182F94[3] = {
-    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80135C30 },
     { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

@@ -236,7 +236,7 @@ SpriteBatch D_shelter_b6_growth_room_8017FEA8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b6_growth_room_8017FEB8[8] = {
+SpriteView D_shelter_b6_growth_room_8017FEB8[8] = {
     { { .empty = D_shelter_b6_growth_room_8017FC34 }, D_shelter_b6_growth_room_8017FC34, NULL },
     { { .elements = D_shelter_b6_growth_room_8017FC44 }, D_shelter_b6_growth_room_8017FCBC, NULL },
     { { .elements = D_shelter_b6_growth_room_8017FCD4 }, D_shelter_b6_growth_room_8017FE50, NULL },

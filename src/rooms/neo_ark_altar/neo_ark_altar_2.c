@@ -394,7 +394,7 @@ SpriteBatch D_neo_ark_altar_8017FE28[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_altar_8017FE38[8] = {
+SpriteView D_neo_ark_altar_8017FE38[8] = {
     { { .empty = D_neo_ark_altar_8017F6C0 }, D_neo_ark_altar_8017F6C0, NULL },
     { { .elements = D_neo_ark_altar_8017F6D0 }, D_neo_ark_altar_8017F8B0, NULL },
     { { .empty = D_neo_ark_altar_8017F8D0 }, D_neo_ark_altar_8017F8D0, NULL },
@@ -566,20 +566,20 @@ void func_neo_ark_altar_8017DBF0(Task* arg0)
 void func_neo_ark_altar_8017DC40(s32 arg0)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
 
     sess  = &gGameSession->location.loc;
     rec   = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     arg0 &= 0xFF;
     if (arg0 == 0) {
-        batches           = rec[3].field_4;
+        batches           = rec[3].batches;
         batches[1].hidden = 1;
-        batches           = rec[6].field_4;
+        batches           = rec[6].batches;
         batches[1].hidden = 1;
         switch (D_neo_ark_altar_801800AE) {
             case 0:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 1;
@@ -589,7 +589,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 1;
                 break;
             case 1:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 1;
@@ -599,7 +599,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 2;
                 break;
             case 2:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 1;
@@ -609,7 +609,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 3;
                 break;
             case 3:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 0;
@@ -619,7 +619,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 4;
                 break;
             case 4:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 0;
                 batches[3].hidden        = 1;
@@ -629,7 +629,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 5;
                 break;
             case 5:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 0;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 1;
@@ -640,13 +640,13 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 break;
         }
     } else if (arg0 == 1) {
-        batches           = rec[3].field_4;
+        batches           = rec[3].batches;
         batches[1].hidden = 0;
-        batches           = rec[6].field_4;
+        batches           = rec[6].batches;
         batches[1].hidden = 0;
         switch (D_neo_ark_altar_801800AE) {
             case 6:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 0;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 1;
@@ -656,7 +656,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 5;
                 break;
             case 5:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 0;
                 batches[3].hidden        = 1;
@@ -666,7 +666,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 4;
                 break;
             case 4:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 0;
@@ -676,7 +676,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 3;
                 break;
             case 3:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 1;
@@ -686,7 +686,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 2;
                 break;
             case 2:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 1;
@@ -696,7 +696,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
                 D_neo_ark_altar_801800AE = 1;
                 break;
             case 1:
-                batches                  = rec[4].field_4;
+                batches                  = rec[4].batches;
                 batches[1].hidden        = 1;
                 batches[2].hidden        = 1;
                 batches[3].hidden        = 1;
@@ -797,18 +797,18 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
 static void func_neo_ark_altar_8017E148(void)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
     s32              i;
 
     sess = &gGameSession->location.loc;
     rec  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     if (GameFlag_GetNibble(0xD9) == 0) {
-        batches                  = rec[3].field_4;
+        batches                  = rec[3].batches;
         batches[1].hidden        = 1;
-        batches                  = rec[6].field_4;
+        batches                  = rec[6].batches;
         batches[1].hidden        = 1;
-        batches                  = rec[4].field_4;
+        batches                  = rec[4].batches;
         batches[1].hidden        = 0;
         batches[2].hidden        = 1;
         batches[3].hidden        = 1;
@@ -817,11 +817,11 @@ static void func_neo_ark_altar_8017E148(void)
         batches[6].hidden        = 1;
         D_neo_ark_altar_801800AE = 6;
     } else {
-        batches                  = rec[3].field_4;
+        batches                  = rec[3].batches;
         batches[1].hidden        = 0;
-        batches                  = rec[6].field_4;
+        batches                  = rec[6].batches;
         batches[1].hidden        = 0;
-        batches                  = rec[4].field_4;
+        batches                  = rec[4].batches;
         batches[1].hidden        = 1;
         batches[2].hidden        = 1;
         batches[3].hidden        = 1;

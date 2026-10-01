@@ -601,7 +601,7 @@ SpriteBatch D_neo_ark_woodland_path_80183C44[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_woodland_path_80183C6C[10] = {
+SpriteView D_neo_ark_woodland_path_80183C6C[10] = {
     { { .empty = D_neo_ark_woodland_path_80181EE8 }, D_neo_ark_woodland_path_80181EE8, NULL },
     { { .elements = D_neo_ark_woodland_path_80181EF8 }, D_neo_ark_woodland_path_801820EC, NULL },
     { { .elements = D_neo_ark_woodland_path_80182104 }, D_neo_ark_woodland_path_801821E0, NULL },
@@ -705,11 +705,11 @@ WorldCoordRoomAmbientEntry D_neo_ark_woodland_path_8018477C[11] = {
     { .color = { 410, 410, 410, 410 } },
 };
 
-GpObj3A D_neo_ark_woodland_path_801847D4[4] = {
-    { NULL, NULL, { -2896, -1440, 1968, 0 }, { { -6800, 3616, -1968, 0 }, { 6800, 3616, 1968, 0 }, { -6800, -3616, -1968, 0 }, { 6800, -3616, 1968, 0 } }, { -1143, 0, 3946, 0 }, { 12, 31 }, 1, 0 },
-    { NULL, NULL, { -2768, -1504, -176, 0 }, { { -6656, 3616, 2240, 0 }, { 6656, 3616, -2240, 0 }, { -6656, -3616, 2240, 0 }, { 6656, -3616, -2240, 0 } }, { 1308, 0, 3889, 0 }, { -38, 30 }, 1, 0 },
-    { NULL, NULL, { 3696, -1632, 7328, 0 }, { { -6672, 3616, -672, 0 }, { 6672, 3616, 672, 0 }, { -6672, -3616, -672, 0 }, { 6672, -3616, 672, 0 } }, { -412, 0, 4085, 0 }, { -69, 29 }, 1, 0 },
-    { NULL, NULL, { 3136, -1568, -7872, 0 }, { { -6656, 3616, 2240, 0 }, { 6656, 3616, -2240, 0 }, { -6656, -3616, 2240, 0 }, { 6656, -3616, -2240, 0 } }, { 1308, 0, 3889, 0 }, { -38, 30 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_woodland_path_801847D4[4] = {
+    { NULL, NULL, { -2896, -1440, 1968, 0 }, { { -6800, 3616, -1968, 0 }, { 6800, 3616, 1968, 0 }, { -6800, -3616, -1968, 0 }, { 6800, -3616, 1968, 0 } }, { -1143, 0, 3946, 0 }, 7948, 1, 0 },
+    { NULL, NULL, { -2768, -1504, -176, 0 }, { { -6656, 3616, 2240, 0 }, { 6656, 3616, -2240, 0 }, { -6656, -3616, 2240, 0 }, { 6656, -3616, -2240, 0 } }, { 1308, 0, 3889, 0 }, 7898, 1, 0 },
+    { NULL, NULL, { 3696, -1632, 7328, 0 }, { { -6672, 3616, -672, 0 }, { 6672, 3616, 672, 0 }, { -6672, -3616, -672, 0 }, { 6672, -3616, 672, 0 } }, { -412, 0, 4085, 0 }, 7611, 1, 0 },
+    { NULL, NULL, { 3136, -1568, -7872, 0 }, { { -6656, 3616, 2240, 0 }, { 6656, 3616, -2240, 0 }, { -6656, -3616, 2240, 0 }, { 6656, -3616, -2240, 0 } }, { 1308, 0, 3889, 0 }, 7898, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_woodland_path_801848C4 = {
@@ -798,7 +798,7 @@ s32 func_neo_ark_woodland_path_8017E8DC(Task* task, s32 msgId, s32 arg2, s32 arg
     if (D_neo_ark_woodland_path_80181680 == NULL) {
         ret = -1;
     } else {
-        ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
     }
     return ret;
 }
@@ -813,7 +813,7 @@ s32 func_neo_ark_woodland_path_8017E910(Task* task, s32 msgId, s32 arg2, s32 arg
     if (D_neo_ark_woodland_path_80181680 == NULL) {
         ret = -1;
     } else {
-        ret = Gp_DispatchMsg(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
+        ret = taskMessageDispatch(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
     }
     return ret;
 }

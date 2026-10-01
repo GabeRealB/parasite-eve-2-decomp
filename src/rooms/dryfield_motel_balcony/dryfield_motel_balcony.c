@@ -84,7 +84,7 @@ extern RoomEventReq gRoomEventReq;
 /// event task; every call clears it first.
 
 extern WorldCollisionGrid         D_dryfield_motel_balcony_80182B5C[1];
-extern GpObj3A                    D_dryfield_motel_balcony_80186130[2];
+extern WorldCollisionOccluder     D_dryfield_motel_balcony_80186130[2];
 extern WorldCollisionTrigger      D_dryfield_motel_balcony_80185DA0[8];
 extern WorldCollisionTrigger      D_dryfield_motel_balcony_80186000[4];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_balcony_80186600[23];
@@ -945,7 +945,7 @@ SpriteBatch D_dryfield_motel_balcony_80185C88[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_motel_balcony_80185C98[22] = {
+SpriteView D_dryfield_motel_balcony_80185C98[22] = {
     { { .empty = D_dryfield_motel_balcony_80182E98 }, D_dryfield_motel_balcony_80182E98, NULL },
     { { .elements = D_dryfield_motel_balcony_80182EA8 }, D_dryfield_motel_balcony_80183AC4, NULL },
     { { .empty = D_dryfield_motel_balcony_80183AE4 }, D_dryfield_motel_balcony_80183AE4, NULL },
@@ -988,9 +988,9 @@ WorldCollisionTrigger D_dryfield_motel_balcony_80186000[4] = {
     { NULL, NULL, NULL, { -1984, -3248, 0x2970, 0 }, { { 928, 0, 368, 0 }, { -928, 0, 368, 0 }, { 928, 0, -368, 0 }, { -928, 0, -368, 0 } }, { 0, 4101, 0, 0 }, { -51, 0, -4096, 0 }, 997, WORLD_COLLISION_TRIGGER_ACTION_WARP, 31, 65, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_motel_balcony_80186130[2] = {
-    { NULL, NULL, { -0x2840, -4064, 7440, 0 }, { { -3104, -2624, 4336, 0 }, { 3104, -2624, -4336, 0 }, { -3104, 2624, 4336, 0 }, { 3104, 2624, -4336, 0 } }, { -3332, 0, -2385, 0 }, { 38, 23 }, 1, 0 },
-    { NULL, NULL, { -0x2B61, -4016, -2561, 0 }, { { 4011, -2640, 3514, 0 }, { -4010, -2640, -3513, 0 }, { 4011, 2640, 3514, 0 }, { -4010, 2640, -3513, 0 } }, { -2701, 0, 3082, 0 }, { 60, 23 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_motel_balcony_80186130[2] = {
+    { NULL, NULL, { -0x2840, -4064, 7440, 0 }, { { -3104, -2624, 4336, 0 }, { 3104, -2624, -4336, 0 }, { -3104, 2624, 4336, 0 }, { 3104, 2624, -4336, 0 } }, { -3332, 0, -2385, 0 }, 5926, 1, 0 },
+    { NULL, NULL, { -0x2B61, -4016, -2561, 0 }, { { 4011, -2640, 3514, 0 }, { -4010, -2640, -3513, 0 }, { 4011, 2640, 3514, 0 }, { -4010, 2640, -3513, 0 } }, { -2701, 0, 3082, 0 }, 5948, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_dryfield_motel_balcony_801861A8[1] = {
@@ -1003,17 +1003,17 @@ AreaResource D_dryfield_motel_balcony_801861B4[2] = {
 };
 
 AreaResource D_dryfield_motel_balcony_801861CC[2] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_motel_balcony_801861E4[2] = {
-    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
+    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_motel_balcony_801861FC[3] = {
-    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801482C0 },
+    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801482C0 },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

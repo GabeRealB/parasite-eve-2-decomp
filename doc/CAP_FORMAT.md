@@ -139,7 +139,7 @@ state that something else owns.
 ### 3 — delegate
 
 ```c
-Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, index, 0);
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, index, 0);
 ```
 Hands the decision to slot 7's task with message `0x13F0`. The room decides;
 the file only marks the hand-off point.

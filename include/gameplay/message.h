@@ -341,7 +341,25 @@ typedef struct GpSpawnAnimArg {
 } GpSpawnAnimArg;
 STATIC_ASSERT_SIZEOF(GpSpawnAnimArg, 8);
 
-s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Sends two argument words synchronously to a task's first matching message handler.
+///
+/// `receiver` must be a live task. Its borrowed, read-only message table selects
+/// the meaning of `messageId`, both arguments and any result. Never send
+/// `TASK_MESSAGE_TABLE_END`; equality precedes the end test and would select
+/// its null callback. A table without that marker may receive only IDs present
+/// in its entries with non-null handlers.
+///
+/// `firstArg` and `secondArg` are complete 32-bit PS1 argument words, carrying
+/// integers or encoded object addresses. Pointer payloads use the message's
+/// required type, extent, alignment and write permission, with the borrowed
+/// lifetime described by `TaskMessageArg`. The pointer adapters encode those
+/// addresses; the dispatcher neither copies payloads nor retains them.
+///
+/// Returns zero for an absent table or when the search reaches the end marker;
+/// otherwise forwards the handler's return word. Inspect that word only for
+/// messages whose handlers define a result; its meaning is receiver-specific,
+/// and zero is not a universal success or failure code.
+s32 taskMessageDispatch(Task* receiver, s32 messageId, s32 firstArg, s32 secondArg);
 
 /// Dispatches a synchronous task message with an object address as its first payload.
 ///
@@ -357,14 +375,14 @@ s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// message ABI. Keep it in the call expression: an inline parameter or union
 /// temporary can make GCC retain a stack address across successive dispatches.
 #define TASK_MESSAGE_DISPATCH_POINTER(receiver, messageId, payload, secondArg) \
-    Gp_DispatchMsg((receiver), (messageId), (s32)(payload), (secondArg))
+    taskMessageDispatch((receiver), (messageId), (s32)(payload), (secondArg))
 
 /// Send an object address in arg3, commonly an output/reply destination.
 static __inline__ s32 Gp_DispatchMsgReply(Task* task, s32 id, s32 arg2, const void* reply)
 {
     TaskMessageArg payload;
     payload.pointer = reply;
-    return Gp_DispatchMsg(task, id, arg2, payload.value);
+    return taskMessageDispatch(task, id, arg2, payload.value);
 }
 
 /// Send two object addresses through the same word-based message interface.
@@ -374,7 +392,7 @@ static __inline__ s32 Gp_DispatchMsgPtrs(Task* task, s32 id, const void* data, c
     TaskMessageArg response;
     payload.pointer  = data;
     response.pointer = reply;
-    return Gp_DispatchMsg(task, id, payload.value, response.value);
+    return taskMessageDispatch(task, id, payload.value, response.value);
 }
 
 #endif // GAMEPLAY_MESSAGE_H

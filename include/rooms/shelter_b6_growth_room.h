@@ -25,7 +25,7 @@ extern WorldCollisionGrid D_shelter_b6_growth_room_8017FAF0;
 
 extern GpViewRec D_shelter_b6_growth_room_8017FB14[];
 
-extern GpSprtRec D_shelter_b6_growth_room_8017FEB8[];
+extern SpriteView D_shelter_b6_growth_room_8017FEB8[];
 
 extern WorldCoordRoomLights D_shelter_b6_growth_room_8017FF78;
 

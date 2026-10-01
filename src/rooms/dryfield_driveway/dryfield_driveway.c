@@ -251,7 +251,7 @@ WorldCollisionGrid D_dryfield_driveway_8017ED74[1] = {
 };
 
 AreaResource D_dryfield_driveway_8017ED98[2] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -524,7 +524,7 @@ SpriteBatch D_dryfield_driveway_8017FBD4[14] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_driveway_8017FC44[7] = {
+SpriteView D_dryfield_driveway_8017FC44[7] = {
     { { .empty = D_dryfield_driveway_8017EF28 }, D_dryfield_driveway_8017EF28, NULL },
     { { .elements = D_dryfield_driveway_8017EF38 }, D_dryfield_driveway_8017EFEC, NULL },
     { { .elements = D_dryfield_driveway_8017F00C }, D_dryfield_driveway_8017F160, D_dryfield_driveway_8017F198 },

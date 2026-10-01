@@ -253,7 +253,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     slot = gameGetTaskSlot(st->pc->operand0.value);
                 }
                 if (slot != NULL) {
-                    Gp_DispatchMsg(slot, st->pc->operand2.value, st->pc->operand3.message.value, st->pc->operand4.message.value);
+                    taskMessageDispatch(slot, st->pc->operand2.value, st->pc->operand3.message.value, st->pc->operand4.message.value);
                 }
                 break;
 
@@ -265,7 +265,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 D_801156F4.sceneKey      = NULL;
                 gGameSession->eventState = 0;
                 if (arg0->spawnArg1.value == 0) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
                 }
                 arg0->state++;
                 Display_ReleaseRef();
@@ -302,7 +302,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_RESTORE_HUD:
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA8, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA8, 0, 0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_EVENT_STATE:
@@ -316,13 +316,13 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 return;
 
             case EVENT_SCRIPT_OPCODE_WAIT_ANIMATION:
-                if (Gp_DispatchMsg(gameGetTaskSlot(st->pc->operand0.value), 0x3ED, 0, 0) == 0) {
+                if (taskMessageDispatch(gameGetTaskSlot(st->pc->operand0.value), 0x3ED, 0, 0) == 0) {
                     break;
                 }
                 return;
 
             case EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION:
-                if (Gp_DispatchMsg(gameGetTaskSlot(st->pc->operand0.value), 0x3F0, 0, 0) == 0) {
+                if (taskMessageDispatch(gameGetTaskSlot(st->pc->operand0.value), 0x3F0, 0, 0) == 0) {
                     break;
                 }
                 return;
@@ -347,7 +347,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_SELECT_SCENE:
                 D_801156F4.sceneKey = st->pc->operand0.sceneKey;
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA6, D_801156F4.value, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA6, D_801156F4.value, 0);
                 if (D_801156F4.sceneKey != NULL) {
                     D_801156CA = 1;
                 }
@@ -415,12 +415,12 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_CLEANUP_SCENE:
                 if (arg0->spawnArg1.value == 0) {
-                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
                 }
                 arg0->spawnArg1.value = 1;
                 Gp_AbortCap();
                 Gp_MsgPlayer3F3(1);
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x401, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x401, 0, 0);
                 if (D_8010FBE0 != NULL) {
                     Task_CallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
@@ -732,7 +732,7 @@ static void Gp_ScriptInit(Task* arg0)
     mem->script.field_0 = script;
     D_801156CA          = 0;
     if (arg0->spawnArg1.value == 0) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
     }
     D_801156CB    = 1;
     mem->field_2C = 0;

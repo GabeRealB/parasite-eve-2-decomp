@@ -26,7 +26,7 @@ extern GpWarpRec D_neo_ark_r31_8017DA24[];
 
 extern GpViewRec D_neo_ark_r31_8017DA5C[];
 
-extern GpSprtRec D_neo_ark_r31_8017DAF8[];
+extern SpriteView D_neo_ark_r31_8017DAF8[];
 
 extern WorldCoordRoomLights D_neo_ark_r31_8017DB7C;
 

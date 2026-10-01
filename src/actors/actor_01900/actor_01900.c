@@ -950,7 +950,7 @@ static void Actor01900_Fn01950(Task* arg0)
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->rig.slots[i].rate = (work->field_8A2 - 3);
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }
@@ -1101,7 +1101,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         i2 = 1;
         do {
             w2->rig.slots[i2].rate = w2->field_8A2;
-            Gp_AnimResetSlot(&w2->rig.anim, i2, w2->field_89E);
+            animationResetSlot(&w2->rig.anim, i2, w2->field_89E);
             i2++;
         } while (i2 < 0x13);
         w2->field_89C = (s16)(u16)w2->field_89E;
@@ -1117,7 +1117,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         w1->field_8AC = 0x800;
         do {
             w1->rig.slots[i3].rate = w1->field_8AA;
-            Gp_AnimResetSlot(&w1->blend.anim, i3, w1->field_8A8);
+            animationResetSlot(&w1->blend.anim, i3, w1->field_8A8);
             i3++;
         } while (i3 < 0x13);
         work->field_8A6 = 3;
@@ -1128,7 +1128,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         i4 = 1;
         do {
             w3->rig.slots[i4].rate = w3->field_8A2;
-            Gp_AnimTickIndex(&w3->rig.anim, i4);
+            animationTickSlot(&w3->rig.anim, i4);
             i4++;
         } while (i4 < 0x13);
     } else {
@@ -1559,7 +1559,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                 SndEvt_EnqueueType7(0x51030008, 1);
             }
             if ((work->field_0 == 0xC || work->field_0 == 0xD) && config->hp > 0 && work->field_C44 == 1) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             }
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;

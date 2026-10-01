@@ -68,7 +68,7 @@ STATIC_ASSERT_SIZEOF(Actor210700Work, 0x540);
 /// Payload of the 0x7D3 animation message. `field_0` indexes the animation
 /// source table `D_actor_210700_801585C8`, `field_4` is the animation id every
 /// slot 1..0x13 is reset to, and a non-zero `field_8` resets the slots through
-/// `func_800B4114` instead of `Gp_AnimResetSlot`. Only the first three words
+/// `func_800B4114` instead of `animationResetSlot`. Only the first three words
 /// are read; the spawn handler's frame spaces its locals as if the block were
 /// 0x18 bytes.
 typedef struct _Actor210700Anim {
@@ -1215,7 +1215,7 @@ static void func_actor_210700_8014A0AC(Task* task)
     ext  = task->extra.tmd;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
@@ -1260,7 +1260,7 @@ static void func_actor_210700_8014A208(Task* arg0)
 /// the one last loaded seeds the animation context from that entry of
 /// `D_actor_210700_801585C8` and forgets the current animation id; a new
 /// animation id then resets slots 1..0x13 to it - through `func_800B4114`
-/// when the payload's `field_8` is set, `Gp_AnimResetSlot` otherwise - ticks
+/// when the payload's `field_8` is set, `animationResetSlot` otherwise - ticks
 /// them once and enables the per-frame tick. Always returns 0.
 s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 arg3)
 {
@@ -1284,11 +1284,11 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->field_478);
+                animationResetSlot(&work->rig.anim, i, work->field_478);
             }
         }
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->field_474 = 1;
     }

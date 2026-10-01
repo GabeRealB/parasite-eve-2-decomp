@@ -183,15 +183,15 @@ static const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
 
 void func_shelter_b4_reservoir_8017FADC(Task*);
 
-extern WorldCollisionGrid    D_shelter_b4_reservoir_80185AB8[1];
-extern GpObj3A               D_shelter_b4_reservoir_801873B0[2];
-extern WorldCollisionTrigger D_shelter_b4_reservoir_80186AC0[8];
-extern WorldCollisionTrigger D_shelter_b4_reservoir_80186D20[7];
-extern WorldCollisionTrigger D_shelter_b4_reservoir_80186F34[9];
-extern WorldCoordRoomLights  D_shelter_b4_reservoir_80186AA8[1];
-extern TaskDesc              D_80142604;
-extern TaskDesc              D_80147E48;
-extern TaskDesc              D_801575F0;
+extern WorldCollisionGrid     D_shelter_b4_reservoir_80185AB8[1];
+extern WorldCollisionOccluder D_shelter_b4_reservoir_801873B0[2];
+extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186AC0[8];
+extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186D20[7];
+extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186F34[9];
+extern WorldCoordRoomLights   D_shelter_b4_reservoir_80186AA8[1];
+extern TaskDesc               D_80142604;
+extern TaskDesc               D_80147E48;
+extern TaskDesc               D_801575F0;
 
 s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -752,7 +752,7 @@ SpriteBatch D_shelter_b4_reservoir_80186720[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b4_reservoir_80186730[10] = {
+SpriteView D_shelter_b4_reservoir_80186730[10] = {
     { { .empty = D_shelter_b4_reservoir_80185C44 }, D_shelter_b4_reservoir_80185C44, NULL },
     { { .empty = D_shelter_b4_reservoir_80185C54 }, D_shelter_b4_reservoir_80185C54, NULL },
     { { .elements = D_shelter_b4_reservoir_80185C64 }, D_shelter_b4_reservoir_80185D40, NULL },
@@ -814,26 +814,26 @@ WorldCollisionTrigger D_shelter_b4_reservoir_80186F34[9] = {
 };
 
 AreaResource D_shelter_b4_reservoir_801871E0[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_reservoir_801871F8[4] = {
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80142604 },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_reservoir_80187228[4] = {
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013647C },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_80151E60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_shelter_b4_reservoir_80187258[2] = {
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -878,9 +878,9 @@ GpAreaVariant D_shelter_b4_reservoir_80187350[12] = {
     { D_shelter_b4_reservoir_80187320, D_shelter_b4_reservoir_80187258 },
 };
 
-GpObj3A D_shelter_b4_reservoir_801873B0[2] = {
-    { NULL, NULL, { 4544, -2432, -1024, 0 }, { { -1408, 4896, -768, 0 }, { 1408, 4896, 768, 0 }, { -1408, -4896, -768, 0 }, { 1408, -4896, 768, 0 } }, { -1963, 0, 3597, 0 }, { 25, 20 }, 1, 0 },
-    { NULL, NULL, { 4447, 0, -4993, 0 }, { { -1455, 4896, 834, 0 }, { 1456, 4896, -833, 0 }, { -1455, -4896, 834, 0 }, { 1456, -4896, -833, 0 } }, { 2036, 0, 3555, 0 }, { 50, 20 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b4_reservoir_801873B0[2] = {
+    { NULL, NULL, { 4544, -2432, -1024, 0 }, { { -1408, 4896, -768, 0 }, { 1408, 4896, 768, 0 }, { -1408, -4896, -768, 0 }, { 1408, -4896, 768, 0 } }, { -1963, 0, 3597, 0 }, 5145, 1, 0 },
+    { NULL, NULL, { 4447, 0, -4993, 0 }, { { -1455, 4896, 834, 0 }, { 1456, 4896, -833, 0 }, { -1455, -4896, 834, 0 }, { 1456, -4896, -833, 0 } }, { 2036, 0, 3555, 0 }, 5170, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 s32 D_shelter_b4_reservoir_80187428[3] = {

@@ -185,7 +185,7 @@ SpriteBatch D_dryfield_g_r_kitchen_8017F004[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_g_r_kitchen_8017F014[3] = {
+SpriteView D_dryfield_g_r_kitchen_8017F014[3] = {
     { { .empty = D_dryfield_g_r_kitchen_8017EF50 }, D_dryfield_g_r_kitchen_8017EF50, NULL },
     { { .elements = D_dryfield_g_r_kitchen_8017EF60 }, D_dryfield_g_r_kitchen_8017EFEC, NULL },
     { { .empty = D_dryfield_g_r_kitchen_8017F004 }, D_dryfield_g_r_kitchen_8017F004, NULL },
@@ -218,12 +218,12 @@ WorldCoordRoomLights D_dryfield_g_r_kitchen_8017F464[1] = {
 };
 
 AreaResource D_dryfield_g_r_kitchen_8017F47C[2] = {
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_g_r_kitchen_8017F494[3] = {
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013BE28 },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

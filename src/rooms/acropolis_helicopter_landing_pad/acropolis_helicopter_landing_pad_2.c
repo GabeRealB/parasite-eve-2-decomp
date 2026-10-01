@@ -145,9 +145,9 @@ WorldCollisionTrigger D_acropolis_helicopter_landing_pad_80185E7C[9] = {
     { NULL, NULL, NULL, { -6144, -64, -1824, 0 }, { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } }, { 0, 4098, 0, 0 }, { -4052, 0, -601, 0 }, 1015, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_acropolis_helicopter_landing_pad_80186128[2] = {
-    { NULL, NULL, { -256, -944, -240, 0 }, { { -5632, -1968, -5616, 0 }, { 5632, -1968, 5616, 0 }, { -5632, 1968, -5616, 0 }, { 5632, 1968, 5616, 0 } }, { 2897, 0, -2906, 0 }, { 0, 32 }, 1, 0 },
-    { NULL, NULL, { 0, -896, 0, 0 }, { { 5616, -1920, -5632, 0 }, { -5616, -1920, 5632, 0 }, { 5616, 1920, -5632, 0 }, { -5616, 1920, 5632, 0 } }, { 2900, 0, 2892, 0 }, { -17, 31 }, 129, 0 },
+WorldCollisionOccluder D_acropolis_helicopter_landing_pad_80186128[2] = {
+    { NULL, NULL, { -256, -944, -240, 0 }, { { -5632, -1968, -5616, 0 }, { 5632, -1968, 5616, 0 }, { -5632, 1968, -5616, 0 }, { 5632, 1968, 5616, 0 } }, { 2897, 0, -2906, 0 }, 8192, 1, 0 },
+    { NULL, NULL, { 0, -896, 0, 0 }, { { 5616, -1920, -5632, 0 }, { -5616, -1920, 5632, 0 }, { 5616, 1920, -5632, 0 }, { -5616, 1920, 5632, 0 } }, { 2900, 0, 2892, 0 }, 8175, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_acropolis_helicopter_landing_pad_801861A0[2] = {
@@ -570,7 +570,7 @@ SpriteDrawArea D_acropolis_helicopter_landing_pad_80187810[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_acropolis_helicopter_landing_pad_80187824[27] = {
+SpriteView D_acropolis_helicopter_landing_pad_80187824[27] = {
     { { .empty = D_acropolis_helicopter_landing_pad_80186B00 }, D_acropolis_helicopter_landing_pad_80186B00, NULL },
     { { .elements = D_acropolis_helicopter_landing_pad_80186B10 }, D_acropolis_helicopter_landing_pad_80186C64, NULL },
     { { .empty = D_acropolis_helicopter_landing_pad_80186C7C }, D_acropolis_helicopter_landing_pad_80186C7C, D_acropolis_helicopter_landing_pad_80186C8C },
@@ -790,7 +790,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             Gp_MsgPlayerWeapon(0);
             task->state += 1;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
-                Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D5, 0, 0);
+                taskMessageDispatch(Gp_LookupSlot4(1), 0x7D5, 0, 0);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
             vec.vx                                                     = 0x4B0;
@@ -805,7 +805,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 2:
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
-                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
             }
             task->state += 1;
             break;
@@ -826,7 +826,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             coord = spawned->extra.tmd->coords;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F5, coord, 0);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             task->state += 1;
             break;
         case 6:
@@ -1192,7 +1192,7 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
             task->state++;
             break;
         case 1:
-            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+            if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
                 taskKill(task);
             }
             break;

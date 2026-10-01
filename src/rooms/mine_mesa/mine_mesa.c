@@ -256,7 +256,7 @@ extern GpCopyArg            D_mine_mesa_80184344;
 extern GpCopyArg            D_mine_mesa_80184484;
 extern EvsCommand           D_mine_mesa_8018515C[17];
 
-extern GpObj3A                    D_mine_mesa_801899B4[2];
+extern WorldCollisionOccluder     D_mine_mesa_801899B4[2];
 extern WorldCollisionTrigger      D_mine_mesa_80188E40[8];
 extern WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12];
 extern WorldCoordRoomLights       D_mine_mesa_80188E28[1];
@@ -1529,7 +1529,7 @@ SpriteBatch D_mine_mesa_80188734[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_mesa_80188744[11] = {
+SpriteView D_mine_mesa_80188744[11] = {
     { { .empty = D_mine_mesa_801871BC }, D_mine_mesa_801871BC, NULL },
     { { .elements = D_mine_mesa_801871CC }, D_mine_mesa_8018758C, NULL },
     { { .elements = D_mine_mesa_801875C4 }, D_mine_mesa_801878D0, NULL },
@@ -2361,30 +2361,30 @@ AreaResource D_mine_mesa_80189644[2] = {
 };
 
 AreaResource D_mine_mesa_8018965C[2] = {
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_mesa_80189674[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_mesa_80189698[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_mesa_801896BC[3] = {
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147DF0 },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_mine_mesa_801896E0[3] = {
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801379A8 },
     { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80151DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -2468,9 +2468,9 @@ WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-GpObj3A D_mine_mesa_801899B4[2] = {
-    { NULL, NULL, { 6128, -144, 4048, 0 }, { { -2224, 1168, 912, 0 }, { 2224, 1168, -912, 0 }, { -2224, -1167, 912, 0 }, { 2224, -1167, -912, 0 } }, { 1556, 0, 3798, 0 }, { 100, 10 }, 1, 0 },
-    { NULL, NULL, { 6207, -136, 4015, 0 }, { { -2297, 1160, -913, 0 }, { 2298, 1160, 914, 0 }, { -2297, -1160, -913, 0 }, { 2298, -1160, 914, 0 } }, { -1518, 0, 3815, 0 }, { -95, 10 }, 129, 0 },
+WorldCollisionOccluder D_mine_mesa_801899B4[2] = {
+    { NULL, NULL, { 6128, -144, 4048, 0 }, { { -2224, 1168, 912, 0 }, { 2224, 1168, -912, 0 }, { -2224, -1167, 912, 0 }, { 2224, -1167, -912, 0 } }, { 1556, 0, 3798, 0 }, 2660, 1, 0 },
+    { NULL, NULL, { 6207, -136, 4015, 0 }, { { -2297, 1160, -913, 0 }, { 2298, 1160, 914, 0 }, { -2297, -1160, -913, 0 }, { 2298, -1160, 914, 0 } }, { -1518, 0, 3815, 0 }, 2721, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_mine_mesa_80189A2C = {
@@ -2705,7 +2705,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
                 GameFlag_SetNibble(0xCD, 1);
             }
         } else if (D_mine_mesa_80189B4C != NULL) {
-            Gp_DispatchMsg(D_mine_mesa_80189B4C, 0x13F4, arg2, arg3);
+            taskMessageDispatch(D_mine_mesa_80189B4C, 0x13F4, arg2, arg3);
         }
     }
     return 0;
@@ -3050,7 +3050,7 @@ void func_mine_mesa_8017E3E0(Task* arg0)
     addPrim(gGpuCurrentOt + 3, tile);
     dr             = gGpuPrimCursor;
     gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 1, 0, getTPage(0, 2, 320, 0));
+    setDrawTPage(dr, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, 320, 0));
     addPrim(gGpuCurrentOt + 3, dr);
 }
 

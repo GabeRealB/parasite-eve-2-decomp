@@ -26,7 +26,7 @@ extern GpWarpRec D_mine_mesa_80186558[];
 
 extern GpViewRec D_mine_mesa_80187030[];
 
-extern GpSprtRec D_mine_mesa_80188744[];
+extern SpriteView D_mine_mesa_80188744[];
 
 extern WorldCollisionSurfaceProperties* D_mine_mesa_80189A60[];
 

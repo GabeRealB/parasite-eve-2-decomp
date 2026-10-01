@@ -25,7 +25,7 @@ void desertChaserBlendTick(Task* task)
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->slots[i].rate = (work->field_832 - 3);
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }

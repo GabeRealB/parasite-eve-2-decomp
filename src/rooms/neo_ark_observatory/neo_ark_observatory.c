@@ -150,12 +150,12 @@ static void func_neo_ark_observatory_8017F3FC(Task* task);
 
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 
-extern WorldCollisionGrid    gFollowCollisionGrid;
-extern GpObj3A               D_neo_ark_observatory_801878D4[4];
-extern WorldCollisionTrigger D_neo_ark_observatory_80186ED4[18];
-extern WorldCollisionTrigger D_neo_ark_observatory_8018742C[14];
-extern WorldCoordRoomLights  D_neo_ark_observatory_80186844[1];
-extern WorldCoordRoomLights  D_neo_ark_observatory_80186EBC[1];
+extern WorldCollisionGrid     gFollowCollisionGrid;
+extern WorldCollisionOccluder D_neo_ark_observatory_801878D4[4];
+extern WorldCollisionTrigger  D_neo_ark_observatory_80186ED4[18];
+extern WorldCollisionTrigger  D_neo_ark_observatory_8018742C[14];
+extern WorldCoordRoomLights   D_neo_ark_observatory_80186844[1];
+extern WorldCoordRoomLights   D_neo_ark_observatory_80186EBC[1];
 
 extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
 s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, TaskMessageArg firstArg, s32);
@@ -1383,7 +1383,7 @@ SpriteBatch D_neo_ark_observatory_801860D8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_observatory_801860E8[21] = {
+SpriteView D_neo_ark_observatory_801860E8[21] = {
     { { .empty = D_neo_ark_observatory_801822BC }, D_neo_ark_observatory_801822BC, NULL },
     { { .empty = D_neo_ark_observatory_801822CC }, D_neo_ark_observatory_801822CC, NULL },
     { { .elements = D_neo_ark_observatory_801822DC }, D_neo_ark_observatory_80182480, NULL },
@@ -1514,11 +1514,11 @@ GpAreaVariant D_neo_ark_observatory_8018786C[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_observatory_801878D4[4] = {
-    { NULL, NULL, { 6336, -1664, 9200, 0 }, { { 32, 2688, 4016, 0 }, { -32, 2688, -4016, 0 }, { 32, -2688, 4016, 0 }, { -32, -2688, -4016, 0 } }, { 4114, 0, -33, 0 }, { -34, 18 }, 1, 0 },
-    { NULL, NULL, { 9248, -1440, 6720, 0 }, { { 32, 2688, 4016, 0 }, { -32, 2688, -4016, 0 }, { 32, -2688, 4016, 0 }, { -32, -2688, -4016, 0 } }, { 4114, 0, -33, 0 }, { -34, 18 }, 1, 0 },
-    { NULL, NULL, { 9312, -1376, 2656, 0 }, { { 4016, 2688, -32, 0 }, { -4016, 2688, 32, 0 }, { 4016, -2688, -32, 0 }, { -4016, -2688, 32, 0 } }, { -33, 0, -4115, 0 }, { -34, 18 }, 1, 0 },
-    { NULL, NULL, { 0x291F, -1504, 0x349F, 0 }, { { 4013, 2688, 166, 0 }, { -4012, 2688, -165, 0 }, { 4013, -2688, 166, 0 }, { -4012, -2688, -165, 0 } }, { 169, 0, -4111, 0 }, { -34, 18 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_observatory_801878D4[4] = {
+    { NULL, NULL, { 6336, -1664, 9200, 0 }, { { 32, 2688, 4016, 0 }, { -32, 2688, -4016, 0 }, { 32, -2688, 4016, 0 }, { -32, -2688, -4016, 0 } }, { 4114, 0, -33, 0 }, 4830, 1, 0 },
+    { NULL, NULL, { 9248, -1440, 6720, 0 }, { { 32, 2688, 4016, 0 }, { -32, 2688, -4016, 0 }, { 32, -2688, 4016, 0 }, { -32, -2688, -4016, 0 } }, { 4114, 0, -33, 0 }, 4830, 1, 0 },
+    { NULL, NULL, { 9312, -1376, 2656, 0 }, { { 4016, 2688, -32, 0 }, { -4016, 2688, 32, 0 }, { 4016, -2688, -32, 0 }, { -4016, -2688, 32, 0 } }, { -33, 0, -4115, 0 }, 4830, 1, 0 },
+    { NULL, NULL, { 0x291F, -1504, 0x349F, 0 }, { { 4013, 2688, 166, 0 }, { -4012, 2688, -165, 0 }, { 4013, -2688, 166, 0 }, { -4012, -2688, -165, 0 } }, { 169, 0, -4111, 0 }, 4830, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_observatory_801879C4 = {

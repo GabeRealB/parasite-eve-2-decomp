@@ -83,7 +83,7 @@ SpriteBatch D_neo_ark_r31_8017DAE8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_r31_8017DAF8[3] = {
+SpriteView D_neo_ark_r31_8017DAF8[3] = {
     { { .empty = D_neo_ark_r31_8017DAC8 }, D_neo_ark_r31_8017DAC8, NULL },
     { { .empty = D_neo_ark_r31_8017DAD8 }, D_neo_ark_r31_8017DAD8, NULL },
     { { .empty = D_neo_ark_r31_8017DAE8 }, D_neo_ark_r31_8017DAE8, NULL },

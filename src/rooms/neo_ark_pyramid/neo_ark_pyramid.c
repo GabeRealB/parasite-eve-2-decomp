@@ -78,11 +78,11 @@ s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_pyramid_8017DA44(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_neo_ark_pyramid_801802C4[1];
-extern GpObj3A               D_neo_ark_pyramid_80181790[3];
-extern WorldCollisionTrigger D_neo_ark_pyramid_801812B0[6];
-extern WorldCollisionTrigger D_neo_ark_pyramid_80181478[7];
-extern WorldCoordRoomLights  D_neo_ark_pyramid_80181298[1];
+extern WorldCollisionGrid     D_neo_ark_pyramid_801802C4[1];
+extern WorldCollisionOccluder D_neo_ark_pyramid_80181790[3];
+extern WorldCollisionTrigger  D_neo_ark_pyramid_801812B0[6];
+extern WorldCollisionTrigger  D_neo_ark_pyramid_80181478[7];
+extern WorldCoordRoomLights   D_neo_ark_pyramid_80181298[1];
 
 TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
@@ -347,7 +347,7 @@ SpriteBatch D_neo_ark_pyramid_80180E08[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_pyramid_80180E18[8] = {
+SpriteView D_neo_ark_pyramid_80180E18[8] = {
     { { .empty = D_neo_ark_pyramid_80180408 }, D_neo_ark_pyramid_80180408, NULL },
     { { .empty = D_neo_ark_pyramid_80180418 }, D_neo_ark_pyramid_80180418, NULL },
     { { .elements = D_neo_ark_pyramid_80180428 }, D_neo_ark_pyramid_80180518, NULL },
@@ -396,17 +396,17 @@ WorldCollisionTrigger D_neo_ark_pyramid_80181478[7] = {
 };
 
 AreaResource D_neo_ark_pyramid_8018168C[2] = {
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_pyramid_801816A4[2] = {
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_neo_ark_pyramid_801816BC[3] = {
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137D74 },
     { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -418,7 +418,7 @@ AreaResource D_neo_ark_pyramid_801816E0[3] = {
 };
 
 AreaResource D_neo_ark_pyramid_80181704[3] = {
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
+    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147AB8 },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -439,10 +439,10 @@ GpAreaVariant D_neo_ark_pyramid_80181728[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_pyramid_80181790[3] = {
-    { NULL, NULL, { 6416, -1104, -6464, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, { 56, 18 }, 1, 0 },
-    { NULL, NULL, { 6400, -1088, -8384, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, { 56, 18 }, 1, 0 },
-    { NULL, NULL, { 1536, -1984, -5744, 0 }, { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, { 0, -4110, 0, 0 }, { -76, 33 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_pyramid_80181790[3] = {
+    { NULL, NULL, { 6416, -1104, -6464, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, 4664, 1, 0 },
+    { NULL, NULL, { 6400, -1088, -8384, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, 4664, 1, 0 },
+    { NULL, NULL, { 1536, -1984, -5744, 0 }, { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, { 0, -4110, 0, 0 }, 8628, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_pyramid_80181844 = {

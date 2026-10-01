@@ -405,7 +405,7 @@ const TaskFuncTable3 Gp_DirTaskStates = { {
 const GpDirActionTable Gp_DirActionFns = { {
     [WORLD_COLLISION_TRIGGER_ACTION_WARP] = Gp_DirAction0,
     Gp_DirAction1,
-    Gp_PostDirIfCapIdle,
+    [WORLD_COLLISION_TRIGGER_ACTION_CAP] = Gp_PostDirIfCapIdle,
     Gp_RunDirAction,
     Gp_ClearDirCursor,
     Gp_PostMsg13EF,
@@ -684,7 +684,7 @@ static void Gp_MsgPlayer3EE(void)
 
 static void Gp_MsgPlayer3F0(void)
 {
-    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
+    if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         Gp_DirPhase++;
     }
 }

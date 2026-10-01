@@ -55,13 +55,13 @@ s32 func_dryfield_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_cellar_8017D6FC(Task*, s32, s32, TaskMessageArg);
 
-extern WorldCollisionGrid    D_dryfield_cellar_8017DF54[1];
-extern GpObj3A               D_dryfield_cellar_8018067C[1];
-extern WorldCollisionTrigger D_dryfield_cellar_8017FEC4[6];
-extern WorldCollisionTrigger D_dryfield_cellar_8018008C[10];
-extern WorldCollisionTrigger D_dryfield_cellar_80180384[10];
-extern WorldCoordRoomLights  D_dryfield_cellar_80180898[1];
-extern WorldCoordRoomLights  D_dryfield_cellar_80180A90[1];
+extern WorldCollisionGrid     D_dryfield_cellar_8017DF54[1];
+extern WorldCollisionOccluder D_dryfield_cellar_8018067C[1];
+extern WorldCollisionTrigger  D_dryfield_cellar_8017FEC4[6];
+extern WorldCollisionTrigger  D_dryfield_cellar_8018008C[10];
+extern WorldCollisionTrigger  D_dryfield_cellar_80180384[10];
+extern WorldCoordRoomLights   D_dryfield_cellar_80180898[1];
+extern WorldCoordRoomLights   D_dryfield_cellar_80180A90[1];
 
 TaskMessageEntry D_dryfield_cellar_8017DB8C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_cellar_8017D634 },
@@ -617,7 +617,7 @@ SpriteBatch D_dryfield_cellar_8017FE30[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_cellar_8017FE40[11] = {
+SpriteView D_dryfield_cellar_8017FE40[11] = {
     { { .empty = D_dryfield_cellar_8017E104 }, D_dryfield_cellar_8017E104, NULL },
     { { .elements = D_dryfield_cellar_8017E114 }, D_dryfield_cellar_8017E59C, NULL },
     { { .elements = D_dryfield_cellar_8017E5D4 }, D_dryfield_cellar_8017E9A8, NULL },
@@ -666,8 +666,8 @@ WorldCollisionTrigger D_dryfield_cellar_80180384[10] = {
     { NULL, NULL, NULL, { 7472, -64, 256, 0 }, { { -2256, 0, -336, 0 }, { 2256, 0, -336, 0 }, { -2256, 0, 336, 0 }, { 2256, 0, 336, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 2275, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_cellar_8018067C[1] = {
-    { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, { 75, 10 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_cellar_8018067C[1] = {
+    { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, 2635, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_cellar_801806B8[5] = {
@@ -695,7 +695,7 @@ WorldCoordRoomLights D_dryfield_cellar_80180A90[1] = {
 };
 
 AreaResource D_dryfield_cellar_80180AA8[3] = {
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80139DAC },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

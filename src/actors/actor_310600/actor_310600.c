@@ -504,7 +504,7 @@ static void func_actor_310600_80161FA0(Task* task)
     work->field_520     = (u16)work->field_520;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (work->field_475 > 0) {
@@ -646,12 +646,12 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, 
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->field_475);
+                animationResetSlot(&work->rig.anim, i, work->field_475);
             }
         }
         for (j = 0; j <= D_actor_310600_80179644[work->field_475]; j++) {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimTickIndex(&work->rig.anim, i);
+                animationTickSlot(&work->rig.anim, i);
             }
         }
         work->field_474 = 1;

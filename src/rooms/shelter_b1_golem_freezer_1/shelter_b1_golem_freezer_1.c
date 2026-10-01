@@ -236,7 +236,7 @@ SpriteBatch D_shelter_b1_golem_freezer_1_8017EDA0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_golem_freezer_1_8017EDB0[7] = {
+SpriteView D_shelter_b1_golem_freezer_1_8017EDB0[7] = {
     { { .empty = D_shelter_b1_golem_freezer_1_8017EAE0 }, D_shelter_b1_golem_freezer_1_8017EAE0, NULL },
     { { .elements = D_shelter_b1_golem_freezer_1_8017EAF0 }, D_shelter_b1_golem_freezer_1_8017ED48, NULL },
     { { .empty = D_shelter_b1_golem_freezer_1_8017ED60 }, D_shelter_b1_golem_freezer_1_8017ED60, NULL },
@@ -272,7 +272,7 @@ AreaResource D_shelter_b1_golem_freezer_1_8017F128[1] = {
 };
 
 AreaResource D_shelter_b1_golem_freezer_1_8017F134[2] = {
-    { 143, 607, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801416A8 },
+    { 143, 607, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801416A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

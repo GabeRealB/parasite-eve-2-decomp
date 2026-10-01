@@ -1331,7 +1331,7 @@ SpriteBatch D_shelter_b1_underground_parking_8018AB8C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_underground_parking_8018AB9C[24] = {
+SpriteView D_shelter_b1_underground_parking_8018AB9C[24] = {
     { { .empty = D_shelter_b1_underground_parking_80189AD8 }, D_shelter_b1_underground_parking_80189AD8, NULL },
     { { .empty = D_shelter_b1_underground_parking_80189AE8 }, D_shelter_b1_underground_parking_80189AE8, NULL },
     { { .elements = D_shelter_b1_underground_parking_80189AF8 }, D_shelter_b1_underground_parking_80189BFC, NULL },
@@ -1414,7 +1414,7 @@ AreaPlacement D_shelter_b1_underground_parking_8018B57C[1] = {
 };
 
 AreaResource D_shelter_b1_underground_parking_8018B58C[2] = {
-    { 116, 615, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801401B0 },
+    { 116, 615, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801401B0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
