@@ -60,7 +60,7 @@
 /// Status flags at `Actor104400Work` + 0xEC, read through two widths.
 ///
 /// Guards test bit 0 as a halfword and then bits 0x102 as a word
-/// (`Actor04400_Fn06618` is the out-of-line copy of the test).
+/// (`madChaserAnimEnded` is the out-of-line copy of the test).
 typedef union Actor104400Flags {
     /* 0x0 */ u32 word;
     /* 0x0 */ u16 half;
@@ -69,7 +69,7 @@ STATIC_ASSERT_SIZEOF(Actor104400Flags, 0x4);
 
 /// Per-actor state block for the `actor_104400` overlay's enemy.
 ///
-/// `Actor04400_Fn00B24` and `Actor04400_Fn00D3C` both allocate it with
+/// `madChaserSpawn` and `madChaserSpawnHidden` both allocate it with
 /// `memCalloc(0x454, 0)` and store it in the `Task::work` slot (0x1C), so
 /// the size below is the allocation, not a guess: this actor reuses that
 /// pointer field for its own work block and it is *not* a `TaskIdMap` here.
@@ -85,7 +85,7 @@ typedef struct Actor104400Work {
     /* 0x000 */ MATRIX           matrix_0; // model root coord, copied out on the kill path
     /* 0x020 */ MATRIX           colorMtx; // the model's `TmdObject::colorMtx`
     /* 0x040 */ MATRIX           lightMtx; // the model's `TmdObject::lightMtx`
-    /* 0x060 */ VECTOR           field_60; // position Actor04400_Fn022A8 snaps the root back to when blocked
+    /* 0x060 */ VECTOR           field_60; // position madChaserApplyContacts snaps the root back to when blocked
     /* 0x070 */ SVECTOR          field_70; // origin of slot 4 entry 0's coords[3], carried into view space by Actor04400_Fn05B08
     /* 0x078 */ s16              field_78; // pitch, fed to RotMatrixX
     /* 0x07A */ s16              field_7A; // heading
@@ -119,7 +119,7 @@ typedef struct Actor104400Work {
     /* 0x3CC */ WorldCollisionContact rec_3CC[2];
     /* 0x3FC */ EffectSpawnArg        eff_3FC;   // `coord` is the model's `coords[1]`
     /* 0x404 */ byte                  pad_404[0x8];
-    /* 0x40C */ s16                   field_40C; // heading Actor04400_Fn017B0 moves the root along
+    /* 0x40C */ s16                   field_40C; // heading madChaserLeapAttack moves the root along
     /* 0x40E */ s16                   field_40E; // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
     /* 0x410 */ s16                   field_410; // random 0..0x7FF drawn from `gRandomLcgState`
     /* 0x412 */ u16                   field_412; // per-state frame counter
@@ -144,7 +144,7 @@ typedef struct Actor104400Work {
     /* 0x438 */ s16                   field_438; // 1 on the death path
     /* 0x43A */ s16                   field_43A; // distance to the nearer player actor
     /* 0x43C */ byte                  pad_43C[0x2];
-    /* 0x43E */ s16                   field_43E; // counted down each frame by Actor04400_Fn022A8
+    /* 0x43E */ s16                   field_43E; // counted down each frame by madChaserApplyContacts
     /* 0x440 */ s16                   field_440; // picks animation 5 (zero) or 6 after animation 8
     /* 0x442 */ u16                   field_442;
     /* 0x444 */ u16                   field_444; // heading to the nearer player actor, relative to field_7A
@@ -155,15 +155,15 @@ typedef struct Actor104400Work {
     /* 0x44E */ u8                    field_44E; // set while the enemy carries status flag 4/8
     /* 0x44F */ u8                    field_44F;
     /* 0x450 */ byte                  pad_450[0x1];
-    /* 0x451 */ u8                    field_451; // 1 skips Actor04400_Fn00220 part-pair colour
+    /* 0x451 */ u8                    field_451; // 1 skips madChaserDrawLimbShadow part-pair colour
     /* 0x452 */ byte                  pad_452[0x2];
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
-extern u8            Actor04400_D10814[];   // per animation id (1-based): the value to put in `field_44F`
-extern u8            Actor04400_D10828[];   // per animation id (1-based): the animation to follow it
-extern EnemyParams   Actor04400_D0D318;     // the main enemy's `Enemy::param` record
-extern AnimationSet* Actor04400_D10778[21]; // animation bank handed to `func_800B3F84`
+extern u8            gMadChaserAnimStance[];  // per animation id (1-based): the value to put in `field_44F`
+extern u8            gMadChaserSettleAnims[]; // per animation id (1-based): the animation to follow it
+extern EnemyParams   gMadChaserEnemyParams;   // the main enemy's `Enemy::param` record
+extern AnimationSet* gMadChaserAnimBank[21];  // animation bank handed to `func_800B3F84`
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
@@ -174,65 +174,28 @@ typedef struct {
 } Actor04400RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor04400RecoveredMsgEntry, 8);
 
-extern Actor04400RecoveredMsgEntry Actor04400_D107CC[3]; // stored into `Task::msgTable` by Actor04400_Fn00B24
-static const TaskFuncTable3        Actor04400_D00070;    // dispatcher table Actor04400_Fn06ACC copies onto its stack
-static const TaskFuncTable3        Actor04400_D0007C;    // dispatcher table Actor04400_Fn06870 copies onto its stack
-static const TaskFuncTable5        Actor04400_D00088;    // dispatcher table Actor04400_Fn068F8 copies onto its stack
-static const TaskFuncTable5        Actor04400_D0009C;    // dispatcher table Actor04400_Fn06964 copies onto its stack
-static const TaskFuncTable3        Actor04400_D00150;    // dispatcher table Actor04400_Fn07CF0 copies onto its stack
-static const TaskFuncTable3        Actor04400_D0015C;    // dispatcher table Actor04400_Fn07D78 copies onto its stack
-static const TaskFuncTable4        Actor04400_D00174;    // dispatcher table Actor04400_Fn07F04 copies onto its stack
-static const TaskFuncTable6        Actor04400_D001AC;    // dispatcher table Actor04400_Fn06B50 copies onto its stack
+extern Actor04400RecoveredMsgEntry gMadChaserMsgTable[3]; // stored into `Task::msgTable` by madChaserSpawn
+static const TaskFuncTable3        Actor04400_D00070;     // dispatcher table Actor04400_Fn06ACC copies onto its stack
+static const TaskFuncTable3        Actor04400_D0007C;     // dispatcher table Actor04400_Fn06870 copies onto its stack
+static const TaskFuncTable5        Actor04400_D00088;     // dispatcher table Actor04400_Fn068F8 copies onto its stack
+static const TaskFuncTable5        Actor04400_D0009C;     // dispatcher table Actor04400_Fn06964 copies onto its stack
+static const TaskFuncTable3        Actor04400_D00150;     // dispatcher table Actor04400_Fn07CF0 copies onto its stack
+static const TaskFuncTable3        Actor04400_D0015C;     // dispatcher table Actor04400_Fn07D78 copies onto its stack
+static const TaskFuncTable4        Actor04400_D00174;     // dispatcher table Actor04400_Fn07F04 copies onto its stack
+static const TaskFuncTable6        Actor04400_D001AC;     // dispatcher table Actor04400_Fn06B50 copies onto its stack
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
 /// so a negated angle is passed without re-truncation to 16 bits.
 
-static void Actor04400_Fn00B24(Task* arg0);
-static void Actor04400_Fn00D3C(Task* arg0);
 static void Actor04400_Fn00F7C(Task* arg0);
-static void Actor04400_Fn01418(Task* arg0);
-static void Actor04400_Fn01584(Task* arg0);
-static void Actor04400_Fn017B0(Task* arg0);
-static void Actor04400_Fn01B70(Task* arg0);
-static void Actor04400_Fn01CA0(Task* arg0);
-static void Actor04400_Fn01E08(Task* arg0);
-static void Actor04400_Fn02008(Task* arg0);
-static void Actor04400_Fn0216C(Task* arg0);
-static void Actor04400_Fn022A8(Task* arg0, s16 arg1);
-static void Actor04400_Fn02B8C(Task* arg0);
 static void Actor04400_Fn02E8C(Task* arg0);
-static void Actor04400_Fn0304C(Task* arg0);
-static void Actor04400_Fn031B8(Task* arg0);
 static void Actor04400_Fn03538(Task* arg0);
-static void Actor04400_Fn039EC(Task* arg0);
-static void Actor04400_Fn03B34(Task* arg0);
-static void Actor04400_Fn03CA0(Task* arg0);
-static void Actor04400_Fn03E20(Task* arg0);
 static void Actor04400_Fn03F8C(Task* arg0);
-static void Actor04400_Fn042C4(Task* arg0);
-static void Actor04400_Fn045A0(Task* arg0);
-static void Actor04400_Fn04718(Task* arg0);
-static void Actor04400_Fn048A0(Task* arg0);
-static void Actor04400_Fn04A3C(Task* arg0);
-static void Actor04400_Fn04BA8(Task* arg0);
-static void Actor04400_Fn04D44(Task* arg0);
-static void Actor04400_Fn04EDC(Task* arg0);
-static void Actor04400_Fn05040(Task* arg0);
 static void Actor04400_Fn05260(Task* arg0);
-static void Actor04400_Fn053FC(Task* arg0);
-static void Actor04400_Fn058F4(Task* arg0);
-static void Actor04400_Fn05A40(Task* arg0);
 static void Actor04400_Fn05DE0(Task* arg0);
 static void Actor04400_Fn05FC8(Task* arg0);
-static void Actor04400_Fn061B4(void);
 static void Actor04400_Fn062D4(Task* arg0);
-static s16  Actor04400_Fn06328(Task* arg0);
-static void Actor04400_Fn06374(Task* arg0, s32 arg1);
-static s32  Actor04400_Fn063E4(Task* arg0);
-static s32  Actor04400_Fn065F4(Task* arg0, s16 value);
-static s16  Actor04400_Fn06618(Task* arg0);
 static void Actor04400_Fn0674C(Task* arg0);
-static void Actor04400_Fn067A0(Task* arg0, s32 step);
 static void Actor04400_Fn06834(Task* arg0);
 static void Actor04400_Fn06848(Task* arg0);
 static void Actor04400_Fn0685C(Task* arg0);
@@ -245,58 +208,20 @@ static void Actor04400_Fn06A78(Task* arg0);
 static void Actor04400_Fn06ACC(Task* arg0);
 static void Actor04400_Fn06B50(Task* arg0);
 static void Actor04400_Fn06BC4(Task* arg0);
-static void Actor04400_Fn06BF8(Task* arg0);
-static void Actor04400_Fn06C70(Task* arg0);
-static void Actor04400_Fn06CF0(Task* arg0);
-static void Actor04400_Fn06D90(Task* arg0);
-static void Actor04400_Fn06DFC(Task* arg0);
-static void Actor04400_Fn06F50(Task* arg0);
-static void Actor04400_Fn07050(Task* arg0);
 static void Actor04400_Fn0710C(Task* arg0);
-static void Actor04400_Fn0714C(Task* arg0);
-static void Actor04400_Fn071C8(Task* arg0);
-static void Actor04400_Fn0723C(Task* arg0);
-static void Actor04400_Fn07360(Task* arg0);
 static void Actor04400_Fn073C8(Task* arg0);
-static void Actor04400_Fn07404(Task* arg0);
-static void Actor04400_Fn07530(Task* arg0);
-static void Actor04400_Fn075F0(Task* arg0);
-static void Actor04400_Fn076D0(Task* arg0);
-static void Actor04400_Fn0781C(Task* arg0);
 static void Actor04400_Fn07878(Task* arg0);
 static void Actor04400_Fn07890(Task* arg0);
 static void Actor04400_Fn07968(Task* arg0);
-static void Actor04400_Fn07984(Task* arg0);
-static void Actor04400_Fn07A38(Task* arg0);
-static void Actor04400_Fn07B4C(Task* arg0);
-static void Actor04400_Fn07C60(Task* arg0);
 static void Actor04400_Fn07CF0(Task* arg0);
 static void Actor04400_Fn07D78(Task* arg0);
-static void Actor04400_Fn07E00(Task* arg0);
 static void Actor04400_Fn07E74(Task* arg0);
 static void Actor04400_Fn07F04(Task* arg0);
-static void Actor04400_Fn07FD0(Task* arg0);
-static void Actor04400_Fn08094(Task* arg0);
-static void Actor04400_Fn080E8(Task* arg0);
-static void Actor04400_Fn08160(Task* arg0);
-static void Actor04400_Fn08208(Task* arg0);
-static void Actor04400_Fn0823C(Task* arg0);
-static void Actor04400_Fn082E0(Task* arg0);
-static void Actor04400_Fn08358(Task* arg0);
-static void Actor04400_Fn083CC(Task* arg0);
-static void Actor04400_Fn0847C(Task* arg0);
-static void Actor04400_Fn08610(Task* arg0);
-static void Actor04400_Fn08718(Task* arg0);
-static void Actor04400_Fn087E0(Task* arg0);
-static void Actor04400_Fn08870(Task* arg0);
-static void Actor04400_Fn08908(Task* arg0);
 static void Actor04400_Fn089C0(Task* arg0);
 static void Actor04400_Fn08A9C(Task* arg0);
 static void Actor04400_Fn08AA4(Task* arg0);
 static void Actor04400_Fn08C08(Task* arg0);
-static void Actor04400_Fn08C64(Task* arg0);
 static void Actor04400_Fn08DA4(Task* arg0);
-static s32  Actor04400_Fn08DBC(Task* arg0);
 
 /* `D_800678F0` selects the model stream the next `Gp_SpawnEff` copies into
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1
@@ -456,7 +381,7 @@ DamageAttack Actor04400_D0D314[1] = {
     { 22, 0 },
 };
 
-EnemyParams Actor04400_D0D318 = { Actor04400_D0D314, 110, 20, 40, 1, 100, 10, 100, 0 };
+EnemyParams gMadChaserEnemyParams = { Actor04400_D0D314, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 AnimationPackedPose Actor04400_D0D328[6] = {
 #include "assets/actor_104400_animation_0D554_bank1.inc"
@@ -876,7 +801,7 @@ AnimationSet Actor04400_D10750 = {
     { NULL, Actor04400_D105D0, NULL, NULL, Actor04400_D1060C, NULL, NULL, NULL },
 };
 
-AnimationSet* Actor04400_D10778[21] = {
+AnimationSet* gMadChaserAnimBank[21] = {
     NULL,
     &Actor04400_D0D554,
     &Actor04400_D0D6F8,
@@ -900,7 +825,7 @@ AnimationSet* Actor04400_D10778[21] = {
     NULL,
 };
 
-Actor04400RecoveredMsgEntry Actor04400_D107CC[3] = {
+Actor04400RecoveredMsgEntry gMadChaserMsgTable[3] = {
     { 2004, { .call0 = Actor04400_Fn064EC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor04400_Fn0648C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -914,7 +839,7 @@ TaskDesc Actor04400_D107FC = { { { TASK_BODY_COORD, 96 } }, taskKill, { .value =
 
 TaskDesc Actor04400_D10808 = { { { TASK_BODY_TMD, 96 } }, Actor04400_Fn06658, { .model = &Actor04400_D0D2F0 } };
 
-u8 Actor04400_D10814[20] = {
+u8 gMadChaserAnimStance[20] = {
     0,
     1,
     0,
@@ -937,54 +862,15 @@ u8 Actor04400_D10814[20] = {
     0,
 };
 
-u8 Actor04400_D10828[19] = { 5, 6, 5, 6, 5, 6, 6, 5, 5, 5, 6, 6, 5, 5, 5, 6, 5, 6, 5 };
+u8 gMadChaserSettleAnims[19] = { 5, 6, 5, 6, 5, 6, 6, 5, 5, 5, 6, 6, 5, 5, 5, 6, 5, 6, 5 };
 
-static __inline__ void Actor04400_SetTaskState(Task* task, s32 state);
-static __inline__ void Actor04400_SetWorkState(Task* task, s16 state);
-static __inline__ void Actor04400_UpdateColor(void* enemy, GfxCoord* coord);
+#include "../../shared/mad_chaser_inlines.inc.c"
+
 static __inline__ s16  Actor04400_TakeHit(Task* arg0);
 static __inline__ s16  Actor04400_TakeHit3(Task* arg0);
-static __inline__ s32  Actor04400_TakeRequest(Task* arg0);
-static __inline__ s32  Actor04400_IsHit(Task* arg0);
 static __inline__ void Actor04400_UpdateRotation(Task* arg0);
 static __inline__ s16  Actor04400_PickStep(s16 step, s16 push);
-static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
-static void            Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
 static void            Actor04400_Fn03390(Task* arg0);
-
-/// Puts the task in `state` with its work block's state machine reset to 0/0.
-static __inline__ void Actor04400_SetTaskState(Task* task, s32 state)
-{
-    Actor104400Work* work = (Actor104400Work*)task->work;
-
-    task->state     = state;
-    work->field_420 = 0;
-    work->field_422 = 0;
-}
-
-/// Jumps the work block's state machine to `state`, sub-state 0, leaving the
-/// task's own state alone.
-static __inline__ void Actor04400_SetWorkState(Task* task, s16 state)
-{
-    Actor104400Work* work = (Actor104400Work*)task->work;
-
-    work->field_420 = state;
-    work->field_422 = 0;
-}
-
-/// Colours `enemy` from `coord`'s world position through a 0x10-byte `VECTOR`
-/// taken off the scratch stack.
-static __inline__ void Actor04400_UpdateColor(void* enemy, GfxCoord* coord)
-{
-    VECTOR* block = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
-
-    block->vx                    = coord->workm.t[0];
-    block->vy                    = coord->workm.t[1];
-    SCRATCH_STACK_CURSOR(VECTOR) = block;
-    block->vz                    = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
 
 /// Message 0x2C00 (see `field_44C`) consumes the message and restarts the
 /// state machine: low nibble 2 enters state 3 at state index 10 unless
@@ -1004,7 +890,7 @@ static __inline__ s16 Actor04400_TakeHit(Task* arg0)
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
-            Actor04400_SetTaskState(arg0, 3);
+            madChaserEnterState(arg0, 3);
             w2            = (Actor104400Work*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
@@ -1012,7 +898,7 @@ static __inline__ s16 Actor04400_TakeHit(Task* arg0)
         }
     } else if ((work->field_44C & 0xF) == 3) {
         work->field_44C = 0;
-        Actor04400_SetTaskState(arg0, 7);
+        madChaserEnterState(arg0, 7);
         return 1;
     }
     return 0;
@@ -1036,50 +922,6 @@ static __inline__ s16 Actor04400_TakeHit3(Task* arg0)
         w2->field_422   = 0;
     }
     return hit;
-}
-
-/// While `field_41E` is 1, consumes the request in `field_448` (1..5 jump to
-/// states 6, 7, 8, 7, 9) and returns 1; otherwise returns 0. The inlined form
-/// of `Actor04400_Fn063E4`.
-static __inline__ s32 Actor04400_TakeRequest(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-
-    if (work->field_41E == 1) {
-        switch ((s16)(work->field_448 - 1)) {
-            case 0:
-                Actor04400_SetWorkState(arg0, 6);
-                break;
-            case 1:
-                Actor04400_SetWorkState(arg0, 7);
-                break;
-            case 2:
-                Actor04400_SetWorkState(arg0, 8);
-                break;
-            case 3:
-                Actor04400_SetWorkState(arg0, 7);
-                break;
-            case 4:
-                Actor04400_SetWorkState(arg0, 9);
-                break;
-        }
-        work->field_448 = 0;
-        return 1;
-    }
-    return 0;
-}
-
-/// Whether slot 1 reports a reached boundary, control jump, or held boundary pose.
-/// The inlined form of `Actor04400_Fn06618`.
-static __inline__ s32 Actor04400_IsHit(Task* arg0)
-{
-    Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-    if ((w->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (w->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        return 1;
-    }
-    return 0;
 }
 
 /// Wraps the pitch / heading / roll at 0x78..0x7C to 12 bits and rebuilds the
@@ -1140,52 +982,12 @@ static __inline__ s16 Actor04400_PickStep(s16 step, s16 push)
     return step;
 }
 
-/// Push-out of the model from contact record `rec`: how far `coord` sits
-/// inside the record's radius (`depth`), along the direction from the
-/// record's centre to the root part, carried into grid space.
-///
-/// `rec` must stay an inline argument: `integrate.c` expands it with
-/// `EXPAND_SUM`, giving `(i * 0x18 + work) + 0x2EC` rather than a loop giv.
-static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out)
-{
-    SVECTOR   pos;
-    VECTOR    d;
-    VECTOR    n;
-    GfxCoord* c2;
-    s32       t;
-    s32       pen;
-
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    c2     = arg0->extra.tmd->coords;
-    d.vx   = pos.vx - rec->point.vx;
-    d.vy   = 0;
-    d.vz   = pos.vz - rec->point.vz;
-    pen    = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen    = rec->distance - pen;
-    if (pen <= 0) {
-        t = 0;
-    } else {
-        t = pen;
-    }
-    pen  = t;
-    d.vx = c2->workm.t[0] - rec->point.vx;
-    d.vy = c2->workm.t[1] - rec->point.vy;
-    d.vz = c2->workm.t[2] - rec->point.vz;
-    VectorNormal(&d, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &n, &d);
-    out->vx = (pen * d.vx) >> 12;
-    out->vy = 0;
-    out->vz = (pen * d.vz) >> 12;
-}
-
 /// Task-state handlers of the first enemy form, dispatched by
 /// `Actor04400_Fn066DC` on `Task::state`.
 static const TaskFuncTable6 Actor04400_D00004 = { {
-    Actor04400_Fn00B24,
+    madChaserSpawn,
     Actor04400_Fn03538,
-    Actor04400_Fn01E08,
+    madChaserDangleFrame,
     Actor04400_Fn00F7C,
     Actor04400_Fn02E8C,
     Actor04400_Fn0674C,
@@ -1194,9 +996,9 @@ static const TaskFuncTable6 Actor04400_D00004 = { {
 /// Task-state handlers of the second enemy form, dispatched by
 /// `Actor04400_Fn06658` on `Task::state`.
 static const TaskFuncTable10 Actor04400_D0001C = { {
-    Actor04400_Fn00D3C,
+    madChaserSpawnHidden,
     Actor04400_Fn03538,
-    Actor04400_Fn01E08,
+    madChaserDangleFrame,
     Actor04400_Fn00F7C,
     Actor04400_Fn02E8C,
     Actor04400_Fn0674C,
@@ -1223,296 +1025,55 @@ static const TaskFuncTable11 Actor04400_D00044 = { {
 
 /// Sub-state handlers `Actor04400_Fn06ACC` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D00070 = { {
-    Actor04400_Fn06C70,
-    Actor04400_Fn06CF0,
-    Actor04400_Fn06D90,
+    madChaserKnockdownStart,
+    madChaserKnockdownRise,
+    madChaserKnockdownEnd,
 } };
 
 /// Sub-state handlers `Actor04400_Fn06870` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D0007C = { {
-    Actor04400_Fn01418,
-    Actor04400_Fn01584,
-    Actor04400_Fn06DFC,
+    madChaserWalkStart,
+    madChaserWalkApproach,
+    madChaserWalkFinish,
 } };
 
 /// Sub-state handlers `Actor04400_Fn068F8` dispatches by `field_422`.
 static const TaskFuncTable5 Actor04400_D00088 = { {
     madChaserStartLeap,
-    Actor04400_Fn017B0,
-    Actor04400_Fn01B70,
-    Actor04400_Fn01CA0,
-    Actor04400_Fn06F50,
+    madChaserLeapAttack,
+    madChaserLeapTurnAway,
+    madChaserLeapRebound,
+    madChaserLeapLand,
 } };
 
 /// Sub-state handlers `Actor04400_Fn06964` dispatches by `field_422`.
 static const TaskFuncTable5 Actor04400_D0009C = { {
-    Actor04400_Fn07050,
+    madChaserAlertCry,
     Actor04400_Fn0710C,
-    Actor04400_Fn0714C,
-    Actor04400_Fn071C8,
-    Actor04400_Fn0723C,
+    madChaserAlertRelease,
+    madChaserAlertCrouch,
+    madChaserAlertSidestep,
 } };
 
-/// Sub-state handlers `Actor04400_Fn07360` dispatches by `field_422`.
+/// Sub-state handlers `madChaserDangleState` dispatches by `field_422`.
 static const TaskFuncTable4 Actor04400_D000B0 = { {
     Actor04400_Fn073C8,
-    Actor04400_Fn07404,
-    Actor04400_Fn02008,
-    Actor04400_Fn0216C,
+    madChaserDangleSway,
+    madChaserDangleFall,
+    madChaserDangleLand,
 } };
 
-/// Draws a semi-transparent textured quad between model parts `firstJoint`
-/// and `secondJoint`, `width` either side at height `height`, shaded grey
-/// `shade`.
-static void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade)
-{
-    ActorsShared80163354Scratch* s;
-    s16                          angle;
-    GfxCoord*                    secondCoord;
-    GfxCoord*                    firstCoord;
-    s32                          offset0;
-    s32                          offset1;
-    s32                          offset2;
-    s32                          offset3;
-    GfxCoord*                    coords;
-    POLY_FT4*                    poly;
-
-    coords      = task->extra.tmd->coords;
-    firstCoord  = coords + firstJoint;
-    secondCoord = coords + secondJoint;
-    if (firstJoint != secondJoint) {
-        s = (ActorsShared80163354Scratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorsShared80163354Scratch));
-        Gp_UpdateCoord(firstCoord);
-        Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
-        s->first.vy                = (s16)height;
-        s->second.vy               = (s16)height;
-        s->first.vx                = s->firstMatrix.t[0];
-        s->first.vz                = s->firstMatrix.t[2];
-        s->second.vx               = s->secondMatrix.t[0];
-        s->second.vz               = s->secondMatrix.t[2];
-        angle                      = ratan2(s->second.vx - s->first.vx, s->second.vz - s->first.vz);
-        s->halfX                   = (s->first.vx - s->second.vx) / 2;
-        s->halfZ                   = (s->first.vz - s->second.vz) / 2;
-        offset0                    = rcos(angle) * width;
-        s->corner0.vy              = (s16)height;
-        s->corner0.vx              = s->halfX + (s->first.vx - (offset0 >> 0xC));
-        s->corner0.vz              = s->halfZ + (s->first.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1                    = rcos(angle) * width;
-        s->corner1.vy              = (s16)height;
-        s->corner1.vx              = s->halfX + (s->first.vx + (offset1 >> 0xC));
-        s->corner1.vz              = s->halfZ + (s->first.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2                    = rcos(angle) * width;
-        s->corner2.vy              = (s16)height;
-        s->corner2.vx              = (s->second.vx - (offset2 >> 0xC)) - s->halfX;
-        s->corner2.vz              = (s->second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
-        offset3                    = rcos(angle) * width;
-        s->corner3.vy              = (s16)height;
-        s->corner3.vx              = (s->second.vx + (offset3 >> 0xC)) - s->halfX;
-        s->corner3.vz              = (s->second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - s->halfZ;
-        gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_SetTransMatrix(&gGfxViewCoord.workm);
-        s->depth = RotTransPers4(&s->corner0, &s->corner1, &s->corner2, &s->corner3, &s->screen0, &s->screen1,
-                                 &s->screen2, &s->screen3, &s->perspective, &s->flags);
-        if (s->flags >= 0) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 9);
-            poly->code                     = 0x2E;
-            GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screen0;
-            GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screen1;
-            GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screen2;
-            GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screen3;
-            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-            poly->tpage = 0x48;
-            poly->clut  = 0x4283;
-            setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
-        }
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorsShared80163354Scratch));
-    }
-}
+#include "../../shared/mad_chaser_limb_shadow.inc.c"
 
 #include "../../shared/mad_chaser_spawn_gibs.inc.c"
 
 #include "../../shared/mad_chaser_twist.inc.c"
 
-/// Main enemy init. Allocates the 0x454-byte `Actor104400Work`, points the
-/// model at the light / color matrices inside it, runs the animation context,
-/// links the collision objects and the enemy's list node, and enters state 2
-/// for spawn kind 1 (low nibble of `spawnArg1`), state 1 otherwise. The root
-/// coord is lifted by 0x3C and its translation kept as the spawn position.
-///
-/// `one` is a separate variable set before `Gp_IncStateF0Ref`: the ROM holds
-/// the constant in `$s0`, which GCC only picks for a pseudo that crosses a
-/// call (sched2 then sinks the `li` below the `jal`).
-static void Actor04400_Fn00B24(Task* arg0)
-{
-    Enemy*           enemy;
-    GfxCoord*        root;
-    Actor104400Work* work;
-    TmdObject*       obj;
-    Actor104400Work* w;
-    Enemy*           e;
-    GfxCoord*        coord;
-    Actor104400Work* w2;
-    Actor104400Work* w3;
-    Actor104400Work* w4;
-    s32              one;
+#include "../../shared/mad_chaser_spawn.inc.c"
 
-    enemy      = arg0->spawnArg2.pointer;
-    root       = arg0->extra.tmd->coords;
-    arg0->work = memCalloc(0x454, 0);
-    work       = (Actor104400Work*)arg0->work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, arg0);
-        return;
-    }
-    Actor04400_Fn061B4();
-    obj                   = arg0->extra.tmd;
-    w                     = (Actor104400Work*)arg0->work;
-    e                     = arg0->spawnArg2.pointer;
-    coord                 = obj->coords;
-    arg0->msgTable        = Actor04400_D107CC;
-    obj->lightMtx         = &w->lightMtx;
-    obj->colorMtx         = &w->colorMtx;
-    e->param              = &Actor04400_D0D318;
-    e->recs               = w->rec_2EC;
-    w->eff_3FC.coord      = &arg0->extra.tmd->coords[1];
-    w->eff_3FC.spawnArgLo = 0x140;
-    w->eff_3FC.spawnArgHi = 2;
-    e->hp = e->hpMax = Actor04400_D0D318.hpMax;
-    func_800B3F84(&w->anim, Actor04400_D10778, obj, w->field_21C, &w->slot_B4);
-    w2            = (Actor104400Work*)arg0->work;
-    w2->field_41C = 0x10;
-    w2->field_418 = 7;
-    w2->field_414 = 2;
-    Actor04400_Fn02B8C(arg0);
-    coord->parent = &gGfxViewCoord;
-    madChaserLinkBodies(arg0);
-    w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
-    enemy       = arg0->spawnArg2.pointer;
-    Gp_LinkNode(&enemy->node);
-    enemy->field_4                = &arg0->extra.tmd->coords->coord;
-    enemy->field_48               = 0;
-    enemy->bodyPos.vx             = 0;
-    enemy->bodyPos.vy             = 0;
-    enemy->bodyPos.vz             = 0;
-    enemy->coord                  = &arg0->extra.tmd->coords[1];
-    enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
-    one                           = 1;
-    (Gp_IncStateF0Ref)(0);
-    if ((arg0->spawnArg1.value & 0xF) == one) {
-        w3            = (Actor104400Work*)arg0->work;
-        arg0->state   = 2;
-        w3->field_420 = 0;
-        w3->field_422 = 0;
-    } else {
-        w4            = (Actor104400Work*)arg0->work;
-        arg0->state   = one;
-        w4->field_420 = 0;
-        w4->field_422 = 0;
-    }
-    work->field_80    = root->coord.t[0];
-    root->coord.t[1] -= 0x3C;
-    work->field_82    = root->coord.t[1];
-    work->field_84    = root->coord.t[2];
-}
+#include "../../shared/mad_chaser_spawn_hidden.inc.c"
 
-/// Variant of `Actor04400_Fn00B24`'s init: also destroys the enemy when bit 16
-/// of `spawnArg1` is set, sets bit 0x80 of the model's `field_C` for spawn
-/// kind 2, and enters state 6 with `field_451` set and the collision flags
-/// 0x8000 / 0x4000 cleared on `obj_2AC` / `obj_2CC`.
-///
-/// `two` is a variable for the same reason as `one` in `Actor04400_Fn00B24`: the ROM
-/// holds the constant in `$s5` across the calls. `kind` has to be its own
-/// variable too - masking `flags` in place reuses `$v1` for the result.
-static void Actor04400_Fn00D3C(Task* arg0)
-{
-    TmdObject*       model;
-    Enemy*           enemy;
-    GfxCoord*        root;
-    Actor104400Work* work;
-    TmdObject*       obj;
-    Actor104400Work* w;
-    Enemy*           e;
-    GfxCoord*        coord;
-    Actor104400Work* w2;
-    Actor104400Work* w3;
-    Enemy*           e2;
-    s32              flags;
-    s32              kind;
-    s32              two;
-
-    model      = arg0->extra.tmd;
-    enemy      = arg0->spawnArg2.pointer;
-    root       = model->coords;
-    arg0->work = memCalloc(0x454, 0);
-    work       = (Actor104400Work*)arg0->work;
-    if (work == NULL) {
-        goto destroy;
-    }
-    Actor04400_Fn061B4();
-    flags = arg0->spawnArg1.value;
-    if ((flags >> 16) & 1) {
-    destroy:
-        Gp_DestroyEnemy(enemy, arg0);
-        return;
-    }
-    kind = flags & 0xF;
-    two  = 2;
-    if (kind == two) {
-        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    obj                   = arg0->extra.tmd;
-    w                     = (Actor104400Work*)arg0->work;
-    e                     = arg0->spawnArg2.pointer;
-    coord                 = obj->coords;
-    arg0->msgTable        = Actor04400_D107CC;
-    obj->lightMtx         = &w->lightMtx;
-    obj->colorMtx         = &w->colorMtx;
-    e->param              = &Actor04400_D0D318;
-    e->recs               = w->rec_2EC;
-    w->eff_3FC.coord      = &arg0->extra.tmd->coords[1];
-    w->eff_3FC.spawnArgLo = 0x140;
-    w->eff_3FC.spawnArgHi = two;
-    e->hp = e->hpMax = Actor04400_D0D318.hpMax;
-    func_800B3F84(&w->anim, Actor04400_D10778, obj, w->field_21C, &w->slot_B4);
-    w2            = (Actor104400Work*)arg0->work;
-    w2->field_41C = 0x10;
-    w2->field_418 = 7;
-    w2->field_414 = two;
-    Actor04400_Fn02B8C(arg0);
-    coord->parent = &gGfxViewCoord;
-    madChaserLinkBodies(arg0);
-    w->field_7A = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
-    (Gp_IncStateF0Ref)(0);
-    e2 = arg0->spawnArg2.pointer;
-    Gp_LinkNode(&e2->node);
-    e2->field_4                = &arg0->extra.tmd->coords->coord;
-    e2->field_48               = 0;
-    e2->bodyPos.vx             = 0;
-    e2->bodyPos.vy             = 0;
-    e2->bodyPos.vz             = 0;
-    e2->coord                  = &arg0->extra.tmd->coords[1];
-    e2->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    work->field_80             = root->coord.t[0];
-    root->coord.t[1]          -= 0x3C;
-    work->field_82             = root->coord.t[1];
-    work->field_84             = root->coord.t[2];
-    work->field_451            = 1;
-    work->obj_2AC.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->obj_2CC.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-    w3                         = (Actor104400Work*)arg0->work;
-    arg0->state                = 6;
-    w3->field_420              = 0;
-    w3->field_422              = 0;
-}
-
-/// Per-frame callback for the main enemy. In mode 0 it aims at the nearest actor (`Actor04400_Fn031B8`), lets
+/// Per-frame callback for the main enemy. In mode 0 it aims at the nearest actor (`madChaserTrackPlayer`), lets
 /// a pending hit (`Actor04400_TakeHit`) replace the state handler, eases
 /// `field_424` toward zero, rebuilds the root rotation, and then picks the
 /// next state: the `field_448` request once dead, state 4 when dead, 8 / 9 for
@@ -1532,11 +1093,11 @@ static void Actor04400_Fn00F7C(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
-            Actor04400_Fn031B8(arg0);
+            madChaserTrackPlayer(arg0);
             if (Actor04400_TakeHit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            Actor04400_Fn02B8C(arg0);
+            madChaserTickAnim(arg0);
             cur             = (u16)work->field_424;
             work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
             madChaserTwistSpine(arg0);
@@ -1544,441 +1105,45 @@ static void Actor04400_Fn00F7C(Task* arg0)
                 madChaserPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
             }
             Actor04400_UpdateRotation(arg0);
-            Actor04400_Fn022A8(arg0, 0);
+            madChaserApplyContacts(arg0, 0);
             if (work->field_44A != 0) {
                 work->field_44A--;
             }
             if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                Actor04400_SetTaskState(arg0, work->field_448);
+                madChaserEnterState(arg0, work->field_448);
             }
             if (work->field_438 == 0 && enemy->hp <= 0) {
-                Actor04400_SetTaskState(arg0, 4);
+                madChaserEnterState(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
-                Actor04400_SetTaskState(arg0, 8);
+                madChaserEnterState(arg0, 8);
             } else if (work->field_44C == 5 && work->field_438 == 0) {
-                Actor04400_SetTaskState(arg0, 9);
+                madChaserEnterState(arg0, 9);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
-            Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
-            Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+            madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+            madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             return;
     }
 }
 
-/// Sub-state handler: requests animation 7 (kind 1, speed 0x10, `field_426`
-/// 8), advances the sub-state and plays sound 0x402C0001 at the enemy's pan
-/// and depth. Draws a random 0..0x7FF into `field_410`, then picks the
-/// animation speed `field_41C` and the step `field_436` from the band the
-/// distance `field_43A` falls in (under 1000, then per 1000 up to 5000).
-static void Actor04400_Fn01418(Task* arg0)
-{
-    Actor104400Work* work;
-    s32              soundId;
-    s32              pan;
-    s16              step;
+#include "../../shared/mad_chaser_walk_start.inc.c"
 
-    work            = (Actor104400Work*)arg0->work;
-    work->field_426 = 8;
-    work->field_418 = 7;
-    work->field_41C = 0x10;
-    work->field_414 = 1;
-    work->field_422++;
-    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0001;
-    pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_410 = (gRandomLcgState >> 0x10) & 0x7FF;
-    if (work->field_43A < 1000) {
-        work->field_41C = 0x10;
-        work->field_436 = 0x10;
-        return;
-    }
-    if (work->field_43A < 2000) {
-        work->field_41C = 0x14;
-        step            = 0x12;
-    } else if (work->field_43A < 3000) {
-        work->field_41C = 0x18;
-        step            = 0x14;
-    } else if (work->field_43A < 4000) {
-        work->field_41C = 0x1C;
-        step            = 0x16;
-    } else if (work->field_43A < 5000) {
-        work->field_41C = 0x20;
-        step            = 0x18;
-    } else {
-        work->field_41C = 0x40;
-        step            = 0x20;
-    }
-    work->field_436 = step;
-}
+#include "../../shared/mad_chaser_walk_approach.inc.c"
 
-static void Actor04400_Fn01584(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-    s16              dist;
-    s16              limit;
-    s16              step;
-    s16              angle;
-    s16              speed;
-    s32              soundId;
-    s32              pan;
+#include "../../shared/mad_chaser_leap_attack.inc.c"
 
-    dist = work->field_43A;
-    if (dist < 1000) {
-        limit = 0x10;
-        step  = 0x10;
-    } else if (dist < 2000) {
-        step  = 0x12;
-        limit = 0x14;
-    } else if (dist < 3000) {
-        step  = 0x14;
-        limit = 0x18;
-    } else if (dist < 4000) {
-        step  = 0x16;
-        limit = 0x1C;
-    } else if (dist < 5000) {
-        limit = 0x20;
-        step  = 0x18;
-    } else {
-        limit = 0x40;
-        step  = 0x20;
-    }
-    if (work->field_41C < limit) {
-        work->field_41C = limit;
-        work->field_436 = step;
-    }
-    Actor04400_Fn067A0(arg0, work->field_436);
-    speed                                 = Actor04400_Fn065F4(arg0, -0x10);
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0001;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if (work->field_43A < work->field_410 + 2000 && (work->field_43A < 1500 || work->field_44A == 0) &&
-        (u16)(((work->field_444 + 0x800) & 0xFFF) - 0x200) > 0xC00) {
-        work->field_422++;
-    }
-}
+#include "../../shared/mad_chaser_leap_turn_away.inc.c"
 
-/// Sub-state handler of a leap, counting frames in `field_412`. Before frame 40
-/// a consumed request (`Actor04400_Fn063E4`) ends it; from then on
-/// `field_438` is set. Frame 43 snapshots part 6's view-space translation into
-/// `field_98`, where frames 43..46 hold that part (`field_432`); frame 45
-/// picks the leap heading `field_40C` (towards the target when it is roughly
-/// behind, the current heading otherwise), frame 46 plays sound 0x402C0005,
-/// and frames 45..53 move the root 250 a frame against that heading with
-/// `obj_3AC` armed. Within 0x171 of the target on frames 45..48 it requests
-/// animation 0x10 and skips a sub-state; from frame 47 the root falls under
-/// `field_428` / `field_42A` until it is back at `field_92`, which requests
-/// animation 0x12 and advances the sub-state.
-static void Actor04400_Fn017B0(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-    GfxCoord*        root = arg0->extra.tmd->coords;
-    MATRIX           local;
-    s16              angle;
-    s32              soundId;
-    s32              pan;
-    s16              facing;
-    s16              speed;
+#include "../../shared/mad_chaser_leap_rebound.inc.c"
 
-    if ((s16)++work->field_412 < 40) {
-        if ((s16)Actor04400_Fn063E4(arg0)) {
-            return;
-        }
-    } else {
-        work->field_438 = 1;
-    }
-    if ((s16)work->field_412 == 43) {
-        GfxCoord* coords = arg0->extra.tmd->coords;
-        SVECTOR*  v;
+#include "../../shared/mad_chaser_dangle_frame.inc.c"
 
-        gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&gGfxViewCoord);
-        coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(&coords[6]);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[6].workm, &local);
-        v                      = &work->field_98;
-        v->vx                  = local.t[0];
-        v->vy                  = local.t[1];
-        v->vz                  = local.t[2];
-        coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    if (work->field_412 >= 43 && work->field_412 <= 46) {
-        work->field_432 = 1;
-    } else {
-        work->field_432 = 0;
-    }
-    if ((s16)work->field_412 == 46) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0005;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if ((s16)work->field_412 == 45) {
-        facing = (work->field_444 + 0x800) & 0xFFF;
-        if (facing < 0x300) {
-            work->field_40C = (facing + work->field_7A) & 0xFFF;
-        } else if (facing >= 0xD00) {
-            work->field_40C = (facing + work->field_7A) & 0xFFF;
-        } else {
-            work->field_40C = work->field_7A;
-        }
-    }
-    if (work->field_412 >= 45 && work->field_412 <= 53) {
-        angle                                 = work->field_40C;
-        speed                                 = -250;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->obj_3AC.flags                  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    } else {
-        work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    }
-    if (work->field_412 >= 45 && work->field_412 <= 48 && work->field_43A < 0x171) {
-        Actor104400Work* w;
+#include "../../shared/mad_chaser_dangle_fall.inc.c"
 
-        work->field_428      = 0;
-        work->field_42A      = -200;
-        w                    = (Actor104400Work*)arg0->work;
-        w->field_426         = 2;
-        w->field_41C         = 0x10;
-        w->field_418         = 0x10;
-        w->field_414         = 1;
-        work->field_432      = 0;
-        work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_422     += 2;
-        return;
-    }
-    if ((s16)work->field_412 >= 47) {
-        root->coord.t[1]     += work->field_42A;
-        work->obj_2CC.pos.vy += work->field_42A;
-        work->field_428      += 30;
-        work->field_42A      += work->field_428;
-        if (root->coord.t[1] >= (s16)work->field_92) {
-            Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-            w->field_426         = 2;
-            w->field_41C         = 0x10;
-            w->field_418         = 0x12;
-            w->field_414         = 1;
-            root->coord.t[1]     = (s16)work->field_92;
-            work->obj_2CC.pos.vy = 0;
-            work->field_412      = 0;
-            work->field_422++;
-        }
-    }
-}
-
-static void Actor04400_Fn01B70(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* work3;
-    s32              soundId;
-    s32              pan;
-    u32              rand;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0004;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        work->field_438  = 0;
-        rand             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
-        work->field_7A  += 0x800;
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xD;
-        work2->field_414 = 2;
-        work3            = (Actor104400Work*)arg0->work;
-        gRandomLcgState  = rand;
-        arg0->state      = 1;
-        work3->field_420 = 0;
-        work3->field_422 = 0;
-    }
-}
-
-/// Moves the root along `field_40C`
-/// and applies the fall velocity; on landing it requests animation 0x13 and
-/// advances the sub-state.
-static void Actor04400_Fn01CA0(Task* arg0)
-{
-    Actor104400Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor104400Work* anim;
-    s32              speed;
-    s32              dx;
-
-    work                                  = (Actor104400Work*)arg0->work;
-    angle                                 = work->field_40C;
-    coord                                 = arg0->extra.tmd->coords;
-    dx                                    = rsin(angle) << 4;
-    speed                                 = 0xC8;
-    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->field_42A;
-    work->obj_2CC.pos.vy                 += work->field_42A;
-    work->field_428                      += 0xE;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] >= (s16)work->field_92) {
-        anim                 = (Actor104400Work*)arg0->work;
-        anim->field_426      = 2;
-        anim->field_41C      = 0x10;
-        anim->field_418      = 0x13;
-        anim->field_414      = 1;
-        coord->coord.t[1]    = (s16)work->field_92;
-        work->obj_2CC.pos.vy = 0;
-        work->field_412      = 0;
-        work->field_422++;
-    }
-}
-
-/// Per-frame callback with a one-entry handler table. `gSceneCombatState.actorControl` 2 hides the model; 0 runs the state
-/// handler and the follow-up steps, then moves the task to state 4 when
-/// `field_448` requests it and the enemy is out of HP; 0 and 1 both colour
-/// it, run `Actor04400_Fn00220` for three part pairs and unhide it. The work
-/// block is reloaded through its own local for the state reset, as the
-/// original does.
-static void Actor04400_Fn01E08(Task* arg0)
-{
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    GfxCoord*        coord = obj->coords;
-    TaskFunc         sp[1] = { Actor04400_Fn07360 };
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
-            sp[(s16)work->field_420](arg0);
-            Actor04400_Fn022A8(arg0, 1);
-            if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-                arg0->state  = work->field_448;
-                w->field_420 = 0;
-                w->field_422 = 0;
-            }
-            Actor04400_Fn02B8C(arg0);
-            if (work->field_432 == 1) {
-                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->field_80);
-            }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
-            Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
-            Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-    }
-}
-
-/// Eases the pitch `field_434` a quarter
-/// of the way back to zero, rebuild the model root's rotation from it and the
-/// heading `field_7A`, then drop the root under an accelerating fall
-/// (`field_428` the acceleration, `field_42A` the speed). Once it reaches the
-/// floor (Y 0) it stops there, requests animation 12 (kind 2, speed 0x20) and
-/// advances `field_422`.
-static void Actor04400_Fn02008(Task* arg0)
-{
-    Actor104400Work* work;
-    GfxCoord*        coord;
-    OverlayMat       rot;
-    OverlayMat*      src;
-    MATRIX*          dst;
-    Actor104400Work* anim;
-
-    work               = (Actor104400Work*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    src                = &rot;
-    src->ident.m00_m01 = 0x1000;
-    src->ident.m02_m10 = 0;
-    src->ident.m11_m12 = 0x1000;
-    src->ident.m20_m21 = 0;
-    src->ident.m22     = 0x1000;
-    work->field_434   += -work->field_434 >> 2;
-    RotMatrixX(work->field_434, &src->mat);
-    RotMatrixY(work->field_7A, &src->mat);
-    dst                = &coord->coord;
-    dst->m[0][0]       = src->mat.m[0][0];
-    dst->m[0][1]       = src->mat.m[0][1];
-    dst->m[0][2]       = src->mat.m[0][2];
-    dst->m[1][0]       = src->mat.m[1][0];
-    dst->m[1][1]       = src->mat.m[1][1];
-    dst->m[1][2]       = src->mat.m[1][2];
-    dst->m[2][0]       = src->mat.m[2][0];
-    dst->m[2][1]       = src->mat.m[2][1];
-    dst->m[2][2]       = src->mat.m[2][2];
-    work->field_428   += 2;
-    work->field_42A   += work->field_428;
-    coord->coord.t[1] += work->field_42A;
-    if (coord->coord.t[1] > 0) {
-        work->field_412   = 0;
-        coord->coord.t[1] = 0;
-        anim              = (Actor104400Work*)arg0->work;
-        anim->field_41C   = 0x20;
-        anim->field_418   = 0xC;
-        anim->field_414   = 2;
-        work->field_422++;
-    }
-}
-
-/// Landing: plays sound 0x402C0004 on the first frame and 0x402C0003 on the
-/// second at the enemy's pan and depth; a hit (`Actor04400_Fn06618`) puts the
-/// task in state 3 with its state machine at state 3.
-static void Actor04400_Fn0216C(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* next;
-    Actor104400Work* next2;
-    u32              soundId;
-    s32              pan;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        soundId >>= 0xC;
-        soundId <<= 8;
-        soundId  |= 0x402C0004;
-        pan       = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan     >>= 24;
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if ((s16)work->field_412 == 2) {
-        soundId   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        soundId >>= 0xC;
-        soundId <<= 8;
-        soundId  |= 0x402C0003;
-        pan       = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan     >>= 24;
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if (Actor04400_Fn06618(arg0)) {
-        next             = (Actor104400Work*)arg0->work;
-        arg0->state      = 3;
-        next->field_420  = 0;
-        next->field_422  = 0;
-        next2            = (Actor104400Work*)arg0->work;
-        next2->field_420 = 3;
-        next2->field_422 = 0;
-    }
-}
+#include "../../shared/mad_chaser_dangle_land.inc.c"
 
 /// Per-frame contact handling for the enemy. Walks the eight contact records: kind 1 (skipped when
 /// `arg1` is set) and kind 3 push the model out, kind 2 applies a hit -
@@ -1987,7 +1152,7 @@ static void Actor04400_Fn0216C(Task* arg0)
 /// applies `func_800E0C10`'s collision step (snapping back to `field_60` when
 /// it reports a conflict) and moves the root by the combined step and
 /// push-out.
-static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
+void madChaserApplyContacts(Task* arg0, s16 arg1)
 {
     GpDeltaScratch   delta;
     SVECTOR          push;
@@ -2022,7 +1187,7 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
                     break;
                 }
             case 0x30000:
-                Actor04400_CalcPush(arg0, coord, &work->rec_2EC[i], &push);
+                madChaserCalcPush(arg0, coord, &work->rec_2EC[i], &push);
                 if (ABS(maxX) < ABS(push.vx)) {
                     maxX = push.vx;
                 }
@@ -2163,66 +1328,18 @@ static void Actor04400_Fn022A8(Task* arg0, s16 arg1)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-/// Applies the pending animation request and ticks the animation. Kind 1
-/// blends slots 1..8 to animation `field_418` at speed `field_41C`, passing
-/// `field_426` (cleared when the animation changes); kind 2 resets the slots
-/// onto it. Either records the animation in `field_416` and moves on to kind
-/// 3, which counts frames in `field_41A`. Every frame each slot then takes
-/// the speed and ticks.
-static void Actor04400_Fn02B8C(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* start;
-    s32              i;
-    s32              j;
-    s32              k;
-
-    work = (Actor104400Work*)arg0->work;
-    if (work->field_414 == 1) {
-        start = work;
-        if (start->field_416 == start->field_418) {
-            for (i = 1; i < 9; i++) {
-                (&start->slot_B4)[i].rate = start->field_41C;
-                func_800B4114(&start->anim, i, start->field_418, 0, start->field_426);
-            }
-        } else {
-            for (i = 1; i < 9; i++) {
-                (&start->slot_B4)[i].rate = start->field_41C;
-                func_800B4114(&start->anim, i, start->field_418, 0, start->field_426);
-            }
-            start->field_426 = 0;
-        }
-        goto advance;
-    }
-    if (work->field_414 == 2) {
-        start = work;
-        for (j = 1; j < 9; j++) {
-            Gp_AnimResetSlot(&start->anim, j, start->field_418);
-            (&start->slot_B4)[j].rate = start->field_41C;
-        }
-    advance:
-        start->field_416 = start->field_418;
-        work->field_414  = 3;
-        work->field_41A  = 0;
-    } else if (work->field_414 == 3) {
-        work->field_41A++;
-    }
-    for (k = 1; k < 9; k++) {
-        (&work->slot_B4)[k].rate = work->field_41C;
-        Gp_AnimTickIndex(&work->anim, k);
-    }
-}
+#include "../../shared/mad_chaser_tick_anim.inc.c"
 
 #include "../../shared/mad_chaser_bodies.inc.c"
 
 /// State handlers `Actor04400_Fn02E8C` dispatches by `field_420`.
 static const TaskFuncTable9 Actor04400_D000EC = { {
-    Actor04400_Fn07530,
-    Actor04400_Fn075F0,
-    Actor04400_Fn076D0,
+    madChaserDeathCry,
+    madChaserDeathSettle,
+    madChaserDeathWaitAnim,
     madChaserBeginDeath,
-    Actor04400_Fn0781C,
-    Actor04400_Fn0304C,
+    madChaserDeathTurnTranslucent,
+    madChaserShrinkWithDust,
     Actor04400_Fn07878,
     Actor04400_Fn07890,
     madChaserBurst,
@@ -2230,7 +1347,7 @@ static const TaskFuncTable9 Actor04400_D000EC = { {
 
 /// Per-frame callback of the main enemy. `gSceneCombatState.actorControl` 2 hides the model, 0 runs the current state handler
 /// (then colours it), 1 only colours it. Unless `field_451` is set, it then
-/// runs `Actor04400_Fn00220` for three part pairs.
+/// runs `madChaserDrawLimbShadow` for three part pairs.
 static void Actor04400_Fn02E8C(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
@@ -2247,117 +1364,24 @@ static void Actor04400_Fn02E8C(Task* arg0)
             sp.funcs[(s16)work->field_420](arg0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
-                Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
-                Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-/// Death squash: copy `matrix_0` onto the
-/// model root, scale Y by the shrinking `field_430`, spawn spark 0x600A5 on
-/// frame 4, switch the light mode on frame 16, and hide the model after frame
-/// 32.
-static void Actor04400_Fn0304C(Task* arg0)
-{
-    Actor104400Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    VECTOR           scale;
-    OverlayMat       m;
-    GpMtxWords*      ident;
-    SVECTOR          ofs;
+#include "../../shared/mad_chaser_shrink_dust.inc.c"
 
-    work             = (Actor104400Work*)arg0->work;
-    ident            = &m.ident;
-    obj              = arg0->extra.tmd;
-    coord            = obj->coords;
-    work->field_430 -= 0x40;
-    scale.vx         = 0x1000;
-    scale.vy         = (s16)work->field_430;
-    scale.vz         = 0x1000;
-    coord->coord     = work->matrix_0;
-    m.ident.m00_m01  = 0x1000;
-    m.ident.m02_m10  = 0;
-    ident->m11_m12   = 0x1000;
-    m.ident.m20_m21  = 0;
-    ident->m22       = 0x1000;
-    ScaleMatrix(&m.mat, &scale);
-    MulMatrix(&coord->coord, &m.mat);
-    if ((s16)++work->field_412 == 4) {
-        ofs.vx = 0;
-        ofs.vy = 0;
-        ofs.vz = 0;
-        Gp_SpawnEff(0x600A5, coord, 3, &ofs);
-    }
-    if ((s16)work->field_412 == 0x10) {
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-    }
-    if ((s16)work->field_412 > 0x20) {
-        obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->field_420++;
-    }
-}
-
-/// Latch the model root position into `field_60`, then aim at the nearer of
-/// the two `gPlayerActorTasks` actors (distance measured in XZ): its offset goes
-/// to `field_88`..`field_8C`, the distance to `field_43A`, and its heading
-/// relative to `field_7A` to `field_444`. Nothing is written when slot 0 is
-/// empty.
-static void Actor04400_Fn031B8(Task* arg0)
-{
-    Actor104400Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        other;
-    Task*            player;
-    SVECTOR          d0;
-    SVECTOR          d1;
-    s32              dist;
-    s32              dist2;
-
-    work              = (Actor104400Work*)arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    player            = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    work->field_60.vx = coord->coord.t[0];
-    work->field_60.vy = coord->coord.t[1];
-    work->field_60.vz = coord->coord.t[2];
-    if (player != NULL) {
-        other = player->extra.tmd->coords;
-        d0.vx = other->coord.t[0] - coord->coord.t[0];
-        d0.vy = other->coord.t[1] - coord->coord.t[1];
-        d0.vz = other->coord.t[2] - coord->coord.t[2];
-        dist  = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
-        if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
-            other = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
-            d1.vx = other->coord.t[0] - coord->coord.t[0];
-            d1.vy = other->coord.t[1] - coord->coord.t[1];
-            d1.vz = other->coord.t[2] - coord->coord.t[2];
-            dist2 = SquareRoot0(d1.vx * d1.vx + d1.vz * d1.vz);
-            if (dist2 < dist) {
-                dist  = dist2;
-                d0.vx = d1.vx;
-                d0.vy = d1.vy;
-                d0.vz = d1.vz;
-            }
-        }
-        do {
-            work->field_88  = d0.vx;
-            work->field_8A  = d0.vy;
-            work->field_8C  = d0.vz;
-            work->field_43A = dist;
-        } while (0);
-        VectorNormalSS(&d0, &d0);
-        work->field_444 = (ratan2(d0.vx, d0.vz) - work->field_7A) & 0xFFF;
-    }
-}
+#include "../../shared/mad_chaser_track_player.inc.c"
 
 /// State handler: with `field_44F` 1, a pending request 1 while `field_41E`
 /// is set queues animation 0xB (kind 2, speed 0x20); otherwise a consumed
 /// request wins, and a hit moves to state 3. With `field_44F` clear, a hit
-/// calls `Actor04400_Fn06374` and moves to state 5. The request test
+/// calls `madChaserSetAlertHold` and moves to state 5. The request test
 /// compares against the constant 1, which CSE folds into the `field_44F`
 /// register; writing `== work->field_44F` reloads the byte instead.
 static void Actor04400_Fn03390(Task* arg0)
@@ -2371,12 +1395,12 @@ static void Actor04400_Fn03390(Task* arg0)
             work->field_414 = 2;
             return;
         }
-        if (Actor04400_TakeRequest(arg0) == 0 && Actor04400_IsHit(arg0)) {
-            Actor04400_SetWorkState(arg0, 3);
+        if (madChaserTakeRequest(arg0) == 0 && madChaserIsHit(arg0)) {
+            madChaserSetStateS16(arg0, 3);
         }
-    } else if (Actor04400_IsHit(arg0)) {
-        Actor04400_Fn06374(arg0, 1);
-        Actor04400_SetWorkState(arg0, 5);
+    } else if (madChaserIsHit(arg0)) {
+        madChaserSetAlertHold(arg0, 1);
+        madChaserSetStateS16(arg0, 5);
     }
 }
 
@@ -2384,14 +1408,14 @@ static void Actor04400_Fn03390(Task* arg0)
 static const TaskFuncTable5 Actor04400_D00128 = { {
     Actor04400_Fn07CF0,
     Actor04400_Fn07D78,
-    Actor04400_Fn07E00,
+    madChaserLurkRiseState,
     Actor04400_Fn07E74,
     Actor04400_Fn07F04,
 } };
 
 /// The five-state per-frame callback of the enemy's state machine, the
 /// counterpart of `Actor04400_Fn05DE0`. Mode 0 counts `field_442` up, aims
-/// (`Actor04400_Fn031B8`), lets `Actor04400_TakeHit` replace the handler
+/// (`madChaserTrackPlayer`), lets `Actor04400_TakeHit` replace the handler
 /// `field_420` selects from `Actor04400_D00128`, rebuilds the model root
 /// rotation through part 0's coordinate, and picks the next state: 4 once the
 /// `field_40` hold is empty, 8 / 9 for messages 4 / 5, and 3 after a consumed
@@ -2411,30 +1435,30 @@ static void Actor04400_Fn03538(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
-            Actor04400_Fn031B8(arg0);
+            madChaserTrackPlayer(arg0);
             if (Actor04400_TakeHit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            Actor04400_Fn02B8C(arg0);
+            madChaserTickAnim(arg0);
             madChaserTwistSpine(arg0);
             Actor04400_UpdateRotation(arg0);
-            Actor04400_Fn022A8(arg0, 0);
+            madChaserApplyContacts(arg0, 0);
             if (work->field_438 == 0 && enemy->hp <= 0) {
-                Actor04400_SetTaskState(arg0, 4);
+                madChaserEnterState(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
-                Actor04400_SetTaskState(arg0, 8);
+                madChaserEnterState(arg0, 8);
             } else if (work->field_44C == 5 && work->field_438 == 0) {
-                Actor04400_SetTaskState(arg0, 9);
-            } else if (Actor04400_TakeRequest(arg0)) {
+                madChaserEnterState(arg0, 9);
+            } else if (madChaserTakeRequest(arg0)) {
                 work->field_438 = 0;
-                Actor04400_SetTaskState(arg0, 3);
+                madChaserEnterState(arg0, 3);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
-            Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
-            Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+            madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+            madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
@@ -2443,60 +1467,60 @@ static void Actor04400_Fn03538(Task* arg0)
 /// Sub-state handlers `Actor04400_Fn07CF0` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D00150 = { {
     madChaserStartHold,
-    Actor04400_Fn07FD0,
-    Actor04400_Fn08094,
+    madChaserLurkWait,
+    madChaserLurkIdleEnd,
 } };
 
 /// Sub-state handlers `Actor04400_Fn07D78` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D0015C = { {
-    Actor04400_Fn080E8,
-    Actor04400_Fn08160,
-    Actor04400_Fn039EC,
+    madChaserLurkCrouch,
+    madChaserLurkRaise,
+    madChaserLurkLookAround,
 } };
 
 /// Sub-state handlers `Actor04400_Fn07E74` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D00168 = { {
     madChaserStartAlert,
-    Actor04400_Fn082E0,
-    Actor04400_Fn03B34,
+    madChaserLurkBrace,
+    madChaserLurkSidestepToCombat,
 } };
 
 /// Sub-state handlers `Actor04400_Fn07F04` dispatches by `field_422`.
 static const TaskFuncTable4 Actor04400_D00174 = { {
-    Actor04400_Fn08358,
-    Actor04400_Fn083CC,
-    Actor04400_Fn03CA0,
-    Actor04400_Fn03E20,
+    madChaserLurkShiftStart,
+    madChaserLurkShiftBrace,
+    madChaserLurkSidestepRight,
+    madChaserLurkSidestepLeft,
 } };
 
 /// State handlers `Actor04400_Fn03F8C` dispatches by `field_420`.
 static const TaskFuncTable10 Actor04400_D00184 = { {
-    Actor04400_Fn042C4,
-    Actor04400_Fn045A0,
-    Actor04400_Fn04718,
-    Actor04400_Fn048A0,
-    Actor04400_Fn04A3C,
-    Actor04400_Fn04BA8,
-    Actor04400_Fn04D44,
-    Actor04400_Fn04EDC,
-    Actor04400_Fn05040,
+    madChaserEmergeAtSpot,
+    madChaserEmergeBackflip,
+    madChaserEmergeHopForward,
+    madChaserCreepUntilHit,
+    madChaserEmergeArcBack,
+    madChaserEmergeHopBack,
+    madChaserEmergeBackOff,
+    madChaserEmergeHighArc,
+    madChaserEmergeFlipOver,
     Actor04400_Fn05260,
 } };
 
 /// Sub-state handlers `Actor04400_Fn06B50` dispatches by `field_422`.
 static const TaskFuncTable6 Actor04400_D001AC = { {
-    Actor04400_Fn0847C,
-    Actor04400_Fn08610,
-    Actor04400_Fn053FC,
-    Actor04400_Fn058F4,
-    Actor04400_Fn05A40,
-    Actor04400_Fn058F4,
+    madChaserPullStart,
+    madChaserPullReact,
+    madChaserPulledStruggle,
+    madChaserPulledIn,
+    madChaserPulledLimp,
+    madChaserPulledIn,
 } };
 
 /// State handlers `Actor04400_Fn05DE0` dispatches by `field_420`.
 static const TaskFuncTable5 Actor04400_D001C4 = { {
-    Actor04400_Fn08870,
-    Actor04400_Fn08908,
+    madChaserDeathCryUnlink,
+    madChaserDeathSettleQuiet,
     Actor04400_Fn089C0,
     madChaserDropBodies,
     Actor04400_Fn08A9C,
@@ -2505,187 +1529,28 @@ static const TaskFuncTable5 Actor04400_D001C4 = { {
 /// State handlers `Actor04400_Fn05FC8` dispatches by `field_420`.
 static const TaskFuncTable7 Actor04400_D001D8 = { {
     Actor04400_Fn08AA4,
-    Actor04400_Fn08908,
+    madChaserDeathSettleQuiet,
     Actor04400_Fn089C0,
     madChaserBeginShrink,
     Actor04400_Fn08C08,
-    Actor04400_Fn08C64,
+    madChaserShrink,
     Actor04400_Fn08DA4,
 } };
 
-/// Counts `field_412` up against the `field_446` hold and enters state 2 once
-/// it runs out; over its last 0x30 frames, eases the yaw `field_424` back to
-/// zero. Before that, while `field_43A` (the distance to the nearer player
-/// actor) is under 0xDAC and the heading `field_444` is outside 0x3C0..0xC40,
-/// eases the yaw toward it and enters state 3 (arming `Gp_ArmStateF0`) after
-/// 16 such frames; otherwise swings it toward +-0x380 on bit 6 of
-/// `field_442`.
-static void Actor04400_Fn039EC(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-    Actor104400Work* state;
-    Actor104400Work* state2;
-    s32              angle;
-    s32              cur;
-    s32              aim;
+#include "../../shared/mad_chaser_lurk_look.inc.c"
 
-    if ((s16)++work->field_412 > work->field_446) {
-        state            = (Actor104400Work*)arg0->work;
-        state->field_420 = 2;
-        state->field_422 = 0;
-        return;
-    }
-    if (work->field_446 - 0x30 < (s16)work->field_412) {
-        cur             = (u16)work->field_424;
-        work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
-        return;
-    }
-    if (work->field_43A < 0xDAC && (aim = (u16)work->field_444, (aim < 0x3C0 || aim > 0xC40))) {
-        angle           = (u16)work->field_424;
-        work->field_424 = angle + ((s16)((aim - angle) * 16) >> 6);
-        if (++work->field_42C >= 0x10) {
-            Gp_ArmStateF0(1);
-            state2            = (Actor104400Work*)arg0->work;
-            state2->field_420 = 3;
-            state2->field_422 = 0;
-        }
-    } else {
-        // Both arms are spelled out: the cross-jumped tail leaves each its own
-        // load of `field_424`, which a single update after an if/else lacks.
-        if (!(((u16)work->field_442 >> 6) & 1)) {
-            work->field_424 = (u16)work->field_424 + ((s16)(0x3800 - (u16)work->field_424 * 16) >> 9);
-        } else {
-            work->field_424 = (u16)work->field_424 + ((s16)(-0x3800 - (u16)work->field_424 * 16) >> 9);
-        }
-    }
-}
+#include "../../shared/mad_chaser_lurk_sidestep_combat.inc.c"
 
-/// Counts the frame in `field_412` and, on frames 0x1D..0x29, pushes the model
-/// root along the heading `field_7A` turned a quarter circle, by `field_41C`
-/// scaled 30/16. Once slot 1 reports a boundary or control jump in `flags_EC`,
-/// clears `field_438` and puts the task in state 3 with its work
-/// block at state 3.
-static void Actor04400_Fn03B34(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-    s32              scale;
+#include "../../shared/mad_chaser_lurk_sidestep_right.inc.c"
 
-    work = (Actor104400Work*)arg0->work;
-    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
-        scale                                 = 0x1E;
-        angle                                 = work->field_7A + 0x400;
-        speed                                 = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    work2 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_438 = 0;
-        Actor04400_SetTaskState(arg0, 3);
-        Actor04400_SetWorkState(arg0, 3);
-    }
-}
-
-/// Counts the frame in `field_412` and, on frames 0x1D..0x29, pushes the model
-/// root along the heading `field_7A` turned a quarter circle, by `field_41C`
-/// scaled 30/16. Once slot 1 reports a boundary or control jump in `flags_EC`,
-/// clears `field_438`, requests animation 3 at speed 0x10 and rewinds
-/// the frame counter so the next state starts fresh.
-static void Actor04400_Fn03CA0(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-    s32              scale;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((u16)(work->field_412++ - 0x1D) < 0xD) {
-        scale                                 = 0x1E;
-        angle                                 = work->field_7A + 0x400;
-        speed                                 = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    work2 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_438  = 0;
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 3;
-        work2->field_414 = 1;
-        work->field_412  = 0;
-        work->field_422++;
-    }
-}
-
-/// Unless `Actor04400_Fn06328` claims the frame: count the frame in
-/// `field_412` and, on frames 0x17..0x23, push the model root along the
-/// heading `field_7A` turned a quarter circle, by `field_41C` scaled -30/16.
-/// Once slot 1 reports a boundary or control jump in `flags_EC`,
-/// `field_438` is cleared and the state machine rewinds to state 0.
-static void Actor04400_Fn03E20(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* next;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-    s32              scale;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
-        if ((u16)(work->field_412++ - 0x17) < 0xD) {
-            scale                                 = -0x1E;
-            angle                                 = work->field_7A + 0x400;
-            speed                                 = (((Actor104400Work*)arg0->work)->field_41C * scale) << 0xC >> 0x10;
-            arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-            arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        }
-        work2 = (Actor104400Work*)arg0->work;
-        if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
-            work->field_438 = 0;
-            next            = (Actor104400Work*)arg0->work;
-            next->field_420 = 0;
-            next->field_422 = 0;
-        }
-    }
-}
+#include "../../shared/mad_chaser_lurk_sidestep_left.inc.c"
 
 /// Per-frame callback of the enemy this overlay drives, and the ten-state
 /// counterpart of `Actor04400_Fn05DE0`: its handlers come from the
 /// `Actor04400_D00184` table copied onto the stack, and in mode 0 a pending hit
-/// (`Actor04400_TakeHit3`) replaces this frame's handler. `Actor04400_Fn02B8C`
+/// (`Actor04400_TakeHit3`) replaces this frame's handler. `madChaserTickAnim`
 /// advances the animation, the root rotation is rebuilt from 0x78..0x7C, and
-/// `Actor04400_Fn022A8` applies the frame's motion before the root coordinate
+/// `madChaserApplyContacts` applies the frame's motion before the root coordinate
 /// is marked dirty. Mode 1 re-pushes the model's second coordinate for
 /// `Gp_UpdateActorColor` and rebuilds the part-pair colour quads while
 /// `field_451` is clear. `gSceneCombatState.actorControl` short-circuits both: 1 runs mode 1 only,
@@ -2706,779 +1571,49 @@ static void Actor04400_Fn03F8C(Task* arg0)
             if (Actor04400_TakeHit3(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
-            Actor04400_Fn02B8C(arg0);
+            madChaserTickAnim(arg0);
             Actor04400_UpdateRotation(arg0);
-            Actor04400_Fn022A8(arg0, 0);
+            madChaserApplyContacts(arg0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
-                Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
-                Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-/// Message 0x2C00 with low nibble 1 (see `field_44C`): reveals the model,
-/// places its root at the spawn point bits 8..11 select from the current map's
-/// table (playing the appearance sound on map 0x427), and starts state 1, 4
-/// or 7 by bits 4..7.
-static void Actor04400_Fn042C4(Task* arg0)
-{
-    Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    TmdObject*       obj   = arg0->extra.tmd;
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    GfxCoord*        coord = obj->coords;
-    Actor104400Work* w2;
-    s32              id;
-    s32              pan;
-    u32              stageAreaKey;
+#include "../../shared/mad_chaser_emerge_at_spot.inc.c"
 
-    if ((work->field_44C & 0xF) == 1) {
-        work->field_451      = 1;
-        work->obj_2AC.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj_2CC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        obj->flags          &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        if ((arg0->spawnArg1.value & 0xF) != 2) {
-            Tmd_AllocBuffers(obj);
-            obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        }
-        enemy->node.state.parts.flags = 0;
-        stageAreaKey                  = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
-        if (stageAreaKey == GAME_LOCATION_KEY(4, 39, 0, 0)) {
-            work->field_78    = 0;
-            work->field_7A    = (D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;
-            work->field_7C    = 0;
-            coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].x;
-            coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].y;
-            coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[(work->field_44C >> 8) & 0xF].z;
-            id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54270006;
-            pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        } else if (stageAreaKey == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-            work->field_78    = 0;
-            work->field_7A    = (D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;
-            work->field_7C    = 0;
-            coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].x;
-            coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].y;
-            coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].z;
-        }
-        work->field_428 = 0;
-        work->field_42A = 100;
-        w2              = (Actor104400Work*)arg0->work;
-        w2->field_41C   = 0x10;
-        w2->field_418   = 7;
-        w2->field_414   = 2;
-        switch ((work->field_44C >> 4) & 0xF) {
-            case 0:
-                Actor04400_SetWorkState(arg0, 1);
-                break;
-            case 1:
-                Actor04400_SetWorkState(arg0, 4);
-                break;
-            default:
-                Actor04400_SetWorkState(arg0, 7);
-                break;
-        }
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(coord);
-        work->field_44C = 0;
-    }
-}
+#include "../../shared/mad_chaser_emerge_backflip.inc.c"
 
-/// Same body as `Actor04400_Fn04A3C` with a slower push and a wider pitch
-/// step: the root moves 0x8C back along the heading `field_7A`, `field_78`
-/// eases an eighth of the way to 0x800 rather than a thirty-second of the way
-/// to 0x200, and the heading turns half a circle before animation 0x11 is
-/// requested at speed 0x10.
-static void Actor04400_Fn045A0(Task* arg0)
-{
-    Actor104400Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor104400Work* anim;
-    s32              speed;
-    s32              dx;
+#include "../../shared/mad_chaser_emerge_hop_forward.inc.c"
 
-    work                                  = (Actor104400Work*)arg0->work;
-    angle                                 = work->field_7A;
-    coord                                 = arg0->extra.tmd->coords;
-    dx                                    = rsin(angle) << 4;
-    speed                                 = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_78                       += (0x800 - work->field_78) >> 3;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 2;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        work->field_451   = 0;
-        work->field_412   = 0;
-        coord->coord.t[1] = -0x3C;
-        work->field_78    = 0;
-        work->field_7C    = 0;
-        work->field_7A   += 0x800;
-        anim              = (Actor104400Work*)arg0->work;
-        anim->field_41C   = 0x10;
-        anim->field_418   = 0x11;
-        anim->field_414   = 2;
-        work->field_428   = 0;
-        work->field_42A   = -0x6E;
-        work->field_420++;
-    }
-}
+#include "../../shared/mad_chaser_creep.inc.c"
 
-/// Counts `field_412` up and on the first frame plays sound 0x402C0009 (bank
-/// from the enemy's `field_8` high nibble) panned and attenuated from the model
-/// root. Every frame, pushes the root 0x14 forward along the heading
-/// `field_7A`, then walks the root's y by `field_42A` while `field_428` ramps
-/// it by 4 and feeds that back into `field_42A`. Once the root y passes zero it
-/// snaps back to -0x3C and starts the cycle again, clearing the frame counter
-/// and stepping the state `field_420`.
-static void Actor04400_Fn04718(Task* arg0)
-{
-    Actor104400Work* work;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s16              angle;
-    s16              speed;
+#include "../../shared/mad_chaser_emerge_arc_back.inc.c"
 
-    work  = (Actor104400Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = 0x50;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 4;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = -0x3C;
-        work->field_412   = 0;
-        work->field_420++;
-    }
-}
+#include "../../shared/mad_chaser_emerge_hop_back.inc.c"
 
-/// Counts `field_412` up and on the first frame plays sound 0x402C0009 (bank from the
-/// enemy's `field_8` high nibble) panned and attenuated from the model root.
-/// Every frame, pushes the root 0x14 forward along the heading `field_7A`.
-/// Once slot 1 reports a boundary or control jump in `flags_EC`, flags `obj_2CC` with
-/// 0x4000 and switches the task to state 3 with the work block's state 5,
-/// sub-state 0.
-static void Actor04400_Fn048A0(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* next;
-    Actor104400Work* next2;
-    s32              soundId;
-    s32              pan;
-    s32              cond;
-    s16              angle;
-    s16              speed;
+#include "../../shared/mad_chaser_emerge_back_off.inc.c"
 
-    work = (Actor104400Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = 0x14;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work2                                 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                 = (Actor104400Work*)arg0->work;
-        arg0->state          = 3;
-        next->field_420      = 0;
-        next->field_422      = 0;
-        next2                = (Actor104400Work*)arg0->work;
-        next2->field_420     = 5;
-        next2->field_422     = 0;
-    }
-}
+#include "../../shared/mad_chaser_emerge_high_arc.inc.c"
 
-/// Pushes the model root 0x8C back against the heading `field_7A`, eases
-/// `field_78` a 32nd of the way to 0x200, and falls under an accelerating drop
-/// (`field_428` the acceleration, `field_42A` the speed). Once the root passes
-/// above y = 0 it is pinned at -0x3C, `field_78` / `field_7C` clear, the fall
-/// rearms at speed -0x6E, animation 12 (kind 2, speed 0x10) is requested and the
-/// state advances.
-static void Actor04400_Fn04A3C(Task* arg0)
-{
-    Actor104400Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor104400Work* anim;
-    s32              speed;
-    s32              dx;
+#include "../../shared/mad_chaser_emerge_flip_over.inc.c"
 
-    work                                  = (Actor104400Work*)arg0->work;
-    angle                                 = work->field_7A;
-    coord                                 = arg0->extra.tmd->coords;
-    dx                                    = rsin(angle) << 4;
-    speed                                 = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_78                       += (0x200 - work->field_78) >> 5;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 2;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        work->field_451   = 0;
-        work->field_412   = 0;
-        coord->coord.t[1] = -0x3C;
-        work->field_78    = 0;
-        work->field_7C    = 0;
-        anim              = (Actor104400Work*)arg0->work;
-        anim->field_41C   = 0x10;
-        anim->field_418   = 0xC;
-        anim->field_414   = 2;
-        work->field_428   = 0;
-        work->field_42A   = -0x6E;
-        work->field_420++;
-    }
-}
+/// A further copy, under this file's own name.
+#define madChaserCreepUntilHit Actor04400_Fn05260
+#include "../../shared/mad_chaser_creep.inc.c"
+#undef madChaserCreepUntilHit
 
-/// Counts the frame and decays `field_78` by a thirty-second towards 0. On the
-/// first frame plays sound 0x402C0009 (bank from the enemy's `field_8` high
-/// nibble) panned and attenuated from the model root. Every frame, pushes the
-/// root 0x50 back against the heading `field_7A`. Once the root passes above
-/// y = 0 it is pinned at -0x3C, the frame counter clears and the state
-/// advances.
-static void Actor04400_Fn04BA8(Task* arg0)
-{
-    Actor104400Work* work;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s16              angle;
-    s16              speed;
+#include "../../shared/mad_chaser_pulled_struggle.inc.c"
 
-    work  = (Actor104400Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    work->field_412++;
-    work->field_78 += -work->field_78 >> 5;
-    if ((s16)work->field_412 == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = -0x50;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 4;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = -0x3C;
-        work->field_412   = 0;
-        work->field_420++;
-    }
-}
+#include "../../shared/mad_chaser_pulled_in.inc.c"
 
-/// Counts `field_412` up and on the first frame plays sound 0x402C0009 (bank
-/// from the enemy's `field_8` high nibble) panned and attenuated from the model
-/// root. Every frame, pushes the root 0x14 back against the heading `field_7A`.
-/// Once slot 1 reports a boundary or control jump in `flags_EC`, flags `obj_2CC` with
-/// 0x4000 and switches the task to state 3 with the work block's state 3,
-/// sub-state 0.
-static void Actor04400_Fn04D44(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* next;
-    Actor104400Work* next2;
-    s32              soundId;
-    s32              pan;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = -0x14;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work2                                 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                 = (Actor104400Work*)arg0->work;
-        arg0->state          = 3;
-        next->field_420      = 0;
-        next->field_422      = 0;
-        next2                = (Actor104400Work*)arg0->work;
-        next2->field_420     = 3;
-        next2->field_422     = 0;
-    }
-}
-
-/// Pushes the model root 0x8C back against the heading `field_7A`, eases
-/// `field_78` a 32nd of the way to 0x200, and falls under an accelerating drop
-/// (`field_428` the acceleration, `field_42A` the speed). Once the root passes
-/// above y = 0 it is pinned at -0x3C, the fall rearms at speed -0x12C,
-/// animation 12 (kind 2, speed 0x10) is requested and the state advances.
-static void Actor04400_Fn04EDC(Task* arg0)
-{
-    Actor104400Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor104400Work* anim;
-    s32              speed;
-    s32              dx;
-
-    work                                  = (Actor104400Work*)arg0->work;
-    angle                                 = work->field_7A;
-    coord                                 = arg0->extra.tmd->coords;
-    dx                                    = rsin(angle) << 4;
-    speed                                 = -0x8C;
-    arg0->extra.tmd->coords->coord.t[0]  += (dx * speed) >> 16;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 16;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_78                       += (0x200 - work->field_78) >> 5;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 2;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        work->field_451   = 0;
-        work->field_412   = 0;
-        coord->coord.t[1] = -0x3C;
-        anim              = (Actor104400Work*)arg0->work;
-        anim->field_41C   = 0x10;
-        anim->field_418   = 0xC;
-        anim->field_414   = 2;
-        work->field_428   = 0;
-        work->field_42A   = -0x12C;
-        work->field_420++;
-    }
-}
-
-/// Counts `field_412` up and eases `field_78` an eighth of the way to 0x800. On
-/// the first frame plays sounds 0x402C0009 and 0x402C0003 (bank from the
-/// enemy's `field_8` high nibble) panned and attenuated from the model root.
-/// Every frame, pushes the root 0x5A back against the heading `field_7A` and
-/// falls as `Actor04400_Fn04BA8` does. Once the root passes above y = 0 it is
-/// pinned at -0x3C, `field_78` / `field_7C` clear, the heading turns half a
-/// circle, animation 0x11 is requested at speed 0x10 and the state advances.
-static void Actor04400_Fn05040(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* anim;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s32              soundId2;
-    s32              pan2;
-    s16              angle;
-    s16              speed;
-
-    work  = (Actor104400Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    work->field_412++;
-    work->field_78 += (0x800 - work->field_78) >> 3;
-    if ((s16)work->field_412 == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        soundId2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0003;
-        pan2     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = -0x5A;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->field_42A;
-    work->field_428                      += 4;
-    work->field_42A                      += work->field_428;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = -0x3C;
-        work->field_78    = 0;
-        work->field_7C    = 0;
-        work->field_7A   += 0x800;
-        anim              = (Actor104400Work*)arg0->work;
-        anim->field_41C   = 0x10;
-        anim->field_418   = 0x11;
-        anim->field_414   = 2;
-        work->field_412   = 0;
-        work->field_420++;
-    }
-}
-
-/// Same body as `Actor04400_Fn04D44` with the opposite step: the push is 0x14
-/// forward along the heading and the state it lands on is 5 rather than 3.
-///
-/// Counts `field_412` up and on the first frame plays sound 0x402C0009 (bank
-/// from the enemy's `field_8` high nibble) panned and attenuated from the model
-/// root. Every frame, pushes the root 0x14 forward along the heading `field_7A`.
-/// Once slot 1 reports a boundary or control jump in `flags_EC`, flags `obj_2CC` with
-/// 0x4000 and switches the task to state 3 with the work block's state 5,
-/// sub-state 0.
-static void Actor04400_Fn05260(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* next;
-    Actor104400Work* next2;
-    s32              soundId;
-    s32              pan;
-    s32              cond;
-    s16              angle;
-    s16              speed;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    speed                                 = 0x14;
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work2                                 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                 = (Actor104400Work*)arg0->work;
-        arg0->state          = 3;
-        next->field_420      = 0;
-        next->field_422      = 0;
-        next2                = (Actor104400Work*)arg0->work;
-        next2->field_420     = 5;
-        next2->field_422     = 0;
-    }
-}
-
-/// Steering counterpart of `Actor04400_Fn048A0`. While the enemy lives it ramps `field_41C` up to 0x40 along `field_44F`,
-/// turns `field_7A` toward `field_70` and pushes the root back along it by
-/// `field_41C` scaled -0x10, then slides toward `field_70` at the accelerating
-/// `field_42A` scaled 1/64. Past 120 frames it eases the root y toward
-/// `field_70`'s (a quarter within 3000 units, a thirty-second beyond) and marks
-/// `field_438`; while alive a hit flag plays sound 0x402C0001 at the enemy's
-/// pan and depth. Within 800 units it advances `field_422`, otherwise a dead
-/// enemy queues its follow-up animation.
-static void Actor04400_Fn053FC(Task* arg0)
-{
-    TmdObject*       obj;
-    Actor104400Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    GfxCoord*        c;
-    VECTOR           d;
-    SVECTOR          dir;
-    VECTOR           sq;
-    VECTOR*          out;
-    s16              angle;
-    s32              dist;
-    s32              cond;
-    s32              soundId;
-    s32              pan;
-
-    obj   = arg0->extra.tmd;
-    work  = (Actor104400Work*)arg0->work;
-    coord = obj->coords;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work->field_412++;
-    if (enemy->hp > 0) {
-        Actor104400Work* w;
-        s32              diff;
-        s32              k;
-        s32              step;
-
-        if ((u32)(work->field_44F >> 1) < 0x40) {
-            work->field_41C = work->field_44F >> 2;
-            work->field_44F++;
-        } else {
-            work->field_41C = 0x40;
-        }
-        w      = (Actor104400Work*)arg0->work;
-        c      = arg0->extra.tmd->coords;
-        dir.vx = work->field_70.vx - c->coord.t[0];
-        dir.vy = 0;
-        dir.vz = work->field_70.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        diff = (((u16)w->field_7A - ratan2(dir.vx, dir.vz)) << 20) >> 20;
-        if (diff > 0x100) {
-            w->field_7A -= 0x18;
-        } else if (diff < -0x100) {
-            w->field_7A += 0x18;
-        }
-        angle                                 = work->field_7A;
-        k                                     = -0x10;
-        step                                  = ((((Actor104400Work*)arg0->work)->field_41C * k) << 12) >> 16;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    work->field_428++;
-    work->field_42A += work->field_428;
-    {
-        s32 step = work->field_42A >> 6;
-
-        c      = arg0->extra.tmd->coords;
-        dir.vx = work->field_70.vx - c->coord.t[0];
-        dir.vy = 0;
-        dir.vz = work->field_70.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        angle                                 = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    d.vx = coord->coord.t[0] - work->field_70.vx;
-    d.vy = coord->coord.t[1] - work->field_70.vy;
-    d.vz = coord->coord.t[2] - work->field_70.vz;
-    out  = &sq;
-    gte_ldlvl(&d);
-    gte_sqr0();
-    gte_stlvnl(out);
-    dist = SquareRoot0(sq.vx + sq.vy + sq.vz);
-    if ((s16)work->field_412 > 120) {
-        if (dist <= 3000) {
-            work->field_438    = 1;
-            coord->coord.t[1] += (work->field_70.vy - coord->coord.t[1]) >> 4;
-        } else {
-            work->field_438    = 1;
-            coord->coord.t[1] += (work->field_70.vy - coord->coord.t[1]) >> 5;
-        }
-    } else if (enemy->hp > 0) {
-        Actor104400Work* w2 = (Actor104400Work*)arg0->work;
-
-        if ((w2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (w2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
-            soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0001;
-            pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        }
-    } else {
-        work->field_438    = 1;
-        coord->coord.t[1] += (work->field_70.vy - coord->coord.t[1]) >> 5;
-    }
-    if (dist < 800) {
-        work->field_422++;
-        return;
-    }
-    if (enemy->hp <= 0) {
-        if (work->field_448 != 4) {
-            work->field_438 = 1;
-            if (work->field_418 == 8) {
-                if (work->field_440 == 0) {
-                    Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-                    w->field_426 = 4;
-                    w->field_41C = 0x10;
-                    w->field_418 = 5;
-                    w->field_414 = 1;
-                } else {
-                    Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-                    w->field_426 = 4;
-                    w->field_41C = 0x10;
-                    w->field_418 = 6;
-                    w->field_414 = 1;
-                }
-            } else {
-                Actor104400Work* w;
-                s16              next;
-
-                next         = Actor04400_D10828[work->field_418 - 1];
-                w            = (Actor104400Work*)arg0->work;
-                w->field_426 = 4;
-                w->field_41C = 0x10;
-                w->field_418 = next;
-                w->field_414 = 1;
-            }
-        } else {
-            work->field_438 = 0;
-        }
-    }
-}
-
-/// Death: marks `field_438`, plays sound 0x402C0003 unless the HP is below
-/// zero, releases the spawn place claimed in `gSceneCombatState.madChaserAlertOwner`, unlinks
-/// the enemy node and the three collision objects, puts the task in state 5,
-/// sends message 0x13F4 to slot 4's task and hides the model.
-static void Actor04400_Fn058F4(Task* arg0)
-{
-    Actor104400Work* objs;
-    Enemy*           enemy;
-    TmdObject*       tmd;
-    Actor104400Work* work;
-    s32              soundId;
-    s32              pan;
-
-    work            = (Actor104400Work*)arg0->work;
-    enemy           = (Enemy*)arg0->spawnArg2.pointer;
-    tmd             = arg0->extra.tmd;
-    work->field_438 = 1;
-    if (enemy->hp >= 0) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0003;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.madChaserAlertOwner = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
-    Gp_ReleaseStateF0Add(arg0, 0);
-    enemy->recs = 0;
-    objs        = (Actor104400Work*)arg0->work;
-    Gp_UnlinkObj(&objs->obj_2AC);
-    Gp_UnlinkObj(&objs->obj_2CC);
-    Gp_UnlinkObj(&objs->obj_3AC);
-    Actor04400_SetTaskState(arg0, 5);
-    Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 0, 0);
-    tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-}
-
-/// Sub-state handler: slides the model's root toward `field_70` in x/z,
-/// accelerating with `field_42A`; after 90 frames it also eases y in and marks
-/// `field_438`. Within 800 units it advances `field_422`; if the enemy's HP is
-/// gone instead, it queues the follow-up animation (or clears `field_438` when
-/// state 4 is pending). The animation to follow comes from
-/// `Actor04400_D10828`.
-static void Actor04400_Fn05A40(Task* arg0)
-{
-    TmdObject*       obj;
-    Actor104400Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    GfxCoord*        c;
-    VECTOR           d;
-    SVECTOR          dir;
-    VECTOR           sq;
-    VECTOR*          out;
-    s16              angle;
-    s16              next;
-
-    obj   = arg0->extra.tmd;
-    work  = (Actor104400Work*)arg0->work;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    coord = obj->coords;
-    work->field_412++;
-    work->field_428++;
-    work->field_42A += work->field_428;
-    if ((s16)work->field_412 < 0x5A) {
-        s32 step = work->field_42A >> 6;
-
-        c      = arg0->extra.tmd->coords;
-        dir.vx = work->field_70.vx - c->coord.t[0];
-        dir.vy = 0;
-        dir.vz = work->field_70.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        angle                                 = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    } else {
-        s32 step;
-
-        work->field_438 = 1;
-        step            = work->field_42A >> 5;
-        c               = arg0->extra.tmd->coords;
-        dir.vx          = work->field_70.vx - c->coord.t[0];
-        dir.vy          = 0;
-        dir.vz          = work->field_70.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        angle                                 = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        coord->coord.t[1]                    += (work->field_70.vy - coord->coord.t[1]) >> 4;
-    }
-    d.vx = coord->coord.t[0] - work->field_70.vx;
-    d.vy = coord->coord.t[1] - work->field_70.vy;
-    d.vz = coord->coord.t[2] - work->field_70.vz;
-    out  = &sq;
-    gte_ldlvl(&d);
-    gte_sqr0();
-    gte_stlvnl(out);
-    if (SquareRoot0(sq.vx + sq.vy + sq.vz) < 800) {
-        work->field_422++;
-        return;
-    }
-    if (enemy->hp <= 0) {
-        SndEvt_EnqueueType7(0x402C0002, 1);
-        if (work->field_448 != 4) {
-            work->field_438 = 1;
-            if (work->field_418 == 8) {
-                if (work->field_440 == 0) {
-                    Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-                    w->field_426 = 4;
-                    w->field_41C = 0x10;
-                    w->field_418 = 5;
-                    w->field_414 = 1;
-                } else {
-                    Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-                    w->field_426 = 4;
-                    w->field_41C = 0x10;
-                    w->field_418 = 6;
-                    w->field_414 = 1;
-                }
-            } else {
-                Actor104400Work* w;
-
-                next         = Actor04400_D10828[work->field_418 - 1];
-                w            = (Actor104400Work*)arg0->work;
-                w->field_426 = 4;
-                w->field_41C = 0x10;
-                w->field_418 = next;
-                w->field_414 = 1;
-            }
-        } else {
-            work->field_438 = 0;
-        }
-    }
-}
+#include "../../shared/mad_chaser_pulled_limp.inc.c"
 
 /// The per-frame callback the actor's AI states are dispatched from: state 0
 /// counts `field_442` up, runs the handler `field_420` selects from
@@ -3506,11 +1641,11 @@ static void Actor04400_Fn05DE0(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
-                Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
-                Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
@@ -3540,59 +1675,17 @@ static void Actor04400_Fn05FC8(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor04400_UpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
-                Actor04400_Fn00220(arg0, 2, 6, 0xC8, 0, 0xFF);
-                Actor04400_Fn00220(arg0, 1, 7, 0x80, 0, 0xFF);
-                Actor04400_Fn00220(arg0, 7, 8, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }
 }
 
-/// Queues CD command 0x21 once, guarded by `gSceneCombatState.enemySoundBankQueued`: the first parameter
-/// block selects 2 or 3 when session `field_7` is 4, `field_6` is 0x27 or 0x28
-/// and `field_9` is 1 or 2 respectively, and 1 otherwise.
-static void Actor04400_Fn061B4(void)
-{
-    u8 param1[8];
-    u8 param2[8];
-
-    if (gSceneCombatState.enemySoundBankQueued == 0) {
-        /* Each branch makes its own call; jump2's cross-jumping merges the
-         * identical tails after sched2, which is why the argument setup is
-         * duplicated per branch in the target. */
-        if (gGameSession->location.loc.stage == 4 && (u32)(gGameSession->location.loc.area - 0x27) < 2 && gGameSession->location.loc.variant == 1) {
-            param1[2] = 0xA;
-            param1[0] = 2;
-            param1[3] = 0;
-            param2[0] = 0x2C;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
-        } else if (gGameSession->location.loc.stage == 4 && (u32)(gGameSession->location.loc.area - 0x27) < 2 && gGameSession->location.loc.variant == 2) {
-            param1[2] = 0xA;
-            param1[0] = 3;
-            param1[3] = 0;
-            param2[0] = 0x2C;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
-        } else {
-            param1[2] = 0xA;
-            param1[0] = 1;
-            param1[3] = 0;
-            param2[0] = 0x2C;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            CdCmd_Enqueue(0x21, param1, param2);
-        }
-        gSceneCombatState.enemySoundBankQueued = 1;
-    }
-}
+#include "../../shared/mad_chaser_sound_bank.inc.c"
 
 /// Walks the death sequence's two-state handler table on the work block's
 /// state index.
@@ -3600,8 +1693,8 @@ static void Actor04400_Fn062D4(Task* arg0)
 {
     Actor104400Work* work                = (Actor104400Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        Actor04400_Fn08718,
-        Actor04400_Fn087E0,
+        madChaserVanish,
+        madChaserVanishFree,
     };
 
     states[(s16)work->field_420](arg0);
@@ -3609,38 +1702,24 @@ static void Actor04400_Fn062D4(Task* arg0)
 
 /// Once bit 7 of `gSceneCombatState.madChaserAlertOwner` is set, puts the task in state 3 with
 /// its state machine at state 5 and returns 1; otherwise returns 0.
-static s16 Actor04400_Fn06328(Task* arg0)
+s16 madChaserJoinAlert(Task* arg0)
 {
     if ((s8)gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED) {
-        Actor04400_SetTaskState(arg0, 3);
-        Actor04400_SetWorkState(arg0, 5);
+        madChaserEnterState(arg0, 3);
+        madChaserSetStateS16(arg0, 5);
         return 1;
     }
     return 0;
 }
 
-/// Claims or releases this actor's spawn place in `gSceneCombatState.madChaserAlertOwner`:
-/// `arg1` non-zero sets bit 7 from the place id in bits 12+ of the spawn
-/// descriptor (unless the place is already claimed), and `arg1` zero clears the
-/// byte when its low nibble still matches that place. Spawn paths pass 1,
-/// despawn paths pass 0; `Actor04400_Fn06328` reads bit 7 back.
-static void Actor04400_Fn06374(Task* arg0, s32 arg1)
-{
-    if ((arg1 << 0x10) != 0) {
-        if (!((s8)gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED)) {
-            gSceneCombatState.madChaserAlertOwner = (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) | SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED;
-        }
-    } else if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.madChaserAlertOwner = 0;
-    }
-}
+#include "../../shared/mad_chaser_alert_hold.inc.c"
 
 /// While `field_41E` is 1, consumes the pending request in `field_448`:
 /// requests 1..5 jump the state machine to states 6, 7, 8, 7 and 9 at
 /// sub-state 0, anything else is just cleared. Returns 1 when `field_41E` is 1
 /// and 0 otherwise. Each case reloads the work block through its own local;
 /// one shared local lands in `$a0` instead of `$v1`.
-static s32 Actor04400_Fn063E4(Task* arg0)
+s32 madChaserTakeHitRequest(Task* arg0)
 {
     Actor104400Work* work = (Actor104400Work*)arg0->work;
 
@@ -3727,13 +1806,13 @@ void Actor04400_Fn064EC(Task* task, s16 part, VECTOR3* pos)
 #include "../../shared/mad_chaser_pin_part.inc.c"
 
 /// Scales `value` by the animation speed `field_41C`, in 1/16 units.
-static s32 Actor04400_Fn065F4(Task* arg0, s16 value)
+s32 madChaserScaleBySpeed(Task* arg0, s16 value)
 {
     return (s32)((((Actor104400Work*)arg0->work)->field_41C * value) << 0xC) >> 0x10;
 }
 
 /// Whether slot 1 reports a reached boundary, control jump, or held boundary pose.
-static s16 Actor04400_Fn06618(Task* arg0)
+s16 madChaserAnimEnded(Task* arg0)
 {
     Actor104400Work* work = (Actor104400Work*)arg0->work;
 
@@ -3769,35 +1848,13 @@ static void Actor04400_Fn0674C(Task* arg0)
     Actor104400Work* work                = (Actor104400Work*)arg0->work;
     void             (*states[2])(Task*) = {
         Actor04400_Fn07968,
-        Actor04400_Fn07984,
+        madChaserDespawn,
     };
 
     states[(s16)work->field_420](arg0);
 }
 
-/// Turns the heading `field_7A` by `step` towards the target offset
-/// (`field_88`, `field_8C`) when it is more than 0x100 off.
-static void Actor04400_Fn067A0(Task* arg0, s32 step)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-    SVECTOR          vec;
-    s32              diff;
-    u16              angle;
-    s32              yaw;
-
-    vec.vx = work->field_88;
-    vec.vy = 0;
-    vec.vz = work->field_8C;
-    VectorNormalSS(&vec, &vec);
-    yaw   = ratan2(-vec.vx, -vec.vz);
-    angle = work->field_7A;
-    diff  = ((angle - yaw) << 20) >> 20;
-    if (diff > 0x100) {
-        work->field_7A = angle - step;
-    } else if (diff < -0x100) {
-        work->field_7A = angle + step;
-    }
-}
+#include "../../shared/mad_chaser_turn_to_player.inc.c"
 
 static void Actor04400_Fn06834(Task* arg0)
 {
@@ -3824,7 +1881,7 @@ static void Actor04400_Fn0685C(Task* arg0)
 }
 
 /// Copies this overlay's `Actor04400_D0007C` dispatcher table onto the stack and
-/// lets the pending-request handler `Actor04400_Fn063E4` consume the request
+/// lets the pending-request handler `madChaserTakeHitRequest` consume the request
 /// first: the table entry `field_422` selects runs only when nothing was
 /// consumed.
 static void Actor04400_Fn06870(Task* arg0)
@@ -3834,7 +1891,7 @@ static void Actor04400_Fn06870(Task* arg0)
 
     work = (Actor104400Work*)arg0->work;
     sp   = Actor04400_D0007C;
-    if ((s16)Actor04400_Fn063E4(arg0) == 0) {
+    if ((s16)madChaserTakeHitRequest(arg0) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
@@ -3864,14 +1921,14 @@ static void Actor04400_Fn06964(Task* arg0)
 }
 
 /// Dispatches through a two-entry table built on the stack: entry 0 applies the
-/// encounter's animation (`Actor04400_Fn07A38`, which then advances `field_422`
+/// encounter's animation (`madChaserRecoilLight`, which then advances `field_422`
 /// itself), entry 1 runs the handler that answers a pending request or a hit
 /// (`Actor04400_Fn03390`), chosen by the sub-state index `field_422`.
 static void Actor04400_Fn069D0(Task* arg0)
 {
     Actor104400Work* work                = (Actor104400Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        Actor04400_Fn07A38,
+        madChaserRecoilLight,
         Actor04400_Fn03390,
     };
 
@@ -3879,15 +1936,15 @@ static void Actor04400_Fn069D0(Task* arg0)
 }
 
 /// Dispatches through a two-entry table built on the stack: entry 0 applies the
-/// animation the encounter asked for (`Actor04400_Fn07B4C`), entry 1 finishes
-/// the encounter (`Actor04400_Fn07C60`), chosen by the sub-state index
+/// animation the encounter asked for (`madChaserRecoilHeavy`), entry 1 finishes
+/// the encounter (`madChaserRecoilHeavyEnd`), chosen by the sub-state index
 /// `field_422`.
 static void Actor04400_Fn06A24(Task* arg0)
 {
     Actor104400Work* work                = (Actor104400Work*)arg0->work;
     void             (*states[2])(Task*) = {
-        Actor04400_Fn07B4C,
-        Actor04400_Fn07C60,
+        madChaserRecoilHeavy,
+        madChaserRecoilHeavyEnd,
     };
 
     states[(s16)work->field_422](arg0);
@@ -3895,13 +1952,13 @@ static void Actor04400_Fn06A24(Task* arg0)
 
 /// Dispatches through a two-entry table built on the stack: entry 0 advances the
 /// animation sub-state (`Actor04400_Fn06BC4`), entry 1 runs the pending-request
-/// handler (`Actor04400_Fn06BF8`), chosen by the sub-state index `field_422`.
+/// handler (`madChaserStatusHold`), chosen by the sub-state index `field_422`.
 static void Actor04400_Fn06A78(Task* arg0)
 {
     Actor104400Work* work                = (Actor104400Work*)arg0->work;
     void             (*states[2])(Task*) = {
         Actor04400_Fn06BC4,
-        Actor04400_Fn06BF8,
+        madChaserStatusHold,
     };
 
     states[(s16)work->field_422](arg0);
@@ -3916,7 +1973,7 @@ static void Actor04400_Fn06ACC(Task* arg0)
     sp   = Actor04400_D00070;
     sp.funcs[(s16)work->field_422](arg0);
     if (work->field_44F == 1) {
-        Actor04400_Fn08DBC(arg0);
+        madChaserTakeKnockdownRequest(arg0);
     }
 }
 
@@ -3944,169 +2001,21 @@ static void Actor04400_Fn06BC4(Task* arg0)
     work->field_422 = work->field_422 + 1;
 }
 
-static void Actor04400_Fn06BF8(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
+#include "../../shared/mad_chaser_status_hold.inc.c"
 
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        work            = (Actor104400Work*)arg0->work;
-        work->field_426 = 4;
-        work->field_41C = 0x10;
-        work->field_418 = 0xB;
-        work->field_414 = 1;
-    }
-    if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_420 = 3;
-        work2->field_422 = 0;
-    }
-}
+#include "../../shared/mad_chaser_knockdown_start.inc.c"
 
-static void Actor04400_Fn06C70(Task* arg0)
-{
-    Actor104400Work* work;
+#include "../../shared/mad_chaser_knockdown_rise.inc.c"
 
-    work            = (Actor104400Work*)arg0->work;
-    work->field_44F = Actor04400_D10814[work->field_418 - 1];
-    if (work->field_44F == 1) {
-        Actor104400Work* w = (Actor104400Work*)arg0->work;
+#include "../../shared/mad_chaser_knockdown_end.inc.c"
 
-        w->field_426 = 6;
-        w->field_41C = 0x10;
-        w->field_418 = 6;
-        w->field_414 = 1;
-    } else {
-        Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-        w->field_426 = 6;
-        w->field_41C = 0x10;
-        w->field_418 = 5;
-        w->field_414 = 1;
-    }
-    work->field_422++;
-}
-
-static void Actor04400_Fn06CF0(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* slow;
-    Actor104400Work* fast;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        if (work->field_44F == 1) {
-            fast            = (Actor104400Work*)arg0->work;
-            fast->field_426 = 0x32;
-            fast->field_41C = 0x10;
-            fast->field_418 = 7;
-            fast->field_414 = 1;
-        } else {
-            slow            = (Actor104400Work*)arg0->work;
-            slow->field_426 = 0x1E;
-            slow->field_41C = 0x10;
-            slow->field_418 = 1;
-            slow->field_414 = 1;
-        }
-        work->field_422 = work->field_422 + 1;
-    }
-}
-
-static void Actor04400_Fn06D90(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-
-    if (Actor04400_Fn06618(arg0)) {
-        if (work->field_44F == 1) {
-            Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-            w->field_420 = 3;
-            w->field_422 = 0;
-        } else {
-            Actor104400Work* w = (Actor104400Work*)arg0->work;
-
-            w->field_420 = 5;
-            w->field_422 = 0;
-        }
-    }
-}
-
-static void Actor04400_Fn06DFC(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-    s16              angle;
-    s16              speed;
-
-    Actor04400_Fn067A0(arg0, 0x10);
-    speed                                 = Actor04400_Fn065F4(arg0, -0x10);
-    angle                                 = work->field_7A;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        Actor104400Work* next = (Actor104400Work*)arg0->work;
-
-        next->field_420 = 4;
-        next->field_422 = 0;
-    }
-}
+#include "../../shared/mad_chaser_walk_finish.inc.c"
 
 #include "../../shared/mad_chaser_start_leap.inc.c"
 
-/// Counts `field_412` up, clearing the death flag `field_438` on the way. On
-/// frame 1 it plays the enemy's hit sound at the model's pan and depth, with
-/// the id's high half taken from `Enemy::placeKey`. Then, when
-/// `Actor04400_Fn06618` accepts the frame, draws `field_44A` as 0x5A..0xD9 from
-/// `gRandomLcgState` and enters state 3.
-static void Actor04400_Fn06F50(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              soundId;
-    s32              pan;
-    u32              rand;
+#include "../../shared/mad_chaser_leap_land.inc.c"
 
-    work            = (Actor104400Work*)arg0->work;
-    work->field_438 = 0;
-    if ((s16)++work->field_412 == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0004;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        rand             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState  = rand;
-        work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_420 = 3;
-        work2->field_422 = 0;
-    }
-}
-
-/// Requests animation 9 (kind 1, speed 0x10, `field_426` 4), clears the frame
-/// counter, advances the sub-state and, while the enemy has HP, plays sound
-/// 0x402C0002 at its pan and depth.
-static void Actor04400_Fn07050(Task* arg0)
-{
-    Actor104400Work* work;
-    Enemy*           enemy;
-    s32              soundId;
-    s32              pan;
-
-    work            = (Actor104400Work*)arg0->work;
-    enemy           = (Enemy*)arg0->spawnArg2.pointer;
-    work->field_426 = 4;
-    work->field_41C = 0x10;
-    work->field_418 = 9;
-    work->field_414 = 1;
-    work->field_412 = 0;
-    work->field_422++;
-    if (enemy->hp > 0) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-}
+#include "../../shared/mad_chaser_alert_cry.inc.c"
 
 static void Actor04400_Fn0710C(Task* arg0)
 {
@@ -4121,77 +2030,17 @@ static void Actor04400_Fn0710C(Task* arg0)
     }
 }
 
-static void Actor04400_Fn0714C(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
+#include "../../shared/mad_chaser_alert_release.inc.c"
 
-    work = (Actor104400Work*)arg0->work;
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        Actor04400_Fn06374(arg0, 0);
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xF;
-        work2->field_414 = 1;
-        work->field_422  = work->field_422 + 1;
-    }
-}
+#include "../../shared/mad_chaser_alert_crouch.inc.c"
 
-static void Actor04400_Fn071C8(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        work->field_438  = 1;
-        work->field_412  = 0;
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 4;
-        work2->field_41C = 0x10;
-        work2->field_418 = 4;
-        work2->field_414 = 1;
-        work->field_422  = work->field_422 + 1;
-    }
-}
-
-/// Frames 0x1D..0x29 of the state: each frame `Actor04400_Fn065F4` gives the
-/// step speed, which pushes the model's root coordinate along `field_7A` +
-/// 0x400 with `rsin`/`rcos` and clears the root flag. On the frame
-/// `Actor04400_Fn06618` accepts, clears the death flag `field_438` and enters
-/// state 3.
-static void Actor04400_Fn0723C(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s16              angle;
-    s16              speed;
-    u16              ticks;
-
-    work            = (Actor104400Work*)arg0->work;
-    ticks           = work->field_412;
-    work->field_412 = ticks + 1;
-    if ((u32)((ticks - 0x1D) & 0xFFFF) < 0xDU) {
-        speed                                 = Actor04400_Fn065F4(arg0, 0x1E);
-        angle                                 = work->field_7A + 0x400;
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        work->field_438  = 0;
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_420 = 3;
-        work2->field_422 = 0;
-    }
-}
+#include "../../shared/mad_chaser_alert_sidestep.inc.c"
 
 /// Dispatches this overlay's `Actor04400_D000B0` dispatcher table by the
 /// sub-state index `field_422`. Entry 2 is the fall-to-floor handler
-/// `Actor04400_Fn02008` and entry 3 the landing it triggers
-/// (`Actor04400_Fn0216C`).
-static void Actor04400_Fn07360(Task* arg0)
+/// `madChaserDangleFall` and entry 3 the landing it triggers
+/// (`madChaserDangleLand`).
+void madChaserDangleState(Task* arg0)
 {
     Actor104400Work* work;
     TaskFuncTable4   sp;
@@ -4218,159 +2067,17 @@ static void Actor04400_Fn073C8(Task* arg0)
     work->field_422  = work->field_422 + 1;
 }
 
-/// Rebuild the model root's rotation: pitch about X by a sine sway driven by
-/// `field_442`, then turn by the heading `field_7A`, and copy the 3x3 into the
-/// root coordinate. When `field_41E` is 1, latch that pitch into `field_434`,
-/// clear the flag and three motion halfwords, and advance `field_422`.
-/// The `field_442` read is signed even though the field is a `u16`, because the
-/// sway phase turns negative.
-static void Actor04400_Fn07404(Task* arg0)
-{
-    Actor104400Work* work;
-    GfxCoord*        coord;
-    OverlayMat       rot;
-    OverlayMat*      src;
-    MATRIX*          dst;
-    s16              pitch;
+#include "../../shared/mad_chaser_dangle_sway.inc.c"
 
-    work               = (Actor104400Work*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    src                = &rot;
-    src->ident.m00_m01 = 0x1000;
-    src->ident.m02_m10 = 0;
-    src->ident.m11_m12 = 0x1000;
-    src->ident.m20_m21 = 0;
-    src->ident.m22     = 0x1000;
-    pitch              = ((rsin((s16)work->field_442 << 6) * 0x10) >> 7) - 0x400;
-    RotMatrixX(pitch, &src->mat);
-    RotMatrixY(work->field_7A, &src->mat);
-    dst          = &coord->coord;
-    dst->m[0][0] = src->mat.m[0][0];
-    dst->m[0][1] = src->mat.m[0][1];
-    dst->m[0][2] = src->mat.m[0][2];
-    dst->m[1][0] = src->mat.m[1][0];
-    dst->m[1][1] = src->mat.m[1][1];
-    dst->m[1][2] = src->mat.m[1][2];
-    dst->m[2][0] = src->mat.m[2][0];
-    dst->m[2][1] = src->mat.m[2][1];
-    dst->m[2][2] = src->mat.m[2][2];
-    if (work->field_41E == 1) {
-        work->field_41E = 0;
-        work->field_432 = 0;
-        work->field_428 = 0;
-        work->field_42A = 0;
-        work->field_434 = pitch;
-        work->field_422++;
-    }
-}
+#include "../../shared/mad_chaser_death_cry.inc.c"
 
-static void Actor04400_Fn07530(Task* arg0)
-{
-    Enemy*           enemy;
-    Actor104400Work* work;
-    TmdObject*       model;
-    Actor104400Work* work2;
+#include "../../shared/mad_chaser_death_settle.inc.c"
 
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    model = arg0->extra.tmd;
-    work  = (Actor104400Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
-    Actor04400_Fn06374(arg0, 0);
-    Gp_UnlinkNode(&enemy->node);
-    if (work->field_448 == 4) {
-        work->field_412  = 0;
-        model->flags     = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_420 = 7;
-        work2->field_422 = 0;
-        return;
-    }
-    work->field_420 = work->field_420 + 1;
-}
-
-/// Releases the `gSceneCombatState` reference and requests the animation that
-/// follows the current one: after animation 8, 5 or 6 by `field_440`,
-/// otherwise the entry of `Actor04400_D10828`. Applies it at once and
-/// advances the state.
-static void Actor04400_Fn075F0(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* work3;
-    Actor104400Work* work4;
-    s16              anim;
-    s16              next;
-
-    work = (Actor104400Work*)arg0->work;
-    Gp_ReleaseStateF0Add(arg0, 0);
-    anim = work->field_418;
-    if (anim == 8) {
-        if (work->field_440 == 0) {
-            work2            = (Actor104400Work*)arg0->work;
-            work2->field_426 = 4;
-            work2->field_41C = 0x10;
-            work2->field_418 = 5;
-            work2->field_414 = 1;
-        } else {
-            work3            = (Actor104400Work*)arg0->work;
-            work3->field_426 = 4;
-            work3->field_41C = 0x10;
-            work3->field_418 = 6;
-            work3->field_414 = 1;
-        }
-    } else {
-        next             = Actor04400_D10828[anim - 1];
-        work4            = (Actor104400Work*)arg0->work;
-        work4->field_426 = 4;
-        work4->field_41C = 0x10;
-        work4->field_418 = next;
-        work4->field_414 = 1;
-    }
-    Actor04400_Fn02B8C(arg0);
-    work->field_420++;
-}
-
-static void Actor04400_Fn076D0(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              cond;
-
-    work = (Actor104400Work*)arg0->work;
-    Actor04400_Fn02B8C(arg0);
-    work2 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_420 = work->field_420 + 1;
-    }
-}
+#include "../../shared/mad_chaser_death_wait_anim.inc.c"
 
 #include "../../shared/mad_chaser_begin_death.inc.c"
 
-/// Waits 0x18 frames on `field_412`, then hides the model by setting bit 1 of
-/// `TmdObject.flags` and returns the actor to the state that follows this one.
-static void Actor04400_Fn0781C(Task* arg0)
-{
-    Actor104400Work* work;
-    TmdObject*       model;
-    u16              ticks;
-
-    work            = (Actor104400Work*)arg0->work;
-    model           = arg0->extra.tmd;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks >= 0x18) {
-        model->flags   |= TMD_OBJECT_SEMI_TRANS;
-        work->field_412 = 0;
-        work->field_451 = 1;
-        work->field_420 = work->field_420 + 1;
-    }
-}
+#include "../../shared/mad_chaser_death_translucent.inc.c"
 
 static void Actor04400_Fn07878(Task* arg0)
 {
@@ -4406,120 +2113,13 @@ static void Actor04400_Fn07968(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-static void Actor04400_Fn07984(Task* arg0)
-{
-    Actor104400Work* work;
-    u16              ticks;
+#include "../../shared/mad_chaser_despawn.inc.c"
 
-    work            = (Actor104400Work*)arg0->work;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks >= 0x24) {
-        if ((gGameSession->location.loc.stage == 4) && ((u32)(gGameSession->location.loc.area - 0x27) < 2U) && (gGameSession->location.loc.variant == 1)) {
-            Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 1, 0);
-        }
-        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
-    }
-}
+#include "../../shared/mad_chaser_recoil_light.inc.c"
 
-/// Same body as `Actor04400_Fn07B4C` up to the two animation requests it
-/// writes: this one asks for animation 0xB at speed 8 when the value overlapped
-/// onto `field_44F` is 1, and animation 0x11 otherwise. Plays the same
-/// encounter sound at the enemy's pan and depth and counts the sub-state up.
-static void Actor04400_Fn07A38(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* work3;
-    s32              soundId;
-    s32              pan;
-    u8               kind;
+#include "../../shared/mad_chaser_recoil_heavy.inc.c"
 
-    work            = (Actor104400Work*)arg0->work;
-    kind            = Actor04400_D10814[work->field_418 - 1];
-    work->field_44F = kind;
-    if (kind == 1) {
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xB;
-        work2->field_414 = 1;
-        SndEvt_EnqueueType7(0x402C0002, 1);
-    } else {
-        work3            = (Actor104400Work*)arg0->work;
-        work3->field_426 = 8;
-        work3->field_41C = 0x10;
-        work3->field_418 = 0x11;
-        work3->field_414 = 1;
-    }
-    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0003;
-    pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    work->field_422 = (u16)(work->field_422 + 1);
-}
-
-/// Applies the animation `field_418` asks for: overlaps the values at
-/// `Actor04400_D10814[field_418 - 1]` onto `field_44F`, then requests either
-/// animation 0xC (kind 1, with sound 0x402C0002) or animation 0x11 for the
-/// enemy encountered, and plays the encounter sound at its pan and depth.
-/// Counts the sub-state up.
-static void Actor04400_Fn07B4C(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* work3;
-    s32              soundId;
-    s32              pan;
-    u8               kind;
-
-    work            = (Actor104400Work*)arg0->work;
-    kind            = Actor04400_D10814[work->field_418 - 1];
-    work->field_44F = kind;
-    if (kind == 1) {
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 2;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xC;
-        work2->field_414 = 1;
-        SndEvt_EnqueueType7(0x402C0002, 1);
-    } else {
-        work3            = (Actor104400Work*)arg0->work;
-        work3->field_426 = 8;
-        work3->field_41C = 0x10;
-        work3->field_418 = 0x11;
-        work3->field_414 = 1;
-    }
-    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0003;
-    pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    work->field_422 = (u16)(work->field_422 + 1);
-}
-
-static void Actor04400_Fn07C60(Task* arg0)
-{
-    Actor104400Work* work;
-    s32              cond;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        if (work->field_44F == 1) {
-            work            = (Actor104400Work*)arg0->work;
-            work->field_420 = 3;
-            work->field_422 = 0;
-        } else {
-            Actor04400_Fn06374(arg0, 1);
-            work            = (Actor104400Work*)arg0->work;
-            work->field_420 = 5;
-            work->field_422 = 0;
-        }
-    }
-}
+#include "../../shared/mad_chaser_recoil_heavy_end.inc.c"
 
 static void Actor04400_Fn07CF0(Task* arg0)
 {
@@ -4528,7 +2128,7 @@ static void Actor04400_Fn07CF0(Task* arg0)
 
     work = (Actor104400Work*)arg0->work;
     sp   = Actor04400_D00150;
-    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
+    if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
@@ -4540,23 +2140,12 @@ static void Actor04400_Fn07D78(Task* arg0)
 
     work = (Actor104400Work*)arg0->work;
     sp   = Actor04400_D0015C;
-    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
+    if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
         sp.funcs[(s16)work->field_422](arg0);
     }
 }
 
-static void Actor04400_Fn07E00(Task* arg0)
-{
-    Actor104400Work* work                = (Actor104400Work*)arg0->work;
-    void             (*states[2])(Task*) = {
-        Actor04400_Fn08208,
-        Actor04400_Fn0823C,
-    };
-
-    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
-        states[(s16)work->field_422](arg0);
-    }
-}
+#include "../../shared/mad_chaser_lurk_rise_state.inc.c"
 
 static void Actor04400_Fn07E74(Task* arg0)
 {
@@ -4565,7 +2154,7 @@ static void Actor04400_Fn07E74(Task* arg0)
 
     work = (Actor104400Work*)arg0->work;
     sp   = Actor04400_D00168;
-    if ((Actor04400_Fn06328(arg0) << 0x10) != 0) {
+    if ((madChaserJoinAlert(arg0) << 0x10) != 0) {
         work->field_438 = 0;
         return;
     }
@@ -4584,114 +2173,17 @@ static void Actor04400_Fn07F04(Task* arg0)
 
 #include "../../shared/mad_chaser_start_hold.inc.c"
 
-/// Counts `field_412` against the hold `field_446`; once it runs out, enters
-/// state 4 or 1 at random. Before that, a target under 0xDAC away enters
-/// state 3, and one under 0x1388 away advances the sub-state.
-static void Actor04400_Fn07FD0(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-    s16              dist;
+#include "../../shared/mad_chaser_lurk_wait.inc.c"
 
-    if (work->field_446 < (s16)work->field_412++) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
-            Actor104400Work* w = (Actor104400Work*)arg0->work;
+#include "../../shared/mad_chaser_lurk_idle_end.inc.c"
 
-            w->field_420 = 4;
-            w->field_422 = 0;
-        } else {
-            Actor104400Work* w = (Actor104400Work*)arg0->work;
+#include "../../shared/mad_chaser_lurk_crouch.inc.c"
 
-            w->field_420 = 1;
-            w->field_422 = 0;
-        }
-        return;
-    }
-    dist = work->field_43A;
-    if (dist < 0xDAC) {
-        Actor104400Work* next = (Actor104400Work*)arg0->work;
-
-        next->field_420 = 3;
-        next->field_422 = 0;
-        return;
-    }
-    if (dist < 0x1388) {
-        work->field_422++;
-    }
-}
-
-static void Actor04400_Fn08094(Task* arg0)
-{
-    Actor104400Work* work;
-    s32              cond;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work            = (Actor104400Work*)arg0->work;
-        work->field_420 = 1;
-        work->field_422 = 0;
-    }
-}
-
-static void Actor04400_Fn080E8(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              cond;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xD;
-        work2->field_414 = 1;
-        work->field_422++;
-    }
-}
-
-static void Actor04400_Fn08160(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              cond;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 4;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xE;
-        work2->field_414 = 1;
-        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->field_412  = 0;
-        work->field_42C  = 0;
-        work->field_446  = (s16)(((gRandomLcgState >> 16) & 0x3F) + 0xB0);
-        work->field_422++;
-    }
-}
+#include "../../shared/mad_chaser_lurk_raise.inc.c"
 
 /// Requests animation 0xF (kind 1, speed 0x10, `field_426` 4) and advances
 /// the sub-state.
-static void Actor04400_Fn08208(Task* arg0)
+void madChaserLurkRiseStart(Task* arg0)
 {
     Actor104400Work* work = (Actor104400Work*)arg0->work;
 
@@ -4702,305 +2194,32 @@ static void Actor04400_Fn08208(Task* arg0)
     work->field_422 = work->field_422 + 1;
 }
 
-static void Actor04400_Fn0823C(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              cond;
-
-    work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_420 = 0;
-        work2->field_422 = 0;
-    }
-}
+#include "../../shared/mad_chaser_lurk_rise_end.inc.c"
 
 #include "../../shared/mad_chaser_start_alert.inc.c"
 
-static void Actor04400_Fn082E0(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              cond;
+#include "../../shared/mad_chaser_lurk_brace.inc.c"
 
-    work = (Actor104400Work*)arg0->work;
-    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_412  = 0;
-        work->field_438  = 1;
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 4;
-        work2->field_41C = 0x10;
-        work2->field_418 = 4;
-        work2->field_414 = 1;
-        work->field_422++;
-    }
-}
+#include "../../shared/mad_chaser_lurk_shift_start.inc.c"
 
-static void Actor04400_Fn08358(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
+#include "../../shared/mad_chaser_lurk_shift_brace.inc.c"
 
-    work = (Actor104400Work*)arg0->work;
-    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
-        work2            = (Actor104400Work*)arg0->work;
-        work2->field_426 = 8;
-        work2->field_41C = 0x10;
-        work2->field_418 = 0xF;
-        work2->field_414 = 1;
-        work->field_422  = work->field_422 + 1;
-    }
-}
+#include "../../shared/mad_chaser_pull_start.inc.c"
 
-/// Unless `Actor04400_Fn06328` claims the frame, a boundary or control jump
-/// reported by slot 1 in `flags_EC` clears the frame counter, sets `field_438`,
-/// requests animation 4 (kind 1, speed 0x10, `field_426` 4) and advances the
-/// sub-state.
-static void Actor04400_Fn083CC(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    Actor104400Work* work3;
-    s32              cond;
+#include "../../shared/mad_chaser_pull_react.inc.c"
 
-    work = (Actor104400Work*)arg0->work;
-    if ((Actor04400_Fn06328(arg0) << 0x10) == 0) {
-        work2 = (Actor104400Work*)arg0->work;
-        if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
-            work->field_412  = 0;
-            work->field_438  = 1;
-            work3            = (Actor104400Work*)arg0->work;
-            work3->field_426 = 4;
-            work3->field_41C = 0x10;
-            work3->field_418 = 4;
-            work3->field_414 = 1;
-            work->field_422  = work->field_422 + 1;
-        }
-    }
-}
+#include "../../shared/mad_chaser_vanish.inc.c"
 
-/// Resets the actor's slide state, then re-derives `field_70` as the view-space
-/// position of slot 4 entry 0's `coords[3]`: zeroes it and walks up the `parent`
-/// chain from that joint towards `&gGfxViewCoord`, transforming the point
-/// through each coord's rotation and translation with the GTE and writing the
-/// result into `field_70` on arrival. Snapshots the root coord's translation
-/// into `field_90`..`field_94`, clears `field_412` and the `field_428` /
-/// `field_42A` slide accumulators, plays the encounter sound 0x402C0002 and
-/// counts the sub-state up.
-static void Actor04400_Fn0847C(Task* arg0)
-{
-    Actor104400Work* work;
-    GfxCoord*        coords;
-    GfxCoord*        current;
-    SVECTOR*         pos;
-    SVECTOR          local;
-    VECTOR           result;
-    s32              flag;
+#include "../../shared/mad_chaser_vanish_free.inc.c"
 
-    work   = (Actor104400Work*)arg0->work;
-    coords = arg0->extra.tmd->coords;
-    SndEvt_EnqueueType7(0x402C0002, 1);
-    work->field_90  = coords->coord.t[0];
-    work->field_92  = coords->coord.t[1];
-    work->field_94  = coords->coord.t[2];
-    work->field_412 = 0;
-    work->field_428 = 0;
-    work->field_42A = 0;
-    work->field_422++;
-    pos     = &work->field_70;
-    pos->vx = pos->vy = pos->vz = 0;
-    current                     = &Gp_LookupSlot4(0)->extra.tmd->coords[3];
-    local.vx                    = pos->vx;
-    local.vy                    = pos->vy;
-    local.vz                    = pos->vz;
-    while (1) {
-        if (current->parent == NULL) {
-            return;
-        }
-        if (current == &gGfxViewCoord) {
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            return;
-        }
-        gte_SetTransMatrix(&current->coord);
-        gte_SetRotMatrix(&current->coord);
-        gte_ldv0(&local);
-        gte_rtv0tr();
-        gte_stlvnl(&result);
-        gte_stflg(&flag);
-        local.vx = result.vx;
-        local.vy = result.vy;
-        local.vz = result.vz;
-        current  = current->parent;
-    }
-}
+#include "../../shared/mad_chaser_death_cry_unlink.inc.c"
 
-/// When `Actor04400_D10814[field_418 - 1]` is 0, requests animation
-/// 9 with `field_426` 4 and plays the encounter sound 0x402C0002 at the
-/// enemy's pan and depth, then sets the sub-state to 4. Otherwise requests
-/// animation 7 with `field_426` 8, folds `field_41C * 4` onto `field_44F` and
-/// counts the sub-state up.
-static void Actor04400_Fn08610(Task* arg0)
-{
-    Actor104400Work* work;
-    s32              soundId;
-    s32              pan;
+#include "../../shared/mad_chaser_death_settle_quiet.inc.c"
 
-    work = (Actor104400Work*)arg0->work;
-    if (Actor04400_D10814[work->field_418 - 1] == 0) {
-        work->field_426 = 4;
-        work->field_41C = 0x10;
-        work->field_418 = 9;
-        work->field_414 = 1;
-        soundId         = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002;
-        pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work->field_422 = 4;
-        return;
-    }
-    work->field_426 = 8;
-    work->field_41C = 0x10;
-    work->field_418 = 7;
-    work->field_414 = 1;
-    work->field_44F = (u8)work->field_41C * 4;
-    work->field_422++;
-}
-
-static void Actor04400_Fn08718(Task* arg0)
-{
-    Actor104400Work* work2;
-    Actor104400Work* work;
-    Enemy*           enemy;
-    TmdObject*       model;
-
-    work            = (Actor104400Work*)arg0->work;
-    enemy           = (Enemy*)arg0->spawnArg2.pointer;
-    model           = arg0->extra.tmd;
-    work->field_412 = 0;
-    SndEvt_EnqueueType7(0x402C0002, 1);
-    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.madChaserAlertOwner = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
-    enemy->recs = 0;
-    work2       = (Actor104400Work*)arg0->work;
-    Gp_UnlinkObj(&work2->obj_2AC);
-    Gp_UnlinkObj(&work2->obj_2CC);
-    Gp_UnlinkObj(&work2->obj_3AC);
-    model->flags    = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->field_420 = work->field_420 + 1;
-}
-
-static void Actor04400_Fn087E0(Task* arg0)
-{
-    Actor104400Work* work;
-    TmdObject*       model;
-    u16              ticks;
-
-    work            = (Actor104400Work*)arg0->work;
-    model           = arg0->extra.tmd;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks == 3) {
-        Tmd_FreeBuffers(model);
-        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    if ((s16)work->field_412 >= 0x24) {
-        Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
-    }
-}
-
-/// First step of the despawn: queues sound 0x402C0002, releases the spawn
-/// place claimed in `gSceneCombatState.madChaserAlertOwner`, unlinks the enemy node and
-/// advances the state.
-static void Actor04400_Fn08870(Task* arg0)
-{
-    Actor104400Work* work;
-    Enemy*           enemy;
-
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (Actor104400Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
-    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.madChaserAlertOwner = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
-    work->field_420 = work->field_420 + 1;
-}
-
-/// Requests the animation that follows the current one: after animation 8,
-/// 5 or 6 by `field_440`, otherwise the entry of `Actor04400_D10828`. Applies
-/// it at once and advances the state.
-static void Actor04400_Fn08908(Task* arg0)
-{
-    Actor104400Work* work;
-    s16              anim;
-    s16              next;
-
-    work = (Actor104400Work*)arg0->work;
-    anim = work->field_418;
-    if (anim == 8) {
-        if (work->field_440 == 0) {
-            work->field_426 = 4;
-            work->field_41C = 0x10;
-            work->field_418 = 5;
-            work->field_414 = 1;
-        } else {
-            work->field_426 = 4;
-            work->field_41C = 0x10;
-            work->field_418 = 6;
-            work->field_414 = 1;
-        }
-    } else {
-        next            = Actor04400_D10828[anim - 1];
-        work->field_426 = 4;
-        work->field_41C = 0x10;
-        work->field_418 = next;
-        work->field_414 = 1;
-    }
-    Actor04400_Fn02B8C(arg0);
-    work->field_420++;
-}
-
-static void Actor04400_Fn089C0(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s32              cond;
-
-    work = (Actor104400Work*)arg0->work;
-    Actor04400_Fn02B8C(arg0);
-    work2 = (Actor104400Work*)arg0->work;
-    if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->field_420 = work->field_420 + 1;
-    }
-}
+/// A further copy, under this file's own name.
+#define madChaserDeathWaitAnim Actor04400_Fn089C0
+#include "../../shared/mad_chaser_death_wait_anim.inc.c"
+#undef madChaserDeathWaitAnim
 
 #include "../../shared/mad_chaser_drop_bodies.inc.c"
 
@@ -5008,82 +2227,19 @@ static void Actor04400_Fn08A9C(Task* arg0)
 {
 }
 
-/// Same body as `Actor04400_Fn08870`.
-static void Actor04400_Fn08AA4(Task* arg0)
-{
-    Actor104400Work* work;
-    Enemy*           enemy;
-
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (Actor104400Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
-    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
-        gSceneCombatState.madChaserAlertOwner = 0;
-    }
-    Gp_UnlinkNode(&enemy->node);
-    work->field_420 = work->field_420 + 1;
-}
+/// A further copy, under this file's own name.
+#define madChaserDeathCryUnlink Actor04400_Fn08AA4
+#include "../../shared/mad_chaser_death_cry_unlink.inc.c"
+#undef madChaserDeathCryUnlink
 
 #include "../../shared/mad_chaser_begin_shrink.inc.c"
 
-/// Waits 0x18 frames on `field_412`, then hides the model by setting bit 1 of
-/// `TmdObject.flags`. Body is identical to `Actor04400_Fn0781C`'s.
-static void Actor04400_Fn08C08(Task* arg0)
-{
-    Actor104400Work* work;
-    TmdObject*       model;
-    u16              ticks;
+/// A further copy, under this file's own name.
+#define madChaserDeathTurnTranslucent Actor04400_Fn08C08
+#include "../../shared/mad_chaser_death_translucent.inc.c"
+#undef madChaserDeathTurnTranslucent
 
-    work            = (Actor104400Work*)arg0->work;
-    model           = arg0->extra.tmd;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks >= 0x18) {
-        model->flags   |= TMD_OBJECT_SEMI_TRANS;
-        work->field_412 = 0;
-        work->field_451 = 1;
-        work->field_420 = work->field_420 + 1;
-    }
-}
-
-/// Squashes the model vertically by the shrinking `field_430`: the root
-/// coordinate takes `matrix_0` scaled by (1, field_430, 1) through a local
-/// identity rotation. Frame 0x10 rotates the light mode to 2; from frame 0x21
-/// the model is hidden (flag 0x80) and the state advances.
-static void Actor04400_Fn08C64(Task* arg0)
-{
-    Actor104400Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    VECTOR           scale;
-    OverlayMat       m;
-    GpMtxWords*      ident;
-
-    work             = (Actor104400Work*)arg0->work;
-    ident            = &m.ident;
-    obj              = arg0->extra.tmd;
-    coord            = obj->coords;
-    work->field_430 -= 0x40;
-    scale.vx         = 0x1000;
-    scale.vy         = (s16)work->field_430;
-    scale.vz         = 0x1000;
-    coord->coord     = work->matrix_0;
-    m.ident.m00_m01  = 0x1000;
-    m.ident.m02_m10  = 0;
-    ident->m11_m12   = 0x1000;
-    m.ident.m20_m21  = 0;
-    ident->m22       = 0x1000;
-    ScaleMatrix(&m.mat, &scale);
-    MulMatrix(&coord->coord, &m.mat);
-    if ((s16)++work->field_412 == 0x10) {
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-    }
-    if ((s16)work->field_412 >= 0x21) {
-        obj->flags      = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->field_412 = 0;
-        work->field_420 = work->field_420 + 1;
-    }
-}
+#include "../../shared/mad_chaser_shrink.inc.c"
 
 static void Actor04400_Fn08DA4(Task* arg0)
 {
@@ -5095,23 +2251,4 @@ static void Actor04400_Fn08DA4(Task* arg0)
     work->field_422 = 0;
 }
 
-static s32 Actor04400_Fn08DBC(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-
-    if (work->field_41E == 1) {
-        switch (work->field_448) {
-            case 3:
-                work->field_420 = 8;
-                work->field_422 = 0;
-                break;
-            case 5:
-                work->field_420 = 9;
-                work->field_422 = 0;
-                break;
-        }
-        work->field_448 = 0;
-        return 1;
-    }
-    return 0;
-}
+#include "../../shared/mad_chaser_take_knockdown_request.inc.c"
