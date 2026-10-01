@@ -17531,13 +17531,13 @@ layout-matching type (e.g. `FlatLight`) instead of including libgs.
 ## Scratch-head light direction: 0x18 block, SVECTOR at +0x10
 
 `SCRATCH_STACK_CURSOR_SLOT` (`(void**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`) is the address of the pointer slot for a downward-growing scratch arena.
-Helpers that call `Gfx_NormalizeLightDir` to normalize a light direction use:
+Helpers that call `gfxNormalizeLightDirection` to normalize a light direction use:
 
 ```c
 head = *scratch;
 block = (ScratchLightBlock*)((u8*)head - 0x18); /* pad[0x10] + SVECTOR */
 *scratch = block;
-Gfx_NormalizeLightDir(light, (SVECTOR*)((u8*)head - 8)); /* == &block->dir */
+gfxNormalizeLightDirection(light, (SVECTOR*)((u8*)head - 8)); /* == &block->dir */
 /* read -block->dir.{vx,vy,vz} into MATRIX row id */
 *scratch = (u8*)*scratch + 0x18;                 /* free */
 ```
@@ -19667,7 +19667,7 @@ p_min = (s32*)(head - 8);
 gte_stlzc(p_min);
 ```
 
-`Gfx_NormalizeLightDir` is the pure example (three LZC passes over a scratch VECTOR).
+`gfxNormalizeLightDirection` is the pure example (three LZC passes over a scratch VECTOR).
 
 ## Empty asm barriers: load order + dual shift registers
 
@@ -19707,7 +19707,7 @@ scratch->direction.vz = t_vz >> t_sh2;
 ```
 
 Without the first barrier, `lw a0,0x10` wins the schedule. Without the second,
-both `srav` reuse `a0`. `Gfx_NormalizeLightDir` is the pure example.
+both `srav` reuse `a0`. `gfxNormalizeLightDirection` is the pure example.
 
 ## Keep `%hi(global)` live for post-loop `lhu %lo` loads
 
@@ -31284,7 +31284,7 @@ gte_lddp(scale);
 ```
 
 The 0x1C scratch is the 0x18 light block plus `s32 scale` at +0x18.
-`Gfx_NormalizeLightDir` and `gte_stsv` take `head - 0xC`; MATRIX row/column
+`gfxNormalizeLightDirection` and `gte_stsv` take `head - 0xC`; MATRIX row/column
 stores read `block->dir` (`lhu 0x10(s0)`). Pin `block` to `$s0` so it does
 not swap with the dir-matrix pointer.
 

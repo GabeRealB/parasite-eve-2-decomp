@@ -28,7 +28,7 @@ static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirM
     ScratchLightBlock* block;
 
     block = SCRATCH_STACK_RESERVE_BLOCK(ScratchLightBlock);
-    Gfx_NormalizeLightDir((VECTOR*)light, &block->dir);
+    gfxNormalizeLightDirection(light, &block->dir);
 
     dirMtx->m[id][0] = -block->dir.vx;
     dirMtx->m[id][1] = -block->dir.vy;
@@ -86,7 +86,7 @@ void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx
     ScratchLightBlock* block;
 
     block = SCRATCH_STACK_RESERVE_BLOCK(ScratchLightBlock);
-    Gfx_NormalizeLightDir((VECTOR*)light, &block->dir);
+    gfxNormalizeLightDirection(light, &block->dir);
 
     dirMtx->m[id][0] = -block->dir.vx;
     dirMtx->m[id][1] = -block->dir.vy;

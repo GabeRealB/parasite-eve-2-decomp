@@ -1287,7 +1287,7 @@ Gfx_MatrixCol2               = 0x8003C768; // type:func
 Gfx_RotMatrixX               = 0x8003C788; // type:func
 gfxRotMatrixY               = 0x8003C98C; // type:func
 Gfx_RotMatrixZ               = 0x8003CB80; // type:func
-Gfx_NormalizeLightDir               = 0x8003CD78; // type:func
+gfxNormalizeLightDirection               = 0x8003CD78; // type:func
 Gfx_OrthonormalBasis               = 0x8003CEC4; // type:func
 Gfx_ApplyMatrixNoSf               = 0x8003D000; // type:func
 

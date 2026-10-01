@@ -67,6 +67,40 @@ static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1);
 
 /* 0x44 */
 
+/// Reduces a copied light direction so its three squared components fit in s32.
+static __inline__ void _gfxReduceLightDirection(_GfxLightDirectionScratch* scratch)
+{
+    /// Minimum leading sign-bit count for safe three-component normalization.
+    ///
+    /// The GTE count includes the sign bit. Eighteen bounds each component to
+    /// [-16384, 16383], so the squared sum is at most 805306368 and fits the
+    /// signed 32-bit additions in `VectorNormalS`. Seventeen would permit
+    /// three -32768 components, whose squared sum overflows those additions.
+    enum { GRAPHICS_NORMALIZE_MIN_SIGN_BITS = 18 };
+
+    // Find the component with the least sign-extension headroom.
+    gte_Lzc(scratch->direction.vx, &scratch->scaleBits);
+    gte_Lzc(scratch->direction.vy, &scratch->componentSignBits);
+
+    if (scratch->scaleBits > scratch->componentSignBits) {
+        scratch->scaleBits = scratch->componentSignBits;
+    }
+
+    gte_Lzc(scratch->direction.vz, &scratch->componentSignBits);
+
+    if (scratch->scaleBits > scratch->componentSignBits) {
+        scratch->scaleBits = scratch->componentSignBits;
+    }
+
+    // The count word becomes the shared arithmetic right-shift amount.
+    if (scratch->scaleBits < GRAPHICS_NORMALIZE_MIN_SIGN_BITS) {
+        scratch->scaleBits      = GRAPHICS_NORMALIZE_MIN_SIGN_BITS - scratch->scaleBits;
+        scratch->direction.vx >>= scratch->scaleBits;
+        scratch->direction.vy >>= scratch->scaleBits;
+        scratch->direction.vz >>= scratch->scaleBits;
+    }
+}
+
 void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
     ScratchRotXYZ* block;
@@ -433,44 +467,16 @@ void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag)
     SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);
 }
 
-void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
+void gfxNormalizeLightDirection(const void* direction, SVECTOR* normalizedDirection)
 {
-    /// Minimum leading sign-bit count for safe three-component normalization.
-    ///
-    /// The GTE count includes the sign bit. Eighteen bounds each component to
-    /// [-16384, 16383], so the squared sum is at most 805306368 and fits the
-    /// signed 32-bit additions in `VectorNormalS`. Seventeen would permit
-    /// three -32768 components, whose squared sum overflows those additions.
-    enum { GRAPHICS_NORMALIZE_MIN_SIGN_BITS = 18 };
-
     _GfxLightDirectionScratch* scratch;
 
-    scratch            = SCRATCH_STACK_RESERVE_BLOCK(_GfxLightDirectionScratch);
-    scratch->direction = *light;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxLightDirectionScratch);
 
-    // Find the component with the least sign-extension headroom.
-    gte_Lzc(scratch->direction.vx, &scratch->scaleBits);
-    gte_Lzc(scratch->direction.vy, &scratch->componentSignBits);
-
-    if (scratch->scaleBits > scratch->componentSignBits) {
-        scratch->scaleBits = scratch->componentSignBits;
-    }
-
-    gte_Lzc(scratch->direction.vz, &scratch->componentSignBits);
-
-    if (scratch->scaleBits > scratch->componentSignBits) {
-        scratch->scaleBits = scratch->componentSignBits;
-    }
-
-    // The count word becomes the shared arithmetic right-shift amount.
-    if (scratch->scaleBits < GRAPHICS_NORMALIZE_MIN_SIGN_BITS) {
-        scratch->scaleBits      = GRAPHICS_NORMALIZE_MIN_SIGN_BITS - scratch->scaleBits;
-        scratch->direction.vx >>= scratch->scaleBits;
-        scratch->direction.vy >>= scratch->scaleBits;
-        scratch->direction.vz >>= scratch->scaleBits;
-    }
-
-    VectorNormalS(&scratch->direction, out);
+    // The aligned span includes one unused word after the three components.
+    scratch->direction = *(const VECTOR*)direction;
+    _gfxReduceLightDirection(scratch);
+    VectorNormalS(&scratch->direction, normalizedDirection);
 
     SCRATCH_STACK_RELEASE_BLOCK(_GfxLightDirectionScratch);
 }
