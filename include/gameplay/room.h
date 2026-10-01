@@ -89,7 +89,15 @@ enum {
     /// Projectile handlers skip their blocking-surface response; grenades retain
     /// separate actor-hit, timeout and scripted detonation rules. Pushback,
     /// weapon hit effects and footstep cues have independent surface policies.
-    WORLD_COLLISION_SURFACE_PASS_PROBES           = 1,
+    WORLD_COLLISION_SURFACE_PASS_PROBES = 1,
+    /// Suppresses weapon hit effects and grenade detonation at surface contacts.
+    ///
+    /// Zero value for `WorldCollisionSurfaceProperties.weaponImpactEnabled`;
+    /// every nonzero value enables the response. Weapon hit effects skip these
+    /// contacts independently of probe passage and pushback. Grenades consult
+    /// this policy only at blocking surfaces: zero selects their exit state,
+    /// with movement and the flight-timeout check still run in that update.
+    /// Actor hits and the scripted pass-through detonation bypass this policy.
     WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS = 0,
     /// Allows weapon hit effects and grenade detonation at surface contacts.
     ///
