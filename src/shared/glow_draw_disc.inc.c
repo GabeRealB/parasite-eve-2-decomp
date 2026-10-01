@@ -5,7 +5,10 @@
 /// the projected centre. `arg1` is a signed half-extent; the on-screen radius
 /// is `(s16)arg1 * 64 / otz`. `arg2` packs the centre vertex's colour, four
 /// bits per channel (R, G, B from high to low nibble), with the frame
-/// counter's low bit as a flicker; the rim is black.
+/// counter's low bit as a flicker; the rim is black. As for glowDrawCapsule,
+/// GLOW_DRAW_DISC_PULL draws a centre beyond depth 0x50 that much nearer and
+/// GLOW_DRAW_DISC_SHIFTED_FLICKER adds the frame bit shifted by the colour's
+/// top nibble.
 void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     GLOW_DRAW_DISC_SCRATCH* block;
@@ -20,6 +23,9 @@ void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
     u8                      r;
     u8                      g;
     u8                      b;
+#ifdef GLOW_DRAW_DISC_PULL
+    s32 otz;
+#endif
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GLOW_DRAW_DISC_SCRATCH);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -30,15 +36,39 @@ void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
+#ifdef GLOW_DRAW_DISC_PULL
+        otz = block->otz;
+        if (otz > 0x50) {
+            block->otz = otz - GLOW_DRAW_DISC_PULL;
+        }
+        /* this build scales the half-extent with a pair of shifts */
+        arg1 = arg1 << 16;
+        arg1 = arg1 >> 10;
+        arg1 = arg1 / block->otz;
+#else
+        arg1 = ((s16)arg1 * 64) / block->otz;
+#endif
+        ang = 0;
+#if GLOW_DRAW_DISC_SHIFTED_FLICKER
+        /* the flicker bit, shifted by the colour word's top nibble, is added
+           to each channel */
+        packed = arg2 << 16;
+        blend  = (gDisplayState.animFrame & 1) << (packed >> 28);
+#else
+        blend  = ((u8)gDisplayState.animFrame & 1) * 8;
+        packed = arg2 << 16;
+#endif
+        tr = (packed >> 20) & 0xF0;
+        tg = (packed >> 16) & 0xF0;
+#if GLOW_DRAW_DISC_SHIFTED_FLICKER
+        r = blend + tr;
+        g = blend + tg;
+        b = blend + ((arg2 & 0xF) << 4);
+#else
+        r = blend | tr;
+        g = blend | tg;
+        b = blend | ((arg2 & 0xF) << 4);
+#endif
         block->radius = arg1;
         do {
             prim           = gGpuPrimCursor;
@@ -66,3 +96,6 @@ void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
     }
     SCRATCH_STACK_RELEASE_BLOCK(GLOW_DRAW_DISC_SCRATCH);
 }
+
+#undef GLOW_DRAW_DISC_PULL
+#undef GLOW_DRAW_DISC_SHIFTED_FLICKER

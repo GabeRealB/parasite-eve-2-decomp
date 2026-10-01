@@ -65,6 +65,7 @@
 #undef EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
 
 #include "../../shared/screen_wave.h"
+#include "../../shared/glow_draw.h"
 
 #define D_shelter_b3_garbage_incinerator_8018754C (D_shelter_b3_garbage_incinerator_80187544 + 1)
 #define D_shelter_b3_garbage_incinerator_80187554 (D_shelter_b3_garbage_incinerator_80187544 + 2)
@@ -80,7 +81,6 @@ typedef struct {
     /* 0x24 */ u16  field_24;
 } GarbageIncineratorDraw;
 
-static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2);
 static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
 
@@ -1917,9 +1917,9 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
     switch (view) {
         case 0x02:
         case 0x16:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5400);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x400, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x400, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, 0x400, 0x40);
@@ -1927,12 +1927,12 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             break;
         case 0x03:
         case 0x17:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[2], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[6], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[7], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[2], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[6], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[7], 0x200, 0x5400);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x200, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x300, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[18], 0x300, 0x300, 0x40);
@@ -1946,11 +1946,11 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             break;
         case 0x04:
         case 0x18:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[0], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[1], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[2], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[6], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[7], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[0], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[1], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[2], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[6], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[7], 0x200, 0x5400);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[18], 0x300, 0x200, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[19], 0x300, 0x200, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[20], 0x300, 0x200, 0x40);
@@ -1964,12 +1964,12 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             break;
         case 0x05:
         case 0x19:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875B4[0], 0x200, 0x5100);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875B4[1], 0x200, 0x5100);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875B4[5], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875B4[6], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875B4[7], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875B4[10], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[0], 0x200, 0x5100);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[1], 0x200, 0x5100);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[5], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[6], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[7], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[10], 0x200, 0x5400);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[19], 0x300, 0x100, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[20], 0x300, 0x100, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875B4[28], 0x300, 0x100, 0x40);
@@ -1987,14 +1987,14 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         case 0x1A:
         case 0x23:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, ctx->field_24, 0x80);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[19], 0x200, 0x5100);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[19], 0x200, 0x5100);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5400);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[42], 0x300, 0x100, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[45], 0x300, 0x100, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[46], 0x300, 0x100, 0x40);
@@ -2014,13 +2014,13 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         case 0x1B:
         case 0x24:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, ctx->field_24, 0x80);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5100);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5100);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5300);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[47], 0x300, 0x100, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[48], 0x300, 0x100, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[49], 0x300, 0x200, 0x40);
@@ -2048,11 +2048,11 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             if (gGameSession->incineratorExitPhase == GAME_SESSION_INCINERATOR_EXIT_WARP) {
                 func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[3], 0x200, 0xF63, 0x10C0);
             }
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[25], 0x200, 0x5400);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[49], 0x300, 0x100, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[50], 0x300, 0x0, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187544[51], 0x300, 0x200, 0x40);
@@ -2074,11 +2074,11 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         case 0x09:
         case 0x1D:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_8018754C[0], 0x200, ctx->field_24, 0x80);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018754C[5], 0x280, 0x3040);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018754C[6], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018754C[7], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018754C[22], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018754C[25], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[5], 0x280, 0x3040);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[6], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[7], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[22], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[25], 0x200, 0x5400);
             break;
         case 0x0A:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187554[0], 0x180, 0x3F6, 0xC0);
@@ -2086,20 +2086,20 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         case 0x1E:
         case 0x26:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, ctx->field_24, 0x80);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
             break;
         case 0x0B:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187564[0], 0x280, 0x44);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187564[0], 0x280, 0x44);
             break;
         case 0x0C:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[0], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[1], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[2], 0x200, 0x5200);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[5], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[6], 0x200, 0x5100);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_801875AC[7], 0x200, 0x5100);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[0], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[1], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[2], 0x200, 0x5200);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[5], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[6], 0x200, 0x5100);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[7], 0x200, 0x5100);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[20], 0x300, 0x400, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[21], 0x300, 0x300, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_801875AC[28], 0x300, 0x400, 0x40);
@@ -2114,9 +2114,9 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             break;
         case 0x0E:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, ctx->field_24, 0x80);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, 0x5400);
             break;
         case 0x0F:
         case 0x1F:
@@ -2129,18 +2129,18 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
         case 0x10:
         case 0x20:
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, ctx->field_24, 0x80);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3333);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3333);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[20], 0x100, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[22], 0x300, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187544[25], 0x300, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, 0x3333);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, 0x3333);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x100, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x300, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[25], 0x300, 0x5400);
             break;
         case 0x11:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, 0x5300);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, 0x5400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, 0x5300);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, 0x5300);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, 0x400, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, 0x300, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, 0x400, 0x40);
@@ -2151,85 +2151,23 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
             func_shelter_b3_garbage_incinerator_801842A4(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, ctx->field_24, 0x80);
             break;
         case 0x13:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187614[0], 0x200, 0x3400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187614[0], 0x200, 0x3400);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187614[35], 0x300, 0x400, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187614[36], 0x300, 0x400, 0x40);
             break;
         case 0x15:
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187574[0], 0x280, 0x3400);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187574[1], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187574[2], 0x200, 0x3444);
-            func_shelter_b3_garbage_incinerator_80181FC4(&D_shelter_b3_garbage_incinerator_80187574[20], 0x200, 0x5400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[0], 0x280, 0x3400);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[1], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[2], 0x200, 0x3444);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[20], 0x200, 0x5400);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187574[56], 0x300, 0x400, 0x40);
             func_shelter_b3_garbage_incinerator_80183E78(&D_shelter_b3_garbage_incinerator_80187574[72], 0x300, 0x400, 0x40);
             break;
     }
 }
 
-static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2)
-{
-    u8*                head;
-    GlowCentreScratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = head - 0x10;
-    block                      = SCRATCH_STACK_CURSOR(GlowCentreScratch);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(v);
-    gte_rtps();
-    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
-    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
-        ang           = 0;
-        packed        = arg2 << 16;
-        blend         = (gDisplayState.animFrame & 1) << (packed >> 28);
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend + tr;
-        g             = blend + tg;
-        b             = blend + ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
+#define GLOW_DRAW_DISC_SHIFTED_FLICKER 1
+#include "../../shared/glow_draw_disc.inc.c"
 
 #include "../../shared/effect_sprite_drift_aimed.inc.c"
 

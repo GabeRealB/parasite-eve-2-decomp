@@ -57,7 +57,6 @@
 #define D_neo_ark_submarine_gallery_801818F8 (D_neo_ark_submarine_gallery_801818C8 + 6)
 #define D_neo_ark_submarine_gallery_80181928 (D_neo_ark_submarine_gallery_801818C8 + 12)
 
-static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* pos, s32 arg1, s32 arg2);
 static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1);
 
 // Indexed views below share one contiguous table.
@@ -953,33 +952,33 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
             glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[0], 0x200, 0x444);
             glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[2], 0x200, 0x444);
             glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[4], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_801818C8[16], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_801818C8[17], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_801818C8[18], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_801818C8[31], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[16], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[17], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[18], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[31], 0x200, 0x444);
             func_neo_ark_submarine_gallery_80180E80(coord, 0x20);
             break;
         case 3:
             glowDrawCapsule(&D_neo_ark_submarine_gallery_80181928[0], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_80181928[4], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_80181928[5], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_80181928[14], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_80181928[15], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_80181928[16], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_80181928[17], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_80181928[18], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[4], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[5], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[14], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[15], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[16], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[17], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[18], 0x200, 0x444);
             pos = &D_neo_ark_submarine_gallery_80181928[19];
-            func_neo_ark_submarine_gallery_80180AC8(pos, 0x200, 0x444);
+            glowDrawDisc(pos, 0x200, 0x444);
             break;
         case 4:
             glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[0], 0x200, 0x444);
             glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[2], 0x200, 0x444);
             glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[4], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_801818F8[18], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_801818F8[19], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180AC8(&D_neo_ark_submarine_gallery_801818F8[20], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[18], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[19], 0x200, 0x444);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[20], 0x200, 0x444);
             pos = &D_neo_ark_submarine_gallery_801818F8[21];
-            func_neo_ark_submarine_gallery_80180AC8(pos, 0x200, 0x444);
+            glowDrawDisc(pos, 0x200, 0x444);
             break;
         case 5:
             glowDrawCapsule(&D_neo_ark_submarine_gallery_801818D8[0], 0x200, 0x444);
@@ -1019,77 +1018,8 @@ void func_neo_ark_submarine_gallery_8017F710(Task* task)
 #define GLOW_DRAW_CAPSULE_PULL 0x40
 #include "../../shared/glow_draw_capsule.inc.c"
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues four gouraud `POLY_G4` wedges around
-/// the projected centre. An `otz` past 0x50 is pulled 0x40 closer before it
-/// sets the radius and the OT slot.
-static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    GlowCentreScratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    s32                otz;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        otz = block->otz;
-        if (otz > 0x50) {
-            block->otz = otz - 0x40;
-        }
-        arg1          = arg1 << 16;
-        arg1          = arg1 >> 10;
-        arg1          = arg1 / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
-}
+#define GLOW_DRAW_DISC_PULL 0x40
+#include "../../shared/glow_draw_disc.inc.c"
 
 /// Draws one prism from `D_neo_ark_submarine_gallery_801818C8[arg1..arg1 + 7]`
 /// as five `POLY_G4` quads: entries 0..3 are one ring of corners and 4..7 the
