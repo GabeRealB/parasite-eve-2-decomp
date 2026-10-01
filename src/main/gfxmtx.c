@@ -435,6 +435,12 @@ void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag)
 
 void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
 {
+    /// Minimum leading sign-bit count for safe three-component normalization.
+    ///
+    /// The GTE count includes the sign bit. Eighteen bounds each component to
+    /// [-16384, 16383], so the squared sum is at most 805306368 and fits the
+    /// signed 32-bit additions in `VectorNormalS`. Seventeen would permit
+    /// three -32768 components, whose squared sum overflows those additions.
     enum { GRAPHICS_NORMALIZE_MIN_SIGN_BITS = 18 };
 
     _GfxLightDirectionScratch* scratch;
@@ -456,7 +462,6 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
         scratch->scaleBits = scratch->componentSignBits;
     }
 
-    // Limit components to [-16384, 16383] so their squared sum fits s32.
     // The count word becomes the shared arithmetic right-shift amount.
     if (scratch->scaleBits < GRAPHICS_NORMALIZE_MIN_SIGN_BITS) {
         scratch->scaleBits      = GRAPHICS_NORMALIZE_MIN_SIGN_BITS - scratch->scaleBits;
