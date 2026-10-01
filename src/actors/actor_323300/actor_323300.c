@@ -41,6 +41,7 @@
 #include "rooms/dryfield_toilet.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/model_morph.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, the
@@ -429,7 +430,6 @@ AnimationPlayRequest D_actor_323300_80174A88[2] = {
 
 ActorTransform D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
 
-static void func_actor_323300_80162A6C(Task* arg0, ToiletMorphTarget* arg1, s32 arg2);
 static void func_actor_323300_80162BE4(Task* arg0);
 static void func_actor_323300_80162DF0(Task* arg0);
 static void func_actor_323300_80163188(GfxCoord* coord, s16 angle);
@@ -816,77 +816,7 @@ static void func_actor_323300_801627B4(Task* arg0)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// Blends `arg1`'s key vertex and normal arrays into the model parts starting at
-/// `arg1->field_14`, `arg2` being the 0..0x1000 ramp: the vertex pass runs
-/// through `gteMIMefunc` against `arg1->field_0`, the normal pass only while
-/// `arg1->field_4` is set.
-static void func_actor_323300_80162A6C(Task* arg0, ToiletMorphTarget* arg1, s32 arg2)
-{
-    s32        i;
-    s32        count;
-    s32        off;
-    TmdSource* src;
-    u16*       dst;
-    u16*       from;
-    u16*       dstMid;
-    u16*       fromMid;
-    SVECTOR*   nrm;
-    SVECTOR*   nrmA;
-    SVECTOR*   nrmB;
-    SVECTOR*   nrmDst;
-    s32        blend;
-    s32        inv;
-    u16        vx;
-    u16        vz;
-
-    i     = 0;
-    count = arg1->blendCount;
-    src   = arg0->extra.tmd->source;
-    off   = arg1->firstVertex * 8;
-    from  = (u16*)((u8*)arg1->savedVertices + off);
-    nrm   = src->normals;
-    dst   = (u16*)((u8*)src->verts + off);
-    if (count > 0) {
-        fromMid = from + 2;
-        dstMid  = dst + 2;
-        do {
-            vx         = *from;
-            from      += 4;
-            i         += 1;
-            *dst       = vx;
-            dst       += 4;
-            dstMid[-1] = fromMid[-1];
-            vz         = fromMid[0];
-            fromMid   += 4;
-            dstMid[0]  = vz;
-            dstMid    += 4;
-        } while (i < count);
-    }
-    blend = arg2;
-    inv   = 0x1000 - blend;
-    gteMIMefunc(src->verts + arg1->firstVertex, arg1->vertices, arg1->blendCount, blend);
-    nrmA = arg1->normals;
-    if (nrmA != NULL) {
-        count = arg1->normalCount;
-        nrmB  = arg1->savedNormals;
-        i     = 0;
-        if (count > 0) {
-            do {
-                gte_lddp(blend);
-                gte_ldsv(nrmA);
-                gte_gpf12();
-                nrmDst = nrm + i;
-                gte_lddp(inv);
-                gte_ldsv(nrmB);
-                gte_gpl12();
-                nrmB++;
-                i++;
-                nrmA++;
-                gte_stsv(nrmDst);
-            } while (i < count);
-        }
-    }
-}
+#include "../../shared/model_morph_blend.inc.c"
 
 static void func_actor_323300_80162BE4(Task* arg0)
 {
@@ -894,7 +824,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
     TmdObject*          extra;
     TmdSource*          src;
     GfxCoord*           coord;
-    ToiletMorphTarget*  ctl;
+    OverlayMorphTarget* ctl;
     SVECTOR*            dst;
     SVECTOR*            nrm;
     SVECTOR*            verts;
@@ -955,7 +885,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
 /// runner the model-display path calls once the block's animation has been
 /// started: it ticks the 18 slots like `func_actor_323300_80163718` does, folds
 /// `field_44C` -- the 0x3000 countdown `func_actor_323300_80162BE4` seeds, 0x40
-/// per frame -- into the 0..0xFFF ramp `func_actor_323300_80162A6C` blends the
+/// per frame -- into the 0..0xFFF ramp `modelMorphBlend` blends the
 /// model's vertices with, and republishes that ramp onto `TmdObject::shading.colorBlend`,
 /// the intensity the shading path scales its RGB by. While the countdown is
 /// still above 0x1000 the turn angle handed to `func_actor_323300_8016359C` is
@@ -997,7 +927,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
         blend = 0;
     }
 
-    func_actor_323300_80162A6C(arg0, &D_dryfield_toilet_801865D0, blend);
+    modelMorphBlend(arg0, &D_dryfield_toilet_801865D0, blend);
     extra->shading.colorBlend = blend;
 
     if (work->field_44C < 0x1000) {

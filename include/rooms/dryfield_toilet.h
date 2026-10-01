@@ -5,6 +5,7 @@
 #include <psyq/libgte.h>
 
 #include "common.h"
+#include "overlay.h"
 
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
@@ -14,21 +15,7 @@
 
 #include "main/task_types.h"
 
-// Retained morph target and snapshot buffers. The descriptor has the same
-// four-vector-pointer layout as the dilapidated-house morph controller.
-typedef struct {
-    SVECTOR* vertices;
-    SVECTOR* normals;
-    SVECTOR* savedVertices;
-    SVECTOR* savedNormals;
-    s16      vertexCount;
-    s16      normalCount;
-    s16      firstVertex;
-    s16      blendCount;
-} ToiletMorphTarget;
-STATIC_ASSERT_SIZEOF(ToiletMorphTarget, 24);
-
-extern ToiletMorphTarget D_dryfield_toilet_801865D0;
+extern OverlayMorphTarget D_dryfield_toilet_801865D0;
 
 extern GpAreaVariant D_dryfield_toilet_80182918[13];
 

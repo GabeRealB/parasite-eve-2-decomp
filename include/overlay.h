@@ -729,4 +729,22 @@ typedef struct OverlayCaptureArgs {
 } OverlayCaptureArgs;
 STATIC_ASSERT_SIZEOF(OverlayCaptureArgs, 0x4);
 
+/// A model's vertex morph: `vertices` / `normals` are the target shape
+/// (`normals` null when the model has no normal pass), `savedVertices` /
+/// `savedNormals` the snapshot of its rest shape taken at setup -
+/// `vertexCount` and `normalCount` of them - and the blend runs over
+/// `blendCount` vertices from `firstVertex`. A room declares one in its data
+/// and an actor can blend a room's (actor_323300 the Dryfield toilet's).
+typedef struct OverlayMorphTarget {
+    /* 0x00 */ SVECTOR* vertices;
+    /* 0x04 */ SVECTOR* normals;
+    /* 0x08 */ SVECTOR* savedVertices;
+    /* 0x0C */ SVECTOR* savedNormals;
+    /* 0x10 */ s16      vertexCount;
+    /* 0x12 */ s16      normalCount;
+    /* 0x14 */ s16      firstVertex;
+    /* 0x16 */ s16      blendCount;
+} OverlayMorphTarget;
+STATIC_ASSERT_SIZEOF(OverlayMorphTarget, 0x18);
+
 #endif /* OVERLAY_H */

@@ -74,6 +74,7 @@
 #include "../../shared/screen_negative.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/sprite_quad.h"
+#include "../../shared/model_morph.h"
 
 extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 
@@ -101,24 +102,6 @@ typedef struct DdhCoordWork {
     /* 0x2C */ byte   pad_2C[0x40];
 } DdhCoordWork;
 STATIC_ASSERT_SIZEOF(DdhCoordWork, 0x6C);
-
-/// Vertex-morph record for the model at `D_dryfield_dilapidated_house_8018669C`.
-/// Setup snapshots the model's vertices into `field_8` (`field_10` of them) and,
-/// when `field_4` is set, its normals into `field_C` (`field_12` of them). The
-/// morph restores that snapshot into the model from part index `field_14` and
-/// blends `field_16` vertices toward `field_0` and the normals toward
-/// `field_4`, which is null when the model has no normal pass.
-typedef struct DdhRoomRec {
-    /* 0x00 */ SVECTOR* field_0;
-    /* 0x04 */ SVECTOR* field_4;
-    /* 0x08 */ SVECTOR* field_8;
-    /* 0x0C */ SVECTOR* field_C;
-    /* 0x10 */ s16      field_10;
-    /* 0x12 */ s16      field_12;
-    /* 0x14 */ s16      field_14;
-    /* 0x16 */ s16      field_16;
-} DdhRoomRec;
-STATIC_ASSERT_SIZEOF(DdhRoomRec, 0x18);
 
 /// Work block of the handler table at `D_dryfield_dilapidated_house_8017D61C`,
 /// whose state 0 is `func_dryfield_dilapidated_house_8018118C`: allocated with
@@ -217,23 +200,22 @@ extern DryfieldDilapidatedHouseSpawnState D_dryfield_dilapidated_house_80189B80;
 extern OverlayWaveCtx D_dryfield_dilapidated_house_80189C94;
 extern TaskDesc       D_dryfield_dilapidated_house_80183E48[];
 
-extern TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[];
-extern s32              D_dryfield_dilapidated_house_80186804[16];
-extern SVECTOR          D_dryfield_dilapidated_house_80186844[2];
-extern DdhRoomRec       D_dryfield_dilapidated_house_8018669C;
-extern SVECTOR          D_dryfield_dilapidated_house_801866B4[];
-extern s8               D_dryfield_dilapidated_house_801866F4[16][4];
-extern u8               D_dryfield_dilapidated_house_80186734[24][4];
-extern SVECTOR          D_dryfield_dilapidated_house_80186794[2];
-extern SVECTOR          D_dryfield_dilapidated_house_801867A4[6];
-extern SVECTOR          D_dryfield_dilapidated_house_801867D4[6];
+extern TaskMessageEntry   D_dryfield_dilapidated_house_80183E8C[];
+extern s32                D_dryfield_dilapidated_house_80186804[16];
+extern SVECTOR            D_dryfield_dilapidated_house_80186844[2];
+extern OverlayMorphTarget D_dryfield_dilapidated_house_8018669C;
+extern SVECTOR            D_dryfield_dilapidated_house_801866B4[];
+extern s8                 D_dryfield_dilapidated_house_801866F4[16][4];
+extern u8                 D_dryfield_dilapidated_house_80186734[24][4];
+extern SVECTOR            D_dryfield_dilapidated_house_80186794[2];
+extern SVECTOR            D_dryfield_dilapidated_house_801867A4[6];
+extern SVECTOR            D_dryfield_dilapidated_house_801867D4[6];
 
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
 static void func_dryfield_dilapidated_house_8017EBB8(Task* task);
 static void func_dryfield_dilapidated_house_8017EE58(Task* task);
 static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2);
 static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3);
-static void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2);
 static void func_dryfield_dilapidated_house_80180FB8(Task* task);
 static s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
 static void func_dryfield_dilapidated_house_80181028(Task* task);
@@ -804,7 +786,7 @@ SVECTOR D_dryfield_dilapidated_house_8018659C[32] = {
     { 12, 33, 87, 0 },
 };
 
-DdhRoomRec D_dryfield_dilapidated_house_8018669C = { D_dryfield_dilapidated_house_8018659C, NULL, D_dryfield_dilapidated_house_80189CA0, NULL, 40, 0, 0, 32 };
+OverlayMorphTarget D_dryfield_dilapidated_house_8018669C = { D_dryfield_dilapidated_house_8018659C, NULL, D_dryfield_dilapidated_house_80189CA0, NULL, 40, 0, 0, 32 };
 
 SVECTOR D_dryfield_dilapidated_house_801866B4[8] = {
     { -81, -162, -82, 0 },
@@ -3483,98 +3465,27 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
     }
 }
 
-/// Morphs the task's model by `arg2` (0..0x1000): restores `rec`'s vertex
-/// snapshot into the model from part `rec->field_14`, interpolates those
-/// vertices toward `rec->field_0` through the GTE, and, when `rec->field_4` is
-/// set, blends each normal between `rec->field_4` and the snapshot in
-/// `rec->field_C`.
-static void func_dryfield_dilapidated_house_80180A0C(Task* task, DdhRoomRec* rec, s32 arg2)
-{
-    s32        i;
-    s32        count;
-    s32        first;
-    TmdSource* src;
-    u16*       dst;
-    u16*       from;
-    u16*       dstMid;
-    u16*       fromMid;
-    SVECTOR*   nrm;
-    SVECTOR*   nrmA;
-    SVECTOR*   nrmB;
-    SVECTOR*   nrmDst;
-    s32        blend;
-    s32        inv;
-    u16        vx;
-    u16        vz;
-
-    i     = 0;
-    count = rec->field_16;
-    src   = task->extra.tmd->source;
-    first = rec->field_14;
-    from  = (u16*)&rec->field_8[first];
-    nrm   = src->normals;
-    dst   = (u16*)&src->verts[first];
-    if (count > 0) {
-        fromMid = from + 2;
-        dstMid  = dst + 2;
-        do {
-            vx         = *from;
-            from      += 4;
-            i         += 1;
-            *dst       = vx;
-            dst       += 4;
-            dstMid[-1] = fromMid[-1];
-            vz         = fromMid[0];
-            fromMid   += 4;
-            dstMid[0]  = vz;
-            dstMid    += 4;
-        } while (i < count);
-    }
-    blend = arg2;
-    inv   = 0x1000 - blend;
-    gteMIMefunc(src->verts + rec->field_14, rec->field_0, rec->field_16, blend);
-    nrmA = rec->field_4;
-    if (nrmA != NULL) {
-        count = rec->field_12;
-        nrmB  = rec->field_C;
-        i     = 0;
-        if (count > 0) {
-            do {
-                gte_lddp(blend);
-                gte_ldsv(nrmA);
-                gte_gpf12();
-                nrmDst = nrm + i;
-                gte_lddp(inv);
-                gte_ldsv(nrmB);
-                gte_gpl12();
-                nrmB++;
-                i++;
-                nrmA++;
-                gte_stsv(nrmDst);
-            } while (i < count);
-        }
-    }
-}
+#include "../../shared/model_morph_blend.inc.c"
 
 static void func_dryfield_dilapidated_house_80180B84(Task* task)
 {
-    Task*         parent;
-    TmdObject*    obj;
-    TmdObject*    parentObj;
-    GfxCoord*     coord;
-    GfxCoord*     parentCoord;
-    DdhCoordWork* work;
-    DdhRoomRec*   rec;
-    TmdSource*    source;
-    SVECTOR*      dst;
-    SVECTOR*      dst2;
-    SVECTOR*      src2;
-    SVECTOR*      verts;
-    TaskDesc*     table;
-    Task*         spawned;
-    GfxCoord*     childCoord;
-    u16           flags;
-    s32           i;
+    Task*               parent;
+    TmdObject*          obj;
+    TmdObject*          parentObj;
+    GfxCoord*           coord;
+    GfxCoord*           parentCoord;
+    DdhCoordWork*       work;
+    OverlayMorphTarget* rec;
+    TmdSource*          source;
+    SVECTOR*            dst;
+    SVECTOR*            dst2;
+    SVECTOR*            src2;
+    SVECTOR*            verts;
+    TaskDesc*           table;
+    Task*               spawned;
+    GfxCoord*           childCoord;
+    u16                 flags;
+    s32                 i;
 
     parent      = (Task*)task->spawnArg2.pointer;
     obj         = task->extra.tmd;
@@ -3604,17 +3515,17 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
 
     rec    = &D_dryfield_dilapidated_house_8018669C;
     source = task->extra.tmd->source;
-    dst    = rec->field_8;
-    dst2   = rec->field_C;
+    dst    = rec->savedVertices;
+    dst2   = rec->savedNormals;
     verts  = source->verts;
-    for (i = 0; i < rec->field_10; i++) {
+    for (i = 0; i < rec->vertexCount; i++) {
         dst[i].vx = verts[i].vx;
         dst[i].vy = verts[i].vy;
         dst[i].vz = verts[i].vz;
     }
-    if (rec->field_4 != 0) {
+    if (rec->normals != 0) {
         src2 = source->normals;
-        for (i = 0; i < rec->field_12; i++) {
+        for (i = 0; i < rec->normalCount; i++) {
             dst2[i].vx = src2[i].vx;
             dst2[i].vy = src2[i].vy;
             dst2[i].vz = src2[i].vz;
@@ -3695,7 +3606,7 @@ static s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
         ramp = 0x1000;
     }
     task->killCountdown = ramp;
-    func_dryfield_dilapidated_house_80180A0C(task, &D_dryfield_dilapidated_house_8018669C, 0x1000 - ramp);
+    modelMorphBlend(task, &D_dryfield_dilapidated_house_8018669C, 0x1000 - ramp);
     return ramp;
 }
 
