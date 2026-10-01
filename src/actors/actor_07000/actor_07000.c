@@ -303,7 +303,6 @@ extern AnimationSet Actor07000_D07D1C;
 extern AnimationSet Actor07000_D07E64;
 extern AnimationSet Actor07000_D08008;
 extern TmdSource    Actor07000_D079C8;
-s32                 Actor07000_Fn01FF8(Task*, s32, ActorCommand* request);
 s32                 Actor07000_Fn05AB8(Task*, s32, ActorCommand* request);
 void                Actor07000_Fn02548(Task*);
 void                Actor07000_Fn02D10(Task*);
@@ -311,9 +310,9 @@ void                Actor07000_Fn05E6C(Task*);
 void                Actor07000_Fn06338(Task*);
 void                Actor07000_Fn067B4(Task*);
 
-DamageAttack Actor07000_D06924 = { 30, 7 };
+DamageAttack gSucklercephAttack = { 30, 7 };
 
-EnemyParams Actor07000_D06928 = { &Actor07000_D06924, 70, 6, 12, 3, 100, 20, 100, 0 };
+EnemyParams gSucklercephParams = { &gSucklercephAttack, 70, 6, 12, 3, 100, 20, 100, 0 };
 
 PadScriptCmd Actor07000_D06938[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
@@ -425,8 +424,8 @@ AnimationSet Actor07000_D08008 = {
     { NULL, Actor07000_D07E8C, NULL, NULL, Actor07000_D07F40, NULL, NULL, NULL },
 };
 
-Actor07000RecoveredMsgEntry Actor07000_D08030[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor07000_Fn01FF8 } },
+Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = sucklercephMessage } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -434,7 +433,7 @@ TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, Actor07000_Fn02548, { 
 
 TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor07000_Fn02D10, { .model = &Actor07000_D079C8 } };
 
-AnimationSet* Actor07000_D08058[4] = {
+AnimationSet* gSucklercephAnimSets[4] = {
     NULL,
     &Actor07000_D07D1C,
     &Actor07000_D07E64,
@@ -443,7 +442,7 @@ AnimationSet* Actor07000_D08058[4] = {
 
 SVECTOR Actor07000_D08068 = { 0, -10, 0, 0 };
 
-SVECTOR Actor07000_D08070 = { 0, -300, 0, 0 };
+SVECTOR gSucklercephCollapseFxOffset = { 0, -300, 0, 0 };
 
 DamageAttack Actor07000_D08078[2] = {
     { 20, 7 },
@@ -941,23 +940,23 @@ STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 /// Node 3's attack row, packed by `Gp_PackPair` into `obj1B4`, and the enemy
 /// parameters whose `attacks` point at it; its `hpMax` seeds the enemy's
 /// `field_40`.
-extern DamageAttack Actor07000_D06924;
+extern DamageAttack gSucklercephAttack;
 
-extern EnemyParams Actor07000_D06928;
+extern EnemyParams gSucklercephParams;
 
 extern PadScriptCmd Actor07000_D06938[];
 
 extern PadScriptVibrationSegment Actor07000_D06944[];
 
-extern Actor07000RecoveredMsgEntry Actor07000_D08030[2];
+extern Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2];
 
 /// The animation data `func_800B3F84` seeds the caged specimen's slots from.
-extern AnimationSet* Actor07000_D08058[4];
+extern AnimationSet* gSucklercephAnimSets[4];
 
 extern SVECTOR Actor07000_D08068;
 
 /// Offset the collapse arms spawn the 0x60080 effect at.
-extern SVECTOR Actor07000_D08070;
+extern SVECTOR gSucklercephCollapseFxOffset;
 
 /// Pair table the second form's node 3 and the projectile's render node pack
 /// into their keys.
@@ -991,10 +990,6 @@ extern TaskDesc Actor07000_D0D7D0[];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
-
-static void Actor07000_Fn000EC(Enemy* arg0, Task* arg1);
-
-static void Actor07000_Fn01870(Enemy* arg0, Task* arg1);
 
 static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1);
 
@@ -1095,142 +1090,19 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 
 /// Message dispatch table the caged specimen's spawn parks in `Task::msgTable`.
 
-/// Spawn handler of the specimen, the `GpEnemyTaskFunc` the task dispatch runs
-/// first: it allocates the `SucklercephWork` block, wires the enemy's four
-/// `WorldCollisionBody` collision bodies and their `WorldCollisionContact` tables into it and installs
-/// `sucklercephExit` as the exit callback. The spawn arg's high halfword is the variant
-/// the model was spawned as - when it is 1 the specimen is killed instead, and
-/// the same halfword plus the low one seed `field_2DC`/`field_2D6`. Variant 1
-/// with a matching `bodyKind` is the one that carries a streamed model: its
-/// texture page and CLUT row are stepped before the model is re-streamed twice.
-static void Actor07000_Fn000EC(Enemy* arg0, Task* arg1)
-{
-    SucklercephWork* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GfxCoord*        part;
-    u16              v;
-    s32              i;
-
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    part  = &coord[1];
-    if ((s16)(arg1->spawnArg1.value >> 16) == 1) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-    work = memCalloc(0x2E4U, false);
-    if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-    arg1->work          = work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->field_DC;
-    obj->colorMtx       = &work->field_BC;
-    arg0->field_4       = &coord[1].coord;
-    arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
-    arg0->coord                  = part;
-    arg0->node.state.parts.flags = 0;
-    arg0->bodyPos.vx             = 0;
-    arg0->bodyPos.vy             = 0;
-    arg0->bodyPos.vz             = 0;
-    arg0->param                  = &Actor07000_D06928;
-    arg0->recs                   = &work->rec154[0];
-    arg0->hp                     = Actor07000_D06928.hpMax;
-    func_800B3F84(&work->context, Actor07000_D08058, obj, work->field_8C,
-                  work->slots);
-    i = 1;
-    do {
-        Gp_AnimResetSlot(&work->context, i, 1);
-        i += 1;
-    } while (i < 3);
-    (Gp_IncStateF0Ref)(0);
-    work->field_2B8              = 1;
-    work->field_2BA              = 1;
-    work->field_2AC              = 0x1000;
-    work->field_2DA              = 0;
-    work->field_2CE              = 0;
-    work->field_2D4              = 0;
-    work->field_2D2              = 0;
-    work->field_2CC              = 0;
-    arg1->killCountdown          = 0;
-    work->field_284.coord        = &arg1->extra.tmd->coords[1];
-    work->field_284.spawnArgLo   = 0x100;
-    work->field_284.spawnArgHi   = 1;
-    work->objFC.coord            = coord;
-    work->objFC.context.contacts = &work->rec11C;
-    work->objFC.pos.vx           = 0;
-    work->objFC.pos.vy           = 0;
-    work->objFC.pos.vz           = 0;
-    work->objFC.key              = 0;
-    work->objFC.radius           = 0xBB8;
-    work->objFC.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->objFC);
-    Gp_InitRec18Table(&work->rec11C, 1, 0);
-    work->obj134.coord            = coord;
-    work->obj134.context.contacts = &work->rec154[0];
-    work->obj134.pos.vx           = 0;
-    work->obj134.pos.vy           = -0xC8;
-    work->obj134.pos.vz           = 0;
-    work->obj134.key              = 0x3002E;
-    work->obj134.radius           = 0xC8;
-    work->obj134.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    work->objFC.flags             = (u16)(work->objFC.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(2, &work->obj134);
-    Gp_InitRec18Table(&work->rec154[0], 4, 0);
-    work->obj1B4.coord            = coord;
-    work->obj1B4.context.contacts = &work->rec1D4;
-    work->obj1B4.pos.vx           = 0;
-    work->obj1B4.pos.vy           = 0;
-    work->obj1B4.pos.vz           = 0;
-    work->obj134.flags            = (u16)(work->obj134.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    work->obj1B4.key              = Gp_PackPair(&Actor07000_D06924, 0);
-    work->obj1B4.radius           = 0x3E8;
-    work->obj1B4.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj1B4);
-    Gp_InitRec18Table(&work->rec1D4, 1, 0);
-    work->obj1EC.coord            = coord;
-    work->obj1EC.context.contacts = &work->rec20C;
-    work->obj1EC.pos.vx           = 0;
-    work->obj1EC.pos.vy           = 0;
-    work->obj1EC.pos.vz           = 0;
-    work->obj1EC.key              = 0x22323;
-    work->obj1EC.radius           = 0x3E8;
-    work->obj1EC.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    work->obj1B4.flags            = (u16)(work->obj1B4.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gp_LinkObj(8, &work->obj1EC);
-    Gp_InitRec18Table(&work->rec20C, 1, 0);
-    work->obj1EC.flags = (u16)(work->obj1EC.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    work->field_2DC    = (s16)(arg1->spawnArg1.value >> 16);
-    v                  = (u16)arg1->spawnArg1.value;
-    work->field_2D6    = v;
-    if ((s16)v == 1 && arg1->bodyKind == (s16)v) {
-        obj->texturePageOffset = obj->texturePageOffset + 1;
-        obj->clutRowOffset     = obj->clutRowOffset + 1;
-        if (obj->buffer != 0) {
-            tmdProcessStream(obj);
-            tmdProcessStream(obj);
-        }
-    }
-    work->field_2B4    = 0;
-    arg1->exitCallback = sucklercephExit;
-    arg1->state       += 1;
-}
+#include "../../shared/sucklerceph_spawn_state.inc.c"
 
 /// Task states of the caged specimen as `Actor07000_Fn02548` dispatches
 /// them: spawn, per-frame update and teardown.
 static const GpEnemyTaskFuncTable3 Actor07000_D00004 = {
-    { Actor07000_Fn000EC, sucklercephUpdateState, sucklercephDeathState },
+    { sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
 };
 
 /// Task states of the caged specimen as `Actor07000_Fn02D10` dispatches them:
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
 static const GpEnemyTaskFuncTable4 Actor07000_D00010 = {
-    { Actor07000_Fn01870, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
+    { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
 };
 
 /// Per-frame dispatch of the caged specimen, on the reaction state in
@@ -1280,7 +1152,7 @@ void sucklercephReactionDispatch(Task* arg0)
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(0x60080, arg0->extra.tmd->coords, 0x400, &Actor07000_D08070);
+                Gp_SpawnEff(0x60080, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->field_2BC = 0;
             }
             goto suppress_rebind;
@@ -1292,7 +1164,7 @@ void sucklercephReactionDispatch(Task* arg0)
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(0x60080, arg0->extra.tmd->coords, 0x400, &Actor07000_D08070);
+                Gp_SpawnEff(0x60080, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->field_2BC = 0;
                 frames          = work->field_2D4 + 1;
                 work->field_2D4 = frames;
@@ -1372,129 +1244,7 @@ void sucklercephKill(Task* arg0, u8 arg1)
     }
 }
 
-/// Spawn/setup handler of the caged specimen, entry 0 of
-/// `Actor07000_D00010`. A task already on this handler (`spawnArg1`'s
-/// high halfword reads 1) is torn down instead of spawned.
-///
-/// Otherwise it allocates the 0x2E4-byte work block and hangs it off the task:
-/// the model's coordinate array feeds `field_18` with its second element, the
-/// context's `field_4` with that element's matrix, and the block's two
-/// `MATRIX`es become the model's colour and light matrices. The work's own
-/// collision record is re-rolled from the same coordinate, and the four list
-/// nodes are linked into the global object lists with their `WorldCollisionContact` tables -
-/// the first three leave the 0x8000 last-element bit clear, and the second
-/// node's 0x4000 bit is cleared once the third has been built.
-///
-/// The animation context is then seeded from `func_800B3F84` over the three
-/// slots, slots 1 and 2 are reset, and the task moves to handler 3.
-static void Actor07000_Fn01870(Enemy* arg0, Task* arg1)
-{
-    SucklercephWork* work;
-    GfxCoord*        coord;
-    GfxCoord*        part;
-    TmdObject*       obj;
-    s32              one;
-    s32              i;
-
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    part  = &coord[1];
-    one   = 1;
-    if ((s16)(arg1->spawnArg1.value >> 16) == one) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-    work = memCalloc(0x2E4U, false);
-    if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-    arg1->work          = work;
-    work->field_2DC     = (s16)(arg1->spawnArg1.value >> 16);
-    work->field_2D6     = (u16)arg1->spawnArg1.value;
-    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->field_DC;
-    obj->colorMtx       = &work->field_BC;
-    arg0->field_4       = &coord[1].coord;
-    arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
-    arg0->coord                  = part;
-    arg0->node.state.parts.flags = one;
-    arg0->bodyPos.vx             = 0;
-    arg0->bodyPos.vy             = 0;
-    arg0->bodyPos.vz             = 0;
-    arg0->param                  = &Actor07000_D06928;
-    arg0->recs                   = &work->rec154[0];
-    arg0->hp                     = Actor07000_D06928.hpMax;
-    func_800B3F84(&work->context, Actor07000_D08058, obj, work->field_8C,
-                  work->slots);
-    i = 1;
-    do {
-        Gp_AnimResetSlot(&work->context, i, 1);
-        i += 1;
-    } while (i < 3);
-    (Gp_IncStateF0Ref)(0);
-    work->field_2B8              = 1;
-    work->field_2BA              = 1;
-    work->field_2AC              = 0x1000;
-    work->field_2DA              = 0;
-    work->field_2CE              = 0;
-    work->field_2D4              = 0;
-    work->field_2D2              = 0;
-    work->field_2CC              = 0;
-    arg1->killCountdown          = 0;
-    work->field_284.coord        = &arg1->extra.tmd->coords[1];
-    work->field_284.spawnArgLo   = 0x100;
-    work->field_284.spawnArgHi   = 1;
-    work->objFC.coord            = coord;
-    work->objFC.context.contacts = &work->rec11C;
-    work->objFC.pos.vx           = 0;
-    work->objFC.pos.vy           = 0;
-    work->objFC.pos.vz           = 0;
-    work->objFC.key              = 0;
-    work->objFC.radius           = 0xBB8;
-    work->objFC.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->objFC);
-    Gp_InitRec18Table(&work->rec11C, 1, 0);
-    work->obj134.coord            = coord;
-    work->obj134.context.contacts = &work->rec154[0];
-    work->obj134.pos.vx           = 0;
-    work->obj134.pos.vy           = -0xC8;
-    work->obj134.pos.vz           = 0;
-    work->obj134.key              = 0x3002E;
-    work->obj134.radius           = 0xC8;
-    work->obj134.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    work->objFC.flags             = (u16)(work->objFC.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gp_LinkObj(2, &work->obj134);
-    Gp_InitRec18Table(&work->rec154[0], 4, 0);
-    work->obj1B4.coord            = coord;
-    work->obj1B4.context.contacts = &work->rec1D4;
-    work->obj1B4.pos.vx           = 0;
-    work->obj1B4.pos.vy           = 0;
-    work->obj1B4.pos.vz           = 0;
-    work->obj134.flags            = (u16)(work->obj134.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
-    work->obj1B4.key              = Gp_PackPair(&Actor07000_D06924, 0);
-    work->obj1B4.radius           = 0x3E8;
-    work->obj1B4.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj1B4);
-    Gp_InitRec18Table(&work->rec1D4, 1, 0);
-    work->obj1EC.coord            = coord;
-    work->obj1EC.context.contacts = &work->rec20C;
-    work->obj1EC.pos.vx           = 0;
-    work->obj1EC.pos.vy           = 0;
-    work->obj1EC.pos.vz           = 0;
-    work->obj1EC.key              = 0x22323;
-    work->obj1EC.radius           = 0x3E8;
-    work->obj1EC.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
-    work->obj1B4.flags            = (u16)(work->obj1B4.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    Gp_LinkObj(8, &work->obj1EC);
-    Gp_InitRec18Table(&work->rec20C, 1, 0);
-    work->field_2E2    = 0;
-    work->obj1EC.flags = (u16)(work->obj1EC.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    arg1->msgTable     = Actor07000_D08030;
-    arg1->state        = 3;
-}
+#include "../../shared/sucklerceph_drop_spawn_state.inc.c"
 
 /// Task states of the specimen's second form as `Actor07000_Fn05E6C`
 /// dispatches them: spawn, per-frame update, death and destruction.
@@ -1513,117 +1263,7 @@ static const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
 
 #include "../../shared/sucklerceph_drop_collide.inc.c"
 
-s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, ActorCommand* request)
-{
-    Actor107000Work* work;
-    Enemy*           enemy;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    SVECTOR          rot;
-    u16              word;
-    s16              heading;
-    s32              magnitude;
-    s32              mode;
-    s32              state;
-    s32              sound;
-    s32              pan;
-
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
-    state = arg0->state;
-    work  = (Actor107000Work*)arg0->work;
-    coord = obj->coords;
-    if (state == 1) {
-        mode = request->command;
-        if (mode == 4) {
-            Gp_SpawnEff(0x60080, coord, 0x400, &Actor07000_D08070);
-            work->field_2B8 = 1;
-            Actor107000_TickAnim(arg0);
-            work->field_2BC = 0;
-            work->field_2B2 = 4;
-            return 0;
-        }
-        if (mode == 5) {
-            Gp_SpawnEff(0x60080, coord, 0x400, &Actor07000_D08070);
-            work->field_2B8 = 1;
-            Actor107000_TickAnim(arg0);
-            work->field_2BC = 0;
-            work->field_2D4 = 0;
-            work->field_2B2 = 4;
-            return 0;
-        }
-    }
-    word = request->command & 0xFF;
-    if ((word & 0xFF) == 1) {
-        if ((u32)(arg0->state - 1) >= 2U) {
-            if (gGameSession->location.loc.area == 0x27) {
-                rot.vx            = 0;
-                rot.vy            = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].heading;
-                rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
-                sound             = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54270006);
-                pan               = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-            } else if (gGameSession->location.loc.area == 0x28) {
-                rot.vx            = 0;
-                rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;
-                rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
-            }
-            heading         = rot.vy;
-            work->field_2B0 = heading;
-            magnitude       = heading >= 0 ? heading : -heading;
-            if (magnitude >= 0x801) {
-                if (heading >= 0x801) {
-                    work->field_2B0 = heading - 0x1000;
-                } else if (heading < -0x800) {
-                    work->field_2B0 = heading + 0x1000;
-                }
-            }
-            Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            enemy->node.state.parts.flags = 0;
-            work->field_11A              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_152              |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            RotMatrix(&rot, &coord->coord);
-            work->field_2BE                       = 0xC8;
-            work->field_2E2                       = 1;
-            work->field_2DE                       = 0x64;
-            work->field_2E0                       = 0;
-            work->field_2B2                       = 1;
-            work->field_2C8                       = 1;
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg0->extra.tmd->coords);
-        }
-        return 0;
-    }
-    if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_11A              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_152              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        rot.vz                        = 0;
-        rot.vy                        = 0;
-        rot.vx                        = 0;
-        RotMatrix(&rot, &coord->coord);
-        coord->coord.t[2]                     = 0;
-        coord->coord.t[1]                     = 0;
-        coord->coord.t[0]                     = 0;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gp_UpdateCoord(arg0->extra.tmd->coords);
-        arg0->state     = 3;
-        work->field_2E2 = 0;
-        work->field_2B2 = 0;
-        work->field_2C8 = 0;
-    }
-    return 0;
-}
+#include "../../shared/sucklerceph_message.inc.c"
 
 /// Task handler of the caged specimen: runs the entry of `Actor07000_D00004`
 /// for the task's state - spawn, per-frame update or teardown - with the
@@ -2742,7 +2382,7 @@ default_body:
 /// `WorldCollisionContact` beside it - the pair `CompanionWork` keeps, and the three constants it
 /// carries are that record's fields rather than an object's. Node 3's `field_8`
 /// is the model's seventh coordinate (`&coord[6]`), which is the value the
-/// sibling `Actor07000_Fn000EC` computes for its `part`.
+/// sibling `sucklercephSpawnState` computes for its `part`.
 ///
 /// The spawn arg seeds `field_364`/`field_366` the same way it does there, and
 /// a high halfword of 1 kills the specimen instead. The tail draws two numbers
