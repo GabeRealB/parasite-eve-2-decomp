@@ -517,7 +517,7 @@ SVECTOR D_shelter_b4_reservoir_801852BC[98] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_verts.inc"
 };
 
-GpGridFace D_shelter_b4_reservoir_801855CC[45] = {
+WorldCollisionGridFace D_shelter_b4_reservoir_801855CC[45] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_faces.inc"
 };
 

@@ -137,7 +137,7 @@ SVECTOR D_dryfield_garage_8017DEA4[106] = {
 #include "assets/dryfield_garage_collision_0108C_verts.inc"
 };
 
-GpGridFace D_dryfield_garage_8017E1F4[54] = {
+WorldCollisionGridFace D_dryfield_garage_8017E1F4[54] = {
 #include "assets/dryfield_garage_collision_0108C_faces.inc"
 };
 

@@ -274,7 +274,7 @@ SVECTOR D_neo_ark_power_plant_2_80180740[82] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_verts.inc"
 };
 
-GpGridFace D_neo_ark_power_plant_2_801809D0[41] = {
+WorldCollisionGridFace D_neo_ark_power_plant_2_801809D0[41] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_faces.inc"
 };
 

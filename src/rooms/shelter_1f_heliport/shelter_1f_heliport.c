@@ -272,7 +272,7 @@ SVECTOR D_shelter_1f_heliport_8018122C[8] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_verts.inc"
 };
 
-GpGridFace D_shelter_1f_heliport_8018126C[4] = {
+WorldCollisionGridFace D_shelter_1f_heliport_8018126C[4] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_faces.inc"
 };
 
@@ -317,7 +317,7 @@ SVECTOR D_shelter_1f_heliport_801813C0[75] = {
 #include "assets/shelter_1f_heliport_collision_043B4_verts.inc"
 };
 
-GpGridFace D_shelter_1f_heliport_80181618[40] = {
+WorldCollisionGridFace D_shelter_1f_heliport_80181618[40] = {
 #include "assets/shelter_1f_heliport_collision_043B4_faces.inc"
 };
 

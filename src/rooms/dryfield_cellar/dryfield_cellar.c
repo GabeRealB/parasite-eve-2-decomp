@@ -126,7 +126,7 @@ SVECTOR D_dryfield_cellar_8017DC98[39] = {
 #include "assets/dryfield_cellar_collision_00994_verts.inc"
 };
 
-GpGridFace D_dryfield_cellar_8017DDD0[20] = {
+WorldCollisionGridFace D_dryfield_cellar_8017DDD0[20] = {
 #include "assets/dryfield_cellar_collision_00994_faces.inc"
 };
 

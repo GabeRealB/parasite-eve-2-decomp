@@ -89,7 +89,7 @@ SVECTOR D_shelter_b1_north_maintenance_walkway_80184C68[38] = {
 #include "assets/shelter_b1_north_maintenance_walkway_collision_07980_verts.inc"
 };
 
-GpGridFace D_shelter_b1_north_maintenance_walkway_80184D98[18] = {
+WorldCollisionGridFace D_shelter_b1_north_maintenance_walkway_80184D98[18] = {
 #include "assets/shelter_b1_north_maintenance_walkway_collision_07980_faces.inc"
 };
 

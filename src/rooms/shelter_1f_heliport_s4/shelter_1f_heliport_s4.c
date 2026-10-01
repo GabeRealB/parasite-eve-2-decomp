@@ -57,7 +57,7 @@ SVECTOR D_shelter_1f_heliport_s4_8017D770[34] = {
 #include "assets/shelter_1f_heliport_s4_collision_00408_verts.inc"
 };
 
-GpGridFace D_shelter_1f_heliport_s4_8017D880[15] = {
+WorldCollisionGridFace D_shelter_1f_heliport_s4_8017D880[15] = {
 #include "assets/shelter_1f_heliport_s4_collision_00408_faces.inc"
 };
 

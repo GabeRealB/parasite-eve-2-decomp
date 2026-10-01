@@ -312,7 +312,7 @@ SVECTOR D_neo_ark_shrine_8018290C[46] = {
 #include "assets/neo_ark_shrine_collision_0576C_verts.inc"
 };
 
-GpGridFace D_neo_ark_shrine_80182A7C[30] = {
+WorldCollisionGridFace D_neo_ark_shrine_80182A7C[30] = {
 #include "assets/neo_ark_shrine_collision_0576C_faces.inc"
 };
 
@@ -338,7 +338,7 @@ SVECTOR D_neo_ark_shrine_80182D98[48] = {
 #include "assets/neo_ark_shrine_collision_05C18_verts.inc"
 };
 
-GpGridFace D_neo_ark_shrine_80182F18[31] = {
+WorldCollisionGridFace D_neo_ark_shrine_80182F18[31] = {
 #include "assets/neo_ark_shrine_collision_05C18_faces.inc"
 };
 
@@ -364,7 +364,7 @@ SVECTOR D_neo_ark_shrine_80183244[50] = {
 #include "assets/neo_ark_shrine_collision_060D8_verts.inc"
 };
 
-GpGridFace D_neo_ark_shrine_801833D4[31] = {
+WorldCollisionGridFace D_neo_ark_shrine_801833D4[31] = {
 #include "assets/neo_ark_shrine_collision_060D8_faces.inc"
 };
 

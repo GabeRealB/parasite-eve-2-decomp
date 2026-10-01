@@ -22,7 +22,7 @@ extern SVECTOR D_dryfield_garage_8017DD6C[39];
 
 extern SVECTOR D_dryfield_garage_8017DEA4[106];
 
-extern GpGridFace D_dryfield_garage_8017E1F4[54];
+extern WorldCollisionGridFace D_dryfield_garage_8017E1F4[54];
 
 extern GpAreaVariant D_dryfield_garage_801800E0[13];
 

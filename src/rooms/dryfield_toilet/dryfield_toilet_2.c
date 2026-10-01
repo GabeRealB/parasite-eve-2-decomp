@@ -67,10 +67,10 @@ extern GpObj4C        D_dryfield_toilet_8018227C[6];
 extern GpObj4C        D_dryfield_toilet_80182444[9];
 extern GpRoomCoordSet D_dryfield_toilet_801828AC[1];
 
-extern GpGridFace D_dryfield_toilet_801812EC[17];
-extern SVECTOR    D_dryfield_toilet_80181184[7];
-extern SVECTOR    D_dryfield_toilet_801811BC[38];
-extern s16*       D_dryfield_toilet_801813FC[2];
+extern WorldCollisionGridFace D_dryfield_toilet_801812EC[17];
+extern SVECTOR                D_dryfield_toilet_80181184[7];
+extern SVECTOR                D_dryfield_toilet_801811BC[38];
+extern s16*                   D_dryfield_toilet_801813FC[2];
 
 extern GpAreaTmdRec D_dryfield_toilet_801828C4[3];
 extern GpAreaTmdRec D_dryfield_toilet_801828E8[2];
@@ -200,7 +200,7 @@ SVECTOR D_dryfield_toilet_801811BC[38] = {
 #include "assets/dryfield_toilet_collision_03E44_verts.inc"
 };
 
-GpGridFace D_dryfield_toilet_801812EC[17] = {
+WorldCollisionGridFace D_dryfield_toilet_801812EC[17] = {
 #include "assets/dryfield_toilet_collision_03E44_faces.inc"
 };
 

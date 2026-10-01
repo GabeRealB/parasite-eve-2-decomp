@@ -356,7 +356,7 @@ SVECTOR D_dryfield_night_gas_station_801842F4[8] = {
 #include "assets/dryfield_night_gas_station_collision_06DB4_verts.inc"
 };
 
-GpGridFace D_dryfield_night_gas_station_80184334[4] = {
+WorldCollisionGridFace D_dryfield_night_gas_station_80184334[4] = {
 #include "assets/dryfield_night_gas_station_collision_06DB4_faces.inc"
 };
 
@@ -1324,7 +1324,7 @@ SVECTOR D_dryfield_night_gas_station_8018A040[144] = {
 #include "assets/dryfield_night_gas_station_collision_0D5FC_verts.inc"
 };
 
-GpGridFace D_dryfield_night_gas_station_8018A4C0[65] = {
+WorldCollisionGridFace D_dryfield_night_gas_station_8018A4C0[65] = {
 #include "assets/dryfield_night_gas_station_collision_0D5FC_faces.inc"
 };
 
@@ -1348,7 +1348,7 @@ SVECTOR D_dryfield_night_gas_station_8018ACE0[135] = {
 #include "assets/dryfield_night_gas_station_collision_0E19C_verts.inc"
 };
 
-GpGridFace D_dryfield_night_gas_station_8018B118[64] = {
+WorldCollisionGridFace D_dryfield_night_gas_station_8018B118[64] = {
 #include "assets/dryfield_night_gas_station_collision_0E19C_faces.inc"
 };
 

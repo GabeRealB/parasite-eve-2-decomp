@@ -364,7 +364,7 @@ SVECTOR D_shelter_b2_laboratory_80182D38[123] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_verts.inc"
 };
 
-GpGridFace D_shelter_b2_laboratory_80183110[51] = {
+WorldCollisionGridFace D_shelter_b2_laboratory_80183110[51] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_faces.inc"
 };
 

@@ -272,7 +272,7 @@ SVECTOR D_dryfield_warehouse_8017FCD8[90] = {
 #include "assets/dryfield_warehouse_collision_02CE8_verts.inc"
 };
 
-GpGridFace D_dryfield_warehouse_8017FFA8[50] = {
+WorldCollisionGridFace D_dryfield_warehouse_8017FFA8[50] = {
 #include "assets/dryfield_warehouse_collision_02CE8_faces.inc"
 };
 
@@ -298,7 +298,7 @@ SVECTOR D_dryfield_warehouse_80180304[99] = {
 #include "assets/dryfield_warehouse_collision_033EC_verts.inc"
 };
 
-GpGridFace D_dryfield_warehouse_8018061C[56] = {
+WorldCollisionGridFace D_dryfield_warehouse_8018061C[56] = {
 #include "assets/dryfield_warehouse_collision_033EC_faces.inc"
 };
 
@@ -324,7 +324,7 @@ SVECTOR D_dryfield_warehouse_80180A08[91] = {
 #include "assets/dryfield_warehouse_collision_03A78_verts.inc"
 };
 
-GpGridFace D_dryfield_warehouse_80180CE0[52] = {
+WorldCollisionGridFace D_dryfield_warehouse_80180CE0[52] = {
 #include "assets/dryfield_warehouse_collision_03A78_faces.inc"
 };
 

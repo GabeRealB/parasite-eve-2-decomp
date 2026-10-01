@@ -66,7 +66,7 @@ SVECTOR D_dryfield_factory_801870E8[170] = {
 #include "assets/dryfield_factory_collision_0A638_verts.inc"
 };
 
-GpGridFace D_dryfield_factory_80187638[72] = {
+WorldCollisionGridFace D_dryfield_factory_80187638[72] = {
 #include "assets/dryfield_factory_collision_0A638_faces.inc"
 };
 

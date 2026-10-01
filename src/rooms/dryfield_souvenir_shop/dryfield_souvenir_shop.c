@@ -110,7 +110,7 @@ SVECTOR D_dryfield_souvenir_shop_8017E16C[62] = {
 #include "assets/dryfield_souvenir_shop_collision_0101C_verts.inc"
 };
 
-GpGridFace D_dryfield_souvenir_shop_8017E35C[34] = {
+WorldCollisionGridFace D_dryfield_souvenir_shop_8017E35C[34] = {
 #include "assets/dryfield_souvenir_shop_collision_0101C_faces.inc"
 };
 

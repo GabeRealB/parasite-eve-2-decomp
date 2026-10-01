@@ -60,7 +60,7 @@ SVECTOR D_shelter_b1_sleeping_quarters_80180708[143] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_verts.inc"
 };
 
-GpGridFace D_shelter_b1_sleeping_quarters_80180B80[64] = {
+WorldCollisionGridFace D_shelter_b1_sleeping_quarters_80180B80[64] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_faces.inc"
 };
 

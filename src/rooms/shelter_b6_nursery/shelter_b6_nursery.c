@@ -332,7 +332,7 @@ SVECTOR D_shelter_b6_nursery_801853EC[54] = {
 #include "assets/shelter_b6_nursery_collision_082E0_verts.inc"
 };
 
-GpGridFace D_shelter_b6_nursery_8018559C[43] = {
+WorldCollisionGridFace D_shelter_b6_nursery_8018559C[43] = {
 #include "assets/shelter_b6_nursery_collision_082E0_faces.inc"
 };
 

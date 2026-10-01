@@ -1084,7 +1084,7 @@ SVECTOR D_mine_cavern_801891D4[88] = {
 #include "assets/mine_cavern_collision_0C25C_verts.inc"
 };
 
-GpGridFace D_mine_cavern_80189494[38] = {
+WorldCollisionGridFace D_mine_cavern_80189494[38] = {
 #include "assets/mine_cavern_collision_0C25C_faces.inc"
 };
 

@@ -142,7 +142,7 @@ SVECTOR D_neo_ark_submarine_tunnel_8018207C[65] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_verts.inc"
 };
 
-GpGridFace D_neo_ark_submarine_tunnel_80182284[31] = {
+WorldCollisionGridFace D_neo_ark_submarine_tunnel_80182284[31] = {
 #include "assets/neo_ark_submarine_tunnel_collision_04F1C_faces.inc"
 };
 

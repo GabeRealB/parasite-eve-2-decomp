@@ -1125,7 +1125,7 @@ SVECTOR D_shelter_b3_dumping_hole_8018BAE4[90] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_verts.inc"
 };
 
-GpGridFace D_shelter_b3_dumping_hole_8018BDB4[56] = {
+WorldCollisionGridFace D_shelter_b3_dumping_hole_8018BDB4[56] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_faces.inc"
 };
 

@@ -136,7 +136,7 @@ SVECTOR D_mine_tunnel_entrance_8017DCD8[54] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_verts.inc"
 };
 
-GpGridFace D_mine_tunnel_entrance_8017DE88[30] = {
+WorldCollisionGridFace D_mine_tunnel_entrance_8017DE88[30] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_faces.inc"
 };
 

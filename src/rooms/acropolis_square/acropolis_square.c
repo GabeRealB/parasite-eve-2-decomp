@@ -380,7 +380,7 @@ SVECTOR D_acropolis_square_80183FD4[262] = {
 #include "assets/acropolis_square_collision_07BDC_verts.inc"
 };
 
-GpGridFace D_acropolis_square_80184804[115] = {
+WorldCollisionGridFace D_acropolis_square_80184804[115] = {
 #include "assets/acropolis_square_collision_07BDC_faces.inc"
 };
 

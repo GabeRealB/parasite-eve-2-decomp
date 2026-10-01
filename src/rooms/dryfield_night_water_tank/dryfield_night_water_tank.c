@@ -154,7 +154,7 @@ SVECTOR D_dryfield_night_water_tank_8017E038[6] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_verts.inc"
 };
 
-GpGridFace D_dryfield_night_water_tank_8017E068[2] = {
+WorldCollisionGridFace D_dryfield_night_water_tank_8017E068[2] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_faces.inc"
 };
 
@@ -259,7 +259,7 @@ SVECTOR D_dryfield_night_water_tank_8017EF6C[78] = {
 #include "assets/dryfield_night_water_tank_collision_01EF0_verts.inc"
 };
 
-GpGridFace D_dryfield_night_water_tank_8017F1DC[38] = {
+WorldCollisionGridFace D_dryfield_night_water_tank_8017F1DC[38] = {
 #include "assets/dryfield_night_water_tank_collision_01EF0_faces.inc"
 };
 

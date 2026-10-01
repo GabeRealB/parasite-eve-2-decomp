@@ -195,7 +195,7 @@ SVECTOR D_mist_parking_80191730[125] = {
 #include "assets/mist_parking_collision_14C44_verts.inc"
 };
 
-GpGridFace D_mist_parking_80191B18[66] = {
+WorldCollisionGridFace D_mist_parking_80191B18[66] = {
 #include "assets/mist_parking_collision_14C44_faces.inc"
 };
 

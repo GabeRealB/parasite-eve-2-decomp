@@ -228,7 +228,7 @@ SVECTOR D_shelter_b2_operating_room_80180D08[99] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_verts.inc"
 };
 
-GpGridFace D_shelter_b2_operating_room_80181020[42] = {
+WorldCollisionGridFace D_shelter_b2_operating_room_80181020[42] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_faces.inc"
 };
 

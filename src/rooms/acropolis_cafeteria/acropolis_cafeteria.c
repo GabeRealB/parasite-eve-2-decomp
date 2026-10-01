@@ -763,7 +763,7 @@ SVECTOR D_acropolis_cafeteria_801877AC[207] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_verts.inc"
 };
 
-GpGridFace D_acropolis_cafeteria_80187E24[120] = {
+WorldCollisionGridFace D_acropolis_cafeteria_80187E24[120] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_faces.inc"
 };
 

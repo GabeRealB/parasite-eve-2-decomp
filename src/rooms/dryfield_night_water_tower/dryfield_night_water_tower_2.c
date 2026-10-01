@@ -109,7 +109,7 @@ SVECTOR D_dryfield_night_water_tower_8017E914[159] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_verts.inc"
 };
 
-GpGridFace D_dryfield_night_water_tower_8017EE0C[69] = {
+WorldCollisionGridFace D_dryfield_night_water_tower_8017EE0C[69] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_faces.inc"
 };
 

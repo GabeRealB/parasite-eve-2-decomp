@@ -175,7 +175,7 @@ SVECTOR D_shelter_b4_lower_sewer_801821EC[100] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_verts.inc"
 };
 
-GpGridFace D_shelter_b4_lower_sewer_8018250C[33] = {
+WorldCollisionGridFace D_shelter_b4_lower_sewer_8018250C[33] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_faces.inc"
 };
 

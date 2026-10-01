@@ -6,7 +6,7 @@
 #include "gameplay/actor.h"
 
 /// Edge endpoint pair at `Gp_FaceEdgePairs`, indexing the transformed corners of a
-/// `GpGridFace`. Entries 0..2 are the edges of a triangle; entries 1..4 are the
+/// `WorldCollisionGridFace`. Entries 0..2 are the edges of a triangle; entries 1..4 are the
 /// edges of a quad, so a face with `n` corners walks entries `n - 3` up to
 /// `n * 2 - 3`.
 typedef struct _GpEdgePair {

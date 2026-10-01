@@ -174,7 +174,7 @@ SVECTOR D_neo_ark_substation_8017E4C0[42] = {
 #include "assets/neo_ark_substation_collision_012E4_verts.inc"
 };
 
-GpGridFace D_neo_ark_substation_8017E610[25] = {
+WorldCollisionGridFace D_neo_ark_substation_8017E610[25] = {
 #include "assets/neo_ark_substation_collision_012E4_faces.inc"
 };
 

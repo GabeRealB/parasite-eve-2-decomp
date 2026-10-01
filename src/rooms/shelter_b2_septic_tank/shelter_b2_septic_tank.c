@@ -411,7 +411,7 @@ SVECTOR D_shelter_b2_septic_tank_801837A4[82] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_verts.inc"
 };
 
-GpGridFace D_shelter_b2_septic_tank_80183A34[31] = {
+WorldCollisionGridFace D_shelter_b2_septic_tank_80183A34[31] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_faces.inc"
 };
 

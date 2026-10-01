@@ -163,7 +163,7 @@ SVECTOR D_shelter_b1_elevator_hall_80182F38[58] = {
 #include "assets/shelter_b1_elevator_hall_collision_05E54_verts.inc"
 };
 
-GpGridFace D_shelter_b1_elevator_hall_80183108[32] = {
+WorldCollisionGridFace D_shelter_b1_elevator_hall_80183108[32] = {
 #include "assets/shelter_b1_elevator_hall_collision_05E54_faces.inc"
 };
 

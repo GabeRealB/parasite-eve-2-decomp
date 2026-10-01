@@ -1073,7 +1073,7 @@ SVECTOR D_mine_mesa_80186434[8] = {
 #include "assets/mine_mesa_collision_08EE4_verts.inc"
 };
 
-GpGridFace D_mine_mesa_80186474[3] = {
+WorldCollisionGridFace D_mine_mesa_80186474[3] = {
 #include "assets/mine_mesa_collision_08EE4_faces.inc"
 };
 
@@ -1147,7 +1147,7 @@ SVECTOR D_mine_mesa_801866F0[117] = {
 #include "assets/mine_mesa_collision_09A4C_verts.inc"
 };
 
-GpGridFace D_mine_mesa_80186A98[53] = {
+WorldCollisionGridFace D_mine_mesa_80186A98[53] = {
 #include "assets/mine_mesa_collision_09A4C_faces.inc"
 };
 
@@ -3419,11 +3419,11 @@ void func_mine_mesa_8018057C(Task* task)
 /// the base.
 void func_mine_mesa_801811C4(s32 height)
 {
-    SVECTOR*    normals;
-    SVECTOR*    verts;
-    GpGridFace* faces;
-    s16         i;
-    s16         face;
+    SVECTOR*                normals;
+    SVECTOR*                verts;
+    WorldCollisionGridFace* faces;
+    s16                     i;
+    s16                     face;
 
     normals = Gp_GridParams->field_4;
     verts   = Gp_GridParams->field_8;
@@ -3438,10 +3438,10 @@ void func_mine_mesa_801811C4(s32 height)
         verts[face * 4 + 1].vz = verts[face * 4 + 3].vz = D_mine_mesa_80189A9C[i].end.vz;
         verts[face * 4 + 2].vy                         -= height;
         verts[face * 4 + 3].vy                         -= height;
-        faces[face].verts[1]                            = face * 4 + 1;
-        faces[face].verts[0]                            = face * 4;
-        faces[face].verts[2]                            = face * 4 + 2;
-        faces[face].verts[3]                            = face * 4 + 3;
+        faces[face].vertexIndices[1]                    = face * 4 + 1;
+        faces[face].vertexIndices[0]                    = face * 4;
+        faces[face].vertexIndices[2]                    = face * 4 + 2;
+        faces[face].vertexIndices[3]                    = face * 4 + 3;
         faces[face].surfaceClass                        = 3;
         faces[face].normalIndex                         = face;
         normals[face].vx                                = D_mine_mesa_80189A9C[i].start.vz - D_mine_mesa_80189A9C[i].end.vz;

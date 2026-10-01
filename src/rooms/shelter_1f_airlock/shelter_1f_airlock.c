@@ -130,7 +130,7 @@ SVECTOR D_shelter_1f_airlock_8017E65C[32] = {
 #include "assets/shelter_1f_airlock_collision_01278_verts.inc"
 };
 
-GpGridFace D_shelter_1f_airlock_8017E75C[13] = {
+WorldCollisionGridFace D_shelter_1f_airlock_8017E75C[13] = {
 #include "assets/shelter_1f_airlock_collision_01278_faces.inc"
 };
 

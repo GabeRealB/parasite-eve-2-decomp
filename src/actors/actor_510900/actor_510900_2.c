@@ -253,9 +253,9 @@ extern SVECTOR D_actor_510900_80167BC4[3];
 /// `Gp_GridParams->field_8`.
 extern SVECTOR D_actor_510900_80167BDC[12];
 
-/// The three `GpGridFace` records `func_actor_510900_8013B524` copies into
+/// The three `WorldCollisionGridFace` records `func_actor_510900_8013B524` copies into
 /// `Gp_GridParams->field_C`.
-extern GpGridFace D_actor_510900_80167C3C[3];
+extern WorldCollisionGridFace D_actor_510900_80167C3C[3];
 
 /// The extra face normal `func_actor_510900_8013B424` installs as
 /// `Gp_GridParams->field_4[3]` while the actor's own face is in the grid.
@@ -265,9 +265,9 @@ extern SVECTOR D_actor_510900_80167C60;
 /// `Gp_GridParams->field_8[12..15]`.
 extern SVECTOR D_actor_510900_80167C68[4];
 
-/// The `GpGridFace` record for that face, copied into
+/// The `WorldCollisionGridFace` record for that face, copied into
 /// `Gp_GridParams->field_C[3]`.
-extern GpGridFace D_actor_510900_80167C88;
+extern WorldCollisionGridFace D_actor_510900_80167C88;
 
 static s32  func_actor_510900_8013691C(Task* arg0);
 static void func_actor_510900_8013864C(Task* arg0);
@@ -637,7 +637,7 @@ SVECTOR D_actor_510900_80167BDC[12] = {
 #include "assets/actor_510900_collision_35DBC.inc"
 };
 
-GpGridFace D_actor_510900_80167C3C[3] = {
+WorldCollisionGridFace D_actor_510900_80167C3C[3] = {
 #include "assets/actor_510900_collision_35E1C.inc"
 };
 
@@ -650,7 +650,7 @@ SVECTOR D_actor_510900_80167C68[4] = {
     { -5952, 0, -2500, 0 },
 };
 
-GpGridFace D_actor_510900_80167C88 = { { 12, 13, 14, 15 }, 3, 0 };
+WorldCollisionGridFace D_actor_510900_80167C88 = { { 12, 13, 14, 15 }, 3, 0 };
 
 u16 D_actor_510900_80167C94[12] = {
     25,
@@ -2538,21 +2538,21 @@ static void func_actor_510900_80138F44(Task* arg0)
 /// its own; without it the corner pointer and its walking copy coalesce.
 s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
 {
-    Actor510900Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    Enemy*           enemy;
-    SVECTOR*         rot;
-    void*            head;
-    SVECTOR*         normals;
-    SVECTOR*         verts;
-    GpGridFace*      faces;
-    s32              pair;
-    s32              i;
-    s32              j;
-    s32              k;
-    SVECTOR*         vec;
-    SVECTOR*         corners;
+    Actor510900Work*        work;
+    TmdObject*              obj;
+    GfxCoord*               coord;
+    Enemy*                  enemy;
+    SVECTOR*                rot;
+    void*                   head;
+    SVECTOR*                normals;
+    SVECTOR*                verts;
+    WorldCollisionGridFace* faces;
+    s32                     pair;
+    s32                     i;
+    s32                     j;
+    s32                     k;
+    SVECTOR*                vec;
+    SVECTOR*                corners;
 
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(SVECTOR);
@@ -3674,10 +3674,10 @@ void func_actor_510900_8013B3D0(Task* task)
 /// fourth. Clearing zeroes only the vertices and normal; the face record stays.
 void func_actor_510900_8013B424(s32 arg0)
 {
-    s32         i;
-    SVECTOR*    normals = Gp_GridParams->field_4;
-    SVECTOR*    verts   = Gp_GridParams->field_8;
-    GpGridFace* faces   = Gp_GridParams->field_C;
+    s32                     i;
+    SVECTOR*                normals = Gp_GridParams->field_4;
+    SVECTOR*                verts   = Gp_GridParams->field_8;
+    WorldCollisionGridFace* faces   = Gp_GridParams->field_C;
 
     if (arg0 == 1) {
         for (i = 0; i < 4; i++) {
@@ -3702,10 +3702,10 @@ void func_actor_510900_8013B424(s32 arg0)
 /// call site materialises it.
 void func_actor_510900_8013B524(Task* arg0)
 {
-    s32         i;
-    SVECTOR*    normals = Gp_GridParams->field_4;
-    SVECTOR*    verts   = Gp_GridParams->field_8;
-    GpGridFace* faces   = Gp_GridParams->field_C;
+    s32                     i;
+    SVECTOR*                normals = Gp_GridParams->field_4;
+    SVECTOR*                verts   = Gp_GridParams->field_8;
+    WorldCollisionGridFace* faces   = Gp_GridParams->field_C;
 
     for (i = 0; i < 12; i++) {
         verts[i] = D_actor_510900_80167BDC[i];

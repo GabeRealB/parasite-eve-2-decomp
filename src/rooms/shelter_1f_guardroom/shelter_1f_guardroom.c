@@ -103,7 +103,7 @@ SVECTOR D_shelter_1f_guardroom_8017DB08[14] = {
 #include "assets/shelter_1f_guardroom_collision_00630_verts.inc"
 };
 
-GpGridFace D_shelter_1f_guardroom_8017DB78[8] = {
+WorldCollisionGridFace D_shelter_1f_guardroom_8017DB78[8] = {
 #include "assets/shelter_1f_guardroom_collision_00630_faces.inc"
 };
 

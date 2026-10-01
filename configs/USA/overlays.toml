@@ -71,7 +71,7 @@
 #       the arrays' initializers are generated (tools/gen_collision_inc.py).
 #   { kind = "collisionPatch", at = "...", pieces = ["vectors N", "faces N", ...] }
 #       headerless collision geometry that code copies into a live grid (a
-#       moving part); each piece is one array, of SVECTORs or GpGridFaces
+#       moving part); each piece is one array, of SVECTORs or WorldCollisionGridFaces
 #       all assembly, named from the offset given, so inserting a neighbour
 #       never renames them -- the defect the old ordinal names carried.
 #

@@ -9,19 +9,19 @@
 /// game flag 0x49 as `useAltTemplate`.
 void factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useAltTemplate)
 {
-    long          flag;
-    GfxCoord*     coord;
-    MATRIX*       m;
-    GpGridParams* geom;
-    GpGridParams* src;
-    SVECTOR*      s;
-    SVECTOR*      d;
-    GpGridFace*   sf;
-    GpGridFace*   df;
-    u16*          sv;
-    u16*          dv;
-    s32           i;
-    s32           j;
+    long                    flag;
+    GfxCoord*               coord;
+    MATRIX*                 m;
+    GpGridParams*           geom;
+    GpGridParams*           src;
+    SVECTOR*                s;
+    SVECTOR*                d;
+    WorldCollisionGridFace* sourceFace;
+    WorldCollisionGridFace* destFace;
+    u16*                    sourceIndices;
+    u16*                    destIndices;
+    s32                     i;
+    s32                     j;
 
     coord = task->extra.tmd->coords;
     if (gGameSession->location.loc.stage == 2) {
@@ -56,19 +56,19 @@ void factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useAltTemplate)
     }
 
     if (remapFaces != 0) {
-        sf = src->field_C;
-        df = geom->field_C + 2;
+        sourceFace = src->field_C;
+        destFace   = geom->field_C + 2;
         for (i = 0; i < 4; i++) {
-            j  = 0;
-            dv = df->verts;
-            sv = sf->verts;
+            j             = 0;
+            destIndices   = destFace->vertexIndices;
+            sourceIndices = sourceFace->vertexIndices;
             do {
-                *dv++ = *sv++ + 8;
-            } while (++j < 4);
-            df->normalIndex  = sf->normalIndex + 2;
-            df->surfaceClass = sf->surfaceClass;
-            df++;
-            sf++;
+                *destIndices++ = *sourceIndices++ + 8;
+            } while (++j < ARRAY_SIZE(destFace->vertexIndices));
+            destFace->normalIndex  = sourceFace->normalIndex + 2;
+            destFace->surfaceClass = sourceFace->surfaceClass;
+            destFace++;
+            sourceFace++;
         }
     }
 }

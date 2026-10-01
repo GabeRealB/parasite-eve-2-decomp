@@ -234,7 +234,7 @@ SVECTOR D_neo_ark_pavilion_80183AF4[102] = {
 #include "assets/neo_ark_pavilion_collision_06C24_verts.inc"
 };
 
-GpGridFace D_neo_ark_pavilion_80183E24[52] = {
+WorldCollisionGridFace D_neo_ark_pavilion_80183E24[52] = {
 #include "assets/neo_ark_pavilion_collision_06C24_faces.inc"
 };
 

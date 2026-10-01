@@ -277,7 +277,7 @@ SVECTOR D_acropolis_fire_escape_80181EC4[55] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_verts.inc"
 };
 
-GpGridFace D_acropolis_fire_escape_8018207C[23] = {
+WorldCollisionGridFace D_acropolis_fire_escape_8018207C[23] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_faces.inc"
 };
 

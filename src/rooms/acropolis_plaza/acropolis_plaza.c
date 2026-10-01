@@ -2677,7 +2677,7 @@ SVECTOR D_acropolis_plaza_80198B90[80] = {
 #include "assets/acropolis_plaza_collision_1BBC0_verts.inc"
 };
 
-GpGridFace D_acropolis_plaza_80198E10[32] = {
+WorldCollisionGridFace D_acropolis_plaza_80198E10[32] = {
 #include "assets/acropolis_plaza_collision_1BBC0_faces.inc"
 };
 

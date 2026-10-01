@@ -160,7 +160,7 @@ SVECTOR D_mine_secret_passage_801810D4[66] = {
 #include "assets/mine_secret_passage_collision_04020_verts.inc"
 };
 
-GpGridFace D_mine_secret_passage_801812E4[27] = {
+WorldCollisionGridFace D_mine_secret_passage_801812E4[27] = {
 #include "assets/mine_secret_passage_collision_04020_faces.inc"
 };
 

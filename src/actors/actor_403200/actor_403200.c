@@ -7555,15 +7555,15 @@ after_mode:
 
 static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 index)
 {
-    SVECTOR     dir;
-    SVECTOR     normal;
-    SVECTOR*    pool  = Gp_GridParams->field_4;
-    SVECTOR*    verts = Gp_GridParams->field_8;
-    GpGridFace* faces = Gp_GridParams->field_C;
-    GpGridFace  face  = {
+    SVECTOR                 dir;
+    SVECTOR                 normal;
+    SVECTOR*                pool  = Gp_GridParams->field_4;
+    SVECTOR*                verts = Gp_GridParams->field_8;
+    WorldCollisionGridFace* faces = Gp_GridParams->field_C;
+    WorldCollisionGridFace  face  = {
         { index * 4, index * 4 + 1, index * 4 + 2, index * 4 + 3 }, index, 3
     };
-    GpGridFace face2 = {
+    WorldCollisionGridFace face2 = {
         { (index + 1) * 4, (index + 1) * 4 + 1, (index + 1) * 4 + 2, (index + 1) * 4 + 3 }, index + 1, 3
     };
     SVECTOR* d;

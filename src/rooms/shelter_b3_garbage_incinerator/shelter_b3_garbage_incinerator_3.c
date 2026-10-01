@@ -209,7 +209,7 @@ SVECTOR D_shelter_b3_garbage_incinerator_801878A4[84] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_verts.inc"
 };
 
-GpGridFace D_shelter_b3_garbage_incinerator_80187B44[64] = {
+WorldCollisionGridFace D_shelter_b3_garbage_incinerator_80187B44[64] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_faces.inc"
 };
 
@@ -2577,12 +2577,12 @@ void func_shelter_b3_garbage_incinerator_80184ECC(Task* task)
 
 static void func_shelter_b3_garbage_incinerator_80184EEC(void)
 {
-    SVECTOR     normal;
-    SVECTOR*    normals;
-    SVECTOR*    verts;
-    GpGridFace* faces;
-    s16         i;
-    SVECTOR*    np;
+    SVECTOR                 normal;
+    SVECTOR*                normals;
+    SVECTOR*                verts;
+    WorldCollisionGridFace* faces;
+    s16                     i;
+    SVECTOR*                np;
 
     normals = Gp_GridParams->field_4;
     verts   = Gp_GridParams->field_8;
@@ -2598,10 +2598,10 @@ static void func_shelter_b3_garbage_incinerator_80184EEC(void)
             verts[i * 4 + 1].vz = verts[i * 4 + 3].vz = -15000;
             verts[i * 4].vy                           = 200;
             verts[i * 4 + 1].vy                       = 200;
-            faces[i].verts[1]                         = i * 4 + 1;
-            faces[i].verts[0]                         = i * 4;
-            faces[i].verts[2]                         = i * 4 + 2;
-            faces[i].verts[3]                         = i * 4 + 3;
+            faces[i].vertexIndices[1]                 = i * 4 + 1;
+            faces[i].vertexIndices[0]                 = i * 4;
+            faces[i].vertexIndices[2]                 = i * 4 + 2;
+            faces[i].vertexIndices[3]                 = i * 4 + 3;
             faces[i].surfaceClass                     = 1;
             faces[i].normalIndex                      = i;
             np                                        = &normal;
@@ -2617,12 +2617,12 @@ static void func_shelter_b3_garbage_incinerator_80184EEC(void)
 
 void func_shelter_b3_garbage_incinerator_8018507C(void)
 {
-    SVECTOR     normal;
-    SVECTOR*    normals;
-    SVECTOR*    verts;
-    GpGridFace* faces;
-    s16         i;
-    SVECTOR*    np;
+    SVECTOR                 normal;
+    SVECTOR*                normals;
+    SVECTOR*                verts;
+    WorldCollisionGridFace* faces;
+    s16                     i;
+    SVECTOR*                np;
 
     i       = 0;
     normals = Gp_GridParams->field_4;
@@ -2639,10 +2639,10 @@ void func_shelter_b3_garbage_incinerator_8018507C(void)
         verts[i * 4 + 1].vz = verts[i * 4 + 3].vz = D_shelter_b3_garbage_incinerator_8018FBCC[i][3];
         verts[i * 4].vy                          -= 400;
         verts[i * 4 + 1].vy                      -= 400;
-        faces[i].verts[1]                         = i * 4 + 1;
-        faces[i].verts[0]                         = i * 4;
-        faces[i].verts[2]                         = i * 4 + 2;
-        faces[i].verts[3]                         = i * 4 + 3;
+        faces[i].vertexIndices[1]                 = i * 4 + 1;
+        faces[i].vertexIndices[0]                 = i * 4;
+        faces[i].vertexIndices[2]                 = i * 4 + 2;
+        faces[i].vertexIndices[3]                 = i * 4 + 3;
         faces[i].surfaceClass                     = 1;
         faces[i].normalIndex                      = i;
         normal.vx                                 = D_shelter_b3_garbage_incinerator_8018FBCC[i][3] - D_shelter_b3_garbage_incinerator_8018FBCC[i][1];
@@ -2656,12 +2656,12 @@ void func_shelter_b3_garbage_incinerator_8018507C(void)
 
 void func_shelter_b3_garbage_incinerator_80185220(void)
 {
-    SVECTOR     normal;
-    SVECTOR*    normals;
-    SVECTOR*    verts;
-    GpGridFace* faces;
-    s16         i;
-    SVECTOR*    np;
+    SVECTOR                 normal;
+    SVECTOR*                normals;
+    SVECTOR*                verts;
+    WorldCollisionGridFace* faces;
+    s16                     i;
+    SVECTOR*                np;
 
     i       = 0;
     normals = Gp_GridParams->field_4;
@@ -2678,10 +2678,10 @@ void func_shelter_b3_garbage_incinerator_80185220(void)
         verts[i * 4 + 1].vz = verts[i * 4 + 3].vz = D_shelter_b3_garbage_incinerator_8018FBFC[i][3];
         verts[i * 4].vy                          -= 400;
         verts[i * 4 + 1].vy                      -= 400;
-        faces[i].verts[1]                         = i * 4 + 1;
-        faces[i].verts[0]                         = i * 4;
-        faces[i].verts[2]                         = i * 4 + 2;
-        faces[i].verts[3]                         = i * 4 + 3;
+        faces[i].vertexIndices[1]                 = i * 4 + 1;
+        faces[i].vertexIndices[0]                 = i * 4;
+        faces[i].vertexIndices[2]                 = i * 4 + 2;
+        faces[i].vertexIndices[3]                 = i * 4 + 3;
         faces[i].normalIndex                      = i;
         faces[i].surfaceClass                     = 1;
         normal.vx                                 = D_shelter_b3_garbage_incinerator_8018FBFC[i][3] - D_shelter_b3_garbage_incinerator_8018FBFC[i][1];
@@ -2695,11 +2695,11 @@ void func_shelter_b3_garbage_incinerator_80185220(void)
 
 void func_shelter_b3_garbage_incinerator_801853C4(void)
 {
-    SVECTOR     normal;
-    SVECTOR*    normals;
-    SVECTOR*    verts;
-    GpGridFace* faces;
-    s16         i;
+    SVECTOR                 normal;
+    SVECTOR*                normals;
+    SVECTOR*                verts;
+    WorldCollisionGridFace* faces;
+    s16                     i;
 
     i       = 0;
     normals = Gp_GridParams->field_4;
@@ -2717,10 +2717,10 @@ void func_shelter_b3_garbage_incinerator_801853C4(void)
         verts[i * 4 + 1].vy                      += 1000;
         verts[i * 4 + 2].vy                      += 2000;
         verts[i * 4 + 3].vy                      += 2000;
-        faces[i].verts[1]                         = i * 4 + 1;
-        faces[i].verts[0]                         = i * 4;
-        faces[i].verts[2]                         = i * 4 + 2;
-        faces[i].verts[3]                         = i * 4 + 3;
+        faces[i].vertexIndices[1]                 = i * 4 + 1;
+        faces[i].vertexIndices[0]                 = i * 4;
+        faces[i].vertexIndices[2]                 = i * 4 + 2;
+        faces[i].vertexIndices[3]                 = i * 4 + 3;
         faces[i].normalIndex                      = i;
         faces[i].surfaceClass                     = 1;
         normal.vx                                 = D_shelter_b3_garbage_incinerator_8018FBFC[i][3] - D_shelter_b3_garbage_incinerator_8018FBFC[i][1];

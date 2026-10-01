@@ -615,7 +615,7 @@ SVECTOR D_acropolis_forked_road_80182430[118] = {
 #include "assets/acropolis_forked_road_collision_05630_verts.inc"
 };
 
-GpGridFace D_acropolis_forked_road_801827E0[38] = {
+WorldCollisionGridFace D_acropolis_forked_road_801827E0[38] = {
 #include "assets/acropolis_forked_road_collision_05630_faces.inc"
 };
 

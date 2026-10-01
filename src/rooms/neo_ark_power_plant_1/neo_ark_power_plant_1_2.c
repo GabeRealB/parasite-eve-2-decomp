@@ -307,7 +307,7 @@ SVECTOR D_neo_ark_power_plant_1_8017FBE8[58] = {
 #include "assets/neo_ark_power_plant_1_collision_02AD0_verts.inc"
 };
 
-GpGridFace D_neo_ark_power_plant_1_8017FDB8[30] = {
+WorldCollisionGridFace D_neo_ark_power_plant_1_8017FDB8[30] = {
 #include "assets/neo_ark_power_plant_1_collision_02AD0_faces.inc"
 };
 

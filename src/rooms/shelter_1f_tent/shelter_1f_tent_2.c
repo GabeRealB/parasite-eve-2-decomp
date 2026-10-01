@@ -91,7 +91,7 @@ SVECTOR D_shelter_1f_tent_80181E0C[66] = {
 #include "assets/shelter_1f_tent_collision_04D30_verts.inc"
 };
 
-GpGridFace D_shelter_1f_tent_8018201C[37] = {
+WorldCollisionGridFace D_shelter_1f_tent_8018201C[37] = {
 #include "assets/shelter_1f_tent_collision_04D30_faces.inc"
 };
 

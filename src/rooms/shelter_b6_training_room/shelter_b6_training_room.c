@@ -77,7 +77,7 @@ SVECTOR D_shelter_b6_training_room_801844C8[22] = {
 #include "assets/shelter_b6_training_room_collision_07174_verts.inc"
 };
 
-GpGridFace D_shelter_b6_training_room_80184578[21] = {
+WorldCollisionGridFace D_shelter_b6_training_room_80184578[21] = {
 #include "assets/shelter_b6_training_room_collision_07174_faces.inc"
 };
 

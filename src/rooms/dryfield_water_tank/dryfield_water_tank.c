@@ -498,7 +498,7 @@ SVECTOR D_dryfield_water_tank_801869E0[70] = {
 #include "assets/dryfield_water_tank_collision_098FC_verts.inc"
 };
 
-GpGridFace D_dryfield_water_tank_80186C10[36] = {
+WorldCollisionGridFace D_dryfield_water_tank_80186C10[36] = {
 #include "assets/dryfield_water_tank_collision_098FC_faces.inc"
 };
 

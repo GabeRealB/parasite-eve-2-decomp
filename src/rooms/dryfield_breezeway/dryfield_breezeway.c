@@ -249,7 +249,7 @@ SVECTOR D_dryfield_breezeway_8018327C[46] = {
 #include "assets/dryfield_breezeway_collision_06068_verts.inc"
 };
 
-GpGridFace D_dryfield_breezeway_801833EC[24] = {
+WorldCollisionGridFace D_dryfield_breezeway_801833EC[24] = {
 #include "assets/dryfield_breezeway_collision_06068_faces.inc"
 };
 

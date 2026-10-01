@@ -380,7 +380,7 @@ SVECTOR D_shelter_b1_sterilization_room_801894F8[124] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_verts.inc"
 };
 
-GpGridFace D_shelter_b1_sterilization_room_801898D8[68] = {
+WorldCollisionGridFace D_shelter_b1_sterilization_room_801898D8[68] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_faces.inc"
 };
 

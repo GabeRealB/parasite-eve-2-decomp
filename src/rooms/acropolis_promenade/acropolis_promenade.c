@@ -674,7 +674,7 @@ SVECTOR D_acropolis_promenade_80181DE4[93] = {
 #include "assets/acropolis_promenade_collision_04E1C_verts.inc"
 };
 
-GpGridFace D_acropolis_promenade_801820CC[38] = {
+WorldCollisionGridFace D_acropolis_promenade_801820CC[38] = {
 #include "assets/acropolis_promenade_collision_04E1C_faces.inc"
 };
 
@@ -700,7 +700,7 @@ SVECTOR D_acropolis_promenade_801824F0[103] = {
 #include "assets/acropolis_promenade_collision_05610_verts.inc"
 };
 
-GpGridFace D_acropolis_promenade_80182828[46] = {
+WorldCollisionGridFace D_acropolis_promenade_80182828[46] = {
 #include "assets/acropolis_promenade_collision_05610_faces.inc"
 };
 

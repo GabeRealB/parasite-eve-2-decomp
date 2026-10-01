@@ -352,7 +352,7 @@ SVECTOR D_acropolis_east_elevator_hall_801863C8[66] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_verts.inc"
 };
 
-GpGridFace D_acropolis_east_elevator_hall_801865D8[33] = {
+WorldCollisionGridFace D_acropolis_east_elevator_hall_801865D8[33] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_faces.inc"
 };
 

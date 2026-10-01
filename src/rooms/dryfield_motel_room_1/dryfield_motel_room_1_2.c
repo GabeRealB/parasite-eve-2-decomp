@@ -283,7 +283,7 @@ SVECTOR D_dryfield_motel_room_1_8017E54C[85] = {
 #include "assets/dryfield_motel_room_1_collision_014FC_verts.inc"
 };
 
-GpGridFace D_dryfield_motel_room_1_8017E7F4[38] = {
+WorldCollisionGridFace D_dryfield_motel_room_1_8017E7F4[38] = {
 #include "assets/dryfield_motel_room_1_collision_014FC_faces.inc"
 };
 

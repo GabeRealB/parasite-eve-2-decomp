@@ -154,7 +154,7 @@ SVECTOR D_dryfield_motel_balcony_80182408[69] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_verts.inc"
 };
 
-GpGridFace D_dryfield_motel_balcony_80182630[32] = {
+WorldCollisionGridFace D_dryfield_motel_balcony_80182630[32] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_faces.inc"
 };
 

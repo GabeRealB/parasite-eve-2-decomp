@@ -222,7 +222,7 @@ SVECTOR D_dryfield_night_garage_80181CFC[8] = {
 #include "assets/dryfield_night_garage_collision_047BC_verts.inc"
 };
 
-GpGridFace D_dryfield_night_garage_80181D3C[4] = {
+WorldCollisionGridFace D_dryfield_night_garage_80181D3C[4] = {
 #include "assets/dryfield_night_garage_collision_047BC_faces.inc"
 };
 
@@ -246,7 +246,7 @@ SVECTOR D_dryfield_night_garage_80181DC0[8] = {
 #include "assets/dryfield_night_garage_collision_04880_verts.inc"
 };
 
-GpGridFace D_dryfield_night_garage_80181E00[4] = {
+WorldCollisionGridFace D_dryfield_night_garage_80181E00[4] = {
 #include "assets/dryfield_night_garage_collision_04880_faces.inc"
 };
 

@@ -218,7 +218,7 @@ SVECTOR D_dryfield_night_underpass_8017DF68[70] = {
 #include "assets/dryfield_night_underpass_collision_01114_verts.inc"
 };
 
-GpGridFace D_dryfield_night_underpass_8017E198[46] = {
+WorldCollisionGridFace D_dryfield_night_underpass_8017E198[46] = {
 #include "assets/dryfield_night_underpass_collision_01114_faces.inc"
 };
 

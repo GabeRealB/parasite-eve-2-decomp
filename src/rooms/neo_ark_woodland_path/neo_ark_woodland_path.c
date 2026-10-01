@@ -101,7 +101,7 @@ SVECTOR D_neo_ark_woodland_path_80181794[75] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_verts.inc"
 };
 
-GpGridFace D_neo_ark_woodland_path_801819EC[35] = {
+WorldCollisionGridFace D_neo_ark_woodland_path_801819EC[35] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_faces.inc"
 };
 

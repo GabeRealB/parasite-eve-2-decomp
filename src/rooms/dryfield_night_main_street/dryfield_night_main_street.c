@@ -563,7 +563,7 @@ SVECTOR D_dryfield_night_main_street_80182538[180] = {
 #include "assets/dryfield_night_main_street_collision_05E10_verts.inc"
 };
 
-GpGridFace D_dryfield_night_main_street_80182AD8[85] = {
+WorldCollisionGridFace D_dryfield_night_main_street_80182AD8[85] = {
 #include "assets/dryfield_night_main_street_collision_05E10_faces.inc"
 };
 
@@ -589,7 +589,7 @@ SVECTOR D_dryfield_night_main_street_801834AC[196] = {
 #include "assets/dryfield_night_main_street_collision_06F80_verts.inc"
 };
 
-GpGridFace D_dryfield_night_main_street_80183ACC[89] = {
+WorldCollisionGridFace D_dryfield_night_main_street_80183ACC[89] = {
 #include "assets/dryfield_night_main_street_collision_06F80_faces.inc"
 };
 

@@ -141,7 +141,7 @@ SVECTOR D_neo_ark_pyramid_8017FD44[66] = {
 #include "assets/neo_ark_pyramid_collision_02D04_verts.inc"
 };
 
-GpGridFace D_neo_ark_pyramid_8017FF54[36] = {
+WorldCollisionGridFace D_neo_ark_pyramid_8017FF54[36] = {
 #include "assets/neo_ark_pyramid_collision_02D04_faces.inc"
 };
 

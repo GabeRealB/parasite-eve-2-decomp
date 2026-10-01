@@ -96,7 +96,7 @@ SVECTOR D_dryfield_night_general_store_8017E95C[143] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_verts.inc"
 };
 
-GpGridFace D_dryfield_night_general_store_8017EDD4[88] = {
+WorldCollisionGridFace D_dryfield_night_general_store_8017EDD4[88] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_faces.inc"
 };
 

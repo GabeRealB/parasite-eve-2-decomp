@@ -2228,7 +2228,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 work->field_4BC = Task_SpawnFromTable(D_actor_136100_80140744, 3, 1,
                                                       arg0->extra.tmd->coords + 8);
                 Mem_CopyUnaligned(&D_actor_136100_8013F224, D_dryfield_night_main_street_801833F4, 0x20);
-                Mem_CopyUnaligned(&D_actor_136100_8013F2C4, D_dryfield_night_main_street_80183ACC, 0x30);
+                Mem_CopyUnaligned(&D_actor_136100_8013F2C4, D_dryfield_night_main_street_80183ACC, sizeof(D_actor_136100_8013F2C4));
                 Mem_CopyUnaligned(&D_actor_136100_8013F244, D_dryfield_night_main_street_801834AC, 0x80);
             }
             work->field_4C0 = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);

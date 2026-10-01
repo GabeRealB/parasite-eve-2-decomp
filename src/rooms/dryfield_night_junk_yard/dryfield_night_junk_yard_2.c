@@ -119,7 +119,7 @@ SVECTOR D_dryfield_night_junk_yard_801809A4[113] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_verts.inc"
 };
 
-GpGridFace D_dryfield_night_junk_yard_80180D2C[54] = {
+WorldCollisionGridFace D_dryfield_night_junk_yard_80180D2C[54] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_faces.inc"
 };
 

@@ -496,7 +496,7 @@ SVECTOR D_acropolis_roof_garden_80184E14[92] = {
 #include "assets/acropolis_roof_garden_collision_07EE4_verts.inc"
 };
 
-GpGridFace D_acropolis_roof_garden_801850F4[53] = {
+WorldCollisionGridFace D_acropolis_roof_garden_801850F4[53] = {
 #include "assets/acropolis_roof_garden_collision_07EE4_faces.inc"
 };
 

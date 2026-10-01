@@ -119,7 +119,7 @@ SVECTOR D_shelter_b2_pod_bottom_80181EAC[132] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_verts.inc"
 };
 
-GpGridFace D_shelter_b2_pod_bottom_801822CC[88] = {
+WorldCollisionGridFace D_shelter_b2_pod_bottom_801822CC[88] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_faces.inc"
 };
 

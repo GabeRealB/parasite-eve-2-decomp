@@ -328,7 +328,7 @@ SVECTOR D_dryfield_underpass_8017ED18[70] = {
 #include "assets/dryfield_underpass_collision_01EC4_verts.inc"
 };
 
-GpGridFace D_dryfield_underpass_8017EF48[46] = {
+WorldCollisionGridFace D_dryfield_underpass_8017EF48[46] = {
 #include "assets/dryfield_underpass_collision_01EC4_faces.inc"
 };
 

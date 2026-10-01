@@ -650,7 +650,7 @@ SVECTOR D_acropolis_sanctuary_8018226C[8] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_verts.inc"
 };
 
-GpGridFace D_acropolis_sanctuary_801822AC[4] = {
+WorldCollisionGridFace D_acropolis_sanctuary_801822AC[4] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_faces.inc"
 };
 
@@ -832,7 +832,7 @@ SVECTOR D_acropolis_sanctuary_80182A04[136] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_verts.inc"
 };
 
-GpGridFace D_acropolis_sanctuary_80182E44[85] = {
+WorldCollisionGridFace D_acropolis_sanctuary_80182E44[85] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_faces.inc"
 };
 
@@ -1882,8 +1882,8 @@ void func_acropolis_sanctuary_8017DCE0(s32 arg0)
 
 /// Arms the sanctuary's blocker cage: copies the first four normals, eight
 /// corners and four quads of the template at `D_acropolis_sanctuary_801822EC`
-/// into the live set at `D_acropolis_sanctuary_80183568`, marking every copied
-/// quad live, then slides all eight corners to where the cage belongs. Nibble 6
+/// into the live set at `D_acropolis_sanctuary_80183568`, selecting surface class
+/// 1 for each copied quad, then slides all eight corners to where the cage belongs. Nibble 6
 /// is the sanctuary cutscene flag: before the scene the cage sits across the
 /// doorway, afterwards it is pushed 3000 units aside and out of the way.
 static void func_acropolis_sanctuary_8017DD78(void)

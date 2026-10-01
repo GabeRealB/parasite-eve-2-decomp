@@ -135,7 +135,7 @@ SVECTOR D_mine_gorge_8017E988[120] = {
 #include "assets/mine_gorge_collision_01BC4_verts.inc"
 };
 
-GpGridFace D_mine_gorge_8017ED48[49] = {
+WorldCollisionGridFace D_mine_gorge_8017ED48[49] = {
 #include "assets/mine_gorge_collision_01BC4_faces.inc"
 };
 
@@ -161,7 +161,7 @@ SVECTOR D_mine_gorge_8017F288[108] = {
 #include "assets/mine_gorge_collision_02430_verts.inc"
 };
 
-GpGridFace D_mine_gorge_8017F5E8[46] = {
+WorldCollisionGridFace D_mine_gorge_8017F5E8[46] = {
 #include "assets/mine_gorge_collision_02430_faces.inc"
 };
 

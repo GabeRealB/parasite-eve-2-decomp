@@ -212,17 +212,14 @@ STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
 /// arrival test reads its height and Z coordinate directly from this record.
 extern ActorTransform D_dryfield_water_tower_80181AB8;
 
-/// The three effect-definition tables the cap-arrival test and
-/// `func_dryfield_water_tower_8017FA5C` install into the room's live copies --
-/// 0x10, 0x18 and 0x40 bytes. The same three pairs, at the same sizes, are
-/// copied by `func_dryfield_water_tower_8017F128` on its state-7 path, so each
-/// is one variant of a table the room selects between rather than the only
-/// content. The destinations are also reached with an offset from a lower base
-/// (`0x801828CC + 0x10` is `801828DC`), i.e. the live table is a region the
-/// room walks. The live normal, vertex, and face arrays retain those element ranges.
-extern SVECTOR    D_dryfield_water_tower_80181B10[2];
-extern GpGridFace D_dryfield_water_tower_80181BA0[2];
-extern SVECTOR    D_dryfield_water_tower_80181B20[8];
+/// The lowered-cap collision patch: two normals, two faces and eight vertices.
+///
+/// Installed into grid normals 2..3, faces 2..3 and vertices 8..15 when the cap
+/// reaches its lower position. The live grid and these template arrays belong
+/// to this room overlay.
+extern SVECTOR                D_dryfield_water_tower_80181B10[2];
+extern WorldCollisionGridFace D_dryfield_water_tower_80181BA0[2];
+extern SVECTOR                D_dryfield_water_tower_80181B20[8];
 
 /// The room's two cap placements with message 0x7D4, the pair the cap props
 /// publish to themselves through `actorMsgPlaceYawPitchRoll`: `[0]` is the raised position
@@ -310,16 +307,16 @@ extern DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80181B00[2];
 /// the script only runs while `gPlayerStatus.hp` is non-zero, and its state 8 holds
 /// back on `Gp_StateC08.field_A` == 1 or a non-zero `gDisplayState.pendingMode`.
 
-/// The raised-cap sources the cap script restores the room's script-table
-/// blocks from, and the lowered-cap ones it uses when the cap is already down.
-/// The destinations are runs of two blocks each (0x10, 0x18 and 0x40 bytes),
-/// reached by their first symbol plus the block size or by the second symbol
-/// minus it.
-extern SVECTOR    D_dryfield_water_tower_80181B60[8];
-extern SVECTOR    D_dryfield_water_tower_80181BB8[2];
-extern SVECTOR    D_dryfield_water_tower_80181BC8[8];
-extern SVECTOR    D_dryfield_water_tower_80181C08[8];
-extern GpGridFace D_dryfield_water_tower_80181C48[2];
+/// Collision patches for the raised and lowered cap positions.
+///
+/// Each patch supplies two normals, two faces and eight vertices for a section
+/// of the room's live grid. The first section starts at normal 0, face 0 and
+/// vertex 0; the second starts at normal 2, face 2 and vertex 8.
+extern SVECTOR                D_dryfield_water_tower_80181B60[8];
+extern SVECTOR                D_dryfield_water_tower_80181BB8[2];
+extern SVECTOR                D_dryfield_water_tower_80181BC8[8];
+extern SVECTOR                D_dryfield_water_tower_80181C08[8];
+extern WorldCollisionGridFace D_dryfield_water_tower_80181C48[2];
 
 /// The pair of blocks the cap script's state 8 hands to `func_800E8634`.
 extern EvsCommand D_dryfield_water_tower_801820B0[];
@@ -412,12 +409,12 @@ void             func_dryfield_water_tower_8017FA5C(void);
 void             func_dryfield_water_tower_8017FBC8(Task*);
 void             func_dryfield_water_tower_8017FBD8(Task*);
 
-extern GpGridFace D_dryfield_water_tower_80182F2C[73];
-extern SVECTOR    D_dryfield_water_tower_801828CC[29];
-extern SVECTOR    D_dryfield_water_tower_801829B4[175];
-extern TaskDesc   D_8014D8A4;
-extern s16*       D_dryfield_water_tower_80183584[16];
-void              func_dryfield_water_tower_8017F808(Task*, s32, ActorCommand* msg);
+extern WorldCollisionGridFace D_dryfield_water_tower_80182F2C[73];
+extern SVECTOR                D_dryfield_water_tower_801828CC[29];
+extern SVECTOR                D_dryfield_water_tower_801829B4[175];
+extern TaskDesc               D_8014D8A4;
+extern s16*                   D_dryfield_water_tower_80183584[16];
+void                          func_dryfield_water_tower_8017F808(Task*, s32, ActorCommand* msg);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -529,7 +526,7 @@ SVECTOR D_dryfield_water_tower_80181B60[8] = {
 #include "assets/dryfield_water_tower_collision_045A0.inc"
 };
 
-GpGridFace D_dryfield_water_tower_80181BA0[2] = {
+WorldCollisionGridFace D_dryfield_water_tower_80181BA0[2] = {
 #include "assets/dryfield_water_tower_collision_045E0.inc"
 };
 
@@ -545,7 +542,7 @@ SVECTOR D_dryfield_water_tower_80181C08[8] = {
 #include "assets/dryfield_water_tower_collision_04648.inc"
 };
 
-GpGridFace D_dryfield_water_tower_80181C48[2] = {
+WorldCollisionGridFace D_dryfield_water_tower_80181C48[2] = {
 #include "assets/dryfield_water_tower_collision_04688.inc"
 };
 
@@ -798,7 +795,7 @@ SVECTOR D_dryfield_water_tower_801829B4[175] = {
 #include "assets/dryfield_water_tower_collision_06004_verts.inc"
 };
 
-GpGridFace D_dryfield_water_tower_80182F2C[73] = {
+WorldCollisionGridFace D_dryfield_water_tower_80182F2C[73] = {
 #include "assets/dryfield_water_tower_collision_06004_faces.inc"
 };
 
@@ -1907,7 +1904,7 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
             state->field_5A++;
             if ((s16)state->field_5A >= 0xB) {
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181B10, (D_dryfield_water_tower_801828CC + 2), 0x10);
-                Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, (D_dryfield_water_tower_80182F2C + 2), 0x18);
+                Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, (D_dryfield_water_tower_80182F2C + 2), sizeof(D_dryfield_water_tower_80181BA0));
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181B20, (D_dryfield_water_tower_801829B4 + 8), 0x40);
                 Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
                 return 1;
@@ -2454,7 +2451,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             D_dryfield_water_tower_801876AA = _dryfieldWaterTowerStepFrames(arg0);
             Mem_CopyUnaligned(D_dryfield_water_tower_80181BC8, D_dryfield_water_tower_801829B4, 0x40);
             Mem_CopyUnaligned(D_dryfield_water_tower_80181BB8, D_dryfield_water_tower_801828CC, 0x10);
-            Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, D_dryfield_water_tower_80182F2C, 0x18);
+            Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, D_dryfield_water_tower_80182F2C, sizeof(D_dryfield_water_tower_80181C48));
             return 0;
 
         case 1:
@@ -2519,7 +2516,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             }
             Mem_CopyUnaligned(D_dryfield_water_tower_80181C08, D_dryfield_water_tower_801829B4, 0x40);
             Mem_CopyUnaligned(D_dryfield_water_tower_80181BB8, D_dryfield_water_tower_801828CC, 0x10);
-            Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, D_dryfield_water_tower_80182F2C, 0x18);
+            Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, D_dryfield_water_tower_80182F2C, sizeof(D_dryfield_water_tower_80181C48));
             GameFlag_SetNibble(0x55, 1);
             return state->field_66;
     }
@@ -2591,7 +2588,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 /// runs. It does nothing while the session's `sceneUpdatesPaused` or `Gp_StateC08.field_9` is set
 /// or `gPlayerStatus.hp` is zero. State 0 allocates the 0x7C-byte
 /// `DryfieldWaterTowerState`, publishes the task and its message table, and
-/// restores the room's three pairs of script-table blocks; state 1 spawns
+/// restores two collision patches in the room's grid; state 1 spawns
 /// entries 1 and 2 of the same table into `field_44` / `field_48` and state 2
 /// places them.
 ///
@@ -2642,9 +2639,9 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
             }
             Mem_CopyUnaligned(D_dryfield_water_tower_80181C08, D_dryfield_water_tower_801829B4, 0x40);
             Mem_CopyUnaligned(D_dryfield_water_tower_80181BB8, D_dryfield_water_tower_801828CC, 0x10);
-            Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, D_dryfield_water_tower_80182F2C, 0x18);
+            Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, D_dryfield_water_tower_80182F2C, sizeof(D_dryfield_water_tower_80181C48));
             Mem_CopyUnaligned(D_dryfield_water_tower_80181B10, D_dryfield_water_tower_801828CC + 2, 0x10);
-            Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, D_dryfield_water_tower_80182F2C + 2, 0x18);
+            Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, D_dryfield_water_tower_80182F2C + 2, sizeof(D_dryfield_water_tower_80181BA0));
             Mem_CopyUnaligned(D_dryfield_water_tower_80181B60, D_dryfield_water_tower_801829B4 + 8, 0x40);
             state = (DryfieldWaterTowerState*)arg0->work;
             arg0->state++;
@@ -2673,7 +2670,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
                 Gp_DispatchMsgPtr(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
                 ((DryfieldWaterTowerState*)state->field_48->work)->field_70 = 1;
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181B10, (D_dryfield_water_tower_801828CC + 2), 0x10);
-                Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, (D_dryfield_water_tower_80182F2C + 2), 0x18);
+                Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, (D_dryfield_water_tower_80182F2C + 2), sizeof(D_dryfield_water_tower_80181BA0));
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181B20, (D_dryfield_water_tower_801829B4 + 8), 0x40);
                 if (state->field_64 == 3) {
                     p3            = &(D_dryfield_water_tower_80186A84 + 6)[3];
@@ -2681,7 +2678,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
                     Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
                     Mem_CopyUnaligned(D_dryfield_water_tower_80181BC8, (D_dryfield_water_tower_801829B4 + 8) - 8, 0x40);
                     Mem_CopyUnaligned(D_dryfield_water_tower_80181BB8, (D_dryfield_water_tower_801828CC + 2) - 2, 0x10);
-                    Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, (D_dryfield_water_tower_80182F2C + 2) - 2, 0x18);
+                    Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, (D_dryfield_water_tower_80182F2C + 2) - 2, sizeof(D_dryfield_water_tower_80181C48));
                     arg0->state = 9;
                 }
             }
@@ -2894,7 +2891,7 @@ void func_dryfield_water_tower_8017F9AC(void)
 /// Script opcode 0x0D of the room's command table `D_dryfield_water_tower_80182248`:
 /// it hands the stream to view 9, restarts the prop task at `field_48` on state 1
 /// and gives it its 0x7D4 placement, moves the player to `80181AD0`, stops the pad
-/// scripts, plays event 0x5214000B and installs three of the room's effect tables.
+/// scripts, plays event 0x5214000B and installs the lowered-cap collision patch.
 void func_dryfield_water_tower_8017FA5C(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
@@ -2906,7 +2903,7 @@ void func_dryfield_water_tower_8017FA5C(void)
     Gp_HaltPadScripts();
     SndEvt_EnqueueType7(0x5214000B, 0xA);
     Mem_CopyUnaligned(D_dryfield_water_tower_80181B10, (D_dryfield_water_tower_801828CC + 2), 0x10);
-    Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, (D_dryfield_water_tower_80182F2C + 2), 0x18);
+    Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, (D_dryfield_water_tower_80182F2C + 2), sizeof(D_dryfield_water_tower_80181BA0));
     Mem_CopyUnaligned(D_dryfield_water_tower_80181B20, (D_dryfield_water_tower_801829B4 + 8), 0x40);
     ((DryfieldWaterTowerState*)state->field_48->work)->field_70 = 1;
 }

@@ -122,7 +122,7 @@ SVECTOR D_neo_ark_savanna_zone_8017FA9C[12] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_verts.inc"
 };
 
-GpGridFace D_neo_ark_savanna_zone_8017FAFC[11] = {
+WorldCollisionGridFace D_neo_ark_savanna_zone_8017FAFC[11] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_faces.inc"
 };
 

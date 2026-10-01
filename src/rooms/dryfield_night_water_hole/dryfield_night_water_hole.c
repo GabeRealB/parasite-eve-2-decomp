@@ -417,7 +417,7 @@ SVECTOR D_dryfield_night_water_hole_80180BA4[54] = {
 #include "assets/dryfield_night_water_hole_collision_03990_verts.inc"
 };
 
-GpGridFace D_dryfield_night_water_hole_80180D54[23] = {
+WorldCollisionGridFace D_dryfield_night_water_hole_80180D54[23] = {
 #include "assets/dryfield_night_water_hole_collision_03990_faces.inc"
 };
 

@@ -624,7 +624,7 @@ SVECTOR D_acropolis_west_elevator_hall_801850EC[29] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_verts.inc"
 };
 
-GpGridFace D_acropolis_west_elevator_hall_801851D4[14] = {
+WorldCollisionGridFace D_acropolis_west_elevator_hall_801851D4[14] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_faces.inc"
 };
 

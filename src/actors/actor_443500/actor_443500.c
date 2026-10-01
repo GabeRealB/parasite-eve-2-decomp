@@ -117,9 +117,9 @@ extern GpGridParams D_actor_443500_801587D8;
 extern TmdSource D_actor_443500_8014977C;
 void             func_actor_443500_80132738(Task*);
 
-extern GpGridFace D_actor_443500_801587B4[2];
-extern SVECTOR    D_actor_443500_80158774[2];
-extern SVECTOR    D_actor_443500_80158784[6];
+extern WorldCollisionGridFace D_actor_443500_801587B4[2];
+extern SVECTOR                D_actor_443500_80158774[2];
+extern SVECTOR                D_actor_443500_80158784[6];
 
 extern AnimationPlayRequest D_actor_443500_80140E8C;
 extern AnimationPlayRequest D_actor_443500_80140EA0;
@@ -2399,7 +2399,7 @@ SVECTOR D_actor_443500_80158784[6] = {
 #include "assets/actor_443500_collision_269B8_verts.inc"
 };
 
-GpGridFace D_actor_443500_801587B4[2] = {
+WorldCollisionGridFace D_actor_443500_801587B4[2] = {
 #include "assets/actor_443500_collision_269B8_faces.inc"
 };
 

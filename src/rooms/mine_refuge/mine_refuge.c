@@ -245,7 +245,7 @@ SVECTOR D_mine_refuge_801819A8[34] = {
 #include "assets/mine_refuge_collision_045E4_verts.inc"
 };
 
-GpGridFace D_mine_refuge_80181AB8[15] = {
+WorldCollisionGridFace D_mine_refuge_80181AB8[15] = {
 #include "assets/mine_refuge_collision_045E4_faces.inc"
 };
 

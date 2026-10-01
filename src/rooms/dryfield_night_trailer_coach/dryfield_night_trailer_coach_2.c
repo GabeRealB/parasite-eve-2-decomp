@@ -285,7 +285,7 @@ SVECTOR D_dryfield_night_trailer_coach_80189618[65] = {
 #include "assets/dryfield_night_trailer_coach_collision_0C460_verts.inc"
 };
 
-GpGridFace D_dryfield_night_trailer_coach_80189820[32] = {
+WorldCollisionGridFace D_dryfield_night_trailer_coach_80189820[32] = {
 #include "assets/dryfield_night_trailer_coach_collision_0C460_faces.inc"
 };
 

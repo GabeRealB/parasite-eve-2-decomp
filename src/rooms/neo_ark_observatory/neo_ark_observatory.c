@@ -234,7 +234,7 @@ SVECTOR D_neo_ark_observatory_80181390[8] = {
 #include "assets/neo_ark_observatory_collision_03E50_verts.inc"
 };
 
-GpGridFace D_neo_ark_observatory_801813D0[4] = {
+WorldCollisionGridFace D_neo_ark_observatory_801813D0[4] = {
 #include "assets/neo_ark_observatory_collision_03E50_faces.inc"
 };
 
@@ -385,7 +385,7 @@ SVECTOR D_neo_ark_observatory_80181760[106] = {
 #include "assets/neo_ark_observatory_collision_049E4_verts.inc"
 };
 
-GpGridFace D_neo_ark_observatory_80181AB0[48] = {
+WorldCollisionGridFace D_neo_ark_observatory_80181AB0[48] = {
 #include "assets/neo_ark_observatory_collision_049E4_faces.inc"
 };
 

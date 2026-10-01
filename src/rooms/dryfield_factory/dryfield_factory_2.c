@@ -163,7 +163,7 @@ SVECTOR D_dryfield_factory_80186C04[8] = {
 #include "assets/dryfield_factory_collision_096A8_verts.inc"
 };
 
-GpGridFace D_dryfield_factory_80186C44[2] = {
+WorldCollisionGridFace D_dryfield_factory_80186C44[2] = {
 #include "assets/dryfield_factory_collision_096A8_faces.inc"
 };
 
@@ -187,7 +187,7 @@ SVECTOR D_dryfield_factory_80186CAC[8] = {
 #include "assets/dryfield_factory_collision_09778_verts.inc"
 };
 
-GpGridFace D_dryfield_factory_80186CEC[4] = {
+WorldCollisionGridFace D_dryfield_factory_80186CEC[4] = {
 #include "assets/dryfield_factory_collision_09778_faces.inc"
 };
 
@@ -211,7 +211,7 @@ SVECTOR D_dryfield_factory_80186D7C[8] = {
 #include "assets/dryfield_factory_collision_09844_verts.inc"
 };
 
-GpGridFace D_dryfield_factory_80186DBC[4] = {
+WorldCollisionGridFace D_dryfield_factory_80186DBC[4] = {
 #include "assets/dryfield_factory_collision_09844_faces.inc"
 };
 

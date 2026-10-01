@@ -205,7 +205,7 @@ SVECTOR D_dryfield_night_parking_lot_8017F000[132] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_verts.inc"
 };
 
-GpGridFace D_dryfield_night_parking_lot_8017F420[55] = {
+WorldCollisionGridFace D_dryfield_night_parking_lot_8017F420[55] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_faces.inc"
 };
 

@@ -886,7 +886,7 @@ SVECTOR D_acropolis_patio_801830D4[201] = {
 #include "assets/acropolis_patio_collision_06838_verts.inc"
 };
 
-GpGridFace D_acropolis_patio_8018371C[70] = {
+WorldCollisionGridFace D_acropolis_patio_8018371C[70] = {
 #include "assets/acropolis_patio_collision_06838_faces.inc"
 };
 

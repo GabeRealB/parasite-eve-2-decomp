@@ -121,7 +121,7 @@ SVECTOR D_dryfield_night_breezeway_8017E7F4[48] = {
 #include "assets/dryfield_night_breezeway_collision_01604_verts.inc"
 };
 
-GpGridFace D_dryfield_night_breezeway_8017E974[25] = {
+WorldCollisionGridFace D_dryfield_night_breezeway_8017E974[25] = {
 #include "assets/dryfield_night_breezeway_collision_01604_faces.inc"
 };
 

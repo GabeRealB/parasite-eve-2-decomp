@@ -289,7 +289,7 @@ SVECTOR D_dryfield_gas_station_80183314[126] = {
 #include "assets/dryfield_gas_station_collision_068E4_verts.inc"
 };
 
-GpGridFace D_dryfield_gas_station_80183704[63] = {
+WorldCollisionGridFace D_dryfield_gas_station_80183704[63] = {
 #include "assets/dryfield_gas_station_collision_068E4_faces.inc"
 };
 

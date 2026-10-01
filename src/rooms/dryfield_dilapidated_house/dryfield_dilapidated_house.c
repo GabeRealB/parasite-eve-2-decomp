@@ -991,7 +991,7 @@ SVECTOR D_dryfield_dilapidated_house_80186A44[116] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_verts.inc"
 };
 
-GpGridFace D_dryfield_dilapidated_house_80186DE4[70] = {
+WorldCollisionGridFace D_dryfield_dilapidated_house_80186DE4[70] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_faces.inc"
 };
 

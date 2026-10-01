@@ -61,7 +61,7 @@ SVECTOR D_shelter_b6_growth_room_8017F1B4[8] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_verts.inc"
 };
 
-GpGridFace D_shelter_b6_growth_room_8017F1F4[4] = {
+WorldCollisionGridFace D_shelter_b6_growth_room_8017F1F4[4] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_faces.inc"
 };
 
@@ -137,7 +137,7 @@ SVECTOR D_shelter_b6_growth_room_8017F428[80] = {
 #include "assets/shelter_b6_growth_room_collision_02530_verts.inc"
 };
 
-GpGridFace D_shelter_b6_growth_room_8017F6A8[54] = {
+WorldCollisionGridFace D_shelter_b6_growth_room_8017F6A8[54] = {
 #include "assets/shelter_b6_growth_room_collision_02530_faces.inc"
 };
 

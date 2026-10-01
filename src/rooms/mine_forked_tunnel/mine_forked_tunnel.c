@@ -828,7 +828,7 @@ SVECTOR D_mine_forked_tunnel_80181BEC[8] = {
 #include "assets/mine_forked_tunnel_collision_0469C_verts.inc"
 };
 
-GpGridFace D_mine_forked_tunnel_80181C2C[3] = {
+WorldCollisionGridFace D_mine_forked_tunnel_80181C2C[3] = {
 #include "assets/mine_forked_tunnel_collision_0469C_faces.inc"
 };
 
@@ -1044,7 +1044,7 @@ SVECTOR D_mine_forked_tunnel_80183794[88] = {
 #include "assets/mine_forked_tunnel_collision_067B0_verts.inc"
 };
 
-GpGridFace D_mine_forked_tunnel_80183A54[37] = {
+WorldCollisionGridFace D_mine_forked_tunnel_80183A54[37] = {
 #include "assets/mine_forked_tunnel_collision_067B0_faces.inc"
 };
 

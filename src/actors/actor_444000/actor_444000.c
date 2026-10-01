@@ -3768,12 +3768,12 @@ static void func_actor_444000_80135448(Task* task)
 
 static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
 {
-    SVECTOR     dir;
-    SVECTOR*    norms   = Gp_GridParams->field_4;
-    SVECTOR*    corners = Gp_GridParams->field_8;
-    GpGridFace* faces   = Gp_GridParams->field_C;
-    GpGridFace  quad0   = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
-    GpGridFace  quad1   = {
+    SVECTOR                 dir;
+    SVECTOR*                norms   = Gp_GridParams->field_4;
+    SVECTOR*                corners = Gp_GridParams->field_8;
+    WorldCollisionGridFace* faces   = Gp_GridParams->field_C;
+    WorldCollisionGridFace  quad0   = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
+    WorldCollisionGridFace  quad1   = {
         { (face + 1) * 4, (face + 1) * 4 + 1, (face + 1) * 4 + 2, (face + 1) * 4 + 3 }, face + 1, 2
     };
     SVECTOR* d;

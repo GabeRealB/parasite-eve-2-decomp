@@ -112,7 +112,7 @@ SVECTOR D_dryfield_night_souvenir_shop_8017E194[62] = {
 #include "assets/dryfield_night_souvenir_shop_collision_01044_verts.inc"
 };
 
-GpGridFace D_dryfield_night_souvenir_shop_8017E384[34] = {
+WorldCollisionGridFace D_dryfield_night_souvenir_shop_8017E384[34] = {
 #include "assets/dryfield_night_souvenir_shop_collision_01044_faces.inc"
 };
 

@@ -105,7 +105,7 @@ SVECTOR D_dryfield_night_toilet_8017DB40[36] = {
 #include "assets/dryfield_night_toilet_collision_007C8_verts.inc"
 };
 
-GpGridFace D_dryfield_night_toilet_8017DC60[18] = {
+WorldCollisionGridFace D_dryfield_night_toilet_8017DC60[18] = {
 #include "assets/dryfield_night_toilet_collision_007C8_faces.inc"
 };
 

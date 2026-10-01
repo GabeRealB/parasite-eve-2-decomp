@@ -753,7 +753,7 @@ SVECTOR D_mist_shooting_gallery_80185128[8] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_verts.inc"
 };
 
-GpGridFace D_mist_shooting_gallery_80185168[3] = {
+WorldCollisionGridFace D_mist_shooting_gallery_80185168[3] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_faces.inc"
 };
 
@@ -777,7 +777,7 @@ SVECTOR D_mist_shooting_gallery_801851C4[4] = {
 #include "assets/mist_shooting_gallery_collision_07C38_verts.inc"
 };
 
-GpGridFace D_mist_shooting_gallery_801851E4[1] = {
+WorldCollisionGridFace D_mist_shooting_gallery_801851E4[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_faces.inc"
 };
 
@@ -2131,25 +2131,25 @@ static void func_mist_shooting_gallery_801801E4(s32 arg0)
 
 void func_mist_shooting_gallery_80180390(s32 arg0)
 {
-    GpGridParams* dst    = &D_mist_shooting_gallery_80189968;
-    GpGridParams* src    = &D_mist_shooting_gallery_801851F8;
-    GpGridFace*   dlinks = &D_mist_shooting_gallery_80189968.field_C[3];
-    GpGridFace*   slinks = D_mist_shooting_gallery_801851F8.field_C;
-    SVECTOR       ofs;
-    s32           i;
-    s32           j;
+    GpGridParams*           dst        = &D_mist_shooting_gallery_80189968;
+    GpGridParams*           src        = &D_mist_shooting_gallery_801851F8;
+    WorldCollisionGridFace* destFace   = &D_mist_shooting_gallery_80189968.field_C[3];
+    WorldCollisionGridFace* sourceFace = D_mist_shooting_gallery_801851F8.field_C;
+    SVECTOR                 ofs;
+    s32                     i;
+    s32                     j;
 
     for (i = 0; i < 1; i++) {
         dst->field_4[i + 3].vx = src->field_4[i].vx;
         dst->field_4[i + 3].vy = src->field_4[i].vy;
         dst->field_4[i + 3].vz = src->field_4[i].vz;
-        for (j = 0; j < 4; j++) {
-            dlinks->verts[j] = slinks->verts[j] + 8;
+        for (j = 0; j < ARRAY_SIZE(destFace->vertexIndices); j++) {
+            destFace->vertexIndices[j] = sourceFace->vertexIndices[j] + 8;
         }
-        dlinks->normalIndex  = slinks->normalIndex + 3;
-        dlinks->surfaceClass = slinks->surfaceClass;
-        dlinks++;
-        slinks++;
+        destFace->normalIndex  = sourceFace->normalIndex + 3;
+        destFace->surfaceClass = sourceFace->surfaceClass;
+        destFace++;
+        sourceFace++;
     }
     for (i = 0; i < 4; i++) {
         dst->field_8[i + 8].vx = src->field_8[i].vx;

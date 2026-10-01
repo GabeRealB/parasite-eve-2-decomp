@@ -217,7 +217,7 @@ SVECTOR D_neo_ark_altar_8017F17C[58] = {
 #include "assets/neo_ark_altar_collision_01FBC_verts.inc"
 };
 
-GpGridFace D_neo_ark_altar_8017F34C[29] = {
+WorldCollisionGridFace D_neo_ark_altar_8017F34C[29] = {
 #include "assets/neo_ark_altar_collision_01FBC_faces.inc"
 };
 

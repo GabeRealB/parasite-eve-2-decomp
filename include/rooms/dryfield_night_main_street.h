@@ -19,7 +19,7 @@ extern SVECTOR D_dryfield_night_main_street_801833F4[23];
 
 extern SVECTOR D_dryfield_night_main_street_801834AC[196];
 
-extern GpGridFace D_dryfield_night_main_street_80183ACC[89];
+extern WorldCollisionGridFace D_dryfield_night_main_street_80183ACC[89];
 
 extern GpObj4C D_dryfield_night_main_street_8018824C[12];
 

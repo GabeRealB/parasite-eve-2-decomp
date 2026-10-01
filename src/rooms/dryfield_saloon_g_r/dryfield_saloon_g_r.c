@@ -192,7 +192,7 @@ SVECTOR D_dryfield_saloon_g_r_8017EEA4[116] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_verts.inc"
 };
 
-GpGridFace D_dryfield_saloon_g_r_8017F244[61] = {
+WorldCollisionGridFace D_dryfield_saloon_g_r_8017F244[61] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_faces.inc"
 };
 

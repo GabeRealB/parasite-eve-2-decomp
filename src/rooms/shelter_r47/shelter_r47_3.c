@@ -194,7 +194,7 @@ SVECTOR D_shelter_r47_80187D80[66] = {
 #include "assets/shelter_r47_collision_0ACCC_verts.inc"
 };
 
-GpGridFace D_shelter_r47_80187F90[30] = {
+WorldCollisionGridFace D_shelter_r47_80187F90[30] = {
 #include "assets/shelter_r47_collision_0ACCC_faces.inc"
 };
 

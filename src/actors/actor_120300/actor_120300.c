@@ -2079,7 +2079,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     arg0->state                                        += 1;
                 }
                 Mem_CopyUnaligned(&D_actor_120300_801409A8, D_dryfield_garage_8017DD6C, 0x18);
-                Mem_CopyUnaligned(&D_actor_120300_80140A20, D_dryfield_garage_8017E1F4, 0x24);
+                Mem_CopyUnaligned(&D_actor_120300_80140A20, D_dryfield_garage_8017E1F4, sizeof(D_actor_120300_80140A20));
                 Mem_CopyUnaligned(&D_actor_120300_801409C0, D_dryfield_garage_8017DEA4, 0x60);
                 break;
             }

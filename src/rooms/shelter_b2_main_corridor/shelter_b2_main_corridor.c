@@ -406,7 +406,7 @@ SVECTOR D_shelter_b2_main_corridor_801833B4[220] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_verts.inc"
 };
 
-GpGridFace D_shelter_b2_main_corridor_80183A94[104] = {
+WorldCollisionGridFace D_shelter_b2_main_corridor_80183A94[104] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_faces.inc"
 };
 

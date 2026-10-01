@@ -588,7 +588,7 @@ SVECTOR D_acropolis_helicopter_landing_pad_8018506C[92] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_verts.inc"
 };
 
-GpGridFace D_acropolis_helicopter_landing_pad_8018534C[37] = {
+WorldCollisionGridFace D_acropolis_helicopter_landing_pad_8018534C[37] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_faces.inc"
 };
 

@@ -509,21 +509,21 @@ check:
 
 void Gp_CollideObjGrid(WorldCollisionBody* arg0)
 {
-    u8*                    head;
-    GpGridHitScratch*      block;
-    VECTOR3*               pos;
-    GpGridFace*            face;
-    WorldCollisionContact* slot;
-    s16*                   cell;
-    s32                    id;
-    s32                    i;
-    s32                    n;
-    s32                    outside;
-    s32                    val;
-    s32                    faceDot;
-    s32                    edgeDot;
-    u16                    dist;
-    u16                    flags;
+    u8*                     head;
+    GpGridHitScratch*       block;
+    VECTOR3*                pos;
+    WorldCollisionGridFace* face;
+    WorldCollisionContact*  slot;
+    s16*                    cell;
+    s32                     id;
+    s32                     i;
+    s32                     n;
+    s32                     outside;
+    s32                     val;
+    s32                     faceDot;
+    s32                     edgeDot;
+    u16                     dist;
+    u16                     flags;
 
     head                       = SCRATCH_STACK_CURSOR(u8);
     pos                        = (VECTOR3*)(head - 0x80);
@@ -541,13 +541,13 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
                     goto done;
                 }
                 face = &Gp_GridParams->field_C[id];
-                if (face->verts[0] == 0 && face->verts[1] == 0) {
+                if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
                     cell++;
                     continue;
                 }
 
                 gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
-                gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
+                gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[0]]);
                 gte_rtv0();
                 gte_stlvnl(&block->verts[0]);
                 block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
@@ -585,9 +585,9 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
                 goto next_face;
 
             edges:
-                n = (face->verts[3] != 0xFFFF) ? 4 : 3;
+                n = (face->vertexIndices[3] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 4 : 3;
                 for (i = 1; i < n; i++) {
-                    gte_ldv0(&Gp_GridParams->field_8[face->verts[i]]);
+                    gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[i]]);
                     gte_rtv0();
                     gte_stlvnl(&block->verts[i]);
                     block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
@@ -654,7 +654,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
     u8*                          head;
     GpGridHitScratch*            block;
     VECTOR3*                     pos;
-    GpGridFace*                  face;
+    WorldCollisionGridFace*      face;
     WorldCollisionContact*       slot;
     WorldCollisionMotionContext* motionContext;
     s16*                         cell;
@@ -687,7 +687,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                     goto done;
                 }
                 face = &Gp_GridParams->field_C[id];
-                if (face->verts[0] == 0 && face->verts[1] == 0) {
+                if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
                     cell++;
                     continue;
                 }
@@ -697,7 +697,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                 }
 
                 gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
-                gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
+                gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[0]]);
                 gte_rtv0();
                 gte_stlvnl(&block->verts[0]);
                 block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
@@ -732,9 +732,9 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                 goto edges_done;
 
             edges:
-                n = (face->verts[3] != 0xFFFF) ? 4 : 3;
+                n = (face->vertexIndices[3] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 4 : 3;
                 for (i = 1; i < n; i++) {
-                    gte_ldv0(&Gp_GridParams->field_8[face->verts[i]]);
+                    gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[i]]);
                     gte_rtv0();
                     gte_stlvnl(&block->verts[i]);
                     block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
@@ -825,17 +825,17 @@ done:
 
 s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg3)
 {
-    u8*               head;
-    GpGridRayScratch* block;
-    GpGridFace*       face;
-    s32               i;
-    s32               n;
-    s16               faceDot;
-    s32               denom;
-    s32               t;
-    s32               edgeDot;
-    s32               val;
-    s32               limit;
+    u8*                     head;
+    GpGridRayScratch*       block;
+    WorldCollisionGridFace* face;
+    s32                     i;
+    s32                     n;
+    s16                     faceDot;
+    s32                     denom;
+    s32                     t;
+    s32                     edgeDot;
+    s32                     val;
+    s32                     limit;
 
     head                       = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(void) = head - 0x70;
@@ -843,7 +843,7 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
     block                      = (GpGridRayScratch*)(head - 0x70);
 
     gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
-    gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
+    gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[0]]);
     gte_rtv0();
     gte_stlvnl(&block->verts[0]);
     block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
@@ -881,11 +881,11 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
     ray[1].vy = seg[0].vy + ((ray[0].vy * t) >> 12);
     ray[1].vz = seg[0].vz + ((ray[0].vz * t) >> 12);
 
-    n = (face->verts[3] == 0xFFFF) ? 3 : 4;
+    n = (face->vertexIndices[3] == WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 3 : 4;
 
     gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
     for (i = 1; i < n; i++) {
-        gte_ldv0(&Gp_GridParams->field_8[face->verts[i]]);
+        gte_ldv0(&Gp_GridParams->field_8[face->vertexIndices[i]]);
         gte_rtv0();
         gte_stlvnl(&block->verts[i]);
         block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];

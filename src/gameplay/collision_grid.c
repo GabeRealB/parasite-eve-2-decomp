@@ -183,6 +183,7 @@ static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos
 
 void func_800DD940(WorldCollisionBody* arg0)
 {
+    enum { WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK = 0xF };
     u8*                    head;
     GpFloorScratch*        block;
     WorldCollisionContact* slot;
@@ -207,7 +208,8 @@ void func_800DD940(WorldCollisionBody* arg0)
             slot  = arg0->context.motion->contacts;
             flags = slot->flags;
             if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-                if ((u32)(slot->key.value & 0xF) < (u32)Gp_GridParams->field_C[i].surfaceClass) {
+                // Overlapping floors retain the higher class using unsigned comparison.
+                if ((u32)(slot->key.value & WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK) < (u32)Gp_GridParams->field_C[i].surfaceClass) {
                     slot->key.value = Gp_GridParams->field_C[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
                 }
             } else {

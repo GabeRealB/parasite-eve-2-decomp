@@ -925,7 +925,7 @@ SVECTOR D_mist_r18_8018666C[4] = {
 #include "assets/mist_r18_collision_09138_verts.inc"
 };
 
-GpGridFace D_mist_r18_8018668C[1] = {
+WorldCollisionGridFace D_mist_r18_8018668C[1] = {
 #include "assets/mist_r18_collision_09138_faces.inc"
 };
 

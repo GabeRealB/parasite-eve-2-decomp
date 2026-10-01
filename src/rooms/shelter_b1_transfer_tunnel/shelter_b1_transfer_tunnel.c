@@ -144,7 +144,7 @@ SVECTOR D_shelter_b1_transfer_tunnel_801829FC[12] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_verts.inc"
 };
 
-GpGridFace D_shelter_b1_transfer_tunnel_80182A5C[6] = {
+WorldCollisionGridFace D_shelter_b1_transfer_tunnel_80182A5C[6] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_faces.inc"
 };
 

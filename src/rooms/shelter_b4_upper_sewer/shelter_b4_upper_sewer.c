@@ -318,7 +318,7 @@ SVECTOR D_shelter_b4_upper_sewer_80186788[87] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_verts.inc"
 };
 
-GpGridFace D_shelter_b4_upper_sewer_80186A40[42] = {
+WorldCollisionGridFace D_shelter_b4_upper_sewer_80186A40[42] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_faces.inc"
 };
 

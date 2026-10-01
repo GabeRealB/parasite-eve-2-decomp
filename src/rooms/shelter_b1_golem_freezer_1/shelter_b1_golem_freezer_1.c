@@ -88,7 +88,7 @@ SVECTOR D_shelter_b1_golem_freezer_1_8017E6E0[4] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_verts.inc"
 };
 
-GpGridFace D_shelter_b1_golem_freezer_1_8017E700[1] = {
+WorldCollisionGridFace D_shelter_b1_golem_freezer_1_8017E700[1] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_faces.inc"
 };
 
@@ -142,7 +142,7 @@ SVECTOR D_shelter_b1_golem_freezer_1_8017E818[28] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_verts.inc"
 };
 
-GpGridFace D_shelter_b1_golem_freezer_1_8017E8F8[12] = {
+WorldCollisionGridFace D_shelter_b1_golem_freezer_1_8017E8F8[12] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_faces.inc"
 };
 

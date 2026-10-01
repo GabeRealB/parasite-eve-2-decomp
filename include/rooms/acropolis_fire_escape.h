@@ -19,7 +19,7 @@ extern SVECTOR D_acropolis_fire_escape_80181E74[10];
 
 extern SVECTOR D_acropolis_fire_escape_80181EC4[55];
 
-extern GpGridFace D_acropolis_fire_escape_8018207C[23];
+extern WorldCollisionGridFace D_acropolis_fire_escape_8018207C[23];
 
 extern GpAreaVariant D_acropolis_fire_escape_8018294C[5];
 

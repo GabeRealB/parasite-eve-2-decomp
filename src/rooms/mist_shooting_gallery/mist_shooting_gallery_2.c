@@ -1224,7 +1224,7 @@ SVECTOR D_mist_shooting_gallery_80188E58[136] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_verts.inc"
 };
 
-GpGridFace D_mist_shooting_gallery_80189298[57] = {
+WorldCollisionGridFace D_mist_shooting_gallery_80189298[57] = {
 #include "assets/mist_shooting_gallery_collision_0C3A8_faces.inc"
 };
 

@@ -539,7 +539,7 @@ SVECTOR D_dryfield_night_driveway_80180770[64] = {
 #include "assets/dryfield_night_driveway_collision_0364C_verts.inc"
 };
 
-GpGridFace D_dryfield_night_driveway_80180970[23] = {
+WorldCollisionGridFace D_dryfield_night_driveway_80180970[23] = {
 #include "assets/dryfield_night_driveway_collision_0364C_faces.inc"
 };
 

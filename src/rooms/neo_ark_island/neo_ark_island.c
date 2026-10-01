@@ -133,7 +133,7 @@ SVECTOR D_neo_ark_island_80181D98[127] = {
 #include "assets/neo_ark_island_collision_05108_verts.inc"
 };
 
-GpGridFace D_neo_ark_island_80182190[61] = {
+WorldCollisionGridFace D_neo_ark_island_80182190[61] = {
 #include "assets/neo_ark_island_collision_05108_faces.inc"
 };
 

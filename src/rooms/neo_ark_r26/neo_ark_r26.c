@@ -237,7 +237,7 @@ SVECTOR D_neo_ark_r26_8017E12C[4] = {
 #include "assets/neo_ark_r26_collision_00BDC_verts.inc"
 };
 
-GpGridFace D_neo_ark_r26_8017E14C[1] = {
+WorldCollisionGridFace D_neo_ark_r26_8017E14C[1] = {
 #include "assets/neo_ark_r26_collision_00BDC_faces.inc"
 };
 

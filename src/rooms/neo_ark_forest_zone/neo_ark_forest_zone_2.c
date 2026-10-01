@@ -265,7 +265,7 @@ SVECTOR D_neo_ark_forest_zone_8018219C[8] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_verts.inc"
 };
 
-GpGridFace D_neo_ark_forest_zone_801821DC[6] = {
+WorldCollisionGridFace D_neo_ark_forest_zone_801821DC[6] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_faces.inc"
 };
 

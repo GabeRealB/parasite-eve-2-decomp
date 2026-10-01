@@ -133,7 +133,7 @@ SVECTOR D_shelter_b1_pod_service_gantry_8017FCB8[66] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_verts.inc"
 };
 
-GpGridFace D_shelter_b1_pod_service_gantry_8017FEC8[30] = {
+WorldCollisionGridFace D_shelter_b1_pod_service_gantry_8017FEC8[30] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_faces.inc"
 };
 

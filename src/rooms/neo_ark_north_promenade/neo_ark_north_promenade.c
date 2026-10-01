@@ -131,7 +131,7 @@ SVECTOR D_neo_ark_north_promenade_80181EA4[79] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_verts.inc"
 };
 
-GpGridFace D_neo_ark_north_promenade_8018211C[31] = {
+WorldCollisionGridFace D_neo_ark_north_promenade_8018211C[31] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_faces.inc"
 };
 

@@ -102,13 +102,26 @@ typedef struct _GpObj3A {
 } GpObj3A;
 STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 
-/// Collision face with corner and normal indices into the grid's vector pools.
+/// A triangle's missing fourth vertex index.
+enum { WORLD_COLLISION_GRID_FACE_NO_VERTEX = 0xFFFF };
+
+/// An indexed triangle or quad in a room's collision grid.
+///
+/// Indices refer to the owning `GpGridParams` vertex and normal pools, whose
+/// storage must remain alive with the face table. Vertices use grid-local game
+/// coordinates; normals use 4096 for unit length. The fourth vertex is
+/// `WORLD_COLLISION_GRID_FACE_NO_VERTEX` for a triangle. Sphere-grid passes
+/// skip a face whose first two vertex indices are both zero.
+///
+/// The surface class selects the current room's collision and footstep
+/// properties and is copied into the low bits of grid-contact keys. Class
+/// meanings are local to the room.
 typedef struct {
-    u16 verts[4];     // Corner indices; 0xFFFF in the fourth slot marks a triangle
-    u16 normalIndex;  // Index into the grid's normal pool
-    s16 surfaceClass; // Room surface-property table index (0..7), copied into contact keys
-} GpGridFace;
-STATIC_ASSERT_SIZEOF(GpGridFace, 0xC);
+    u16 vertexIndices[4]; // Vertex-pool indices; only slot 3 may be NO_VERTEX
+    u16 normalIndex;      // Index into the grid's normal pool
+    s16 surfaceClass;     // Room collision/footstep property index (0..7), copied into contact keys
+} WorldCollisionGridFace;
+STATIC_ASSERT_SIZEOF(WorldCollisionGridFace, 0xC);
 
 /// Grid conversion params pointed to by `Gp_GridParams`.
 /// `Gp_WorldToGrid` writes `out.vx = (pos.vx + field_14) / field_20` (or -1
@@ -118,22 +131,22 @@ STATIC_ASSERT_SIZEOF(GpGridFace, 0xC);
 /// `field_0->coord.t[0]` / `t[2]` from the transformed X / Z.
 /// `func_800DEAFC` does the same transform on two `SVECTOR`s, keeping only
 /// the low 16 bits. `field_4` and `field_8` are `SVECTOR` pools holding face
-/// normals and face corners; `field_C` is the `GpGridFace` table indexed by
+/// normals and face corners; `field_C` is the `WorldCollisionGridFace` table indexed by
 /// the face ids stored in the `field_10` cell grid. That grid is
 /// `field_1C` by `field_1E` cells of `s16*` face-id lists, each terminated by
 /// -1, indexed as `field_10[x * field_1E + z]`. `field_22` is the face count.
 typedef struct _GpGridParams {
-    /* 0x00 */ struct GfxCoord* field_0;
-    /* 0x04 */ SVECTOR*         field_4;
-    /* 0x08 */ SVECTOR*         field_8;
-    /* 0x0C */ GpGridFace*      field_C;
-    /* 0x10 */ s16**            field_10;
-    /* 0x14 */ s32              field_14;
-    /* 0x18 */ s32              field_18;
-    /* 0x1C */ u16              field_1C;
-    /* 0x1E */ u16              field_1E;
-    /* 0x20 */ u16              field_20;
-    /* 0x22 */ u16              field_22;
+    /* 0x00 */ struct GfxCoord*        field_0;
+    /* 0x04 */ SVECTOR*                field_4;
+    /* 0x08 */ SVECTOR*                field_8;
+    /* 0x0C */ WorldCollisionGridFace* field_C;
+    /* 0x10 */ s16**                   field_10;
+    /* 0x14 */ s32                     field_14;
+    /* 0x18 */ s32                     field_18;
+    /* 0x1C */ u16                     field_1C;
+    /* 0x1E */ u16                     field_1E;
+    /* 0x20 */ u16                     field_20;
+    /* 0x22 */ u16                     field_22;
 } GpGridParams;
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 

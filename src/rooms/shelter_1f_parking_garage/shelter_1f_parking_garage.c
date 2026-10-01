@@ -161,7 +161,7 @@ SVECTOR D_shelter_1f_parking_garage_80180D4C[34] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_verts.inc"
 };
 
-GpGridFace D_shelter_1f_parking_garage_80180E5C[13] = {
+WorldCollisionGridFace D_shelter_1f_parking_garage_80180E5C[13] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_faces.inc"
 };
 

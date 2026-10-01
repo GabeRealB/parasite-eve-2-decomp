@@ -131,7 +131,7 @@ SVECTOR D_dryfield_night_g_r_kitchen_8017E37C[26] = {
 #include "assets/dryfield_night_g_r_kitchen_collision_00F94_verts.inc"
 };
 
-GpGridFace D_dryfield_night_g_r_kitchen_8017E44C[16] = {
+WorldCollisionGridFace D_dryfield_night_g_r_kitchen_8017E44C[16] = {
 #include "assets/dryfield_night_g_r_kitchen_collision_00F94_faces.inc"
 };
 

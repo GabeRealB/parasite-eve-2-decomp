@@ -870,7 +870,7 @@ SVECTOR D_acropolis_bridge_80189BBC[193] = {
 #include "assets/acropolis_bridge_collision_0D2DC_verts.inc"
 };
 
-GpGridFace D_acropolis_bridge_8018A1C4[92] = {
+WorldCollisionGridFace D_acropolis_bridge_8018A1C4[92] = {
 #include "assets/acropolis_bridge_collision_0D2DC_faces.inc"
 };
 
@@ -896,7 +896,7 @@ SVECTOR D_acropolis_bridge_8018A948[205] = {
 #include "assets/acropolis_bridge_collision_0E0D4_verts.inc"
 };
 
-GpGridFace D_acropolis_bridge_8018AFB0[93] = {
+WorldCollisionGridFace D_acropolis_bridge_8018AFB0[93] = {
 #include "assets/acropolis_bridge_collision_0E0D4_faces.inc"
 };
 

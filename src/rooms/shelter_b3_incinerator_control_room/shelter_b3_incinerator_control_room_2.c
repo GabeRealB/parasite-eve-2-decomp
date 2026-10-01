@@ -101,7 +101,7 @@ SVECTOR D_shelter_b3_incinerator_control_room_80181A5C[27] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_verts.inc"
 };
 
-GpGridFace D_shelter_b3_incinerator_control_room_80181B34[19] = {
+WorldCollisionGridFace D_shelter_b3_incinerator_control_room_80181B34[19] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_faces.inc"
 };
 

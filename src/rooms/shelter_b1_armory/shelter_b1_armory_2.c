@@ -83,7 +83,7 @@ SVECTOR D_shelter_b1_armory_801826C0[111] = {
 #include "assets/shelter_b1_armory_collision_05910_verts.inc"
 };
 
-GpGridFace D_shelter_b1_armory_80182A38[55] = {
+WorldCollisionGridFace D_shelter_b1_armory_80182A38[55] = {
 #include "assets/shelter_b1_armory_collision_05910_faces.inc"
 };
 

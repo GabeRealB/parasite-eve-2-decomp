@@ -208,7 +208,7 @@ SVECTOR D_neo_ark_submarine_gallery_80181C44[104] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_verts.inc"
 };
 
-GpGridFace D_neo_ark_submarine_gallery_80181F84[50] = {
+WorldCollisionGridFace D_neo_ark_submarine_gallery_80181F84[50] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_faces.inc"
 };
 

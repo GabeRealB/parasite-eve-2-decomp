@@ -842,7 +842,7 @@ SVECTOR D_shelter_b1_underground_parking_801879EC[60] = {
 #include "assets/shelter_b1_underground_parking_collision_0A890_verts.inc"
 };
 
-GpGridFace D_shelter_b1_underground_parking_80187BCC[22] = {
+WorldCollisionGridFace D_shelter_b1_underground_parking_80187BCC[22] = {
 #include "assets/shelter_b1_underground_parking_collision_0A890_faces.inc"
 };
 
@@ -868,7 +868,7 @@ SVECTOR D_shelter_b1_underground_parking_80187EB4[84] = {
 #include "assets/shelter_b1_underground_parking_collision_0AF14_verts.inc"
 };
 
-GpGridFace D_shelter_b1_underground_parking_80188154[33] = {
+WorldCollisionGridFace D_shelter_b1_underground_parking_80188154[33] = {
 #include "assets/shelter_b1_underground_parking_collision_0AF14_faces.inc"
 };
 
@@ -894,7 +894,7 @@ SVECTOR D_shelter_b1_underground_parking_80188538[90] = {
 #include "assets/shelter_b1_underground_parking_collision_0B604_verts.inc"
 };
 
-GpGridFace D_shelter_b1_underground_parking_80188808[36] = {
+WorldCollisionGridFace D_shelter_b1_underground_parking_80188808[36] = {
 #include "assets/shelter_b1_underground_parking_collision_0B604_faces.inc"
 };
 
@@ -920,7 +920,7 @@ SVECTOR D_shelter_b1_underground_parking_80188C18[68] = {
 #include "assets/shelter_b1_underground_parking_collision_0BB6C_verts.inc"
 };
 
-GpGridFace D_shelter_b1_underground_parking_80188E38[27] = {
+WorldCollisionGridFace D_shelter_b1_underground_parking_80188E38[27] = {
 #include "assets/shelter_b1_underground_parking_collision_0BB6C_faces.inc"
 };
 
@@ -946,7 +946,7 @@ SVECTOR D_shelter_b1_underground_parking_80189190[83] = {
 #include "assets/shelter_b1_underground_parking_collision_0C194_verts.inc"
 };
 
-GpGridFace D_shelter_b1_underground_parking_80189428[30] = {
+WorldCollisionGridFace D_shelter_b1_underground_parking_80189428[30] = {
 #include "assets/shelter_b1_underground_parking_collision_0C194_faces.inc"
 };
 

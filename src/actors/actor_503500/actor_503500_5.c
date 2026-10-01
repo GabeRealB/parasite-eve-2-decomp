@@ -556,7 +556,7 @@ SVECTOR D_actor_503500_8016EFB0[8] = {
 #include "assets/actor_503500_collision_3D21C_verts.inc"
 };
 
-GpGridFace D_actor_503500_8016EFF0[4] = {
+WorldCollisionGridFace D_actor_503500_8016EFF0[4] = {
 #include "assets/actor_503500_collision_3D21C_faces.inc"
 };
 

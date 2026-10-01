@@ -151,7 +151,7 @@ SVECTOR D_dryfield_night_motel_loft_8017ED18[4] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_verts.inc"
 };
 
-GpGridFace D_dryfield_night_motel_loft_8017ED38[1] = {
+WorldCollisionGridFace D_dryfield_night_motel_loft_8017ED38[1] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_faces.inc"
 };
 
@@ -228,7 +228,7 @@ SVECTOR D_dryfield_night_motel_loft_8017EE7C[34] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_verts.inc"
 };
 
-GpGridFace D_dryfield_night_motel_loft_8017EF8C[18] = {
+WorldCollisionGridFace D_dryfield_night_motel_loft_8017EF8C[18] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_faces.inc"
 };
 

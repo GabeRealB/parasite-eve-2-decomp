@@ -4,26 +4,26 @@
 /// the task's model: its edge runs 0x1388 either way along the model's x axis
 /// at `scale` out along its z axis, and vertices 0 and 1 sit `drop` below 2
 /// and 3. The quad's grid normal becomes the model's z axis at unit length,
-/// and the face record takes flag 3 in area 0x27, 2 elsewhere.
+/// and the face record selects surface class 3 in area 0x27, 2 elsewhere.
 void incinBossBuildWall(Task* task, s16 scale, s16 drop, s16 index)
 {
-    SVECTOR     dir;
-    GpGridFace  face;
-    SVECTOR*    normal;
-    SVECTOR*    verts;
-    GpGridFace* faces;
-    SVECTOR*    d;
+    SVECTOR                 dir;
+    WorldCollisionGridFace  face;
+    SVECTOR*                normal;
+    SVECTOR*                verts;
+    WorldCollisionGridFace* faces;
+    SVECTOR*                d;
 
     normal = &Gp_GridParams->field_4[index];
     verts  = Gp_GridParams->field_8;
     faces  = Gp_GridParams->field_C;
 
-    face.verts[0]     = index * 4;
-    face.verts[1]     = index * 4 + 1;
-    face.verts[2]     = index * 4 + 2;
-    face.verts[3]     = index * 4 + 3;
-    face.normalIndex  = index;
-    face.surfaceClass = 3;
+    face.vertexIndices[0] = index * 4;
+    face.vertexIndices[1] = index * 4 + 1;
+    face.vertexIndices[2] = index * 4 + 2;
+    face.vertexIndices[3] = index * 4 + 3;
+    face.normalIndex      = index;
+    face.surfaceClass     = 3;
 
     Gfx_MatrixCol2(&task->extra.tmd->coords->coord, normal);
     Gfx_MatrixCol0(&task->extra.tmd->coords->coord, &dir);

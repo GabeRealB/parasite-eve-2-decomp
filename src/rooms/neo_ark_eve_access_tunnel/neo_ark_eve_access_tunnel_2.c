@@ -119,7 +119,7 @@ SVECTOR D_neo_ark_eve_access_tunnel_8017ECA0[55] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_verts.inc"
 };
 
-GpGridFace D_neo_ark_eve_access_tunnel_8017EE58[28] = {
+WorldCollisionGridFace D_neo_ark_eve_access_tunnel_8017EE58[28] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_faces.inc"
 };
 

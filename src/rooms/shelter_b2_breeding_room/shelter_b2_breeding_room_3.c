@@ -63,7 +63,7 @@ SVECTOR D_shelter_b2_breeding_room_801806AC[129] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_verts.inc"
 };
 
-GpGridFace D_shelter_b2_breeding_room_80180AB4[75] = {
+WorldCollisionGridFace D_shelter_b2_breeding_room_80180AB4[75] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_faces.inc"
 };
 

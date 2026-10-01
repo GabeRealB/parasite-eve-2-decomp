@@ -66,7 +66,7 @@ SVECTOR D_shelter_b1_control_room_access_tunnel_80181FA8[12] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_verts.inc"
 };
 
-GpGridFace D_shelter_b1_control_room_access_tunnel_80182008[6] = {
+WorldCollisionGridFace D_shelter_b1_control_room_access_tunnel_80182008[6] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_faces.inc"
 };
 

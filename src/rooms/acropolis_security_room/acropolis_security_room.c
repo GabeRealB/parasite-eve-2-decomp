@@ -1512,7 +1512,7 @@ SVECTOR D_acropolis_security_room_80183A80[50] = {
 #include "assets/acropolis_security_room_collision_067D4_verts.inc"
 };
 
-GpGridFace D_acropolis_security_room_80183C10[24] = {
+WorldCollisionGridFace D_acropolis_security_room_80183C10[24] = {
 #include "assets/acropolis_security_room_collision_067D4_faces.inc"
 };
 

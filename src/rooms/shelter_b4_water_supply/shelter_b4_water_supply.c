@@ -299,7 +299,7 @@ SVECTOR D_shelter_b4_water_supply_8018284C[59] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_verts.inc"
 };
 
-GpGridFace D_shelter_b4_water_supply_80182A24[45] = {
+WorldCollisionGridFace D_shelter_b4_water_supply_80182A24[45] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_faces.inc"
 };
 

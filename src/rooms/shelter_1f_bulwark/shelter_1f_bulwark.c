@@ -155,7 +155,7 @@ SVECTOR D_shelter_1f_bulwark_80180470[22] = {
 #include "assets/shelter_1f_bulwark_collision_03088_verts.inc"
 };
 
-GpGridFace D_shelter_1f_bulwark_80180520[12] = {
+WorldCollisionGridFace D_shelter_1f_bulwark_80180520[12] = {
 #include "assets/shelter_1f_bulwark_collision_03088_faces.inc"
 };
 

@@ -126,7 +126,7 @@ SVECTOR D_dryfield_night_back_street_80180544[72] = {
 #include "assets/dryfield_night_back_street_collision_03574_verts.inc"
 };
 
-GpGridFace D_dryfield_night_back_street_80180784[32] = {
+WorldCollisionGridFace D_dryfield_night_back_street_80180784[32] = {
 #include "assets/dryfield_night_back_street_collision_03574_faces.inc"
 };
 

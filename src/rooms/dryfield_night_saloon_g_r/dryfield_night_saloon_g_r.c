@@ -1099,7 +1099,7 @@ SVECTOR D_dryfield_night_saloon_g_r_80185274[116] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_verts.inc"
 };
 
-GpGridFace D_dryfield_night_saloon_g_r_80185614[61] = {
+WorldCollisionGridFace D_dryfield_night_saloon_g_r_80185614[61] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_faces.inc"
 };
 

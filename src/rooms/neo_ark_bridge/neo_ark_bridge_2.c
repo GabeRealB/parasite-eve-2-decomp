@@ -145,7 +145,7 @@ SVECTOR D_neo_ark_bridge_8018213C[97] = {
 #include "assets/neo_ark_bridge_collision_05254_verts.inc"
 };
 
-GpGridFace D_neo_ark_bridge_80182444[43] = {
+WorldCollisionGridFace D_neo_ark_bridge_80182444[43] = {
 #include "assets/neo_ark_bridge_collision_05254_faces.inc"
 };
 

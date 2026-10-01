@@ -72,10 +72,10 @@ void factoryPanelRun(Task*);
 void factoryPromptTask(Task*);
 void factoryPanelTrigger(Task*);
 
-extern GpGridFace D_dryfield_night_factory_80187630[72];
-extern SVECTOR    D_dryfield_night_factory_80187000[28];
-extern SVECTOR    D_dryfield_night_factory_801870E0[170];
-extern s16*       D_dryfield_night_factory_80187BD0[8];
+extern WorldCollisionGridFace D_dryfield_night_factory_80187630[72];
+extern SVECTOR                D_dryfield_night_factory_80187000[28];
+extern SVECTOR                D_dryfield_night_factory_801870E0[170];
+extern s16*                   D_dryfield_night_factory_80187BD0[8];
 
 TmdBone D_dryfield_night_factory_801826BC[1] = {
 #include "assets/dryfield_night_factory_model_091A8_skeleton.inc"
@@ -149,7 +149,7 @@ SVECTOR D_dryfield_night_factory_80186BBC[8] = {
 #include "assets/dryfield_night_factory_collision_09660_verts.inc"
 };
 
-GpGridFace D_dryfield_night_factory_80186BFC[2] = {
+WorldCollisionGridFace D_dryfield_night_factory_80186BFC[2] = {
 #include "assets/dryfield_night_factory_collision_09660_faces.inc"
 };
 
@@ -173,7 +173,7 @@ SVECTOR D_dryfield_night_factory_80186C64[8] = {
 #include "assets/dryfield_night_factory_collision_09730_verts.inc"
 };
 
-GpGridFace D_dryfield_night_factory_80186CA4[4] = {
+WorldCollisionGridFace D_dryfield_night_factory_80186CA4[4] = {
 #include "assets/dryfield_night_factory_collision_09730_faces.inc"
 };
 
@@ -197,7 +197,7 @@ SVECTOR D_dryfield_night_factory_80186D34[8] = {
 #include "assets/dryfield_night_factory_collision_097FC_verts.inc"
 };
 
-GpGridFace D_dryfield_night_factory_80186D74[4] = {
+WorldCollisionGridFace D_dryfield_night_factory_80186D74[4] = {
 #include "assets/dryfield_night_factory_collision_097FC_faces.inc"
 };
 
@@ -302,7 +302,7 @@ SVECTOR D_dryfield_night_factory_801870E0[170] = {
 #include "assets/dryfield_night_factory_collision_0A630_verts.inc"
 };
 
-GpGridFace D_dryfield_night_factory_80187630[72] = {
+WorldCollisionGridFace D_dryfield_night_factory_80187630[72] = {
 #include "assets/dryfield_night_factory_collision_0A630_faces.inc"
 };
 

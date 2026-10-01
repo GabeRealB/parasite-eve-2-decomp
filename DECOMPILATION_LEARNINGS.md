@@ -50578,26 +50578,26 @@ spans blocks is a scoping problem in the C, not a colouring problem.
 The inverse of "Reassign `ptr = base + i` instead of `ptr++` to avoid mid-struct
 IV": sometimes the target has the extra IV and indexed C cannot produce it.
 
-`func_mist_shooting_gallery_80180390` copies one `MistShootingGalleryLink`
-(`u16 field_00[4]; u16 field_08; u16 field_0A;`) per outer iteration — an inner
-loop over `field_00`, then `field_08` and `field_0A`. The target carries four
+`func_mist_shooting_gallery_80180390` copies one `WorldCollisionGridFace`
+(`u16 vertexIndices[4]; u16 normalIndex; s16 surfaceClass;`) per outer iteration — an inner
+loop over `vertexIndices`, then `normalIndex` and `surfaceClass`. The target carries four
 outer IVs per iteration: a pointer at each struct base (copied into the inner
-loop's walking pointer) *and* a pointer at `base + 0xA`, with `field_08` read as
-`-0x2(t2)` and `field_0A` as `0(t2)`.
+loop's walking pointer) *and* a pointer at `base + 0xA`, with `normalIndex` read as
+`-0x2(t2)` and `surfaceClass` as `0(t2)`.
 
-Written as `dlinks[i].field_08 = slinks[i].field_08 + 3;` GCC 2.8.1 combines all
+Written as `destFace[i].normalIndex = sourceFace[i].normalIndex + 3;` GCC 2.8.1 combines all
 of the givs into the single const-0 IV the inner loop already materialises, and
 addresses the tail fields as `8(t1)` / `0xa(t1)` — 94.2%, `regs` only.
 Incrementing the pointers instead:
 
 ```c
 for (j = 0; j < 4; j++) {
-    dlinks->field_00[j] = slinks->field_00[j] + 8;
+    destFace->vertexIndices[j] = sourceFace->vertexIndices[j] + 8;
 }
-dlinks->field_08 = slinks->field_08 + 3;
-dlinks->field_0A = slinks->field_0A;
-dlinks++;
-slinks++;
+destFace->normalIndex = sourceFace->normalIndex + 3;
+destFace->surfaceClass = sourceFace->surfaceClass;
+destFace++;
+sourceFace++;
 ```
 
 makes each pointer an explicit biv, so the two tail accesses become DEST_ADDR
@@ -133220,7 +133220,7 @@ unscoped build for five overlays, with all prior C definitions preserved.
 ## Aggregate initializers can keep adjacent stack records from interleaving in sched2 (func_actor_444000_801371E8, 2026-09-19)
 
 The retry seed reached 98.596% with three stores from the first local
-`GpGridFace` interleaved among the second face's index arithmetic. Both records
+`WorldCollisionGridFace` interleaved among the second face's index arithmetic. Both records
 were initialized through individual member assignments. The registers matched;
 `.greg` had the desired grouping but `.sched2` moved the stores. Contrary to
 the older retry notes, every relevant store and index operation had priority 2.
@@ -133233,9 +133233,9 @@ Use an aggregate initializer when constructing the complete local record:
 SVECTOR dir;
 SVECTOR* norms = Gp_GridParams->field_4;
 SVECTOR* corners = Gp_GridParams->field_8;
-GpGridFace* faces = Gp_GridParams->field_C;
-GpGridFace quad0 = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
-GpGridFace quad1 = {
+WorldCollisionGridFace* faces = Gp_GridParams->field_C;
+WorldCollisionGridFace quad0 = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
+WorldCollisionGridFace quad1 = {
     { (face + 1) * 4, (face + 1) * 4 + 1, (face + 1) * 4 + 2, (face + 1) * 4 + 3 }, face + 1, 2
 };
 ```
@@ -135926,7 +135926,7 @@ Evidence, including preprocessed-input and compiler hashes plus selected RTL: `t
 
 ## Aggregate constructors resolve the actor_403200 face-store plateau (2026-09-20)
 
-The 2026-09-19 `GpGridFace` constructor result also closes
+The 2026-09-19 `WorldCollisionGridFace` constructor result also closes
 `func_actor_403200_801408D8`: 97.731% (810) to 100%, all 357 instructions
 identical, without pins. Preserve pool/verts/faces pointer initializers before
 the two aggregate initializers. A prediction recorded before the build was

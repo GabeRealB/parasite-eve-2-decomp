@@ -169,7 +169,7 @@ SVECTOR D_shelter_b1_storeroom_80184CA8[64] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_verts.inc"
 };
 
-GpGridFace D_shelter_b1_storeroom_80184EA8[26] = {
+WorldCollisionGridFace D_shelter_b1_storeroom_80184EA8[26] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_faces.inc"
 };
 

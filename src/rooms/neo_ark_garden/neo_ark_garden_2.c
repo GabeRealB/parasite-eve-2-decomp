@@ -116,7 +116,7 @@ SVECTOR D_neo_ark_garden_801814FC[22] = {
 #include "assets/neo_ark_garden_collision_04104_verts.inc"
 };
 
-GpGridFace D_neo_ark_garden_801815AC[9] = {
+WorldCollisionGridFace D_neo_ark_garden_801815AC[9] = {
 #include "assets/neo_ark_garden_collision_04104_faces.inc"
 };
 

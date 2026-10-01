@@ -187,7 +187,7 @@ SVECTOR D_acropolis_observatory_8018009C[155] = {
 #include "assets/acropolis_observatory_collision_03490_verts.inc"
 };
 
-GpGridFace D_acropolis_observatory_80180574[62] = {
+WorldCollisionGridFace D_acropolis_observatory_80180574[62] = {
 #include "assets/acropolis_observatory_collision_03490_faces.inc"
 };
 

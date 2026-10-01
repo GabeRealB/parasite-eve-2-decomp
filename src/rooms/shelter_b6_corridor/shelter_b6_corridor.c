@@ -296,7 +296,7 @@ SVECTOR D_shelter_b6_corridor_8017F95C[12] = {
 #include "assets/shelter_b6_corridor_collision_024D0_verts.inc"
 };
 
-GpGridFace D_shelter_b6_corridor_8017F9BC[12] = {
+WorldCollisionGridFace D_shelter_b6_corridor_8017F9BC[12] = {
 #include "assets/shelter_b6_corridor_collision_024D0_faces.inc"
 };
 

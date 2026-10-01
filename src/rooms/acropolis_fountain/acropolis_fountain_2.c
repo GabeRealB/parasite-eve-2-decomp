@@ -190,7 +190,7 @@ SVECTOR D_acropolis_fountain_8017EA80[181] = {
 #include "assets/acropolis_fountain_collision_0204C_verts.inc"
 };
 
-GpGridFace D_acropolis_fountain_8017F028[66] = {
+WorldCollisionGridFace D_acropolis_fountain_8017F028[66] = {
 #include "assets/acropolis_fountain_collision_0204C_faces.inc"
 };
 

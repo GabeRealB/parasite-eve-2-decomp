@@ -111,7 +111,7 @@ SVECTOR D_acropolis_hallway_8017E3A8[35] = {
 #include "assets/acropolis_hallway_collision_01010_verts.inc"
 };
 
-GpGridFace D_acropolis_hallway_8017E4C0[17] = {
+WorldCollisionGridFace D_acropolis_hallway_8017E4C0[17] = {
 #include "assets/acropolis_hallway_collision_01010_faces.inc"
 };
 
