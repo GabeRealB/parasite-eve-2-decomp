@@ -773,6 +773,12 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// Covers `u0/u1/u2` and their `code/p1/p2` page markers in the
         /// environment packet of each environment/base pair.
         TMD_GT3_ENV_CORNER_COUNT = 3,
+        /// Number of GPU packets occupied by one pre-transformed environment-layered triangle.
+        ///
+        /// Slot 0 is the semitransparent environment layer; slot 1 is the opaque
+        /// model-texture base. Counts complete `POLY_GT3` objects, including DMA
+        /// tags. Construction reserves both slots, and drawing advances past
+        /// both even when the triangle is culled.
         TMD_GT3_ENV_PACKET_COUNT = 2,
         /// Byte stride between corresponding fields of successive environment-triangle corners.
         ///
