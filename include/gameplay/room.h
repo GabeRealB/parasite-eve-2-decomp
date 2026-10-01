@@ -58,7 +58,14 @@ enum {
     WORLD_COLLISION_SURFACE_BLOCK_PROBES          = 0,
     WORLD_COLLISION_SURFACE_PASS_PROBES           = 1,
     WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS = 0,
-    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS  = 1,
+    /// Allows weapon hit effects and grenade detonation at surface contacts.
+    ///
+    /// Stored in the byte `WorldCollisionSurfaceProperties.weaponImpactEnabled`;
+    /// readers treat any nonzero value as enabled. Weapon hit effects use this
+    /// policy independently of probe passage and pushback. Grenades consult it
+    /// only on surfaces with `WORLD_COLLISION_SURFACE_BLOCK_PROBES`; actor hits,
+    /// flight timeouts and the scripted pass-through detonation are separate.
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS = 1,
     /// Enables displacement calculation from this surface class's grid contacts.
     ///
     /// Stored in `WorldCollisionSurfaceProperties.suppressPushback` and cached
