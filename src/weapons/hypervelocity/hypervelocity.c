@@ -142,8 +142,8 @@ static void func_hypervelocity_8011F724(Task* arg0);
 ///   through to state 1, which waits for `spawnArg1` to reach 1 before arming
 ///   the charge at state 2.
 /// - State 2 charges: it jitters the drift, sparks every other frame, and
-///   claims room-light slot 1 as a narrow (`0x100` / `0x1000`) light at a
-///   random `0x400..0xB00` angle. A negative `spawnArg1` cancels back to state
+///   refreshes transient light slot 1 with narrow (`0x100` / `0x1000`) falloff and
+///   random blue intensity in `0x400..0xB00`. A negative `spawnArg1` cancels back to state
 ///   1; holding past frame 0x40 caps the charge at 0x18; once the charge is 2
 ///   or more it seeds the ring and moves to state 3 with the brightness step
 ///   scaled so the ring fills over `spawnArg1` frames.
@@ -169,7 +169,7 @@ void func_hypervelocity_8011D1E8(Task* task)
     s32                            pan;
 
     work      = task->spawnArg2.pointer;
-    lightSlot = &Gp_RoomCoords[1];
+    lightSlot = &gWorldCoordTransientPointLights[1];
     light     = &lightSlot->light.head.transform.coord;
     slot      = &lightSlot->light;
     coord     = task->extra.coordBody->coord;
@@ -356,7 +356,7 @@ void func_hypervelocity_8011D830(Task* task)
     beam      = (HyperBeam*)task->work;
     work      = task->spawnArg2.pointer;
     coord     = task->extra.coordBody->coord;
-    lightSlot = &Gp_RoomCoords[0];
+    lightSlot = &gWorldCoordTransientPointLights[0];
     light     = &lightSlot->light.head.transform.coord;
     slot      = &lightSlot->light;
 

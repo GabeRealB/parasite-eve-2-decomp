@@ -109,7 +109,7 @@ enum { WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE = 0 };
 /// An expiring point-light contribution alongside a room's authored lights.
 ///
 /// Effects, weapons, actors and rooms write directly into selected entries of
-/// the eight-slot `Gp_RoomCoords` pool. Slots are shared storage, with no
+/// the eight-slot `gWorldCoordTransientPointLights` pool. Slots are shared storage, with no
 /// allocation or reference count; another writer can replace a contribution.
 /// Set `framesLeft` to a positive frame count to enable the slot, or zero to
 /// disable it. The shared effect update decrements nonzero counts once per

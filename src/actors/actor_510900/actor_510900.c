@@ -1139,7 +1139,7 @@ void func_actor_510900_80131F24(Task* arg0)
 
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
-    lightSlot = &Gp_RoomCoords[2];
+    lightSlot = &gWorldCoordTransientPointLights[2];
     slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1829,18 +1829,18 @@ void func_actor_510900_80133C84(Task* arg0)
 void func_actor_510900_801340E8(Task* arg0)
 {
     WorldCoordTransientPointLight* lightSlot;
-    GfxCoord*                      cam;
-    WorldCoordPointLight*          ext;
+    GfxCoord*                      lightCoord;
+    WorldCoordPointLight*          pointLight;
     EffectWork*                    eff;
     GfxCoord*                      coord;
     GfxRotationWords*              mat;
     s32                            i;
 
-    lightSlot = &Gp_RoomCoords[3];
-    cam       = &lightSlot->light.head.transform.coord;
-    eff       = arg0->spawnArg2.pointer;
-    coord     = arg0->extra.coordBody->coord;
-    ext       = &lightSlot->light;
+    lightSlot  = &gWorldCoordTransientPointLights[3];
+    lightCoord = &lightSlot->light.head.transform.coord;
+    eff        = arg0->spawnArg2.pointer;
+    coord      = arg0->extra.coordBody->coord;
+    pointLight = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         effectKillTask(eff, arg0);
         return;
@@ -1865,14 +1865,14 @@ void func_actor_510900_801340E8(Task* arg0)
         Gp_SpawnEff(0x60065, coord, 0, &eff->move);
         Gp_SpawnEff(0x600A4, coord, 1, NULL);
     }
-    lightSlot->framesLeft = 4;
-    ext->inner            = 0xFA0;
-    ext->outer            = 0x12C0;
-    ext->head.color.r     = 0xC00;
-    ext->head.color.g     = 0x800;
-    ext->head.color.b     = 0x400;
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &cam->coord);
-    cam->composeStamp = GRAPHICS_COORD_DIRTY;
+    lightSlot->framesLeft    = 4;
+    pointLight->inner        = 0xFA0;
+    pointLight->outer        = 0x12C0;
+    pointLight->head.color.r = 0xC00;
+    pointLight->head.color.g = 0x800;
+    pointLight->head.color.b = 0x400;
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
+    lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     effectKillTask(eff, arg0);
 }
 

@@ -1572,8 +1572,9 @@ static void Gp_DecRoomCoordRefs(void)
     s32                            i;
     WorldCoordTransientPointLight* lightSlot;
 
-    lightSlot = Gp_RoomCoords;
-    for (i = 0; i < ARRAY_SIZE(Gp_RoomCoords); i++) {
+    // Expire contributions in place, retaining their light records for reuse.
+    lightSlot = gWorldCoordTransientPointLights;
+    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++) {
         if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
             lightSlot->framesLeft--;
         }
@@ -1586,8 +1587,8 @@ static void Gp_InitRoomCoords(void)
     s32                            i;
     WorldCoordTransientPointLight* lightSlot;
 
-    lightSlot = Gp_RoomCoords;
-    for (i = 0; i < ARRAY_SIZE(Gp_RoomCoords); i++) {
+    lightSlot = gWorldCoordTransientPointLights;
+    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++) {
         lightSlot->light.head.transform.coord.parent = &gGfxViewCoord;
         lightSlot->framesLeft                        = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
         lightSlot++;

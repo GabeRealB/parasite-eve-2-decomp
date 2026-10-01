@@ -84,12 +84,12 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0);
 /// `field_8` at the fixed muzzle offset with an identity rotation; state 1 then
 /// dispatches on `spawnArg1`:
 ///
-/// - 1 draws the beam head at `workm.t` every frame and claims room-light slot
-///   1 as a narrow (`0x80` / `0x400`) light aimed at a random angle in
+/// - 1 draws the beam head at `workm.t` every frame and refreshes transient light slot
+///   1 with narrow (`0x80` / `0x400`) falloff and random red intensity in
 ///   `0x400..0xB00`, arming the flare width in `scale`.
 /// - 2 widens that flare by 0x40 a frame up to 0x180, spawns effect `0x6017F`
-///   as a child of this task, and re-claims the light with a much wider
-///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
+///   as a child of this task, and refreshes the light with a much wider
+///   (`0x400` / `0x4000`) falloff and red intensity in `0x800..0xF00`.
 /// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
 ///
 /// While `gRoomEffectState->effectControl` is non-zero the two drawing sub-states wind
@@ -107,7 +107,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
 
     work      = task->spawnArg2.pointer;
     coord     = task->extra.coordBody->coord;
-    lightSlot = &Gp_RoomCoords[1];
+    lightSlot = &gWorldCoordTransientPointLights[1];
     light     = &lightSlot->light.head.transform.coord;
     slot      = &lightSlot->light;
     if ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {

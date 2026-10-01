@@ -1378,7 +1378,7 @@ Gp_BtnMap0                  = 0x8010FBEC; // size:0x10 defined:True
 Gp_BtnMap1                  = 0x8010FBFC; // size:0x10 defined:True
 Gp_BtnMap2                  = 0x8010FC0C; // size:0x10 defined:True
 Gp_BtnMap2Alt               = 0x8010FC1C; // size:0x10 defined:True
-Gp_RoomCoords = 0x80114F30; // size:0x320 defined:True
+gWorldCoordTransientPointLights = 0x80114F30; // size:0x320 defined:True
 Gp_StatRows                 = 0x8010D328; // size:0x20 defined:True
 Gp_StackLimits = 0x8010E3B8; // size:0x80 defined:True
 

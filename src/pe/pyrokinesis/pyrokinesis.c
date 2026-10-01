@@ -98,7 +98,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     ModelObjectCoordBody*          body;
     GfxCoord*                      player;
     WorldCoordTransientPointLight* lightSlot;
-    GfxCoord*                      slotc;
+    GfxCoord*                      lightCoord;
     WorldCoordPointLight*          slot;
     GfxRotationWords*              destinationRotation;
     GfxRotationWords*              sourceRotation;
@@ -113,14 +113,14 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     s32                            next;
     s16                            amp;
 
-    work      = (PyroWork*)arg0->work;
-    mem       = arg0->spawnArg2.pointer;
-    body      = arg0->extra.coordBody;
-    coord     = body->coord;
-    mem->age  = mem->age + 1;
-    lightSlot = Gp_RoomCoords;
-    slotc     = &lightSlot->light.head.transform.coord;
-    slot      = &lightSlot->light;
+    work       = (PyroWork*)arg0->work;
+    mem        = arg0->spawnArg2.pointer;
+    body       = arg0->extra.coordBody;
+    coord      = body->coord;
+    mem->age   = mem->age + 1;
+    lightSlot  = gWorldCoordTransientPointLights;
+    lightCoord = &lightSlot->light.head.transform.coord;
+    slot       = &lightSlot->light;
     switch (arg0->state) {
         case 0:
             if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
@@ -257,18 +257,18 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     func_pyrokinesis_801304C4(&ground, mem->angle);
                 }
             }
-            lightSlot->framesLeft = 4;
-            slot->inner           = (mem->index << 9) + 0x200;
-            slot->outer           = slot->inner * 16;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            amp                   = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.r    = amp;
-            slot->head.color.g    = (u16)slot->head.color.r >> 1;
-            slot->head.color.b    = slot->head.color.r >> 2;
-            slotc->coord.t[0]     = coord->coord.t[0];
-            slotc->coord.t[1]     = coord->coord.t[1];
-            slotc->coord.t[2]     = coord->coord.t[2];
-            slotc->composeStamp   = GRAPHICS_COORD_DIRTY;
+            lightSlot->framesLeft    = 4;
+            slot->inner              = (mem->index << 9) + 0x200;
+            slot->outer              = slot->inner * 16;
+            gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            amp                      = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+            slot->head.color.r       = amp;
+            slot->head.color.g       = (u16)slot->head.color.r >> 1;
+            slot->head.color.b       = slot->head.color.r >> 2;
+            lightCoord->coord.t[0]   = coord->coord.t[0];
+            lightCoord->coord.t[1]   = coord->coord.t[1];
+            lightCoord->coord.t[2]   = coord->coord.t[2];
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
                 for (i = 0; i < 0x556; i += 0x2AA) {

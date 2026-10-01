@@ -8813,7 +8813,7 @@ increments a second counter, a pointer `p++` plus `i++` still becomes
 ```c
 count = 0;
 for (i = 0; i < 8; i++) {
-    if (Gp_RoomCoords[i].framesLeft != 0) {
+    if (gWorldCoordTransientPointLights[i].framesLeft != 0) {
         count++;
     }
 }
@@ -35578,14 +35578,14 @@ LCG `addu` dest stays `v0` and the store sits immediately after it.
 
 ## Embedded point light so colour fields are `s5+0x50`, not `base+0x54`
 
-`Gp_RoomCoords` is an array of `WorldCoordTransientPointLight` whose embedded point lights' colour and radius fields start at `+0x54`.
-Accessing them as `Gp_RoomCoords->light.head.color.r` uses the slot's address (`sw 0x54(a0)`).
+`gWorldCoordTransientPointLights` is an array of `WorldCoordTransientPointLight` whose embedded point lights' colour and radius fields start at `+0x54`.
+Accessing them as `gWorldCoordTransientPointLights->light.head.color.r` uses the slot's address (`sw 0x54(a0)`).
 The target computes `s5 = a0+4` (`&lightSlot->light`) and stores at `0x50(s5)`.
 Hold the embedded point light as a `WorldCoordPointLight*` and assign it **before** the `if` so `addiu s5, a0, 4` fills the
 entry `beqz` delay:
 
 ```c
-lightSlot = Gp_RoomCoords;
+lightSlot = gWorldCoordTransientPointLights;
 slot = &lightSlot->light;
 st   = gRoomEffectState;
 if (st->effectControl < 2) {
@@ -35597,8 +35597,8 @@ if (st->effectControl < 2) {
 }
 ```
 
-A local `RoomEffectState* st = gRoomEffectState` interleaves `lui s6, %hi(Gp_RoomCoords)`
-with the `gRoomEffectState` load so `addiu a0, s6, %lo(Gp_RoomCoords)` stays in
+A local `RoomEffectState* st = gRoomEffectState` interleaves `lui s6, %hi(gWorldCoordTransientPointLights)`
+with the `gRoomEffectState` load so `addiu a0, s6, %lo(gWorldCoordTransientPointLights)` stays in
 the prologue. `Gp_EffCtlTask6B` is the example.
 
 Zero `coord->composeStamp` **after** the three `coord.t[]` stores so `sw zero, 0(s3)`
@@ -36266,7 +36266,7 @@ own block, then pin the product to `$a0` in the multiply-add block:
 
 ## Split `%hi` into `$v0` so `%lo` can land in a different dest
 
-`p = Gp_RoomCoords` with `p` in `$s1` emits `lui s1, %hi` / `addiu s1, s1, %lo`.
+`p = gWorldCoordTransientPointLights` with `p` in `$s1` emits `lui s1, %hi` / `addiu s1, s1, %lo`.
 The target materializes the address as `lui v0, %hi` / `addiu s1, v0, %lo`.
 Pin a dummy `$v0` temp and emit that pair:
 
@@ -36274,12 +36274,12 @@ Pin a dummy `$v0` temp and emit that pair:
 register s32 hi asm("v0");
 register T*  p asm("s1");
 __asm__ volatile(
-    "lui\t%0, %%hi(Gp_RoomCoords)\n\t"
-    "addiu\t%1, %0, %%lo(Gp_RoomCoords)"
+    "lui\t%0, %%hi(gWorldCoordTransientPointLights)\n\t"
+    "addiu\t%1, %0, %%lo(gWorldCoordTransientPointLights)"
     : "=r"(hi), "=r"(p));
 ```
 
-An empty `asm volatile("" : "=r"(hi))` before `p = Gp_RoomCoords` is not
+An empty `asm volatile("" : "=r"(hi))` before `p = gWorldCoordTransientPointLights` is not
 enough — GCC still uses `$s1` for both halves.
 
 `Gp_UpdateRoomCoords` is the example.
@@ -40587,7 +40587,7 @@ The mechanism, from the `.sched` trace: backward sched1 breaks ties between
 equal-priority ready insns by LUID, higher first. The loads feeding
 statements written *after* the LCG therefore land between `srl`/`andi` and the
 `addu` that uses the mask. That stretches the mask quantity's life until its
-local-alloc priority (`floor_log2(refs)*refs/span`) falls below the work
+local-alloc priority (`floor_log2(refs)*refs/span`) falls below the pointLight
 pointer's, and the two swap registers. The statement order, and whether the
 step is split, decide which loads sit inside the mask's live range.
 Search order and form together, and take the order from a matched sibling that
@@ -52409,10 +52409,10 @@ include when the body is ported.
 
 `func_acropolis_helicopter_landing_pad_80180E40` writes through
 `D_801150C0` (rooms.imports.txt), which has no declaration anywhere in
-`include/`. `sym.gameplay.txt` places it inside `Gp_RoomCoords`
+`include/`. `sym.gameplay.txt` places it inside `gWorldCoordTransientPointLights`
 (`0x80114F30`, size `0x320`): `0x801150C0 - 0x80114F30 = 0x190 = 4 * 0x64`,
-so it is `&Gp_RoomCoords[4]`, and the sibling imports `D_80115124` /
-`D_80115188` are slots 5 and 6. Writing it as `lightSlot = &Gp_RoomCoords[4];
+so it is `&gWorldCoordTransientPointLights[4]`, and the sibling imports `D_80115124` /
+`D_80115188` are slots 5 and 6. Writing it as `lightSlot = &gWorldCoordTransientPointLights[4];
 slot = &lightSlot->light;` — the shape gameplay's matched
 `Gp_EffCtlTask6B` uses for slot 0 — reproduces the `lui/addiu` pair, the
 `%lo(sym)($s5)` store for `framesLeft` and the `4($s6)` store for `light.head.transform.coord.composeStamp`.
@@ -52420,7 +52420,7 @@ slot = &lightSlot->light;` — the shape gameplay's matched
 Two consequences. When an import label is undeclared, check the sized symbols
 just below it in the owning overlay's sym file before typing it as a fresh
 struct. And the scratch scorer reports the spelling difference
-(`%lo(Gp_RoomCoords+0x190)` vs `%lo(D_801150C0)`) as a `regs` penalty
+(`%lo(gWorldCoordTransientPointLights+0x190)` vs `%lo(D_801150C0)`) as a `regs` penalty
 (99.9%, three "differences" that are all relocation names), while the linked
 build is a byte-for-byte match — verify with `build-and-verify.sh` instead
 of chasing that last tenth in the scratch.
@@ -55580,7 +55580,7 @@ hoist, here it lets a store sink.
 **Problem.** `func_m4a1_pyke_8011D1F8` keeps five callee-saved pointers. Every
 instruction matched except that the task argument and one alias pointer had
 swapped registers — the ROM uses `s2` for the `Task*` and `s3` for the
-`WorldCoordPointLight*` member at `&Gp_RoomCoords[1].light`, ours used `s3` and `s2`.
+`WorldCoordPointLight*` member at `&gWorldCoordTransientPointLights[1].light`, ours used `s3` and `s2`.
 
 **Symptom.** Nothing in the C looked register-related; `.greg` showed the
 allocation order line
@@ -55600,7 +55600,7 @@ the guard clauses, instead of after them:
 ```c
 work      = task->spawnArg2;
 coord     = task->extra.coordBody->coord;
-lightSlot = &Gp_RoomCoords[1];
+lightSlot = &gWorldCoordTransientPointLights[1];
 light     = &lightSlot->light.head.transform.coord; /* not after the two `return`s */
 slot      = &lightSlot->light;
 if ((((TmdObject*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra)->flags & 0x80) != 0) {
@@ -60612,7 +60612,7 @@ for (i = 0; i < 2;) {
 leaves `i` live across the call, so it takes `$s1` and one more long-lived
 pointer gets spilled instead. That is not cosmetic: it decides *which* pseudo
 loses. In `func_acropolis_plaza_801802C0` the target spills the
-`&Gp_RoomCoords[n]` pointer to `0x10($sp)`; with the increment in the default
+`&gWorldCoordTransientPointLights[n]` pointer to `0x10($sp)`; with the increment in the default
 place a colour component spilled instead and the whole `$s0`-`$s8` assignment
 came out shifted. The single edit moved the score 88.99% -> 90.57% and dropped
 the `regs` penalty from 384 to 160.
@@ -61783,15 +61783,15 @@ even though the destination is a global. The ROM has both stores, so the
 register.
 
 The fix is to notice what the ROM interleaves. The same block copies the
-coordinate translation into the room light slot, and moving one of those copies
+coordinate translation into the transient point-light slot, and moving one of those copies
 between the two LCG steps restores the store, because a write through a pointer
 may alias the global and blocks the elimination:
 
 ```c
-slot->coord.coord.t[0] = coord->coord.t[0];
+slot->head.transform.coord.coord.t[0] = coord->coord.t[0];
 gRandomLcgState            = gRandomLcgState * 5 + 0x71357911;
 yaw                    = (((u32)gRandomLcgState >> 16) & 0x3FF) + 0xA00;
-slot->coord.coord.t[1] = coord->coord.t[1];   /* keeps the first sw alive */
+slot->head.transform.coord.coord.t[1] = coord->coord.t[1];   /* keeps the first sw alive */
 gRandomLcgState            = gRandomLcgState * 5 + 0x71357911;
 spread                 = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
@@ -63263,8 +63263,8 @@ the reload. `func_energyball_8012F180` cases 3 and 4 are the example (99.19% →
 `lui`; a `tbl = D_x; SOFT_TOUCH_REG(tbl)` guards the pointer, not its `high`
 pseudo, so neither reproduces it.
 
-Also from the same function: `&Gp_RoomCoords[index->spawnArg1 + 4]` assembles
-to the same bytes as the splat name `D_801150C0` (`%lo(Gp_RoomCoords+0x190)`),
+Also from the same function: `&gWorldCoordTransientPointLights[index->spawnArg1 + 4]` assembles
+to the same bytes as the splat name `D_801150C0` (`%lo(gWorldCoordTransientPointLights+0x190)`),
 so a "slot base four entries in" needs no separate extern.
 
 ## `if (*p != x) p++; else return 1` keeps `bne` and a mid-loop `return 1`
@@ -139624,7 +139624,7 @@ plain-C form. Inputs: `base_54.i`
 The earlier session left this function at 98.868% (`reorder=2`). It traced the
 swap to sched1's birthing boost on the LCG load, confirmed that with a
 `REG_N_SETS` experiment, and called the mechanism settled. The retry matched on
-its first build by writing the body with the real types: `AhlpLight` for the
+its first build by writing the body with the real types: `WorldCoordTransientPointLight` for the
 light array and `SVECTOR` for the position it copies from.
 
 Controlled builds isolated the cause to one declaration. The m2c seed declared
@@ -139633,7 +139633,7 @@ the source vector as a 4-byte `M2C_UNK` and read `vx`/`vy`/`vz` as
 drops to 99.151% (`regs=6 reorder=1`). The light array's declaration, the
 switch shape and the LCG temporaries had no effect. This fits the entry on
 fixed scalars not aliasing struct stores. A cast read from a scalar-typed
-symbol is not `MEM_IN_STRUCT_P`, so its dependences against the `work->…`
+symbol is not `MEM_IN_STRUCT_P`, so its dependences against the `pointLight->…`
 stores change, and so do the block's priorities. That mechanism was not traced
 here. The lesson: a "settled" scheduler explanation on an untyped seed may be
 downstream of how the seed typed its memory. When the seed still uses
@@ -140990,10 +140990,10 @@ earlier C `const`), it believes it is still in `.rodata` and emits the next
 between. Defining each table beside its user usually does that; otherwise put
 the `INCLUDE_RODATA` after a function, or define the included data in C too.
 
-## A constant-index element of a global array keeps `%hi(arr+off)` only through a pointer local (Gp_RoomCoords, 2026-09-25)
+## A constant-index element of a global array keeps `%hi(arr+off)` only through a pointer local (gWorldCoordTransientPointLights, 2026-09-25)
 
 **Symptom.** Replacing a global named by address (`D_80114FF8`) with the
-array element it really is (`Gp_RoomCoords[2]`) changed the code, although
+array element it really is (`gWorldCoordTransientPointLights[2]`) changed the code, although
 both name the same address:
 
 ```
@@ -141002,21 +141002,21 @@ sw    v0,%lo(D_80114FF8)(a3)
 addiu a3,a3,%lo(D_80114FF8)
 ```
 ```
-lui   a3,%hi(Gp_RoomCoords)       ; Gp_RoomCoords[2].f = 2; p = &Gp_RoomCoords[2].g;
-addiu a3,a3,%lo(Gp_RoomCoords)
+lui   a3,%hi(gWorldCoordTransientPointLights)       ; gWorldCoordTransientPointLights[2].f = 2; p = &gWorldCoordTransientPointLights[2].g;
+addiu a3,a3,%lo(gWorldCoordTransientPointLights)
 sw    v0,200(a3)
 ```
 
 **Fix.** Take the element's address into a pointer local and go through it:
 
 ```c
-slot             = &Gp_RoomCoords[2];
+slot             = &gWorldCoordTransientPointLights[2];
 slot->framesLeft = 2;
 light            = &slot->light;
 ```
 
-This compiles to `lui %hi(Gp_RoomCoords+200)` / `sw %lo(Gp_RoomCoords+200)`,
-byte-identical after linking to the target. `(&Gp_RoomCoords[2])->f` works too,
+This compiles to `lui %hi(gWorldCoordTransientPointLights+200)` / `sw %lo(gWorldCoordTransientPointLights+200)`,
+byte-identical after linking to the target. `(&gWorldCoordTransientPointLights[2])->f` works too,
 but the named local is the natural spelling. Written directly, two accesses at
 different offsets into the element share the array base in a register instead.
 

@@ -203,7 +203,7 @@ void Gp_EffCtlTask2B(Task* arg0)
 
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
-    lightSlot = Gp_RoomCoords;
+    lightSlot = gWorldCoordTransientPointLights;
     slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
@@ -311,7 +311,7 @@ void Gp_EffCtlTask6A(Task* arg0)
     WorldCoordPointLight*          slot;
     s32                            t2;
 
-    lightSlot = Gp_RoomCoords;
+    lightSlot = gWorldCoordTransientPointLights;
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
     slot      = &lightSlot->light;
@@ -328,7 +328,7 @@ void Gp_EffCtlTask6A(Task* arg0)
                 slot->head.color.r                                 = 0xC00;
                 slot->inner                                        = 0xFA0;
                 slot->outer                                        = 0x12C0;
-                Gp_RoomCoords->framesLeft                          = 4;
+                gWorldCoordTransientPointLights->framesLeft        = 4;
                 slot->head.transform.coord.coord.t[2]              = t2;
                 coord->parent                                      = mem->parent;
                 coord->coord.t[0]                                  = D_801124DC[arg0->spawnArg1.value].vx;
@@ -379,7 +379,7 @@ void Gp_EffCtlTask6B(Task* arg0)
     s32                            t2;
     s32                            count;
 
-    lightSlot   = Gp_RoomCoords;
+    lightSlot   = gWorldCoordTransientPointLights;
     slot        = &lightSlot->light;
     mem         = arg0->spawnArg2.pointer;
     coord       = arg0->extra.coordBody->coord;
@@ -418,11 +418,11 @@ void Gp_EffCtlTask6B(Task* arg0)
             arg0->state = 1;
             Gp_SpawnEff(0x60067, coord, idx, &D_801125EC[idx]);
             if (arg0->spawnArg1.value == 0x11) {
-                mem->scale                = 1;
-                Gp_RoomCoords->framesLeft = 1;
+                mem->scale                                  = 1;
+                gWorldCoordTransientPointLights->framesLeft = 1;
             } else {
-                mem->scale                = 4;
-                Gp_RoomCoords->framesLeft = 4;
+                mem->scale                                  = 4;
+                gWorldCoordTransientPointLights->framesLeft = 4;
             }
             if (mem->index == 0) {
                 gRoomEffectState->burstRequest = true;
@@ -452,7 +452,7 @@ void func_800ED42C(Task* arg0)
 
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
-    lightSlot = Gp_RoomCoords;
+    lightSlot = gWorldCoordTransientPointLights;
     slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
@@ -643,7 +643,7 @@ void Gp_EffCtlTask6C(Task* arg0)
 
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
-    lightSlot = Gp_RoomCoords;
+    lightSlot = gWorldCoordTransientPointLights;
     slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         mem->age++;
@@ -2362,7 +2362,7 @@ void func_800F4308(Task* arg0)
     u8                             rgb[3];
     EffectWork*                    mem;
     GfxCoord*                      coord;
-    GfxCoord*                      roomCoord;
+    GfxCoord*                      lightCoord;
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          slot;
     ModelObjectCoordBody*          body;
@@ -2380,13 +2380,13 @@ void func_800F4308(Task* arg0)
     s32                            rng;
     s32                            tmp;
 
-    lightSlot = &Gp_RoomCoords[1];
-    slot      = &lightSlot->light;
-    roomCoord = &slot->head.transform.coord;
-    body      = arg0->extra.coordBody;
-    mem       = arg0->spawnArg2.pointer;
-    flag      = gRoomEffectState->effectControl;
-    coord     = body->coord;
+    lightSlot  = &gWorldCoordTransientPointLights[1];
+    slot       = &lightSlot->light;
+    lightCoord = &slot->head.transform.coord;
+    body       = arg0->extra.coordBody;
+    mem        = arg0->spawnArg2.pointer;
+    flag       = gRoomEffectState->effectControl;
+    coord      = body->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         cond = flag < ROOM_EFFECT_CONTROL_CANCEL_MIN;
         goto release;
@@ -2440,19 +2440,19 @@ void func_800F4308(Task* arg0)
                     }
                     break;
             }
-            lightSlot->framesLeft   = 0x10;
-            count                   = mem->age;
-            slot->outer             = 0x2580;
-            slot->head.color.r      = 0x1000;
-            slot->head.color.g      = 0xC00;
-            slot->head.color.b      = 0x800;
-            slot->inner             = (0x898 - (count * 0x64)) * 4;
-            roomCoord->coord.t[0]   = coord->coord.t[0];
-            roomCoord->coord.t[1]   = coord->coord.t[1];
-            t2_10                   = coord->coord.t[2];
-            roomCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            roomCoord->coord.t[2]   = t2_10;
-            cond                    = mem->age < 0x15;
+            lightSlot->framesLeft    = 0x10;
+            count                    = mem->age;
+            slot->outer              = 0x2580;
+            slot->head.color.r       = 0x1000;
+            slot->head.color.g       = 0xC00;
+            slot->head.color.b       = 0x800;
+            slot->inner              = (0x898 - (count * 0x64)) * 4;
+            lightCoord->coord.t[0]   = coord->coord.t[0];
+            lightCoord->coord.t[1]   = coord->coord.t[1];
+            t2_10                    = coord->coord.t[2];
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            lightCoord->coord.t[2]   = t2_10;
+            cond                     = mem->age < 0x15;
             goto release;
         case 11:
             switch (arg0->state) {
@@ -2519,19 +2519,19 @@ void func_800F4308(Task* arg0)
                     i += 1;
                 } while (i < 3);
             }
-            lightSlot->framesLeft   = 0x10;
-            count                   = mem->age;
-            slot->outer             = 0x2580;
-            slot->head.color.r      = 0xC00;
-            slot->head.color.g      = 0xC00;
-            slot->head.color.b      = 0x800;
-            slot->inner             = (0x898 - (count * 0x64)) * 4;
-            roomCoord->coord.t[0]   = coord->coord.t[0];
-            roomCoord->coord.t[1]   = coord->coord.t[1];
-            t2_11                   = coord->coord.t[2];
-            roomCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            roomCoord->coord.t[2]   = t2_11;
-            cond                    = mem->age < 0x15;
+            lightSlot->framesLeft    = 0x10;
+            count                    = mem->age;
+            slot->outer              = 0x2580;
+            slot->head.color.r       = 0xC00;
+            slot->head.color.g       = 0xC00;
+            slot->head.color.b       = 0x800;
+            slot->inner              = (0x898 - (count * 0x64)) * 4;
+            lightCoord->coord.t[0]   = coord->coord.t[0];
+            lightCoord->coord.t[1]   = coord->coord.t[1];
+            t2_11                    = coord->coord.t[2];
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            lightCoord->coord.t[2]   = t2_11;
+            cond                     = mem->age < 0x15;
             goto release;
         case 12:
             if (arg0->state != 0) {
@@ -2582,19 +2582,19 @@ void func_800F4308(Task* arg0)
                     Gp_DrawFadeQuad(rgb, 1);
                 }
             }
-            lightSlot->framesLeft   = 0x10;
-            count                   = mem->age;
-            slot->outer             = 0x2580;
-            slot->head.color.r      = 0x800;
-            slot->head.color.g      = 0xC00;
-            slot->head.color.b      = 0x1000;
-            slot->inner             = (0x898 - (count * 0x64)) * 4;
-            roomCoord->coord.t[0]   = coord->coord.t[0];
-            roomCoord->coord.t[1]   = coord->coord.t[1];
-            t2_12                   = coord->coord.t[2];
-            roomCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            roomCoord->coord.t[2]   = t2_12;
-            cond                    = mem->age < 0x15;
+            lightSlot->framesLeft    = 0x10;
+            count                    = mem->age;
+            slot->outer              = 0x2580;
+            slot->head.color.r       = 0x800;
+            slot->head.color.g       = 0xC00;
+            slot->head.color.b       = 0x1000;
+            slot->inner              = (0x898 - (count * 0x64)) * 4;
+            lightCoord->coord.t[0]   = coord->coord.t[0];
+            lightCoord->coord.t[1]   = coord->coord.t[1];
+            t2_12                    = coord->coord.t[2];
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            lightCoord->coord.t[2]   = t2_12;
+            cond                     = mem->age < 0x15;
             goto release;
         default:
             return;

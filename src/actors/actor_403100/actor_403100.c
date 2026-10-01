@@ -7994,7 +7994,7 @@ static void func_actor_403100_8013D11C(Task* arg0)
     u32                            random;
 
     coords                                        = arg0->extra.tmd->coords;
-    slot                                          = &Gp_RoomCoords[2];
+    slot                                          = &gWorldCoordTransientPointLights[2];
     slot->framesLeft                              = 8;
     light                                         = &slot->light;
     light->inner                                  = 0x300;

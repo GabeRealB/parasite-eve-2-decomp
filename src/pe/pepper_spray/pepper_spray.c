@@ -38,8 +38,8 @@ static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2);
 /// nozzle. `func_pepper_spray_8012F634` draws one quad per entry every frame.
 static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 
-/// Runs one frame of the pepper spray. State 0 parks the room light slot on
-/// the nozzle coordinate, seeds the spray yaw / spread / brightness from
+/// Runs one frame of the pepper spray. State 0 enables transient point-light
+/// slot 0 at the nozzle's position, seeds the spray yaw / spread / brightness from
 /// `gRandomLcgState`, refills the six cone yaws and plays the spray sound; state 1
 /// just decays the yaw and the brightness by a sixteenth each, scaled by how
 /// long the spray has run. Either state then redraws the nozzle, flashes the
@@ -62,7 +62,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     s32                            pan;
     u8                             rgb[3];
 
-    lightSlot = Gp_RoomCoords;
+    lightSlot = gWorldCoordTransientPointLights;
     slot      = &lightSlot->light;
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;

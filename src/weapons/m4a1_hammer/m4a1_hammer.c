@@ -77,7 +77,7 @@ static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 /// - State 1 first republishes the flare's world position as
 ///   `D_m4a1_hammer_8012D668`, then dispatches on the charge phase. Phase 1
 ///   idles the flare: it re-rolls the spin angle every 16 frames and the radius
-///   every frame, draws it on even frames and claims room-light slot 1 as a
+///   every frame, draws it on even frames and refreshes transient light slot 1 as a
 ///   narrow (`0x80` / `0x400`) light. Phase 2 charges: on the first frame it
 ///   seeds the eight sparks in `D_m4a1_hammer_8012D630`, and on every even
 ///   frame it walks each spark, rotates its offset through the flare's frame
@@ -97,7 +97,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 
     work      = task->spawnArg2.pointer;
     coord     = task->extra.coordBody->coord;
-    lightSlot = &Gp_RoomCoords[1];
+    lightSlot = &gWorldCoordTransientPointLights[1];
     light     = &lightSlot->light.head.transform.coord;
     slot      = &lightSlot->light;
 

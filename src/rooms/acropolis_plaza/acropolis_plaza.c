@@ -4371,7 +4371,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     u16                            yaw;
 
     slot       = task->spawnArg1.value;
-    lightSlot  = &Gp_RoomCoords[slot & 7];
+    lightSlot  = &gWorldCoordTransientPointLights[slot & (ARRAY_SIZE(gWorldCoordTransientPointLights) - 1)];
     light      = &lightSlot->light;
     coord      = task->extra.coordBody->coord;
     work       = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;

@@ -175,7 +175,7 @@ typedef union GpLightScaleOverride {
 STATIC_ASSERT_SIZEOF(GpLightScaleOverride, 8);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-WorldCoordTransientPointLight Gp_RoomCoords[8];
+WorldCoordTransientPointLight gWorldCoordTransientPointLights[WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT];
 
 u8 Gp_OverrideVec2Flag;
 
@@ -279,8 +279,8 @@ static inline void _gpUpdateRoomCoordSlots(void)
     WorldCoordTransientPointLight* slot;
     s32                            i;
 
-    slot = Gp_RoomCoords;
-    for (i = 0; i < ARRAY_SIZE(Gp_RoomCoords); i++, slot++) {
+    slot = gWorldCoordTransientPointLights;
+    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++, slot++) {
         if (slot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
             Gp_UpdateCoordEx(&slot->light.head.transform.coord, &gGfxViewCoord);
         }
@@ -288,7 +288,7 @@ static inline void _gpUpdateRoomCoordSlots(void)
 }
 
 /// First-run init plus per-frame update of the current room's `WorldCoordRoomLights`
-/// coordinate arrays (parented to `gGfxViewCoord`) and the `Gp_RoomCoords` slots.
+/// coordinate arrays (parented to `gGfxViewCoord`) and the `gWorldCoordTransientPointLights` slots.
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* task)
 {
@@ -345,10 +345,11 @@ void Gp_UpdateRoomCoords(Task* task)
             }
         }
 
-        for (j = 0; j < ARRAY_SIZE(Gp_RoomCoords); j++) {
-            Gp_RoomCoords[j].framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
-            coord                       = &Gp_RoomCoords[j].light.head.transform.coord;
-            coord->parent               = &gGfxViewCoord;
+        // Drop previous transient contributions before composing the room's lighting.
+        for (j = 0; j < ARRAY_SIZE(gWorldCoordTransientPointLights); j++) {
+            gWorldCoordTransientPointLights[j].framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
+            coord                                         = &gWorldCoordTransientPointLights[j].light.head.transform.coord;
+            coord->parent                                 = &gGfxViewCoord;
         }
 
         task->state++;
@@ -772,8 +773,8 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     n = roomLights->directionalLightCount + roomLights->pointLightCount + roomLights->coneLightCount;
-    for (idx = 0; idx < ARRAY_SIZE(Gp_RoomCoords); idx++) {
-        if (Gp_RoomCoords[idx].framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
+    for (idx = 0; idx < ARRAY_SIZE(gWorldCoordTransientPointLights); idx++) {
+        if (gWorldCoordTransientPointLights[idx].framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
             nOcc++;
         }
     }
@@ -843,7 +844,8 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 
         register GpRec12* last;
 
-        lightSlot  = Gp_RoomCoords;
+        // Rank active transient points alongside the room's authored lights.
+        lightSlot  = gWorldCoordTransientPointLights;
         pointIndex = 0;
         last       = &block->slots[3];
 
@@ -859,7 +861,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
             }
             pointIndex++;
             lightSlot++;
-        } while (pointIndex < ARRAY_SIZE(Gp_RoomCoords));
+        } while (pointIndex < ARRAY_SIZE(gWorldCoordTransientPointLights));
     }
 
     if (roomLights->pointLightCount > 0) {
@@ -1552,8 +1554,8 @@ static s32 Gp_CountRoomCoords(void)
     s32 i;
 
     count = 0;
-    for (i = 0; i < ARRAY_SIZE(Gp_RoomCoords); i++) {
-        if (Gp_RoomCoords[i].framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
+    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++) {
+        if (gWorldCoordTransientPointLights[i].framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
             count++;
         }
     }

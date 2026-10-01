@@ -812,7 +812,7 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level)
 {
     WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          work;
+    WorldCoordPointLight*          pointLight;
     void**                         scratch;
     u8*                            head;
     RoomDraw05Scratch*             blk;
@@ -825,9 +825,9 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
     s32                            half;
     s32                            mask;
 
-    lvl       = level;
-    lightSlot = &Gp_RoomCoords[6 + (index & 1)];
-    work      = &lightSlot->light;
+    lvl        = level;
+    lightSlot  = &gWorldCoordTransientPointLights[6 + (index & 1)];
+    pointLight = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
@@ -850,14 +850,14 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
         if (blk->flag >= 0) {
             gte_stszotz(&blk->otz);
             lightSlot->framesLeft                              = 2;
-            work->inner                                        = 0x640;
-            work->outer                                        = 0x3200;
-            work->head.color.r                                 = level * 16;
-            work->head.color.g                                 = 0;
-            work->head.color.b                                 = 0;
-            work->head.transform.lighting.local.t[0]           = pos->vx;
-            work->head.transform.lighting.local.t[1]           = pos->vy;
-            work->head.transform.lighting.local.t[2]           = pos->vz;
+            pointLight->inner                                  = 0x640;
+            pointLight->outer                                  = 0x3200;
+            pointLight->head.color.r                           = level * 16;
+            pointLight->head.color.g                           = 0;
+            pointLight->head.color.b                           = 0;
+            pointLight->head.transform.lighting.local.t[0]     = pos->vx;
+            pointLight->head.transform.lighting.local.t[1]     = pos->vy;
+            pointLight->head.transform.lighting.local.t[2]     = pos->vz;
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             blk->rOuter                                        = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
             blk->rInner                                        = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
@@ -1101,15 +1101,15 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
     }
 }
 
-/// Effect task for the helipad floodlights anchored to `Gp_RoomCoords[4]` and
+/// Effect task for the helipad floodlights anchored to `gWorldCoordTransientPointLights[4]` and
 /// `[5]`. On first run it parents the coord to the work's `parent` and
 /// positions it from `pos`. State 0 rolls 0-3 spawns of
 /// `func_acropolis_helicopter_landing_pad_80180664`, a 1-in-4 roll of
-/// `func_acropolis_helicopter_landing_pad_80180A64`, and claims slot 4 as a
+/// `func_acropolis_helicopter_landing_pad_80180A64`, and refreshes slot 4 as a
 /// light with a four-frame expiry countdown. State 1 (also reached by fallthrough) rearms
 /// `scale` on a 1-in-4 roll every 8th frame; when armed it plays sound
 /// `0x51100001` panned at the coord, spawns one 0x6003B and six 0x600A4
-/// effects reparented under this task, and claims slot 5 as a light. State 2
+/// effects reparented under this task, and refreshes slot 5 as a light. State 2
 /// releases the state-1C memory, the only step taken while
 /// `gRoomEffectState->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
@@ -1155,7 +1155,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                     func_acropolis_helicopter_landing_pad_80180A64(coord);
                 }
             }
-            lightSlot             = &Gp_RoomCoords[4];
+            lightSlot             = &gWorldCoordTransientPointLights[4];
             slot                  = &lightSlot->light;
             lightSlot->framesLeft = 4;
             slot->inner           = 0x15E0;
@@ -1188,7 +1188,7 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                         taskReparent(arg0, eff->task);
                     }
                 }
-                lightSlot             = &Gp_RoomCoords[5];
+                lightSlot             = &gWorldCoordTransientPointLights[5];
                 slot                  = &lightSlot->light;
                 lightSlot->framesLeft = 4;
                 slot->inner           = 0xFA0;
@@ -1356,7 +1356,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
     SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
 
-/// Effect task for the helipad beacon anchored to `Gp_RoomCoords[4]`. State 0
+/// Effect task for the helipad beacon anchored to `gWorldCoordTransientPointLights[4]`. State 0
 /// spawns two 0x6005E effects, enables the slot for four gameplay frames and seeds its
 /// light parameters from the coord and an LCG draw; state 1 spawns two more
 /// with arg 0; state 2 fires a 0x6005A effect on 1-in-16 LCG rolls every
@@ -1369,7 +1369,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          slot;
 
-    lightSlot = &Gp_RoomCoords[4];
+    lightSlot = &gWorldCoordTransientPointLights[4];
     slot      = &lightSlot->light;
     mem       = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;

@@ -1053,16 +1053,16 @@ static void func_actor_800100_80166F50(Task* arg0);
 
 /// Per-frame flare task of the actor: while the player model is visible
 /// (`field_C & 0x80` clear) and effects are visible
-/// (`gRoomEffectState->effectControl < 2`) it claims room-light slot 3 as the flare's
-/// coordinate. State 0 hangs that coordinate off the actor's own at the fixed
+/// (`gRoomEffectState->effectControl < 2`) it refreshes transient point-light slot 3.
+/// State 0 hangs the flare's coordinate off the actor's own at the fixed
 /// offset and zeroes its `age`; state 1 then dispatches on `spawnArg1`:
 ///
-/// - 1 draws the flare at the coordinate's `workm.t` every frame and re-aims
-///   the light at a random angle in `0x400..0xB00`, arming the flare width in
+/// - 1 draws the flare at the coordinate's `workm.t` every frame and varies
+///   the light's red intensity randomly in `0x400..0xB00`, arming the flare width in
 ///   `scale`.
 /// - 2 widens that flare by 0x40 a frame up to 0x180, spawns effect `0x60181`
-///   as a child of this task, and re-claims the light with a much wider
-///   (`0x400` / `0x4000`) falloff and a `0x800..0xF00` angle.
+///   as a child of this task, and refreshes the light with a much wider
+///   (`0x400` / `0x4000`) falloff and red intensity in `0x800..0xF00`.
 /// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
 ///
 /// While `gRoomEffectState->effectControl` is non-zero the two drawing sub-states wind
@@ -1080,7 +1080,7 @@ void func_actor_800100_80161F20(Task* task)
 
     work      = task->spawnArg2.pointer;
     coord     = task->extra.coordBody->coord;
-    lightSlot = &Gp_RoomCoords[3];
+    lightSlot = &gWorldCoordTransientPointLights[3];
     light     = &lightSlot->light.head.transform.coord;
     slot      = &lightSlot->light;
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {

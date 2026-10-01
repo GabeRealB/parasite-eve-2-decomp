@@ -2,7 +2,7 @@
 
 /* Part of the fireball library; see fireball.h. */
 
-/// Lights `Gp_RoomCoords[2]` at `coord` with a randomly flickering
+/// Lights `gWorldCoordTransientPointLights[2]` at `coord` with a randomly flickering
 /// intensity, projects `coord` and draws two `POLY_FT4` glow billboards around
 /// it, the outer one half again as large as `size`; when
 /// `gRoomEffectState->groundTraceEnabled` is set, traces the ground below and draws the
@@ -26,7 +26,7 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
     WorldCoordPointLight*          light;
     GpRingScratch*                 sc;
 
-    slot                                          = &Gp_RoomCoords[2];
+    slot                                          = &gWorldCoordTransientPointLights[2];
     slot->framesLeft                              = 2;
     light                                         = &slot->light;
     light->inner                                  = 0x300;

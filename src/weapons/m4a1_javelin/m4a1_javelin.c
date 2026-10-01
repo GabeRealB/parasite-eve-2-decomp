@@ -102,8 +102,8 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0);
 /// - State 0 hangs the coordinate off `EffectWork::parent` at the fixed offset
 ///   `D_m4a1_javelin_8011FA90` with an identity rotation, seeds the beam
 ///   parameters and falls through to state 1.
-/// - State 1 is the muzzle flare: it claims room-light slot 1 as a narrowing
-///   (`0x100` / `0x1000`) light whose radius halves every frame, then draws
+/// - State 1 is the muzzle flare: it refreshes transient light slot 1 with
+///   (`0x100` / `0x1000`) falloff and red intensity that halves every frame, then draws
 ///   eight `func_m4a1_javelin_8011EE78` tracers around a ring that widens by
 ///   `0x20` a frame until `scale` reaches `0xC0`, which moves it to state 2.
 /// - State 2 is the beam itself. The far end is either the cached
@@ -135,7 +135,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     u16                            rnd;
 
     actor     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    lightSlot = &Gp_RoomCoords[1];
+    lightSlot = &gWorldCoordTransientPointLights[1];
     slot      = &lightSlot->light;
     light     = &lightSlot->light.head.transform.coord;
     work      = task->spawnArg2.pointer;

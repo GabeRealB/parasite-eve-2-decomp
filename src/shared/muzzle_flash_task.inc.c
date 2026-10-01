@@ -23,7 +23,7 @@ static inline void muzzleFlashTask(Task* task)
 
     work      = (EffectWork*)task->spawnArg2.pointer;
     coord     = task->extra.coordBody->coord;
-    lightSlot = &Gp_RoomCoords[0];
+    lightSlot = &gWorldCoordTransientPointLights[0];
     slot      = &lightSlot->light;
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
