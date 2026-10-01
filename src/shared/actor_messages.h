@@ -49,4 +49,6 @@ void actorMsgSetDrawMode(Task* arg0, s32 arg1, s32 arg2);
 s32 actorMsgIsPresent(Task* task);
 s32 actorMsgReleaseHold(Task* task);
 
+s32 actorMsgPlaceEulerZyx(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+
 #endif /* SRC_SHARED_ACTOR_MESSAGES_H */

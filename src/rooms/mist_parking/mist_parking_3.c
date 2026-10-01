@@ -28,10 +28,9 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_messages.h"
 
 extern ActorTransform D_mist_parking_8018FC3C;
-
-static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 
 void func_mist_parking_801837B8(Task*);
 void func_mist_parking_8018397C(Task*);
@@ -286,7 +285,7 @@ static void func_mist_parking_801839CC(Task* task)
 
     obj->flags         &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     task->killCountdown = -0x78;
-    func_mist_parking_80183AC4(task, 0, &D_mist_parking_8018FC3C, 0);
+    actorMsgPlaceEulerZyx(task, 0, &D_mist_parking_8018FC3C, 0);
     task->state = task->state + 1;
 }
 
@@ -297,7 +296,7 @@ static void func_mist_parking_80183A28(Task* task)
     if (task->killCountdown > 0) {
         placement                      = D_mist_parking_8018FC3C;
         D_mist_parking_8018FC3C.rot.vx = task->killCountdown;
-        func_mist_parking_80183AC4(task, 0, &placement, 0);
+        actorMsgPlaceEulerZyx(task, 0, &placement, 0);
     }
 
     if (task->killCountdown < 0x200) {
@@ -307,25 +306,7 @@ static void func_mist_parking_80183A28(Task* task)
     }
 }
 
-/// Places the task's model at `placement`: its position becomes the
-/// coordinate frame's translation, its angles the frame's rotation, from
-/// which `RotMatrixZYX` rebuilds the matrix; clearing `composeStamp` makes the frame
-/// be recomputed.
-static s32 func_mist_parking_80183AC4(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->param.rot.vx = placement->rot.vx;
-    coord->param.rot.vy = placement->rot.vy;
-    coord->param.rot.vz = placement->rot.vz;
-    RotMatrixZYX(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler_zyx.inc.c"
 
 /// Runs the parking-lot cap cutscene's sub-state handler for `task`, unless the
 /// global suspend flag is set.

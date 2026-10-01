@@ -551,3 +551,4 @@ glowDrawDiamond = 0x80184A18; // type:func
 roomCutsceneTask = 0x80181E8C; // type:func
 roomCutsceneSoundTask = 0x80182628; // type:func
 modelPlacementAttachPart = 0x8018307C; // type:func
+actorMsgPlaceEulerZyx = 0x80183AC4; // type:func

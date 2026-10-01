@@ -53,11 +53,12 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/actor_messages.h"
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
 /// `func_mine_forked_tunnel_8017D8EC` compose into the `ActorTransform` they
-/// hand `func_mine_forked_tunnel_8017DC8C` (entry 0 of each) and that
+/// hand `actorMsgPlaceEulerZyx` (entry 0 of each) and that
 /// `func_mine_forked_tunnel_8017D724` walks one entry per step of
 /// `Task::killCountdown`, which it clamps at 0x6E. Both are 240 entries - the
 /// position table starts where the rotation table ends, and the pitch table
@@ -144,7 +145,6 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0);
 static void func_mine_forked_tunnel_8017DAB8(Task* arg0);
 static void func_mine_forked_tunnel_8017DC50(Task* arg0);
 static void func_mine_forked_tunnel_8017DC70(Task* arg0);
-static s32  func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 s32         func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3);
 static void func_mine_forked_tunnel_8017DE54(Task* task);
 static void func_mine_forked_tunnel_8017DF34(s32 arg0);
@@ -1486,9 +1486,9 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
         placement.rot.vx = D_mine_forked_tunnel_80180AC4[0].vx;
         placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
         placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
-        func_mine_forked_tunnel_8017DC8C(arg0, 0x7D4, &placement, 0);
+        actorMsgPlaceEulerZyx(arg0, 0x7D4, &placement, 0);
     } else {
-        func_mine_forked_tunnel_8017DC8C(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
+        actorMsgPlaceEulerZyx(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
     }
 
     func_mine_forked_tunnel_8017DD08(arg0, 0x7D5, 1, 0);
@@ -1516,7 +1516,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
         placement.rot.vy = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vy;
         placement.rot.vz = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vz;
 
-        func_mine_forked_tunnel_8017DC8C(arg0, 0x7D4, &placement, 0);
+        actorMsgPlaceEulerZyx(arg0, 0x7D4, &placement, 0);
         arg0->killCountdown++;
     }
 
@@ -1676,25 +1676,7 @@ static void func_mine_forked_tunnel_8017DC70(Task* arg0)
     ext->colorMtx = &work->color;
 }
 
-/// Puts the task's model at `placement`: the position becomes the translation
-/// of the `TmdObject`'s coordinate frame and the angles its rotation, rebuilt
-/// with `RotMatrixZYX` and marked dirty. Shaped as a message handler; the room
-/// calls it directly with id 0x7D4 in `arg1`, which it does not read.
-static s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->param.rot.vx = placement->rot.vx;
-    coord->param.rot.vy = placement->rot.vy;
-    coord->param.rot.vz = placement->rot.vz;
-    RotMatrixZYX(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/actor_messages_place_euler_zyx.inc.c"
 
 /// `Task::msgTable` handler for message id 0x7D5: switches the draw and
 /// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
