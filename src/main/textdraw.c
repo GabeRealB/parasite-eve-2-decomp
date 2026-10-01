@@ -45,7 +45,15 @@ enum {
 enum {
     TEXT_GLYPH_V_BIAS_MEDIUM = 0x26,
     TEXT_GLYPH_V_BIAS_SMALL  = 0,
-    TEXT_GLYPH_V_BIAS_LARGE  = 0x80,
+    /// Large-face texture V translation in page-local texels.
+    ///
+    /// Stored in `TextDrawReq::vBias` as -128 (byte 0x80). Adding it to a
+    /// glyph's V and storing the result in the sprite's unsigned byte is
+    /// equivalent to adding 128 modulo 256. Initial drawing selects it for
+    /// every glyph-table selector except medium and small; an inline \sL
+    /// command (either letter's case) also selects it without changing
+    /// `glyphTable`, so measurement and pair tightening keep that selector.
+    TEXT_GLYPH_V_BIAS_LARGE = -128,
 };
 
 /// Record count of the medium UI face.
