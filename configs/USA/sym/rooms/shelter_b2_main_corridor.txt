@@ -124,3 +124,4 @@ roomDepartureTask = 0x8017D6BC; // type:func
 waterDrawSpinU16 = 0x8017F860; // type:func
 waterDrawTileU16 = 0x8017FC4C; // type:func
 roomVariantResolveNeoArk = 0x8017E0FC; // type:func
+waterDrawWaveStrips = 0x8017E390; // type:func

@@ -89,3 +89,4 @@ waterDrawSplash = 0x8017F3A0; // type:func
 waterDrawSpin = 0x8017FB90; // type:func
 waterDrawTile = 0x8017FF7C; // type:func
 roomDepartureTask = 0x8017D650; // type:func
+waterDrawWaveStrips = 0x8017DE74; // type:func

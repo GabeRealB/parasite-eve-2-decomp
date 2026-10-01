@@ -89,8 +89,8 @@ extern SVECTOR D_shelter_b2_septic_tank_80183534[];
 
 extern u8 D_shelter_b2_septic_tank_80187045;
 
-static void func_shelter_b2_septic_tank_8017DB68(Task* task);
-static void func_shelter_b2_septic_tank_8017E2DC(Task* task);
+static void waterDrawWaveStrips(Task* task);
+static void waterDrawWaveStrips2(Task* task);
 static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0);
 static void func_shelter_b2_septic_tank_8017EAF8(Task* task);
 
@@ -1310,241 +1310,38 @@ void func_shelter_b2_septic_tank_8017DB10(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws each surface in `D_shelter_b2_septic_tank_801832CC` exactly as
-/// `func_shelter_b2_septic_tank_8017E2DC` draws its own list: two strips of 16
-/// wave-lifted semi-transparent Gouraud quads per surface at height
-/// `D_shelter_b2_septic_tank_801832BC`.
-static void func_shelter_b2_septic_tank_8017DB68(Task* task)
-{
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    s32               phase;
-    RoomWaterSurface* e;
-    RoomWaterScratch* w;
-    u8*               head;
-    POLY_G4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
+#define WATER_WAVE_STRIPS_SURFACES    D_shelter_b2_septic_tank_801832CC
+#define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b2_septic_tank_801832BC
+#define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_septic_tank_80187054
+#define WATER_WAVE_STRIPS_WAVE_SHIFT  5
+#define WATER_WAVE_STRIPS_NEAR_COLOURS(p) \
+    setRGB0(p, 0, 0x40, 0x80);            \
+    setRGB1(p, 0, 0x40, 0x80);            \
+    setRGB2(p, 0, 0x10, 0x20);            \
+    setRGB3(p, 0, 0x10, 0x20)
+#define WATER_WAVE_STRIPS_FAR_COLOURS(p) \
+    setRGB0(p, 0, 0x40, 0x80);           \
+    setRGB1(p, 0, 0x40, 0x80);           \
+    setRGB2(p, 0, 0x10, 0x20);           \
+    setRGB3(p, 0, 0x10, 0x20)
+#include "../../shared/water_wave_strips.inc.c"
 
-    e                          = D_shelter_b2_septic_tank_801832CC;
-    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
-    w                          = (RoomWaterScratch*)(head - 0xC);
-    Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    w->y = D_shelter_b2_septic_tank_801832BC;
-    for (; e->count != -1; e++) {
-        w->dx = e->width / 2;
-        w->dz = e->depth / 16;
-        w->x  = e->x;
-        w->z  = e->z;
-        for (i = 0; i < 16; i++) {
-            v0.vx   = w->x;
-            v0.vy   = w->y;
-            v0.vz   = w->z + w->dz * i;
-            v1.vx   = w->x;
-            v1.vy   = w->y;
-            v1.vz   = w->z + w->dz * (i + 1);
-            w->wave = (u32)rsin(phase + (i << 9)) >> 5;
-            v2.vx   = w->x + w->dx;
-            v2.vy   = w->y + w->wave;
-            v2.vz   = w->z + w->dz * i;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> 5;
-            v3.vx   = w->x + w->dx;
-            v3.vy   = w->y + w->wave;
-            v3.vz   = w->z + w->dz * (i + 1);
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                              = (POLY_G4*)D_shelter_b2_septic_tank_80187054;
-                D_shelter_b2_septic_tank_80187054 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                setRGB0(poly, 0, 0x40, 0x80);
-                setRGB1(poly, 0, 0x40, 0x80);
-                setRGB2(poly, 0, 0x10, 0x20);
-                setRGB3(poly, 0, 0x10, 0x20);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                                = (DR_MODE*)D_shelter_b2_septic_tank_80187054;
-                D_shelter_b2_septic_tank_80187054 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
-            }
-        }
-        for (i = 0; i < 16; i++) {
-            w->wave = (u32)rsin(phase + (i << 9)) >> 5;
-            v0.vx   = w->x + w->dx;
-            v0.vy   = w->y + w->wave;
-            v0.vz   = w->z + w->dz * i;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> 5;
-            v1.vx   = w->x + w->dx;
-            v1.vy   = w->y + w->wave;
-            v1.vz   = w->z + w->dz * (i + 1);
-            v2.vx   = w->x + w->dx * 2;
-            v2.vy   = w->y;
-            v2.vz   = w->z + w->dz * i;
-            v3.vx   = w->x + w->dx * 2;
-            v3.vy   = w->y;
-            v3.vz   = w->z + w->dz * (i + 1);
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                              = (POLY_G4*)D_shelter_b2_septic_tank_80187054;
-                D_shelter_b2_septic_tank_80187054 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                setRGB0(poly, 0, 0x40, 0x80);
-                setRGB1(poly, 0, 0x40, 0x80);
-                setRGB2(poly, 0, 0x10, 0x20);
-                setRGB3(poly, 0, 0x10, 0x20);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                                = (DR_MODE*)D_shelter_b2_septic_tank_80187054;
-                D_shelter_b2_septic_tank_80187054 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
-}
-
-/// Draws each surface in `D_shelter_b2_septic_tank_801832F0` at height
-/// `D_shelter_b2_septic_tank_801832BC` as two strips of 16 semi-transparent
-/// Gouraud quads laid side by side along X, each strip running along Z and
-/// projected through the view matrix. The seam between the strips is lifted by
-/// a sine wave that runs along Z and scrolls with the display frame counter.
-/// In both strips the quad's lower-X edge is coloured (0, 0x40, 0x80) and its
-/// upper-X edge (0, 0x10, 0x20); each quad is followed by a draw-mode packet
-/// selecting blend mode 2. Quads the projection flags as invalid are skipped.
-/// The per-surface values live in a work block pushed on the scratchpad stack
-/// for the duration of the call.
-static void func_shelter_b2_septic_tank_8017E2DC(Task* task)
-{
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    s32               phase;
-    RoomWaterSurface* e;
-    RoomWaterScratch* w;
-    u8*               head;
-    POLY_G4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
-
-    e                          = D_shelter_b2_septic_tank_801832F0;
-    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
-    w                          = (RoomWaterScratch*)(head - 0xC);
-    Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    w->y = D_shelter_b2_septic_tank_801832BC;
-    for (; e->count != -1; e++) {
-        w->dx = e->width / 2;
-        w->dz = e->depth / 16;
-        w->x  = e->x;
-        w->z  = e->z;
-        for (i = 0; i < 16; i++) {
-            v0.vx   = w->x;
-            v0.vy   = w->y;
-            v0.vz   = w->z + w->dz * i;
-            v1.vx   = w->x;
-            v1.vy   = w->y;
-            v1.vz   = w->z + w->dz * (i + 1);
-            w->wave = (u32)rsin(phase + (i << 9)) >> 5;
-            v2.vx   = w->x + w->dx;
-            v2.vy   = w->y + w->wave;
-            v2.vz   = w->z + w->dz * i;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> 5;
-            v3.vx   = w->x + w->dx;
-            v3.vy   = w->y + w->wave;
-            v3.vz   = w->z + w->dz * (i + 1);
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                              = (POLY_G4*)D_shelter_b2_septic_tank_80187054;
-                D_shelter_b2_septic_tank_80187054 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                setRGB0(poly, 0, 0x40, 0x80);
-                setRGB1(poly, 0, 0x40, 0x80);
-                setRGB2(poly, 0, 0x10, 0x20);
-                setRGB3(poly, 0, 0x10, 0x20);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                                = (DR_MODE*)D_shelter_b2_septic_tank_80187054;
-                D_shelter_b2_septic_tank_80187054 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
-            }
-        }
-        for (i = 0; i < 16; i++) {
-            w->wave = (u32)rsin(phase + (i << 9)) >> 5;
-            v0.vx   = w->x + w->dx;
-            v0.vy   = w->y + w->wave;
-            v0.vz   = w->z + w->dz * i;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> 5;
-            v1.vx   = w->x + w->dx;
-            v1.vy   = w->y + w->wave;
-            v1.vz   = w->z + w->dz * (i + 1);
-            v2.vx   = w->x + w->dx * 2;
-            v2.vy   = w->y;
-            v2.vz   = w->z + w->dz * i;
-            v3.vx   = w->x + w->dx * 2;
-            v3.vy   = w->y;
-            v3.vz   = w->z + w->dz * (i + 1);
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                              = (POLY_G4*)D_shelter_b2_septic_tank_80187054;
-                D_shelter_b2_septic_tank_80187054 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                setRGB0(poly, 0, 0x40, 0x80);
-                setRGB1(poly, 0, 0x40, 0x80);
-                setRGB2(poly, 0, 0x10, 0x20);
-                setRGB3(poly, 0, 0x10, 0x20);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                                = (DR_MODE*)D_shelter_b2_septic_tank_80187054;
-                D_shelter_b2_septic_tank_80187054 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
-}
+#define WATER_WAVE_STRIPS_FUNC        waterDrawWaveStrips2
+#define WATER_WAVE_STRIPS_SURFACES    D_shelter_b2_septic_tank_801832F0
+#define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b2_septic_tank_801832BC
+#define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_septic_tank_80187054
+#define WATER_WAVE_STRIPS_WAVE_SHIFT  5
+#define WATER_WAVE_STRIPS_NEAR_COLOURS(p) \
+    setRGB0(p, 0, 0x40, 0x80);            \
+    setRGB1(p, 0, 0x40, 0x80);            \
+    setRGB2(p, 0, 0x10, 0x20);            \
+    setRGB3(p, 0, 0x10, 0x20)
+#define WATER_WAVE_STRIPS_FAR_COLOURS(p) \
+    setRGB0(p, 0, 0x40, 0x80);           \
+    setRGB1(p, 0, 0x40, 0x80);           \
+    setRGB2(p, 0, 0x10, 0x20);           \
+    setRGB3(p, 0, 0x10, 0x20)
+#include "../../shared/water_wave_strips.inc.c"
 
 /// The water task: runs its current state - `func_shelter_b2_septic_tank_8017EAB8`
 /// once, then `func_shelter_b2_septic_tank_8017EAF8`, which draws the surfaces -
@@ -1580,8 +1377,8 @@ static void func_shelter_b2_septic_tank_8017EAF8(Task* task)
     } else {
         D_shelter_b2_septic_tank_80187054 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    func_shelter_b2_septic_tank_8017DB68(task);
-    func_shelter_b2_septic_tank_8017E2DC(task);
+    waterDrawWaveStrips(task);
+    waterDrawWaveStrips2(task);
 }
 
 void func_shelter_b2_septic_tank_8017EB7C(Task* arg0)

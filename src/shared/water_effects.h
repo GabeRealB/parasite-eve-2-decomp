@@ -1,7 +1,9 @@
 /* Water effects: the splash, spin and tile sprites drawn at a coordinate, the
  * ripple and drift tasks built on them, and two tasks that resample the
  * other display buffer through a sine wave - a distortion band and a
- * refraction ripple - for water holes, sewers and the Neo Ark pools.
+ * refraction ripple - for water holes, sewers and the Neo Ark pools - and the
+ * wave-crested strips of the Shelter's sewer channels
+ * (water_wave_strips.inc.c, configured by the includer; see that file).
  *
  * Include this header once, in the room prologue, and include each
  * water_<name>.inc.c at the position of that function. A package includes

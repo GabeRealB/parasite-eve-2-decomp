@@ -159,7 +159,7 @@ extern u8* D_shelter_b2_main_corridor_80189660;
 static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg);
 static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0);
 static void func_shelter_b2_main_corridor_8017E330(Task* arg0);
-static void func_shelter_b2_main_corridor_8017E390(Task* arg0);
+static void waterDrawWaveStrips(Task* arg0);
 static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
 
 extern TaskDesc D_80147E48;
@@ -1873,165 +1873,19 @@ void func_shelter_b2_main_corridor_8017E338(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws each surface in `D_shelter_b2_main_corridor_80182DEC` at height
-/// `D_shelter_b2_main_corridor_80182E28` as two strips of 16 semi-transparent
-/// Gouraud quads laid side by side along X, each strip running along Z and
-/// projected through the view matrix. The seam between the strips is lifted by
-/// a sine wave that runs along Z and scrolls with the display frame counter.
-/// The outer edges are coloured (0x80, 0, 0) and the seam (0x20, 0x20, 0x20);
-/// each quad is followed by a draw-mode packet selecting blend mode 2. Quads
-/// the projection flags as invalid are skipped. The primitive cursor is reset
-/// to the current buffer's half of the primitive area first, and nothing is
-/// drawn in views 10 and 11 of stage 4, area 0x21. The per-surface values live
-/// in a work block pushed on the scratchpad stack for the duration of the call.
-/// Runs as the water task's second state; the task itself is not read.
-static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
-{
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    s32               phase;
-    RoomWaterSurface* e;
-    RoomWaterScratch* w;
-    u8*               head;
-    POLY_G4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
-    GameLocationKey*  k;
-
-    e     = D_shelter_b2_main_corridor_80182DEC;
-    phase = -(gDisplayState.animFrame * 16);
-    k     = &gGameSession->location.loc;
-    if (k->stage == 4) {
-        if (k->area == 0x21) {
-            if ((u32)(gGameSession->location.loc.view - 0xA) < 2) {
-                return;
-            }
-        }
-    }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b2_main_corridor_80189660 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
-    } else {
-        D_shelter_b2_main_corridor_80189660 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
-    }
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
-    w                          = (RoomWaterScratch*)(head - 0xC);
-    Gp_UpdateCoord(&gGfxViewCoord);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    w->y = D_shelter_b2_main_corridor_80182E28;
-    for (; e->count != -1; e++) {
-        w->dx = e->width / 2;
-        w->dz = e->depth / 16;
-        w->x  = e->x;
-        w->z  = e->z;
-        for (i = 0; i < 16; i++) {
-            v0.vx   = w->x;
-            v0.vy   = w->y;
-            v0.vz   = w->z + w->dz * i;
-            v1.vx   = w->x;
-            v1.vy   = w->y;
-            v1.vz   = w->z + w->dz * (i + 1);
-            w->wave = (u32)rsin(phase + (i << 9)) >> 6;
-            v2.vx   = w->x + w->dx;
-            v2.vy   = w->y + w->wave;
-            v2.vz   = w->z + w->dz * i;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
-            v3.vx   = w->x + w->dx;
-            v3.vy   = w->y + w->wave;
-            v3.vz   = w->z + w->dz * (i + 1);
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                                = (POLY_G4*)D_shelter_b2_main_corridor_80189660;
-                D_shelter_b2_main_corridor_80189660 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r0                       = 0x80;
-                poly->r1                       = 0x80;
-                poly->g0                       = 0;
-                poly->b0                       = 0;
-                poly->g1                       = 0;
-                poly->b1                       = 0;
-                poly->r2                       = 0x20;
-                poly->g2                       = 0x20;
-                poly->b2                       = 0x20;
-                poly->r3                       = 0x20;
-                poly->g3                       = 0x20;
-                poly->b3                       = 0x20;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                                  = (DR_MODE*)D_shelter_b2_main_corridor_80189660;
-                D_shelter_b2_main_corridor_80189660 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
-            }
-        }
-        for (i = 0; i < 16; i++) {
-            w->wave = (u32)rsin(phase + (i << 9)) >> 6;
-            v0.vx   = w->x + w->dx;
-            v0.vy   = w->y + w->wave;
-            v0.vz   = w->z + w->dz * i;
-            w->wave = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
-            v1.vx   = w->x + w->dx;
-            v1.vy   = w->y + w->wave;
-            v1.vz   = w->z + w->dz * (i + 1);
-            v2.vx   = w->x + w->dx * 2;
-            v2.vy   = w->y;
-            v2.vz   = w->z + w->dz * i;
-            v3.vx   = w->x + w->dx * 2;
-            v3.vy   = w->y;
-            v3.vz   = w->z + w->dz * (i + 1);
-            otz     = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                                = (POLY_G4*)D_shelter_b2_main_corridor_80189660;
-                D_shelter_b2_main_corridor_80189660 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r2                       = 0x80;
-                poly->r3                       = 0x80;
-                poly->g2                       = 0;
-                poly->b2                       = 0;
-                poly->g3                       = 0;
-                poly->b3                       = 0;
-                poly->r0                       = 0x20;
-                poly->g0                       = 0x20;
-                poly->b0                       = 0x20;
-                poly->r1                       = 0x20;
-                poly->g1                       = 0x20;
-                poly->b1                       = 0x20;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                                  = (DR_MODE*)D_shelter_b2_main_corridor_80189660;
-                D_shelter_b2_main_corridor_80189660 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
-}
+#define WATER_WAVE_STRIPS_OWN_CURSOR  1
+#define WATER_WAVE_STRIPS_SURFACES    D_shelter_b2_main_corridor_80182DEC
+#define WATER_WAVE_STRIPS_HEIGHT      D_shelter_b2_main_corridor_80182E28
+#define WATER_WAVE_STRIPS_PRIM_CURSOR D_shelter_b2_main_corridor_80189660
+#define WATER_WAVE_STRIPS_WAVE_SHIFT  6
+#include "../../shared/water_wave_strips.inc.c"
 
 /// The water task: runs its state, first
 /// `func_shelter_b2_main_corridor_8017EBF4` and then the surface drawer above,
 /// and each tick publishes the room's water height to the session.
 void func_shelter_b2_main_corridor_8017EB8C(Task* task)
 {
-    TaskFunc states[2] = { func_shelter_b2_main_corridor_8017EBF4, func_shelter_b2_main_corridor_8017E390 };
+    TaskFunc states[2] = { func_shelter_b2_main_corridor_8017EBF4, waterDrawWaveStrips };
 
     states[task->state](task);
     gGameSession->waterY = D_shelter_b2_main_corridor_80182E28;
