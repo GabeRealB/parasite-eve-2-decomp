@@ -753,6 +753,13 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// whose origin is 128 texels to the right, overlapping this page.
         TMD_GT3_ENV_FIRST_TEXTURE_PAGE  = getTPage(TMD_GT3_ENV_TEXTURE_DEPTH_DIRECT, GPU_BLEND_ADD, 448, 256),
         TMD_GT3_ENV_SECOND_TEXTURE_PAGE = getTPage(2, 1, 576, 256),
+        /// Horizontal origin displacement between the environment texture pages, in texels.
+        ///
+        /// The direct-colour pages start at VRAM X=448 and X=576. Selecting the
+        /// second page rebases only unmarked corners: subtract from U=128..255
+        /// and clamp smaller U to zero. Marked corners were already rebased by
+        /// projection. The signed-byte test selects unsigned U >= 128; the
+        /// stored U remains an unsigned GPU texel coordinate.
         TMD_GT3_ENV_PAGE_U_DISPLACEMENT = 128,
         /// GPU command byte for the opaque, colour-modulated Gouraud-textured base triangle.
         ///
@@ -865,7 +872,7 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
                                 do {
                                     if (*pageMarker == 0) {
                                         if ((s8)*textureU < 0) {
-                                            *textureU += TMD_GT3_ENV_PAGE_U_DISPLACEMENT;
+                                            *textureU -= TMD_GT3_ENV_PAGE_U_DISPLACEMENT;
                                         } else {
                                             *textureU = 0;
                                         }
