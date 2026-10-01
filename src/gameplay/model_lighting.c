@@ -311,7 +311,15 @@ static inline void _tmdInitGt3CornerColorsTexture(POLY_GT3* triangle, const u32*
 {
     // Word indices within the element, excluding the record header.
     enum {
-        TMD_GT3_CORNER_COLORS_UV0_CLUT_WORD  = 6, // U0/V0 in low half, CLUT address in high half
+        /// Element-relative u32 index of vertex 0's texture coordinates and CLUT.
+        ///
+        /// Opcode `0x130` places three geometry words and three corner-colour
+        /// words before this word; the three-word record header is excluded.
+        /// On the little-endian target, bits 0..7 hold unsigned U0 texels,
+        /// bits 8..15 hold unsigned V0 texels, and bits 16..31 hold the encoded
+        /// CLUT address before the model's signed encoded displacement
+        /// (64 per palette row) is added to that halfword.
+        TMD_GT3_CORNER_COLORS_UV0_CLUT_WORD  = 6,
         TMD_GT3_CORNER_COLORS_UV1_TPAGE_WORD = 7, // U1/V1 in low half, texture-page settings in high half
         TMD_GT3_CORNER_COLORS_UV2_WORD       = 8  // U2/V2 in low half; high half is not copied
     };
