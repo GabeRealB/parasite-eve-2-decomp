@@ -3001,7 +3001,7 @@ u8 gRigAnimSource[340] = {
 Actor323400MessageEntry gRigMessages[7] = {
     { 2015, { .call5 = func_actor_323400_8016475C } },
     { 2005, { .call4 = desertChaserSetVisibility } },
-    { 2006, { .call0 = desertChaserMsgQueryAlive } },
+    { 2006, { .call0 = actorMsgIsPresent } },
     { 2004, { .call3 = actorMsgPlaceYawFirst } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_323400_80164974 } },
     { 2003, { .call1 = desertChaserMsgPlayAnim } },
@@ -3392,7 +3392,7 @@ void func_actor_323400_8016475C(void)
 
 #include "../../shared/desert_chaser_visibility.inc.c"
 
-#include "../../shared/desert_chaser_query_alive.inc.c"
+#include "../../shared/actor_messages_is_present.inc.c"
 
 #include "../../shared/actor_messages_place_yaw_first.inc.c"
 

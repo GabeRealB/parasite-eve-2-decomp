@@ -1496,7 +1496,7 @@ Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = Actor00100_Fn00E58 } },
     { 2015, { .reset = Actor00100_Fn0B134 } },
     { 2005, { .value = Actor00100_Fn0B1A4 } },
-    { 2006, { .task = desertChaserMsgQueryAlive } },
+    { 2006, { .task = actorMsgIsPresent } },
     { 2004, { .placement = actorMsgPlaceRecordYaw } },
     { 0x7FFFFFFF, { .command = NULL } },
 };
@@ -5530,7 +5530,7 @@ s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-#include "../../shared/desert_chaser_query_alive.inc.c"
+#include "../../shared/actor_messages_is_present.inc.c"
 
 #include "../../shared/actor_messages_place_yaw.inc.c"
 

@@ -129,6 +129,6 @@ desertChaserExit = 0x80164A78; // type:func
 desertChaserFrameState = 0x801644C4; // type:func
 desertChaserPartEffect = 0x80164AA0; // type:func
 desertChaserTask = 0x80164CEC; // type:func
-desertChaserMsgQueryAlive = 0x80164824; // type:func
+actorMsgIsPresent = 0x80164824; // type:func
 desertChaserHideState = 0x80164B98; // type:func
 desertChaserMsgPlayAnim = 0x80164A50; // type:func
