@@ -313,14 +313,21 @@ void taskNoopCallback(Task* unusedTask)
 /// following byte; consecutive backslashes continue the command scan.
 static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, const _FontGlyph* glyphTable)
 {
-    enum { TEXT_LINE_STYLE_COMMAND_BYTES = 2 }; // Command letter and one operand.
+    /// Byte count after the backslash in a UI-text command with one operand.
+    ///
+    /// B/C/D/S/U/W (either case) each encode a command letter and one operand.
+    /// B sets X, D/U move Y, and C/S/W select color, font and draw mode.
+    /// Measurement skips both bytes regardless of the operand's value. The
+    /// cursor starts at the command letter and reads the byte after this payload;
+    /// that byte must be readable even when the skipped operand is NUL.
+    enum { TEXT_LINE_COMMAND_PAYLOAD_BYTES = 2 };
 
     /// Skips adjacent commands, setting `endLine` on NUL, LF or a line command.
     ///
     /// `cursor` is a const u8* lvalue pointing at a backslash; `escapeByte` is
     /// that stable byte and `endLine` is a flag initially false, never cleared.
     /// All arguments are evaluated repeatedly and must be simple local lvalues.
-    /// Uses this function's `TEXT_LINE_STYLE_COMMAND_BYTES`; applies no drawing
+    /// Uses this function's `TEXT_LINE_COMMAND_PAYLOAD_BYTES`; applies no drawing
     /// effects and leaves an unknown command's letter for glyph indexing.
 #define TEXT_SKIP_LINE_WIDTH_COMMANDS(cursor, escapeByte, endLine) \
     do {                                                           \
@@ -339,7 +346,7 @@ static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, con
                 case 's':                                          \
                 case 'u':                                          \
                 case 'w':                                          \
-                    (cursor) += TEXT_LINE_STYLE_COMMAND_BYTES;     \
+                    (cursor) += TEXT_LINE_COMMAND_PAYLOAD_BYTES;   \
                     break;                                         \
                 case 'N':                                          \
                 case 'n':                                          \
