@@ -120,8 +120,23 @@ enum {
     /// The current-area descriptor supplies departure facing, sounds and an
     /// optional event flag. The room handler first receives a query and may
     /// block the warp, redirect its destination or run a deferred room event.
-    WORLD_COLLISION_TRIGGER_ACTION_WARP       = 0,
-    WORLD_COLLISION_TRIGGER_ACTION_FACING     = 1,
+    WORLD_COLLISION_TRIGGER_ACTION_WARP   = 0,
+    WORLD_COLLISION_TRIGGER_ACTION_FACING = 1,
+    /// Requests a CAP command or a room-selected interaction.
+    ///
+    /// This selector occupies the low byte of `WorldCollisionTrigger::control`;
+    /// the upper-byte activation gates still apply. `parameter0` is a zero-based index
+    /// in the loaded CAP command table, and `parameter1` supplies flags: bit 0
+    /// prepares the player's weapon and pauses scene actors; bit 1 hides the
+    /// player models until playback finishes; bit 2 selects presentation mode 2.
+    /// Without bit 2, the mode is 0 with bit 0 and 3 without it. Bits 3..7 are
+    /// otherwise ignored. Supply a non-NULL command entry within the loaded
+    /// table's extent; the dispatch does not check the index or entry.
+    /// `WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE` in `parameter1` instead sends
+    /// `parameter0` to the current room's message 0x13F0 handler, with a zero
+    /// second payload word; that handler defines the interaction IDs.
+    /// Activation consumes the request even when an event or CAP playback is
+    /// already active, so a blocked request is discarded rather than deferred.
     WORLD_COLLISION_TRIGGER_ACTION_CAP        = 2,
     WORLD_COLLISION_TRIGGER_ACTION_CALLBACK   = 3,
     WORLD_COLLISION_TRIGGER_ACTION_CLEAR      = 4,
