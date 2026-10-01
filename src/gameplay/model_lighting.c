@@ -276,7 +276,16 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
 {
     // Word indices within the element, excluding the record header.
     enum {
-        TMD_GT3_UV0_CLUT_WORD  = 3, // U0/V0 in low half, CLUT address in high half
+        /// Element-relative u32 index of vertex 0's U/V and CLUT in 0x38-family triangles.
+        ///
+        /// The three-word record header is excluded. Three vertex and three
+        /// normal u16 references fill words 0..2, so index 3 selects byte offset
+        /// 12. A complete element supplies at least six aligned u32 words. On the
+        /// little-endian target, bits 0..7 hold unsigned U, bits 8..15 unsigned V, and bits
+        /// 16..31 the encoded CLUT address before the object's palette offset.
+        /// `MODEL_LIGHTING_UV0_CLUT_WORD` copies all four bytes into the packet;
+        /// adding `workspace->encodedClutOffset` then wraps only its u16 CLUT.
+        TMD_GT3_UV0_CLUT_WORD  = 3,
         TMD_GT3_UV1_TPAGE_WORD = 4, // U1/V1 in low half, texture-page settings in high half
         TMD_GT3_UV2_WORD       = 5  // U2/V2 in low half; high half is not copied
     };
