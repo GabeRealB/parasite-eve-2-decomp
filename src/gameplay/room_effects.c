@@ -2258,6 +2258,11 @@ static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
 static inline void _gpuQueueBlendMode(s32 blendMode, s32 sortingDepth)
 {
     enum {
+        /// Unshifted selector prohibiting drawing into the displayed VRAM area.
+        ///
+        /// Passing zero to `setDrawTPage` leaves draw-mode bit 10 (0x0400)
+        /// clear. This restriction remains active until another draw-mode
+        /// command replaces it.
         GPU_BLEND_DRAW_TO_DISPLAY_DISABLED = 0,
         /// Unshifted selector enabling dithering in the blend draw-mode packet.
         ///
