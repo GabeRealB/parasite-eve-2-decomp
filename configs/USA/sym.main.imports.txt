@@ -83,7 +83,7 @@ gpStreamPrimGt4PreXformLayer = 0x8009F970; // type:func absolute:True
 gpStreamPrimGt3PreXformOffsetLayer = 0x8009FA24; // type:func absolute:True
 gpStreamPrimGt4PreXformOffsetLayer = 0x8009FB28; // type:func absolute:True
 gpStreamPrimG4 = 0x8009FC44; // type:func absolute:True
-gpStreamPrimG3 = 0x8009FC90; // type:func absolute:True
+modelLightingReserveStreamPrimG3 = 0x8009FC90; // type:func absolute:True
 
 // Code main calls in whichever overlay occupies a load slot at the time (the
 // map-UI, room, options and actor slots). No single overlay owns these

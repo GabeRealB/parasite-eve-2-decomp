@@ -134127,14 +134127,14 @@ Every model stream opcode selects two handlers: the draw path's, a `glabel` in
 pass reaches it), and the process path's, a C body named for the packet it lays
 out. They answer the same record, so the second name is what the first should
 read as: `0x0`'s process arm
-(`gpStreamPrimG3`) reserves one `POLY_G3` per element, and the `0x0` draw handler
+(`modelLightingReserveStreamPrimG3`) reserves one `POLY_G3` per element, and the `0x0` draw handler
 builds that same packet whole - transform, lighting, cull, ordering-table link -
 so it is that packet's draw side, `tmdDrawStreamPrimG3` beside it.
 
 The arms do not line up one for one, so the name is not copied as it stands. The
 process pass merges every opcode whose packet has the same size and the same
 static fields - `0x0`, `0x20`, `0x120`, `0x4000`, `0x4020` and `0x4120` are one
-`gpStreamPrimG3` arm - because reserving the room and filling texture words is
+`modelLightingReserveStreamPrimG3` arm - because reserving the room and filling texture words is
 all it does, and neither depends on the rest of the record. The draw pass splits
 them, because what the split arms differ in is exactly its work: `0x20` gives the
 triangle a normal per corner where `0x0` has one, so the two light it differently

@@ -136,7 +136,7 @@ u32* tmdDrawStreamPrimG4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 /// a result each where `tmdDrawStreamPrimG3` writes the same lit colour to all of
 /// them. The packet is linked into the ordering table at the depth it came out
 /// at, and a dropped triangle still consumes its packet's room, because the room
-/// was reserved for every element by the process pass (`gpStreamPrimG3`), whose
+/// was reserved for every element by the process pass (`modelLightingReserveStreamPrimG3`), whose
 /// cursor this one stays in step with.
 ///
 /// The record's `0x22` form resolves to this same body, and the handler reads no
@@ -317,7 +317,7 @@ u32* tmdDrawStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream
 /// share it — written to all of them, and the packet linked into the ordering
 /// table at the depth it came out at. A dropped triangle still consumes its
 /// packet's room, because the room was reserved for every element by the
-/// process pass (`gpStreamPrimG3`), whose cursor this one stays in step with.
+/// process pass (`modelLightingReserveStreamPrimG3`), whose cursor this one stays in step with.
 /// The record whose corners the vertex pass places instead is
 /// `tmdDrawStreamPrimG3PreXform`'s, which files that same packet in the buffer
 /// half's first region.

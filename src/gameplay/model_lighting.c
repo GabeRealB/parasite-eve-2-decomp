@@ -2496,21 +2496,22 @@ u32* gpStreamPrimG4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimG3(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* modelLightingReserveStreamPrimG3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    u8* prims;
-    s32 stride;
+    POLY_G3* triangle;
+    s32      elementStrideWords;
 
-    prims = ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        stride = ws->elemStride;
+    triangle = (POLY_G3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        elementStrideWords = workspace->elemStride;
+        // Keep each element's packet slot in step with the later draw pass.
         do {
-            stream += stride;
-            prims  += 0x1C;
-        } while (ws->elemCount-- > 0);
+            elements += elementStrideWords;
+            triangle++;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = prims;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 static u32* func_8009FCDC(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)

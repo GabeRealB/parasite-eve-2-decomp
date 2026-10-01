@@ -618,18 +618,23 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* 
 /// draw pass's (`tmdDrawStreamPrimG4CornerNormals`), one quad per element.
 u32* gpStreamPrimG4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's untextured gouraud-triangle records (`0x0`, `0x20`,
-/// `0x120`, `0x4000`, `0x4020`, `0x4120`): each element reserves one `POLY_G3`'s
-/// worth of the buffer half's second region, and nothing is written into it.
+/// Reserves one untextured Gouraud triangle packet per element during TMD buffer construction.
 ///
-/// The packet has no field this pass could fill. It carries no texture, and its
-/// colours are lit from the element's material rather than copied from it, so the
-/// draw pass writes the packet whole — colours, screen coordinates and link into
-/// the ordering table — as it transforms the record. What is left here is the
-/// packet's room: stepping the primitive cursor past it is what keeps the records
-/// that follow building where the draw pass will look for them, and the `0x0`
-/// records are built there by `tmdDrawStreamPrimG3`, the `0x20` ones — the same
-/// packet, lit from a normal per corner — by `tmdDrawStreamPrimG3CornerNormals`.
-u32* gpStreamPrimG3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The construction walk selects this handler for `0x0`, `0x20`, `0x120`,
+/// `0x4000`, `0x4020` and `0x4120`. It advances `workspace->primWrite` by one
+/// `POLY_G3` per element in the selected buffer half's second region. No payload
+/// or packet data is read or written: positions, colours and ordering-table
+/// links are completed by the draw pass for drawable records.
+///
+/// `elements` is the first payload word after the three-word record header.
+/// The caller decodes `workspace->elemCount` and `workspace->elemStride` from
+/// unsigned halfwords (0..65535); the stride counts u32 words. The borrowed
+/// stream must contain count * stride payload words, and the word-aligned
+/// primitive cursor must have room for count complete `POLY_G3` packets within
+/// its region. Returns the word after the payload, leaving any following marker
+/// unconsumed. The count ends at -1, including for an empty record; neither
+/// cursor advances for that record. `objectFlags` is the shared callback argument,
+/// passed as zero during construction and ignored here.
+u32* modelLightingReserveStreamPrimG3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 #endif // GAMEPLAY_MODEL_LIGHTING_H

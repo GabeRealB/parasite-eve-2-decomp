@@ -533,7 +533,7 @@ void tmdProcessStream(TmdObject* obj)
             case 0x4000:
             case 0x4020:
             case 0x4120:
-                handler = gpStreamPrimG3;
+                handler = modelLightingReserveStreamPrimG3;
                 break;
         }
 

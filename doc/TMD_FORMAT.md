@@ -507,8 +507,10 @@ different jobs:
 | `tmdProcessStream` | the loaded overlay, `0x8009xxxx`, decompiled in `src/gameplay/model_objects.c` and `src/gameplay/model_lighting.c` | walks the stream when a model's primitives are built, and again when the model's texture page or CLUT changes: it lays the primitives out and fills their **static** fields — UV, CLUT, tpage. It picks the handler from the record's own opcode and steps over the slot word, which is the draw pass's to read. |
 
 That split is why the untextured families do nothing per pass:
-`gpStreamPrimG3` and `gpStreamPrimG4` only advance `prims` by `0x1C` and `0x24`
-and step the stream cursor by the stride. An untextured `POLY_G3`/`POLY_G4` has
+`modelLightingReserveStreamPrimG3` and `gpStreamPrimG4` only advance their
+primitive cursors by one `POLY_G3` (`sizeof(POLY_G3)`, `0x1C`) and `0x24` bytes,
+respectively, and step the stream cursor by the stride in u32 words. An untextured
+`POLY_G3`/`POLY_G4` has
 no UV to refresh, so there is nothing for that handler to copy — and their prim
 advance is what confirms the primitive type for opcodes whose handler names no
 `POLY_*`.
