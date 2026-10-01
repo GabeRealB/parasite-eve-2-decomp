@@ -262,7 +262,15 @@ static inline void _modelLightingInitFt4Texture(POLY_FT4* quad, const u32* eleme
         /// displacement `texturePageOffset` to `tpage` modulo 65536, leaving
         /// both texture coordinates unchanged.
         MODEL_LIGHTING_FT4_UV1_TPAGE_WORD = 3,
-        MODEL_LIGHTING_FT4_UV2_UV3_WORD   = 4 // U2/V2 in low half, U3/V3 in high half
+        /// Element-word index of vertices 2 and 3's packed texture coordinates.
+        ///
+        /// Zero-based u32-word index after the three-word `0x5C`/`0x5E` record
+        /// header; requires at least five readable words per element. Bits
+        /// 0..7, 8..15, 16..23 and 24..31 hold unsigned U2, V2, U3 and V3 in
+        /// texels. Little-endian halfword copies write each U/V pair into the
+        /// packet without overwriting `POLY_FT4.pad1` or `POLY_FT4.pad2`.
+        /// Neither pair is changed by texture-page or CLUT displacements.
+        MODEL_LIGHTING_FT4_UV2_UV3_WORD = 4
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[MODEL_LIGHTING_FT4_UV0_CLUT_WORD];
