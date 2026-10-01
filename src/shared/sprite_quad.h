@@ -23,8 +23,9 @@
  *                           point, 0 at the point itself
  * and SPRITE_QUAD_TPAGE when it is not 0x2A. The fragment clears these, so a
  * unit drawing two textures includes it twice; SPRITE_QUAD_FUNC names the
- * second instance (the first is spriteQuadDraw, declared here). A unit whose callers pass the
- * frame signed defines SPRITE_QUAD_FRAME_T as s16 before including this header.
+ * second instance (the first is spriteQuadDraw, declared here). A unit whose
+ * callers pass the frame signed defines SPRITE_QUAD_FRAME_T as s16 before
+ * including this header.
  */
 
 #ifndef SRC_SHARED_SPRITE_QUAD_H
@@ -49,5 +50,18 @@
 #endif
 
 static void spriteQuadDraw(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle);
+
+/* The flicker form (sprite_quad_draw_flicker.inc.c) alternates two looks of
+ * the flame strip; these are its two cells. */
+#define SPRITE_QUAD_CORE_CELL(p) \
+    (p)->tpage = 0x29;           \
+    (p)->clut  = 0x428B;         \
+    setUV4(p, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF)
+#define SPRITE_QUAD_RIM_CELL(p) \
+    (p)->tpage = 0x29;          \
+    (p)->clut  = 0x428C;        \
+    setUV4(p, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF)
+
+static void spriteQuadDrawFlicker(GfxCoord* coord, s16 frame, s16 size, s16 angle);
 
 #endif /* SRC_SHARED_SPRITE_QUAD_H */

@@ -73,6 +73,7 @@
 #include "../../shared/bezier_curve.h"
 #include "../../shared/screen_negative.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/sprite_quad.h"
 
 extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 
@@ -253,7 +254,6 @@ static void func_dryfield_dilapidated_house_8018142C(Task* task);
 static void func_dryfield_dilapidated_house_801814B4(Task* arg0);
 static void func_dryfield_dilapidated_house_80181584(Task* task);
 static void func_dryfield_dilapidated_house_801815B8(Task* arg0);
-static void func_dryfield_dilapidated_house_801832A8(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
 static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1);
 static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
 static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
@@ -4299,7 +4299,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             pointLight->head.transform.coord.coord.t[2]        = coord->coord.t[2];
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             i                                                  = 0;
-            func_dryfield_dilapidated_house_801832A8(coord, (s16)work->field_22, work->field_26, work->field_28);
+            spriteQuadDrawFlicker(coord, (s16)work->field_22, work->field_26, work->field_28);
             glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
             work->field_26 = 0x380;
             do {
@@ -4319,7 +4319,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
                 }
                 return;
             }
-            func_dryfield_dilapidated_house_801832A8(coord, (s16)tick1, work->field_26, work->field_28);
+            spriteQuadDrawFlicker(coord, (s16)tick1, work->field_26, work->field_28);
             glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
             glowDrawFlameStar(coord, (s16)((u16)work->field_26 * 2), (s16)(u16)work->field_24 >> 1);
             angle          = (u16)work->field_26;
@@ -4336,65 +4336,17 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
 
 #include "../../shared/glow_draw_flame_star.inc.c"
 
-/// Draws a spinning textured sprite at `arg0`'s `workm` translation, projected
-/// once through `GsWSMATRIX`. The `POLY_FT4` is taken from the primitive
-/// cursor before the projection flag is checked, so a dropped sprite (negative
-/// `gte_stflg`) still consumes its slot. The low bit of `arg1` alternates two
-/// semi-transparent looks: odd draws the 0x428B cell tinted
-/// `(0xC0, 0x60, 0x40)`, even draws the 0x428C cell untinted. The corners sit
-/// `arg2 * 55 / otz` from the projected centre along `arg3` and
-/// `arg3 + 0x400`, so the sprite shrinks with depth.
-static void func_dryfield_dilapidated_house_801832A8(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
-{
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        if (arg1 & 1) {
-            setRGB0(prim, 0xC0, 0x60, 0x40);
-            prim->tpage = 0x29;
-            prim->clut  = 0x428B;
-            setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
-            setSemiTrans(prim, 1);
-        } else {
-            prim->tpage = 0x29;
-            prim->clut  = 0x428C;
-            setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            setSemiTrans(prim, 1);
-            setShadeTex(prim, 1);
-        }
-        block->dx = (((arg2 * 55) / block->otz) * rsin(arg3)) >> 12;
-        block->dy = (((arg2 * 55) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        block->dx = (((arg2 * 55) / block->otz) * rsin(arg3 + 0x400)) >> 12;
-        block->dy = (((arg2 * 55) / block->otz) * rcos(arg3 + 0x400)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
-}
+#define SPRITE_QUAD_SCALE      55
+#define SPRITE_QUAD_PRIM_FIRST 1
+#define SPRITE_QUAD_ODD_LOOK(p)   \
+    setRGB0(p, 0xC0, 0x60, 0x40); \
+    SPRITE_QUAD_CORE_CELL(p);     \
+    setSemiTrans(p, 1)
+#define SPRITE_QUAD_EVEN_LOOK(p) \
+    SPRITE_QUAD_RIM_CELL(p);     \
+    setSemiTrans(p, 1);          \
+    setShadeTex(p, 1)
+#include "../../shared/sprite_quad_draw_flicker.inc.c"
 
 #include "../../shared/glow_draw_flame_ring.inc.c"
 

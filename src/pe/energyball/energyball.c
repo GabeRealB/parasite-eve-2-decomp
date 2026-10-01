@@ -37,6 +37,7 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
+#include "../../shared/sprite_quad.h"
 
 /// One 4-byte row of `D_energyball_80131194`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
@@ -59,7 +60,6 @@ typedef struct EnergyBallWork {
 STATIC_ASSERT_SIZEOF(EnergyBallWork, 0x38);
 
 static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2);
-static void func_energyball_8013035C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1);
 static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
 
@@ -193,7 +193,7 @@ void func_energyball_8012F180(Task* arg0)
             goto release;
         }
         Gp_UpdateCoord(coord);
-        func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+        spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
         func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
         if ((arg0->state < 3) && (gRoomEffectState->groundTraceEnabled != 0) &&
             (Gp_TraceGroundCoord(coord, &ground) == 1)) {
@@ -273,7 +273,7 @@ void func_energyball_8012F180(Task* arg0)
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if ((gRoomEffectState->groundTraceEnabled != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
                 func_energyball_801307D4(&ground, mem->angle);
@@ -340,7 +340,7 @@ void func_energyball_8012F180(Task* arg0)
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if (gRoomEffectState->groundTraceEnabled != 0) {
                 if (Gp_TraceGroundCoord(coord, &ground) == 1) {
@@ -389,7 +389,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 3:
             Gp_UpdateCoord(coord);
-            func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle + (u16)D_energyball_80131194[mem->index].field_2;
@@ -417,7 +417,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 4:
             Gp_UpdateCoord(coord);
-            func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle - (u16)D_energyball_80131194[mem->index].field_2;
@@ -502,69 +502,16 @@ static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
-/// Links one frame of the energy ball's core sprite at `arg0`'s world
-/// position. The position is projected through `GsWSMATRIX` by a single `RTPS`
-/// and the quad is dropped when that sets a negative `gte_stflg`. `arg1` is the
-/// effect's frame counter and its low bit alternates the two looks: odd frames
-/// draw the raw, semi-transparent 0x428B cell, even frames the 0x428C cell
-/// tinted `(0x40, 0xC0, 0x60)`. `arg3` spins the quad and `arg2` sizes it: the
-/// corners sit `arg2 * 55 / otz` from the projected centre along `arg3` and
-/// `arg3 + 0x400`, so the sprite shrinks with depth.
-static void func_energyball_8013035C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
-{
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    s32              ang;
-
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        if (arg1 & 1) {
-            setSemiTrans(prim, 1);
-            setShadeTex(prim, 1);
-            prim->tpage = 0x29;
-            prim->clut  = 0x428B;
-            setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
-        } else {
-            setRGB0(prim, 0x40, 0xC0, 0x60);
-            prim->tpage = 0x29;
-            prim->clut  = 0x428C;
-            setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            setSemiTrans(prim, 1);
-        }
-        ang       = arg3;
-        block->dx = (((arg2 * 55) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 55) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang       = ang + 0x400;
-        block->dx = (((arg2 * 55) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 55) / block->otz) * rcos(ang)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
-}
+#define SPRITE_QUAD_SCALE 55
+#define SPRITE_QUAD_ODD_LOOK(p) \
+    setSemiTrans(p, 1);         \
+    setShadeTex(p, 1);          \
+    SPRITE_QUAD_CORE_CELL(p)
+#define SPRITE_QUAD_EVEN_LOOK(p)  \
+    setRGB0(p, 0x40, 0xC0, 0x60); \
+    SPRITE_QUAD_RIM_CELL(p);      \
+    setSemiTrans(p, 1)
+#include "../../shared/sprite_quad_draw_flicker.inc.c"
 
 /// Draws a ground-plane quad at `arg0`'s `workm` translation: the unit quad
 /// `D_80111E38` is scaled to `arg1` half-size (Y stays 0), rotated flat by

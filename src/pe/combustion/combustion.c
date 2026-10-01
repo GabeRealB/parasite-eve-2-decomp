@@ -32,6 +32,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/pyro_flame.h"
+#include "../../shared/sprite_quad.h"
 
 /// One 8-byte row of `D_combustion_80130980`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the burn scales with the combo counter).
@@ -50,7 +51,6 @@ STATIC_ASSERT_SIZEOF(CombustionStep, 0x8);
 
 static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2);
 static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2);
-static void func_combustion_80130184(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Per-level tuning for the combustion flame, one row per PE level 1-3,
@@ -232,9 +232,9 @@ void func_combustion_8012F2BC(Task* arg0)
         case 2:
             Gp_UpdateCoord(coord);
             if (mem->index < 2) {
-                func_combustion_80130184(coord, mem->age, mem->scale * 3 / 2, 0);
+                spriteQuadDrawFlicker(coord, mem->age, mem->scale * 3 / 2, 0);
             } else {
-                func_combustion_80130184(coord, mem->age, mem->scale * 4, 0);
+                spriteQuadDrawFlicker(coord, mem->age, mem->scale * 4, 0);
             }
             if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 effectKillTask(mem, arg0);
@@ -491,69 +491,15 @@ static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Draws one billboard quad of a combustion flame. The coordinate's world
-/// position is projected through `GsWSMATRIX` with a single `RTPS`; a negative
-/// `gte_stflg` drops the quad. `arg2 * 0x37` divided by the resulting `otz + 1`
-/// is the on-screen half-diagonal, and `arg3` rotates it, the second diagonal
-/// following a quarter turn (0x400) later, so the quad stays square but spins
-/// with the flame. `arg1`'s low bit picks the frame: odd takes the tinted
-/// semi-transparent core at `0x428B` / u 0x70..0xA7, even the additive outer
-/// flame at `0x428C` / u 0xA8..0xDF. The quad is linked into `gGpuCurrentOt` at
-/// its own `otz` twice, once per diagonal pair.
-static void func_combustion_80130184(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
-{
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    s32              ang;
-
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpFxQuadScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        if (arg1 & 1) {
-            setRGB0(prim, 0xC0, 0x70, 0x40);
-            prim->tpage = 0x29;
-            prim->clut  = 0x428B;
-            setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
-            setSemiTrans(prim, 1);
-        } else {
-            setcode(prim, 0x2F);
-            prim->tpage = 0x29;
-            prim->clut  = 0x428C;
-            setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-        }
-        ang       = arg3;
-        block->dx = (((arg2 * 0x37) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 0x37) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang       = ang + 0x400;
-        block->dx = (((arg2 * 0x37) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 0x37) / block->otz) * rcos(ang)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
-}
+#define SPRITE_QUAD_SCALE 55
+#define SPRITE_QUAD_ODD_LOOK(p)   \
+    setRGB0(p, 0xC0, 0x70, 0x40); \
+    SPRITE_QUAD_CORE_CELL(p);     \
+    setSemiTrans(p, 1)
+#define SPRITE_QUAD_EVEN_LOOK(p) \
+    setcode(p, 0x2F);            \
+    SPRITE_QUAD_RIM_CELL(p)
+#include "../../shared/sprite_quad_draw_flicker.inc.c"
 
 /// Links one frame of the large combustion flame at `arg0`'s world position,
 /// the same way `func_combustion_8012F5EC` does the small one: the position is
