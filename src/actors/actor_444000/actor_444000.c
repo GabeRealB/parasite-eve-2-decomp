@@ -68,6 +68,7 @@
 #include "../../shared/actor_contacts.h"
 // The host-task symbol carries four zero bytes after the pointer.
 #define GLUTTON_HOST_TASK gGluttonHostTask.value
+#define GLUTTON_ROOM      GLUTTON_INCINERATOR
 #include "../../shared/glutton.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
@@ -2722,7 +2723,6 @@ static void            func_actor_444000_80140E28(Task* arg0);
 static void            func_actor_444000_8014105C(Task* arg0);
 static void            func_actor_444000_801411C8(Task* arg0);
 static void            func_actor_444000_80141618(Task* task);
-static inline void     _actor444000TintEscort(TmdObject* model);
 static void            func_actor_444000_80142254(void);
 
 /// Run one step of the event task: act on the pending action index in
@@ -6989,29 +6989,6 @@ out:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonSpawnScratch));
 }
 
-/// Gives `model` the texture page and palette of the third placement in the
-/// current area, and reprocesses its stream when it already has one.
-static inline void _actor444000TintEscort(TmdObject* model)
-{
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    AreaPlacement*   entry;
-
-    sessionKey = &gGameSession->location.loc;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    key.view   = sessionKey->view;
-    areaSyncLocationVariant(&key);
-    entry                    = &Gp_GetNestedAreaRec(&key)->field_0[2];
-    model->texturePageOffset = entry->texturePageOffset;
-    model->clutRowOffset     = entry->clutRowOffset;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
-}
-
 /// Runs the arena attack sequence: restores the host and escort models, handles
 /// animation cues and spawns the additional escort, then keeps the host facing
 /// the player's coordinate matrix through the shared drive step.
@@ -7098,7 +7075,7 @@ static void func_actor_444000_80141DFC(Task* arg0)
             child->workType = ENEMY_WORK_PLAIN;
             work->field_EF0 = child;
             if (child != NULL) {
-                _actor444000TintEscort(child->task->extra.tmd);
+                gluttonTintEscort(child->task->extra.tmd);
                 work->field_EFE = 0;
             }
             break;

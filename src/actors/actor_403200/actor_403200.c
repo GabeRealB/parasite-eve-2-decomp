@@ -60,6 +60,7 @@
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+#define GLUTTON_ROOM GLUTTON_DUMPING_HOLE
 #include "../../shared/glutton.h"
 
 extern s8 D_actor_403200_8015F8E0[8];
@@ -2920,7 +2921,6 @@ static void            func_actor_403200_8013E5A8(Task* arg0);
 static void            func_actor_403200_8013E9C0(Task* arg0);
 static void            func_actor_403200_8013EB64(Task* arg0);
 static void            func_actor_403200_8013EF6C(Task* arg0);
-static inline void     _actor403200TintEscort(TmdObject* model);
 static void            func_actor_403200_8013F700(Task* arg0);
 
 /// Walk `coord` 0x19/0x1000 of the way along its own forward axis (column 2 of
@@ -7010,21 +7010,6 @@ static void func_actor_403200_8013EF6C(Task* arg0)
     }
 }
 
-/// Gives the escort the texture page and palette of the current area's
-/// third placement, and refreshes its existing model stream.
-static inline void _actor403200TintEscort(TmdObject* model)
-{
-    AreaPlacement* entry;
-
-    entry                    = &(actorGetCurrentAreaRec()->field_0)[2];
-    model->texturePageOffset = entry->texturePageOffset;
-    model->clutRowOffset     = entry->clutRowOffset;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
-}
-
 static void func_actor_403200_8013F700(Task* arg0)
 {
     GluttonWork* work;
@@ -7103,7 +7088,7 @@ static void func_actor_403200_8013F700(Task* arg0)
             spawned->workType = ENEMY_WORK_PLAIN;
             work->field_EF0   = spawned;
             if (spawned != NULL) {
-                _actor403200TintEscort(spawned->task->extra.tmd);
+                gluttonTintEscort(spawned->task->extra.tmd);
                 work->field_EFE = 0;
             }
             break;

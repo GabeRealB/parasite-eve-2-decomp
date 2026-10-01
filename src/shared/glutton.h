@@ -14,6 +14,11 @@
  * ActorContact_TurnJoint and ActorContact_PushContact from the existing
  * actor_contacts library.
  *
+ * Each room has its own build of the fight: a package defines GLUTTON_ROOM
+ * as GLUTTON_DUMPING_HOLE (actor_403200) or GLUTTON_INCINERATOR
+ * (actor_444000) before including this header, and the fragments follow it
+ * where the two builds differ.
+ *
  * Include this header in the prologue and each fragment at its function's
  * position.
  */
@@ -26,6 +31,12 @@
 /// including the header.
 #ifndef GLUTTON_HOST_TASK
 #define GLUTTON_HOST_TASK gGluttonHostTask
+#endif
+
+#define GLUTTON_DUMPING_HOLE 1
+#define GLUTTON_INCINERATOR  2
+#ifndef GLUTTON_ROOM
+#error "define GLUTTON_ROOM (GLUTTON_DUMPING_HOLE or GLUTTON_INCINERATOR) before including glutton.h"
 #endif
 
 #include "types.h"
@@ -494,5 +505,20 @@ void gluttonSetQuadHeights(s32 arg0, s16 arg1);
 void gluttonSetShakeLevel(s8 arg0);
 void gluttonSetSpinnersReleased(s16 arg0);
 s16  gluttonGetSpinnersReleased(void);
+
+/// Gives the escort the texture page and palette of the current area's
+/// third placement, and refreshes its existing model stream.
+static __inline__ void gluttonTintEscort(TmdObject* model)
+{
+    AreaPlacement* entry;
+
+    entry                    = &(actorGetCurrentAreaRec()->field_0)[2];
+    model->texturePageOffset = entry->texturePageOffset;
+    model->clutRowOffset     = entry->clutRowOffset;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
 
 #endif /* SRC_SHARED_GLUTTON_H */
