@@ -52,7 +52,12 @@ STATIC_ASSERT_SIZEOF(TmdStreamWord, 4);
 
 enum {
     TMD_SOURCE_HANDLERS_UNRESOLVED = 0,
-    TMD_SOURCE_HANDLERS_RESOLVED   = 1
+    /// Completion value for resolving a shared source's draw-handler slots.
+    ///
+    /// Stored in `TmdSource.handlersResolved` after reaching `TMD_STREAM_END`,
+    /// including an empty stream. Later creations sharing the source reuse
+    /// these callbacks. Resolution precedes object and primitive-buffer allocation.
+    TMD_SOURCE_HANDLERS_RESOLVED = 1
 };
 
 enum {
