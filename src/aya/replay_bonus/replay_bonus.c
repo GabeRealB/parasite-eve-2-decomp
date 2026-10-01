@@ -500,7 +500,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
 
     yOff = obj->panel.contentTop.signedValue + 0xC;
     xOff = obj->panel.contentLeft.signedValue + 2;
-    Ui_DrawHBar(&(obj)->panel, xOff, obj->panel.contentRight.signedValue - 2, yOff);
+    uiDrawHorizontalSeparator(&(obj)->panel, xOff, obj->panel.contentRight.signedValue - 2, yOff);
     color = 0x606060;
 
     req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
@@ -527,7 +527,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
 
     t    = obj->panel.contentBottom.signedValue;
     yOff = t - 1;
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, t - 0x10);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, t - 0x10);
 
     req3.x          = obj->panel.contentOriginX.unsignedValue + 0x70 + xOff;
     req3.y          = obj->panel.contentOriginY.unsignedValue - 6;

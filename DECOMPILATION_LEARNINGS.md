@@ -19038,42 +19038,42 @@ entry->field_0 = (entry->field_0 & flags) | ((ret & 1) * 8);
 
 When a POLY_FT4 setup reuses `$a1`/`$a2` for fixed U coordinates after their last
 use as real arguments (target: `li a1,0x6F` right after the `gGpuPrimCursor` update,
-`li a2,0x68` right after `field_20 + arg2`), separate locals for those constants
+`li a2,0x68` right after `panel->contentOriginX.unsignedValue + right`), separate locals for those constants
 usually rematerialize as late `li v0,K`. Two tricks together match:
 
-1. **Reassign the argument** after its last real use (`arg2 = 0x68`) so the
+1. **Reassign the argument** after its last real use (`right = 0x68`) so the
    constant stays in `$a2` through the U stores.
-2. **Pin the mid-section temps** so `field_20` reloads into `$v0` *before* the
+2. **Pin the mid-section temps** so `panel->contentOriginX.unsignedValue` reloads into `$v0` *before* the
    prim-cursor advance, and the advance uses `$v1` — the same interleaving as
    the target between the first X pair and `li a1,0x6F`:
 
 ```c
-p->x2 = temp;
-p->x0 = temp;
+separator->x2 = temp;
+separator->x0 = temp;
 {
     register u16 f20 asm("v0");
     register s32 next asm("v1");
     register s32 ur asm("a1");
 
-    f20  = arg0->field_20;          /* lhu into $v0 before cursor update */
-    next = (s32)(p + 1);
+    f20  = panel->contentOriginX.unsignedValue; /* lhu into $v0 before cursor update */
+    next = (s32)(separator + 1);
     gGpuPrimCursor = next; /* addiu/sw via $v1; frees $a1 */
     ur   = 0x6F;                    /* li a1,0x6F */
-    temp = f20 + arg2;
-    arg2 = 0x68;                    /* li a2,0x68 — reuses arg reg */
-    p->x3 = temp;
-    p->x1 = temp;
+    temp = f20 + right;
+    right = 0x68;                   /* li a2,0x68 — reuses arg reg */
+    separator->x3 = temp;
+    separator->x1 = temp;
     /* … UV setup … */
-    p->u1 = ur;
-    p->u3 = ur;
-    p->u0 = arg2;
-    p->u2 = arg2;
+    separator->u1 = ur;
+    separator->u3 = ur;
+    separator->u0 = right;
+    separator->u2 = right;
 }
 ```
 
 Without the `f20`/`next` pins, GCC advances the cursor in `$v0` first and
-hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `arg2 = 0x68`,
-`$a2` is rematerialized at the U stores. `Ui_DrawHBar` is the pure example.
+hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `right = 0x68`,
+`$a2` is rematerialized at the U stores. `uiDrawHorizontalSeparator` is the pure example.
 
 `Ui_DrawVBar` is the vertical sibling (Y from arg1..arg2, X from
 `field_20+arg3±offsets`) and cannot reassign `arg2` — both arg1 and arg2 are
@@ -19472,7 +19472,7 @@ worse than the real project match.
 ## POLY color-before-y and `fourth = f22 - 7` for call args
 
 UI text-draw helpers that emit a `POLY_F4` then call a bar/underline routine
-(e.g. `Ui_DrawTextUnderline` → `Ui_DrawHBar`) need two scheduling tricks:
+(e.g. `Ui_DrawTextUnderline` → `uiDrawHorizontalSeparator`) need two scheduling tricks:
 
 **1. Store the solid color before the y-coords.** Target after the text call:
 
@@ -64813,7 +64813,7 @@ The same function improved from 90.686% by loading each text request's
 `otIndex` source into a separate temporary before its attribute stores, as
 in its matched sibling, and splitting the item-walking pointers between
 initial totals, the bonus sum, and the draw-time sum. Initializing the text
-color after `Ui_DrawHBar` also let the common `a0 = obj` move fill both
+color after `uiDrawHorizontalSeparator` also let the common `a0 = obj` move fill both
 state-exit branch delay slots. The final unpinned seed is `base_12.c`.
 
 

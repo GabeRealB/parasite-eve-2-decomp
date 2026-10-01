@@ -1212,7 +1212,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
         i += 1;
     } while (i < 0xD);
 
-    Ui_DrawHBar(&(obj)->panel, xOff, -xOff, obj->panel.contentBottom.signedValue - 0xE);
+    uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, obj->panel.contentBottom.signedValue - 0xE);
 
     req1.x          = obj->panel.contentOriginX.unsignedValue + 0x78 + xOff;
     bottom1         = obj->panel.contentOriginY.unsignedValue - 6;
@@ -1234,7 +1234,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req2, Text_ItoaSigned(buf, total));
 
-    Ui_DrawHBar(&(obj)->panel, xOff, -xOff, obj->panel.contentTop.signedValue + 0xA);
+    uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, obj->panel.contentTop.signedValue + 0xA);
 
     y               = obj->panel.contentTop.signedValue + 6;
     req3.x          = obj->panel.contentOriginX.unsignedValue + 0x1E + xOff;
@@ -1383,7 +1383,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&req2, Text_ItoaSigned(buf, score));
 
-    Ui_DrawHBar(&(obj)->panel, xOff, -xOff, top + 0x1B);
+    uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, top + 0x1B);
 
     y               = top + 0x25;
     req3.x          = obj->panel.contentOriginX.unsignedValue + xOff;
@@ -1646,7 +1646,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     value0.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
     Text_DrawString(&value0, rating->label);
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, 0);
-    Ui_DrawHBar(&(obj)->panel, col + 6, -x + 5, row + 0xD);
+    uiDrawHorizontalSeparator(&(obj)->panel, col + 6, -x + 5, row + 0xD);
 
     y                 = row + 0x1E;
     label1.x          = obj->panel.contentOriginX.unsignedValue + x;

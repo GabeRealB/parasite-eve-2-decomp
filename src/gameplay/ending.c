@@ -325,7 +325,7 @@ void func_800A087C(Task* arg0)
     req1.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req1, Gp_StrTotal);
 
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, top + 9);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, top + 9);
     Ui_DrawVBar(&(obj)->panel, top + 0xC, obj->panel.contentBottom.signedValue, 0x1C);
 
     h = obj->panel.contentBottom.signedValue;

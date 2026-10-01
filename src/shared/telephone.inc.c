@@ -241,7 +241,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             q[1] = 0x2E;
             Text_Strcat(p, Telephone_Data_80181A78);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-            Ui_DrawHBar(&(arg1)->panel, arg1->panel.contentLeft.signedValue, arg1->panel.contentRight.signedValue, arg0->field_1A + 3);
+            uiDrawHorizontalSeparator(&(arg1)->panel, arg1->panel.contentLeft.signedValue, arg1->panel.contentRight.signedValue, arg0->field_1A + 3);
             arg0->field_1A = (u16)arg0->field_1A + 5;
             break;
         }

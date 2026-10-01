@@ -76,7 +76,18 @@ s32 Ui_LookupTable(void* unused1, s32 arg1);
 
 s32 Ui_Scale15(s32 arg0);
 
-void Ui_DrawHBar(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3);
+/// Queues a textured horizontal separator across a panel's content.
+///
+/// `left`, `right` and `centerY` are signed pixel coordinates relative to the
+/// content origin. The vertices span left..right and centerY-4..centerY+3;
+/// their screen coordinates retain the low 16 bits. A left >= right span does
+/// nothing. The panel is borrowed only for this call and is not modified.
+///
+/// Requires the UI texture/palette, space for one `POLY_FT4` in the current
+/// primitive arena, and a writable tag at `panel->otIndex.signedValue + 2` in
+/// the current ordering table. No bounds checks or clipping are performed here.
+/// The packet remains in that arena until the GPU finishes drawing the frame.
+void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 centerY);
 
 void Ui_DrawVBar(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3);
 

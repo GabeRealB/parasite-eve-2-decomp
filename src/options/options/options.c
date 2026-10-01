@@ -578,7 +578,7 @@ static void func_options_801D4D0C(Task* task)
         }
     }
     barY = y + 2;
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, barY);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, barY);
     color = 0x606060;
     Ui_DrawVBar(&(obj)->panel, y + 5, obj->panel.contentBottom.signedValue, obj->panel.contentLeft.signedValue + 0x5F);
     y   += 0x13;

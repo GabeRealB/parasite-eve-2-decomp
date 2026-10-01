@@ -352,7 +352,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);
         arg0->state = arg0->state + 1;
     }
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
     rec = Gp_NthEquippableRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->field_10, 0);
     if (rec != NULL) {
