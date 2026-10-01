@@ -24,6 +24,7 @@
 #define ODD_STRANGER_BODY_RADIUS       0x1AE                    /* body collision sphere radius */
 #define ODD_STRANGER_SWING_RADIUS      0xD7                     /* body sphere radius in the chase and sidestep states */
 #define ODD_STRANGER_BODY2_GRID        1                        /* whether some states enable (1) or disable (0) the second body's grid collision */
+#define ODD_STRANGER_SIGHT_TEST        0                        /* whether turning and chasing test the line of sight */
 #define ODD_STRANGER_SIGHT_COOLDOWN    field_C1B                /* work member holding the sight cooldown */
 #define ODD_STRANGER_WALK_STEP         0xA                      /* forward step while walking */
 #define ODD_STRANGER_PATROL_TURN_CLAMP 0x20                     /* per-frame turn clamp toward the patrol waypoint */
@@ -44,6 +45,7 @@
 #define ODD_STRANGER_BODY_RADIUS       0x12C
 #define ODD_STRANGER_SWING_RADIUS      0x96
 #define ODD_STRANGER_BODY2_GRID        0
+#define ODD_STRANGER_SIGHT_TEST        1
 #define ODD_STRANGER_SIGHT_COOLDOWN    field_8CA
 #define ODD_STRANGER_WALK_STEP         7
 #define ODD_STRANGER_PATROL_TURN_CLAMP 0x18
@@ -361,6 +363,14 @@ void oddStrangerScriptPoseB(Task* arg0);
 void oddStrangerScriptPose2(Task* arg0);
 void oddStrangerDie(Task* arg0);
 void oddStrangerHoldAim(Task* arg0);
+
+void oddStrangerSpawnHitEffect(Task* arg0, s16 arg1, s32 arg2);
+void oddStrangerIdle(Task* arg0);
+void oddStrangerDormant(Task* arg0);
+void oddStrangerGrab(Task* arg0);
+void oddStrangerGrabHold(Task* arg0);
+void oddStrangerStunned(Task* arg0);
+void oddStrangerTurnAround(Task* arg0);
 
 /* Defined by each package. */
 s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count);

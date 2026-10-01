@@ -1,0 +1,67 @@
+/* Part of the Odd Stranger library; see odd_stranger.h. */
+
+/// State 12: clip 5 cross-fade; on entry places the actor 0x3E8 from the player along their XZ offset and sends the player a 0x3E9 transform (position and facing). Each frame pitches coordinates 2 and 3 by -0x80; at the clip-5 boundary spawns the 0x1001 effect and moves to state 0xD.
+void oddStrangerGrab(Task* arg0)
+{
+    SVECTOR          dir;
+    OddStrangerWork* work;
+    Enemy*           enemy;
+    Task*            player;
+    SVECTOR*         pdir;
+    ActorTransform*  msg;
+
+    work  = arg0->work;
+    enemy = arg0->spawnArg2.pointer;
+    if (work->field_4 != 0) {
+        player                                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        work->field_8D0.radius                  = ODD_STRANGER_BODY_RADIUS;
+        work->field_B50.flags                  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_A10.flags                  |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        enemy->node.state.parts.flags           = 0;
+        work->field_898                         = 1;
+        work->field_8A2                         = 0x10;
+        work->field_89E                         = 5;
+        player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_UpdateCoord(player->extra.tmd->coords);
+        msg         = &gOddStrangerGrabTransform.value;
+        msg->pos.vx = player->extra.tmd->coords->coord.t[0];
+        msg->pos.vy = player->extra.tmd->coords->coord.t[1];
+        msg->pos.vz = player->extra.tmd->coords->coord.t[2];
+        pdir        = &dir;
+        dir.vx      = (u16)arg0->extra.tmd->coords->coord.t[0] - (u16)player->extra.tmd->coords->coord.t[0];
+        dir.vy      = 0;
+        dir.vz      = (u16)arg0->extra.tmd->coords->coord.t[2] - (u16)player->extra.tmd->coords->coord.t[2];
+        VectorNormalSS(pdir, pdir);
+        gte_lddp(0x3E8);
+        gte_ldsv(pdir);
+        gte_gpf12();
+        gte_stsv(pdir);
+        arg0->extra.tmd->coords->coord.t[0]   = player->extra.tmd->coords->coord.t[0] + dir.vx;
+        arg0->extra.tmd->coords->coord.t[2]   = player->extra.tmd->coords->coord.t[2] + dir.vz;
+        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        msg->rot.vx                           = 0;
+        msg->rot.vy                           = ratan2(dir.vx, dir.vz);
+        msg->rot.vz                           = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, msg, 0);
+        Gp_SpawnPadLerp(0xC, 8, 0x8F);
+    }
+    oddStrangerDrive(arg0);
+    Gfx_RotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, 0);
+    arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
+    Gfx_RotMatrixX(&arg0->extra.tmd->coords[3].coord, -0x80, 0);
+    arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_UpdateCoord(&arg0->extra.tmd->coords[3]);
+    if (work->field_89E == 5 && (work->flags_68.half & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+#if ODD_STRANGER_VARIANT == 2
+        work->field_0 = 0xD;
+#endif
+        work->field_8B8.coord      = arg0->extra.tmd->coords + ODD_STRANGER_GRAB_FX_PART;
+        work->field_8B8.spawnArgLo = 0x200;
+        work->field_8B8.spawnArgHi = 2;
+        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, arg0->extra.tmd->coords + 5, NULL, &work->field_8B8);
+#if ODD_STRANGER_VARIANT == 1
+        work->field_0 = 0xD;
+#endif
+    }
+}
