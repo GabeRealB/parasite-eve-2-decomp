@@ -43,6 +43,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
+#define SPRITE_QUAD_FRAME_T s16
+#include "../../shared/sprite_quad.h"
 
 /// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
 /// frame of the barrel's recoil kick. `dir` receives the third column of the
@@ -118,7 +120,6 @@ static void func_hypervelocity_8011F11C(Task* task);
 static void func_hypervelocity_8011F6A0(Task* task);
 
 static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 side);
-static void func_hypervelocity_8011E494(GfxCoord* coord, s16 age, s16 spin, s16 ang);
 static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin);
 
 static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb);
@@ -435,7 +436,7 @@ void func_hypervelocity_8011D830(Task* task)
             rgb[1]                = work->scale >> 2;
             rgb[2]                = work->scale >> 1;
             gRandomLcgState       = ang;
-            func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
+            spriteQuadDraw(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
             return;
         case 1:
@@ -455,7 +456,7 @@ void func_hypervelocity_8011D830(Task* task)
             rgb[0]   = work->scale >> 2;
             rgb[1]   = work->scale >> 2;
             rgb[2]   = work->scale >> 1;
-            func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
+            spriteQuadDraw(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
             func_hypervelocity_8011DF34(coord, work->age, work->angle, 0);
             func_hypervelocity_8011DF34(coord, work->age, work->angle, 1);
@@ -496,7 +497,7 @@ void func_hypervelocity_8011D830(Task* task)
             rgb[0]      = work->scale >> 2;
             rgb[1]      = work->scale >> 2;
             rgb[2]      = work->scale >> 1;
-            func_hypervelocity_8011E494(coord, work->age, work->angle, work->period);
+            spriteQuadDraw(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
             if (work->angle < 0x80) {
                 effectKillTask(work, task);
@@ -609,71 +610,15 @@ static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 
     SCRATCH_STACK_RELEASE_BLOCK(HyperTrailScratch);
 }
 
-/// Links the billboarded charge quad into `gGpuCurrentOt`, dropped entirely if
-/// the coordinate's origin fails its `RTPS` `FLAG` check. `coord` supplies the
-/// world-space centre through `workm.t[]`, `age` picks between the two 0x38-wide
-/// animation columns of the flare texture, `spin` is the half-extent in world
-/// units (scaled by 55 and divided by the projected depth, so the quad keeps a
-/// constant screen size) and `ang` is the roll: the corner pairs sit at `ang`
-/// and `ang + 0x400`, a quarter turn apart, so the quad stays square as it
-/// spins.
-static void func_hypervelocity_8011E494(GfxCoord* coord, s16 age, s16 spin, s16 ang)
-{
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              u1;
-    s32              col;
-    s32              ang2;
-    u16              vz;
-
-    head                                                         = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = (u16)coord->workm.t[0];
-    block                                                        = (GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch));
-    block->vec.vy                                                = (u16)coord->workm.t[1];
-    vz                                                           = (u16)coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)                        = block;
-    block->vec.vz                                                = vz;
-    vec                                                          = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setSemiTrans(prim, 1);
-        setShadeTex(prim, 1);
-        prim->tpage = 0x29;
-        setClut(prim, 0xB0, 0x10A);
-        col = (age & 1) * 0x38;
-        u0  = col + 0x70;
-        u1  = col - 0x59;
-        setUV4(prim, u0, 0xC8, u1, 0xC8, u0, 0xFF, u1, 0xFF);
-        block->dx = (((spin * 55) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((spin * 55) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = ang + 0x400;
-        block->dx = (((spin * 55) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((spin * 55) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GpFxQuadScratch));
-}
+#define SPRITE_QUAD_TPAGE     0x29
+#define SPRITE_QUAD_CLUT      0x428B
+#define SPRITE_QUAD_CELL_W    0x38
+#define SPRITE_QUAD_CELL_MASK 1
+#define SPRITE_QUAD_U_BASE    0x70
+#define SPRITE_QUAD_V0        0xC8
+#define SPRITE_QUAD_V1        0xFF
+#define SPRITE_QUAD_SCALE     55
+#include "../../shared/sprite_quad_draw.inc.c"
 
 /// Paints the round's scorch quad on the ground point `Gp_TraceGroundCoord`
 /// found under the flare. `ground`'s `workm` translation is the traced point

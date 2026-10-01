@@ -39,6 +39,8 @@
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/pyro_flame.h"
+#define SPRITE_QUAD_FRAME_T s16
+#include "../../shared/sprite_quad.h"
 
 /// Collision pair allocated by `func_pyrokinesis_8012EF48` (`memCalloc(0x58)`)
 /// and stored in `Task::work`. `obj` is linked on list 1 and carries the
@@ -53,7 +55,6 @@ typedef struct PyroWork {
 STATIC_ASSERT_SIZEOF(PyroWork, 0x58);
 
 static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1);
-static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// The `SndEvt_EnqueueType6` id of the ignition roar, three per PE level,
 /// indexed by `EffectWork.index * 3 + Task::spawnArg1` (level by cast variant).
@@ -195,7 +196,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             rgb[2] = 0x3F;
             Gp_DrawFadeQuad(rgb, 1);
             arg0->state = 1;
-            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (Gp_CountRec18Hi(work->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&work->obj);
@@ -240,7 +241,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             coord->coord.t[2]  += mem->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (arg0->spawnArg1.value != 0) {
                 func_pyrokinesis_80131784(coord, mem->age, mem->angle, 0);
@@ -318,7 +319,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             radius           = (u16)mem->angle - 0x40;
             mem->angle       = radius;
             work->obj.radius = radius;
-            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (mem->angle >= 0x81) {
                 spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
@@ -359,7 +360,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             glowDrawFlameStar(coord, (s16)((u16)mem->angle * 2),
                               (s16)((u16)mem->scale << 16 >> 17));
@@ -381,7 +382,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 return;
             }
             Gp_UpdateCoord(coord);
-            func_pyrokinesis_80130848(coord, mem->age, mem->angle, mem->period);
+            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             glowDrawFlameStar(coord, (s16)((u16)mem->angle * 2),
                               (s16)((u16)mem->scale << 16 >> 17));
@@ -536,75 +537,15 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
     SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
-/// Draws one billboard flame quad: `arg0`'s origin is projected once through
-/// `GsWSMATRIX` and a single semi-transparent `POLY_FT4` (tpage 0x29, clut
-/// 0x428C) is spun around it, its four corners offset by the rotated
-/// half-extents `(arg2 * 55 / otz) * rsin|rcos` at `arg3` and `arg3 + 0x400`.
-/// `arg1`'s low bit picks between two 0x37-wide UV columns at v = 0xC8..0xFF.
-/// A negative `gte_stflg` drops the quad.
-static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    s32              ang;
-    s32              u70;
-    s32              t;
-    u16              vz;
-
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        ang = (s16)arg3;
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x29;
-        prim->clut  = 0x428C;
-        t           = (arg1 & 1) * 56;
-        u70         = t + 0x70;
-        prim->u0    = u70;
-        prim->v0    = 0xC8;
-        prim->v1    = 0xC8;
-        prim->u1    = t - 0x59;
-        prim->u2    = u70;
-        prim->v2    = 0xFF;
-        prim->u3    = t - 0x59;
-        prim->v3    = 0xFF;
-        block->dx   = ((((s16)arg2 * 55) / block->otz) * rsin(ang)) >> 12;
-        block->dy   = ((((s16)arg2 * 55) / block->otz) * rcos(ang)) >> 12;
-        prim->x0    = block->sx + (u16)block->dx;
-        prim->x3    = block->sx - (u16)block->dx;
-        prim->y0    = block->sy - (u16)block->dy;
-        prim->y3    = block->sy + (u16)block->dy;
-        ang         = ang + 0x400;
-        block->dx   = ((((s16)arg2 * 55) / block->otz) * rsin(ang)) >> 12;
-        block->dy   = ((((s16)arg2 * 55) / block->otz) * rcos(ang)) >> 12;
-        prim->x1    = block->sx + (u16)block->dx;
-        prim->x2    = block->sx - (u16)block->dx;
-        prim->y1    = block->sy - (u16)block->dy;
-        prim->y2    = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#define SPRITE_QUAD_TPAGE     0x29
+#define SPRITE_QUAD_CLUT      0x428C
+#define SPRITE_QUAD_CELL_W    0x38
+#define SPRITE_QUAD_CELL_MASK 1
+#define SPRITE_QUAD_U_BASE    0x70
+#define SPRITE_QUAD_V0        0xC8
+#define SPRITE_QUAD_V1        0xFF
+#define SPRITE_QUAD_SCALE     55
+#include "../../shared/sprite_quad_draw.inc.c"
 
 void func_pyrokinesis_80130C54(Task* arg0)
 {

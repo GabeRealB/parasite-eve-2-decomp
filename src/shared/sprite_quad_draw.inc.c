@@ -41,40 +41,49 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POS_T* pos, SPRITE_QUAD_FRAME_T frame, 
 #if SPRITE_QUAD_OTZ_BIAS
         block->otz++;
 #endif
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setSemiTrans(prim, 1);
-        setShadeTex(prim, 1);
-        prim->tpage = SPRITE_QUAD_TPAGE;
-        prim->clut  = SPRITE_QUAD_CLUT;
+#ifdef SPRITE_QUAD_MIN_OTZ
+        /* nearer than this the sprite is not drawn */
+        if (block->otz >= SPRITE_QUAD_MIN_OTZ)
+#endif
+        {
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyFT4(prim);
+            setSemiTrans(prim, 1);
+            setShadeTex(prim, 1);
+            prim->tpage = SPRITE_QUAD_TPAGE;
+            prim->clut  = SPRITE_QUAD_CLUT;
 #if defined(SPRITE_QUAD_CELLS_PER_ROW)
-        u0 = (frame % SPRITE_QUAD_CELLS_PER_ROW) * SPRITE_QUAD_CELL_W;
+            u0 = (frame % SPRITE_QUAD_CELLS_PER_ROW) * SPRITE_QUAD_CELL_W;
 #elif defined(SPRITE_QUAD_CELL_MASK)
-        u0 = (frame & SPRITE_QUAD_CELL_MASK) * SPRITE_QUAD_CELL_W;
+            u0 = (frame & SPRITE_QUAD_CELL_MASK) * SPRITE_QUAD_CELL_W;
 #else
-        u0 = frame * SPRITE_QUAD_CELL_W;
+            u0 = frame * SPRITE_QUAD_CELL_W;
 #endif
 #ifdef SPRITE_QUAD_U_BASE
-        u0 = u0 + SPRITE_QUAD_U_BASE;
+            /* both edges from the cell's offset; the right edge wraps past 0xFF */
+            u1 = u0 + (s8)(SPRITE_QUAD_U_BASE + SPRITE_QUAD_CELL_W - 1);
+            u0 = u0 + SPRITE_QUAD_U_BASE;
+#else
+            u1 = u0 + (SPRITE_QUAD_CELL_W - 1);
 #endif
-        u1 = u0 + (SPRITE_QUAD_CELL_W - 1);
-        setUV4(prim, u0, SPRITE_QUAD_V0, u1, SPRITE_QUAD_V0, u0, SPRITE_QUAD_V1, u1, SPRITE_QUAD_V1);
-        block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(angle)) >> 12;
-        block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(angle)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = angle + 0x400;
-        block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+            setUV4(prim, u0, SPRITE_QUAD_V0, u1, SPRITE_QUAD_V0, u0, SPRITE_QUAD_V1, u1, SPRITE_QUAD_V1);
+            block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(angle)) >> 12;
+            block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(angle)) >> 12;
+            prim->x0  = block->sx + (u16)block->dx;
+            prim->x3  = block->sx - (u16)block->dx;
+            prim->y0  = block->sy - (u16)block->dy;
+            prim->y3  = block->sy + (u16)block->dy;
+            ang2      = angle + 0x400;
+            block->dx = (((size * SPRITE_QUAD_SCALE) / block->otz) * rsin(ang2)) >> 12;
+            block->dy = (((size * SPRITE_QUAD_SCALE) / block->otz) * rcos(ang2)) >> 12;
+            prim->x1  = block->sx + (u16)block->dx;
+            prim->x2  = block->sx - (u16)block->dx;
+            prim->y1  = block->sy - (u16)block->dy;
+            prim->y2  = block->sy + (u16)block->dy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    prim);
+        }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
