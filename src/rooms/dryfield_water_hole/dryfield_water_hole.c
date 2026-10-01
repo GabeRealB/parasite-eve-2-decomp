@@ -57,14 +57,17 @@
 #define D_dryfield_water_hole_8017FCDC (D_dryfield_water_hole_8017FCBC + 4)
 #define D_dryfield_water_hole_8017FD04 (D_dryfield_water_hole_8017FCBC + 9)
 
-// One live spotlight is followed by retained exporter data in whole
-// spotlight-sized slots. Its original role is unresolved; keep the bytes
-// without treating stale pointer-looking words as live C pointers.
+/// The water-hole room's single cone light and adjacent uninterpreted image bytes.
+///
+/// The light stays writable for coordinate composition and attenuation queries;
+/// its borrowed address is valid only while the room overlay is loaded. The
+/// remaining bytes are outside the live light count; their original layout and
+/// relationship to the light are unproven.
 typedef struct {
-    WorldCoordSpotLight active[1];
-    u8                  retained[540];
-} DryfieldWaterHoleSpotLightStorage;
-STATIC_ASSERT_SIZEOF(DryfieldWaterHoleSpotLightStorage, 648);
+    WorldCoordSpotLight coneLights[1];   // One mutable cone light, contributing in every view
+    u8                  unknown_6C[540]; // Uninterpreted image bytes; purpose and internal boundaries unproven
+} _DryfieldWaterHoleSpotLightStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldWaterHoleSpotLightStorage, 648);
 
 /// One rectangle of water surface drawn by `func_dryfield_water_hole_8017D898`,
 /// in world coordinates: it spans `width` along X from `x` and `depth` along Z
@@ -126,8 +129,8 @@ s32  func_dryfield_water_hole_8017D784(Task*, s32, TaskMessageArg, TaskMessageAr
 s32  func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
 void func_dryfield_water_hole_8017DFA0(Task*);
 
-extern DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
-extern WorldCoordPointLight              D_dryfield_water_hole_80181FA0[6];
+extern _DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
+extern WorldCoordPointLight               D_dryfield_water_hole_80181FA0[6];
 
 TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_hole_8017D5F0 },
@@ -684,7 +687,7 @@ WorldCoordPointLight D_dryfield_water_hole_80181FA0[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2B64, -1277, -2296 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1441, 1146 }, { 0, 0 } }, 1000, 2700 },
 };
 
-DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
+_DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
     {
         { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { -4096, 0, 0 }, { 0, 0, 4096 }, { 0, 4096, 0 } }, { 7394, -3968, -1496 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3604, 2867 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 3000, 6000, 113 },
     },
@@ -1233,7 +1236,7 @@ DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
 };
 
 WorldCoordRoomLights D_dryfield_water_hole_80182468[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80181FA0), D_dryfield_water_hole_80181FA0, ARRAY_SIZE(D_dryfield_water_hole_801821E0.active), D_dryfield_water_hole_801821E0.active },
+    { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80181FA0), D_dryfield_water_hole_80181FA0, ARRAY_SIZE(D_dryfield_water_hole_801821E0.coneLights), D_dryfield_water_hole_801821E0.coneLights },
 };
 
 WorldCoordPointLight D_dryfield_water_hole_80182480[7] = {
