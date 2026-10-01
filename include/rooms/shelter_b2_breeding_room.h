@@ -36,7 +36,7 @@ extern WorldCollisionTrigger D_shelter_b2_breeding_room_80183F9C[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b2_breeding_room_80184624[];
 
-extern GpObj3A D_shelter_b2_breeding_room_8018467C[];
+extern WorldCollisionOccluder D_shelter_b2_breeding_room_8018467C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_breeding_room_801847F4[];
 

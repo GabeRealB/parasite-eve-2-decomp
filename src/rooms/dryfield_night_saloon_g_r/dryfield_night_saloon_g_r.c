@@ -150,9 +150,9 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task*);
 
 extern WorldCoordRoomLights D_dryfield_night_saloon_g_r_80188304[1];
 
-extern WorldCollisionGrid    D_dryfield_night_saloon_g_r_80185B50[1];
-extern GpObj3A               D_dryfield_night_saloon_g_r_80188E18[2];
-extern WorldCollisionTrigger D_dryfield_night_saloon_g_r_8018831C[16];
+extern WorldCollisionGrid     D_dryfield_night_saloon_g_r_80185B50[1];
+extern WorldCollisionOccluder D_dryfield_night_saloon_g_r_80188E18[2];
+extern WorldCollisionTrigger  D_dryfield_night_saloon_g_r_8018831C[16];
 
 extern SpriteBatch  D_dryfield_night_saloon_g_r_80185D48[2];
 extern SpriteBatch  D_dryfield_night_saloon_g_r_80185EAC[3];
@@ -1743,9 +1743,9 @@ WorldCollisionTrigger D_dryfield_night_saloon_g_r_801887DC[21] = {
     { NULL, NULL, NULL, { 3904, -64, 1664, 0 }, { { 704, 0, -1983, 0 }, { 704, 0, 1984, 0 }, { -704, 0, -1983, 0 }, { -704, 0, 1984, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, -201, 0 }, 2095, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_saloon_g_r_80188E18[2] = {
-    { NULL, NULL, { -1056, -1392, 5216, 0 }, { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } }, { 0, 0, -4109, 0 }, { -118, 9 }, 1, 0 },
-    { NULL, NULL, { 2048, -1376, 5215, 0 }, { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } }, { 0, 0, -4109, 0 }, { -118, 9 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_saloon_g_r_80188E18[2] = {
+    { NULL, NULL, { -1056, -1392, 5216, 0 }, { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } }, { 0, 0, -4109, 0 }, 2442, 1, 0 },
+    { NULL, NULL, { 2048, -1376, 5215, 0 }, { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } }, { 0, 0, -4109, 0 }, 2442, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_dryfield_night_saloon_g_r_80188E90[2] = {

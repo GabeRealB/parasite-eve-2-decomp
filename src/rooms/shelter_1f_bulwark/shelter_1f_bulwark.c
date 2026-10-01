@@ -81,11 +81,11 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void func_shelter_1f_bulwark_8017DBD4(Task* task);
 static void func_shelter_1f_bulwark_8017DC18(Task* task);
 
-extern WorldCollisionGrid    D_shelter_1f_bulwark_80180648[1];
-extern GpObj3A               D_shelter_1f_bulwark_80180E08[2];
-extern WorldCollisionTrigger D_shelter_1f_bulwark_80180A8C[2];
-extern WorldCollisionTrigger D_shelter_1f_bulwark_80180B24[8];
-extern WorldCoordRoomLights  D_shelter_1f_bulwark_80180A74[1];
+extern WorldCollisionGrid     D_shelter_1f_bulwark_80180648[1];
+extern WorldCollisionOccluder D_shelter_1f_bulwark_80180E08[2];
+extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180A8C[2];
+extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180B24[8];
+extern WorldCoordRoomLights   D_shelter_1f_bulwark_80180A74[1];
 
 s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -262,9 +262,9 @@ GpAreaVariant D_shelter_1f_bulwark_80180DA8[12] = {
     { NULL, NULL },
 };
 
-GpObj3A D_shelter_1f_bulwark_80180E08[2] = {
-    { NULL, NULL, { 1840, -16, 2576, 0 }, { { -2864, 1936, -1104, 0 }, { 2864, 1936, 1104, 0 }, { -2864, -1936, -1104, 0 }, { 2864, -1936, 1104, 0 } }, { -1477, 0, 3827, 0 }, { 36, 14 }, 1, 0 },
-    { NULL, NULL, { 2624, 0, -3120, 0 }, { { -3216, 1936, 896, 0 }, { 3216, 1936, -896, 0 }, { -3216, -1936, 896, 0 }, { 3216, -1936, -896, 0 } }, { 1102, 0, 3957, 0 }, { 17, 15 }, 129, 0 },
+WorldCollisionOccluder D_shelter_1f_bulwark_80180E08[2] = {
+    { NULL, NULL, { 1840, -16, 2576, 0 }, { { -2864, 1936, -1104, 0 }, { 2864, 1936, 1104, 0 }, { -2864, -1936, -1104, 0 }, { 2864, -1936, 1104, 0 } }, { -1477, 0, 3827, 0 }, 3620, 1, 0 },
+    { NULL, NULL, { 2624, 0, -3120, 0 }, { { -3216, 1936, 896, 0 }, { 3216, 1936, -896, 0 }, { -3216, -1936, 896, 0 }, { 3216, -1936, -896, 0 } }, { 1102, 0, 3957, 0 }, 3857, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_1f_bulwark_80180E80 = {

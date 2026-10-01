@@ -50,11 +50,11 @@ s32 func_dryfield_night_motel_room_4_8017D5D0(Task*, s32, TaskMessageArg, TaskMe
 s32 func_dryfield_night_motel_room_4_8017D660(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_motel_room_4_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_dryfield_night_motel_room_4_8017E1D0[1];
-extern GpObj3A               D_dryfield_night_motel_room_4_80180044[2];
-extern WorldCollisionTrigger D_dryfield_night_motel_room_4_8017FBD0[8];
-extern WorldCollisionTrigger D_dryfield_night_motel_room_4_8017FE30[7];
-extern WorldCoordRoomLights  D_dryfield_night_motel_room_4_801802A8[1];
+extern WorldCollisionGrid     D_dryfield_night_motel_room_4_8017E1D0[1];
+extern WorldCollisionOccluder D_dryfield_night_motel_room_4_80180044[2];
+extern WorldCollisionTrigger  D_dryfield_night_motel_room_4_8017FBD0[8];
+extern WorldCollisionTrigger  D_dryfield_night_motel_room_4_8017FE30[7];
+extern WorldCoordRoomLights   D_dryfield_night_motel_room_4_801802A8[1];
 
 TaskMessageEntry D_dryfield_night_motel_room_4_8017DA48[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
@@ -529,9 +529,9 @@ WorldCollisionTrigger D_dryfield_night_motel_room_4_8017FE30[7] = {
     { NULL, NULL, NULL, { 4624, -64, 2320, 0 }, { { -672, 0, -224, 0 }, { 672, 0, -224, 0 }, { -672, 0, 224, 0 }, { 672, 0, 224, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 706, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_motel_room_4_80180044[2] = {
-    { NULL, NULL, { 5200, -1520, 2656, 0 }, { { -1520, 2064, 0, 0 }, { 1520, 2064, 0, 0 }, { -1520, -2064, 0, 0 }, { 1520, -2064, 0, 0 } }, { 0, 0, 4097, 0 }, { 0, 10 }, 1, 0 },
-    { NULL, NULL, { 3712, -1568, 4800, 0 }, { { 0, 2064, 720, 0 }, { 0, 2064, -720, 0 }, { 0, -2064, 720, 0 }, { 0, -2064, -720, 0 } }, { 4103, 0, 0, 0 }, { 124, 8 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_motel_room_4_80180044[2] = {
+    { NULL, NULL, { 5200, -1520, 2656, 0 }, { { -1520, 2064, 0, 0 }, { 1520, 2064, 0, 0 }, { -1520, -2064, 0, 0 }, { 1520, -2064, 0, 0 } }, { 0, 0, 4097, 0 }, 2560, 1, 0 },
+    { NULL, NULL, { 3712, -1568, 4800, 0 }, { { 0, 2064, 720, 0 }, { 0, 2064, -720, 0 }, { 0, -2064, 720, 0 }, { 0, -2064, -720, 0 } }, { 4103, 0, 0, 0 }, 2172, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_night_motel_room_4_801800BC[4] = {

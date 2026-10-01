@@ -6,7 +6,7 @@
 #include "gameplay/light.h"
 
 struct WorldCollisionGrid;
-struct _GpObj3A;
+struct WorldCollisionOccluder;
 struct WorldCollisionTrigger;
 
 /// Entry in a room's table of minimum ambient light levels.
@@ -136,12 +136,12 @@ STATIC_ASSERT_SIZEOF(WorldCollisionSurfaceProperties, 8);
 /// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
 /// Indexed 1-based by `GameSession.location.loc.room` / `GameLocationKey.room`.
 /// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` bind the grid's `viewCoord` to `&gGfxViewCoord` and
-/// link the `field_4` / `field_8` (`WorldCollisionTrigger`) and `field_C` (`GpObj3A`) arrays.
+/// link the `field_4` / `field_8` (`WorldCollisionTrigger`) and `field_C` (`WorldCollisionOccluder`) arrays.
 typedef struct _GpRoomObjRec {
-    /* 0x0 */ struct WorldCollisionGrid*    field_0;
-    /* 0x4 */ struct WorldCollisionTrigger* field_4;
-    /* 0x8 */ struct WorldCollisionTrigger* field_8;
-    /* 0xC */ struct _GpObj3A*              field_C;
+    /* 0x0 */ struct WorldCollisionGrid*     field_0;
+    /* 0x4 */ struct WorldCollisionTrigger*  field_4;
+    /* 0x8 */ struct WorldCollisionTrigger*  field_8;
+    /* 0xC */ struct WorldCollisionOccluder* field_C;
 } GpRoomObjRec;
 STATIC_ASSERT_SIZEOF(GpRoomObjRec, 0x10);
 

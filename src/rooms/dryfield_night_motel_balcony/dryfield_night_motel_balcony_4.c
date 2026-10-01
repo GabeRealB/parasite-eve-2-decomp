@@ -90,7 +90,7 @@ static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s1
 
 extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183750[1];
 extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183FE0[1];
-extern GpObj3A                    D_dryfield_night_motel_balcony_8018EF70[2];
+extern WorldCollisionOccluder     D_dryfield_night_motel_balcony_8018EF70[2];
 extern WorldCollisionTrigger      D_dryfield_night_motel_balcony_8018E2FC[8];
 extern WorldCollisionTrigger      D_dryfield_night_motel_balcony_8018E55C[10];
 extern WorldCollisionTrigger      D_dryfield_night_motel_balcony_8018E854[6];
@@ -2742,9 +2742,9 @@ WorldCollisionTrigger D_dryfield_night_motel_balcony_8018ED5C[7] = {
     { NULL, NULL, NULL, { -7648, -3264, 2176, 0 }, { { -2688, 0, 560, 0 }, { 2688, 0, -1328, 0 }, { -2688, 0, 1328, 0 }, { 2688, 0, -560, 0 } }, { 0, 4095, 0, 0 }, { 401, 0, -4076, 0 }, 2996, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_motel_balcony_8018EF70[2] = {
-    { NULL, NULL, { -0x2840, -4064, 7440, 0 }, { { -3104, -2624, 4336, 0 }, { 3104, -2624, -4336, 0 }, { -3104, 2624, 4336, 0 }, { 3104, 2624, -4336, 0 } }, { -3332, 0, -2385, 0 }, { 38, 23 }, 1, 0 },
-    { NULL, NULL, { -0x2B61, -4016, -2561, 0 }, { { 4011, -2640, 3514, 0 }, { -4010, -2640, -3513, 0 }, { 4011, 2640, 3514, 0 }, { -4010, 2640, -3513, 0 } }, { -2701, 0, 3082, 0 }, { 60, 23 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_motel_balcony_8018EF70[2] = {
+    { NULL, NULL, { -0x2840, -4064, 7440, 0 }, { { -3104, -2624, 4336, 0 }, { 3104, -2624, -4336, 0 }, { -3104, 2624, 4336, 0 }, { 3104, 2624, -4336, 0 } }, { -3332, 0, -2385, 0 }, 5926, 1, 0 },
+    { NULL, NULL, { -0x2B61, -4016, -2561, 0 }, { { 4011, -2640, 3514, 0 }, { -4010, -2640, -3513, 0 }, { 4011, 2640, 3514, 0 }, { -4010, 2640, -3513, 0 } }, { -2701, 0, 3082, 0 }, 5948, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_night_motel_balcony_8018EFE8[40] = {

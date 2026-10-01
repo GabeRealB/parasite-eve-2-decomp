@@ -69,17 +69,17 @@ extern RoomEventReq gRoomEventReq;
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
 
-extern WorldCollisionGrid    D_dryfield_parking_lot_8017E8DC[1];
-extern GpObj3A               D_dryfield_parking_lot_8017F6E4[2];
-extern WorldCollisionTrigger D_dryfield_parking_lot_8017F0A8[10];
-extern WorldCollisionTrigger D_dryfield_parking_lot_8017F3A0[11];
-extern WorldCoordRoomLights  D_dryfield_parking_lot_8017F9FC[1];
-extern TaskDesc              D_8014D8A4;
-s32                          func_dryfield_parking_lot_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_dryfield_parking_lot_8017DAA0(Task*, s32, s32, TaskMessageArg);
-s32                          func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid     D_dryfield_parking_lot_8017E8DC[1];
+extern WorldCollisionOccluder D_dryfield_parking_lot_8017F6E4[2];
+extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F0A8[10];
+extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F3A0[11];
+extern WorldCoordRoomLights   D_dryfield_parking_lot_8017F9FC[1];
+extern TaskDesc               D_8014D8A4;
+s32                           func_dryfield_parking_lot_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                           func_dryfield_parking_lot_8017DAA0(Task*, s32, s32, TaskMessageArg);
+s32                           func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                           func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                           func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -335,9 +335,9 @@ WorldCollisionTrigger D_dryfield_parking_lot_8017F3A0[11] = {
     { NULL, NULL, NULL, { -5520, -64, -3104, 0 }, { { 960, 0, -1680, 0 }, { 224, 0, 1680, 0 }, { -224, 0, -1680, 0 }, { -960, 0, 1680, 0 } }, { 0, 4096, 0, 0 }, { 4017, 0, 799, 0 }, 1932, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_parking_lot_8017F6E4[2] = {
-    { NULL, NULL, { -416, -1872, -3328, 0 }, { { 1078, 2896, -3014, 0 }, { 1078, -2896, -3014, 0 }, { -1079, 2896, 3013, 0 }, { -1079, -2896, 3013, 0 } }, { 3859, 0, 1381, 0 }, { -38, 16 }, 1, 0 },
-    { NULL, NULL, { -6544, -1728, 2800, 0 }, { { 2064, 2896, -2704, 0 }, { 2064, -2896, -2704, 0 }, { -2064, 2896, 2704, 0 }, { -2064, -2896, 2704, 0 } }, { 3260, 0, 2488, 0 }, { 111, 17 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_parking_lot_8017F6E4[2] = {
+    { NULL, NULL, { -416, -1872, -3328, 0 }, { { 1078, 2896, -3014, 0 }, { 1078, -2896, -3014, 0 }, { -1079, 2896, 3013, 0 }, { -1079, -2896, 3013, 0 } }, { 3859, 0, 1381, 0 }, 4314, 1, 0 },
+    { NULL, NULL, { -6544, -1728, 2800, 0 }, { { 2064, 2896, -2704, 0 }, { 2064, -2896, -2704, 0 }, { -2064, 2896, 2704, 0 }, { -2064, -2896, 2704, 0 } }, { 3260, 0, 2488, 0 }, 4463, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_parking_lot_8017F75C[7] = {

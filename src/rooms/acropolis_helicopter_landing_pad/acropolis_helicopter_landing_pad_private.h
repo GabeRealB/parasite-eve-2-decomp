@@ -38,7 +38,7 @@ extern s32 D_acropolis_helicopter_landing_pad_80187F84;
 
 extern WorldCollisionTrigger D_acropolis_helicopter_landing_pad_80185E7C[9];
 
-extern GpObj3A D_acropolis_helicopter_landing_pad_80186128[2];
+extern WorldCollisionOccluder D_acropolis_helicopter_landing_pad_80186128[2];
 
 extern WorldCoordRoomLights D_acropolis_helicopter_landing_pad_80186AE8[1];
 

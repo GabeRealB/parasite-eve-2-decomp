@@ -69,7 +69,7 @@ extern TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[];
 /// is `[1]` under its own name, which the per-frame path reads directly.
 
 extern WorldCollisionGrid         D_neo_ark_savanna_zone_8017FBD0[1];
-extern GpObj3A                    D_neo_ark_savanna_zone_801808CC[1];
+extern WorldCollisionOccluder     D_neo_ark_savanna_zone_801808CC[1];
 extern WorldCollisionTrigger      D_neo_ark_savanna_zone_801804EC[4];
 extern WorldCollisionTrigger      D_neo_ark_savanna_zone_8018061C[5];
 extern WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5];
@@ -355,8 +355,8 @@ GpAreaVariant D_neo_ark_savanna_zone_80180864[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_savanna_zone_801808CC[1] = {
-    { NULL, NULL, { 6928, -3008, 1552, 0 }, { { -7952, 0, -2576, 0 }, { 7952, 0, -2576, 0 }, { -7952, 0, 2576, 0 }, { 7952, 0, 2576, 0 } }, { 0, 4103, 0, 0 }, { 126, 32 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_savanna_zone_801808CC[1] = {
+    { NULL, NULL, { 6928, -3008, 1552, 0 }, { { -7952, 0, -2576, 0 }, { 7952, 0, -2576, 0 }, { -7952, 0, 2576, 0 }, { 7952, 0, 2576, 0 } }, { 0, 4103, 0, 0 }, 8318, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5] = {

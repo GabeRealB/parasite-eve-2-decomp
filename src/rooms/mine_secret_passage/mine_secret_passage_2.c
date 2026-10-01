@@ -64,7 +64,7 @@ extern SVECTOR D_mine_secret_passage_80180F08[];
 /// selector the spawn argument carries.
 
 extern WorldCollisionGrid         D_mine_secret_passage_801815E0[1];
-extern GpObj3A                    D_mine_secret_passage_801831A8[2];
+extern WorldCollisionOccluder     D_mine_secret_passage_801831A8[2];
 extern WorldCollisionTrigger      D_mine_secret_passage_80182DCC[10];
 extern WorldCollisionTrigger      D_mine_secret_passage_801830C4[3];
 extern WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9];
@@ -529,9 +529,9 @@ WorldCollisionTrigger D_mine_secret_passage_801830C4[3] = {
     { NULL, NULL, NULL, { 0x42A0, -64, 800, 0 }, { { -672, 0, -560, 0 }, { 672, 0, -560, 0 }, { -672, 0, 560, 0 }, { 672, 0, 560, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_mine_secret_passage_801831A8[2] = {
-    { NULL, NULL, { 0x2990, -1584, 8864, 0 }, { { -7408, -2608, -3648, 0 }, { 7408, -2608, 3648, 0 }, { -7408, 2608, -3648, 0 }, { 7408, 2608, 3648, 0 } }, { 1812, 0, -3682, 0 }, { -76, 33 }, 1, 0 },
-    { NULL, NULL, { 0x398E, -1520, 623, 0 }, { { -1546, -2544, -1372, 0 }, { 1547, -2544, 1373, 0 }, { -1546, 2544, -1372, 0 }, { 1547, 2544, 1373, 0 } }, { 2726, 0, -3074, 0 }, { -50, 12 }, 129, 0 },
+WorldCollisionOccluder D_mine_secret_passage_801831A8[2] = {
+    { NULL, NULL, { 0x2990, -1584, 8864, 0 }, { { -7408, -2608, -3648, 0 }, { 7408, -2608, 3648, 0 }, { -7408, 2608, -3648, 0 }, { 7408, 2608, 3648, 0 } }, { 1812, 0, -3682, 0 }, 8628, 1, 0 },
+    { NULL, NULL, { 0x398E, -1520, 623, 0 }, { { -1546, -2544, -1372, 0 }, { 1547, -2544, 1373, 0 }, { -1546, 2544, -1372, 0 }, { 1547, 2544, 1373, 0 } }, { 2726, 0, -3074, 0 }, 3278, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_mine_secret_passage_80183220[2] = {

@@ -418,8 +418,8 @@ GpAreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22] = {
     { D_shelter_b2_south_maintenance_walkway_8018374C, D_shelter_b2_south_maintenance_walkway_801835A8 },
 };
 
-GpObj3A D_shelter_b2_south_maintenance_walkway_8018385C[1] = {
-    { NULL, NULL, { -1616, -1280, -544, 0 }, { { -2384, 2304, 2240, 0 }, { 2384, 2304, -2240, 0 }, { -2384, -2304, 2240, 0 }, { 2384, -2304, -2240, 0 } }, { 2809, 0, 2989, 0 }, { -98, 15 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b2_south_maintenance_walkway_8018385C[1] = {
+    { NULL, NULL, { -1616, -1280, -544, 0 }, { { -2384, 2304, 2240, 0 }, { 2384, 2304, -2240, 0 }, { -2384, -2304, 2240, 0 }, { 2384, -2304, -2240, 0 } }, { 2809, 0, 2989, 0 }, 3998, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b2_south_maintenance_walkway_80183898 = {

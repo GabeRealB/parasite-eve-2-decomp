@@ -78,11 +78,11 @@ s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_pyramid_8017DA44(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_neo_ark_pyramid_801802C4[1];
-extern GpObj3A               D_neo_ark_pyramid_80181790[3];
-extern WorldCollisionTrigger D_neo_ark_pyramid_801812B0[6];
-extern WorldCollisionTrigger D_neo_ark_pyramid_80181478[7];
-extern WorldCoordRoomLights  D_neo_ark_pyramid_80181298[1];
+extern WorldCollisionGrid     D_neo_ark_pyramid_801802C4[1];
+extern WorldCollisionOccluder D_neo_ark_pyramid_80181790[3];
+extern WorldCollisionTrigger  D_neo_ark_pyramid_801812B0[6];
+extern WorldCollisionTrigger  D_neo_ark_pyramid_80181478[7];
+extern WorldCoordRoomLights   D_neo_ark_pyramid_80181298[1];
 
 TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
@@ -439,10 +439,10 @@ GpAreaVariant D_neo_ark_pyramid_80181728[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_pyramid_80181790[3] = {
-    { NULL, NULL, { 6416, -1104, -6464, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, { 56, 18 }, 1, 0 },
-    { NULL, NULL, { 6400, -1088, -8384, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, { 56, 18 }, 1, 0 },
-    { NULL, NULL, { 1536, -1984, -5744, 0 }, { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, { 0, -4110, 0, 0 }, { -76, 33 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_pyramid_80181790[3] = {
+    { NULL, NULL, { 6416, -1104, -6464, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, 4664, 1, 0 },
+    { NULL, NULL, { 6400, -1088, -8384, 0 }, { { -2800, 1776, 0, 0 }, { 2800, 1776, 0, 0 }, { -2800, 208, 0, 0 }, { 2800, -3760, 0, 0 } }, { 0, 0, 4097, 0 }, 4664, 1, 0 },
+    { NULL, NULL, { 1536, -1984, -5744, 0 }, { { -5776, 0, 4448, 0 }, { 5776, 0, 4448, 0 }, { -5776, 0, -2464, 0 }, { 5776, 0, -6432, 0 } }, { 0, -4110, 0, 0 }, 8628, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_pyramid_80181844 = {

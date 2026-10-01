@@ -39,11 +39,11 @@ STATIC_ASSERT_SIZEOF(_DryfieldNightMotelRoom1SpotLightStorage, 432);
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA54[];
 extern SVECTOR D_dryfield_night_motel_room_1_8017DA5C[];
 
-extern WorldCollisionGrid    D_dryfield_night_motel_room_1_8017E098[1];
-extern GpObj3A               D_dryfield_night_motel_room_1_801806C0[1];
-extern WorldCollisionTrigger D_dryfield_night_motel_room_1_8017FF04[8];
-extern WorldCollisionTrigger D_dryfield_night_motel_room_1_801804AC[7];
-extern WorldCoordRoomLights  D_dryfield_night_motel_room_1_80180494[1];
+extern WorldCollisionGrid     D_dryfield_night_motel_room_1_8017E098[1];
+extern WorldCollisionOccluder D_dryfield_night_motel_room_1_801806C0[1];
+extern WorldCollisionTrigger  D_dryfield_night_motel_room_1_8017FF04[8];
+extern WorldCollisionTrigger  D_dryfield_night_motel_room_1_801804AC[7];
+extern WorldCoordRoomLights   D_dryfield_night_motel_room_1_80180494[1];
 
 extern _DryfieldNightMotelRoom1SpotLightStorage D_dryfield_night_motel_room_1_801802E4;
 extern WorldCoordPointLight                     D_dryfield_night_motel_room_1_80180164[4];
@@ -942,8 +942,8 @@ WorldCollisionTrigger D_dryfield_night_motel_room_1_801804AC[7] = {
     { NULL, NULL, NULL, { 4160, -64, 5568, 0 }, { { -736, 0, -304, 0 }, { 736, 0, -304, 0 }, { -736, 0, 304, 0 }, { 736, 0, 304, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_motel_room_1_801806C0[1] = {
-    { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, { 102, 11 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_motel_room_1_801806C0[1] = {
+    { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, 2918, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_dryfield_night_motel_room_1_801806FC[3] = {

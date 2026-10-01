@@ -62,11 +62,11 @@ extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
 extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
 
-extern WorldCollisionGrid    D_neo_ark_power_plant_1_80180090[1];
-extern GpObj3A               D_neo_ark_power_plant_1_80181B60[1];
-extern WorldCollisionTrigger D_neo_ark_power_plant_1_8018155C[10];
-extern WorldCollisionTrigger D_neo_ark_power_plant_1_80181854[7];
-extern WorldCoordRoomLights  D_neo_ark_power_plant_1_8017FB80[1];
+extern WorldCollisionGrid     D_neo_ark_power_plant_1_80180090[1];
+extern WorldCollisionOccluder D_neo_ark_power_plant_1_80181B60[1];
+extern WorldCollisionTrigger  D_neo_ark_power_plant_1_8018155C[10];
+extern WorldCollisionTrigger  D_neo_ark_power_plant_1_80181854[7];
+extern WorldCoordRoomLights   D_neo_ark_power_plant_1_8017FB80[1];
 
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
@@ -724,8 +724,8 @@ GpAreaVariant D_neo_ark_power_plant_1_80181AF8[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_power_plant_1_80181B60[1] = {
-    { NULL, NULL, { 2080, -2432, -5472, 0 }, { { 384, 3456, 2880, 0 }, { -384, 3456, -2880, 0 }, { 384, -3456, 2880, 0 }, { -384, -3456, -2880, 0 } }, { 4075, 0, -544, 0 }, { -116, 17 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_power_plant_1_80181B60[1] = {
+    { NULL, NULL, { 2080, -2432, -5472, 0 }, { { 384, 3456, 2880, 0 }, { -384, 3456, -2880, 0 }, { 384, -3456, 2880, 0 }, { -384, -3456, -2880, 0 } }, { 4075, 0, -544, 0 }, 4492, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181B9C = {

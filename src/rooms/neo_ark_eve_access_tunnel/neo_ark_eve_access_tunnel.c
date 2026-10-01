@@ -382,8 +382,8 @@ GpAreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_eve_access_tunnel_80180720[1] = {
-    { NULL, NULL, { -3712, -1376, 3440, 0 }, { { -1664, 2368, 1296, 0 }, { 1664, 2368, -1296, 0 }, { -1664, -2368, 1296, 0 }, { 1664, -2368, -1296, 0 } }, { 2527, 0, 3244, 0 }, { 94, 12 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_eve_access_tunnel_80180720[1] = {
+    { NULL, NULL, { -3712, -1376, 3440, 0 }, { { -1664, 2368, 1296, 0 }, { 1664, 2368, -1296, 0 }, { -1664, -2368, 1296, 0 }, { 1664, -2368, -1296, 0 } }, { 2527, 0, 3244, 0 }, 3166, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_eve_access_tunnel_8018075C = {

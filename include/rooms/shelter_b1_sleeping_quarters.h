@@ -34,7 +34,7 @@ extern WorldCoordRoomLights D_shelter_b1_sleeping_quarters_80183234;
 
 extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_8018324C[];
 
-extern GpObj3A D_shelter_b1_sleeping_quarters_801837A4[];
+extern WorldCollisionOccluder D_shelter_b1_sleeping_quarters_801837A4[];
 
 extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_801838D0[];
 

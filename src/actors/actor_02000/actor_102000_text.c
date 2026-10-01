@@ -2056,9 +2056,9 @@ void Actor02000_Fn02D5C(Task* arg0)
 
 static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
 {
-    VECTOR*  vec;
-    GpObj3A* node;
-    s32      ret;
+    VECTOR*                 vec;
+    WorldCollisionOccluder* node;
+    s32                     ret;
 
     ret     = 0;
     node    = D_80115550;
@@ -2068,7 +2068,7 @@ static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
     vec->vz = arg1->vz - arg0->vz;
     VectorNormal(vec, vec);
     for (; node != NULL; node = node->next) {
-        if (node->field_3A & 0x40) {
+        if (node->flags & WORLD_COLLISION_OCCLUDER_ENABLED) {
             ret = func_800DFCCC(node, arg0, arg1, vec);
             if (ret == 1) {
                 break;

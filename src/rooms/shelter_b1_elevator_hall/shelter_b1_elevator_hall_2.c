@@ -66,11 +66,11 @@
 /// is also reached through its own name.
 
 // Indexed views below share one contiguous table.
-extern WorldCollisionGrid    D_shelter_b1_elevator_hall_80183414[1];
-extern GpObj3A               D_shelter_b1_elevator_hall_80184748[1];
-extern WorldCollisionTrigger D_shelter_b1_elevator_hall_80184288[10];
-extern WorldCollisionTrigger D_shelter_b1_elevator_hall_80184580[6];
-extern WorldCoordRoomLights  D_shelter_b1_elevator_hall_80184270[1];
+extern WorldCollisionGrid     D_shelter_b1_elevator_hall_80183414[1];
+extern WorldCollisionOccluder D_shelter_b1_elevator_hall_80184748[1];
+extern WorldCollisionTrigger  D_shelter_b1_elevator_hall_80184288[10];
+extern WorldCollisionTrigger  D_shelter_b1_elevator_hall_80184580[6];
+extern WorldCoordRoomLights   D_shelter_b1_elevator_hall_80184270[1];
 
 TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
@@ -394,8 +394,8 @@ WorldCollisionTrigger D_shelter_b1_elevator_hall_80184580[6] = {
     { NULL, NULL, NULL, { 7488, -64, 4256, 0 }, { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_shelter_b1_elevator_hall_80184748[1] = {
-    { NULL, NULL, { 2768, -1360, 3664, 0 }, { { -1968, -2384, 1936, 0 }, { 1968, -2384, -1936, 0 }, { -1968, 2384, 1936, 0 }, { 1968, 2384, -1936, 0 } }, { -2879, 0, -2926, 0 }, { 63, 14 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b1_elevator_hall_80184748[1] = {
+    { NULL, NULL, { 2768, -1360, 3664, 0 }, { { -1968, -2384, 1936, 0 }, { 1968, -2384, -1936, 0 }, { -1968, 2384, 1936, 0 }, { 1968, 2384, -1936, 0 } }, { -2879, 0, -2926, 0 }, 3647, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_shelter_b1_elevator_hall_80184784[2] = {

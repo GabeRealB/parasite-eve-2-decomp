@@ -91,12 +91,12 @@ static const TaskFuncTable3 D_acropolis_cafeteria_8017D5C4 = {
 
 static const char CafeteriaPlayerLabel[12] = "Player";
 
-extern WorldCollisionGrid    D_acropolis_cafeteria_801887A8[1];
-extern GpObj3A               D_acropolis_cafeteria_80189C94[2];
-extern WorldCollisionTrigger D_acropolis_cafeteria_801887CC[16];
-extern WorldCollisionTrigger D_acropolis_cafeteria_80188C8C[18];
-extern WorldCollisionTrigger D_acropolis_cafeteria_801891E4[16];
-extern WorldCollisionTrigger D_acropolis_cafeteria_801896A4[20];
+extern WorldCollisionGrid     D_acropolis_cafeteria_801887A8[1];
+extern WorldCollisionOccluder D_acropolis_cafeteria_80189C94[2];
+extern WorldCollisionTrigger  D_acropolis_cafeteria_801887CC[16];
+extern WorldCollisionTrigger  D_acropolis_cafeteria_80188C8C[18];
+extern WorldCollisionTrigger  D_acropolis_cafeteria_801891E4[16];
+extern WorldCollisionTrigger  D_acropolis_cafeteria_801896A4[20];
 
 extern AnimationSet D_acropolis_cafeteria_80184CC4;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -862,9 +862,9 @@ WorldCollisionTrigger D_acropolis_cafeteria_801896A4[20] = {
     { NULL, NULL, NULL, { -3488, -384, -1728, 0 }, { { -240, 0, -720, 0 }, { 240, 0, -720, 0 }, { -240, 0, 720, 0 }, { 240, 0, 720, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_acropolis_cafeteria_80189C94[2] = {
-    { NULL, NULL, { -384, -304, -1136, 0 }, { { 0, 752, -4816, 0 }, { 0, 752, 4816, 0 }, { 0, -752, -4816, 0 }, { 0, -752, 4816, 0 } }, { -4106, 0, 0, 0 }, { -7, 18 }, 1, 0 },
-    { NULL, NULL, { -352, -1456, -3920, 0 }, { { 0, 2208, -2400, 0 }, { 0, 2208, 2400, 0 }, { 0, -2208, -2400, 0 }, { 0, -2208, 2400, 0 } }, { -4099, 0, 0, 0 }, { -70, 12 }, 129, 0 },
+WorldCollisionOccluder D_acropolis_cafeteria_80189C94[2] = {
+    { NULL, NULL, { -384, -304, -1136, 0 }, { { 0, 752, -4816, 0 }, { 0, 752, 4816, 0 }, { 0, -752, -4816, 0 }, { 0, -752, 4816, 0 } }, { -4106, 0, 0, 0 }, 4857, 1, 0 },
+    { NULL, NULL, { -352, -1456, -3920, 0 }, { { 0, 2208, -2400, 0 }, { 0, 2208, 2400, 0 }, { 0, -2208, -2400, 0 }, { 0, -2208, 2400, 0 } }, { -4099, 0, 0, 0 }, 3258, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_acropolis_cafeteria_80189D0C[4] = {

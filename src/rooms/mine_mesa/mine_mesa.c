@@ -256,7 +256,7 @@ extern GpCopyArg            D_mine_mesa_80184344;
 extern GpCopyArg            D_mine_mesa_80184484;
 extern EvsCommand           D_mine_mesa_8018515C[17];
 
-extern GpObj3A                    D_mine_mesa_801899B4[2];
+extern WorldCollisionOccluder     D_mine_mesa_801899B4[2];
 extern WorldCollisionTrigger      D_mine_mesa_80188E40[8];
 extern WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12];
 extern WorldCoordRoomLights       D_mine_mesa_80188E28[1];
@@ -2468,9 +2468,9 @@ WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-GpObj3A D_mine_mesa_801899B4[2] = {
-    { NULL, NULL, { 6128, -144, 4048, 0 }, { { -2224, 1168, 912, 0 }, { 2224, 1168, -912, 0 }, { -2224, -1167, 912, 0 }, { 2224, -1167, -912, 0 } }, { 1556, 0, 3798, 0 }, { 100, 10 }, 1, 0 },
-    { NULL, NULL, { 6207, -136, 4015, 0 }, { { -2297, 1160, -913, 0 }, { 2298, 1160, 914, 0 }, { -2297, -1160, -913, 0 }, { 2298, -1160, 914, 0 } }, { -1518, 0, 3815, 0 }, { -95, 10 }, 129, 0 },
+WorldCollisionOccluder D_mine_mesa_801899B4[2] = {
+    { NULL, NULL, { 6128, -144, 4048, 0 }, { { -2224, 1168, 912, 0 }, { 2224, 1168, -912, 0 }, { -2224, -1167, 912, 0 }, { 2224, -1167, -912, 0 } }, { 1556, 0, 3798, 0 }, 2660, 1, 0 },
+    { NULL, NULL, { 6207, -136, 4015, 0 }, { { -2297, 1160, -913, 0 }, { 2298, 1160, 914, 0 }, { -2297, -1160, -913, 0 }, { 2298, -1160, 914, 0 } }, { -1518, 0, 3815, 0 }, 2721, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_mine_mesa_80189A2C = {

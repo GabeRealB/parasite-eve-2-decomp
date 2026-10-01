@@ -81,15 +81,15 @@ extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-extern WorldCollisionGrid    D_shelter_b1_south_maintenance_walkway_801827B8[1];
-extern GpObj3A               D_shelter_b1_south_maintenance_walkway_80183274[1];
-extern WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801830AC[6];
-extern WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801832B0[2];
-extern WorldCoordRoomLights  D_shelter_b1_south_maintenance_walkway_80183094[1];
-s32                          func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid     D_shelter_b1_south_maintenance_walkway_801827B8[1];
+extern WorldCollisionOccluder D_shelter_b1_south_maintenance_walkway_80183274[1];
+extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801830AC[6];
+extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801832B0[2];
+extern WorldCoordRoomLights   D_shelter_b1_south_maintenance_walkway_80183094[1];
+s32                           func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                           func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -310,8 +310,8 @@ WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801830AC[6] = {
     { NULL, NULL, NULL, { 1120, -1600, -4176, 0 }, { { -100, -1904, 1323, 0 }, { 98, -1904, -1325, 0 }, { -100, 1904, 1323, 0 }, { 98, 1904, -1325, 0 } }, { -4084, 0, -307, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_shelter_b1_south_maintenance_walkway_80183274[1] = {
-    { NULL, NULL, { -1504, -1344, -1424, 0 }, { { -2080, -2368, 1200, 0 }, { 2080, -2368, -1200, 0 }, { -2080, 2368, 1200, 0 }, { 2080, 2368, -1200, 0 } }, { -2053, 0, -3558, 0 }, { 39, 13 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b1_south_maintenance_walkway_80183274[1] = {
+    { NULL, NULL, { -1504, -1344, -1424, 0 }, { { -2080, -2368, 1200, 0 }, { 2080, -2368, -1200, 0 }, { -2080, 2368, 1200, 0 }, { 2080, 2368, -1200, 0 } }, { -2053, 0, -3558, 0 }, 3367, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801832B0[2] = {

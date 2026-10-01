@@ -19,7 +19,7 @@ extern WorldCoordRoomLights D_dryfield_night_dilapidated_house_80189B60[1];
 
 extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_80189B78[12];
 
-extern GpObj3A D_dryfield_night_dilapidated_house_80189F08[1];
+extern WorldCollisionOccluder D_dryfield_night_dilapidated_house_80189F08[1];
 
 extern WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12];
 

@@ -58,11 +58,11 @@ extern SVECTOR D_dryfield_night_parking_lot_8017EDFC[];
 
 static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
 
-extern WorldCollisionGrid    D_dryfield_night_parking_lot_8017FAD0[1];
-extern GpObj3A               D_dryfield_night_parking_lot_80181330[2];
-extern WorldCollisionTrigger D_dryfield_night_parking_lot_80180CA8[10];
-extern WorldCollisionTrigger D_dryfield_night_parking_lot_80180FA0[12];
-extern WorldCoordRoomLights  D_dryfield_night_parking_lot_80180C90[1];
+extern WorldCollisionGrid     D_dryfield_night_parking_lot_8017FAD0[1];
+extern WorldCollisionOccluder D_dryfield_night_parking_lot_80181330[2];
+extern WorldCollisionTrigger  D_dryfield_night_parking_lot_80180CA8[10];
+extern WorldCollisionTrigger  D_dryfield_night_parking_lot_80180FA0[12];
+extern WorldCoordRoomLights   D_dryfield_night_parking_lot_80180C90[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -506,9 +506,9 @@ WorldCollisionTrigger D_dryfield_night_parking_lot_80180FA0[12] = {
     { NULL, NULL, NULL, { -5624, -64, -3000, 0 }, { { -200, 0, -1816, 0 }, { 920, 0, -1816, 0 }, { -904, 0, 1704, 0 }, { 184, 0, 1928, 0 } }, { 0, 4103, 0, 0 }, { 3857, 0, 1380, 0 }, 2031, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_parking_lot_80181330[2] = {
-    { NULL, NULL, { -160, -1872, -2944, 0 }, { { 1508, 2896, -2822, 0 }, { 1508, -2896, -2822, 0 }, { -1509, 2896, 2821, 0 }, { -1509, -2896, 2821, 0 } }, { 3613, 0, 1931, 0 }, { -38, 16 }, 1, 0 },
-    { NULL, NULL, { -6018, -1792, 3071, 0 }, { { 1509, 2896, -2821, 0 }, { 1509, -2896, -2821, 0 }, { -1508, 2896, 2822, 0 }, { -1508, -2896, 2822, 0 } }, { 3613, 0, 1931, 0 }, { -38, 16 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_parking_lot_80181330[2] = {
+    { NULL, NULL, { -160, -1872, -2944, 0 }, { { 1508, 2896, -2822, 0 }, { 1508, -2896, -2822, 0 }, { -1509, 2896, 2821, 0 }, { -1509, -2896, 2821, 0 } }, { 3613, 0, 1931, 0 }, 4314, 1, 0 },
+    { NULL, NULL, { -6018, -1792, 3071, 0 }, { { 1509, 2896, -2821, 0 }, { 1509, -2896, -2821, 0 }, { -1508, 2896, 2822, 0 }, { -1508, -2896, 2822, 0 } }, { 3613, 0, 1931, 0 }, 4314, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_dryfield_night_parking_lot_801813A8[3] = {

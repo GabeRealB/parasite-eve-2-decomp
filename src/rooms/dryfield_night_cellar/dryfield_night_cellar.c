@@ -50,13 +50,13 @@ s32 func_dryfield_night_cellar_8017D62C(Task*, s32, TaskMessageArg, TaskMessageA
 s32 func_dryfield_night_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_dryfield_night_cellar_8017DE60[1];
-extern GpObj3A               D_dryfield_night_cellar_801802F4[1];
-extern WorldCollisionTrigger D_dryfield_night_cellar_8017FB3C[6];
-extern WorldCollisionTrigger D_dryfield_night_cellar_8017FD04[10];
-extern WorldCollisionTrigger D_dryfield_night_cellar_8017FFFC[10];
-extern WorldCoordRoomLights  D_dryfield_night_cellar_80180510[1];
-extern WorldCoordRoomLights  D_dryfield_night_cellar_80180708[1];
+extern WorldCollisionGrid     D_dryfield_night_cellar_8017DE60[1];
+extern WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1];
+extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FB3C[6];
+extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FD04[10];
+extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FFFC[10];
+extern WorldCoordRoomLights   D_dryfield_night_cellar_80180510[1];
+extern WorldCoordRoomLights   D_dryfield_night_cellar_80180708[1];
 
 TaskMessageEntry D_dryfield_night_cellar_8017DAA8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_cellar_8017D634 },
@@ -627,8 +627,8 @@ WorldCollisionTrigger D_dryfield_night_cellar_8017FFFC[10] = {
     { NULL, NULL, NULL, { 7376, -64, 192, 0 }, { { -2192, 0, -303, 0 }, { 2192, 0, -303, 0 }, { -2192, 0, 304, 0 }, { 2192, 0, 304, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_cellar_801802F4[1] = {
-    { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, { 75, 10 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1] = {
+    { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, 2635, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_night_cellar_80180330[5] = {

@@ -136,12 +136,12 @@ static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { func_acropolis_patio_8017D5EC, func_acropolis_patio_8017DF7C, taskKill },
 };
 
-extern WorldCollisionGrid    D_acropolis_patio_80183DF8[1];
-extern GpObj3A               D_acropolis_patio_80184964[2];
-extern WorldCollisionTrigger D_acropolis_patio_80183E1C[14];
-extern WorldCollisionTrigger D_acropolis_patio_80184244[12];
-extern WorldCollisionTrigger D_acropolis_patio_801845D4[12];
-extern WorldCoordRoomLights  D_acropolis_patio_80186D44[1];
+extern WorldCollisionGrid     D_acropolis_patio_80183DF8[1];
+extern WorldCollisionOccluder D_acropolis_patio_80184964[2];
+extern WorldCollisionTrigger  D_acropolis_patio_80183E1C[14];
+extern WorldCollisionTrigger  D_acropolis_patio_80184244[12];
+extern WorldCollisionTrigger  D_acropolis_patio_801845D4[12];
+extern WorldCoordRoomLights   D_acropolis_patio_80186D44[1];
 
 extern AnimationPlayRequest D_acropolis_patio_8018261C;
 extern ActorTransform       D_acropolis_patio_80182690;
@@ -950,9 +950,9 @@ WorldCollisionTrigger D_acropolis_patio_801845D4[12] = {
     { NULL, NULL, NULL, { -7201, -384, -2240, 0 }, { { -1586, 0, -428, 0 }, { 1574, 0, -446, 0 }, { -1572, 0, 446, 0 }, { 1587, 0, 429, 0 } }, { 0, 4112, 0, 0 }, { -1189, 0, -3920, 0 }, 1639, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_acropolis_patio_80184964[2] = {
-    { NULL, NULL, { -1184, -1760, -2112, 0 }, { { -3904, -1984, 0, 0 }, { 3904, -1984, 0, 0 }, { -3904, 1984, 0, 0 }, { 3904, 1984, 0, 0 } }, { 0, 0, -4098, 0 }, { 22, 17 }, 1, 0 },
-    { NULL, NULL, { 2336, -1728, -5888, 0 }, { { 0, -1984, 3904, 0 }, { 0, -1984, -3904, 0 }, { 0, 1984, 3904, 0 }, { 0, 1984, -3904, 0 } }, { -4098, 0, 0, 0 }, { 22, 17 }, 129, 0 },
+WorldCollisionOccluder D_acropolis_patio_80184964[2] = {
+    { NULL, NULL, { -1184, -1760, -2112, 0 }, { { -3904, -1984, 0, 0 }, { 3904, -1984, 0, 0 }, { -3904, 1984, 0, 0 }, { 3904, 1984, 0, 0 } }, { 0, 0, -4098, 0 }, 4374, 1, 0 },
+    { NULL, NULL, { 2336, -1728, -5888, 0 }, { { 0, -1984, 3904, 0 }, { 0, -1984, -3904, 0 }, { 0, 1984, 3904, 0 }, { 0, 1984, -3904, 0 } }, { -4098, 0, 0, 0 }, 4374, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_acropolis_patio_801849DC[3] = {

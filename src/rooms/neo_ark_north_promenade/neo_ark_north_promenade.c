@@ -67,11 +67,11 @@ static const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
     { func_neo_ark_north_promenade_8017D67C, func_neo_ark_north_promenade_8017D6C0, taskKill },
 };
 
-extern WorldCollisionGrid    D_neo_ark_north_promenade_801823EC[1];
-extern GpObj3A               D_neo_ark_north_promenade_8018328C[1];
-extern WorldCollisionTrigger D_neo_ark_north_promenade_80182DB4[8];
-extern WorldCollisionTrigger D_neo_ark_north_promenade_801830C4[6];
-extern WorldCoordRoomLights  D_neo_ark_north_promenade_80182D9C[1];
+extern WorldCollisionGrid     D_neo_ark_north_promenade_801823EC[1];
+extern WorldCollisionOccluder D_neo_ark_north_promenade_8018328C[1];
+extern WorldCollisionTrigger  D_neo_ark_north_promenade_80182DB4[8];
+extern WorldCollisionTrigger  D_neo_ark_north_promenade_801830C4[6];
+extern WorldCoordRoomLights   D_neo_ark_north_promenade_80182D9C[1];
 
 s32 func_neo_ark_north_promenade_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_north_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -364,8 +364,8 @@ WorldCollisionTrigger D_neo_ark_north_promenade_801830C4[6] = {
     { NULL, NULL, NULL, { 0x31A7, -64, 0x2E77, 0 }, { { -2805, 0, 441, 0 }, { -835, 0, -887, 0 }, { -2641, 0, 1549, 0 }, { 6283, 0, -1101, 0 } }, { 0, 4115, 0, 0 }, { -3290, 0, -2441, 0 }, 6374, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_neo_ark_north_promenade_8018328C[1] = {
-    { NULL, NULL, { 6384, -1520, 5040, 0 }, { { -3056, 2672, -4368, 0 }, { 3056, 2672, 4368, 0 }, { -3056, -2672, -4368, 0 }, { 3056, -2672, 4368, 0 } }, { -3361, 0, 2350, 0 }, { 60, 23 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_north_promenade_8018328C[1] = {
+    { NULL, NULL, { 6384, -1520, 5040, 0 }, { { -3056, 2672, -4368, 0 }, { 3056, 2672, 4368, 0 }, { -3056, -2672, -4368, 0 }, { 3056, -2672, 4368, 0 } }, { -3361, 0, 2350, 0 }, 5948, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_north_promenade_801832C8 = {

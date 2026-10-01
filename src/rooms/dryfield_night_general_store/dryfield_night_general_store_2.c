@@ -42,7 +42,7 @@
 #include "../../shared/general_store.h"
 
 extern WorldCollisionGrid         D_dryfield_night_general_store_8017F484[1];
-extern GpObj3A                    D_dryfield_night_general_store_801855C4[4];
+extern WorldCollisionOccluder     D_dryfield_night_general_store_801855C4[4];
 extern WorldCollisionTrigger      D_dryfield_night_general_store_801847D0[28];
 extern WorldCollisionTrigger      D_dryfield_night_general_store_80185020[19];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_general_store_801857DC[17];
@@ -1327,11 +1327,11 @@ WorldCollisionTrigger D_dryfield_night_general_store_80185020[19] = {
     { NULL, NULL, NULL, { 480, -64, 880, 0 }, { { 624, 0, -928, 0 }, { 624, 0, 928, 0 }, { -624, 0, -928, 0 }, { -624, 0, 928, 0 } }, { 0, 4120, 0, 0 }, { 4076, 0, 401, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_general_store_801855C4[4] = {
-    { NULL, NULL, { 6128, -1376, 6144, 0 }, { { -4176, -2496, 0, 0 }, { 4176, -2496, 0, 0 }, { -4176, 2496, 0, 0 }, { 4176, 2496, 0, 0 } }, { 0, 0, -4113, 0 }, { -7, 18 }, 1, 0 },
-    { NULL, NULL, { 5872, -160, 4128, 0 }, { { -2144, -1152, 0, 0 }, { 2144, -1152, 0, 0 }, { -2144, 1152, 0, 0 }, { 2144, 1152, 0, 0 } }, { 0, 0, -4114, 0 }, { 124, 9 }, 1, 0 },
-    { NULL, NULL, { 5889, -16, 2016, 0 }, { { -2144, -1328, 0, 0 }, { 2144, -1328, 0, 0 }, { -2144, 1328, 0, 0 }, { 2144, 1328, 0, 0 } }, { 0, 0, -4096, 0 }, { -39, 9 }, 1, 0 },
-    { NULL, NULL, { 1824, -64, 1568, 0 }, { { 0, -768, 1376, 0 }, { 0, -640, -1376, 0 }, { 0, 640, 1376, 0 }, { 0, 768, -1376, 0 } }, { -4100, 0, 0, 0 }, { 36, 6 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_general_store_801855C4[4] = {
+    { NULL, NULL, { 6128, -1376, 6144, 0 }, { { -4176, -2496, 0, 0 }, { 4176, -2496, 0, 0 }, { -4176, 2496, 0, 0 }, { 4176, 2496, 0, 0 } }, { 0, 0, -4113, 0 }, 4857, 1, 0 },
+    { NULL, NULL, { 5872, -160, 4128, 0 }, { { -2144, -1152, 0, 0 }, { 2144, -1152, 0, 0 }, { -2144, 1152, 0, 0 }, { 2144, 1152, 0, 0 } }, { 0, 0, -4114, 0 }, 2428, 1, 0 },
+    { NULL, NULL, { 5889, -16, 2016, 0 }, { { -2144, -1328, 0, 0 }, { 2144, -1328, 0, 0 }, { -2144, 1328, 0, 0 }, { 2144, 1328, 0, 0 } }, { 0, 0, -4096, 0 }, 2521, 1, 0 },
+    { NULL, NULL, { 1824, -64, 1568, 0 }, { { 0, -768, 1376, 0 }, { 0, -640, -1376, 0 }, { 0, 640, 1376, 0 }, { 0, 768, -1376, 0 } }, { -4100, 0, 0, 0 }, 1572, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_dryfield_night_general_store_801856B4[2] = {

@@ -259,13 +259,13 @@ void Gp_AllocSprtLists(void)
 
 static void Gp_LinkRoomObjects(Task* task)
 {
-    GameLocationKey*       sess;
-    GpRoomObjRec*          recs;
-    WorldCollisionGrid*    grid;
-    WorldCollisionTrigger* list1;
-    WorldCollisionTrigger* list2;
-    GpObj3A*               list3;
-    s32                    i;
+    GameLocationKey*        sess;
+    GpRoomObjRec*           recs;
+    WorldCollisionGrid*     grid;
+    WorldCollisionTrigger*  list1;
+    WorldCollisionTrigger*  list2;
+    WorldCollisionOccluder* occluders;
+    s32                     i;
 
     sess = &gGameSession->location.loc;
     Gp_LoadStageView();
@@ -275,10 +275,10 @@ static void Gp_LinkRoomObjects(Task* task)
     Gp_ClearObj3AList(0);
     recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
     if (recs != NULL) {
-        grid  = recs[sess->room - 1].field_0;
-        list1 = recs[sess->room - 1].field_4;
-        list2 = recs[sess->room - 1].field_8;
-        list3 = recs[sess->room - 1].field_C;
+        grid      = recs[sess->room - 1].field_0;
+        list1     = recs[sess->room - 1].field_4;
+        list2     = recs[sess->room - 1].field_8;
+        occluders = recs[sess->room - 1].field_C;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
             grid->viewCoord = &gGfxViewCoord;
@@ -304,11 +304,11 @@ static void Gp_LinkRoomObjects(Task* task)
                 }
             }
         }
-        if (list3 != NULL) {
+        if (occluders != NULL) {
             for (i = 0;; i++) {
-                Gp_LinkObj3A(0, &list3[i]);
-                list3[i].field_3A |= 0x40;
-                if (list3[i].field_3A & 0x80) {
+                Gp_LinkObj3A(0, &occluders[i]);
+                occluders[i].flags |= WORLD_COLLISION_OCCLUDER_ENABLED;
+                if (occluders[i].flags & WORLD_COLLISION_OCCLUDER_LAST) {
                     break;
                 }
             }

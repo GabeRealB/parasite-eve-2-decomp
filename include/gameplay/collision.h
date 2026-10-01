@@ -184,26 +184,42 @@ typedef struct WorldCollisionTrigger {
 } WorldCollisionTrigger;
 STATIC_ASSERT_SIZEOF(WorldCollisionTrigger, 0x4C);
 
-/// 0x3C list node appended to `Gp_Obj3ALists[index]` by `Gp_LinkObj3A` and
-/// unlinked by `Gp_UnlinkObj3A`. `Gp_ClearObj3AList` empties the whole list.
-/// `field_3A` bit 0x20 means the node is on that list (cleared on unlink,
-/// keeping bits 0x87). Bit 0x40 is the active filter used by
-/// `func_800E0308` before it calls `func_800DFCCC`. Bit 0x80 marks the last
-/// element of an array walked at +0x3C (`Gp_LinkRoomObjects`). Same link/flag
-/// layout as `WorldCollisionTrigger`, with the flag byte at 0x3A instead of 0x4A.
-/// `func_800DFCCC` transforms the origin, four vertices and face normal
-/// into view space to test a segment against the quad.
-typedef struct _GpObj3A {
-    /* 0x00 */ struct _GpObj3A*  next;
-    /* 0x04 */ struct _GpObj3A** prev;
-    /* 0x08 */ SVECTOR           origin;
-    /* 0x10 */ SVECTOR           verts[4];
-    /* 0x30 */ SVECTOR           normal;
-    /* 0x38 */ byte              pad_38[2];
-    /* 0x3A */ u8                field_3A;
-    /* 0x3B */ byte              pad_3B;
-} GpObj3A;
-STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
+/// Runtime list state and resource-array termination in an occluder's flags.
+///
+/// The low three bits have no observed interpretation; resource records set
+/// bit 0. Unlinking and clearing preserve those bits and LAST, clearing bits
+/// 3..6. LAST marks the final included record in the array.
+enum {
+    WORLD_COLLISION_OCCLUDER_LINKED           = 0x20,
+    WORLD_COLLISION_OCCLUDER_ENABLED          = 0x40,
+    WORLD_COLLISION_OCCLUDER_LAST             = 0x80,
+    WORLD_COLLISION_OCCLUDER_PERSISTENT_FLAGS = 0x07 | WORLD_COLLISION_OCCLUDER_LAST,
+};
+
+/// A linked room-space quad that blocks line of sight through its face.
+///
+/// Storage is borrowed and mutable: keep the room records alive while linked.
+/// Room setup links and enables every element through the one with LAST set.
+/// Runtime traversal instead ends at a NULL next. A record belongs to at most
+/// one list, and `prevLink` addresses the head or the preceding record's `next`.
+///
+/// The current view transform maps the origin and its relative corners into
+/// query space. Positions and radius use game units; normals use 4096 per unit.
+/// The four corners have strip order, with boundary 1, 0, 2, 3, 1. An enabled
+/// quad blocks a segment when the plane intersection lies strictly between
+/// its endpoints and inside or on all four edges; both crossing directions
+/// are accepted. The resource radius is unused by the segment test.
+typedef struct WorldCollisionOccluder {
+    struct WorldCollisionOccluder*  next;        // Next linked occluder, or NULL
+    struct WorldCollisionOccluder** prevLink;    // Link pointing to this record; NULL when unlinked
+    SVECTOR                         origin;      // Quad origin in room-local game units
+    SVECTOR                         vertices[4]; // Corner offsets from origin, in strip order
+    SVECTOR                         normal;      // Room-local plane normal, 4096 per unit
+    u16                             radius;      // Approximate maximum corner distance from origin; unused by sight tests
+    u8                              flags;       // LINKED, ENABLED, LAST and uninterpreted low three bits
+    s8                              unknown_3B;  // No observed accesses; resource values are zero, role unproven
+} WorldCollisionOccluder;
+STATIC_ASSERT_SIZEOF(WorldCollisionOccluder, 0x3C);
 
 /// A triangle's missing fourth vertex index.
 enum { WORLD_COLLISION_GRID_FACE_NO_VERTEX = 0xFFFF };

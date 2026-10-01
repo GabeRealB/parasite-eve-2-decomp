@@ -64,7 +64,7 @@
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
-extern GpObj3A                    D_neo_ark_power_plant_2_80182E78[1];
+extern WorldCollisionOccluder     D_neo_ark_power_plant_2_80182E78[1];
 extern WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10];
 
 extern TaskMessageEntry D_neo_ark_power_plant_2_801801F8[];
@@ -693,8 +693,8 @@ GpAreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_power_plant_2_80182E78[1] = {
-    { NULL, NULL, { 6064, -6976, -6944, 0 }, { { 208, 2944, 1760, 0 }, { -208, 2944, -1760, 0 }, { 208, -2944, 1760, 0 }, { -208, -2944, -1760, 0 } }, { 4068, 0, -481, 0 }, { 106, 13 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_power_plant_2_80182E78[1] = {
+    { NULL, NULL, { 6064, -6976, -6944, 0 }, { { 208, 2944, 1760, 0 }, { -208, 2944, -1760, 0 }, { 208, -2944, 1760, 0 }, { -208, -2944, -1760, 0 } }, { 4068, 0, -481, 0 }, 3434, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10] = {

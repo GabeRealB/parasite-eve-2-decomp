@@ -31,7 +31,7 @@ extern WorldCoordRoomLights D_shelter_b1_north_maintenance_walkway_801855D4;
 
 extern WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_801855EC[];
 
-extern GpObj3A D_shelter_b1_north_maintenance_walkway_801857B4[];
+extern WorldCollisionOccluder D_shelter_b1_north_maintenance_walkway_801857B4[];
 
 extern WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_80185A98[];
 

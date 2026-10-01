@@ -48,11 +48,11 @@ extern SVECTOR D_dryfield_night_motel_room_3_8017DA84;
 extern SVECTOR D_dryfield_night_motel_room_3_8017DA8C;
 extern SVECTOR D_dryfield_night_motel_room_3_8017DA94;
 
-extern WorldCollisionGrid    D_dryfield_night_motel_room_3_8017E180[1];
-extern GpObj3A               D_dryfield_night_motel_room_3_801806F4[1];
-extern WorldCollisionTrigger D_dryfield_night_motel_room_3_8018019C[11];
-extern WorldCollisionTrigger D_dryfield_night_motel_room_3_801804E0[7];
-extern WorldCoordRoomLights  D_dryfield_night_motel_room_3_80180CC4[1];
+extern WorldCollisionGrid     D_dryfield_night_motel_room_3_8017E180[1];
+extern WorldCollisionOccluder D_dryfield_night_motel_room_3_801806F4[1];
+extern WorldCollisionTrigger  D_dryfield_night_motel_room_3_8018019C[11];
+extern WorldCollisionTrigger  D_dryfield_night_motel_room_3_801804E0[7];
+extern WorldCoordRoomLights   D_dryfield_night_motel_room_3_80180CC4[1];
 
 extern DryfieldNightMotelRoom3SpotLightStorage D_dryfield_night_motel_room_3_801809D0;
 extern WorldCoordPointLight                    D_dryfield_night_motel_room_3_80180730[7];
@@ -623,8 +623,8 @@ WorldCollisionTrigger D_dryfield_night_motel_room_3_801804E0[7] = {
     { NULL, NULL, NULL, { 4128, -64, 3776, 0 }, { { -368, 0, -576, 0 }, { 368, 0, -576, 0 }, { -368, 0, 576, 0 }, { 368, 0, 576, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 683, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_motel_room_3_801806F4[1] = {
-    { NULL, NULL, { 1168, -1024, 4864, 0 }, { { -2096, -2048, 0, 0 }, { 2096, -2048, 0, 0 }, { -2096, 2048, 0, 0 }, { 2096, 2048, 0, 0 } }, { 0, 0, -4097, 0 }, { 114, 11 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_motel_room_3_801806F4[1] = {
+    { NULL, NULL, { 1168, -1024, 4864, 0 }, { { -2096, -2048, 0, 0 }, { 2096, -2048, 0, 0 }, { -2096, 2048, 0, 0 }, { 2096, 2048, 0, 0 } }, { 0, 0, -4097, 0 }, 2930, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_night_motel_room_3_80180730[7] = {

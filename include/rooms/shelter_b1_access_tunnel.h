@@ -33,7 +33,7 @@ extern WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FA34[];
 
 extern WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FBFC[];
 
-extern GpObj3A D_shelter_b1_access_tunnel_8017FD2C[];
+extern WorldCollisionOccluder D_shelter_b1_access_tunnel_8017FD2C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_access_tunnel_8017FF24[];
 

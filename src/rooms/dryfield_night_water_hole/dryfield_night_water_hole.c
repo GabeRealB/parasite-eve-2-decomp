@@ -171,7 +171,7 @@ static void func_dryfield_night_water_hole_8017E690(Task* arg0);
 void func_dryfield_night_water_hole_8017E630(Task*);
 
 extern WorldCollisionGrid         D_dryfield_night_water_hole_80180F50[1];
-extern GpObj3A                    D_dryfield_night_water_hole_80182D58[2];
+extern WorldCollisionOccluder     D_dryfield_night_water_hole_80182D58[2];
 extern WorldCollisionTrigger      D_dryfield_night_water_hole_801824BC[12];
 extern WorldCollisionTrigger      D_dryfield_night_water_hole_8018284C[9];
 extern WorldCollisionTrigger      D_dryfield_night_water_hole_80182AF8[8];
@@ -885,9 +885,9 @@ WorldCollisionTrigger D_dryfield_night_water_hole_80182AF8[8] = {
     { NULL, NULL, NULL, { 7376, -64, -2240, 0 }, { { -959, 0, 208, 0 }, { 960, 0, 208, 0 }, { -959, 0, 976, 0 }, { 960, 0, 976, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1366, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 18, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_water_hole_80182D58[2] = {
-    { NULL, NULL, { 8544, -1520, -3664, 0 }, { { -1536, -2224, -1840, 0 }, { -1536, 2224, -1840, 0 }, { 1536, -2224, 1840, 0 }, { 1536, 2224, 1840, 0 } }, { -3150, 0, 2629, 0 }, { -60, 12 }, 1, 0 },
-    { NULL, NULL, { 0x34E0, -1568, -176, 0 }, { { -1504, -2224, -1936, 0 }, { -1504, 2224, -1936, 0 }, { 1504, -2224, 1936, 0 }, { 1504, 2224, 1936, 0 } }, { -3237, 0, 2514, 0 }, { -20, 12 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_water_hole_80182D58[2] = {
+    { NULL, NULL, { 8544, -1520, -3664, 0 }, { { -1536, -2224, -1840, 0 }, { -1536, 2224, -1840, 0 }, { 1536, -2224, 1840, 0 }, { 1536, 2224, 1840, 0 } }, { -3150, 0, 2629, 0 }, 3268, 1, 0 },
+    { NULL, NULL, { 0x34E0, -1568, -176, 0 }, { { -1504, -2224, -1936, 0 }, { -1504, 2224, -1936, 0 }, { 1504, -2224, 1936, 0 }, { 1504, 2224, 1936, 0 } }, { -3237, 0, 2514, 0 }, 3308, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_night_water_hole_80182DD0[6] = {

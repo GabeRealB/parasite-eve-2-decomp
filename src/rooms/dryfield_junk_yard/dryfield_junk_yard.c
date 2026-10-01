@@ -115,7 +115,7 @@ extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDB0;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDC4;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDEC;
 extern WorldCollisionGrid         D_dryfield_junk_yard_8017F4C8[1];
-extern GpObj3A                    D_dryfield_junk_yard_80181518[1];
+extern WorldCollisionOccluder     D_dryfield_junk_yard_80181518[1];
 extern WorldCollisionTrigger      D_dryfield_junk_yard_80180C7C[10];
 extern WorldCollisionTrigger      D_dryfield_junk_yard_80180F74[19];
 extern WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8];
@@ -780,8 +780,8 @@ WorldCollisionTrigger D_dryfield_junk_yard_80180F74[19] = {
     { NULL, NULL, NULL, { 7520, -64, 4704, 0 }, { { -3216, 0, -624, 0 }, { 3216, 0, -624, 0 }, { -3216, 0, 624, 0 }, { 3216, 0, 624, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 3268, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_junk_yard_80181518[1] = {
-    { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, { -88, 5 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_junk_yard_80181518[1] = {
+    { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_junk_yard_80181554[8] = {

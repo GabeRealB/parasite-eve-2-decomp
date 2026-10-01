@@ -31,7 +31,7 @@ extern WorldCoordRoomLights D_shelter_b2_operating_room_80183718;
 
 extern WorldCollisionTrigger D_shelter_b2_operating_room_80183730[];
 
-extern GpObj3A D_shelter_b2_operating_room_80183A28[];
+extern WorldCollisionOccluder D_shelter_b2_operating_room_80183A28[];
 
 extern WorldCollisionTrigger D_shelter_b2_operating_room_80183ADC[];
 

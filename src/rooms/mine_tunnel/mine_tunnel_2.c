@@ -37,7 +37,7 @@
 
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_mine_tunnel_8017E86C[1];
-extern GpObj3A                    D_mine_tunnel_8018025C[3];
+extern WorldCollisionOccluder     D_mine_tunnel_8018025C[3];
 extern WorldCollisionTrigger      D_mine_tunnel_8017FBD8[6];
 extern WorldCollisionTrigger      D_mine_tunnel_8017FDA0[4];
 extern WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6];
@@ -505,10 +505,10 @@ WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6] = {
     { .color = { 420, 420, 350, 411 } },
 };
 
-GpObj3A D_mine_tunnel_8018025C[3] = {
-    { NULL, NULL, { 4416, 0, 416, 0 }, { { 0, -1024, 1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, 1024, -1024, 0 } }, { -4096, 0, 0, 0 }, { -88, 5 }, 1, 0 },
-    { NULL, NULL, { 7455, 0, 3568, 0 }, { { -9, -1024, 1509, 0 }, { 10, -1024, -1509, 0 }, { -9, 1024, 1509, 0 }, { 10, 1024, -1509, 0 } }, { -4110, 0, -28, 0 }, { 27, 7 }, 1, 0 },
-    { NULL, NULL, { 0x2C80, 0, 640, 0 }, { { -392, -1024, 946, 0 }, { 391, -1024, -946, 0 }, { -392, 1024, 946, 0 }, { 391, 1024, -946, 0 } }, { -3784, 0, -1568, 0 }, { -88, 5 }, 129, 0 },
+WorldCollisionOccluder D_mine_tunnel_8018025C[3] = {
+    { NULL, NULL, { 4416, 0, 416, 0 }, { { 0, -1024, 1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, 1024, -1024, 0 } }, { -4096, 0, 0, 0 }, 1448, 1, 0 },
+    { NULL, NULL, { 7455, 0, 3568, 0 }, { { -9, -1024, 1509, 0 }, { 10, -1024, -1509, 0 }, { -9, 1024, 1509, 0 }, { 10, 1024, -1509, 0 } }, { -4110, 0, -28, 0 }, 1819, 1, 0 },
+    { NULL, NULL, { 0x2C80, 0, 640, 0 }, { { -392, -1024, 946, 0 }, { 391, -1024, -946, 0 }, { -392, 1024, 946, 0 }, { 391, 1024, -946, 0 } }, { -3784, 0, -1568, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_mine_tunnel_80180310 = {

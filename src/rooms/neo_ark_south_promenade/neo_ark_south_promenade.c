@@ -64,11 +64,11 @@ s32 func_neo_ark_south_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMs
 s32 func_neo_ark_south_promenade_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_south_promenade_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_neo_ark_south_promenade_8017FD8C[1];
-extern GpObj3A               D_neo_ark_south_promenade_8018094C[1];
-extern WorldCollisionTrigger D_neo_ark_south_promenade_801804E8[6];
-extern WorldCollisionTrigger D_neo_ark_south_promenade_801806B0[6];
-extern WorldCoordRoomLights  D_neo_ark_south_promenade_801804D0[1];
+extern WorldCollisionGrid     D_neo_ark_south_promenade_8017FD8C[1];
+extern WorldCollisionOccluder D_neo_ark_south_promenade_8018094C[1];
+extern WorldCollisionTrigger  D_neo_ark_south_promenade_801804E8[6];
+extern WorldCollisionTrigger  D_neo_ark_south_promenade_801806B0[6];
+extern WorldCoordRoomLights   D_neo_ark_south_promenade_801804D0[1];
 
 TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_south_promenade_8017D5D8 },
@@ -311,8 +311,8 @@ GpAreaVariant D_neo_ark_south_promenade_801808E4[13] = {
     { NULL, NULL },
 };
 
-GpObj3A D_neo_ark_south_promenade_8018094C[1] = {
-    { NULL, NULL, { 4912, -1568, 7344, 0 }, { { -4560, 2496, 2832, 0 }, { 4560, 2496, -2832, 0 }, { -4560, -2496, 2832, 0 }, { 4560, -2496, -2832, 0 } }, { 2162, 0, 3481, 0 }, { 16, 23 }, 129, 0 },
+WorldCollisionOccluder D_neo_ark_south_promenade_8018094C[1] = {
+    { NULL, NULL, { 4912, -1568, 7344, 0 }, { { -4560, 2496, 2832, 0 }, { 4560, 2496, -2832, 0 }, { -4560, -2496, 2832, 0 }, { 4560, -2496, -2832, 0 } }, { 2162, 0, 3481, 0 }, 5904, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_south_promenade_80180988 = {

@@ -35,7 +35,7 @@ extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_80182668[];
 
 extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801827E4[];
 
-extern GpObj3A D_shelter_b3_incinerator_control_room_801829AC[];
+extern WorldCollisionOccluder D_shelter_b3_incinerator_control_room_801829AC[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b3_incinerator_control_room_80182A20[];
 

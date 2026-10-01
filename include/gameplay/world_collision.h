@@ -22,11 +22,11 @@ extern s32 Gp_RoomParams[8];
 
 extern WorldCollisionGrid* Gp_GridParams;
 
-extern GpObj3A* D_80115550;
+extern WorldCollisionOccluder* D_80115550;
 
 s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
 
-s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
+s32 func_800DFCCC(WorldCollisionOccluder* occluder, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 
 extern WorldCollisionTrigger* Gp_PendingObj4C;
 

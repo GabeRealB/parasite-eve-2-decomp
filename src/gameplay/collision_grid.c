@@ -152,7 +152,7 @@ WorldCollisionGrid* Gp_GridParams;
 
 u8 D_80115450[256];
 
-GpObj3A* D_80115550;
+WorldCollisionOccluder* D_80115550;
 
 WorldCollisionTrigger* Gp_Obj4CList;
 
@@ -890,7 +890,7 @@ void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTO
     SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
 }
 
-s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
+s32 func_800DFCCC(WorldCollisionOccluder* occluder, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
 {
     GpFaceHitScratch* block;
     VECTOR*           va;
@@ -904,8 +904,9 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GpFaceHitScratch);
 
+    // Transform the room quad into the segment's query space.
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&arg0->origin);
+    gte_ldv0(&occluder->origin);
     gte_rtv0();
     gte_stlvnl(&block->origin);
     block->origin.vx += gGfxViewCoord.workm.t[0];
@@ -913,7 +914,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     block->origin.vz += gGfxViewCoord.workm.t[2];
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&arg0->verts[0]);
+    gte_ldv0(&occluder->vertices[0]);
     gte_rtv0();
     gte_stlvnl(&block->verts[0]);
     block->verts[0].vx += block->origin.vx;
@@ -921,7 +922,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     block->verts[0].vz += block->origin.vz;
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&arg0->normal);
+    gte_ldv0(&occluder->normal);
     gte_rtv0();
     gte_stlvnl(&block->normal);
 
@@ -941,8 +942,8 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     }
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    for (i = 1; i < 4; i++) {
-        gte_ldv0(&arg0->verts[i]);
+    for (i = 1; i < (s32)ARRAY_SIZE(occluder->vertices); i++) {
+        gte_ldv0(&occluder->vertices[i]);
         gte_rtv0();
         gte_stlvnl(&block->verts[i]);
         block->verts[i].vx += block->origin.vx;
@@ -954,6 +955,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
     block->origin.vy = arg1->vy + ((arg3->vy * t) >> 12);
     block->origin.vz = arg1->vz + ((arg3->vz * t) >> 12);
 
+    // An intersection at either endpoint does not block the segment.
     if ((block->origin.vx - arg1->vx) * (block->origin.vx - arg2->vx) +
             (block->origin.vy - arg1->vy) * (block->origin.vy - arg2->vy) +
             (block->origin.vz - arg1->vz) * (block->origin.vz - arg2->vz) >=
@@ -962,7 +964,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
         return 0;
     }
 
-    for (i = 1; i < 5; i++) {
+    for (i = 1; i < (s32)ARRAY_SIZE(occluder->vertices) + 1; i++) {
         va             = &block->verts[(u16)Gp_FaceEdgePairs[i].field_0];
         vb             = &block->verts[(u16)Gp_FaceEdgePairs[i].field_2];
         block->edge.vx = va->vx - vb->vx;

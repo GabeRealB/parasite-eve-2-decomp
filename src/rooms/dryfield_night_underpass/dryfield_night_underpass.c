@@ -49,12 +49,12 @@ s32 func_dryfield_night_underpass_8017D8CC(Task*, s32, s32, s32);
 s32 func_dryfield_night_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_underpass_8017D908(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid    D_dryfield_night_underpass_8017E6D4[1];
-extern GpObj3A               D_dryfield_night_underpass_8017FBE0[3];
-extern WorldCollisionTrigger D_dryfield_night_underpass_8017F558[16];
-extern WorldCollisionTrigger D_dryfield_night_underpass_8017FA18[6];
-extern WorldCoordRoomLights  D_dryfield_night_underpass_8017FFF4[1];
-extern WorldCoordRoomLights  D_dryfield_night_underpass_8018024C[1];
+extern WorldCollisionGrid     D_dryfield_night_underpass_8017E6D4[1];
+extern WorldCollisionOccluder D_dryfield_night_underpass_8017FBE0[3];
+extern WorldCollisionTrigger  D_dryfield_night_underpass_8017F558[16];
+extern WorldCollisionTrigger  D_dryfield_night_underpass_8017FA18[6];
+extern WorldCoordRoomLights   D_dryfield_night_underpass_8017FFF4[1];
+extern WorldCoordRoomLights   D_dryfield_night_underpass_8018024C[1];
 
 TaskDesc gUnderpassSwitchTaskDesc[2] = {
     { { { TASK_BODY_NONE, 32 } }, underpassSwitchTask, { .value = 0 } },
@@ -583,10 +583,10 @@ WorldCollisionTrigger D_dryfield_night_underpass_8017FA18[6] = {
     { NULL, NULL, NULL, { 1648, -1056, -7184, 0 }, { { -1008, 0, -544, 0 }, { 1008, 0, -544, 0 }, { -1008, 0, 544, 0 }, { 1008, 0, 544, 0 } }, { 0, 4121, 0, 0 }, { 0, 0, -4096, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 51, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_night_underpass_8017FBE0[3] = {
-    { NULL, NULL, { 1184, -2304, -0x2840, 0 }, { { -2912, -3328, 0, 0 }, { 2912, -3328, 0, 0 }, { -2912, 3328, 0, 0 }, { 2912, 3328, 0, 0 } }, { 0, 0, -4106, 0 }, { 52, 17 }, 1, 0 },
-    { NULL, NULL, { 0x2FB0, -2240, -0x2820, 0 }, { { -5840, -3264, 0, 0 }, { 5840, -3264, 0, 0 }, { -5840, 3264, 0, 0 }, { 5840, 3264, 0, 0 } }, { 0, 0, -4111, 0 }, { 19, 26 }, 1, 0 },
-    { NULL, NULL, { 8992, -3328, -4416, 0 }, { { -5840, -2848, 2496, 0 }, { 5840, -2848, -2496, 0 }, { -5840, 2848, 2496, 0 }, { 5840, 2848, -2496, 0 } }, { -1614, 0, -3777, 0 }, { 33, 27 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_night_underpass_8017FBE0[3] = {
+    { NULL, NULL, { 1184, -2304, -0x2840, 0 }, { { -2912, -3328, 0, 0 }, { 2912, -3328, 0, 0 }, { -2912, 3328, 0, 0 }, { 2912, 3328, 0, 0 } }, { 0, 0, -4106, 0 }, 4404, 1, 0 },
+    { NULL, NULL, { 0x2FB0, -2240, -0x2820, 0 }, { { -5840, -3264, 0, 0 }, { 5840, -3264, 0, 0 }, { -5840, 3264, 0, 0 }, { 5840, 3264, 0, 0 } }, { 0, 0, -4111, 0 }, 6675, 1, 0 },
+    { NULL, NULL, { 8992, -3328, -4416, 0 }, { { -5840, -2848, 2496, 0 }, { 5840, -2848, -2496, 0 }, { -5840, 2848, 2496, 0 }, { 5840, 2848, -2496, 0 } }, { -1614, 0, -3777, 0 }, 6945, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_night_underpass_8017FC94[9] = {

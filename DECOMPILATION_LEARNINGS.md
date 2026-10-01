@@ -25028,7 +25028,7 @@ the `j` / `beqz` shape.
 
 Two other pieces have to stay wide:
 
-- `node->field_3A &= ~0x78` (or `&= 0x87`) on a `u8` folds to `andi 0x87`
+- `node->flags &= ~0x78` (or `&= 0x87`) on a `u8` folds to `andi 0x87`
   each iteration. Hold `s32 mask = ~0x78` and AND an `s32 flags` so the
   constant is hoisted as `li a1, -0x79` / `and`.
 - `node = head->next; if (node != NULL)` allocates the pointer in `$v1`

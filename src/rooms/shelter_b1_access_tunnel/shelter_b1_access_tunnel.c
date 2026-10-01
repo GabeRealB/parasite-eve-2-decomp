@@ -405,8 +405,8 @@ WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FBFC[4] = {
     { NULL, NULL, NULL, { 0x2970, -48, 6096, 0 }, { { 368, 0, -624, 0 }, { 368, 0, 624, 0 }, { -368, 0, -624, 0 }, { -368, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 724, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 66, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_shelter_b1_access_tunnel_8017FD2C[1] = {
-    { NULL, NULL, { 5152, -1440, 4400, 0 }, { { -3488, 2464, -2192, 0 }, { 3488, 2464, 2192, 0 }, { -3488, -2464, -2192, 0 }, { 3488, -2464, 2192, 0 } }, { -2188, 0, 3480, 0 }, { -89, 18 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b1_access_tunnel_8017FD2C[1] = {
+    { NULL, NULL, { 5152, -1440, 4400, 0 }, { { -3488, 2464, -2192, 0 }, { 3488, 2464, 2192, 0 }, { -3488, -2464, -2192, 0 }, { 3488, -2464, 2192, 0 } }, { -2188, 0, 3480, 0 }, 4775, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_shelter_b1_access_tunnel_8017FD68[2] = {

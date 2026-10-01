@@ -145,9 +145,9 @@ WorldCollisionTrigger D_acropolis_helicopter_landing_pad_80185E7C[9] = {
     { NULL, NULL, NULL, { -6144, -64, -1824, 0 }, { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } }, { 0, 4098, 0, 0 }, { -4052, 0, -601, 0 }, 1015, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_acropolis_helicopter_landing_pad_80186128[2] = {
-    { NULL, NULL, { -256, -944, -240, 0 }, { { -5632, -1968, -5616, 0 }, { 5632, -1968, 5616, 0 }, { -5632, 1968, -5616, 0 }, { 5632, 1968, 5616, 0 } }, { 2897, 0, -2906, 0 }, { 0, 32 }, 1, 0 },
-    { NULL, NULL, { 0, -896, 0, 0 }, { { 5616, -1920, -5632, 0 }, { -5616, -1920, 5632, 0 }, { 5616, 1920, -5632, 0 }, { -5616, 1920, 5632, 0 } }, { 2900, 0, 2892, 0 }, { -17, 31 }, 129, 0 },
+WorldCollisionOccluder D_acropolis_helicopter_landing_pad_80186128[2] = {
+    { NULL, NULL, { -256, -944, -240, 0 }, { { -5632, -1968, -5616, 0 }, { 5632, -1968, 5616, 0 }, { -5632, 1968, -5616, 0 }, { 5632, 1968, 5616, 0 } }, { 2897, 0, -2906, 0 }, 8192, 1, 0 },
+    { NULL, NULL, { 0, -896, 0, 0 }, { { 5616, -1920, -5632, 0 }, { -5616, -1920, 5632, 0 }, { 5616, 1920, -5632, 0 }, { -5616, 1920, 5632, 0 } }, { 2900, 0, 2892, 0 }, 8175, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_acropolis_helicopter_landing_pad_801861A0[2] = {

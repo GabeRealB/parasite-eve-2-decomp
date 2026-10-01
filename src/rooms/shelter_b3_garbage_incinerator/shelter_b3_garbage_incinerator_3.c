@@ -1756,8 +1756,8 @@ TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_80184ECC, { .value = 0 } },
 };
 
-GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1] = {
-    { NULL, NULL, { 4624, -2864, -5504, 0 }, { { -5200, 3888, 0, 0 }, { 5200, 3888, 0, 0 }, { -5200, -3888, 0, 0 }, { 5200, -3888, 0, 0 } }, { 0, 0, 4116, 0 }, { 76, 25 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b3_garbage_incinerator_8018FAD8[1] = {
+    { NULL, NULL, { 4624, -2864, -5504, 0 }, { { -5200, 3888, 0, 0 }, { 5200, 3888, 0, 0 }, { -5200, -3888, 0, 0 }, { 5200, -3888, 0, 0 } }, { 0, 0, 4116, 0 }, 6476, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b3_garbage_incinerator_8018FB14 = {

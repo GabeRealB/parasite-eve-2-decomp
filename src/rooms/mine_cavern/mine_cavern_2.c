@@ -188,12 +188,12 @@ typedef struct _MineCavernHitScratch {
     s16     damage;
 } _MineCavernHitScratch;
 
-extern WorldCollisionGrid    D_mine_cavern_8018981C[1];
-extern GpObj3A               D_mine_cavern_8018E078[2];
-extern WorldCollisionTrigger D_mine_cavern_8018D154[20];
-extern WorldCollisionTrigger D_mine_cavern_8018D744[18];
-extern WorldCollisionTrigger D_mine_cavern_8018DC9C[13];
-extern WorldCoordRoomLights  D_mine_cavern_8018D13C[1];
+extern WorldCollisionGrid     D_mine_cavern_8018981C[1];
+extern WorldCollisionOccluder D_mine_cavern_8018E078[2];
+extern WorldCollisionTrigger  D_mine_cavern_8018D154[20];
+extern WorldCollisionTrigger  D_mine_cavern_8018D744[18];
+extern WorldCollisionTrigger  D_mine_cavern_8018DC9C[13];
+extern WorldCoordRoomLights   D_mine_cavern_8018D13C[1];
 
 extern SpriteBatch  D_mine_cavern_80189BC4[2];
 extern SpriteBatch  D_mine_cavern_80189FA8[4];
@@ -2034,9 +2034,9 @@ WorldCollisionTrigger D_mine_cavern_8018DC9C[13] = {
     { NULL, NULL, NULL, { 0x3300, -64, 6112, 0 }, { { -1472, 0, -448, 0 }, { 1472, 0, -448, 0 }, { -1472, 0, 448, 0 }, { 1472, 0, 448, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_mine_cavern_8018E078[2] = {
-    { NULL, NULL, { 9216, -2384, 4448, 0 }, { { -5856, -3408, -1088, 0 }, { 5856, -3408, 1088, 0 }, { -5856, 3408, -1088, 0 }, { 5856, 3408, 1088, 0 } }, { 750, 0, -4041, 0 }, { -62, 26 }, 1, 0 },
-    { NULL, NULL, { 9183, -2320, 4399, 0 }, { { -5890, -3344, 1060, 0 }, { 5891, -3344, -1059, 0 }, { -5890, 3344, 1060, 0 }, { 5891, 3344, -1059, 0 } }, { -726, 0, -4034, 0 }, { -62, 26 }, 129, 0 },
+WorldCollisionOccluder D_mine_cavern_8018E078[2] = {
+    { NULL, NULL, { 9216, -2384, 4448, 0 }, { { -5856, -3408, -1088, 0 }, { 5856, -3408, 1088, 0 }, { -5856, 3408, -1088, 0 }, { 5856, 3408, 1088, 0 } }, { 750, 0, -4041, 0 }, 6850, 1, 0 },
+    { NULL, NULL, { 9183, -2320, 4399, 0 }, { { -5890, -3344, 1060, 0 }, { 5891, -3344, -1059, 0 }, { -5890, 3344, 1060, 0 }, { 5891, 3344, -1059, 0 } }, { -726, 0, -4034, 0 }, 6850, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_mine_cavern_8018E0F0[2] = {

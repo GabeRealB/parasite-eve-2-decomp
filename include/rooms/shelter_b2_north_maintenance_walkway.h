@@ -33,7 +33,7 @@ extern WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185D5C[];
 
 extern WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[];
 
-extern GpObj3A D_shelter_b2_north_maintenance_walkway_80186308[];
+extern WorldCollisionOccluder D_shelter_b2_north_maintenance_walkway_80186308[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_north_maintenance_walkway_80186360[];
 

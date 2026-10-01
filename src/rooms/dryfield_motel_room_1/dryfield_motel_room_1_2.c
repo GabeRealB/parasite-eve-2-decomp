@@ -160,11 +160,11 @@ void func_dryfield_motel_room_1_8017DF08(void);
 extern EvsCommand D_dryfield_motel_room_1_8017E160[];
 extern EvsCommand D_dryfield_motel_room_1_8017E340[];
 
-extern WorldCollisionGrid    D_dryfield_motel_room_1_8017EABC[1];
-extern GpObj3A               D_dryfield_motel_room_1_801811BC[1];
-extern WorldCollisionTrigger D_dryfield_motel_room_1_80180CFC[8];
-extern WorldCollisionTrigger D_dryfield_motel_room_1_80180F5C[8];
-extern WorldCoordRoomLights  D_dryfield_motel_room_1_801813D8[1];
+extern WorldCollisionGrid     D_dryfield_motel_room_1_8017EABC[1];
+extern WorldCollisionOccluder D_dryfield_motel_room_1_801811BC[1];
+extern WorldCollisionTrigger  D_dryfield_motel_room_1_80180CFC[8];
+extern WorldCollisionTrigger  D_dryfield_motel_room_1_80180F5C[8];
+extern WorldCoordRoomLights   D_dryfield_motel_room_1_801813D8[1];
 
 extern SpriteBatch  D_dryfield_motel_room_1_8017EC24[2];
 extern SpriteBatch  D_dryfield_motel_room_1_8017EC34[2];
@@ -837,8 +837,8 @@ WorldCollisionTrigger D_dryfield_motel_room_1_80180F5C[8] = {
     { NULL, NULL, NULL, { 4176, -64, 5600, 0 }, { { -736, 0, -256, 0 }, { 736, 0, -256, 0 }, { -736, 0, 256, 0 }, { 736, 0, 256, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_dryfield_motel_room_1_801811BC[1] = {
-    { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, { 102, 11 }, 129, 0 },
+WorldCollisionOccluder D_dryfield_motel_room_1_801811BC[1] = {
+    { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, 2918, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_motel_room_1_801811F8[5] = {

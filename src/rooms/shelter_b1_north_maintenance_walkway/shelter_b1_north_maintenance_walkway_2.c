@@ -215,8 +215,8 @@ WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_801855EC[6] = {
     { NULL, NULL, NULL, { -496, -1600, 3984, 0 }, { { -80, -1904, 1328, 0 }, { 80, -1904, -1328, 0 }, { -80, 1904, 1328, 0 }, { 80, 1904, -1328, 0 } }, { -4097, 0, -248, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj3A D_shelter_b1_north_maintenance_walkway_801857B4[1] = {
-    { NULL, NULL, { -1280, -1104, 1776, 0 }, { { -1920, 2128, -848, 0 }, { 1920, 2128, 848, 0 }, { -1920, -2128, -848, 0 }, { 1920, -2128, 848, 0 } }, { -1662, 0, 3761, 0 }, { -87, 11 }, 129, 0 },
+WorldCollisionOccluder D_shelter_b1_north_maintenance_walkway_801857B4[1] = {
+    { NULL, NULL, { -1280, -1104, 1776, 0 }, { { -1920, 2128, -848, 0 }, { 1920, 2128, 848, 0 }, { -1920, -2128, -848, 0 }, { 1920, -2128, 848, 0 } }, { -1662, 0, 3761, 0 }, 2985, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
 AreaResource D_shelter_b1_north_maintenance_walkway_801857F0[3] = {

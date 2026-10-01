@@ -31,7 +31,7 @@ extern WorldCoordRoomLights D_shelter_b2_elevator_hall_801846B4;
 
 extern WorldCollisionTrigger D_shelter_b2_elevator_hall_801846CC[];
 
-extern GpObj3A D_shelter_b2_elevator_hall_8018492C[];
+extern WorldCollisionOccluder D_shelter_b2_elevator_hall_8018492C[];
 
 extern WorldCollisionTrigger D_shelter_b2_elevator_hall_80184968[];
 

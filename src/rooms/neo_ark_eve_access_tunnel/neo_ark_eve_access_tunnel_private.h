@@ -17,7 +17,7 @@ extern WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801802EC[6];
 
 extern WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801804B4[6];
 
-extern GpObj3A D_neo_ark_eve_access_tunnel_80180720[1];
+extern WorldCollisionOccluder D_neo_ark_eve_access_tunnel_80180720[1];
 
 extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
 
