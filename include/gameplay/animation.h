@@ -68,8 +68,7 @@ enum {
     ANIMATION_RECORD_CUE_2          = 0x20,
     ANIMATION_RECORD_CUE_MASK       = ANIMATION_RECORD_CUE_1 | ANIMATION_RECORD_CUE_2,
     ANIMATION_RECORD_STOP           = 0x40, // Ends the track only together with CONTROL
-    ANIMATION_RECORD_CONTROL        = 0x80,
-    ANIMATION_RECORD_END            = ANIMATION_RECORD_CONTROL | ANIMATION_RECORD_STOP
+    ANIMATION_RECORD_CONTROL        = 0x80
 };
 
 /// Four-byte keyframe or control record in a model-part animation track.

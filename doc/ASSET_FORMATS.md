@@ -648,7 +648,7 @@ AnimationRecord (4 bytes):
   0x02  u8  durationFrames frames allotted to interpolate to the keyframe;
                            ignored by control records
   0x03  u8  flags          low nibble picks the pose bank, 0x30 the cue bits;
-                           0x80 marks a control entry, 0xC0 ends the track
+                           0x80 marks a control entry, values 0xC0..0xFF end the track
 ```
 
 Pose bank formats, dispatched by `animationTickSlotPose` on `AnimationSlot.poseEncoding`:
@@ -733,7 +733,7 @@ A set has one track per bone; a track is a run of 4-byte records:
 |---|---|
 | `wordOffset` | pose-bank offset in four-byte words, or an absolute record index for a jump; ignored by an end record |
 | `durationFrames` | positive segment duration in frames, used to interpolate toward this keyframe; ignored by control records |
-| `flags` | `0x80` marks a control entry, `0xC0` ends the track |
+| `flags` | `0x80` marks a control entry; unsigned values `0xC0..0xFF` end the track (control and stop bits both set) |
 
 **Two of the records are control, not keyframes**, and reading them as poses
 turns a 63-tick clip into a 320-frame one that sits still after the first

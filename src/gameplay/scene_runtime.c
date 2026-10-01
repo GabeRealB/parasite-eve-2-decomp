@@ -89,6 +89,15 @@
 
 #include "rooms/shelter_r48.h"
 
+/// Lowest unsigned record-flags value that ends a forward animation-track walk.
+///
+/// Values 0xC0..0xFF have both control and stop bits set; the low six bits do
+/// not affect termination. Values 0x80..0xBF instead jump to `wordOffset`.
+/// An end record keeps the slot's previously selected next record index and
+/// ignores its own `wordOffset` and `durationFrames`. This is a threshold,
+/// so comparison with `AnimationRecord.flags` must retain its unsigned value.
+enum { ANIMATION_RECORD_END_THRESHOLD = ANIMATION_RECORD_CONTROL | ANIMATION_RECORD_STOP };
+
 // Playback timing in sixteenths of a normal-rate frame.
 enum {
     ANIMATION_TIME_FRACTION_BITS   = 4,
@@ -2147,7 +2156,7 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
             while ((s8)recs[recordIndex].flags < 0) {
                 // Negated-index subtraction preserves the address-add operand order.
                 rec = recs - -(s32)recordIndex;
-                if (rec->flags < ANIMATION_RECORD_END) {
+                if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
                     recordIndex = rec->wordOffset;
                     if (recordIndex == slot->nextPose.indices.recordIndex) {
                         slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
@@ -2227,7 +2236,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             records               = slot->sets[nextSetIndex]->records;
             while ((s8)records[nextRecordIndex].flags < 0) {
                 record = records - -(s32)nextRecordIndex;
-                if (record->flags < ANIMATION_RECORD_END) {
+                if (record->flags < ANIMATION_RECORD_END_THRESHOLD) {
                     nextRecordIndex = record->wordOffset;
                     if (nextRecordIndex == slot->nextPose.indices.recordIndex) {
                         slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
@@ -2342,7 +2351,7 @@ static inline void _gpAnimSeekSlot(AnimationContext* context, s32 arg1, u16 arg2
     recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg3;
     while ((s8)recs[recordIndex].flags < 0) {
         rec = recs - -(s32)recordIndex;
-        if (rec->flags < ANIMATION_RECORD_END) {
+        if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
             recordIndex = rec->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
                 slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
@@ -2406,7 +2415,7 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
         recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg4;
         while ((s8)recs[recordIndex].flags < 0) {
             rec = recs - -(s32)recordIndex;
-            if (rec->flags < ANIMATION_RECORD_END) {
+            if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
                 recordIndex = rec->wordOffset;
                 if (recordIndex == slot->nextPose.indices.recordIndex) {
                     slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
@@ -2711,7 +2720,7 @@ void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16
     recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg4;
     while ((s8)recs[recordIndex].flags < 0) {
         rec = recs - -(s32)recordIndex;
-        if (rec->flags < ANIMATION_RECORD_END) {
+        if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
             recordIndex = rec->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
                 slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
@@ -2753,7 +2762,7 @@ static void func_800B46A4(AnimationContext* unusedContext, AnimationSlot* arg1, 
     recs = arg1->sets[arg2]->records;
     while ((s8)recs[arg3].flags < 0) {
         rec = recs - -(s32)arg3;
-        if (rec->flags < ANIMATION_RECORD_END) {
+        if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
             arg3 = rec->wordOffset;
             if (arg3 == arg1->nextPose.indices.recordIndex) {
                 arg1->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
@@ -2808,7 +2817,7 @@ void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, AnimationPose* arg2, u
     recordIndex = arg4;
     while ((s8)recs[recordIndex].flags < 0) {
         rec = recs - -(s32)recordIndex;
-        if (rec->flags < ANIMATION_RECORD_END) {
+        if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
             recordIndex = rec->wordOffset;
             if (recordIndex == slot->nextPose.indices.recordIndex) {
                 slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
