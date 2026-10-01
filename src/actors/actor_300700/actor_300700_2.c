@@ -421,28 +421,7 @@ s16 gRatAnimBlend[10] = {
 
 #include "../../shared/rat_reactions.inc.c"
 
-void ratBehavior(Task* arg0)
-{
-    switch (((RatWork*)arg0->work)->field_37A) {
-        case 0:
-            ratIdle(arg0);
-            break;
-        case 1:
-            ratAttack(arg0);
-            break;
-        case 2:
-            ratStagger(arg0);
-            break;
-        case 3:
-            ratBuildup(arg0);
-            break;
-        case 4:
-            ratHurt(arg0);
-            break;
-        case 5:
-            break;
-    }
-}
+#include "../../shared/rat_behavior.inc.c"
 
 #include "../../shared/rat_idle_sound.inc.c"
 

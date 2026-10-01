@@ -32,7 +32,9 @@
 /* Per weapon: the lunge cycle's wind-up turn rate and lunge range, and the
  * state and animation it hands over to for the lunge and for the walk-in (the
  * Grenade Launcher's state table is the longer one). The Beam Sword's charge
- * turns at GOLEM_PAWN_ROOK_CHARGE_TURN, which only the Pawn does. */
+ * turns at GOLEM_PAWN_ROOK_CHARGE_TURN, which only the Pawn does, and a hit
+ * that leaves it under GOLEM_PAWN_ROOK_LOW_HP of its maximum takes the heavy
+ * reaction. */
 #if GOLEM_PAWN_ROOK_WEAPON == GOLEM_BEAM_SWORD
 #define GOLEM_PAWN_ROOK_WIND_UP_TURN 0x3C
 #define GOLEM_PAWN_ROOK_LUNGE_RANGE  0x8CA
@@ -42,8 +44,10 @@
 #define GOLEM_PAWN_ROOK_WALK_ANIM    5
 #if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN
 #define GOLEM_PAWN_ROOK_CHARGE_TURN 0xF
+#define GOLEM_PAWN_ROOK_LOW_HP(max) ((max) * 15 / 100)
 #else
 #define GOLEM_PAWN_ROOK_CHARGE_TURN 0
+#define GOLEM_PAWN_ROOK_LOW_HP(max) ((max) / 4)
 #endif
 #else
 #define GOLEM_PAWN_ROOK_WIND_UP_TURN 0x1E
