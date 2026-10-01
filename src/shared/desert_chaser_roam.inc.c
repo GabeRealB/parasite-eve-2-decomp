@@ -1,12 +1,13 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/// Wandering between its waypoints while it watches for the player: once its
-/// watch delay (poseYawPrev) has run out and it has wandered long enough
-/// (field_8 past poseVz), a player within range, or within 8000 and ahead of
-/// it, or behind its back, starts the chase (0x1C). The regular build only
-/// looks with a clear line of sight on its own frame of fifteen and also
-/// reacts to Parasite Energy in use; the run sequence counts its delay down
-/// here.
+/// Wandering between its waypoints while it watches for the player. Once its
+/// watch delay (poseYawPrev) has run out and it has wandered past poseVz
+/// frames, it starts the chase (0x1C) when the player is within 1500, within
+/// 8000 and less than 0x300 off its heading after 0x1C3 frames, or when the
+/// player's heading is more than 0x600 off the bearing to the chaser. The
+/// regular build only looks with a clear line of sight on its own frame of
+/// fifteen, also chases a target that left its node slot, and reacts to
+/// Parasite Energy in use; the run sequence counts its delay down here.
 void desertChaserRoam(Task* arg0)
 {
     s32                    radius = 0x5DC;
