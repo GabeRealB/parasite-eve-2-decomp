@@ -10,41 +10,41 @@
 /// the current state and frame is played at the model's pan and depth.
 void oddStrangerDrive(Task* arg0)
 {
-    OddStrangerWork* seekWork;
-    OddStrangerWork* resetWork;
-    OddStrangerWork* secondaryWork;
-    OddStrangerWork* tickWork;
-    OddStrangerWork* work;
-    Enemy*           enemy;
-    s32              animation;
-    s32              index;
-    u32              table;
-    s16              state;
-    s32              seekIndex;
-    s32              resetIndex;
-    s32              secondaryIndex;
-    s32              tickIndex;
-    s32              seekSlotIndex;
-    s32              resetSlotIndex;
-    s32              secondarySlotIndex;
-    s32              tickSlotIndex;
-    s32              targetAngle;
-    s32              currentAngle;
-    s32              targetAngleBits;
-    s32              currentAngleBits;
-    s16              angle;
-    s32              clampedAngle;
-    s16              signedTurn;
-    s32              sound;
-    s32              soundId;
-    s32              pan;
+    OddStrangerRigWork* seekWork;
+    OddStrangerRigWork* resetWork;
+    OddStrangerRigWork* secondaryWork;
+    OddStrangerRigWork* tickWork;
+    OddStrangerRigWork* work;
+    Enemy*              enemy;
+    s32                 animation;
+    s32                 index;
+    u32                 table;
+    s16                 state;
+    s32                 seekIndex;
+    s32                 resetIndex;
+    s32                 secondaryIndex;
+    s32                 tickIndex;
+    s32                 seekSlotIndex;
+    s32                 resetSlotIndex;
+    s32                 secondarySlotIndex;
+    s32                 tickSlotIndex;
+    s32                 targetAngle;
+    s32                 currentAngle;
+    s32                 targetAngleBits;
+    s32                 currentAngleBits;
+    s16                 angle;
+    s32                 clampedAngle;
+    s16                 signedTurn;
+    s32                 sound;
+    s32                 soundId;
+    s32                 pan;
 
-    work  = (OddStrangerWork*)arg0->work;
+    work  = (OddStrangerRigWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     state = work->field_898;
     if (state == 1) {
         // Keep the copy before the comparison so it fills the branch delay slot.
-        seekWork = (OddStrangerWork*)arg0->work;
+        seekWork = (OddStrangerRigWork*)arg0->work;
         if (work->field_89C != (s16)work->field_89E) {
             seekIndex = 1;
             table     = (u32)&gOddStrangerTransitions;
@@ -79,7 +79,7 @@ void oddStrangerDrive(Task* arg0)
         work->field_8B4      = 0;
     }
     if (work->field_8A6 == 2) {
-        secondaryWork            = (OddStrangerWork*)arg0->work;
+        secondaryWork            = (OddStrangerRigWork*)arg0->work;
         secondaryIndex           = 1;
         secondaryWork->field_8AA = 0x30;
         secondaryWork->field_8AC = 0x800;
@@ -94,7 +94,7 @@ void oddStrangerDrive(Task* arg0)
     }
     work->field_8A0 = (u16)(work->field_8A0 + 1);
     if ((s16)work->field_89A == 0) {
-        tickWork  = (OddStrangerWork*)arg0->work;
+        tickWork  = (OddStrangerRigWork*)arg0->work;
         tickIndex = 1;
         do {
             tickSlotIndex                       = tickIndex;

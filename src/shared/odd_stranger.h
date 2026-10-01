@@ -19,7 +19,7 @@
 
 /// Animation-state view shared by actor_401000 and actor_401800. Each actor
 /// owns a larger work block; these are the fields their animation driver uses.
-typedef struct OddStrangerWork {
+typedef struct OddStrangerRigWork {
     /* 0x000 */ s16            field_0; // Actor state
     /* 0x002 */ s16            field_2; // State step, -1 on entry
     /* 0x004 */ byte           pad_4[0x18];
@@ -41,8 +41,8 @@ typedef struct OddStrangerWork {
     /* 0x8B0 */ s16            field_8B0; // Current head yaw
     /* 0x8B2 */ byte           pad_8B2[2];
     /* 0x8B4 */ s32            field_8B4; // Last animation event index
-} OddStrangerWork;
-STATIC_ASSERT_SIZEOF(OddStrangerWork, 0x8B8);
+} OddStrangerRigWork;
+STATIC_ASSERT_SIZEOF(OddStrangerRigWork, 0x8B8);
 
 /// Animation view of the same task work block: the pose context at 0x1C and
 /// its slot array, then the blend context the actor keeps beside it. The
@@ -68,7 +68,7 @@ void oddStrangerTickBlended(Task* arg0);
 void oddStrangerDrive(Task* arg0);
 s32  oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 
-s32 oddStrangerAnimEvent(OddStrangerWork* work);
+s32 oddStrangerAnimEvent(OddStrangerRigWork* work);
 
 /* The two packages animate the first footstep clip (2) with its cues on
  * different frames. Each defines them before including this header:

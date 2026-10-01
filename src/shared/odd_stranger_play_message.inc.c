@@ -5,7 +5,7 @@
 /// nothing), then resets the actor to state `0x11` with `field_2` cleared.
 s32 oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
-    OddStrangerWork* work = arg0->work;
+    OddStrangerRigWork* work = arg0->work;
 
     switch (arg2->animationId) {
         case 0:

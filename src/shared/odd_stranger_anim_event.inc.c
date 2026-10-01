@@ -3,7 +3,7 @@
 /// Returns the sound event the current clip (`field_89E`) has reached at its
 /// frame (the second slot's cue index), once per frame: the frame is latched in `field_8B4`, and
 /// a frame already latched, or one that carries no event, returns 0.
-s32 oddStrangerAnimEvent(OddStrangerWork* work)
+s32 oddStrangerAnimEvent(OddStrangerRigWork* work)
 {
     s32 id;
     s32 prev;
