@@ -2967,7 +2967,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     u16                 temp;
     VECTOR              vec;
 
-    mem        = (MineCavernWork*)memCalloc(0x14C, false);
+    mem        = memCalloc(0x14C, false);
     work       = mem;
     arg1->work = mem;
     if (mem == NULL) {
@@ -3173,7 +3173,7 @@ static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
     MineCavernWork* work;
     VECTOR          vec;
 
-    mem        = (MineCavernWork*)memCalloc(0x14C, false);
+    mem        = memCalloc(0x14C, false);
     work       = mem;
     arg1->work = mem;
     if (mem == NULL) {

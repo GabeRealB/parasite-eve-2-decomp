@@ -20,7 +20,7 @@ void rigSpawn(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = (Actor323000Work*)memCalloc(0x934, 0);
+    mem        = memCalloc(0x934, 0);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {

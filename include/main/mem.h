@@ -52,19 +52,25 @@ void Mem_InitAux(void);
 /// @return Allocated block or `NULL`.
 void* Mem_Malloc(size_t size, bool auxHeap);
 
-/// Allocates a zeroed block of memory.
+/// Allocates one block from the selected heap and clears its requested bytes.
 ///
-/// The block is zeroed before it is returned, so a caller can read any of its
-/// fields before writing them. A failed allocation is reported and `NULL` is
-/// returned.
+/// `sizeBytes` is a byte count, not an element count. The heap uses eight-byte
+/// allocation units; any rounded-up payload bytes are not cleared. Allocation
+/// alignment follows the heap base. A zero-byte request or allocation failure
+/// prints a diagnostic and returns `NULL`.
+/// Requests must not exceed 0xFFFFFFF8 bytes, so eight-byte rounding cannot wrap.
 ///
-/// The heap `auxHeap` names becomes active before allocation.
+/// `auxHeap == true` selects the currently configured auxiliary heap; every
+/// other value selects the primary heap. For a nonzero request, the selected
+/// heap must be initialized and its base must still belong to its free-block
+/// ring. Selection replaces the allocator's search cursor before allocation;
+/// the previous selection is not restored, even on failure.
 ///
-/// @param size Number of bytes to allocate.
-/// @param auxHeap If `true`, the block is allocated from the auxiliary heap,
-///                otherwise from the primary one.
-/// @return Allocated block or `NULL`.
-void* memCalloc(size_t size, bool auxHeap);
+/// The caller owns the block until release to the same heap: use `memFree`
+/// for primary allocations or `memFreeFromHeap` for auxiliary allocations.
+/// Keep the auxiliary region configured and its contents intact while its
+/// allocations are live. Reinitializing or repurposing a heap invalidates them.
+void* memCalloc(size_t sizeBytes, bool auxHeap);
 
 /// Releases an allocation from the primary heap.
 ///

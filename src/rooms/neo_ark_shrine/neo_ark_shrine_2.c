@@ -1435,7 +1435,7 @@ static void func_neo_ark_shrine_8017F4C8(Task* task)
 
     extra      = task->extra.tmd;
     coord      = extra->coords;
-    st         = (NeoArkShrineFall*)memCalloc(sizeof(NeoArkShrineFall), 0);
+    st         = memCalloc(sizeof(NeoArkShrineFall), 0);
     task->work = st;
     if (st == NULL) {
         taskKill(task);
@@ -1500,7 +1500,7 @@ static void func_neo_ark_shrine_8017F688(Task* task)
 
     extra      = task->extra.tmd;
     coord      = extra->coords;
-    st         = (NeoArkShrineFall*)memCalloc(sizeof(NeoArkShrineFall), 0);
+    st         = memCalloc(sizeof(NeoArkShrineFall), 0);
     task->work = st;
     if (st == NULL) {
         taskKill(task);

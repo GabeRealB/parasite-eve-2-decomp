@@ -15,7 +15,7 @@ void pacedWalkSpawn(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = (Actor160600Work*)memCalloc(sizeof(Actor160600Work), false);
+    mem        = memCalloc(sizeof(Actor160600Work), false);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {

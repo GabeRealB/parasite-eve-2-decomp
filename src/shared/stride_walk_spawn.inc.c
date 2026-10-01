@@ -15,7 +15,7 @@ void strideWalkSpawn(Enemy* enemy, Task* task)
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
-    work       = (Actor161500Work*)memCalloc(0x4FC, false);
+    work       = memCalloc(0x4FC, false);
     task->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

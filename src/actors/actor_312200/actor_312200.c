@@ -412,7 +412,7 @@ static void func_actor_312200_80163178(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = (Actor312200Work*)memCalloc(sizeof(Actor312200Work), 0);
+    mem        = memCalloc(sizeof(Actor312200Work), 0);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {

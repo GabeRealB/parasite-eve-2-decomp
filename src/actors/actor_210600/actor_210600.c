@@ -596,7 +596,7 @@ static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = (Actor210600Work*)memCalloc(0x8D8, false);
+    mem        = memCalloc(0x8D8, false);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {

@@ -1910,7 +1910,7 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     coord       = arg1->extra.tmd->coords;
     parentCoord = parent->extra.tmd->coords;
     parentWork  = (Actor105100Work*)parent->work;
-    work        = (Actor105100ProjWork*)memCalloc(0x80, 0);
+    work        = memCalloc(0x80, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -2207,7 +2207,7 @@ static void func_actor_105100_80135278(Enemy* arg0, Task* arg1)
         return;
     }
 
-    obj = (Actor105100Rec*)memCalloc(0x50, 0);
+    obj = memCalloc(0x50, 0);
     if (obj == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

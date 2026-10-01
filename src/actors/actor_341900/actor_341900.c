@@ -942,7 +942,7 @@ void func_actor_341900_80162EFC(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            work       = (Actor341900Work*)memCalloc(0x70U, false);
+            work       = memCalloc(0x70U, false);
             arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
@@ -1000,7 +1000,7 @@ void func_actor_341900_80163148(Task* arg0)
     fade = (OverlayFadeWork*)arg0->work;
     switch (arg0->state) {
         case 0:
-            alloc      = (OverlayFadeWork*)memCalloc(8, 0);
+            alloc      = memCalloc(8, 0);
             arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);

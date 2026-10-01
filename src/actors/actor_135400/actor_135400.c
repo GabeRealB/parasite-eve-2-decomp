@@ -661,7 +661,7 @@ static void func_actor_135400_80132064(Task* arg0)
     memset(anim, 0, sizeof(anim));
     anim[0].animationId = 1;
     anim[1].animationId = 4;
-    work                = (Actor135400MainWork*)memCalloc(0x4C8, 0);
+    work                = memCalloc(0x4C8, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

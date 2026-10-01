@@ -1224,7 +1224,7 @@ static void func_actor_335800_80162640(Task* arg0)
     GameLocationKey*     keyAddr;
     Task*                spawned;
 
-    work = (Actor335800MainWork*)memCalloc(0x50C, false);
+    work = memCalloc(0x50C, false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

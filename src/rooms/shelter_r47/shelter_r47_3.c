@@ -1680,7 +1680,7 @@ static void func_shelter_r47_8018431C(Task* task)
     s32               level;
     s16               quadW, quadH, quad2W, quad2H;
 
-    state = (ShelterR47State2*)memCalloc(0x30, false);
+    state = memCalloc(0x30, false);
     if (state == NULL) {
         taskKill(task);
         return;

@@ -1713,7 +1713,7 @@ static void func_acropolis_promenade_8017DAA4(Task* task)
 
     extra = task->extra.tmd;
     coord = extra->coords;
-    work  = (ApmPropWork*)memCalloc(sizeof(ApmPropWork), 0);
+    work  = memCalloc(sizeof(ApmPropWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;

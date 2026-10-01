@@ -2249,7 +2249,7 @@ static void func_actor_511000_80132480(Task* task)
     u16               flags;
 
     extra = task->extra.tmd;
-    work  = (Actor511000Work2*)memCalloc(0x4D4, 0);
+    work  = memCalloc(0x4D4, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;
@@ -2675,7 +2675,7 @@ static void func_actor_511000_80133034(Task* task)
     TmdObject*       extra;
 
     extra = task->extra.tmd;
-    work  = (Actor511000Work*)memCalloc(0x70, 0);
+    work  = memCalloc(0x70, 0);
     if (work == NULL) {
         taskKill(task);
         return;

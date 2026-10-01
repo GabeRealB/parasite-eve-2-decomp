@@ -770,7 +770,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             slotSrc    = Gp_GetItemSlot(src);
             slotDst    = Gp_GetItemSlot(result);
             rec        = Gp_FindItemById(src);
-            newWork    = (GpUseCreateWork*)memCalloc(0x14, 0);
+            newWork    = memCalloc(0x14, 0);
             scanInit   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             arg1->work = newWork;
             Gp_RemoveItem(scanInit, Gp_SelItemRec, 1);

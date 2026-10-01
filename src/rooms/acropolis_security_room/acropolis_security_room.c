@@ -2053,7 +2053,7 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
     s32             state;
     s16             stateElse;
 
-    work = (AsrMonitorWork*)memCalloc(sizeof(AsrMonitorWork), 0);
+    work = memCalloc(sizeof(AsrMonitorWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -3035,7 +3035,7 @@ void func_acropolis_security_room_80180368(Task* task)
     return;
 
 L_case0:
-    alloc      = (AsrAmbienceState*)memCalloc(sizeof(AsrAmbienceState), 0);
+    alloc      = memCalloc(sizeof(AsrAmbienceState), 0);
     task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);

@@ -706,7 +706,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     ext   = arg0->extra.tmd;
     coord = ext->coords;
 
-    work = (DbwEventWork*)memCalloc(0x60, false);
+    work = memCalloc(0x60, false);
     if (work == NULL) {
         taskKill(arg0);
         return;

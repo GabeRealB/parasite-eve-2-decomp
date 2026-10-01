@@ -2202,7 +2202,7 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    mem        = (Actor160600Work*)memCalloc(0x4F8, false);
+    mem        = memCalloc(0x4F8, false);
     work       = mem;
     task->work = mem;
     if (mem == NULL) {

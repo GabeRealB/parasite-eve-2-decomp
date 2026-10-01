@@ -905,7 +905,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
     GameLocationKey*     keyAddr;
     Task*                spawned;
 
-    work = (Actor120400MainWork*)memCalloc(0x504, false);
+    work = memCalloc(0x504, false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

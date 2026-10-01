@@ -283,7 +283,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     coords     = arg0->extra.tmd->coords;
     enemy      = arg0->spawnArg2.pointer;
     tmd        = arg0->extra.tmd;
-    work       = (Actor311500Work*)memCalloc(0x4D8, 0);
+    work       = memCalloc(0x4D8, 0);
     arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);

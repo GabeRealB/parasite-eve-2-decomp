@@ -2878,7 +2878,7 @@ void func_actor_444000_80132358(Task* task)
             if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            alloc      = (Actor444000EventWork*)memCalloc(sizeof(Actor444000EventWork), false);
+            alloc      = memCalloc(sizeof(Actor444000EventWork), false);
             task->work = alloc;
             if (alloc == NULL) {
                 taskKill(task);

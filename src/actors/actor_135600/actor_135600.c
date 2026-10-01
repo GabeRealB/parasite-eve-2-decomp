@@ -781,7 +781,7 @@ static void func_actor_135600_80132234(Task* task)
     ActorTransform       args;
     AnimationPlayRequest preset;
 
-    work = (Actor135600Work*)memCalloc(0x50C, false);
+    work = memCalloc(0x50C, false);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

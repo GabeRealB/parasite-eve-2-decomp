@@ -85,67 +85,69 @@ void Mem_Set(void* dest, u32 ch, u32 count)
     }
 }
 
-void* memCalloc(size_t size, bool auxHeap)
+/// Clears exactly `sizeBytes` bytes, using stores aligned to their access width.
+static inline void _memClearAllocation(void* allocation, size_t sizeBytes)
 {
-    u32   i;
-    void* ptr;
-    u32   remaining;
-    u8*   dest;
+    u32    tailByteIndex;
+    size_t bytesRemaining;
+    u8*    clearCursor;
+    u16    zeroHalfword;
+    u32    zeroWord;
 
-    u32 zero16;
-    u32 zero32;
+    clearCursor    = allocation;
+    bytesRemaining = sizeBytes;
+    zeroWord       = 0;
+    zeroHalfword   = 0;
 
-    _memSetActiveHeap(auxHeap);
-    ptr = malloc3(size);
-    if (ptr != NULL) {
-        dest      = (u8*)ptr;
-        remaining = size;
-        zero32    = 0;
-        zero16    = 0;
+    while (bytesRemaining >= 4) {
+        // Use aligned word and halfword stores without crossing the requested extent.
+        switch ((uintptr)clearCursor & 3) {
+            case 0:
+                *(u32*)clearCursor = zeroWord;
+                clearCursor       += 4;
+                bytesRemaining    -= 4;
+                break;
 
-        while (remaining >= 4) {
-            /* Select stores from the numeric address alignment. */
-            switch ((uintptr)dest & 3) {
-                case 0:
-                    *(u32*)dest = zero32;
-                    dest       += 4;
-                    remaining  -= 4;
-                    break;
+            case 1:
+                *clearCursor++     = 0;
+                *(u16*)clearCursor = zeroHalfword;
+                clearCursor       += 2;
+                bytesRemaining    -= 3;
+                break;
 
-                case 1:
-                    *dest++     = 0;
-                    *(u16*)dest = zero16;
-                    dest       += 2;
-                    remaining  -= 3;
-                    break;
+            case 2:
+                *(u16*)clearCursor = zeroHalfword;
+                clearCursor       += 2;
+                bytesRemaining    -= 2;
+                break;
 
-                case 2:
-                    *(u16*)dest = zero16;
-                    dest       += 2;
-                    remaining  -= 2;
-                    break;
-
-                case 3:
-                    *dest      = 0;
-                    dest      += 1;
-                    remaining -= 1;
-                    break;
-            }
+            case 3:
+                *clearCursor    = 0;
+                clearCursor    += 1;
+                bytesRemaining -= 1;
+                break;
         }
-
-        i = 0;
-        while ((i & 0xFFFF) < remaining) {
-            *dest++ = 0;
-            i++;
-        }
-
-        goto end;
     }
 
-    printf("gmalloc2-->NULL\n");
+    tailByteIndex = 0;
+    while ((u16)tailByteIndex < bytesRemaining) {
+        *clearCursor++ = 0;
+        tailByteIndex++;
+    }
+}
 
-end:
-    return ptr;
+void* memCalloc(size_t sizeBytes, bool auxHeap)
+{
+    void* allocation;
+
+    _memSetActiveHeap(auxHeap);
+    allocation = malloc3(sizeBytes);
+    if (allocation != NULL) {
+        _memClearAllocation(allocation, sizeBytes);
+    } else {
+        printf("gmalloc2-->NULL\n");
+    }
+    return allocation;
 }
 
 /// Selects the initialized heap3 ring for subsequent allocations and releases.

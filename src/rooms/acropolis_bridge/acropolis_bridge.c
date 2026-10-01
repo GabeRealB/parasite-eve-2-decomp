@@ -2645,7 +2645,7 @@ static void func_acropolis_bridge_8017DA64(Task* task)
 
     extra = task->extra.tmd;
     coord = extra->coords;
-    work  = (_AcropolisBridgeModelWork*)memCalloc(sizeof(_AcropolisBridgeModelWork), 0);
+    work  = memCalloc(sizeof(_AcropolisBridgeModelWork), 0);
     if (work == NULL) {
         taskKill(task);
         return;
@@ -2843,7 +2843,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     GpSprtRec*                 rec;
     s32                        view;
 
-    work = (AcropolisBridgePromptWork*)memCalloc(0x10, 0);
+    work = memCalloc(0x10, 0);
     if (work == NULL) {
         Task_RequestKill(task, 0);
         return;
@@ -4977,7 +4977,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    work       = (AcropolisBridgeEnemyWork*)memCalloc(sizeof(AcropolisBridgeEnemyWork), 0);
+    work       = memCalloc(sizeof(AcropolisBridgeEnemyWork), 0);
     task->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

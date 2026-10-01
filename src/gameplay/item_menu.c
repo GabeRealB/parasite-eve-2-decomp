@@ -975,7 +975,7 @@ void func_800BDF6C(Task* task)
     width       = (obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue) - 0x50;
     Ui_DrawText(&(obj)->panel, (char*)Gp_StrBullet);
     if (task->state == 0) {
-        state = (GpAmmoSplitState*)memCalloc(0x18U, 0);
+        state = memCalloc(0x18U, 0);
         if (state == NULL) {
             obj->result = USER_INTERFACE_RESULT_DISMISS;
             return;
@@ -1332,7 +1332,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         }
     }
     if (arg0->state == 0) {
-        mem = (MATRIX*)memCalloc(0x40, 0);
+        mem = memCalloc(0x40, 0);
         if (mem != NULL) {
             vec             = D_80093DB0;
             extra->lightMtx = mem;

@@ -1200,7 +1200,7 @@ static void func_actor_113000_80131F90(Task* task)
     u16              flags;
 
     extra = task->extra.tmd;
-    work  = (Actor113000Work*)memCalloc(0x4CC, 0);
+    work  = memCalloc(0x4CC, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

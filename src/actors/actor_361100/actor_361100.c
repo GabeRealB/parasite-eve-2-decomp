@@ -1571,7 +1571,7 @@ static void func_actor_361100_80162D28(Task* arg0)
     coord = arg0->extra.tmd->coords;
     enemy = arg0->spawnArg2.pointer;
 
-    work = (Actor361100Work*)memCalloc(sizeof(Actor361100Work), false);
+    work = memCalloc(sizeof(Actor361100Work), false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;
@@ -1794,7 +1794,7 @@ static void func_actor_361100_80163410(Task* arg0)
 {
     Actor361100Work* work;
 
-    work = (Actor361100Work*)memCalloc(sizeof(Actor361100Work), false);
+    work = memCalloc(sizeof(Actor361100Work), false);
     if (work == NULL) {
         Gp_EnemyTaskExit(arg0);
         return;

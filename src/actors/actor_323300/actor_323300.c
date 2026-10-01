@@ -905,7 +905,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
 
     extra              = arg0->extra.tmd;
     arg0->exitCallback = func_actor_323300_801634B0;
-    work               = (Actor323300MtxWork*)memCalloc(0x6B0, 0);
+    work               = memCalloc(0x6B0, 0);
     if (work == NULL) {
         taskKill(arg0);
         return;

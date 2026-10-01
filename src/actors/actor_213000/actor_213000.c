@@ -527,7 +527,7 @@ static void func_actor_213000_80149E54(Task* task)
     Task*            spawned2;
 
     obj  = task->extra.tmd;
-    work = (Actor213000Work*)memCalloc(0x4C4, 0);
+    work = memCalloc(0x4C4, 0);
     if (work == NULL) {
         Gp_EnemyTaskExit(task);
         return;

@@ -1106,7 +1106,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     extra                  = task->extra.tmd;
     parts                  = extra->coords;
     task->spawnArg1.value &= 0xFFFF0000;
-    work                   = (ActorsShared80138efcWork*)memCalloc(sizeof(ActorsShared80138efcWork), 0);
+    work                   = memCalloc(sizeof(ActorsShared80138efcWork), 0);
     if (work == NULL) {
         Task_CallExit(task);
         return;
