@@ -398,6 +398,9 @@ static __inline__ s32 oddStrangerOutOfRange(SVECTOR* d, s16 r)
     return ret;
 }
 
+void oddStrangerStalk(Task* arg0);
+void oddStrangerTick(Enemy* enemy, Task* actor);
+
 /* Defined by each package. */
 s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count);
 
