@@ -1854,7 +1854,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
     req.colorRgb   = arg4;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_QUEUED;
+    req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, (u8*)arg3);
 
     p     = gGpuPrimCursor;

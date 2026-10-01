@@ -1249,7 +1249,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
                 req.colorRgb   = color;
                 req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 req.alignment  = TEXT_ALIGNMENT_RIGHT;
-                req.drawMode   = TEXT_DRAW_QUEUED;
+                req.drawMode   = TEXT_DRAW_FILL_ONLY;
                 Text_DrawString(&req, Text_ItoaSigned(buf, qty));
                 Ui_LayoutWithMode0(arg1, (x + 0x69), (y - 8), 0x1B, 7,
                                    0x102010);
@@ -1769,7 +1769,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
         draw.qty.req.colorRgb   = color;
         draw.qty.req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
         draw.qty.req.alignment  = TEXT_ALIGNMENT_RIGHT;
-        draw.qty.req.drawMode   = TEXT_DRAW_QUEUED;
+        draw.qty.req.drawMode   = TEXT_DRAW_FILL_ONLY;
         Text_DrawString(&draw.qty.req, Text_ItoaSigned(draw.qty.buf, count));
         Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
     }
@@ -2095,7 +2095,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
             draw.qty.req.colorRgb   = color;
             draw.qty.req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             draw.qty.req.alignment  = TEXT_ALIGNMENT_RIGHT;
-            draw.qty.req.drawMode   = TEXT_DRAW_QUEUED;
+            draw.qty.req.drawMode   = TEXT_DRAW_FILL_ONLY;
             Text_DrawString(&draw.qty.req, Text_ItoaSigned(draw.qty.buf, count));
             Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
         }

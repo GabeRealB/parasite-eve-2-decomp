@@ -1357,7 +1357,7 @@ static inline void _gpDrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 
     req.colorRgb   = arg4;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req.drawMode   = TEXT_DRAW_QUEUED;
+    req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, Text_ItoaSigned(buf, arg3));
     Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
 }
@@ -1692,7 +1692,7 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3
             req.colorRgb   = arg4;
             req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             req.alignment  = TEXT_ALIGNMENT_RIGHT;
-            req.drawMode   = TEXT_DRAW_QUEUED;
+            req.drawMode   = TEXT_DRAW_FILL_ONLY;
             Text_DrawString(&req, Text_ItoaSigned(buf, count));
             Ui_LayoutWithMode0(arg0, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
         }

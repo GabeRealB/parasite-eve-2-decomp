@@ -56,7 +56,7 @@
         req.colorRgb   = 0x606060;                                              \
         req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
         req.alignment  = TEXT_ALIGNMENT_RIGHT;                                  \
-        req.drawMode   = TEXT_DRAW_QUEUED;                                      \
+        req.drawMode   = TEXT_DRAW_FILL_ONLY;                                   \
         req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
         req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
         req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \

@@ -215,7 +215,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
             req.colorRgb   = 0x808008;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
-            req.drawMode   = TEXT_DRAW_QUEUED;
+            req.drawMode   = TEXT_DRAW_FILL_ONLY;
             Text_DrawString(&req, Gp_StrDemoWait);
         }
         return;
@@ -229,7 +229,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
             req.colorRgb   = 0x808008;
             req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             req.alignment  = TEXT_ALIGNMENT_LEFT;
-            req.drawMode   = TEXT_DRAW_QUEUED;
+            req.drawMode   = TEXT_DRAW_FILL_ONLY;
             Text_DrawString(&req, Gp_StrDemoPause);
         }
         return;

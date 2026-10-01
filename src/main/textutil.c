@@ -205,7 +205,7 @@ s32 Text_MeasureWidth(u8* arg0)
     request.otIndex    = 0;
     request.colorRgb   = 0;
     request.alignment  = TEXT_ALIGNMENT_RIGHT;
-    request.drawMode   = TEXT_DRAW_QUEUED;
+    request.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_MeasureAndCenter(&request, arg0);
     return -request.x;
 }
@@ -241,7 +241,7 @@ s32 Text_MeasureMultiLine(u8* arg0)
         requestPtr->glyphTable = tmp;
         c                      = TEXT_ALIGNMENT_RIGHT;
         requestPtr->alignment  = c;
-        request.drawMode       = TEXT_DRAW_QUEUED;
+        request.drawMode       = TEXT_DRAW_FILL_ONLY;
         Text_MeasureAndCenter(requestPtr, buf);
 
         if (maxWidth < -request.x) {

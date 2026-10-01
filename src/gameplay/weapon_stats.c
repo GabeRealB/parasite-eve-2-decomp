@@ -766,7 +766,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             draw.count.req.colorRgb   = color;
             draw.count.req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             draw.count.req.alignment  = TEXT_ALIGNMENT_RIGHT;
-            draw.count.req.drawMode   = TEXT_DRAW_QUEUED;
+            draw.count.req.drawMode   = TEXT_DRAW_FILL_ONLY;
             Text_DrawString(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
             Ui_LayoutWithMode0(obj, (x + 0x69), (y - 8), 0x1B, 7,
                                0x102010);

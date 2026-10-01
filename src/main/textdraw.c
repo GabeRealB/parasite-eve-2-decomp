@@ -571,7 +571,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
             DrawPrim(dr);
             draw = Text_DrawGlyphImmediate;
             break;
-        case TEXT_DRAW_QUEUED:
+        case TEXT_DRAW_FILL_ONLY:
         default:
             draw = Text_DrawGlyphQueued;
             break;

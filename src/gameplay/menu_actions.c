@@ -235,7 +235,7 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
     req.colorRgb   = color;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_QUEUED;
+    req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, Gp_StrPEnergy);
 
     if (arg0->field_C == 1) {
@@ -263,7 +263,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
     req.colorRgb   = arg0->field_1C;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_QUEUED;
+    req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, Gp_StrOption);
 
     status = arg1->panel.control.word;
@@ -303,7 +303,7 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
     req.colorRgb   = arg0->field_1C;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_QUEUED;
+    req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, Gp_StrExit);
 
     status = arg1->panel.control.word;
@@ -1720,7 +1720,7 @@ void Gp_DrawMapName(Task* arg0)
             req.colorRgb   = 0;
             req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
             req.alignment  = TEXT_ALIGNMENT_RIGHT;
-            req.drawMode   = TEXT_DRAW_QUEUED;
+            req.drawMode   = TEXT_DRAW_FILL_ONLY;
             Text_MeasureAndCenter(&req, text);
             width = -req.x + 4;
             Ui_UpdateLayoutSize(&(obj)->panel, width, Ui_Scale15(1));
@@ -3163,7 +3163,7 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
     req.colorRgb   = arg0->field_1C;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_QUEUED;
+    req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, Gp_StrUse2);
 
     status = arg1->panel.control.word;
@@ -3195,7 +3195,7 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
     req.colorRgb   = arg0->field_1C;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_QUEUED;
+    req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, Gp_StrKeyItem2);
 
     status = arg1->panel.control.word;
@@ -3268,7 +3268,7 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
     req.colorRgb   = arg0->field_1C;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_QUEUED;
+    req.drawMode   = TEXT_DRAW_FILL_ONLY;
     Text_DrawString(&req, Gp_StrMap);
 
     status = arg1->panel.control.word;

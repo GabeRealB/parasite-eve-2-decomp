@@ -54,7 +54,20 @@ enum {
 
 /// Glyph drawing paths selected by `TextDrawReq::drawMode`.
 enum {
-    TEXT_DRAW_QUEUED = 0, // Opaque fill in the selected OT entry.
+    /// Queues opaque, color-modulated glyph fills without an outline.
+    ///
+    /// Selector 0 in `TextDrawReq::drawMode`. Fill RGB starts at `colorRgb`
+    /// and follows inline color commands. While this mode remains selected,
+    /// only the signed `otIndex` entry in `gGpuCurrentOt` is needed. Each glyph
+    /// reserves one sprite (20 bytes); a line ending in this mode reserves one
+    /// texture-page packet (8 bytes), even when no glyph was drawn. Packets are
+    /// prepended to the entry, so the texture-page setup executes before the fills.
+    /// The entry and primitive storage must be writable, with sufficient capacity;
+    /// font textures and the fill palette must already be loaded.
+    /// Inline `\w0` or `\w1` (either letter case) switches to translucent
+    /// outlined or outlined text and stores that mode in the request;
+    /// subsequent drawing also needs `otIndex + 1` and space for both passes.
+    TEXT_DRAW_FILL_ONLY = 0,
     /// Draws opaque, color-modulated glyphs with a subtractive outline.
     ///
     /// Selector 1 in `TextDrawReq::drawMode`. The fill uses `colorRgb` at
@@ -117,7 +130,7 @@ typedef struct {
     u32 colorRgb;   // Initial modulation RGB in bits 0..23 (R low byte); command byte ignored.
     s8  glyphTable; // Initial metrics (0 medium, 5 small, otherwise large; callers also use 2 and 4).
     s8  alignment;  // Horizontal placement (0 left, 1 center, 2 right; other values leave X unchanged).
-    s8  drawMode;   // Path (0 queued, 1 outlined, 2 outlined single entry, 3 translucent outlined, 4 outline only, 16 immediate).
+    s8  drawMode;   // Path (0 fill only, 1 outlined, 2 outlined single entry, 3 translucent outlined, 4 outline only, 16 immediate).
     s8  vBias;      // Texture V offset in texels, added modulo 256 (38 medium, 0 small, -128 large).
 } TextDrawReq;
 STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);

@@ -215,7 +215,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 req.colorRgb   = color;
                 req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 req.alignment  = TEXT_ALIGNMENT_RIGHT;
-                req.drawMode   = TEXT_DRAW_QUEUED;
+                req.drawMode   = TEXT_DRAW_FILL_ONLY;
                 Text_DrawString(&req, Text_ItoaSigned(buf, qty));
                 Ui_LayoutWithMode0(obj, x + 0x69, y - 8, 0x1B, 7, 0x102010);
             }
