@@ -1,0 +1,194 @@
+/* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
+
+void maggotCaterpillarResolveContacts(Task* arg0)
+{
+    MaggotCaterpillarWork*       work;
+    MaggotCaterpillarHitScratch* head;
+    MaggotCaterpillarHitScratch* scratch;
+    Enemy*                       enemy;
+    GfxCoord*                    coord;
+    GfxCoord*                    src;
+    s32                          result;
+    s32                          lastId;
+    u32                          damage;
+    s16                          amount;
+    s32                          best;
+    s32                          push;
+    s32                          dx;
+    s32                          dy;
+    s32                          dz;
+    VECTOR*                      unit;
+    s32                          i;
+    s16                          timer;
+    s32                          one;
+    u32                          kind;
+
+    best    = 0;
+    lastId  = 0;
+    work    = arg0->work;
+    coord   = arg0->extra.tmd->coords;
+    head    = SCRATCH_STACK_CURSOR(MaggotCaterpillarHitScratch);
+    scratch = SCRATCH_STACK_CURSOR(MaggotCaterpillarHitScratch) = head - 1;
+    enemy                                                       = (Enemy*)arg0->spawnArg2.pointer;
+    work->field_3CC                                             = 0;
+    result                                                      = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
+    if (result != 0) {
+        if (work->field_39A == 2) {
+            work->field_3CC = 1;
+        }
+        switch (result) {
+            case 0:
+                break;
+            case 1:
+                coord->coord.t[0] += head[-1].delta.vx.halves.integer;
+                coord->coord.t[1] += scratch->delta.vy.halves.integer;
+                coord->coord.t[2] += scratch->delta.vz.halves.integer;
+                break;
+            case 2:
+                coord->coord.t[0] = work->field_35C.vx;
+                coord->coord.t[1] = work->field_35C.vy;
+                coord->coord.t[2] = work->field_35C.vz;
+                break;
+        }
+    }
+    Gp_ClearRec18Occupied(work->field_234);
+    if (work->field_390 != 0) {
+        timer           = (u16)work->field_390 - 1;
+        work->field_390 = timer;
+        if (timer <= 0) {
+            work->field_390 = 0;
+        }
+    }
+    one = 1;
+
+    work->field_3D0 = 0;
+    work->field_3BA = 0;
+    unit            = &scratch->normal;
+    for (i = 0; i < 2; i++) {
+        kind = (u32)work->field_2B4[i].key.value >> 16;
+        if (kind == one)
+            goto physical;
+        if (kind == 0)
+            goto next_contact;
+        if (kind == 2)
+            goto damage_contact;
+        if (kind == 3)
+            goto physical;
+        goto next_contact;
+    damage_contact:
+        if (work->field_390 == 0) {
+            result = 0;
+            if ((((u32)work->field_2B4[i].key.value >> 8) & 0x3F) == 0x24) {
+                if ((work->field_2B4[i].key.value & 0x3F) == 0x24) {
+                    result = 1;
+                }
+            }
+            if ((result != one) || (work->field_3B2 == 0)) {
+                src                    = gPlayerActorTasks[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
+                dx                     = src->coord.t[0] - coord->coord.t[0];
+                scratch->delta.vx.word = dx;
+                dy                     = src->coord.t[1] - coord->coord.t[1];
+                scratch->delta.vy.word = dy;
+                dz                     = src->coord.t[2] - coord->coord.t[2];
+                scratch->delta.vz.word = dz;
+                damage                 = Gp_ComputeDamage((u32)work->field_2B4[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
+                amount                 = damage;
+                if (result == 0) {
+                    if (work->field_3CA != 0) {
+                        amount = (damage << 16) >> 15;
+                        Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords + 1, 3, NULL);
+                    }
+                    if (Gp_RollEnemyChance(enemy, (u32)work->field_2B4[i].key.value, 0) != 0) {
+                        amount = (amount << 16) >> 14;
+                        if (work->field_3CA == 0) {
+                            Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords + 1, 0, NULL);
+                        }
+                    }
+                    func_800E2C78(enemy, (u32)work->field_2B4[i].key.value, amount, 0);
+                }
+                func_800DA6E8(&enemy->node, amount, 0);
+                enemy->hp -= amount;
+                if (work->field_3C8 != one) {
+                    if (enemy->hp <= 0) {
+                        work->field_39A = 9;
+                        work->field_39C = 0;
+                        arg0->state     = 2;
+                    } else if (result == 0) {
+                        work->field_39A = 6;
+                        work->field_39C = 0;
+                    }
+                }
+                if (work->field_3C8 == 2) {
+                    if ((work->field_39A == 9) || (result == 0)) {
+                        work->field_3C8 = 0;
+                        MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, &scratch->rot);
+                    }
+                }
+                if (result == 0) {
+                    work->field_3D0        = one;
+                    work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                }
+                switch (Gp_GetIdParam0(work->field_2B4[i].key.value) & 0xFFFF) {
+                    case 0:
+                    case 1:
+                    case 5:
+                    case 8:
+                    case 9:
+                        break;
+                    case 2:
+                        Gp_SetObjFlag2(enemy, work->field_2B4[i].key.value, 0);
+                        break;
+                    case 3:
+                        Gp_SetObjFlag4(enemy, work->field_2B4[i].key.value, 0);
+                        break;
+                    case 4:
+                    case 6:
+                        if (work->field_3C8 != one) {
+                            work->field_3BA = one;
+                        }
+                        break;
+                    case 7:
+                        if (work->field_3B0 == 0) {
+                            work->field_3B0        = one;
+                            work->field_3BE        = 0;
+                            work->field_3B2        = 0;
+                            work->field_31C.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                            Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_TINT);
+                        }
+                        break;
+                }
+                if (lastId != work->field_2B4[i].key.value) {
+                    lastId          = work->field_2B4[i].key.value;
+                    scratch->rot.vx = 0;
+                    scratch->rot.vy = -0xC8;
+                    scratch->rot.vz = 0;
+                    func_800FDB18(Gp_GetIdParam1(work->field_2B4[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, &scratch->rot, &work->field_354);
+                }
+                result = Gp_GetIdParam2(work->field_2B4[i].key.value);
+                if (result > 0) {
+                    work->field_390 = result;
+                }
+            }
+        }
+        goto next_contact;
+    physical:
+        MAGGOT_CATERPILLAR_CONTACT_OVERLAP(push, coord, work->field_2B4[i], scratch->delta);
+        if (best < push) {
+            best = push;
+            MAGGOT_CATERPILLAR_GRID_DIRECTION(&scratch->delta, unit, &scratch->local);
+        }
+    next_contact:;
+    }
+    if (best > 0) {
+        coord->coord.t[0] += (best * scratch->local.vx) >> 12;
+        coord->coord.t[2] += (best * scratch->local.vz) >> 12;
+    }
+    Gp_ClearRec18Occupied(work->field_2B4);
+    work->field_3CE = 0;
+    if (work->field_304[0].flags & 1) {
+        MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, work->field_304[0]);
+        work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        Gp_ClearRec18Occupied(work->field_304);
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarHitScratch);
+}

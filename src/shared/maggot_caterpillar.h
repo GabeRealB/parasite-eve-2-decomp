@@ -11,12 +11,40 @@
  * hit stuns it, and when it dies it collapses, squashes flat and fades,
  * leaving a husk model lit with the room's texture page.
  *
+ * Each package states which enemy it builds before including this header:
+ * MAGGOT_CATERPILLAR_KIND is MAGGOT (actor_02600) or CATERPILLAR
+ * (actor_05500); the parameters below follow from it.
+ *
  * Include this header in the prologue and each fragment at its function's
  * position.
  */
 
 #ifndef SRC_SHARED_MAGGOT_CATERPILLAR_H
 #define SRC_SHARED_MAGGOT_CATERPILLAR_H
+
+#define MAGGOT      1
+#define CATERPILLAR 2
+#ifndef MAGGOT_CATERPILLAR_KIND
+#error "define MAGGOT_CATERPILLAR_KIND (MAGGOT or CATERPILLAR) before including maggot_caterpillar.h"
+#endif
+
+/* Per kind: the type id (in its collision keys, 0x30000 | id); the flag the
+ * spawn stores in `field_3C0`, which the dying sequence reads back for the id
+ * and which keeps the Caterpillar from spraying; and the player distances at
+ * which it wakes, drops from its ambush, and pounces. */
+#if MAGGOT_CATERPILLAR_KIND == MAGGOT
+#define MAGGOT_CATERPILLAR_ID             0x1A
+#define MAGGOT_CATERPILLAR_IS_CATERPILLAR 0
+#define MAGGOT_CATERPILLAR_WAKE_RANGE     0x9C4
+#define MAGGOT_CATERPILLAR_AMBUSH_RANGE   0x7D0
+#define MAGGOT_CATERPILLAR_POUNCE_RANGE   0x9C4
+#else
+#define MAGGOT_CATERPILLAR_ID             0x37
+#define MAGGOT_CATERPILLAR_IS_CATERPILLAR 1
+#define MAGGOT_CATERPILLAR_WAKE_RANGE     0x7D0
+#define MAGGOT_CATERPILLAR_AMBUSH_RANGE   0x5DC
+#define MAGGOT_CATERPILLAR_POUNCE_RANGE   0x8FC
+#endif
 
 #include "types.h"
 
@@ -124,12 +152,71 @@ void maggotCaterpillarSpawnHusk(Task* actor);
 void maggotCaterpillarShrinkNode2(Task* actor);
 void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task);
 
-/* Defined by each package. */
+void maggotCaterpillarWaitState(Task* arg0);
+void maggotCaterpillarAimState(Task* arg0);
+void maggotCaterpillarAmbushState(Task* actor);
+void maggotCaterpillarRoamState(Task* arg0);
+void maggotCaterpillarSpawn(Enemy* ctx, Task* actor);
 void maggotCaterpillarResolveContacts(Task* arg0);
+void maggotCaterpillarPuffTask(Task* arg0);
+void maggotCaterpillarTask(Task* arg0);
 void maggotCaterpillarRunBehaviour(Task* arg0);
 void maggotCaterpillarTickAnim(Task* arg0);
 void maggotCaterpillarUpdateColor(Task* arg0);
 
 static inline void maggotCaterpillarTickAnimInline(Task* task);
+
+/// Stores the yaw that `coord`'s frame faces in `work->field_3A2`, then
+/// rebuilds the frame's rotation as a level turn half a revolution away from
+/// it, with `rot` holding the angles.
+#define MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, rot)                                    \
+    do {                                                                                    \
+        (work)->field_3A2 = ratan2((coord)->coord.m[0][2], (coord)->coord.m[2][2]) & 0xFFF; \
+        (rot)->vx         = 0;                                                              \
+        (rot)->vy         = (u16)(work)->field_3A2 + 0x800;                                 \
+        (rot)->vz         = 0;                                                              \
+        RotMatrix((rot), &(coord)->coord);                                                  \
+    } while (0)
+
+/// How far the origin of `coord`'s frame lies inside contact `rec`, clamped at
+/// zero, into `out`. `delta` receives the offset from the contact point to
+/// the origin.
+#define MAGGOT_CATERPILLAR_CONTACT_OVERLAP(out, coord, rec, delta)                               \
+    do {                                                                                         \
+        s32 offX;                                                                                \
+        s32 offY;                                                                                \
+        s32 offZ;                                                                                \
+        s32 clamped;                                                                             \
+        offX            = (coord)->workm.t[0] - (rec).point.vx;                                  \
+        (delta).vx.word = offX;                                                                  \
+        offY            = (coord)->workm.t[1] - (rec).point.vy;                                  \
+        (delta).vy.word = offY;                                                                  \
+        offZ            = (coord)->workm.t[2] - (rec).point.vz;                                  \
+        (delta).vz.word = offZ;                                                                  \
+        (out)           = (rec).distance - SquareRoot0(offX * offX + offY * offY + offZ * offZ); \
+        clamped         = (out);                                                                 \
+        if ((out) <= 0) {                                                                        \
+            clamped = 0;                                                                         \
+        }                                                                                        \
+        (out) = clamped;                                                                         \
+    } while (0)
+
+/// Normalises `delta` into `unit` and expresses the direction in the frame of
+/// the collision grid, into `out`.
+#define MAGGOT_CATERPILLAR_GRID_DIRECTION(delta, unit, out)                      \
+    do {                                                                         \
+        VectorNormal((VECTOR*)(delta), (unit));                                  \
+        ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, (unit), (out)); \
+    } while (0)
+
+/// Sets `work->field_3CE` when contact `rec` is a body, or a face of the
+/// collision grid whose normal has no vertical component.
+#define MAGGOT_CATERPILLAR_NOTE_BLOCKING_CONTACT(work, rec)                                      \
+    do {                                                                                         \
+        if ((((rec).key.value & 0xFFFF0000) == 0x10000) ||                                       \
+            ((((rec).key.value & 0xFFFF0000) == 0x100000) && ((rec).response.normal.vy == 0))) { \
+            (work)->field_3CE = 1;                                                               \
+        }                                                                                        \
+    } while (0)
 
 #endif /* SRC_SHARED_MAGGOT_CATERPILLAR_H */
