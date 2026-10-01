@@ -31,7 +31,13 @@ extern TaskMessageEntry D_acropolis_cafeteria_80184CEC[2];
 
 extern s32 D_acropolis_cafeteria_80184CFC;
 
-extern WorldCoordPointLight D_acropolis_cafeteria_80189E24[15];
+/// Authored point lights contributing in every cafeteria view.
+///
+/// The room light collection borrows this complete array while the overlay is
+/// loaded. Positions and falloff radii use integer world units; RGB intensities
+/// use 12 fractional bits. Parent links, coordinate caches and per-query
+/// attenuation remain writable.
+extern WorldCoordPointLight gAcropolisCafeteriaPointLights[15];
 
 extern WorldCoordRoomLights D_acropolis_cafeteria_8018AA18[1];
 
