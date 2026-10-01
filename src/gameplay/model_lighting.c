@@ -333,6 +333,26 @@ static inline void _modelLightingInitGt3CornerColorsTexture(POLY_GT3* triangle, 
     triangle->clut      += workspace->encodedClutOffset;
 }
 
+/// Initializes a Gouraud textured triangle's persistent texture fields.
+///
+/// `elementWords` is a four-byte-aligned element base; `textureWordIndex` is
+/// a nonnegative u32-word index selecting three readable words within it:
+/// U0/V0/CLUT, U1/V1/texture-page settings and U2/V2 in the last low half.
+/// `triangle` must be a writable, four-byte-aligned `POLY_GT3`. Signed encoded
+/// page/CLUT displacements from `workspace` wrap in the packet's u16 fields.
+/// The last word's high half is ignored; `pad2` and all non-texture fields are
+/// preserved. Inputs are borrowed, no pointer is retained and no cursor changes.
+static inline void _tmdInitGt3TextureWords(POLY_GT3* triangle, const u32* elementWords, s32 textureWordIndex,
+                                           const TmdStreamWorkspace* workspace)
+{
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[textureWordIndex];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[textureWordIndex + 1];
+    // Copy both UV bytes without overwriting the adjacent SDK pad2 field.
+    *(u16*)&triangle->u2 = (u16)elementWords[textureWordIndex + 2];
+    triangle->tpage     += workspace->texturePageOffset;
+    triangle->clut      += workspace->encodedClutOffset;
+}
+
 u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     s32      prev;
@@ -2092,24 +2112,20 @@ u32* gpStreamPrimGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
+    enum { TMD_GT3_ELEM_COLOR_TEXTURE_WORD = 4 };
+    POLY_GT3* triangle;
 
-    poly = (POLY_GT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[4];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[5];
-            *(u16*)&poly->u2                    = (u16)stream[6];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    triangle = (POLY_GT3*)workspace->primWrite;
+    // Seed texture data for the draw pass that lights the element's material colour.
+    while (workspace->elemCount-- > 0) {
+        _tmdInitGt3TextureWords(triangle, elements, TMD_GT3_ELEM_COLOR_TEXTURE_WORD, workspace);
+        triangle++;
+        elements += workspace->elemStride;
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* tmdBuildStreamGt3CornerColors(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
