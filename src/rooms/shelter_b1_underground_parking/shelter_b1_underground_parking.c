@@ -1397,7 +1397,7 @@ WorldCollisionTrigger D_shelter_b1_underground_parking_8018B2F4[8] = {
     { NULL, NULL, NULL, { 704, -3680, -3969, 0 }, { { 178, -4192, 2804, 0 }, { -178, -4192, -2803, 0 }, { 178, 4192, 2804, 0 }, { -178, 4192, -2803, 0 } }, { -4090, 0, 259, 0 }, { 0, 0, 4096, 0 }, 5042, 0, 18, 17, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_underground_parking_8018B554[1] = {
+AreaResource D_shelter_b1_underground_parking_8018B554[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1405,7 +1405,7 @@ AreaPlacement D_shelter_b1_underground_parking_8018B560[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_underground_parking_8018B570[1] = {
+AreaResource D_shelter_b1_underground_parking_8018B570[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1413,8 +1413,8 @@ AreaPlacement D_shelter_b1_underground_parking_8018B57C[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_underground_parking_8018B58C[2] = {
-    { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
+AreaResource D_shelter_b1_underground_parking_8018B58C[2] = {
+    { 116, 615, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801401B0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

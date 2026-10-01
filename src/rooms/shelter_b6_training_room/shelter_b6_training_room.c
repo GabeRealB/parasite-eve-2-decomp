@@ -52,7 +52,7 @@ Task* D_shelter_b6_training_room_80185C5C;
 
 static void func_shelter_b6_training_room_8017DBB0(s32 arg0);
 
-extern GpAreaTmdRec D_shelter_b6_training_room_80185994[6];
+extern AreaResource D_shelter_b6_training_room_80185994[6];
 
 u8* D_shelter_b6_training_room_80184418[1] = {
     gViewIdentityMap,
@@ -262,12 +262,12 @@ WorldCollisionTrigger D_shelter_b6_training_room_80185780[7] = {
     { NULL, NULL, NULL, { 2479, -2144, 2047, 0 }, { { -4031, -3312, -3, 0 }, { 4031, -3312, 3, 0 }, { -4031, 3312, -3, 0 }, { 4031, 3312, 3, 0 } }, { 2, 0, -4097, 0 }, { 0, 0, 4096, 0 }, 5196, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b6_training_room_80185994[6] = {
-    { 131, 507, 5, 0, { 0, 0 }, D_80169D10 },
-    { 140, 507, 2, 0, { 0, 0 }, D_801708DC },
-    { 51, 51, 0, 0, { 0, 0 }, D_80141464 },
-    { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
-    { 60, 60, 1, 0, { 0, 0 }, D_801567C4 },
+AreaResource D_shelter_b6_training_room_80185994[6] = {
+    { 131, 507, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80169D10 },
+    { 140, 507, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801708DC },
+    { 51, 51, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80141464 },
+    { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014CA60 },
+    { 60, 60, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801567C4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

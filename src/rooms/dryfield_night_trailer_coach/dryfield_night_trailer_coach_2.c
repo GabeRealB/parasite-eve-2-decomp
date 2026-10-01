@@ -782,8 +782,8 @@ WorldCollisionTrigger D_dryfield_night_trailer_coach_8018BD1C[14] = {
     { NULL, NULL, NULL, { 8560, -64, -2576, 0 }, { { -384, 0, -784, 0 }, { 384, 0, -784, 0 }, { -384, 0, 784, 0 }, { 384, 0, 784, 0 } }, { 0, 4105, 0, 0 }, { 4090, 0, 200, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_trailer_coach_8018C144[2] = {
-    { 106, 207, 3, 0, { 0, 0 }, D_8013EF68 },
+AreaResource D_dryfield_night_trailer_coach_8018C144[2] = {
+    { 106, 207, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8013EF68 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

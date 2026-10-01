@@ -232,9 +232,9 @@ WorldCoordRoomLights D_dryfield_night_r08_8018189C[1] = {
     { ARRAY_SIZE(D_dryfield_night_r08_80181794), D_dryfield_night_r08_80181794, 0, NULL, 0, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_r08_801818B4[3] = {
-    { 132, 357, 4, 0, { 0, 0 }, D_8013DADC },
-    { 20, 358, 4, 0, { 0, 0 }, D_80146810 },
+AreaResource D_dryfield_night_r08_801818B4[3] = {
+    { 132, 357, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_8013DADC },
+    { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_80146810 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

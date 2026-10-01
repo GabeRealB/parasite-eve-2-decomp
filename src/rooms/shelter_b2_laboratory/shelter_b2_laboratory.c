@@ -945,8 +945,8 @@ WorldCollisionTrigger D_shelter_b2_laboratory_80185D84[19] = {
     { NULL, NULL, NULL, { 3248, -64, -1952, 0 }, { { -768, 0, -672, 0 }, { 768, 0, -672, 0 }, { -768, 0, 672, 0 }, { 768, 0, 672, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1019, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b2_laboratory_80186328[2] = {
-    { 101, 430, 0, 0, { 0, 0 }, D_801350B0 },
+AreaResource D_shelter_b2_laboratory_80186328[2] = {
+    { 101, 430, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801350B0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

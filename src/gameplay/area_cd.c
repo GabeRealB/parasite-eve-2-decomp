@@ -9,15 +9,12 @@
 #include "main/task_types.h"
 
 /// 2-byte table at `D_8010CAD0`. `Gp_PollAreaCdLoads` reads `field_0` at
-/// `GpCdRec0C.field_4` (stride 2) as the CdCmd 0x21 param1[2] base.
+/// `AreaResource.fileGroupIndex` (stride 2) as the CdCmd 0x21 param1[2] base.
 typedef struct _GpTbl2 {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
 } GpTbl2;
 STATIC_ASSERT_SIZEOF(GpTbl2, 2);
-
-/// The loader reads the same entries and layouts as the spawner.
-typedef GpAreaTmdRec GpCdRec0C;
 
 typedef GpAreaVariant GpCdAreaRec;
 
@@ -29,7 +26,7 @@ s16 Gp_AreaCdPhase;
 
 GpCdAreaRec* D_80114C64;
 
-GpCdRec0C* D_80114C68;
+AreaResource* D_80114C68;
 
 AreaPlacement* Gp_CdRecCur;
 
@@ -52,11 +49,11 @@ GpTbl2 D_8010CAD0[9] = { { 10, 0 }, { 20, 0 }, { 30, 0 }, { 40, 0 }, { 50, 0 }, 
 
 u16 Gp_PollAreaCdLoads(void)
 {
-    u8           fileKey[8];
-    u8           fileParams[8];
-    GpCdAreaRec* layout;
-    GpCdRec0C*   resource;
-    s32          fileNumber;
+    u8            fileKey[8];
+    u8            fileParams[8];
+    GpCdAreaRec*  layout;
+    AreaResource* resource;
+    s32           fileNumber;
 
     switch (Gp_AreaCdPhase) {
         case LOADING_AREA_INIT:
@@ -79,8 +76,8 @@ u16 Gp_PollAreaCdLoads(void)
                     Gp_CdRecCur++;
                     continue;
                 }
-                for (D_80114C68 = D_80114C64->field_4; D_80114C68->field_0 != AREA_PLACEMENT_END; D_80114C68++) {
-                    if (Gp_CdRecCur->entryId == D_80114C68->field_0) {
+                for (D_80114C68 = D_80114C64->field_4; D_80114C68->entryId != AREA_PLACEMENT_END; D_80114C68++) {
+                    if (Gp_CdRecCur->entryId == D_80114C68->entryId) {
                         break;
                     }
                 }
@@ -92,13 +89,13 @@ u16 Gp_PollAreaCdLoads(void)
                 fileKey[3] = 0;
                 fileKey[0] = Gp_CdRecCur->fileIdLow;
                 resource   = D_80114C68;
-                fileNumber = (s16)resource->field_2;
+                fileNumber = resource->fileNumber;
                 if (fileNumber >= LOADING_FILE_ID_RADIX) {
                     fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                    fileKey[2]    = D_8010CAD0[resource->field_4].field_0 + ((s16)resource->field_2 / LOADING_FILE_ID_RADIX);
+                    fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0 + (resource->fileNumber / LOADING_FILE_ID_RADIX);
                 } else {
-                    fileParams[0] = resource->field_2;
-                    fileKey[2]    = D_8010CAD0[resource->field_4].field_0;
+                    fileParams[0] = resource->fileNumber;
+                    fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0;
                 }
                 fileParams[1] = 0;
                 fileParams[2] = Gp_CdRecCur->texturePageOffset;
@@ -123,14 +120,14 @@ u16 Gp_PollAreaCdLoads(void)
 
 u16 func_800AA120(void)
 {
-    u8           fileKey[8];
-    u8           fileParams[8];
-    GpCdAreaRec* layout;
-    GpCdRec0C*   resource;
-    u16          entryId;
-    s32          fileNumber;
-    s16          texturePageOffset;
-    s16          clutRowOffset;
+    u8            fileKey[8];
+    u8            fileParams[8];
+    GpCdAreaRec*  layout;
+    AreaResource* resource;
+    u16           entryId;
+    s32           fileNumber;
+    s16           texturePageOffset;
+    s16           clutRowOffset;
 
     switch (D_80114C70) {
         case LOADING_AREA_INIT:
@@ -145,14 +142,14 @@ u16 func_800AA120(void)
             }
             D_80114C70++;
         case LOADING_AREA_QUEUE:
-            if (D_80114C68->field_0 == AREA_PLACEMENT_END) {
+            if (D_80114C68->entryId == AREA_PLACEMENT_END) {
                 return 1;
             }
             do {
                 Gp_CdRecCur = D_80114C64->field_0;
                 D_80114C72  = 0;
                 if (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
-                    entryId = D_80114C68->field_0;
+                    entryId = D_80114C68->entryId;
                     while (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
                         if (Gp_CdRecCur->entryId == entryId && Gp_CdRecCur->fileIdLow == 0) {
                             D_80114C72 = 1;
@@ -162,19 +159,19 @@ u16 func_800AA120(void)
                     }
                 }
                 resource = D_80114C68;
-                if (resource->field_4 != 5) {
+                if (resource->fileGroupIndex != AREA_RESOURCE_FILE_GROUP_BASE_60) {
                     if (D_80114C72 != 0) {
                         texturePageOffset = Gp_CdRecCur->texturePageOffset;
                         clutRowOffset     = Gp_CdRecCur->clutRowOffset;
                         fileKey[3]        = 0;
                         fileKey[0]        = 0;
-                        fileNumber        = (s16)resource->field_2;
+                        fileNumber        = resource->fileNumber;
                         if (fileNumber >= LOADING_FILE_ID_RADIX) {
                             fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                            fileKey[2]    = D_8010CAD0[resource->field_4].field_0 + ((s16)resource->field_2 / LOADING_FILE_ID_RADIX);
+                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0 + (resource->fileNumber / LOADING_FILE_ID_RADIX);
                         } else {
-                            fileParams[0] = resource->field_2;
-                            fileKey[2]    = D_8010CAD0[resource->field_4].field_0;
+                            fileParams[0] = resource->fileNumber;
+                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0;
                         }
                         fileParams[1] = 0;
                         fileParams[2] = texturePageOffset;
@@ -186,13 +183,13 @@ u16 func_800AA120(void)
                         clutRowOffset     = 0;
                         fileKey[3]        = 0;
                         fileKey[0]        = 0;
-                        fileNumber        = (s16)resource->field_2;
+                        fileNumber        = resource->fileNumber;
                         if (fileNumber >= LOADING_FILE_ID_RADIX) {
                             fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                            fileKey[2]    = D_8010CAD0[resource->field_4].field_0 + ((s16)resource->field_2 / LOADING_FILE_ID_RADIX);
+                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0 + (resource->fileNumber / LOADING_FILE_ID_RADIX);
                         } else {
-                            fileParams[0] = resource->field_2;
-                            fileKey[2]    = D_8010CAD0[resource->field_4].field_0;
+                            fileParams[0] = resource->fileNumber;
+                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0;
                         }
                         fileParams[1] = 0;
                         fileParams[2] = texturePageOffset;
@@ -205,13 +202,13 @@ u16 func_800AA120(void)
                     clutRowOffset     = Gp_CdRecCur->clutRowOffset;
                     fileKey[3]        = 0;
                     fileKey[0]        = 0;
-                    fileNumber        = (s16)resource->field_2;
+                    fileNumber        = resource->fileNumber;
                     if (fileNumber >= LOADING_FILE_ID_RADIX) {
                         fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                        fileKey[2]    = D_8010CAD0[resource->field_4].field_0 + ((s16)resource->field_2 / LOADING_FILE_ID_RADIX);
+                        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0 + (resource->fileNumber / LOADING_FILE_ID_RADIX);
                     } else {
-                        fileParams[0] = resource->field_2;
-                        fileKey[2]    = D_8010CAD0[resource->field_4].field_0;
+                        fileParams[0] = resource->fileNumber;
+                        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex].field_0;
                     }
                     fileParams[1] = 0;
                     fileParams[2] = texturePageOffset;
@@ -223,8 +220,8 @@ u16 func_800AA120(void)
                 } else {
                     D_80114C68 = resource + 1;
                 }
-            } while (resource[1].field_0 != AREA_PLACEMENT_END);
-            if (D_80114C68->field_0 == AREA_PLACEMENT_END) {
+            } while (resource[1].entryId != AREA_PLACEMENT_END);
+            if (D_80114C68->entryId == AREA_PLACEMENT_END) {
             finished:
                 return 1;
             }

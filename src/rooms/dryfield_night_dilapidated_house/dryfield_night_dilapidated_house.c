@@ -68,20 +68,20 @@ GpObj3A D_dryfield_night_dilapidated_house_80189F08[1] = {
     { NULL, NULL, { -4096, -2000, 1232, 0 }, { { 0, 2576, -2544, 0 }, { 0, -2576, -2544, 0 }, { 0, 2576, 2544, 0 }, { 0, -2576, 2544, 0 } }, { 4097, 0, 0, 0 }, { 36, 14 }, 129, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_dilapidated_house_80189F44[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
+AreaResource D_dryfield_night_dilapidated_house_80189F44[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80156500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_dilapidated_house_80189F68[3] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
+AreaResource D_dryfield_night_dilapidated_house_80189F68[3] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80156500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_dilapidated_house_80189F8C[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_dryfield_night_dilapidated_house_80189F8C[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

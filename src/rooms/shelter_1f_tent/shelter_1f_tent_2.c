@@ -497,10 +497,10 @@ WorldCollisionTrigger D_shelter_1f_tent_80183CF4[17] = {
     { NULL, NULL, NULL, { -2231, -64, 4062, 0 }, { { -460, 0, -639, 0 }, { 686, 0, -432, 0 }, { -717, 0, 385, 0 }, { 494, 0, 688, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_1f_tent_80184200[4] = {
-    { 113, 602, 3, 0, { 0, 0 }, D_8015152C },
-    { 116, 602, 5, 0, { 0, 0 }, D_80148118 },
-    { 117, 603, 5, 0, { 0, 0 }, D_8013FC80 },
+AreaResource D_shelter_1f_tent_80184200[4] = {
+    { 113, 602, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8015152C },
+    { 116, 602, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80148118 },
+    { 117, 603, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_8013FC80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

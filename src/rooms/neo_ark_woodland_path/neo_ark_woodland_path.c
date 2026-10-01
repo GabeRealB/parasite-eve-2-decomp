@@ -656,23 +656,23 @@ WorldCollisionTrigger D_neo_ark_woodland_path_8018445C[8] = {
     { NULL, NULL, NULL, { -5592, -64, -4720, 0 }, { { -808, 0, -816, 0 }, { 2072, 0, -816, 0 }, { -808, 0, 752, 0 }, { -456, 0, 880, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 2217, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 6, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_woodland_path_801846BC[2] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+AreaResource D_neo_ark_woodland_path_801846BC[2] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_woodland_path_801846D4[2] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+AreaResource D_neo_ark_woodland_path_801846D4[2] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_woodland_path_801846EC[2] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+AreaResource D_neo_ark_woodland_path_801846EC[2] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_woodland_path_80184704[2] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+AreaResource D_neo_ark_woodland_path_80184704[2] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

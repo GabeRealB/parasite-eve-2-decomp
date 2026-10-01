@@ -1686,10 +1686,10 @@ WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F734[6] = {
     { NULL, NULL, NULL, { 0x4240, -64, -0x5580, 0 }, { { 217, 0, -1277, 0 }, { 1352, 0, 94, 0 }, { -1352, 0, -94, 0 }, { -216, 0, 1277, 0 } }, { 0, 4096, 0, 0 }, { -4018, 0, -800, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F8FC[4] = {
-    { 32, 440, 3, 0, { 0, 0 }, D_80161854 },
-    { 103, 419, 2, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
-    { 44, 422, 5, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
+AreaResource D_shelter_b3_garbage_incinerator_8018F8FC[4] = {
+    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80161854 },
+    { 103, 419, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
+    { 44, 422, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1700,10 +1700,10 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018F92C[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F96C[4] = {
-    { 70, 70, 1, 2, { 0, 0 }, &D_801575F0 },
-    { 71, 71, 1, 1, { 0, 0 }, &D_80151E60 },
-    { 44, 424, 2, 1, { 0, 0 }, D_80173A54 },
+AreaResource D_shelter_b3_garbage_incinerator_8018F96C[4] = {
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_801575F0 },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_80151E60 },
+    { 44, 424, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, D_80173A54 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1711,7 +1711,7 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018F99C[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F9AC[1] = {
+AreaResource D_shelter_b3_garbage_incinerator_8018F9AC[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1722,10 +1722,10 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018F9B8[4] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F9F8[4] = {
-    { 32, 440, 3, 0, { 0, 0 }, D_80161854 },
-    { 103, 419, 2, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
-    { 44, 422, 5, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
+AreaResource D_shelter_b3_garbage_incinerator_8018F9F8[4] = {
+    { 32, 440, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80161854 },
+    { 103, 419, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
+    { 44, 422, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

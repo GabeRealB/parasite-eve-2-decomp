@@ -143,8 +143,8 @@ WorldCoordRoomLights D_shelter_r49_8017DD24[1] = {
     { 0, NULL, ARRAY_SIZE(D_shelter_r49_8017DCC4), D_shelter_r49_8017DCC4, 0, NULL },
 };
 
-GpAreaTmdRec D_shelter_r49_8017DD3C[2] = {
-    { 111, 439, 0, 0, { 0, 0 }, D_801413EC },
+AreaResource D_shelter_r49_8017DD3C[2] = {
+    { 111, 439, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801413EC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

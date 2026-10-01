@@ -446,8 +446,8 @@ WorldCollisionTrigger D_acropolis_square_80185680[26] = {
     { NULL, NULL, NULL, { 192, -2252, -1664, 0 }, { { 7248, 0, -304, 0 }, { 7248, 0, 272, 0 }, { -7248, 0, -272, 0 }, { -7248, 0, 304, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 7240, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 16, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_square_80185E38[2] = {
-    { 19, 118, 0, 0, { 0, 0 }, D_8013A468 },
+AreaResource D_acropolis_square_80185E38[2] = {
+    { 19, 118, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A468 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

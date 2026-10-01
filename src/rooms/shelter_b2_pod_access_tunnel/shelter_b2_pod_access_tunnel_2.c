@@ -447,48 +447,48 @@ WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_801851EC[3] = {
     { NULL, NULL, NULL, { 4592, -64, -2784, 0 }, { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b2_pod_access_tunnel_801852D0[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 11, 11, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_shelter_b2_pod_access_tunnel_801852D0[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_pod_access_tunnel_801852F4[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 11, 11, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_shelter_b2_pod_access_tunnel_801852F4[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_pod_access_tunnel_80185318[3] = {
-    { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_shelter_b2_pod_access_tunnel_80185318[3] = {
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_pod_access_tunnel_8018533C[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_shelter_b2_pod_access_tunnel_8018533C[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_pod_access_tunnel_80185354[2] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
+AreaResource D_shelter_b2_pod_access_tunnel_80185354[2] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_pod_access_tunnel_8018536C[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
+AreaResource D_shelter_b2_pod_access_tunnel_8018536C[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_pod_access_tunnel_80185390[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 56, 56, 1, 0, { 0, 0 }, D_801602C0 },
+AreaResource D_shelter_b2_pod_access_tunnel_80185390[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801602C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_pod_access_tunnel_801853B4[2] = {
-    { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
+AreaResource D_shelter_b2_pod_access_tunnel_801853B4[2] = {
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_801540E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

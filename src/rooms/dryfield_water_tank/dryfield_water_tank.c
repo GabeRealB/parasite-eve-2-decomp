@@ -139,7 +139,7 @@ extern Task*          D_dryfield_water_tank_80188D44;
 
 static void func_dryfield_water_tank_8017DB48(void);
 
-extern GpAreaTmdRec D_dryfield_water_tank_80188BCC[2];
+extern AreaResource D_dryfield_water_tank_80188BCC[2];
 
 extern WorldCollisionGrid    D_dryfield_water_tank_80186EBC[1];
 extern WorldCollisionTrigger D_dryfield_water_tank_80187FF8[4];
@@ -850,12 +850,12 @@ WorldCollisionTrigger D_dryfield_water_tank_80188920[9] = {
     { NULL, NULL, NULL, { 1280, -0x2F20, 1560, 0 }, { { -685, 0, 241, 0 }, { 187, 0, -619, 0 }, { -251, 0, 689, 0 }, { 751, 0, -310, 0 } }, { 0, 4097, 0, 0 }, { 2750, 0, 3035, 0 }, 812, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_water_tank_80188BCC[2] = {
-    { 140, 204, 0, 0, { 0, 0 }, D_8013E748 },
+AreaResource D_dryfield_water_tank_80188BCC[2] = {
+    { 140, 204, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013E748 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_water_tank_80188BE4[1] = {
+AreaResource D_dryfield_water_tank_80188BE4[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -470,8 +470,8 @@ WorldCollisionTrigger D_mine_refuge_80182810[6] = {
     { NULL, NULL, NULL, { 2464, -64, 2944, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_mine_refuge_801829D8[2] = {
-    { 101, 481, 4, 0, { 0, 0 }, &D_801358D8 },
+AreaResource D_mine_refuge_801829D8[2] = {
+    { 101, 481, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &D_801358D8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

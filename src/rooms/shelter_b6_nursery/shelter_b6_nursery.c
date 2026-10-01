@@ -778,10 +778,10 @@ WorldCollisionTrigger D_shelter_b6_nursery_801872AC[6] = {
     { NULL, NULL, NULL, { 6017, -1504, 2081, 0 }, { { -2694, -1904, -404, 0 }, { 2686, -1904, 395, 0 }, { -2694, 1904, -404, 0 }, { 2686, 1904, 395, 0 } }, { 602, 0, -4063, 0 }, { 0, 0, 4096, 0 }, 3318, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b6_nursery_80187474[4] = {
-    { 101, 508, 3, 0, { 0, 0 }, D_8014AC88 },
-    { 20, 358, 4, 0, { 0, 0 }, D_801539DC },
-    { 140, 508, 5, 3, { 0, 0 }, D_8014AC88 },
+AreaResource D_shelter_b6_nursery_80187474[4] = {
+    { 101, 508, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8014AC88 },
+    { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_801539DC },
+    { 140, 508, AREA_RESOURCE_FILE_GROUP_BASE_60, 3, { 0, 0 }, D_8014AC88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -395,31 +395,31 @@ WorldCollisionTrigger D_neo_ark_pyramid_80181478[7] = {
     { NULL, NULL, NULL, { 6528, -64, -9792, 0 }, { { 416, 14, -1278, 0 }, { 416, -13, 1279, 0 }, { -416, 14, -1278, 0 }, { -416, -13, 1279, 0 } }, { 0, 4119, 39, 0 }, { -4096, 0, 0, 0 }, 1342, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_pyramid_8018168C[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_pyramid_8018168C[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_pyramid_801816A4[2] = {
-    { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
+AreaResource D_neo_ark_pyramid_801816A4[2] = {
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_pyramid_801816BC[3] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 26, 26, 1, 0, { 0, 0 }, D_801528D4 },
+AreaResource D_neo_ark_pyramid_801816BC[3] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_pyramid_801816E0[3] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 20, 20, 2, 0, { 0, 0 }, D_80177DF0 },
+AreaResource D_neo_ark_pyramid_801816E0[3] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80177DF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_pyramid_80181704[3] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_neo_ark_pyramid_80181704[3] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

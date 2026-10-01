@@ -389,7 +389,7 @@ static GpAreaObj* Gp_GetAreaObj(GameLocationKey* key);
 
 static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState);
 
-static GpAreaTmdRec* Gp_GetNestedAreaObj(GameLocationKey* key);
+static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key);
 
 static void Gp_KillSlot4Children(void);
 
@@ -3040,7 +3040,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     GpAreaVariant* variants;
     GpAreaObj*     areaState;
     AreaPlacement* placement;
-    GpAreaTmdRec*  resource;
+    AreaResource*  resource;
     Enemy*         enemy;
     Task*          task;
     TmdObject*     model;
@@ -3071,7 +3071,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     // Match each placement with the resource entry that defines its actor.
     do {
         resource   = variants[location->variant].field_4;
-        resourceId = resource->field_0;
+        resourceId = resource->entryId;
         if (resourceId != AREA_PLACEMENT_END) {
             do {
                 if (resourceId == placement->entryId) {
@@ -3092,7 +3092,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                             break;
                         }
                     }
-                    enemy = Gp_SpawnEnemyFromTable(resource->field_8, resource->field_5,
+                    enemy = Gp_SpawnEnemyFromTable(resource->taskTable, resource->taskIndex,
                                                    (placement->variant << 16) | placement->mode, NULL);
                     if (enemy != NULL) {
                         u16 placementKey;
@@ -3150,7 +3150,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                     break;
                 }
                 resource++;
-                resourceId = resource->field_0;
+                resourceId = resource->entryId;
             } while (resourceId != AREA_PLACEMENT_END);
         }
         placementIndex++;
@@ -3379,8 +3379,8 @@ void Gp_ApplyAreaTmdFlags(void)
     GameLocationKey* key;
     GpAreaRec*       rec;
     GpAreaVariant*   nested;
-    GpAreaTmdRec*    table;
-    GpAreaTmdRec*    entry;
+    AreaResource*    table;
+    AreaResource*    entry;
     GpWorkObj*       work;
     AreaPlacement*   place;
     TmdObject*       extra;
@@ -3408,12 +3408,12 @@ void Gp_ApplyAreaTmdFlags(void)
                     }
                 }
                 entry = table;
-                id    = entry->field_0;
+                id    = entry->entryId;
                 if (id != AREA_PLACEMENT_END) {
                     limit = AREA_PLACEMENT_END;
                     do {
                         if (id == place->entryId) {
-                            flags = entry->field_8->header.fields.flags;
+                            flags = entry->taskTable->header.fields.flags;
                             if (flags == TASK_BODY_TMD) {
                                 extra->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
                             } else if (flags == (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER)) {
@@ -3422,7 +3422,7 @@ void Gp_ApplyAreaTmdFlags(void)
                             break;
                         }
                         entry++;
-                        id = entry->field_0;
+                        id = entry->entryId;
                     } while (id != limit);
                 }
             }
@@ -3615,11 +3615,11 @@ void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
     }
 }
 
-static GpAreaTmdRec* Gp_GetNestedAreaObj(GameLocationKey* key)
+static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key)
 {
     GpAreaRec*     areaRecords;
     GpAreaVariant* variants;
-    GpAreaTmdRec*  resources;
+    AreaResource*  resources;
 
     areaRecords = Gp_AreaTables[key->stage];
     resources   = NULL;

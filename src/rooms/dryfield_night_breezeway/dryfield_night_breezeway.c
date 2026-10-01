@@ -436,20 +436,20 @@ WorldCollisionTrigger D_dryfield_night_breezeway_801802A0[3] = {
     { NULL, NULL, NULL, { 0x45A0, -64, 2816, 0 }, { { -368, 0, -528, 0 }, { 368, 0, -528, 0 }, { -368, 0, 528, 0 }, { 368, 0, 528, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 643, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_breezeway_80180384[2] = {
-    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
+AreaResource D_dryfield_night_breezeway_80180384[2] = {
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_breezeway_8018039C[3] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
+AreaResource D_dryfield_night_breezeway_8018039C[3] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_breezeway_801803C0[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
+AreaResource D_dryfield_night_breezeway_801803C0[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

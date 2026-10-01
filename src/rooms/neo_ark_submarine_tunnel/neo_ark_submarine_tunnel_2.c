@@ -1183,23 +1183,23 @@ WorldCollisionTrigger D_neo_ark_submarine_tunnel_80187248[6] = {
     { NULL, NULL, NULL, { 3520, 1856, -96, 0 }, { { 0, -1904, 3056, 0 }, { 0, -1904, -3056, 0 }, { 0, 1904, 3056, 0 }, { 0, 1904, -3056, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3593, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_submarine_tunnel_80187410[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_neo_ark_submarine_tunnel_80187410[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_submarine_tunnel_80187428[2] = {
-    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
+AreaResource D_neo_ark_submarine_tunnel_80187428[2] = {
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_submarine_tunnel_80187440[3] = {
-    { 132, 511, 3, 0, { 0, 0 }, D_8013F734 },
-    { 34, 511, 5, 0, { 0, 0 }, D_8014E6E4 },
+AreaResource D_neo_ark_submarine_tunnel_80187440[3] = {
+    { 132, 511, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8013F734 },
+    { 34, 511, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_8014E6E4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_submarine_tunnel_80187464[1] = {
+AreaResource D_neo_ark_submarine_tunnel_80187464[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

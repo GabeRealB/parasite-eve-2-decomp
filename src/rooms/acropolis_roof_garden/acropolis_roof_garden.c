@@ -532,27 +532,27 @@ WorldCollisionTrigger D_acropolis_roof_garden_80185690[7] = {
     { NULL, NULL, NULL, { -4640, -64, -7104, 0 }, { { -1296, 0, -208, 0 }, { 1296, 0, -208, 0 }, { -1296, 0, 208, 0 }, { 1296, 0, 208, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_roof_garden_801858A4[3] = {
-    { 110, 108, 0, 0, { 0, 0 }, D_80139EDC },
-    { 55, 55, 1, 0, { 0, 0 }, D_801528DC },
+AreaResource D_acropolis_roof_garden_801858A4[3] = {
+    { 110, 108, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139EDC },
+    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_roof_garden_801858C8[3] = {
-    { 55, 55, 0, 0, { 0, 0 }, D_8013A8DC },
-    { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
+AreaResource D_acropolis_roof_garden_801858C8[3] = {
+    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8DC },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_roof_garden_801858EC[3] = {
-    { 110, 108, 0, 0, { 0, 0 }, D_80139EDC },
-    { 26, 26, 1, 0, { 0, 0 }, D_801528D4 },
+AreaResource D_acropolis_roof_garden_801858EC[3] = {
+    { 110, 108, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139EDC },
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_roof_garden_80185910[3] = {
-    { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
+AreaResource D_acropolis_roof_garden_80185910[3] = {
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

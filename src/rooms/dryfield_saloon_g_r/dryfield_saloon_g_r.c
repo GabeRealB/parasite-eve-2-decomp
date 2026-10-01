@@ -643,14 +643,14 @@ WorldCoordRoomLights D_dryfield_saloon_g_r_80181AC8[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_saloon_g_r_80181828), D_dryfield_saloon_g_r_80181828, 0, NULL },
 };
 
-GpAreaTmdRec D_dryfield_saloon_g_r_80181AE0[2] = {
-    { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
+AreaResource D_dryfield_saloon_g_r_80181AE0[2] = {
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_saloon_g_r_80181AF8[3] = {
-    { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 12, 12, 1, 0, { 0, 0 }, D_80150E98 },
+AreaResource D_dryfield_saloon_g_r_80181AF8[3] = {
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
+    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

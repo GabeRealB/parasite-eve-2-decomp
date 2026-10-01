@@ -1347,29 +1347,29 @@ WorldCollisionTrigger D_mine_forked_tunnel_80185118[6] = {
     { NULL, NULL, NULL, { 1584, 896, 1088, 0 }, { { -304, 0, -1136, 0 }, { 304, 0, -1136, 0 }, { -304, 0, 1136, 0 }, { 304, 0, 1136, 0 } }, { 0, 4112, 0, 0 }, { -4091, 0, 201, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_mine_forked_tunnel_801852E0[1] = {
+AreaResource D_mine_forked_tunnel_801852E0[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_forked_tunnel_801852EC[2] = {
-    { 16, 16, 1, 0, { 0, 0 }, D_8015C5DC },
+AreaResource D_mine_forked_tunnel_801852EC[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015C5DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_forked_tunnel_80185304[3] = {
-    { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
-    { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
+AreaResource D_mine_forked_tunnel_80185304[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014F9A8 },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_forked_tunnel_80185328[3] = {
-    { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
-    { 15, 15, 2, 0, { 0, 0 }, D_8016BE28 },
+AreaResource D_mine_forked_tunnel_80185328[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014F9A8 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_forked_tunnel_8018534C[2] = {
-    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
+AreaResource D_mine_forked_tunnel_8018534C[2] = {
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

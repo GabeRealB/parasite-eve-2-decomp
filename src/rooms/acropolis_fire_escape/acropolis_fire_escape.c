@@ -326,8 +326,8 @@ GpObj3A D_acropolis_fire_escape_801828BC[2] = {
     { NULL, NULL, { -864, -2272, -448, 0 }, { { 0, -3296, 3088, 0 }, { 0, -3296, -3088, 0 }, { 0, 3296, 3088, 0 }, { 0, 3296, -3088, 0 } }, { -4101, 0, 0, 0 }, { -116, 17 }, 129, 0 },
 };
 
-GpAreaTmdRec D_acropolis_fire_escape_80182934[2] = {
-    { 10, 115, 2, 0, { 0, 0 }, D_80169338 },
+AreaResource D_acropolis_fire_escape_80182934[2] = {
+    { 10, 115, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80169338 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -518,18 +518,18 @@ WorldCollisionTrigger D_dryfield_night_water_tank_801804BC[8] = {
     { NULL, NULL, NULL, { 576, -0x2F20, -1984, 0 }, { { 445, 0, 788, 0 }, { -788, 0, -221, 0 }, { 1897, 0, 504, 0 }, { -50, 0, -1395, 0 } }, { 0, 4102, 0, 0 }, { 4094, 0, 0, 0 }, 1962, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_water_tank_8018071C[1] = {
+AreaResource D_dryfield_night_water_tank_8018071C[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_water_tank_80180728[3] = {
-    { 143, 463, 0, 0, { 0, 0 }, D_801427C8 },
-    { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
+AreaResource D_dryfield_night_water_tank_80180728[3] = {
+    { 143, 463, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801427C8 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_water_tank_8018074C[2] = {
-    { 143, 463, 0, 0, { 0, 0 }, D_801427C8 },
+AreaResource D_dryfield_night_water_tank_8018074C[2] = {
+    { 143, 463, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801427C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

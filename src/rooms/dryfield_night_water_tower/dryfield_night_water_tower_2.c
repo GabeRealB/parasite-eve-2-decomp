@@ -839,25 +839,25 @@ WorldCollisionTrigger D_dryfield_night_water_tower_80182838[9] = {
     { NULL, NULL, NULL, { -3520, -192, -1280, 0 }, { { -1552, 0, -1536, 0 }, { 432, 0, -1536, 0 }, { -1552, 0, 1536, 0 }, { 432, 0, 1536, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 2172, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_water_tower_80182AE4[3] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
+AreaResource D_dryfield_night_water_tower_80182AE4[3] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_water_tower_80182B08[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_dryfield_night_water_tower_80182B08[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_water_tower_80182B20[2] = {
-    { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
+AreaResource D_dryfield_night_water_tower_80182B20[2] = {
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_water_tower_80182B38[3] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
+AreaResource D_dryfield_night_water_tower_80182B38[3] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801679A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

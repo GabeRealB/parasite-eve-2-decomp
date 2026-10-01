@@ -388,8 +388,8 @@ WorldCollisionTrigger D_acropolis_east_elevator_hall_80186A24[7] = {
     { NULL, NULL, NULL, { 4911, 0, -689, 0 }, { { -569, 0, -56, 0 }, { -209, 0, -1293, 0 }, { -174, 0, 942, 0 }, { 954, 0, 409, 0 } }, { 0, 4099, 0, 0 }, { -2276, 0, 3406, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_east_elevator_hall_80186C38[2] = {
-    { 110, 103, 0, 0, { 0, 0 }, D_8013A06C },
+AreaResource D_acropolis_east_elevator_hall_80186C38[2] = {
+    { 110, 103, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A06C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

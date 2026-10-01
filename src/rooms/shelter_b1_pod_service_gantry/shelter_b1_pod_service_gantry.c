@@ -93,11 +93,11 @@ GpWarpRec D_shelter_b1_pod_service_gantry_8017FB24[1] = {
     { { .words = { 1024, 2535, 0, 3220 } }, { 0, 0, 0, 0 }, { .words = { 1024, 2535, 0, 3220 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_pod_service_gantry_8017FB5C[5] = {
-    { 34, 608, 4, 1, { 0, 0 }, &D_801718F0 },
-    { 101, 608, 5, 1, { 0, 0 }, &D_801718F0 },
-    { 131, 608, 5, 1, { 0, 0 }, &D_801718F0 },
-    { 59, 608, 5, 1, { 0, 0 }, &D_801718F0 },
+AreaResource D_shelter_b1_pod_service_gantry_8017FB5C[5] = {
+    { 34, 608, AREA_RESOURCE_FILE_GROUP_BASE_50, 1, { 0, 0 }, &D_801718F0 },
+    { 101, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_801718F0 },
+    { 131, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_801718F0 },
+    { 59, 608, AREA_RESOURCE_FILE_GROUP_BASE_60, 1, { 0, 0 }, &D_801718F0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

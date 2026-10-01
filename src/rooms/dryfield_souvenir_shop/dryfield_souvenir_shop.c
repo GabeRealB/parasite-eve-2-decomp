@@ -305,9 +305,9 @@ WorldCoordRoomLights D_dryfield_souvenir_shop_8017F55C[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_souvenir_shop_8017F31C), D_dryfield_souvenir_shop_8017F31C, 0, NULL },
 };
 
-GpAreaTmdRec D_dryfield_souvenir_shop_8017F574[3] = {
-    { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
+AreaResource D_dryfield_souvenir_shop_8017F574[3] = {
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013E500 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

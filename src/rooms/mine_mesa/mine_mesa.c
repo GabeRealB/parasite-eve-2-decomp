@@ -2355,37 +2355,37 @@ WorldCollisionTrigger D_mine_mesa_801890A0[19] = {
     { NULL, NULL, NULL, { 3328, 0, 4032, 0 }, { { -272, 0, 1440, 0 }, { -272, 0, -1440, 0 }, { 272, 0, 1440, 0 }, { 272, 0, -1440, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1465, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_mine_mesa_80189644[2] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+AreaResource D_mine_mesa_80189644[2] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_mesa_8018965C[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_mine_mesa_8018965C[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_mesa_80189674[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
+AreaResource D_mine_mesa_80189674[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_mesa_80189698[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
+AreaResource D_mine_mesa_80189698[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_mesa_801896BC[3] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_mine_mesa_801896BC[3] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_mesa_801896E0[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 37, 37, 1, 0, { 0, 0 }, D_80151DAC },
+AreaResource D_mine_mesa_801896E0[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80151DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

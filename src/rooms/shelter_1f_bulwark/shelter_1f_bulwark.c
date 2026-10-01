@@ -241,9 +241,9 @@ WorldCollisionTrigger D_shelter_1f_bulwark_80180B24[8] = {
     { NULL, NULL, NULL, { 2848, -64, 1024, 0 }, { { -1328, 0, -368, 0 }, { 1328, 0, -368, 0 }, { -1328, 0, 368, 0 }, { 1328, 0, 368, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_1f_bulwark_80180D84[3] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_shelter_1f_bulwark_80180D84[3] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

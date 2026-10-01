@@ -1700,12 +1700,12 @@ WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
     { .color = { 16, 0, 0, 6 } },
 };
 
-GpAreaTmdRec D_dryfield_motel_room_6_80186740[2] = {
-    { 101, 205, 0, 0, { 0, 0 }, &D_8013843C },
+AreaResource D_dryfield_motel_room_6_80186740[2] = {
+    { 101, 205, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_8013843C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_motel_room_6_80186758[1] = {
+AreaResource D_dryfield_motel_room_6_80186758[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -90,7 +90,7 @@ extern WorldCollisionTrigger      D_dryfield_motel_balcony_80186000[4];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_balcony_80186600[23];
 extern WorldCoordRoomLights       D_dryfield_motel_balcony_801865E8[1];
 
-extern GpAreaTmdRec D_dryfield_motel_balcony_801861A8[1];
+extern AreaResource D_dryfield_motel_balcony_801861A8[1];
 
 s32 func_dryfield_motel_balcony_8017DB6C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_balcony_8017DB74(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -993,28 +993,28 @@ GpObj3A D_dryfield_motel_balcony_80186130[2] = {
     { NULL, NULL, { -0x2B61, -4016, -2561, 0 }, { { 4011, -2640, 3514, 0 }, { -4010, -2640, -3513, 0 }, { 4011, 2640, 3514, 0 }, { -4010, 2640, -3513, 0 } }, { -2701, 0, 3082, 0 }, { 60, 23 }, 129, 0 },
 };
 
-GpAreaTmdRec D_dryfield_motel_balcony_801861A8[1] = {
+AreaResource D_dryfield_motel_balcony_801861A8[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_motel_balcony_801861B4[2] = {
-    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+AreaResource D_dryfield_motel_balcony_801861B4[2] = {
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155AC4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_motel_balcony_801861CC[2] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+AreaResource D_dryfield_motel_balcony_801861CC[2] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_motel_balcony_801861E4[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_dryfield_motel_balcony_801861E4[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_motel_balcony_801861FC[3] = {
-    { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_dryfield_motel_balcony_801861FC[3] = {
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801482C0 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -219,32 +219,32 @@ GpObj3A D_shelter_b1_north_maintenance_walkway_801857B4[1] = {
     { NULL, NULL, { -1280, -1104, 1776, 0 }, { { -1920, 2128, -848, 0 }, { 1920, 2128, 848, 0 }, { -1920, -2128, -848, 0 }, { 1920, -2128, 848, 0 } }, { -1662, 0, 3761, 0 }, { -87, 11 }, 129, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_801857F0[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 24, 24, 1, 0, { 0, 0 }, D_8014E47C },
+AreaResource D_shelter_b1_north_maintenance_walkway_801857F0[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E47C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_80185814[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_shelter_b1_north_maintenance_walkway_80185814[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_8018582C[4] = {
-    { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
-    { 46, 46, 1, 0, { 0, 0 }, D_8014F698 },
-    { 47, 47, 1, 0, { 0, 0 }, D_801502BC },
+AreaResource D_shelter_b1_north_maintenance_walkway_8018582C[4] = {
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013F5F0 },
+    { 46, 46, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014F698 },
+    { 47, 47, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801502BC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_8018585C[2] = {
-    { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
+AreaResource D_shelter_b1_north_maintenance_walkway_8018585C[2] = {
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_north_maintenance_walkway_80185874[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_shelter_b1_north_maintenance_walkway_80185874[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

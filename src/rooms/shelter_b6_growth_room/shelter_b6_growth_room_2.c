@@ -268,8 +268,8 @@ WorldCollisionTrigger D_shelter_b6_growth_room_8017FF90[12] = {
     { NULL, NULL, NULL, { 4351, -1760, 1278, 0 }, { { 2404, -2544, -675, 0 }, { -2404, -2544, 676, 0 }, { 2404, 2544, -675, 0 }, { -2404, 2544, 676, 0 } }, { 1110, 0, 3952, 0 }, { 0, 0, 4096, 0 }, 3556, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b6_growth_room_80180320[2] = {
-    { 101, 509, 3, 0, { 0, 0 }, &D_80135E78 },
+AreaResource D_shelter_b6_growth_room_80180320[2] = {
+    { 101, 509, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_80135E78 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

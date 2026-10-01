@@ -38086,7 +38086,7 @@ jumps to it.
 
 `func_800AA120` walks a list and, for three different conditions, runs the same
 `CdCmd_Enqueue` preamble. The ROM has **three verbatim copies** of the
-`param1[3]=0; param1[0]=0; val=(s16)rec->field_2; if (val >= 100) {...}` head,
+`param1[3]=0; param1[0]=0; val=rec->fileNumber; if (val >= 100) {...}` head,
 but only **one** copy of the `< 100` else-branch and of the `param1[2]=…; jal
 CdCmd_Enqueue` tail. Factoring the shared part after the `if`/`else` (or using
 `a || b` plus one inner `if`) scores ~65%: GCC keeps one copy of everything and
@@ -38096,7 +38096,7 @@ Writing each arm as a complete copy — preamble *and* enqueue *and* `break` —
 reproduces the ROM exactly (65% → 90%):
 
 ```c
-if (rec->field_4 != 5) {
+if (rec->fileGroupIndex != AREA_RESOURCE_FILE_GROUP_BASE_60) {
     if (found) { d = ...; e = ...; PREP; ENQUEUE; break; }
     else       { d = 0;   e = 0;   PREP; ENQUEUE; break; }
 } else if (found) {

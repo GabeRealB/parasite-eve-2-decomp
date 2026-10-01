@@ -275,9 +275,9 @@ WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4] = {
     { .color = { 700, 700, 700, 700 } },
 };
 
-GpAreaTmdRec D_shelter_1f_vehicular_airlock_801829E0[3] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_shelter_1f_vehicular_airlock_801829E0[3] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

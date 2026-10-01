@@ -267,12 +267,12 @@ WorldCollisionTrigger D_shelter_b1_golem_freezer_1_8017EFAC[5] = {
     { NULL, NULL, NULL, { 4064, -64, 416, 0 }, { { -3040, 0, -256, 0 }, { 3040, 0, -256, 0 }, { -3040, 0, 256, 0 }, { 3040, 0, 256, 0 } }, { 0, 4095, 0, 0 }, { 201, 0, 4091, 0 }, 3050, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_golem_freezer_1_8017F128[1] = {
+AreaResource D_shelter_b1_golem_freezer_1_8017F128[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_golem_freezer_1_8017F134[2] = {
-    { 143, 607, 0, 0, { 0, 0 }, D_801416A8 },
+AreaResource D_shelter_b1_golem_freezer_1_8017F134[2] = {
+    { 143, 607, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801416A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

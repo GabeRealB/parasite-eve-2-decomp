@@ -694,9 +694,9 @@ WorldCoordRoomLights D_dryfield_cellar_80180A90[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_cellar_801808B0), D_dryfield_cellar_801808B0, 0, NULL },
 };
 
-GpAreaTmdRec D_dryfield_cellar_80180AA8[3] = {
-    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
+AreaResource D_dryfield_cellar_80180AA8[3] = {
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -556,30 +556,30 @@ WorldCollisionTrigger D_shelter_b1_main_corridor_801858B8[6] = {
     { NULL, NULL, NULL, { 0, -48, 0, 0 }, { { -1024, 0, -560, 0 }, { 1024, 0, -560, 0 }, { -1024, 0, 560, 0 }, { 1024, 0, 560, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, -4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 16, 97, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_main_corridor_80185A80[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 11, 11, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_shelter_b1_main_corridor_80185A80[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_main_corridor_80185AA4[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_shelter_b1_main_corridor_80185AA4[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_main_corridor_80185ABC[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_shelter_b1_main_corridor_80185ABC[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_main_corridor_80185AD4[2] = {
-    { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
+AreaResource D_shelter_b1_main_corridor_80185AD4[2] = {
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80154188 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_main_corridor_80185AEC[3] = {
-    { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_shelter_b1_main_corridor_80185AEC[3] = {
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801482C0 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

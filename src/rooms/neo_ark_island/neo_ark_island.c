@@ -59,11 +59,11 @@ extern RoomEventMsg D_neo_ark_island_80184008;
 static void func_neo_ark_island_8017EA94(Task* arg0);
 static void func_neo_ark_island_8017EB08(Task* task);
 
-extern GpAreaTmdRec D_neo_ark_island_80183EDC[2];
-extern GpAreaTmdRec D_neo_ark_island_80183EF4[2];
-extern GpAreaTmdRec D_neo_ark_island_80183F0C[2];
-extern GpAreaTmdRec D_neo_ark_island_80183F24[1];
-extern GpAreaTmdRec D_neo_ark_island_80183F30[2];
+extern AreaResource D_neo_ark_island_80183EDC[2];
+extern AreaResource D_neo_ark_island_80183EF4[2];
+extern AreaResource D_neo_ark_island_80183F0C[2];
+extern AreaResource D_neo_ark_island_80183F24[1];
+extern AreaResource D_neo_ark_island_80183F30[2];
 
 extern TaskDesc D_80147E48;
 
@@ -476,27 +476,27 @@ WorldCollisionTrigger D_neo_ark_island_80183DF8[3] = {
     { NULL, NULL, NULL, { 3424, -64, -6304, 0 }, { { -768, 0, -416, 0 }, { 768, 0, -416, 0 }, { -768, 0, 416, 0 }, { 768, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_island_80183EDC[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_neo_ark_island_80183EDC[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_island_80183EF4[2] = {
-    { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_neo_ark_island_80183EF4[2] = {
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_island_80183F0C[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_neo_ark_island_80183F0C[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_island_80183F24[1] = {
+AreaResource D_neo_ark_island_80183F24[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_island_80183F30[2] = {
-    { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
+AreaResource D_neo_ark_island_80183F30[2] = {
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

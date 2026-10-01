@@ -250,17 +250,17 @@ WorldCollisionGrid D_dryfield_driveway_8017ED74[1] = {
     { NULL, D_dryfield_driveway_8017E870, D_dryfield_driveway_8017E8D8, D_dryfield_driveway_8017EAD8, D_dryfield_driveway_8017ED20, 0x2B16, 5210, 7, 3, 4000, 23 },
 };
 
-GpAreaTmdRec D_dryfield_driveway_8017ED98[2] = {
-    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
+AreaResource D_dryfield_driveway_8017ED98[2] = {
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_driveway_8017EDB0[1] = {
+AreaResource D_dryfield_driveway_8017EDB0[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_driveway_8017EDBC[2] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+AreaResource D_dryfield_driveway_8017EDBC[2] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

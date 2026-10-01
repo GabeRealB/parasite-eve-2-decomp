@@ -1545,9 +1545,9 @@ WorldCollisionTrigger D_acropolis_security_room_80183EE8[5] = {
     { NULL, NULL, NULL, { -880, -1056, -2880, 0 }, { { -432, 0, -304, 0 }, { 432, 0, -304, 0 }, { -432, 0, 304, 0 }, { 432, 0, 304, 0 } }, { 0, 4096, 0, 0 }, { 1189, 0, 3920, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_security_room_80184064[3] = {
-    { 102, 119, 2, 0, { 0, 0 }, D_8016EC0C },
-    { 110, 119, 5, 0, { 0, 0 }, D_8016EC00 },
+AreaResource D_acropolis_security_room_80184064[3] = {
+    { 102, 119, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016EC0C },
+    { 110, 119, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_8016EC00 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

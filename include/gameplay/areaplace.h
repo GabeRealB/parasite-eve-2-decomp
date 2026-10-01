@@ -16,7 +16,7 @@ enum { AREA_PLACEMENT_END = 0xFF };
 /// An actor placement and its resource-loading parameters in an area layout.
 ///
 /// `GpAreaVariant.field_0` points to a table terminated by `AREA_PLACEMENT_END`.
-/// Area spawning matches `entryId` against `GpAreaTmdRec` task descriptors.
+/// Area spawning matches `entryId` against `AreaResource.entryId` to select a task recipe.
 /// The actor receives `(variant << 16) | mode` as its first spawn argument;
 /// both values and `rowIndex` have actor-specific interpretations.
 ///

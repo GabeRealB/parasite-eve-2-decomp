@@ -152,8 +152,8 @@ WorldCollisionTrigger D_shelter_r47_8018787C[13] = {
     { NULL, NULL, NULL, { 7072, -64, 4704, 0 }, { { 2144, 0, -688, 0 }, { 2144, 0, 688, 0 }, { -2144, 0, -688, 0 }, { -2144, 0, 688, 0 } }, { 0, 4104, 0, 0 }, { -201, 0, -4091, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_r47_80187C58[2] = {
-    { 143, 435, 3, 0, { 0, 0 }, D_8015873C },
+AreaResource D_shelter_r47_80187C58[2] = {
+    { 143, 435, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8015873C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -162,8 +162,8 @@ AreaPlacement D_shelter_r47_80187C70[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_r47_80187C90[2] = {
-    { 100, 434, 0, 0, { 0, 0 }, NULL },
+AreaResource D_shelter_r47_80187C90[2] = {
+    { 100, 434, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, NULL },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

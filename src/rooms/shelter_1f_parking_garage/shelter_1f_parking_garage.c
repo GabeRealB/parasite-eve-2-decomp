@@ -297,7 +297,7 @@ WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5] = {
     { .color = { 250, 250, 250, 250 } },
 };
 
-GpAreaTmdRec D_shelter_1f_parking_garage_801818CC[1] = {
+AreaResource D_shelter_1f_parking_garage_801818CC[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

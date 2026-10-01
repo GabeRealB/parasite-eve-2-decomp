@@ -150,15 +150,15 @@ GpObj3A D_acropolis_helicopter_landing_pad_80186128[2] = {
     { NULL, NULL, { 0, -896, 0, 0 }, { { 5616, -1920, -5632, 0 }, { -5616, -1920, 5632, 0 }, { 5616, 1920, -5632, 0 }, { -5616, 1920, 5632, 0 } }, { 2900, 0, 2892, 0 }, { -17, 31 }, 129, 0 },
 };
 
-GpAreaTmdRec D_acropolis_helicopter_landing_pad_801861A0[2] = {
-    { 27, 109, 4, 0, { 0, 0 }, D_80167A18 },
+AreaResource D_acropolis_helicopter_landing_pad_801861A0[2] = {
+    { 27, 109, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_80167A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_helicopter_landing_pad_801861B8[4] = {
-    { 27, 110, 4, 0, { 0, 0 }, D_80155070 },
-    { 144, 110, 5, 0, { 0, 0 }, D_801472E8 },
-    { 254, 110, 5, 0, { 0, 0 }, D_80139924 },
+AreaResource D_acropolis_helicopter_landing_pad_801861B8[4] = {
+    { 27, 110, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_80155070 },
+    { 144, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_801472E8 },
+    { 254, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80139924 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

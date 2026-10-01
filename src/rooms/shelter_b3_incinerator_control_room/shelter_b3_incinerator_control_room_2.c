@@ -245,8 +245,8 @@ WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801824B8[4] = {
     { NULL, NULL, NULL, { -4145, -1280, -3648, 0 }, { { 298, -2016, 1911, 0 }, { -301, -2016, -1914, 0 }, { 298, 2016, 1911, 0 }, { -301, 2016, -1914, 0 } }, { -4053, 0, 633, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b3_incinerator_control_room_801825E8[2] = {
-    { 101, 426, 0, 0, { 0, 0 }, D_80135E24 },
+AreaResource D_shelter_b3_incinerator_control_room_801825E8[2] = {
+    { 101, 426, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135E24 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

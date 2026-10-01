@@ -89,9 +89,9 @@ static const TaskFuncTable3 D_neo_ark_power_plant_2_8017D5C4 = {
     { func_neo_ark_power_plant_2_8017D6F4, func_neo_ark_power_plant_2_8017D758, taskKill },
 };
 
-extern GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3];
-extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3];
-extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2];
+extern AreaResource D_neo_ark_power_plant_2_80182D80[3];
+extern AreaResource D_neo_ark_power_plant_2_80182DA4[3];
+extern AreaResource D_neo_ark_power_plant_2_80182DC8[2];
 
 extern WorldCollisionGrid    D_neo_ark_power_plant_2_80180DC4[1];
 extern WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8];
@@ -654,20 +654,20 @@ WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8] = {
     { NULL, NULL, NULL, { 6864, -5120, -4256, 0 }, { { -400, 0, -2352, 0 }, { 400, 0, -2352, 0 }, { -400, 0, 2352, 0 }, { 400, 0, 2352, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 2374, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3] = {
-    { 53, 53, 0, 0, { 0, 0 }, D_8013D3FC },
-    { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
+AreaResource D_neo_ark_power_plant_2_80182D80[3] = {
+    { 53, 53, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013D3FC },
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3] = {
-    { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
-    { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
+AreaResource D_neo_ark_power_plant_2_80182DA4[3] = {
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2] = {
-    { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
+AreaResource D_neo_ark_power_plant_2_80182DC8[2] = {
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_801540E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

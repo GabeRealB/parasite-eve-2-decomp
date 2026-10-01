@@ -534,23 +534,23 @@ GpObj3A D_mine_secret_passage_801831A8[2] = {
     { NULL, NULL, { 0x398E, -1520, 623, 0 }, { { -1546, -2544, -1372, 0 }, { 1547, -2544, 1373, 0 }, { -1546, 2544, -1372, 0 }, { 1547, 2544, 1373, 0 } }, { 2726, 0, -3074, 0 }, { -50, 12 }, 129, 0 },
 };
 
-GpAreaTmdRec D_mine_secret_passage_80183220[2] = {
-    { 58, 58, 3, 0, { 0, 0 }, D_801514CC },
+AreaResource D_mine_secret_passage_80183220[2] = {
+    { 58, 58, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_801514CC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_secret_passage_80183238[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_mine_secret_passage_80183238[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_secret_passage_80183250[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_mine_secret_passage_80183250[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_secret_passage_80183268[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_mine_secret_passage_80183268[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

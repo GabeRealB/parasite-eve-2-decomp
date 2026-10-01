@@ -214,15 +214,15 @@ WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182ED8[2] = {
     { NULL, NULL, NULL, { 864, -48, 96, 0 }, { { -592, 0, -1024, 0 }, { 592, 0, -1024, 0 }, { -592, 0, 1024, 0 }, { 592, 0, 1024, 0 } }, { 0, 4109, 0, 0 }, { 4096, 0, 0, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 36, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_transfer_tunnel_80182F70[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 3, 3, 1, 0, { 0, 0 }, D_80160110 },
+AreaResource D_shelter_b1_transfer_tunnel_80182F70[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80160110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_transfer_tunnel_80182F94[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
+AreaResource D_shelter_b1_transfer_tunnel_80182F94[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

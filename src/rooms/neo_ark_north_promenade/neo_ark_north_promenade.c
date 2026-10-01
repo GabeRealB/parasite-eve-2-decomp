@@ -324,18 +324,18 @@ WorldCollisionTrigger D_neo_ark_north_promenade_80182DB4[8] = {
     { NULL, NULL, NULL, { 9249, -1504, 2112, 0 }, { { 3276, -1904, 650, 0 }, { -3280, -1904, -654, 0 }, { 3276, 1904, 650, 0 }, { -3280, 1904, -654, 0 } }, { -801, 0, 4020, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_north_promenade_80183014[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_neo_ark_north_promenade_80183014[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_north_promenade_8018302C[2] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
+AreaResource D_neo_ark_north_promenade_8018302C[2] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_north_promenade_80183044[2] = {
-    { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
+AreaResource D_neo_ark_north_promenade_80183044[2] = {
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801482C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

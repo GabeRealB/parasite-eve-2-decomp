@@ -72,8 +72,8 @@ extern RoomDeparture gRoomDeparture;
 static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0);
 static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
 
-extern GpAreaTmdRec D_neo_ark_eve_access_tunnel_8018067C[2];
-extern GpAreaTmdRec D_neo_ark_eve_access_tunnel_80180694[3];
+extern AreaResource D_neo_ark_eve_access_tunnel_8018067C[2];
+extern AreaResource D_neo_ark_eve_access_tunnel_80180694[3];
 
 extern SpriteSource D_neo_ark_eve_access_tunnel_8017F18C[69];
 
@@ -355,14 +355,14 @@ WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801804B4[6] = {
     { NULL, NULL, NULL, { -1024, -64, 736, 0 }, { { -848, 0, -608, 0 }, { 848, 0, -608, 0 }, { -848, 0, 608, 0 }, { 848, 0, 608, 0 } }, { 0, 4094, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_eve_access_tunnel_8018067C[2] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+AreaResource D_neo_ark_eve_access_tunnel_8018067C[2] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_eve_access_tunnel_80180694[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
+AreaResource D_neo_ark_eve_access_tunnel_80180694[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014CA60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

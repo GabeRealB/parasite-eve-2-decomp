@@ -291,8 +291,8 @@ WorldCollisionTrigger D_shelter_b2_elevator_8017E8F0[1] = {
     { NULL, NULL, NULL, { 0x2BF0, -48, -448, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b2_elevator_8017E93C[2] = {
-    { 101, 429, 0, 0, { 0, 0 }, D_80137600 },
+AreaResource D_shelter_b2_elevator_8017E93C[2] = {
+    { 101, 429, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137600 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

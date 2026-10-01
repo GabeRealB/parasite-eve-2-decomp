@@ -681,30 +681,30 @@ WorldCollisionTrigger D_neo_ark_power_plant_1_80181854[7] = {
     { NULL, NULL, NULL, { 6816, -64, -8544, 0 }, { { -720, 0, -368, 0 }, { 720, 0, -368, 0 }, { -720, 0, 368, 0 }, { 720, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_1_80181A68[3] = {
-    { 54, 54, 0, 0, { 0, 0 }, D_8013CEA0 },
-    { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
+AreaResource D_neo_ark_power_plant_1_80181A68[3] = {
+    { 54, 54, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013CEA0 },
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_1_80181A8C[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_power_plant_1_80181A8C[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_1_80181AA4[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_power_plant_1_80181AA4[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_1_80181ABC[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 38, 38, 1, 0, { 0, 0 }, D_8014FD74 },
+AreaResource D_neo_ark_power_plant_1_80181ABC[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014FD74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_1_80181AE0[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_power_plant_1_80181AE0[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

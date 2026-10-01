@@ -522,9 +522,9 @@ WorldCollisionTrigger D_shelter_r36_8017F6F4[10] = {
     { NULL, NULL, NULL, { 0x2DD0, -1408, -0x2A80, 0 }, { { -357, -4816, -547, 0 }, { 357, -4816, 547, 0 }, { -357, 4816, -547, 0 }, { 357, 4816, 547, 0 } }, { 3428, 0, -2240, 0 }, { 0, 0, 4096, 0 }, 4857, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_r36_8017F9EC[3] = {
-    { 111, 439, 0, 0, { 0, 0 }, D_801413EC },
-    { 112, 601, 5, 0, { 0, 0 }, D_80149664 },
+AreaResource D_shelter_r36_8017F9EC[3] = {
+    { 111, 439, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801413EC },
+    { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80149664 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

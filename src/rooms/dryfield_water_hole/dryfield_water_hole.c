@@ -1254,8 +1254,8 @@ WorldCoordRoomLights D_dryfield_water_hole_8018278C[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80182480), D_dryfield_water_hole_80182480, ARRAY_SIZE(D_dryfield_water_hole_80182720), D_dryfield_water_hole_80182720 },
 };
 
-GpAreaTmdRec D_dryfield_water_hole_801827A4[2] = {
-    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
+AreaResource D_dryfield_water_hole_801827A4[2] = {
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

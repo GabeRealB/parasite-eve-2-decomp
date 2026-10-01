@@ -1493,19 +1493,19 @@ WorldCoordRoomLights D_dryfield_night_main_street_8018899C[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_night_main_street_801885DC), D_dryfield_night_main_street_801885DC, 0, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_main_street_801889B4[3] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
+AreaResource D_dryfield_night_main_street_801889B4[3] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80165B88 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_main_street_801889D8[2] = {
-    { 106, 361, 0, 0, { 0, 0 }, D_80140744 },
+AreaResource D_dryfield_night_main_street_801889D8[2] = {
+    { 106, 361, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80140744 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_main_street_801889F0[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_dryfield_night_main_street_801889F0[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

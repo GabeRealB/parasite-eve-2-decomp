@@ -335,13 +335,13 @@ WorldCollisionTrigger D_shelter_1f_airlock_8017F5F8[4] = {
     { NULL, NULL, NULL, { -1376, -64, 4192, 0 }, { { -608, 0, -352, 0 }, { 608, 0, -352, 0 }, { -608, 0, 352, 0 }, { 608, 0, 352, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_1f_airlock_8017F728[2] = {
-    { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
+AreaResource D_shelter_1f_airlock_8017F728[2] = {
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80154188 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_1f_airlock_8017F740[2] = {
-    { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
+AreaResource D_shelter_1f_airlock_8017F740[2] = {
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_801540E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
