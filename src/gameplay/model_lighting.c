@@ -226,7 +226,15 @@ static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* e
         /// displacement. The complete word seeds `POLY_FT3.u1`, `v1` and `tpage`;
         /// adding `texturePageOffset` afterwards wraps only the u16 `tpage` field.
         MODEL_LIGHTING_FT3_UV1_TPAGE_WORD = 3,
-        MODEL_LIGHTING_FT3_UV2_WORD       = 4
+
+        /// Zero-based u32 word index of vertex 2's packed U/V texture coordinates.
+        ///
+        /// For records 0x1C/0x1E, counted from each element after the three-word
+        /// record header. Bits 0..7 and 8..15 are unsigned U2/V2 texel coordinates.
+        /// Only the low halfword is copied into `POLY_FT3.u2` and `v2`; the stream
+        /// word's high halfword is ignored and `POLY_FT3.pad1` remains untouched.
+        /// Nonempty elements must have a stride of at least five u32 words.
+        MODEL_LIGHTING_FT3_UV2_WORD = 4
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = element[MODEL_LIGHTING_FT3_UV0_CLUT_WORD];
