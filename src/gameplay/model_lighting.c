@@ -265,6 +265,30 @@ static inline void _modelLightingInitFt4Texture(POLY_FT4* quad, const u32* eleme
     quad->clut      += workspace->encodedClutOffset;
 }
 
+/// Initializes one gouraud textured triangle's persistent texture fields.
+///
+/// `triangle` is a writable, word-aligned packet; `elementWords` addresses at
+/// least six aligned u32 words after the record header. `workspace` supplies
+/// construction's signed encoded page and CLUT displacements. Packed word and
+/// halfword stores preserve the GPU field widths, including the unused high
+/// half beside U2/V2. All arguments are borrowed; no cursor or count is changed.
+static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWords, const TmdStreamWorkspace* workspace)
+{
+    // Word indices within the element, excluding the record header.
+    enum {
+        TMD_GT3_UV0_CLUT_WORD  = 3, // U0/V0 in low half, CLUT address in high half
+        TMD_GT3_UV1_TPAGE_WORD = 4, // U1/V1 in low half, texture-page settings in high half
+        TMD_GT3_UV2_WORD       = 5  // U2/V2 in low half; high half is not copied
+    };
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[TMD_GT3_UV1_TPAGE_WORD];
+    // Copy the U/V pair without overwriting the SDK pad field.
+    *(u16*)&triangle->u2 = (u16)elementWords[TMD_GT3_UV2_WORD];
+    triangle->tpage     += workspace->texturePageOffset;
+    triangle->clut      += workspace->encodedClutOffset;
+}
+
 u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     s32      prev;
@@ -1987,24 +2011,20 @@ u32* modelLightingStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* s
     return stream;
 }
 
-u32* gpStreamPrimGt3(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
+    POLY_GT3* triangle;
 
-    poly = (POLY_GT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
+    triangle = (POLY_GT3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
         do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
-            *(u16*)&poly->u2                    = (u16)stream[5];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            _tmdInitGt3Texture(triangle, elements, workspace);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* gpStreamPrimGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)

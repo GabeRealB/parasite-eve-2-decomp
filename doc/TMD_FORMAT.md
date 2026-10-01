@@ -301,7 +301,7 @@ They are not one thing. Comparing each pair's draw handler shows three
 different mechanisms:
 
 **`0x4000` — two primitives per element.** `gpStreamPrimGt3Base` (`0x4038`) is
-`gpStreamPrimGt3` (`0x38`) with an extra `poly++` before the UV writes, so the
+`tmdBuildStreamGt3` (`0x38`) with an extra `poly++` before the UV writes, so the
 handler consumes two primitive slots per element and fills only the second.
 That is a layered draw — the same face emitted twice, as an opaque base and a
 semi-transparent layer that the transform handler links into the ordering table
@@ -325,14 +325,14 @@ takes the same element words there as its unlayered handler does.
 routine.** These resolve to init handlers at `0x8013xxxx`, which is inside the
 **actor package overlay**, not main or gameplay:
 
-| Opcode | Init handler | Lives in | Draw family |
+| Opcode | Init handler | Lives in | Packet builder |
 |---|---|---|---|
-| `0x38` | `tmdDrawStreamGt3` | main (hasm) | `gpStreamPrimGt3` |
-| `0x8038` | `D_80136224` | actor package | `gpStreamPrimGt3` |
-| `0x10038` | `D_8013700C` | actor package | `gpStreamPrimGt3` |
-| `0x20038` | `D_801379B4` | actor package | `gpStreamPrimGt3` |
+| `0x38` | `tmdDrawStreamGt3` | main (hasm) | `tmdBuildStreamGt3` |
+| `0x8038` | `D_80136224` | actor package | `tmdBuildStreamGt3` |
+| `0x10038` | `D_8013700C` | actor package | `tmdBuildStreamGt3` |
+| `0x20038` | `D_801379B4` | actor package | `tmdBuildStreamGt3` |
 
-The draw family — and therefore the element layout — is identical to the base
+The packet builder — and therefore the element layout — is identical to the base
 opcode. Only the transform/light routine changes, and it is supplied by the
 package being drawn. That is why these bits never move the stride. What those
 routines actually do is out of reach: they live in overlays this project does

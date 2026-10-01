@@ -277,16 +277,30 @@ u32* modelLightingStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* s
 /// element stride per element.
 u32* modelLightingStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's textured-triangle records (`0x38`, `0x3A`, `0x8038`,
-/// `0x10038`, `0x1003A`, `0x20038`): each element contributes one triangle to
-/// the buffer half's second region, with the element's texture words written into
-/// it.
+/// Initializes persistent texture fields for a record of gouraud textured triangles.
 ///
-/// The record is not pre-transformed, so its triangle is built in the region the
-/// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
-/// and adds the model's texture page and CLUT to the primitive's own, which are
-/// stored relative to the model.
-u32* gpStreamPrimGt3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Construction selects this callback for `0x38`, `0x3A`, `0x8038`, `0x10038`,
+/// `0x1003A` and `0x20038`. `elements` starts after the three-word record header.
+/// The caller supplies `workspace->elemCount` (0..65535) and `elemStride` in
+/// u32 words, at least six per element. The first three words pack three vertex
+/// and three normal references; words 3 and 4 pack unsigned byte U/V texel
+/// coordinates with encoded CLUT and texture-page settings. Word 5's low half
+/// packs U2/V2; its high half is ignored.
+///
+/// `primWrite` must address one writable, four-byte-aligned `POLY_GT3` slot per
+/// element in the selected buffer half's second region. Texture page and CLUT
+/// sums wrap in their u16 fields after adding the workspace's signed encoded
+/// displacements: `texturePageOffset` (-128..127) and `encodedClutOffset`
+/// (-8192..8128, 64 per palette row). Drawing supplies positions, colours, packet
+/// lengths/codes and links later; construction preserves those fields and `pad2`.
+///
+/// Advances `primWrite` by one 40-byte packet per element and returns the cursor
+/// advanced by `elemCount * elemStride` words. The count is consumed to -1 even
+/// for an empty record. `objectFlags` is the shared callback argument, passed as
+/// zero during construction and ignored here. Stream and packet capacities are
+/// caller obligations; the workspace and storage are borrowed, with no pointer
+/// retained by this callback.
+u32* tmdBuildStreamGt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Handler of a stream's textured-quad records (`0x78`, `0x7A`, `0x8078`,
 /// `0x10078`, `0x20078`): each element contributes one quad to the buffer half's
@@ -304,7 +318,7 @@ u32* gpStreamPrimGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 ///
 /// The element carries a colour of its own — the colour the triangle's vertices
 /// are lit from — so its texture words sit one word further into the element than
-/// `gpStreamPrimGt3`'s, whose record is lit from a constant. The record is not
+/// `tmdBuildStreamGt3`'s, whose record is lit from a constant. The record is not
 /// pre-transformed, so its triangle is built in the region the draw pass
 /// transforms; this command writes only the polygon's `u`/`v` fields, and adds
 /// the model's texture page and CLUT to the primitive's own, which are stored
@@ -363,7 +377,7 @@ u32* gpStreamPrimGt4CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 /// the element's texture words written into it.
 ///
 /// The element names one normal for the whole triangle rather than one per corner
-/// as the `gpStreamPrimGt3` family does, so its texture words begin a word
+/// as the `tmdBuildStreamGt3` family does, so its texture words begin a word
 /// earlier. The record is not pre-transformed, so its triangle is built in the
 /// region the draw pass transforms; this command writes only the polygon's `u`/`v`
 /// fields, and adds the model's texture page and CLUT to the primitive's own,

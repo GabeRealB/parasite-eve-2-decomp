@@ -41943,7 +41943,7 @@ Nothing was broken: each binary has its own symbol map, and main's references
 resolved through the generated `linkers/USA/undefined_syms_auto.main.txt`. That
 is exactly why it went unnoticed — and why it cost real time. Main's map held
 one spelling of a handler (`D_8009ED90`) and gameplay's another
-(`gpStreamPrimGt3`), so a search for either found only one of the two, and the
+(`tmdBuildStreamGt3`), so a search for either found only one of the two, and the
 TMD draw handlers read as "unmatched overlay assembly" for a whole investigation
 while being decompiled C the entire time.
 
@@ -134338,7 +134338,7 @@ the quads read `tmdDrawStreamPrimG4` and `tmdDrawStreamPrimG4CornerNormals`.
 
 Not the textured families' `OneNormal`: that word names their single-normal arm
 from the family that carries three normals (`gpStreamPrimGt3OneNormal` beside
-`gpStreamPrimGt3`), so it reads as a different rule beside an untextured family
+`tmdBuildStreamGt3`), so it reads as a different rule beside an untextured family
 whose base record already is the single-normal one.
 
 Two steps naming one body from the same twin can also collide, since each picks a
