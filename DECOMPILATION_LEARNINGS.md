@@ -141121,7 +141121,7 @@ duplicates a loop test containing a call, so both calls are in the source.
 Identity stores that looked interleaved with unrelated statements, sometimes
 out of order, and sometimes needed `volatile`, all match as one call to
 `gfxSetRotIdentity(MATRIX*)` - a `static __inline__` function storing through
-`GpMtxWords`. Two things decide it. Struct stores (`w->m00_m01 = ONE`) are
+`GpMtxWords`. Two things decide it. Struct stores (`rotationWords->m00_m01 = ONE`) are
 `MEM_IN_STRUCT_P`, so the scheduler keeps them ordered against neighbouring
 struct stores, where `*(s32*)&m->m[r][c]` stores are scalar and move; and
 inlining a function substitutes a stack matrix's frame address into some

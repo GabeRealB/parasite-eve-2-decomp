@@ -87,17 +87,21 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2);
 
 s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 
-/// Sets a matrix's rotation to identity in five word stores; the translation
-/// is left alone.
-static __inline__ void gfxSetRotIdentity(MATRIX* m)
+/// Sets the nine rotation entries of `matrix` to the GTE fixed-point identity.
+///
+/// Diagonal entries are `ONE` (4096, representing 1.0); all others are zero.
+/// Four word stores and a final halfword store write exactly 18 bytes, leaving
+/// the two alignment bytes before `t` and all three translation words unchanged.
+/// The caller manages any containing `GfxCoord`'s `composeStamp` separately.
+static __inline__ void gfxSetRotIdentity(MATRIX* matrix)
 {
-    GpMtxWords* w = (GpMtxWords*)m;
+    GpMtxWords* rotationWords = (GpMtxWords*)matrix;
 
-    w->m00_m01 = ONE;
-    w->m02_m10 = 0;
-    w->m11_m12 = ONE;
-    w->m20_m21 = 0;
-    w->m22     = ONE;
+    rotationWords->m00_m01 = ONE;
+    rotationWords->m02_m10 = 0;
+    rotationWords->m11_m12 = ONE;
+    rotationWords->m20_m21 = 0;
+    rotationWords->m22     = ONE;
 }
 
 #endif // MAIN_GFX_H
