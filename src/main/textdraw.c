@@ -458,10 +458,18 @@ static void Text_DrawGlyphDualSprtA(TextDrawReq* request, const _FontGlyph* glyp
     addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-/// Sets the shared screen and texture rectangle of an outlined glyph's two sprites.
+/// Sets matching screen and texture rectangles for a UI glyph's fill and outline.
 ///
-/// `fill` and `outline` are distinct writable packets. Borrows the request and
-/// glyph metrics; dimensions are 1..256 texels and V wraps modulo 256.
+/// Pen coordinates and glyph offsets are in draw-environment pixels. X starts
+/// at the pen plus `glyph->xOffset`; Y places the last row at the pen baseline
+/// plus `glyph->yOffset`, before narrowing X/Y to signed 16-bit sprite fields.
+/// U/V are page-local texels; adding signed `request->vBias` to V wraps modulo
+/// 256. Byte-sized minus-one dimensions decode to 1..256 pixels and texels.
+///
+/// `fill` and `outline` are distinct writable `SPRT` packets owned by the caller.
+/// Updates only their position, UV and dimensions. Packet allocation,
+/// header/color/CLUT setup and queueing belong to the caller. Borrows `request`
+/// and `glyph` without modifying or retaining them or advancing the pen.
 static inline void _textSetOutlinedGlyphRectangle(SPRT* fill, SPRT* outline,
                                                   const TextDrawReq* request, const _FontGlyph* glyph)
 {
