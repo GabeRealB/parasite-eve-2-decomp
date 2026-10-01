@@ -184,9 +184,6 @@ extern OverlayWaveCtx* gScreenWaveCtx;
 extern OverlayWaveRec6 gScreenWaveColumns[13];
 extern OverlayWaveRec6 gScreenWaveRows[32];
 
-extern RECT D_dryfield_dilapidated_house_80183E7C;
-extern RECT D_dryfield_dilapidated_house_80183E84;
-
 extern s32            D_dryfield_dilapidated_house_80189B70;
 extern s32            D_dryfield_dilapidated_house_80189B6C;
 extern s32            D_dryfield_dilapidated_house_80183EFC;
@@ -305,9 +302,9 @@ TaskDesc D_dryfield_dilapidated_house_80183E64[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-RECT D_dryfield_dilapidated_house_80183E7C = { 0, 0, 320, 240 };
+RECT gScreenNegativeFrameRect = { 0, 0, 320, 240 };
 
-RECT D_dryfield_dilapidated_house_80183E84 = { 0, 0, 16, 240 };
+RECT gScreenNegativeStripRect = { 0, 0, 16, 240 };
 
 TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_dilapidated_house_8017E574 },
@@ -2461,67 +2458,12 @@ extern GfxCoord D_dryfield_dilapidated_house_8018A060[8];
 
 #include "../../shared/screen_wave.inc.c"
 
-/// The room's capture task, the body the actor family also carries as
-/// `func_actor_460200_80131E24`: the whole image area is written into the
-/// display buffer strip by strip and then desaturated in place.
-///
-/// It is spawned from entry 0 of `D_dryfield_dilapidated_house_80183E64` with
-/// the `OverlayCaptureArgs` block as its `spawnArg2`. State 0 seeds the countdown
-/// from the block's duration, picks the strip origin's y out of `gDisplayState`
-/// (`field_1f` non-zero selects 0, clear selects 0x110) and hands the twenty
-/// 0x1E00-byte strips of `Fs_ImgBuffers` to `StoreImage` -- or, while the buffer
-/// is being read back (`gDisplayState.debugMode` is negative), only the single flat
-/// `D_dryfield_dilapidated_house_80183E7C` rectangle -- and then marks the
-/// display busy in `field_104`. State 1 waits for the transfer with `DrawSync`
-/// and runs the desaturating invert. State 2 counts the duration down in
-/// `Task::killCountdown`, raises the block's `done` when it runs out, and on
-/// `done` releases `field_104` and kills the task.
+#include "../../shared/screen_negative_capture.inc.c"
+
+/// The scene's negative freeze-frame (see screen_negative.h).
 void func_dryfield_dilapidated_house_8017DE88(Task* task)
 {
-    OverlayCaptureArgs* args;
-    s32                 i;
-    u_long*             strip;
-
-    args = task->spawnArg2.pointer;
-    if (D_801156F9 == 0) {
-        switch (task->state) {
-            case 0:
-                args->done          = 0;
-                task->killCountdown = args->duration;
-                if (gDisplayState.drawBuffer != 0) {
-                    D_dryfield_dilapidated_house_80183E84.y = 0;
-                } else {
-                    D_dryfield_dilapidated_house_80183E84.y = 0x110;
-                }
-                if (gDisplayState.debugMode < 0) {
-                    StoreImage(&D_dryfield_dilapidated_house_80183E7C, Fs_ImgBuffers->words);
-                } else {
-                    strip = Fs_ImgBuffers->words;
-                    for (i = 0; i < 20; i++) {
-                        D_dryfield_dilapidated_house_80183E84.x = i * 16;
-                        StoreImage(&D_dryfield_dilapidated_house_80183E84, strip);
-                        strip += 1920;
-                    }
-                }
-                gDisplayState.skipDraw = 1;
-                goto advance;
-            case 1:
-                DrawSync(0);
-                screenNegativeFilter();
-            advance:
-                task->state++;
-                break;
-            case 2:
-                if (--task->killCountdown <= 0) {
-                    args->done = 1;
-                }
-                if (args->done != 0) {
-                    taskKill(task);
-                    gDisplayState.skipDraw = 0;
-                }
-                break;
-        }
-    }
+    screenNegativeCaptureTask(task);
 }
 
 /// State handlers of the room task, indexed by `Task::state`: set-up, the room

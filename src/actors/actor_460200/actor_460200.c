@@ -93,9 +93,6 @@ extern EvsCommand           D_actor_460200_80137FE0[];
 extern EvsCommand           D_actor_460200_80138028[];
 extern EvsCommand           D_actor_460200_80138070[];
 
-extern RECT D_actor_460200_80135E0C;
-extern RECT D_actor_460200_80135E14;
-
 extern TaskDesc                gStrideWalkTasks[];
 extern u8                      gStrideWalkAnimParams[];
 extern Actor460200MessageEntry gStrideWalkMessages[6];
@@ -469,9 +466,9 @@ TaskDesc D_actor_460200_80135DF4[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-RECT D_actor_460200_80135E0C = { 0, 0, 320, 240 };
+RECT gScreenNegativeFrameRect = { 0, 0, 320, 240 };
 
-RECT D_actor_460200_80135E14 = { 0, 0, 16, 240 };
+RECT gScreenNegativeStripRect = { 0, 0, 16, 240 };
 
 AnimationPlayRequest D_actor_460200_80135E1C = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -2153,52 +2150,12 @@ static void func_actor_460200_801322B8(void);
 static void func_actor_460200_80132390(void);
 static void func_actor_460200_801336B4(Task* task);
 
+#include "../../shared/screen_negative_capture.inc.c"
+
+/// The scene's negative freeze-frame (see screen_negative.h).
 void func_actor_460200_80131E24(Task* task)
 {
-    OverlayCaptureArgs* args;
-    s32                 i;
-    u_long*             strip;
-
-    args = task->spawnArg2.pointer;
-    if (D_801156F9 == 0) {
-        switch (task->state) {
-            case 0:
-                args->done          = 0;
-                task->killCountdown = args->duration;
-                if (gDisplayState.drawBuffer != 0) {
-                    D_actor_460200_80135E14.y = 0;
-                } else {
-                    D_actor_460200_80135E14.y = 0x110;
-                }
-                if (gDisplayState.debugMode < 0) {
-                    StoreImage(&D_actor_460200_80135E0C, Fs_ImgBuffers->words);
-                } else {
-                    strip = Fs_ImgBuffers->words;
-                    for (i = 0; i < 20; i++) {
-                        D_actor_460200_80135E14.x = i * 16;
-                        StoreImage(&D_actor_460200_80135E14, strip);
-                        strip += 1920;
-                    }
-                }
-                gDisplayState.skipDraw = 1;
-                goto advance;
-            case 1:
-                DrawSync(0);
-                screenNegativeFilter();
-            advance:
-                task->state++;
-                break;
-            case 2:
-                if (--task->killCountdown <= 0) {
-                    args->done = 1;
-                }
-                if (args->done != 0) {
-                    taskKill(task);
-                    gDisplayState.skipDraw = 0;
-                }
-                break;
-        }
-    }
+    screenNegativeCaptureTask(task);
 }
 
 #include "../../shared/screen_negative_filter.inc.c"
