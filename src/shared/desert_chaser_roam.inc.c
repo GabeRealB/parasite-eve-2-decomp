@@ -1,0 +1,373 @@
+/* Part of the Desert Chaser library; see desert_chaser.h. */
+
+void desertChaserRoam(Task* arg0)
+{
+    s32 radius = 0x5DC;
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    Enemy* ctx;
+#else
+#endif
+    DesertChaserWork*      work;
+    WorldCollisionContact* record;
+    GfxCoord*              coord;
+    GfxCoord*              coord2;
+    GfxCoord*              coord3;
+    GfxCoord*              facing3;
+    GfxCoord*              facing4;
+    GfxCoord*              facing5;
+    GfxCoord*              facing;
+    GfxCoord*              facing2;
+    GfxCoord*              turnCoord;
+    MATRIX*                matrix;
+    ActorMoveScratch*      scratch;
+    SVECTOR*               target;
+    SVECTOR*               target2;
+    ActorMoveScratch*      head;
+    SVECTOR*               direction;
+    ActorMoveScratch*      head2;
+    TmdObject*             obj;
+    s16                    targetDelta;
+    s16                    delta;
+    s16                    yaw;
+    s16                    delta3;
+    s16                    delta4;
+    s16                    delta5;
+    s32                    playerX;
+    s16                    delta1;
+    s16                    delta2;
+    s16                    targetYaw;
+    s16                    z;
+    s32                    magnitude;
+    s32                    targetMagnitude;
+    s16                    adjustedDelta;
+    s32                    originalMagnitude;
+    s16                    wrapped;
+    s16                    wrapped2;
+    s16                    wrapped3;
+    s16                    wrapped4;
+    s16                    wrapped5;
+    s16                    wrappedYaw;
+    s32                    angle3;
+    s32                    angle4;
+    s32                    angle5;
+    s32                    angle;
+    s32                    angle2;
+    s32                    finalYaw;
+    s32                    turnDelta;
+    s32                    finalDelta;
+    s32                    yawDifference;
+    u16                    unsignedDelta;
+    work = arg0->work;
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    ctx = arg0->spawnArg2.pointer;
+#else
+#endif
+    if (work->field_4 != 0) {
+        head    = SCRATCH_STACK_CURSOR(ActorMoveScratch);
+        obj     = arg0->extra.tmd;
+        scratch = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head - 1);
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+        ctx->node.state.parts.flags = 0;
+#else
+        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+#endif
+        obj->flags = 0;
+        Tmd_AllocBuffers(obj);
+        work->objs[0].obj.radius = 0x19C;
+        work->field_828          = 1;
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#else
+        work->field_832 = 0x10;
+#endif
+        work->field_82A          = 0;
+        work->field_82E          = 0;
+        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+        work->field_832 = work->field_834;
+#else
+
+#endif
+        desertChaserArmedAnimTick(arg0);
+        desertChaserArmedAnimTick(arg0);
+        work->field_6   = 0;
+        work->field_8   = 0;
+        coord           = arg0->extra.tmd->coords;
+        head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
+        scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        z               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+        scratch->vec.vz = z;
+        facing          = arg0->extra.tmd->coords;
+        angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
+        delta1          = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
+        wrapped         = delta1;
+        if (delta1 < 0) {
+        wrapNegative:
+            if (wrapped < -0x800) {
+                wrapped += 0x1000;
+                goto wrapNegative;
+            }
+        } else {
+        wrapPositive:
+            if (wrapped >= 0x801) {
+                wrapped -= 0x1000;
+                goto wrapPositive;
+            }
+        }
+        work->field_840 = wrapped;
+        matrix          = &scratch->matrix;
+        gfxRotMatrixY(matrix, (s16)ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz) + 0x3E8, 1);
+        Gfx_MatrixCol2(matrix, &scratch->vec);
+        VectorNormalSS(&scratch->vec, &scratch->vec);
+        gte_lddp(1000);
+        gte_ldsv(&scratch->vec);
+        gte_gpf12();
+        gte_stsv(&scratch->vec);
+        work->field_14     = 0;
+        work->field_C[0].x = (s16)((u16)scratch->vec.vx + arg0->extra.tmd->coords->coord.t[0]);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
+        work->field_C[0].z                 = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
+        work->capsuleBody.shape.ends[1].vz = 0x26C;
+        return;
+    }
+    work->field_8      += 1;
+    head2               = SCRATCH_STACK_CURSOR(ActorMoveScratch);
+    scratch             = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head2 - 1);
+    head2[-1].vec.vx    = (s16)(work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0]);
+    scratch->vec.vy     = 0;
+    scratch->vec.vz     = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
+    coord2              = arg0->extra.tmd->coords;
+    head2[-1].target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0]);
+    target              = &head2[-1].target;
+    target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
+    target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
+#else
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
+#endif
+        facing2  = arg0->extra.tmd->coords;
+        angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
+        delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
+        wrapped2 = delta2;
+        if (delta2 < 0) {
+        wrapNegative2:
+            if (wrapped2 < -0x800) {
+                wrapped2 += 0x1000;
+                goto wrapNegative2;
+            }
+        } else {
+        wrapPositive2:
+            if (wrapped2 >= 0x801) {
+                wrapped2 -= 0x1000;
+                goto wrapPositive2;
+            }
+        }
+        work->field_840 = wrapped2;
+        if (work->field_14 == 0) {
+            gfxRotMatrixY(&scratch->matrix, (s16)ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) - 0x2EE, 1);
+            work->field_14 = 1;
+        } else {
+            gfxRotMatrixY(&scratch->matrix, (s16)ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x2EE, 1);
+            work->field_14 = 0;
+        }
+        direction = &scratch->target;
+        Gfx_MatrixCol2(&scratch->matrix, direction);
+        VectorNormalSS(direction, direction);
+        gte_lddp(2000);
+        gte_ldsv(direction);
+        gte_gpf12();
+        gte_stsv(direction);
+        work->field_C[work->field_14].x = (s16)((u16)scratch->target.vx + arg0->extra.tmd->coords->coord.t[0]);
+        work->field_C[work->field_14].z = (s16)((u16)scratch->target.vz + arg0->extra.tmd->coords->coord.t[2]);
+        work->field_6                   = 0;
+    }
+    desertChaserArmedAnimTick(arg0);
+    facing3  = arg0->extra.tmd->coords;
+    angle3   = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz);
+    delta3   = angle3 - ratan2((s32)-facing3->coord.m[2][0], (s32)facing3->coord.m[2][2]);
+    wrapped3 = delta3;
+    if (delta3 < 0) {
+    wrapNegative3:
+        if (wrapped3 < -0x800) {
+            wrapped3 += 0x1000;
+            goto wrapNegative3;
+        }
+    } else {
+    wrapPositive3:
+        if (wrapped3 >= 0x801) {
+            wrapped3 -= 0x1000;
+            goto wrapPositive3;
+        }
+    }
+    work->field_840 = wrapped3;
+    facing4         = arg0->extra.tmd->coords;
+    angle4          = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
+    delta4          = angle4 - ratan2((s32)-facing4->coord.m[2][0], (s32)facing4->coord.m[2][2]);
+    wrapped4        = delta4;
+    if (delta4 < 0) {
+    wrapNegative4:
+        if (wrapped4 < -0x800) {
+            wrapped4 += 0x1000;
+            goto wrapNegative4;
+        }
+    } else {
+    wrapPositive4:
+        if (wrapped4 >= 0x801) {
+            wrapped4 -= 0x1000;
+            goto wrapPositive4;
+        }
+    }
+    turnDelta         = wrapped4;
+    scratch->original = (scratch->delta = (s16)turnDelta);
+    delta             = scratch->delta;
+    unsignedDelta     = (u16)scratch->delta;
+    magnitude         = abs(scratch->delta);
+    if (magnitude >= 0x601) {
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+        targetDelta = work->field_840;
+#else
+        targetDelta = (s16)work->field_840;
+#endif
+        targetMagnitude = abs(targetDelta);
+        if ((targetMagnitude >= 0x101) && ((targetDelta * delta) < 0)) {
+            adjustedDelta = unsignedDelta - 0x1000;
+            if (delta < 0) {
+                adjustedDelta = unsignedDelta + 0x1000;
+            }
+            scratch->delta = adjustedDelta;
+        }
+    }
+    if (scratch->delta >= 0x21) {
+        scratch->delta = 0x20;
+    }
+    if (scratch->delta < -0x20) {
+        scratch->delta = -0x20;
+    }
+    work->field_83E = scratch->delta * 0x10;
+    turnCoord       = arg0->extra.tmd->coords;
+    yaw             = (u16)scratch->delta + ratan2((s32)-turnCoord->coord.m[2][0], (s32)turnCoord->coord.m[2][2]);
+    scratch->delta  = yaw;
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
+    record = work->objs[0].contacts;
+    if (work->field_82A == 0) {
+        if (desertChaserCapsuleTouchesGrid(arg0)) {
+            actorMoveForward(arg0->extra.tmd->coords, 20);
+        } else {
+            actorMoveForward(arg0->extra.tmd->coords, 20);
+        }
+        record = work->objs[0].contacts;
+    }
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    ActorContact_Steer(arg0->extra.tmd->coords, record, 5, &scratch->vec);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5) == 1) {
+#else
+    ActorContact_Steer(arg0->extra.tmd->coords, record, 12, &scratch->vec);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 12) == 1) {
+#endif
+        originalMagnitude = abs(scratch->original);
+        if (originalMagnitude < 0x20) {
+            work->field_6 += 1;
+        }
+    }
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    if ((detectSightBlocked(arg0) != 1) && (target2 = &scratch->target, coord3 = arg0->extra.tmd->coords, scratch->target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]), target2->vy = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1], target2->vz = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2], ((work->field_8 > work->poseVz) != 0))) {
+        if (work->poseYawPrev <= 0) {
+            if ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == (gDisplayState.animFrame % 15)) {
+#else
+    coord3             = arg0->extra.tmd->coords;
+    scratch->target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]);
+    target2            = &scratch->target;
+    target2->vy        = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
+    target2->vz        = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
+    if (work->field_8 > (s16)work->poseVz) {
+        if ((s16)work->poseYawPrev <= 0) {
+
+#endif
+                if (actorOutsideRadius(&scratch->target, radius)) {
+                    if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
+                        facing5  = arg0->extra.tmd->coords;
+                        angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
+                        delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
+                        wrapped5 = delta5;
+                        if (delta5 < 0) {
+                        wrapNegative5:
+                            if (wrapped5 < -0x800) {
+                                wrapped5 += 0x1000;
+                                goto wrapNegative5;
+                            }
+                        } else {
+                        wrapPositive5:
+                            if (wrapped5 >= 0x801) {
+                                wrapped5 -= 0x1000;
+                                goto wrapPositive5;
+                            }
+                        }
+                        finalDelta     = wrapped5;
+                        scratch->delta = (s16)finalDelta;
+                        finalDelta     = abs(finalDelta);
+                        if (finalDelta < 0x300) {
+                            goto changeState;
+                        }
+                    }
+                } else {
+                changeState:
+                    work->field_0 = 0x1C;
+                }
+                playerX            = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
+                scratch->playerYaw = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+                targetYaw          = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x800;
+                wrappedYaw         = targetYaw;
+                scratch->yaw       = targetYaw;
+                if (targetYaw < 0) {
+                wrapYawNegative:
+                    if (wrappedYaw < -0x800) {
+                        wrappedYaw += 0x1000;
+                        goto wrapYawNegative;
+                    }
+                } else {
+                wrapYawPositive:
+                    if (wrappedYaw >= 0x801) {
+                        wrappedYaw -= 0x1000;
+                        goto wrapYawPositive;
+                    }
+                }
+                finalYaw      = wrappedYaw;
+                scratch->yaw  = (s16)finalYaw;
+                yawDifference = finalYaw - scratch->playerYaw;
+                if (yawDifference < 0) {
+                    yawDifference = -yawDifference;
+                }
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+                if ((yawDifference >= 0x601) || (Gp_NodeSlotMask(&ctx->node) == 0)) {
+#else
+            if (yawDifference >= 0x601) {
+#endif
+                    work->field_0 = 0x1C;
+                }
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+            }
+            goto checkFlag;
+        }
+#else
+#endif
+    } else {
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    checkFlag:
+        if ((work->poseYawPrev <= 0) && (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
+            work->field_0 = 0x1C;
+#else
+            work->poseYawPrev -= 1;
+#endif
+        }
+    }
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#else
+    func_actor_421600_80133334(arg0->extra.tmd->coords);
+#endif
+    SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#else
+    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+#endif
+}

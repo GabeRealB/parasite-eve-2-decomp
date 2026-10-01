@@ -333,4 +333,20 @@ void desertChaserHideState(Enemy* arg0, Task* arg1);
 s32  desertChaserMsgPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 void desertChaserExit(Task* task);
 
+#if DESERT_CHASER_BUILD != DESERT_CHASER_UNARMED
+void desertChaserPursue(Task* arg0);
+void desertChaserRoam(Task* arg0);
+void desertChaserApproach(Task* arg0);
+void desertChaserStrike(Task* arg0);
+void desertChaserTurnStep(Task* arg0);
+void desertChaserTurnStepProbe(Task* arg0);
+void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2);
+void desertChaserSpawnAim(Task* arg0);
+void desertChaserSteer(Task* arg0);
+void desertChaserStunned(Task* arg0);
+void desertChaserFlinch(Task* arg0);
+void desertChaserStagger(Task* arg0);
+void desertChaserCollapse(Task* arg0);
+#endif
+
 #endif /* SRC_SHARED_DESERT_CHASER_H */

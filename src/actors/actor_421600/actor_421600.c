@@ -172,7 +172,7 @@ extern Actor421600MessageEntry D_actor_421600_80151118[8];
 /// other.
 extern SVECTOR D_actor_421600_80151158[];
 
-/// Hit-position table `func_actor_421600_801350BC` picks one of twelve entries
+/// Hit-position table `desertChaserHitEffect` picks one of twelve entries
 /// from by relative hit yaw: the same 8-byte `SVECTOR` records as the pose
 /// table above, at the 0x801510B8 end of the same trailing data run.
 
@@ -253,21 +253,17 @@ typedef struct {
 } Actor421600AnimWord;
 
 // These bounded symbol views preserve the original independent address loads.
-extern DesertChaserAnimCommand Actor421600FrontAnim __asm__("D_actor_421600_80151090");
-extern DesertChaserAnimCommand Actor421600RearAnim __asm__("D_actor_421600_80151090+20");
-extern SVECTOR                 Actor421600HitOffsets[12] __asm__("D_actor_421600_80151090+40");
+extern DesertChaserAnimCommand gDesertChaserFrontAnim __asm__("D_actor_421600_80151090");
+extern DesertChaserAnimCommand gDesertChaserRearAnim __asm__("D_actor_421600_80151090+20");
+extern SVECTOR                 gDesertChaserHitOffsets[12] __asm__("D_actor_421600_80151090+40");
 extern Actor421600AnimWord     Actor421600FrontContact __asm__("D_actor_421600_80151090+16");
 extern Actor421600AnimWord     Actor421600FallbackEnd __asm__("D_actor_421600_80151090+20");
 
 static void func_actor_421600_8013E668(Task* task);
 static void func_actor_421600_8013E858(Task* arg0);
-static void func_actor_421600_8013E8AC(Task* arg0);
 static void func_actor_421600_8013E9D8(Task* arg0);
 static void func_actor_421600_8013EAAC(Task* arg0);
 static void func_actor_421600_8013EB7C(Task* arg0);
-static void func_actor_421600_8013EC28(Task* arg0);
-static void func_actor_421600_8013ED24(Task* arg0);
-static void func_actor_421600_8013EE0C(Task* arg0);
 
 extern AnimationSet D_actor_421600_8014BC74;
 extern AnimationSet D_actor_421600_8014C410;
@@ -1930,13 +1926,12 @@ static __inline__ Actor421600UpdateScratch* Actor421600_AllocUpdateScratch(Actor
 static __inline__ s32                       Actor421600_HasPlayerContact(WorldCollisionContact* records);
 static s32                                  func_actor_421600_80133334(GfxCoord* arg0);
 static void                                 func_actor_421600_80133444(GfxCoord* coord);
-static s32                                  func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
+static s32                                  desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static void                                 func_actor_421600_80133B30(Task* arg0);
 static s32                                  func_actor_421600_80133CAC(Task* arg0, DesertChaserWork* work);
-static void                                 func_actor_421600_80134604(Task* arg0);
+static void                                 desertChaserArmedAnimTick(Task* arg0);
 static __inline__ void                      Actor421600_BindMatrices(Task* actor);
 static void                                 func_actor_421600_80134AD4(Enemy* enemy, Task* actor);
-static void                                 func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2);
 static __inline__ s32                       Actor421600_FindDamageHit(WorldCollisionContact* records,
                                                                       SVECTOR*               pos);
 static void                                 func_actor_421600_801354D8(Task* arg0);
@@ -1946,15 +1941,9 @@ static void                                 func_actor_421600_80136138(Task* arg
 static __inline__ void                      Actor421600_ShrinkCoord(GfxCoord* coord, s16 y);
 static void                                 func_actor_421600_801366F4(Task* arg0);
 static void                                 func_actor_421600_801369A0(Task* arg0);
-static void                                 func_actor_421600_80136C88(Task* arg0);
-static void                                 func_actor_421600_801373D4(Task* arg0);
-static void                                 func_actor_421600_8013848C(Task* arg0);
-static void                                 func_actor_421600_80138750(Task* arg0);
 static void                                 func_actor_421600_80138D24(Task* arg0);
 static void                                 func_actor_421600_8013903C(Task* arg0);
-static void                                 func_actor_421600_801392A8(Task* actor);
 static void                                 func_actor_421600_8013947C(Task* arg0);
-static void                                 func_actor_421600_80139718(Task* arg0);
 static void                                 func_actor_421600_8013A404(Task* arg0);
 static void                                 func_actor_421600_8013A554(Task* arg0);
 static void                                 func_actor_421600_8013B00C(Task* arg0);
@@ -1963,8 +1952,6 @@ static void                                 func_actor_421600_8013B8E0(Task* arg
 static __inline__ s32                       Actor421600_RouteZone(s32 x, s32 z);
 static void                                 func_actor_421600_8013BA70(Task* arg0);
 static void                                 func_actor_421600_8013C8E0(Task* arg0);
-static void                                 func_actor_421600_8013CD3C(Task* arg0);
-static void                                 func_actor_421600_8013D1DC(Task* arg0);
 static void                                 func_actor_421600_8013D658(Enemy* enemy, Task* actor);
 static void                                 func_actor_421600_8013E7F8(SVECTOR* arg0, s32 arg1);
 static s8                                   func_actor_421600_8013E830(s32 arg0, s32 arg1);
@@ -2243,7 +2230,7 @@ static void func_actor_421600_80133444(GfxCoord* coord)
     }
 }
 
-static s32 func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
+static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
     u8*                      head;
     Actor421600AvoidScratch* s;
@@ -2695,7 +2682,7 @@ static s32 func_actor_421600_80133CAC(Task* arg0, DesertChaserWork* work)
     return 0;
 }
 
-static void func_actor_421600_80134604(Task* arg0)
+static void desertChaserArmedAnimTick(Task* arg0)
 {
     s32               index;
     u32               table;
@@ -2938,7 +2925,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     work->field_840 = 0;
     work->field_834 = 0x10;
     work->field_832 = 0x10;
-    func_actor_421600_80134604(actor);
+    desertChaserArmedAnimTick(actor);
     work->objs[2].obj.context.contacts = work->objs[2].contacts;
     work->objs[2].obj.coord            = root;
     work->objs[2].obj.pos.vx           = 0;
@@ -3074,74 +3061,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     actor->state++;
 }
 
-/// Picks one of twelve hit positions out of `Actor421600HitOffsets` by
-/// relative hit yaw `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the
-/// model part that entry names. Same body as the shared
-/// `Actor00100_Fn03340` / `func_actor_401300_80134BA4` pair, but it reads this
-/// overlay's own table, so it stays a per-overlay copy.
-static void func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2)
-{
-    SVECTOR*          sc;
-    s32               mag;
-    DesertChaserWork* work;
-
-    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    mag  = (arg1 >= 0) ? arg1 : -arg1;
-    work = arg0->work;
-    if (mag < 0x200) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 3) {
-            case 0:
-                *sc = Actor421600HitOffsets[0];
-                break;
-            case 1:
-                *sc = Actor421600HitOffsets[1];
-                break;
-            case 2:
-                *sc = Actor421600HitOffsets[2];
-                break;
-            case 3:
-                *sc = Actor421600HitOffsets[3];
-                break;
-            default:
-                *sc = Actor421600HitOffsets[4];
-                break;
-        }
-    } else if (mag >= 0x601) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 2) {
-            case 0:
-                *sc = Actor421600HitOffsets[5];
-                break;
-            case 1:
-                *sc = Actor421600HitOffsets[6];
-                break;
-            default:
-                *sc = Actor421600HitOffsets[7];
-                break;
-        }
-    } else if (arg1 > 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
-            *sc = Actor421600HitOffsets[8];
-        } else {
-            *sc = Actor421600HitOffsets[9];
-        }
-    } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
-            *sc = Actor421600HitOffsets[10];
-        } else {
-            *sc = Actor421600HitOffsets[11];
-        }
-    }
-    work->field_890.coord      = &arg0->extra.tmd->coords[sc->pad];
-    work->field_890.spawnArgLo = 0x100;
-    work->field_890.spawnArgHi = 2;
-    work->hitPos               = *sc;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->hitPos, &work->field_890);
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
+#include "../../shared/desert_chaser_hit_effect.inc.c"
 
 static __inline__ s32 Actor421600_FindDamageHit(WorldCollisionContact* records,
                                                 SVECTOR*               pos)
@@ -3338,7 +3258,7 @@ static void func_actor_421600_801354D8(Task* arg0)
             }
             callAngle         = wrapped;
             scratch->field_2C = callAngle;
-            func_actor_421600_801350BC(arg0, callAngle, scratch->field_20);
+            desertChaserHitEffect(arg0, callAngle, scratch->field_20);
             work->field_844 = 0;
             work->field_840 = 0;
             if (Gp_RollEnemyChance(enemy, scratch->field_20, 0) != 0) {
@@ -3475,10 +3395,10 @@ static void func_actor_421600_80135F6C(Task* arg0)
         }
         work->field_83E = 0;
         work->field_840 = 0;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         return;
     }
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if ((work->slots[1].flags & 2) && (work->field_82E == 0xD)) {
         work->field_82E = 1;
         work->field_828 = 1;
@@ -3488,7 +3408,7 @@ static void func_actor_421600_80135F6C(Task* arg0)
             work->field_828 = 2;
             work->field_82E = 0x10;
         }
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
     }
     if (work->field_82E == 0xE) {
         if ((u32)((work->slots[1].currentPose.indices.recordIndex & 0x3FF) - 8) < 2U) {
@@ -3556,7 +3476,7 @@ static void func_actor_421600_80136138(Task* arg0)
         work->field_82E          = 0;
         work->field_828          = 1;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         return;
     }
     playerZone = Actor421600_Zone(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords);
@@ -3624,7 +3544,7 @@ static void func_actor_421600_80136138(Task* arg0)
             }
             break;
     }
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     blk = head - 1;
@@ -3853,693 +3773,16 @@ static void func_actor_421600_801369A0(Task* arg0)
     }
 }
 
-static void func_actor_421600_80136C88(Task* arg0)
-{
-    DesertChaserWork*      work;
-    Enemy*                 ctx;
-    DesertChaserWork*      move;
-    ActorTurnScratch*      head;
-    ActorTurnScratch*      scratch;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    GfxCoord*              playerCoord;
-    GfxCoord*              turnCoord;
-    WorldCollisionContact* records;
-    u16                    angle;
-    s16                    delta;
-    s32                    value;
-    s32                    magnitude;
-    s16                    yaw;
+#include "../../shared/desert_chaser_approach.inc.c"
 
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        ctx                         = arg0->spawnArg2.pointer;
-        obj                         = arg0->extra.tmd;
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 0;
-        work->field_83E          = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
-        func_actor_421600_80134604(arg0);
-        work->field_6                      = 0;
-        work->capsuleBody.shape.ends[1].vz = 0x26C;
-        return;
-    }
-    head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    scratch           = (SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1);
-    move              = work;
-    head[-1].delta.vx = move->field_C[move->field_14].x - arg0->extra.tmd->coords->coord.t[0];
-    scratch->delta.vy = 0;
-    scratch->delta.vz = move->field_C[move->field_14].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!actorOutsideRadius(&scratch->delta, 0xA0) || (s16)work->field_6 >= 0x15) {
-        if (move->field_14 == 0)
-            move->field_14 = 1;
-        else
-            move->field_14 = 0;
-        work->field_6 = 0;
-    }
-    func_actor_421600_80134604(arg0);
-    coord           = arg0->extra.tmd->coords;
-    angle           = ratan2(scratch->delta.vx, scratch->delta.vz);
-    delta           = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    value           = actorNormalizeYaw(delta);
-    scratch->angle  = value;
-    work->field_840 = value;
-    if (scratch->angle >= 0x11)
-        scratch->angle = 0x10;
-    if (scratch->angle < -0x10)
-        scratch->angle = -0x10;
-    work->field_83E = scratch->angle;
-    turnCoord       = arg0->extra.tmd->coords;
-    yaw             = (u16)scratch->angle + ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]);
-    scratch->angle  = yaw;
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, yaw, 1);
-    records = work->objs[0].contacts;
-    if (work->field_82A == 0) {
-        if (desertChaserCapsuleTouchesGrid(arg0)) {
-            actorMoveForward(arg0->extra.tmd->coords, 20);
-        } else {
-            actorMoveForward(arg0->extra.tmd->coords, 20);
-        }
-        records = work->objs[0].contacts;
-    }
-    ActorContact_Steer(arg0->extra.tmd->coords, records, 0xC, &scratch->delta);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) == 1) {
-        magnitude = abs((s16)work->field_840);
-        if (magnitude < 0x80)
-            work->field_6 = work->field_6 + 1;
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    playerCoord                           = arg0->extra.tmd->coords;
-    scratch->delta.vx                     = gPlayerStatus.coordMtx->t[0] - playerCoord->coord.t[0];
-    scratch->delta.vy                     = gPlayerStatus.coordMtx->t[1] - playerCoord->coord.t[1];
-    scratch->delta.vz                     = gPlayerStatus.coordMtx->t[2] - playerCoord->coord.t[2];
-    if (!actorOutsideRadius(&scratch->delta, 2000)) {
-        work->field_0 = 0x1C;
-    } else if (!actorOutsideRadius(&scratch->delta, 4000)) {
-        coord          = arg0->extra.tmd->coords;
-        angle          = ratan2(scratch->delta.vx, scratch->delta.vz);
-        delta          = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        value          = actorNormalizeYaw(delta);
-        scratch->angle = value;
-        value          = abs(value);
-        if (value < 0x300) {
-            work->field_0 = 0x1C;
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
-}
+#include "../../shared/desert_chaser_pursue.inc.c"
 
-static void func_actor_421600_801373D4(Task* arg0)
-{
-    PlayerStatus* config = &gPlayerStatus;
-    SVECTOR       initialDelta;
+#include "../../shared/desert_chaser_spawn_aim.inc.c"
 
-    SVECTOR             effect;
-    s16                 temp_a1_3;
-    s16                 temp_a1_4;
-    s16                 temp_a1_5;
-    s16                 temp_s0_12;
-    s16                 temp_s0_15;
-    s16                 temp_s0_18;
-    s16                 temp_s0_21;
-    s16                 temp_s0_6;
-    s16                 temp_s0_9;
-    s16                 temp_v0_4;
-    s32                 temp_v1_2;
-    s32                 var_v0_15;
-    s32                 var_v0_17;
-    s16                 var_v0_24;
-    s32                 var_v0_25;
-    s32                 var_v0_26;
-    s16                 var_v1_2;
-    s16                 var_v1_4;
-    s16                 var_v1_5;
-    s16                 var_v1_6;
-    s16                 var_v1_7;
-    s16                 var_v1_8;
-    GfxCoord*           temp_a1_2;
-    GfxCoord*           temp_a2_2;
-    GfxCoord*           temp_a2_3;
-    GfxCoord*           temp_s0_13;
-    GfxCoord*           temp_s0_16;
-    GfxCoord*           temp_s0_19;
-    GfxCoord*           temp_s0_4;
-    GfxCoord*           temp_s0_7;
-    GfxCoord*           temp_v0_5;
-    GfxCoord*           temp_v0_7;
-    void**              scratchHead;
-    s32                 temp_v0;
-    s32                 spawnEffect;
-    s32                 var_a1_4;
-    s32                 effectFlags;
-    s32                 effectJoint;
-    s32                 var_v0_13;
-    s32                 var_v0_14;
-    s32                 var_v0_21;
-    s32                 var_v0_22;
-    s32                 var_v0_5;
-    s32                 var_v0_6;
-    s32                 var_v0_8;
-    s32                 var_v0_9;
-    s32                 pan;
-    s32                 temp_s0_11;
-    s32                 temp_s0_14;
-    s32                 temp_s0_17;
-    s32                 temp_s0_20;
-    s32                 temp_s0_5;
-    s32                 temp_s0_8;
-    u16                 temp_v0_6;
-    u16                 temp_v1;
-    u16                 var_a0;
-    u16                 var_v1_3;
-    u32                 temp_lo;
-    GfxCoord*           temp_s0_10;
-    Task*               player;
-    TmdObject*          obj;
-    Enemy*              ctx;
-    DesertChaserWork*   work;
-    GameActor*          playerWork;
-    ActorFacingScratch* scratch;
-
-    work       = arg0->work;
-    player     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    playerWork = (GameActor*)player->work;
-    ctx        = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        obj              = arg0->extra.tmd;
-        initialDelta.pad = actorPositionYaw(arg0, &initialDelta, config);
-        temp_v0          = initialDelta.pad;
-        if (temp_v0 > 0x300) {
-            work->field_0 = 9;
-        } else if (temp_v0 < -0x300) {
-            work->field_0 = 10;
-        }
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_82E          = 2;
-        work->field_828          = 1;
-        work->field_82A          = 0;
-        work->field_83E          = 0;
-        work->objs[2].obj.flags  = (u16)(work->objs[2].obj.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        work->field_832          = work->field_834;
-        func_actor_421600_80134604(arg0);
-        work->capsuleBody.shape.ends[1].vz = 0x320;
-        work->field_6                      = 0U;
-        work->field_8                      = 0U;
-        work->distance                     = 0;
-        work->field_840                    = 0;
-        work->broadcast.context.loc.stage  = 9;
-        work->broadcast.context.loc.area   = 1;
-        work->broadcast.command            = 1;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->broadcast, ACTOR_COMMAND_MESSAGE_APPLY);
-        return;
-    }
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFacingScratch);
-    if (work->field_82E == 3) {
-        work->field_6 = (u16)(work->field_6 + 1);
-    }
-    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
-        temp_lo                  = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
-        scratch->distanceSquared = temp_lo;
-        scratch->distanceSquared = (u32)(temp_lo + (ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz));
-        temp_s0_4                = arg0->extra.tmd->coords;
-        temp_s0_5                = ratan2(ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
-        temp_s0_6                = temp_s0_5 - ratan2(-temp_s0_4->coord.m[2][0], temp_s0_4->coord.m[2][2]);
-
-        var_v1_2 = actorNormalizeYaw(temp_s0_6);
-        var_v0_5 = var_v1_2 << 0x10;
-
-        var_v0_6 = var_v0_5 >> 0x10;
-        if (var_v0_6 < 0) {
-            var_v0_6 = -var_v0_6;
-        }
-        if ((var_v0_6 >= 0x601) && ((u32)scratch->distanceSquared >= 0xE11U)) {
-            work->field_0 = 0x23;
-        }
-    }
-    if ((func_actor_421600_801335BC(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC, (SVECTOR*)scratch) << 0x10) != 0) {
-        if ((work->field_82E == 3) && (playerWork->mode != GAME_ACTOR_MODE_SCRIPTED)) {
-            work->queryMode     = 0x80;
-            temp_a1_2           = arg0->extra.tmd->coords;
-            scratch->vx         = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a1_2->coord.t[0]);
-            scratch->vy         = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a1_2->coord.t[1]);
-            temp_v0_4           = gPlayerStatus.coordMtx->t[2] - temp_a1_2->coord.t[2];
-            scratch->vz         = temp_v0_4;
-            scratch->contactYaw = ratan2(scratch->vx, temp_v0_4);
-            temp_v0_5           = arg0->extra.tmd->coords;
-            temp_v1             = scratch->contactYaw - ratan2(-temp_v0_5->coord.m[2][0], temp_v0_5->coord.m[2][2]);
-            var_a0              = temp_v1;
-            scratch->contactYaw = temp_v1;
-
-            var_a0   = actorNormalizeYaw(temp_v1);
-            var_v0_8 = var_a0 << 0x10;
-
-            var_v0_9            = var_v0_8 >> 0x10;
-            scratch->contactYaw = (u16)var_v0_9;
-            var_v0_9            = abs(var_v0_9);
-            if (var_v0_9 < 0x180) {
-                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->replyBuf, 0) == 0) {
-                    Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
-                    temp_v0_6           = ratan2(scratch->vx, scratch->vz) + 0x800;
-                    var_v1_3            = temp_v0_6;
-                    scratch->contactYaw = temp_v0_6;
-
-                    var_v1_3 = actorNormalizeYaw(temp_v0_6);
-
-                    scratch->contactYaw = var_v1_3;
-                    temp_s0_7           = arg0->extra.tmd->coords;
-                    temp_s0_8           = ratan2(scratch->vx, scratch->vz);
-                    temp_s0_9           = temp_s0_8 - ratan2(-temp_s0_7->coord.m[2][0], temp_s0_7->coord.m[2][2]);
-
-                    var_v1_4 = actorNormalizeYaw(temp_s0_9);
-
-                    scratch->turnYaw = var_v1_4;
-                    scratch->vy      = 0;
-                    scratch->vx      = (s16) - (s16)(u16)scratch->vx;
-                    scratch->vz      = (s16) - (s16)(u16)scratch->vz;
-                    temp_s0_10       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-                    temp_s0_11       = ratan2(scratch->vx, scratch->vz);
-                    temp_s0_12       = temp_s0_11 - ratan2(-temp_s0_10->coord.m[2][0], temp_s0_10->coord.m[2][2]);
-
-                    var_v1_5  = actorNormalizeYaw(temp_s0_12);
-                    var_v0_13 = var_v1_5 << 0x10;
-
-                    var_v0_14          = var_v0_13 >> 0x10;
-                    scratch->playerYaw = (s16)var_v0_14;
-                    var_v0_14          = abs(var_v0_14);
-                    if (var_v0_14 < 0x400) {
-                        work->animCommand = &Actor421600FrontAnim;
-                    } else {
-                        work->animCommand   = &Actor421600RearAnim;
-                        scratch->contactYaw = (u16)(scratch->contactYaw + 0x800);
-                    }
-                    work->playerPlacement.rot.vx = 0;
-                    work->playerPlacement.rot.vy = (u16)scratch->contactYaw;
-                    work->playerPlacement.rot.vz = 0;
-                    work->playerPlacement.pos.vx = (s32)player->extra.tmd->coords->coord.t[0];
-                    work->playerPlacement.pos.vy = (s32)player->extra.tmd->coords->coord.t[1];
-                    work->playerPlacement.pos.vz = (s32)player->extra.tmd->coords->coord.t[2];
-                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &work->playerPlacement, 0);
-                    if (work->distance < 0x3E8) {
-                        if (ctx->hp > 0) {
-                            var_v0_15 = scratch->playerYaw;
-                            if (var_v0_15 < 0) {
-                                var_v0_15 = -var_v0_15;
-                            }
-                            if (var_v0_15 < 0x400) {
-                                scratch->messageResult = actorPlayerContactMessage(ctx, 2);
-                            } else {
-                                scratch->messageResult = actorPlayerContactMessage(ctx, 3);
-                            }
-                        }
-                        if (scratch->messageResult != 1) {
-                            work->params[0]        = 3;
-                            work->params[1]        = 0;
-                            work->params[2]        = 0;
-                            work->routePos.vx      = 0;
-                            work->routePos.vy      = 0;
-                            work->routePos.vz      = 0;
-                            work->poseId           = 7;
-                            work->poseBlend        = 1;
-                            work->reported         = 1;
-                            work->actorId.bytes[3] = 0;
-                            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->animCommand, 0);
-                        }
-                        work->field_0 = 0x25;
-                        Gp_SpawnPadLerp(3, 0xFF, 8);
-                    } else {
-                        if (ctx->hp > 0) {
-                            var_v0_17 = scratch->playerYaw;
-                            if (var_v0_17 < 0) {
-                                var_v0_17 = -var_v0_17;
-                            }
-                            if (var_v0_17 < 0x400) {
-                                scratch->messageResult = actorPlayerContactMessage(ctx, 0);
-                            } else {
-                                scratch->messageResult = actorPlayerContactMessage(ctx, 1);
-                            }
-                        }
-                        if (scratch->messageResult == 1) {
-                            ((GameActor*)player->work)->state = 0xA;
-                        }
-                        work->params[0]        = 1;
-                        work->params[1]        = 0;
-                        work->params[2]        = 0;
-                        work->routePos.vx      = 0;
-                        work->routePos.vy      = 0;
-                        work->routePos.vz      = 0;
-                        work->poseId           = 7;
-                        work->poseBlend        = 1;
-                        work->reported         = 1;
-                        work->actorId.bytes[3] = 0;
-                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->animCommand, 0);
-                        work->field_0 = 0x1E;
-                        Gp_SpawnPadLerp(8, 0xFF, 8);
-                    }
-                }
-            }
-            temp_a2_2   = arg0->extra.tmd->coords;
-            scratch->vx = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a2_2->coord.t[0]);
-            scratch->vy = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a2_2->coord.t[1]);
-            temp_a1_3   = gPlayerStatus.coordMtx->t[2] - temp_a2_2->coord.t[2];
-            scratch->vz = temp_a1_3;
-            temp_s0_13  = arg0->extra.tmd->coords;
-            temp_s0_14  = ratan2(scratch->vx, temp_a1_3);
-            temp_s0_15  = temp_s0_14 - ratan2(-temp_s0_13->coord.m[2][0], temp_s0_13->coord.m[2][2]);
-
-            var_v1_6 = actorNormalizeYaw(temp_s0_15);
-
-            scratch->targetYaw = var_v1_6;
-        } else {
-            goto updatePlayerYaw;
-        }
-    } else {
-    updatePlayerYaw:
-        temp_a2_3   = arg0->extra.tmd->coords;
-        scratch->vx = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a2_3->coord.t[0]);
-        scratch->vy = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a2_3->coord.t[1]);
-        temp_a1_4   = gPlayerStatus.coordMtx->t[2] - temp_a2_3->coord.t[2];
-        scratch->vz = temp_a1_4;
-        temp_s0_16  = arg0->extra.tmd->coords;
-        temp_s0_17  = ratan2(scratch->vx, temp_a1_4);
-        temp_s0_18  = temp_s0_17 - ratan2(-temp_s0_16->coord.m[2][0], temp_s0_16->coord.m[2][2]);
-
-        var_v1_7  = actorNormalizeYaw(temp_s0_18);
-        var_v0_21 = var_v1_7 << 0x10;
-
-        var_v0_22          = var_v0_21 >> 0x10;
-        scratch->targetYaw = (s16)var_v0_22;
-        var_v0_22          = abs(var_v0_22);
-        if ((var_v0_22 >= 0x601) && (work->field_82E == 3)) {
-            work->field_0 = 0x1D;
-        }
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    temp_s0_19                            = arg0->extra.tmd->coords;
-    temp_s0_20                            = ratan2(work->playerDelta.vx, work->playerDelta.vz);
-    temp_s0_21                            = temp_s0_20 - ratan2(-temp_s0_19->coord.m[2][0], temp_s0_19->coord.m[2][2]);
-
-    var_v1_8 = actorNormalizeYaw(temp_s0_21);
-
-    scratch->turnYaw = var_v1_8;
-    func_actor_421600_80134604(arg0);
-    var_a1_4 = 0;
-    if (work->field_82E == 2) {
-        if (scratch->turnYaw >= 0x41) {
-            scratch->turnYaw = 0x40;
-        }
-        if (scratch->turnYaw < -0x40) {
-            scratch->turnYaw = -0x40;
-        }
-        temp_v0_7        = arg0->extra.tmd->coords;
-        temp_a1_5        = (u16)scratch->turnYaw + ratan2(-temp_v0_7->coord.m[2][0], temp_v0_7->coord.m[2][2]);
-        scratch->turnYaw = temp_a1_5;
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, temp_a1_5, 1);
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    } else {
-        var_a1_4 = desertChaserCapsuleTouchesGrid(arg0);
-        if (var_a1_4 != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, 0x55);
-            var_v0_24 = (u16)work->distance + 0x55;
-        } else {
-            actorMoveForward(arg0->extra.tmd->coords, 0xC8);
-            var_v0_24 = (u16)work->distance + 0xC8;
-        }
-        work->distance = var_v0_24;
-    }
-    if (work->field_82E == 2) {
-        work->field_8 = (u16)(work->field_8 + 1);
-    }
-    if (work->field_8 > (s16)work->poseVy) {
-        temp_v1_2 = work->field_82E;
-        if (temp_v1_2 == 2) {
-            var_v0_25 = scratch->targetYaw;
-            if (var_v0_25 < 0) {
-                var_v0_25 = -var_v0_25;
-            }
-            if ((var_v0_25 < 0x80) || (work->slots[1].flags & 0x100)) {
-                work->field_82E = 3;
-                work->field_828 = temp_v1_2;
-                pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(0x40010006, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-            }
-        }
-    }
-    if (work->field_8 >= 0xF) {
-        var_v0_26 = scratch->targetYaw;
-        if (var_v0_26 < 0) {
-            var_v0_26 = -var_v0_26;
-        }
-        if (var_v0_26 >= 0x81) {
-            goto updatePlayerDelta;
-        }
-    } else {
-    updatePlayerDelta:
-        if (work->field_82E == 2) {
-            work->playerDelta.vx = (s16)(config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]);
-            work->playerDelta.vy = (s16)(config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1]);
-            work->playerDelta.vz = (s16)(config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]);
-        }
-    }
-    if (work->field_82E == 3) {
-        switch (work->slots[1].currentPose.indices.recordIndex & 0x3FF) {
-            case 5:
-                spawnEffect = 1;
-                effectJoint = 7;
-                effectFlags = 17152;
-                effect.vz   = 0;
-                effect.vx   = 0;
-                effect.vy   = 700;
-                break;
-            case 8:
-                spawnEffect = 1;
-                effectJoint = 9;
-                effectFlags = 13568;
-                effect.vz   = 0;
-                effect.vx   = 0;
-                effect.vy   = 700;
-                break;
-            case 10:
-                spawnEffect = 1;
-                effectJoint = 14;
-                effectFlags = 23040;
-                effect.vz   = 0;
-                effect.vx   = 0;
-                effect.vy   = 600;
-                break;
-            case 13:
-                spawnEffect = 1;
-                effectJoint = 17;
-                effectFlags = 18432;
-                effect.vz   = 0;
-                effect.vx   = 0;
-                effect.vy   = 600;
-                break;
-            default:
-                spawnEffect = 0;
-                effectJoint = 0;
-                effectFlags = 1;
-                break;
-        }
-        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-            scratchHead = SCRATCH_HEAD_ADDR;
-            if (spawnEffect == 1) {
-                Gp_SpawnEff(0x60054, &arg0->extra.tmd->coords[effectJoint], effectFlags | 0x80000000, &effect);
-                goto releaseScratch;
-            }
-        } else {
-            goto releaseScratch;
-        }
-    } else {
-    releaseScratch:
-        scratchHead = SCRATCH_HEAD_ADDR;
-    }
-    SCRATCH_POP_BYTES_AT(scratchHead, 0x18);
-}
-
-/// Spawn/aim tick: on the live-actor edge it resets the display objects, runs
-/// the arena vector through the gte rotation, stores the world X (`field_8A4`)
-/// and Z (`field_8AC`) it produces, plays the spawn sound, then bumps the
-/// `field_6` frame counter. On frame 0xF of the 7 pose it enqueues the second
-/// sound and, outside a live-game state, spawns the effect on the player's
-/// coordinate. The `field_E90` id picks `field_0` on the 0x100 flag, 5 for
-/// 0x11402 and 0x1F otherwise -- the same pair `func_actor_421600_8013E9D8`
-/// writes.
-static void func_actor_421600_8013848C(Task* arg0)
-{
-    DesertChaserWork* work;
-    Enemy*            ctx;
-    SVECTOR*          head;
-    SVECTOR*          vec;
-    SVECTOR*          gteVec;
-    TmdObject*        obj;
-    Task*             player;
-    s32               x;
-    s32               z;
-    s32               sound;
-    s32               pan;
-    s32               eventPan;
-    s32               state;
-    u16               tick;
-
-    work                          = arg0->work;
-    player                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-    vec                           = head - 2;
-    SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-    ctx                           = arg0->spawnArg2.pointer;
-    gteVec                        = vec;
-    if (work->field_4 != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_82E          = 5;
-        work->field_828          = 1;
-        work->field_82A          = 0;
-        work->field_83E          = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->field_832          = work->field_834;
-        func_actor_421600_80134604(arg0);
-        Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, vec);
-        work->field_6 = 0;
-        VectorNormalSS(vec, vec);
-        if (work->distance >= 0xFA1) {
-            work->distance = 0xFA0;
-        }
-        gte_lddp(0x85);
-        gte_ldsv(gteVec);
-        gte_gpf12();
-        gte_stsv(gteVec);
-        x                 = head[-2].vx;
-        work->routePos.vy = 0;
-        work->routePos.vx = x;
-        z                 = vec->vz;
-        work->poseId      = 7;
-        work->poseBlend   = 1;
-        work->routePos.vz = z;
-        pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(7, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    }
-    tick          = work->field_6 + 1;
-    work->field_6 = tick;
-    if (((s16)tick == 0xF) && (work->poseId == 7)) {
-        sound    = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000A;
-        eventPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-            Gp_SpawnEff(0x60054, player->extra.tmd->coords + 1, 0x80003A00, NULL);
-        }
-    }
-    func_actor_421600_80134604(arg0);
-    if (work->slots[1].flags & 0x100) {
-        state = work->actorId.word & 0xFFFFFF;
-        if (state == 0x11402) {
-            state = 5;
-        } else {
-            state = 0x1F;
-        }
-        work->field_0 = state;
-    }
-    SCRATCH_STACK_CURSOR(SVECTOR) += 2;
-}
-
-static void func_actor_421600_80138750(Task* arg0)
-{
-    DesertChaserWork* work;
-    Enemy*            ctx;
-    TmdObject*        obj;
-    SVECTOR*          head;
-    SVECTOR*          vec;
-    s32               x, z;
-    s16               yaw;
-    s32               outside;
-    s32               state;
-
-    head = SCRATCH_STACK_CURSOR(SVECTOR);
-    vec  = (SCRATCH_STACK_CURSOR(SVECTOR) = head - 2);
-    work = arg0->work;
-    ctx  = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        obj                         = arg0->extra.tmd;
-        ctx->node.state.parts.flags = 0;
-        obj->flags                  = 0;
-        Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_82A          = 0;
-        work->field_82E          = 5;
-        work->field_83E          = 0;
-        work->field_6            = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->field_832          = work->field_834;
-        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(0x20);
-        gte_ldsv(vec);
-        gte_gpf12();
-        gte_stsv(vec);
-        x                                  = head[-2].vx;
-        work->routePos.vy                  = 0;
-        work->routePos.vx                  = x;
-        z                                  = vec->vz;
-        work->poseId                       = 7;
-        work->poseBlend                    = 1;
-        work->capsuleBody.shape.ends[1].vz = 0x320;
-        work->routePos.vz                  = z;
-        if ((work->actorId.word & 0xFFFFFF) == 0x11402) {
-            work->field_0 = 5;
-        }
-    }
-    work->field_6 += 1;
-    func_actor_421600_80134604(arg0);
-    state = work->field_82E;
-    switch (state) {
-        case 5:
-            if (work->slots[1].flags & 0x100) {
-                actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
-                outside = actorOutsideRadius(vec, 2000);
-                if (outside) {
-                    work->field_0 = 0x26;
-                } else {
-                    work->field_0 = 0x1F;
-                }
-            }
-            break;
-        case 3:
-            yaw       = actorPositionYaw(arg0, vec, &gPlayerStatus);
-            vec[1].vz = yaw;
-            if (desertChaserCapsuleTouchesGrid(arg0)) {
-                actorMoveForward(arg0->extra.tmd->coords, 85);
-            } else {
-                actorMoveForward(arg0->extra.tmd->coords, 200);
-            }
-            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC)) {
-                work->field_0 = 0x23;
-            }
-            if ((s16)work->field_6 >= 0x15) {
-                work->field_828 = 1;
-                work->field_82A = 0;
-                work->field_82E = 5;
-                work->field_832 = work->field_834;
-            }
-            break;
-    }
-    SCRATCH_STACK_CURSOR(SVECTOR) += 2;
-}
+#include "../../shared/desert_chaser_strike.inc.c"
 
 /// Aim tick: on the live-actor edge it re-arms the model the way
-/// `func_actor_421600_8013848C` does -- buffers reallocated, clip 0x10,
+/// `desertChaserSpawnAim` does -- buffers reallocated, clip 0x10,
 /// `field_82E` 6, the 0xB6C node's 0x4000 flag up -- with `field_8` and the
 /// 0xCD8 offset it owns reseeded, then, while `field_6` is inside 9..0x18 and
 /// `field_8` below 5, walks the 0xB8C table and counts a retry for every hit.
@@ -4567,13 +3810,13 @@ static void func_actor_421600_80138D24(Task* arg0)
         work->field_82A          = 0;
         work->field_82E          = 6;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         work->field_6                      = 0;
         work->field_8                      = 0;
         work->capsuleBody.shape.ends[1].vz = -0x320;
     }
     work->field_6++;
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if (work->slots[1].flags & 0x100) {
         work->field_0 = 2;
     }
@@ -4593,7 +3836,7 @@ static void func_actor_421600_80138D24(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Re-arms the model the way `func_actor_421600_8013848C` does -- buffers
+/// Re-arms the model the way `desertChaserSpawnAim` does -- buffers
 /// reallocated, clip 0x10, `field_82E` 2, the 0xB6C node's 0x4000 flag up --
 /// then walks the 0xB8C `WorldCollisionContact` table through `ActorContact_PushContact`.
 /// Takes two `SVECTOR`s off the scratch stack and fills the XZ offset of the
@@ -4637,7 +3880,7 @@ static void func_actor_421600_8013903C(Task* arg0)
         work->field_82E          = 2;
         work->field_83E          = 0;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         work->field_6 = 0;
     }
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
@@ -4664,7 +3907,7 @@ static void func_actor_421600_8013903C(Task* arg0)
     work->field_840 = angle;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s16)ratan2(vec->vx, vec->vz), 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
         view = Gp_GetViewIndex() & 0xFF;
         if (view == 3) {
@@ -4677,72 +3920,7 @@ static void func_actor_421600_8013903C(Task* arg0)
     SCRATCH_STACK_CURSOR(SVECTOR) += 2;
 }
 
-/// Re-arms the model buffers and the 0x828 motion block the way
-/// `func_actor_421600_8013848C` does, with clip 0x10 and pose 7, then walks the
-/// two `WorldCollisionContact` movement tables 0x90C and 0xA4C through
-/// `ActorContact_Steer`. `field_0` becomes 0x22 when either walk
-/// reports a hit, and again when the squared XZ offset from `gPlayerStatus.coordMtx` is
-/// under the squared 0x5DC radius, so the actor only takes the state while the
-/// player is close. Ends by clearing the model's `composeStamp`.
-static void func_actor_421600_801392A8(Task* actor)
-{
-    DesertChaserWork*    work;
-    Enemy*               enemy;
-    TmdObject*           obj;
-    GfxCoord*            coord;
-    MATRIX*              target;
-    OverlayRangeScratch* savedScratchHead;
-    OverlayRangeScratch* rangeScratch;
-    SVECTOR              vec;
-    SVECTOR*             direction;
-    u8*                  scratchBase;
-    u8*                  scratchRestoreBase;
-    s32                  outside;
-
-    work = actor->work;
-    if (work->field_4 != 0) {
-        enemy                         = actor->spawnArg2.pointer;
-        obj                           = actor->extra.tmd;
-        enemy->node.state.parts.flags = 0;
-        obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 2;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 7;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(actor);
-    }
-    func_actor_421600_80134604(actor);
-    if (((ActorContact_Steer(actor->extra.tmd->coords, work->objs[0].contacts, 0xC, &vec) << 0x10) != 0) || ((ActorContact_Steer(actor->extra.tmd->coords, work->objs[1].contacts, 0xC, &vec) << 0x10) != 0)) {
-        work->field_0 = 0x22;
-    }
-    target        = gPlayerStatus.coordMtx;
-    coord         = actor->extra.tmd->coords;
-    vec.vx        = (u16)target->t[0] - (u16)coord->coord.t[0];
-    direction     = &vec;
-    direction->vy = (u16)target->t[1] - (u16)coord->coord.t[1];
-    direction->vz = (u16)target->t[2] - (u16)coord->coord.t[2];
-    // Reserve squared-distance operands; no allocation intervenes after release.
-    savedScratchHead                                                       = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-    rangeScratch                                                           = savedScratchHead - 1;
-    scratchBase                                                            = PLAYSTATION_SCRATCHPAD_BASE;
-    *(OverlayRangeScratch**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = rangeScratch;
-    rangeScratch->dx                                                       = vec.vx;
-    rangeScratch->dz                                                       = direction->vz;
-    rangeScratch->r                                                        = 0x5DC;
-    rangeScratch->dx                                                       = rangeScratch->dx * rangeScratch->dx;
-    rangeScratch->dz                                                       = rangeScratch->dz * rangeScratch->dz;
-    rangeScratch->r                                                        = rangeScratch->r * rangeScratch->r;
-    scratchRestoreBase                                                     = PLAYSTATION_SCRATCHPAD_BASE + (SCRATCH_STACK_HEAD_BYTE_OFFSET - sizeof(void*));
-    *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*))           = savedScratchHead;
-    outside                                                                = rangeScratch->dx + rangeScratch->dz >= rangeScratch->r;
-    if (outside == 0) {
-        work->field_0 = 0x22;
-    }
-    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/desert_chaser_steer.inc.c"
 
 /// Death / respawn tick: re-arms the model buffers and the 0x828 motion block,
 /// fires the 0x40010009 spawn sound and the 0x40010007 tick sound (draining
@@ -4778,7 +3956,7 @@ static void func_actor_421600_8013947C(Task* arg0)
         work->field_82A          = 0;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->objs[0].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         sound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010009;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -4820,7 +3998,7 @@ static void func_actor_421600_8013947C(Task* arg0)
         func_actor_421600_80133334(arg0->extra.tmd->coords);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if (work->slots[1].flags & 0x100) {
         if (ctx->hp > 0) {
             if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
@@ -4834,317 +4012,7 @@ static void func_actor_421600_8013947C(Task* arg0)
     }
 }
 
-static void func_actor_421600_80139718(Task* arg0)
-{
-    s32                    radius = 0x5DC;
-    DesertChaserWork*      work;
-    WorldCollisionContact* record;
-    GfxCoord*              coord;
-    GfxCoord*              coord2;
-    GfxCoord*              coord3;
-    GfxCoord*              facing3;
-    GfxCoord*              facing4;
-    GfxCoord*              facing5;
-    GfxCoord*              facing;
-    GfxCoord*              facing2;
-    GfxCoord*              turnCoord;
-    MATRIX*                matrix;
-    ActorMoveScratch*      scratch;
-    SVECTOR*               target;
-    SVECTOR*               target2;
-    ActorMoveScratch*      head;
-    SVECTOR*               direction;
-    ActorMoveScratch*      head2;
-    TmdObject*             obj;
-    s16                    targetDelta;
-    s16                    delta;
-    s16                    yaw;
-    s16                    delta3;
-    s16                    delta4;
-    s16                    delta5;
-    s32                    playerX;
-    s16                    delta1;
-    s16                    delta2;
-    s16                    targetYaw;
-    s16                    z;
-    s32                    magnitude;
-    s32                    targetMagnitude;
-    s16                    adjustedDelta;
-    s32                    originalMagnitude;
-    s16                    wrapped;
-    s16                    wrapped2;
-    s16                    wrapped3;
-    s16                    wrapped4;
-    s16                    wrapped5;
-    s16                    wrappedYaw;
-    s32                    angle3;
-    s32                    angle4;
-    s32                    angle5;
-    s32                    angle;
-    s32                    angle2;
-    s32                    finalYaw;
-    s32                    turnDelta;
-    s32                    finalDelta;
-    s32                    yawDifference;
-    u16                    unsignedDelta;
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        head                                                      = SCRATCH_STACK_CURSOR(ActorMoveScratch);
-        obj                                                       = arg0->extra.tmd;
-        scratch                                                   = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head - 1);
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->objs[0].obj.radius = 0x19C;
-        work->field_828          = 1;
-        work->field_832          = 0x10;
-        work->field_82A          = 0;
-        work->field_82E          = 0;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-
-        func_actor_421600_80134604(arg0);
-        func_actor_421600_80134604(arg0);
-        work->field_6   = 0;
-        work->field_8   = 0;
-        coord           = arg0->extra.tmd->coords;
-        head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
-        scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-        z               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-        scratch->vec.vz = z;
-        facing          = arg0->extra.tmd->coords;
-        angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
-        delta1          = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-        wrapped         = delta1;
-        if (delta1 < 0) {
-        wrapNegative:
-            if (wrapped < -0x800) {
-                wrapped += 0x1000;
-                goto wrapNegative;
-            }
-        } else {
-        wrapPositive:
-            if (wrapped >= 0x801) {
-                wrapped -= 0x1000;
-                goto wrapPositive;
-            }
-        }
-        work->field_840 = wrapped;
-        matrix          = &scratch->matrix;
-        gfxRotMatrixY(matrix, (s16)ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz) + 0x3E8, 1);
-        Gfx_MatrixCol2(matrix, &scratch->vec);
-        VectorNormalSS(&scratch->vec, &scratch->vec);
-        gte_lddp(1000);
-        gte_ldsv(&scratch->vec);
-        gte_gpf12();
-        gte_stsv(&scratch->vec);
-        work->field_14     = 0;
-        work->field_C[0].x = (s16)((u16)scratch->vec.vx + arg0->extra.tmd->coords->coord.t[0]);
-        SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
-        work->field_C[0].z                 = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
-        work->capsuleBody.shape.ends[1].vz = 0x26C;
-        return;
-    }
-    work->field_8      += 1;
-    head2               = SCRATCH_STACK_CURSOR(ActorMoveScratch);
-    scratch             = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head2 - 1);
-    head2[-1].vec.vx    = (s16)(work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0]);
-    scratch->vec.vy     = 0;
-    scratch->vec.vz     = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
-    coord2              = arg0->extra.tmd->coords;
-    head2[-1].target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0]);
-    target              = &head2[-1].target;
-    target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
-    target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
-    if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
-        facing2  = arg0->extra.tmd->coords;
-        angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
-        delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
-        wrapped2 = delta2;
-        if (delta2 < 0) {
-        wrapNegative2:
-            if (wrapped2 < -0x800) {
-                wrapped2 += 0x1000;
-                goto wrapNegative2;
-            }
-        } else {
-        wrapPositive2:
-            if (wrapped2 >= 0x801) {
-                wrapped2 -= 0x1000;
-                goto wrapPositive2;
-            }
-        }
-        work->field_840 = wrapped2;
-        if (work->field_14 == 0) {
-            gfxRotMatrixY(&scratch->matrix, (s16)ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) - 0x2EE, 1);
-            work->field_14 = 1;
-        } else {
-            gfxRotMatrixY(&scratch->matrix, (s16)ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x2EE, 1);
-            work->field_14 = 0;
-        }
-        direction = &scratch->target;
-        Gfx_MatrixCol2(&scratch->matrix, direction);
-        VectorNormalSS(direction, direction);
-        gte_lddp(2000);
-        gte_ldsv(direction);
-        gte_gpf12();
-        gte_stsv(direction);
-        work->field_C[work->field_14].x = (s16)((u16)scratch->target.vx + arg0->extra.tmd->coords->coord.t[0]);
-        work->field_C[work->field_14].z = (s16)((u16)scratch->target.vz + arg0->extra.tmd->coords->coord.t[2]);
-        work->field_6                   = 0;
-    }
-    func_actor_421600_80134604(arg0);
-    facing3  = arg0->extra.tmd->coords;
-    angle3   = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz);
-    delta3   = angle3 - ratan2((s32)-facing3->coord.m[2][0], (s32)facing3->coord.m[2][2]);
-    wrapped3 = delta3;
-    if (delta3 < 0) {
-    wrapNegative3:
-        if (wrapped3 < -0x800) {
-            wrapped3 += 0x1000;
-            goto wrapNegative3;
-        }
-    } else {
-    wrapPositive3:
-        if (wrapped3 >= 0x801) {
-            wrapped3 -= 0x1000;
-            goto wrapPositive3;
-        }
-    }
-    work->field_840 = wrapped3;
-    facing4         = arg0->extra.tmd->coords;
-    angle4          = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
-    delta4          = angle4 - ratan2((s32)-facing4->coord.m[2][0], (s32)facing4->coord.m[2][2]);
-    wrapped4        = delta4;
-    if (delta4 < 0) {
-    wrapNegative4:
-        if (wrapped4 < -0x800) {
-            wrapped4 += 0x1000;
-            goto wrapNegative4;
-        }
-    } else {
-    wrapPositive4:
-        if (wrapped4 >= 0x801) {
-            wrapped4 -= 0x1000;
-            goto wrapPositive4;
-        }
-    }
-    turnDelta         = wrapped4;
-    scratch->original = (scratch->delta = (s16)turnDelta);
-    delta             = scratch->delta;
-    unsignedDelta     = (u16)scratch->delta;
-    magnitude         = abs(scratch->delta);
-    if (magnitude >= 0x601) {
-        targetDelta     = (s16)work->field_840;
-        targetMagnitude = abs(targetDelta);
-        if ((targetMagnitude >= 0x101) && ((targetDelta * delta) < 0)) {
-            adjustedDelta = unsignedDelta - 0x1000;
-            if (delta < 0) {
-                adjustedDelta = unsignedDelta + 0x1000;
-            }
-            scratch->delta = adjustedDelta;
-        }
-    }
-    if (scratch->delta >= 0x21) {
-        scratch->delta = 0x20;
-    }
-    if (scratch->delta < -0x20) {
-        scratch->delta = -0x20;
-    }
-    work->field_83E = scratch->delta * 0x10;
-    turnCoord       = arg0->extra.tmd->coords;
-    yaw             = (u16)scratch->delta + ratan2((s32)-turnCoord->coord.m[2][0], (s32)turnCoord->coord.m[2][2]);
-    scratch->delta  = yaw;
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
-    record = work->objs[0].contacts;
-    if (work->field_82A == 0) {
-        if (desertChaserCapsuleTouchesGrid(arg0)) {
-            actorMoveForward(arg0->extra.tmd->coords, 20);
-        } else {
-            actorMoveForward(arg0->extra.tmd->coords, 20);
-        }
-        record = work->objs[0].contacts;
-    }
-    ActorContact_Steer(arg0->extra.tmd->coords, record, 12, &scratch->vec);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 12) == 1) {
-        originalMagnitude = abs(scratch->original);
-        if (originalMagnitude < 0x20) {
-            work->field_6 += 1;
-        }
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord3                                = arg0->extra.tmd->coords;
-    scratch->target.vx                    = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]);
-    target2                               = &scratch->target;
-    target2->vy                           = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
-    target2->vz                           = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-    if (work->field_8 > (s16)work->poseVz) {
-        if ((s16)work->poseYawPrev <= 0) {
-
-            if (actorOutsideRadius(&scratch->target, radius)) {
-                if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
-                    facing5  = arg0->extra.tmd->coords;
-                    angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
-                    delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
-                    wrapped5 = delta5;
-                    if (delta5 < 0) {
-                    wrapNegative5:
-                        if (wrapped5 < -0x800) {
-                            wrapped5 += 0x1000;
-                            goto wrapNegative5;
-                        }
-                    } else {
-                    wrapPositive5:
-                        if (wrapped5 >= 0x801) {
-                            wrapped5 -= 0x1000;
-                            goto wrapPositive5;
-                        }
-                    }
-                    finalDelta     = wrapped5;
-                    scratch->delta = (s16)finalDelta;
-                    finalDelta     = abs(finalDelta);
-                    if (finalDelta < 0x300) {
-                        goto changeState;
-                    }
-                }
-            } else {
-            changeState:
-                work->field_0 = 0x1C;
-            }
-            playerX            = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
-            scratch->playerYaw = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-            targetYaw          = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x800;
-            wrappedYaw         = targetYaw;
-            scratch->yaw       = targetYaw;
-            if (targetYaw < 0) {
-            wrapYawNegative:
-                if (wrappedYaw < -0x800) {
-                    wrappedYaw += 0x1000;
-                    goto wrapYawNegative;
-                }
-            } else {
-            wrapYawPositive:
-                if (wrappedYaw >= 0x801) {
-                    wrappedYaw -= 0x1000;
-                    goto wrapYawPositive;
-                }
-            }
-            finalYaw      = wrappedYaw;
-            scratch->yaw  = (s16)finalYaw;
-            yawDifference = finalYaw - scratch->playerYaw;
-            if (yawDifference < 0) {
-                yawDifference = -yawDifference;
-            }
-            if (yawDifference >= 0x601) {
-                work->field_0 = 0x1C;
-            }
-        } else {
-            work->poseYawPrev -= 1;
-        }
-    }
-    func_actor_421600_80133334(arg0->extra.tmd->coords);
-    SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/desert_chaser_roam.inc.c"
 
 static void func_actor_421600_8013A404(Task* arg0)
 {
@@ -5164,7 +4032,7 @@ static void func_actor_421600_8013A404(Task* arg0)
         temp_s0->field_6 = temp_s0->poseVx + ((temp_v0 >> 0x10) & 0xF);
     }
     temp_s0->field_6 -= 1;
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if ((s16)temp_s0->field_6 < 0) {
         temp_v1 = temp_s0->actorId.bytes[2];
         if ((temp_v1 == 1) || (temp_v1 == 3)) {
@@ -5261,7 +4129,7 @@ static void func_actor_421600_8013A554(Task* arg0)
         work->field_82E          = 3;
         work->field_83E          = 0;
         work->objs[2].obj.flags  = (u16)(work->objs[2].obj.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         work->field_6  = 0;
         work->field_8  = 0;
         work->distance = 0;
@@ -5297,9 +4165,9 @@ static void func_actor_421600_8013A554(Task* arg0)
             distance           = scratch->yaw - scratch->playerYaw;
             distance           = abs(distance);
             if (distance < 0x400) {
-                work->animCommand = &Actor421600FrontAnim;
+                work->animCommand = &gDesertChaserFrontAnim;
             } else {
-                work->animCommand = &Actor421600RearAnim;
+                work->animCommand = &gDesertChaserRearAnim;
                 scratch->yaw      = (s16)((u16)scratch->yaw + 0x800);
             }
             work->playerPlacement.rot.vx = 0;
@@ -5391,7 +4259,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     moveAngle                             = ratan2(work->playerDelta.vx, work->playerDelta.vz);
     moveDelta                             = moveAngle - ratan2(-moveCoord->coord.m[2][0], moveCoord->coord.m[2][2]);
     scratch->delta                        = actorNormalizeYaw(moveDelta);
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     stepCoord = arg0->extra.tmd->coords;
     actorMoveForward(stepCoord, 200);
     work->distance = (s16)((u16)work->distance + 0xC8);
@@ -5479,7 +4347,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
         work->field_82E          = 3;
         work->field_828          = 1;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         playerCoord = task->extra.tmd->coords;
         x_entry     = playerCoord->coord.t[0];
         z_entry     = playerCoord->coord.t[2];
@@ -5547,7 +4415,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
     blk->delta.vx = blk->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
     blk->delta.vy = 0;
     blk->delta.vz = blk->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     coord2 = arg0->extra.tmd->coords;
     angle  = ratan2(blk->delta.vx, blk->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
@@ -5636,7 +4504,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
         work->field_82E          = 3;
         work->field_828          = 1;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         return;
     }
     coord = arg0->extra.tmd->coords;
@@ -5679,7 +4547,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
     blk->delta.vx = blk->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
     blk->delta.vy = 0;
     blk->delta.vz = blk->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     coord2 = arg0->extra.tmd->coords;
     angle  = ratan2(blk->delta.vx, blk->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
@@ -5737,9 +4605,9 @@ static void func_actor_421600_8013B8E0(Task* arg0)
         arg0->extra.tmd->coords->coord.t[2]   = 0;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0, 1);
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
     }
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if (temp_s1->slots[1].flags & 0x100) {
         arg0->extra.tmd->coords->coord.t[0]   = -0x334;
         arg0->extra.tmd->coords->coord.t[1]   = 0;
@@ -5748,8 +4616,8 @@ static void func_actor_421600_8013B8E0(Task* arg0)
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x400, 1);
         temp_s1->field_828 = 2;
         temp_s1->field_82E = 0;
-        func_actor_421600_80134604(arg0);
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
+        desertChaserArmedAnimTick(arg0);
         temp_s1->field_0 = 0x27;
     }
 }
@@ -5832,8 +4700,8 @@ static void func_actor_421600_8013BA70(Task* arg0)
         work->field_82E          = 0;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
-        func_actor_421600_80134604(arg0);
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
+        desertChaserArmedAnimTick(arg0);
         work->field_6   = 0;
         work->field_8   = 0;
         zoneCoord       = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
@@ -5929,7 +4797,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
         }
         work->field_6 = 0;
     }
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     facing3  = arg0->extra.tmd->coords;
     angle3   = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz);
     delta3   = angle3 - ratan2((s32)-facing3->coord.m[2][0], (s32)facing3->coord.m[2][2]);
@@ -6167,220 +5035,23 @@ static void func_actor_421600_8013C8E0(Task* arg0)
     }
 }
 
-static void func_actor_421600_8013CD3C(Task* arg0)
-{
-    TmdObject*            obj;
-    Enemy*                ctx;
-    DesertChaserWork*     work;
-    GfxCoord*             coord;
-    GfxCoord*             coord2;
-    GfxCoord*             targetCoord;
-    GfxCoord*             facing;
-    GfxCoord*             facing2;
-    ActorTurnStepScratch* head;
-    ActorTurnStepScratch* scratch;
-    s16                   yaw;
-    s16                   delta;
-    s16                   z;
-    s16                   steps;
-    s16                   wrapped;
-    s32                   angle;
-    s32                   firstDelta;
+#include "../../shared/desert_chaser_turn_step.inc.c"
 
-    head    = SCRATCH_STACK_CURSOR(ActorTurnStepScratch);
-    scratch = (SCRATCH_STACK_CURSOR(ActorTurnStepScratch) = head - 1);
-    work    = arg0->work;
-    ctx     = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        obj                         = arg0->extra.tmd;
-        obj->flags                  = 0;
-        work->objs[0].obj.radius    = 0x19C;
-        work->objs[2].obj.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        ctx->node.state.parts.flags = 0;
-        work->field_828             = 1;
-        work->field_82E             = 0x14;
-        work->field_832             = 0x10;
-        work->field_6               = 0;
-    }
-    work->field_6 += 1;
-    func_actor_421600_80134604(arg0);
-    targetCoord     = arg0->extra.tmd->coords;
-    head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
-    scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
-    z               = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
-    scratch->vec.vz = z;
-    facing          = arg0->extra.tmd->coords;
-    angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
-    delta           = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-    wrapped         = delta;
-    if (delta < 0) {
-    wrapNegative:
-        if (wrapped < -0x800) {
-            wrapped += 0x1000;
-            goto wrapNegative;
-        }
-    } else {
-    wrapPositive:
-        if (wrapped >= 0x801) {
-            wrapped -= 0x1000;
-            goto wrapPositive;
-        }
-    }
-    firstDelta      = wrapped;
-    scratch->delta  = (s16)firstDelta;
-    work->field_840 = (u16)firstDelta;
-    if (scratch->delta < 0) {
-        if (abs(scratch->delta) >= 0x401) {
-            work->field_840 = firstDelta + 0x800;
-            scratch->delta += 0x800;
-        }
-    }
-    if (abs(scratch->delta) < 0x80) {
-        work->field_0 = 0x1C;
-    }
-    steps          = 0x1E - work->field_6;
-    scratch->steps = steps;
-    if (steps == 0) {
-        scratch->steps = 1;
-    }
-    facing2      = arg0->extra.tmd->coords;
-    yaw          = ((s16)scratch->delta / (s16)scratch->steps) + ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
-    scratch->yaw = yaw;
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
-    Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &scratch->vec);
-    VectorNormalSS(&scratch->vec, &scratch->vec);
-    gte_lddp(-0x1A);
-    gte_ldsv(&scratch->vec);
-    gte_gpf12();
-    gte_stsv(&scratch->vec);
-    coord               = arg0->extra.tmd->coords;
-    coord->coord.t[0]  += scratch->vec.vx;
-    coord2              = arg0->extra.tmd->coords;
-    coord2->coord.t[2] += scratch->vec.vz;
-    actorMoveForward(arg0->extra.tmd->coords, -8);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (abs(scratch->delta) < 0x20) {
-        work->field_0 = 0x1C;
-    }
-    if (work->slots[1].flags & 0x100) {
-        work->field_0 = 0x1C;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
-}
-
-static void func_actor_421600_8013D1DC(Task* arg0)
-{
-    TmdObject*            obj;
-    Enemy*                ctx;
-    DesertChaserWork*     work;
-    GfxCoord*             coord;
-    GfxCoord*             coord2;
-    GfxCoord*             targetCoord;
-    GfxCoord*             facing;
-    GfxCoord*             facing2;
-    ActorTurnStepScratch* head;
-    ActorTurnStepScratch* scratch;
-    s16                   yaw;
-    s16                   delta;
-    s16                   z;
-    s16                   steps;
-    s16                   wrapped;
-    s32                   angle;
-    s32                   firstDelta;
-
-    head    = SCRATCH_STACK_CURSOR(ActorTurnStepScratch);
-    scratch = (SCRATCH_STACK_CURSOR(ActorTurnStepScratch) = head - 1);
-    work    = arg0->work;
-    ctx     = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        obj                         = arg0->extra.tmd;
-        obj->flags                  = 0;
-        work->objs[0].obj.radius    = 0x19C;
-        work->objs[2].obj.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        ctx->node.state.parts.flags = 0;
-        work->field_828             = 1;
-        work->field_82E             = 0x15;
-        work->field_832             = 0x10;
-        work->field_6               = 0;
-    }
-    work->field_6 += 1;
-    func_actor_421600_80134604(arg0);
-    targetCoord     = arg0->extra.tmd->coords;
-    head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
-    scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
-    z               = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
-    scratch->vec.vz = z;
-    facing          = arg0->extra.tmd->coords;
-    angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
-    delta           = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-    wrapped         = delta;
-    if (delta < 0) {
-    wrapNegative:
-        if (wrapped < -0x800) {
-            wrapped += 0x1000;
-            goto wrapNegative;
-        }
-    } else {
-    wrapPositive:
-        if (wrapped >= 0x801) {
-            wrapped -= 0x1000;
-            goto wrapPositive;
-        }
-    }
-    firstDelta      = wrapped;
-    scratch->delta  = (s16)firstDelta;
-    work->field_840 = (u16)firstDelta;
-    if (scratch->delta > 0) {
-        if (abs(scratch->delta) >= 0x401) {
-            work->field_840 = firstDelta - 0x800;
-            scratch->delta -= 0x800;
-        }
-    }
-    steps          = 0x1E - work->field_6;
-    scratch->steps = steps;
-    if (steps == 0) {
-        scratch->steps = 1;
-    }
-    facing2      = arg0->extra.tmd->coords;
-    yaw          = ((s16)scratch->delta / (s16)scratch->steps) + ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
-    scratch->yaw = yaw;
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
-    Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, &scratch->vec);
-    VectorNormalSS(&scratch->vec, &scratch->vec);
-    gte_lddp(0x1A);
-    gte_ldsv(&scratch->vec);
-    gte_gpf12();
-    gte_stsv(&scratch->vec);
-    coord               = arg0->extra.tmd->coords;
-    coord->coord.t[0]  += scratch->vec.vx;
-    coord2              = arg0->extra.tmd->coords;
-    coord2->coord.t[2] += scratch->vec.vz;
-    actorMoveForward(arg0->extra.tmd->coords, -8);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (abs(scratch->delta) < 0x20) {
-        work->field_0 = 0x1C;
-    }
-    if (work->slots[1].flags & 0x100) {
-        work->field_0 = 0x1C;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
-}
+#include "../../shared/desert_chaser_turn_step_probe.inc.c"
 
 static const Actor421600StateTable D_actor_421600_80131EFC = { { func_actor_421600_8013E858,
                                                                  func_actor_421600_80135F6C,
                                                                  func_actor_421600_80136138,
                                                                  func_actor_421600_8013A554,
-                                                                 func_actor_421600_8013E8AC,
+                                                                 desertChaserStunned,
                                                                  func_actor_421600_8013B00C,
                                                                  func_actor_421600_8013B4C4,
                                                                  func_actor_421600_8013B8E0,
                                                                  func_actor_421600_8013C8E0,
-                                                                 func_actor_421600_8013CD3C,
-                                                                 func_actor_421600_8013D1DC,
-                                                                 func_actor_421600_8013ED24,
-                                                                 func_actor_421600_8013EE0C,
+                                                                 desertChaserTurnStep,
+                                                                 desertChaserTurnStepProbe,
+                                                                 desertChaserStagger,
+                                                                 desertChaserCollapse,
                                                                  NULL,
                                                                  NULL,
                                                                  NULL,
@@ -6388,25 +5059,25 @@ static const Actor421600StateTable D_actor_421600_80131EFC = { { func_actor_4216
                                                                  func_actor_421600_8013A404,
                                                                  NULL,
                                                                  NULL,
-                                                                 func_actor_421600_8013EC28,
+                                                                 desertChaserFlinch,
                                                                  func_actor_421600_801366F4,
                                                                  func_actor_421600_801369A0,
                                                                  NULL,
-                                                                 func_actor_421600_80136C88,
+                                                                 desertChaserApproach,
                                                                  NULL,
                                                                  NULL,
                                                                  NULL,
-                                                                 func_actor_421600_801373D4,
+                                                                 desertChaserPursue,
                                                                  func_actor_421600_8013E9D8,
-                                                                 func_actor_421600_8013848C,
+                                                                 desertChaserSpawnAim,
                                                                  func_actor_421600_80138D24,
                                                                  func_actor_421600_8013903C,
-                                                                 func_actor_421600_801392A8,
+                                                                 desertChaserSteer,
                                                                  func_actor_421600_8013EAAC,
                                                                  func_actor_421600_8013947C,
                                                                  func_actor_421600_8013EB7C,
-                                                                 func_actor_421600_80138750,
-                                                                 func_actor_421600_80139718,
+                                                                 desertChaserStrike,
+                                                                 desertChaserRoam,
                                                                  func_actor_421600_8013BA70 } };
 static void                        func_actor_421600_8013D658(Enemy* enemy, Task* actor)
 {
@@ -6567,7 +5238,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 break;
             case 2:
                 command = work->animCommand;
-                if (command == &Actor421600RearAnim) {
+                if (command == &gDesertChaserRearAnim) {
                     if ((config->hp > 0) && ((u8)work->actorId.bytes[3] >= 0x17U)) {
                         message           = &work->animCommand;
                         command->field_10 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
@@ -6626,7 +5297,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                         work->params[2] = 6;
                         work->params[0] = 5;
                         nextCommand     = work->animCommand;
-                        if (nextCommand == &Actor421600RearAnim) {
+                        if (nextCommand == &gDesertChaserRearAnim) {
                             nextCommand->field_14 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
                         } else {
                             Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
@@ -6816,47 +5487,7 @@ static void func_actor_421600_8013E858(Task* arg0)
     }
 }
 
-static void func_actor_421600_8013E8AC(Task* arg0)
-{
-    DesertChaserWork* work;
-    Enemy*            enemy;
-    TmdObject*        obj;
-    s32               value;
-    u32               magnitude;
-
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        obj                           = arg0->extra.tmd;
-        enemy->node.state.parts.flags = 0;
-        obj->flags                    = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_82E          = 0x18;
-        work->field_828          = 2;
-        work->field_832          = 0x10;
-        work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        do {
-            func_actor_421600_80134604(arg0);
-        } while ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) != 0xC);
-        work->field_832 = 0x20;
-        return;
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    value                                 = (s16)work->field_832 / 2;
-    work->field_832                       = (u16)value;
-    magnitude                             = 0x10U;
-    if (value == 1) {
-        work->field_832 = -magnitude;
-    }
-    if ((s16)work->field_832 == -1) {
-        work->field_832 = 0x10;
-    }
-    func_actor_421600_80134604(arg0);
-    if (Gp_TickObjFlag2(enemy) == 1) {
-        enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-        work->field_0         = 0x24;
-    }
-}
+#include "../../shared/desert_chaser_stunned.inc.c"
 
 /// State handler: on the live-actor edge (`field_4` set) show the model, start
 /// animation 4 and step it once; afterwards step the animation and, once its
@@ -6879,10 +5510,10 @@ static void func_actor_421600_8013E9D8(Task* arg0)
         work->field_82A          = 0;
         work->field_82E          = 4;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
         return;
     }
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if (work->slots[1].flags & 0x100) {
         state = work->actorId.word & 0xFFFFFF;
         if (state == 0x11402) {
@@ -6911,11 +5542,11 @@ static void func_actor_421600_8013EAAC(Task* arg0)
         work->field_82A          = 0;
         work->field_82E          = 8;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
     }
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if (work->slots[1].flags & 0x100) {
         work->field_0 = 0x1C;
     }
@@ -6938,114 +5569,18 @@ static void func_actor_421600_8013EB7C(Task* arg0)
         work->field_82A          = 0;
         work->field_82E          = 0xC;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_421600_80134604(arg0);
+        desertChaserArmedAnimTick(arg0);
     }
-    func_actor_421600_80134604(arg0);
+    desertChaserArmedAnimTick(arg0);
     if (work->slots[1].flags & 0x100) {
         work->field_0 = 2;
     }
 }
 
-static void func_actor_421600_8013EC28(Task* arg0)
-{
-    DesertChaserWork* work;
-    Enemy*            enemy;
+#include "../../shared/desert_chaser_flinch.inc.c"
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->objs[0].obj.radius      = 0x19C;
-        work->objs[2].obj.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.parts.flags = 0;
-        work->field_828               = 1;
-        work->field_82E               = 0xA;
-        work->field_832               = 0x10;
-        work->field_844               = 0;
-        work->field_840               = 0;
-        work->field_83E               = 0;
-        if (enemy->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
-        }
-    }
-    func_actor_421600_80134604(arg0);
-    if (work->slots[1].flags & 0x100) {
-        if (work->field_82E == 0xA) {
-            if (enemy->hp > 0) {
-                if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-                    work->field_0 = 4;
-                } else {
-                    work->field_0 = 0x11;
-                }
-            } else {
-                work->field_0 = 0x15;
-            }
-        }
-    }
-}
+#include "../../shared/desert_chaser_stagger.inc.c"
 
-static void func_actor_421600_8013ED24(Task* arg0)
-{
-    DesertChaserWork* work;
-    Enemy*            enemy;
-
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->objs[0].obj.radius      = 0x19C;
-        work->objs[2].obj.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.parts.flags = 0;
-        work->field_828               = 1;
-        work->field_82E               = 0x13;
-        work->field_832               = 0x10;
-        work->field_840               = 0;
-        work->field_83E               = 0;
-        if (enemy->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
-        }
-    }
-    func_actor_421600_80134604(arg0);
-    if (work->slots[1].flags & 0x100) {
-        if (enemy->hp > 0) {
-            if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-                work->field_0 = 4;
-            } else {
-                work->field_0 = 0x24;
-            }
-        } else {
-            work->field_0 = 0x15;
-        }
-    }
-}
-
-static void func_actor_421600_8013EE0C(Task* arg0)
-{
-    TmdObject*        obj;
-    DesertChaserWork* work;
-    Enemy*            enemy;
-
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        obj                           = arg0->extra.tmd;
-        obj->flags                    = 0;
-        work->objs[0].obj.radius      = 0x19C;
-        work->objs[2].obj.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_828               = 1;
-        work->field_82E               = 0x16;
-        work->field_832               = 0x10;
-        work->field_840               = 0;
-        work->field_83E               = 0;
-        if (enemy->hp <= 0) {
-            Gp_SetStateF0Byte3(1);
-        }
-    }
-    func_actor_421600_80134604(arg0);
-    if (work->slots[1].flags & 0x100) {
-        work->field_0 = 0x15;
-    }
-}
+#include "../../shared/desert_chaser_collapse.inc.c"
 
 #include "../../shared/desert_chaser_task.inc.c"
