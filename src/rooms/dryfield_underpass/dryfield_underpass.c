@@ -69,7 +69,6 @@ extern ActorCommand         D_dryfield_underpass_8017E8A8;
 extern GpCopyArg            D_dryfield_underpass_8017E868;
 void                        func_dryfield_underpass_8017DA08(void);
 
-s32 func_dryfield_underpass_8017D8CC(Task*, s32, s32, s32);
 s32 func_dryfield_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
@@ -127,7 +126,7 @@ TaskMessageEntry D_dryfield_underpass_8017E830[6] = {
     { 5105, func_dryfield_underpass_8017D900 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_underpass_8017D908 },
     { 5104, underpassSwitchMsg },
-    { 5106, func_dryfield_underpass_8017D8CC },
+    { 5106, underpassSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -802,15 +801,7 @@ static void func_dryfield_underpass_8017DA00(Task* task);
 
 #include "../../shared/underpass_switches_msg.inc.c"
 
-/// Handler for message 0x13F2: when `arg2` is 2, queues stage sound 0x52260002.
-/// Always returns 0.
-s32 func_dryfield_underpass_8017D8CC(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    if (arg2 == 2) {
-        Gp_EnqueueStageSnd6(0x52260000 | 2, 0, 0);
-    }
-    return 0;
-}
+#include "../../shared/underpass_sound_msg.inc.c"
 
 /// Handler for message 0x13F1: does nothing and returns 0.
 s32 func_dryfield_underpass_8017D900(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

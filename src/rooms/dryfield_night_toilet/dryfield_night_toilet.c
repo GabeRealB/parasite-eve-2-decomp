@@ -36,6 +36,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
+#include "../../shared/toilet.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_toilet_8017DA70[];
@@ -48,7 +49,6 @@ extern SVECTOR D_dryfield_night_toilet_8017DAA8[];
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
 extern TaskDesc D_8013E51C[];
 
-s32 func_dryfield_night_toilet_8017D644(Task*, s32, s32, s32);
 s32 func_dryfield_night_toilet_8017D678(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_toilet_8017D680(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_toilet_8017D688(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -64,7 +64,7 @@ TaskMessageEntry D_dryfield_night_toilet_8017DA70[6] = {
     { 5105, func_dryfield_night_toilet_8017D678 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_toilet_8017D688 },
     { 5104, func_dryfield_night_toilet_8017D680 },
-    { 5106, func_dryfield_night_toilet_8017D644 },
+    { 5106, toiletSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -479,15 +479,7 @@ static void func_dryfield_night_toilet_8017D71C(Task* task);
 
 #include "../../shared/room_variants_parking_lot.inc.c"
 
-/// Message-table handler for id 0x13F2: on event 5 queues stage sound
-/// 0x52100005. Returns 0.
-s32 func_dryfield_night_toilet_8017D644(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    if (arg2 == 5) {
-        Gp_EnqueueStageSnd6(0x52100000 | 5, 0, 0);
-    }
-    return 0;
-}
+#include "../../shared/toilet_sound_msg.inc.c"
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_dryfield_night_toilet_8017D678(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

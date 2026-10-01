@@ -49,6 +49,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/back_street.h"
 
 #define D_dryfield_night_back_street_8018036C (D_dryfield_night_back_street_8018034C + 4)
 #define D_dryfield_night_back_street_8018037C (D_dryfield_night_back_street_8018034C + 6)
@@ -58,7 +59,6 @@
 extern TaskMessageEntry D_dryfield_night_back_street_80180324[];
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_night_back_street_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_back_street_8017D724(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_back_street_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_back_street_8017D734(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -72,7 +72,7 @@ extern WorldCoordRoomLights       D_dryfield_night_back_street_80181470[1];
 extern TaskDesc D_8014D8A4;
 
 TaskMessageEntry D_dryfield_night_back_street_80180324[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_back_street_8017D5D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, backStreetEventMsg },
     { 5105, func_dryfield_night_back_street_8017D724 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_back_street_8017D734 },
     { 5104, func_dryfield_night_back_street_8017D72C },
@@ -330,49 +330,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_back_street_8018161C[8] = {
 static void func_dryfield_night_back_street_8017D73C(Task* task);
 static void func_dryfield_night_back_street_8017D780(Task* task);
 
-/// Message handler for the back street's two events. Copies the incoming
-/// record to the outgoing one and answers by editing `room` of the copy; a
-/// non-zero `queryOnly` suppresses the side effects, as for every handler.
-///
-/// The response byte is the session's stage (`gGameSession.location.loc.stage`), read once
-/// into a local and reused: the stage-2-only message 7 keeps that byte when
-/// event nibble 0x3C is set and answers 1 when it is clear.
-///
-/// Message 9 is the room's progress gate -- with nibble 0x3F clear it runs CAP
-/// command 2 on stage 2 (9 otherwise), writes the record's nibble and answers
-/// 0. Any other message plays the "refused" sound when the session is on stage
-/// 2 and answers 1.
-///
-/// The stage load is scheduled above the prologue, so this function's `.text`
-/// starts 8 bytes before its `addiu $sp` - the `text` cut in the manifest.
-s32 func_dryfield_night_back_street_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    GameSession* session = gGameSession;
-    u8           response;
-
-    *out     = *in;
-    response = session->location.loc.stage;
-    if (response == 2) {
-        if (in->areaId == 7 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (GameFlag_GetNibble(0x3C) == 0) {
-                out->room = 1;
-            } else {
-                out->room = response;
-            }
-        }
-    }
-    if (in->areaId == 9 && GameFlag_GetNibble(0x3F) == 0) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(gGameSession->location.loc.stage == 2 ? 2 : 9);
-            Gp_SetNibbleIf(in->flagId, 2);
-        }
-        return 0;
-    }
-    if (in->queryOnly == ROOM_EVENT_EXECUTE && gGameSession->location.loc.stage == 2) {
-        SndEvt_EnqueueType7(0x52050006, 0xF);
-    }
-    return 1;
-}
+#include "../../shared/back_street_event_msg.inc.c"
 
 s32 func_dryfield_night_back_street_8017D724(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {

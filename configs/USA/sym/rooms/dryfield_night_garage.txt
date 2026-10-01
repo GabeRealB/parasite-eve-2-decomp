@@ -262,3 +262,4 @@ Shop_Data_8017D6DC = 0x8017D6DC;
 Shop_Data_8017D6E4 = 0x8017D6E4;
 Shop_Data_8017D6EC = 0x8017D6EC;
 glowDrawGreyCapsule = 0x80180D9C; // type:func
+garageSoundMsg = 0x80180300; // type:func

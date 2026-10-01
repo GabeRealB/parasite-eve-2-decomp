@@ -78,7 +78,6 @@ s32                          func_dryfield_driveway_8017DCC0(Task*, s32, s32, s3
 s32                          func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
 s32                          func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
 void                         func_dryfield_driveway_8017DC48(s32);
-void                         func_dryfield_driveway_8017DC54(s16);
 void                         func_dryfield_driveway_8017DC64(u8);
 
 AnimationPackedPose D_dryfield_driveway_8017DE80[10] = {
@@ -156,7 +155,7 @@ EvsCommand gDrivewayBlackoutScript[16] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E4D4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x52190009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_driveway_8017DC54 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = drivewaySetViewDirty }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -170,7 +169,7 @@ EvsCommand gDrivewayBlackoutTail[9] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_driveway_8017DC54 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = drivewaySetViewDirty }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -637,11 +636,7 @@ void func_dryfield_driveway_8017DC48(s32 arg0)
     gSceneCombatState.actor03700Wave = arg0;
 }
 
-/// Script callback: stores its argument in the session's `viewDirty` flag.
-void func_dryfield_driveway_8017DC54(s16 arg0)
-{
-    gGameSession->viewDirty = arg0;
-}
+#include "../../shared/dryfield_driveway_set_view_dirty.inc.c"
 
 /// Script callback: stores its argument in the gameplay byte `D_80115768`.
 void func_dryfield_driveway_8017DC64(u8 arg0)

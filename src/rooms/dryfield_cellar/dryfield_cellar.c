@@ -40,6 +40,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/cellar.h"
 
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_dryfield_cellar_8017DB8C[];
@@ -49,9 +50,7 @@ extern TaskMessageEntry D_dryfield_cellar_8017DB8C[];
 extern SVECTOR D_dryfield_cellar_8017DBBC[2];
 extern SVECTOR D_dryfield_cellar_8017DBCC[2];
 
-s32 func_dryfield_cellar_8017D5D0(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_cellar_8017D62C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_dryfield_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_cellar_8017D6FC(Task*, s32, s32, TaskMessageArg);
 
@@ -64,10 +63,10 @@ extern WorldCoordRoomLights   D_dryfield_cellar_80180898[1];
 extern WorldCoordRoomLights   D_dryfield_cellar_80180A90[1];
 
 TaskMessageEntry D_dryfield_cellar_8017DB8C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_cellar_8017D634 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, cellarDoorMsg },
     { 5105, func_dryfield_cellar_8017D62C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_cellar_8017D6F4 },
-    { 5104, func_dryfield_cellar_8017D5D0 },
+    { 5104, cellarCapMsg },
     { 5106, func_dryfield_cellar_8017D6FC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -739,27 +738,7 @@ WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[8] = {
 static void func_dryfield_cellar_8017D730(Task* task);
 static void func_dryfield_cellar_8017D77C(Task* task);
 
-/// Message-table handler for message 0x13F0. On event 0xD it runs a CAP
-/// command: 0xD while event nibble 0x11B is below 2, otherwise 4 or 0xE
-/// depending on whether `func_800B7420(0x83)` reports non-zero. Every other
-/// event does nothing. Always answers 0.
-s32 func_dryfield_cellar_8017D5D0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
-{
-    if (arg2 != 8) {
-        if (arg2 == 0xD) {
-            if (GameFlag_GetNibble(0x11B) >= 2) {
-                if (func_800B7420(0x83) == 0) {
-                    Gp_RunCapCmd1(0xE);
-                } else {
-                    Gp_RunCapCmd1(4);
-                }
-            } else {
-                Gp_RunCapCmd1(0xD);
-            }
-        }
-    }
-    return 0;
-}
+#include "../../shared/cellar_cap_msg.inc.c"
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
 s32 func_dryfield_cellar_8017D62C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -767,33 +746,7 @@ s32 func_dryfield_cellar_8017D62C(Task* task, s32 msgId, TaskMessageArg arg2, Ta
     return 0;
 }
 
-/// Message-table handler for message 0x13EE. Copies the incoming record onto
-/// the outgoing one; for a query 0x26 without `queryOnly` set it answers in
-/// `room` from event nibbles 0xC9, 0x53 and 0x51 (1 to 4 while 0xC9 is set,
-/// 5 or 6 otherwise). Always answers 1.
-s32 func_dryfield_cellar_8017D634(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0xC9) != 0) {
-            if (GameFlag_GetNibble(0x53) != 0) {
-                out->room = 2;
-            } else {
-                out->room = 1;
-            }
-            if (GameFlag_GetNibble(0x51) == 0) {
-                out->room = (u8)out->room + 2;
-            }
-        } else {
-            if (GameFlag_GetNibble(0x51) != 0) {
-                out->room = 5;
-            } else {
-                out->room = 6;
-            }
-        }
-    }
-    return 1;
-}
+#include "../../shared/cellar_door_msg.inc.c"
 
 /// Message-table handler for message 0x13EF: does nothing and answers 0.
 s32 func_dryfield_cellar_8017D6F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

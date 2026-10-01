@@ -129,3 +129,4 @@ drivewayResolveEvent = 0x8017D7A0; // type:func
 drivewayBlackoutTask = 0x8017DAF4; // type:func
 drivewayCutsceneTask = 0x8017DB8C; // type:func
 drivewayScriptSound = 0x8017DC94; // type:func
+drivewaySetViewDirty = 0x8017DC78; // type:func

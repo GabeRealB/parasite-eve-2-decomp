@@ -67,3 +67,5 @@ glowDrawShaft = 0x8017DC70; // type:func
 roomEventGate = 0x8017D60C; // type:func
 roomEventTask = 0x8017D770; // type:func
 glowDrawFlare = 0x8017E458; // type:func
+waterTowerEventMsg = 0x8017D8E0; // type:func
+waterTowerSoundMsg = 0x8017DA4C; // type:func

@@ -59,6 +59,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/water_tower.h"
 
 extern ActorTransform D_dryfield_water_tower_80181A70[3];
 
@@ -419,11 +420,11 @@ void                          func_dryfield_water_tower_8017F808(Task*, s32, Act
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7] = {
-    { 5102, { .call1 = func_dryfield_water_tower_8017DAF8 } },
+    { 5102, { .call1 = waterTowerEventMsg } },
     { 5105, { .call0 = func_dryfield_water_tower_8017DCFC } },
     { 5103, { .call0 = func_dryfield_water_tower_8017DD3C } },
     { 5104, { .call2 = func_dryfield_water_tower_8017DD04 } },
-    { 5106, { .call3 = func_dryfield_water_tower_8017DC64 } },
+    { 5106, { .call3 = waterTowerSoundMsg } },
     { 5108, { .call2 = func_dryfield_water_tower_8017DD44 } },
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };

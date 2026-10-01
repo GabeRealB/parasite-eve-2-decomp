@@ -48,6 +48,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/back_street.h"
 
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_dryfield_back_street_8017F964[];
@@ -62,7 +63,6 @@ extern s32 D_dryfield_back_street_80181054;
 /// reaches the second both as element 1 and under its own label.
 
 void func_dryfield_back_street_8017D5D0(Task*);
-s32  func_dryfield_back_street_8017D748(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_back_street_8017D89C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_back_street_8017D8A4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_back_street_8017D8AC(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -75,7 +75,7 @@ extern WorldCoordRoomLights  D_dryfield_back_street_80180FF8[1];
 extern TaskDesc D_8014D8A4;
 
 TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_back_street_8017D748 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, backStreetEventMsg },
     { 5105, func_dryfield_back_street_8017D89C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_back_street_8017D8AC },
     { 5104, func_dryfield_back_street_8017D8A4 },
@@ -367,52 +367,7 @@ void func_dryfield_back_street_8017D5D0(Task* task)
     D_dryfield_back_street_80181054 = vol;
 }
 
-/// Message handler for the back street's two events. Copies the incoming
-/// record to the outgoing one and answers by editing `room` of the copy; a
-/// non-zero `queryOnly` suppresses the side effects.
-///
-/// On stage 2 (`gGameSession->location.loc.stage`), message 7 answers 1 while event
-/// nibble 0x3C is clear and the stage byte, read once into a local, when it is
-/// set. Message 9 with nibble 0x3F clear runs CAP command 2 on stage 2 (9
-/// otherwise), sets nibble 2 of the record's flag index and returns 0. Any
-/// other case, on stage 2, enqueues the type-7 event the ambience task uses to
-/// stop sound 0x52050006, and returns 1.
-s32 func_dryfield_back_street_8017D748(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    u8 s1;
-
-    *out = *in;
-    s1   = gGameSession->location.loc.stage;
-    if (s1 == 2) {
-        if (in->areaId == 7) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3C) == 0) {
-                    out->room = 1;
-                } else {
-                    out->room = s1;
-                }
-            }
-        }
-    }
-    if ((in->areaId == 9) && (GameFlag_GetNibble(0x3F) == 0)) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            s32 cmd = 9;
-
-            if (gGameSession->location.loc.stage == 2) {
-                cmd = 2;
-            }
-            Gp_RunCapCmd1(cmd);
-            Gp_SetNibbleIf(in->flagId, 2);
-        }
-        return 0;
-    }
-    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gGameSession->location.loc.stage == 2) {
-            SndEvt_EnqueueType7(0x52050006, 0xF);
-        }
-    }
-    return 1;
-}
+#include "../../shared/back_street_event_msg.inc.c"
 
 s32 func_dryfield_back_street_8017D89C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {

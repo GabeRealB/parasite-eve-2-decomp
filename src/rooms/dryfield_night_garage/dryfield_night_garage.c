@@ -46,6 +46,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/garage.h"
 
 /// Shop stock uses gameplay's pickup/purchase quantity limits. Item ids
 /// 0xA0–0xBF index `Gp_StackLimits[id - 0xA0]`.
@@ -185,7 +186,6 @@ static void func_dryfield_night_garage_80180604(s32 arg0);
 #include "../../shared/shop.h"
 
 s32 func_dryfield_night_garage_801800C8(Task*, s32, TaskMessageArg firstArg, s32);
-s32 func_dryfield_night_garage_80180300(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_night_garage_80180358(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_garage_80180360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_garage_801803A4(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -201,7 +201,7 @@ TaskMessageEntry D_dryfield_night_garage_80181C38[6] = {
     { 5105, func_dryfield_night_garage_80180358 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_garage_801800C8 },
     { 5104, func_dryfield_night_garage_801803A4 },
-    { 5106, func_dryfield_night_garage_80180300 },
+    { 5106, garageSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -452,20 +452,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, TaskMessageArg fi
     return 0;
 }
 
-/// Room event callback: event 9 plays stage sound 0x52030009 and event 0x6C
-/// reads the caption event key. Always returns 0.
-s32 func_dryfield_night_garage_80180300(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
-{
-    switch (arg2) {
-        case 0x9:
-            Gp_EnqueueStageSnd6(0x52030009, 0, 0);
-            break;
-        case 0x6C:
-            Gp_GetCapEventKey();
-            break;
-    }
-    return 0;
-}
+#include "../../shared/garage_sound_msg.inc.c"
 
 s32 func_dryfield_night_garage_80180358(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {

@@ -96,7 +96,6 @@ extern WorldCollisionTrigger      D_dryfield_general_store_8018493C[21];
 extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
 extern WorldCoordRoomLights       D_dryfield_general_store_801854E8[1];
 
-s32  func_dryfield_general_store_8017DDC0(Task*, s32, s32, s32);
 s32  func_dryfield_general_store_8017DDF4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, TaskMessageArg);
 void func_dryfield_general_store_8017DFB4(Task*);
@@ -114,7 +113,7 @@ TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
     { 5105, func_dryfield_general_store_8017DDF4 },
     { 5104, storeActionMsg },
-    { 5106, func_dryfield_general_store_8017DDC0 },
+    { 5106, storeSoundMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_general_store_8017DDFC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1578,15 +1577,7 @@ static const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
 
 #include "../../shared/general_store_action_msg.inc.c"
 
-/// Message handler that plays stage sound 0x52030007 on action 7. Always
-/// returns 0.
-s32 func_dryfield_general_store_8017DDC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    if (arg2 == 7) {
-        Gp_EnqueueStageSnd6(0x52030000 | 7, 0, 0);
-    }
-    return 0;
-}
+#include "../../shared/general_store_sound_msg.inc.c"
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
