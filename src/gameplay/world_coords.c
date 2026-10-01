@@ -1424,8 +1424,13 @@ s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
 {
     // Screen-pixel limits and pixels per sound-event pan-offset unit.
     enum {
-        WORLD_COORDINATE_AUDIO_PAN_MIN_X           = -160,
-        WORLD_COORDINATE_AUDIO_PAN_MAX_X           = 159,
+        WORLD_COORDINATE_AUDIO_PAN_MIN_X = -160,
+
+        /// Inclusive screen-X ceiling in pixels before spatial audio pan scaling.
+        ///
+        /// With ten pixels per pan-offset unit, +159 caps the rightward offset at +15.
+        WORLD_COORDINATE_AUDIO_PAN_MAX_X = 159,
+
         WORLD_COORDINATE_AUDIO_PAN_PIXELS_PER_UNIT = 10,
 
         /// Preserves the sound's base pan when projection reports a GTE summary error.
