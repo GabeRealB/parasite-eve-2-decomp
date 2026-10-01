@@ -285,9 +285,19 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
         /// 16..31 the encoded CLUT address before the object's palette offset.
         /// `MODEL_LIGHTING_UV0_CLUT_WORD` copies all four bytes into the packet;
         /// adding `workspace->encodedClutOffset` then wraps only its u16 CLUT.
-        TMD_GT3_UV0_CLUT_WORD  = 3,
-        TMD_GT3_UV1_TPAGE_WORD = 4, // U1/V1 in low half, texture-page settings in high half
-        TMD_GT3_UV2_WORD       = 5  // U2/V2 in low half; high half is not copied
+        TMD_GT3_UV0_CLUT_WORD = 3,
+        /// Element-relative u32 index of vertex 1's U/V and encoded texture-page settings.
+        ///
+        /// The three-word record header is excluded: index 4 selects byte offset
+        /// 16 in a 0x38-family triangle element, which supplies at least six
+        /// aligned u32 words. On the little-endian target, bits 0..7 hold unsigned
+        /// U texels, bits 8..15 hold unsigned V texels, and bits 16..31 hold the
+        /// encoded page location, colour depth and semi-transparency mode.
+        /// `MODEL_LIGHTING_UV1_TPAGE_WORD` copies all four bytes into the packet;
+        /// the signed `workspace->texturePageOffset` (-128..127 encoded units)
+        /// is then added only to its u16 `tpage`, wrapping without changing U/V.
+        TMD_GT3_UV1_TPAGE_WORD = 4,
+        TMD_GT3_UV2_WORD       = 5 // U2/V2 in low half; high half is not copied
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_UV0_CLUT_WORD];
