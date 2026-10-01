@@ -39,40 +39,46 @@ typedef struct DesertChaserWaypoint {
 } DesertChaserWaypoint;
 STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 
+#if DESERT_CHASER_BUILD != DESERT_CHASER_UNARMED
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-/// Sphere body and all five results supplied by its owner.
+#define DESERT_CHASER_CONTACTS 5
+#else
+#define DESERT_CHASER_CONTACTS 12
+#endif
+
+/// Sphere body and the contact table supplied by its owner.
 typedef struct DesertChaserSphereBody {
-    WorldCollisionBody    obj;         // Linked sphere collision body
-    WorldCollisionContact contacts[5]; // Complete initialized contact table
+    WorldCollisionBody    obj;                              // Linked sphere collision body
+    WorldCollisionContact contacts[DESERT_CHASER_CONTACTS]; // Complete initialized contact table
 } DesertChaserSphereBody;
-STATIC_ASSERT_SIZEOF(DesertChaserSphereBody, 0x98);
 
-/// Capsule body, its shape and all five results supplied by its owner.
+/// Capsule body, its shape and the contact table supplied by its owner.
 typedef struct DesertChaserCapsuleBody {
-    WorldCollisionBody    obj;         // Linked capsule collision body
-    WorldCollisionCapsule shape;       // Endpoints, radii and contact-table pointer
-    WorldCollisionContact contacts[5]; // Complete initialized contact table
+    WorldCollisionBody    obj;                              // Linked capsule collision body
+    WorldCollisionCapsule shape;                            // Endpoints, radii and contact-table pointer
+    WorldCollisionContact contacts[DESERT_CHASER_CONTACTS]; // Complete initialized contact table
 } DesertChaserCapsuleBody;
-STATIC_ASSERT_SIZEOF(DesertChaserCapsuleBody, 0xB0);
 
-typedef struct DesertChaserAnimCommand {
-    AnimationSet* sets[9];
-} DesertChaserAnimCommand;
-STATIC_ASSERT_SIZEOF(DesertChaserAnimCommand, 0x24);
-#elif DESERT_CHASER_BUILD == DESERT_CHASER_WATER_TOWER
-/// The actor id word at 0xE90, read two ways: masked to 24 bits and compared
-/// with 0x11402, or its third byte alone tested against 2.
+/// The actor id word, read two ways: masked to 24 bits and compared with
+/// 0x11402, or its bytes taken one at a time from a message's context.
 typedef union DesertChaserIdWord {
     s32 word;
     u8  bytes[4];
 } DesertChaserIdWord;
 STATIC_ASSERT_SIZEOF(DesertChaserIdWord, 0x4);
 
+#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+typedef struct DesertChaserAnimCommand {
+    AnimationSet* sets[9];
+} DesertChaserAnimCommand;
+STATIC_ASSERT_SIZEOF(DesertChaserAnimCommand, 0x24);
+#else
 typedef struct DesertChaserAnimCommand {
     AnimationSet* entries[4];
     AnimationSet* field_10;
     AnimationSet* field_14;
 } DesertChaserAnimCommand;
+#endif
 #endif
 
 /// The work block the spawn handler allocates and hangs behind `Task::work`:
@@ -170,61 +176,52 @@ typedef struct DesertChaserWork {
     EffectSpawnArg field_890;
     SVECTOR        field_898;
     /// Hit position the hit effect hands to `func_800FDB18` as its rotation.
-    SVECTOR                  field_8A0;
-    SVECTOR                  field_8A8;
-    SVECTOR                  field_8B0;
-    byte                     pad_8B8[8];
-    s32                      field_8C0;
-    s32                      field_8C4;
-    s32                      field_8C8;
-    byte                     pad_8CC[4];
-    s16                      field_8D0;
-    s16                      field_8D2;
-    s16                      field_8D4;
-    byte                     pad_8D6[2];
-    s32                      field_8D8;
-    s32                      field_8DC;
-    s32                      field_8E0;
-    byte                     pad_8E4[4];
-    s16                      field_8E8;
-    byte                     field_8EA;
-    byte                     pad_8EB[0x15];
-    s32                      field_900;
-    u8                       field_904;
-    u8                       field_905;
-    s16                      field_906;
-    DesertChaserSphereBody   objs[3];
-    DesertChaserCapsuleBody  capsuleBody;
-    MATRIX                   field_B80;
-    MATRIX                   field_BA0;
-    byte                     pad_BC0[0x20];
-    s16                      field_BE0;
-    u16                      field_BE2;
-    u16                      field_BE4;
-    byte                     pad_BE6[0xA];
-    s16                      field_BF0;
-    s16                      field_BF2;
-    s16                      field_BF4;
-    byte                     pad_BF6[2];
-    DesertChaserAnimCommand* field_BF8;
-    s32                      field_BFC;
-    s32                      field_C00;
-    s32                      field_C04;
-    s32                      field_C08;
-    /// Last message opcode/operands, kept for the debug display: the three
-    /// bytes of `ActorCommand` are latched here verbatim.
-    u8   field_C0C;
-    u8   field_C0D;
-    u8   field_C0E;
-    byte pad_C0F[9];
-    s16  field_C18;
-    s16  field_C1A;
+    SVECTOR hitPos;
+    SVECTOR field_8A8;
+    SVECTOR field_8B0;
+    byte    pad_8B8[8];
+    /// Player position and rotation, sent together as message 0x3E9.
+    ActorTransform playerPlacement;
+    /// World position of the gte-rotated route vector.
+    VECTOR routePos;
+    /// Pose id / blend flag pair.
+    s16  poseId;
+    s8   poseBlend;
+    byte pad_8EB;
+    /// Reply buffer for message 0x3F8; `queryMode` selects query mode 8.
+    byte replyBuf[0x14];
+    s32  queryMode;
+    /// Command the actor broadcasts to the scene's actors.
+    ActorCommand            broadcast;
+    DesertChaserSphereBody  objs[3];
+    DesertChaserCapsuleBody capsuleBody;
+    /// Light / colour matrices the spawn handler binds to the model.
+    MATRIX light;
+    MATRIX color;
+    byte   pad_BC0[0x20];
+    /// Frames before another hit registers, seeded from the hit's parameter.
+    s16 hitCooldown;
+    /// Damage accumulated since the counter was last cleared.
+    u16  damageTotal;
+    u16  hitFlag;
+    byte pad_BE6[0xA];
+    /// Offset from the actor to the player.
+    SVECTOR                  playerDelta;
+    DesertChaserAnimCommand* animCommand;
+    s32                      params[4];
+    /// Last message context, kept for the debug display.
+    DesertChaserIdWord actorId;
+    byte               pad_C10[8];
+    /// One-shot "already reported" latch.
+    s16  reported;
+    s16  distance;
     byte pad_C1C[2];
-    s16  field_C1E;
-    u16  field_C20;
-    s16  field_C22;
-    u16  field_C24;
-    s16  field_C26;
+    /// One pose row latched from the pose table, and the yaw one step behind.
+    s16  poseVy;
+    u16  poseVx;
+    s16  poseVz;
+    u16  poseYaw;
+    s16  poseYawPrev;
     s16  field_C28;
     s16  field_C2A;
     byte pad_C2C[4];
@@ -232,77 +229,52 @@ typedef struct DesertChaserWork {
     /// Argument record the hit effect fills for `func_800FDB18`.
     EffectSpawnArg field_890;
     /// Hit position the hit effect hands to `func_800FDB18` as its rotation.
-    SVECTOR field_898;
+    SVECTOR hitPos;
     s8      field_8A0;
     byte    pad_8A1[3];
-    /// World X and Z of the gte-rotated route vector, around a zeroed Y.
-    s32  field_8A4;
-    s32  field_8A8;
-    s32  field_8AC;
-    byte pad_8B0[4];
-    /// Pose id / blend flag pair, the pair the regular build keeps at
-    /// 0x8E8 / 0x8EA.
-    s16  field_8B4;
-    s8   field_8B6;
+    /// World position of the gte-rotated route vector.
+    VECTOR routePos;
+    /// Pose id / blend flag pair.
+    s16  poseId;
+    s8   poseBlend;
     byte pad_8B7;
-    /// Player position and rotation sent together as message 0x3E9.
-    VECTOR  field_8B8;
-    SVECTOR field_8C8;
-    /// Reply buffer for message 0x3F8; field_8E4 selects query mode 8.
-    byte field_8D0[0x14];
-    s32  field_8E4;
-    u8   field_8E8;
-    u8   field_8E9;
-    s16  field_8EA;
-    /// Three sphere nodes, each with its 12-entry contact table, and a fourth
-    /// node carrying a capsule.
-    WorldCollisionBody    field_8EC;
-    WorldCollisionContact field_90C;
-    byte                  pad_924[0x108];
-    WorldCollisionBody    field_A2C;
-    WorldCollisionContact field_A4C;
-    byte                  pad_A64[0x108];
-    WorldCollisionBody    field_B6C;
-    WorldCollisionContact field_B8C;
-    byte                  pad_BA4[0x108];
-    WorldCollisionBody    field_CAC;
-    /// Its second endpoint's Z offset at 0xCD8 is 0x2BC at spawn and -0x320
-    /// in the movement tick.
-    WorldCollisionCapsule field_CCC;
-    /// The capsule's 12 contacts, scanned for a key reading 0x100000.
-    WorldCollisionContact    field_CE4[12];
-    MATRIX                   field_E04;
-    MATRIX                   field_E24;
-    byte                     pad_E44[0x20];
-    s16                      field_E64;
-    u16                      field_E66;
-    byte                     pad_E68[8];
-    s16                      field_E70;
-    s16                      field_E72;
-    s16                      field_E74;
-    byte                     pad_E76[2];
+    /// Player position and rotation, sent together as message 0x3E9.
+    ActorTransform playerPlacement;
+    /// Reply buffer for message 0x3F8; `queryMode` selects query mode 8.
+    byte replyBuf[0x14];
+    s32  queryMode;
+    /// Command the actor broadcasts to the scene's actors.
+    ActorCommand            broadcast;
+    DesertChaserSphereBody  objs[3];
+    DesertChaserCapsuleBody capsuleBody;
+    /// Light / colour matrices the spawn handler binds to the model.
+    MATRIX light;
+    MATRIX color;
+    byte   pad_E44[0x20];
+    /// Frames before another hit registers, seeded from the hit's parameter.
+    s16 hitCooldown;
+    /// Damage accumulated since the counter was last cleared.
+    u16  damageTotal;
+    byte pad_E68[8];
+    /// Offset from the actor to the player.
+    SVECTOR                  playerDelta;
     s16                      field_E78;
     byte                     pad_E7A[2];
-    DesertChaserAnimCommand* field_E7C;
-    s32                      field_E80;
-    s32                      field_E84;
-    s32                      field_E88;
-    s32                      field_E8C;
-    DesertChaserIdWord       field_E90;
+    DesertChaserAnimCommand* animCommand;
+    s32                      params[4];
+    DesertChaserIdWord       actorId;
     Task*                    field_E94;
     Task*                    field_E98;
-    /// One-shot "already reported" latch the message handler clears.
-    s16 field_E9C;
-    /// Distance clamped to 0xFA0 after the gte rotation.
-    s16  field_E9E;
+    /// One-shot "already reported" latch.
+    s16  reported;
+    s16  distance;
     byte pad_EA0[2];
-    u16  field_EA2;
-    /// Halfword the idle tick reseeds `field_6` from.
-    u16 field_EA4;
-    u16 field_EA6;
-    /// Halfword pair forwarded under message 0x109, one step behind.
-    u16  field_EA8;
-    u16  field_EAA;
+    /// One pose row latched from the pose table, and the yaw one step behind.
+    u16  poseVy;
+    u16  poseVx;
+    u16  poseVz;
+    u16  poseYaw;
+    u16  poseYawPrev;
     s16  field_EAC;
     byte pad_EAE[2];
 #endif
