@@ -2259,10 +2259,14 @@ static inline void _gpuQueueBlendMode(s32 blendMode, s32 sortingDepth)
 {
     enum {
         GPU_BLEND_DRAW_TO_DISPLAY_DISABLED = 0,
-        GPU_BLEND_DITHER_ENABLED           = 1,
-        GPU_BLEND_TEXTURE_DEPTH_4BIT       = 0,
-        GPU_BLEND_TEXTURE_PAGE_X           = 640,
-        GPU_BLEND_TEXTURE_PAGE_Y           = 0,
+        /// Unshifted selector enabling dithering in the blend draw-mode packet.
+        ///
+        /// `setDrawTPage` encodes this nonzero argument as bit 9 (0x0200),
+        /// independently of the semitransparency selector in bits 5..6.
+        GPU_BLEND_DITHER_ENABLED     = 1,
+        GPU_BLEND_TEXTURE_DEPTH_4BIT = 0,
+        GPU_BLEND_TEXTURE_PAGE_X     = 640,
+        GPU_BLEND_TEXTURE_PAGE_Y     = 0,
     };
     DR_TPAGE* blendCommand;
 
