@@ -33829,25 +33829,26 @@ stores `param1[2]` late and moves `&param2` after the zeroing stores.
 
 `Gp_LoadWaitCompanion` is the example.
 
-## `idx + table` so GCC emits `addu dest, dest, base`
+## `depthByteOffset + table` so GCC emits `addu dest, dest, base`
 
-`*(s32*)(table + (idx & 0xFFFC))` canonicalizes to `addu v0, a0, v0`
+`*(s32*)(table + (depthByteOffset & 0xFFFC))` canonicalizes to `addu v0, a0, v0`
 (base + offset). The TMD SZ-table loads want the offset register as
 both dest and first operand (`andi v0, 0xFFFC` / `addu v0, v0, a0`).
-Stage the mask into a named `idx` and add the table onto it:
+Stage the mask into a named `depthByteOffset` and index the typed table; the
+division by the entry size folds into the same aligned byte address:
 
 ```c
-idx = rec[0] & 0xFFFC;
-sz  = *(s32*)(idx + (s32)szTable);
+depthByteOffset = depthRefs[0] & TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK;
+cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
 ```
 
-`gpDrawStreamPrimF3PreXform` is the example.
+`tmdDrawStreamPrimF3PreXform` is the example.
 
-## Keep `&poly->x2` as a live `POLY_F3*` so both cursors `addiu 0x14`
+## Keep `&packet->x2` as a live `POLY_F3*` so both cursors `addiu 0x14`
 
 A pre-transformed POLY_F3 OT insert loads SXY via the SXYP FIFO from
-`x0`/`x1`/`x2` (`lw -8/-4/0` / `mtc2 $15`). Taking `xy = (POLY_F3*)&poly->x2`
-once before the loop and incrementing both `xy` and `poly` keeps
+`x0`/`x1`/`x2` (`lw -8/-4/0` / `mtc2 $15`). Taking `xy = (POLY_F3*)&packet->x2`
+once before the loop and incrementing both `xy` and `packet` keeps
 
 ```
 addiu  a3, a3, 0x14
@@ -33855,13 +33856,13 @@ addiu  t0, t0, 0x14
 ```
 
 Assigning `xy` only once without incrementing it (or recomputing
-`&poly->x2` each iteration) either freezes the SXY pointer or emits
-`addiu a3, t0, 0x10`. Pin `poly` to `$t0` and `xy` to `$a3`.
-`gpDrawStreamPrimF3PreXform` is the example.
+`&packet->x2` each iteration) either freezes the SXY pointer or emits
+`addiu a3, t0, 0x10`. Pin `packet` to `$t0` and `xy` to `$a3`.
+`tmdDrawStreamPrimF3PreXform` is the example.
 
 ## POLY_F4 SXY FIFO from `&x3` plus `goto draw` for the 4th-vertex nclip
 
-The quad sibling of the POLY_F3 OT insert (`gpDrawStreamPrimF3PreXform`)
+The quad sibling of the POLY_F3 OT insert (`tmdDrawStreamPrimF3PreXform`)
 points `xy` at `&poly->x3` so the first nclip loads `x0`/`x1`/`x2` as
 `lw -12/-8/-4` / `mtc2 $15`. A 4th `lw 0(xy)` / nclip only runs when the
 first OPZ is `<= 0`; `if (opz > 0) goto draw;` then

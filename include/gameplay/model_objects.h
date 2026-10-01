@@ -121,25 +121,37 @@ void Gp_DrawDisp2dOt(struct Task* unused);
 /// element's colour; this command writes none of the three.
 u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Draw-pass handler of a stream's pre-transformed flat-triangle records
-/// (`0x5`): each element contributes one untextured `POLY_F3` to the buffer
-/// half's first region, where its corners are already in screen space, and links
-/// it into the ordering table at the depth its three corners average to.
+/// Culls and links pre-transformed flat triangles from TMD stream opcode `0x5`.
 ///
-/// Nothing here transforms or lights the triangle: the pass that projects the
-/// stream's vertices (`tmdXformStreamVerts`) has already written each corner's
-/// screen coordinates into the packet this handler files, and its depth into the
-/// per-vertex screen-Z table, so an element names its three corners in that table
-/// rather than in the vertex array. The packet's fixed fields — its length, its
-/// primitive code and the element's colour — are the build pass's
-/// (`modelLightingStreamPrimF3PreXform`), so what a frame adds is the triangle's filing:
-/// the three cached depths are averaged for the ordering-table link, and the
-/// facing comes from the coordinates the packet already carries.
+/// `elements` starts after the record header; `workspace->elemCount` is 0..65535
+/// and `elemStride` counts u32 words. Each element's first three u16 values are
+/// depth-cache byte references: clearing their low two bits and dividing by four
+/// selects `szTable` entries. The low bits' meaning and the complete element
+/// layout are unproven; the construction handler reads colour from word 2, so
+/// the stride must be at least three words. Each selected cache index must be
+/// below 1024 and initialized by an earlier projection in this draw walk.
 ///
-/// An element with any corner depth marked `TMD_VERTEX_DEPTH_INVALID` by the
-/// projection pre-pass, or whose triangle turns away, is stepped over rather
-/// than linked. The record has no variant for `flags` to select, so it goes unread.
-u32* gpDrawStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `preXformWrite` addresses one word-aligned `POLY_F3` per element in the chosen
+/// buffer half's first region. Construction supplies its length, code and colour;
+/// projection commands must supply its three screen-coordinate pairs in pixels.
+/// Only negative NCLIP area survives, independent of `objectFlags`, which is
+/// unused, including `TMD_OBJECT_REVERSE_CULLING`. A corner depth carrying
+/// `TMD_VERTEX_DEPTH_INVALID` denotes failed projection and rejects the triangle.
+/// Linking preserves the packet's length, code, colour and coordinates.
+///
+/// The retained depth calculation loads corners 0..2 into SZ0..SZ2, then runs
+/// AVSZ3, which reads SZ1..SZ3 with the current ZSF3 scale. Thus sorting uses
+/// corners 1 and 2 plus the prior SZ3. The unsigned
+/// OTZ is scaled by `gDisplayState.otDepthShift`, divided by 16 and wrapped to
+/// 0..1023 relative to `workspace->ot`, which already includes the model offset.
+/// The selected OT must contain that entry; this handler performs no bounds check.
+///
+/// Returns `elements + initial elemCount * elemStride` and advances
+/// `preXformWrite` by that count of packets even when culled. Leaves `elemCount`
+/// at -1 and reuses `gteResult` for facing and OTZ. Workspace, payload and depth
+/// cache are borrowed for this draw walk. Linked packets and the OT must remain
+/// alive until the GPU finishes consuming them.
+u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// The draw pass's handler for a stream's layered pre-transformed textured-triangle
 /// records whose semi-transparent layer is textured from a page of its own

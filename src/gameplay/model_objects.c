@@ -201,6 +201,19 @@ static u32* func_8009AC58(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
             : "$12", "$13", "$14", "$15", "$16", "memory");                                                           \
     } while (0)
 
+/// Stores the signed screen-space facing area of a projected flat triangle.
+///
+/// `packet` supplies three word-aligned packed XY pairs; `result` addresses
+/// one writable s32. Pushes the pairs into SXY0..SXY2 and clobbers MAC0/FLAG.
+static inline void _tmdStoreFlatTriangleFacing(POLY_F3* packet, s32* result)
+{
+    gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 0));
+    gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 1));
+    gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 2));
+    gte_nclip();
+    gte_stopz(result);
+}
+
 static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2)
 {
     s32  prev;
@@ -573,57 +586,63 @@ u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpDrawStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_F3*      poly;
-    s32*          opz;
-    DisplayState* ds;
-    u32           clipMask;
-    u16*          rec;
-    s32           sz;
-    s32           idx;
-    s32*          szTable;
+    enum {
+        TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK = 0xFFFC, // Aligned byte offset; low-bit meanings unproven.
+        TMD_F3_PRE_XFORM_OT_DEPTH_SHIFT       = 4       // Sixteen scaled depth units per OT entry before wrapping.
+    };
+    POLY_F3*            packet;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 invalidDepthMask;
+    const u16*          depthRefs;
+    s32                 cachedDepth;
+    u32                 depthByteOffset;
+    const s32*          vertexDepths;
 
-    poly = (POLY_F3*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        opz      = &ws->gteResult;
-        clipMask = TMD_VERTEX_DEPTH_INVALID;
-        ds       = &gDisplayState;
+    packet = (POLY_F3*)workspace->preXformWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        invalidDepthMask     = TMD_VERTEX_DEPTH_INVALID;
+        displayState         = &gDisplayState;
         do {
-            rec = (u16*)stream;
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
-            gte_nclip();
-            gte_stopz(opz);
-            if (ws->gteResult < 0) {
-                szTable = ws->szTable;
-                idx     = rec[0] & 0xFFFC;
-                sz      = szTable[(u32)idx / sizeof(*szTable)];
-                if ((sz & clipMask) == 0) {
-                    gte_ldSZ0(sz);
-                    idx = rec[1] & 0xFFFC;
-                    sz  = szTable[(u32)idx / sizeof(*szTable)];
-                    if ((sz & clipMask) == 0) {
-                        gte_ldSZ1(sz);
-                        idx = rec[2] & 0xFFFC;
-                        sz  = szTable[(u32)idx / sizeof(*szTable)];
-                        if ((sz & clipMask) == 0) {
-                            gte_ldSZ2(sz);
+            depthRefs = (const u16*)elements;
+            // Test the packet's projected winding before looking up its depths.
+            _tmdStoreFlatTriangleFacing(packet, gteResultDestination);
+            if (workspace->gteResult < 0) {
+                vertexDepths    = workspace->szTable;
+                depthByteOffset = depthRefs[0] & TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK;
+                cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                if ((cachedDepth & invalidDepthMask) == 0) {
+                    gte_ldSZ0(cachedDepth);
+                    depthByteOffset = depthRefs[1] & TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK;
+                    cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                    if ((cachedDepth & invalidDepthMask) == 0) {
+                        gte_ldSZ1(cachedDepth);
+                        depthByteOffset = depthRefs[2] & TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK;
+                        cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                        if ((cachedDepth & invalidDepthMask) == 0) {
+                            // Preserve SZ0..SZ2 loads: AVSZ3 also reads the previous SZ3.
+                            gte_ldSZ2(cachedDepth);
                             gte_avsz3();
-                            gte_stotz(opz);
-                            gte_stotz(opz);
-                            addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                            gte_stotz(gteResultDestination);
+                            gte_stotz(gteResultDestination);
+                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >>
+                                                       TMD_F3_PRE_XFORM_OT_DEPTH_SHIFT &
+                                                   (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                    packet);
                         }
                     }
                 }
             }
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Culled elements still consume their construction pass's packet slot.
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)packet;
+    return elements;
 }
 
 u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)

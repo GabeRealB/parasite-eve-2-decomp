@@ -176,7 +176,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = gpXformStreamVertsUnlit;
                     break;
                 case 5:
-                    handler = gpDrawStreamPrimF3PreXform;
+                    handler = tmdDrawStreamPrimF3PreXform;
                     break;
                 case 0x45:
                     handler = gpDrawStreamPrimF4PreXform;
