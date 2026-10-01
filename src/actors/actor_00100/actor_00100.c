@@ -2461,7 +2461,7 @@ static void Actor00100_Fn02788(Task* arg0)
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
             resetSlot      += sizeof(AnimationSlot);
-            Gp_AnimResetSlot(&resetWork->anim0, resetSlotIndex, (s32)(s16)resetWork->field_82E);
+            animationResetSlot(&resetWork->anim0, resetSlotIndex, (s16)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
         resetWork->field_82C = (s16)resetWork->field_82E;
@@ -2477,7 +2477,7 @@ static void Actor00100_Fn02788(Task* arg0)
             secondarySlotIndex  = secondaryIndex;
             secondarySlot[0x39] = (u8)secondaryWork->field_83A;
             secondarySlot      += sizeof(AnimationSlot);
-            Gp_AnimResetSlot(&secondaryWork->anim1, secondarySlotIndex, (s32)secondaryWork->field_838);
+            animationResetSlot(&secondaryWork->anim1, secondarySlotIndex, secondaryWork->field_838);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
         work->field_836 = 3;

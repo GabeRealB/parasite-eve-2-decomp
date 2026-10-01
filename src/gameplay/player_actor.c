@@ -5624,7 +5624,7 @@ void Gp_AnimResetChildSlots(Task* arg0, s32 arg1)
     i     = 1;
     if (i < actor->animationSlotCount) {
         do {
-            Gp_AnimResetSlot(&actor->animationContext, i, arg1);
+            animationResetSlot(&actor->animationContext, i, arg1);
             actor->animationSlots[i].rate = actor->animationRate;
             i++;
         } while (i < actor->animationSlotCount);

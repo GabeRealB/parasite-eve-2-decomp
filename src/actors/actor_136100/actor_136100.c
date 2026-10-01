@@ -1541,7 +1541,7 @@ static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
     i               = 1;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work->rig.anim, (u16)i, count);
+        animationResetSlot(&work->rig.anim, (u16)i, count);
         i++;
     } while ((u16)i < 0x14U);
 }
@@ -1639,7 +1639,7 @@ static void func_actor_136100_80132748(Task* arg0)
             animWork->field_4E0 = 1;
             for (i = 1; (u16)i < 0x14U; i++) {
                 animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 1);
+                animationResetSlot(&animWork->rig.anim, (u16)i, 1);
             }
         } break;
     }
@@ -1899,7 +1899,7 @@ static void func_actor_136100_80133558(Task* arg0)
 /// Reset the cutscene actor's animation state and re-send the weapon record.
 ///
 /// Clears the first two value/countdown pairs, re-arms all nineteen animation
-/// slots through `Gp_AnimResetSlot` with the work block's slot count at 1, then
+/// slots through `animationResetSlot` with the work block's slot count at 1, then
 /// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
 /// (`AnimationPlayRequest`) built from the equip-slot addend (`gPlayerStatus.weapon`), the pair
 /// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
@@ -1932,7 +1932,7 @@ void func_actor_136100_80133690(void)
     i                   = 1;
     do {
         animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 1);
+        animationResetSlot(&animWork->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
 
@@ -1986,7 +1986,7 @@ void func_actor_136100_8013379C(s32 arg0)
     i                   = 1;
     do {
         animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 3);
+        animationResetSlot(&animWork->rig.anim, (u16)i, 3);
         i++;
     } while ((u16)i < 0x14U);
 
@@ -2411,7 +2411,7 @@ void func_actor_136100_801347B8(void)
     i               = 1;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work->rig.anim, (u16)i, 1);
+        animationResetSlot(&work->rig.anim, (u16)i, 1);
         i++;
     } while ((u16)i < 0x14U);
 }

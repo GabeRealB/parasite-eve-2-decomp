@@ -22,15 +22,15 @@ void gluttonTickAnim(Task* arg0)
         w = arg0->work;
         for (i = 1; i < 8; i++) {
             w->slots0[i].rate = w->field_7B6;
-            Gp_AnimResetSlot(&w->anim0, i, w->field_7B3);
+            animationResetSlot(&w->anim0, i, w->field_7B3);
         }
         for (i = 0; i < 4; i++) {
             w->slots2[i].rate = w->field_7B6;
-            Gp_AnimResetSlot(&w->anim2, i, w->field_7B3);
+            animationResetSlot(&w->anim2, i, w->field_7B3);
         }
         for (i = 0; i < 4; i++) {
             w->slots4[i].rate = w->field_7B6;
-            Gp_AnimResetSlot(&w->anim4, i, w->field_7B3);
+            animationResetSlot(&w->anim4, i, w->field_7B3);
         }
         w->field_7B2    = w->field_7B3;
         work->field_7B0 = 3;

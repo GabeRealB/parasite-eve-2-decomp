@@ -1429,7 +1429,7 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     work->hitEffect.coord       = next_coord;
     func_800B3F84(&work->anim, Actor01600_D127EC, obj, work->pad_17C, work->slots);
     for (i = 1; i < 9; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->anim, i, 1);
     }
     Gp_IncStateF0Ref(0);
     work->field_506 = 1;

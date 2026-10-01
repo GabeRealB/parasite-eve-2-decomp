@@ -161,7 +161,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// `field_270` / `field_274` / `field_278` are the three `gRandomLcgState` draws
 /// `func_actor_560800_801376E0` takes at spawn; `field_280` is the slot count it
 /// seeds from the spawner's `spawnArg1`, which `func_actor_560800_80137820` then
-/// walks 1..count with `Gp_AnimResetSlot`. `field_27C` / `field_27E` and the
+/// walks 1..count with `animationResetSlot`. `field_27C` / `field_27E` and the
 /// 0x38 bytes of `rot` (`Mem_CopyUnaligned`'s source and destination in
 /// `func_actor_560800_80136AA8`) belong to the handlers, not to the spawner.
 typedef struct Actor560800ModelWork {
@@ -4439,7 +4439,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 w->field_4BE = 0;
                 for (i = 1; i < w->field_4BA; i++) {
                     w->rig.slots[i].rate = fade;
-                    Gp_AnimResetSlot(&w->rig.anim, i, 0);
+                    animationResetSlot(&w->rig.anim, i, 0);
                 }
             } else {
                 Actor560800AnimWork* w = (Actor560800AnimWork*)arg0->work;
@@ -4451,7 +4451,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 w->field_4BE = 0;
                 for (i = 1; i < w->field_4BA; i++) {
                     w->rig.slots[i].rate = fade;
-                    Gp_AnimResetSlot(&w->rig.anim, i, 2);
+                    animationResetSlot(&w->rig.anim, i, 2);
                 }
             }
             arg0->state += 1;
@@ -4615,7 +4615,7 @@ void func_actor_560800_80132C60(Task* arg0)
             w->field_4BE = 0;
             for (i = 1; i < w->field_4BA; i++) {
                 w->rig.slots[i].rate = fade;
-                Gp_AnimResetSlot(&w->rig.anim, i, 0);
+                animationResetSlot(&w->rig.anim, i, 0);
             }
         }
         arg0->state += 1;
@@ -4705,7 +4705,7 @@ void func_actor_560800_80132F64(Task* arg0)
             w->field_4BE = 0;
             for (i = 1; i < w->field_4BA; i++) {
                 w->rig.slots[i].rate = fade;
-                Gp_AnimResetSlot(&w->rig.anim, i, 0);
+                animationResetSlot(&w->rig.anim, i, 0);
             }
         }
         arg0->state += 1;
@@ -5182,7 +5182,7 @@ static void func_actor_560800_80134258(Task* task)
             if (i < anim->field_4BA) {
                 do {
                     anim->rig.slots[i].rate = rate;
-                    Gp_AnimResetSlot(&anim->rig.anim, i, 3);
+                    animationResetSlot(&anim->rig.anim, i, 3);
                     i++;
                 } while (i < anim->field_4BA);
             }
@@ -5204,7 +5204,7 @@ static inline void Actor560800_ResetAnimSlots(Actor560800AnimWork* anim, s16 cli
     if (i < anim->field_4BA) {
         do {
             anim->rig.slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->rig.anim, i, clip);
+            animationResetSlot(&anim->rig.anim, i, clip);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -5271,7 +5271,7 @@ static void func_actor_560800_80134384(Task* task)
                     }
                     for (;;) {
                         anim->rig.slots[i].rate = rate;
-                        Gp_AnimResetSlot(&anim->rig.anim, i, 0x2D);
+                        animationResetSlot(&anim->rig.anim, i, 0x2D);
                         i++;
                         if (i < anim->field_4BA) {
                             continue;
@@ -5308,7 +5308,7 @@ static void func_actor_560800_80134384(Task* task)
 ///
 /// The rate is held in a local rather than written as two literals: both uses
 /// have to reach the same register, and 0x10 is live across the loop's
-/// `Gp_AnimResetSlot` call. `unused` is declared and never referenced - the
+/// `animationResetSlot` call. `unused` is declared and never referenced - the
 /// ROM's frame is 0x30 and the local is what reserves its 8 bytes.
 void func_actor_560800_80134B14(s32 arg0)
 {
@@ -5329,7 +5329,7 @@ void func_actor_560800_80134B14(s32 arg0)
     if (i < anim->field_4BA) {
         do {
             anim->rig.slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->rig.anim, i, 0x20);
+            animationResetSlot(&anim->rig.anim, i, 0x20);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -5372,7 +5372,7 @@ static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate)
     if (i < anim->field_4BA) {
         do {
             anim->rig.slots[i].rate = rate;
-            Gp_AnimResetSlot(&anim->rig.anim, i, id);
+            animationResetSlot(&anim->rig.anim, i, id);
             i++;
         } while (i < anim->field_4BA);
     }
@@ -6478,7 +6478,7 @@ void func_actor_560800_80137820(Task* arg0)
             anim = (Actor560800ModelWork*)arg0->work;
             do {
                 anim->slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&anim->anim, i & 0xFFFF, id);
+                animationResetSlot(&anim->anim, i & 0xFFFF, id);
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);
             arg0->state++;

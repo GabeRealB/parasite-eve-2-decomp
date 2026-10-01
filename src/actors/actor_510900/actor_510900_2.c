@@ -2550,7 +2550,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             coord->coord.t[1] = 0;
             coord->coord.t[2] = 0;
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->field_586);
+                animationResetSlot(&work->rig.anim, i, work->field_586);
             }
             if (work->field_594 == 0) {
                 work->field_594 = 1;
@@ -3126,7 +3126,7 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
     coords->parent     = &gGfxViewCoord;
     func_800B3F84(&work->anim, D_actor_510900_80167CAC, tmd, work->poses, work->slots);
     do {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->anim, i, 1);
         i++;
     } while (i < 0xB);
     work->obj2BC.pos.vx           = -0xC8;

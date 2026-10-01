@@ -33,7 +33,7 @@ void madChaserTickAnim(Task* arg0)
     if (work->field_414 == 2) {
         start = work;
         for (j = 1; j < 9; j++) {
-            Gp_AnimResetSlot(&start->anim, j, start->field_418);
+            animationResetSlot(&start->anim, j, start->field_418);
             (&start->slot_B4)[j].rate = start->field_41C;
         }
     advance:

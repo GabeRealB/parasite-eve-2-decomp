@@ -112,6 +112,23 @@ typedef struct AnimationSet {
 } AnimationSet;
 STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 
+/// Restarts a slot on the same-numbered model-part track and coordinate.
+///
+/// Rebinds the slot to the context's borrowed set table, selects the track's
+/// first keyframe and encoding, clears its boundary state and result flags,
+/// and sets normal playback rate (`ANIMATION_RATE_ONE`), replacing any prior rate.
+/// The current record is left at zero and the segment duration is unchanged;
+/// the first forward pose tick establishes the interpolation segment.
+/// This call does not write a model coordinate or capture a transition pose.
+///
+/// `slotIndex` must be in 0..255 and fit the slot array, model coordinates and
+/// selected set's track-start table. `setIndex` must be a loaded table index
+/// representable in `u16`, excluding `ANIMATION_SET_BUFFERED_POSE`; zero is used
+/// unchanged. The selected track start must name a keyframe in the record array.
+/// The caller owns the writable slot; the set table and clip data must remain
+/// live during playback. Capacities are neither stored nor checked here.
+void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex);
+
 /// Advances one playback slot and writes its interpolated pose.
 ///
 /// Clears the slot's result flags, consumes its signed `rate` in sixteenths of

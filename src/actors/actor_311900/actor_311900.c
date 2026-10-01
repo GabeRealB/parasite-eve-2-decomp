@@ -353,7 +353,7 @@ static void func_actor_311900_80162100(Task* task)
         start = (Actor311900Work*)task->work;
         for (j = 1; j < 0x14; j++) {
             start->rig.slots[j].rate = start->field_47C;
-            Gp_AnimResetSlot(&start->rig.anim, j, (s16)start->field_478);
+            animationResetSlot(&start->rig.anim, j, (s16)start->field_478);
         }
         start->field_476 = start->field_478;
         work->field_474  = 3;

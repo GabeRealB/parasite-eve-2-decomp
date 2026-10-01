@@ -4786,7 +4786,7 @@ static void Actor00400_Fn085B8(Task* arg0)
     work = arg0->work;
     i    = 1;
     do {
-        Gp_AnimResetSlot(&work->anim, i, work->field_628);
+        animationResetSlot(&work->anim, i, work->field_628);
         work->slots[i].rate = work->field_632;
         i++;
     } while (i < 0xF);

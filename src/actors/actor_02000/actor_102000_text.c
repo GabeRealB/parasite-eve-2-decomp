@@ -1771,7 +1771,7 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
     work->field_670.spawnArgHi = 2;
     func_800B3F84(&work->rig.anim, Actor02000_D15FE8, obj, work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
     }
     eff = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
     actorTintTask(eff->task, ctx);

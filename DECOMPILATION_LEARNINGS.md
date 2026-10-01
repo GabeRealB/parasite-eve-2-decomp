@@ -232,7 +232,7 @@ animWork->field_4D4 = 8;
 i = 1;
 do {
     animWork->slots[(u16)i].rate = 0x10; /* not n */
-    Gp_AnimResetSlot(&animWork->anim, (u16)i, 8);
+    animationResetSlot(&animWork->anim, (u16)i, 8);
     i++;
 } while ((u16)i < 0x14U);
 ```
@@ -2023,7 +2023,7 @@ sibling minus its extra post-loop store.
 ```c
 i = 1;
 do {
-    Gp_AnimResetSlot(&work->anim, i, work->field_47C);
+    animationResetSlot(&work->anim, i, work->field_47C);
     i++;
 } while (i < 0x13);
 ```
@@ -28306,14 +28306,14 @@ those stores fill the `lbu` delay. Writing the zeros first schedules
 them into an earlier load delay instead.
 
 ```c
-slot->trackIndex = arg1;
-slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
-op               = recs[slot->nextPose.indices.recordIndex].flags;
-slot->flags      = 0;
-slot->poseEncoding   = op & 0xF;
+slot->trackIndex = slotIndex;
+slot->nextPose.indices.recordIndex = sets[setIndex]->trackStartIndices[slot->trackIndex];
+recordFlags = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
+slot->flags = 0;
+slot->poseEncoding = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
 ```
 
-`Gp_AnimResetSlot` is the example. `table[(u8)value]` stuck at 99.3% with
+`animationResetSlot` is the example. `table[(u8)value]` stuck at 99.3% with
 only those five index instructions using `$a1` instead of `$v0`.
 
 ## `+r`(index) / `"r"(loaded)` keeps `lbu` before `id -= K`
@@ -28408,7 +28408,7 @@ slot->trackIndex = arg3;
 slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
 ```
 
-`Gp_AnimResetSlotEx` is the example (`Gp_AnimResetSlot` already uses
+`Gp_AnimResetSlotEx` is the example (`animationResetSlot` already uses
 `trackStartIndices[slot->trackIndex]` for the same reason). The `(u8)arg3` form
 stuck at 98.8% with only those six registers swapped.
 
@@ -77287,7 +77287,7 @@ produces that shape directly:
 i = 1;
 do {
     D_actor_461800_80143894->slots[i].rate = 1;
-    Gp_AnimResetSlot(&D_actor_461800_80143894->anim, i, D_actor_461800_80143894->field_4B8);
+    animationResetSlot(&D_actor_461800_80143894->anim, i, D_actor_461800_80143894->field_4B8);
     i++;
 } while (i < 0x14);
 D_actor_461800_80143894->field_4B6 = D_actor_461800_80143894->field_4B8;
@@ -81882,7 +81882,7 @@ its own variable.
     work2  = (Actor310100Work*)task->work;
     do {
         work2->slots[i & 0xFFFF].rate = 0x10;
-        Gp_AnimResetSlot(&work2->anim, i & 0xFFFF, active);
+        animationResetSlot(&work2->anim, i & 0xFFFF, active);
 ```
 
 99.914% on that one line (`regs` 20 → 2). The house style already does this —
@@ -81941,7 +81941,7 @@ into `$s2`, where the source had the load land straight in `$s2`:
                            +sh     s2,0x504(s1)
 ```
 
-The stored value and the loop's third argument (`Gp_AnimResetSlot`'s payload) are
+The stored value and the loop's third argument (`animationResetSlot`'s payload) are
 the *same* `$s2`, so the RTL behind the target is `(set T (mem))`,
 `(set active T)`, `(set (mem) active)` — one copy that has to live through the
 loop.
@@ -98152,7 +98152,7 @@ offsets do not move, so the neighbouring matched bodies stay matched.
 ## m2c's masked loop variable is a `(u16)i` cast at each use site, not a variable of its own
 
 `func_actor_120300_80133330` opens by walking animation slots 1..19 through
-`Gp_AnimResetSlot`. m2c renders that as a `var_s1`/`var_a1` pair — a counter and a
+`animationResetSlot`. m2c renders that as a `var_s1`/`var_a1` pair — a counter and a
 separate `var_a1 = var_s1 & 0xFFFF` re-derived at the loop bottom — and the seed
 scores 80.892% with `regs=31 delete=10`. The source is the ordinary shape:
 
@@ -98160,7 +98160,7 @@ scores 80.892% with `regs=31 delete=10`. The source is the ordinary shape:
 i = 1;
 do {
     animWork->slots[(u16)i].rate = 0x10;
-    Gp_AnimResetSlot(&animWork->anim, (u16)i, 8);
+    animationResetSlot(&animWork->anim, (u16)i, 8);
     i++;
 } while ((u16)i < 0x14U);
 ```
@@ -99617,7 +99617,7 @@ li    v0,0x10        # the field_4C8 store
 sh    v0,0x4c8(s0)
 ...
 li    s3,0x10        # a second materialization in the loop preheader
-jal   Gp_AnimResetSlot
+jal   animationResetSlot
 sb    s3,0x1d(v0)
 ```
 

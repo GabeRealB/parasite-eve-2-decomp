@@ -552,7 +552,7 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// `gActorMotionAnimBanks19` through `func_800B3F84` (`model.bank` latches it,
 /// `model.animId` goes back to -1), and a changed `field_4` -- or a preset asking
 /// for slots when `model.ticking` says the slots are already ticking -- is pushed
-/// onto `func_800B4114`'s per-slot loop instead of the `Gp_AnimResetSlot`
+/// onto `func_800B4114`'s per-slot loop instead of the `animationResetSlot`
 /// one, followed by a `Gp_AnimTickIndex` pass over the same 0x12 slots and
 /// `model.ticking` raised. Returns 0 either way.
 s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Actor317000SpawnAnim* anim)
@@ -601,7 +601,7 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
             }
         } else {
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+                animationResetSlot(&work->rig.anim, i, work->model.animId);
             }
         }
         for (i = 1; i < 0x13; i++) {

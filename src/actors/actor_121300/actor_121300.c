@@ -65,7 +65,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 ///
 /// The block opens with the animation prefix `actor_105100` and `actor_136100`
 /// also carry: the 0x14-byte `AnimationContext` `func_800B3F84` is handed as its
-/// `arg0`, the nineteen 0x28-byte `AnimationSlot`s `Gp_AnimResetSlot` walks, and
+/// `arg0`, the nineteen 0x28-byte `AnimationSlot`s `animationResetSlot` walks, and
 /// the pose buffer at 0x30C.  The two `MATRIX`es at 0x43C / 0x45C are the
 /// model's light and colour matrices, published through `TmdObject::lightMtx`
 /// / `field_20`.
@@ -2293,7 +2293,7 @@ static void func_actor_121300_80133854(Task* arg0)
                 slotsWork->field_4A0 = 1;
                 for (i = 1; (u16)i < 0x13U; i++) {
                     slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-                    Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
+                    animationResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                 }
             }
             work->field_498 = 0;
@@ -2334,7 +2334,7 @@ static void func_actor_121300_80133854(Task* arg0)
                     slotsWork->field_4A0 = 1;
                     for (i = 1; (u16)i < 0x13U; i++) {
                         slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-                        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)i, 1);
+                        animationResetSlot(&slotsWork->rig.anim, (u16)i, 1);
                     }
                 }
                 func_dryfield_r08_8017F438(1);
@@ -2435,7 +2435,7 @@ static void func_actor_121300_80133BFC(Task* task)
     slotIndex            = 1;
     do {
         slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
+        animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
         slotIndex++;
     } while ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots));
     task->msgTable = D_actor_121300_8013CC88;

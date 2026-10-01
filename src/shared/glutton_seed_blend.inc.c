@@ -15,19 +15,19 @@ void gluttonSeedBlend(Task* task)
     i               = 1;
     do {
         work->slots0[i].rate = work->field_7BE;
-        Gp_AnimResetSlot(&work->anim1, i, work->field_7BC);
+        animationResetSlot(&work->anim1, i, work->field_7BC);
         i++;
     } while (i < 8);
     i = 1;
     do {
         work->slots2[i].rate = work->field_7BE;
-        Gp_AnimResetSlot(&work->anim3, i, work->field_7BC);
+        animationResetSlot(&work->anim3, i, work->field_7BC);
         i++;
     } while (i < 4);
     i = 1;
     do {
         work->slots4[i].rate = work->field_7BE;
-        Gp_AnimResetSlot(&work->anim5, i, work->field_7BC);
+        animationResetSlot(&work->anim5, i, work->field_7BC);
         i++;
     } while (i < 4);
 }

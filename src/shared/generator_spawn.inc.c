@@ -43,7 +43,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->anim, gGeneratorAnimSets, obj,
                   work->poses, work->slots);
     for (i = 1; i < 0xA; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->anim, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->kind                   = GENERATOR_KIND;

@@ -643,7 +643,7 @@ meaningful while *that weapon's* package is loaded. Two consequences:
 
 ### 9.2 Animation blocks
 
-Layout, from `Gp_AnimInitCtx` / `Gp_AnimResetSlot` / `Gp_AnimResetSlotEx` in
+Layout, from `Gp_AnimInitCtx` / `animationResetSlot` / `Gp_AnimResetSlotEx` in
 `src/gameplay/scene_runtime.c`:
 
 ```text

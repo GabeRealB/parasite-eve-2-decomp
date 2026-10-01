@@ -381,7 +381,7 @@ static void func_actor_111800_80132390(Task* task)
     work2->field_492 = 0;
     do {
         work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, 5);
+        animationResetSlot(&work2->rig.anim, i & 0xFFFF, 5);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;

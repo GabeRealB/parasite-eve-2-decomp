@@ -401,7 +401,7 @@ static void            func_actor_210600_8014B8C8(Enemy* enemy, Task* task);
 /// passing `field_886`'s rate byte into the slot and the step `field_880`'s row
 /// of `D_actor_210600_8015A498` as the request's fifth argument, then latches
 /// the clip into `field_880`; step 2 does the same through
-/// `Gp_AnimResetSlot`. Both settle on step 3 and clear the frame counter at
+/// `animationResetSlot`. Both settle on step 3 and clear the frame counter at
 /// `field_884`, which is counted from here on while every slot is ticked.
 static void func_actor_210600_8014B2C0(Task* task)
 {
@@ -428,7 +428,7 @@ static void func_actor_210600_8014B2C0(Task* task)
         reset = (Actor210600Work*)task->work;
         for (j = 1; j < 0x13; j++) {
             reset->rig.slots[j].rate = reset->field_886.byte;
-            Gp_AnimResetSlot(&reset->rig.anim, j, (s16)reset->field_882);
+            animationResetSlot(&reset->rig.anim, j, (s16)reset->field_882);
         }
         reset->field_880 = reset->field_882;
     advance:

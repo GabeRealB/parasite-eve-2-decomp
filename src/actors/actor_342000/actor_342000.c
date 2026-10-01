@@ -604,7 +604,7 @@ static void func_actor_342000_80162158(Task* arg0)
             ctx = (Actor342000Work*)arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+                animationResetSlot(&ctx->ctx, i, 0);
             }
             break;
             do {
@@ -617,7 +617,7 @@ static void func_actor_342000_80162158(Task* arg0)
             ctx2 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx2->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx2->ctx, i, 0);
+                animationResetSlot(&ctx2->ctx, i, 0);
             }
             break;
             do {
@@ -630,7 +630,7 @@ static void func_actor_342000_80162158(Task* arg0)
             ctx3 = (Actor342000Work*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx3->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx3->ctx, i, 0);
+                animationResetSlot(&ctx3->ctx, i, 0);
             }
             break;
         default:
@@ -884,7 +884,7 @@ static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     if (blend == 0) {
         for (i = first; i < n; i++) {
             ctx->slots[i].rate = ANIMATION_RATE_ONE;
-            Gp_AnimResetSlot(&ctx->ctx, i, anim);
+            animationResetSlot(&ctx->ctx, i, anim);
         }
     } else {
         for (i = first; i < n; i++) {

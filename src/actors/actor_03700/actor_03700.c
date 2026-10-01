@@ -806,7 +806,7 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     task->msgTable  = Actor03700_D08108;
     func_800B3F84(&work->anim, Actor03700_D080E4, obj, work->poses, work->slots);
     for (i = 1; i < 6; i++) {
-        Gp_AnimResetSlot(&work->anim, i, work->field_248);
+        animationResetSlot(&work->anim, i, work->field_248);
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     kind            = (gRandomLcgState >> 16) & 3;

@@ -1335,7 +1335,7 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->context, Actor07000_D0D77C, obj,
                   work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot(&work->context, i, 1);
+        animationResetSlot(&work->context, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->field_370            = 1;
@@ -2379,7 +2379,7 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
                   &work->slots[0]);
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->context, i, 1);
+        animationResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 7);
     (Gp_IncStateF0Ref)(0);

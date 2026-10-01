@@ -11,7 +11,7 @@ void pacedWalkResetAnim(Task* task)
     i    = 1;
     do {
         work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
+        animationResetSlot(&work->rig.anim, i, work->st.animId);
         i++;
     } while (i < 0x14);
     work->st.appliedAnimId = work->st.animId;

@@ -1641,7 +1641,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+                animationResetSlot(&work->rig.anim, i, work->model.animId);
             }
         }
         for (i = 1; i < 0x14; i++) {
@@ -1890,7 +1890,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+                animationResetSlot(&work->rig.anim, i, work->model.animId);
             }
         }
         for (i = 1; i < 0x14; i++) {

@@ -1632,7 +1632,7 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot((AnimationContext*)work, i, work->field_7D5);
+            animationResetSlot((AnimationContext*)work, i, work->field_7D5);
         }
     }
     for (i = 1; i < 0x14; i++) {
@@ -1811,7 +1811,7 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
 }
 
 /// Sets the per-slot playback rate `AnimationSlot.rate` on animation slots 1..16 of the
-/// boss block -- `rate` of 0 meaning `Gp_AnimResetSlot`'s own 0x10 default,
+/// boss block -- `rate` of 0 meaning `animationResetSlot`'s own 0x10 default,
 /// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
 void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 {
@@ -2469,7 +2469,7 @@ static s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
     return ret;
 }
 
-/// Sets `AnimationSlot.rate` -- the per-slot value `Gp_AnimResetSlot` seeds
+/// Sets `AnimationSlot.rate` -- the per-slot value `animationResetSlot` seeds
 /// with 0x10 -- on animation slots 1..16 of the boss block, `rate` of 0
 /// meaning that default.
 static void func_actor_503500_80137048(Task* arg0, s32 rate)

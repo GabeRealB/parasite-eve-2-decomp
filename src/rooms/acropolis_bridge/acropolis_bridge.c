@@ -4870,7 +4870,7 @@ static void func_acropolis_bridge_8018581C(Task* task)
         reset = (AcropolisBridgeEnemyWork*)task->work;
         for (j = 1; j < 4; j++) {
             reset->slots[j].rate = reset->field_108;
-            Gp_AnimResetSlot(&reset->anim, j, reset->field_104);
+            animationResetSlot(&reset->anim, j, reset->field_104);
         }
         reset->field_102 = reset->field_104;
     advance:

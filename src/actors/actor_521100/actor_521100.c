@@ -1668,7 +1668,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->field_688 = 0x15;
     i               = 1;
     do {
-        Gp_AnimResetSlot(&work->rig.anim, i, work->field_686);
+        animationResetSlot(&work->rig.anim, i, work->field_686);
         i++;
     } while (i < 0x13);
     work->field_6B2 = 1;

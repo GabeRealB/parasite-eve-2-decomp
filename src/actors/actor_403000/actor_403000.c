@@ -4227,7 +4227,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
             resetSlotIndex    = resetIndex;
             resetSlot[1].rate = resetWork->field_ACA;
             resetSlot        += 1;
-            Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_AC6);
+            animationResetSlot(&resetWork->anim, resetSlotIndex, resetWork->field_AC6);
             resetIndex += 1;
         } while (resetIndex < 0x18);
         resetWork->field_AC4 = resetWork->field_AC6;
@@ -4245,7 +4245,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
             secondarySlotIndex    = secondaryIndex;
             secondarySlot[1].rate = secondaryWork->field_AD2;
             secondarySlot        += 1;
-            Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_AD0);
+            animationResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, secondaryWork->field_AD0);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x18);
         work->field_ACE = 3;

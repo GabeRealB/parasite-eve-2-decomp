@@ -9,7 +9,7 @@ void viewFigureResetAnim(void)
     i = 1;
     do {
         gViewFigureWork->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&gViewFigureWork->rig.anim, i, (s16)gViewFigureWork->st.animId);
+        animationResetSlot(&gViewFigureWork->rig.anim, i, (s16)gViewFigureWork->st.animId);
         i++;
     } while (i < 0x14);
     gViewFigureWork->st.appliedAnimId = gViewFigureWork->st.animId;

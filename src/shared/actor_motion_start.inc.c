@@ -49,7 +49,7 @@ s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, GpSpawnAni
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+            animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x14; i++) {

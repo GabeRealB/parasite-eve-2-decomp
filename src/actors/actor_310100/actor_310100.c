@@ -923,7 +923,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     work2  = (Actor310100Work*)task->work;
     do {
         work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, active);
+        animationResetSlot(&work2->rig.anim, i & 0xFFFF, active);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     func_actor_310100_80161F80(task);
@@ -984,7 +984,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     work2           = (Actor310100Work*)task->work;
     do {
         work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, active);
+        animationResetSlot(&work2->rig.anim, i & 0xFFFF, active);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     func_actor_310100_80161F80(task);
@@ -1190,7 +1190,7 @@ void func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2)
 /// display work block dirty, then either forwards the payload to the animation
 /// task (`pos.vx` zero — the seed carries the yaw into `field_4F6` and message
 /// 0x3F4 gets `pos.vy` / `pos.vz` as a `AnimationPlayRequest`) or reseeds the nineteen
-/// animation slots (`pos.vz` zero resets them through `Gp_AnimResetSlot`,
+/// animation slots (`pos.vz` zero resets them through `animationResetSlot`,
 /// otherwise `func_800B4114` blends them) and records the new base in
 /// `field_4F8` / `field_4FA`.
 void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement)
@@ -1232,7 +1232,7 @@ void func_actor_310100_80162D50(Task* task, s32 msgId, ActorTransform* placement
         if (blend == 0) {
             do {
                 resetDisp->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&resetDisp->rig.anim, i & 0xFFFF, active);
+                animationResetSlot(&resetDisp->rig.anim, i & 0xFFFF, active);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
         } else {

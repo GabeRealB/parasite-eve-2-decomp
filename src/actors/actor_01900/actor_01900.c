@@ -1101,7 +1101,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         i2 = 1;
         do {
             w2->rig.slots[i2].rate = w2->field_8A2;
-            Gp_AnimResetSlot(&w2->rig.anim, i2, w2->field_89E);
+            animationResetSlot(&w2->rig.anim, i2, w2->field_89E);
             i2++;
         } while (i2 < 0x13);
         w2->field_89C = (s16)(u16)w2->field_89E;
@@ -1117,7 +1117,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         w1->field_8AC = 0x800;
         do {
             w1->rig.slots[i3].rate = w1->field_8AA;
-            Gp_AnimResetSlot(&w1->blend.anim, i3, w1->field_8A8);
+            animationResetSlot(&w1->blend.anim, i3, w1->field_8A8);
             i3++;
         } while (i3 < 0x13);
         work->field_8A6 = 3;

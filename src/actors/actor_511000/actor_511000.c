@@ -2320,7 +2320,7 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->field_478);
+                animationResetSlot(&work->rig.anim, i, work->field_478);
             }
         }
         for (i = 1; i < 0x14; i++) {
@@ -3168,7 +3168,7 @@ void func_actor_511000_80133D90(Task* task)
 }
 
 /// Copies the animation id from `preset` into the work block parked in
-/// `task->work`, reseeds slots 1..0x12 through `Gp_AnimResetSlot`, and
+/// `task->work`, reseeds slots 1..0x12 through `animationResetSlot`, and
 /// clears `field_480`'s halfword.
 s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* preset)
 {
@@ -3179,7 +3179,7 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* prese
     work->field_47C = preset->animationId;
     i               = 1;
     do {
-        Gp_AnimResetSlot(&work->rig.anim, i, work->field_47C);
+        animationResetSlot(&work->rig.anim, i, work->field_47C);
         i++;
     } while (i < 0x13);
     work->field_480.half = 0;

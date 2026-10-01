@@ -219,7 +219,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// its halfword or bits 0x102 of its word to decide whether to advance the
 /// actor to state 2.
 /// `anim` is the animation context at offset 0 -- the block is handed to
-/// `Gp_AnimResetSlot` as its `AnimationContext` -- with the 0x28-byte animation
+/// `animationResetSlot` as its `AnimationContext` -- with the 0x28-byte animation
 /// slots at +0x14, the layout `Actor400500Work` uses.
 ///
 /// `obj_364` / `obj_414` are the two `Gp_LinkObj` nodes the actor's retirement
@@ -3559,7 +3559,7 @@ static void func_actor_206100_8014F284(Task* task)
     work = (Actor206100Work*)task->work;
     i    = 1;
     do {
-        Gp_AnimResetSlot(&work->anim, i, work->field_510);
+        animationResetSlot(&work->anim, i, work->field_510);
         work->slots[i].rate = work->field_51A;
         i++;
     } while (i < 0xF);

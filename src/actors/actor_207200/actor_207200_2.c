@@ -647,7 +647,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     func_800B3F84((AnimationContext*)work, D_actor_207200_80153ED4, obj,
                   work->field_12C, (AnimationSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot((AnimationContext*)work, i, 1);
+        animationResetSlot((AnimationContext*)work, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
 

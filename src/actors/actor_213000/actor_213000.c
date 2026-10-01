@@ -815,7 +815,7 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg)
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->field_475);
+            animationResetSlot(&work->rig.anim, i, work->field_475);
         }
     }
     for (i = 1; i < 0x14; i++) {

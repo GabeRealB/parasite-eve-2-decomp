@@ -556,7 +556,7 @@ static void func_actor_120500_801322A0(Task* task)
     slotIndex      = 1;
     do {
         slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
+        animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
         slotIndex++;
     } while ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots));
 }

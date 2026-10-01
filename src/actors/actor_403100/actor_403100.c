@@ -3741,7 +3741,7 @@ static void func_actor_403100_801327CC()
         D_actor_403100_80155808->field_5E0 = 0;
     } else if (D_actor_403100_80155808->field_5DA == 2) {
         for (i = 1; i < 15; i++) {
-            Gp_AnimResetSlot(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE);
+            animationResetSlot(&D_actor_403100_80155808->field_B8.animation.anim, i, D_actor_403100_80155808->field_5DE);
             D_actor_403100_80155808->field_B8.animation.slots[i].rate = D_actor_403100_80155808->field_5E2;
         }
         D_actor_403100_80155808->field_5DA = 3;

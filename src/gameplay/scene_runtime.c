@@ -2705,28 +2705,38 @@ void func_800B3F84(AnimationContext* context, void* arg1, TmdObject* arg2, void*
     Gp_AnimInitCtxSlots(context, arg1, arg2, arg3, arg4);
 }
 
-void Gp_AnimResetSlot(AnimationContext* context, s32 arg1, s32 arg2)
+/// Primes normal-rate playback on a same-numbered track and model coordinate.
+///
+/// The caller installs the track start as the next endpoint. The zero current
+/// record and remaining time defer segment selection to the first forward tick.
+static inline void _animationPrimeSlotTrack(AnimationSlot* slot, s32 slotIndex, s32 setIndex)
+{
+    slot->rate                            = ANIMATION_RATE_ONE;
+    slot->timeLeft                        = 0;
+    slot->currentPose.indices.setIndex    = setIndex;
+    slot->currentPose.indices.recordIndex = 0;
+    slot->coordIndex                      = slotIndex;
+    slot->trackIndex                      = slotIndex;
+    slot->nextPose.indices.setIndex       = setIndex;
+}
+
+void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex)
 {
     AnimationSlot* slot;
     AnimationSet** sets;
     u8             recordFlags;
 
-    slot                                  = &context->slots[arg1];
-    slot->rate                            = ANIMATION_RATE_ONE;
-    slot->timeLeft                        = 0;
-    slot->currentPose.indices.setIndex    = arg2;
-    slot->currentPose.indices.recordIndex = 0;
-    slot->coordIndex                      = arg1;
-    slot->trackIndex                      = arg1;
-    slot->nextPose.indices.setIndex       = arg2;
-    sets                                  = context->sets;
-    slot->sets                            = sets;
-    slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
-    recordFlags                           = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
-    slot->flags                           = 0;
-    slot->atEnd                           = 0;
-    slot->field_12                        = 0;
-    slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+    slot = &context->slots[slotIndex];
+    _animationPrimeSlotTrack(slot, slotIndex, setIndex);
+    // Bind the track start and its encoding before clearing the prior playback results.
+    sets                               = context->sets;
+    slot->sets                         = sets;
+    slot->nextPose.indices.recordIndex = sets[setIndex]->trackStartIndices[slot->trackIndex];
+    recordFlags                        = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
+    slot->flags                        = 0;
+    slot->atEnd                        = 0;
+    slot->field_12                     = 0;
+    slot->poseEncoding                 = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
 }
 
 void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4)

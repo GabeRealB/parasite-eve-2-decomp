@@ -363,7 +363,7 @@ static void func_actor_312200_80162FB4(Task* task)
         reset = (Actor312200Work*)task->work;
         for (j = 1; j < 0x13; j++) {
             reset->rig.slots[j].rate = reset->field_896.byte;
-            Gp_AnimResetSlot(&reset->rig.anim, j, (s16)reset->field_892);
+            animationResetSlot(&reset->rig.anim, j, (s16)reset->field_892);
         }
         reset->field_890 = reset->field_892;
     advance:
@@ -377,7 +377,7 @@ static void func_actor_312200_80162FB4(Task* task)
         second->field_8A0      = 0x500;
         for (k = 1; k < 0x13; k++) {
             second->rig.slots[k].rate = second->field_89E.byte;
-            Gp_AnimResetSlot(&second->anim2, k, (s16)second->field_89C);
+            animationResetSlot(&second->anim2, k, (s16)second->field_89C);
         }
         work->field_89A = 3;
     }

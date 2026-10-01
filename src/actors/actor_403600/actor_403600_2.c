@@ -604,7 +604,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     temp_v0->field_79A            = (s16)(((s16)temp_v0->field_78A * 0x23) / 100);
     func_800B3F84(&temp_v0->rig.anim, D_actor_403600_8016057C, temp_s2, temp_v0->rig.poses, temp_v0->rig.slots);
     do {
-        Gp_AnimResetSlot(&temp_v0->rig.anim, var_s0, 1);
+        animationResetSlot(&temp_v0->rig.anim, var_s0, 1);
         var_s0 += 1;
     } while (var_s0 < 0x14);
     (Gp_IncStateF0Ref)(0);
@@ -3944,7 +3944,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     func_800B3F84(&work->rig.anim, D_actor_403600_8016057C, model, work->rig.poses, work->rig.slots);
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
         i += 1;
     } while (i < 0x14);
     (Gp_IncStateF0Ref)(0);

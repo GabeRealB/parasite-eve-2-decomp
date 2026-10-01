@@ -1392,7 +1392,7 @@ static void Actor02600_Fn02FFC(Enemy* ctx, Task* actor)
     }
     func_800B3F84(&work->anim, Actor02600_D08ACC, obj, work->field_154, work->slots);
     for (i = 1; i < 8; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
+        animationResetSlot(&work->anim, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     rec0                             = work->field_234;

@@ -25,7 +25,7 @@ s32 actorMotionPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
+            animationResetSlot(&work->rig.anim, i, work->model.animId);
         }
     }
     for (i = 1; i < 0x14; i++) {

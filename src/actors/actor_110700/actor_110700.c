@@ -313,7 +313,7 @@ s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args
     work->animId = args->animationId;
     i            = 1;
     do {
-        Gp_AnimResetSlot(&work->rig.anim, i, work->animId);
+        animationResetSlot(&work->rig.anim, i, work->animId);
         i++;
     } while (i < 0x13);
     return 0;

@@ -2258,7 +2258,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->rig.anim, D_actor_510900_80167AA4, obj,
                   work->rig.poses, work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
     }
     work->field_592 = 1;
     Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 1, 0, arg0);

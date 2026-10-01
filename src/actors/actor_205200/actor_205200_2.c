@@ -391,7 +391,7 @@ static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
     func_800B3F84(&work->rig.anim, D_actor_205200_801567E8, tmd, work->rig.poses, work->rig.slots);
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
         i++;
     } while (i < 0x13);
     work->field_596                  = enemy->place->mode;

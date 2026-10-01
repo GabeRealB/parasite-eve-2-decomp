@@ -60,7 +60,7 @@
 /// animation slots. `Mem_Malloc` is
 /// asked for 0x4E4 bytes -- the whole block -- by
 /// `func_actor_120300_80132004` and `func_actor_120300_801321C8`, while
-/// `func_actor_120300_80133330` walks slots 1..19 through `Gp_AnimResetSlot`
+/// `func_actor_120300_80133330` walks slots 1..19 through `animationResetSlot`
 /// after parking 8 in `field_4D4`, then lifts the scale at `field_4E0` to
 /// 0x1000 once the actor is up.
 typedef struct Actor120300Work {
@@ -1737,13 +1737,13 @@ static inline void _actor120300ResetAll(Task* task, u16 anim)
     work->field_4D4 = anim;
     for (i = 1; i < 0x14; i++) {
         work->rig.slots[i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work->rig.anim, i, anim);
+        animationResetSlot(&work->rig.anim, i, anim);
     }
 }
 
 /// After `func_actor_120300_80131EE0`, runs the request at `field_4C8` (0..19):
 /// most codes park an animation id in `field_4D4` and walk slots 1..19 through
-/// `func_800B4114` or `Gp_AnimResetSlot`; a few also send message 0x7D4 or
+/// `func_800B4114` or `animationResetSlot`; a few also send message 0x7D4 or
 /// change `field_4E0`. Code 1 is two-phase, stepped by `field_4CA`: phase 1
 /// slides the model on X until `coord.t[0] < 0xF3D`. Every other code, and
 /// code 1 once the slide ends, clears `field_4C8`.
@@ -1877,7 +1877,7 @@ void func_actor_120300_80133330(s32 arg0)
     i                   = 1;
     do {
         animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&animWork->rig.anim, (u16)i, 8);
+        animationResetSlot(&animWork->rig.anim, (u16)i, 8);
         i++;
     } while ((u16)i < 0x14U);
 
@@ -2005,7 +2005,7 @@ static void func_actor_120300_801335D8(Task* task)
     slotIndex           = 1;
     do {
         animWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&animWork->rig.anim, (u16)slotIndex, 0xE);
+        animationResetSlot(&animWork->rig.anim, (u16)slotIndex, 0xE);
         slotIndex++;
     } while ((u16)slotIndex < ARRAY_SIZE(animWork->rig.slots));
     work->field_4B8 = Task_SpawnFromTable(D_actor_120300_80141B6C, 2, 0, task);

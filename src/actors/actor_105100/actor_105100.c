@@ -895,7 +895,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     func_800B3F84(&work->rig.anim, D_actor_105100_80141488, obj, work->rig.poses,
                   work->rig.slots);
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->rig.anim, i, 1);
+        animationResetSlot(&work->rig.anim, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->field_560               = coord->coord;

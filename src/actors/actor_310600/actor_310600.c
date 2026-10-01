@@ -646,7 +646,7 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, 
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->field_475);
+                animationResetSlot(&work->rig.anim, i, work->field_475);
             }
         }
         for (j = 0; j <= D_actor_310600_80179644[work->field_475]; j++) {

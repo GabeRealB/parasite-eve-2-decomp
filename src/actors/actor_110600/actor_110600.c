@@ -1502,7 +1502,7 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
 /// the frame counter `field_894` and `field_8AC` cleared: stage 1 plays the
 /// clip at `field_892` through `func_800B4114`, taking each slot's reset
 /// argument out of the `field_890` row of `D_actor_110600_80147D20`; stage 2
-/// arms the same clip with `Gp_AnimResetSlot`; stage 6 arms clip 0x10 and then
+/// arms the same clip with `animationResetSlot`; stage 6 arms clip 0x10 and then
 /// ticks the context 99 times so the pose settles before it is shown. A
 /// `field_89A` of 2 is the blend stage instead — it arms the blend context with
 /// clip `field_89C` at weight `field_8A0` and parks `field_89A` at 3.
@@ -1566,7 +1566,7 @@ static void func_actor_110600_80134728(Task* arg0)
         resetIndex = 1;
         do {
             work->slots[resetIndex].rate = resetWork->field_896;
-            Gp_AnimResetSlot(&resetWork->anim, resetIndex, (s32)resetWork->field_892);
+            animationResetSlot(&resetWork->anim, resetIndex, resetWork->field_892);
             resetIndex += 1;
         } while (resetIndex < 0x13);
         resetWork->field_890 = (u16)resetWork->field_892;
@@ -1578,7 +1578,7 @@ static void func_actor_110600_80134728(Task* arg0)
         warmIndex = 1;
         do {
             work->slots[warmIndex].rate = ANIMATION_RATE_ONE;
-            Gp_AnimResetSlot(&warmWork->anim, warmIndex, (s32)warmWork->field_892);
+            animationResetSlot(&warmWork->anim, warmIndex, warmWork->field_892);
             warmIndex += 1;
         } while (warmIndex < 0x13);
         warmWork->field_890 = (u16)warmWork->field_892;
@@ -1604,7 +1604,7 @@ static void func_actor_110600_80134728(Task* arg0)
         blendWork->field_8A0 = 0xB78;
         do {
             blendWork->slots[blendIndex].rate = blendWork->field_89E;
-            Gp_AnimResetSlot(&blendWork->blendAnim, blendIndex, (s32)blendWork->field_89C);
+            animationResetSlot(&blendWork->blendAnim, blendIndex, blendWork->field_89C);
             blendIndex += 1;
         } while (blendIndex < 0x13);
         work->field_89A = 3;

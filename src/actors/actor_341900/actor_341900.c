@@ -506,7 +506,7 @@ static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
     if (blend == 0) {
         for (i = n == 8; i < n; i++) {
             ctx->slots[i].rate = ANIMATION_RATE_ONE;
-            Gp_AnimResetSlot(&ctx->ctx, i, anim);
+            animationResetSlot(&ctx->ctx, i, anim);
         }
     } else {
         for (i = n == 8; i < n; i++) {
@@ -608,7 +608,7 @@ static void func_actor_341900_80162330(Task* arg0)
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 1; i < 8; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+                animationResetSlot(&ctx->ctx, i, 0);
             }
             break;
             /* The empty loop's notes before `case 1:` make reorg predict the
@@ -621,7 +621,7 @@ static void func_actor_341900_80162330(Task* arg0)
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+                animationResetSlot(&ctx->ctx, i, 0);
             }
             break;
         case 2:
@@ -630,7 +630,7 @@ static void func_actor_341900_80162330(Task* arg0)
             ctx = (Actor341900AnimWork*)arg0->work;
             for (i = 0; i < 4; i++) {
                 ctx->slots[i].rate = ANIMATION_RATE_ONE;
-                Gp_AnimResetSlot(&ctx->ctx, i, 0);
+                animationResetSlot(&ctx->ctx, i, 0);
             }
             break;
     }

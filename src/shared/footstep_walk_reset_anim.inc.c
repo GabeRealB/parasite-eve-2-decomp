@@ -11,7 +11,7 @@ void footstepWalkResetAnim(void)
     i                          = 1;
     do {
         gFootstepWalkWork->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId);
+        animationResetSlot(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId);
         i++;
     } while (i < 0x13);
     gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;

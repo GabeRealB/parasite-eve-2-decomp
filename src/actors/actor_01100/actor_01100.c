@@ -1177,8 +1177,8 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
 
     i = 1;
     do {
-        Gp_AnimResetSlot(&work->anim, i, work->field_BA4);
-        Gp_AnimResetSlot(&work->anim2, i, work->field_BA4);
+        animationResetSlot(&work->anim, i, work->field_BA4);
+        animationResetSlot(&work->anim2, i, work->field_BA4);
         i++;
     } while (i < 0x15);
 
@@ -2071,7 +2071,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
                     func_800B4538(&work->anim, slot, pose, work->field_BA4, 0, 0, randBit + 8);
                 } else if ((u32)((u8)work->field_BA4 - 0x15) < 2) {
                     pose = 0;
-                    Gp_AnimResetSlot(&work->anim, slot, work->field_BA4);
+                    animationResetSlot(&work->anim, slot, work->field_BA4);
                 } else if ((slot != 6) && (slot != 0xA)) {
                     func_800B4538(&work->anim, slot, pose, work->field_BA4, 0, 0, 1);
                 } else {

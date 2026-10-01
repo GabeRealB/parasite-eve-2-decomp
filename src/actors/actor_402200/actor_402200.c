@@ -2213,7 +2213,7 @@ static void func_actor_402200_80137444(Enemy* arg0, Task* arg1)
     work->field_6C0 = 0xB;
     work->field_6C2 = 0xB;
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimResetSlot(&work->rig.anim, i, work->field_6C0);
+        animationResetSlot(&work->rig.anim, i, work->field_6C0);
     }
     kind = arg0->spawnState;
     switch (kind) {

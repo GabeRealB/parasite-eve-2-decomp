@@ -1094,7 +1094,7 @@ static void func_actor_356100_80163508(Task* arg0)
         anim = (Actor356100AnimWork*)arg0->work;
         for (i = 1; i < 0x15; i++) {
             anim->slots[i].rate = anim->field_982;
-            Gp_AnimResetSlot(&anim->anim, i, anim->field_97E);
+            animationResetSlot(&anim->anim, i, anim->field_97E);
         }
         anim->field_97C = anim->field_97E;
         work->field_978 = 3;
@@ -1110,7 +1110,7 @@ static void func_actor_356100_80163508(Task* arg0)
         blend->field_98C = 0x800;
         for (i = 1; i < 0x15; i++) {
             blend->slots[i].rate = blend->field_98A;
-            Gp_AnimResetSlot(&blend->blendAnim, i, blend->field_988);
+            animationResetSlot(&blend->blendAnim, i, blend->field_988);
         }
         work->field_986 = 3;
     }

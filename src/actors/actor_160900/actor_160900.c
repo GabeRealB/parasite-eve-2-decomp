@@ -1169,7 +1169,7 @@ static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
     work->field_4BA = 0;
     do {
         work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        Gp_AnimResetSlot(&work->rig.anim, (u16)i, 0);
+        animationResetSlot(&work->rig.anim, (u16)i, 0);
         i++;
     } while ((u16)i < 0x14U);
 }

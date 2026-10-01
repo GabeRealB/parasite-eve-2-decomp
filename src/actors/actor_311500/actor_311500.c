@@ -306,7 +306,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     work3            = (Actor311500Work*)arg0->work;
     do {
         work3->rig.slots[i & 0xFFFF].rate = rate;
-        Gp_AnimResetSlot(&work3->rig.anim, i & 0xFFFF, 0);
+        animationResetSlot(&work3->rig.anim, i & 0xFFFF, 0);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     enemy->field_48   = 0;
@@ -349,7 +349,7 @@ static inline void _actor311500ResetAnim(Task* task, u8 rate)
     i = 1;
     do {
         work->rig.slots[i & 0xFFFF].rate = rate;
-        Gp_AnimResetSlot(&work->rig.anim, i & 0xFFFF, 0);
+        animationResetSlot(&work->rig.anim, i & 0xFFFF, 0);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
 }
