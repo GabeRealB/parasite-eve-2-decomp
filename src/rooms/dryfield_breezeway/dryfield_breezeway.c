@@ -14,7 +14,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/item_pickup.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
@@ -224,7 +223,7 @@ GpRoomObjRec D_dryfield_breezeway_8018316C[1] = {
 };
 
 u8* D_dryfield_breezeway_8018317C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 WorldCoordRoomLighting D_dryfield_breezeway_80183180[1] = {
@@ -690,7 +689,7 @@ static void func_dryfield_breezeway_8017DDB0(Task* task)
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
     }
     task->state++;

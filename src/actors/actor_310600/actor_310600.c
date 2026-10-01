@@ -90,10 +90,10 @@ extern TaskDesc D_actor_310600_801796A4[];
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32  (*call1)(Task*, s32, ActorTransform*);
-        s32  (*call2)(Task*, s32, s32, s32);
-        void (*call3)(Task*, s32, VECTOR*);
+        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call1)(Task*, s32, ActorTransform*);
+        TaskMessageHandler call2;
+        void               (*call3)(Task*, s32, VECTOR*);
     } handler;
 } Actor310600MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor310600MsgEntry, 8);
@@ -520,9 +520,9 @@ static void func_actor_310600_80161FA0(Task* task)
                             case 2:
                                 if ((s16)work->field_47A++ < 5) {
                                     Gp_SpawnEff(0x6006A, coord, 9, NULL);
-                                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_actor_310600_8017969C, 0);
+                                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
                                 } else {
-                                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_actor_310600_801796A0, 0);
+                                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_801796A0, 0);
                                     Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 2, 0, 0);
                                 }
                                 break;

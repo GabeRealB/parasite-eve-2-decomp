@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -111,7 +110,7 @@ WorldCoordRoomLighting D_neo_ark_north_promenade_80181DC4[1] = {
 };
 
 u8* D_neo_ark_north_promenade_80181DCC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_north_promenade_80181DD0[1] = {

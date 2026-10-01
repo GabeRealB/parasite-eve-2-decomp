@@ -317,7 +317,7 @@ STATIC_ASSERT_SIZEOF(OverlayRippleScratch, 0x4C);
 /// preserve the native matrix's translation and do not clear its unused halfword.
 typedef union {
     MATRIX     mat;
-    GpMtxWords ident;
+    GfxRotationWords ident;
 } OverlayMat;
 STATIC_ASSERT_SIZEOF(OverlayMat, 0x20);
 

@@ -107,7 +107,7 @@ STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
 
 /// 0x2C-byte scratch from the scratch stack used by `Gp_LightCone`.
 /// `vec` is the halved `field_24.t -` world `VECTOR3`. `dir` is the
-/// `Gfx_NormalizeLightDir` result at `head - 0x1C`. `distSq` / `outerSq`
+/// `gfxNormalizeLightDirection` result at `head - 0x1C`. `distSq` / `outerSq`
 /// / `innerSq` / `scale` match `GpAttnScratch`. `cosAng` is
 /// `-(dir · matrix column 2) >> 12`, compared with `rcos` of half
 /// `WorldCoordSpotLight.angle`.
@@ -143,7 +143,7 @@ STATIC_ASSERT_SIZEOF(GpSolveSlotView, 0x58);
 
 /// 0x1C-byte scratch from the scratch stack used by `func_800D9794` /
 /// `func_800D98C4` / `func_800D9A30`. `in` is the direction
-/// `func_800D98C4` / `func_800D9A30` feed to `Gfx_NormalizeLightDir`.
+/// `func_800D98C4` / `func_800D9A30` feed to `gfxNormalizeLightDirection`.
 /// `dir` is that output (then overwritten by the GPF-scaled color).
 /// `scale` holds the light's attenuation loaded into IR0.
 typedef struct _GpLightScratch {
@@ -154,7 +154,7 @@ typedef struct _GpLightScratch {
 STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 
 /// 0x3C-byte scratch from the scratch stack used by `func_800D759C`.
-/// `in` is the light's negated local position fed to `Gfx_NormalizeLightDir`. `dir` is
+/// `in` is the light's negated local position fed to `gfxNormalizeLightDirection`. `dir` is
 /// that output, then the view-rotated copy, then the GPF-scaled color.
 /// `mtx` is `Transpose(gGfxViewCoord.workm) * parent->workm` (rotation only).
 /// `scale` holds the light's attenuation loaded into IR0.
@@ -502,7 +502,7 @@ static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos)
         result = 0;
     } else {
         block->innerSq = (spot->inner * spot->inner) >> 2;
-        Gfx_NormalizeLightDir(&block->vec, &block->dir);
+        gfxNormalizeLightDirection(&block->vec, &block->dir);
         block->cosAng = -(block->dir.vx * light->transform.lighting.composed.m[0][2] + block->dir.vy * light->transform.lighting.composed.m[1][2] + block->dir.vz * light->transform.lighting.composed.m[2][2]) >> 12;
         // Inside the cone when the sample is nearer the axis than half the opening.
         if (rcos(spot->angle >> 1) < block->cosAng) {
@@ -540,7 +540,7 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     block->in.vx = -arg1->transform.lighting.local.t[0];
     block->in.vy = -arg1->transform.lighting.local.t[1];
     block->in.vz = -arg1->transform.lighting.local.t[2];
-    Gfx_NormalizeLightDir(&block->in, &block->dir);
+    gfxNormalizeLightDirection(&block->in, &block->dir);
 
     Gp_UpdateCoord(arg1->transform.lighting.parent);
     TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
@@ -631,7 +631,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECT
     block    = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
-    Gfx_NormalizeLightDir((VECTOR*)arg1->transform.coord.workm.t, &block->dir);
+    gfxNormalizeLightDirection(arg1->transform.coord.workm.t, &block->dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
     dirMtx->m[arg0][1] = block->dir.vy;
@@ -663,7 +663,7 @@ static __inline__ void solve_func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECT
     block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
     block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
     block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    Gfx_NormalizeLightDir(&block->in, &block->dir);
+    gfxNormalizeLightDirection(&block->in, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
@@ -695,7 +695,7 @@ static __inline__ void solve_func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECT
     block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
     block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
     block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    Gfx_NormalizeLightDir(&block->in, &block->dir);
+    gfxNormalizeLightDirection(&block->in, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
@@ -1616,7 +1616,7 @@ static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     block    = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
-    Gfx_NormalizeLightDir((VECTOR*)arg1->transform.coord.workm.t, &block->dir);
+    gfxNormalizeLightDirection(arg1->transform.coord.workm.t, &block->dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
     dirMtx->m[arg0][1] = block->dir.vy;
@@ -1648,7 +1648,7 @@ static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
     block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
     block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    Gfx_NormalizeLightDir(&block->in, &block->dir);
+    gfxNormalizeLightDirection(&block->in, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
@@ -1680,7 +1680,7 @@ static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
     block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
     block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
-    Gfx_NormalizeLightDir(&block->in, &block->dir);
+    gfxNormalizeLightDirection(&block->in, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;

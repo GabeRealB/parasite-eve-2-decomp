@@ -14,7 +14,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
@@ -112,7 +111,7 @@ u8 D_mine_gorge_8017E7D8[12] = {
 };
 
 u8* D_mine_gorge_8017E7E4[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_mine_gorge_8017E7D8,
 };
 

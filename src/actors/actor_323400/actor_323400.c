@@ -69,12 +69,12 @@ extern u8 gRigAnimSource[];
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32  (*call2)(Task*, s32, ActorCommand* request, s32);
-        s32  (*call3)(Task*, s32, ActorTransform*);
-        s32  (*call4)(Task*, s32, s32);
-        void (*call5)(void);
+        s32                (*call0)(Task*);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
+        TaskMessageHandler call2;
+        s32                (*call3)(Task*, s32, ActorTransform*);
+        s32                (*call4)(Task*, s32, s32);
+        void               (*call5)(void);
     } handler;
 } Actor323400MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor323400MessageEntry, 8);

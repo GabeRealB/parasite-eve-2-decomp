@@ -2548,9 +2548,9 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
     arg0->msgTable = D_dryfield_night_gas_station_80184034;
     Game_SetPtrSlot(arg0, 7);
     if ((GameFlag_GetNibble(0x63) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
         Gp_AllyAnimId(&D_dryfield_night_gas_station_80184098.source.index);
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
         func_dryfield_night_gas_station_8017FBD4(0);
     }
     if (GameFlag_GetNibble(0xA0) == 0) {
@@ -2801,14 +2801,14 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
     LINE_G2*    line;
     DR_TPAGE*   dr;
 
-    off               = D_dryfield_night_gas_station_8017D650;
-    one               = ONE;
-    m                 = &mtx;
-    mtx.ident.m00_m01 = one;
-    mtx.ident.m02_m10 = 0;
-    m->ident.m11_m12  = one;
-    mtx.ident.m20_m21 = 0;
-    m->ident.m22      = one;
+    off              = D_dryfield_night_gas_station_8017D650;
+    one              = ONE;
+    m                = &mtx;
+    mtx.ident.m00M01 = one;
+    mtx.ident.m02M10 = 0;
+    m->ident.m11M12  = one;
+    mtx.ident.m20M21 = 0;
+    m->ident.m22     = one;
     RotMatrixY((s16)(-0x262), &mtx.mat);
     vec = &D_dryfield_night_gas_station_80188580[arg0];
     ApplyMatrixSV(&mtx.mat, vec, &pos);
@@ -2845,12 +2845,12 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         setRGB0(tile1, 0xFF, 0, 0);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tile1);
 
-        mtx.ident.m00_m01 = one;
-        mtx.ident.m02_m10 = 0;
-        m->ident.m11_m12  = one;
-        mtx.ident.m20_m21 = 0;
-        m->ident.m22      = one;
-        val               = -0x262;
+        mtx.ident.m00M01 = one;
+        mtx.ident.m02M10 = 0;
+        m->ident.m11M12  = one;
+        mtx.ident.m20M21 = 0;
+        m->ident.m22     = one;
+        val              = -0x262;
         RotMatrixY((s16)(val), &mtx.mat);
         ApplyMatrixSV(&mtx.mat, vec, &pos);
         SetRotMatrix(&gGfxViewCoord.workm);

@@ -742,7 +742,7 @@ static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
     msg.rot.vx = 0;
     msg.rot.vy = 0;
     msg.rot.vz = 0;
-    Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3EE, &msg, 0);
     arg0->state = arg0->state + 1;
 }
 
@@ -762,7 +762,7 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
     slot         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     args.field_0 = 1;
     args.field_4 = 3;
-    Gp_DispatchMsgPtr(slot, 0x3EF, &args, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3EF, &args, 0);
     arg0->state = arg0->state + 1;
 }
 

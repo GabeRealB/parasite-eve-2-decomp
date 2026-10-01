@@ -64,7 +64,7 @@ D_acropolis_west_elevator_hall_80186AB0 = 0x80186AB0; // size:0xC defined:True
 D_acropolis_west_elevator_hall_80186ABC = 0x80186ABC; // size:0x8 defined:True
 D_acropolis_west_elevator_hall_80186AC4 = 0x80186AC4; // size:0x20 defined:True
 D_acropolis_west_elevator_hall_80186AE4 = 0x80186AE4; // size:0x8 defined:True
-D_8010CAF8 = 0x8010CAF8; // absolute:True
+gViewIdentityMap = 0x8010CAF8; // absolute:True
 
 redBeaconTask = 0x8017FAE8; // type:func
 

@@ -26,7 +26,6 @@ Task* D_dryfield_water_tank_80188D4C;
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -473,7 +472,7 @@ GpRoomObjRec D_dryfield_water_tank_801868E0[1] = {
 };
 
 u8* D_dryfield_water_tank_801868F0[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_water_tank_801868F4[2] = {
@@ -1021,8 +1020,10 @@ s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, RoomEventMsg* src, 
     return 1;
 }
 
-s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 1) {
         if (GameFlag_GetNibble(0x36) == 0) {
             GameFlag_SetNibble(0x36, 1);
@@ -1194,7 +1195,7 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
         case 1:
             work->field_4E++;
             if ((s16)work->field_4E >= 0x3D) {
-                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tank_8017FD60[1], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tank_8017FD60[1], 0);
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tank_8017FD60[1].pos.vx;
@@ -1292,7 +1293,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 1:
-            Gp_DispatchMsgPtr(work->child, 0x7D4, &D_dryfield_water_tank_8017FD60, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->child, 0x7D4, &D_dryfield_water_tank_8017FD60, 0);
             func_800E8634(D_dryfield_water_tank_8017FDC0, 0, D_dryfield_water_tank_8017FEC8);
             arg0->state = arg0->state + 1;
             break;
@@ -1314,7 +1315,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             Gp_DispatchMsg(work->owner, 0x3F3, 0, 0);
             Gp_DispatchMsg(work->child, 0x7D5, 1, 0);
             msg.command = 2;
-            Gp_DispatchMsgPtr(work->child, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->child, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         case 2:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(3);

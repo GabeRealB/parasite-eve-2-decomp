@@ -708,7 +708,7 @@ Actor01900RecoveredMsgEntry Actor01900_D1728C[8] = {
     { 2006, { .call1 = actorMsgIsPresent } },
     { 2004, { .call3 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = Actor01900_Fn0A59C } },
-    { 2011, { .call5 = Actor01900_Fn0A5A4 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call5 = Actor01900_Fn0A5A4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 

@@ -974,18 +974,18 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
             buf.msg.context.loc.stage = gGameSession->location.loc.stage;
             buf.msg.context.loc.area  = gGameSession->location.loc.area;
             buf.msg.command           = 1;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[0], 0);
-            Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[1], 0);
             break;
         case 2:
             buf.msg.context.loc.stage = gGameSession->location.loc.stage;
             buf.msg.context.loc.area  = gGameSession->location.loc.area;
             buf.msg.command           = 2;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
             Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
-            Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E100[0], 0);
-            Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E100[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E100[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E100[1], 0);
             break;
         case 3:
         case 5:
@@ -1021,7 +1021,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         rec->blend                           = ANIMATION_BLEND_INTERPOLATE;
                         rec->blendFrames                     = 5;
                         buf.shifted.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.shifted.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.shifted.rec, 0);
                         Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 1;
                     } else {
@@ -1036,7 +1036,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                         buf.rec.blendFrames          = 5;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                         Gp_DispatchMsg(work->field_0, 0x3FD, 0x30, 0);
                         work->field_2E += 2;
                     }
@@ -1056,12 +1056,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                         buf.rec.blendFrames          = 3;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                         work->field_30 = 0;
                         work->field_2E = 3;
                         return;
                     }
-                    Gp_DispatchMsgPtr(work->field_0, 0x3E9, &work->field_14, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &work->field_14, 0);
                     return;
                 case 2:
                     work->field_34 -= 0x96;
@@ -1078,12 +1078,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                         buf.rec.blendFrames          = 3;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                         work->field_30 = 0;
                         work->field_2E = 3;
                         return;
                     }
-                    Gp_DispatchMsgPtr(work->field_0, 0x3E9, &work->field_14, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &work->field_14, 0);
                     return;
                 case 3:
                     work->field_30 += 1;
@@ -1099,7 +1099,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                         buf.rec.blendFrames          = 10;
                         buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                         work->field_2C = 0;
                     }
                     return;
@@ -1160,7 +1160,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
                 buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                 buf.rec.blendFrames          = 5;
                 buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.rec, 0);
                 func_800E8634(D_dryfield_motel_room_1_8017E160, 0,
                               D_dryfield_motel_room_1_8017E340);
                 arg0->state = arg0->state + 1;
@@ -1172,7 +1172,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
                 buf.msg.context.loc.stage = gGameSession->location.loc.stage;
                 buf.msg.context.loc.area  = gGameSession->location.loc.area;
                 buf.msg.command           = 4;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 arg0->state = arg0->state + 1;
                 break;
             }
@@ -1182,7 +1182,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
                 buf.msg.context.loc.stage = gGameSession->location.loc.stage;
                 buf.msg.context.loc.area  = gGameSession->location.loc.area;
                 buf.msg.command           = 3;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 taskKill(arg0);
                 return;
             }
@@ -1200,9 +1200,9 @@ void func_dryfield_motel_room_1_8017DF08(void)
     msg.context.loc.stage = gGameSession->location.loc.stage;
     msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = 3;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-    Gp_DispatchMsgPtr(work->field_C, 0x7D4, &D_dryfield_motel_room_1_8017E130[0], 0);
-    Gp_DispatchMsgPtr(work->field_10, 0x7D4, &D_dryfield_motel_room_1_8017E130[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_C, 0x7D4, &D_dryfield_motel_room_1_8017E130[0], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_10, 0x7D4, &D_dryfield_motel_room_1_8017E130[1], 0);
 }
 
 void func_dryfield_motel_room_1_8017DFB0(s16 arg0)
@@ -1229,7 +1229,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     msg.blend                = ANIMATION_BLEND_RESET;
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
     cfg            = &gPlayerStatus;
     work->field_14 = cfg->coordMtx->t[0];
     work->field_18 = cfg->coordMtx->t[1];
@@ -1237,7 +1237,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     work->field_24 = 0;
     work->field_26 = 0x500;
     work->field_28 = 0;
-    Gp_DispatchMsgPtr(work->field_0, 0x3E9, &work->field_14, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &work->field_14, 0);
 }
 void func_dryfield_motel_room_1_8017E0A0(Task* unused)
 {

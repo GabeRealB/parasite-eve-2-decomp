@@ -97,27 +97,27 @@ void flareEffectTask(Task* arg0)
 /// all eight frames have been drawn.
 void flareSparkTask(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GfxCoord*   player;
-    GpMtxWords* dstm;
-    GpMtxWords* srcm;
-    u32         rng;
-    s32         temp_lo;
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxCoord*         player;
+    GfxRotationWords* destinationRotation;
+    GfxRotationWords* sourceRotation;
+    u32               rng;
+    s32               temp_lo;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
-        player              = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-        dstm                = (GpMtxWords*)&coord->coord;
-        srcm                = (GpMtxWords*)&player->coord;
-        dstm->m00_m01       = srcm->m00_m01;
-        dstm->m02_m10       = srcm->m02_m10;
-        dstm->m11_m12       = srcm->m11_m12;
-        dstm->m20_m21       = srcm->m20_m21;
-        dstm->m22           = srcm->m22;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        player                      = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+        destinationRotation         = (GfxRotationWords*)&coord->coord;
+        sourceRotation              = (GfxRotationWords*)&player->coord;
+        destinationRotation->m00M01 = sourceRotation->m00M01;
+        destinationRotation->m02M10 = sourceRotation->m02M10;
+        destinationRotation->m11M12 = sourceRotation->m11M12;
+        destinationRotation->m20M21 = sourceRotation->m20M21;
+        destinationRotation->m22    = sourceRotation->m22;
+        coord->composeStamp         = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         mem->period     = arg0->spawnArg1.value & 0xFFF;
@@ -128,7 +128,7 @@ void flareSparkTask(Task* arg0)
         temp_lo         = rcos(mem->scale) * mem->angle;
         mem->move.vz    = 0x100;
         mem->move.vy    = temp_lo >> 12;
-        gte_SetRotMatrix((MATRIX*)srcm);
+        gte_SetRotMatrix(&player->coord);
         gte_ldv0(&mem->move);
         gte_rtv0();
         gte_stsv(&mem->move);

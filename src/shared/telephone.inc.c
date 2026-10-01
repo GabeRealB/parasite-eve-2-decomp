@@ -405,12 +405,12 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         gGpuPrimCursor                    = prim + 1;
         ty                                = ty + rowY;
         ty                               += 1;
-        GPU_PRIMITIVE_COLOR_WORD(prim, 3) = PRIM_RGBC(0, 0, 0x01, 0);
-        GPU_PRIMITIVE_COLOR_WORD(prim, 1) = PRIM_RGBC(0, 0, 0x01, 0);
+        GPU_PRIMITIVE_COLOR_WORD(prim, 3) = GPU_PACK_COLOR_WORD(0, 0, 0x01, 0);
+        GPU_PRIMITIVE_COLOR_WORD(prim, 1) = GPU_PACK_COLOR_WORD(0, 0, 0x01, 0);
         setlen(prim, 8);
-        GPU_PRIMITIVE_COLOR_WORD(prim, 0) = PRIM_RGBC(0xb0, 0, 0x01, 0);
+        GPU_PRIMITIVE_COLOR_WORD(prim, 0) = GPU_PACK_COLOR_WORD(0xb0, 0, 0x01, 0);
         setcode(prim, 0x38);
-        GPU_PRIMITIVE_COLOR_WORD(prim, 2) = PRIM_RGBC(0xb0, 0, 0x01, 0);
+        GPU_PRIMITIVE_COLOR_WORD(prim, 2) = GPU_PACK_COLOR_WORD(0xb0, 0, 0x01, 0);
         tx                                = (u16)prim->x0 + barW - 1;
         prim->y1                          = ty;
         prim->y0                          = ty;

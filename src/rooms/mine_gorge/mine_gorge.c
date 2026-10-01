@@ -50,7 +50,7 @@ static void func_mine_gorge_8017D998(Task* task);
 s32 func_mine_gorge_8017D5F8(Task*, s32, s32, TaskMessageArg);
 s32 func_mine_gorge_8017D6E8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_mine_gorge_8017D77C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_mine_gorge_8017D784(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32 func_mine_gorge_8017D784(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 s32 func_mine_gorge_8017D7F4(Task*, s32, s32, TaskMessageArg);
 
 void func_mine_gorge_8017D8BC(u8);
@@ -238,8 +238,10 @@ s32 func_mine_gorge_8017D77C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMes
 /// action ID is 1, flag nibble `0xC5` is still clear and the session is in
 /// place 1, raises the nibble and starts the script blob at
 /// `D_mine_gorge_8017E610`.
-s32 func_mine_gorge_8017D784(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_mine_gorge_8017D784(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     u8 actionId = request->actionId;
 
     if (actionId == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->location.loc.variant == actionId) {

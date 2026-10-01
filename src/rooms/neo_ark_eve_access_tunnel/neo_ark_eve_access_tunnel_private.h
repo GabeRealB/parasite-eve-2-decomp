@@ -39,7 +39,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task*, s32, RoomEventMsg*, RoomEvent
 
 s32 func_neo_ark_eve_access_tunnel_8017DD70(Task*, s32, s32, TaskMessageArg);
 
-s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task*, s32, s32, TaskMessageArg);
 

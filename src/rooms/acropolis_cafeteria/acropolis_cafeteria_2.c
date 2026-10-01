@@ -1195,16 +1195,16 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
 
 void func_acropolis_cafeteria_8017F390(Task* task)
 {
-    TmdObject*  obj;
-    EffectWork* work;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s16         state;
-    s32         v;
-    s32         w;
-    s32         n;
-    s32         k; // one variable for both branches' LCG addend; literal constants allocate differently
-    s32         pan;
+    TmdObject*        obj;
+    EffectWork*       work;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s16               state;
+    s32               v;
+    s32               w;
+    s32               n;
+    s32               k; // one variable for both branches' LCG addend; literal constants allocate differently
+    s32               pan;
 
     obj   = task->extra.tmd;
     work  = (EffectWork*)task->spawnArg2.pointer;
@@ -1312,12 +1312,12 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             }
             break;
     }
-    rot          = (GpMtxWords*)&coord->coord;
-    rot->m00_m01 = 0x1000;
-    rot->m02_m10 = 0;
-    rot->m11_m12 = 0x1000;
-    rot->m20_m21 = 0;
-    rot->m22     = 0x1000;
+    rot         = (GfxRotationWords*)&coord->coord;
+    rot->m00M01 = ONE;
+    rot->m02M10 = 0;
+    rot->m11M12 = ONE;
+    rot->m20M21 = 0;
+    rot->m22    = ONE;
     gfxRotMatrixY(&coord->coord, work->scale, 0);
     gte_ReadMatrixColumn(&coord->coord, 2, &work->move);
     work->move.vx       = (work->move.vx * work->angle) >> 16;

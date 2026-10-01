@@ -184,7 +184,7 @@ static void func_dryfield_night_garage_80180604(s32 arg0);
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xF0"
 #include "../../shared/shop.h"
 
-s32 func_dryfield_night_garage_801800C8(Task*, s32, DirectionActionRequest* msg, s32);
+s32 func_dryfield_night_garage_801800C8(Task*, s32, TaskMessageArg firstArg, s32);
 s32 func_dryfield_night_garage_80180300(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_night_garage_80180358(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_garage_80180360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -373,9 +373,9 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     (D_dryfield_night_garage_80186D7C + 3)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     player                                         = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (gGameSession->location.loc.variant == 3 && player != NULL) {
-        Gp_DispatchMsgPtr(player, 0x3E9, &D_8013B570, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_8013B570, 0);
         Gp_AllyAnimId(&D_dryfield_night_garage_80181C68.source.index);
-        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_PLAY, &D_dryfield_night_garage_80181C68, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_dryfield_night_garage_80181C68, 0);
         func_dryfield_night_garage_80180604(0);
         Gp_EndPlayerActorTask(player);
         if (GameFlag_GetNibble(0x8E) == 0) {
@@ -398,8 +398,10 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
+s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* msg = firstArg.pointer;
+
     WorldCollisionTrigger* base;
     WorldCollisionTrigger* obj;
 
@@ -603,7 +605,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
     switch (temp_v1) {
         case 0:
             Gp_StartCapSlot((s16)arg0->spawnArg1.value, 0, 0);
-            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
             goto block_12;
         case 1:
             if (Gp_CapBusy() == 0) {
@@ -624,7 +626,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
                 break;
             }
             Gp_MsgPlayerWeapon(1);
-            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
         default:
             taskKill(arg0);
             break;

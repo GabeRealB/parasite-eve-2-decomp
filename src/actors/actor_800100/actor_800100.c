@@ -177,18 +177,18 @@ extern SVECTOR D_actor_800100_80167128;
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*);
-        s32  (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32  (*call2)(Task*, s32, GpCopyArg*);
-        s32  (*call3)(Task*, s32, GpCountArg*);
-        s32  (*call4)(Task*, s32, GpDelayArg*);
-        s32  (*call5)(Task*, s32, ActorTransform*);
-        s32  (*transform)(Task*, s32, ActorTransform*, s32);
-        s32  (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
-        s32  (*call7)(Task*, s32, s32);
-        s32  (*call8)(Task*, s32, s32, s32);
-        void (*call9)(Task*, s32, GpMoveArg*);
-        s32  (*call10)(Task*, s32, GfxCoord*);
+        s32                (*call0)(Task*);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*);
+        s32                (*call2)(Task*, s32, GpCopyArg*);
+        s32                (*call3)(Task*, s32, GpCountArg*);
+        s32                (*call4)(Task*, s32, GpDelayArg*);
+        s32                (*call5)(Task*, s32, ActorTransform*);
+        s32                (*transform)(Task*, s32, ActorTransform*, s32);
+        s32                (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
+        s32                (*call7)(Task*, s32, s32);
+        TaskMessageHandler call8;
+        void               (*call9)(Task*, s32, GpMoveArg*);
+        s32                (*call10)(Task*, s32, GfxCoord*);
     } handler;
 } Actor800100MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor800100MessageEntry, 8);
@@ -1074,7 +1074,7 @@ void func_actor_800100_80161F20(Task* task)
     GpCoord64*            base;
     WorldCoordPointLight* slot;
     GfxCoord*             light;
-    GpMtxWords*           rot;
+    GfxRotationWords*     rot;
     EffectWork*           eff;
     u32                   ang;
 
@@ -1092,13 +1092,13 @@ void func_actor_800100_80161F20(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            rot                 = (GpMtxWords*)&coord->coord;
+            rot                 = (GfxRotationWords*)&coord->coord;
             coord->parent       = work->parent;
-            rot->m00_m01        = 0x1000;
-            rot->m02_m10        = 0;
-            rot->m11_m12        = 0x1000;
-            rot->m20_m21        = 0;
-            rot->m22            = 0x1000;
+            rot->m00M01         = ONE;
+            rot->m02M10         = 0;
+            rot->m11M12         = ONE;
+            rot->m20M21         = 0;
+            rot->m22            = ONE;
             coord->coord.t[0]   = D_actor_800100_80167128.vx;
             coord->coord.t[1]   = D_actor_800100_80167128.vy;
             coord->coord.t[2]   = D_actor_800100_80167128.vz;

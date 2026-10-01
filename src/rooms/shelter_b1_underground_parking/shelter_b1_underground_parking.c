@@ -808,7 +808,7 @@ u8 D_shelter_b1_underground_parking_80187904[24] = {
 };
 
 u8* D_shelter_b1_underground_parking_8018791C[8] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_shelter_b1_underground_parking_80187874,
     D_shelter_b1_underground_parking_8018788C,
     D_shelter_b1_underground_parking_801878A4,

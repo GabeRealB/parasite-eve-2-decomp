@@ -2,8 +2,10 @@
 
 /// Message handler: the first message with `actionId` 1 while game flag 0x2C is
 /// clear starts cap 0xB, sets the flag and plays sound 0x5217000A.
-s32 factoryRoomAction(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 factoryRoomAction(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if ((request->actionId == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);
         GameFlag_SetNibble(0x2C, 1);

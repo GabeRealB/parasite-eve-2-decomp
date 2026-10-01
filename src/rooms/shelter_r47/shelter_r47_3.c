@@ -19,6 +19,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/view.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -113,7 +114,7 @@ static SVECTOR D_shelter_r47_80187624[10] = {
 };
 
 u8* D_shelter_r47_80187674[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_r47_80187678[1] = {

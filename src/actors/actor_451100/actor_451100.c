@@ -1360,7 +1360,7 @@ Actor451100MsgEntry D_actor_451100_8014E6B4[6] = {
     { 2003, { .call1 = func_actor_451100_80132E98 } },
     { 2005, { .call6 = pairWalkSetVisibility } },
     { 2004, { .call3 = pairWalkPlace } },
-    { 2011, { .call0 = func_actor_451100_80132FE0 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_451100_80132FE0 } },
     { 2013, { .call4 = func_actor_451100_80132FE8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };

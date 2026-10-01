@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -515,7 +514,7 @@ u8 D_dryfield_night_driveway_80180610[12] = {
 };
 
 u8* D_dryfield_night_driveway_8018061C[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_driveway_80180610,
 };
 

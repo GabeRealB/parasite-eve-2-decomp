@@ -28,8 +28,8 @@
 typedef struct {
     s32 id;
     union {
-        s32 (*location)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*empty)(void);
+        TaskMessageHandler location;
+        s32                (*empty)(void);
     } handler;
 } GpLocationMsgEntry;
 

@@ -24,7 +24,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -1060,7 +1059,7 @@ u8 D_mine_cavern_80189044[28] = {
 };
 
 u8* D_mine_cavern_80189060[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_mine_cavern_80189028,
     D_mine_cavern_80189044,
 };

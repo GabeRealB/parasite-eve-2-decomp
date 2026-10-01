@@ -25,7 +25,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/companion_load.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
@@ -103,7 +102,7 @@ extern AnimationSet D_acropolis_cafeteria_80184CC4;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                 func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
-s32                 func_acropolis_cafeteria_8017E154(Task*, s32, DirectionActionRequest* request, s32);
+s32                 func_acropolis_cafeteria_8017E154(Task*, s32, TaskMessageArg firstArg, s32);
 s32                 func_acropolis_cafeteria_8017E22C(Task*, s32, s32, s32);
 void                func_acropolis_cafeteria_8017D8F8(Task*);
 void                func_acropolis_cafeteria_8017DD1C(Task*);
@@ -729,7 +728,7 @@ u8 D_acropolis_cafeteria_80187594[24] = {
 };
 
 u8* D_acropolis_cafeteria_801875AC[4] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_cafeteria_8018757C,
     D_acropolis_cafeteria_8018757C,
     D_acropolis_cafeteria_80187594,
@@ -2741,8 +2740,8 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
     coord = Gp_LookupSlot4(0)->extra.tmd->coords;
     switch (task->state) {
         case 0:
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_cafeteria_80182D28, 0);
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_acropolis_cafeteria_80182DB8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_cafeteria_80182D28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_cafeteria_80182DB8, 0);
             D_acropolis_cafeteria_8018D6A0 = 0;
             D_acropolis_cafeteria_8018D6A4 = -0x14;
             D_acropolis_cafeteria_8018D6A8 = -0x14;
@@ -2789,8 +2788,10 @@ s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 /// Handler for slot-7 msg `0x13EF`: the directed action selected by `actionId`.
-s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
+s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 0) {
         if (D_acropolis_cafeteria_80184164 >= 2 || GameFlag_GetNibble(0) >= 2) {
             Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 1, 0, 0);
@@ -2853,7 +2854,7 @@ static void func_acropolis_cafeteria_8017E348(Task* task)
         Gp_MsgSlot4Chain(1, 2);
         Gp_MsgSlot4Chain(2, 1);
         (D_acropolis_cafeteria_801891E4 + 9)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-        Gp_DispatchMsgPtr(Gp_LookupSlot4(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
     }
     task->state = task->state + 1;
 }

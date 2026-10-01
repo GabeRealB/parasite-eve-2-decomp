@@ -19,7 +19,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -107,7 +106,7 @@ SVECTOR D_shelter_b4_lower_sewer_80181F14[16] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 u8* D_shelter_b4_lower_sewer_80181FA4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b4_lower_sewer_80181FA8[1] = {

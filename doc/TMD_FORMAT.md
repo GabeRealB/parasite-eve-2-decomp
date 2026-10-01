@@ -300,15 +300,16 @@ carries one colour or one per corner (`POLY_F*` vs `POLY_G*`, the output).
 They are not one thing. Comparing each pair's draw handler shows three
 different mechanisms:
 
-**`0x4000` — two primitives per element.** `gpStreamPrimGt3Base` (`0x4038`) is
-`tmdBuildStreamGt3` (`0x38`) with an extra `poly++` before the UV writes, so the
-handler consumes two primitive slots per element and fills only the second.
+**`0x4000` — two primitives per element.** `tmdBuildStreamGt3LayeredBase` (`0x4038`)
+reserves a pair of `POLY_GT3` slots per element and uses the same texture
+initializer as `tmdBuildStreamGt3` (`0x38`) on only the second, opaque base slot.
 That is a layered draw — the same face emitted twice, as an opaque base and a
 semi-transparent layer that the transform handler links into the ordering table
 after it. Verified on all four pairs (`0x38`, `0x78`, `0x39`, `0x79`):
 primitives per element goes 1 → 2 with the UV word positions unchanged.
 
-The layer is never textured from the element. Each pair has a second handler,
+In this default path, the layer's texture coordinates do not come from the
+element. Each pair has an alternate handler,
 taken where the object carries extra page and CLUT offsets of its own, which is
 what the layer takes its page and CLUT from (`gpStreamPrimGt3OffsetLayer` is the
 transform-region triangle one). The default handlers differ by region: the

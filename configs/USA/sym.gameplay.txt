@@ -78,7 +78,7 @@ modelLightingStreamPrimFt4 = 0x8009F3F8; // type:func
 modelLightingStreamPrimF4 = 0x8009F49C; // type:func
 modelLightingStreamPrimF3 = 0x8009F504; // type:func
 gpStreamPrimGt3OffsetLayer = 0x8009F56C; // type:func
-gpStreamPrimGt3Base = 0x8009F670; // type:func
+tmdBuildStreamGt3LayeredBase = 0x8009F670; // type:func
 gpStreamPrimGt4OffsetLayer = 0x8009F708; // type:func
 gpStreamPrimGt4Base = 0x8009F824; // type:func
 gpStreamPrimGt3PreXformFixedLayer = 0x8009F8C8; // type:func
@@ -1351,7 +1351,7 @@ Gp_RoomParams = 0x80115428; // size:0x20 defined:True
 // Gameplay naming pass 8 (collected bits, item map, load CD, Obj4C)
 Gp_ItemMaps = 0x8010D2F8; // size:0x20 defined:True
 Gp_AreaIdCounts = 0x8010CAF0; // size:0x8 defined:True
-D_8010CAF8 = 0x8010CAF8; // size:0x32 defined:True
+gViewIdentityMap = 0x8010CAF8; // size:0x32 defined:True
 Gp_DefaultScan = 0x8010D520; // size:0x4 defined:True
 Gp_ScanPtrs = 0x8010D550; // size:0x30 defined:True
 Gp_ItemTable2 = 0x80114C20; // size:0x14 defined:True
@@ -2306,3 +2306,4 @@ D_80114BAC = 0x80114BAC; // size:0x4 defined:True
 D_80112ED4 = 0x80112ED4; // size:0x21 defined:True
 
 D_80114D28 = 0x80114D28; // size:0x48 defined:True
+_gAnimationUnsupportedPoseDiagnostic = 0x80093a44;

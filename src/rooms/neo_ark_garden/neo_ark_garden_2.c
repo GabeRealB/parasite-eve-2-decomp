@@ -15,7 +15,6 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
@@ -95,7 +94,7 @@ WorldCoordRoomLighting D_neo_ark_garden_8018141C[1] = {
 };
 
 u8* D_neo_ark_garden_80181424[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_garden_80181428[1] = {

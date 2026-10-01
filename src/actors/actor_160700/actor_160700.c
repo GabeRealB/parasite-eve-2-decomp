@@ -1366,7 +1366,7 @@ Actor160700MessageEntry D_actor_160700_80141678[6] = {
     { 2003, { .call1 = func_actor_160700_801325F0 } },
     { 2005, { .call3 = func_actor_160700_8013265C } },
     { 2004, { .call2 = pacedWalkPlace } },
-    { 2011, { .call0 = func_actor_160700_80132738 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_160700_80132738 } },
     { 2013, { .call2 = pacedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -1490,7 +1490,7 @@ static void func_actor_160700_80131E24(void)
     if (GameFlag_GetNibble(0x113) != 0) {
         slot = Gp_LookupSlot4(0);
         if (slot != 0) {
-            Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_160700_801354CC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_160700_801354CC, 0);
         }
     }
 }

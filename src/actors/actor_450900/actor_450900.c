@@ -721,12 +721,12 @@ void func_actor_450900_80131E38(Task* task)
                         SndEvt_EnqueueType6(0x55170006, pan, depth);
                     }
                     Gp_AllyAnimId(&Actor450900AllyAnim.source.index);
-                    Gp_DispatchMsgPtr(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[0], 0);
-                    Gp_DispatchMsgPtr(companionTask, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[0], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
                     Gp_DispatchMsg(companionTask, 0x3F9, 0x40010, 0);
                 } else if (t % 210 == 0x3C) {
                     Gp_AllyAnimId(&D_actor_450900_801360B4.source.index);
-                    Gp_DispatchMsgPtr(companionTask, ANIMATION_MESSAGE_PLAY, &D_actor_450900_801360B4, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &D_actor_450900_801360B4, 0);
                 }
             }
             break;
@@ -759,9 +759,9 @@ void func_actor_450900_8013207C(Task* task)
                     } else {
                         SndEvt_EnqueueType6(0x55170004, pan, depth);
                     }
-                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[1], 0);
                     Gp_PlayerWeaponId(&D_actor_450900_80135FEC.source.index);
-                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
                 } else if ((D_8017A99C - 0x456) % 210 == 0x46) {
                     value = D_actor_450900_80136C98;
                     value++;

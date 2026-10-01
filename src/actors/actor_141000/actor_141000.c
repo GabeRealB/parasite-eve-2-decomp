@@ -1997,25 +1997,25 @@ static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 a
 
 static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3)
 {
-    SVECTOR         a;
-    SVECTOR         b;
-    MATRIX          rot;
-    Actor141000Proj proj[2];
-    Task*           parent;
-    MATRIX*         mtx;
-    SVECTOR*        src;
-    s16             t;
-    s16             r;
-    s32             scale;
-    GpMtxWords*     words;
-    s32             i;
-    u16             f;
-    s16             x0;
-    s32             y0;
-    s16             x1;
-    s32             y1;
-    s32             dx;
-    s32             dy;
+    SVECTOR           a;
+    SVECTOR           b;
+    MATRIX            rot;
+    Actor141000Proj   proj[2];
+    Task*             parent;
+    MATRIX*           mtx;
+    SVECTOR*          src;
+    s16               t;
+    s16               r;
+    s32               scale;
+    GfxRotationWords* words;
+    s32               i;
+    u16               f;
+    s16               x0;
+    s32               y0;
+    s16               x1;
+    s32               y1;
+    s32               dx;
+    s32               dy;
 
     parent = arg0->spawnArg2.pointer;
     mtx    = &parent->extra.tmd->coords->coord;
@@ -2058,20 +2058,20 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
     gte_stdp(&proj[0].z);
     gte_stflg(arg3);
     gte_stszotz(&proj[1].z);
-    dy                           = proj[0].sxy.vy - proj[1].sxy.vy;
-    x0                           = proj[0].sxy.vx;
-    x1                           = proj[1].sxy.vx;
-    dx                           = x1 - x0;
-    y0                           = proj[0].sxy.vy;
-    y1                           = proj[1].sxy.vy;
-    i                            = ratan2(dx, dy);
-    scale                        = gDisplayState.screenDistance;
-    ((GpMtxWords*)&rot)->m00_m01 = 0x1000;
-    ((GpMtxWords*)&rot)->m02_m10 = 0;
-    words                        = (GpMtxWords*)&rot;
-    words->m11_m12               = 0x1000;
-    ((GpMtxWords*)&rot)->m20_m21 = 0;
-    words->m22                   = 0x1000;
+    dy                                = proj[0].sxy.vy - proj[1].sxy.vy;
+    x0                                = proj[0].sxy.vx;
+    x1                                = proj[1].sxy.vx;
+    dx                                = x1 - x0;
+    y0                                = proj[0].sxy.vy;
+    y1                                = proj[1].sxy.vy;
+    i                                 = ratan2(dx, dy);
+    scale                             = gDisplayState.screenDistance;
+    ((GfxRotationWords*)&rot)->m00M01 = ONE;
+    ((GfxRotationWords*)&rot)->m02M10 = 0;
+    words                             = (GfxRotationWords*)&rot;
+    words->m11M12                     = ONE;
+    ((GfxRotationWords*)&rot)->m20M21 = 0;
+    words->m22                        = ONE;
     RotMatrixZ(i, &rot);
     gte_SetRotMatrix(&rot);
     for (i = 0; i < 6; i++) {
@@ -2264,10 +2264,10 @@ static void func_actor_141000_80132FC8(Task* arg0)
 /// state-2 handler at 0x80132EF4 advances `state` on.
 static s32 func_actor_141000_80132FD0(GfxCoord* arg0, s32 arg1)
 {
-    GpMtxWords* words;
-    SVECTOR*    pos;
-    s32         idx;
-    s32         ret;
+    GfxRotationWords* words;
+    SVECTOR*          pos;
+    s32               idx;
+    s32               ret;
 
     if (arg1 < 0x5A) {
         idx = arg1;
@@ -2276,12 +2276,12 @@ static s32 func_actor_141000_80132FD0(GfxCoord* arg0, s32 arg1)
         idx = 0x59;
         ret = 1;
     }
-    words          = (GpMtxWords*)&arg0->coord;
-    words->m00_m01 = 0x1000;
-    words->m02_m10 = 0;
-    words->m11_m12 = 0x1000;
-    words->m20_m21 = 0;
-    words->m22     = 0x1000;
+    words         = (GfxRotationWords*)&arg0->coord;
+    words->m00M01 = ONE;
+    words->m02M10 = 0;
+    words->m11M12 = ONE;
+    words->m20M21 = 0;
+    words->m22    = ONE;
     RotMatrix(&D_actor_141000_80134228[idx], &arg0->coord);
     pos                = &D_actor_141000_801344F8[idx];
     arg0->coord.t[0]   = pos->vx;
@@ -2313,18 +2313,18 @@ static void func_actor_141000_8013308C(GfxCoord* arg0, s32 arg1)
 /// taking over kills the task outright.
 void func_actor_141000_801330C0(Task* arg0)
 {
-    GfxCoord*   coord;
-    GpMtxWords* words;
-    u16         count;
+    GfxCoord*         coord;
+    GfxRotationWords* words;
+    u16               count;
 
     coord = arg0->extra.coordBody->coord;
     if (arg0->state == 0) {
-        words               = (GpMtxWords*)&coord->coord;
-        words->m00_m01      = 0x1000;
-        words->m02_m10      = 0;
-        words->m11_m12      = 0x1000;
-        words->m20_m21      = 0;
-        words->m22          = 0x1000;
+        words               = (GfxRotationWords*)&coord->coord;
+        words->m00M01       = ONE;
+        words->m02M10       = 0;
+        words->m11M12       = ONE;
+        words->m20M21       = 0;
+        words->m22          = ONE;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->state        += 1;
     }
@@ -2682,7 +2682,7 @@ static void func_actor_141000_80133B28(Task* arg0)
 static void func_actor_141000_80133BD8(Task* arg0)
 {
     Actor141000Work*     work;
-    GpMtxWords*          words;
+    GfxRotationWords*    words;
     GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
@@ -2713,12 +2713,12 @@ static void func_actor_141000_80133BD8(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words          = (GpMtxWords*)&coord->coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
+    words         = (GfxRotationWords*)&coord->coord;
+    words->m00M01 = ONE;
+    words->m02M10 = 0;
+    words->m11M12 = ONE;
+    words->m20M21 = 0;
+    words->m22    = ONE;
     RotMatrix(&vec, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

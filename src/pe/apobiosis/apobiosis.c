@@ -117,13 +117,13 @@ static Task* D_apobiosis_80130BA0;
 /// state change, hardest on the widest row.
 void func_apobiosis_8012EF4C(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s32         i;
-    s32         n;
-    s32         pan;
-    u8          rgb[3];
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s32               i;
+    s32               n;
+    s32               pan;
+    u8                rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -132,13 +132,13 @@ void func_apobiosis_8012EF4C(Task* arg0)
         switch (arg0->state) {
             case 0:
                 D_apobiosis_80130BA0 = arg0;
-                rot                  = (GpMtxWords*)&coord->coord;
+                rot                  = (GfxRotationWords*)&coord->coord;
                 coord->parent        = mem->parent;
-                rot->m00_m01         = 0x1000;
-                rot->m02_m10         = 0;
-                rot->m11_m12         = 0x1000;
-                rot->m20_m21         = 0;
-                rot->m22             = 0x1000;
+                rot->m00M01          = ONE;
+                rot->m02M10          = 0;
+                rot->m11M12          = ONE;
+                rot->m20M21          = 0;
+                rot->m22             = ONE;
                 coord->coord.t[0]    = 0;
                 coord->coord.t[1]    = 0;
                 coord->coord.t[2]    = 0;

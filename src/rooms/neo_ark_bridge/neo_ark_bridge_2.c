@@ -18,7 +18,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -65,7 +64,7 @@ SVECTOR D_neo_ark_bridge_80181F68 = { 1000, -2100, -0x5848, 0 };
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 u8* D_neo_ark_bridge_80181F80[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_bridge_80181F84[1] = {

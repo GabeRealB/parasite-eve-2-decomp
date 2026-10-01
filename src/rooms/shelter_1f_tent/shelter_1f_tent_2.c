@@ -16,7 +16,6 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
@@ -72,7 +71,7 @@ SVECTOR D_shelter_1f_tent_80181D3C[1] = {
 };
 
 u8* D_shelter_1f_tent_80181D44[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_1f_tent_80181D48[1] = {

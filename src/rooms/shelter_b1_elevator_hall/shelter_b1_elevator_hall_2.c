@@ -19,7 +19,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -141,7 +140,7 @@ GpRoomObjRec D_shelter_b1_elevator_hall_80182E00[1] = {
 };
 
 u8* D_shelter_b1_elevator_hall_80182E10[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b1_elevator_hall_80182E14[1] = {

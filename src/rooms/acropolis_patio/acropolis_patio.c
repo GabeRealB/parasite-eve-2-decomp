@@ -18,7 +18,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -476,7 +475,7 @@ EvsCommand D_acropolis_patio_8018082C[45] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803B8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5103000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2011 }, { .message = { .pointer = &D_acropolis_patio_8018044C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .pointer = &D_acropolis_patio_8018044C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5103000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -854,7 +853,7 @@ u8 D_acropolis_patio_80182EAC[20] = {
 };
 
 u8* D_acropolis_patio_80182EC0[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_patio_80182E98,
     D_acropolis_patio_80182EAC,
 };
@@ -1591,29 +1590,28 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
-            Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_acropolis_patio_8018044C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
             Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
             D_acropolis_patio_80187060 = Task_SpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
         }
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
-            Gp_DispatchMsgPtr(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
         }
     }
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
-            Gp_DispatchMsgPtr(temp, 0x7DB, &D_acropolis_patio_80180440, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(temp, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
         }
     }
     if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(0x26) == 0)) {
         msg.context.loc.stage = 1;
         msg.context.loc.area  = 3;
         msg.command           = 0;
-        // The message ABI carries the borrowed record's address in one word.
-        Gp_DispatchMsg(Gp_LookupSlot4(2), ACTOR_COMMAND_MESSAGE_APPLY, (s32)&msg, 0);
-        Gp_DispatchMsgPtr(Gp_LookupSlot4(3), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(2), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(3), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
     }
     arg0->state = arg0->state + 1;
 }

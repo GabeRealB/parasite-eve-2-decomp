@@ -14,7 +14,6 @@
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -71,7 +70,7 @@ WorldCoordRoomLighting D_neo_ark_island_80181BA4[1] = {
 };
 
 u8* D_neo_ark_island_80181BAC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_island_80181BB0[1] = {

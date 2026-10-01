@@ -67,11 +67,11 @@ extern TaskDesc D_actor_120400_8013E748[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, ActorTransform*, Actor120400SpawnAnim*);
-        s32 (*call4)(Task*, s32, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call2)(Task*, s32, ActorTransform*);
+        s32                (*call3)(Task*, s32, ActorTransform*, Actor120400SpawnAnim*);
+        TaskMessageHandler call4;
     } handler;
 } Actor120400MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor120400MsgEntry, 8);
@@ -884,7 +884,7 @@ Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
     { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_120400_80132C38 } },
     { 2013, { .call3 = func_actor_120400_80132398 } },
-    { 2011, { .call0 = func_actor_120400_80132D14 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_120400_80132D14 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 }; /// The parent's spawn handler. Allocates the 0x504 `Actor120400MainWork` block, seeds it, and spawns the
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each

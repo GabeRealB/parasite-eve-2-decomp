@@ -2258,15 +2258,35 @@ static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
 static inline void _gpuQueueBlendMode(s32 blendMode, s32 sortingDepth)
 {
     enum {
+        /// Unshifted selector prohibiting drawing into the displayed VRAM area.
+        ///
+        /// Passing zero to `setDrawTPage` leaves draw-mode bit 10 (0x0400)
+        /// clear. This restriction remains active until another draw-mode
+        /// command replaces it.
         GPU_BLEND_DRAW_TO_DISPLAY_DISABLED = 0,
         /// Unshifted selector enabling dithering in the blend draw-mode packet.
         ///
         /// `setDrawTPage` encodes this nonzero argument as bit 9 (0x0200),
         /// independently of the semitransparency selector in bits 5..6.
-        GPU_BLEND_DITHER_ENABLED     = 1,
+        GPU_BLEND_DITHER_ENABLED = 1,
+        /// Unshifted texture-page depth selector for 4-bit CLUT-indexed texels.
+        ///
+        /// `getTPage` encodes this zero selector in draw-mode bits 7..8.
+        /// The blend command fixes the texture depth even though untextured
+        /// primitives do not sample the selected page.
         GPU_BLEND_TEXTURE_DEPTH_4BIT = 0,
-        GPU_BLEND_TEXTURE_PAGE_X     = 640,
-        GPU_BLEND_TEXTURE_PAGE_Y     = 0,
+        /// Horizontal texture-page origin in VRAM 16-bit words for the blend draw mode.
+        ///
+        /// Pass this 64-word-aligned origin unshifted to `getTPage`, which
+        /// encodes 640 as 0xA in draw-mode bits 0..3. The command selects this
+        /// page even though untextured primitives do not sample its texels.
+        GPU_BLEND_TEXTURE_PAGE_X = 640,
+        /// Vertical texture-page origin in VRAM rows for the blend draw mode.
+        ///
+        /// Pass this 256-row-aligned origin unshifted to `getTPage`. Zero
+        /// leaves the Y contributions in draw-mode bits 4 and 11 clear;
+        /// untextured primitives do not sample the selected page.
+        GPU_BLEND_TEXTURE_PAGE_Y = 0,
     };
     DR_TPAGE* blendCommand;
 

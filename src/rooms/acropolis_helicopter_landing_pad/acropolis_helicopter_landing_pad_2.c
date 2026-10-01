@@ -818,14 +818,14 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 5:
             Gp_DispatchMsgReply(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D8, 0x28, &spawned);
-            Gp_DispatchMsgPtr(spawned, 0x7D3, &D_acropolis_helicopter_landing_pad_80184E28, 0);
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(spawned, 0x7D3, &D_acropolis_helicopter_landing_pad_80184E28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
             D_acropolis_helicopter_landing_pad_80184E3C.animationId  = 9;
             D_acropolis_helicopter_landing_pad_80184E3C.source.index = gPlayerStatus.weapon + 1;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
             coord = spawned->extra.tmd->coords;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F5, coord, 0);
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F5, coord, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
             Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             task->state += 1;
             break;
@@ -1097,13 +1097,13 @@ s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, TaskMe
 /// `D_acropolis_helicopter_landing_pad_80184E0C` is up and the phase is
 /// still 0, starts the helicopter sequence: flags the session, loads the
 /// bank pair, moves to phase 1, enables trigger 4 and disables trigger 8. Action 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
-s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, DirectionActionRequest* msg, TaskMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
     u8                     actionId;
     WorldCollisionTrigger* obj;
     WorldCollisionTrigger* obj2;
 
-    if ((msg->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
+    if ((((const DirectionActionRequest*)firstArg.pointer)->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
         gStageSceneMusicEntry   = 1;
         func_800E8634(D_acropolis_helicopter_landing_pad_80183A34, 0, D_acropolis_helicopter_landing_pad_80183FA4);
@@ -1113,7 +1113,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, Direct
         obj->flags                                 |= WORLD_COLLISION_TRIGGER_ENABLED;
         obj2->flags                                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
-    actionId = msg->actionId;
+    actionId = ((const DirectionActionRequest*)firstArg.pointer)->actionId;
     if (actionId == 1) {
         D_acropolis_helicopter_landing_pad_80187F84 = actionId;
     }
@@ -1152,7 +1152,7 @@ void func_acropolis_helicopter_landing_pad_8017E64C(void)
 void func_acropolis_helicopter_landing_pad_8017E67C(void)
 {
     if (D_acropolis_helicopter_landing_pad_80187F84 != 0) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_80184E50, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_80184E50, 0);
     }
 }
 

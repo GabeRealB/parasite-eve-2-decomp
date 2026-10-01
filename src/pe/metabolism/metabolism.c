@@ -80,15 +80,15 @@ static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
 /// last.
 void func_metabolism_8012EF34(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    EffectWork* spawned;
-    s32         pan;
-    s32         bright;
-    s32         i;
-    s32         temp_lo;
-    u8          rgb[3];
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    EffectWork*       spawned;
+    s32               pan;
+    s32               bright;
+    s32               i;
+    s32               temp_lo;
+    u8                rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -100,13 +100,13 @@ void func_metabolism_8012EF34(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            rot                 = (GpMtxWords*)&coord->coord;
+            rot                 = (GfxRotationWords*)&coord->coord;
             coord->parent       = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            rot->m00_m01        = 0x1000;
-            rot->m02_m10        = 0;
-            rot->m11_m12        = 0x1000;
-            rot->m20_m21        = 0;
-            rot->m22            = 0x1000;
+            rot->m00M01         = ONE;
+            rot->m02M10         = 0;
+            rot->m11M12         = ONE;
+            rot->m20M21         = 0;
+            rot->m22            = ONE;
             coord->coord.t[0]   = 0;
             coord->coord.t[1]   = -0x400;
             coord->coord.t[2]   = 0;

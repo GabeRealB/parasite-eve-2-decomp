@@ -24,6 +24,7 @@
 
 #include "main/coord.h"
 #include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -1376,12 +1377,8 @@ STATIC_ASSERT_SIZEOF(Actor110300Work, 0x55C);
 typedef union Actor403200DropCoord {
     GfxCoord c;
     struct {
-        u32 composeStamp;
-        s32 m00_m01;
-        s32 m02_m10;
-        s32 m11_m12;
-        s32 m20_m21;
-        s16 m22;
+        u32              composeStamp;
+        GfxRotationWords rotation;
     } ident;
 } Actor403200DropCoord;
 STATIC_ASSERT_SIZEOF(Actor403200DropCoord, 0x50);

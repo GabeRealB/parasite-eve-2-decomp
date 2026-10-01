@@ -16,7 +16,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
@@ -96,7 +95,7 @@ u8 D_dryfield_night_junk_yard_801807B4[12] = {
 };
 
 u8* D_dryfield_night_junk_yard_801807C0[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_junk_yard_801807B4,
 };
 

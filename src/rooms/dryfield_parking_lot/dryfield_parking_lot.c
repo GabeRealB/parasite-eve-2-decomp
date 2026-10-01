@@ -12,7 +12,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -109,7 +108,7 @@ GpRoomObjRec D_dryfield_parking_lot_8017DC44[1] = {
 };
 
 u8* D_dryfield_parking_lot_8017DC54[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_parking_lot_8017DC58[1] = {

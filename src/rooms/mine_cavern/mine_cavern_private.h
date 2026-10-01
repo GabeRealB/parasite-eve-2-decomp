@@ -29,11 +29,11 @@ STATIC_ASSERT_SIZEOF(MineCavernTint, 0x4);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, DirectionActionRequest*);
-        s32 (*call2)(Task*, s32, s32, s32);
-        s32 (*call3)(s32, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call4)(s32, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, DirectionActionRequest*);
+        TaskMessageHandler call2;
+        s32                (*call3)(s32, s32, RoomEventMsg*, RoomEventMsg*);
+        s32                (*call4)(s32, s32, s32);
     } handler;
 } MineCavernMessageEntry;
 

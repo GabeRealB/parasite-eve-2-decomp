@@ -62,11 +62,11 @@ extern TaskDesc D_actor_135600_8013B0C4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, ActorTransform*, Actor135600SpawnAnim*);
-        s32 (*call3)(Task*, s32, ActorTransform*, s32);
-        s32 (*call4)(Task*, s32, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call2)(Task*, s32, ActorTransform*, Actor135600SpawnAnim*);
+        s32                (*call3)(Task*, s32, ActorTransform*, s32);
+        TaskMessageHandler call4;
     } handler;
 } Actor135600MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor135600MsgEntry, 8);
@@ -647,7 +647,7 @@ Actor135600MsgEntry D_actor_135600_8013B0F4[6] = {
     { 2004, { .call3 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_135600_80133240 } },
     { 2013, { .call2 = actorMotionStartWalk } },
-    { 2011, { .call0 = func_actor_135600_8013336C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_135600_8013336C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -724,7 +724,7 @@ static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
      * written that way keeps its address in the register `RotMatrixZ` is
      * handed, where the ones naming `m` directly fold to a frame-relative
      * address, and the target has both. */
-    m.ident.m00_m01           = 0x1000;
+    m.ident.m00M01            = ONE;
     MATRIX_PAIR(&m.mat, 0, 2) = 0;
     MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
     MATRIX_PAIR(&m.mat, 2, 0) = 0;
@@ -946,7 +946,7 @@ static void func_actor_135600_80132B14(Task* task)
     coord->coord.t[2] = 0;
 
     mtx                    = &m.mat;
-    m.ident.m00_m01        = 0x1000;
+    m.ident.m00M01         = ONE;
     MATRIX_PAIR(mtx, 0, 2) = 0;
     MATRIX_PAIR(mtx, 1, 1) = 0x1000;
     MATRIX_PAIR(mtx, 2, 0) = 0;

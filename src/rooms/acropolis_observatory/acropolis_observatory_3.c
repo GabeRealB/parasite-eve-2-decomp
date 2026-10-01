@@ -22,7 +22,6 @@
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -158,7 +157,7 @@ u8 D_acropolis_observatory_8017FEE8[8] = {
 };
 
 u8* D_acropolis_observatory_8017FEF0[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_observatory_8017FEE8,
 };
 
@@ -932,7 +931,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 rec.blend                = ANIMATION_BLEND_RESET;
                 rec.blendFrames          = 0;
                 rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &rec, 0);
             }
             gSceneCombatState.actor03700Wave = 0;
             /* fallthrough */
@@ -955,7 +954,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gGameSession->location.loc.room                            = 1;
             gGameSession->roomObjsDirty                                = 1;
@@ -982,7 +981,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 msg->blend                = ANIMATION_BLEND_INTERPOLATE;
                 msg->blendFrames          = 0xA;
                 msg->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(dest->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(dest->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
             }
         }
     }

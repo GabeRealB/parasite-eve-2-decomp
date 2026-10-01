@@ -1096,7 +1096,7 @@ Actor110600MessageEntry D_actor_110600_80148624[7] = {
     { 2005, { .call4 = func_actor_110600_80138448 } },
     { 2006, { .call0 = func_actor_110600_80138538 } },
     { 2004, { .call3 = func_actor_110600_80133E48 } },
-    { 2011, { .call1 = func_actor_110600_80134040 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_110600_80134040 } },
     { 2007, { .call0 = func_actor_110600_801387C0 } },
 };
 

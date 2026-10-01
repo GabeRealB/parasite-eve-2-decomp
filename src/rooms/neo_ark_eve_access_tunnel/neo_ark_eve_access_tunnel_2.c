@@ -12,7 +12,6 @@
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -99,7 +98,7 @@ WorldCoordRoomLighting D_neo_ark_eve_access_tunnel_8017EB88[1] = {
 };
 
 u8* D_neo_ark_eve_access_tunnel_8017EB90[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_eve_access_tunnel_8017EB94[1] = {

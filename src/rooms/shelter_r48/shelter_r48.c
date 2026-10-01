@@ -19,7 +19,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -161,7 +160,7 @@ GpRoomObjRec D_shelter_r48_8018301C[1] = {
 };
 
 u8* D_shelter_r48_8018302C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_r48_80183030[1] = {
@@ -2458,10 +2457,10 @@ void func_shelter_r48_8017E9B8(Task* arg0)
 
 void func_shelter_r48_8017EC18(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    u8          rgb[3];
+    EffectWork*       work;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    u8                rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -2469,13 +2468,13 @@ void func_shelter_r48_8017EC18(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot                 = (GpMtxWords*)&coord->coord;
+                rot                 = (GfxRotationWords*)&coord->coord;
                 coord->parent       = work->parent;
-                rot->m00_m01        = 0x1000;
-                rot->m02_m10        = 0;
-                rot->m11_m12        = 0x1000;
-                rot->m20_m21        = 0;
-                rot->m22            = 0x1000;
+                rot->m00M01         = ONE;
+                rot->m02M10         = 0;
+                rot->m11M12         = ONE;
+                rot->m20M21         = 0;
+                rot->m22            = ONE;
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;

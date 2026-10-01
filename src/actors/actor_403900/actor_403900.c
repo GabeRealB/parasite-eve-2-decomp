@@ -1236,7 +1236,7 @@ AnimationSet* D_actor_403900_801540EC[22] = {
 };
 
 /// Per-frame hit handler: applies the `func_800E0C10` push-back from the
-/// `field_504` and (while bit 0x4000 of `field_49A` is set) `field_49C`
+/// `field_504` and (while `field_49A` enables grid tests) `field_49C`
 /// record tables to the root coordinate, ticks the `field_6C6` flinch
 /// countdown, and for each kind-2 hit record in `field_49C` computes the
 /// damage from the distance to the player, applies it to the `Enemy`,
@@ -1282,7 +1282,7 @@ void golemKnightBishopTakeHits(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->field_504);
 
-    if (work->field_49A & 0x4000) {
+    if (work->field_49A & WORLD_COLLISION_BODY_GRID_ENABLED) {
         switch (func_800E0C10(work->field_49C, &sc->delta, 3, NULL)) {
             case 0:
                 break;
@@ -1492,8 +1492,8 @@ void golemKnightBishopIdleSeq(Task* arg0)
                     work->field_710--;
                 }
             }
-            work->field_5BA &= ~0x4000;
-            work->field_5DA &= ~0x4000;
+            work->field_5BA &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+            work->field_5DA &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
         case 4:
@@ -1510,7 +1510,7 @@ void golemKnightBishopIdleSeq(Task* arg0)
                     work->field_710--;
                 }
             }
-            work->field_5BA &= ~0x4000;
+            work->field_5BA &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
         case 5:
@@ -1567,7 +1567,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
         case 0:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED && gPlayerStatus.hp > 0) {
                 sc->query.field_14 = 0x19;
-                if (Gp_DispatchMsgPtr(player, 0x3F8, sc, 0) == 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, sc, 0) == 0) {
                     work->field_6C0 = 1;
                     work->field_6CE = 1;
                     work->field_6F4 = 0;
@@ -1593,7 +1593,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     sc->place.rot.vx = 0;
                     sc->place.rot.vy = work->field_6E6;
                     sc->place.rot.vz = 0;
-                    Gp_DispatchMsgPtr(player, 0x3E9, &sc->place, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->place, 0);
                     Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
                     snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                     SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(pcoord), (s8)worldCoordGetOriginAudioDepth(pcoord));
@@ -1609,7 +1609,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
             sc->anim.blend                = ANIMATION_BLEND_RESET;
             sc->anim.blendFrames          = 0;
             sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
             work->field_6CE = 2;
             work->field_6DC = 0x3C;
             work->field_6DA = 1;
@@ -1629,7 +1629,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 sc->anim.blend                = ANIMATION_BLEND_RESET;
                 sc->anim.blendFrames          = 0;
                 sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                 Gp_ArmStateF0(1);
                 work->field_70A = 0;
                 if (work->field_6C6 == 0) {
@@ -1672,7 +1672,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         sc->anim.blend                = ANIMATION_BLEND_RESET;
                         sc->anim.blendFrames          = 0;
                         sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                        Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                     } else {
                         work->field_6D4 = 0x14;
                         Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
@@ -1713,7 +1713,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 sc->anim.blend                = ANIMATION_BLEND_RESET;
                 sc->anim.blendFrames          = 0;
                 sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
             }
             break;
         case 4:
@@ -1740,7 +1740,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     sc->anim.blend                = ANIMATION_BLEND_RESET;
                     sc->anim.blendFrames          = 0;
                     sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                    Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->anim, 0);
                     work->field_6D4 = 0x69;
                     work->field_6DA = 3;
                     work->field_6DC = 0x4B;
@@ -2241,7 +2241,7 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
             work->field_502  = 1;
             Gp_LinkObj(2, (WorldCollisionBody*)work->field_4E4);
             Gp_InitRec18Table(records2, 4, 0);
-            work->field_502 |= 0x4200;
+            work->field_502 |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             work->field_56C  = &arg1->extra.tmd->coords[8];
             records3         = &work->field_584;
             work->field_570  = records3;
@@ -2274,7 +2274,7 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
             work->field_5BA  = 3;
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_59C);
             Gp_InitRec18Table(records4, 1, 0);
-            work->field_5BA &= 0xBFFF;
+            work->field_5BA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             work->field_5C4  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
             work->field_5C8  = records4;
             work->field_5CC  = 0;
@@ -2302,7 +2302,7 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
             work->field_624  = 0;
             work->field_628  = 0;
             work->field_62A  = 3;
-            work->field_5DA &= 0xBFFF;
+            work->field_5DA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_60C);
             Gp_InitRec18Table(records5, 1, 0);
             work->field_62A = (work->field_62A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | 0xC00;

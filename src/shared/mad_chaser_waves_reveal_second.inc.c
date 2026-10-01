@@ -21,7 +21,7 @@ void madChaserWaveRevealSecond(Task* arg0)
         msg.context.loc.stage  = 0;
         msg.context.loc.area   = 0x2A;
         msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         arg0->state++;
     }
 }

@@ -19,7 +19,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
@@ -582,7 +581,7 @@ u8 D_acropolis_forked_road_80182250[12] = {
 };
 
 u8* D_acropolis_forked_road_8018225C[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_acropolis_forked_road_80182244,
     D_acropolis_forked_road_80182250,
 };
@@ -1239,7 +1238,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             place.pos.vx = D_acropolis_forked_road_80180F80[0].vx - 0x654;
             place.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
             place.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E9, &place, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, 0x3E9, &place, 0);
             task->state = task->state + 1;
             break;
 
@@ -1248,7 +1247,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             place2.pos.vx = D_acropolis_forked_road_80180F80[0].vx;
             place2.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
             place2.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3F2, &place2, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, 0x3F2, &place2, 0);
             task->state = task->state + 1;
             break;
 
@@ -1341,7 +1340,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             func_800E9BDC(3, 0x9FF);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
             task->state                    = task->state + 1;
@@ -1378,7 +1377,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
-                    Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3E9, &place, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, 0x3E9, &place, 0);
                     Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 4, 0, 0);
                     task->state = task->state + 1;
                     break;
@@ -1391,7 +1390,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 place.pos.vx = -0x190;
                 place.pos.vy = 1;
                 place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-                Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3F2, &place, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(((RoomStreamWork*)task->work)->target, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }
             break;

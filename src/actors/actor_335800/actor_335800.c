@@ -112,12 +112,12 @@ extern TaskDesc D_actor_335800_8016EADC[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call2)(Task*, s32, ActorCommand* request, s32);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, ActorTransform*, Actor335800SpawnAnim*);
-        s32 (*call5)(Task*, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*, s32);
+        TaskMessageHandler call2;
+        s32                (*call3)(Task*, s32, ActorTransform*);
+        s32                (*call4)(Task*, s32, ActorTransform*, Actor335800SpawnAnim*);
+        s32                (*call5)(Task*, s32, s32);
     } handler;
 } Actor335800MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor335800MsgEntry, 8);
@@ -929,7 +929,7 @@ Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
     { 2004, { .call3 = func_actor_335800_80163F3C } },
     { 2005, { .call5 = func_actor_335800_80163FB8 } },
     { 2013, { .call4 = func_actor_335800_80163880 } },
-    { 2011, { .call0 = func_actor_335800_80164098 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_335800_80164098 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1039,10 +1039,10 @@ void func_actor_335800_80162114(void)
         extra = slot->extra.tmd;
         coord = extra->coords;
         if ((u32)(coord->coord.t[2] - 0xC53) < 0x96F) {
-            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[2], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[2], 0);
         }
         if ((u32)(coord->coord.t[2] - 0x3E9) < 0x86A) {
-            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[1], 0);
         }
     }
 }
@@ -1065,9 +1065,9 @@ void func_actor_335800_801621B4(s32 arg0)
             highIdx = 4;
         }
         if (coord->coord.t[2] >= 0xC53) {
-            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[highIdx], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[highIdx], 0);
         } else {
-            Gp_DispatchMsgPtr(slot, 0x3E9, &D_actor_335800_80164EA4[lowIdx], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[lowIdx], 0);
         }
     }
 }
@@ -1182,7 +1182,7 @@ void func_actor_335800_801624DC(Task* arg0)
     if (gGameSession->battleResetPending != 0) {
         slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         Gp_PlayerWeaponId(&D_actor_335800_80164E7C.source.index);
-        Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
         taskKill(arg0);
     }
 }
@@ -1755,7 +1755,7 @@ static void func_actor_335800_80163CA0(Task* task)
 static void func_actor_335800_80163D20(Task* arg0)
 {
     Actor335800Work*     work;
-    GpMtxWords*          words;
+    GfxRotationWords*    words;
     GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
@@ -1786,12 +1786,12 @@ static void func_actor_335800_80163D20(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words          = (GpMtxWords*)&coord->coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
+    words         = (GfxRotationWords*)&coord->coord;
+    words->m00M01 = ONE;
+    words->m02M10 = 0;
+    words->m11M12 = ONE;
+    words->m20M21 = 0;
+    words->m22    = ONE;
     RotMatrix(&vec, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

@@ -2780,11 +2780,11 @@ static void Actor07000_Fn05FF8(Task* arg0)
     coord->parent         = parts;
     parts[1].parent       = coord;
     mat                   = (OverlayMat*)&coord->coord;
-    mat->ident.m00_m01    = 0x1000;
-    mat->ident.m02_m10    = 0;
-    mat->ident.m11_m12    = 0x1000;
-    mat->ident.m20_m21    = 0;
-    mat->ident.m22        = 0x1000;
+    mat->ident.m00M01     = ONE;
+    mat->ident.m02M10     = 0;
+    mat->ident.m11M12     = ONE;
+    mat->ident.m20M21     = 0;
+    mat->ident.m22        = ONE;
     coord->composeStamp   = GRAPHICS_COORD_DIRTY;
     parts[1].composeStamp = GRAPHICS_COORD_DIRTY;
     work->scale.vx        = 0x1000;

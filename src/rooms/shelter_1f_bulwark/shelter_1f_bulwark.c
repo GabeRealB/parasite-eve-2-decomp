@@ -16,7 +16,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -135,7 +134,7 @@ WorldCoordRoomLighting D_shelter_1f_bulwark_801803C0[1] = {
 };
 
 u8* D_shelter_1f_bulwark_801803C8[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_1f_bulwark_801803CC[1] = {

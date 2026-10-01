@@ -203,10 +203,16 @@ typedef struct {
 } _AnimationBlendScratch;
 STATIC_ASSERT_SIZEOF(_AnimationBlendScratch, 0x80);
 
-/// Scratch reservation for advancing a slot and dispatching its pose blend.
+/// Scratch-stack reservation holding one slot tick's pose-blend request.
+///
+/// The word-aligned block is reserved uninitialized for the tick. All request
+/// fields are populated before synchronous pose dispatch; the endpoints and
+/// destinations are borrowed only until dispatch returns. Decoders reserve
+/// their workspace below this live block and release it before the tick releases
+/// this reservation. The leading bytes are untouched and have no proven role.
 typedef struct {
-    s32                    field_0; // Not accessed by playback; role unproven
-    _AnimationBlendRequest request; // Inputs and destinations for this tick
+    u8                     field_0[4]; // Uninterpreted leading storage; role unproven
+    _AnimationBlendRequest request;    // Borrowed endpoints, outputs and buffered-rotation refresh request
 } _AnimationTickScratch;
 STATIC_ASSERT_SIZEOF(_AnimationTickScratch, 0x18);
 
@@ -299,18 +305,16 @@ static const VECTOR D_80093A28;
 
 static const TaskFuncTable3 D_80093A38;
 
-/// "ERROR: ex_pdriver_2\n". The three bytes after the terminator are not zero:
-/// the original toolchain left them in the alignment gap.
-static const char D_80093A44[24];
+static const char _gAnimationUnsupportedPoseDiagnostic[24];
 
 static const TaskFuncTable3 D_80093A5C;
 
 typedef struct {
     s32 id;
     union {
-        s32 (*find)(Task*, Task*, s32, Task**);
-        s32 (*exit)(Task*);
-        s32 (*send)(Task*, s32, s32, s32);
+        s32                (*find)(Task*, Task*, s32, Task**);
+        s32                (*exit)(Task*);
+        TaskMessageHandler send;
     } handler;
 } GpSlot4MessageEntry;
 
@@ -357,7 +361,7 @@ static void func_800B28E0(Task* task);
 
 static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
-static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
+static void _animationBlendPackedRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
 static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1);
 
@@ -431,7 +435,6 @@ GpSndMaskRec Gp_SndMaskTable[7] = {
 };
 TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, func_800B06F0, { NULL } };
 
-static const char           D_80093A44[];
 static const TaskFuncTable3 Gp_StageLoadStates;
 static const VECTOR         D_80093A28;
 static const TaskFuncTable3 D_80093A38;
@@ -2131,8 +2134,58 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
     }
 }
 
-/// Blends encoding 4 without changing the part's local translation.
-static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
+/// Initializes complementary pose-endpoint weights in 1/4096 units.
+///
+/// Distinct endpoint addresses use `(timeLeft << ANIMATION_BLEND_FRACTION_BITS)
+/// / timeSpan` for the current weight and `ONE` minus that for the next weight.
+/// The signed division truncates toward zero. The caller supplies nonzero
+/// `timeSpan` and remaining time in 0..`timeSpan`, both in sixteenths of a frame;
+/// this helper does not normalize or clamp them. Equal endpoint addresses use
+/// weights 0 and `ONE` without reading slot timing or dereferencing either pose.
+///
+/// The request and slot are borrowed read-only. The caller owns the live,
+/// word-aligned workspace; only `currentWeight` and `nextWeight` are written.
+/// The scaled remaining time is stored before its normalized weight replaces
+/// it. This helper neither reserves nor releases scratch space and uses no GTE
+/// registers.
+static inline void _animationSetBlendWeights(const _AnimationBlendRequest* request, const AnimationSlot* slot,
+                                             _AnimationBlendScratch* scratch)
+{
+    if (request->currentPose.bytes != request->nextPose.bytes) {
+        scratch->currentWeight  = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
+        scratch->currentWeight /= slot->timeSpan;
+        scratch->nextWeight     = ONE - scratch->currentWeight;
+    } else {
+        scratch->currentWeight = 0;
+        scratch->nextWeight    = ONE;
+    }
+}
+
+/// Blends a model part's encoding-4 rotation while preserving its local translation.
+///
+/// Both borrowed endpoints must address a complete, word-aligned
+/// `AnimationPackedRotation`. Signed 11/10/11-bit components expand from
+/// eight-unit steps to Euler angles in 4096 units per turn. For a normalized
+/// segment, `timeLeft` is in 0..`timeSpan`, in sixteenths of a frame; the
+/// remaining-time fraction weights the current endpoint. Identical endpoint
+/// addresses select the next endpoint with full weight. Zero `timeSpan`
+/// returns without decoding, reserving scratch space or writing any output.
+///
+/// `_animationBlendRotation` applies the result to `coord` when the unpacked
+/// destination is NULL, or writes that destination's rotation instead. Buffered
+/// endpoints use the slot's relative-rotation cache and its refresh request.
+/// Unpacked output copies the full rotation `SVECTOR`, including the scratch
+/// vector's untouched pad. `coord` is required only for coordinate output.
+/// The optional encoded destination must be a readable, writable, word-aligned
+/// four-byte word. It may alias either endpoint: both are decoded before the
+/// result is packed, discarding the low three angle bits. Translation is
+/// preserved in either output mode.
+///
+/// The request and its pointers are borrowed for this call. The initialized
+/// scratch stack must fit one `_AnimationBlendScratch` and any nested matrix
+/// conversion workspace. Its reservation is released before returning; GTE
+/// registers are clobbered.
+static void _animationBlendPackedRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
 {
     /// Low angle bits omitted from encoding-4 packed rotations.
     ///
@@ -2145,21 +2198,10 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
     _AnimationBlendScratch*        scratch;
     const AnimationPackedRotation* sourcePose;
     AnimationPackedRotation*       destinationPose;
-    s32                            currentWeight;
 
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
-        if (request->currentPose.bytes != request->nextPose.bytes) {
-            // Store the scaled remaining time, then replace it with the truncated quotient.
-            currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
-            scratch->currentWeight = currentWeight;
-            currentWeight          = currentWeight / slot->timeSpan;
-            scratch->currentWeight = currentWeight;
-            scratch->nextWeight    = ONE - currentWeight;
-        } else {
-            scratch->currentWeight = 0;
-            scratch->nextWeight    = ONE;
-        }
+        _animationSetBlendWeights(request, slot, scratch);
         // Expand the 11/10/11-bit angles to the same units as encoding 1.
         sourcePose                  = request->currentPose.packedRotation;
         scratch->currentRotation.vx = sourcePose->rx << ANIMATION_PACKED_ANGLE_SHIFT;
@@ -2388,7 +2430,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             _animationBlendTranslationRotation(&scratch->request, coord, slot);
             break;
         case ANIMATION_POSE_UNSUPPORTED:
-            printf(D_80093A44);
+            printf(_gAnimationUnsupportedPoseDiagnostic);
             break;
         case ANIMATION_POSE_PACKED_ROTATION:
             _animationBlendPackedRotation(&scratch->request, coord, slot);
@@ -3921,9 +3963,11 @@ static const TaskFuncTable3 D_80093A38 = { {
     Task_CallExit,
 } };
 
-/// "ERROR: ex_pdriver_2\n". The three bytes after the terminator are not zero:
-/// the original toolchain left them in the alignment gap.
-static const char D_80093A44[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
+/// Error message for animation tracks with unsupported pose encoding 2.
+///
+/// The NUL-terminated message occupies 21 bytes. The final three stored bytes
+/// preserve the original read-only data and are not part of the printed text.
+static const char _gAnimationUnsupportedPoseDiagnostic[24] = "ERROR: ex_pdriver_2\n\0\xB7\xB0\x34";
 
 static const TaskFuncTable3 D_80093A5C = { {
     func_800B6094,

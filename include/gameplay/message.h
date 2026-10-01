@@ -89,15 +89,23 @@ typedef union {
 } TaskMessageArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(TaskMessageArg, 4);
 
-/// 8-byte id/handler record. `Task::msgTable` points at a table of these
-/// (`Gp_Slot4MsgTable`, `D_8010FB90`, …). `Gp_DispatchMsg` walks it and calls the
-/// matching handler with the same four arguments. Terminator id is
-/// `0x7FFFFFFF`.
-typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3);
+/// A synchronous task-message callback receiving an ID and two argument words.
+///
+/// `task` is the live receiver. `messageId` selects the meaning of `firstArg`
+/// and `secondArg`, including each pointer's payload type and write permission.
+/// Object arguments borrow storage with the lifetime required by `TaskMessageArg`;
+/// the callback must copy any transient data it needs after dispatch returns.
+/// The signed result is message-specific and is forwarded unchanged to the
+/// sender; zero is not a universal success or failure code.
+///
+/// Callbacks retain all four PS1 argument-register positions and an `s32` return.
+/// The transparent argument union also permits declarations using its member
+/// types in either payload position under GCC's function-type compatibility rules.
+typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 
 typedef struct _GpMsgEntry {
-    /* 0x0 */ s32          id;
-    /* 0x4 */ GpMsgHandler handler;
+    /* 0x0 */ s32                id;
+    /* 0x4 */ TaskMessageHandler handler;
 } GpMsgEntry;
 STATIC_ASSERT_SIZEOF(GpMsgEntry, 8);
 
@@ -221,6 +229,19 @@ enum {
 
 /// Actor-command delivery and the scene manager's general actor-message broadcast.
 enum {
+    /// Applies a borrowed `ActorCommand` in the receiver's command namespace.
+    ///
+    /// The first argument addresses the command; initialize the context and
+    /// command components that the selected handler reads and keep them live
+    /// through synchronous dispatch. The second argument is receiver-specific:
+    /// usually zero, but placement commands can require an `ActorTransform*`.
+    /// Actions, valid command values and the signed result are receiver-specific;
+    /// zero does not distinguish an ignored command from one that was applied.
+    ///
+    /// To broadcast, send `SCENE_MESSAGE_BROADCAST_TO_ACTORS` to the scene manager
+    /// with the command as its first argument and this ID as its second. It
+    /// forwards the command to type-9 children with a zero second argument and
+    /// returns zero, discarding their results.
     ACTOR_COMMAND_MESSAGE_APPLY       = 0x7DB,
     SCENE_MESSAGE_BROADCAST_TO_ACTORS = 0x7DA,
 };
@@ -297,13 +318,21 @@ STATIC_ASSERT_SIZEOF(GpSpawnAnimArg, 8);
 
 s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-/// Send an object address in arg2; the recipient's message id defines its type.
-static __inline__ s32 Gp_DispatchMsgPtr(Task* task, s32 id, const void* data, s32 arg3)
-{
-    TaskMessageArg payload;
-    payload.pointer = data;
-    return Gp_DispatchMsg(task, id, payload.value, arg3);
-}
+/// Dispatches a synchronous task message with an object address as its first payload.
+///
+/// `receiver` must be a live task. Its message table and `messageId` select the
+/// payload's type, complete extent, alignment and write permission; a null
+/// payload is valid only when that message permits it. Storage is borrowed as
+/// described by `TaskMessageArg`. `secondArg` remains a signed integer word,
+/// whose meaning is also selected by the message. The handler's signed result
+/// is returned unchanged, or zero if the task has no matching handler.
+///
+/// Each argument is evaluated once, with ordinary function-argument ordering.
+/// The cast encodes the complete object address in the PS1's 32-bit integer
+/// message ABI. Keep it in the call expression: an inline parameter or union
+/// temporary can make GCC retain a stack address across successive dispatches.
+#define TASK_MESSAGE_DISPATCH_POINTER(receiver, messageId, payload, secondArg) \
+    Gp_DispatchMsg((receiver), (messageId), (s32)(payload), (secondArg))
 
 /// Send an object address in arg3, commonly an output/reply destination.
 static __inline__ s32 Gp_DispatchMsgReply(Task* task, s32 id, s32 arg2, const void* reply)

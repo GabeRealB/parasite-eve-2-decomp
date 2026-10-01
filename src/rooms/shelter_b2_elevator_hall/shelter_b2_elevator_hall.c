@@ -18,7 +18,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -185,7 +184,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 u8* D_shelter_b2_elevator_hall_801838DC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b2_elevator_hall_801838E0[1] = {

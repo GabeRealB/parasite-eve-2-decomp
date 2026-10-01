@@ -26,7 +26,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/ending.h"
 #include "gameplay/evs.h"
@@ -284,7 +283,7 @@ extern SVECTOR                    D_dryfield_dilapidated_house_80189CA0[40];
 s32                               func_dryfield_dilapidated_house_8017E56C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_dryfield_dilapidated_house_8017E684(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                               func_dryfield_dilapidated_house_8017E68C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32                               func_dryfield_dilapidated_house_8017E68C(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 void                              func_dryfield_dilapidated_house_8017DE88(Task*);
 void                              func_dryfield_dilapidated_house_8017E144(Task*);
 void                              func_dryfield_dilapidated_house_8017E2B0(Task*);
@@ -967,7 +966,7 @@ GpRoomObjRec D_dryfield_dilapidated_house_80186954[1] = {
 };
 
 u8* D_dryfield_dilapidated_house_80186964[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_dilapidated_house_80186968[1] = {
@@ -1991,8 +1990,10 @@ s32 func_dryfield_dilapidated_house_8017E684(Task* task, s32 msgId, TaskMessageA
     return 0;
 }
 
-s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     u8 actionId;
 
     actionId = request->actionId;
@@ -2502,26 +2503,26 @@ static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts,
 /// `killCountdown`.
 static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
 {
-    SVECTOR        a;
-    SVECTOR        b;
-    OverlayMat     rot;
-    DdhScreenPoint proj[2];
-    DdhCoordWork*  work;
-    MATRIX*        mtx;
-    SVECTOR*       src;
-    s16            t;
-    s16            r;
-    s32            scale;
-    GpMtxWords*    words;
-    s32            i;
-    u16            f;
-    s16            x0;
-    s32            y0;
-    s16            x1;
-    s32            y1;
-    s32            dx;
-    s32            dy;
-    s32            side;
+    SVECTOR           a;
+    SVECTOR           b;
+    OverlayMat        rot;
+    DdhScreenPoint    proj[2];
+    DdhCoordWork*     work;
+    MATRIX*           mtx;
+    SVECTOR*          src;
+    s16               t;
+    s16               r;
+    s32               scale;
+    GfxRotationWords* words;
+    s32               i;
+    u16               f;
+    s16               x0;
+    s32               y0;
+    s16               x1;
+    s32               y1;
+    s32               dx;
+    s32               dy;
+    s32               side;
 
     side = task->spawnArg1.value;
     work = ((Task*)task->spawnArg2.pointer)->work;
@@ -2569,20 +2570,20 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     gte_stdp(&proj[0].depthCue);
     gte_stflg(arg3);
     gte_stszotz(arg2);
-    dy                = proj[0].sxy.vy - proj[1].sxy.vy;
-    x1                = proj[1].sxy.vx;
-    x0                = proj[0].sxy.vx;
-    dx                = x1 - x0;
-    y0                = proj[0].sxy.vy;
-    y1                = proj[1].sxy.vy;
-    i                 = ratan2(dx, dy);
-    scale             = gDisplayState.screenDistance;
-    rot.ident.m00_m01 = 0x1000;
-    rot.ident.m02_m10 = 0;
-    words             = &rot.ident;
-    words->m11_m12    = 0x1000;
-    rot.ident.m20_m21 = 0;
-    words->m22        = 0x1000;
+    dy               = proj[0].sxy.vy - proj[1].sxy.vy;
+    x1               = proj[1].sxy.vx;
+    x0               = proj[0].sxy.vx;
+    dx               = x1 - x0;
+    y0               = proj[0].sxy.vy;
+    y1               = proj[1].sxy.vy;
+    i                = ratan2(dx, dy);
+    scale            = gDisplayState.screenDistance;
+    rot.ident.m00M01 = ONE;
+    rot.ident.m02M10 = 0;
+    words            = &rot.ident;
+    words->m11M12    = ONE;
+    rot.ident.m20M21 = 0;
+    words->m22       = ONE;
     RotMatrixZ(i, &rot.mat);
     gte_SetRotMatrix(&rot.mat);
     for (i = 0; i < 6; i++) {

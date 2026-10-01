@@ -16,7 +16,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -81,7 +80,7 @@ Task* D_neo_ark_woodland_path_80181680 = NULL;
 SVECTOR D_neo_ark_woodland_path_80181684[2] = { 0 };
 
 u8* D_neo_ark_woodland_path_80181694[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_woodland_path_80181698[1] = {

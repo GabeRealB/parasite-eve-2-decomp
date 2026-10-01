@@ -38,7 +38,7 @@ void gluttonGlobHold(Enemy* enemy, Task* task)
         work->anim.animationId = 2;
         work->anim.blend       = armed;
         work->anim.blendFrames = 9;
-        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->anim, 0);
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 

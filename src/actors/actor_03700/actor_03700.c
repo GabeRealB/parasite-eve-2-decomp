@@ -141,7 +141,7 @@ extern AnimationSet* Actor03700_D080E4[6];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, s32, s32);
+        TaskMessageHandler call0;
     } handler;
 } Actor03700RecoveredMsgEntry;
 STATIC_ASSERT_SIZEOF(Actor03700RecoveredMsgEntry, 8);
@@ -1436,7 +1436,7 @@ static void Actor03700_Fn01550(Task* task)
             arg->blend                = ANIMATION_BLEND_RESET;
             arg->blendFrames          = 0;
             arg->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, arg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, arg, 0);
             sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
             SndEvt_EnqueueType6(sound, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
             work->field_250 = 4;
@@ -1561,7 +1561,7 @@ static void Actor03700_Fn01C94(Task* task)
             arg->blend                = ANIMATION_BLEND_RESET;
             arg->blendFrames          = 0;
             arg->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, arg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, arg, 0);
             sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
             pan   = (s8)worldCoordGetOriginAudioPan(obj);
             SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));
@@ -1805,7 +1805,7 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
                         arg.blend                = ANIMATION_BLEND_RESET;
                         arg.blendFrames          = 0;
                         arg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &arg, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &arg, 0);
                         sound2 = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                         SndEvt_EnqueueType6(sound2, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
                     }
@@ -2146,13 +2146,13 @@ static s32 Actor03700_Fn03130(Task* task)
     ret = 0;
     if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         scratch->query.field_14 = 8;
-        if (Gp_DispatchMsgPtr(player, 0x3F8, scratch, 0) == 0) {
+        if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, scratch, 0) == 0) {
             scratch->anim.source.sets          = Actor03700_D080FC;
             scratch->anim.animationId          = 1;
             scratch->anim.blend                = ANIMATION_BLEND_RESET;
             scratch->anim.blendFrames          = 0;
             scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->anim, 0);
             work->field_262 = 1;
             ret             = 1;
         }

@@ -87,11 +87,11 @@ extern TaskDesc D_actor_113100_80144308[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-        s32 (*call2)(Task*, s32, ActorTransform*);
-        s32 (*call3)(Task*, s32, ActorTransform*, Actor113100SpawnAnim*);
-        s32 (*call4)(Task*, s32, s32, s32);
+        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call1)(Task*, s32, ActorCommand* request);
+        s32                (*call2)(Task*, s32, ActorTransform*);
+        s32                (*call3)(Task*, s32, ActorTransform*, Actor113100SpawnAnim*);
+        TaskMessageHandler call4;
     } handler;
 } Actor113100MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor113100MsgEntry, 8);
@@ -1402,8 +1402,8 @@ static void func_actor_113100_801324DC(Task* task)
 {
     Actor113100Work*     work;
     GfxCoord*            coord;
-    GpMtxWords*          words;
-    GpMtxWords*          turnWords;
+    GfxRotationWords*    words;
+    GfxRotationWords*    turnWords;
     VECTOR               delta;
     AnimationPlayRequest preset;
     s32                  angle;
@@ -1423,21 +1423,21 @@ static void func_actor_113100_801324DC(Task* task)
         } else {
             yaw = angle16 + 0x40;
         }
-        turnWords          = (GpMtxWords*)&coord->coord;
-        turnWords->m00_m01 = ONE;
-        turnWords->m02_m10 = 0;
-        turnWords->m11_m12 = ONE;
-        turnWords->m20_m21 = 0;
-        turnWords->m22     = ONE;
+        turnWords         = (GfxRotationWords*)&coord->coord;
+        turnWords->m00M01 = ONE;
+        turnWords->m02M10 = 0;
+        turnWords->m11M12 = ONE;
+        turnWords->m20M21 = 0;
+        turnWords->m22    = ONE;
         RotMatrixY((s16)yaw, &coord->coord);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
-        words          = (GpMtxWords*)&coord->coord;
-        words->m00_m01 = ONE;
-        words->m02_m10 = 0;
-        words->m11_m12 = ONE;
-        words->m20_m21 = 0;
-        words->m22     = ONE;
+        words         = (GfxRotationWords*)&coord->coord;
+        words->m00M01 = ONE;
+        words->m02M10 = 0;
+        words->m11M12 = ONE;
+        words->m20M21 = 0;
+        words->m22    = ONE;
         RotMatrixY((s16)yaw, &coord->coord);
         delta.vx = 0;
         delta.vy = 0;
@@ -1823,7 +1823,7 @@ static void func_actor_113100_8013301C(Task* arg0)
 static void func_actor_113100_801330E8(Task* arg0)
 {
     Actor113100Work*     work;
-    GpMtxWords*          words;
+    GfxRotationWords*    words;
     GfxCoord*            coord;
     SVECTOR              vec;
     AnimationPlayRequest preset;
@@ -1854,12 +1854,12 @@ static void func_actor_113100_801330E8(Task* arg0)
         work->walk.motionStep = 0;
     }
 
-    words          = (GpMtxWords*)&coord->coord;
-    words->m00_m01 = ONE;
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
-    words->m22     = ONE;
+    words         = (GfxRotationWords*)&coord->coord;
+    words->m00M01 = ONE;
+    words->m02M10 = 0;
+    words->m11M12 = ONE;
+    words->m20M21 = 0;
+    words->m22    = ONE;
     RotMatrix(&vec, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

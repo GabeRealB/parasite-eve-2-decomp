@@ -24,13 +24,13 @@ void gluttonRainFall(Enemy* enemy, Task* task)
     }
 
     work->timer++;
-    coord.c.parent         = &gGfxViewCoord;
-    mtx                    = &coord.c.coord;
-    coord.ident.m00_m01    = 0x1000;
-    coord.ident.m02_m10    = 0;
-    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
-    coord.ident.m20_m21    = 0;
-    mtx->m[2][2]           = 0x1000;
+    coord.c.parent              = &gGfxViewCoord;
+    mtx                         = &coord.c.coord;
+    coord.ident.rotation.m00M01 = ONE;
+    coord.ident.rotation.m02M10 = 0;
+    MATRIX_PAIR(mtx, 1, 1)      = ONE;
+    coord.ident.rotation.m20M21 = 0;
+    mtx->m[2][2]                = ONE;
     gfxRotMatrixY(mtx, 0, 1);
 
     coord.c.coord.t[0]   = task->extra.tmd->coords->coord.t[0];

@@ -3107,7 +3107,7 @@ STATIC_ASSERT_SIZEOF(Actor403100MessageEntry, 8);
 
 Actor403100MessageEntry D_actor_403100_801556EC[4] = {
     { 2014, { .call0 = func_actor_403100_8013D5F4 } },
-    { 2011, { .call2 = func_actor_403100_8013D564 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403100_8013D564 } },
     { 2005, { .call1 = func_actor_403100_8013D608 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -3582,11 +3582,11 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             D_actor_403100_80155814[i].position.vy          = (u16)arg1->vy;
             D_actor_403100_80155814[i].position.vz          = (u16)arg1->vz;
             D_actor_403100_80155814[i].coord.parent         = &gGfxViewCoord;
-            matrix.ident.m00_m01                            = 0x1000;
-            matrix.ident.m02_m10                            = 0;
-            identity->ident.m11_m12                         = 0x1000;
-            matrix.ident.m20_m21                            = 0;
-            identity->ident.m22                             = 0x1000;
+            matrix.ident.m00M01                             = ONE;
+            matrix.ident.m02M10                             = 0;
+            identity->ident.m11M12                          = ONE;
+            matrix.ident.m20M21                             = 0;
+            identity->ident.m22                             = ONE;
             matrix.mat.t[0]                                 = (s32)(s16)arg1->vx;
             matrix.mat.t[1]                                 = (s32)(s16)arg1->vy;
             records                                         = D_actor_403100_80155814[i].records;
@@ -4509,7 +4509,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
         if (flag >= 0) {
             func_dryfield_night_motel_balcony_8017F6C8(screen, (depth << 0xC) >> 0x10, (s16)((size << 0x10 >> 1) / (depth * 4)), entry->frame);
         } else {
-            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), 0x4000);
+            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), WORLD_COLLISION_BODY_GRID_ENABLED);
         }
         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
             if (Gp_FindRec18(entry->obj.context.contacts, 0) != 0) {
@@ -4540,7 +4540,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             } else {
                 _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), 0);
             }
-            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, WORLD_COLLISION_BODY_FLAGS_MASK, 0x4000);
+            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, WORLD_COLLISION_BODY_FLAGS_MASK, WORLD_COLLISION_BODY_GRID_ENABLED);
             Gp_ClearRec18Occupied(D_actor_403100_80155814[i].records);
             entry->age++;
             entry->frame++;
@@ -6315,7 +6315,7 @@ static void func_actor_403100_80138F88(Task* arg0)
         Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
         D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->hp;
     }
 }
@@ -6383,7 +6383,7 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->pad_660[0] = 0;
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
         D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
     }
     if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||
@@ -7983,7 +7983,7 @@ static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
     msg.rot.vx = 0;
     msg.rot.vy = arg3;
     msg.rot.vz = 0;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
 }
 static void func_actor_403100_8013D11C(Task* arg0)
 {
@@ -8022,9 +8022,9 @@ static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
     msg.enableWorldCollision           = ANIMATION_WORLD_COLLISION_DISABLE;
     D_actor_403100_80155808->field_65D = (s8)arg0;
     if (arg1 == 0x3FF) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     } else if (arg1 == 0x3F4) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 static void func_actor_403100_8013D24C(void)
@@ -8356,7 +8356,7 @@ static void func_actor_403100_8013E1E4(void)
         sp.blendFrames                      = 3;
         sp.enableWorldCollision             = ANIMATION_WORLD_COLLISION_DISABLE;
         sp.animationId                      = 4;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
         D_actor_403100_80155808->field_5F2 = 3;
     }
 }

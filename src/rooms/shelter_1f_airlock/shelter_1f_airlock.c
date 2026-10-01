@@ -13,7 +13,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -110,7 +109,7 @@ WorldCoordRoomLighting D_shelter_1f_airlock_8017E5AC[1] = {
 };
 
 u8* D_shelter_1f_airlock_8017E5B4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_1f_airlock_8017E5B8[1] = {

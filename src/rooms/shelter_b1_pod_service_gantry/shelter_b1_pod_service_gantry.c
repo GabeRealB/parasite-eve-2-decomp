@@ -13,7 +13,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -83,7 +82,7 @@ GpMsgEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
 };
 
 u8* D_shelter_b1_pod_service_gantry_8017FB1C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b1_pod_service_gantry_8017FB20[1] = {

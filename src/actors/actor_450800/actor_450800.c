@@ -103,13 +103,13 @@ static const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call2)(Task*, s32, ActorCommand* request, s32);
-        s32 (*call3)(Task*, s32, ActorTransform*);
-        s32 (*call4)(Task*, s32, VECTOR*);
-        s32 (*call5)(Task*, s32, VECTOR*, s32);
-        s32 (*call6)(Task*, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, AnimationPlayRequest*);
+        TaskMessageHandler call2;
+        s32                (*call3)(Task*, s32, ActorTransform*);
+        s32                (*call4)(Task*, s32, VECTOR*);
+        s32                (*call5)(Task*, s32, VECTOR*, s32);
+        s32                (*call6)(Task*, s32, s32);
     } handler;
 } Actor450800MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor450800MsgEntry, 8);
@@ -2578,7 +2578,7 @@ Actor450800MsgEntry gPairWalkMessages[6] = {
     { 2003, { .call1 = pairWalkPlay } },
     { 2005, { .call6 = pairWalkSetVisibility } },
     { 2004, { .call3 = pairWalkPlace } },
-    { 2011, { .call0 = func_actor_450800_80133670 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_450800_80133670 } },
     { 2013, { .call4 = pairWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2707,8 +2707,8 @@ static void func_actor_450800_80132000(void)
 
 static void func_actor_450800_80132028(void)
 {
-    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_actor_450800_801397A4, 0);
-    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_actor_450800_801398EC, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_450800_801397A4, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_actor_450800_801398EC, 0);
 }
 
 void func_actor_450800_80132080(void)

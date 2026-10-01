@@ -162,7 +162,7 @@ WorldCoordRoomLighting D_dryfield_night_motel_lobby_80182918[1] = {
 };
 
 u8* D_dryfield_night_motel_lobby_80182920[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_night_motel_lobby_80182924[1] = {

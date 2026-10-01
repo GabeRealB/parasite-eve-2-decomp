@@ -1668,7 +1668,7 @@ static void func_actor_503500_80132F58(void);
 void func_actor_503500_80132778(Task* task)
 {
     GfxCoord*           coord;
-    GpMtxWords*         rot;
+    GfxRotationWords*   rot;
     Actor503500EffWork* work;
     SVECTOR*            pos;
     u8                  done;
@@ -1679,12 +1679,12 @@ void func_actor_503500_80132778(Task* task)
         coord->coord.t[0]   = pos->vx;
         coord->coord.t[1]   = pos->vy;
         coord->coord.t[2]   = pos->vz;
-        rot                 = (GpMtxWords*)&coord->coord;
-        rot->m00_m01        = 0x1000;
-        rot->m02_m10        = 0;
-        rot->m11_m12        = 0x1000;
-        rot->m20_m21        = 0;
-        rot->m22            = 0x1000;
+        rot                 = (GfxRotationWords*)&coord->coord;
+        rot->m00M01         = ONE;
+        rot->m02M10         = 0;
+        rot->m11M12         = ONE;
+        rot->m20M21         = 0;
+        rot->m22            = ONE;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         work                = memCalloc(0xC, false);
         if (work == NULL) {
@@ -1915,7 +1915,7 @@ void func_actor_503500_80132E7C(void)
     slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if ((D_actor_503500_8017655C.pos.vx != 0) || (D_actor_503500_8017655C.pos.vy != 0) ||
         (D_actor_503500_8017655C.pos.vz != 0)) {
-        Gp_DispatchMsgPtr(slot3, 0x3E9, &D_actor_503500_8017655C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3E9, &D_actor_503500_8017655C, 0);
     }
 }
 

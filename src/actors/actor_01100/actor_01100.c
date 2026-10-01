@@ -1091,7 +1091,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     ActorsShared80138efcWork* work;
     TmdObject*                extra;
     GfxCoord*                 parts;
-    GpMtxWords*               mtx;
+    GfxRotationWords*         mtx;
     SceneCombatState*         combat;
     u8                        param1[8];
     u8                        param2[8];
@@ -1153,12 +1153,12 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     work->field_BA5 = 1;
     work->field_BA4 = 1;
 
-    mtx          = (GpMtxWords*)&work->coord.coord;
-    mtx->m00_m01 = 0x1000;
-    mtx->m02_m10 = 0;
-    mtx->m11_m12 = 0x1000;
-    mtx->m20_m21 = 0;
-    mtx->m22     = 0x1000;
+    mtx         = (GfxRotationWords*)&work->coord.coord;
+    mtx->m00M01 = ONE;
+    mtx->m02M10 = 0;
+    mtx->m11M12 = ONE;
+    mtx->m20M21 = 0;
+    mtx->m22    = ONE;
     if (work->field_BBB == 0x31) {
         scale = Actor01100_D00010;
         Actor01100_Fn067C0(&work->coord.coord, &scale);
@@ -1357,7 +1357,7 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
     return blk->moved;
 }
 
-/// Clears the 0xC000 pair from the `flags` of both collision objects.
+/// Disables grid and pair tests on both collision objects, retaining their links.
 static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work)
 {
     s32 i;
@@ -2260,7 +2260,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
 /// sets motion 2, zeroes the countdown at 0xB8C and steps the latch. Every
 /// later frame increments that countdown. On frame 0x1A it writes a
 /// `Gp_PackObjPair` payload into collision body 1's `key` and ORs the
-/// 0xC000 pair-pass bits into its `flags`. While the countdown sits in
+/// grid and pair test enables into its `flags`. While the countdown sits in
 /// `[0x1B, 0x36]` and the latch is still 1, a hit on the recs table at 0xA70
 /// masks those bits back out of both middle collision bodies and steps the latch; frame
 /// 0x37 does the same mask unconditionally. The frame block's scratch byte at
@@ -2316,7 +2316,7 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, ActorsShared80138efcWor
 /// Collision-arm handler for collision body 2: the first frame the latch
 /// at 0xBA8 is still clear it sets motion 3, zeroes the countdown at 0xB8C and
 /// steps the latch. Every later frame increments that countdown. On frame 0x1A
-/// it calls `Gp_PackObjPair` with pair 2 and ORs the 0xC000 pair-pass bits into
+/// it calls `Gp_PackObjPair` with pair 2 and ORs the grid and pair test enables into
 /// collision body 2's `flags`. While the countdown sits in `[0x1B, 0x36]`
 /// and the latch is still 1, a hit on the recs table at 0xAB8 masks those bits
 /// back out of both middle collision bodies and steps the latch; frame 0x37 does the same
@@ -3598,7 +3598,7 @@ static void Actor01100_Fn0638C(Task* task)
     s32                       pan;
     WorldCollisionBody*       obj;
     GfxCoord*                 coord;
-    GpMtxWords*               rotation;
+    GfxRotationWords*         rotation;
 
     coord        = task->extra.tmd->coords;
     stageAreaKey = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
@@ -3618,13 +3618,13 @@ static void Actor01100_Fn0638C(Task* task)
         Task_Reparent(task, effect->task);
     }
     task->killCountdown   = 0x5A;
-    rotation              = (GpMtxWords*)&coord->coord;
+    rotation              = (GfxRotationWords*)&coord->coord;
     obj                   = &work->obj;
-    rotation->m00_m01     = 0x1000;
-    rotation->m02_m10     = 0;
-    rotation->m11_m12     = 0x1000;
-    rotation->m20_m21     = 0;
-    rotation->m22         = 0x1000;
+    rotation->m00M01      = ONE;
+    rotation->m02M10      = 0;
+    rotation->m11M12      = ONE;
+    rotation->m20M21      = 0;
+    rotation->m22         = ONE;
     rec                   = work->rec18;
     coord->composeStamp   = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]    += 0x30;

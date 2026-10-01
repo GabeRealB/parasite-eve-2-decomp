@@ -31,9 +31,9 @@
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, s32, s32);
-        s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
+        s32                (*call0)(void);
+        TaskMessageHandler call1;
+        s32                (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
     } handler;
 } DryfieldToiletMessageEntry;
 STATIC_ASSERT_SIZEOF(DryfieldToiletMessageEntry, 8);
@@ -221,7 +221,7 @@ static void func_dryfield_toilet_8017D940(Task* arg0)
     arg0->msgTable = D_dryfield_toilet_801802A4;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x60) == 0 && gGameSession->location.loc.variant == 1) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_toilet_801802D4, 0x7DB);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_toilet_801802D4, ACTOR_COMMAND_MESSAGE_APPLY);
         func_dryfield_toilet_8017D5E4();
     }
     arg0->state = arg0->state + 1;

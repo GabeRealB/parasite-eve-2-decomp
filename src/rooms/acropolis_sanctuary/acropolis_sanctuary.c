@@ -25,7 +25,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -807,7 +806,7 @@ GpRoomObjRec D_acropolis_sanctuary_801827EC[1] = {
 };
 
 u8* D_acropolis_sanctuary_801827FC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_acropolis_sanctuary_80182800[1] = {
@@ -1715,10 +1714,10 @@ void func_acropolis_sanctuary_8017D8CC(void)
 {
     if (gPlayerStatus.weapon == 2) {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.source.index);
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_801809F8, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_801809F8, 0);
     } else {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.source.index);
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_80180A0C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_80180A0C, 0);
     }
 }
 
@@ -1738,8 +1737,8 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
         slot = Gp_LookupSlot4(1);
         Gp_MsgSlot4Chain(1, 1);
         if (GameFlag_GetNibble(2) != 0 && slot != NULL) {
-            Gp_DispatchMsgPtr(slot, 0x7D3, &D_acropolis_sanctuary_80180AE8, 0);
-            Gp_DispatchMsgPtr(slot, 0x7D4, &D_acropolis_sanctuary_801808BC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_acropolis_sanctuary_80180AE8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_acropolis_sanctuary_801808BC, 0);
         }
     }
     func_acropolis_sanctuary_8017DD78();
@@ -1803,7 +1802,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 weapon.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
                 weapon.rec.blendFrames          = 0xF;
                 weapon.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(slot->target, ANIMATION_MESSAGE_PLAY, &weapon, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(slot->target, ANIMATION_MESSAGE_PLAY, &weapon, 0);
                 SndEvt_EnqueueType6(0x510C0007, 0, 0);
                 func_800E8634(D_acropolis_sanctuary_801820F0, 0, D_acropolis_sanctuary_801821C8);
                 arg0->state = arg0->state + 1;
@@ -1838,7 +1837,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                             rec.rec.blend                 = ANIMATION_BLEND_RESET;
                             msg->rec.blendFrames          = 0xF;
                             msg->rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                            Gp_DispatchMsgPtr(target->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
+                            TASK_MESSAGE_DISPATCH_POINTER(target->target, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
                         }
                         rec.place.pos.vx  = -0x1DB0;
                         rec.place.pos.vy  = 0;
@@ -1846,7 +1845,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vx  = 0;
                         rec.place.rot.vy  = 0;
                         rec.place.rot.vz  = 0;
-                        Gp_DispatchMsgPtr(cutscene->target, 0x3E9, msg, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(cutscene->target, 0x3E9, msg, 0);
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
                         cutscene->step                                             = cutscene->step + 1;
                     }

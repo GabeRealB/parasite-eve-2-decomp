@@ -16,7 +16,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
@@ -195,7 +194,7 @@ u8 D_neo_ark_altar_8017F0E4[8] = {
 };
 
 u8* D_neo_ark_altar_8017F0EC[3] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_neo_ark_altar_8017F0DC,
     D_neo_ark_altar_8017F0E4,
 };

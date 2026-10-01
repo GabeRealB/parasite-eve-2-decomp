@@ -76,12 +76,23 @@ void Gfx_MatrixCol1(MATRIX* matrix, SVECTOR* vector);
 
 void Gfx_MatrixCol2(MATRIX* matrix, SVECTOR* vector);
 
-/// Normalizes a light direction from a readable VECTOR-sized span.
+/// Converts a light direction to a short vector with length approximately `ONE`.
 ///
-/// The input's first three signed words are the direction. All 16 bytes must
-/// be readable, including the unused fourth word; translation views must also
-/// provide the following word. `out` receives the normalized short vector.
-void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out);
+/// `direction` is a word-aligned, readable 16-byte span whose first three
+/// signed 32-bit words are xyz in any common scale and coordinate frame. The
+/// fourth word is copied but has no effect on the result. This accepts a
+/// `VECTOR`, a `GsF_LIGHT`, or a matrix translation with a readable following
+/// word; a standalone three-word translation is insufficient.
+///
+/// Large components are uniformly right-shifted before normalization, rounding
+/// negative values down. The result uses the input's coordinate frame and
+/// 4096 for 1.0, and writes only `normalizedDirection`'s xyz; its final halfword
+/// is untouched. A zero direction produces zero components.
+///
+/// Requires an initialized scratch stack with 24 free bytes, released before
+/// return. Input and output must be disjoint from that reservation. Changes
+/// GTE arithmetic and leading-sign-bit-count state; retains no caller pointer.
+void gfxNormalizeLightDirection(const void* direction, SVECTOR* normalizedDirection);
 
 void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2);
 
@@ -95,13 +106,13 @@ s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 /// The caller manages any containing `GfxCoord`'s `composeStamp` separately.
 static __inline__ void gfxSetRotIdentity(MATRIX* matrix)
 {
-    GpMtxWords* rotationWords = (GpMtxWords*)matrix;
+    GfxRotationWords* rotationWords = (GfxRotationWords*)matrix;
 
-    rotationWords->m00_m01 = ONE;
-    rotationWords->m02_m10 = 0;
-    rotationWords->m11_m12 = ONE;
-    rotationWords->m20_m21 = 0;
-    rotationWords->m22     = ONE;
+    rotationWords->m00M01 = ONE;
+    rotationWords->m02M10 = 0;
+    rotationWords->m11M12 = ONE;
+    rotationWords->m20M21 = 0;
+    rotationWords->m22    = ONE;
 }
 
 #endif // MAIN_GFX_H

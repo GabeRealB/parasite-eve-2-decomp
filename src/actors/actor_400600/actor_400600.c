@@ -1548,7 +1548,7 @@ AnimationSet* D_actor_400600_80151A54[35] = {
 };
 
 Actor400600MessageEntry D_actor_400600_80151AE0[3] = {
-    { 2011, { .call1 = func_actor_400600_8013A338 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_400600_8013A338 } },
     { 2014, { .call0 = func_actor_400600_8013A3A8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2516,7 +2516,7 @@ static void func_actor_400600_80133FC0(Task* arg0)
         return;
     }
     query.field_14 = 8;
-    if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
         Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         if (work->field_768 == 0) {
             work3            = (Actor400600Work*)arg0->work;
@@ -2540,7 +2540,7 @@ static void func_actor_400600_80133FC0(Task* arg0)
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     msg.animationId          = 1;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     work2                = (Actor400600Work*)arg0->work;
     work2->field_720     = 4;
@@ -2602,7 +2602,7 @@ static void func_actor_400600_80134218(Task* arg0)
             msg.blendFrames          = 8;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             msg.animationId          = 2;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         }
         work2                = (Actor400600Work*)arg0->work;
         work2->field_720     = 8;
@@ -3032,11 +3032,11 @@ static void func_actor_400600_801356E0(Task* arg0)
         coord->coord.t[1] = 0;
         coord->coord.t[2] = 0;
         pm                = &m;
-        pm->ident.m00_m01 = 0x1000;
-        pm->ident.m02_m10 = 0;
-        pm->ident.m11_m12 = 0x1000;
-        pm->ident.m20_m21 = 0;
-        pm->ident.m22     = 0x1000;
+        pm->ident.m00M01  = ONE;
+        pm->ident.m02M10  = 0;
+        pm->ident.m11M12  = ONE;
+        pm->ident.m20M21  = 0;
+        pm->ident.m22     = ONE;
         RotMatrixY(-0x180, &pm->mat);
         mdst                   = &coord->coord;
         mdst->m[0][0]          = pm->mat.m[0][0];
@@ -3076,12 +3076,12 @@ static void func_actor_400600_801356E0(Task* arg0)
             tmdProcessStream(dst);
             tmdProcessStream(dst);
         }
-        pm2                = &m;
-        pm2->ident.m00_m01 = 0x1000;
-        pm2->ident.m02_m10 = 0;
-        pm2->ident.m11_m12 = 0x1000;
-        pm2->ident.m20_m21 = 0;
-        pm2->ident.m22     = 0x1000;
+        pm2               = &m;
+        pm2->ident.m00M01 = ONE;
+        pm2->ident.m02M10 = 0;
+        pm2->ident.m11M12 = ONE;
+        pm2->ident.m20M21 = 0;
+        pm2->ident.m22    = ONE;
         RotMatrixY(0x180, &pm2->mat);
         mdst          = &coord->coord;
         mdst->m[0][0] = pm2->mat.m[0][0];
@@ -3964,33 +3964,33 @@ static void func_actor_400600_80137498(Task* arg0, s16 arg1)
             if (work->field_768 == 0) {
                 OverlayMat* m = &rot;
 
-                v.vx              = work->field_A8.x - arg0->extra.tmd->coords->coord.t[0];
-                v.vy              = work->field_A8.y - arg0->extra.tmd->coords->coord.t[1] - 0x384;
-                v.vz              = work->field_A8.z - arg0->extra.tmd->coords->coord.t[2];
-                rot.ident.m00_m01 = 0x1000;
-                rot.ident.m02_m10 = 0;
-                m->ident.m11_m12  = 0x1000;
-                rot.ident.m20_m21 = 0;
-                m->ident.m22      = 0x1000;
-                rot.mat.t[0]      = 0;
-                rot.mat.t[1]      = 0;
-                rot.mat.t[2]      = 0;
+                v.vx             = work->field_A8.x - arg0->extra.tmd->coords->coord.t[0];
+                v.vy             = work->field_A8.y - arg0->extra.tmd->coords->coord.t[1] - 0x384;
+                v.vz             = work->field_A8.z - arg0->extra.tmd->coords->coord.t[2];
+                rot.ident.m00M01 = ONE;
+                rot.ident.m02M10 = 0;
+                m->ident.m11M12  = ONE;
+                rot.ident.m20M21 = 0;
+                m->ident.m22     = ONE;
+                rot.mat.t[0]     = 0;
+                rot.mat.t[1]     = 0;
+                rot.mat.t[2]     = 0;
                 RotMatrixY(-(s16)work->field_82, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             } else {
                 OverlayMat* m = &rot;
 
-                v.vx              = work->field_A8.x - arg0->extra.tmd->coords->coord.t[0];
-                v.vy              = work->field_A8.y - arg0->extra.tmd->coords->coord.t[1] - 0x640;
-                v.vz              = work->field_A8.z - arg0->extra.tmd->coords->coord.t[2];
-                rot.ident.m00_m01 = 0x1000;
-                rot.ident.m02_m10 = 0;
-                m->ident.m11_m12  = 0x1000;
-                rot.ident.m20_m21 = 0;
-                m->ident.m22      = 0x1000;
-                rot.mat.t[0]      = 0;
-                rot.mat.t[1]      = 0;
-                rot.mat.t[2]      = 0;
+                v.vx             = work->field_A8.x - arg0->extra.tmd->coords->coord.t[0];
+                v.vy             = work->field_A8.y - arg0->extra.tmd->coords->coord.t[1] - 0x640;
+                v.vz             = work->field_A8.z - arg0->extra.tmd->coords->coord.t[2];
+                rot.ident.m00M01 = ONE;
+                rot.ident.m02M10 = 0;
+                m->ident.m11M12  = ONE;
+                rot.ident.m20M21 = 0;
+                m->ident.m22     = ONE;
+                rot.mat.t[0]     = 0;
+                rot.mat.t[1]     = 0;
+                rot.mat.t[2]     = 0;
                 RotMatrixY(-(s16)work->field_82, &m->mat);
                 RotMatrixZ(-(s16)work->field_84, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
@@ -4074,12 +4074,12 @@ static inline void _actor400600SetCoordRotation(GfxCoord* coord, s16 angle)
     OverlayMat* m;
     MATRIX*     dst;
 
-    rot.ident.m00_m01 = 0x1000;
-    rot.ident.m02_m10 = 0;
-    m                 = &rot;
-    m->ident.m11_m12  = 0x1000;
-    rot.ident.m20_m21 = 0;
-    m->ident.m22      = 0x1000;
+    rot.ident.m00M01 = ONE;
+    rot.ident.m02M10 = 0;
+    m                = &rot;
+    m->ident.m11M12  = ONE;
+    rot.ident.m20M21 = 0;
+    m->ident.m22     = ONE;
     RotMatrixY(angle, &m->mat);
     dst          = &coord->coord;
     dst->m[0][0] = rot.mat.m[0][0];

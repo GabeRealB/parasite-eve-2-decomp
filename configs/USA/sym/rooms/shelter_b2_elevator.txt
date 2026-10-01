@@ -39,7 +39,7 @@ D_shelter_b2_elevator_8017E93C = 0x8017E93C; // size:0x18 defined:True
 D_shelter_b2_elevator_8017E954 = 0x8017E954; // size:0x10 defined:True
 D_shelter_b2_elevator_8017E964 = 0x8017E964; // size:0x58 defined:True
 D_shelter_b2_elevator_8017E9BC = 0x8017E9BC; // size:0xC defined:True
-D_8010CAF8 = 0x8010CAF8; // absolute:True
+gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_80137600 = 0x80137600; // absolute:True
 
 func_shelter_b2_elevator_8017DB70 = 0x8017DB70; // type:func

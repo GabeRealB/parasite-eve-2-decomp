@@ -2249,7 +2249,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_50C = 0;
                 work->field_50A = 0;
                 work->field_548 = (u16)(work->field_548 + 1);
-                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
+                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
             break;
         case 22:
@@ -2307,7 +2307,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 } else {
                     work->field_506 = 0x17;
                 }
-                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
+                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
             break;
         case 23:
@@ -2320,7 +2320,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_51A  = 0;
                 work->field_4EA  = 0;
                 work->field_42A |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_2BA  = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
+                work->field_2BA  = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
             break;
         case 6:
@@ -2880,13 +2880,13 @@ static void Actor01600_Fn020F8(Task* actor)
                             SndEvt_EnqueueType6(id, (s32)pan23, (s8)worldCoordGetOriginAudioDepth(coord));
                             if (work->field_53E != 0) {
                                 Actor01600_D127D8.animationId = 1;
-                                Gp_DispatchMsgPtr(work->field_4D4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &Actor01600_D127D8, 0);
+                                TASK_MESSAGE_DISPATCH_POINTER(work->field_4D4, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &Actor01600_D127D8, 0);
                                 id    = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4065000A;
                                 pan24 = (s8)worldCoordGetOriginAudioPan(coord);
                                 SndEvt_EnqueueType6(id, (s32)pan24, (s8)worldCoordGetOriginAudioDepth(coord));
                             } else {
                                 Actor01600_D127D8.animationId = 2;
-                                Gp_DispatchMsgPtr(work->field_4D4, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor01600_D127D8, 0);
+                                TASK_MESSAGE_DISPATCH_POINTER(work->field_4D4, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor01600_D127D8, 0);
                                 id           = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                                 pan_msg_zero = (s8)worldCoordGetOriginAudioPan(coord);
                                 SndEvt_EnqueueType6(id, (s32)pan_msg_zero, (s8)worldCoordGetOriginAudioDepth(coord));
@@ -2949,7 +2949,7 @@ static void Actor01600_Fn020F8(Task* actor)
                                 Actor01600_D127D8.animationId = 3;
                                 Actor01600_D127D8.blend       = ANIMATION_BLEND_INTERPOLATE;
                                 Actor01600_D127D8.blendFrames = 1;
-                                Gp_DispatchMsgPtr(work->field_4D4, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor01600_D127D8, 0);
+                                TASK_MESSAGE_DISPATCH_POINTER(work->field_4D4, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor01600_D127D8, 0);
                                 work->field_508 = 0;
                                 work->field_50A = 0;
                                 work->field_506 = 0x1E;
@@ -3474,7 +3474,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
                     }
                     pad->field_6 |= 1;
                     Gp_PulseState1C();
-                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, arg1, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, arg1, 0);
                     work->field_502         = 0xFF;
                     arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -3579,7 +3579,7 @@ static s32 Actor01600_Fn047A0(Task* arg0)
                     } else {
                         Actor01600_D12878.animation.animationId = 2;
                     }
-                    if (Gp_DispatchMsgPtr(task, 0x3F8, &Actor01600_D12878, 0) == 0) {
+                    if (TASK_MESSAGE_DISPATCH_POINTER(task, 0x3F8, &Actor01600_D12878, 0) == 0) {
                         other->composeStamp = GRAPHICS_COORD_DIRTY;
                         delta.vx            = coord->coord.t[0] - other->coord.t[0];
                         delta.vy            = 0;
@@ -3597,7 +3597,7 @@ static s32 Actor01600_Fn047A0(Task* arg0)
                         Actor01600_D12890.pos.vx = (s32)other->coord.t[0];
                         Actor01600_D12890.pos.vy = (s32)other->coord.t[1];
                         Actor01600_D12890.pos.vz = (s32)other->coord.t[2];
-                        Gp_DispatchMsgPtr(task, 0x3E9, &Actor01600_D12890, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(task, 0x3E9, &Actor01600_D12890, 0);
                         Actor01600_D12870 = 1;
                         return 1;
                     }
@@ -4672,15 +4672,15 @@ static void Actor01600_Fn06880(Task* arg0)
     if (work->field_518 >= 0x201) {
         work->field_518 = (u16)work->field_518 - 0x50;
     }
-    scratch->scale.vx          = 0x1000;
-    scratch->scale.vy          = (s32)work->field_518;
-    scratch->scale.vz          = 0x1000;
-    coord->coord               = work->field_49C;
-    scratch->mat.ident.m00_m01 = 0x1000;
-    scratch->mat.ident.m02_m10 = 0;
-    scratch->mat.ident.m11_m12 = 0x1000;
-    scratch->mat.ident.m20_m21 = 0;
-    scratch->mat.ident.m22     = 0x1000;
+    scratch->scale.vx         = 0x1000;
+    scratch->scale.vy         = (s32)work->field_518;
+    scratch->scale.vz         = 0x1000;
+    coord->coord              = work->field_49C;
+    scratch->mat.ident.m00M01 = ONE;
+    scratch->mat.ident.m02M10 = 0;
+    scratch->mat.ident.m11M12 = ONE;
+    scratch->mat.ident.m20M21 = 0;
+    scratch->mat.ident.m22    = ONE;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4709,13 +4709,13 @@ static void Actor01600_Fn06974(Task* actor, s32 distance)
     work->move.vz                  = 0;
     SCRATCH_HEAD_AT(scratch, void) = work;
     Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, &(head - 1)->dir);
-    mat                = &(head - 1)->mat;
-    work->yaw          = ratan2(work->dir.vx, work->dir.vz);
-    mat->ident.m00_m01 = 0x1000;
-    mat->ident.m02_m10 = 0;
-    mat->ident.m11_m12 = 0x1000;
-    mat->ident.m20_m21 = 0;
-    mat->ident.m22     = 0x1000;
+    mat               = &(head - 1)->mat;
+    work->yaw         = ratan2(work->dir.vx, work->dir.vz);
+    mat->ident.m00M01 = ONE;
+    mat->ident.m02M10 = 0;
+    mat->ident.m11M12 = ONE;
+    mat->ident.m20M21 = 0;
+    mat->ident.m22    = ONE;
     RotMatrixY(work->yaw, &mat->mat);
     ApplyMatrixLV(&mat->mat, &work->move, &work->move);
     coord->coord.t[0] += work->move.vx;

@@ -154,8 +154,6 @@ static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, con
 
 static void Text_DrawGlyphDualSprtA(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
-static void Text_DrawGlyphDualSprt(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
-
 static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
 /// Writes `value` in decimal to `arg0` and terminates it; values past nine
@@ -460,35 +458,87 @@ static void Text_DrawGlyphDualSprtA(TextDrawReq* request, const _FontGlyph* glyp
     addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_DrawGlyphDualSprt(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
+/// Sets matching screen and texture rectangles for a UI glyph's fill and outline.
+///
+/// Pen coordinates and glyph offsets are in draw-environment pixels. X starts
+/// at the pen plus `glyph->xOffset`; Y places the last row at the pen baseline
+/// plus `glyph->yOffset`, before narrowing X/Y to signed 16-bit sprite fields.
+/// U/V are page-local texels; adding signed `request->vBias` to V wraps modulo
+/// 256. Byte-sized minus-one dimensions decode to 1..256 pixels and texels.
+///
+/// `fill` and `outline` are distinct writable `SPRT` packets owned by the caller.
+/// Updates only their position, UV and dimensions. Packet allocation,
+/// header/color/CLUT setup and queueing belong to the caller. Borrows `request`
+/// and `glyph` without modifying or retaining them or advancing the pen.
+static inline void _textSetOutlinedGlyphRectangle(SPRT* fill, SPRT* outline,
+                                                  const TextDrawReq* request, const _FontGlyph* glyph)
 {
-    SPRT* p;
-    SPRT* p2;
-    s32   temp;
+    outline->x0 = fill->x0 = request->x + glyph->xOffset;
+    outline->y0 = fill->y0 = (request->y - glyph->heightMinusOne) + glyph->yOffset;
+    outline->u0 = fill->u0 = glyph->u;
+    outline->v0 = fill->v0 = glyph->v + request->vBias;
+    outline->w = fill->w = glyph->widthMinusOne + 1;
+    outline->h = fill->h = glyph->heightMinusOne + 1;
+}
 
-    p                              = gGpuPrimCursor;
-    gGpuPrimCursor                 = p + 1;
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
-    setlen(p, 4);
-    setcode(p, 0x64);
+/// Queues an opaque glyph fill and subtractive outline in adjacent OT entries.
+///
+/// Borrows `request` and `glyph` without modifying or retaining them. Pen and
+/// glyph offsets are in draw-environment pixels; texture U/V and dimensions are
+/// in texels. V wraps modulo 256 after adding `request->vBias`; screen X/Y are
+/// stored in signed 16-bit sprite fields. `colorRgb` supplies modulation RGB in
+/// bits 0..23 (red in the low byte); the command byte is replaced.
+/// Reserves two `SPRT` packets (40 bytes) from the word-aligned `gGpuPrimCursor`.
+/// Both signed tag indices `request->otIndex` and `request->otIndex + 1` must
+/// lie within the active `gGpuCurrentOt`, and the arena must have room for both
+/// packets. Font textures and palettes must already be loaded. The caller must
+/// prepend font-page commands to both entries, selecting subtractive blending
+/// for the outline entry so it executes before the fill. Packets remain live
+/// until GPU drawing completes; this callback does not advance the pen.
+static void _textDrawGlyphOutlined(TextDrawReq* request, const _FontGlyph* glyph, s32 colorRgb)
+{
+    /// Palettes in the final VRAM row: glyph fill and opaque-text outline.
+    enum {
+        /// GPU CLUT selector for the color-modulated fill of an outlined UI glyph.
+        ///
+        /// Encodes VRAM word X=976, row Y=511 as 0x7FFD for `SPRT::clut`.
+        /// `Text_LoadClutImages` uploads the 16-color palette there: texel indices
+        /// 0..10 are transparent and 11..15 are progressively brighter gray.
+        /// The fill sprite disables semi-transparency and modulates these colors by RGB.
+        TEXT_OUTLINED_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
+        /// GPU CLUT selector for the subtractive outline of an opaque UI glyph.
+        ///
+        /// Encodes VRAM word X=1008, row Y=511 as 0x7FFF for `SPRT::clut`.
+        /// The final 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// resident: indices 0..5 are transparent, 6..9 are increasing gray,
+        /// and 10..15 are white. All nonzero colors enable semi-transparency.
+        /// The raw-texture sprite ignores RGB; with subtractive page blending,
+        /// these colors darken the background before the opaque fill is drawn.
+        TEXT_OUTLINED_GLYPH_OUTLINE_CLUT = getClut(0x3F0, 0x1FF),
+    };
 
-    p2             = gGpuPrimCursor;
-    gGpuPrimCursor = p2 + 1;
-    setlen(p2, 4);
-    setcode(p2, 0x67);
+    SPRT* fill;
+    SPRT* outline;
 
-    p2->x0 = p->x0 = request->x + glyph->xOffset;
-    p2->y0 = p->y0 = (request->y - glyph->heightMinusOne) + glyph->yOffset;
-    p2->u0 = p->u0 = glyph->u;
-    p2->v0 = p->v0 = glyph->v + request->vBias;
-    p2->w = p->w = glyph->widthMinusOne + 1;
-    temp         = glyph->heightMinusOne;
-    p2->h = p->h = temp + 1;
-    p2->clut     = 0x7FFF;
-    p->clut      = 0x7FFD;
+    fill                              = gGpuPrimCursor;
+    gGpuPrimCursor                    = fill + 1;
+    GPU_PRIMITIVE_COLOR_WORD(fill, 0) = colorRgb;
+    setSprt(fill);
 
-    addPrim(gGpuCurrentOt + request->otIndex + 1, p2);
-    addPrim(gGpuCurrentOt + request->otIndex, p);
+    outline        = gGpuPrimCursor;
+    gGpuPrimCursor = outline + 1;
+    setSprt(outline);
+    setSemiTrans(outline, true);
+    setShadeTex(outline, true);
+
+    // Both passes sample the same rectangle; the outline's raw texture ignores RGB.
+    _textSetOutlinedGlyphRectangle(fill, outline, request, glyph);
+    outline->clut = TEXT_OUTLINED_GLYPH_OUTLINE_CLUT;
+    fill->clut    = TEXT_OUTLINED_GLYPH_FILL_CLUT;
+
+    // Descending OT traversal draws the outline entry before the opaque fill.
+    addPrim(gGpuCurrentOt + request->otIndex + 1, outline);
+    addPrim(gGpuCurrentOt + request->otIndex, fill);
 }
 
 static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
@@ -579,7 +629,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
     }
     switch (request->drawMode) {
         case TEXT_DRAW_OUTLINED:
-            draw = Text_DrawGlyphDualSprt;
+            draw = _textDrawGlyphOutlined;
             break;
         case TEXT_DRAW_OUTLINED_SINGLE_ENTRY:
             draw = Text_DrawGlyphDualSprtTpage;
@@ -675,7 +725,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                                 break;
                             case '1':
                                 request->drawMode = TEXT_DRAW_OUTLINED;
-                                draw              = Text_DrawGlyphDualSprt;
+                                draw              = _textDrawGlyphOutlined;
                                 break;
                         }
                         ptr++;

@@ -13,7 +13,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -106,7 +105,7 @@ void func_dryfield_junk_yard_8017D848(Task*);
 s32  func_dryfield_junk_yard_8017D994(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_junk_yard_8017DA44(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_junk_yard_8017DB78(Task*, s32, DirectionActionRequest* msg, TaskMessageArg);
+s32  func_dryfield_junk_yard_8017DB78(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD60;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD74;
@@ -318,7 +317,7 @@ WorldCoordRoomLighting D_dryfield_junk_yard_8017ED14[1] = {
 };
 
 u8* D_dryfield_junk_yard_8017ED1C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_junk_yard_8017ED20[1] = {
@@ -1549,15 +1548,15 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         if (GameFlag_GetNibble(0x38) == 0) {
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
             Gp_AllyAnimId(&D_dryfield_junk_yard_8017DD88.source.index);
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DD88, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DD88, 0);
         }
         if ((GameFlag_GetNibble(0x39) == 0) && (GameFlag_GetNibble(0x28) >= 2)) {
             GameFlag_SetNibble(0x39, 1);
             func_800E8634(D_dryfield_junk_yard_8017E490, 0, D_dryfield_junk_yard_8017E658);
         } else if (gGameSession->location.loc.warp == 2) {
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
         }
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -1587,7 +1586,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3EE, &D_dryfield_junk_yard_8017DE18, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3EE, &D_dryfield_junk_yard_8017DE18, 0);
             task->state = task->state + 1;
             return;
         case 4:
@@ -1597,7 +1596,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDD8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDD8, 0);
             task->state = task->state + 1;
             return;
         case 6:
@@ -1607,7 +1606,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 7:
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDEC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDEC, 0);
             /* fallthrough */
         case 2:
             taskKill(task);
@@ -1688,8 +1687,10 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 /// spawns the sequence task. When it is 2, the slot-0xA task stands at x
 /// 0x5209 or beyond and nibble 0x38 is 1, it advances the nibble to 2 and
 /// starts a `func_800E8634` sequence. Always returns 0.
-s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, DirectionActionRequest* msg, TaskMessageArg arg3)
+s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* msg = firstArg.pointer;
+
     Task* player;
 
     if (msg->actionId == 1) {

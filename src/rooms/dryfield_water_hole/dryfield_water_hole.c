@@ -18,7 +18,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -207,7 +206,7 @@ u8 D_dryfield_water_hole_8017FD7C[8] = {
 };
 
 u8* D_dryfield_water_hole_8017FD84[4] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_water_hole_8017FD6C,
     D_dryfield_water_hole_8017FD74,
     D_dryfield_water_hole_8017FD7C,

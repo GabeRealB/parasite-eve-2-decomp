@@ -270,7 +270,7 @@ extern const char D_mist_shooting_gallery_8017DAC8[20];
 s32               func_mist_shooting_gallery_8017FEB0(Task*, s32, s32, s32);
 s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, TaskMessageArg);
-s32               func_mist_shooting_gallery_8018008C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32               func_mist_shooting_gallery_8018008C(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 void              func_mist_shooting_gallery_8017E234(Task*);
 void              func_mist_shooting_gallery_8017E854(Task*);
 void              func_mist_shooting_gallery_8017EAE0(Task*);
@@ -879,7 +879,7 @@ GpRoomObjRec D_mist_shooting_gallery_801853A8[1] = {
 };
 
 u8* D_mist_shooting_gallery_801853B8[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_mist_shooting_gallery_801853BC[2] = {
@@ -2018,8 +2018,10 @@ s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, TaskMess
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if ((request->actionId == 1) && (D_8014D038 == 0)) {
         Gp_MsgPlayerWeapon(0);
         Task_SpawnFromTable(&D_8014E13C, 1, 1, 0);

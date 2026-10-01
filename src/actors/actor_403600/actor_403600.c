@@ -1135,7 +1135,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
                 poly->code = 0x2D;
             } else {
                 step                              = (fade - 0xC00) >> 3;
-                GPU_PRIMITIVE_COLOR_WORD(poly, 0) = (((step / 2 + 0x80) & 0xFF) << 8) | PRIM_RGBC(0, 0, 0x80, 0) | ((step + 0x7F) & 0xFF);
+                GPU_PRIMITIVE_COLOR_WORD(poly, 0) = (((step / 2 + 0x80) & 0xFF) << 8) | GPU_PACK_COLOR_WORD(0, 0, 0x80, 0) | ((step + 0x7F) & 0xFF);
                 setlen(poly, 9);
                 poly->code = 0x2C;
             }
@@ -1151,7 +1151,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
         tile->w                 = 0x140;
         tile->h                 = 0xF0;
         setlen(tile, 3);
-        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0xC0, 0x60, 0x20, 0);
+        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0xC0, 0x60, 0x20, 0);
         tile->code                        = 0x62;
         draw_mode                         = gGpuPrimCursor;
         gGpuPrimCursor                    = draw_mode + 1;

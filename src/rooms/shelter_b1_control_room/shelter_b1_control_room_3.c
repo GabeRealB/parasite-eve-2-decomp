@@ -1,13 +1,13 @@
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
 #include "gte.h"
@@ -38,7 +38,7 @@
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
 u8* D_shelter_b1_control_room_80181C70[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b1_control_room_80181C74[1] = {

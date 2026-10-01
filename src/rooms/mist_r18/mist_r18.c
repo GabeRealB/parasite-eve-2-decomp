@@ -14,7 +14,6 @@
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -901,7 +900,7 @@ GpRoomObjRec D_mist_r18_8018660C[1] = {
 };
 
 u8* D_mist_r18_8018661C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_mist_r18_80186620[2] = {

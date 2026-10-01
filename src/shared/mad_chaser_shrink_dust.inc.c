@@ -6,13 +6,13 @@
 /// hides the model and advances the state.
 void madChaserShrinkWithDust(Task* arg0)
 {
-    Actor341700Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    VECTOR           scale;
-    OverlayMat       m;
-    GpMtxWords*      ident;
-    SVECTOR          ofs;
+    Actor341700Work*  work;
+    TmdObject*        obj;
+    GfxCoord*         coord;
+    VECTOR            scale;
+    OverlayMat        m;
+    GfxRotationWords* ident;
+    SVECTOR           ofs;
 
     work             = (Actor341700Work*)arg0->work;
     ident            = &m.ident;
@@ -23,11 +23,11 @@ void madChaserShrinkWithDust(Task* arg0)
     scale.vy         = (s16)work->field_430;
     scale.vz         = 0x1000;
     coord->coord     = work->savedRootMtx;
-    m.ident.m00_m01  = 0x1000;
-    m.ident.m02_m10  = 0;
-    ident->m11_m12   = 0x1000;
-    m.ident.m20_m21  = 0;
-    ident->m22       = 0x1000;
+    m.ident.m00M01   = ONE;
+    m.ident.m02M10   = 0;
+    ident->m11M12    = ONE;
+    m.ident.m20M21   = 0;
+    ident->m22       = ONE;
     ScaleMatrix(&m.mat, &scale);
     MulMatrix(&coord->coord, &m.mat);
     if ((s16)++work->field_412 == 4) {

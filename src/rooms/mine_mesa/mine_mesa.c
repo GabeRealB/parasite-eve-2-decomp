@@ -21,7 +21,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -288,7 +287,7 @@ void                            func_mine_mesa_80181894(Task*);
 s32 func_mine_mesa_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_mine_mesa_8017DA7C(Task*, s32, s32, TaskMessageArg);
-s32 func_mine_mesa_8017DABC(Task*, s32, DirectionActionRequest* msg, s32);
+s32 func_mine_mesa_8017DABC(Task*, s32, TaskMessageArg firstArg, s32);
 s32 func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
 
 TaskDesc D_mine_mesa_801818F8 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -1123,7 +1122,7 @@ GpRoomObjRec D_mine_mesa_80186538[1] = {
 };
 
 u8* D_mine_mesa_80186548[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 WorldCoordRoomLighting D_mine_mesa_8018654C[1] = {
@@ -2661,8 +2660,10 @@ s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
     return 0;
 }
 
-s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
+s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* msg = firstArg.pointer;
+
     switch (msg->actionId) {
         case 1:
             if (GameFlag_GetNibble(0x71) == 0) {
@@ -2875,7 +2876,7 @@ void func_mine_mesa_8017E074(Task* arg0)
     rec.rot.vy  = 0x311;
     rec.rot.vz  = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
 }
 
 /// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:

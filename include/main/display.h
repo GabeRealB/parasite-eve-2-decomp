@@ -65,7 +65,7 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 /// later Gouraud vertices; compatible sprite source records hold flags there.
 /// Reads and writes include all four bytes. An RGB-only value clears the command
 /// byte at vertex 0, so set the packet code afterwards or include it in the word.
-/// `PRIM_RGBC` packs the four bytes.
+/// `GPU_PACK_COLOR_WORD` packs the four bytes.
 ///
 /// `primitive` is evaluated once and must point to a mutable record with a
 /// word-aligned four-byte group starting at the selected `rN` member.
@@ -92,10 +92,22 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 /// This accessor captures no identifiers and does not allocate or retain storage.
 #define GPU_PRIMITIVE_XY_WORD(primitive, vertexIndex) (*(u32*)&((primitive)->x##vertexIndex))
 
-/// A colour word from its bytes; `code` is the primitive code for vertex 0 and
-/// 0 for the other vertices.
-#define PRIM_RGBC(r, g, b, code) \
-    ((u32)(r) | ((u32)(g) << 8) | ((u32)(b) << 16) | ((u32)(code) << 24))
+/// Packs RGB and a command byte into a `u32` GPU colour word.
+///
+/// Red, green and blue occupy bits 0..7, 8..15 and 16..23; `commandByte`
+/// occupies bits 24..31. Pass the packet's complete command for vertex 0,
+/// or zero for the unused high byte of later Gouraud vertices. Assigning the
+/// result to `GPU_PRIMITIVE_COLOR_WORD` replaces all four bytes. When writing
+/// vertex 0 with a zero command, set the packet code afterwards before linking
+/// it for drawing.
+///
+/// All arguments must be integer byte values (0..255); they are not masked or
+/// clamped. Conversion to `u32` before shifting keeps every shift unsigned.
+/// Each argument is evaluated once, with no specified relative evaluation order.
+/// The macro captures no identifiers and is a constant expression when its
+/// arguments are integer constant expressions.
+#define GPU_PACK_COLOR_WORD(red, green, blue, commandByte) \
+    ((u32)(red) | ((u32)(green) << 8) | ((u32)(blue) << 16) | ((u32)(commandByte) << 24))
 
 /// Resident presentation, frame clocks and display/session controls shared by all overlays.
 ///

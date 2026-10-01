@@ -151,7 +151,7 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
 
     prim                              = gGpuPrimCursor;
     gGpuPrimCursor                    = prim + 1;
-    GPU_PRIMITIVE_COLOR_WORD(prim, 0) = PRIM_RGBC(0, 0xc0, 0x40, 0);
+    GPU_PRIMITIVE_COLOR_WORD(prim, 0) = GPU_PACK_COLOR_WORD(0, 0xc0, 0x40, 0);
     GPU_PRIMITIVE_XY_WORD(prim, 0)    = *(u32*)&sc->sxyPrev;
     GPU_PRIMITIVE_XY_WORD(prim, 1)    = *(u32*)&sc->sxy;
     setlen(prim, 3);
@@ -533,7 +533,7 @@ void func_800A57B0(GpIdMapC* arg0)
                 tile->y0       = y + 0xE;
                 tile->h        = 2;
                 setlen(tile, 3);
-                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
+                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0x1f, 0x74, 0x01, 0);
                 setcode(tile, 0x60);
                 tile->w = w1;
                 addPrim(gGpuCurrentOt - 2, tile);
@@ -547,7 +547,7 @@ void func_800A57B0(GpIdMapC* arg0)
                 }
                 tile->y0                          = y + 0xE;
                 tile->h                           = 2;
-                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0xff, 0xff, 0, 0);
+                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0xff, 0xff, 0, 0);
                 setlen(tile, 3);
                 setcode(tile, 0x60);
                 tile->w = w2 - w1;
@@ -582,7 +582,7 @@ void func_800A57B0(GpIdMapC* arg0)
         tile->y0       = y + 0xE;
         tile->h        = 2;
         setlen(tile, 3);
-        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0x1f, 0x74, 0x01, 0);
+        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0x1f, 0x74, 0x01, 0);
         setcode(tile, 0x60);
         tile->w = w1;
         addPrim(gGpuCurrentOt - 2, tile);
@@ -596,7 +596,7 @@ void func_800A57B0(GpIdMapC* arg0)
         }
         tile->y0                          = y + 0xE;
         tile->h                           = 2;
-        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0xff, 0xff, 0, 0);
+        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0xff, 0xff, 0, 0);
         setlen(tile, 3);
         setcode(tile, 0x60);
         tile->w = w2 - w1;

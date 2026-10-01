@@ -119,9 +119,9 @@ extern u8 gRoamerArmCountsA[];
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, TaskMessageArg, TaskMessageArg);
-        s32  (*call1)(Task*, s32, u8*, TaskMessageArg);
-        void (*call2)(Task*, s32, s32);
+        TaskMessageHandler call0;
+        TaskMessageHandler call1;
+        void               (*call2)(Task*, s32, s32);
     } handler;
 } NeoArkWoodlandPath2MsgEntry;
 STATIC_ASSERT_SIZEOF(NeoArkWoodlandPath2MsgEntry, 8);
@@ -176,7 +176,7 @@ typedef struct NeoArkWoodlandPathTrailObj {
 
 s32 func_neo_ark_woodland_path_80181474(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_woodland_path_8018154C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_woodland_path_80181568(Task*, s32, u8*, TaskMessageArg);
+s32 func_neo_ark_woodland_path_80181568(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 void func_neo_ark_woodland_path_801814E8(Task*);
 void func_neo_ark_woodland_path_801815D4(Task*);
@@ -248,7 +248,7 @@ s16 gRoamerReleasePending = 0;
 NeoArkWoodlandPath2MsgEntry gRoamerMsgTableA[4] = {
     { 5103, { .call0 = roamerLatchRequest } },
     { 5108, { .call2 = roamerBankRetreat } },
-    { 2011, { .call0 = func_neo_ark_woodland_path_80181474 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_woodland_path_80181474 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -492,7 +492,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     gRoamerCooldown += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
                     switch ((s16)(gRoamerSpawnRequest - 1)) {
                         case 0:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[0].x;

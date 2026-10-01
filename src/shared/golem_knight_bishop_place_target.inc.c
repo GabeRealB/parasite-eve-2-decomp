@@ -4,11 +4,11 @@
 
 /// Parks the actor's target position off the player (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`).
 /// In state 3 it takes `field_6E6` from the player's heading and places the
-/// target 0x5AA behind the player, raising bit 0x4000 of `field_5BA` and
+/// target 0x5AA behind the player, enabling grid tests through `field_5BA` and
 /// `field_5DA`; in state 4 it rolls an angle from `gRandomLcgState` (anywhere, or
 /// within a quarter turn either side while `field_6E8` is clear), derives
 /// `field_5DC` / `field_5E0` from it, adds the player's heading and places the
-/// target 0x4B out along the result, raising bit 0x4000 of `field_5BA`.
+/// target 0x4B out along the result, enabling grid tests through `field_5BA`.
 void golemKnightBishopPlaceTarget(Task* arg0)
 {
     u8*                       head;
@@ -38,8 +38,8 @@ void golemKnightBishopPlaceTarget(Task* arg0)
         work->field_5DE  = -0x3E8;
         work->field_5E0  = -0x7D0;
         work->field_5DC  = 0;
-        work->field_5BA |= 0x4000;
-        work->field_5DA |= 0x4000;
+        work->field_5BA |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->field_5DA |= WORLD_COLLISION_BODY_GRID_ENABLED;
     } else if (work->field_6CE == 4) {
         if (work->field_6E8 != 0) {
             gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -63,7 +63,7 @@ void golemKnightBishopPlaceTarget(Task* arg0)
         work->field_6A4  = gPlayerStatus.coordMtx->t[0] + sc->in.vx;
         work->field_6A8  = gPlayerStatus.coordMtx->t[1];
         work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->in.vz;
-        work->field_5BA |= 0x4000;
+        work->field_5BA |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
 }

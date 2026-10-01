@@ -2119,7 +2119,7 @@ Actor460200MessageEntry D_actor_460200_801514FC[6] = {
     { 2003, { .call1 = func_actor_460200_80133C64 } },
     { 2005, { .call4 = func_actor_460200_80133CD0 } },
     { 2004, { .call3 = func_actor_460200_80133D4C } },
-    { 2011, { .call0 = func_actor_460200_80133DC4 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_460200_80133DC4 } },
     { 2013, { .call3 = func_actor_460200_80133DCC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2244,8 +2244,8 @@ static void func_actor_460200_80132210(void)
 
     slot = Gp_LookupSlot4(0);
     if (slot != NULL) {
-        Gp_DispatchMsgPtr(slot, 0x7D4, &D_actor_460200_80136234, 0);
-        Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_460200_8013607C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_460200_80136234, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_8013607C, 0);
     }
     if (Gp_LookupSlot4(1) != 0) {
         Gp_MsgSlot4Chain(1, 2);
@@ -2253,7 +2253,7 @@ static void func_actor_460200_80132210(void)
     slot = Gp_LookupSlot4(2);
     if (slot != NULL) {
         Gp_MsgSlot4Chain(2, 1);
-        Gp_DispatchMsgPtr(slot, 0x7D3, &D_actor_460200_80135F14, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_80135F14, 0);
     }
 }
 

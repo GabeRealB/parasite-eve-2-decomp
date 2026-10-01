@@ -200,7 +200,7 @@ s32 func_neo_ark_forest_zone_8017DA14(Task* task, s32 msgId, s32 arg2, s32 arg3)
 void func_neo_ark_forest_zone_8017DA48(void)
 {
     if (D_neo_ark_forest_zone_80181E68 != 0) {
-        Gp_DispatchMsgPtr(D_neo_ark_forest_zone_80181E68, 0x7DB, &D_neo_ark_forest_zone_80181E38, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_forest_zone_80181E68, ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80181E38, 0);
     }
 }
 
@@ -216,7 +216,7 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
     SndEvt_EnqueueType6(0x550B0006, 0, 0);
     D_neo_ark_forest_zone_80181E68 = Task_SpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
     if (gGameSession->location.loc.variant == 1 && GameFlag_GetNibble(0xBD) == 0) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_neo_ark_forest_zone_80181E30, 0x7DB);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_neo_ark_forest_zone_80181E30, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     arg0->state = arg0->state + 1;
 }
@@ -228,7 +228,7 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
 static void func_neo_ark_forest_zone_8017DB40(Task* arg0)
 {
     if (gGameSession->location.loc.variant == 1 && GameFlag_GetNibble(0xBD) == 0) {
-        Gp_DispatchMsgPtr(D_neo_ark_forest_zone_80181E68, 0x7DB, &D_neo_ark_forest_zone_80181E30, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_forest_zone_80181E68, ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80181E30, 0);
     }
     arg0->state = arg0->state + 1;
 }

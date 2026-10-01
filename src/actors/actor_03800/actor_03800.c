@@ -755,19 +755,19 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
     switch (work->field_350) {
         case 0:
             work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A |= 0x4200;
+            work->field_22A |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 1:
             work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A &= ~0x4200;
+            work->field_22A &= ~(WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 2:
             work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A &= ~0x4200;
+            work->field_22A &= ~(WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 3:
             work->field_1C2 &= ~WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A &= ~0x4200;
+            work->field_22A &= ~(WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
     }
     obj             = (WorldCollisionBody*)work->field_28C;
@@ -844,12 +844,12 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->field_37A = 0;
             work->field_2CC = src->coord;
 
-            mtx                = (OverlayMat*)&work->coord.coord;
-            mtx->ident.m00_m01 = 0x1000;
-            mtx->ident.m02_m10 = 0;
-            mtx->ident.m11_m12 = 0x1000;
-            mtx->ident.m20_m21 = 0;
-            mtx->ident.m22     = 0x1000;
+            mtx               = (OverlayMat*)&work->coord.coord;
+            mtx->ident.m00M01 = ONE;
+            mtx->ident.m02M10 = 0;
+            mtx->ident.m11M12 = ONE;
+            mtx->ident.m20M21 = 0;
+            mtx->ident.m22    = ONE;
 
             work->coord.parent     = &gGfxViewCoord;
             work->coord.coord      = src->coord;
@@ -857,12 +857,12 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->coord.coord.t[1] = src->coord.t[1];
             work->coord.coord.t[2] = src->coord.t[2];
 
-            srcmtx                = (OverlayMat*)&src->coord;
-            srcmtx->ident.m00_m01 = 0x1000;
-            srcmtx->ident.m02_m10 = 0;
-            srcmtx->ident.m11_m12 = 0x1000;
-            srcmtx->ident.m20_m21 = 0;
-            srcmtx->ident.m22     = 0x1000;
+            srcmtx               = (OverlayMat*)&src->coord;
+            srcmtx->ident.m00M01 = ONE;
+            srcmtx->ident.m02M10 = 0;
+            srcmtx->ident.m11M12 = ONE;
+            srcmtx->ident.m20M21 = 0;
+            srcmtx->ident.m22    = ONE;
 
             src->parent     = &work->coord;
             src->coord.t[0] = 0;
@@ -894,12 +894,12 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->field_37A = 0;
             work->field_2CC = src->coord;
 
-            mtx2                = (OverlayMat*)&work->coord.coord;
-            mtx2->ident.m00_m01 = 0x1000;
-            mtx2->ident.m02_m10 = 0;
-            mtx2->ident.m11_m12 = 0x1000;
-            mtx2->ident.m20_m21 = 0;
-            mtx2->ident.m22     = 0x1000;
+            mtx2               = (OverlayMat*)&work->coord.coord;
+            mtx2->ident.m00M01 = ONE;
+            mtx2->ident.m02M10 = 0;
+            mtx2->ident.m11M12 = ONE;
+            mtx2->ident.m20M21 = 0;
+            mtx2->ident.m22    = ONE;
 
             work->coord.parent     = &gGfxViewCoord;
             work->coord.coord      = src->coord;
@@ -907,12 +907,12 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->coord.coord.t[1] = src->coord.t[1];
             work->coord.coord.t[2] = src->coord.t[2];
 
-            srcmtx2                = (OverlayMat*)&src->coord;
-            srcmtx2->ident.m00_m01 = 0x1000;
-            srcmtx2->ident.m02_m10 = 0;
-            srcmtx2->ident.m11_m12 = 0x1000;
-            srcmtx2->ident.m20_m21 = 0;
-            srcmtx2->ident.m22     = 0x1000;
+            srcmtx2               = (OverlayMat*)&src->coord;
+            srcmtx2->ident.m00M01 = ONE;
+            srcmtx2->ident.m02M10 = 0;
+            srcmtx2->ident.m11M12 = ONE;
+            srcmtx2->ident.m20M21 = 0;
+            srcmtx2->ident.m22    = ONE;
 
             src->parent     = &work->coord;
             src->coord.t[0] = 0;
@@ -1569,7 +1569,7 @@ static void Actor03800_Fn01C50(Task* arg0)
             work->field_366  = 0x80;
             work->field_372  = 0x80;
             work->field_354  = 1;
-            work->field_22A |= 0x4200;
+            work->field_22A |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             return;
         case 1:
             if (work->field_374 != 0) {
@@ -1764,7 +1764,7 @@ static void Actor03800_Fn021E4(Task* arg0)
         case 1:
             work->field_366  = 0x100;
             work->field_372  = 0x80;
-            work->field_22A |= 0x4200;
+            work->field_22A |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             if (work->field_374 != 0) {
                 work->field_374  = 0;
                 work->field_354  = 2;
@@ -2401,7 +2401,7 @@ static void Actor03800_Fn034B0(Task* arg0)
         case SCENE_COMBAT_SHRINE_REVEALED:
             obj->flags       = 0;
             work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A |= 0x4200;
+            work->field_22A |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             work->field_2AA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             Gp_ArmStateF0(1);
             work->field_366 = 0x80;
@@ -2489,15 +2489,15 @@ static void Actor03800_Fn037E0(Task* arg0)
     if (work->field_35A >= 0x201) {
         work->field_35A = (u16)work->field_35A - 0x50;
     }
-    scratch->scale.vx          = 0x1000;
-    scratch->scale.vy          = (s32)work->field_35A;
-    scratch->scale.vz          = 0x1000;
-    coord->coord               = work->field_2CC;
-    scratch->mat.ident.m00_m01 = 0x1000;
-    scratch->mat.ident.m02_m10 = 0;
-    scratch->mat.ident.m11_m12 = 0x1000;
-    scratch->mat.ident.m20_m21 = 0;
-    scratch->mat.ident.m22     = 0x1000;
+    scratch->scale.vx         = 0x1000;
+    scratch->scale.vy         = (s32)work->field_35A;
+    scratch->scale.vz         = 0x1000;
+    coord->coord              = work->field_2CC;
+    scratch->mat.ident.m00M01 = ONE;
+    scratch->mat.ident.m02M10 = 0;
+    scratch->mat.ident.m11M12 = ONE;
+    scratch->mat.ident.m20M21 = 0;
+    scratch->mat.ident.m22    = ONE;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

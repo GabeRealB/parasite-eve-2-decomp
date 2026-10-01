@@ -21,7 +21,7 @@ void roomDepartureTask(Task* arg0)
                 arg0->state = 2;
                 break;
             }
-            Gp_DispatchMsgPtr(playerTask, 0x3EE, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, 0x3EE, &msg, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:

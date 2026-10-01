@@ -19,7 +19,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
@@ -140,7 +139,7 @@ GpRoomObjRec D_mine_secret_passage_80180FA4[1] = {
 };
 
 u8* D_mine_secret_passage_80180FB4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_mine_secret_passage_80180FB8[1] = {

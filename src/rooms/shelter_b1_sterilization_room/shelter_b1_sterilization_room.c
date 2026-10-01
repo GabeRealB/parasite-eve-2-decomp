@@ -539,7 +539,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     if (gGameSession->location.loc.variant == 5) {
         target = Gp_LookupSlot4(0);
         if (target != NULL) {
-            Gp_DispatchMsgPtr(target, 0x7DB, &D_shelter_b1_sterilization_room_80184E7C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(target, ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b1_sterilization_room_80184E7C, 0);
         }
     }
     if (GameFlag_GetNibble(0xEA) != 1) {
@@ -991,9 +991,9 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
             gGameSession->location.loc.view                            = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
             gGameSession->viewDirty                                    = 1;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9,
-                              &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],
-                              0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9,
+                                          &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],
+                                          0);
             SndEvt_EnqueueType6(0x5410000B, 0, 0);
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             task->state++;
@@ -1034,9 +1034,9 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     } else if (task->killCountdown >= 0x79) {
                         if (gPlayerStatus.hp > 0) {
                             coord = player->extra.tmd->coords;
-                            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_shelter_b1_sterilization_room_80188590, 0);
+                            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_shelter_b1_sterilization_room_80188590, 0);
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.source.index);
-                            Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_PLAY, &D_shelter_b1_sterilization_room_80188624, 0);
+                            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_b1_sterilization_room_80188624, 0);
                             pan = (s8)worldCoordGetOriginAudioPan(coord);
                             SndEvt_EnqueueType6(0x54100011, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                             task->killCountdown = 0;

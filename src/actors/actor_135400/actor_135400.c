@@ -100,10 +100,10 @@ extern TaskDesc D_actor_135400_8013A4AC[];
 typedef struct {
     s32 id; // Message id; 0x7FFFFFFF terminates the table
     union {
-        s32 (*animation)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*placement)(Task*, s32, ActorTransform*, s32);
-        s32 (*mode)(Task*, s32, s32, s32);
-        s32 (*command)(Task*, s32, ActorCommand* request, s32);
+        s32                (*animation)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*placement)(Task*, s32, ActorTransform*, s32);
+        TaskMessageHandler mode;
+        TaskMessageHandler command;
     } handler; // Callback with the argument views required by that message
 } _Actor135400MessageEntry;
 STATIC_ASSERT_SIZEOF(_Actor135400MessageEntry, 8);
@@ -625,13 +625,13 @@ static void func_actor_135400_80131EB4(Task* task)
                 break;
             }
         case 3:
-            coord              = task->extra.tmd->coords;
-            src                = &rot;
-            src->ident.m00_m01 = 0x1000;
-            src->ident.m02_m10 = 0;
-            src->ident.m11_m12 = 0x1000;
-            src->ident.m20_m21 = 0;
-            src->ident.m22     = 0x1000;
+            coord             = task->extra.tmd->coords;
+            src               = &rot;
+            src->ident.m00M01 = ONE;
+            src->ident.m02M10 = 0;
+            src->ident.m11M12 = ONE;
+            src->ident.m20M21 = 0;
+            src->ident.m22    = ONE;
             RotMatrixY(-0x38E, &rot.mat);
             coord->coord          = rot.mat;
             coord->coord.t[0]     = 0x12FE;

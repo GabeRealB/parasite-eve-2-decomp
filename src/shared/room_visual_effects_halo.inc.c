@@ -182,12 +182,12 @@ static void RoomFx_DrawHaloDisc(GfxCoord* arg0, s16 arg1, u8* rgb)
 /// releases the block when that state reaches 4.
 static inline void RoomFx_HaloTask(Task* arg0)
 {
-    u8          rgb[3];
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s16         flag;
-    s32         shift;
+    u8                rgb[3];
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s16               flag;
+    s32               shift;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -201,13 +201,13 @@ static inline void RoomFx_HaloTask(Task* arg0)
         mem->age++;
         switch (arg0->state) {
             case 0:
-                rot                 = (GpMtxWords*)&coord->coord;
+                rot                 = (GfxRotationWords*)&coord->coord;
                 coord->parent       = mem->parent;
-                rot->m00_m01        = 0x1000;
-                rot->m02_m10        = 0;
-                rot->m11_m12        = 0x1000;
-                rot->m20_m21        = 0;
-                rot->m22            = 0x1000;
+                rot->m00M01         = ONE;
+                rot->m02M10         = 0;
+                rot->m11M12         = ONE;
+                rot->m20M21         = 0;
+                rot->m22            = ONE;
                 coord->coord.t[0]   = mem->pos.vx;
                 coord->coord.t[1]   = mem->pos.vy;
                 coord->coord.t[2]   = mem->pos.vz;

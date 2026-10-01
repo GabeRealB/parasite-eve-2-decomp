@@ -769,7 +769,7 @@ GpRoomObjRec D_dryfield_water_tower_801827CC[1] = {
 };
 
 u8* D_dryfield_water_tower_801827DC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_water_tower_801827E0[1] = {
@@ -1808,13 +1808,13 @@ static void func_dryfield_water_tower_8017DE30(Task* arg0)
 
             case 1:
                 msg.command = 2;
-                Gp_DispatchMsgPtr(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
                 state->field_58++;
                 /* fallthrough */
 
             case 2:
                 if (coord->coord.t[1] > D_dryfield_water_tower_80181A70[1].pos.vy) {
-                    Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[1], 0);
                     state->field_58++;
                     return;
                 }
@@ -1824,7 +1824,7 @@ static void func_dryfield_water_tower_8017DE30(Task* arg0)
                 return;
         }
     } else if (state->field_58 == 0) {
-        Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[0], 0);
+        TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[0], 0);
         state->field_58++;
     }
 
@@ -1876,7 +1876,7 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
                 taskKill(state->field_48);
                 state->field_48 = NULL;
             }
-            Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tower_80181AB8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181AB8, 0);
             state->field_58++;
             break;
 
@@ -1895,7 +1895,7 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
                     i++;
                     pos.vx += 0x190;
                 } while ((u32)(i & 0xFFFF) < 2U);
-                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
                 state->field_58++;
             }
             break;
@@ -1906,7 +1906,7 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181B10, (D_dryfield_water_tower_801828CC + 2), 0x10);
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, (D_dryfield_water_tower_80182F2C + 2), sizeof(D_dryfield_water_tower_80181BA0));
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181B20, (D_dryfield_water_tower_801829B4 + 8), 0x40);
-                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
                 return 1;
             }
             {
@@ -2093,7 +2093,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
         case 1:
             state->field_5A++;
             if ((s16)state->field_5A >= 0x3D) {
-                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tower_80181A40[1].pos.vx;
@@ -2165,7 +2165,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
         case 1:
             state->field_5A++;
             if ((s16)state->field_5A >= 0x3D) {
-                Gp_DispatchMsgPtr(arg0, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tower_80181A40[0].pos.vx;
@@ -2295,13 +2295,13 @@ static void func_dryfield_water_tower_8017E93C(Task* arg0)
 
             Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
             msg.command = 2;
-            Gp_DispatchMsgPtr(state->field_44, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->field_44, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         }
 
         case 4:
             if (state->field_66 == 2) {
-                Gp_DispatchMsgPtr(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
             }
             Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
 
@@ -2318,13 +2318,13 @@ static void func_dryfield_water_tower_8017E93C(Task* arg0)
                 object->flags                |= WORLD_COLLISION_TRIGGER_ENABLED;
             }
             if (state->field_66 == 2) {
-                Gp_DispatchMsgPtr(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[1], 0);
-                Gp_DispatchMsgPtr(state->field_40, 0x3F2, &D_dryfield_water_tower_80181AD0[1] - 1, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[1], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3F2, &D_dryfield_water_tower_80181AD0[1] - 1, 0);
             } else {
                 Gp_DispatchMsg(state->field_40, 0x3F3, 0, 0);
             }
             msg.command = 3;
-            Gp_DispatchMsgPtr(state->field_44, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->field_44, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         }
 
@@ -2332,16 +2332,16 @@ static void func_dryfield_water_tower_8017E93C(Task* arg0)
             ActorCommand msg;
 
             msg.command = 2;
-            Gp_DispatchMsgPtr(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         }
 
         case 7: {
             ActorCommand msg;
 
-            Gp_DispatchMsgPtr(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
             msg.command = 3;
-            Gp_DispatchMsgPtr(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->field_48, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         }
 
@@ -2426,13 +2426,13 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 msg0.context.loc.stage = gGameSession->location.loc.stage;
                 msg0.context.loc.area  = gGameSession->location.loc.area;
                 msg0.command           = 9;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg0, ACTOR_COMMAND_MESSAGE_APPLY);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg0, ACTOR_COMMAND_MESSAGE_APPLY);
                 state->field_68 = Gp_FindViewIndex(7);
                 state->field_78 = 0;
                 func_800E8634(D_dryfield_water_tower_80181C78, 0, D_dryfield_water_tower_80181DC8);
                 state->field_58++;
             } else {
-                Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
                 Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
                 Gp_DispatchMsg(state->field_40, 0x3F1, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
@@ -2465,7 +2465,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             msg2.context.loc.stage = gGameSession->location.loc.stage;
             msg2.context.loc.area  = gGameSession->location.loc.area;
             msg2.command           = 1;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg2, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg2, ACTOR_COMMAND_MESSAGE_APPLY);
             D_dryfield_water_tower_801876A8 = 0;
             state->field_64                 = 2;
             GameFlag_SetNibble(0x55, 2);
@@ -2512,7 +2512,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 msg4.context.loc.stage = gGameSession->location.loc.stage;
                 msg4.context.loc.area  = gGameSession->location.loc.area;
                 msg4.command           = 3;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg4, ACTOR_COMMAND_MESSAGE_APPLY);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg4, ACTOR_COMMAND_MESSAGE_APPLY);
             }
             Mem_CopyUnaligned(D_dryfield_water_tower_80181C08, D_dryfield_water_tower_801829B4, 0x40);
             Mem_CopyUnaligned(D_dryfield_water_tower_80181BB8, D_dryfield_water_tower_801828CC, 0x10);
@@ -2538,7 +2538,7 @@ static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 2;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             work->field_58++;
             break;
         case 1:
@@ -2654,8 +2654,8 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
             break;
 
         case 2:
-            Gp_DispatchMsgPtr(state->field_44, 0x7D4, D_dryfield_water_tower_80181A40, 0);
-            Gp_DispatchMsgPtr(state->field_48, 0x7D4, D_dryfield_water_tower_80181A70, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, D_dryfield_water_tower_80181A40, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(state->field_48, 0x7D4, D_dryfield_water_tower_80181A70, 0);
             state->field_64 = GameFlag_GetNibble(0x55);
             if (GameFlag_GetNibble(0x32) == 0) {
                 arg0->state++;
@@ -2667,7 +2667,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
                 p0->flags  &= mask;
                 p14         = &(D_dryfield_water_tower_80186A84 + 6)[14];
                 p14->flags &= mask;
-                Gp_DispatchMsgPtr(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
                 ((DryfieldWaterTowerState*)state->field_48->work)->field_70 = 1;
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181B10, (D_dryfield_water_tower_801828CC + 2), 0x10);
                 Mem_CopyUnaligned(D_dryfield_water_tower_80181BA0, (D_dryfield_water_tower_80182F2C + 2), sizeof(D_dryfield_water_tower_80181BA0));
@@ -2675,7 +2675,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
                 if (state->field_64 == 3) {
                     p3         = &(D_dryfield_water_tower_80186A84 + 6)[3];
                     p3->flags &= mask;
-                    Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
                     Mem_CopyUnaligned(D_dryfield_water_tower_80181BC8, (D_dryfield_water_tower_801829B4 + 8) - 8, 0x40);
                     Mem_CopyUnaligned(D_dryfield_water_tower_80181BB8, (D_dryfield_water_tower_801828CC + 2) - 2, 0x10);
                     Mem_CopyUnaligned(D_dryfield_water_tower_80181C48, (D_dryfield_water_tower_80182F2C + 2) - 2, sizeof(D_dryfield_water_tower_80181C48));
@@ -2768,7 +2768,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     rec.blend                = value != 0;
     rec.blendFrames          = value;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
@@ -2853,7 +2853,7 @@ void func_dryfield_water_tower_8017F908(void)
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
     gGameSession->viewDirty                                    = 1;
-    Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
     SndEvt_EnqueueType7(0x52140006, 0x1E);
@@ -2878,13 +2878,13 @@ void func_dryfield_water_tower_8017F9AC(void)
 
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_68;
     gGameSession->viewDirty                                    = 1;
-    Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
     SndEvt_EnqueueType7(0x52140007, 0xA);
     SndEvt_EnqueueType7(0x5214000C, 0xA);
     if (state->field_66 == 2) {
-        Gp_DispatchMsgPtr(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
+        TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
     }
 }
 
@@ -2897,9 +2897,9 @@ void func_dryfield_water_tower_8017FA5C(void)
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(9);
-    Gp_DispatchMsgPtr(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
     state->field_48->state = 1;
-    Gp_DispatchMsgPtr(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
     Gp_HaltPadScripts();
     SndEvt_EnqueueType7(0x5214000B, 0xA);
     Mem_CopyUnaligned(D_dryfield_water_tower_80181B10, (D_dryfield_water_tower_801828CC + 2), 0x10);
@@ -2967,26 +2967,26 @@ static void func_dryfield_water_tower_8017FBE8(Task* task)
         case 0:
             break;
         case 1:
-            Gp_DispatchMsgPtr(work->field_4, 0x7D3, &D_dryfield_water_tower_80182420[0], 0);
-            Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_water_tower_801823C0[0], 0);
-            Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_water_tower_801823C0[3], 0);
-            Gp_DispatchMsgPtr(work->field_8, 0x7D3, &D_dryfield_water_tower_80182420[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D3, &D_dryfield_water_tower_80182420[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_water_tower_801823C0[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &D_dryfield_water_tower_801823C0[3], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D3, &D_dryfield_water_tower_80182420[1], 0);
             Gp_DispatchMsg(work->field_0, 0x3F3, 2, 0);
             Task_SpawnFromTable(D_dryfield_water_tower_8018277C, 2, 8, 0);
             break;
         case 2:
-            Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_water_tower_801823C0[2], 0);
-            Gp_DispatchMsgPtr(work->field_4, 0x7D3, (D_dryfield_water_tower_80182420 + 2), 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &D_dryfield_water_tower_801823C0[2], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D3, (D_dryfield_water_tower_80182420 + 2), 0);
             break;
         case 4:
             Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
-            Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_water_tower_801823A8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &D_dryfield_water_tower_801823A8, 0);
             break;
         case 5:
-            Gp_DispatchMsgPtr(work->field_4, 0x7D3, &D_dryfield_water_tower_80182420[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D3, &D_dryfield_water_tower_80182420[0], 0);
             break;
         case 6:
-            Gp_DispatchMsgPtr(work->field_8, 0x7D3, (D_dryfield_water_tower_80182420 + 1), 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D3, (D_dryfield_water_tower_80182420 + 1), 0);
             break;
     }
     work->field_C = 0;
@@ -3033,7 +3033,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 0xA;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
             work       = (DwtwWork*)Mem_Malloc(0x18, 0);
             task->work = work;
             if (work == NULL) {
@@ -3109,7 +3109,7 @@ void func_dryfield_water_tower_80180194(void)
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_14 = 1;
     }
 }
@@ -3123,10 +3123,10 @@ void func_dryfield_water_tower_80180220(void)
 {
     DwtwWork* work = (DwtwWork*)D_dryfield_water_tower_801876AC->work;
 
-    Gp_DispatchMsgPtr(work->field_8, 0x7D4, &(D_dryfield_water_tower_801823C0 + 1)[0], 0);
-    Gp_DispatchMsgPtr(work->field_4, 0x7D4, &(D_dryfield_water_tower_801823C0 + 1)[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_8, 0x7D4, &(D_dryfield_water_tower_801823C0 + 1)[0], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_4, 0x7D4, &(D_dryfield_water_tower_801823C0 + 1)[1], 0);
     Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
-    Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_water_tower_801823A8, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_0, 0x3E9, &D_dryfield_water_tower_801823A8, 0);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
     gGameSession->viewDirty                                    = 1;
     CdCmd_CancelReplaceAndActivate();

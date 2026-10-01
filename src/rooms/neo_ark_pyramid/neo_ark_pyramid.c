@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
@@ -77,7 +76,7 @@ void func_neo_ark_pyramid_8017D600(Task*);
 s32  func_neo_ark_pyramid_8017D9F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_neo_ark_pyramid_8017DA44(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32  func_neo_ark_pyramid_8017DA44(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 extern WorldCollisionGrid    D_neo_ark_pyramid_801802C4[1];
 extern GpObj3A               D_neo_ark_pyramid_80181790[3];
@@ -119,7 +118,7 @@ u8 D_neo_ark_pyramid_8017FC58[8] = {
 };
 
 u8* D_neo_ark_pyramid_8017FC60[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_neo_ark_pyramid_8017FC58,
 };
 
@@ -638,8 +637,10 @@ s32 func_neo_ark_pyramid_8017DA3C(Task* task, s32 msgId, TaskMessageArg arg2, Ta
 /// `actionId` is 1 it resets the quad's angle; once the quad has turned four
 /// times it spawns capture event 3, otherwise it has the player lower the
 /// weapon and starts the task that turns the quad another step.
-s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 1) {
         func_neo_ark_pyramid_8017DAC0(0);
         if (GameFlag_GetNibble(0xEC) == 4) {

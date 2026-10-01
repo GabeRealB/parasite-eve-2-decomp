@@ -54,7 +54,7 @@ setup then filled the scratch-head load delay slot as required.
 
 Scratch `Gp_SetViewFromCoord-dehack/base_1.c` scored 99.718%; this interface
 change in `base_4.c` restored the seed's 99.906% (four symbol-name differences).
-Typed scratch allocation and `&tmp->delta` also preserve the match. The
+Typed scratch allocation and `&scratch->originDelta` also preserve the match. The
 unscoped build passes for both callers. The custom `gte_TransposeMatrix` asm
 macro remains: scalar, column-temporary, inline and full-snapshot C variants
 did not reproduce its fixed `t4`/`t5`/`t6` sequence. This finding removes the
@@ -1341,7 +1341,7 @@ s32 func_mine_forked_tunnel_8017DD08(Task* task, s32 arg1, s32 mode, s32 arg3)
 A *trailing* unused parameter is invisible in the body, so its existence is only
 in the caller's matched assembly and in the handler type: the call site sets
 `addu $a3,$zero,$zero` in the `jal` delay slot, which GCC emits only for a fourth
-argument, and `GpMsgHandler` is `s32 (*)(Task*, s32, s32, s32)` - both give the
+argument, and `TaskMessageHandler` is `s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` - both give the
 arity 4, and the typedef gives the return type the caller's sloppy `extern void`
 had hidden.
 
@@ -17531,13 +17531,13 @@ layout-matching type (e.g. `FlatLight`) instead of including libgs.
 ## Scratch-head light direction: 0x18 block, SVECTOR at +0x10
 
 `SCRATCH_STACK_CURSOR_SLOT` (`(void**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`) is the address of the pointer slot for a downward-growing scratch arena.
-Helpers that call `Gfx_NormalizeLightDir` to normalize a light direction use:
+Helpers that call `gfxNormalizeLightDirection` to normalize a light direction use:
 
 ```c
 head = *scratch;
 block = (ScratchLightBlock*)((u8*)head - 0x18); /* pad[0x10] + SVECTOR */
 *scratch = block;
-Gfx_NormalizeLightDir(light, (SVECTOR*)((u8*)head - 8)); /* == &block->dir */
+gfxNormalizeLightDirection(light, (SVECTOR*)((u8*)head - 8)); /* == &block->dir */
 /* read -block->dir.{vx,vy,vz} into MATRIX row id */
 *scratch = (u8*)*scratch + 0x18;                 /* free */
 ```
@@ -19290,27 +19290,27 @@ priority = *(u8*)&desc->header.fields.priority; /* lbu, not lhu */
 ## Hand the insert slot the walker's register, as its own `TaskNode**`
 
 Target list insertion reuses one register: after walking to the insert point
-it does `bnez curr, join` / `addiu curr, curr, 4` / `addiu curr, list, 4`, then
+it does `bnez nextTask, join` / `addiu nextTask, nextTask, 4` / `addiu nextTask, listHead, 4`, then
 treats that register as `TaskNode**`. Pin the walker and give the slot a
 `TaskNode**` of its own — it is born where the walker dies, so one register
 still serves both:
 
 ```c
-register Task* curr asm("a3");
-TaskNode**     link;
+register Task* nextTask asm("a3");
+TaskNode**     backlinkSlot;
 /* … walk by `priority` … */
-if (curr != NULL) {
-    link = &curr->node.prev;
+if (nextTask != NULL) {
+    backlinkSlot = &nextTask->node.prev;
 } else {
-    link = &list->prev;
+    backlinkSlot = &listHead->prev;
 }
-task->node.next = (*link)->next;
-(*link)->next   = task;
-task->node.prev = *link;
-*link           = &task->node;
+task->node.next       = (*backlinkSlot)->next;
+(*backlinkSlot)->next = task;
+task->node.prev       = *backlinkSlot;
+*backlinkSlot        = &task->node;
 ```
 
-Reusing the walker and reading through `(TaskNode**)curr` compiles to the same
+Reusing the walker and reading through `(TaskNode**)nextTask` compiles to the same
 thing, because the two forms are the same register; the named slot is the
 honest spelling and it drops four casts. What does not match is a slot live
 across the walk: a `TaskNode**` the allocator has to keep alongside the walker
@@ -19667,7 +19667,7 @@ p_min = (s32*)(head - 8);
 gte_stlzc(p_min);
 ```
 
-`Gfx_NormalizeLightDir` is the pure example (three LZC passes over a scratch VECTOR).
+`gfxNormalizeLightDirection` is the pure example (three LZC passes over a scratch VECTOR).
 
 ## Empty asm barriers: load order + dual shift registers
 
@@ -19696,18 +19696,18 @@ register s32 t_sh asm("a0");
 register s32 t_vz asm("v1");
 register s32 t_sh2 asm("a1");
 
-t_vy = block->vy;
+t_vy = scratch->direction.vy;
 __asm__ volatile("" :: "r"(t_vy));   /* force vy load first */
-t_sh = block->lzc_min;
-t_vz = block->vz;
+t_sh = scratch->scaleBits;
+t_vz = scratch->direction.vz;
 t_sh2 = t_sh;
 __asm__ volatile("" : "+r"(t_sh2));  /* keep move a1,a0; block CSE */
-block->vy = t_vy >> t_sh;
-block->vz = t_vz >> t_sh2;
+scratch->direction.vy = t_vy >> t_sh;
+scratch->direction.vz = t_vz >> t_sh2;
 ```
 
 Without the first barrier, `lw a0,0x10` wins the schedule. Without the second,
-both `srav` reuse `a0`. `Gfx_NormalizeLightDir` is the pure example.
+both `srav` reuse `a0`. `gfxNormalizeLightDirection` is the pure example.
 
 ## Keep `%hi(global)` live for post-loop `lhu %lo` loads
 
@@ -21101,7 +21101,7 @@ with no calls and no data references makes the body promotable once matched;
 `overlay_dup_index.py promote` then shares it with `actor_160700`, which carries
 the same 25 instructions at `0x8013265C`.
 
-The same arity trap takes out the room `GpMsgHandler`s, where m2c cannot even
+The same arity trap takes out the room `TaskMessageHandler`s, where m2c cannot even
 see the convention: the body is reached through a lone `.word` in the room's
 `_data`, so with the message id unused m2c emits a *one*-parameter signature
 and the payload lands in `$a0` instead of `$a2`. `func_mine_secret_passage_8017D898`
@@ -21116,7 +21116,7 @@ The same trap reports as a `regs` penalty only while the seed *keeps* a
 placeholder for the dead argument. When **every** leading parameter is dead,
 m2c's seed drops them from the signature, and then the symptom is a **missing
 instruction**, not a wrong register. A room message handler takes
-`GpMsgHandler`'s `s32 (*)(Task*, s32, s32, s32)` shape; for
+`TaskMessageHandler`'s `s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` shape; for
 `func_neo_ark_submarine_tunnel_8017F2C8` only the third one is read, and m2c
 emitted `s32 f(s32 arg2)` — so the value arrived in `$a0` and the target's
 `move $a0,$a2` had nothing to reproduce. The prologue is the tell: a `move`
@@ -31284,7 +31284,7 @@ gte_lddp(scale);
 ```
 
 The 0x1C scratch is the 0x18 light block plus `s32 scale` at +0x18.
-`Gfx_NormalizeLightDir` and `gte_stsv` take `head - 0xC`; MATRIX row/column
+`gfxNormalizeLightDirection` and `gte_stsv` take `head - 0xC`; MATRIX row/column
 stores read `block->dir` (`lhu 0x10(s0)`). Pin `block` to `$s0` so it does
 not swap with the dir-matrix pointer.
 
@@ -34209,10 +34209,10 @@ Pin all three after the store so the overwrite sticks:
 
 ```c
 register MATRIX*          src asm("a3");
-register _GpRelMatScratch* tmp asm("a0");
+register _GfxRelativeTransformScratch* tmp asm("a0");
 
 src      = arg0;
-tmp      = (_GpRelMatScratch*)(head - 0x30);
+tmp      = (_GfxRelativeTransformScratch*)(head - 0x30);
 *scratch = tmp;
 __asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
 ```
@@ -34220,7 +34220,7 @@ __asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
 Type that scratch as `MATRIX` + `VECTOR` (0x30) and keep `tmp` itself
 pinned to `$a0`. A second `Scratch*` copy of `tmp` emits `move t1, a0`
 and `sw 0x20(t1)` for the translation delta. Pass the delta to
-`ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->delta`) so the
+`ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->originDelta`) so the
 call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)arg2->t` (`addiu a2,
 a2, 0x14` in the second subtract's load delay).
 
@@ -46750,8 +46750,9 @@ What is different:
 
 The structure that *is* universal, and the better anchor:
 
-* `Task::msgTable` holds a `GpMsgEntry[]` -- `{s32 id; GpMsgHandler handler;}`,
-  already defined in `include/gameplay/D4.h` -- terminated by `0x7FFFFFFF` with
+* `Task::msgTable` holds id/handler records viewed by the dispatcher as
+  `GpMsgEntry[]` -- `{s32 id; TaskMessageHandler handler;}`,
+  already defined in `include/gameplay/message.h` -- terminated by `0x7FFFFFFF` with
   one zero word after it. `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
   are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
@@ -49094,8 +49095,8 @@ costs two instructions the target does not have.
 ## The same invention at a `jalr` also costs the extending load its fold
 
 A second cost, and the one that does not look like a call-site problem. The
-message handlers are reached through `Task::msgTable`, a table of `GpMsgHandler`
-— four slots — so the third argument is a message record pointer, not a value.
+message handlers are reached through `Task::msgTable` with `TaskMessageHandler`'s
+four argument positions. For this message the third argument is a record pointer.
 In `func_actor_361100_80163750` m2c saw the halfword the handler had just loaded
 still sitting in `$a1` at the `jalr` and passed it as an argument:
 
@@ -50786,7 +50787,7 @@ matched.
 ### One pointer local shared by two `switch` cases is set twice: scope it per case
 
 `func_actor_503500_801450A0` was stuck at 98.85% with `regs`/`reorder` only.
-Cases 2 and 3 each seed a matrix through `m = (GpMtxWords*)&work->field_9C`
+Cases 2 and 3 each seed a matrix through `m = (GfxRotationWords*)&work->field_9C`
 and then call `RotMatrixY(angle, &work->field_9C)`. The target computes
 `addiu a1, s1, 0x9c` *after* the `field_C0` / `field_BC` adds, so the case-2
 `step` (`lui a1, 0xfffe` / `lui a1, 0x2`) can use `a1` too. Ours hoisted the
@@ -50795,14 +50796,14 @@ and then call `RotMatrixY(angle, &work->field_9C)`. The target computes
 One function-scope `m` assigned in both cases has `REG_N_SETS == 2`. Its
 `addiu` therefore never gets the `7f000001` launch boost. With priority 1 and
 no predecessors, the backward `sched1` picks it last and places it first.
-Declaring `GpMtxWords* m;` in a `{ }` block inside each case gives two
+Declaring `GfxRotationWords* m;` in a `{ }` block inside each case gives two
 single-set pseudos. The addiu is then launched as soon as the last `m->` store
 is scheduled, which puts it after the adds in `sched1`. `sched2`'s luid
 tie-break keeps that order, and `step` and `m` no longer overlap, so both take
 `a1`. The function matched 100%.
 
 The probe that found it reused `step` as the pointer:
-`step = (s32)&work->field_9C; ((GpMtxWords*)step)->w1 = 0; ...`. That scored
+`step = (s32)&work->field_9C; ((GfxRotationWords*)step)->m02M10 = 0; ...`. That scored
 99.7% with `regs=0`. The anti-dependence on the `addu` that reads `step`
 ordered the `addiu`, and the shared pseudo gave `a1`. It showed which property
 mattered, but writing the per-case locals was the actual fix. When a pointer is
@@ -55315,16 +55316,7 @@ The source used a word-wise view of the matrix, which a union expresses
 without pointer arithmetic:
 
 ```c
-typedef union HyperMat {
-    MATRIX mat;
-    struct {
-        s32 m00_m01;
-        s32 m02_m10;
-        s32 m11_m12;
-        s32 m20_m21;
-        s16 m22;
-    } ident;
-} HyperMat;
+OverlayMat* mat; /* MATRIX mat plus the GfxRotationWords ident view */
 ```
 
 The base register is the second half of the tell. `a1` here is the
@@ -55335,8 +55327,8 @@ the scheduler hoists `addiu a1,s0,4` into a branch delay slot far above and
 every store stays on `s0`. Bind one local pointer and use it for both:
 
 ```c
-mat                = &coord->coord;
-mat->ident.m00_m01 = 0x1000;
+mat                = (OverlayMat*)&coord->coord;
+mat->ident.m00M01 = 0x1000;
 /* ... */
 RotMatrixX(coord->angle, &mat->mat);
 ```
@@ -62214,7 +62206,7 @@ and byte-identical to ours but for `%hi(D_actor_461800_80143894)` where we have
 `%hi(ActorsShared80131f9cWork)`: same opcodes, same `$a2`, same `0x4EC`
 displacement, same `0x14`. Porting that body with the global renamed scored
 100% on the first build, the only other change being that the pointer is the
-*third* parameter (the payload of a `GpMsgHandler`), which is what puts it in
+*third* parameter (the payload of a `TaskMessageHandler`), which is what puts it in
 `$a2` rather than `$a0`.
 
 On a body this small the constant is the whole function, so the grep is
@@ -63531,7 +63523,7 @@ mismatch is on.
 
 ## A `Gp_DispatchMsg` handler takes four arguments even when it reads two
 
-Overlay message handlers are reached through a `{ s32 id, GpMsgHandler handler }`
+Overlay message handlers are reached through a `{ s32 id, TaskMessageHandler handler }`
 table in the overlay's data (`D_actor_323000_801739D0`), and
 `Gp_DispatchMsg` forwards `(Task*, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)` to
 the entry with all four registers live. A
@@ -68747,13 +68739,13 @@ what a wrong operand inside a correct shape looks like.
 
 `func_actor_503500_80144E8C` seeds an identity rotation into two places — the
 task's `GfxCoord` and a `MATRIX` inside its own work block — through the
-`GpMtxWords` word view. Written with one local reused for both,
+`GfxRotationWords` word view. Written with one local reused for both,
 
 ```c
-m = (GpMtxWords*)&coord->coord;
-m->w0 = 0x1000; m->w1 = 0; m->w2 = 0x1000; m->w3 = 0; m->h4 = 0x1000;
-m = (GpMtxWords*)&work->field_9C;
-m->w0 = 0x1000; ...
+m = (GfxRotationWords*)&coord->coord;
+m->m00M01 = ONE; m->m02M10 = 0; m->m11M12 = ONE; m->m20M21 = 0; m->m22 = ONE;
+m = (GfxRotationWords*)&work->field_9C;
+m->m00M01 = ONE; ...
 ```
 
 sched1 hoisted `addiu $v1,$s3,4` (the first group's base) above the two stores
@@ -69269,7 +69261,7 @@ row pointer into `idx`'s call-crossing `$s0` quantity, and the matrix pointer
 needs a fresh saved register.
 
 Writing that one store as a struct member of a word-view union
-(`m.ident.m00_m01 = 0x1000`, the rest through `ident = &m.ident`) makes it
+(`m.ident.m00M01 = 0x1000`, the rest through `ident = &m.ident`) makes it
 in-struct, so it conflicts with the `t[]` stores and stays in the chain; the
 argument moves fill the idle slots in the target's order and the function
 went from 80% to 100% (with three store-order fixes in later blocks).
@@ -69854,11 +69846,11 @@ source reaching two of the words through a pointer to the word view, as
 `ActorsShared801639a8` already does:
 
 ```c
-ident           = &m.ident;   /* ActorXMatWords* */
-m.ident.m00_m01 = 0x1000;
-m.ident.m02_m10 = 0;
-ident->m11_m12  = 0x1000;
-m.ident.m20_m21 = 0;
+ident           = &m.ident;   /* GfxRotationWords* */
+m.ident.m00M01 = 0x1000;
+m.ident.m02M10 = 0;
+ident->m11M12  = 0x1000;
+m.ident.m20M21 = 0;
 ident->m22      = 0x1000;
 ```
 
@@ -72205,8 +72197,8 @@ division pseudos one register up (`regs=11`, 99.17%).
 ## `*(s32*)&local.m[0][0]` loses a scheduler dependency that a union field keeps
 
 The identity-matrix idiom `*(s32*)&m->m[0][0] = 0x1000;` writes the 3x3 rotation
-as five word stores. When the matrix is a *frame local* rather than reached
-through a pointer, the cast changes which side of a `sched1` ready-list tie the
+as four word stores and a final halfword store. When the matrix is a *frame local*
+rather than reached through a pointer, the cast changes which side of a `sched1` ready-list tie the
 stores fall on, because `output_dependence` (`sched.c:889`) discards the
 write-after-write dependence in exactly this shape:
 
@@ -72238,19 +72230,15 @@ coordinate:
 typedef union Actor403200DropCoord {
     GfxCoord c;
     struct {
-        /* 0x00 */ s32 composeStamp;
-        /* 0x04 */ s32 m00_m01;
-        /* 0x08 */ s32 m02_m10;
-        /* 0x0C */ s32 m11_m12;
-        /* 0x10 */ s32 m20_m21;
-        /* 0x14 */ s16 m22;
+        u32              composeStamp;
+        GfxRotationWords rotation;
     } ident;
 } Actor403200DropCoord;
 
-coord.ident.m00_m01  = 0x1000;
-coord.ident.m02_m10  = 0;
+coord.ident.rotation.m00M01 = ONE;
+coord.ident.rotation.m02M10 = 0;
 *(s32*)&mtx->m[1][1] = 0x1000;   /* via the pointer: already varying, fine */
-coord.ident.m20_m21  = 0;
+coord.ident.rotation.m20M21 = 0;
 mtx->m[2][2]         = 0x1000;
 ```
 
@@ -73342,7 +73330,7 @@ first") can come out reordered when the surrounding writes are ordinary member
 assignments on the same object:
 
 ```
-sw   a1,4(a0)        /* D.ident.m00_m01 */
+sw   a1,4(a0)        /* D.ident.rotation.m00M01 */
 sh   a1,0x10(v1)     /* mtx->m[2][2]    */
 sw   v0,0x1c(a0)     /* D.coord.t[1]    */
 ...
@@ -73361,9 +73349,9 @@ component reference and source order survives:
 
 ```c
 mtx                = (OverlayMat*)&D_x.c.coord;
-mtx->ident.m02_m10 = 0;
-mtx->ident.m11_m12 = 0x1000;
-mtx->ident.m20_m21 = 0;
+mtx->ident.m02M10 = 0;
+mtx->ident.m11M12 = 0x1000;
+mtx->ident.m20M21 = 0;
 mtx->ident.m22     = 0x1000;
 ```
 
@@ -74355,8 +74343,8 @@ SCRATCH_SP -= sizeof(Actor444000RunScratch);
 sc          = (Actor444000RunScratch*)SCRATCH_SP;   /* separate pseudo: move s3,v1 */
 ...
 mat = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
-mat->ident.m00_m01 = 0x1000;   /* CSE folds this one back to -0x24(a0) */
-mat->ident.m02_m10 = 0;        /* the rest keep the materialised base  */
+mat->ident.m00M01 = 0x1000;   /* CSE folds this one back to -0x24(a0) */
+mat->ident.m02M10 = 0;        /* the rest keep the materialised base  */
 ```
 
 Reading `sc` back out of `SCRATCH_SP` rather than computing it from `head` is
@@ -74820,7 +74808,7 @@ value is the *second* one. The real caller is `Gp_DispatchMsg` in gameplay,
 which walks the `GpMsgEntry` table at `Task::msgTable` and calls
 
 ```c
-typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 return entry->handler(arg0, arg1, arg2, arg3);
 ```
 
@@ -76983,11 +76971,12 @@ matches -- same instruction count, same block topology, same delay slots -- so
 the build reports a two-byte `stack` penalty that no dump explains, because
 there is no codegen difference at all. The argument index is the whole bug.
 
-The actors' message handlers are all `GpMsgHandler` (`include/gameplay/D4.h`),
+The actors' message dispatch uses the four argument positions of `TaskMessageHandler`
+(`include/gameplay/message.h`),
 and `Gp_DispatchMsg` ends in `entry->handler(index, value, arg2, arg3)`:
 
 ```c
-typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 ```
 
 so a handler touching `$a2` or `$a3` has the payload in that slot. Write the
@@ -82181,7 +82170,7 @@ byte offsets.
 
 When a ported body has to keep the target's *base-relative* first store — here
 `sw v1,0x670(v0)` against `sw zero,4(a0)` for the rest — write the first store
-through the container (`work->light.ident.m00_m01`) and take the element pointer
+through the container (`work->light.ident.m00M01`) and take the element pointer
 on the next statement. Assigning the pointer first makes GCC address every store
 off it and the displacement disappears from the encoding.
 
@@ -85191,13 +85180,13 @@ one slot. That signature - a single register displaced by one argument slot,
 nothing else - is arity, not allocation.
 
 The actor message handlers give the arity directly. They are installed in a
-`GpMsgEntry` table (`{ s32 id; GpMsgHandler handler; }`, terminator
+`GpMsgEntry` table (`{ s32 id; TaskMessageHandler handler; }`, terminator
 `0x7FFFFFFF`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
 `0x7DB` row points at this function. `Gp_DispatchMsg` walks that table and
 calls `entry->handler(index, value, arg2, arg3)`, so the handler's full
 signature is:
 
-    typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+    typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 
 Declare every parameter up to the last one the body reads, even when the body
 ignores the ones before it:
@@ -85639,7 +85628,7 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
 ```
 
 The message handlers in this family all have type
-`s32 (*)(Task*, s32, s32, s32)` (`GpMsgHandler`, `include/gameplay/D4.h`), so the
+`s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` (`TaskMessageHandler`, `include/gameplay/message.h`), so the
 payload is argument 3 and the unused `index`/`value` still have to be declared.
 Read a small `stack` as "check the argument registers" whenever
 `stack_accesses` is 0; splitting locals is the wrong move.
@@ -85966,7 +85955,7 @@ but leaves the table's structure undocumented.
 The type is recoverable from the consumer, which is already matched C:
 `Gp_DispatchMsg` (`src/gameplay/D4.c`) walks `field_24` as `GpMsgEntry*` with
 `entry++` and stops at `entry->id == 0x7FFFFFFF`; `GpMsgEntry` is
-`{s32 id; GpMsgHandler handler;}` = 8 bytes (`include/gameplay/D4.h`). So
+`{s32 id; TaskMessageHandler handler;}` = 8 bytes (`include/gameplay/message.h`). So
 `extern GpMsgEntry D_<room>_<vram>[];` with a bare `task->field_24 = D_...;` -
 the `rooms_shared_8017db84.c` idiom - is the accurate spelling, and it matches.
 
@@ -85976,7 +85965,7 @@ ids are message ids some gameplay dispatcher calls by name, which is the
 strongest confirmation: `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
 `Game_SetPtrSlot(task, 7)`.
-## A lone `.word` code pointer in a room's data is a `GpMsgHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
+## A lone `.word` code pointer in a room's data is a `TaskMessageHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
 
 A room function no `jal` reaches - nothing in `src/` calls it, its only
 reference is a `.word` in the room's `_data` blob - is a callback, and the
@@ -85988,8 +85977,8 @@ it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
 (the record's id half) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
 into `Task::work`, and the handler reaches its work as `task->work`.
 
-The trap is the argument split. `GpMsgHandler` is
-`s32 (*)(Task* task, s32 msgId, s32 arg2, s32 arg3)` - the handler gets the
+The trap is the argument split. `TaskMessageHandler` is
+`s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)` - the handler gets the
 same four arguments `Gp_DispatchMsg` did - so `a1` is the message id and `a2`
 is the sender's third argument. This body compares `$a2`, which reads like the
 id at first glance; it is the *payload*. `Gp_UseKeyItemRow`
@@ -86312,7 +86301,7 @@ s32 Room_Snd05(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 100.000%, every penalty zero. This is why the sibling bodies `Room_Snd01..04`
 in `src/rooms/lib/` carry four parameters - the room tables hold
-`GpMsgEntry { s32 id; GpMsgHandler handler; }` and `Gp_DispatchMsg` calls
+`GpMsgEntry { s32 id; TaskMessageHandler handler; }` and `Gp_DispatchMsg` calls
 `handler(task, msgId, arg2, arg3)`, so the handler type itself is the evidence
 for the list. General rule: when m2c names a parameter `argN` with N > 0 but
 declares it alone, pad the list to N+1 before changing anything else; `regs=N`
@@ -89220,7 +89209,7 @@ has to be padded with the parameters the handler ignores until the one it uses
 lands in the right slot.
 
 Recovering the slot and the type is a data-table read, not guesswork. A room's
-handlers are `GpMsgEntry[]` records - `{ s32 id; GpMsgHandler handler; }`, 8
+handlers are `GpMsgEntry[]` records - `{ s32 id; TaskMessageHandler handler; }`, 8
 bytes, `0x7FFFFFFF`-terminated - and they live in the overlay's trailing data
 blob, so the built overlay image still holds them verbatim. Searching the image
 for the handler's address little-endian prints the id in the word just before it,
@@ -89773,8 +89762,8 @@ same padded parameter list. What is worth separating is how the *type* and the
 The arity is fixed by the only caller a table handler has. `Gp_DispatchMsg`
 (`src/gameplay/D4.c`) walks the room's `GpMsgEntry[]` and calls
 `entry->handler(index, value, arg2, arg3)` - four arguments - which
-`GpMsgHandler` in `include/gameplay/D4.h` spells
-`s32 (*)(Task* task, s32 msgId, s32 arg2, s32 arg3)`. So the room's own table
+`TaskMessageHandler` in `include/gameplay/message.h` spells
+`s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)`. So the room's own table
 matters for the convention: `D_dryfield_main_street_80180EA0` registers this
 function under `0x13EF` beside `Room_Snd01` under `0x13F2`, and `Room_Snd01` is
 already matched as `(Task* task, s32 msgId, s32 arg2, s32 arg3)`.
@@ -91174,7 +91163,8 @@ Worked example `func_dryfield_night_saloon_g_r_8017DE68`, the twin of the
 separate `s16`s" above; that entry's struct fix is what this one starts from.
 
 **Problem.** With the payload fixed, the whole remaining diff was the constant
-`1`, shared by `arg2->field_2 == 1` and `msg.field_2 = 1`. The target had it in
+`1`, shared by `((const DirectionActionRequest*)firstArg.pointer)->actionId == 1`
+and `msg.command = 1`. The target had it in
 `$a1`, we had it in `$a0` - and `reorder=5`, `insert=1`, `delete=1` and the
 other `regs=2` were all downstream: with `$a0` holding the constant, dbr cannot
 fill the branch delay slot with `addu $a0,$zero,$zero`, and `li $a0,4` cannot
@@ -93387,7 +93377,7 @@ it decides which allocator places it.
 Three consequences showed up in one function (`Actor00400_Fn02648`):
 
 **A reused pointer variable loses its register to the block's temporaries.**
-Writing one `OverlayMatWords* ip` and reassigning it for each matrix
+Writing one `GfxRotationWords* ip` and reassigning it for each matrix
 (`&ma.ident`, then `&mb.ident`, then `&rot.ident`) makes it global, so the
 block's own single-assignment temporaries take `$s1`-`$s3` first and `ip`
 lands in `$s4`. Declaring `ia`, `ib`, `ir` as separate single-assignment
@@ -95643,10 +95633,10 @@ through a word-wise `MATRIX` view in two mutually exclusive arms. Writing both
 arms through the same local
 
 ```c
-OverlayMatWords* mat;
+GfxRotationWords* mat;
 ...
-if (r < 0xF) { mat = (OverlayMatWords*)&coord->coord; ... }
-else if (blend == 0x52) { mat = (OverlayMatWords*)&coord->coord; ... }
+if (r < 0xF) { mat = (GfxRotationWords*)&coord->coord; ... }
+else if (blend == 0x52) { mat = (GfxRotationWords*)&coord->coord; ... }
 ```
 
 matched the first arm exactly and left the second one 8 `regs` off:
@@ -100696,7 +100686,7 @@ five-word idiom (`*(s32*)&m->m[0][0] = 0x1000;` and friends). There are two ways
 to write it and they are not equivalent to the allocator:
 
 ```c
-m.ident.m00_m01      = 0x1000;   /* direct on the object   -> fp-relative store */
+m.ident.m00M01      = 0x1000;   /* direct on the object   -> fp-relative store */
 *(s32*)&mtx->m[0][2] = 0;        /* through MATRIX* mtx = &m.mat -> register store */
 ```
 
@@ -100731,8 +100721,8 @@ The mix in the source is legible in the target object. Here the target's first
 store is `sw $s3,0x10($sp)` and the rest are on the same register the two calls
 pass in `a1`, i.e. one direct store then four through the pointer - and that is
 exactly what the source has to say. Both splits appear among matched siblings:
-`func_actor_206100_8014EB60` writes two direct (`matrix.ident.m00_m01`,
-`matrix.ident.m02_m10`) and three through `mtx`, and its target asm shows the
+`func_actor_206100_8014EB60` writes two direct (`matrix.ident.m00M01`,
+`matrix.ident.m02M10`) and three through `mtx`, and its target asm shows the
 same two `($sp)` / three `($s1)` split; `actor_107600` and `actor_403600` write
 all five through a pointer that is a runtime value already. Read a sibling's
 target asm before choosing - the store bases say which form each line used.
@@ -100828,11 +100818,11 @@ halfwords stay on the outer pointer (`sh $v0,0x4A4($v1)`). That is one local
 word-view pointer for the splat plus direct member writes for the overwrite:
 
 ```c
-    light = (OverlayMat*)&work->light;   /* union: MATRIX + the 5 word fields */
-    light->ident.m00_m01 = 0x1000;                /* first store: 0x484($v1) */
-    light->ident.m02_m10 = 0;
-    light->ident.m11_m12 = 0x1000;
-    light->ident.m20_m21 = 0;
+    light = (OverlayMat*)&work->light;   /* union: MATRIX + four words and a halfword */
+    light->ident.m00M01 = 0x1000;                /* first store: 0x484($v1) */
+    light->ident.m02M10 = 0;
+    light->ident.m11M12 = 0x1000;
+    light->ident.m20M21 = 0;
     light->ident.m22     = 0x1000;
     /* ...the colour matrix, then the republish... */
     work->color.m[0][0] = 0x1000;                 /* 0x4A4($v1): no pointer involved */
@@ -104810,7 +104800,7 @@ fact:
 
 ```
 target:   addiu s1,sp,0x20 / addu a0,s1,zero      (early, before the stores)
-          sw v0,8(s1)                             (m.ident.m11_m12)
+          sw v0,8(s1)                             (m.ident.m11M12)
           sh v0,0x10(s1)                          (ident->m22)
 seed:     sw v0,0x28(sp) / sh v0,0x30(sp)         (same two stores, folded)
           and sw v0,0x18(sp) emitted before lh v1,0x430(s2)
@@ -104818,7 +104808,7 @@ seed:     sw v0,0x28(sp) / sh v0,0x30(sp)         (same two stores, folded)
 
 The fix was to declare and initialise a named pointer exactly as the sibling
 does, `ident = &m.ident;`, and write two of the five splat stores through it
-(`ident->m11_m12`, `ident->m22`). Nothing else changed.
+(`ident->m11M12`, `ident->m22`). Nothing else changed.
 
 This is the positive form of the rule the "`&local` passed to two back-to-back
 calls" entries state in the negative. There, an `&local` that CSEs across a call
@@ -104856,7 +104846,7 @@ named:
     OverlayMat   rot;
     OverlayMat*  src;
     src                = &rot;
-    src->ident.m00_m01 = 0x1000;
+    src->ident.m00M01 = 0x1000;
 ```
 
 The named pointer keeps the frame address live across both calls, so the target
@@ -117188,10 +117178,10 @@ the model's root coordinate, and scales a second local the same way. The two
 initialisers write the same five words, and the target emits them split:
 
 ```
-sw   s1,0x18(sp)      /* matrix.ident.m00_m01   */
-sw   zero,0x1c(sp)    /* matrix.ident.m02_m10   */
+sw   s1,0x18(sp)      /* matrix.ident.m00M01   */
+sw   zero,0x1c(sp)    /* matrix.ident.m02M10   */
 sw   s1,8(s0)         /* *(s32*)&mtx->m[1][1]   */
-sw   zero,0x24(sp)    /* matrix.ident.m20_m21   */
+sw   zero,0x24(sp)    /* matrix.ident.m20M21   */
 sh   s1,0x10(s0)      /* mtx->m[2][2]           */
 ```
 
@@ -119558,11 +119548,11 @@ Target splats an identity rotation as `sw v0,0x20(sp)` / `sw zero,0x24(sp)` / `s
 pointer are. Reproduce the mix field by field:
 
 ```c
-((OverlayMatWords*)&rot)->m00_m01 = 0x1000;
-((OverlayMatWords*)&rot)->m02_m10 = 0;
-words          = (OverlayMatWords*)&rot;
-words->m11_m12 = 0x1000;
-((OverlayMatWords*)&rot)->m20_m21 = 0;
+((GfxRotationWords*)&rot)->m00M01 = 0x1000;
+((GfxRotationWords*)&rot)->m02M10 = 0;
+words          = (GfxRotationWords*)&rot;
+words->m11M12 = 0x1000;
+((GfxRotationWords*)&rot)->m20M21 = 0;
 words->m22     = 0x1000;
 RotMatrixZ(angle, &rot);
 ```
@@ -125697,28 +125687,21 @@ word-wise view of the `MATRIX` -- four `s32` over the first 0x10 bytes plus the
 `s16` at 0x10:
 
 ```c
-typedef struct OverlayMatWords {
-    /* 0x00 */ s32 m00_m01;
-    /* 0x04 */ s32 m02_m10;
-    /* 0x08 */ s32 m11_m12;
-    /* 0x0C */ s32 m20_m21;
-    /* 0x10 */ s16 m22;
-} OverlayMatWords;
-STATIC_ASSERT_SIZEOF(OverlayMatWords, 0x14);
+    GfxRotationWords* words;
 
-    words          = (OverlayMatWords*)&coord->coord;
-    words->m00_m01 = ONE;   /* ONE is libgte.h's 4096 */
-    words->m02_m10 = 0;
-    words->m11_m12 = ONE;
-    words->m20_m21 = 0;
+    words          = (GfxRotationWords*)&coord->coord;
+    words->m00M01 = ONE;   /* ONE is libgte.h's 4096 */
+    words->m02M10 = 0;
+    words->m11M12 = ONE;
+    words->m20M21 = 0;
     words->m22     = ONE;
 ```
 
 Each `s32` write covers two halfwords, which is what makes the zero pairs
 (`m[0][2]+m[1][0]`, `m[2][0]+m[2][1]`) and the `ONE`-plus-zero pair
-(`m[1][1]+m[1][2]`) single instructions.  The same type recurs as
-`OverlayMatWords`, whose
-header asserts the shape; `base_2.c` is the experiment behind it.  Reach for it
+(`m[1][1]+m[1][2]`) single instructions. The shared type is `GfxRotationWords`,
+whose field accesses cover 18 bytes without touching the alignment halfword;
+`base_2.c` is the experiment behind it. Reach for it
 whenever a `MATRIX` (or any 3x3-plus-halfword region) is splatted with constants
 and the target shows fewer stores than elements.
 ## Whether a promotion renumbers units is decided by the span's *start*, and you can read that before running `promote` (func_actor_317000_80162BC4, 2026-09-17)
@@ -125850,8 +125833,8 @@ sit in). The matched installer names that table directly —
 "which table is this handler in" is readable from `src/` without the binary.
 
 Worth doing before writing any C, because it settles what the empty caller list
-raises: a `GpMsgEntry` handler is called as `(Task*, s32 msgId, s32 arg2, s32
-arg3)` (`GpMsgHandler`), and the overlay's neighbouring handler is the house
+raises: a `GpMsgEntry` handler is called as `(Task*, s32 messageId, TaskMessageArg firstArg, TaskMessageArg
+secondArg)` (`TaskMessageHandler`), and the overlay's neighbouring handler is the house
 spelling of the last two arguments —
 `s32 func_actor_317000_80162CA0(Task* task, s32 value, ActorCommand* msg)`.
 
@@ -127893,10 +127876,10 @@ The identity-matrix splat in `func_actor_135600_80131E68` writes five words into
 block*:
 
 ```
-sw    v0, 0x48($sp)     # m.ident.m00_m01
-sw    zero, 0x4C($sp)   # m02_m10
-sw    v0, 8(a1)         # m11_m12   <- a1 = &m.mat, the RotMatrixZ argument
-sw    zero, 0x54($sp)   # m20_m21
+sw    v0, 0x48($sp)     # m.ident.m00M01
+sw    zero, 0x4C($sp)   # m02M10
+sw    v0, 8(a1)         # m11M12   <- a1 = &m.mat, the RotMatrixZ argument
+sw    zero, 0x54($sp)   # m20M21
 jal   RotMatrixZ
  sh   v0, 0x10(a1)      # m22
 ```
@@ -127906,13 +127889,13 @@ base register differs, so no amount of register shuffling fixes it. Which form a
 takes is decided by how the C spells the address: a store written *through a live local
 pointer* (`*(s32*)&mtx->m[1][1] = 0x1000;`, `mtx->m[2][2] = 0x1000;`) keeps the pointer's
 register and renders `disp($sN)`, while the same store written against the object
-(`m.ident.m00_m01 = 0x1000;`, `*(s32*)&m.mat.m[0][2] = 0;`) folds to the frame pointer.
+(`m.ident.m00M01 = 0x1000;`, `*(s32*)&m.mat.m[0][2] = 0;`) folds to the frame pointer.
 A target that mixes the two forms mixed the two spellings — reproduce the mix store by
 store. Writing the two pointer stores by object name as well (`base_4.c`) leaves both as
 `disp($sp)` and stalls at 99.918% (`regs=4`); the mixed spelling is 100.000%.
 
 The unmixed direction has its own worked example two functions away:
-`func_actor_135600_80132B14`'s splat is `m.ident.m00_m01` plus four `mtx->` stores, and
+`func_actor_135600_80132B14`'s splat is `m.ident.m00M01` plus four `mtx->` stores, and
 comes out as one `0x10($sp)` followed by four `disp($s2)`.
 
 Do not therefore reach for a pointer everywhere. In the same function the *loop* block
@@ -134264,9 +134247,9 @@ direct culls the wrong ones for its reflection.
 
 Note also where the alternate label sits. An opcode-keyed entry point
 (`tmdDrawStreamGt3SemiTrans`, `0x80010EF4`) starts at the shading constant and
-jumps past the `flags & 2` test, so the two ways into one body do not agree about
-what `flags` decides: the opcode-keyed entry asks it nothing about shading, and
-both entries still reach the `flags & 0x10` twin.
+jumps past the `objectFlags & 2` test, so the two ways into one body do not agree about
+what `objectFlags` decides: the opcode-keyed entry asks it nothing about shading, and
+both entries still reach the `objectFlags & 0x10` twin.
 ## A facing test's polarity follows the corner order the body loads
 
 A record's draw body in the hasm file and the C twin that answers the same record
@@ -139417,7 +139400,7 @@ twice. The moves are then ordinary priority-1 insns, the store wins its slot
 on potential hazard, and the copy rewrite does the rest.
 
 **Fix.** Give the function the dispatcher's full signature
-(`GpMsgHandler`: `Task*, s32 msgId, s32 arg2, s32 arg3`) and forward all four
+(`TaskMessageHandler`: `Task*, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg`) and forward all four
 arguments in the pass-through call. Forwarding only three leaves `a3` birthing
 and still gives `sw v0,0xc(s0)`. When a store in a call's delay slot uses an
 argument register as its base, count how many times each argument register is
@@ -141128,7 +141111,7 @@ duplicates a loop test containing a call, so both calls are in the source.
 Identity stores that looked interleaved with unrelated statements, sometimes
 out of order, and sometimes needed `volatile`, all match as one call to
 `gfxSetRotIdentity(MATRIX*)` - a `static __inline__` function storing through
-`GpMtxWords`. Two things decide it. Struct stores (`rotationWords->m00_m01 = ONE`) are
+`GfxRotationWords`. Two things decide it. Struct stores (`rotationWords->m00M01 = ONE`) are
 `MEM_IN_STRUCT_P`, so the scheduler keeps them ordered against neighbouring
 struct stores, where `*(s32*)&m->m[r][c]` stores are scalar and move; and
 inlining a function substitutes a stack matrix's frame address into some
@@ -145784,13 +145767,13 @@ sb v1`), then walks a sorted list with `andi v1,v1,0xff` in the loop
 preheader. With a plain `u8 priority` local the zero-extension is hoisted into
 a second, global pseudo, `extra` (the attached body) outranks the byte in
 `global.c` and takes `$v1`, and priority is pushed to `$a1`. The tree held it
-with `register Task* curr asm("a3")` and an `s32 priority; priority &= 0xFF`.
+with `register Task* nextTask asm("a3")` and an `s32 priority; priority &= 0xFF`.
 
 **Fix.** Move the ordered insertion into a `static inline` helper
-`(TaskNode* list, Task* task, u32 priority)` and call it with the `u8` local.
+`(TaskNode* listHead, Task* task, u32 priority)` and call it with the `u8` local.
 The widening now happens at the call, in the same block as the load, so the
 byte is a local-alloc quantity allocated before any global and lands in `$v1`;
-the helper's own `curr`/`link` locals take `$a3` with no pin. An `s32`
+the helper's own `nextTask`/`backlinkSlot` locals take `$a3` with no pin. An `s32`
 parameter compares signed (`slt`); a `u8` one re-creates the hoisted pseudo.
 
 The same function's `(flags & 0x100) != 0` is folded to `srl 8; andi 1`; the

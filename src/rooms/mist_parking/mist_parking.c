@@ -184,10 +184,10 @@ AnimationSet D_mist_parking_80186B90 = {
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, DirectionActionRequest*);
-        s32 (*call2)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call3)(s32, s32, s32);
+        s32                (*call0)(void);
+        s32                (*call1)(Task*, s32, DirectionActionRequest*);
+        TaskMessageHandler call2;
+        s32                (*call3)(s32, s32, s32);
     } handler;
 } MistParkingMessageEntry;
 STATIC_ASSERT_SIZEOF(MistParkingMessageEntry, 8);

@@ -20,7 +20,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
@@ -166,7 +165,7 @@ static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
 extern TaskDesc D_80147E48;
 
 s32  func_shelter_b2_main_corridor_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_main_corridor_8017DC88(Task*, s32, DirectionActionRequest* request, s32);
+s32  func_shelter_b2_main_corridor_8017DC88(Task*, s32, TaskMessageArg firstArg, s32);
 s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_main_corridor_8017E1DC(Task*, s32, s32, s32);
@@ -382,7 +381,7 @@ SVECTOR D_shelter_b2_main_corridor_8018306C[10] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 u8* D_shelter_b2_main_corridor_801830CC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b2_main_corridor_801830D0[1] = {
@@ -1678,16 +1677,16 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
     return 1;
 }
 
-s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, DirectionActionRequest* request, s32 arg3)
+s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, TaskMessageArg firstArg, s32 arg3)
 {
     s32 id;
 
-    if (request->actionId == 0xA) {
-        if (request->argument == 7) {
+    if (((const DirectionActionRequest*)firstArg.pointer)->actionId == 0xA) {
+        if (((const DirectionActionRequest*)firstArg.pointer)->argument == 7) {
             if (GameFlag_GetNibble(0xAE) != 0) {
                 if (GameFlag_GetNibble(0xDA) != 0) {
                     D_shelter_b2_main_corridor_80189684.stage = 5;
-                    D_shelter_b2_main_corridor_80189684.area  = request->argument;
+                    D_shelter_b2_main_corridor_80189684.area  = ((const DirectionActionRequest*)firstArg.pointer)->argument;
                 } else {
                     D_shelter_b2_main_corridor_80189684.stage = 4;
                     D_shelter_b2_main_corridor_80189684.area  = 0x31;
@@ -1703,7 +1702,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, DirectionAction
                 Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1C4, 0);
             }
         }
-        if (request->argument == 8) {
+        if (((const DirectionActionRequest*)firstArg.pointer)->argument == 8) {
             if (GameFlag_GetNibble(0xD1) == 2) {
                 Gp_RunCapCmd1(4);
                 return 0;
@@ -1719,7 +1718,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, DirectionAction
                 id = 7;
             }
             D_shelter_b2_main_corridor_80189684.stage    = 5;
-            D_shelter_b2_main_corridor_80189684.area     = request->argument;
+            D_shelter_b2_main_corridor_80189684.area     = ((const DirectionActionRequest*)firstArg.pointer)->argument;
             D_shelter_b2_main_corridor_80189684.room     = 1;
             D_shelter_b2_main_corridor_80189684.warp     = 1;
             D_shelter_b2_main_corridor_80189684.sndEvent = 0;
@@ -1728,7 +1727,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, DirectionAction
             Task_SpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, id, 0);
         }
     }
-    if (request->actionId == 1 && GameFlag_GetNibble(0x82) >= 2 && GameFlag_GetNibble(0xD3) == 0) {
+    if (((const DirectionActionRequest*)firstArg.pointer)->actionId == 1 && GameFlag_GetNibble(0x82) >= 2 && GameFlag_GetNibble(0xD3) == 0) {
         GameFlag_SetNibble(0xD3, 1);
         GameFlag_SetNibble(0xAE, 1);
         GameFlag_SetNibble(0x1C4, 0);

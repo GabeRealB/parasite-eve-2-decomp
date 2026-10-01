@@ -2682,7 +2682,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     WorldCollisionContact* rec;
     WorldCollisionContact* rec2;
     OverlayMat             m;
-    GpMtxWords*            ident;
+    GfxRotationWords*      ident;
     s32                    idx;
     s32                    i;
 
@@ -2698,12 +2698,12 @@ static void func_actor_503500_8013FA74(Task* arg0)
     coord->coord.t[0] = D_actor_503500_8016F3AC[idx].vx;
     coord->coord.t[1] = D_actor_503500_8016F3AC[idx].vy;
     coord->coord.t[2] = D_actor_503500_8016F3AC[idx].vz;
-    m.ident.m00_m01   = 0x1000;
+    m.ident.m00M01    = ONE;
     ident             = &m.ident;
-    ident->m02_m10    = 0;
-    ident->m11_m12    = 0x1000;
-    ident->m20_m21    = 0;
-    ident->m22        = 0x1000;
+    ident->m02M10     = 0;
+    ident->m11M12     = ONE;
+    ident->m20M21     = 0;
+    ident->m22        = ONE;
     RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3947,7 +3947,7 @@ static void func_actor_503500_80142980(Task* arg0)
     OverlayMat          m;
     s8                  param1[8];
     s8                  param2[8];
-    GpMtxWords*         ident;
+    GfxRotationWords*   ident;
     Actor503500Work224* work;
     Enemy*              enemy;
     GfxCoord*           coord;
@@ -4106,15 +4106,15 @@ static void func_actor_503500_80142980(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx          = work->rot.vx.word >> 16;
-    rot.vy          = work->rot.vy.word >> 16;
-    rot.vz          = work->rot.vz.word >> 16;
-    m.ident.m00_m01 = 0x1000;
-    m.ident.m02_m10 = 0;
-    ident           = &m.ident;
-    ident->m11_m12  = 0x1000;
-    m.ident.m20_m21 = 0;
-    ident->m22      = 0x1000;
+    rot.vx         = work->rot.vx.word >> 16;
+    rot.vy         = work->rot.vy.word >> 16;
+    rot.vz         = work->rot.vz.word >> 16;
+    m.ident.m00M01 = ONE;
+    m.ident.m02M10 = 0;
+    ident          = &m.ident;
+    ident->m11M12  = ONE;
+    m.ident.m20M21 = 0;
+    ident->m22     = ONE;
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&m.mat);
@@ -4313,7 +4313,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
             player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             pcoord = player->extra.tmd->coords;
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
-                Gp_DispatchMsgPtr(player, 0x3F8, &D_actor_503500_80171544, 0) == 0) {
+                TASK_MESSAGE_DISPATCH_POINTER(player, 0x3F8, &D_actor_503500_80171544, 0) == 0) {
                 coord = arg0->parent->extra.tmd->coords;
                 src   = (s32*)&coord->coord;
                 dst   = (s32*)&work->field_40;
@@ -4336,7 +4336,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
                 gte_stsv(&vec);
                 side = vec.vz >= 0;
                 Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
-                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_801714E0[side], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_801714E0[side], 0);
                 Task_SpawnFromTable(&D_actor_503500_8017146C, 0, side, &work->field_40);
                 Gp_StateC08.field_6 |= 1;
                 pan                  = (s8)worldCoordGetOriginAudioPan(pcoord);
@@ -4411,7 +4411,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             msg.x              = work->pos.vx.halves.integer;
             msg.y              = work->pos.vy.halves.integer;
             msg.z              = work->pos.vz.halves.integer;
-            if (Gp_DispatchMsgPtr(player, 0x3FE, &msg, 0) != 0) {
+            if (TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, &msg, 0) != 0) {
                 work->speed = 0;
             }
             work->pos.vx.word = (u16)work->pos.vx.word;
@@ -4441,7 +4441,7 @@ void func_actor_503500_80143AC0(Task* arg0)
             break;
         case 2:
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
-                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_80171508[arg0->spawnArg1.value], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171508[arg0->spawnArg1.value], 0);
                 arg0->state++;
             }
             break;
@@ -4450,7 +4450,7 @@ void func_actor_503500_80143AC0(Task* arg0)
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
                         ->table.addresses[7];
-                Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_80171530, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171530, 0);
                 arg0->state++;
             }
             break;
@@ -4636,7 +4636,7 @@ static void func_actor_503500_80144300(Task* arg0)
     WorldCollisionContact* rec;
     EffectWork*            eff;
     Task*                  child;
-    GpMtxWords*            m;
+    GfxRotationWords*      m;
     VECTOR                 v;
     s32                    pan;
 
@@ -4662,12 +4662,12 @@ static void func_actor_503500_80144300(Task* arg0)
         v.vz = arg0->spawnArg2.value;
         ApplyMatrixLV(&coord->coord, &v, &work->field_A4);
     } else {
-        m          = (GpMtxWords*)&coord->coord;
-        m->m00_m01 = 0x1000;
-        m->m02_m10 = 0;
-        m->m11_m12 = 0x1000;
-        m->m20_m21 = 0;
-        m->m22     = 0x1000;
+        m         = (GfxRotationWords*)&coord->coord;
+        m->m00M01 = ONE;
+        m->m02M10 = 0;
+        m->m11M12 = ONE;
+        m->m20M21 = 0;
+        m->m22    = ONE;
     }
     rec = work->rec;
 
@@ -4833,7 +4833,7 @@ static void func_actor_503500_801448E8(Task* arg0)
     WorldCollisionContact* rec;
     EffectWork*            eff;
     Task*                  child;
-    GpMtxWords*            m;
+    GfxRotationWords*      m;
     s32                    pan;
     s32                    pan2;
 
@@ -4856,12 +4856,12 @@ static void func_actor_503500_801448E8(Task* arg0)
     if (arg0->spawnArg2.pointer != NULL) {
         work->field_A8 = arg0->spawnArg2.value;
     } else {
-        m              = (GpMtxWords*)&coord->coord;
-        m->m00_m01     = 0x1000;
-        m->m02_m10     = 0;
-        m->m11_m12     = 0x1000;
-        m->m20_m21     = 0;
-        m->m22         = 0x1000;
+        m              = (GfxRotationWords*)&coord->coord;
+        m->m00M01      = ONE;
+        m->m02M10      = 0;
+        m->m11M12      = ONE;
+        m->m20M21      = 0;
+        m->m22         = ONE;
         work->field_A8 = 0x100000;
     }
     rec = work->rec;

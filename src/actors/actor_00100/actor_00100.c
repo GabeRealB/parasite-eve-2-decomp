@@ -3068,7 +3068,7 @@ static void Actor00100_Fn0375C(Task* arg0)
                 work->field_904 = 9;
                 work->field_905 = 1;
                 work->field_906 = 4;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_904, 0x7DB);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->field_904, ACTOR_COMMAND_MESSAGE_APPLY);
                 if ((Gp_GetIdParam0(scratch->field_20) & 0xFFFF) == 4) {
                     work->field_0 = 3;
                 } else {
@@ -3443,7 +3443,7 @@ static void Actor00100_Fn0503C(Task* arg0)
         work->pad_8EB[0x19]                      = 9;
         work->pad_8EB[0x1A]                      = 1;
         ((Actor00100FacingWork*)work)->field_906 = 1;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (&work->pad_8EB[0x19]), 0x7DB);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, (&work->pad_8EB[0x19]), ACTOR_COMMAND_MESSAGE_APPLY);
 
         return;
     }
@@ -3501,7 +3501,7 @@ static void Actor00100_Fn0503C(Task* arg0)
             var_v0_13           = abs(var_v0_13);
             if (var_v0_13 < 0x180) {
                 printf("EM01 PLAYER WORK %d, %d\n", playerWork->mode, playerWork->state);
-                if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, (&work->pad_8EB[1]), 0) == 0) {
+                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, (&work->pad_8EB[1]), 0) == 0) {
                     Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
                     temp_v0_6           = ratan2((s32)scratch->vx, (s32)scratch->vz) + 0x800;
                     var_v1_3            = temp_v0_6;
@@ -3540,7 +3540,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                     ((Actor00100FacingWork*)work)->field_8C0 = (s32)player->extra.tmd->coords->coord.t[0];
                     ((Actor00100FacingWork*)work)->field_8C4 = (s32)player->extra.tmd->coords->coord.t[1];
                     ((Actor00100FacingWork*)work)->field_8C8 = (s32)player->extra.tmd->coords->coord.t[2];
-                    Gp_DispatchMsgPtr(player, 0x3E9, (&work->pad_8B8[8]), 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, (&work->pad_8B8[8]), 0);
                     if (work->field_C1A < 0x3E8) {
                         var_v0_19 = scratch->playerYaw;
                         if (var_v0_19 < 0) {
@@ -3561,7 +3561,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                             work->field_8E8 = 7;
                             work->field_8EA = 1;
                             work->field_C18 = 1;
-                            Gp_DispatchMsgPtr(player, 0x3FF, (&work->field_BF8), 0);
+                            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, (&work->field_BF8), 0);
                         }
                         var_v0_21 = 0x25;
                     } else {
@@ -3586,7 +3586,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                         work->field_8E8 = 7;
                         work->field_8EA = 1;
                         work->field_C18 = 1;
-                        Gp_DispatchMsgPtr(player, 0x3FF, (&work->field_BF8), 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, (&work->field_BF8), 0);
                         var_v0_21 = 0x1E;
                     }
                     work->field_0 = var_v0_21;
@@ -3675,7 +3675,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                 work->pad_8EB[0x19]                      = 9;
                 work->pad_8EB[0x1A]                      = 1;
                 ((Actor00100FacingWork*)work)->field_906 = 4;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->pad_8EB[0x19], 0x7DB);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->pad_8EB[0x19], ACTOR_COMMAND_MESSAGE_APPLY);
             }
         }
     }
@@ -5282,7 +5282,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 break;
             case 1:
                 if (work->field_8E8 == 0x38) {
-                    Gp_DispatchMsgPtr(player, 0x3FE, (&work->field_8D8), 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, (&work->field_8D8), 0);
                     if ((s16)work->field_C28 == 0xF) {
                         if ((Gp_GetViewIndex() & 0xFF) == 8) {
                             sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54010004;
@@ -5322,7 +5322,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                     }
                 } else {
                 dispatchMotion:
-                    if ((s16)Gp_DispatchMsgPtr(player, 0x3FE, (&work->field_8D8), 0) != 1) {
+                    if ((s16)TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, (&work->field_8D8), 0) != 1) {
                         if ((s16)work->field_C28 >= 0xF) {
                             work->field_8D8 = (s32)((s32)work->field_8D8 >> 1);
                             work->field_8DC = (s32)((s32)work->field_8DC >> 1);
@@ -5368,7 +5368,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                         work->field_BFC  = 4;
                         work->field_C00  = 1;
                         work->field_C04  = 3;
-                        Gp_DispatchMsgPtr(player, 0x3FF, message, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                         work->field_C28 = 0U;
                     }
                 } else if ((config->hp > 0) && ((s16)work->field_C28 >= 0x22)) {
@@ -5377,13 +5377,13 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                     work->field_BFC           = 4;
                     work->field_C00           = 1;
                     work->field_C04           = 3;
-                    Gp_DispatchMsgPtr(player, 0x3FF, message, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, message, 0);
                     work->field_C28 = 0U;
                 }
                 break;
             case 3:
                 if (((s16)work->field_C28 < 6) && (config->hp > 0) && ((work->field_8D8 != 0) || (work->field_8E0 != 0))) {
-                    result = Gp_DispatchMsgPtr(player, 0x3FE, (&work->field_8D8), 0);
+                    result = TASK_MESSAGE_DISPATCH_POINTER(player, 0x3FE, (&work->field_8D8), 0);
                     if (result == 1) {
                         work->field_8D8 = 0;
                         work->field_8DC = 0;
@@ -5408,7 +5408,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                         work->field_C00 = 0;
                         work->field_C04 = 0;
                         work->field_BFC = 2;
-                        Gp_DispatchMsgPtr(player, 0x3FF, nextMessage, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
                         work->field_C28 = 0U;
                     }
                     break;
@@ -5424,7 +5424,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                             Actor00100_D1B9AC.sets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
                         }
                         nextMessage = &work->field_BF8;
-                        Gp_DispatchMsgPtr(player, 0x3FF, nextMessage, 0);
+                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);
                         work->field_C28 = 0U;
                     }
                     break;

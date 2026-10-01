@@ -295,7 +295,7 @@ u8 D_dryfield_factory_80186F30[20] = {
 };
 
 u8* D_dryfield_factory_80186F44[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_factory_80186F30,
 };
 

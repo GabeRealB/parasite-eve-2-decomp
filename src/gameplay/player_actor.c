@@ -277,20 +277,20 @@ extern GpAimRot D_801131B4[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*transform)(Task*, s32, ActorTransform*, s32);
-        s32 (*call2)(Task*, s32, s32, s32);
-        s32 (*call3)(Task*, s32, GpFacingArg*);
-        s32 (*call4)(Task*);
-        s32 (*call5)(Task*, s32, s32);
-        s32 (*coord)(Task*, s32, GfxCoord*);
-        s32 (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
-        s32 (*call7)(Task*, s32, AnimationPlayRequest*);
-        s32 (*call8)(Task*, s32, GpCountArg*);
-        s32 (*call9)(Task*, s32, GpCopyArg*);
-        s32 (*call10)(Task*, s32, GpDelayArg*);
-        s32 (*call11)(Task*, s32, GpMoveArg*);
+        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call1)(Task*, s32, ActorTransform*);
+        s32                (*transform)(Task*, s32, ActorTransform*, s32);
+        TaskMessageHandler call2;
+        s32                (*call3)(Task*, s32, GpFacingArg*);
+        s32                (*call4)(Task*);
+        s32                (*call5)(Task*, s32, s32);
+        s32                (*coord)(Task*, s32, GfxCoord*);
+        s32                (*call6)(Task*, s32, ActorTransform*, GpOverrideArg*);
+        s32                (*call7)(Task*, s32, AnimationPlayRequest*);
+        s32                (*call8)(Task*, s32, GpCountArg*);
+        s32                (*call9)(Task*, s32, GpCopyArg*);
+        s32                (*call10)(Task*, s32, GpDelayArg*);
+        s32                (*call11)(Task*, s32, GpMoveArg*);
     } handler;
 } GpPlayerMessageEntry;
 
@@ -1828,13 +1828,13 @@ void Gp_EffSprTask42(Task* arg0)
 
 void func_800F91AC(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s16         flag;
-    s16         width;
-    s32         half;
-    s32         i;
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s16               flag;
+    s16               width;
+    s32               half;
+    s32               i;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -1842,12 +1842,12 @@ void func_800F91AC(Task* arg0)
     if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (arg0->state == 0) {
             coord->parent       = mem->parent;
-            rot                 = (GpMtxWords*)&coord->coord;
-            rot->m00_m01        = 0x1000;
-            rot->m02_m10        = 0;
-            rot->m11_m12        = 0x1000;
-            rot->m20_m21        = 0;
-            rot->m22            = 0x1000;
+            rot                 = (GfxRotationWords*)&coord->coord;
+            rot->m00M01         = ONE;
+            rot->m02M10         = 0;
+            rot->m11M12         = ONE;
+            rot->m20M21         = 0;
+            rot->m22            = ONE;
             coord->coord.t[0]   = mem->pos.vx;
             coord->coord.t[1]   = mem->pos.vy;
             coord->coord.t[2]   = mem->pos.vz;
@@ -1940,18 +1940,18 @@ spawn:
 
 void Gp_EffSprTask30(Task* arg0)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s16         flag;
-    s32         sub;
-    s32         ret;
-    s32         id;
-    s32         base;
-    SVECTOR     vec;
-    SVECTOR     dir;
-    SVECTOR     wpos;
-    u8          color[3];
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    s16               flag;
+    s32               sub;
+    s32               ret;
+    s32               id;
+    s32               base;
+    SVECTOR           vec;
+    SVECTOR           dir;
+    SVECTOR           wpos;
+    u8                color[3];
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -1966,12 +1966,12 @@ void Gp_EffSprTask30(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            rot             = (GpMtxWords*)&coord->coord;
-            rot->m00_m01    = 0x1000;
-            rot->m11_m12    = 0x1000;
-            rot->m22        = 0x1000;
-            rot->m02_m10    = 0;
-            rot->m20_m21    = 0;
+            rot             = (GfxRotationWords*)&coord->coord;
+            rot->m00M01     = ONE;
+            rot->m11M12     = ONE;
+            rot->m22        = ONE;
+            rot->m02M10     = 0;
+            rot->m20M21     = 0;
             mem->pos.vx     = arg0->spawnArg1.halves.low & 0xFFF;
             mem->scale      = 0x100;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -3939,13 +3939,13 @@ void Gp_EffSprTask8D(Task* arg0)
 
 void Gp_EffSprTask3F(Task* arg0)
 {
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    GpMtxWords*      rot;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    s32              sub;
-    s32              temp;
+    EffectWork*       mem;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    GpFxQuadScratch*  block;
+    POLY_FT4*         prim;
+    s32               sub;
+    s32               temp;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -3971,13 +3971,13 @@ void Gp_EffSprTask3F(Task* arg0)
                 sub             = arg0->spawnArg1.halves.high;
                 mem->index      = sub & 1;
                 if (mem->index != 0) {
-                    rot                 = (GpMtxWords*)&coord->coord;
+                    rot                 = (GfxRotationWords*)&coord->coord;
                     coord->parent       = mem->parent;
-                    rot->m00_m01        = 0x1000;
-                    rot->m02_m10        = 0;
-                    rot->m11_m12        = 0x1000;
-                    rot->m20_m21        = 0;
-                    rot->m22            = 0x1000;
+                    rot->m00M01         = ONE;
+                    rot->m02M10         = 0;
+                    rot->m11M12         = ONE;
+                    rot->m20M21         = 0;
+                    rot->m22            = ONE;
                     coord->coord.t[2]   = 0;
                     coord->coord.t[1]   = 0;
                     coord->coord.t[0]   = 0;

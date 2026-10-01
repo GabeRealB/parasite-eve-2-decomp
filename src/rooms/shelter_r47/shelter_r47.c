@@ -532,7 +532,7 @@ static void func_shelter_r47_8017FB94(Task* task)
     if (player != NULL && GameFlag_GetNibble(0x80) == 0 && GameFlag_GetNibble(0xD1) == 1) {
         Gp_DispatchMsg(player, 0x3F3, 0, 0);
         Gp_AllyAnimId(&D_shelter_r47_80186F5C.source.index);
-        Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
     }
     D_shelter_r47_8018A690 = NULL;
     func_shelter_r47_80183210();

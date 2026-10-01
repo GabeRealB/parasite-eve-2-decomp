@@ -15,7 +15,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -89,9 +88,9 @@ extern s16 gRoamerReleasePending;
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, TaskMessageArg, TaskMessageArg);
-        s32  (*call1)(Task*, s32, u8*, TaskMessageArg);
-        void (*call2)(Task*, s32, s32);
+        TaskMessageHandler call0;
+        TaskMessageHandler call1;
+        void               (*call2)(Task*, s32, s32);
     } handler;
 } NeoArkForestZone2MsgEntry;
 STATIC_ASSERT_SIZEOF(NeoArkForestZone2MsgEntry, 8);
@@ -119,7 +118,7 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
 
 s32 func_neo_ark_forest_zone_801813BC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_forest_zone_80181494(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32 func_neo_ark_forest_zone_801814B0(Task*, s32, u8*, TaskMessageArg);
+s32 func_neo_ark_forest_zone_801814B0(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 extern WorldCollisionGrid    D_neo_ark_forest_zone_80182274[1];
 extern WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6];
@@ -244,7 +243,7 @@ WorldCoordRoomLighting D_neo_ark_forest_zone_801820B4[1] = {
 };
 
 u8* D_neo_ark_forest_zone_801820BC[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_forest_zone_801820C0[1] = {
@@ -550,7 +549,7 @@ s16 gRoamerReleasePending = 0;
 NeoArkForestZone2MsgEntry gRoamerMsgTableA[4] = {
     { 5103, { .call0 = roamerLatchRequest } },
     { 5108, { .call2 = roamerBankRetreat } },
-    { 2011, { .call0 = func_neo_ark_forest_zone_801813BC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_forest_zone_801813BC } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -685,7 +684,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                 if (obj->hp > 0) {
                     Gp_IncStateF0Ref(0);
                     gRoamerCooldown += 0x5A;
-                    Gp_DispatchMsgPtr(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
                     switch ((s16)(gRoamerSpawnRequest - 1)) {
                         case 0:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[0].x;

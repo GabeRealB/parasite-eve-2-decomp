@@ -20,7 +20,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
@@ -95,9 +94,9 @@ extern TaskDesc D_shelter_b1_pod_access_tunnel_801810CC;
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call2)(s32, s32, s32);
+        s32                (*call0)(void);
+        TaskMessageHandler call1;
+        s32                (*call2)(s32, s32, s32);
     } handler;
 } ShelterB1PodAccessTunnelMessageEntry;
 STATIC_ASSERT_SIZEOF(ShelterB1PodAccessTunnelMessageEntry, 8);
@@ -561,7 +560,7 @@ SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[4] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 u8* D_shelter_b1_pod_access_tunnel_80183A14[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b1_pod_access_tunnel_80183A18[1] = {
@@ -1241,7 +1240,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
                 rec.blend                = ANIMATION_BLEND_RESET;
                 rec.blendFrames          = 0;
                 rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
                 func_800E8614(D_shelter_b1_pod_access_tunnel_80181120, 0);
                 task->state = task->state + 1;
             }

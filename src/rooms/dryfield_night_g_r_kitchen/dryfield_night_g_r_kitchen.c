@@ -14,7 +14,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -111,7 +110,7 @@ GpRoomObjRec D_dryfield_night_g_r_kitchen_8017E2C4[1] = {
 };
 
 u8* D_dryfield_night_g_r_kitchen_8017E2D4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_night_g_r_kitchen_8017E2D8[1] = {

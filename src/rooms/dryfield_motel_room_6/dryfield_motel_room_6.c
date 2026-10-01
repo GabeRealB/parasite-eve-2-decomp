@@ -187,7 +187,7 @@ extern WorldCoordRoomLights       D_dryfield_motel_room_6_801866C0[1];
 s32                               func_dryfield_motel_room_6_80181740(Task*, s32, s32, s32);
 s32                               func_dryfield_motel_room_6_80181918(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_dryfield_motel_room_6_801819A8(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32                               func_dryfield_motel_room_6_801819A8(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 s32                               func_dryfield_motel_room_6_80181A00(Task*, s32, TaskMessageArg, TaskMessageArg);
 void                              func_dryfield_motel_room_6_80181A08(Task*);
 
@@ -237,7 +237,7 @@ GpRoomObjRec D_dryfield_motel_room_6_80182D98[1] = {
 };
 
 u8* D_dryfield_motel_room_6_80182DA8[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_motel_room_6_80182DAC[1] = {
@@ -1896,8 +1896,10 @@ s32 func_dryfield_motel_room_6_80181920(Task* arg0, s32 arg1, RoomEventMsg* in, 
 /// arms the room's script task from `D_dryfield_motel_room_6_80182D78`.
 /// Where the sibling gates of this shape (`func_acropolis_security_room_8017D740`,
 /// `func_acropolis_sanctuary_8017D848`) answer 0, this one answers 1.
-s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, DirectionActionRequest* request, TaskMessageArg arg3)
+s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, TaskMessageArg firstArg, TaskMessageArg arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 0 && GameFlag_GetNibble(0x31) == 0) {
         GameFlag_SetNibble(0x31, 1);
         Task_SpawnFromTable(D_dryfield_motel_room_6_80182D78, 0, 0, 0);

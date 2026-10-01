@@ -19,7 +19,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/hud_sprites.h"
@@ -265,7 +264,7 @@ u8 D_dryfield_night_garage_80183424[16] = {
 };
 
 u8* D_dryfield_night_garage_80183434[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_garage_80183424,
 };
 
@@ -1020,13 +1019,13 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
     switch (temp_v1) {
         case 0:
             Gp_RunCapCmd(arg0->spawnArg1.value, 0);
-            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
             arg0->state = arg0->state + 1;
             return;
         case 1:
             if (Gp_CapBusy() == 0) {
                 Gp_MsgPlayerWeapon(1);
-                Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE4, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
                 break;
             }
             return;

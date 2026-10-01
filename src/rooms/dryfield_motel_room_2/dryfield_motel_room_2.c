@@ -10,7 +10,6 @@
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -48,7 +47,7 @@ GpMsgEntry D_dryfield_motel_room_2_8017D6BC[5] = {
 };
 
 u8* D_dryfield_motel_room_2_8017D6E4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpRoomObjRec D_dryfield_motel_room_2_8017D6E8[1] = {

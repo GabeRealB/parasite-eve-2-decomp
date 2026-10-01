@@ -17,7 +17,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -288,7 +287,7 @@ u8 D_dryfield_underpass_8017EBB0[12] = {
 };
 
 u8* D_dryfield_underpass_8017EBBC[6] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_underpass_8017EB80,
     D_dryfield_underpass_8017EB8C,
     D_dryfield_underpass_8017EB98,
@@ -843,7 +842,7 @@ static void func_dryfield_underpass_8017D970(Task* arg0)
     arg0->msgTable = D_dryfield_underpass_8017E830;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_underpass_8017E89C, 0x7DB);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_underpass_8017E89C, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     arg0->state = arg0->state + 1;
 }

@@ -19,7 +19,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -159,7 +158,7 @@ extern WorldCoordRoomLights  D_neo_ark_observatory_80186844[1];
 extern WorldCoordRoomLights  D_neo_ark_observatory_80186EBC[1];
 
 extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
-s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, DirectionActionRequest* request, s32);
+s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, TaskMessageArg firstArg, s32);
 s32                                     func_neo_ark_observatory_8017FBE0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                                     func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                                     func_neo_ark_observatory_8017FCA0(Task*, s32, s32, TaskMessageArg);
@@ -363,7 +362,7 @@ u8 D_neo_ark_observatory_801815C4[24] = {
 
 u8* D_neo_ark_observatory_801815DC[2] = {
     D_neo_ark_observatory_801815C4,
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_observatory_801815E4[2] = {
@@ -1609,8 +1608,10 @@ static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMa
     desc->room = rec.pad_2[1];
 }
 
-s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionRequest* request, s32 arg3)
+s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     RoomDeparture     desc;
     _MapMarkerResolve resolve;
     s32               temp;

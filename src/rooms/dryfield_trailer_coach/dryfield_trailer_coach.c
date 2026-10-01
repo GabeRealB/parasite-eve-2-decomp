@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -22,7 +23,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/inventory.h"
@@ -801,7 +801,7 @@ WorldCoordRoomLighting D_dryfield_trailer_coach_801871DC[1] = {
 };
 
 u8* D_dryfield_trailer_coach_801871E4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_trailer_coach_801871E8[1] = {

@@ -46,12 +46,43 @@ STATIC_ASSERT_SIZEOF(DamageAttack, 0x4);
 /// require sphere overlap on the negative side of the plane; kind 2 also
 /// requires facing against `facingNormal`. Kind 4 accepts a centre distance
 /// below 500 game units, otherwise requiring facing toward the origin and
-/// quad overlap. All tests first apply the broad-phase radius check.
+/// quad overlap. All tests apply the broad-phase radius check.
 /// Bits 3 and 4 have no observed consumers and are cleared along with list
 /// state on unlink. Enabling/disabling a trigger does not clear its hit latch.
 enum {
-    WORLD_COLLISION_TRIGGER_KIND_MASK           = 0x07,
-    WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY       = 1,
+    WORLD_COLLISION_TRIGGER_KIND_MASK = 0x07,
+    /// Identifies a directed quad requesting a view change within the current room.
+    ///
+    /// Value 1 occupies the kind bits of `WorldCollisionTrigger::flags`.
+    /// Place the records in the room's view-boundary array, ending with LAST.
+    /// Room setup binds their coordinate, links them to the view list and enables
+    /// them. List membership selects the directed test; this kind adds no gate.
+    /// The scan requires a motion sphere with PAIR_ENABLED and VIEW_TRIGGER_ENABLED
+    /// set, and the session's view-trigger suppression must be clear.
+    ///
+    /// An enabled boundary latches a hit when the player moves against `normal`,
+    /// passes the radius check about the origin and overlaps the quad's negative
+    /// side. The sphere centre must project strictly inside all four edges, with
+    /// computed signed plane distance in [-body radius, 0). The test uses current
+    /// overlap and movement direction. Positions and radii use game units;
+    /// normals use 4096 per unit.
+    ///
+    /// `parameter0` and `parameter1` are valid 1-based source and destination
+    /// views in that room. `control` and `facingNormal` are unused by the view test.
+    /// Consuming a hit clears its latch and, when the source matches the current
+    /// session view, requests the destination in the live save's location.
+    WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY = 1,
+    /// An action quad requiring the body to face against its configured normal.
+    ///
+    /// The kind occupies `WorldCollisionTrigger::flags` bits selected by
+    /// `WORLD_COLLISION_TRIGGER_KIND_MASK`. Supply `facingNormal` in the space
+    /// of the querying body's coordinate parent, with 4096 per unit.
+    /// Its dot product with column 2 (+Z) of the body's
+    /// `coord->coord.m` must be <= -12582912: at least 3/4 opposing alignment
+    /// for unit vectors. The gate uses both vectors without transformation or
+    /// normalization. A hit also requires the broad-phase radius check,
+    /// sphere overlap on the quad plane's negative side, and the body's
+    /// projected centre strictly inside all four edges.
     WORLD_COLLISION_TRIGGER_FACING_QUAD         = 2,
     WORLD_COLLISION_TRIGGER_QUAD                = 3,
     WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD = 4,
@@ -76,7 +107,19 @@ enum {
 /// action 3. AUTOMATIC bypasses the interaction-button requirement;
 /// OUTSIDE_BATTLE rejects activation during an engaged battle.
 enum {
-    WORLD_COLLISION_TRIGGER_ACTION_MASK       = 0xFF,
+    WORLD_COLLISION_TRIGGER_ACTION_MASK = 0xFF,
+    /// Requests a room-resolved warp within the active stage.
+    ///
+    /// This zero-valued selector occupies the low byte of
+    /// `WorldCollisionTrigger::control`; activation gates may be ORed into
+    /// the upper byte. A latched hit supplies the request.
+    /// `parameter0` requests a 1-based destination area. `parameter1` packs
+    /// a 1-based current-area warp descriptor slot in the high nibble and a
+    /// 1-based destination arrival slot in the low nibble (each 1..15).
+    /// Both slots must exist in their respective area's warp table.
+    /// The current-area descriptor supplies departure facing, sounds and an
+    /// optional event flag. The room handler first receives a query and may
+    /// block the warp, redirect its destination or run a deferred room event.
     WORLD_COLLISION_TRIGGER_ACTION_WARP       = 0,
     WORLD_COLLISION_TRIGGER_ACTION_FACING     = 1,
     WORLD_COLLISION_TRIGGER_ACTION_CAP        = 2,
@@ -113,8 +156,8 @@ enum { WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE = 0xFF };
 /// the destination view; control is unused. A hit changes the saved view
 /// only when the source equals the current view, then clears the latch.
 /// On the action list, the first hit supplies control and both full bytes:
-/// - WARP: destination area, then a 1-based descriptor slot in the high nibble
-///   and a warp entry (0..15) in the low nibble.
+/// - WARP: requested area and packed departure/arrival descriptor slots, as
+///   documented by `WORLD_COLLISION_TRIGGER_ACTION_WARP`.
 /// - FACING: packed surface/facing selector, then yaw in 16-angle-unit steps
 ///   (256 steps per turn); selector bit 7 chooses indexed surface data.
 /// - CAP / CAP_WEAPON: CAP command ID and presentation flags, or the room

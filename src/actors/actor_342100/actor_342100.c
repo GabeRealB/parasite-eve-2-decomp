@@ -432,7 +432,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xA;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(w->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(w->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
     goto ret1;
 }
 
@@ -517,7 +517,7 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// starts spawn entry 4 (`func_actor_342100_80162AB0`) with the roll's masked
 /// high half as its `spawnArg1` -- the lifetime that task's state 1 counts down
 /// -- and lays the entry onto the model the new task displays: identity rotation
-/// at scale 0x1000 through the `GpMtxWords` view of `coord`, the entry's `vx` /
+/// at scale 0x1000 through the `GfxRotationWords` view of `coord`, the entry's `vx` /
 /// `vy` / `vz` written to `coord.t[0..2]`. The walk is `while (pos->vx != 0)`,
 /// so a table is as many entries as it has non-zero `vx`s and a table whose
 /// first entry is zero spawns nothing.
@@ -533,11 +533,11 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// passes it no arguments, which is why the declaration is `(void)`.
 void func_actor_342100_80162C88(void)
 {
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    SVECTOR*    pos;
-    Task*       task;
-    u32         rng;
+    GfxCoord*         coord;
+    GfxRotationWords* rot;
+    SVECTOR*          pos;
+    Task*             task;
+    u32               rng;
 
     switch (gGameSession->location.loc.view) {
         case 29:
@@ -561,12 +561,12 @@ void func_actor_342100_80162C88(void)
         gRandomLcgState   = rng;
         task              = Task_SpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
         coord             = task->extra.tmd->coords;
-        rot               = (GpMtxWords*)&coord->coord;
-        rot->m00_m01      = 0x1000;
-        rot->m02_m10      = 0;
-        rot->m11_m12      = 0x1000;
-        rot->m20_m21      = 0;
-        rot->m22          = 0x1000;
+        rot               = (GfxRotationWords*)&coord->coord;
+        rot->m00M01       = ONE;
+        rot->m02M10       = 0;
+        rot->m11M12       = ONE;
+        rot->m20M21       = 0;
+        rot->m22          = ONE;
         coord->coord.t[0] = pos->vx;
         coord->coord.t[1] = pos->vy;
         coord->coord.t[2] = pos->vz;
@@ -602,7 +602,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             }
             msg.source.sets = &D_actor_342100_80164900[0];
             msg.count       = n & 0xFFFF;
-            Gp_DispatchMsgPtr(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(msgWork->field_2C, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_actor_342100_801649C8, 0);
@@ -737,7 +737,7 @@ void func_actor_342100_8016334C(s32 arg0)
     msg.blend                = ANIMATION_BLEND_INTERPOLATE;
     msg.blendFrames          = 0xF;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->field_2C, ANIMATION_MESSAGE_PLAY, &msg, 0);
 }
 
 void func_actor_342100_801633D0(s32 arg0)
@@ -774,10 +774,9 @@ void func_actor_342100_80163454(s32 arg0)
         msg.context.loc.area  = 0x2C;
         msg.context.loc.stage = 0;
         msg.command           = 4;
-        // The message ABI carries the borrowed record's address in one word.
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, (s32)&msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         if (work->field_30 != NULL) {
-            Gp_DispatchMsgPtr(work->field_30, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->field_30, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         }
         work->field_38 = Task_SpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
         return;

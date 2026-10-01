@@ -18,7 +18,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
@@ -95,7 +94,7 @@ GpRoomObjRec D_dryfield_back_street_8017F9B4[1] = {
 };
 
 u8* D_dryfield_back_street_8017F9C4[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_dryfield_back_street_8017F9C8[1] = {

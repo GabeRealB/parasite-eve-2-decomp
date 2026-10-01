@@ -18,10 +18,10 @@ STATIC_ASSERT_SIZEOF(DryfieldWaterTowerStorage768C, 8);
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32 (*call2)(Task*, s32, s32, s32);
-        s32 (*call3)(s32, s32, s32);
+        s32                (*call0)(void);
+        TaskMessageHandler call1;
+        TaskMessageHandler call2;
+        s32                (*call3)(s32, s32, s32);
     } handler;
 } DryfieldWaterTowerMessageEntry;
 

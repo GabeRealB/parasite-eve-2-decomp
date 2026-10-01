@@ -19,7 +19,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -114,7 +113,7 @@ extern EvsSceneKey           D_acropolis_east_elevator_hall_80185CB4;
 extern WorldCoordRoomLights  D_acropolis_east_elevator_hall_80187A44[1];
 s32                          func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                          func_acropolis_east_elevator_hall_8017F370(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                          func_acropolis_east_elevator_hall_8017F378(Task*, s32, DirectionActionRequest* request, s32);
+s32                          func_acropolis_east_elevator_hall_8017F378(Task*, s32, TaskMessageArg firstArg, s32);
 s32                          func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, TaskMessageArg);
 void                         func_acropolis_east_elevator_hall_8017F450(void);
 
@@ -329,7 +328,7 @@ GpRoomObjRec D_acropolis_east_elevator_hall_80186320[1] = {
 };
 
 u8* D_acropolis_east_elevator_hall_80186330[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_acropolis_east_elevator_hall_80186334[1] = {
@@ -678,8 +677,10 @@ s32 func_acropolis_east_elevator_hall_8017F370(Task* task, s32 msgId, TaskMessag
     return 0;
 }
 
-s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
+s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, TaskMessageArg firstArg, s32 arg3)
 {
+    const DirectionActionRequest* request = firstArg.pointer;
+
     if (request->actionId == 0 && GameFlag_GetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
         func_800E8634(D_acropolis_east_elevator_hall_80185D54, 0, D_acropolis_east_elevator_hall_801860B4);
         D_acropolis_east_elevator_hall_8018631C = 1;
@@ -710,7 +711,7 @@ static void func_acropolis_east_elevator_hall_8017F478(Task* task)
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
     Game_SetPtrSlot(task, 7);
     Gp_MsgSlot4Chain(0, 1);
-    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
     task->state++;
 }
 

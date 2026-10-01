@@ -10,7 +10,6 @@
 
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
@@ -52,7 +51,7 @@ GpMsgEntry D_neo_ark_r31_8017D9F4[5] = {
 };
 
 u8* D_neo_ark_r31_8017DA1C[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_neo_ark_r31_8017DA20[1] = {

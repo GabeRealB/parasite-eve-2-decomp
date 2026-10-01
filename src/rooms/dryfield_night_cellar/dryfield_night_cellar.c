@@ -14,7 +14,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -99,7 +98,7 @@ u8 D_dryfield_night_cellar_8017DB20[8] = {
 };
 
 u8* D_dryfield_night_cellar_8017DB28[2] = {
-    D_8010CAF8,
+    gViewIdentityMap,
     D_dryfield_night_cellar_8017DB20,
 };
 

@@ -265,34 +265,33 @@ static inline void _modelLightingInitFt4Texture(POLY_FT4* quad, const u32* eleme
     quad->clut      += workspace->encodedClutOffset;
 }
 
-/// Initializes one gouraud textured triangle's persistent texture fields.
+/// Initializes one gouraud textured triangle's persistent texture coordinates and GPU addresses.
 ///
-/// `triangle` is a writable, word-aligned packet; `elementWords` addresses at
-/// least six aligned u32 words after the record header. `workspace` supplies
-/// construction's signed encoded page and CLUT displacements. Packed word and
-/// halfword stores preserve the GPU field widths, including the unused high
-/// half beside U2/V2. All arguments are borrowed; no cursor or count is changed.
+/// `triangle` is a writable, four-byte-aligned `POLY_GT3`. `elementWords` points
+/// to a four-byte-aligned element of a `0x38`-family stream record, past its
+/// three-word header, with at least six readable u32 words. The first three
+/// words hold geometry references. Words 3 and 4 pack unsigned byte U/V texel
+/// coordinates in their low halves and encoded CLUT and texture-page settings
+/// in their high halves. Word 5's low half packs U2/V2; its high half is ignored.
+///
+/// The construction workspace supplies signed displacements in encoded address
+/// units: `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128,
+/// 64 per palette row). Each sum wraps in its u16 field without changing U/V.
+/// The packet's tag, colours/command, screen positions and pad fields remain
+/// untouched for the draw pass. All three objects are borrowed for the call;
+/// no pointer is retained and no workspace cursor or count is changed.
 static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWords, const TmdStreamWorkspace* workspace)
 {
     // Word indices within the element, excluding the record header.
     enum {
-        /// Element-relative u32 index of vertex 0's U/V and CLUT in 0x38-family triangles.
-        ///
-        /// The three-word record header is excluded. Three vertex and three
-        /// normal u16 references fill words 0..2, so index 3 selects byte offset
-        /// 12. A complete element supplies at least six aligned u32 words. On the
-        /// little-endian target, bits 0..7 hold unsigned U, bits 8..15 unsigned V, and bits
-        /// 16..31 the encoded CLUT address before the object's palette offset.
-        /// `MODEL_LIGHTING_UV0_CLUT_WORD` copies all four bytes into the packet;
-        /// adding `workspace->encodedClutOffset` then wraps only its u16 CLUT.
-        TMD_GT3_UV0_CLUT_WORD  = 3,
+        TMD_GT3_UV0_CLUT_WORD  = 3, // U0/V0 in low half, CLUT address in high half
         TMD_GT3_UV1_TPAGE_WORD = 4, // U1/V1 in low half, texture-page settings in high half
         TMD_GT3_UV2_WORD       = 5  // U2/V2 in low half; high half is not copied
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_UV0_CLUT_WORD];
     MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[TMD_GT3_UV1_TPAGE_WORD];
-    // Copy the U/V pair without overwriting the SDK pad field.
+    // A halfword store copies U2/V2 without overwriting the adjacent pad2.
     *(u16*)&triangle->u2 = (u16)elementWords[TMD_GT3_UV2_WORD];
     triangle->tpage     += workspace->texturePageOffset;
     triangle->clut      += workspace->encodedClutOffset;
@@ -2318,25 +2317,22 @@ u32* gpStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3Base(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt3LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
+    POLY_GT3* triangle;
 
-    poly = (POLY_GT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
+    triangle = (POLY_GT3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
         do {
-            poly++;
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
-            *(u16*)&poly->u2                    = (u16)stream[5];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Leave the first packet for the environment layer; texture the opaque base.
+            triangle++;
+            _tmdInitGt3Texture(triangle, elements, workspace);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* gpStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)

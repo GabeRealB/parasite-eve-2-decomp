@@ -24,7 +24,6 @@ Task* D_shelter_b6_training_room_80185C5C;
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -56,7 +55,7 @@ static void func_shelter_b6_training_room_8017DBB0(s32 arg0);
 extern GpAreaTmdRec D_shelter_b6_training_room_80185994[6];
 
 u8* D_shelter_b6_training_room_80184418[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b6_training_room_8018441C[2] = {
@@ -413,7 +412,7 @@ s32 func_shelter_b6_training_room_8017D764(Task* task, s32 msgId, TaskMessageArg
 {
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     func_800E8634(D_shelter_b6_training_room_80183BB4, 0, D_shelter_b6_training_room_80184124);
-    Gp_DispatchMsgPtr(Gp_LookupSlot4(3), 0x7DB, &D_shelter_b6_training_room_80182B24, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(3), ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b6_training_room_80182B24, 0);
     D_shelter_b6_training_room_80185C58 = 1;
     return 0;
 }

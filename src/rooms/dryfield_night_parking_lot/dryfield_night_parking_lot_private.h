@@ -25,7 +25,7 @@ s32 func_dryfield_night_parking_lot_8017DB04(Task*, s32, TaskMessageArg, TaskMes
 
 s32 func_dryfield_night_parking_lot_8017DB0C(Task*, s32, s32, TaskMessageArg);
 
-s32 func_dryfield_night_parking_lot_8017DB34(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32 func_dryfield_night_parking_lot_8017DB34(Task*, s32, TaskMessageArg firstArg, TaskMessageArg);
 
 void func_dryfield_night_parking_lot_8017DBA4(s32);
 

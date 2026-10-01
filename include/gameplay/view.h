@@ -8,6 +8,21 @@
 
 #include "gameplay/message.h"
 
+/// Number of unsigned byte entries in `gViewIdentityMap`.
+///
+/// Its capacity covers 1-based logical views 1 through this value; each room
+/// supplies its own view count independently of the shared mapping's extent.
+enum { VIEW_IDENTITY_MAP_LENGTH = 50 };
+
+/// Shared mapping for rooms whose logical views use the same camera/image indices.
+///
+/// Indexed by the 1-based logical view minus one: entry `view - 1` contains
+/// `view` for views 1 through `VIEW_IDENTITY_MAP_LENGTH`. There is no terminator.
+/// Room tables borrow this gameplay-owned array without modifying it; it remains
+/// valid while gameplay is loaded. Each room's view count limits reverse searches,
+/// independently of this array's capacity and its camera/image table extents.
+extern u8 gViewIdentityMap[VIEW_IDENTITY_MAP_LENGTH];
+
 /// 2-byte record in tables pointed to by `Gp_ViewCountTables`. Indexed by
 /// `GameSession.location.loc.room - 1`. Gp_GetViewCountLo reads prefix.bytes.field_0;
 /// Gp_FindViewIndex reads prefix.packed as its search limit. This limit is not

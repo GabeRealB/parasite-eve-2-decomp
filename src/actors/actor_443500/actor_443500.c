@@ -97,9 +97,9 @@ extern TaskDesc D_actor_443500_8015873C[];
 typedef struct {
     s32 id;
     union {
-        s32 (*call0)(Task*, s32, AnimationPlayRequest*, s32);
-        s32 (*call1)(Task*, s32, ActorTransform*);
-        s32 (*call2)(Task*, s32, s32, s32);
+        s32                (*call0)(Task*, s32, AnimationPlayRequest*, s32);
+        s32                (*call1)(Task*, s32, ActorTransform*);
+        TaskMessageHandler call2;
     } handler;
 } Actor443500MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor443500MessageEntry, 8);

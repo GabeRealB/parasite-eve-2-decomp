@@ -165,7 +165,7 @@ void func_hypervelocity_8011D1E8(Task* task)
     EffectWork*           eff;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
-    GpMtxWords*           dstm;
+    GfxRotationWords*     dstm;
     s32                   pan;
 
     work  = task->spawnArg2.pointer;
@@ -184,13 +184,13 @@ void func_hypervelocity_8011D1E8(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case 0:
-            dstm                = (GpMtxWords*)&coord->coord;
+            dstm                = (GfxRotationWords*)&coord->coord;
             coord->parent       = work->parent;
-            dstm->m00_m01       = 0x1000;
-            dstm->m02_m10       = 0;
-            dstm->m11_m12       = 0x1000;
-            dstm->m20_m21       = 0;
-            dstm->m22           = 0x1000;
+            dstm->m00M01        = ONE;
+            dstm->m02M10        = 0;
+            dstm->m11M12        = ONE;
+            dstm->m20M21        = 0;
+            dstm->m22           = ONE;
             coord->coord.t[0]   = D_hypervelocity_8011FB74.vx;
             coord->coord.t[1]   = D_hypervelocity_8011FB74.vy;
             coord->coord.t[2]   = D_hypervelocity_8011FB74.vz;
@@ -348,8 +348,8 @@ void func_hypervelocity_8011D830(Task* task)
     EffectWork*           work;
     EffectWork*           eff;
     HyperBeam*            beam;
-    GpMtxWords*           dstm;
-    GpMtxWords*           srcm;
+    GfxRotationWords*     destinationRotation;
+    GfxRotationWords*     sourceRotation;
     u32                   ang;
     s32                   i;
 
@@ -379,22 +379,22 @@ void func_hypervelocity_8011D830(Task* task)
                 work->age = 0;
                 return;
             }
-            task->exitCallback         = func_hypervelocity_8011F11C;
-            player                     = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            dstm                       = (GpMtxWords*)&coord->coord;
-            srcm                       = (GpMtxWords*)&player->coord;
-            dstm->m00_m01              = srcm->m00_m01;
-            dstm->m02_m10              = srcm->m02_m10;
-            dstm->m11_m12              = srcm->m11_m12;
-            dstm->m20_m21              = srcm->m20_m21;
-            dstm->m22                  = srcm->m22;
-            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
-            gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+            task->exitCallback          = func_hypervelocity_8011F11C;
+            player                      = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+            destinationRotation         = (GfxRotationWords*)&coord->coord;
+            sourceRotation              = (GfxRotationWords*)&player->coord;
+            destinationRotation->m00M01 = sourceRotation->m00M01;
+            destinationRotation->m02M10 = sourceRotation->m02M10;
+            destinationRotation->m11M12 = sourceRotation->m11M12;
+            destinationRotation->m20M21 = sourceRotation->m20M21;
+            destinationRotation->m22    = sourceRotation->m22;
+            coord->composeStamp         = GRAPHICS_COORD_DIRTY;
+            gGfxViewCoord.composeStamp  = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             work->move.vx = 0;
             work->move.vy = 0;
             work->move.vz = 0x400;
-            gte_SetRotMatrix((MATRIX*)srcm);
+            gte_SetRotMatrix(&player->coord);
             gte_ldv0(&work->move);
             gte_rtv0();
             gte_stsv(&work->move);
@@ -956,13 +956,13 @@ void func_hypervelocity_8011F270(Task* arg0)
 
 static void func_hypervelocity_8011F374(Task* arg0)
 {
-    Task*       parent;
-    TmdObject*  extra;
-    TmdObject*  playerExtra;
-    GfxCoord*   coord;
-    Task*       work;
-    GpMtxWords* mat;
-    s16         count;
+    Task*             parent;
+    TmdObject*        extra;
+    TmdObject*        playerExtra;
+    GfxCoord*         coord;
+    Task*             work;
+    GfxRotationWords* mat;
+    s16               count;
 
     parent      = arg0->parent;
     work        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -1010,12 +1010,12 @@ static void func_hypervelocity_8011F374(Task* arg0)
             coord->coord.t[1] = -0x15C;
             coord->coord.t[2] = 0xA8;
 
-            mat          = (GpMtxWords*)&coord->coord;
-            mat->m00_m01 = 0x1000;
-            mat->m02_m10 = 0;
-            mat->m11_m12 = 0x1000;
-            mat->m20_m21 = 0;
-            mat->m22     = 0x1000;
+            mat         = (GfxRotationWords*)&coord->coord;
+            mat->m00M01 = ONE;
+            mat->m02M10 = 0;
+            mat->m11M12 = ONE;
+            mat->m20M21 = 0;
+            mat->m22    = ONE;
             RotMatrixX(coord->param.rot.vx, &coord->coord);
             break;
     }

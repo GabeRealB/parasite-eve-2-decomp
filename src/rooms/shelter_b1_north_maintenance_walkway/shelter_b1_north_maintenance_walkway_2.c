@@ -18,7 +18,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/direction_input.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -69,7 +68,7 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
 u8* D_shelter_b1_north_maintenance_walkway_80184B80[1] = {
-    D_8010CAF8,
+    gViewIdentityMap,
 };
 
 GpViewCountRec D_shelter_b1_north_maintenance_walkway_80184B84[1] = {
