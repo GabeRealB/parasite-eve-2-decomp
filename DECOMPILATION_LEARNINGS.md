@@ -19290,27 +19290,27 @@ priority = *(u8*)&desc->header.fields.priority; /* lbu, not lhu */
 ## Hand the insert slot the walker's register, as its own `TaskNode**`
 
 Target list insertion reuses one register: after walking to the insert point
-it does `bnez curr, join` / `addiu curr, curr, 4` / `addiu curr, list, 4`, then
+it does `bnez nextTask, join` / `addiu nextTask, nextTask, 4` / `addiu nextTask, listHead, 4`, then
 treats that register as `TaskNode**`. Pin the walker and give the slot a
 `TaskNode**` of its own — it is born where the walker dies, so one register
 still serves both:
 
 ```c
-register Task* curr asm("a3");
-TaskNode**     link;
+register Task* nextTask asm("a3");
+TaskNode**     backlinkSlot;
 /* … walk by `priority` … */
-if (curr != NULL) {
-    link = &curr->node.prev;
+if (nextTask != NULL) {
+    backlinkSlot = &nextTask->node.prev;
 } else {
-    link = &list->prev;
+    backlinkSlot = &listHead->prev;
 }
-task->node.next = (*link)->next;
-(*link)->next   = task;
-task->node.prev = *link;
-*link           = &task->node;
+task->node.next       = (*backlinkSlot)->next;
+(*backlinkSlot)->next = task;
+task->node.prev       = *backlinkSlot;
+*backlinkSlot        = &task->node;
 ```
 
-Reusing the walker and reading through `(TaskNode**)curr` compiles to the same
+Reusing the walker and reading through `(TaskNode**)nextTask` compiles to the same
 thing, because the two forms are the same register; the named slot is the
 honest spelling and it drops four casts. What does not match is a slot live
 across the walk: a `TaskNode**` the allocator has to keep alongside the walker
@@ -145784,13 +145784,13 @@ sb v1`), then walks a sorted list with `andi v1,v1,0xff` in the loop
 preheader. With a plain `u8 priority` local the zero-extension is hoisted into
 a second, global pseudo, `extra` (the attached body) outranks the byte in
 `global.c` and takes `$v1`, and priority is pushed to `$a1`. The tree held it
-with `register Task* curr asm("a3")` and an `s32 priority; priority &= 0xFF`.
+with `register Task* nextTask asm("a3")` and an `s32 priority; priority &= 0xFF`.
 
 **Fix.** Move the ordered insertion into a `static inline` helper
-`(TaskNode* list, Task* task, u32 priority)` and call it with the `u8` local.
+`(TaskNode* listHead, Task* task, u32 priority)` and call it with the `u8` local.
 The widening now happens at the call, in the same block as the load, so the
 byte is a local-alloc quantity allocated before any global and lands in `$v1`;
-the helper's own `curr`/`link` locals take `$a3` with no pin. An `s32`
+the helper's own `nextTask`/`backlinkSlot` locals take `$a3` with no pin. An `s32`
 parameter compares signed (`slt`); a `u8` one re-creates the hoisted pseudo.
 
 The same function's `(flags & 0x100) != 0` is folded to `srl 8; andi 1`; the

@@ -59,11 +59,6 @@ enum {
     TASK_STATUS_STOP_REQUESTED = 0xFF
 };
 
-/// Links `task` into `list` ahead of the first task whose priority is higher,
-/// so the list stays in ascending priority order and equal priorities keep
-/// the order they were spawned in.
-static inline void _taskInsert(TaskNode* list, Task* task, u32 priority);
-
 static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskNode* list);
 
 static void Task_Unlink(Task* state);
@@ -72,28 +67,40 @@ static void Task_Free(Task* state);
 
 bool gTaskDeferModelBufferAllocation = false;
 
-/// Links `task` into `list` ahead of the first task whose priority is higher,
-/// so the list stays in ascending priority order and equal priorities keep
-/// the order they were spawned in.
-static inline void _taskInsert(TaskNode* list, Task* task, u32 priority)
+/// Inserts a new task into its execution list, preserving ascending priority and spawn order among equals.
+///
+/// `listHead` must be a non-NULL bare head of a live, NULL-terminated list already
+/// ordered by priority.
+/// An empty head has `next == NULL` and `prev == listHead`; otherwise its `prev`
+/// points to the last task's node. `task` must be live and not already linked.
+/// `priority` is the task's initialized byte priority, 0..255, widened to `u32`
+/// for the unsigned comparison. Insertion overwrites both of the task's links
+/// and updates the successor's back link, or the head's tail link when appending.
+/// The head and tasks must remain live while linked. Insertion performs no
+/// allocation, callback dispatch or release, and does not select the active list.
+static inline void _taskInsert(TaskNode* listHead, Task* task, u32 priority)
 {
-    Task*      curr;
-    TaskNode** link;
+    Task*      nextTask;
+    TaskNode** backlinkSlot;
+    TaskNode*  predecessorNode;
 
-    for (curr = list->next; curr != NULL; curr = curr->node.next) {
-        if (priority < curr->priority) {
+    for (nextTask = listHead->next; nextTask != NULL; nextTask = nextTask->node.next) {
+        if (priority < nextTask->priority) {
             break;
         }
     }
-    if (curr == NULL) {
-        link = &list->prev;
+
+    // The insertion slot holds the predecessor, which may be the bare list head.
+    if (nextTask == NULL) {
+        backlinkSlot = &listHead->prev;
     } else {
-        link = &curr->node.prev;
+        backlinkSlot = &nextTask->node.prev;
     }
-    task->node.next = (*link)->next;
-    (*link)->next   = task;
-    task->node.prev = *link;
-    *link           = &task->node;
+    task->node.next       = (*backlinkSlot)->next;
+    predecessorNode       = *backlinkSlot;
+    predecessorNode->next = task;
+    task->node.prev       = *backlinkSlot;
+    *backlinkSlot         = &task->node;
 }
 
 static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskNode* list)
