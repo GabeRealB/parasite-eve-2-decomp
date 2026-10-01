@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_water_hole.
-D_dryfield_night_water_hole_80180970 = 0x80180970; // size:0x24 defined:True
+gWaterHoleSurfaces = 0x80180970; // size:0x24 defined:True
 D_dryfield_night_water_hole_80180994 = 0x80180994; // size:0x20 defined:True
 D_dryfield_night_water_hole_801809B4 = 0x801809B4; // size:0x20 defined:True
 D_dryfield_night_water_hole_801809D4 = 0x801809D4; // size:0x20 defined:True
@@ -109,8 +109,9 @@ D_dryfield_night_water_hole_801805EC = 0x801805EC; // size:0xC defined:True
 D_dryfield_night_water_hole_801805F8 = 0x801805F8; // size:0x28 defined:True
 D_dryfield_night_water_hole_80180620 = 0x80180620; // size:0x4 defined:True
 D_dryfield_night_water_hole_80183618 = 0x80183618; // size:0x10 defined:True
-D_dryfield_night_water_hole_80183628 = 0x80183628; // size:0x4 defined:True
-D_dryfield_night_water_hole_8018362C = 0x8018362C; // size:0x4 defined:True
+gWaterHolePrimCursor = 0x80183628; // size:0x4 defined:True
+gWaterHoleWaveScroll = 0x8018362C; // size:0x2 defined:True
+D_dryfield_night_water_hole_8018362E = 0x8018362E; // size:0x2 defined:True
 gRoomDeparture = 0x80183630; // size:0xC defined:True
 
 func_dryfield_night_water_hole_8017F6DC = 0x8017F6DC; // type:func
