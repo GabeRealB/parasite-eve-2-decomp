@@ -148,5 +148,7 @@ void ratShadow(Task* arg0);
 void ratSquash(Task* arg0);
 
 /* Defined by each package. */
+void ratContacts(Task* actor);
+void ratBehavior(Task* arg0);
 
 #endif /* SRC_SHARED_RAT_H */

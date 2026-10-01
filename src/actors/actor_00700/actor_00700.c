@@ -130,8 +130,6 @@ extern EnemyParams         gMothParams;
 extern struct DamageAttack gMothAttack;
 extern AnimationSet*       gMothAnimSets[2];
 
-void mothUpdateColor(Task* arg0);
-
 /// The state handlers `ratTask` dispatches on `Task::state`:
 /// set-up, per-frame update, and the one entered once the health runs out.
 static const GpEnemyTaskFuncTable3 gRatStateHandlers = {
