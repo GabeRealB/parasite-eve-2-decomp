@@ -497,7 +497,15 @@ static void _textDrawGlyphOutlined(TextDrawReq* request, const _FontGlyph* glyph
         /// `Text_LoadClutImages` uploads the 16-color palette there: texel indices
         /// 0..10 are transparent and 11..15 are progressively brighter gray.
         /// The fill sprite disables semi-transparency and modulates these colors by RGB.
-        TEXT_OUTLINED_GLYPH_FILL_CLUT    = getClut(0x3D0, 0x1FF),
+        TEXT_OUTLINED_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
+        /// GPU CLUT selector for the subtractive outline of an opaque UI glyph.
+        ///
+        /// Encodes VRAM word X=1008, row Y=511 as 0x7FFF for `SPRT::clut`.
+        /// The final 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// resident: indices 0..5 are transparent, 6..9 are increasing gray,
+        /// and 10..15 are white. All nonzero colors enable semi-transparency.
+        /// The raw-texture sprite ignores RGB; with subtractive page blending,
+        /// these colors darken the background before the opaque fill is drawn.
         TEXT_OUTLINED_GLYPH_OUTLINE_CLUT = getClut(0x3F0, 0x1FF),
     };
 
