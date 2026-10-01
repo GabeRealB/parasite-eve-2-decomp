@@ -7,6 +7,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/stdio.h>
 
+#include "common.h"
 #include "gte.h"
 #include "types.h"
 
@@ -743,12 +744,25 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         TMD_GT3_ENV_LAYER_COMMAND = 0x36,
         TMD_GT3_ENV_CORNER_COUNT  = 3,
         TMD_GT3_ENV_PACKET_COUNT  = 2,
-        TMD_GT3_ENV_CORNER_BYTES  = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0),
+        /// Byte stride between corresponding fields of successive environment-triangle corners.
+        ///
+        /// Advances the U and 0/1 second-page-marker cursors through `u0/u1/u2`
+        /// and `code/p1/p2` in the layer packet. The byte view covers the complete
+        /// packet pair, including the final undereferenced cursor advances.
+        TMD_GT3_ENV_CORNER_STRIDE_BYTES = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0),
         // Sixteen scaled OTZ units select one four-byte OT tag.
         TMD_GT3_ENV_OT_INDEX_SHIFT = 4
     };
     /// One element's environment packet followed by its opaque base packet.
     typedef POLY_GT3 _TmdEnvTrianglePair[TMD_GT3_ENV_PACKET_COUNT];
+
+    STATIC_ASSERT(OFFSET_OF(POLY_GT3, u2) - OFFSET_OF(POLY_GT3, u1) == TMD_GT3_ENV_CORNER_STRIDE_BYTES &&
+                      OFFSET_OF(POLY_GT3, p1) - OFFSET_OF(POLY_GT3, code) == TMD_GT3_ENV_CORNER_STRIDE_BYTES &&
+                      OFFSET_OF(POLY_GT3, p2) - OFFSET_OF(POLY_GT3, p1) == TMD_GT3_ENV_CORNER_STRIDE_BYTES,
+                  tmdGt3EnvCornerStride);
+    STATIC_ASSERT(OFFSET_OF(POLY_GT3, code) + TMD_GT3_ENV_CORNER_COUNT * TMD_GT3_ENV_CORNER_STRIDE_BYTES <= sizeof(_TmdEnvTrianglePair) &&
+                      OFFSET_OF(POLY_GT3, u0) + TMD_GT3_ENV_CORNER_COUNT * TMD_GT3_ENV_CORNER_STRIDE_BYTES <= sizeof(_TmdEnvTrianglePair),
+                  tmdGt3EnvCornerCursorBounds);
 
     _TmdEnvTrianglePair* packetPair;
     s32*                 gteResultDestination;
@@ -808,9 +822,9 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
                                             *textureU = 0;
                                         }
                                     }
-                                    textureU += TMD_GT3_ENV_CORNER_BYTES;
+                                    textureU += TMD_GT3_ENV_CORNER_STRIDE_BYTES;
                                     cornerIndex++;
-                                    pageMarker += TMD_GT3_ENV_CORNER_BYTES;
+                                    pageMarker += TMD_GT3_ENV_CORNER_STRIDE_BYTES;
                                 } while (cornerIndex < TMD_GT3_ENV_CORNER_COUNT);
                                 texturePage = TMD_GT3_ENV_SECOND_TEXTURE_PAGE;
                             }
