@@ -5,10 +5,10 @@
 /// three-entry table.
 void madChaserLurkAlertState(Task* arg0)
 {
-    Actor341700Work* work;
-    TaskFuncTable3   sp;
+    MadChaserWork* work;
+    TaskFuncTable3 sp;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     sp   = gMadChaserLurkAlertSteps;
     if ((madChaserJoinAlert(arg0) << 0x10) != 0) {
         work->field_438 = 0;

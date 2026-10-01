@@ -8,11 +8,11 @@
 /// for the state reset, as the original does.
 void madChaserDangleFrame(Task* arg0)
 {
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    GfxCoord*        coord = obj->coords;
-    TaskFunc         sp[1] = { madChaserDangleState };
+    TmdObject*     obj   = arg0->extra.tmd;
+    MadChaserWork* work  = (MadChaserWork*)arg0->work;
+    Enemy*         enemy = arg0->spawnArg2.pointer;
+    GfxCoord*      coord = obj->coords;
+    TaskFunc       sp[1] = { madChaserDangleState };
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -23,7 +23,7 @@ void madChaserDangleFrame(Task* arg0)
             sp[(s16)work->field_420](arg0);
             madChaserApplyContacts(arg0, 1);
             if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
+                MadChaserWork* w = (MadChaserWork*)arg0->work;
 
                 arg0->state  = work->field_448;
                 w->field_420 = 0;

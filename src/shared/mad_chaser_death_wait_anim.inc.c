@@ -3,13 +3,13 @@
 /// Ticks the animation and, once the hit flags are set, advances the state.
 void madChaserDeathWaitAnim(Task* arg0)
 {
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              cond;
+    MadChaserWork* work;
+    MadChaserWork* work2;
+    s32            cond;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     madChaserTickAnim(arg0);
-    work2 = (Actor341700Work*)arg0->work;
+    work2 = (MadChaserWork*)arg0->work;
     if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;

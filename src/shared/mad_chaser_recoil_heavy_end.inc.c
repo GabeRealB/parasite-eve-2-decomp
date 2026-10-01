@@ -4,10 +4,10 @@
 /// and goes to the alert state.
 void madChaserRecoilHeavyEnd(Task* arg0)
 {
-    Actor341700Work* work;
-    s32              cond;
+    MadChaserWork* work;
+    s32            cond;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
@@ -16,12 +16,12 @@ void madChaserRecoilHeavyEnd(Task* arg0)
     }
     if (cond) {
         if (work->field_44F == 1) {
-            work            = (Actor341700Work*)arg0->work;
+            work            = (MadChaserWork*)arg0->work;
             work->field_420 = 3;
             work->field_422 = 0;
         } else {
             madChaserSetAlertHold(arg0, 1);
-            work            = (Actor341700Work*)arg0->work;
+            work            = (MadChaserWork*)arg0->work;
             work->field_420 = 5;
             work->field_422 = 0;
         }

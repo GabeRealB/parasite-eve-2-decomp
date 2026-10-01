@@ -6,14 +6,14 @@
 /// message 0x13F4, and hides the model.
 void madChaserPulledIn(Task* arg0)
 {
-    Actor341700Work* objs;
-    Enemy*           enemy;
-    TmdObject*       tmd;
-    Actor341700Work* work;
-    s32              soundId;
-    s32              pan;
+    MadChaserWork* objs;
+    Enemy*         enemy;
+    TmdObject*     tmd;
+    MadChaserWork* work;
+    s32            soundId;
+    s32            pan;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     enemy           = (Enemy*)arg0->spawnArg2.pointer;
     tmd             = arg0->extra.tmd;
     work->field_438 = 1;
@@ -28,7 +28,7 @@ void madChaserPulledIn(Task* arg0)
     Gp_UnlinkNode(&enemy->node);
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
-    objs        = (Actor341700Work*)arg0->work;
+    objs        = (MadChaserWork*)arg0->work;
     Gp_UnlinkObj(&objs->obj_2AC);
     Gp_UnlinkObj(&objs->obj_2CC);
     Gp_UnlinkObj(&objs->obj_3AC);

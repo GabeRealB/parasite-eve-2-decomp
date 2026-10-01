@@ -3,10 +3,10 @@
 /// Advances the state after two frames.
 void madChaserDeathPause(Task* arg0)
 {
-    u16              ticks;
-    Actor341700Work* work;
+    u16            ticks;
+    MadChaserWork* work;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 2) {

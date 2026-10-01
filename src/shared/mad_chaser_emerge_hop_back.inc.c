@@ -5,14 +5,14 @@
 /// advances the state.
 void madChaserEmergeHopBack(Task* arg0)
 {
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s16              angle;
-    s16              speed;
+    MadChaserWork* work;
+    GfxCoord*      coord;
+    s32            soundId;
+    s32            pan;
+    s16            angle;
+    s16            speed;
 
-    work  = (Actor341700Work*)arg0->work;
+    work  = (MadChaserWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
     work->field_412++;
     work->field_78 += -work->field_78 >> 5;

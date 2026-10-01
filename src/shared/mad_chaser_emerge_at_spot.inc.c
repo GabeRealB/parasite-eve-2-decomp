@@ -7,14 +7,14 @@
 /// state 1, 4 or 7 by bits 4..7.
 void madChaserEmergeAtSpot(Task* arg0)
 {
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    TmdObject*       obj   = arg0->extra.tmd;
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    GfxCoord*        coord = obj->coords;
-    Actor341700Work* w2;
-    s32              id;
-    s32              pan;
-    u32              stageAreaKey;
+    MadChaserWork* work  = (MadChaserWork*)arg0->work;
+    TmdObject*     obj   = arg0->extra.tmd;
+    Enemy*         enemy = arg0->spawnArg2.pointer;
+    GfxCoord*      coord = obj->coords;
+    MadChaserWork* w2;
+    s32            id;
+    s32            pan;
+    u32            stageAreaKey;
 
     if ((work->field_44C & 0xF) == 1) {
         work->field_451      = 1;
@@ -49,7 +49,7 @@ void madChaserEmergeAtSpot(Task* arg0)
         }
         work->field_428 = 0;
         work->field_42A = 100;
-        w2              = (Actor341700Work*)arg0->work;
+        w2              = (MadChaserWork*)arg0->work;
         w2->field_41C   = 0x10;
         w2->field_418   = 7;
         w2->field_414   = 2;

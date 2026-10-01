@@ -4,9 +4,9 @@
 /// goes to the leap state.
 void madChaserWalkFinish(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    s16              angle;
-    s16              speed;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    s16            angle;
+    s16            speed;
 
     madChaserTurnToPlayer(arg0, 0x10);
     speed                                 = madChaserScaleBySpeed(arg0, -0x10);
@@ -15,7 +15,7 @@ void madChaserWalkFinish(Task* arg0)
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (madChaserAnimEnded(arg0)) {
-        Actor341700Work* next = (Actor341700Work*)arg0->work;
+        MadChaserWork* next = (MadChaserWork*)arg0->work;
 
         next->field_420 = 4;
         next->field_422 = 0;

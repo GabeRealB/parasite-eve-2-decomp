@@ -6,14 +6,14 @@
 /// frame counter and advances the state.
 void madChaserBeginDeath(Task* arg0)
 {
-    GfxCoord*        coord = arg0->extra.tmd->coords;
-    Enemy*           enemy = (Enemy*)arg0->spawnArg2.pointer;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    Actor341700Work* objWork;
+    GfxCoord*      coord = arg0->extra.tmd->coords;
+    Enemy*         enemy = (Enemy*)arg0->spawnArg2.pointer;
+    MadChaserWork* work  = (MadChaserWork*)arg0->work;
+    MadChaserWork* objWork;
 
     enemy->recs = 0;
 
-    objWork = (Actor341700Work*)arg0->work;
+    objWork = (MadChaserWork*)arg0->work;
     Gp_UnlinkObj(&objWork->obj_2AC);
     Gp_UnlinkObj(&objWork->obj_2CC);
     Gp_UnlinkObj(&objWork->obj_3AC);

@@ -8,14 +8,14 @@
 /// animation 0x12.
 void madChaserLeapAttack(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    GfxCoord*        root = arg0->extra.tmd->coords;
-    MATRIX           local;
-    s16              angle;
-    s32              soundId;
-    s32              pan;
-    s16              facing;
-    s16              speed;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    GfxCoord*      root = arg0->extra.tmd->coords;
+    MATRIX         local;
+    s16            angle;
+    s32            soundId;
+    s32            pan;
+    s16            facing;
+    s16            speed;
 
     if ((s16)++work->field_412 < 40) {
         if ((s16)madChaserTakeHitRequest(arg0)) {
@@ -70,11 +70,11 @@ void madChaserLeapAttack(Task* arg0)
         work->obj_3AC.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if (work->field_412 >= 45 && work->field_412 <= 48 && work->field_43A < 0x171) {
-        Actor341700Work* w;
+        MadChaserWork* w;
 
         work->field_428      = 0;
         work->field_42A      = -200;
-        w                    = (Actor341700Work*)arg0->work;
+        w                    = (MadChaserWork*)arg0->work;
         w->field_426         = 2;
         w->field_41C         = 0x10;
         w->field_418         = 0x10;
@@ -90,7 +90,7 @@ void madChaserLeapAttack(Task* arg0)
         work->field_428      += 30;
         work->field_42A      += work->field_428;
         if (root->coord.t[1] >= (s16)work->field_92) {
-            Actor341700Work* w = (Actor341700Work*)arg0->work;
+            MadChaserWork* w = (MadChaserWork*)arg0->work;
 
             w->field_426         = 2;
             w->field_41C         = 0x10;

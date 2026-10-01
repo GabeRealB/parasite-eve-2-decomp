@@ -4,11 +4,11 @@
 /// (the offset in `field_88` / `field_8C`), leaving it alone within 0x100.
 void madChaserTurnToPlayer(Task* arg0, s32 step)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    SVECTOR          vec;
-    s32              diff;
-    u16              angle;
-    s32              yaw;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    SVECTOR        vec;
+    s32            diff;
+    u16            angle;
+    s32            yaw;
 
     vec.vx = work->field_88;
     vec.vy = 0;

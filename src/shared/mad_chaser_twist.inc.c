@@ -8,13 +8,13 @@ void madChaserTwistSpine(Task* arg0)
     SVECTOR           rot;
     OverlayMat        mtx;
     GfxRotationWords* ident;
-    Actor341700Work*  work;
+    MadChaserWork*    work;
     GfxCoord*         coords;
     MATRIX*           m5;
     MATRIX*           m4;
     MATRIX*           m3;
 
-    work   = (Actor341700Work*)arg0->work;
+    work   = (MadChaserWork*)arg0->work;
     ident  = &mtx.ident;
     coords = arg0->extra.tmd->coords;
 

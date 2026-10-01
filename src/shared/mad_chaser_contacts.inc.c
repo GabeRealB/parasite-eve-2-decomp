@@ -9,28 +9,28 @@
 /// root by the combined step and push-out.
 void madChaserApplyContacts(Task* arg0, s16 arg1)
 {
-    GpDeltaScratch   delta;
-    SVECTOR          push;
-    s16              maxX;
-    s16              maxZ;
-    s16              stepX;
-    s16              stepZ;
-    u8               blocked;
-    Actor341700Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    s16              amount;
-    s32              dmg;
-    s32              tmp;
-    s16              tick;
-    s32              i;
+    GpDeltaScratch delta;
+    SVECTOR        push;
+    s16            maxX;
+    s16            maxZ;
+    s16            stepX;
+    s16            stepZ;
+    u8             blocked;
+    MadChaserWork* work;
+    Enemy*         enemy;
+    GfxCoord*      coord;
+    s16            amount;
+    s32            dmg;
+    s32            tmp;
+    s16            tick;
+    s32            i;
 
     stepZ   = 0;
     maxX    = 0;
     maxZ    = 0;
     stepX   = 0;
     blocked = 0;
-    work    = (Actor341700Work*)arg0->work;
+    work    = (MadChaserWork*)arg0->work;
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
     SCRATCH_STACK_RESERVE_BYTES(8);

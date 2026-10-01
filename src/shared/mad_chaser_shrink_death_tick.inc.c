@@ -5,10 +5,10 @@
 /// model's second coord part every 32 frames.
 void madChaserShrinkDeathTick(Task* arg0)
 {
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable7   sp    = gMadChaserShrinkDeathStates;
+    TmdObject*     obj   = arg0->extra.tmd;
+    MadChaserWork* work  = (MadChaserWork*)arg0->work;
+    GfxCoord*      coord = obj->coords;
+    TaskFuncTable7 sp    = gMadChaserShrinkDeathStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

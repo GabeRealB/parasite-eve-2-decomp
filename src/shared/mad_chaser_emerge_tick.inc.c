@@ -6,10 +6,10 @@
 /// `madChaserApplyContacts`.
 void madChaserEmergeTick(Task* arg0)
 {
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable10  sp    = gMadChaserEmergeStates;
+    TmdObject*      obj   = arg0->extra.tmd;
+    MadChaserWork*  work  = (MadChaserWork*)arg0->work;
+    GfxCoord*       coord = obj->coords;
+    TaskFuncTable10 sp    = gMadChaserEmergeStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

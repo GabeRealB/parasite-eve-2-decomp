@@ -4,22 +4,22 @@
 /// (upright, with a global sound 2) or 0x11, plays sound 3 and advances.
 void madChaserRecoilLight(Task* arg0)
 {
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s32              soundId;
-    s32              pan;
+    MadChaserWork* work;
+    MadChaserWork* work2;
+    s32            soundId;
+    s32            pan;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     work->field_44F = gMadChaserAnimStance[work->field_418 - 1];
     if (work->field_44F == 1) {
-        work2            = (Actor341700Work*)arg0->work;
+        work2            = (MadChaserWork*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 0xB;
         work2->field_414 = 1;
         SndEvt_EnqueueType7(0x402C0002, 1);
     } else {
-        work2            = (Actor341700Work*)arg0->work;
+        work2            = (MadChaserWork*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 0x11;

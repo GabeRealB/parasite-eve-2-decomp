@@ -6,14 +6,14 @@
 /// hides the model, clears the frame counter and advances the state.
 void madChaserShrink(Task* arg0)
 {
-    Actor341700Work*  work;
+    MadChaserWork*    work;
     TmdObject*        obj;
     GfxCoord*         coord;
     VECTOR            scale;
     OverlayMat        m;
     GfxRotationWords* ident;
 
-    work             = (Actor341700Work*)arg0->work;
+    work             = (MadChaserWork*)arg0->work;
     ident            = &m.ident;
     obj              = arg0->extra.tmd;
     coord            = obj->coords;

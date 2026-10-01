@@ -5,10 +5,10 @@
 /// a pending request.
 void madChaserKnockdownState(Task* arg0)
 {
-    Actor341700Work* work;
-    TaskFuncTable3   sp;
+    MadChaserWork* work;
+    TaskFuncTable3 sp;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     sp   = gMadChaserKnockdownSteps;
     sp.funcs[(s16)work->field_422](arg0);
     if (work->field_44F == 1) {

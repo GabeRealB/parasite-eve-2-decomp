@@ -6,17 +6,17 @@
 /// `field_420` set to 5.
 void madChaserCreepUntilHit(Task* arg0)
 {
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    Actor341700Work* next;
-    Actor341700Work* next2;
-    s32              soundId;
-    s32              pan;
-    s32              cond;
-    s16              angle;
-    s16              speed;
+    MadChaserWork* work;
+    MadChaserWork* work2;
+    MadChaserWork* next;
+    MadChaserWork* next2;
+    s32            soundId;
+    s32            pan;
+    s32            cond;
+    s16            angle;
+    s16            speed;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     if ((s16)++work->field_412 == 1) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -27,7 +27,7 @@ void madChaserCreepUntilHit(Task* arg0)
     arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work2                                 = (Actor341700Work*)arg0->work;
+    work2                                 = (MadChaserWork*)arg0->work;
     if ((work2->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work2->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         cond = 1;
@@ -36,11 +36,11 @@ void madChaserCreepUntilHit(Task* arg0)
     }
     if (cond) {
         work->obj_2CC.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                 = (Actor341700Work*)arg0->work;
+        next                 = (MadChaserWork*)arg0->work;
         arg0->state          = 3;
         next->field_420      = 0;
         next->field_422      = 0;
-        next2                = (Actor341700Work*)arg0->work;
+        next2                = (MadChaserWork*)arg0->work;
         next2->field_420     = 5;
         next2->field_422     = 0;
     }

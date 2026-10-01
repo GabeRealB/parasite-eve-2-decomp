@@ -8,11 +8,11 @@
 /// clear bit 0x80 of the model's `field_C`, which mode 2 sets.
 void madChaserLurkTick(Task* arg0)
 {
-    TmdObject*       obj   = arg0->extra.tmd;
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable5   sp    = gMadChaserLurkStates;
+    TmdObject*     obj   = arg0->extra.tmd;
+    Enemy*         enemy = arg0->spawnArg2.pointer;
+    MadChaserWork* work  = (MadChaserWork*)arg0->work;
+    GfxCoord*      coord = obj->coords;
+    TaskFuncTable5 sp    = gMadChaserLurkStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

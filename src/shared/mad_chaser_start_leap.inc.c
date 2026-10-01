@@ -5,13 +5,13 @@
 /// `field_440` and advances the sub-state.
 void madChaserStartLeap(Task* arg0)
 {
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s16              tmp;
+    MadChaserWork* work;
+    MadChaserWork* work2;
+    s16            tmp;
 
-    work             = (Actor341700Work*)arg0->work;
+    work             = (MadChaserWork*)arg0->work;
     work->field_92   = (u16)arg0->extra.tmd->coords->coord.t[1];
-    work2            = (Actor341700Work*)arg0->work;
+    work2            = (MadChaserWork*)arg0->work;
     tmp              = 8;
     work2->field_426 = tmp;
     work2->field_418 = tmp;

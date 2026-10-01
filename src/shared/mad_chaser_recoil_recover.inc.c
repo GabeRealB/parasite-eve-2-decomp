@@ -8,7 +8,7 @@
 /// register; writing `== work->field_44F` reloads the byte instead.
 void madChaserRecoilRecover(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
 
     if (work->field_44F == 1) {
         if (work->field_41E != 0 && work->field_448 == 1) {

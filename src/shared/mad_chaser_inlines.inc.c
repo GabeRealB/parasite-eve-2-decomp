@@ -3,7 +3,7 @@
 /// Moves the task to `state` with a fresh state machine.
 static __inline__ void madChaserEnterState(Task* arg0, s32 state)
 {
-    Actor341700Work* w = (Actor341700Work*)arg0->work;
+    MadChaserWork* w = (MadChaserWork*)arg0->work;
 
     arg0->state  = state;
     w->field_420 = 0;
@@ -69,7 +69,7 @@ static __inline__ void madChaserCalcPush(Task* arg0, GfxCoord* coord, WorldColli
 /// block through the task as the original does.
 static __inline__ void madChaserSetState(Task* arg0, s32 state)
 {
-    Actor341700Work* w = (Actor341700Work*)arg0->work;
+    MadChaserWork* w = (MadChaserWork*)arg0->work;
 
     w->field_420 = state;
     w->field_422 = 0;
@@ -80,7 +80,7 @@ static __inline__ void madChaserSetState(Task* arg0, s32 state)
 /// and returns 1; otherwise returns 0.
 static __inline__ s32 madChaserTakeRequest(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
 
     if (work->field_41E == 1) {
         switch ((s16)(work->field_448 - 1)) {
@@ -108,7 +108,7 @@ static __inline__ s32 madChaserTakeRequest(Task* arg0)
 
 static __inline__ s32 madChaserIsHit(Task* arg0)
 {
-    Actor341700Work* w = (Actor341700Work*)arg0->work;
+    MadChaserWork* w = (MadChaserWork*)arg0->work;
 
     if ((w->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (w->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
@@ -123,7 +123,7 @@ static __inline__ s32 madChaserIsHit(Task* arg0)
 /// which is what leaves one `lw` per arm in front of a shared tail.
 static __inline__ void madChaserSetStateS16(Task* arg0, s16 state)
 {
-    Actor341700Work* w = (Actor341700Work*)arg0->work;
+    MadChaserWork* w = (MadChaserWork*)arg0->work;
 
     w->field_420 = state;
     w->field_422 = 0;
@@ -141,14 +141,14 @@ static __inline__ void madChaserSetStateS16(Task* arg0, s16 state)
 /// disappears). A flag set to 0 up front and to 1 in each arm cross-jumps.
 static __inline__ s16 madChaserTakeHit(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    Actor341700Work* w2;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    MadChaserWork* w2;
 
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
             madChaserEnterState(arg0, 3);
-            w2            = (Actor341700Work*)arg0->work;
+            w2            = (MadChaserWork*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
             return 1;
@@ -166,10 +166,10 @@ static __inline__ s16 madChaserTakeHit(Task* arg0)
 /// taken off the scratch stack, copying the 3x3 into the root coordinate.
 static __inline__ void madChaserUpdateRotation(Task* arg0)
 {
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    MATRIX*          m     = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
-    GfxCoord*        coord = arg0->extra.tmd->coords;
-    MATRIX*          dst;
+    MadChaserWork* work  = (MadChaserWork*)arg0->work;
+    MATRIX*        m     = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
+    GfxCoord*      coord = arg0->extra.tmd->coords;
+    MATRIX*        dst;
 
     work->field_78              &= 0xFFF;
     work->field_7A              &= 0xFFF;
@@ -203,15 +203,15 @@ static __inline__ void madChaserUpdateRotation(Task* arg0)
 /// second local is what puts it in `$v1`.
 static __inline__ s16 madChaserTakeHitNibble3(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    s16              hit  = 0;
-    Actor341700Work* w2;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    s16            hit  = 0;
+    MadChaserWork* w2;
 
     if ((work->field_44C & 0xF) == 3) {
         hit             = 1;
         work->field_44C = 0;
         arg0->state     = 7;
-        w2              = (Actor341700Work*)arg0->work;
+        w2              = (MadChaserWork*)arg0->work;
         w2->field_420   = 0;
         w2->field_422   = 0;
     }

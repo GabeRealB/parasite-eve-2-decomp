@@ -7,16 +7,16 @@
 /// player slot 0 is empty.
 void madChaserTrackPlayer(Task* arg0)
 {
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        other;
-    Task*            player;
-    SVECTOR          d0;
-    SVECTOR          d1;
-    s32              dist;
-    s32              dist2;
+    MadChaserWork* work;
+    GfxCoord*      coord;
+    GfxCoord*      other;
+    Task*          player;
+    SVECTOR        d0;
+    SVECTOR        d1;
+    s32            dist;
+    s32            dist2;
 
-    work              = (Actor341700Work*)arg0->work;
+    work              = (MadChaserWork*)arg0->work;
     coord             = arg0->extra.tmd->coords;
     player            = gPlayerActorTasks[0];
     work->field_60.vx = coord->coord.t[0];

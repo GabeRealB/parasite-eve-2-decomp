@@ -5,12 +5,12 @@
 /// bodies, hides the model and advances the state.
 void madChaserVanish(Task* arg0)
 {
-    Actor341700Work* work2;
-    Actor341700Work* work;
-    Enemy*           enemy;
-    TmdObject*       model;
+    MadChaserWork* work2;
+    MadChaserWork* work;
+    Enemy*         enemy;
+    TmdObject*     model;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     enemy           = (Enemy*)arg0->spawnArg2.pointer;
     model           = arg0->extra.tmd;
     work->field_412 = 0;
@@ -20,7 +20,7 @@ void madChaserVanish(Task* arg0)
     }
     Gp_UnlinkNode(&enemy->node);
     enemy->recs = 0;
-    work2       = (Actor341700Work*)arg0->work;
+    work2       = (MadChaserWork*)arg0->work;
     Gp_UnlinkObj(&work2->obj_2AC);
     Gp_UnlinkObj(&work2->obj_2CC);
     Gp_UnlinkObj(&work2->obj_3AC);

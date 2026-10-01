@@ -5,14 +5,14 @@
 /// (-0x12C) and advances the state.
 void madChaserEmergeHighArc(Task* arg0)
 {
-    Actor341700Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor341700Work* anim;
-    s32              speed;
-    s32              dx;
+    MadChaserWork* work;
+    s16            angle;
+    GfxCoord*      coord;
+    MadChaserWork* anim;
+    s32            speed;
+    s32            dx;
 
-    work                                  = (Actor341700Work*)arg0->work;
+    work                                  = (MadChaserWork*)arg0->work;
     angle                                 = work->field_7A;
     coord                                 = arg0->extra.tmd->coords;
     dx                                    = rsin(angle) << 4;
@@ -28,7 +28,7 @@ void madChaserEmergeHighArc(Task* arg0)
         work->field_451   = 0;
         work->field_412   = 0;
         coord->coord.t[1] = -0x3C;
-        anim              = (Actor341700Work*)arg0->work;
+        anim              = (MadChaserWork*)arg0->work;
         anim->field_41C   = 0x10;
         anim->field_418   = 0xC;
         anim->field_414   = 2;

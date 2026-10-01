@@ -5,21 +5,21 @@
 /// state 7; otherwise the state advances.
 void madChaserDeathCry(Task* arg0)
 {
-    Enemy*           enemy;
-    Actor341700Work* work;
-    TmdObject*       model;
-    Actor341700Work* work2;
+    Enemy*         enemy;
+    MadChaserWork* work;
+    TmdObject*     model;
+    MadChaserWork* work2;
 
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     model = arg0->extra.tmd;
-    work  = (Actor341700Work*)arg0->work;
+    work  = (MadChaserWork*)arg0->work;
     SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
     madChaserSetAlertHold(arg0, 0);
     Gp_UnlinkNode(&enemy->node);
     if (work->field_448 == 4) {
         work->field_412  = 0;
         model->flags     = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work2            = (Actor341700Work*)arg0->work;
+        work2            = (MadChaserWork*)arg0->work;
         work2->field_420 = 7;
         work2->field_422 = 0;
         return;

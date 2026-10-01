@@ -5,11 +5,11 @@
 /// the struggle.
 void madChaserPullReact(Task* arg0)
 {
-    Actor341700Work* work;
-    s32              soundId;
-    s32              pan;
+    MadChaserWork* work;
+    s32            soundId;
+    s32            pan;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     if (gMadChaserAnimStance[work->field_418 - 1] == 0) {
         work->field_426 = 4;
         work->field_41C = 0x10;

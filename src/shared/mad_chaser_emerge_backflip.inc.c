@@ -5,14 +5,14 @@
 /// animation 0x11, launches again and advances the state.
 void madChaserEmergeBackflip(Task* arg0)
 {
-    Actor341700Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor341700Work* anim;
-    s32              speed;
-    s32              dx;
+    MadChaserWork* work;
+    s16            angle;
+    GfxCoord*      coord;
+    MadChaserWork* anim;
+    s32            speed;
+    s32            dx;
 
-    work                                  = (Actor341700Work*)arg0->work;
+    work                                  = (MadChaserWork*)arg0->work;
     angle                                 = work->field_7A;
     coord                                 = arg0->extra.tmd->coords;
     dx                                    = rsin(angle) << 4;
@@ -31,7 +31,7 @@ void madChaserEmergeBackflip(Task* arg0)
         work->field_78    = 0;
         work->field_7C    = 0;
         work->field_7A   += 0x800;
-        anim              = (Actor341700Work*)arg0->work;
+        anim              = (MadChaserWork*)arg0->work;
         anim->field_41C   = 0x10;
         anim->field_418   = 0x11;
         anim->field_414   = 2;

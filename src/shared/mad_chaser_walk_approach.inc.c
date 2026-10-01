@@ -6,14 +6,14 @@
 /// ahead and the leap cooldown spent (or within 1500).
 void madChaserWalkApproach(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    s16              dist;
-    s16              limit;
-    s16              step;
-    s16              angle;
-    s16              speed;
-    s32              soundId;
-    s32              pan;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    s16            dist;
+    s16            limit;
+    s16            step;
+    s16            angle;
+    s16            speed;
+    s32            soundId;
+    s32            pan;
 
     dist = work->field_43A;
     if (dist < 1000) {

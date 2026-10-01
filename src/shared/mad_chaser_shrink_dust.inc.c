@@ -6,7 +6,7 @@
 /// hides the model and advances the state.
 void madChaserShrinkWithDust(Task* arg0)
 {
-    Actor341700Work*  work;
+    MadChaserWork*    work;
     TmdObject*        obj;
     GfxCoord*         coord;
     VECTOR            scale;
@@ -14,7 +14,7 @@ void madChaserShrinkWithDust(Task* arg0)
     GfxRotationWords* ident;
     SVECTOR           ofs;
 
-    work             = (Actor341700Work*)arg0->work;
+    work             = (MadChaserWork*)arg0->work;
     ident            = &m.ident;
     obj              = arg0->extra.tmd;
     coord            = obj->coords;

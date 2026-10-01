@@ -6,7 +6,7 @@
 /// single `case 1 ... 5` becomes a range test.
 void madChaserCommandMsg(Task* arg0, s32 arg1, ActorCommand* request)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
 
     if (request->context.key == 0x2C00) {
         switch (request->command & 0xF) {

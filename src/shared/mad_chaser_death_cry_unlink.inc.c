@@ -5,11 +5,11 @@
 /// fragment again under its own name.
 void madChaserDeathCryUnlink(Task* arg0)
 {
-    Actor341700Work* work;
-    Enemy*           enemy;
+    MadChaserWork* work;
+    Enemy*         enemy;
 
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (Actor341700Work*)arg0->work;
+    work  = (MadChaserWork*)arg0->work;
     SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
     if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
         gSceneCombatState.madChaserAlertOwner = 0;

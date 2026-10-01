@@ -7,14 +7,14 @@
 /// sub-state.
 void madChaserDangleSway(Task* arg0)
 {
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    OverlayMat       rot;
-    OverlayMat*      src;
-    MATRIX*          dst;
-    s16              pitch;
+    MadChaserWork* work;
+    GfxCoord*      coord;
+    OverlayMat     rot;
+    OverlayMat*    src;
+    MATRIX*        dst;
+    s16            pitch;
 
-    work              = (Actor341700Work*)arg0->work;
+    work              = (MadChaserWork*)arg0->work;
     coord             = arg0->extra.tmd->coords;
     src               = &rot;
     src->ident.m00M01 = ONE;

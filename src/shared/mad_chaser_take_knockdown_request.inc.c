@@ -6,7 +6,7 @@
 /// otherwise.
 s32 madChaserTakeKnockdownRequest(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
 
     if (work->field_41E == 1) {
         switch (work->field_448) {

@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Main enemy init. Allocates the 0x454-byte `Actor341700Work`, points the
+/// Main enemy init. Allocates the 0x454-byte `MadChaserWork`, points the
 /// model at the light / color matrices inside it, runs the animation context,
 /// links the collision objects and the enemy's list node, and enters state 2
 /// for spawn kind 1 (low nibble of `spawnArg1`), state 1 otherwise. The root
@@ -11,29 +11,29 @@
 /// call (sched2 then sinks the `li` below the `jal`).
 void madChaserSpawn(Task* task)
 {
-    Enemy*           enemy;
-    GfxCoord*        root;
-    Actor341700Work* work;
-    TmdObject*       obj;
-    Actor341700Work* w;
-    Enemy*           e;
-    GfxCoord*        coord;
-    Actor341700Work* w2;
-    Actor341700Work* w3;
-    Actor341700Work* w4;
-    s32              one;
+    Enemy*         enemy;
+    GfxCoord*      root;
+    MadChaserWork* work;
+    TmdObject*     obj;
+    MadChaserWork* w;
+    Enemy*         e;
+    GfxCoord*      coord;
+    MadChaserWork* w2;
+    MadChaserWork* w3;
+    MadChaserWork* w4;
+    s32            one;
 
     enemy      = task->spawnArg2.pointer;
     root       = task->extra.tmd->coords;
     task->work = memCalloc(0x454, 0);
-    work       = (Actor341700Work*)task->work;
+    work       = (MadChaserWork*)task->work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
     madChaserLoadSoundBank();
     obj                   = task->extra.tmd;
-    w                     = (Actor341700Work*)task->work;
+    w                     = (MadChaserWork*)task->work;
     e                     = task->spawnArg2.pointer;
     coord                 = obj->coords;
     task->msgTable        = gMadChaserMsgTable;
@@ -46,7 +46,7 @@ void madChaserSpawn(Task* task)
     w->eff_3FC.spawnArgHi = 2;
     e->hp = e->hpMax = gMadChaserEnemyParams.hpMax;
     func_800B3F84(&w->anim, gMadChaserAnimBank, obj, w->field_21C, &w->slot_B4);
-    w2            = (Actor341700Work*)task->work;
+    w2            = (MadChaserWork*)task->work;
     w2->field_41C = 0x10;
     w2->field_418 = 7;
     w2->field_414 = 2;
@@ -66,12 +66,12 @@ void madChaserSpawn(Task* task)
     one                           = 1;
     (Gp_IncStateF0Ref)(0);
     if ((task->spawnArg1.value & 0xF) == one) {
-        w3            = (Actor341700Work*)task->work;
+        w3            = (MadChaserWork*)task->work;
         task->state   = 2;
         w3->field_420 = 0;
         w3->field_422 = 0;
     } else {
-        w4            = (Actor341700Work*)task->work;
+        w4            = (MadChaserWork*)task->work;
         task->state   = one;
         w4->field_420 = 0;
         w4->field_422 = 0;

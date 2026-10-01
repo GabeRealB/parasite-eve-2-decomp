@@ -3,7 +3,7 @@
 /// Requests animation 0xF and advances the sub-state.
 void madChaserLurkRiseStart(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
 
     work->field_426 = 4;
     work->field_41C = 0x10;

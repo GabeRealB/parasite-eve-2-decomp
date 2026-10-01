@@ -6,10 +6,10 @@
 /// three part pairs.
 void madChaserDeathTick(Task* arg0)
 {
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable9   sp    = gMadChaserDeathStates;
+    TmdObject*     obj   = arg0->extra.tmd;
+    MadChaserWork* work  = (MadChaserWork*)arg0->work;
+    GfxCoord*      coord = obj->coords;
+    TaskFuncTable9 sp    = gMadChaserDeathStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

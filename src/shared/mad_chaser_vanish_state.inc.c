@@ -4,8 +4,8 @@
 /// `field_420`.
 void madChaserVanishState(Task* arg0)
 {
-    Actor341700Work* work                = (Actor341700Work*)arg0->work;
-    void             (*states[2])(Task*) = {
+    MadChaserWork* work                = (MadChaserWork*)arg0->work;
+    void           (*states[2])(Task*) = {
         madChaserVanish,
         madChaserVanishFree,
     };

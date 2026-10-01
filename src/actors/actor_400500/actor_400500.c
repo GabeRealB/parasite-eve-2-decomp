@@ -84,7 +84,7 @@ STATIC_ASSERT_SIZEOF(Actor400500ViewPos, 0x6);
 
 /// Dual-width hit flags at `Actor400500Work` + 0x4C. Guards test bit 0 as a
 /// halfword and then bits 0x102 as a word, the same shape as
-/// `Actor341700Flags` / `ActorsShared8016974c`.
+/// `MadChaserSlotFlags` / `ActorsShared8016974c`.
 typedef union Actor400500HitFlags {
     /* 0x0 */ u32 word;
     /* 0x0 */ u16 half;

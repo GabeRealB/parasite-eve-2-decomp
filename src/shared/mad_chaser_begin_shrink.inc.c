@@ -5,14 +5,14 @@
 /// 1.0, saves the root matrix, sets light mode 1 and advances the state.
 void madChaserBeginShrink(Task* task)
 {
-    Enemy*           enemy = (Enemy*)task->spawnArg2.pointer;
-    Actor341700Work* work  = (Actor341700Work*)task->work;
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor341700Work* objWork;
+    Enemy*         enemy = (Enemy*)task->spawnArg2.pointer;
+    MadChaserWork* work  = (MadChaserWork*)task->work;
+    GfxCoord*      coord = task->extra.tmd->coords;
+    MadChaserWork* objWork;
 
     enemy->recs = 0;
 
-    objWork = (Actor341700Work*)task->work;
+    objWork = (MadChaserWork*)task->work;
     Gp_UnlinkObj(&objWork->obj_2AC);
     Gp_UnlinkObj(&objWork->obj_2CC);
     Gp_UnlinkObj(&objWork->obj_3AC);

@@ -4,11 +4,11 @@
 /// frames destroys the enemy.
 void madChaserVanishFree(Task* arg0)
 {
-    Actor341700Work* work;
-    TmdObject*       model;
-    u16              ticks;
+    MadChaserWork* work;
+    TmdObject*     model;
+    u16            ticks;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     model           = arg0->extra.tmd;
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;

@@ -7,20 +7,20 @@
 /// state 4 is pending).
 void madChaserPulledLimp(Task* arg0)
 {
-    TmdObject*       obj;
-    Actor341700Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    GfxCoord*        c;
-    VECTOR           d;
-    SVECTOR          dir;
-    VECTOR           sq;
-    VECTOR*          out;
-    s16              angle;
-    s16              next;
+    TmdObject*     obj;
+    MadChaserWork* work;
+    Enemy*         enemy;
+    GfxCoord*      coord;
+    GfxCoord*      c;
+    VECTOR         d;
+    SVECTOR        dir;
+    VECTOR         sq;
+    VECTOR*        out;
+    s16            angle;
+    s16            next;
 
     obj   = arg0->extra.tmd;
-    work  = (Actor341700Work*)arg0->work;
+    work  = (MadChaserWork*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     coord = obj->coords;
     work->field_412++;
@@ -71,14 +71,14 @@ void madChaserPulledLimp(Task* arg0)
             work->field_438 = 1;
             if (work->field_418 == 8) {
                 if (work->field_440 == 0) {
-                    Actor341700Work* w = (Actor341700Work*)arg0->work;
+                    MadChaserWork* w = (MadChaserWork*)arg0->work;
 
                     w->field_426 = 4;
                     w->field_41C = 0x10;
                     w->field_418 = 5;
                     w->field_414 = 1;
                 } else {
-                    Actor341700Work* w = (Actor341700Work*)arg0->work;
+                    MadChaserWork* w = (MadChaserWork*)arg0->work;
 
                     w->field_426 = 4;
                     w->field_41C = 0x10;
@@ -86,10 +86,10 @@ void madChaserPulledLimp(Task* arg0)
                     w->field_414 = 1;
                 }
             } else {
-                Actor341700Work* w;
+                MadChaserWork* w;
 
                 next         = gMadChaserSettleAnims[work->field_418 - 1];
-                w            = (Actor341700Work*)arg0->work;
+                w            = (MadChaserWork*)arg0->work;
                 w->field_426 = 4;
                 w->field_41C = 0x10;
                 w->field_418 = next;

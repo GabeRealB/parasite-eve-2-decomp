@@ -8,12 +8,12 @@
 /// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
 void madChaserCombatTick(Task* arg0)
 {
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable11  sp    = gMadChaserCombatStates;
-    s32              cur;
+    Enemy*          enemy = arg0->spawnArg2.pointer;
+    TmdObject*      obj   = arg0->extra.tmd;
+    MadChaserWork*  work  = (MadChaserWork*)arg0->work;
+    GfxCoord*       coord = obj->coords;
+    TaskFuncTable11 sp    = gMadChaserCombatStates;
+    s32             cur;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

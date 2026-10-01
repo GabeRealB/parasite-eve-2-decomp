@@ -4,7 +4,7 @@
 /// objects onto `Gp_ObjLists[2]` and clears their record tables.
 void madChaserLinkBodies(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
 
     work->obj_2AC.coord            = &arg0->extra.tmd->coords[1];
     work->obj_2AC.context.contacts = work->rec_2EC;

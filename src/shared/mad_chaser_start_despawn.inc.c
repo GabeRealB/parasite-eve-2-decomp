@@ -4,9 +4,9 @@
 /// `field_422` cleared.
 void madChaserStartDespawn(Task* arg0)
 {
-    Actor341700Work* work;
+    MadChaserWork* work;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     arg0->state     = 5;
     work->field_420 = 0;
     work->field_422 = 0;

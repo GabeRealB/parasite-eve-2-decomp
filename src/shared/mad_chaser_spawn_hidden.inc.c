@@ -11,26 +11,26 @@
 /// variable too - masking `flags` in place reuses `$v1` for the result.
 void madChaserSpawnHidden(Task* task)
 {
-    TmdObject*       model;
-    Enemy*           enemy;
-    GfxCoord*        root;
-    Actor341700Work* work;
-    TmdObject*       obj;
-    Actor341700Work* w;
-    Enemy*           e;
-    GfxCoord*        coord;
-    Actor341700Work* w2;
-    Actor341700Work* w3;
-    Enemy*           e2;
-    s32              flags;
-    s32              kind;
-    s32              two;
+    TmdObject*     model;
+    Enemy*         enemy;
+    GfxCoord*      root;
+    MadChaserWork* work;
+    TmdObject*     obj;
+    MadChaserWork* w;
+    Enemy*         e;
+    GfxCoord*      coord;
+    MadChaserWork* w2;
+    MadChaserWork* w3;
+    Enemy*         e2;
+    s32            flags;
+    s32            kind;
+    s32            two;
 
     model      = task->extra.tmd;
     enemy      = task->spawnArg2.pointer;
     root       = model->coords;
     task->work = memCalloc(0x454, 0);
-    work       = (Actor341700Work*)task->work;
+    work       = (MadChaserWork*)task->work;
     if (work == NULL) {
         goto destroy;
     }
@@ -47,7 +47,7 @@ void madChaserSpawnHidden(Task* task)
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     obj                   = task->extra.tmd;
-    w                     = (Actor341700Work*)task->work;
+    w                     = (MadChaserWork*)task->work;
     e                     = task->spawnArg2.pointer;
     coord                 = obj->coords;
     task->msgTable        = gMadChaserMsgTable;
@@ -60,7 +60,7 @@ void madChaserSpawnHidden(Task* task)
     w->eff_3FC.spawnArgHi = two;
     e->hp = e->hpMax = gMadChaserEnemyParams.hpMax;
     func_800B3F84(&w->anim, gMadChaserAnimBank, obj, w->field_21C, &w->slot_B4);
-    w2            = (Actor341700Work*)task->work;
+    w2            = (MadChaserWork*)task->work;
     w2->field_41C = 0x10;
     w2->field_418 = 7;
     w2->field_414 = two;
@@ -85,7 +85,7 @@ void madChaserSpawnHidden(Task* task)
     work->field_451            = 1;
     work->obj_2AC.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->obj_2CC.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-    w3                         = (Actor341700Work*)task->work;
+    w3                         = (MadChaserWork*)task->work;
     task->state                = 6;
     w3->field_420              = 0;
     w3->field_422              = 0;

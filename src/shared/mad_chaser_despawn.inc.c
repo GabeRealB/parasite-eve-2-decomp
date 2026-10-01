@@ -4,10 +4,10 @@
 /// message 0x13F4 when in place 1 of stage 4 areas 0x27/0x28.
 void madChaserDespawn(Task* arg0)
 {
-    Actor341700Work* work;
-    u16              ticks;
+    MadChaserWork* work;
+    u16            ticks;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 0x24) {

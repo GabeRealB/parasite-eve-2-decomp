@@ -6,14 +6,14 @@
 /// sub-state.
 void madChaserDangleFall(Task* arg0)
 {
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    OverlayMat       rot;
-    OverlayMat*      src;
-    MATRIX*          dst;
-    Actor341700Work* anim;
+    MadChaserWork* work;
+    GfxCoord*      coord;
+    OverlayMat     rot;
+    OverlayMat*    src;
+    MATRIX*        dst;
+    MadChaserWork* anim;
 
-    work              = (Actor341700Work*)arg0->work;
+    work              = (MadChaserWork*)arg0->work;
     coord             = arg0->extra.tmd->coords;
     src               = &rot;
     src->ident.m00M01 = ONE;
@@ -40,7 +40,7 @@ void madChaserDangleFall(Task* arg0)
     if (coord->coord.t[1] > 0) {
         work->field_412   = 0;
         coord->coord.t[1] = 0;
-        anim              = (Actor341700Work*)arg0->work;
+        anim              = (MadChaserWork*)arg0->work;
         anim->field_41C   = 0x20;
         anim->field_418   = 0xC;
         anim->field_414   = 2;

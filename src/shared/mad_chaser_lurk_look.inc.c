@@ -7,15 +7,15 @@
 /// otherwise it sways between two fixed yaws by bit 6 of `field_442`.
 void madChaserLurkLookAround(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    Actor341700Work* state;
-    Actor341700Work* state2;
-    s32              angle;
-    s32              cur;
-    s32              aim;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    MadChaserWork* state;
+    MadChaserWork* state2;
+    s32            angle;
+    s32            cur;
+    s32            aim;
 
     if ((s16)++work->field_412 > work->field_446) {
-        state            = (Actor341700Work*)arg0->work;
+        state            = (MadChaserWork*)arg0->work;
         state->field_420 = 2;
         state->field_422 = 0;
         return;
@@ -30,7 +30,7 @@ void madChaserLurkLookAround(Task* arg0)
         work->field_424 = angle + ((s16)((aim - angle) * 16) >> 6);
         if (++work->field_42C >= 0x10) {
             Gp_ArmStateF0(1);
-            state2            = (Actor341700Work*)arg0->work;
+            state2            = (MadChaserWork*)arg0->work;
             state2->field_420 = 3;
             state2->field_422 = 0;
         }

@@ -7,10 +7,10 @@
 /// reset.
 void madChaserBurst(Task* arg0)
 {
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    TmdObject*       model;
-    Enemy*           enemy;
+    MadChaserWork* work;
+    MadChaserWork* work2;
+    TmdObject*     model;
+    Enemy*         enemy;
 
     model = arg0->extra.tmd;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
@@ -19,11 +19,11 @@ void madChaserBurst(Task* arg0)
     madChaserSpawnGibs(arg0);
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
-    work        = (Actor341700Work*)arg0->work;
+    work        = (MadChaserWork*)arg0->work;
     Gp_UnlinkObj(&work->obj_2AC);
     Gp_UnlinkObj(&work->obj_2CC);
     Gp_UnlinkObj(&work->obj_3AC);
-    work2            = (Actor341700Work*)arg0->work;
+    work2            = (MadChaserWork*)arg0->work;
     arg0->state      = 5;
     work2->field_420 = 0;
     work2->field_422 = 0;

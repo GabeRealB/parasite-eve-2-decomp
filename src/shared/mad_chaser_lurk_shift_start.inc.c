@@ -4,12 +4,12 @@
 /// and advances the sub-state.
 void madChaserLurkShiftStart(Task* arg0)
 {
-    Actor341700Work* work;
-    Actor341700Work* work2;
+    MadChaserWork* work;
+    MadChaserWork* work2;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     if (madChaserJoinAlert(arg0) == 0) {
-        work2            = (Actor341700Work*)arg0->work;
+        work2            = (MadChaserWork*)arg0->work;
         work2->field_426 = 8;
         work2->field_41C = 0x10;
         work2->field_418 = 0xF;

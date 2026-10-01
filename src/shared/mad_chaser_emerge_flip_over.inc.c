@@ -5,17 +5,17 @@
 /// out, turns around, requests animation 0x11 and advances the state.
 void madChaserEmergeFlipOver(Task* arg0)
 {
-    Actor341700Work* work;
-    Actor341700Work* anim;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s32              soundId2;
-    s32              pan2;
-    s16              angle;
-    s16              speed;
+    MadChaserWork* work;
+    MadChaserWork* anim;
+    GfxCoord*      coord;
+    s32            soundId;
+    s32            pan;
+    s32            soundId2;
+    s32            pan2;
+    s16            angle;
+    s16            speed;
 
-    work  = (Actor341700Work*)arg0->work;
+    work  = (MadChaserWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
     work->field_412++;
     work->field_78 += (0x800 - work->field_78) >> 3;
@@ -40,7 +40,7 @@ void madChaserEmergeFlipOver(Task* arg0)
         work->field_78    = 0;
         work->field_7C    = 0;
         work->field_7A   += 0x800;
-        anim              = (Actor341700Work*)arg0->work;
+        anim              = (MadChaserWork*)arg0->work;
         anim->field_41C   = 0x10;
         anim->field_418   = 0x11;
         anim->field_414   = 2;

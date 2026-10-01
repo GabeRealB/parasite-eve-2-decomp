@@ -5,15 +5,15 @@
 /// room's slot-4 task, carried up its coordinate chain.
 void madChaserPullStart(Task* arg0)
 {
-    Actor341700Work* work;
-    GfxCoord*        coords;
-    GfxCoord*        current;
-    SVECTOR*         pos;
-    SVECTOR          local;
-    VECTOR           result;
-    s32              flag;
+    MadChaserWork* work;
+    GfxCoord*      coords;
+    GfxCoord*      current;
+    SVECTOR*       pos;
+    SVECTOR        local;
+    VECTOR         result;
+    s32            flag;
 
-    work   = (Actor341700Work*)arg0->work;
+    work   = (MadChaserWork*)arg0->work;
     coords = arg0->extra.tmd->coords;
     SndEvt_EnqueueType7(0x402C0002, 1);
     work->field_90  = coords->coord.t[0];

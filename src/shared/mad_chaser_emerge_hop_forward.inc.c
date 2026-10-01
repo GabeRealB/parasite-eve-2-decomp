@@ -4,14 +4,14 @@
 /// under the accelerating drop; on landing advances the state.
 void madChaserEmergeHopForward(Task* arg0)
 {
-    Actor341700Work* work;
-    GfxCoord*        coord;
-    s32              soundId;
-    s32              pan;
-    s16              angle;
-    s16              speed;
+    MadChaserWork* work;
+    GfxCoord*      coord;
+    s32            soundId;
+    s32            pan;
+    s16            angle;
+    s16            speed;
 
-    work  = (Actor341700Work*)arg0->work;
+    work  = (MadChaserWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
     if ((s16)++work->field_412 == 1) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;

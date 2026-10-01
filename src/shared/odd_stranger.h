@@ -51,7 +51,7 @@ typedef struct OddStrangerWaypoint {
 /// guards in this overlay test bit 0 or bit 0x100 as a halfword, while
 /// `func_actor_401000_80134DB4` tests bits 0x102 as a word, so both views are
 /// modelled explicitly rather than casting at the use site. The same shape as
-/// `Actor341700Flags` / `Actor400500HitFlags`.
+/// `MadChaserSlotFlags` / `Actor400500HitFlags`.
 typedef union OddStrangerSlotFlags {
     /* 0x0 */ u32 word;
     /* 0x0 */ u16 half;

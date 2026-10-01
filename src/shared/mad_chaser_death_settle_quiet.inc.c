@@ -4,11 +4,11 @@
 /// follow-up settle animation, ticks it and advances.
 void madChaserDeathSettleQuiet(Task* arg0)
 {
-    Actor341700Work* work;
-    s16              anim;
-    s16              next;
+    MadChaserWork* work;
+    s16            anim;
+    s16            next;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     anim = work->field_418;
     if (anim == 8) {
         if (work->field_440 == 0) {

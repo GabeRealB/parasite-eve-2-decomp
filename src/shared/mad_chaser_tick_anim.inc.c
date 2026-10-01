@@ -7,13 +7,13 @@
 /// ticks at speed `field_41C`.
 void madChaserTickAnim(Task* arg0)
 {
-    Actor341700Work* work;
-    Actor341700Work* start;
-    s32              i;
-    s32              j;
-    s32              k;
+    MadChaserWork* work;
+    MadChaserWork* start;
+    s32            i;
+    s32            j;
+    s32            k;
 
-    work = (Actor341700Work*)arg0->work;
+    work = (MadChaserWork*)arg0->work;
     if (work->field_414 == 1) {
         start = work;
         if (start->field_416 == start->field_418) {

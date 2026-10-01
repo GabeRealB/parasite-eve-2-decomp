@@ -4,9 +4,9 @@
 /// animation ends.
 void madChaserAlertSidestep(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-    s16              angle;
-    s16              speed;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    s16            angle;
+    s16            speed;
 
     if ((u16)(work->field_412++ - 0x1D) < 0xD) {
         speed                                 = madChaserScaleBySpeed(arg0, 0x1E);
@@ -16,10 +16,10 @@ void madChaserAlertSidestep(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (madChaserAnimEnded(arg0)) {
-        Actor341700Work* next;
+        MadChaserWork* next;
 
         work->field_438 = 0;
-        next            = (Actor341700Work*)arg0->work;
+        next            = (MadChaserWork*)arg0->work;
         next->field_420 = 3;
         next->field_422 = 0;
     }

@@ -7,38 +7,38 @@
 /// one shared local lands in `$a0` instead of `$v1`.
 s32 madChaserTakeHitRequest(Task* arg0)
 {
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+    MadChaserWork* work = (MadChaserWork*)arg0->work;
 
     if (work->field_41E == 1) {
         switch ((s16)(work->field_448 - 1)) {
             case 0: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 6;
-                w->field_422       = 0;
+                MadChaserWork* w = (MadChaserWork*)arg0->work;
+                w->field_420     = 6;
+                w->field_422     = 0;
                 break;
             }
             case 1: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 7;
-                w->field_422       = 0;
+                MadChaserWork* w = (MadChaserWork*)arg0->work;
+                w->field_420     = 7;
+                w->field_422     = 0;
                 break;
             }
             case 2: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 8;
-                w->field_422       = 0;
+                MadChaserWork* w = (MadChaserWork*)arg0->work;
+                w->field_420     = 8;
+                w->field_422     = 0;
                 break;
             }
             case 3: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 7;
-                w->field_422       = 0;
+                MadChaserWork* w = (MadChaserWork*)arg0->work;
+                w->field_420     = 7;
+                w->field_422     = 0;
                 break;
             }
             case 4: {
-                Actor341700Work* w = (Actor341700Work*)arg0->work;
-                w->field_420       = 9;
-                w->field_422       = 0;
+                MadChaserWork* w = (MadChaserWork*)arg0->work;
+                w->field_420     = 9;
+                w->field_422     = 0;
                 break;
             }
         }

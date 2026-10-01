@@ -6,9 +6,9 @@
 /// clears the frame counter and advances the sub-state.
 void madChaserStartHold(Task* arg0)
 {
-    Actor341700Work* work;
+    MadChaserWork* work;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     work->field_426 = 4;
     work->field_41C = 0x10;
     work->field_418 = 1;

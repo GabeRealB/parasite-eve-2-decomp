@@ -8,12 +8,12 @@
 /// player actor in `field_43A`, in bands of 1000.
 void madChaserWalkStart(Task* arg0)
 {
-    Actor341700Work* work;
-    s32              soundId;
-    s32              pan;
-    s16              step;
+    MadChaserWork* work;
+    s32            soundId;
+    s32            pan;
+    s16            step;
 
-    work            = (Actor341700Work*)arg0->work;
+    work            = (MadChaserWork*)arg0->work;
     work->field_426 = 8;
     work->field_418 = 7;
     work->field_41C = 0x10;

@@ -5,10 +5,10 @@
 /// the way out of modes 0 and 1.
 void madChaserDropDeathTick(Task* arg0)
 {
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable5   sp    = gMadChaserDropDeathStates;
+    TmdObject*     obj   = arg0->extra.tmd;
+    MadChaserWork* work  = (MadChaserWork*)arg0->work;
+    GfxCoord*      coord = obj->coords;
+    TaskFuncTable5 sp    = gMadChaserDropDeathStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

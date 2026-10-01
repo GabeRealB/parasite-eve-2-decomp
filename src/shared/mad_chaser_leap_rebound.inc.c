@@ -6,14 +6,14 @@
 /// requests landing animation 0x13 and advances the sub-state.
 void madChaserLeapRebound(Task* arg0)
 {
-    Actor341700Work* work;
-    s16              angle;
-    GfxCoord*        coord;
-    Actor341700Work* anim;
-    s32              speed;
-    s32              dx;
+    MadChaserWork* work;
+    s16            angle;
+    GfxCoord*      coord;
+    MadChaserWork* anim;
+    s32            speed;
+    s32            dx;
 
-    work                                  = (Actor341700Work*)arg0->work;
+    work                                  = (MadChaserWork*)arg0->work;
     angle                                 = work->field_40C;
     coord                                 = arg0->extra.tmd->coords;
     dx                                    = rsin(angle) << 4;
@@ -26,7 +26,7 @@ void madChaserLeapRebound(Task* arg0)
     work->field_428                      += 0xE;
     work->field_42A                      += work->field_428;
     if (coord->coord.t[1] >= (s16)work->field_92) {
-        anim                 = (Actor341700Work*)arg0->work;
+        anim                 = (MadChaserWork*)arg0->work;
         anim->field_426      = 2;
         anim->field_41C      = 0x10;
         anim->field_418      = 0x13;
