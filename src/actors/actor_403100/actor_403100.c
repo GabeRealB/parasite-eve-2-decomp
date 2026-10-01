@@ -4509,7 +4509,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
         if (flag >= 0) {
             func_dryfield_night_motel_balcony_8017F6C8(screen, (depth << 0xC) >> 0x10, (s16)((size << 0x10 >> 1) / (depth * 4)), entry->frame);
         } else {
-            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), 0x4000);
+            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), WORLD_COLLISION_BODY_GRID_ENABLED);
         }
         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
             if (Gp_FindRec18(entry->obj.context.contacts, 0) != 0) {
@@ -4540,7 +4540,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             } else {
                 _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), 0);
             }
-            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, WORLD_COLLISION_BODY_FLAGS_MASK, 0x4000);
+            _actor403100SetObjFlags(&D_actor_403100_80155814[i].obj, WORLD_COLLISION_BODY_FLAGS_MASK, WORLD_COLLISION_BODY_GRID_ENABLED);
             Gp_ClearRec18Occupied(D_actor_403100_80155814[i].records);
             entry->age++;
             entry->frame++;

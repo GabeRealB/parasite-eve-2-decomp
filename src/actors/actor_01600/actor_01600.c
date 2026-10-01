@@ -2249,7 +2249,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_50C = 0;
                 work->field_50A = 0;
                 work->field_548 = (u16)(work->field_548 + 1);
-                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
+                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
             break;
         case 22:
@@ -2307,7 +2307,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 } else {
                     work->field_506 = 0x17;
                 }
-                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
+                work->field_2BA = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
             break;
         case 23:
@@ -2320,7 +2320,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 work->field_51A  = 0;
                 work->field_4EA  = 0;
                 work->field_42A |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->field_2BA  = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & 0xBFFF;
+                work->field_2BA  = (work->field_2BA | WORLD_COLLISION_BODY_PAIR_ENABLED) & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
             break;
         case 6:

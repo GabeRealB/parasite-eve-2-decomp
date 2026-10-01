@@ -104,7 +104,7 @@ STATIC_ASSERT_SIZEOF(WorldCollisionMotionContext, 0xC);
 /// contact; SINGLE_CONTACT also clips it at a pair contact and replaces the
 /// first contact while retaining the other body's encoded address.
 /// ROOM_TRIGGER_ENABLED tests room-transition quads, and VIEW_TRIGGER_ENABLED
-/// tests saved-view quads. GRID_ENABLED gates room-grid collision tests.
+/// tests saved-view quads.
 enum {
     WORLD_COLLISION_BODY_NONE                 = 0,
     WORLD_COLLISION_BODY_SPHERE               = 1,
@@ -117,7 +117,17 @@ enum {
     WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT = 0x400,
     WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED = 0x1000,
     WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED = 0x2000,
-    WORLD_COLLISION_BODY_GRID_ENABLED         = 0x4000,
+
+    /// Enables a body's shape tests in the list-driven room-grid pass.
+    ///
+    /// Tests run only with a room grid installed. Supply initialized shape and
+    /// contact storage for the body's kind.
+    /// Spheres, capsules and motion spheres have grid tests; kinds NONE and
+    /// CONTACT_PROXY do not. A motion sphere with FLOOR_QUERY runs its floor
+    /// test before its directed overlap test. This bit is independent of the
+    /// pair and trigger enables. Setting it does not link the body; clearing it
+    /// keeps links and existing contacts intact. Direct shape tests bypass this bit.
+    WORLD_COLLISION_BODY_GRID_ENABLED = 0x4000,
     /// Enables a body in list-driven pair tests and room/view trigger scans.
     ///
     /// Pair tests require this bit on both bodies and kinds 1..4; kind 2

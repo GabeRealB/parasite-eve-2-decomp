@@ -1935,7 +1935,7 @@ static void Actor00700_Fn01FE0(Enemy* ctx, Task* actor)
     work->field_1FC = 0;
     work->field_1FE = 0;
     work->field_200 = 0;
-    work->field_18A = (u16)(work->field_18A | 0x4000);
+    work->field_18A = (u16)(work->field_18A | WORLD_COLLISION_BODY_GRID_ENABLED);
     work->field_204 = Gp_PackPair(&Actor00700_D07584, 0);
     work->field_208 = 0x190;
     work->field_20A = 1U;
@@ -2322,7 +2322,7 @@ static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1)
                     work->field_2E4                         = angle;
                     arg0->recs                              = 0;
                     ((Actor00700SpawnWork*)work)->field_152 = ((Actor00700SpawnWork*)work)->field_152 & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    ((Actor00700SpawnWork*)work)->field_18A = ((Actor00700SpawnWork*)work)->field_18A & 0xBFFF;
+                    ((Actor00700SpawnWork*)work)->field_18A = ((Actor00700SpawnWork*)work)->field_18A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                     ((Actor00700SpawnWork*)work)->field_20A = ((Actor00700SpawnWork*)work)->field_20A | WORLD_COLLISION_BODY_PAIR_ENABLED;
                     id                                      = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
                     pan                                     = (s8)worldCoordGetOriginAudioPan(coord);

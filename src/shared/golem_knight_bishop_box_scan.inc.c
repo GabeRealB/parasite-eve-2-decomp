@@ -3,11 +3,11 @@
 /// Sequence 0xB, the box scan. In state 0 it walks the `field_6FA` boxes at
 /// `field_6B4`: a kind-0 box whose radius `field_2` holds the player's planar
 /// offset from its centre (`field_4`, `field_6`) moves to state 1 and parks the
-/// target position 0x5AA behind the player, raising bit 0x4000 of `field_5BA`
-/// and `field_5DA`; a kind-1 box holding the player starts sequence 3 with
+/// target position 0x5AA behind the player, enabling grid tests through
+/// `field_5BA` and `field_5DA`; a kind-1 box holding the player starts sequence 3 with
 /// `field_70E` at 3 and its index in `field_708`. State 1 enters sequence 1
 /// (and `field_70E` 1) unless the first record is occupied, clears the target
-/// flags and the record, and drops back to state 0.
+/// grid enables and the record, and drops back to state 0.
 void golemKnightBishopBoxScanSeq(Task* arg0)
 {
     u8*                    head;
@@ -42,8 +42,8 @@ void golemKnightBishopBoxScanSeq(Task* arg0)
                             work->field_6A8 = gPlayerStatus.coordMtx->t[1];
                             SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
                             work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->out.vz;
-                            work->field_5BA |= 0x4000;
-                            work->field_5DA |= 0x4000;
+                            work->field_5BA |= WORLD_COLLISION_BODY_GRID_ENABLED;
+                            work->field_5DA |= WORLD_COLLISION_BODY_GRID_ENABLED;
                             return;
                         }
                         break;
@@ -69,8 +69,8 @@ void golemKnightBishopBoxScanSeq(Task* arg0)
                 work->field_70E = 1;
             }
             work->field_6CE  = 0;
-            work->field_5BA &= 0xBFFF;
-            work->field_5DA &= 0xBFFF;
+            work->field_5BA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+            work->field_5DA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
     }

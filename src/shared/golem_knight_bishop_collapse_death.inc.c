@@ -38,8 +38,8 @@ void golemKnightBishopCollapseDeathSeq(Task* arg0)
             work->field_6DE  = 0xA;
             work->field_6F2  = 2;
             work->field_6C8  = 0;
-            work->field_49A |= 0x4000;
-            work->field_502 &= 0xBFFF;
+            work->field_49A |= WORLD_COLLISION_BODY_GRID_ENABLED;
+            work->field_502 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 1:
             if (work->field_714 == state) {

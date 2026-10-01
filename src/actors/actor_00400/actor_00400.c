@@ -1508,7 +1508,7 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
 }
 
 /* Links the actor's four collision objects and clears their record tables;
-   `obj_42C` takes hit flag 0x4000 from `field_661`. */
+   `obj_42C` participates in grid tests when `field_661` is nonzero. */
 static void Actor00400_Fn019B4(Task* arg0)
 {
     Actor100400Work* work = arg0->work;

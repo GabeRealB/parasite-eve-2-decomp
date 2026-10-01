@@ -755,19 +755,19 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
     switch (work->field_350) {
         case 0:
             work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A |= 0x4200;
+            work->field_22A |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 1:
             work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A &= ~0x4200;
+            work->field_22A &= ~(WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 2:
             work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A &= ~0x4200;
+            work->field_22A &= ~(WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
         case 3:
             work->field_1C2 &= ~WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A &= ~0x4200;
+            work->field_22A &= ~(WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
     }
     obj             = (WorldCollisionBody*)work->field_28C;
@@ -1569,7 +1569,7 @@ static void Actor03800_Fn01C50(Task* arg0)
             work->field_366  = 0x80;
             work->field_372  = 0x80;
             work->field_354  = 1;
-            work->field_22A |= 0x4200;
+            work->field_22A |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             return;
         case 1:
             if (work->field_374 != 0) {
@@ -1764,7 +1764,7 @@ static void Actor03800_Fn021E4(Task* arg0)
         case 1:
             work->field_366  = 0x100;
             work->field_372  = 0x80;
-            work->field_22A |= 0x4200;
+            work->field_22A |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             if (work->field_374 != 0) {
                 work->field_374  = 0;
                 work->field_354  = 2;
@@ -2401,7 +2401,7 @@ static void Actor03800_Fn034B0(Task* arg0)
         case SCENE_COMBAT_SHRINE_REVEALED:
             obj->flags       = 0;
             work->field_1C2 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->field_22A |= 0x4200;
+            work->field_22A |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             work->field_2AA |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             Gp_ArmStateF0(1);
             work->field_366 = 0x80;

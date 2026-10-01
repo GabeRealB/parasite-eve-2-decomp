@@ -1357,7 +1357,7 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
     return blk->moved;
 }
 
-/// Clears the 0xC000 pair from the `flags` of both collision objects.
+/// Disables grid and pair tests on both collision objects, retaining their links.
 static __inline__ void _actor01100ClearObjPair(ActorsShared80138efcWork* work)
 {
     s32 i;
@@ -2260,7 +2260,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
 /// sets motion 2, zeroes the countdown at 0xB8C and steps the latch. Every
 /// later frame increments that countdown. On frame 0x1A it writes a
 /// `Gp_PackObjPair` payload into collision body 1's `key` and ORs the
-/// 0xC000 pair-pass bits into its `flags`. While the countdown sits in
+/// grid and pair test enables into its `flags`. While the countdown sits in
 /// `[0x1B, 0x36]` and the latch is still 1, a hit on the recs table at 0xA70
 /// masks those bits back out of both middle collision bodies and steps the latch; frame
 /// 0x37 does the same mask unconditionally. The frame block's scratch byte at
@@ -2316,7 +2316,7 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, ActorsShared80138efcWor
 /// Collision-arm handler for collision body 2: the first frame the latch
 /// at 0xBA8 is still clear it sets motion 3, zeroes the countdown at 0xB8C and
 /// steps the latch. Every later frame increments that countdown. On frame 0x1A
-/// it calls `Gp_PackObjPair` with pair 2 and ORs the 0xC000 pair-pass bits into
+/// it calls `Gp_PackObjPair` with pair 2 and ORs the grid and pair test enables into
 /// collision body 2's `flags`. While the countdown sits in `[0x1B, 0x36]`
 /// and the latch is still 1, a hit on the recs table at 0xAB8 masks those bits
 /// back out of both middle collision bodies and steps the latch; frame 0x37 does the same

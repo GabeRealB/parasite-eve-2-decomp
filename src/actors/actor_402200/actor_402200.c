@@ -1270,7 +1270,7 @@ AnimationSet* D_actor_402200_80154194[22] = {
 };
 
 /// Per-frame hit handler: applies the `func_800E0C10` push-back from the
-/// `field_504` and (while bit 0x4000 of `field_49A` is set) `field_49C`
+/// `field_504` and (while `field_49A` enables grid tests) `field_49C`
 /// record tables to the root coordinate, ticks the `field_6C6` flinch
 /// countdown, and for each kind-2 hit record in `field_49C` computes the
 /// damage from the distance to the player, applies it to the `Enemy`,
@@ -1316,7 +1316,7 @@ void golemKnightBishopTakeHits(Task* arg0)
     }
     Gp_ClearRec18Occupied(work->field_504);
 
-    if (work->field_49A & 0x4000) {
+    if (work->field_49A & WORLD_COLLISION_BODY_GRID_ENABLED) {
         switch (func_800E0C10(work->field_49C, &sc->delta, 3, NULL)) {
             case 0:
                 break;
@@ -1526,8 +1526,8 @@ void golemKnightBishopIdleSeq(Task* arg0)
                     work->field_710--;
                 }
             }
-            work->field_5BA &= ~0x4000;
-            work->field_5DA &= ~0x4000;
+            work->field_5BA &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+            work->field_5DA &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
         case 4:
@@ -1544,7 +1544,7 @@ void golemKnightBishopIdleSeq(Task* arg0)
                     work->field_710--;
                 }
             }
-            work->field_5BA &= ~0x4000;
+            work->field_5BA &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
         case 5:
@@ -2278,7 +2278,7 @@ static void func_actor_402200_80137444(Enemy* arg0, Task* arg1)
             work->field_502  = 1;
             Gp_LinkObj(2, (WorldCollisionBody*)work->field_4E4);
             Gp_InitRec18Table(records2, 4, 0);
-            work->field_502 |= 0x4200;
+            work->field_502 |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             work->field_56C  = &arg1->extra.tmd->coords[8];
             records3         = &work->field_584;
             work->field_570  = records3;
@@ -2311,7 +2311,7 @@ static void func_actor_402200_80137444(Enemy* arg0, Task* arg1)
             work->field_5BA  = 3;
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_59C);
             Gp_InitRec18Table(records4, 1, 0);
-            work->field_5BA &= 0xBFFF;
+            work->field_5BA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             work->field_5C4  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
             work->field_5C8  = records4;
             work->field_5CC  = 0;
@@ -2339,7 +2339,7 @@ static void func_actor_402200_80137444(Enemy* arg0, Task* arg1)
             work->field_624  = 0;
             work->field_628  = 0;
             work->field_62A  = 3;
-            work->field_5DA &= 0xBFFF;
+            work->field_5DA &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_60C);
             Gp_InitRec18Table(records5, 1, 0);
             work->field_62A = (work->field_62A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | 0xC00;
