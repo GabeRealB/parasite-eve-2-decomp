@@ -107,23 +107,14 @@ found:
             sc->damage *= 4;
         }
         if (sc->damage != 0) {
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-            sc->rot.vy = 0x320;
-#else
-            sc->rot.vy = 0x190;
-#endif
+            sc->rot.vy = GLUTTON_GROUP0_HIT_FX_Y;
             sc->rot.vx = 0;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-            sc->rot.vz = 0x3E8;
-#else
-            sc->rot.vz = 0x1F4;
-#endif
+            sc->rot.vz = GLUTTON_GROUP0_HIT_FX_Z;
             Gp_SpawnEff(0x6009C, &enemy->task->extra.tmd->coords[3], 3, &sc->rot);
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg0->extra.tmd->coords);
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
         sc->rot.vx = arg0->extra.tmd->coords->workm.t[0];
         sc->rot.vy = arg0->extra.tmd->coords->workm.t[1];
         sc->rot.vz = arg0->extra.tmd->coords->workm.t[2];
@@ -150,14 +141,12 @@ found:
         }
         sc->angle = angle;
 
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
         if (work->field_7B3 != 4) {
 #endif
-        work->field_7C8 = 0;
-        work->field_7C4 = 0;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+            work->field_7C8 = 0;
+            work->field_7C4 = 0;
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
         }
 #endif
         sc->damage *= 2;
@@ -172,7 +161,6 @@ found:
         esc3->hp = hp;
         esc1->hp = hp;
         esc0->hp = hp;
-#else
 #endif
     }
 
@@ -184,12 +172,10 @@ found:
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         if (sc->damage != 0) {
             func_800E2C78(enemy, sc->id, sc->damage, 0);
-#else
 #endif
             enemy->hp -= sc->damage;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         }
-#else
 #endif
     }
 

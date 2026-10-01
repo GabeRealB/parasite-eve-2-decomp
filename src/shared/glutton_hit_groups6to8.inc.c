@@ -171,8 +171,7 @@ body:
         Gp_SpawnEff(0x6009C, &work->field_ECC[1]->task->extra.tmd->coords[1], 0, &sc->rot);
         sc->damage   *= 4;
         work->field_0 = 0xE;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
         work->field_F0C = (s16)D_actor_444000_80144A48.hpMax;
 #endif
     }
@@ -188,8 +187,7 @@ body:
     sc->damage = dmg;
 stored:
     func_800E2C78(host, sc->id, sc->damage, 0);
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
     func_800DA6E8(&work->field_ECC[1]->node, sc->damage, 0);
 #endif
     host->hp        -= sc->damage;
@@ -228,7 +226,6 @@ stored:
     esc3->hp = hp;
     esc1->hp = hp;
     esc0->hp = hp;
-#else
 #endif
     work->field_ECC[1]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(work->field_ECC[1]->task->extra.tmd->coords);
@@ -240,7 +237,6 @@ stored:
                    arg0->extra.tmd->coords->workm.m[2][2]);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
     do {
-#else
 #endif
         sc->angle = angle;
         if (angle < 0) {
@@ -258,18 +254,15 @@ stored:
         }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
     } while (0);
-#else
 #endif
     sc->angle = angle;
 
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
     if (work->field_7B3 != 4) {
 #endif
-    work->field_7C8 = 0;
-    work->field_7C4 = 0;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+        work->field_7C8 = 0;
+        work->field_7C4 = 0;
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
     }
 #endif
 out:

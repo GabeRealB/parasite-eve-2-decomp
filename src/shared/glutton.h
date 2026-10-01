@@ -39,6 +39,16 @@
 #error "define GLUTTON_ROOM (GLUTTON_DUMPING_HOLE or GLUTTON_INCINERATOR) before including glutton.h"
 #endif
 
+/* Extent of the 0x6009C effect a group-0 hit spawns; the Incinerator's is
+ * half the Dumping Hole's. */
+#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
+#define GLUTTON_GROUP0_HIT_FX_Y 0x320
+#define GLUTTON_GROUP0_HIT_FX_Z 0x3E8
+#else
+#define GLUTTON_GROUP0_HIT_FX_Y 0x190
+#define GLUTTON_GROUP0_HIT_FX_Z 0x1F4
+#endif
+
 #include "types.h"
 
 #include "actors/actor.h"

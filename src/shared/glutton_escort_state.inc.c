@@ -7,8 +7,7 @@ void gluttonEscortState(Task* arg0)
     GluttonWork* dying;
     Enemy*       enemy;
     Enemy*       spawned;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
     GfxCoord*  coord;
     GfxCoord*  rot;
     TmdObject* tmd;
@@ -19,7 +18,6 @@ void gluttonEscortState(Task* arg0)
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
     GfxCoord* coord;
     GfxCoord* rot;
-#else
 #endif
     s16 i;
     s16 j;
@@ -69,7 +67,6 @@ void gluttonEscortState(Task* arg0)
         work->field_EFE = 0;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         work->field_E96 = 0xC80;
-#else
 #endif
     }
     switch (work->field_6) {
@@ -141,6 +138,5 @@ void gluttonEscortState(Task* arg0)
     if (work->field_6 >= 0x15) {
         work->field_F06 = 3;
     }
-#else
 #endif
 }

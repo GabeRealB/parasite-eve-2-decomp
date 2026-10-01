@@ -209,7 +209,6 @@ hit:
         esc3->hp = hp;
         esc1->hp = hp;
         esc0->hp = hp;
-#else
 #endif
         work->field_ECC[3]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(work->field_ECC[3]->task->extra.tmd->coords);
@@ -221,7 +220,6 @@ hit:
                        arg0->extra.tmd->coords->workm.m[2][2]);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         do {
-#else
 #endif
             sc->angle = angle;
             if (angle < 0) {
@@ -239,18 +237,15 @@ hit:
             }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         } while (0);
-#else
 #endif
         sc->angle = angle;
 
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
         if (work->field_7B3 != 4) {
 #endif
-        work->field_7C8 = 0;
-        work->field_7C4 = 0;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-#else
+            work->field_7C8 = 0;
+            work->field_7C4 = 0;
+#if GLUTTON_ROOM == GLUTTON_INCINERATOR
         }
 #endif
     }

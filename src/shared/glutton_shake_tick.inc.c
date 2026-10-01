@@ -18,7 +18,6 @@ void gluttonShakeTick(Task* arg0)
     if (work == NULL) {
         return;
     }
-#else
 #endif
 
     if (work->field_EAC != work->field_EAD) {
