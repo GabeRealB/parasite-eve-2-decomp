@@ -284,3 +284,4 @@ func_actor_510900_801346D4 = 0x801346D4; // type:func
 actorMsgPlaceRotMatrix = 0x8013BE00; // type:func
 no9GolemAimHead = 0x80138BF0; // type:func
 no9GolemDrawShadow = 0x8013BBE4; // type:func
+spriteQuadDraw = 0x80134C90; // type:func

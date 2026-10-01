@@ -48,6 +48,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/sprite_quad.h"
 
 /// 0x24-byte scratch `func_actor_510900_80134284` takes from the scratch stack
 /// to draw one frame of the debris trail. `vec0` is the effect coordinate's
@@ -75,9 +76,7 @@ typedef struct Actor510900SprClut {
 } Actor510900SprClut;
 STATIC_ASSERT_SIZEOF(Actor510900SprClut, 4);
 
-static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-
-/// The twelve muzzle-flash CLUTs `func_actor_510900_80134C90` indexes by frame.
+/// The twelve muzzle-flash CLUTs `spriteQuadDraw` indexes by frame.
 extern Actor510900SprClut D_actor_510900_8013C48C[];
 
 Actor510900SprClut D_actor_510900_8013C48C[12] = {
@@ -2104,7 +2103,7 @@ void func_actor_510900_8013482C(Task* arg0)
         eff->age--;
         arg0->state = 1;
     }
-    func_actor_510900_80134C90(coord, eff->age / eff->period, eff->scale, eff->angle);
+    spriteQuadDraw(coord, eff->age / eff->period, eff->scale, eff->angle);
     coord->coord.t[0]  += eff->move.vx;
     coord->coord.t[1]  += eff->move.vy;
     coord->coord.t[2]  += eff->move.vz;
@@ -2115,78 +2114,12 @@ void func_actor_510900_8013482C(Task* arg0)
     }
 }
 
-/// Draws one frame of the muzzle flash: a single textured `POLY_FT4`
-/// billboarded on the effect coordinate's world point. `arg1` walks the twelve
-/// sprite frames, each with its own CLUT in `D_actor_510900_8013C48C` and its
-/// own texture window in `D_80111E48`; `arg2` is the flare's half-width
-/// (divided down by the projected depth) and `arg3` its spin, so the quad is a
-/// square rotated by `arg3` rather than an axis-aligned sprite. `otz` is
-/// biased by one before it is used as the divisor so a point on the near plane
-/// cannot divide by zero.
-static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
-{
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    GpFxQuadScratch* vecp;
-    POLY_FT4*        prim;
-    GpEffUv8*        rec;
-    s32              a;
-    u16              vz;
-
-    scratch                                   = SCRATCH_HEAD_ADDR;
-    head                                      = SCRATCH_HEAD_AT(scratch, void);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void)            = block;
-    block->vec.vz                             = vz;
-    vecp                                      = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz     = block->otz + 1;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x29;
-        prim->clut  = (D_actor_510900_8013C48C[arg1].clutY << 6) |
-                     ((D_actor_510900_8013C48C[arg1].clutX >> 4) & 0x3F);
-        rec       = &D_80111E48[arg1];
-        prim->u0  = rec->u;
-        prim->v0  = rec->v;
-        prim->u1  = rec->u + 0x27;
-        prim->v1  = rec->v;
-        prim->u2  = rec->u;
-        prim->v2  = rec->v + 0x27;
-        prim->u3  = rec->u + 0x27;
-        prim->v3  = rec->v + 0x27;
-        a         = arg3;
-        block->dx = (((arg2 * 0x27) / block->otz) * rsin(a)) >> 12;
-        block->dy = (((arg2 * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        a         = a + 0x400;
-        prim->y3  = block->sy + (u16)block->dy;
-        block->dx = (((arg2 * 0x27) / block->otz) * rsin(a)) >> 12;
-        block->dy = (((arg2 * 0x27) / block->otz) * rcos(a)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
-}
+#define SPRITE_QUAD_TPAGE    0x29
+#define SPRITE_QUAD_CLUT     ((D_actor_510900_8013C48C[frame].clutY << 6) | ((D_actor_510900_8013C48C[frame].clutX >> 4) & 0x3F))
+#define SPRITE_QUAD_UV_TABLE D_80111E48
+#define SPRITE_QUAD_CELL_W   0x28
+#define SPRITE_QUAD_SCALE    39
+#include "../../shared/sprite_quad_draw.inc.c"
 
 /// Spawn/setup handler. It allocates the 0x5C8-byte work block and hangs it off
 /// the task, points the model object at the block's two `MATRIX`es (0x45C the

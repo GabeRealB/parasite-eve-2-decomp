@@ -54,13 +54,13 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
+#define SPRITE_QUAD_FRAME_T s16
+#include "../../shared/sprite_quad.h"
 
 #define D_shelter_b1_sterilization_room_80189334 (D_shelter_b1_sterilization_room_8018909C + 83)
 
 extern EvsCommand D_shelter_b1_sterilization_room_80188C94[];
 extern EvsCommand D_shelter_b1_sterilization_room_80188E14[];
-
-static void func_shelter_b1_sterilization_room_801826F0(GfxCoord* coord, s16 frame, s16 arg2, s16 arg3);
 
 static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
@@ -1361,7 +1361,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
 }
 
 /// Per-frame update of a drifting effect drawn by
-/// `func_shelter_b1_sterilization_room_801826F0`. State 0 seeds the work block
+/// `spriteQuadDraw`. State 0 seeds the work block
 /// from the LCG and takes a direction from a table indexed by the 12-bit angle
 /// in `spawnArg1`, scaled through the GTE by `period` and jittered into the
 /// velocity `move`. Each tick then moves the coordinate by that velocity
@@ -1406,8 +1406,8 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
             } else {
                 work->age--;
             }
-            func_shelter_b1_sterilization_room_801826F0(coord, (work->age - 1) / work->index,
-                                                        work->scale, work->angle);
+            spriteQuadDraw(coord, (work->age - 1) / work->index,
+                           work->scale, work->angle);
             if (work->index * 10 - 1 < work->age) {
                 effectKillTask(work, task);
             }
@@ -1415,67 +1415,17 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
     }
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues one semi-transparent textured
-/// `POLY_FT4` (tpage 0x2B, clut 0x43D0) rotated about the projected point.
-/// `frame` picks a 48x48 cell from a 5-column sheet; the half-extent is
-/// `arg2 * 47 / otz` and `arg3` is the spin angle.
-static void func_shelter_b1_sterilization_room_801826F0(GfxCoord* coord, s16 frame, s16 arg2, s16 arg3)
-{
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              v0;
-    s32              ang2;
-    u16              vz;
-
-    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)coord->workm.t[1];
-    vz                                        = (u16)coord->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D0;
-        u0          = (s16)(frame % 5) * 0x30;
-        v0          = (s16)(frame / 5) * 0x30;
-        setUV4(prim, u0, v0 - 0x80, u0 + 0x2F, v0 - 0x80, u0, v0 - 0x51, u0 + 0x2F, v0 - 0x51);
-        block->dx = (((arg2 * 47) / block->otz) * rsin(arg3)) >> 12;
-        block->dy = (((arg2 * 47) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = arg3 + 0x400;
-        block->dx = (((arg2 * 47) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 47) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
-}
+#define SPRITE_QUAD_TPAGE         0x2B
+#define SPRITE_QUAD_CLUT          0x43D0
+#define SPRITE_QUAD_CELL_W        0x30
+#define SPRITE_QUAD_CELLS_PER_ROW 5
+#define SPRITE_QUAD_CELL_H        0x30
+/* rows start at texel 0x80: the offsets wrap through the u8 V coordinate */
+#define SPRITE_QUAD_V0       -0x80
+#define SPRITE_QUAD_V1       -0x51
+#define SPRITE_QUAD_SCALE    47
+#define SPRITE_QUAD_OTZ_BIAS 0
+#include "../../shared/sprite_quad_draw.inc.c"
 
 #include "../../shared/glow_draw_capsule.inc.c"
 

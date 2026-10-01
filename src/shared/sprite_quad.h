@@ -11,6 +11,11 @@
  *   SPRITE_QUAD_V0/_V1      top and bottom texel rows
  *   SPRITE_QUAD_SCALE       size multiplier (the cell's half-width in texels)
  *   SPRITE_QUAD_CELLS_PER_ROW  optional: frames wrap after this many cells
+ *   SPRITE_QUAD_CELL_H      optional, with CELLS_PER_ROW: a grid of cells this
+ *                           tall, the rows offset from V0/V1
+ *   SPRITE_QUAD_UV_TABLE    optional: a GpEffUv8 table giving each frame's
+ *                           square cell (SPRITE_QUAD_CLUT may then also be an
+ *                           expression of `frame`)
  *   SPRITE_QUAD_CELL_MASK   optional: the frame's low bits pick the cell
  *   SPRITE_QUAD_U_BASE      optional: texel column of the first cell
  *   SPRITE_QUAD_MIN_OTZ     optional: draw only at this depth or beyond
