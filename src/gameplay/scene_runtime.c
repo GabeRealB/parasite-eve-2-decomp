@@ -2134,24 +2134,27 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
     }
 }
 
-/// Sets complementary Q12 endpoint weights for a nonzero-duration pose segment.
+/// Initializes complementary pose-endpoint weights in 1/4096 units.
 ///
-/// The borrowed request and slot supply endpoint identity and sixteenth-frame
-/// timing; normalized remaining time is in 0..`timeSpan`. Identical addresses
-/// use only the next endpoint. Stores the scaled remaining time before replacing
-/// it with the quotient truncated toward zero, then assigns `ONE` minus that
-/// quotient to the next endpoint. Only the scratch weights are changed.
+/// Distinct endpoint addresses use `(timeLeft << ANIMATION_BLEND_FRACTION_BITS)
+/// / timeSpan` for the current weight and `ONE` minus that for the next weight.
+/// The signed division truncates toward zero. The caller supplies nonzero
+/// `timeSpan` and remaining time in 0..`timeSpan`, both in sixteenths of a frame;
+/// this helper does not normalize or clamp them. Equal endpoint addresses use
+/// weights 0 and `ONE` without reading slot timing or dereferencing either pose.
+///
+/// The request and slot are borrowed read-only. The caller owns the live,
+/// word-aligned workspace; only `currentWeight` and `nextWeight` are written.
+/// The scaled remaining time is stored before its normalized weight replaces
+/// it. This helper neither reserves nor releases scratch space and uses no GTE
+/// registers.
 static inline void _animationSetBlendWeights(const _AnimationBlendRequest* request, const AnimationSlot* slot,
                                              _AnimationBlendScratch* scratch)
 {
-    s32 currentWeight;
-
     if (request->currentPose.bytes != request->nextPose.bytes) {
-        currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
-        scratch->currentWeight = currentWeight;
-        currentWeight          = currentWeight / slot->timeSpan;
-        scratch->currentWeight = currentWeight;
-        scratch->nextWeight    = ONE - currentWeight;
+        scratch->currentWeight  = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
+        scratch->currentWeight /= slot->timeSpan;
+        scratch->nextWeight     = ONE - scratch->currentWeight;
     } else {
         scratch->currentWeight = 0;
         scratch->nextWeight    = ONE;
