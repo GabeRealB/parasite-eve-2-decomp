@@ -361,7 +361,7 @@ static void func_800B28E0(Task* task);
 
 static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
-static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
+static void _animationBlendPackedRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
 static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1);
 
@@ -2134,8 +2134,55 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
     }
 }
 
-/// Blends encoding 4 without changing the part's local translation.
-static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
+/// Sets complementary Q12 endpoint weights for a nonzero-duration pose segment.
+///
+/// The borrowed request and slot supply endpoint identity and sixteenth-frame
+/// timing; normalized remaining time is in 0..`timeSpan`. Identical addresses
+/// use only the next endpoint. Stores the scaled remaining time before replacing
+/// it with the quotient truncated toward zero, then assigns `ONE` minus that
+/// quotient to the next endpoint. Only the scratch weights are changed.
+static inline void _animationSetBlendWeights(const _AnimationBlendRequest* request, const AnimationSlot* slot,
+                                             _AnimationBlendScratch* scratch)
+{
+    s32 currentWeight;
+
+    if (request->currentPose.bytes != request->nextPose.bytes) {
+        currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
+        scratch->currentWeight = currentWeight;
+        currentWeight          = currentWeight / slot->timeSpan;
+        scratch->currentWeight = currentWeight;
+        scratch->nextWeight    = ONE - currentWeight;
+    } else {
+        scratch->currentWeight = 0;
+        scratch->nextWeight    = ONE;
+    }
+}
+
+/// Blends a model part's encoding-4 rotation while preserving its local translation.
+///
+/// Both borrowed endpoints must address a complete, word-aligned
+/// `AnimationPackedRotation`. Signed 11/10/11-bit components expand from
+/// eight-unit steps to Euler angles in 4096 units per turn. For a normalized
+/// segment, `timeLeft` is in 0..`timeSpan`, in sixteenths of a frame; the
+/// remaining-time fraction weights the current endpoint. Identical endpoint
+/// addresses select the next endpoint with full weight. Zero `timeSpan`
+/// returns without decoding, reserving scratch space or writing any output.
+///
+/// `_animationBlendRotation` applies the result to `coord` when the unpacked
+/// destination is NULL, or writes that destination's rotation instead. Buffered
+/// endpoints use the slot's relative-rotation cache and its refresh request.
+/// Unpacked output copies the full rotation `SVECTOR`, including the scratch
+/// vector's untouched pad. `coord` is required only for coordinate output.
+/// The optional encoded destination must be a readable, writable, word-aligned
+/// four-byte word. It may alias either endpoint: both are decoded before the
+/// result is packed, discarding the low three angle bits. Translation is
+/// preserved in either output mode.
+///
+/// The request and its pointers are borrowed for this call. The initialized
+/// scratch stack must fit one `_AnimationBlendScratch` and any nested matrix
+/// conversion workspace. Its reservation is released before returning; GTE
+/// registers are clobbered.
+static void _animationBlendPackedRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
 {
     /// Low angle bits omitted from encoding-4 packed rotations.
     ///
@@ -2148,21 +2195,10 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
     _AnimationBlendScratch*        scratch;
     const AnimationPackedRotation* sourcePose;
     AnimationPackedRotation*       destinationPose;
-    s32                            currentWeight;
 
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
-        if (request->currentPose.bytes != request->nextPose.bytes) {
-            // Store the scaled remaining time, then replace it with the truncated quotient.
-            currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
-            scratch->currentWeight = currentWeight;
-            currentWeight          = currentWeight / slot->timeSpan;
-            scratch->currentWeight = currentWeight;
-            scratch->nextWeight    = ONE - currentWeight;
-        } else {
-            scratch->currentWeight = 0;
-            scratch->nextWeight    = ONE;
-        }
+        _animationSetBlendWeights(request, slot, scratch);
         // Expand the 11/10/11-bit angles to the same units as encoding 1.
         sourcePose                  = request->currentPose.packedRotation;
         scratch->currentRotation.vx = sourcePose->rx << ANIMATION_PACKED_ANGLE_SHIFT;
