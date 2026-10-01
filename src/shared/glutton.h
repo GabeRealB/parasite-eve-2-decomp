@@ -46,7 +46,15 @@
 /// encounter's hit, escort and shake behavior. This dimensionless integer must
 /// remain a macro because the fragments compare it in `#if` directives.
 #define GLUTTON_DUMPING_HOLE 1
-#define GLUTTON_INCINERATOR  2
+
+/// Compile-time `GLUTTON_ROOM` selector for the Shelter B3 garbage-incinerator Glutton.
+///
+/// `actor_444000` binds `GLUTTON_ROOM` to this value before including this
+/// header and keeps that binding for all shared fragments. It selects the
+/// encounter's hit reactions, escort setup and shake handling. This
+/// dimensionless integer must remain a macro because the fragments compare
+/// `GLUTTON_ROOM` in `#if` directives.
+#define GLUTTON_INCINERATOR 2
 #ifndef GLUTTON_ROOM
 #error "define GLUTTON_ROOM (GLUTTON_DUMPING_HOLE or GLUTTON_INCINERATOR) before including glutton.h"
 #endif
