@@ -596,9 +596,17 @@ u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
         /// bytes, divided by sizeof(*vertexDepths) for indexing. Valid offsets
         /// are only 0..4092 and must name a depth initialized earlier in this
         /// draw walk; masking provides alignment without checking that range.
-        TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK = 0xFFFC,
-        TMD_F3_PRE_XFORM_OT_DEPTH_SHIFT       = 4 // Sixteen scaled depth units per OT entry before wrapping.
+        TMD_F3_PRE_XFORM_DEPTH_REFERENCE_MASK = 0xFFFC
     };
+    /// Converts the scaled GTE ordering depth to an ordering-table tag index.
+    ///
+    /// After the unsigned OTZ left shift by `gDisplayState.otDepthShift`,
+    /// discard four low bits: sixteen scaled OTZ units select one tag.
+    /// The following mask keeps ten index bits (scaled-depth bits 4..13),
+    /// wrapping to 0..1023 relative to `workspace->ot`. Indices count
+    /// four-byte tags; the selected table must contain the resulting entry,
+    /// including the model's signed offset already applied to that base.
+    enum { TMD_F3_PRE_XFORM_OT_INDEX_SHIFT = 4 };
     POLY_F3*            packet;
     s32*                gteResultDestination;
     const DisplayState* displayState;
@@ -636,7 +644,7 @@ u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
                             gte_stotz(gteResultDestination);
                             gte_stotz(gteResultDestination);
                             addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >>
-                                                       TMD_F3_PRE_XFORM_OT_DEPTH_SHIFT &
+                                                       TMD_F3_PRE_XFORM_OT_INDEX_SHIFT &
                                                    (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
                                     packet);
                         }
