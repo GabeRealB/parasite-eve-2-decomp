@@ -32,6 +32,12 @@ enum {
     USER_INTERFACE_PANEL_INITIAL = 0,
     USER_INTERFACE_PANEL_OPENING = 1,
     USER_INTERFACE_PANEL_OPEN    = 2,
+    /// Panel shrinking before its owning task exits and releases the UI object.
+    ///
+    /// Entering this state preserves `animationTicks`. Nonnegative counters
+    /// advance by elapsed frame ticks; reaching `USER_INTERFACE_PANEL_ANIMATION_TICKS`
+    /// or a negative counter invokes the task's exit callback. Until completion,
+    /// drawing and the content callback still run with inactive input.
     USER_INTERFACE_PANEL_CLOSING = 3,
     USER_INTERFACE_PANEL_HIDING  = 4,
     /// Retained panel with drawing suppressed and its content callback still running.

@@ -521,7 +521,7 @@ static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
     Ui_DrawAndCallback,
     Ui_LayoutDrawAndCallback,
-    Ui_TickAnimCounter,
+    [USER_INTERFACE_PANEL_CLOSING] = Ui_TickAnimCounter,
     Ui_AnimCloseStep,
     Ui_ClipAndCallback,
 } };
