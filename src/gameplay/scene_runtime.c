@@ -89,6 +89,18 @@
 
 #include "rooms/shelter_r48.h"
 
+/// Low flags nibble selecting a model-part track's pose bank and encoding.
+///
+/// Slot initialization copies these bits from the first keyframe into
+/// `AnimationSlot.poseEncoding`; subsequent records retain that selector.
+/// Encoding 1 supplies translation and rotation, and encoding 4 supplies
+/// packed rotation only. Cue and control bits are excluded.
+///
+/// Masking preserves values 0..15 without validating them. Playback indexes
+/// `AnimationSet.poseBanks` before decoder dispatch, so the selected value
+/// must be below `ANIMATION_POSE_BANK_COUNT` even for unsupported encodings.
+enum { ANIMATION_RECORD_POSE_ENCODING_MASK = 0x0F };
+
 /// Lowest unsigned record-flags value that ends a forward animation-track walk.
 ///
 /// Values 0xC0..0xFF have both control and stop bits set; the low six bits do
@@ -2649,7 +2661,7 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
         arg1->field_12                        = 0;
         arg1->flags                           = 0;
         arg1->atEnd                           = 0;
-        arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+        arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
     }
 }
 
@@ -2687,7 +2699,7 @@ void Gp_AnimInitSlot(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s
     arg1->field_12                        = 0;
     arg1->flags                           = 0;
     arg1->atEnd                           = 0;
-    arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+    arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
 void Gp_AnimTickSlot(AnimationContext* context, AnimationSlot* arg1)
@@ -2792,7 +2804,7 @@ void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex)
     slot->flags                        = 0;
     slot->atEnd                        = 0;
     slot->field_12                     = 0;
-    slot->poseEncoding                 = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+    slot->poseEncoding                 = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
 void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
@@ -2816,7 +2828,7 @@ void Gp_AnimResetSlotEx(AnimationContext* context, s32 arg1, s32 arg2, s32 arg3,
     slot->flags                           = 0;
     slot->atEnd                           = 0;
     slot->field_12                        = 0;
-    slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+    slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 }
 
 static void Gp_AnimSeekSlot(AnimationContext* context, s32 arg1, s32 arg2)

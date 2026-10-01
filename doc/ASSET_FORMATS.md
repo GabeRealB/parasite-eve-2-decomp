@@ -753,17 +753,20 @@ quarter: the trailing `0x80`/`0xC0` pair holds 129 + 128 in `durationFrames`, wh
 is never read on a control entry — it continues at `wordOffset` or ends the track
 instead. Corrected, Kyle's clips are 3–391 ticks.
 
-**The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
-it once (`slot->poseEncoding = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK`) and
+**The pose encoding belongs to the track, not the record.** `Gp_AnimInitSlot` takes
+it once (`slot->poseEncoding = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK`) and
 `animationTickSlotPose` reads `poseEncoding = slot->poseEncoding` for every record after that. The control records carry 0
-in those bits, so reading the kind per record throws away the final keyframe.
-Kind **1** is `AnimationPackedPose`, six `s16` — local XYZ translation followed
+in those bits, so reading the encoding per record throws away the final keyframe.
+Encoding **1** is `AnimationPackedPose`, six `s16` — local XYZ translation followed
 by XYZ Euler angles, with 4096 angle units per turn. A pose takes three words;
 its record's word offset must identify the start of the full 12-byte pose.
-Playback uses byte views for these word offsets. Kind **4**
+Playback uses byte views for these word offsets. Encoding **4**
 is `AnimationPackedRotation`, one word split 11/10/11 with each component shifted `<< 3`;
 it has no translation, so the bone keeps its rest offset. The root comes out
-kind 1 and the limbs kind 4.
+encoding 1 and the limbs encoding 4. The mask retains all four bits (values
+0–15); it does not validate a bank index. Playback indexes the eight-entry
+bank table before dispatching the decoder, so the selected encoding must be
+below `ANIMATION_POSE_BANK_COUNT` even when its decoder is unsupported.
 
 **Playback interpolates.** `_animationBlendTranslationRotation` / `_animationBlendPackedRotation` decode
 the current and next poses and pass their angles to `_animationBlendRotation`.

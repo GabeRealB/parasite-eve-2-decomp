@@ -56,14 +56,13 @@ typedef struct {
 } AnimationPackedRotation;
 STATIC_ASSERT_SIZEOF(AnimationPackedRotation, 4);
 
-/// Masks for the encoding, caller-defined cues and control commands in `AnimationRecord.flags`.
+/// Masks for caller-defined cues and control commands in `AnimationRecord.flags`.
 enum {
-    ANIMATION_RECORD_POSE_KIND_MASK = 0x0F,
-    ANIMATION_RECORD_CUE_1          = 0x10,
-    ANIMATION_RECORD_CUE_2          = 0x20,
-    ANIMATION_RECORD_CUE_MASK       = ANIMATION_RECORD_CUE_1 | ANIMATION_RECORD_CUE_2,
-    ANIMATION_RECORD_STOP           = 0x40, // Ends the track only together with CONTROL
-    ANIMATION_RECORD_CONTROL        = 0x80
+    ANIMATION_RECORD_CUE_1    = 0x10,
+    ANIMATION_RECORD_CUE_2    = 0x20,
+    ANIMATION_RECORD_CUE_MASK = ANIMATION_RECORD_CUE_1 | ANIMATION_RECORD_CUE_2,
+    ANIMATION_RECORD_STOP     = 0x40, // Ends the track only together with CONTROL
+    ANIMATION_RECORD_CONTROL  = 0x80
 };
 
 /// Four-byte keyframe or control record in a model-part animation track.

@@ -28309,7 +28309,7 @@ slot->trackIndex = slotIndex;
 slot->nextPose.indices.recordIndex = sets[setIndex]->trackStartIndices[slot->trackIndex];
 recordFlags = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
 slot->flags = 0;
-slot->poseEncoding = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+slot->poseEncoding = recordFlags & ANIMATION_RECORD_POSE_ENCODING_MASK;
 ```
 
 `animationResetSlot` is the example. `table[(u8)value]` stuck at 99.3% with
