@@ -55,17 +55,11 @@
 // differently.
 #define ODD_STRANGER_CLIP2_STEP_A 0x11
 #define ODD_STRANGER_CLIP2_STEP_B 0x1B
+// Whether this build keeps the hit effect offset in the work block.
+#define ODD_STRANGER_HIT_FX_OFFSET 1
 #include "../../shared/odd_stranger.h"
 
-/// An XZ pair: `field_C[0]` is the actor's spawn square and `field_C[1]` one
-/// step along its facing, both rebuilt by `func_actor_401000_80133274`. Same
-/// shape as `Actor401300Waypoint` / `Actor01900Waypoint`.
-typedef struct Actor401000Waypoint {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 z;
-} Actor401000Waypoint;
-
-/// Animation view of `Actor401000Work`'s prefix. `func_800B3F84` is handed the
+/// Animation view of `OddStrangerWork`'s prefix. `func_800B3F84` is handed the
 /// context, the pose buffer just past its slot array, and the array itself;
 /// the work block's own fields at 0x898 and up are not repeated here. Same
 /// shape as `Actor401300AnimWork`, 4 bytes earlier.
@@ -77,205 +71,7 @@ typedef struct Actor401000AnimWork {
 } Actor401000AnimWork;
 STATIC_ASSERT_SIZEOF(Actor401000AnimWork, 0x898);
 
-/// Status flags at `Actor401000Work` + 0x68, read through two widths: the
-/// guards in this overlay test bit 0 or bit 0x100 as a halfword, while
-/// `func_actor_401000_80134DB4` tests bits 0x102 as a word, so both views are
-/// modelled explicitly rather than casting at the use site. The same shape as
-/// `Actor341700Flags` / `Actor400500HitFlags`.
-typedef union Actor401000Flags68 {
-    /* 0x0 */ u32 word;
-    /* 0x0 */ u16 half;
-} Actor401000Flags68;
-STATIC_ASSERT_SIZEOF(Actor401000Flags68, 0x4);
-
-/// Private work block of the actor 401000 task, hanging off `Task::work`.
-///
-/// Only the fields the decompiled code touches are named, so the struct is
-/// deliberately open-ended: the three `WorldCollisionBody` collision bodies the teardown hands
-/// back to `Gp_UnlinkObj`, and the two child tasks it kills. The nodes sit
-/// 8 bytes later than the 0x8C8/0xA08/0xB48 triple on actor 01900/401800, with
-/// the same 0x140 stride.
-/// `field_4` is the live-actor flag `func_actor_401000_8013DB10` tests, and
-/// `field_B50.flags` / `field_A10.flags` are the two masks it writes. The
-/// halfwords at 0x898..0x8A2 are the same animation-state slots
-/// `Actor01900_Fn0A7C0` writes; `func_actor_401000_8013DB6C` is that body
-/// with `field_A10.flags |= 0x4000` in place of the sibling's `&= 0xBFFF`.
-typedef struct Actor401000Work {
-    /* 0x000 */ s16 field_0;
-    /* 0x002 */ s16 field_2;
-    /* 0x004 */ s16 field_4;
-    /// One-shot latch `func_actor_401000_8013922C` raises once the actor's
-    /// spawn sound has been queued; the same slot `Actor401300Work` keeps at
-    /// +0x6.
-    /* 0x006 */ s16 field_6;
-    /// Frame counter `func_actor_401000_8013C46C` runs the 0x5B re-arm and the
-    /// 0xF1 turn flip off; the same slot `Actor401300Work` keeps at +0x8.
-    /* 0x008 */ s16  field_8;
-    /* 0x00A */ byte pad_A[2];
-    /// Spawn square and one step along the facing, both narrowed to 16 bits by
-    /// `func_actor_401000_80133274`'s normalised heading.
-    /* 0x00C */ Actor401000Waypoint field_C[2];
-    /* 0x014 */ s16                 field_14;
-    /// Heading `actorMsgPlaceRecordYaw` takes from the root coordinate's
-    /// Z axis once a placement record has been applied to it.
-    /* 0x016 */ s16                yaw;
-    /* 0x018 */ byte               pad_18[0x42];
-    /* 0x05A */ u16                field_5A;
-    /* 0x05C */ byte               pad_5C[0xC];
-    /* 0x068 */ Actor401000Flags68 flags_68;
-    /* 0x06C */ byte               pad_6C[0x828];
-    /* 0x894 */ s32                field_894;
-    /* 0x898 */ s16                field_898;
-    /* 0x89A */ s16                field_89A;
-    /// Clip the body slots are playing; `oddStrangerDrive` moves it
-    /// to the requested `field_89E` when it applies a clip change.
-    /* 0x89C */ s16 field_89C;
-    /* 0x89E */ s16 field_89E;
-    /// Frames since the last clip change: counted up every
-    /// `oddStrangerDrive` tick and cleared when a change is applied.
-    /* 0x8A0 */ u16 field_8A0;
-    /* 0x8A2 */ s16 field_8A2;
-    /* 0x8A4 */ s16 field_8A4;
-    /* 0x8A6 */ s16 field_8A6;
-    /* 0x8A8 */ s16 field_8A8;
-    /// Playback rate of the blend slots, and the weight (out of 0x1000) the
-    /// blend pose gets when `oddStrangerTickBlended` mixes it into the
-    /// body pose; both are seeded (0x30, 0x800) when a blend clip starts.
-    /* 0x8AA */ u16  field_8AA;
-    /* 0x8AC */ s16  field_8AC;
-    /* 0x8AE */ s16  field_8AE;
-    /* 0x8B0 */ s16  field_8B0;
-    /* 0x8B2 */ byte pad_8B2[2];
-    /// Last animation state `func_actor_401000_8013922C` acted on; the same
-    /// de-duplication slot `Actor401300Work` keeps at +0x8BC.
-    /* 0x8B4 */ s32            field_8B4;
-    /* 0x8B8 */ EffectSpawnArg field_8B8;
-    /// Offset the actor's state-3/5/7/8 effects spawn at, passed as the
-    /// `Gp_SpawnEff` position: the same local `SVECTOR` `Actor401300` keeps on
-    /// the stack for the 3013B6E8 triple, materialised into the work block
-    /// here because every one of the four spawns reads it.
-    /* 0x8C0 */ SVECTOR            field_8C0;
-    /* 0x8C8 */ byte               pad_8C8[8];
-    /* 0x8D0 */ WorldCollisionBody field_8D0;
-    /// Contact records of the `field_8D0` node, also the enemy's `recs`;
-    /// the movement helpers walk them twelve at a time.
-    /* 0x8F0 */ WorldCollisionContact field_8F0[12];
-    /* 0xA10 */ WorldCollisionBody    field_A10;
-    /// Contact records of the `field_A10` node.
-    /* 0xA30 */ WorldCollisionContact field_A30[12];
-    /* 0xB50 */ WorldCollisionBody    field_B50;
-    /// The single obstacle record the `field_B50` node is registered against.
-    /* 0xB70 */ WorldCollisionContact field_B70;
-    /// Light matrix `func_actor_401000_80133274` binds to the model's
-    /// `TmdObject::lightMtx` (the color matrix is `field_BA8`, which is the
-    /// same pair `Actor401300Work` keeps at +0xC28 / +0xC48).
-    /* 0xB88 */ MATRIX field_B88;
-    /// Saved at 0xBA8 and copied over 0xBC8 when
-    /// `func_actor_401000_80138F50` enters its state; the same pair
-    /// `Actor401300Work` keeps at +0xC48 / +0xC68.
-    /* 0xBA8 */ MATRIX field_BA8;
-    /* 0xBC8 */ MATRIX field_BC8;
-    /// Cleared by `func_actor_401000_80133274` right after the `field_A10`
-    /// node is linked; the same slot `Actor401300Work` keeps at +0xC88.
-    /* 0xBE8 */ s16  field_BE8;
-    /* 0xBEA */ s16  field_BEA;
-    /* 0xBEC */ s16  field_BEC;
-    /* 0xBEE */ byte pad_BEE[2];
-    /// Forward direction `func_actor_401000_801374D4` rebuilds from the wrapped
-    /// turn toward the player: `gfxRotMatrixY` on the turn then its second
-    /// column, normalised, and finally scaled by the `field_C0A` draw. The same
-    /// slot `Actor401300Work` keeps at +0xC8C.
-    /* 0xBF0 */ SVECTOR field_BF0;
-    /// Position `func_actor_401000_8013D044` snaps the root coordinate to when
-    /// a 0xB/0xD state transition arrives: written by the transition handler and
-    /// loaded into `coord.t` with `composeStamp` cleared so the local matrix is rebuilt.
-    /* 0xBF8 */ SVECTOR field_BF8;
-    /// Turn angle `func_actor_401000_80136E20` rebuilds the facing from, and
-    /// the yaw it is driven to: each entry nudges `field_C00` by 0x89 toward
-    /// `field_C02` and stops once they meet, and `gfxRotMatrixY` /
-    /// `actorRescaleYaw` turn that angle into the root rotation. The
-    /// same pair `Actor401300Work` keeps at +0xC94 / +0xC96.
-    /* 0xC00 */ s16 field_C00;
-    /* 0xC02 */ s16 field_C02;
-    /// Turn countdown `func_actor_401000_80139D10` runs while it walks the
-    /// actor at the player: the `detectPlayerOutOfReach` probe reads it
-    /// signed, the step helper and the countdown itself through a `(u16)`.
-    /* 0xC04 */ s16 field_C04;
-    /// Clip-phase latch `func_actor_401000_801365C8` runs the 8 / -1 / 0 march
-    /// off: 8 flips to -1 once `field_8A2` reaches 0x18, -1 flips to 0 at 0x12,
-    /// and 0 keys the 5-frame exit window. The same slot `Actor01900Work` keeps
-    /// at +0xC26.
-    /* 0xC06 */ s16 field_C06;
-    /// Turn direction `func_actor_401000_801374D4` toggles as it enters: 0 (the
-    /// unseeded state) draws a sign from `gRandomLcgState`, and each entry flips it
-    /// to the other side. Selects the `field_89E` clip and the `field_C12` sign.
-    /// The same slot `Actor401300Work` keeps at +0xC9C.
-    /* 0xC08 */ s16 field_C08;
-    /// Turn length `func_actor_401000_801374D4` rebuilds the forward direction
-    /// with: seeded to 0xDE, taken signed by the `gte_lddp` draw and halved
-    /// while the actor overlaps an obstacle record. The same slot
-    /// `Actor401300Work` keeps at +0xC9E.
-    /* 0xC0A */ s16 field_C0A;
-    /// Forward step `func_actor_401000_801385B0` walks the root by, feeding the
-    /// same `MoveForwardNonzero` helper `Actor401300Work` keeps at +0xC98.
-    /// Set to -0x78 when the live-actor flag goes up, halved while the actor
-    /// overlaps an obstacle record. The three reads widen it differently: the
-    /// `detectPlayerOutOfReach` probe takes the signed value, while the
-    /// step helper and the halving read it back through a `(u16)`.
-    /* 0xC0C */ s16  field_C0C;
-    /* 0xC0E */ byte pad_C0E[2];
-    /// Frame-length bias `func_actor_401000_8013DF6C` reseeds the `field_6`
-    /// countdown from, plus a 0-15 `gRandomLcgState` draw. The 401300 sibling keeps
-    /// the same bias at +0xCA0, and the countdown `Actor01900` runs off +0xC10
-    /// is the same slot.
-    /* 0xC10 */ u16 field_C10;
-    /// Turn step `func_actor_401000_801374D4` adds to (or subtracts from) the
-    /// wrapped facing each entry; the same slot `Actor401300Work` keeps at
-    /// +0xCA2 and `Actor01900Work` at +0xC14.
-    /* 0xC12 */ s16 field_C12;
-    /// Third of the four halfwords `func_actor_401000_80133274` copies out of
-    /// the `spawnArg1`-selected record; not read anywhere yet.
-    /* 0xC14 */ s16 field_C14;
-    /// Radius `func_actor_401000_8013922C` and `func_actor_401000_80138F50`
-    /// test the actor's distance from `gPlayerStatus.coordMtx` against.
-    /* 0xC16 */ u16 field_C16;
-    /// The three bytes `func_actor_401000_8013D958` copies out of the front of
-    /// the message payload; the same triple `Actor01900Work` keeps at +0xC34.
-    /* 0xC18 */ u8 field_C18[3];
-    /// Turn cooldown `func_actor_401000_80136E20` spends an entry on: while it
-    /// is up the actor keeps the state-8 arm instead of the 0xB one, and each
-    /// entry it is up it counts down by one. The same slot `Actor401300Work`
-    /// keeps at +0xC1F.
-    /* 0xC1B */ u8 field_C1B;
-    /// The two helper tasks killed before the nodes are unlinked; the same
-    /// pair `Actor01900Work` keeps at +0xC38 / +0xC3C.
-    /* 0xC1C */ Task* field_C1C;
-    /* 0xC20 */ Task* field_C20;
-    /// Counter `func_actor_401000_80136E20` gates the turn-entry obstacle
-    /// probe on: below 2 the actor keeps the state-8 arm whatever the range
-    /// check says. The same slot `Actor401300Work` keeps at +0xD1C.
-    /* 0xC24 */ s16 field_C24;
-    /// Wraps counter `func_actor_401000_801374D4` counts the turn entries with:
-    /// nonzero picks the un-biased `field_C12` arm, and each entry increments
-    /// it. The same slot `Actor401300Work` keeps at +0xD1E.
-    /* 0xC26 */ s16 field_C26;
-    /// Latch `func_actor_401000_801385B0` clears after sending the closing
-    /// 0x3F1 message, gating on it being 1 the same way the 0x3ED probe does.
-    /// The same slot `Actor00100Work` keeps at +0xC28.
-    /* 0xC28 */ s16  field_C28;
-    /* 0xC2A */ byte pad_C2A[2];
-    /// Ring of the last seven view-space positions `func_actor_401000_8013D044`
-    /// records, one per step; `field_C7C` is the write cursor.
-    /* 0xC2C */ SVECTOR field_C2C[7];
-    /* 0xC64 */ byte    pad_C64[0x18];
-    /// Cleared by `func_actor_401000_80133274` once both obstacle tables have
-    /// been dropped; the write cursor `Actor401300Work` keeps at +0xD78.
-    /* 0xC7C */ s16  field_C7C;
-    /* 0xC7E */ byte pad_C7E[2];
-} Actor401000Work;
-STATIC_ASSERT_SIZEOF(Actor401000Work, 0xC80);
-
-/// The actor's state handlers, indexed by `Actor401000Work::field_0`.
+/// The actor's state handlers, indexed by `OddStrangerWork::field_0`.
 /// `func_actor_401000_8013D044` copies the table to its frame before
 /// dispatching. Same shape as `Actor01900StateTable` / `Actor401300StateTable`.
 typedef struct Actor401000StateTable {
@@ -1322,7 +1118,7 @@ Actor401000Storage5018 D_actor_401000_80155018;
 GpDelayArg D_actor_401000_80155038;
 
 static __inline__ void Actor401000_BindMatrices(Task* actor);
-static __inline__ void Actor401000_InitPose(GfxCoord* coord, Actor401000Work* work);
+static __inline__ void Actor401000_InitPose(GfxCoord* coord, OddStrangerWork* work);
 static void            func_actor_401000_80133274(Enemy* enemy, Task* actor);
 static void            func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2);
 static void            func_actor_401000_80133D50(Task* arg0);
@@ -1374,7 +1170,7 @@ static void            func_actor_401000_8013D044(Enemy* enemy, Task* actor);
 /// Points the model's light and color matrices at the work block's copies.
 static __inline__ void Actor401000_BindMatrices(Task* actor)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     TmdObject*       obj;
 
     work          = actor->work;
@@ -1385,7 +1181,7 @@ static __inline__ void Actor401000_BindMatrices(Task* actor)
 
 /// Rebuilds the root coordinate's Y rotation at the actor's 0x1194 scale and
 /// drops both obstacle tables.
-static __inline__ void Actor401000_InitPose(GfxCoord* coord, Actor401000Work* work)
+static __inline__ void Actor401000_InitPose(GfxCoord* coord, OddStrangerWork* work)
 {
     actorRescaleYaw(coord, 0x1194);
     work->field_C7C = 0;
@@ -1405,7 +1201,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     SVECTOR*            v;
     TmdObject*          obj;
     GfxCoord*           root;
-    Actor401000Work*    work;
+    OddStrangerWork*    work;
     WorldCollisionBody* body;
     WorldCollisionBody* head;
     s32                 variant;
@@ -1589,7 +1385,7 @@ static void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
 {
     SVECTOR*         sc;
     s32              mag;
-    Actor401000Work* work;
+    OddStrangerWork* work;
 
     sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag  = (arg1 >= 0) ? arg1 : -arg1;
@@ -1652,7 +1448,7 @@ static void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
 static void func_actor_401000_80133D50(Task* arg0)
 {
     PlayerStatus*    config = &gPlayerStatus;
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     ActorHitScratch* head;
     ActorHitScratch* s;
@@ -2013,7 +1809,7 @@ static void func_actor_401000_80133D50(Task* arg0)
 /// drops the frame-count loop's `flags_68` guard and its own 0x36 test.
 static void func_actor_401000_80134DB4(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     TmdObject*       tmd;
 
@@ -2071,7 +1867,7 @@ static void func_actor_401000_80134DB4(Task* arg0)
 /// its message-id gate, which the 401000 sibling keeps in `field_C10`.
 static void func_actor_401000_80134F98(Task* arg0)
 {
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     ActorChaseScratch* aim;
     TmdObject*         obj;
     GfxCoord*          coord;
@@ -2300,7 +2096,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
 {
     ActorChaseScratch* head;
     ActorChaseScratch* chase;
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     TmdObject*         obj;
     GfxCoord*          coord;
     s32                angle;
@@ -2441,7 +2237,7 @@ static void func_actor_401000_801365C8(Task* arg0)
 {
     ActorChaseScratch* chase;
     ActorChaseScratch* head;
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     TmdObject*         obj;
     GfxCoord*          coord;
     GfxCoord*          facing;
@@ -2574,7 +2370,7 @@ static void func_actor_401000_801365C8(Task* arg0)
 /// its obstacle table. `field_C1B` counts down once per entry.
 static void func_actor_401000_80136E20(Task* arg0)
 {
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     ActorChaseScratch* aim;
     ActorChaseScratch* head;
     TmdObject*         obj;
@@ -2666,7 +2462,7 @@ static void func_actor_401000_80136E20(Task* arg0)
 /// and keys state 7 once 0x1E of them have run.
 static void func_actor_401000_801374D4(Task* arg0)
 {
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     ActorChaseScratch* aim;
     ActorChaseScratch* head;
     TmdObject*         obj;
@@ -2766,7 +2562,7 @@ static void func_actor_401000_801374D4(Task* arg0)
 static void func_actor_401000_801378DC(Task* arg0)
 {
     SVECTOR          delta;
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     GameActor*       player;
     PlayerStatus*    config;
@@ -2863,7 +2659,7 @@ static void func_actor_401000_801378DC(Task* arg0)
 static void func_actor_401000_801380B8(Task* arg0)
 {
     SVECTOR          dir;
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     Task*            player;
     SVECTOR*         pdir;
@@ -2922,7 +2718,7 @@ static void func_actor_401000_801380B8(Task* arg0)
 
 static void func_actor_401000_801383F0(Task* arg0)
 {
-    Actor401000Work*      work;
+    OddStrangerWork*      work;
     AnimationPlayRequest* msg;
     Enemy*                enemy;
     Task*                 player;
@@ -2959,7 +2755,7 @@ static void func_actor_401000_801383F0(Task* arg0)
 
 static void func_actor_401000_801385B0(Task* arg0)
 {
-    Actor401000Work*      work;
+    OddStrangerWork*      work;
     Enemy*                enemy;
     AnimationPlayRequest* msg;
     PlayerStatus*         cfg;
@@ -3023,7 +2819,7 @@ static void func_actor_401000_801385B0(Task* arg0)
 /// the work block's pending-request bit is up.
 static void func_actor_401000_801388F4(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
 
     work  = arg0->work;
@@ -3081,7 +2877,7 @@ static void func_actor_401000_801388F4(Task* arg0)
 /// pending-request bit is up.
 static void func_actor_401000_80138BB4(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
 
     work  = arg0->work;
@@ -3129,7 +2925,7 @@ static void func_actor_401000_80138BB4(Task* arg0)
 /// and with `field_A10.flags |= 0x4000` in place of its `&= 0xBFFF`.
 static void func_actor_401000_80138D08(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     TmdObject*       obj;
     s16              cur;
@@ -3184,7 +2980,7 @@ static void func_actor_401000_80138D08(Task* arg0)
 /// of its literal 3000.
 static void func_actor_401000_80138F50(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
@@ -3245,7 +3041,7 @@ static void func_actor_401000_80138F50(Task* arg0)
 
 static void func_actor_401000_8013922C(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
@@ -3314,7 +3110,7 @@ static void func_actor_401000_8013922C(Task* arg0)
 /// the `gSceneCombatState` bits, and the live-actor arm restarts the 0x1AE clip.
 static void func_actor_401000_801394EC(Task* arg0)
 {
-    Actor401000Work*       work;
+    OddStrangerWork*       work;
     ActorTurnScratch*      turn;
     TmdObject*             obj;
     WorldCollisionContact* rec;
@@ -3417,7 +3213,7 @@ static void func_actor_401000_801394EC(Task* arg0)
 /// countdown is spent.
 static void func_actor_401000_80139D10(Task* arg0)
 {
-    Actor401000Work*  work;
+    OddStrangerWork*  work;
     Enemy*            enemy;
     TmdObject*        obj;
     GfxCoord*         coord;
@@ -3478,7 +3274,7 @@ static void func_actor_401000_80139D10(Task* arg0)
 /// reads the sign of `field_8AE` with the `0x4B0` arm first.
 static void func_actor_401000_8013A0C8(Task* arg0)
 {
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     ActorChaseScratch* aim;
     TmdObject*         obj;
 
@@ -3551,7 +3347,7 @@ static void func_actor_401000_8013A0C8(Task* arg0)
 /// out instead of arming state F0.
 static void func_actor_401000_8013A5F0(Task* arg0)
 {
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     ActorChaseScratch* aim;
     TmdObject*         obj;
     GfxCoord*          coord;
@@ -3608,7 +3404,7 @@ static void func_actor_401000_8013A5F0(Task* arg0)
 /// `&= 0xBFFF`.
 static void func_actor_401000_8013A930(Task* arg0)
 {
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     ActorChaseScratch* aim;
     TmdObject*         obj;
     GfxCoord*          coord;
@@ -3712,7 +3508,7 @@ static void func_actor_401000_8013A930(Task* arg0)
 /// rather than a stack `SVECTOR` and has no `field_D20` guard on the tail.
 static void func_actor_401000_8013B1E4(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     u16              next;
 
@@ -3772,7 +3568,7 @@ static void func_actor_401000_8013B1E4(Task* arg0)
 /// `oddStrangerDrive` and `actorResetYaw` on nodes 2..10.
 static void func_actor_401000_8013B61C(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
     u16              next;
     s16              cur;
@@ -3878,7 +3674,7 @@ static void func_actor_401000_8013B61C(Task* arg0)
 /// down once per entry.
 static void func_actor_401000_8013C46C(Task* arg0)
 {
-    Actor401000Work*   work;
+    OddStrangerWork*   work;
     TmdObject*         obj;
     GfxCoord*          coord;
     GfxCoord*          facing;
@@ -4004,7 +3800,7 @@ static void func_actor_401000_8013C46C(Task* arg0)
 /// `field_0` whenever the request bit is up.
 static void func_actor_401000_8013CD9C(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
 
     work  = arg0->work;
@@ -4049,7 +3845,7 @@ static void func_actor_401000_8013CD9C(Task* arg0)
 /// `field_0` whenever the request bit is up.
 static void func_actor_401000_8013CEF0(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
 
     work  = arg0->work;
@@ -4086,7 +3882,7 @@ static void func_actor_401000_8013CEF0(Task* arg0)
     }
 }
 
-/// The actor's state handlers, indexed by `Actor401000Work::field_0`. Copied to
+/// The actor's state handlers, indexed by `OddStrangerWork::field_0`. Copied to
 /// the frame by `func_actor_401000_8013D044` before the dispatch, so the
 /// handler may overwrite the live table entry.
 static const Actor401000StateTable D_actor_401000_80131FF4 = { {
@@ -4140,7 +3936,7 @@ static void func_actor_401000_8013D044(Enemy* enemy, Task* actor)
 {
     VECTOR                pos;
     Actor401000StateTable states;
-    Actor401000Work*      work;
+    OddStrangerWork*      work;
     ActorViewScratch*     scratch;
     ActorViewScratch*     head;
     s32                   state;
@@ -4284,7 +4080,7 @@ s32 func_actor_401000_8013D958(Task* arg0, s32 arg1, u16* arg2)
     u16              room;
     u16              state;
     u16              state2;
-    Actor401000Work* work;
+    OddStrangerWork* work;
 
     work               = arg0->work;
     work->field_C18[0] = ((u8*)arg2)[0];
@@ -4325,10 +4121,10 @@ s32 func_actor_401000_8013D958(Task* arg0, s32 arg1, u16* arg2)
 /// display nodes and drops the enemy's `recs`, then destroys the enemy.
 static void func_actor_401000_8013DA78(Task* task)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
 
-    work  = (Actor401000Work*)task->work;
+    work  = (OddStrangerWork*)task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
     if (work != NULL) {
         if (work->field_C1C != NULL) {
@@ -4348,7 +4144,7 @@ static void func_actor_401000_8013DA78(Task* task)
 static void func_actor_401000_8013DB10(Task* arg0)
 {
     TmdObject*       obj;
-    Actor401000Work* work;
+    OddStrangerWork* work;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -4363,7 +4159,7 @@ static void func_actor_401000_8013DB10(Task* arg0)
 static void func_actor_401000_8013DB6C(Task* arg0)
 {
     TmdObject*       obj;
-    Actor401000Work* work;
+    OddStrangerWork* work;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -4387,7 +4183,7 @@ static void func_actor_401000_8013DB6C(Task* arg0)
 static void func_actor_401000_8013DC14(Task* arg0)
 {
     TmdObject*       obj;
-    Actor401000Work* work;
+    OddStrangerWork* work;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -4411,7 +4207,7 @@ static void func_actor_401000_8013DC14(Task* arg0)
 static void func_actor_401000_8013DCC0(Task* arg0)
 {
     TmdObject*       obj;
-    Actor401000Work* work;
+    OddStrangerWork* work;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -4435,7 +4231,7 @@ static void func_actor_401000_8013DCC0(Task* arg0)
 static void func_actor_401000_8013DD6C(Task* arg0)
 {
     TmdObject*       obj;
-    Actor401000Work* work;
+    OddStrangerWork* work;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -4459,7 +4255,7 @@ static void func_actor_401000_8013DD6C(Task* arg0)
 
 static void func_actor_401000_8013DE24(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
 
     work  = arg0->work;
@@ -4484,7 +4280,7 @@ static void func_actor_401000_8013DE24(Task* arg0)
 
 static void func_actor_401000_8013DEC8(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
 
     work  = arg0->work;
@@ -4513,7 +4309,7 @@ static void func_actor_401000_8013DEC8(Task* arg0)
 /// moves it to state 0x15 whatever else happened.
 static void func_actor_401000_8013DF6C(Task* arg0)
 {
-    Actor401000Work* work;
+    OddStrangerWork* work;
     Enemy*           enemy;
 
     work  = arg0->work;
