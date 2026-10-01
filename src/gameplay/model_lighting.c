@@ -216,7 +216,15 @@ static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* e
         /// For records 0x1C/0x1E, the index starts at each element after the record
         /// header. Bits 0..7 and 8..15 are unsigned U0/V0 texel coordinates;
         /// bits 16..31 are the encoded CLUT address before the model's displacement.
-        MODEL_LIGHTING_FT3_UV0_CLUT_WORD  = 2,
+        MODEL_LIGHTING_FT3_UV0_CLUT_WORD = 2,
+
+        /// Zero-based u32 word index of vertex 1's packed U/V and texture-page settings.
+        ///
+        /// For records 0x1C/0x1E, counted from each element after the three-word
+        /// record header. Bits 0..7 and 8..15 are unsigned U1/V1 texel coordinates;
+        /// bits 16..31 are encoded texture-page settings before the model's
+        /// displacement. The complete word seeds `POLY_FT3.u1`, `v1` and `tpage`;
+        /// adding `texturePageOffset` afterwards wraps only the u16 `tpage` field.
         MODEL_LIGHTING_FT3_UV1_TPAGE_WORD = 3,
         MODEL_LIGHTING_FT3_UV2_WORD       = 4
     };
