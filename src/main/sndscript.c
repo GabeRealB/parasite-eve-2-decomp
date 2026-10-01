@@ -216,7 +216,6 @@ enum {
     SOUND_SCRIPT_VOLUME_UNITY        = 127,
     SOUND_SCRIPT_USE_UNDUCKED_VOLUME = 0x02,
     SOUND_SCRIPT_GROUP_BY_FLAGS      = 0x10,
-    SOUND_SCRIPT_REJECT_WHILE_MUTED  = 0x80,
     SOUND_SCRIPT_RETRIGGER_DISABLED  = -1
 };
 
@@ -733,6 +732,16 @@ loop:
 
 s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
 {
+    /// Entry flag refusing a script-start request under the reduced-volume policy.
+    ///
+    /// Bit 7 of `SndScriptEntryControls::flags` rejects the request with -5
+    /// while `gSndVolumeReducedMode` is nonzero, before an event is allocated.
+    /// Normal mode ignores this bit; an unflagged entry still undergoes the
+    /// other start checks. This gate does not depend on current master gains
+    /// or an existing script's mute/fade state, and is not checked again when
+    /// queued playback starts. The bit remains part of full-word flag grouping.
+    enum { SOUND_SCRIPT_REJECT_IN_REDUCED_VOLUME_MODE = 0x80 };
+
     /// Entry flag permitting a script-start request while its bank type is disabled.
     ///
     /// Bit 0 of `SndScriptEntryControls::flags` bypasses the -4 rejection for
@@ -787,7 +796,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     // A nonzero offset addresses the slot's oneC block within this loaded image.
     entry = (SndScriptEntryControls*)((u8*)header + offset);
     if (gSndVolumeReducedMode != SOUND_VOLUME_MODE_NORMAL) {
-        if ((entry->flags & SOUND_SCRIPT_REJECT_WHILE_MUTED) != 0) {
+        if ((entry->flags & SOUND_SCRIPT_REJECT_IN_REDUCED_VOLUME_MODE) != 0) {
             return -5;
         }
     }

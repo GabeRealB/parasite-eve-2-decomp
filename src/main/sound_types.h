@@ -137,7 +137,8 @@ STATIC_ASSERT_SIZEOF(SndBank, 0x20);
 /// `volumeScale` and `panBias` apply to every voice started by the script.
 /// Flags: 0x01 permits requests while the bank type is disabled; 0x02 uses the
 /// saved, unducked master volume while ducking is active; 0x10 groups by the
-/// full flags word; 0x80 rejects requests while the global mute is active.
+/// full flags word; 0x80 rejects start requests while `gSndVolumeReducedMode`
+/// is nonzero, independently of current gains or script mute/fade state.
 /// Other bits have no individual readers but remain part of the grouping key.
 typedef struct {
     u32  tag;            // Serialized oneC FourCC; requests do not validate it

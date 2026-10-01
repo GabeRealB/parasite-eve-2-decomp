@@ -53,7 +53,7 @@ enum {
 /// `SOUND_VOLUME_MODE_REDUCED` (1) applies MIDI master volume 0 and script
 /// master volume 40/127; restoring normal mode applies 64 and 127/127.
 /// Reduced mode makes the sequence-selection eligibility query return false
-/// and refuses script starts marked `SOUND_SCRIPT_REJECT_WHILE_MUTED`.
+/// and refuses script starts marked `SOUND_SCRIPT_REJECT_IN_REDUCED_VOLUME_MODE`.
 /// Demo entry enables it; main-loop initialization restores normal mode.
 /// The mode is stored before the master-volume updates. Other volume setters
 /// do not change it, so it records the policy rather than the current gains.
