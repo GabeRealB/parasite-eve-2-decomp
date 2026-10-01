@@ -85,7 +85,12 @@ void Mem_Set(void* dest, u32 ch, u32 count)
     }
 }
 
-/// Clears exactly `sizeBytes` bytes, using stores aligned to their access width.
+/// Zeroes the requested payload bytes of an allocation.
+///
+/// `allocation` must provide `sizeBytes` writable bytes; its address may have
+/// any byte alignment. A zero byte count performs no access. The allocation's
+/// rounded-up tail and heap metadata are left intact; ownership stays with
+/// the caller.
 static inline void _memClearAllocation(void* allocation, size_t sizeBytes)
 {
     u32    tailByteIndex;
@@ -99,36 +104,50 @@ static inline void _memClearAllocation(void* allocation, size_t sizeBytes)
     zeroWord       = 0;
     zeroHalfword   = 0;
 
-    while (bytesRemaining >= 4) {
-        // Use aligned word and halfword stores without crossing the requested extent.
-        switch ((uintptr)clearCursor & 3) {
-            case 0:
-                *(u32*)clearCursor = zeroWord;
-                clearCursor       += 4;
-                bytesRemaining    -= 4;
-                break;
+    /// Clears one aligned-store chunk and advances its byte cursor and count.
+    ///
+    /// Arguments must have no side effects; they may be evaluated more than once.
+    /// `cursor` and `remaining` must be writable `u8*` and `size_t` lvalues, with
+    /// at least `sizeof(u32)` writable bytes remaining. `wordZero` and
+    /// `halfwordZero` must be zero values of type `u32` and `u16`.
+#define MEMORY_CLEAR_ALIGNED_CHUNK(cursor, remaining, wordZero, halfwordZero) \
+    do {                                                                      \
+        switch ((uintptr)(cursor) & 3) {                                      \
+            case 0:                                                           \
+                *(u32*)(cursor) = (wordZero);                                 \
+                (cursor)       += sizeof(u32);                                \
+                (remaining)    -= sizeof(u32);                                \
+                break;                                                        \
+                                                                              \
+            case 1:                                                           \
+                *(cursor)++     = 0;                                          \
+                *(u16*)(cursor) = (halfwordZero);                             \
+                (cursor)       += sizeof(u16);                                \
+                (remaining)    -= 1 + sizeof(u16);                            \
+                break;                                                        \
+                                                                              \
+            case 2:                                                           \
+                *(u16*)(cursor) = (halfwordZero);                             \
+                (cursor)       += sizeof(u16);                                \
+                (remaining)    -= sizeof(u16);                                \
+                break;                                                        \
+                                                                              \
+            case 3:                                                           \
+                *(cursor)    = 0;                                             \
+                (cursor)    += 1;                                             \
+                (remaining) -= 1;                                             \
+                break;                                                        \
+        }                                                                     \
+    } while (0)
 
-            case 1:
-                *clearCursor++     = 0;
-                *(u16*)clearCursor = zeroHalfword;
-                clearCursor       += 2;
-                bytesRemaining    -= 3;
-                break;
-
-            case 2:
-                *(u16*)clearCursor = zeroHalfword;
-                clearCursor       += 2;
-                bytesRemaining    -= 2;
-                break;
-
-            case 3:
-                *clearCursor    = 0;
-                clearCursor    += 1;
-                bytesRemaining -= 1;
-                break;
-        }
+    while (bytesRemaining >= sizeof(u32)) {
+        // Reach word alignment with narrower stores, all within the requested extent.
+        MEMORY_CLEAR_ALIGNED_CHUNK(clearCursor, bytesRemaining, zeroWord, zeroHalfword);
     }
 
+#undef MEMORY_CLEAR_ALIGNED_CHUNK
+
+    // Fewer than four bytes remain; the 16-bit counter view cannot wrap here.
     tailByteIndex = 0;
     while ((u16)tailByteIndex < bytesRemaining) {
         *clearCursor++ = 0;
