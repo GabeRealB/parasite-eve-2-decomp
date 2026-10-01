@@ -2268,7 +2268,12 @@ static inline void _gpuQueueBlendMode(s32 blendMode, s32 sortingDepth)
         ///
         /// `setDrawTPage` encodes this nonzero argument as bit 9 (0x0200),
         /// independently of the semitransparency selector in bits 5..6.
-        GPU_BLEND_DITHER_ENABLED     = 1,
+        GPU_BLEND_DITHER_ENABLED = 1,
+        /// Unshifted texture-page depth selector for 4-bit CLUT-indexed texels.
+        ///
+        /// `getTPage` encodes this zero selector in draw-mode bits 7..8.
+        /// The blend command fixes the texture depth even though untextured
+        /// primitives do not sample the selected page.
         GPU_BLEND_TEXTURE_DEPTH_4BIT = 0,
         GPU_BLEND_TEXTURE_PAGE_X     = 640,
         GPU_BLEND_TEXTURE_PAGE_Y     = 0,
