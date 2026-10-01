@@ -65,13 +65,13 @@ enum { FONT_GLYPH_MEDIUM_COUNT = 0x100 - ' ' };
 /// 224 records occupy 0xA80 bytes.
 enum { FONT_GLYPH_LARGE_COUNT = 0x100 - ' ' };
 
-/// Record count of the small UI face.
+/// Number of glyph-metric records in the small UI font.
 ///
-/// One record per character byte from ' ' through 0x7A, indexed as
-/// `byte - ' '`. 91 records occupy 0x444 bytes. Bytes above 0x7A are outside
-/// this face; the medium and large faces cover those bytes under their own
-/// counts.
-enum { FONT_GLYPH_SMALL_COUNT = 0x7B - ' ' };
+/// Character bytes ' ' through 'z' (0x20..0x7A) map to indices 0..90 by
+/// subtracting ' '. All records, including space, are counted; the 91 records
+/// occupy 0x444 bytes. Drawing and measurement rely on glyph bytes falling
+/// within this range.
+enum { FONT_GLYPH_SMALL_COUNT = 'z' - ' ' + 1 };
 
 /// Texture bounds and pen metrics for one encoded UI-font character.
 ///
