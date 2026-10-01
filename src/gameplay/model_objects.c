@@ -780,7 +780,16 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// and `code/p1/p2` in the layer packet. The byte view covers the complete
         /// packet pair, including the final undereferenced cursor advances.
         TMD_GT3_ENV_CORNER_STRIDE_BYTES = OFFSET_OF(POLY_GT3, u1) - OFFSET_OF(POLY_GT3, u0),
-        // Sixteen scaled OTZ units select one four-byte OT tag.
+        /// Right shift converting scaled GTE OTZ to an ordering-table tag index.
+        ///
+        /// Applied after the u32 left shift by `gDisplayState.otDepthShift`:
+        /// sixteen scaled OTZ units select one four-byte tag. This combines
+        /// the depth-to-byte-offset right shift by two with bytes-to-tags
+        /// conversion. The following mask, `GPU_ORDERING_TABLE_DEPTH_BYTE_MASK`
+        /// divided by sizeof(*workspace->ot), keeps scaled-depth bits 4..13
+        /// and wraps indices to 0..1023; it does not clamp depth. Both packets
+        /// use the same index relative to `workspace->ot`, already displaced
+        /// by the model's signed tag offset. The selected OT must contain it.
         TMD_GT3_ENV_OT_INDEX_SHIFT = 4
     };
     /// One element's environment packet followed by its opaque base packet.
@@ -868,8 +877,14 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
                             setlen(&(*packetPair)[1], packetWordCount);
                             setcode(&(*packetPair)[1], baseCommand);
                             gte_stotz(gteResultDestination);
-                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_GT3_ENV_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], &(*packetPair)[0]);
-                            addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >> TMD_GT3_ENV_OT_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))], &(*packetPair)[1]);
+                            addPrim(&workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >>
+                                                    TMD_GT3_ENV_OT_INDEX_SHIFT) &
+                                                   (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                    &(*packetPair)[0]);
+                            addPrim(&workspace->ot[(((u32)workspace->gteResult << displayState->otDepthShift) >>
+                                                    TMD_GT3_ENV_OT_INDEX_SHIFT) &
+                                                   (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                    &(*packetPair)[1]);
                         }
                     }
                 }
