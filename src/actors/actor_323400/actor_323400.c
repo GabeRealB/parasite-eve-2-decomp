@@ -39,7 +39,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
-#define DESERT_CHASER_BUILD DESERT_CHASER_UNARMED
+#define DESERT_CHASER_BUILD DESERT_CHASER_CUTSCENE
 #include "../../shared/desert_chaser.h"
 
 /// Psy-Q `RotMatrixY`.

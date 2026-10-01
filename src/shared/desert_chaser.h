@@ -1,8 +1,10 @@
 /* The Desert Chaser, one enemy built three ways; a package selects its build
  * with DESERT_CHASER_BUILD before including this header:
  *
- * - DESERT_CHASER_UNARMED: actor_323000 (placed in dryfield_main_street) and
- *   actor_323400 (dryfield_breezeway). Its spawn sets 0 HP and
+ * - DESERT_CHASER_CUTSCENE: actor_323000, the Main Street introduction where
+ *   the chaser leaps from a roof (the fight that follows uses the regular
+ *   build); actor_323400 in the Dryfield breezeway carries the same build,
+ *   its scene not yet confirmed. Its spawn sets 0 HP and
  *   WORLD_TARGET_NOT_LOCKABLE, and message 2005 toggles its display flags.
  * - DESERT_CHASER_REGULAR: actor_00100 (packages actor_400100 and actor_407500).
  * - DESERT_CHASER_WATER_TOWER: actor_421600, the dryfield_water_tower build.
@@ -25,11 +27,11 @@
 
 #include "main/task_types.h"
 
-#define DESERT_CHASER_UNARMED     1
+#define DESERT_CHASER_CUTSCENE    1
 #define DESERT_CHASER_REGULAR     2
 #define DESERT_CHASER_WATER_TOWER 3
 #ifndef DESERT_CHASER_BUILD
-#error "define DESERT_CHASER_BUILD (DESERT_CHASER_UNARMED, _REGULAR or _WATER_TOWER) before including desert_chaser.h"
+#error "define DESERT_CHASER_BUILD (DESERT_CHASER_CUTSCENE, _REGULAR or _WATER_TOWER) before including desert_chaser.h"
 #endif
 
 /// A route point, the placement and the one a fixed step ahead of it.
@@ -39,7 +41,7 @@ typedef struct DesertChaserWaypoint {
 } DesertChaserWaypoint;
 STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 
-#if DESERT_CHASER_BUILD != DESERT_CHASER_UNARMED
+#if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 #define DESERT_CHASER_CONTACTS 5
 #else
@@ -82,7 +84,7 @@ typedef struct DesertChaserAnimCommand {
 #endif
 
 /// The work block the spawn handler allocates and hangs behind `Task::work`:
-/// 0x934 bytes in the unarmed build, 0xC30 in the regular one and 0xEB0 in
+/// 0x934 bytes in the cutscene build, 0xC30 in the regular one and 0xEB0 in
 /// the Water Tower one. The three share the head up to 0x890 -- the state
 /// words, the route points, both animation contexts with their 18 slots and
 /// pose buffers, and the animation-state words the handlers seed and the tick
@@ -95,7 +97,7 @@ typedef struct DesertChaserWork {
     s16 field_2;
     s16 field_4;
     /// Frame counter the state handlers time their effects with.
-#if DESERT_CHASER_BUILD == DESERT_CHASER_UNARMED
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
     s16 field_6;
 #elif DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     s16 field_6;
@@ -138,7 +140,7 @@ typedef struct DesertChaserWork {
     u16 field_83A;
     s16 field_83C;
     u16 field_83E;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_UNARMED
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
     s16 field_840;
 #elif DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     u16 field_840;
@@ -148,7 +150,7 @@ typedef struct DesertChaserWork {
     s16 field_842;
     /// Turn angle the tick eases toward `field_840` and splits over the body
     /// joints; cleared by the spawn handler.
-#if DESERT_CHASER_BUILD == DESERT_CHASER_UNARMED
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
     s16 field_844;
 #elif DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     u16 field_844;
@@ -159,7 +161,7 @@ typedef struct DesertChaserWork {
     /// Clip id each slot was last seen playing, indexed like `slots`; zeroed
     /// (18 entries) when no watched clip plays.
     s32 field_848[18];
-#if DESERT_CHASER_BUILD == DESERT_CHASER_UNARMED
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
     byte pad_890[4];
     /// Light / colour matrices the spawn handler binds to the model.
     MATRIX light;
@@ -279,7 +281,7 @@ typedef struct DesertChaserWork {
     byte pad_EAE[2];
 #endif
 } DesertChaserWork;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_UNARMED
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
 STATIC_ASSERT_SIZEOF(DesertChaserWork, 0x934);
 #elif DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 STATIC_ASSERT_SIZEOF(DesertChaserWork, 0xC30);
@@ -287,7 +289,7 @@ STATIC_ASSERT_SIZEOF(DesertChaserWork, 0xC30);
 STATIC_ASSERT_SIZEOF(DesertChaserWork, 0xEB0);
 #endif
 
-#if DESERT_CHASER_BUILD != DESERT_CHASER_UNARMED
+#if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
 /// Whether any of the capsule's contacts, up to the first empty one, is a
 /// room-grid contact (kind 0x10).
 static __inline__ s16 desertChaserCapsuleTouchesGrid(Task* arg0)
@@ -333,7 +335,7 @@ void desertChaserHideState(Enemy* arg0, Task* arg1);
 s32  desertChaserMsgPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 void desertChaserExit(Task* task);
 
-#if DESERT_CHASER_BUILD != DESERT_CHASER_UNARMED
+#if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
 void desertChaserPursue(Task* arg0);
 void desertChaserRoam(Task* arg0);
 void desertChaserApproach(Task* arg0);

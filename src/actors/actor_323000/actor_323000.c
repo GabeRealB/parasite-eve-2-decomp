@@ -38,7 +38,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
-#define DESERT_CHASER_BUILD DESERT_CHASER_UNARMED
+#define DESERT_CHASER_BUILD DESERT_CHASER_CUTSCENE
 #include "../../shared/desert_chaser.h"
 
 /// Animation source `func_800B3F84` is handed for both of the work block's
