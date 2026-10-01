@@ -297,60 +297,38 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
     triangle->clut      += workspace->encodedClutOffset;
 }
 
-/// Initializes one per-corner-colour GT3 element's persistent texture fields.
+/// Initializes one Gouraud textured triangle's texture from a per-corner-colour element.
 ///
-/// `triangle` is a writable, four-byte-aligned packet. `elementWords` addresses
-/// at least nine aligned u32 words past the record header: three geometry words,
-/// three material-colour words, then three texture words. U/V are unsigned byte
-/// texel coordinates; page and CLUT are encoded GPU addresses. The workspace's
-/// signed encoded displacements wrap in those u16 fields. The packet's tag,
-/// colours/command, positions and pad fields remain untouched. Storage is
-/// borrowed; this helper retains no pointer and changes no workspace state.
-static inline void _tmdInitGt3CornerColorsTexture(POLY_GT3* triangle, const u32* elementWords,
-                                                  const TmdStreamWorkspace* workspace)
+/// `triangle` must be a writable, four-byte-aligned `POLY_GT3`. `elementWords`
+/// starts after an opcode `0x130` record's three-word header and must provide
+/// at least nine readable, four-byte-aligned u32 words. Words 0..2 pack vertex
+/// and normal byte offsets; words 3..5 hold the corners' material colours.
+/// Words 6 and 7 pack unsigned byte U/V texel coordinates in their low halves
+/// and encoded CLUT and texture-page settings in their high halves. Only the
+/// low half of word 8 supplies U2/V2; its upper half is ignored, with no role
+/// established here. Nine words is a minimum readable extent, not an element
+/// stride or complete record size.
+///
+/// The construction workspace supplies signed encoded-address displacements:
+/// `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128, 64 per
+/// palette row). Each sum wraps modulo 65536 in its u16 packet field without
+/// changing U/V. The tag, colours/command, screen positions and pad fields are
+/// preserved for drawing. All storage is borrowed for this call; no pointer is
+/// retained and no workspace cursor or count is changed.
+static inline void _modelLightingInitGt3CornerColorsTexture(POLY_GT3* triangle, const u32* elementWords,
+                                                            const TmdStreamWorkspace* workspace)
 {
     // Word indices within the element, excluding the record header.
     enum {
-        /// Element-relative u32 index of vertex 0's texture coordinates and CLUT.
-        ///
-        /// Opcode `0x130` places three geometry words and three corner-colour
-        /// words before this word; the three-word record header is excluded.
-        /// On the little-endian target, bits 0..7 hold unsigned U0 texels,
-        /// bits 8..15 hold unsigned V0 texels, and bits 16..31 hold the encoded
-        /// CLUT address before the model's signed encoded displacement
-        /// (64 per palette row) is added to that halfword.
-        TMD_GT3_CORNER_COLORS_UV0_CLUT_WORD = 6,
-        /// Element-relative u32 index of vertex 1's texture coordinates and page settings.
-        ///
-        /// Opcode `0x130` places three geometry words, three corner-colour
-        /// words and the U0/V0/CLUT word before this word; the three-word
-        /// record header is excluded. Reading it requires at least eight
-        /// readable, four-byte-aligned u32 words from the element start.
-        /// On the little-endian target, bits 0..7 hold unsigned U1 texels,
-        /// bits 8..15 hold unsigned V1 texels, and bits 16..31 hold the GPU's
-        /// encoded page origin, colour depth and semi-transparency mode.
-        /// All four bytes are copied into `POLY_GT3`; the signed model page
-        /// displacement is then added only to its u16 `tpage` field, wrapping
-        /// modulo 65536 without changing U1/V1.
-        TMD_GT3_CORNER_COLORS_UV1_TPAGE_WORD = 7,
-        /// Element-relative u32 index of vertex 2's packed texture coordinates.
-        ///
-        /// Opcode `0x130` places three geometry words, three corner-colour
-        /// words and two texture words before this word; the three-word record
-        /// header is excluded. The element must provide at least nine readable,
-        /// four-byte-aligned u32 words, without implying that its stride is nine.
-        /// On the little-endian target, bits 0..7 hold unsigned U2 texels and
-        /// bits 8..15 hold unsigned V2 texels. Only the low half is copied into
-        /// `POLY_GT3`'s adjacent `u2`/`v2` bytes, preserving its following `pad2`
-        /// halfword. The source word's upper half is ignored; its role is
-        /// unproven. Page and CLUT displacements do not modify this U/V pair.
-        TMD_GT3_CORNER_COLORS_UV2_WORD = 8
+        MODEL_LIGHTING_GT3_CORNER_COLORS_UV0_CLUT_WORD  = 6, // U0/V0 in low half, CLUT address in high half
+        MODEL_LIGHTING_GT3_CORNER_COLORS_UV1_TPAGE_WORD = 7, // U1/V1 in low half, texture-page settings in high half
+        MODEL_LIGHTING_GT3_CORNER_COLORS_UV2_WORD       = 8  // U2/V2 in low half; high half is not copied
     };
 
-    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_CORNER_COLORS_UV0_CLUT_WORD];
-    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[TMD_GT3_CORNER_COLORS_UV1_TPAGE_WORD];
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[MODEL_LIGHTING_GT3_CORNER_COLORS_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[MODEL_LIGHTING_GT3_CORNER_COLORS_UV1_TPAGE_WORD];
     // Copy the U2/V2 pair without overwriting the SDK's adjacent pad2 field.
-    *(u16*)&triangle->u2 = (u16)elementWords[TMD_GT3_CORNER_COLORS_UV2_WORD];
+    *(u16*)&triangle->u2 = (u16)elementWords[MODEL_LIGHTING_GT3_CORNER_COLORS_UV2_WORD];
     triangle->tpage     += workspace->texturePageOffset;
     triangle->clut      += workspace->encodedClutOffset;
 }
@@ -2141,7 +2119,7 @@ u32* tmdBuildStreamGt3CornerColors(TmdStreamWorkspace* workspace, s32 objectFlag
     triangle = (POLY_GT3*)workspace->primWrite;
     // Seed texture data for the draw pass that lights each corner's material colour.
     while (workspace->elemCount-- > 0) {
-        _tmdInitGt3CornerColorsTexture(triangle, elements, workspace);
+        _modelLightingInitGt3CornerColorsTexture(triangle, elements, workspace);
         triangle++;
         elements += workspace->elemStride;
     }
