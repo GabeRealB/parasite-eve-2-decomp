@@ -439,11 +439,13 @@ record = 0x801692C0
 
 [[enemy]]
 name = "Desert Chaser"
+variant = "Cutscene"
 package = "actor_323000"
 record = 0x80164D54
 
 [[enemy]]
 name = "Desert Chaser"
+variant = "Cutscene"
 package = "actor_323400"
 record = 0x80164D5C
 
