@@ -968,7 +968,40 @@ glabel tmdDrawStreamPrimGt4PreXform
     /* 1E6C 8001166C */  addu        $v0, $zero, $a2
     /* 1E70 80011670 */  jr          $ra
     /* 1E74 80011674 */  nop
+/* POLY_G3 includes its four-byte DMA tag; the GPU length excludes it. */
+.equ TMD_DRAW_STREAM_PRIM_G3_PACKET_BYTES, 28
+.equ TMD_DRAW_STREAM_PRIM_G3_PACKET_WORDS, (TMD_DRAW_STREAM_PRIM_G3_PACKET_BYTES / 4) - 1
+/* Wrap the scaled depth to 14 bits, then quantize by 16 into 1024 OT buckets. */
+.equ TMD_DRAW_STREAM_PRIM_G3_DEPTH_MASK, 0x3FFF
+.equ TMD_DRAW_STREAM_PRIM_G3_DEPTH_SHIFT, 4
+
+/*
+ * Prepend the packet to its depth bucket and repeat the face colour at each corner.
+ * Inputs: t8 packet, t1 its 24-bit DMA address, t7 displaced OT base,
+ * t2 OTZ, a1 depth shift, v0 six-word DMA length in bits 24..31,
+ * GTE RGB2 lit face RGB/command word. Clobbers t0, t2 and t3; writes the
+ * OT head, packet tag and three colour words. Emits no call or extra delays.
+ */
+.macro TMD_DRAW_STREAM_PRIM_G3_LINK_PACKET
+    sllv        $t2, $t2, $a1
+    andi        $t2, $t2, TMD_DRAW_STREAM_PRIM_G3_DEPTH_MASK
+    srl         $t2, $t2, TMD_DRAW_STREAM_PRIM_G3_DEPTH_SHIFT
+    sll         $t2, $t2, 2
+    addu        $t2, $t2, $t7
+    lw          $t0, 0x0($t2)
+    sw          $t1, 0x0($t2)
+    sll         $t0, $t0, 8
+    srl         $t0, $t0, 8
+    or          $t0, $v0, $t0
+    mfc2        $t3, $22
+    sw          $t0, 0x0($t8)
+    sw          $t3, 0x4($t8)
+    sw          $t3, 0xC($t8)
+    sw          $t3, 0x14($t8)
+.endm
+
 glabel tmdDrawStreamPrimG3
+    /* a0 workspace, a1 ignored object flags, a2 first element word. */
     /* 1E78 80011678 */  lw          $t9, 0x18($a0)
     /* 1E7C 8001167C */  lw          $a3, 0x1C($a0)
     /* 1E80 80011680 */  lw          $t8, 0x0($a0)
@@ -976,17 +1009,19 @@ glabel tmdDrawStreamPrimG3
     /* 1E88 80011688 */  lw          $t6, 0x8($a0)
     /* 1E8C 8001168C */  lw          $t5, 0xC($a0)
     /* 1E90 80011690 */  sll         $t9, $t9, 2
-    /* 1E94 80011694 */  lui         $v0, 0x600
+    /* 1E94 80011694 */  lui         $v0, (TMD_DRAW_STREAM_PRIM_G3_PACKET_WORDS << 8)
     /* 1E98 80011698 */  j           .L800116A8
     /* 1E9C 8001169C */  lw          $a1, 0x84($a0)
   .L800116A0:
-    /* 1EA0 800116A0 */  addiu       $t8, $t8, 0x1C
+    /* Rejection consumes the same reserved slot as a drawable triangle. */
+    /* 1EA0 800116A0 */  addiu       $t8, $t8, TMD_DRAW_STREAM_PRIM_G3_PACKET_BYTES
   .L800116A4:
     /* 1EA4 800116A4 */  addu        $a2, $t9, $a2
   .L800116A8:
     /* 1EA8 800116A8 */  beq         $zero, $a3, .L800117AC
     /* 1EAC 800116AC */  nop
     /* 1EB0 800116B0 */  addiu       $a3, $a3, -0x1
+    /* Unpack three vertex byte offsets and one face-normal byte offset. */
     /* 1EB4 800116B4 */  lw          $t1, 0x0($a2)
     /* 1EB8 800116B8 */  lw          $t3, 0x4($a2)
     /* 1EBC 800116BC */  srl         $t2, $t1, 16
@@ -1006,7 +1041,8 @@ glabel tmdDrawStreamPrimG3
     /* 1EF4 800116F4 */  lwc2        $5, 0x4($t3)
     /* 1EF8 800116F8 */  sll         $t1, $t4, 0
     /* 1EFC 800116FC */  nop
-    /* 1F00 80011700 */  .word 0x4A280030
+    /* Project all corners (RTPT), then reject GTE errors and nonpositive winding. */
+    /* 1F00 80011700 */  .word 0x4A280030 /* RTPT */
     /* 1F04 80011704 */  addu        $t1, $t5, $t1
     /* 1F08 80011708 */  cfc2        $t0, $31
     /* 1F0C 8001170C */  nop
@@ -1014,7 +1050,7 @@ glabel tmdDrawStreamPrimG3
     /* 1F14 80011714 */  nop
     /* 1F18 80011718 */  nop
     /* 1F1C 8001171C */  nop
-    /* 1F20 80011720 */  .word 0x4B400006
+    /* 1F20 80011720 */  .word 0x4B400006 /* NCLIP */
     /* 1F24 80011724 */  mfc2        $t0, $24
     /* 1F28 80011728 */  nop
     /* 1F2C 8001172C */  blez        $t0, .L800116A0
@@ -1024,29 +1060,16 @@ glabel tmdDrawStreamPrimG3
     /* 1F3C 8001173C */  swc2        $14, 0x18($t8)
     /* 1F40 80011740 */  nop
     /* 1F44 80011744 */  nop
-    /* 1F48 80011748 */  .word 0x4B58002D
+    /* Average depth (AVSZ3) and light the element colour from its one normal (NCCS). */
+    /* 1F48 80011748 */  .word 0x4B58002D /* AVSZ3 */
     /* 1F4C 8001174C */  lwc2        $6, 0x8($a2)
     /* 1F50 80011750 */  lwc2        $0, 0x0($t1)
     /* 1F54 80011754 */  lwc2        $1, 0x4($t1)
     /* 1F58 80011758 */  mfc2        $t2, $7
     /* 1F5C 8001175C */  sll         $t1, $t8, 8
     /* 1F60 80011760 */  srl         $t1, $t1, 8
-    /* 1F64 80011764 */  .word 0x4B08041B
-    /* 1F68 80011768 */  sllv        $t2, $t2, $a1
-    /* 1F6C 8001176C */  andi        $t2, $t2, 0x3FFF
-    /* 1F70 80011770 */  srl         $t2, $t2, 4
-    /* 1F74 80011774 */  sll         $t2, $t2, 2
-    /* 1F78 80011778 */  addu        $t2, $t2, $t7
-    /* 1F7C 8001177C */  lw          $t0, 0x0($t2)
-    /* 1F80 80011780 */  sw          $t1, 0x0($t2)
-    /* 1F84 80011784 */  sll         $t0, $t0, 8
-    /* 1F88 80011788 */  srl         $t0, $t0, 8
-    /* 1F8C 8001178C */  or          $t0, $v0, $t0
-    /* 1F90 80011790 */  mfc2        $t3, $22
-    /* 1F94 80011794 */  sw          $t0, 0x0($t8)
-    /* 1F98 80011798 */  sw          $t3, 0x4($t8)
-    /* 1F9C 8001179C */  sw          $t3, 0xC($t8)
-    /* 1FA0 800117A0 */  sw          $t3, 0x14($t8)
+    /* 1F64 80011764 */  .word 0x4B08041B /* NCCS */
+    /* 1F68..1FA0 80011768..800117A0 */  TMD_DRAW_STREAM_PRIM_G3_LINK_PACKET
     /* 1FA4 800117A4 */  j           .L800116A0
     /* 1FA8 800117A8 */  nop
   .L800117AC:
@@ -1055,6 +1078,8 @@ glabel tmdDrawStreamPrimG3
     /* 1FB0 800117B0 */  addu        $v0, $zero, $a2
     /* 1FB4 800117B4 */  jr          $ra
     /* 1FB8 800117B8 */  nop
+.purgem TMD_DRAW_STREAM_PRIM_G3_LINK_PACKET
+
 glabel tmdDrawStreamPrimG4
     /* 1FBC 800117BC */  lw          $t9, 0x18($a0)
     /* 1FC0 800117C0 */  lw          $a3, 0x1C($a0)
