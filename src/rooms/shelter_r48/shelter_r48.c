@@ -129,7 +129,7 @@ TmdSource D_shelter_r48_80182F88[1] = {
     { 0, 0x4000, 0, 1, NULL, NULL, NULL, D_shelter_r48_8018BE30, D_shelter_r48_80182F7C },
 };
 
-TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_r48_8017D660, { .model = D_shelter_r48_80182F88 } };
+TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_r48_8017D660, { .model = D_shelter_r48_80182F88 } };
 
 TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r48_8017E044 },

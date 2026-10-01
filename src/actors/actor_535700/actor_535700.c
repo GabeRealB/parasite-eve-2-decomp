@@ -1081,8 +1081,8 @@ Actor535700MsgEntry gPairWalkMessages[6] = {
 };
 
 TaskDesc gPairWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_535700_80132F20, { .model = &D_actor_535700_80142E58 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &D_actor_535700_8014339C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_535700_80132F20, { .model = &D_actor_535700_80142E58 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &D_actor_535700_8014339C } },
 };
 
 u8 gPairWalkAnimParams[24] = {

@@ -299,9 +299,9 @@ Actor4036002MessageEntry D_actor_403600_80160504[2] = {
 };
 
 TaskDesc D_actor_403600_80160514[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_403600_80141180, { .model = &D_actor_403600_80149818 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403600_80141180, { .model = &D_actor_403600_80149818 } },
     { { { TASK_BODY_TMD, 96 } }, func_actor_403600_80141BE0, { .model = &D_actor_403600_80150E78 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_403600_80141CD4, { .model = &D_actor_303600_801690A4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403600_80141CD4, { .model = &D_actor_303600_801690A4 } },
 };
 
 AnimationSet* D_actor_403600_80160538[12] = {

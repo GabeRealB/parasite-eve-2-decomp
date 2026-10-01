@@ -724,9 +724,9 @@ EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
 TaskDesc D_shelter_b3_dumping_hole_80188BC8[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017F820, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017FBA0, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_801877F4 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187A70 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187D74 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_801877F4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187A70 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187D74 } },
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80188C04[4] = {
@@ -830,7 +830,7 @@ EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
     { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8018005C, { .value = 0 } },
 };
 

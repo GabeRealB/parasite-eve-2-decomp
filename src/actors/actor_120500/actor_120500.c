@@ -327,7 +327,7 @@ TaskDesc D_actor_120500_80138418[3] = {
 
 TaskDesc D_actor_120500_8013843C = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
 
-TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_120500_8013241C, { .model = &D_actor_120500_8013762C } };
+TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120500_8013241C, { .model = &D_actor_120500_8013762C } };
 
 Task* D_actor_120500_80138454 = NULL;
 

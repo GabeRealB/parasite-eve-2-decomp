@@ -2149,7 +2149,7 @@ s32 D_actor_421600_801511D4[4][8] = {
     { 0x1F7BC, 1553, 0x1FBDC, 1606, 0x10459, 0xF66F, 0x106C9, 0xFB85 },
 };
 
-TaskDesc D_actor_421600_80151254 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &D_actor_421600_80143A54 } };
+TaskDesc D_actor_421600_80151254 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &D_actor_421600_80143A54 } };
 
 SVECTOR ActorContact_ScratchPosition;
 

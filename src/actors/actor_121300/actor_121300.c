@@ -1703,15 +1703,15 @@ EvsCommand D_actor_121300_8013D2E8[7] = {
 };
 
 TaskDesc D_actor_121300_8013D390[11] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_80133D98, { .model = &D_actor_121300_80139B80 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_121300_80133D98, { .model = &D_actor_121300_80139B80 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_121300_801326EC, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_121300_8013400C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_121300_80133064, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_80139DE4 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A050 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A2AC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A494 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A67C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_80139DE4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A050 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A2AC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A494 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A67C } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_121300_801340F0, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_121300_8013322C, { .value = 0 } },
 };

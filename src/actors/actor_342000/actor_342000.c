@@ -380,14 +380,14 @@ EvsCommand D_actor_342000_80164E30[19] = {
 TaskDesc D_actor_342000_80164FF8[10] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_342000_8016382C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_342000_80163EAC, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_342000_801628C8, { .model = &D_actor_444000_80146F68 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014BE0C } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014A650 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_80147D10 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_80148E94 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014D5FC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_342000_8016201C, { .model = &D_actor_444000_8014ED78 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_342000_8016201C, { .model = &D_actor_444000_8014F8C0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801628C8, { .model = &D_actor_444000_80146F68 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014BE0C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014A650 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_80147D10 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_80148E94 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &D_actor_444000_8014D5FC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_8016201C, { .model = &D_actor_444000_8014ED78 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_8016201C, { .model = &D_actor_444000_8014F8C0 } },
 };
 
 Task* D_actor_342000_80165070;

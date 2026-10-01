@@ -111,7 +111,7 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
     /// `gTaskDeferModelBufferAllocation` is set. A nonzero creation argument
     /// skips auxiliary-heap buffer allocation but still creates the model body
     /// and its coordinates. This bit does not set `TMD_OBJECT_SKIP_AUTO_BUFFER`;
-    /// recovery remains eligible unless `TASK_DESC_SKIP_MODEL_BUFFER` also
+    /// recovery remains eligible unless `TASK_DESC_SKIP_AUTO_MODEL_BUFFER` also
     /// supplies bit 0. No allocation is scheduled by this flag: a later
     /// buffer-allocation pass must run.
     enum { TASK_SPAWN_DEFER_MODEL_BUFFER = 1 << 1 };
@@ -132,7 +132,8 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
     switch (flags & TASK_DESC_BODY_KIND_MASK) {
         case TASK_BODY_TMD:
             attachFlags = 0;
-            if (flags & TASK_DESC_SKIP_MODEL_BUFFER) {
+            if (flags & TASK_DESC_SKIP_AUTO_MODEL_BUFFER) {
+                // Descriptor bit 8 becomes creation bit 0, suppressing allocation and recovery.
                 attachFlags = 1;
             }
             if (gTaskDeferModelBufferAllocation) {

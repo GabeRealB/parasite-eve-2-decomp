@@ -408,7 +408,7 @@ s32 D_actor_310600_8017969C = 0x60401;
 s32 D_actor_310600_801796A0 = 0x70401;
 
 TaskDesc D_actor_310600_801796A4[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_310600_801629CC, { .model = &D_actor_310600_8016C7F8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_310600_801629CC, { .model = &D_actor_310600_8016C7F8 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_310600_8016274C, { .model = &D_actor_310600_8016CD50 } },
 };
 

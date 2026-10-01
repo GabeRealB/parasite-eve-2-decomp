@@ -671,8 +671,8 @@ DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80182374[2] = {
 
 TaskDesc D_dryfield_water_tower_80182384[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tower_8017F128, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E764, { .model = &D_dryfield_water_tower_80180DC8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E1DC, { .model = &D_dryfield_water_tower_80181A1C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E764, { .model = &D_dryfield_water_tower_80180DC8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E1DC, { .model = &D_dryfield_water_tower_80181A1C } },
 };
 
 ActorTransform D_dryfield_water_tower_801823A8 = { { -700, -1, -4500, 0 }, { 0, 3072, 0, 0 } };

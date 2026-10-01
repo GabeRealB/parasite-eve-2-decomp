@@ -429,7 +429,7 @@ Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
 
 TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &Actor07000_D079C8 } };
 
-TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &Actor07000_D079C8 } };
+TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &Actor07000_D079C8 } };
 
 AnimationSet* gSucklercephAnimSets[4] = {
     NULL,
@@ -871,7 +871,7 @@ TaskDesc Actor07000_D0D7D0[2] = {
     { { { TASK_BODY_COORD, 96 } }, Actor07000_Fn06338, { .value = 0 } },
 };
 
-TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
+TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
 
 /// The 0x39C-byte work block the actor's *other* spawn handler
 /// (`Actor07000_Fn05068`) allocates, next to `SucklercephWork`:

@@ -874,7 +874,7 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_120400_8013E748[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_120400_80132748, { .model = &D_actor_120400_8013783C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120400_80132748, { .model = &D_actor_120400_8013783C } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_120400_8013254C, { .model = &D_actor_120400_801380E4 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_120400_8013254C, { .model = &D_actor_120400_80137C90 } },
 };

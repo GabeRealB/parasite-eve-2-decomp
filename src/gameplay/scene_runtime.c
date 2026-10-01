@@ -3416,7 +3416,7 @@ void Gp_ApplyAreaTmdFlags(void)
                             flags = entry->taskTable->header.fields.flags;
                             if (flags == TASK_BODY_TMD) {
                                 extra->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                            } else if (flags == (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER)) {
+                            } else if (flags == (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER)) {
                                 extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             }
                             break;

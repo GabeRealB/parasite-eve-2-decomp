@@ -1879,7 +1879,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_141000_8013D74C,
 };
 
-TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
+TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
 
 Actor141000MsgEntry D_actor_141000_8013D788[7] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },

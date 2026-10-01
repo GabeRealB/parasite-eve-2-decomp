@@ -3029,7 +3029,7 @@ Actor323000MessageEntry gRigMessages[7] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_323000_80173A08 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &D_actor_323000_80169870 } };
+TaskDesc D_actor_323000_80173A08 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &D_actor_323000_80169870 } };
 
 static Actor323000Storage3A14 ActorContact_ScratchPosition = { 0 };
 

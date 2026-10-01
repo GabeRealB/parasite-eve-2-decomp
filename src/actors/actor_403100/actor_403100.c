@@ -3065,7 +3065,7 @@ GpImgRec D_actor_403100_801555EC[2] = {
 };
 
 TaskDesc D_actor_403100_8015560C[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_403100_8013E0FC, { .model = &D_actor_403100_801475F0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403100_8013E0FC, { .model = &D_actor_403100_801475F0 } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_403100_8013E04C, { .value = 0 } },
 };
 

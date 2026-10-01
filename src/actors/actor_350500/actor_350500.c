@@ -211,7 +211,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_350500_80168E8C,
 };
 
-TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_350500_80162360, { .model = &D_actor_350500_8016785C } };
+TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350500_80162360, { .model = &D_actor_350500_8016785C } };
 
 Actor350500MsgEntry gReverseWalkMessages[6] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },

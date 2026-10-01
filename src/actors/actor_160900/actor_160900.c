@@ -939,10 +939,10 @@ TaskDesc D_actor_160900_8013FB50[8] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_160900_8013418C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_160900_801344D8, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_160900_801343E4, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132C08, { .model = &D_actor_160900_801393B8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132C08, { .model = &D_actor_160900_801393B8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
     { { { TASK_BODY_COORD, 192 } }, func_actor_160900_80132E80, { .value = 0 } },
 };
 

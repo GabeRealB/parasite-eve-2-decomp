@@ -1295,7 +1295,7 @@ Actor01600RecoveredMsgEntry Actor01600_D127A4[3] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor01600_D127BC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor01600_Fn066E8, { .model = &Actor01600_D08F74 } };
+TaskDesc Actor01600_D127BC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor01600_Fn066E8, { .model = &Actor01600_D08F74 } };
 
 AnimationSet* Actor01600_D127C8[4] = {
     NULL,

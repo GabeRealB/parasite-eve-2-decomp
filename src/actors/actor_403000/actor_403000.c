@@ -3529,7 +3529,7 @@ u8 D_actor_403000_80158D48[16] = {
     2,
 };
 
-TaskDesc D_actor_403000_80158D58 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_403000_8013D59C, { .model = &D_actor_403000_80145324 } };
+TaskDesc D_actor_403000_80158D58 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403000_8013D59C, { .model = &D_actor_403000_80145324 } };
 
 SVECTOR D_actor_403000_80158D64[4] = {
     { 4550, 0, 310, 0 },

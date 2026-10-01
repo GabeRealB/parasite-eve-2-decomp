@@ -845,7 +845,7 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_335800_8016EADC[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C0CC } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C6C0 } },
 };
@@ -922,7 +922,7 @@ AnimationSet** D_actor_335800_80172E98[1] = {
     D_actor_335800_80172E90,
 };
 
-TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
+TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
 
 Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
     { 2003, { .call1 = actorMotionPlayAnim19 } },
