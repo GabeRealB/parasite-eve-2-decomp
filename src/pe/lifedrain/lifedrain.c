@@ -115,7 +115,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 gPlayerStatus.hp = gPlayerStatus.hpMax;
             }
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     mem->age = mem->age + 1;
@@ -323,7 +323,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             return;
         }
         case 4:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
     }
 }
@@ -373,7 +373,7 @@ void func_lifedrain_8012F9A8(Task* arg0)
                     return;
                 }
             } else {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             break;
@@ -514,7 +514,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Links two axis-aligned `POLY_FT4`s at `arg0`'s world position: the position
@@ -634,7 +634,7 @@ void func_lifedrain_801308C0(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -663,6 +663,6 @@ void func_lifedrain_801308C0(Task* arg0)
     scale     -= 8;
     mem->scale = scale;
     if ((s16)scale < 9) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }

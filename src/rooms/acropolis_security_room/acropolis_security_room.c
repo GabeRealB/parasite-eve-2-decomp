@@ -3323,7 +3323,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     prim->y3    = y;
     prim->y2    = y;
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Draws a rotating textured quad and updates its drift until it settles.
@@ -3459,7 +3459,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
 
     mem->age = mem->age + 1;
     if (gGameSession->location.loc.view != 0xF) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -3532,7 +3532,7 @@ void func_acropolis_security_room_801817A4(Task* task)
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(AsrFlashScratch);
-    Gp_ReleaseState1CMem(mem, task);
+    effectKillTask(mem, task);
 }
 
 #include "../../shared/actor_contacts_push_contact.inc.c"

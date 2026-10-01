@@ -3211,7 +3211,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 color[0] = color[1] = color[2] = (90 - work->age) * 4;
                 func_dryfield_night_motel_balcony_8017FF78(task, color, task->spawnArg1.value);
             } else {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
         case 2:
@@ -3225,7 +3225,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 func_dryfield_night_motel_balcony_8017FF78(task, color, task->spawnArg1.value);
             } else {
             release:
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }
@@ -3382,7 +3382,7 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
             break;
         case 10:
         release:
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
             break;
     }
 }
@@ -3402,7 +3402,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
     coord = task->extra.coordBody->coord;
     if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -3448,7 +3448,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
                 color[0] = color[1] = color[2] = (0x1E - t) * 0xC;
                 func_dryfield_night_motel_balcony_80180C60(task, color, 0);
             } else {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
         case 2:
@@ -3462,7 +3462,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
                 color[0] = color[1] = color[2] = (0x1E - t) * 0xC;
                 func_dryfield_night_motel_balcony_80180C60(task, color, 0);
             } else {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }
@@ -3635,7 +3635,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
             }
         } else {
         release:
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }
@@ -3747,7 +3747,7 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
                 func_dryfield_night_motel_balcony_801819E0(task, task->spawnArg1.value);
             } else {
             release:
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }
@@ -3919,7 +3919,7 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
                 func_dryfield_night_motel_balcony_8018221C(task, color, tick);
             } else {
             release:
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }

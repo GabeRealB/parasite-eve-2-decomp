@@ -260,7 +260,7 @@ static inline void RoomFx_HaloTask(Task* arg0)
         }
     }
 kill:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// A burst in orange. Each tick draws a disc and a glow at a growing size while
@@ -314,7 +314,7 @@ static inline void RoomFx_OrangeBurstTask(Task* arg0)
         mem->scale -= 0x18;
         if (mem->scale < 0x18) {
         kill:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }

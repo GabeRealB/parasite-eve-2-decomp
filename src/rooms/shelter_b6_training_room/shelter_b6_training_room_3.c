@@ -530,7 +530,7 @@ void func_shelter_b6_training_room_8017EE70(Task* arg0)
         mem->scale -= 0x10;
         if (mem->scale < 0x10) {
         kill:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
     }
 }
@@ -607,11 +607,11 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
             case 3:
                 break;
             case 4:
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
                 break;
         }
     } else {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }
 
@@ -966,7 +966,7 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 void func_shelter_b6_training_room_801811AC(Task* task)
@@ -1025,7 +1025,7 @@ void func_shelter_b6_training_room_801811AC(Task* task)
             return;
         case 4:
         release:
-            Gp_ReleaseState1CMem(mem, task);
+            effectKillTask(mem, task);
         default:
             return;
     }
@@ -1189,7 +1189,7 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
             func_shelter_b6_training_room_80181FDC(coord, D_shelter_b6_training_room_80185C94, mem->age >> 1, mem->scale);
         }
         if (mem->age > mem->period) {
-            Gp_ReleaseState1CMem(mem, task);
+            effectKillTask(mem, task);
         }
     }
 }
@@ -1373,7 +1373,7 @@ void func_shelter_b6_training_room_8018245C(Task* task)
     mem->scale -= 0x18;
     if (mem->scale < 0x18) {
     release:
-        Gp_ReleaseState1CMem(mem, task);
+        effectKillTask(mem, task);
     }
 }
 
@@ -1404,7 +1404,7 @@ void func_shelter_b6_training_room_801825C0(Task* task)
                 Gp_DrawFxQuad(coord, mem->index, 0x400, mem->scale);
             }
         } else {
-            Gp_ReleaseState1CMem(mem, task);
+            effectKillTask(mem, task);
         }
     }
 }
@@ -1437,7 +1437,7 @@ void func_shelter_b6_training_room_801826E0(Task* task)
                 }
             }
         } else {
-            Gp_ReleaseState1CMem(mem, task);
+            effectKillTask(mem, task);
         }
     }
 }
@@ -1448,7 +1448,7 @@ void func_shelter_b6_training_room_80182804(Task* task)
 
     mem = task->spawnArg2.pointer;
     if (mem->age >= 0x15) {
-        Gp_ReleaseState1CMem(mem, task);
+        effectKillTask(mem, task);
         return;
     }
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {

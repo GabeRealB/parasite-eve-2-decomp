@@ -223,7 +223,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         }
                         return;
                     case 3:
-                        Gp_ReleaseState1CMem(work, task);
+                        effectKillTask(work, task);
                         return;
                 }
                 return;
@@ -329,7 +329,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
                 }
             }
             if (mem->age >= 0x19) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
             }
             break;
     }

@@ -1181,7 +1181,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
                                &D_acropolis_west_elevator_hall_80184E04.colors[i]);
         }
         Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }
 
@@ -1235,7 +1235,7 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
         }
     }
 
-    Gp_ReleaseState1CMem(mem, task);
+    effectKillTask(mem, task);
 }
 
 /// Draws one frame of the hall's soft light billboard and then retires the
@@ -1299,7 +1299,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x14);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 s32 func_acropolis_west_elevator_hall_80180274(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

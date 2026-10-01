@@ -102,7 +102,7 @@ static inline void leafFallTask(Task* task)
                 work->angle -= 0x10;
                 leafDraw(coord, work->scale, work->angle);
             } else {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }

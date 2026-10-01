@@ -1186,14 +1186,14 @@ void func_shelter_b6_nursery_80181314(Task* task)
     work  = task->spawnArg2.pointer;
     coord = obj->coords;
     if ((Gp_GetViewIndex() & 0xFF) != 0xC) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
         return;
     }
     {
         effectControl = gRoomEffectState->effectControl;
         if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
             if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
         } else {
             Gp_UpdateCoord(coord);
@@ -1379,7 +1379,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 10) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;
@@ -1399,7 +1399,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 8) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;
@@ -1545,7 +1545,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
     coord         = task->extra.coordBody->coord;
     if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     } else {
         if (task->state == 0) {
@@ -1583,7 +1583,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         func_shelter_b6_nursery_801829E4(coord, work->angle, work->period);
         if (coord->coord.t[1] > 0) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         } else {
             work->move.vy += 0x180;
         }

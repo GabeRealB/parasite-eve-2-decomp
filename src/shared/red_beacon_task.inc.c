@@ -63,5 +63,5 @@ void redBeaconTask(Task* arg0)
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x14);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }

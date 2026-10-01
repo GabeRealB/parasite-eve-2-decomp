@@ -150,7 +150,7 @@ static inline void RoomFx_SparkEmitterTask(Task* arg0)
         mem->age++;
         if (mem->age >= 0x15) {
         kill:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
         }
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

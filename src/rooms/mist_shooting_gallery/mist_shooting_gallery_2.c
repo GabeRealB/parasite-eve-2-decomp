@@ -2093,7 +2093,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
             Gp_DrawFadeQuad(rgb, 1);
             work->scale -= 8;
             if (work->scale < 8) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             return;
     }

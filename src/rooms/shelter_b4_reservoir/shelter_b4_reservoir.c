@@ -1826,7 +1826,7 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -1875,7 +1875,7 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 6) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;

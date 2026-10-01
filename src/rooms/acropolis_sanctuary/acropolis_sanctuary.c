@@ -1998,7 +1998,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (arg0->state != 0) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     for (i = 0; i < 0x48; i++) {
@@ -2152,7 +2152,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BYTES(0x28);
     if (mem->angle + 0x3C < mem->age) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     if (mem->angle < mem->age) {
@@ -2247,7 +2247,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (mem->age >= 0x3D || mem->index >= 2) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     Gp_UpdateCoord(coord);

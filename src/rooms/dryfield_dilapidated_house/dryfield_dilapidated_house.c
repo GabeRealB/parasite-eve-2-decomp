@@ -153,7 +153,7 @@ STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
 /// Work block of the three effect handlers `func_dryfield_dilapidated_house_80182744`,
 /// `func_dryfield_dilapidated_house_80183C8C` and
 /// `func_dryfield_dilapidated_house_80183D5C`, reached as `task->spawnArg2.pointer`
-/// and handed to `Gp_ReleaseState1CMem` when their ramp runs out. `field_24` is a
+/// and handed to `effectKillTask` when their ramp runs out. `field_24` is a
 /// scale and `field_26` an angle in the 0x100-step rotation space: the pair starts
 /// at 0x80 / 0x100, steps by -8 and +0x80 per frame and drives one
 /// `Gfx_RotMatrixZ` + `Gp_UpdateCoord` + draw call per frame. `field_22` is the
@@ -3403,7 +3403,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                 }
                 func_dryfield_dilapidated_house_801823B8(work->age & 7, 0x210);
                 if (work->age == task->spawnArg1.value && work->age != 0) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
                 break;
         }
@@ -3517,7 +3517,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->field_22 = tick;
                 if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
                 return;
             }
@@ -3560,7 +3560,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->field_22 = tick;
                 if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
                 return;
             }
@@ -3571,7 +3571,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             angle         += 0x40;
             work->field_26 = angle;
             if ((s16)angle >= 0x581) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }
@@ -3678,7 +3678,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
     flag = gRoomEffectState->effectControl;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -3697,7 +3697,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
     mem->field_24 = scale;
     mem->field_26 = angle;
     if ((s16)scale < 0x10) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 
@@ -3708,7 +3708,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 /// the angle/scale pair to `glowDrawFlameRing`, stepping
 /// the scale by -8 and the angle by +0x80. Once the scale drops below 9 - and
 /// immediately when effect control has reached cancellation - it releases the work
-/// block through `Gp_ReleaseState1CMem`.
+/// block through `effectKillTask`.
 void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
 {
     DdhEffWork* mem;
@@ -3722,7 +3722,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -3744,6 +3744,6 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
     mem->field_24 = scale;
     mem->field_26 = angle;
     if ((s16)scale < 9) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }

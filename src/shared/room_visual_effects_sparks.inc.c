@@ -121,7 +121,7 @@ static inline void RoomFx_SparkBurstTask(Task* task)
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -173,7 +173,7 @@ static inline void RoomFx_SparkBurstTask(Task* task)
             break;
 
         case 3:
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
             break;
     }
 }

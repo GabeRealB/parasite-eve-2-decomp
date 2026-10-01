@@ -280,7 +280,7 @@ void func_antibody_8012EF34(Task* arg0)
         return;
     }
 release:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Runs one frame of an antibody mote. State 0 re-bases the effect coordinate
@@ -409,7 +409,7 @@ void func_antibody_8012F734(Task* arg0)
             func_antibody_80130428(coord, mem->age, mem->scale);
         check:
             if (mem->age >= 0x15) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
             }
             break;
     }

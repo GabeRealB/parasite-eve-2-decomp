@@ -133,7 +133,7 @@ void func_energyball_8012EF48(Task* arg0)
             arg0->state = 1;
             return;
         case 1:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
     }
 }
@@ -290,7 +290,7 @@ void func_energyball_8012F180(Task* arg0)
                         }
                     }
                     Gp_UnlinkObj(&work->obj);
-                    Gp_ReleaseState1CMem(mem, arg0);
+                    effectKillTask(mem, arg0);
                     return;
                 }
             }
@@ -355,7 +355,7 @@ void func_energyball_8012F180(Task* arg0)
                         }
                     }
                     Gp_UnlinkObj(&work->obj);
-                    Gp_ReleaseState1CMem(mem, arg0);
+                    effectKillTask(mem, arg0);
                     return;
                 }
             }
@@ -400,7 +400,7 @@ void func_energyball_8012F180(Task* arg0)
                         SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (D_energyball_80131194[mem->index].field_0 * 2 < mem->angle) {
@@ -410,7 +410,7 @@ void func_energyball_8012F180(Task* arg0)
                         SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             return;
@@ -428,7 +428,7 @@ void func_energyball_8012F180(Task* arg0)
                         SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (mem->angle < D_energyball_80131194[mem->index].field_2) {
@@ -438,7 +438,7 @@ void func_energyball_8012F180(Task* arg0)
                         SndEvt_EnqueueType7(D_energyball_8013117C[mem->index], 1);
                     }
                 }
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             return;
@@ -446,7 +446,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
     }
 release:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 /// Overlay copy of `Gp_DrawRing` with a flat tint: draws an eight-segment
@@ -762,6 +762,6 @@ void func_energyball_8013107C(Task* arg0)
     mem->scale = scale;
     mem->angle = angle;
     if ((s16)scale < 9) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }

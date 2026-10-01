@@ -143,7 +143,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -311,7 +311,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             if (work->age >= 0x21) {
                 work->step = work->step - 1;
                 if (work->step < 0) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             } else if (*(s32*)&actor->mode != 0x40000) {
                 work->age = work->age + 0x20;
@@ -758,7 +758,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
 
@@ -771,7 +771,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
     }
     func_m4a1_javelin_8011F0AC((M4a1JavelinVecLo*)&coord->workm.t, mem->age - 1, mem->scale, mem->angle);
     if (mem->age == 8) {
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
     }
 }
 

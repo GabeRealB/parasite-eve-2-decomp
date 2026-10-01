@@ -1456,7 +1456,7 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 #include "../../shared/falling_leaves_task.inc.c"

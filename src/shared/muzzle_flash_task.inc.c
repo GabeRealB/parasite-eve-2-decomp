@@ -85,6 +85,6 @@ static inline void muzzleFlashTask(Task* task)
         slot->inner -= 0x190;
     }
     if (work->age >= 7) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }

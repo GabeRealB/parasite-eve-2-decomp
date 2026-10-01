@@ -3711,7 +3711,7 @@ void func_acropolis_bridge_80180320(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// The mid variant of the bridge's falling dust streak: the same one-pixel
@@ -3786,7 +3786,7 @@ void func_acropolis_bridge_8018063C(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// The narrow variant of the bridge's falling dust streak: the same one-pixel
@@ -3860,7 +3860,7 @@ void func_acropolis_bridge_8018099C(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// The tallest variant of the bridge's falling dust streak: the same one-pixel
@@ -3934,7 +3934,7 @@ void func_acropolis_bridge_80180CC0(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// One falling dust streak on the bridge, drawn as a `DR_MOVE` that smears a
@@ -3998,7 +3998,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// One frame of the bridge's twinkling dust spark: the task coordinate's
@@ -4104,7 +4104,7 @@ void func_acropolis_bridge_801812F4(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x18);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// The bridge's dust cloud: one semi-transparent `POLY_FT4` billboard placed at
@@ -4186,7 +4186,7 @@ void func_acropolis_bridge_801819C8(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(AcropolisBridgeQuadScratch);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// One frame of a glow sprite: a camera-facing, semi-transparent `POLY_FT4`
@@ -4257,7 +4257,7 @@ void func_acropolis_bridge_80181D28(Task* task)
                 prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -4369,7 +4369,7 @@ void func_acropolis_bridge_80182394(Task* task)
     SCRATCH_POP_BYTES_AT(scratch, 0xC);
     work->age++;
     if (work->age >= 0x1F || coord->coord.t[1] >= -0x1D) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }
 
@@ -4383,7 +4383,7 @@ void func_acropolis_bridge_80182694(Task* task)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_acropolis_bridge_801827EC(coord, work->angle, work->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     } else {
         work->age++;
@@ -4402,7 +4402,7 @@ void func_acropolis_bridge_80182694(Task* task)
                 if (work->scale >= 3) {
                     work->scale -= 2;
                 } else {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
                 break;
         }

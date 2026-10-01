@@ -139,7 +139,7 @@ void func_gunblade_8011D1E4(Task* task)
     }
     if (!keep) {
         D_gunblade_8012E248 = NULL;
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }
 
@@ -167,7 +167,7 @@ void func_gunblade_8011DAA4(Task* task)
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -207,7 +207,7 @@ void func_gunblade_8011DAA4(Task* task)
             }
             work->scale -= 0x20;
             if (work->scale < 0x20) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             return;
         case 14:
@@ -244,7 +244,7 @@ void func_gunblade_8011DAA4(Task* task)
             }
             work->scale -= 0x20;
             if (work->scale < 0x20) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             return;
         case 15:
@@ -280,7 +280,7 @@ void func_gunblade_8011DAA4(Task* task)
             }
             work->scale -= 0x20;
             if (work->scale < 0x20) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             return;
     }

@@ -1162,7 +1162,7 @@ void func_actor_800100_80161F20(Task* task)
                     task->spawnArg1.value = 0;
                     break;
                 case 5:
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                     break;
             }
             break;
@@ -1209,7 +1209,7 @@ void func_actor_800100_801624F0(Task* task)
         if (task->state != 0) {
             Gp_UnlinkObj(&beam->obj);
         }
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
         return;
     }
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -1278,7 +1278,7 @@ void func_actor_800100_801624F0(Task* task)
             }
             if (Gp_CountRec18Hi(beam->obj.context.contacts, 0x30000) != 0) {
                 Gp_UnlinkObj(&beam->obj);
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
                 return;
             }
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
@@ -1293,7 +1293,7 @@ void func_actor_800100_801624F0(Task* task)
             }
             if (work->age >= 0x15) {
                 Gp_UnlinkObj(&beam->obj);
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
                 return;
             }
             Gp_ClearRec18Occupied(beam->rec);
@@ -1309,7 +1309,7 @@ void func_actor_800100_801624F0(Task* task)
                               (work->age >> 1) + 1, work->scale,
                               work->angle);
             if (work->age >= 0x15) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }
@@ -1397,7 +1397,7 @@ static void func_actor_800100_801631C8(Task* arg0)
     if (temp_a0 != NULL) {
         Gp_UnlinkObj(temp_a0);
     }
-    Gp_ReleaseState1CMem(temp_s1, arg0);
+    effectKillTask(temp_s1, arg0);
 }
 
 static void func_actor_800100_80163214(Task* arg0)

@@ -124,7 +124,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     switch (arg0->state) {
         case 0:
             if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (peEffectControl != 0) {
@@ -225,7 +225,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj);
                 Gp_UnlinkObj(&work->obj2);
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (peEffectControl != 0) {
@@ -302,12 +302,12 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             Gp_UnlinkObj(&work->obj);
             Gp_UnlinkObj(&work->obj2);
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
         case 2:
             if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj);
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (peEffectControl != 0) {
@@ -343,7 +343,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             }
             if (mem->angle < 0x80) {
                 Gp_UnlinkObj(&work->obj);
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             Gp_ClearRec18Occupied(&work->rec);
@@ -351,7 +351,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
         case 3:
             if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj2);
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (peEffectControl != 0) {
@@ -366,14 +366,14 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             mem->angle = mem->angle + 0x40;
             if (mem->angle > ((mem->index << 9) + 0x580)) {
                 Gp_UnlinkObj(&work->obj2);
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             return;
         case 4:
             if ((Gp_StateC08.field_3 == -2) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                 Gp_UnlinkObj(&work->obj2);
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
                 return;
             }
             if (peEffectControl != 0) {
@@ -392,7 +392,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                     return;
                 }
                 Gp_UnlinkObj(&work->obj2);
-                Gp_ReleaseState1CMem(mem, arg0);
+                effectKillTask(mem, arg0);
             }
             return;
     }
@@ -455,7 +455,7 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
         }
     }
 L_release:
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 #include "../../shared/glow_draw_flame_band.inc.c"
@@ -646,7 +646,7 @@ void func_pyrokinesis_80130C54(Task* arg0)
             }
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 #include "../../shared/pyro_flame_draw_sprite.inc.c"
@@ -687,7 +687,7 @@ void func_pyrokinesis_801311B8(Task* arg0)
             }
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 #include "../../shared/glow_draw_flame_ring.inc.c"
@@ -827,5 +827,5 @@ void func_pyrokinesis_80131CE4(Task* arg0)
             }
         }
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }

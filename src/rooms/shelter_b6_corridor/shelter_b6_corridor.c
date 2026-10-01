@@ -757,7 +757,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     mem->scale -= 0x18;
     if (mem->scale < 0x18) {
     release:
-        Gp_ReleaseState1CMem(mem, task);
+        effectKillTask(mem, task);
     }
 }
 

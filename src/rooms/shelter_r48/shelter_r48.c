@@ -2304,7 +2304,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         waterDrawTileU16(coord, (mem->age / 2) & 0xFFFF, 0x380);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -2345,7 +2345,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
             arg0->spawnArg1.value = 3;
             return;
         case 3:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             return;
     }
 }
@@ -2361,7 +2361,7 @@ void func_shelter_r48_8017E704(Task* arg0)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -2415,7 +2415,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0xA00, 0);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -2540,7 +2540,7 @@ void func_shelter_r48_8017EC18(Task* task)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 void func_shelter_r48_8017EFD8(Task* task)
@@ -2574,7 +2574,7 @@ void func_shelter_r48_8017EFD8(Task* task)
             return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// Draws one of the ring bands of the effect as sixteen textured `POLY_FT4`
@@ -2821,7 +2821,7 @@ void func_shelter_r48_80180210(Task* task)
             func_shelter_r48_80180804(coord, work->index | work->pos.vx, work->scale, work->angle);
         }
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
         return;
     }
@@ -2911,7 +2911,7 @@ void func_shelter_r48_80180210(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 12) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;
@@ -2927,7 +2927,7 @@ void func_shelter_r48_80180210(Task* task)
             if ((work->age % work->period) == 0) {
                 work->index++;
                 if (work->index >= 10) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
             }
             break;
@@ -3140,7 +3140,7 @@ void func_shelter_r48_801810B0(Task* task)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 void func_shelter_r48_8018147C(Task* task)
@@ -3214,7 +3214,7 @@ void func_shelter_r48_8018147C(Task* task)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 void func_shelter_r48_80181704(Task* task)
@@ -3329,7 +3329,7 @@ void func_shelter_r48_80181704(Task* task)
                 return;
         }
     }
-    Gp_ReleaseState1CMem(work, task);
+    effectKillTask(work, task);
 }
 
 /// Offsets a point (0, 0x800, 0x1400) from `coord`, turned by `yaw` about Y

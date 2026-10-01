@@ -225,7 +225,7 @@ void func_energyshot_8012EF34(Task* arg0)
                 s16              count;
 
                 if (mem->scale < 0x11) {
-                    Gp_ReleaseState1CMem(mem, arg0);
+                    effectKillTask(mem, arg0);
                     return;
                 }
                 mem->scale          = mem->scale - 0x10;
@@ -273,7 +273,7 @@ void func_energyshot_8012EF34(Task* arg0)
         }
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 
 #include "../../shared/glow_draw_wedge.inc.c"
@@ -398,5 +398,5 @@ void func_energyshot_8012FFB8(Task* arg0)
         Gp_DrawFxQuad(coord, mem->index, 0x400, mem->scale);
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }

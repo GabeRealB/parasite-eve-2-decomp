@@ -585,7 +585,7 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
     if ((work->age % work->period) == 0) {
         work->index++;
         if (work->index >= 0xA) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }

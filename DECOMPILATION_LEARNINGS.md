@@ -12094,7 +12094,7 @@ the epilogue as the `j` — same blocks, inverted branch, plus `branch`/`insert`
 ```c
 if (flag != 0) {
     if (flag >= 4) {
-        Gp_ReleaseState1CMem(mem, arg0);   /* duplicated: cross-jump re-merges it */
+        effectKillTask(mem, arg0);   /* duplicated: cross-jump re-merges it */
     }
     return;                                /* this is what flips the branch */
 }
@@ -34691,7 +34691,7 @@ bnez   v0, spawn
  lui    a0, 0x6
 move   a0, mem
 kill:
-jal    Gp_ReleaseState1CMem
+jal    effectKillTask
 move   a1, task
 j      epilogue
 nop
@@ -35631,7 +35631,7 @@ blez   a, kill
 bltz   b, cont
 nop
 kill:
-jal    Gp_ReleaseState1CMem
+jal    effectKillTask
 ...
 j      epilogue
 nop
@@ -40619,7 +40619,7 @@ keep it live past the shift so the shift result still lands in `$v0`:
 
 ## Duplicate the shared tail call instead of `goto`; let cross-jumping merge it
 
-For a `flag >= 4` early exit that ends in the same `Gp_ReleaseState1CMem(mem,
+For a `flag >= 4` early exit that ends in the same `effectKillTask(mem,
 arg0)` as the normal path, `goto release;` into the late `if` body produces the
 right `j` / shared `jal`, but leaves `index` one reference short: it loses `$s5`
 to the scratch-head pointer. Writing the call out twice gives the identical
@@ -41358,7 +41358,7 @@ gameplay's explicit dotted subsegments determine the order directly.
 ## Write the `if` arm that the target falls through into, not the one you'd write by hand
 
 Two `case`s of `Gp_EffSprTask30` share `mem->field_24++; if (… < 8) … else
-Gp_ReleaseState1CMem(…)`. Written the natural way —
+effectKillTask(…)`. Written the natural way —
 
 ```c
 if (mem->field_26 >= 0x10) { big_block(); } else { small_block(); }
@@ -41428,7 +41428,7 @@ mem->field_22 = next;
 n32           = next;
 mem->field_12 = y;
 if ((mem->field_28 * 8 - 1) < n32) {
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 ```
 
@@ -45441,7 +45441,7 @@ re-split so splat drops the now-moved `INCLUDE_RODATA` line itself.
 `func_hypervelocity_8011F270` reads three things at the top — `mem =
 arg0->spawnArg2`, `flag = gRoomEffectState->effectControl`, `coord =
 ((GameActorExt*)arg0->extra)->field_8` — and ends with one shared
-`Gp_ReleaseState1CMem(mem, index)` reached both from the early
+`effectKillTask(mem, index)` reached both from the early
 `flag`-dispatch arm and from the fall-through of the body. Written with the
 natural `if (flag != 0) { … } else { body }`, the head assignments trade the
 two remaining defects against each other and neither order wins:
@@ -45463,14 +45463,14 @@ if (flag != 0) {
     if (flag < 4) {
         return;
     }
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
     return;
 }
 
 Gp_UpdateCoord(coord);
 /* … body … */
 if (val < 6) {
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 ```
 
@@ -56100,7 +56100,7 @@ nop
 lw   $v1, 0x30($a3)
 ```
 
-Calling `Gp_ReleaseState1CMem(work, task)` from both exits instead of computing
+Calling `effectKillTask(work, task)` from both exits instead of computing
 one flag raises the count to 8, `floor_log2` steps from 2 to 3, and the score
 jumps to `3*8/332 = 0.072` — the parameter takes `$s7` and the array address
 loses instead, rematerialised as a `lui`/`addiu` pair inside the loop. 93.8% →
@@ -57403,18 +57403,18 @@ that `j` — and therefore the branch polarity — follows the source: the *then
 arm falls through, the *else* arm is the one merged into the shared tail.
 
 `func_acropolis_bridge_80182694` ends its state-1 case with a decrement or a
-`Gp_ReleaseState1CMem` that the early `gRoomEffectState->effectControl >= 4` path also
+`effectKillTask` that the early `gRoomEffectState->effectControl >= 4` path also
 reaches. Writing the release as the *then* arm inlines the `jal` in the middle
 of the function (`branch=1 insert=6 delete=5`, 84%):
 
 ```c
-/* jal Gp_ReleaseState1CMem emitted here, decrement pushed after it */
-if ((s16)work->field_24 < 3) { Gp_ReleaseState1CMem(work, task); }
+/* jal effectKillTask emitted here, decrement pushed after it */
+if ((s16)work->field_24 < 3) { effectKillTask(work, task); }
 else                         { work->field_24 -= 2; }
 
 /* slti/bnez to the shared tail; decrement falls through, as the target has */
 if ((s16)work->field_24 >= 3) { work->field_24 -= 2; }
-else                          { Gp_ReleaseState1CMem(work, task); }
+else                          { effectKillTask(work, task); }
 ```
 
 So read the target backwards: whichever block sits at the end of the function
@@ -61901,7 +61901,7 @@ switch (arg0->state) {
     case 3: …; break;
 }
 if (mem->field_22 >= 0x15) {        /* default reaches this - the target's does not */
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }
 ```
 
@@ -94874,7 +94874,7 @@ source form
 ```c
     if (flag != 0) {
         if (flag >= 4) {
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
         }
         return;
     }
@@ -119088,7 +119088,7 @@ let CSE merge the two reads into one load and one pseudo:
 ```c
 if (gRoomEffectState->effectControl != 0) {
     if (gRoomEffectState->effectControl >= 4) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 } else {
     ...body...
@@ -120036,7 +120036,7 @@ promotion and are already matched in their own overlay.
 
 The mirror image of the entry above. Two switch cases each open with
 `if (gRoomEffectState->effectControl != 0) { work->field_22 = tick; keep = gRoomEffectState->effectControl < 4;
-break; }` and both `break` to one shared `if (!keep) Gp_ReleaseState1CMem(...)`.
+break; }` and both `break` to one shared `if (!keep) effectKillTask(...)`.
 Written that way the two then-blocks are byte-identical and the target keeps
 *both*: the case-0 test is `beqz $v0, <main body>` with the early block as its
 fall-through. My build merged them into one copy at case 1's position and
@@ -141508,7 +141508,7 @@ is also why a `* 0xC0` argument in the same function matched from the start.
 0x100`); the code is identical apart from the load. The same function's
 `index` / `&Gp_StateC08` `$s` swap, pinned with two `USE_REG(index)`, was the
 release path written once behind a `goto`: each state that releases calling
-`Gp_ReleaseState1CMem(mem, index)` itself adds the references that rank `index`
+`effectKillTask(mem, index)` itself adds the references that rank `index`
 first, and cross-jumping merges the calls back into one tail.
 ## The OT slot spelling moves loop.c's hoisting threshold: `&ot[(z << shift) >> 4 & 0x3FF]` is one RTL insn longer than `((z << shift) >> 2 & 0xFFC) + ot` (func_acropolis_security_room_801817A4, 2026-09-26)
 
@@ -142932,7 +142932,7 @@ carve, cse swaps them and `block` takes the `addiu`.
 
 **Priority.** With the pins gone, `mem` (48 refs) and `prim` (31 refs) swapped
 `s1`/`s2`: `5*48/367` beat `4*31/190` by one insn of `mem`'s live length. The
-target shares one `Gp_ReleaseState1CMem` call between the early `flag >= 4`
+target shares one `effectKillTask` call between the early `flag >= 4`
 exit and the `age >= 0x1F` exit, with the early path jumping into the second
 one's call. Two calls cross-jumped by jump2 give the same layout but count both
 in flow's live lengths; one call reached by `goto release;` from the early exit,

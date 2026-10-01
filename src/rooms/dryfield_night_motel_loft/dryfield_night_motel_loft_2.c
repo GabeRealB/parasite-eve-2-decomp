@@ -647,7 +647,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
         }
     } else {
     release:
-        Gp_ReleaseState1CMem(w, task);
+        effectKillTask(w, task);
     }
 }
 

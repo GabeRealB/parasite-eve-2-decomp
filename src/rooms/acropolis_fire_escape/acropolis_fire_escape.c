@@ -931,7 +931,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
 /// longer rays; otherwise a flat diamond of two `POLY_G4`s, with two crossed
 /// `LINE_G3` streaks when bit 28 is set. Every primitive takes the
 /// semi-transparent tpage of `gpuSetPrimitiveBlendMode`. Finally `spawnArg2` goes to
-/// `Gp_ReleaseState1CMem`.
+/// `effectKillTask`.
 void func_acropolis_fire_escape_80180B20(Task* task)
 {
     AcropolisFireEscapeGlowScratch* blk;
@@ -1123,5 +1123,5 @@ void func_acropolis_fire_escape_80180B20(Task* task)
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(AcropolisFireEscapeGlowScratch);
-    Gp_ReleaseState1CMem(mem, task);
+    effectKillTask(mem, task);
 }

@@ -824,5 +824,5 @@ static void func_acropolis_east_elevator_hall_8017FAAC(Task* arg0)
         gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, ((RoomMoteScratch*)(head - 0xC))->otz);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0xC);
-    Gp_ReleaseState1CMem(mem, arg0);
+    effectKillTask(mem, arg0);
 }

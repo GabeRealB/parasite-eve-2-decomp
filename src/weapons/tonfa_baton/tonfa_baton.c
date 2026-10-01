@@ -78,7 +78,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     } else {
         work->age++;
@@ -151,7 +151,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
                 break;
         }
         if (work->age >= 0x1F) {
-            Gp_ReleaseState1CMem(work, task);
+            effectKillTask(work, task);
         }
     }
 }

@@ -1821,7 +1821,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                 color[0] = color[1] = color[2] = (60 - work->age) * 4;
                 func_dryfield_breezeway_80181938(task, color);
             } else {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
         case 2:
@@ -1835,7 +1835,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                 func_dryfield_breezeway_80181938(task, color);
             } else {
             release:
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }

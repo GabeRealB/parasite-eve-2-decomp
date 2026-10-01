@@ -24,7 +24,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        Gp_ReleaseState1CMem(mem, arg0);
+        effectKillTask(mem, arg0);
         return;
     }
     mem->age++;
@@ -112,10 +112,10 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
                 mem->scale -= 0x10;
                 break;
             }
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             break;
         case 4:
-            Gp_ReleaseState1CMem(mem, arg0);
+            effectKillTask(mem, arg0);
             break;
     }
 }
@@ -168,11 +168,11 @@ static inline void RoomFx_FlyingSparkTask(Task* task)
                     RoomFx_DrawFlyingSpark(coord, ++work->index, 0x200, 0x80);
                 }
                 if (work->age >= 20) {
-                    Gp_ReleaseState1CMem(work, task);
+                    effectKillTask(work, task);
                 }
                 break;
         }
     } else if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        Gp_ReleaseState1CMem(work, task);
+        effectKillTask(work, task);
     }
 }

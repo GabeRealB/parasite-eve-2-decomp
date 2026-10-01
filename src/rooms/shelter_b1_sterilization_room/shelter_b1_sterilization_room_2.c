@@ -1409,7 +1409,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
             func_shelter_b1_sterilization_room_801826F0(coord, (work->age - 1) / work->index,
                                                         work->scale, work->angle);
             if (work->index * 10 - 1 < work->age) {
-                Gp_ReleaseState1CMem(work, task);
+                effectKillTask(work, task);
             }
             break;
     }
