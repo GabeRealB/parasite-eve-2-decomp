@@ -2242,16 +2242,38 @@ static void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
     addPrim(gGpuCurrentOt + (arg2 >> 4), p);
 }
 
-/// Queues a dithered blend-mode command in the current depth ordering table.
-static inline void _gpuQueueBlendMode(s32 blendMode, s32 depth)
+/// Prepends a GPU draw-mode command for blending untextured primitives.
+///
+/// The low two bits of `blendMode` select a `GPU_BLEND_*` mode. `sortingDepth`
+/// is the unscaled sorting depth: its unsigned, shifted value wraps to one
+/// of the 1024 depth tags, so the current ordering table must contain that tag.
+/// Primitives needing this mode must already be linked at the same depth;
+/// prepending the command makes the GPU apply it before those primitives.
+///
+/// Requires word-aligned space for `sizeof(DR_TPAGE)` at `gGpuPrimCursor` and
+/// advances the cursor without checking capacity. The packet borrows the frame
+/// arena until GPU drawing completes. Its draw state persists until replaced:
+/// dithering enabled, drawing into the displayed area disabled, and a fixed
+/// 4-bit texture page at VRAM (640, 0).
+static inline void _gpuQueueBlendMode(s32 blendMode, s32 sortingDepth)
 {
-    DR_TPAGE* drawMode;
+    enum {
+        GPU_BLEND_DRAW_TO_DISPLAY_DISABLED = 0,
+        GPU_BLEND_DITHER_ENABLED           = 1,
+        GPU_BLEND_TEXTURE_DEPTH_4BIT       = 0,
+        GPU_BLEND_TEXTURE_PAGE_X           = 640,
+        GPU_BLEND_TEXTURE_PAGE_Y           = 0,
+    };
+    DR_TPAGE* blendCommand;
 
-    drawMode       = gGpuPrimCursor;
-    gGpuPrimCursor = drawMode + 1;
-    // Untextured primitives ignore the fixed texture page; its ABR bits set blending.
-    setDrawTPage(drawMode, 0, 1, getTPage(0, blendMode, 640, 0));
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode);
+    blendCommand   = gGpuPrimCursor;
+    gGpuPrimCursor = blendCommand + 1;
+    // The fixed texture page is unused by untextured primitives; its ABR bits select blending.
+    setDrawTPage(blendCommand, GPU_BLEND_DRAW_TO_DISPLAY_DISABLED, GPU_BLEND_DITHER_ENABLED,
+                 getTPage(GPU_BLEND_TEXTURE_DEPTH_4BIT, blendMode, GPU_BLEND_TEXTURE_PAGE_X, GPU_BLEND_TEXTURE_PAGE_Y));
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                ((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            blendCommand);
 }
 
 void gpuSetPrimitiveBlendMode(void* primitive, s32 blendMode, s32 depth)

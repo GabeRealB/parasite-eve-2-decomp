@@ -28896,7 +28896,7 @@ directly in the `addPrim` argument. Operand order matters too:
 
 ```c
 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-            ((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode);
+            ((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), blendCommand);
 ```
 
 `gpuSetPrimitiveBlendMode` is the example. The hoisted `ds` form stuck at 87%
