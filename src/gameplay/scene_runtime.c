@@ -1962,18 +1962,6 @@ Task* func_800B2968(void)
     return Task_SpawnFromTable(D_80119218, 0, 0, 0);
 }
 
-/// Caches next * inverse(current) as Euler angles for a buffered transition.
-///
-/// `scratch->currentMatrix` must already contain the decoded starting rotation.
-/// The cache uses 4096 units per turn; matrix translation is neither read nor set.
-static inline void _animationCacheRotationDelta(AnimationSlot* slot, _AnimationBlendScratch* scratch)
-{
-    RotMatrix_gte(&scratch->nextRotation, &scratch->nextMatrix);
-    TransposeMatrix(&scratch->currentMatrix, &scratch->deltaMatrix);
-    gte_MulMatrix0(&scratch->nextMatrix, &scratch->deltaMatrix, &scratch->deltaMatrix);
-    gfxMatrixToEuler(&scratch->deltaMatrix, &slot->bufferedRotationDelta);
-}
-
 /// Blends one part's decoded rotations into its local matrix or an unpacked pose.
 ///
 /// `scratch` supplies both XYZ Euler endpoints in 4096 units per turn and their
@@ -2003,12 +1991,35 @@ static void _animationBlendRotation(const _AnimationBlendRequest* request, GfxCo
     /// The request byte must equal this value exactly; bank-only blends ignore it.
     enum { ANIMATION_ROTATION_DELTA_REFRESH = 1 };
 
+    /// Caches the relative Euler rotation for a buffered pose transition.
+    ///
+    /// `scratch` is a live, word-aligned `_AnimationBlendScratch*` supplying
+    /// `currentMatrix`'s starting rotation and `nextRotation`'s destination XYZ
+    /// Euler angles in 4096 units per turn. The product next * transpose(current),
+    /// using Q12 matrix elements, is decomposed into the separate writable
+    /// `SVECTOR* rotationDelta` in the same angle units for later weighted blending.
+    /// Its `pad` is preserved. Overwrites `nextMatrix.m` and `deltaMatrix.m`;
+    /// input rotations and matrix translations are preserved.
+    ///
+    /// `scratch` is evaluated repeatedly and must be a stable expression without
+    /// side effects. `rotationDelta` is evaluated once, after the matrix operations.
+    /// Captures no caller locals. The initialized scratch stack must have room
+    /// for `gfxMatrixToEuler`'s temporary reservation. GTE registers are clobbered.
+#define ANIMATION_CACHE_ROTATION_DELTA(rotationDelta, scratch)                                    \
+    do {                                                                                          \
+        RotMatrix_gte(&(scratch)->nextRotation, &(scratch)->nextMatrix);                          \
+        TransposeMatrix(&(scratch)->currentMatrix, &(scratch)->deltaMatrix);                      \
+        gte_MulMatrix0(&(scratch)->nextMatrix, &(scratch)->deltaMatrix, &(scratch)->deltaMatrix); \
+        gfxMatrixToEuler(&(scratch)->deltaMatrix, (rotationDelta));                               \
+    } while (0)
+
     if (slot->usesBufferedPose != 0) {
         // Scale the buffered transition's relative rotation, then compose with its start.
         RotMatrix_gte(&scratch->currentRotation, &scratch->currentMatrix);
         if (request->refreshRotationDelta == ANIMATION_ROTATION_DELTA_REFRESH) {
-            _animationCacheRotationDelta(slot, scratch);
+            ANIMATION_CACHE_ROTATION_DELTA(&slot->bufferedRotationDelta, scratch);
         }
+#undef ANIMATION_CACHE_ROTATION_DELTA
         gte_lddp(scratch->nextWeight);
         gte_ldsv(&slot->bufferedRotationDelta);
         gte_gpf12();
