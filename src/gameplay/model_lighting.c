@@ -333,7 +333,18 @@ static inline void _tmdInitGt3CornerColorsTexture(POLY_GT3* triangle, const u32*
         /// displacement is then added only to its u16 `tpage` field, wrapping
         /// modulo 65536 without changing U1/V1.
         TMD_GT3_CORNER_COLORS_UV1_TPAGE_WORD = 7,
-        TMD_GT3_CORNER_COLORS_UV2_WORD       = 8 // U2/V2 in low half; high half is not copied
+        /// Element-relative u32 index of vertex 2's packed texture coordinates.
+        ///
+        /// Opcode `0x130` places three geometry words, three corner-colour
+        /// words and two texture words before this word; the three-word record
+        /// header is excluded. The element must provide at least nine readable,
+        /// four-byte-aligned u32 words, without implying that its stride is nine.
+        /// On the little-endian target, bits 0..7 hold unsigned U2 texels and
+        /// bits 8..15 hold unsigned V2 texels. Only the low half is copied into
+        /// `POLY_GT3`'s adjacent `u2`/`v2` bytes, preserving its following `pad2`
+        /// halfword. The source word's upper half is ignored; its role is
+        /// unproven. Page and CLUT displacements do not modify this U/V pair.
+        TMD_GT3_CORNER_COLORS_UV2_WORD = 8
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_CORNER_COLORS_UV0_CLUT_WORD];
