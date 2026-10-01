@@ -60,6 +60,11 @@
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+/// Selects dumping-hole behavior for this compiled Glutton instance.
+///
+/// Define before `glutton.h` and retain through every shared fragment. The
+/// header defines `GLUTTON_DUMPING_HOLE` as the dimensionless integer 1;
+/// the binding must remain a macro for the shared code's `#if` comparisons.
 #define GLUTTON_ROOM GLUTTON_DUMPING_HOLE
 #include "../../shared/glutton.h"
 

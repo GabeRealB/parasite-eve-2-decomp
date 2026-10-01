@@ -68,7 +68,13 @@
 #include "../../shared/actor_contacts.h"
 /// Binds the shared shake helper to this instance's borrowed host task pointer.
 #define GLUTTON_HOST_TASK (_gGluttonHostTask.task)
-#define GLUTTON_ROOM      GLUTTON_INCINERATOR
+
+/// Selects garbage-incinerator behavior for this compiled Glutton instance.
+///
+/// Define before `glutton.h` and retain through every shared fragment. The
+/// header defines `GLUTTON_INCINERATOR` as the dimensionless integer 2;
+/// the binding must remain a macro for the shared code's `#if` comparisons.
+#define GLUTTON_ROOM GLUTTON_INCINERATOR
 #include "../../shared/glutton.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).

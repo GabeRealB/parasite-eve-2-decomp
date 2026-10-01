@@ -14,10 +14,13 @@
  * ActorContact_TurnJoint and ActorContact_PushContact from the existing
  * actor_contacts library.
  *
- * Each room has its own build of the fight: a package defines GLUTTON_ROOM
- * as GLUTTON_DUMPING_HOLE (actor_403200) or GLUTTON_INCINERATOR
- * (actor_444000) before including this header, and the fragments follow it
- * where the two builds differ.
+ * GLUTTON_ROOM configures the shared code for one encounter at compile time.
+ * Each carrier must define it before including this header, using
+ * GLUTTON_DUMPING_HOLE (actor_403200) or GLUTTON_INCINERATOR (actor_444000),
+ * and retain that binding through every shared fragment. This header defines
+ * the selector values and rejects unsupported values before selecting the
+ * encounter's hit-effect dimensions. The fragments use the same selection
+ * for damage, escort and shake behavior.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -57,6 +60,8 @@
 #define GLUTTON_INCINERATOR 2
 #ifndef GLUTTON_ROOM
 #error "define GLUTTON_ROOM (GLUTTON_DUMPING_HOLE or GLUTTON_INCINERATOR) before including glutton.h"
+#elif GLUTTON_ROOM != GLUTTON_DUMPING_HOLE && GLUTTON_ROOM != GLUTTON_INCINERATOR
+#error "GLUTTON_ROOM must be GLUTTON_DUMPING_HOLE or GLUTTON_INCINERATOR"
 #endif
 
 /* Extent of the 0x6009C effect a group-0 hit spawns; the Incinerator's is
