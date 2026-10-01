@@ -78,17 +78,17 @@ extern u16 D_mine_cavern_8018EB5C;
 
 extern TaskDesc D_mine_cavern_80183CA4[2];
 
-extern GpEvsCmd D_mine_cavern_80187C74[41];
+extern EvsCommand D_mine_cavern_80187C74[41];
 
-extern GpEvsCmd D_mine_cavern_8018804C[19];
+extern EvsCommand D_mine_cavern_8018804C[19];
 
-extern GpEvsCmd D_mine_cavern_80188214[60];
+extern EvsCommand D_mine_cavern_80188214[60];
 
-extern GpEvsCmd D_mine_cavern_801887B4[27];
+extern EvsCommand D_mine_cavern_801887B4[27];
 
-extern GpEvsCmd D_mine_cavern_80188A3C[31];
+extern EvsCommand D_mine_cavern_80188A3C[31];
 
-extern GpEvsCmd D_mine_cavern_80188D24[24];
+extern EvsCommand D_mine_cavern_80188D24[24];
 
 extern GpAreaApplyRec D_mine_cavern_8018E32C[9];
 

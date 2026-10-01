@@ -21,9 +21,9 @@ extern AnimationSet* D_shelter_b3_dumping_hole_801880A0[6];
 
 extern TaskDesc D_shelter_b3_dumping_hole_80189ADC[2];
 
-extern GpEvsCmd D_shelter_b3_dumping_hole_8018B080[39];
+extern EvsCommand D_shelter_b3_dumping_hole_8018B080[39];
 
-extern GpEvsCmd D_shelter_b3_dumping_hole_8018B428[14];
+extern EvsCommand D_shelter_b3_dumping_hole_8018B428[14];
 
 s16 func_shelter_b3_dumping_hole_8017FB70(void);
 

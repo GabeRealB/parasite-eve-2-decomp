@@ -50,17 +50,17 @@ extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187CA0;
 
 extern GpCopyArg D_dryfield_night_trailer_coach_80187CE4;
 
-extern GpEvsCmd D_dryfield_night_trailer_coach_80188708[14];
+extern EvsCommand D_dryfield_night_trailer_coach_80188708[14];
 
-extern GpEvsCmd D_dryfield_night_trailer_coach_80188858[14];
+extern EvsCommand D_dryfield_night_trailer_coach_80188858[14];
 
-extern GpEvsCmd D_dryfield_night_trailer_coach_801889A8[57];
+extern EvsCommand D_dryfield_night_trailer_coach_801889A8[57];
 
-extern GpEvsCmd D_dryfield_night_trailer_coach_80188F00[16];
+extern EvsCommand D_dryfield_night_trailer_coach_80188F00[16];
 
-extern GpEvsCmd D_dryfield_night_trailer_coach_80189080[24];
+extern EvsCommand D_dryfield_night_trailer_coach_80189080[24];
 
-extern GpEvsCmd D_dryfield_night_trailer_coach_801892C0[13];
+extern EvsCommand D_dryfield_night_trailer_coach_801892C0[13];
 
 extern GpAreaApplyRec D_dryfield_night_trailer_coach_8018C208[2];
 

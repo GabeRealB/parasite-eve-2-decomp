@@ -160,7 +160,7 @@ extern SVECTOR D_actor_342100_80164980[];
 
 /// Model/animation set `func_actor_342100_80162F54` installs with
 /// `func_800E8614` on the same arm; a byte address is all the installer sees.
-extern GpEvsCmd D_actor_342100_801649C8[];
+extern EvsCommand D_actor_342100_801649C8[];
 
 /// Effect record `blazeBodyFireTask` hands `func_800FDB18` together
 /// with one part of the player's model: `field_0` is that part's coordinate
@@ -346,25 +346,25 @@ u16 gBlazePlayerParts[16] = {
     18,
 };
 
-GpEvsCmd D_actor_342100_801649C8[18] = {
-    { 13, { .callback = func_actor_342100_8016334C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callback = func_actor_342100_80163454 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callback = func_actor_342100_801633D0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callback = func_actor_342100_8016334C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callbackNoArg = func_actor_342100_80162C88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callbackNoArg = func_actor_342100_80163408 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callback = func_actor_342100_8016334C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callback = func_actor_342100_80163454 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callback = func_actor_342100_801633D0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callback = func_actor_342100_801633D0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callbackNoArg = func_actor_342100_80163518 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand D_actor_342100_801649C8[18] = {
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_8016334C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_80163454 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_801633D0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_8016334C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80162C88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80163408 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_8016334C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_80163454 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_801633D0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_801633D0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80163518 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
 TaskDesc D_actor_342100_80164B78[5] = {

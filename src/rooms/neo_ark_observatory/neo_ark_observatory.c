@@ -68,7 +68,7 @@ typedef union {
         AnimationSet*        sets[1];
         GpCopyArg            copy;
         AnimationPlayRequest arguments[1];
-        GpEvsCmd             commands[8];
+        EvsCommand           commands[8];
     } data;
     s32 words[56];
 } NeoArkObservatoryAnimStorage11E0;
@@ -113,7 +113,7 @@ static u8 Reflection_Data_8017FC8C[];
 /// The departure task's descriptor.
 extern TaskDesc D_neo_ark_observatory_80180DD4;
 
-extern GpEvsCmd D_neo_ark_observatory_801812C0[];
+extern EvsCommand D_neo_ark_observatory_801812C0[];
 
 /// Descriptor of the cap-file task `func_neo_ark_observatory_8017FB1C`.
 extern TaskDesc D_neo_ark_observatory_801811AC;
@@ -212,16 +212,16 @@ GpMsgEntry D_neo_ark_observatory_801811B8[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0 = { .data = { { &D_neo_ark_observatory_80181184 }, { { .words = D_neo_ark_observatory_801811E0.words }, 32 }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE } }, { { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } }, { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_neo_ark_observatory_801811E0.data.copy }, { .value = 0 } }, { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = D_neo_ark_observatory_801811E0.data.arguments }, { .value = 0 } }, { 15, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { 9, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { 4, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } }, { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } } } } };
+NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0 = { .data = { { &D_neo_ark_observatory_80181184 }, { { .words = D_neo_ark_observatory_801811E0.words }, 32 }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE } }, { { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_neo_ark_observatory_801811E0.data.copy }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = D_neo_ark_observatory_801811E0.data.arguments }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } } } } };
 
-GpEvsCmd D_neo_ark_observatory_801812C0[7] = {
-    { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 23, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 25, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand D_neo_ark_observatory_801812C0[7] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
 SVECTOR D_neo_ark_observatory_80181368 = { 0, 0, -200, 0 };

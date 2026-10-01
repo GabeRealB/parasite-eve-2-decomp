@@ -3,7 +3,7 @@
 
 #include "evs.h"
 
-// EVS overlay selection, saved view and pause gate shared with CAP/room tasks.
-extern GpEvsOperand D_801156F4;
+// Scene/audio selection shared with CAP tasks.
+extern EvsOperand D_801156F4;
 
 #endif // GAMEPLAY_PRIVATE_EVS_SCRIPTS_H

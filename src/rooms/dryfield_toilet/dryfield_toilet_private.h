@@ -11,9 +11,9 @@ extern AnimationSet D_dryfield_toilet_80180614;
 
 extern AnimationSet D_dryfield_toilet_80180B64;
 
-extern GpEvsCmd D_dryfield_toilet_80180C58[31];
+extern EvsCommand D_dryfield_toilet_80180C58[31];
 
-extern GpEvsCmd D_dryfield_toilet_80180F40[20];
+extern EvsCommand D_dryfield_toilet_80180F40[20];
 
 extern GpGridParams D_dryfield_toilet_80181404;
 

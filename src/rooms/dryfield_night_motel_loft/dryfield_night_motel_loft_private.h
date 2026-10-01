@@ -19,7 +19,7 @@ extern GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[6];
 
 extern TaskDesc D_dryfield_night_motel_loft_8017EB4C[1];
 
-extern GpEvsCmd D_dryfield_night_motel_loft_8017EB78[17];
+extern EvsCommand D_dryfield_night_motel_loft_8017EB78[17];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017F2D0[2];
 

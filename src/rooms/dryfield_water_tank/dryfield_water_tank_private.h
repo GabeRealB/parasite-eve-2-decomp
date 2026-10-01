@@ -34,9 +34,9 @@ extern u16 D_dryfield_water_tank_801868CC[10];
 
 extern Task* D_dryfield_water_tank_80188D50;
 
-extern GpEvsCmd D_dryfield_water_tank_8017F114[11];
+extern EvsCommand D_dryfield_water_tank_8017F114[11];
 
-extern GpEvsCmd D_dryfield_water_tank_8017F21C[11];
+extern EvsCommand D_dryfield_water_tank_8017F21C[11];
 
 extern GpMsgEntry D_dryfield_water_tank_8017F324[5];
 
@@ -46,9 +46,9 @@ extern ActorTransform D_dryfield_water_tank_8017FD60[2];
 
 extern u16 D_dryfield_water_tank_8017FDA8[12];
 
-extern GpEvsCmd D_dryfield_water_tank_8017FDC0[11];
+extern EvsCommand D_dryfield_water_tank_8017FDC0[11];
 
-extern GpEvsCmd D_dryfield_water_tank_8017FEC8[8];
+extern EvsCommand D_dryfield_water_tank_8017FEC8[8];
 
 extern TaskDesc D_dryfield_water_tank_8017FF88[2];
 

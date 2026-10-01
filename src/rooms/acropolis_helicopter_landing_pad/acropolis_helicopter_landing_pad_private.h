@@ -52,19 +52,19 @@ extern ActorTransform D_acropolis_helicopter_landing_pad_801837B0;
 
 extern s32 D_acropolis_helicopter_landing_pad_801837E0[18];
 
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80183A04[2];
+extern EvsCommand D_acropolis_helicopter_landing_pad_80183A04[2];
 
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80183A34[58];
+extern EvsCommand D_acropolis_helicopter_landing_pad_80183A34[58];
 
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80183FA4[16];
+extern EvsCommand D_acropolis_helicopter_landing_pad_80183FA4[16];
 
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80184124[38];
+extern EvsCommand D_acropolis_helicopter_landing_pad_80184124[38];
 
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_801844B4[19];
+extern EvsCommand D_acropolis_helicopter_landing_pad_801844B4[19];
 
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_8018467C[69];
+extern EvsCommand D_acropolis_helicopter_landing_pad_8018467C[69];
 
-extern GpEvsCmd D_acropolis_helicopter_landing_pad_80184CF4[7];
+extern EvsCommand D_acropolis_helicopter_landing_pad_80184CF4[7];
 
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[9];
 

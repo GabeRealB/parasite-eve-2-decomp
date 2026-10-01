@@ -35,9 +35,9 @@ extern TaskDesc gRoomEventTaskDesc;
 
 extern GpMsgEntry D_dryfield_night_dilapidated_house_8017E700[5];
 
-extern GpEvsCmd D_dryfield_night_dilapidated_house_801868F4[88];
+extern EvsCommand D_dryfield_night_dilapidated_house_801868F4[88];
 
-extern GpEvsCmd D_dryfield_night_dilapidated_house_80187134[16];
+extern EvsCommand D_dryfield_night_dilapidated_house_80187134[16];
 
 extern WorldCoordPointLight D_dryfield_night_dilapidated_house_80189500[8];
 

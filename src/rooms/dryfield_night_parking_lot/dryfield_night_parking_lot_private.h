@@ -13,7 +13,7 @@ extern TaskDesc gRoomEventTaskDesc;
 
 extern GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6];
 
-extern GpEvsCmd D_dryfield_night_parking_lot_8017ECB4[11];
+extern EvsCommand D_dryfield_night_parking_lot_8017ECB4[11];
 
 // Callbacks referenced by the overlay's shared data tables.
 

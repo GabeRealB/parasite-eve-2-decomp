@@ -39,13 +39,13 @@ extern ActorTransform D_shelter_b1_sterilization_room_80188650;
 
 extern DamageAttack D_shelter_b1_sterilization_room_80188738;
 
-extern GpEvsCmd D_shelter_b1_sterilization_room_8018873C[37];
+extern EvsCommand D_shelter_b1_sterilization_room_8018873C[37];
 
-extern GpEvsCmd D_shelter_b1_sterilization_room_80188AB4[20];
+extern EvsCommand D_shelter_b1_sterilization_room_80188AB4[20];
 
-extern GpEvsCmd D_shelter_b1_sterilization_room_80188ED4[11];
+extern EvsCommand D_shelter_b1_sterilization_room_80188ED4[11];
 
-extern GpEvsCmd D_shelter_b1_sterilization_room_80188FDC[8];
+extern EvsCommand D_shelter_b1_sterilization_room_80188FDC[8];
 
 extern GpGridParams D_shelter_b1_sterilization_room_80189E44;
 

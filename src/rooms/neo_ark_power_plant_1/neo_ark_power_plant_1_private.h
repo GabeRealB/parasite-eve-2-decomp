@@ -10,11 +10,11 @@
 
 extern GpMsgEntry D_neo_ark_power_plant_1_8017EB18[5];
 
-extern GpEvsCmd D_neo_ark_power_plant_1_8017EB7C[24];
+extern EvsCommand D_neo_ark_power_plant_1_8017EB7C[24];
 
-extern GpEvsCmd D_neo_ark_power_plant_1_8017EDBC[10];
+extern EvsCommand D_neo_ark_power_plant_1_8017EDBC[10];
 
-extern GpEvsCmd D_neo_ark_power_plant_1_8017EEE4[13];
+extern EvsCommand D_neo_ark_power_plant_1_8017EEE4[13];
 
 extern s32 D_neo_ark_power_plant_1_8017F01C;
 

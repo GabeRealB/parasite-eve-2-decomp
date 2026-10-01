@@ -25,7 +25,7 @@ extern s32 D_neo_ark_forest_zone_80181E38;
 
 extern Task* D_neo_ark_forest_zone_80181E68;
 
-extern GpEvsCmd D_neo_ark_forest_zone_80181E6C[23];
+extern EvsCommand D_neo_ark_forest_zone_80181E6C[23];
 
 extern TaskDesc D_neo_ark_forest_zone_80182E18;
 

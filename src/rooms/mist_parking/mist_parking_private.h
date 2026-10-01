@@ -101,15 +101,15 @@ extern GpCopyArg D_mist_parking_8018D82C;
 
 extern s8 D_mist_parking_8018DA28[28];
 
-extern GpEvsCmd D_mist_parking_8018DF34[155];
+extern EvsCommand D_mist_parking_8018DF34[155];
 
-extern GpEvsCmd D_mist_parking_8018EDBC[23];
+extern EvsCommand D_mist_parking_8018EDBC[23];
 
-extern GpEvsCmd D_mist_parking_8018EFE4[8];
+extern EvsCommand D_mist_parking_8018EFE4[8];
 
-extern GpEvsCmd D_mist_parking_8018F0A4[10];
+extern EvsCommand D_mist_parking_8018F0A4[10];
 
-extern GpEvsCmd D_mist_parking_8018F194[10];
+extern EvsCommand D_mist_parking_8018F194[10];
 
 extern GpGridParams D_mist_parking_8018FCB8;
 
@@ -133,13 +133,13 @@ extern AnimationPlayRequest D_mist_parking_80190C4C;
 
 extern AnimationPlayRequest D_mist_parking_80190C60;
 
-extern GpEvsCmd D_mist_parking_80191154[8];
+extern EvsCommand D_mist_parking_80191154[8];
 
-extern GpEvsCmd D_mist_parking_80191214[10];
+extern EvsCommand D_mist_parking_80191214[10];
 
-extern GpEvsCmd D_mist_parking_80191304[8];
+extern EvsCommand D_mist_parking_80191304[8];
 
-extern GpEvsCmd D_mist_parking_801913C4[8];
+extern EvsCommand D_mist_parking_801913C4[8];
 
 extern GpGridParams D_mist_parking_80192204;
 

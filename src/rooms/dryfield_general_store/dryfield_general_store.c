@@ -77,7 +77,7 @@ extern TaskDesc   D_dryfield_general_store_8017E4C0;
 extern s32        D_dryfield_general_store_8017E55C;
 extern s32        D_dryfield_general_store_8017E560;
 extern s32        D_dryfield_general_store_8017E564;
-extern GpEvsCmd   D_dryfield_general_store_8017E568[];
+extern EvsCommand D_dryfield_general_store_8017E568[];
 
 static void func_dryfield_general_store_8017DEAC(Task* arg0);
 static void func_dryfield_general_store_8017DF4C(Task* task);
@@ -174,18 +174,18 @@ s32 D_dryfield_general_store_8017E560 = 0x10302;
 
 s32 D_dryfield_general_store_8017E564 = 0x20302;
 
-GpEvsCmd D_dryfield_general_store_8017E568[11] = {
-    { 3, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_general_store_8017E4E0 }, { .value = 0 } },
-    { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_general_store_8017E4FC }, { .value = 0 } },
-    { 1, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_general_store_8017E524 }, { .value = 0 } },
-    { 1, { .value = 3 }, { .value = 0 }, { .value = 1019 }, { .storage = &D_dryfield_general_store_8017E53C }, { .storage = &D_dryfield_general_store_8017E554 } },
-    { 1, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_general_store_8017E560 }, { .value = 2011 } },
-    { 4, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 13, { .callback = func_dryfield_general_store_8017E130 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand D_dryfield_general_store_8017E568[11] = {
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_general_store_8017E4E0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_general_store_8017E4FC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_dryfield_general_store_8017E524 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1019 }, { .storage = &D_dryfield_general_store_8017E53C }, { .storage = &D_dryfield_general_store_8017E554 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 4 }, { .value = -1 }, { .value = 2010 }, { .storage = &D_dryfield_general_store_8017E560 }, { .value = 2011 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_general_store_8017E130 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
 GpRoomObjRec D_dryfield_general_store_8017E670[1] = {

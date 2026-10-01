@@ -23,11 +23,11 @@ extern s32 D_shelter_b6_training_room_80182B24;
 
 extern TaskDesc D_shelter_b6_training_room_801839A8;
 
-extern GpEvsCmd D_shelter_b6_training_room_80183BB4[58];
+extern EvsCommand D_shelter_b6_training_room_80183BB4[58];
 
-extern GpEvsCmd D_shelter_b6_training_room_80184124[14];
+extern EvsCommand D_shelter_b6_training_room_80184124[14];
 
-extern GpEvsCmd D_shelter_b6_training_room_80184274[7];
+extern EvsCommand D_shelter_b6_training_room_80184274[7];
 
 extern TaskDesc D_shelter_b6_training_room_8018431C[2];
 

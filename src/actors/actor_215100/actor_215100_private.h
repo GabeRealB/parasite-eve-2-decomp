@@ -38,19 +38,19 @@ extern AnimationSet D_actor_215100_8014DE10;
 
 extern AnimationSet D_actor_215100_8014E114;
 
-extern GpEvsCmd D_actor_215100_8014EB98[3];
+extern EvsCommand D_actor_215100_8014EB98[3];
 
-extern GpEvsCmd D_actor_215100_8014EBE0[18];
+extern EvsCommand D_actor_215100_8014EBE0[18];
 
-extern GpEvsCmd D_actor_215100_8014ED90[9];
+extern EvsCommand D_actor_215100_8014ED90[9];
 
-extern GpEvsCmd D_actor_215100_8014EE68[13];
+extern EvsCommand D_actor_215100_8014EE68[13];
 
-extern GpEvsCmd D_actor_215100_8014EFA0[8];
+extern EvsCommand D_actor_215100_8014EFA0[8];
 
-extern GpEvsCmd D_actor_215100_8014F060[9];
+extern EvsCommand D_actor_215100_8014F060[9];
 
-extern GpEvsCmd D_actor_215100_8014F138[6];
+extern EvsCommand D_actor_215100_8014F138[6];
 
 extern Actor215100StorageE670 D_actor_215100_8015E670;
 

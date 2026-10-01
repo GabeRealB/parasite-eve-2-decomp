@@ -24,9 +24,9 @@ extern s32 D_dryfield_night_garage_80182DE0;
 
 extern s32 D_dryfield_night_garage_80182DE4;
 
-extern GpEvsCmd D_dryfield_night_garage_80182DF8[40];
+extern EvsCommand D_dryfield_night_garage_80182DF8[40];
 
-extern GpEvsCmd D_dryfield_night_garage_801831B8[19];
+extern EvsCommand D_dryfield_night_garage_801831B8[19];
 
 extern GpGridParams D_dryfield_night_garage_80183DD4;
 

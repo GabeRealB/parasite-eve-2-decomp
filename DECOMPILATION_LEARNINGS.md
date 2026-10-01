@@ -66085,7 +66085,7 @@ the store address is allocated to `$a3`.
 Swap the arms so the *load* arm follows the label:
 
 ```c
-if (st->pc->arg1 == 0) { D.field_2 = 7; } else { D.field_2 = (u16)st->pc->arg1; }
+if (st->pc->operand1.value == 0) { D.field_2 = 7; } else { D.field_2 = (u16)st->pc->operand1.value; }
 ```
 
 The insn after the label is now a `mem` load, which the hoist refuses, so the

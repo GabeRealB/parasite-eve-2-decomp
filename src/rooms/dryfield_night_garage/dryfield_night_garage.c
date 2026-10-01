@@ -170,7 +170,7 @@ extern GpMsgEntry D_dryfield_night_garage_80181C38[];
 extern AnimationPlayRequest D_dryfield_night_garage_80181C68;
 
 /// Script blob passed to `func_800E8614` when game flag 0x8E is already set.
-extern GpEvsCmd D_dryfield_night_garage_80181C7C[];
+extern EvsCommand D_dryfield_night_garage_80181C7C[];
 
 /// Two layout templates and the live copy the resets restore from them.
 extern GpGridParams D_dryfield_night_garage_80181D7C;
@@ -207,11 +207,11 @@ GpMsgEntry D_dryfield_night_garage_80181C38[6] = {
 
 AnimationPlayRequest D_dryfield_night_garage_80181C68 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpEvsCmd D_dryfield_night_garage_80181C7C[4] = {
-    { 4, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { 1, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_8013B570 }, { .value = 0 } },
-    { 10, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_garage_80181C68 }, { .value = 0 } },
-    { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand D_dryfield_night_garage_80181C7C[4] = {
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 10 }, { .value = 0 }, { .value = 1001 }, { .storage = &D_8013B570 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_garage_80181C68 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
 SVECTOR D_dryfield_night_garage_80181CDC[4] = {

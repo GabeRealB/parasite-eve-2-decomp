@@ -242,7 +242,7 @@ resumeView:
                         if (viewPending != 0) {
                             viewPhase  = D_801155BB;
                             D_801155BB = viewPhase + 1;
-                            if (D_801156F4.overlays != NULL) {
+                            if (D_801156F4.sceneKey != NULL) {
                                 CdCmd_UnusedStub3();
                             }
                         } else if (!(eventFlags & 0x40)) {
@@ -895,10 +895,10 @@ void Gp_CapExit(Task* arg0)
         }
     } else {
     block_11:
-        if (gDisplayState.debugMode != 0 && D_801156F4.overlays != 0) {
+        if (gDisplayState.debugMode != 0 && D_801156F4.sceneKey != 0) {
             sprintf(
-                buf, Gp_StrEvsFmt, D_801156F4.overlays->group, D_801156F4.overlays->streamId,
-                D_801156F4.overlays->subId);
+                buf, Gp_StrEvsFmt, D_801156F4.sceneKey->group, D_801156F4.sceneKey->streamId,
+                D_801156F4.sceneKey->subId);
             func_807244CC(buf);
         }
     }

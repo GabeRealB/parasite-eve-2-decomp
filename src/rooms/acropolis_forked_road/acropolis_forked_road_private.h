@@ -7,6 +7,6 @@
 
 extern TaskDesc D_acropolis_forked_road_80180F44[5];
 
-extern GpEvsCmd D_acropolis_forked_road_801820B8[8];
+extern EvsCommand D_acropolis_forked_road_801820B8[8];
 
 #endif // SRC_ROOMS_ACROPOLIS_FORKED_ROAD_ACROPOLIS_FORKED_ROAD_PRIVATE_H

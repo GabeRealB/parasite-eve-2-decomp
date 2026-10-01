@@ -104,9 +104,9 @@ extern s32 D_8013A33C;
 extern s32 D_8013A84C;
 // Script in the companion actor slot; this address also holds a task table
 // when a different actor package is loaded.
-extern GpEvsCmd D_nursery_script_8013A8DC[];
-extern s32      D_8013AF8C;
-extern s32      D_8013BA84;
+extern EvsCommand D_nursery_script_8013A8DC[];
+extern s32        D_8013AF8C;
+extern s32        D_8013BA84;
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
