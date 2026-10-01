@@ -30,6 +30,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/rising_spark.h"
 
 /// One 8-byte row of `D_healing_8012FC1C`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_2` is the brightness cap state 1
@@ -188,56 +189,13 @@ void func_healing_8012EF34(Task* arg0)
     }
 }
 
-/// Healing spark billboard, spawned through gameplay's effect table. State 0
-/// seeds the spin and colour from the spawn argument and the LCG; state 1 lifts
-/// the frame and draws the additive quad on odd ticks until the animation runs
-/// out. Life Drain carries an identical copy.
-void func_healing_8012F494(Task* arg0)
-{
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s32         y;
-    s32         state;
-    s16         step;
-    u16         spawn;
+#include "../../shared/rising_spark_task.inc.c"
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    state    = arg0->state;
-    switch (state) {
-        case 0:
-            mem->move.vy    = 4;
-            mem->move.vx    = 0;
-            mem->move.vz    = 0;
-            arg0->state     = 1;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
-            spawn           = (u16)arg0->spawnArg1.value;
-            mem->period     = 0x1000;
-            mem->angle      = spawn & 0xFFF;
-            return;
-        case 1:
-            step                = mem->move.vy;
-            y                   = coord->coord.t[1] + step;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[1]   = y;
-            Gp_UpdateCoord(coord);
-            if (!(mem->age & 1)) {
-                mem->index = mem->index + 1;
-            }
-            if (mem->index < 8) {
-                if (mem->age & 1) {
-                    Gp_DrawFxQuad(coord, mem->index, mem->angle,
-                                  mem->scale | mem->period);
-                    return;
-                }
-            } else {
-                effectKillTask(mem, arg0);
-                return;
-            }
-            break;
-    }
+/// Healing's spark billboard (see rising_spark.h), spawned through gameplay's
+/// effect table.
+void func_healing_8012F494(Task* task)
+{
+    risingSparkTask(task);
 }
 
 void func_healing_8012F5E4(Task* arg0)
