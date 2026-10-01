@@ -341,10 +341,13 @@ glabel tmdXformStreamVertsElemColor
   .L80010EEC:
     /* 16EC 80010EEC */  jr          $ra
     /* 16F0 80010EF0 */  nop
+/* GPU command 0x36 and neutral RGB for per-corner texture lighting. */
+.equ TMD_DRAW_STREAM_GT3_SEMI_TRANS_COLOR, 0x36808080
+
 alabel tmdDrawStreamGt3SemiTrans
-    /* 16F4 80010EF4 */  lui         $t0, 0x3680
-  .L80010EF8:
-    /* 16F8 80010EF8 */  ori         $t0, $t0, 0x8080
+    /* Force the blended command; the shared walk still selects facing from a1. */
+    /* 16F4 80010EF4 */  lui         $t0, (TMD_DRAW_STREAM_GT3_SEMI_TRANS_COLOR >> 16)
+    /* 16F8 80010EF8 */  ori         $t0, $t0, (TMD_DRAW_STREAM_GT3_SEMI_TRANS_COLOR & 0xFFFF)
     /* 16FC 80010EFC */  mtc2        $t0, $6
     /* 1700 80010F00 */  j           .L80010F20
     /* 1704 80010F04 */  nop

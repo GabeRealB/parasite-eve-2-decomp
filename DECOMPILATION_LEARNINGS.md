@@ -134264,9 +134264,9 @@ direct culls the wrong ones for its reflection.
 
 Note also where the alternate label sits. An opcode-keyed entry point
 (`tmdDrawStreamGt3SemiTrans`, `0x80010EF4`) starts at the shading constant and
-jumps past the `flags & 2` test, so the two ways into one body do not agree about
-what `flags` decides: the opcode-keyed entry asks it nothing about shading, and
-both entries still reach the `flags & 0x10` twin.
+jumps past the `objectFlags & 2` test, so the two ways into one body do not agree about
+what `objectFlags` decides: the opcode-keyed entry asks it nothing about shading, and
+both entries still reach the `objectFlags & 0x10` twin.
 ## A facing test's polarity follows the corner order the body loads
 
 A record's draw body in the hasm file and the C twin that answers the same record
