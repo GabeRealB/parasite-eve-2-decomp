@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_105400.
-Actor05400_Fn01B70 = 0x80133990; // type:func
+generatorIsAlive = 0x80133990; // type:func
 gGeneratorPulseSoundId = 0x8013CE5C; // size:0x4 defined:True
 D_actor_105400_8013CE60 = 0x8013CE60; // size:0x4 defined:True
 gGeneratorViewSound = 0x8013CE64; // size:0x20 defined:True
@@ -53,3 +53,5 @@ generatorTickPose = 0x80133610; // type:func
 generatorLifeSupportTeardown = 0x80133838; // type:func
 generatorSetReleaseBits = 0x8013391C; // type:func
 generatorUpdateColor = 0x801335B8; // type:func
+generatorLifeSupportTask = 0x801337DC; // type:func
+generatorTask = 0x801339A4; // type:func

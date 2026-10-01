@@ -94,14 +94,10 @@ extern AnimationSet D_actor_105400_8013C5E0;
 extern AnimationSet D_actor_105400_8013CA20;
 extern AnimationSet D_actor_105400_8013CE08;
 extern TmdSource    D_actor_105400_8013C46C;
-void                func_actor_105400_801337DC(Task*);
-void                func_actor_105400_801339A4(Task*);
-
-s16 Actor05400_Fn01B70(Task*);
 
 Actor105400MsgEntry D_actor_105400_80133A00[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = generatorSetReleaseBits } },
-    { 2006, { .call0 = Actor05400_Fn01B70 } },
+    { 2006, { .call0 = generatorIsAlive } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -266,8 +262,8 @@ Actor05300Clip gGeneratorHitPulse[4] = {
 };
 
 TaskDesc D_actor_105400_8013CEA0[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_105400_801339A4, { .model = &D_actor_105400_8013C46C } },
-    { { { TASK_BODY_COORD, 96 } }, func_actor_105400_801337DC, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, generatorTask, { .model = &D_actor_105400_8013C46C } },
+    { { { TASK_BODY_COORD, 96 } }, generatorLifeSupportTask, { .value = 0 } },
 };
 
 AnimationSet* D_actor_105400_8013CEB8[4] = {
@@ -409,19 +405,7 @@ static void func_actor_105400_8013310C(Enemy* arg0, Task* arg1)
 
 #include "../../shared/generator_regenerate.inc.c"
 
-/// Hands the model's world position (its coordinate's `workm` translation) to
-/// `Gp_UpdateActorColor` for the enemy, with no blend parameters.
-void generatorUpdateColor(Task* arg0)
-{
-    GfxCoord* coord;
-    VECTOR    vec;
-
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
-}
+#include "../../shared/generator_update_color.inc.c"
 
 #include "../../shared/generator_tick_pose.inc.c"
 
@@ -429,7 +413,7 @@ void generatorUpdateColor(Task* arg0)
 
 /// State handlers of the part task, indexed by `Task::state`: spawn, per-frame
 /// hit reaction and teardown.
-static const GpEnemyTaskFuncTable3 D_actor_105400_80131E24 = {
+static const GpEnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
     {
         generatorLifeSupportSpawn,
         generatorLifeSupportHit,
@@ -437,30 +421,17 @@ static const GpEnemyTaskFuncTable3 D_actor_105400_80131E24 = {
     },
 };
 
-/// Task function of the part: runs the state handler `Task::state` selects in
-/// `D_actor_105400_80131E24`, handing it the enemy and the task.
-void func_actor_105400_801337DC(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_actor_105400_80131E24;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/generator_life_support_task.inc.c"
 
 #include "../../shared/generator_weak_point_teardown.inc.c"
 
 #include "../../shared/generator_release_bits.inc.c"
 
-/// Returns the work block's `field_338`, which the spawn sets to 1 and the hit
-/// handler clears when the enemy is killed.
-s16 Actor05400_Fn01B70(Task* arg0)
-{
-    return ((Actor05300Work*)arg0->work)->field_338;
-}
+#include "../../shared/generator_is_alive.inc.c"
 
 /// State handlers of the main task, indexed by `Task::state`: spawn, per-frame
 /// tick and death.
-static const GpEnemyTaskFuncTable3 D_actor_105400_80131E30 = {
+static const GpEnemyTaskFuncTable3 gGeneratorTaskStates = {
     {
         func_actor_105400_8013310C,
         generatorTickState,
@@ -468,12 +439,4 @@ static const GpEnemyTaskFuncTable3 D_actor_105400_80131E30 = {
     },
 };
 
-/// Task function of the main body: runs the state handler `Task::state`
-/// selects in `D_actor_105400_80131E30`, handing it the enemy and the task.
-void func_actor_105400_801339A4(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_actor_105400_80131E30;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/generator_task.inc.c"

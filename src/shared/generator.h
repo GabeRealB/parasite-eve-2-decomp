@@ -30,9 +30,11 @@ void generatorTickPose(Task* arg0);
 void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1);
 s32  generatorSetReleaseBits(Task* task, s32 msgId, ActorCommand* msg);
 
-/* Defined by each package. */
-void generatorUpdateColor(Task* arg0);
-
 static inline void generatorTickPoseInline(Task* task);
+
+void generatorUpdateColor(Task* arg0);
+void generatorLifeSupportTask(Task* arg0);
+s16  generatorIsAlive(Task* arg0);
+void generatorTask(Task* arg0);
 
 #endif /* SRC_SHARED_GENERATOR_H */
