@@ -759,7 +759,14 @@ u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
         /// Bits 1 and 0 are clear: semi-transparency is disabled and vertex colours
         /// modulate the texture. The second `POLY_GT3` in each pair uses the model's
         /// texture and is linked ahead of the environment layer.
-        TMD_GT3_ENV_BASE_COMMAND  = 0x34,
+        TMD_GT3_ENV_BASE_COMMAND = 0x34,
+        /// GPU command byte for the colour-modulated, semitransparent environment triangle.
+        ///
+        /// Bit 1 enables semitransparency; bit 0 stays clear so lit vertex colours
+        /// modulate the texture. The layer's `tpage` selects additive blending.
+        /// Written to the first `POLY_GT3` of each pair after its code byte has
+        /// been read as a second-page marker. The opaque base is drawn first.
+        /// This command is fixed, independent of `objectFlags`.
         TMD_GT3_ENV_LAYER_COMMAND = 0x36,
         /// Number of environment-triangle corners visited during second-page U adjustment.
         ///
