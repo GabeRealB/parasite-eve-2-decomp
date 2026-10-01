@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "shelter_b6_growth_room_private.h"
 
@@ -252,7 +252,7 @@ WorldCoordPointLight D_shelter_b6_growth_room_8017FF18[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2400, -2850, 4050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 5000, 0x2710 },
 };
 
-GpRoomCoordSet D_shelter_b6_growth_room_8017FF78 = { 0, NULL, 1, D_shelter_b6_growth_room_8017FF18, 0, NULL };
+WorldCoordRoomLights D_shelter_b6_growth_room_8017FF78 = { 0, NULL, ARRAY_SIZE(D_shelter_b6_growth_room_8017FF18), D_shelter_b6_growth_room_8017FF18, 0, NULL };
 
 GpObj4C D_shelter_b6_growth_room_8017FF90[12] = {
     { NULL, NULL, NULL, { 2769, -2144, 5184, 0 }, { { 3833, -2544, -381, 0 }, { -3841, -2544, 375, 0 }, { 3833, 2544, -381, 0 }, { -3841, 2544, 375, 0 } }, { 402, 0, 4087, 0 }, { 0, 0, 4096, 0 }, 4608, 0, 3, 2, 1, 0 },

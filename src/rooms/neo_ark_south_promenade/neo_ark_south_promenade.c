@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -65,11 +65,11 @@ s32 func_neo_ark_south_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMs
 s32 func_neo_ark_south_promenade_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_south_promenade_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_neo_ark_south_promenade_8017FD8C[1];
-extern GpObj3A            D_neo_ark_south_promenade_8018094C[1];
-extern GpObj4C            D_neo_ark_south_promenade_801804E8[6];
-extern GpObj4C            D_neo_ark_south_promenade_801806B0[6];
-extern GpRoomCoordSet     D_neo_ark_south_promenade_801804D0[1];
+extern WorldCollisionGrid   D_neo_ark_south_promenade_8017FD8C[1];
+extern GpObj3A              D_neo_ark_south_promenade_8018094C[1];
+extern GpObj4C              D_neo_ark_south_promenade_801804E8[6];
+extern GpObj4C              D_neo_ark_south_promenade_801806B0[6];
+extern WorldCoordRoomLights D_neo_ark_south_promenade_801804D0[1];
 
 GpMsgEntry D_neo_ark_south_promenade_8017F6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_south_promenade_8017D5D8 },
@@ -250,8 +250,8 @@ WorldCoordLight D_neo_ark_south_promenade_80180420[2] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -332, 260, -220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1310, 1290, 1228 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_neo_ark_south_promenade_801804D0[1] = {
-    { 2, D_neo_ark_south_promenade_80180420, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_neo_ark_south_promenade_801804D0[1] = {
+    { ARRAY_SIZE(D_neo_ark_south_promenade_80180420), D_neo_ark_south_promenade_80180420, 0, NULL, 0, NULL },
 };
 
 GpObj4C D_neo_ark_south_promenade_801804E8[6] = {

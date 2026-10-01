@@ -260,7 +260,7 @@ extern EvsCommand           D_mine_mesa_8018515C[17];
 extern GpObj3A                    D_mine_mesa_801899B4[2];
 extern GpObj4C                    D_mine_mesa_80188E40[8];
 extern WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12];
-extern GpRoomCoordSet             D_mine_mesa_80188E28[1];
+extern WorldCoordRoomLights       D_mine_mesa_80188E28[1];
 extern ActorTransform             D_mine_mesa_801843F4;
 extern ActorTransform             D_mine_mesa_80184424;
 extern ActorTransform             D_mine_mesa_8018443C;
@@ -2319,8 +2319,8 @@ MineMesaSpotLightStorage D_mine_mesa_80188AC8 = {
     },
 };
 
-GpRoomCoordSet D_mine_mesa_80188E28[1] = {
-    { 0, NULL, 8, D_mine_mesa_801887C8, 1, D_mine_mesa_80188AC8.active },
+WorldCoordRoomLights D_mine_mesa_80188E28[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mine_mesa_801887C8), D_mine_mesa_801887C8, ARRAY_SIZE(D_mine_mesa_80188AC8.active), D_mine_mesa_80188AC8.active },
 };
 
 GpObj4C D_mine_mesa_80188E40[8] = {

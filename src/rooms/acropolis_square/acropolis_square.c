@@ -211,7 +211,7 @@ extern WorldCollisionGrid         D_acropolis_square_8018519C[1];
 extern GpObj4C                    D_acropolis_square_801851C0[16];
 extern GpObj4C                    D_acropolis_square_80185680[26];
 extern WorldCoordRoomAmbientEntry D_acropolis_square_80186480[16];
-extern GpRoomCoordSet             D_acropolis_square_80186468[1];
+extern WorldCoordRoomLights       D_acropolis_square_80186468[1];
 
 #include "../../shared/planar_reflection_data.inc.c"
 
@@ -476,8 +476,8 @@ WorldCoordPointLight D_acropolis_square_80185E68[16] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2805, -1925, -2165 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2211, 2129, 2048 }, { 0, 0 } }, 100, 1250 },
 };
 
-GpRoomCoordSet D_acropolis_square_80186468[1] = {
-    { 0, NULL, 16, D_acropolis_square_80185E68, 0, NULL },
+WorldCoordRoomLights D_acropolis_square_80186468[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_square_80185E68), D_acropolis_square_80185E68, 0, NULL },
 };
 
 WorldCoordRoomAmbientEntry D_acropolis_square_80186480[16] = {

@@ -63,11 +63,11 @@ extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
 extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
 
-extern WorldCollisionGrid D_neo_ark_power_plant_1_80180090[1];
-extern GpObj3A            D_neo_ark_power_plant_1_80181B60[1];
-extern GpObj4C            D_neo_ark_power_plant_1_8018155C[10];
-extern GpObj4C            D_neo_ark_power_plant_1_80181854[7];
-extern GpRoomCoordSet     D_neo_ark_power_plant_1_8017FB80[1];
+extern WorldCollisionGrid   D_neo_ark_power_plant_1_80180090[1];
+extern GpObj3A              D_neo_ark_power_plant_1_80181B60[1];
+extern GpObj4C              D_neo_ark_power_plant_1_8018155C[10];
+extern GpObj4C              D_neo_ark_power_plant_1_80181854[7];
+extern WorldCoordRoomLights D_neo_ark_power_plant_1_8017FB80[1];
 
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
@@ -295,8 +295,8 @@ WorldCoordPointLight D_neo_ark_power_plant_1_8017F220[25] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 569, -2975, -3542 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3684, 4096 }, { 0, 0 } }, 1231, 1489 },
 };
 
-GpRoomCoordSet D_neo_ark_power_plant_1_8017FB80[1] = {
-    { 0, NULL, 25, D_neo_ark_power_plant_1_8017F220, 0, NULL },
+WorldCoordRoomLights D_neo_ark_power_plant_1_8017FB80[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_power_plant_1_8017F220), D_neo_ark_power_plant_1_8017F220, 0, NULL },
 };
 
 SVECTOR D_neo_ark_power_plant_1_8017FB98[10] = {

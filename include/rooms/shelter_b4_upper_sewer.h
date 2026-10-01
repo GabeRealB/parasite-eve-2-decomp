@@ -37,7 +37,7 @@ extern GpViewRec D_shelter_b4_upper_sewer_80186F1C[];
 
 extern GpSprtRec D_shelter_b4_upper_sewer_801879BC[];
 
-extern GpRoomCoordSet D_shelter_b4_upper_sewer_80188184;
+extern WorldCoordRoomLights D_shelter_b4_upper_sewer_80188184;
 
 extern GpObj4A D_shelter_b4_upper_sewer_8018819C[];
 

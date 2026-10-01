@@ -151,12 +151,12 @@ static void func_neo_ark_observatory_8017F3FC(Task* task);
 
 static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s16 arg3);
 
-extern WorldCollisionGrid gFollowCollisionGrid;
-extern GpObj3A            D_neo_ark_observatory_801878D4[4];
-extern GpObj4C            D_neo_ark_observatory_80186ED4[18];
-extern GpObj4C            D_neo_ark_observatory_8018742C[14];
-extern GpRoomCoordSet     D_neo_ark_observatory_80186844[1];
-extern GpRoomCoordSet     D_neo_ark_observatory_80186EBC[1];
+extern WorldCollisionGrid   gFollowCollisionGrid;
+extern GpObj3A              D_neo_ark_observatory_801878D4[4];
+extern GpObj4C              D_neo_ark_observatory_80186ED4[18];
+extern GpObj4C              D_neo_ark_observatory_8018742C[14];
+extern WorldCoordRoomLights D_neo_ark_observatory_80186844[1];
+extern WorldCoordRoomLights D_neo_ark_observatory_80186EBC[1];
 
 extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
 s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, DirectionActionRequest* request, s32);
@@ -1428,8 +1428,8 @@ WorldCoordPointLight D_neo_ark_observatory_801861E4[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1155, -2500, 0x36FE } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
 };
 
-GpRoomCoordSet D_neo_ark_observatory_80186844[1] = {
-    { 0, NULL, 17, D_neo_ark_observatory_801861E4, 0, NULL },
+WorldCoordRoomLights D_neo_ark_observatory_80186844[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_observatory_801861E4), D_neo_ark_observatory_801861E4, 0, NULL },
 };
 
 WorldCoordPointLight D_neo_ark_observatory_8018685C[17] = {
@@ -1452,8 +1452,8 @@ WorldCoordPointLight D_neo_ark_observatory_8018685C[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1155, -2500, 0x36FE } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 2000, 7000 },
 };
 
-GpRoomCoordSet D_neo_ark_observatory_80186EBC[1] = {
-    { 0, NULL, 17, D_neo_ark_observatory_8018685C, 0, NULL },
+WorldCoordRoomLights D_neo_ark_observatory_80186EBC[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_observatory_8018685C), D_neo_ark_observatory_8018685C, 0, NULL },
 };
 
 GpObj4C D_neo_ark_observatory_80186ED4[18] = {

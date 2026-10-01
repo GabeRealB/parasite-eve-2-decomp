@@ -143,15 +143,15 @@ static const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
     { func_neo_ark_shrine_8017F688, func_neo_ark_shrine_8017F738, taskKill },
 };
 
-extern WorldCollisionGrid D_neo_ark_shrine_80182D2C[1];
-extern WorldCollisionGrid D_neo_ark_shrine_801831D8[1];
-extern WorldCollisionGrid D_neo_ark_shrine_80183698[1];
-extern GpObj3A            D_neo_ark_shrine_80186730[4];
-extern GpObj4C            D_neo_ark_shrine_80185A80[14];
-extern GpObj4C            D_neo_ark_shrine_80185EA8[9];
-extern GpObj4C            D_neo_ark_shrine_80186154[8];
-extern GpObj4C            D_neo_ark_shrine_801863B4[8];
-extern GpRoomCoordSet     D_neo_ark_shrine_80185A68[1];
+extern WorldCollisionGrid   D_neo_ark_shrine_80182D2C[1];
+extern WorldCollisionGrid   D_neo_ark_shrine_801831D8[1];
+extern WorldCollisionGrid   D_neo_ark_shrine_80183698[1];
+extern GpObj3A              D_neo_ark_shrine_80186730[4];
+extern GpObj4C              D_neo_ark_shrine_80185A80[14];
+extern GpObj4C              D_neo_ark_shrine_80185EA8[9];
+extern GpObj4C              D_neo_ark_shrine_80186154[8];
+extern GpObj4C              D_neo_ark_shrine_801863B4[8];
+extern WorldCoordRoomLights D_neo_ark_shrine_80185A68[1];
 
 SVECTOR D_neo_ark_shrine_8018268C[1] = {
     { 3560, -1200, 6310, 0 },
@@ -898,8 +898,8 @@ WorldCoordPointLight D_neo_ark_shrine_80185408[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -25, -2065, 1050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1802, 1863, 1884 }, { 0, 0 } }, 200, 2200 },
 };
 
-GpRoomCoordSet D_neo_ark_shrine_80185A68[1] = {
-    { 2, D_neo_ark_shrine_80185358, 17, D_neo_ark_shrine_80185408, 0, NULL },
+WorldCoordRoomLights D_neo_ark_shrine_80185A68[1] = {
+    { ARRAY_SIZE(D_neo_ark_shrine_80185358), D_neo_ark_shrine_80185358, ARRAY_SIZE(D_neo_ark_shrine_80185408), D_neo_ark_shrine_80185408, 0, NULL },
 };
 
 GpObj4C D_neo_ark_shrine_80185A80[14] = {

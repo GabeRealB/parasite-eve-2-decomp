@@ -43,7 +43,7 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/backdrop_crossfade.h"
 
-extern GpRoomCoordSet D_mist_r18_80186E44[1];
+extern WorldCoordRoomLights D_mist_r18_80186E44[1];
 
 /// Sprite description the overlay's two primitive emitters read from.
 ///
@@ -1086,8 +1086,8 @@ WorldCoordPointLight D_mist_r18_80186C64[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5450, -1200, 4000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 800, 1200 },
 };
 
-GpRoomCoordSet D_mist_r18_80186E44[1] = {
-    { 0, NULL, 5, D_mist_r18_80186C64, 0, NULL },
+WorldCoordRoomLights D_mist_r18_80186E44[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mist_r18_80186C64), D_mist_r18_80186C64, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_mist_r18_80186E5C = {

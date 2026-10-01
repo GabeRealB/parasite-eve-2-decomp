@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -51,11 +51,11 @@ s32 func_dryfield_night_motel_room_4_8017D5D0(Task*, s32, TaskMessageArg, TaskMe
 s32 func_dryfield_night_motel_room_4_8017D660(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_motel_room_4_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_night_motel_room_4_8017E1D0[1];
-extern GpObj3A            D_dryfield_night_motel_room_4_80180044[2];
-extern GpObj4C            D_dryfield_night_motel_room_4_8017FBD0[8];
-extern GpObj4C            D_dryfield_night_motel_room_4_8017FE30[7];
-extern GpRoomCoordSet     D_dryfield_night_motel_room_4_801802A8[1];
+extern WorldCollisionGrid   D_dryfield_night_motel_room_4_8017E1D0[1];
+extern GpObj3A              D_dryfield_night_motel_room_4_80180044[2];
+extern GpObj4C              D_dryfield_night_motel_room_4_8017FBD0[8];
+extern GpObj4C              D_dryfield_night_motel_room_4_8017FE30[7];
+extern WorldCoordRoomLights D_dryfield_night_motel_room_4_801802A8[1];
 
 GpMsgEntry D_dryfield_night_motel_room_4_8017DA48[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
@@ -546,8 +546,8 @@ WorldCoordSpotLight D_dryfield_night_motel_room_4_8018023C[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2512, -2274, 2143 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1311, 1269, 1208 }, { 0, 0 } }, { -238, 4082, -226, 0 }, 2320, 3500, 921 },
 };
 
-GpRoomCoordSet D_dryfield_night_motel_room_4_801802A8[1] = {
-    { 0, NULL, 4, D_dryfield_night_motel_room_4_801800BC, 1, D_dryfield_night_motel_room_4_8018023C },
+WorldCoordRoomLights D_dryfield_night_motel_room_4_801802A8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_room_4_801800BC), D_dryfield_night_motel_room_4_801800BC, ARRAY_SIZE(D_dryfield_night_motel_room_4_8018023C), D_dryfield_night_motel_room_4_8018023C },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_room_4_801802C0[2] = {

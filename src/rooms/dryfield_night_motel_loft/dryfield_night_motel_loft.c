@@ -1,6 +1,6 @@
 #include "rooms/dryfield_night_motel_loft.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_motel_loft_private.h"
 
@@ -89,8 +89,8 @@ WorldCoordPointLight D_dryfield_night_motel_loft_8017FC8C[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7, -1878, 5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1000, 1000, 1000 }, { 0, 0 } }, 4096, 7772 },
 };
 
-GpRoomCoordSet D_dryfield_night_motel_loft_8018004C[1] = {
-    { 0, NULL, 10, D_dryfield_night_motel_loft_8017FC8C, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_motel_loft_8018004C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_loft_8017FC8C), D_dryfield_night_motel_loft_8017FC8C, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_motel_loft_80180064[12] = {

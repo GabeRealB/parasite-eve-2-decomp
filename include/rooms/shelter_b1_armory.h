@@ -29,7 +29,7 @@ extern GpViewRec D_shelter_b1_armory_80182EF4[];
 
 extern GpSprtRec D_shelter_b1_armory_80184220[];
 
-extern GpRoomCoordSet D_shelter_b1_armory_80184AFC;
+extern WorldCoordRoomLights D_shelter_b1_armory_80184AFC;
 
 extern GpObj4A D_shelter_b1_armory_80184B14[];
 

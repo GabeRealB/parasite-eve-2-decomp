@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -27,10 +27,10 @@ s32 func_dryfield_motel_room_5_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*
 s32 func_dryfield_motel_room_5_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_room_5_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_motel_room_5_8017DC9C[1];
-extern GpObj4C            D_dryfield_motel_room_5_8017DE40[8];
-extern GpObj4C            D_dryfield_motel_room_5_8017E0A0[1];
-extern GpRoomCoordSet     D_dryfield_motel_room_5_8017E56C[1];
+extern WorldCollisionGrid   D_dryfield_motel_room_5_8017DC9C[1];
+extern GpObj4C              D_dryfield_motel_room_5_8017DE40[8];
+extern GpObj4C              D_dryfield_motel_room_5_8017E0A0[1];
+extern WorldCoordRoomLights D_dryfield_motel_room_5_8017E56C[1];
 
 GpMsgEntry D_dryfield_motel_room_5_8017D6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_5_8017D5D8 },
@@ -164,8 +164,8 @@ WorldCoordPointLight D_dryfield_motel_room_5_8017E0EC[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3665, -1440, -2318 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3280, 3280, 3280 }, { 0, 0 } }, 2164, 2832 },
 };
 
-GpRoomCoordSet D_dryfield_motel_room_5_8017E56C[1] = {
-    { 0, NULL, 12, D_dryfield_motel_room_5_8017E0EC, 0, NULL },
+WorldCoordRoomLights D_dryfield_motel_room_5_8017E56C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_motel_room_5_8017E0EC), D_dryfield_motel_room_5_8017E0EC, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_dryfield_motel_room_5_8017E584 = {

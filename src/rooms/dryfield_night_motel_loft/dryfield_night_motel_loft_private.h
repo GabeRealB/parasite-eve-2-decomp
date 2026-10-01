@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpRoomCoordSet D_dryfield_night_motel_loft_8018004C[1];
+extern WorldCoordRoomLights D_dryfield_night_motel_loft_8018004C[1];
 
 extern GpObj4C D_dryfield_night_motel_loft_80180064[12];
 

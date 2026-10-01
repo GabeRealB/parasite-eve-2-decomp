@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "shelter_1f_tent_private.h"
 
@@ -465,7 +465,7 @@ WorldCoordPointLight D_shelter_1f_tent_8018395C[3] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2600, -3002, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3500, 5000 },
 };
 
-GpRoomCoordSet D_shelter_1f_tent_80183A7C = { 0, NULL, 3, D_shelter_1f_tent_8018395C, 0, NULL };
+WorldCoordRoomLights D_shelter_1f_tent_80183A7C = { 0, NULL, ARRAY_SIZE(D_shelter_1f_tent_8018395C), D_shelter_1f_tent_8018395C, 0, NULL };
 
 GpObj4C D_shelter_1f_tent_80183A94[8] = {
     { NULL, NULL, NULL, { -4254, -3248, 3741, 0 }, { { -1414, -3712, 0, 0 }, { 1414, -3712, 1, 0 }, { -1414, 3712, 0, 0 }, { 1414, 3712, 1, 0 } }, { 0, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 3965, 0, 4, 2, 1, 0 },

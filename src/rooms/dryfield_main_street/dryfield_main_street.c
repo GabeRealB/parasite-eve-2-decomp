@@ -157,10 +157,10 @@ static void func_dryfield_main_street_8017E0D8(Task* task);
 static void func_dryfield_main_street_8017E158(Task* task);
 static void func_dryfield_main_street_8017E4A4(s32 arg0);
 
-extern WorldCollisionGrid D_dryfield_main_street_80182C9C[1];
-extern GpObj4C            D_dryfield_main_street_801843A4[26];
-extern GpObj4C            D_dryfield_main_street_80184B5C[10];
-extern GpRoomCoordSet     D_dryfield_main_street_80185588[1];
+extern WorldCollisionGrid   D_dryfield_main_street_80182C9C[1];
+extern GpObj4C              D_dryfield_main_street_801843A4[26];
+extern GpObj4C              D_dryfield_main_street_80184B5C[10];
+extern WorldCoordRoomLights D_dryfield_main_street_80185588[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -892,8 +892,8 @@ WorldCoordPointLight D_dryfield_main_street_80184F88[16] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3265, -2641, -2536 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3170, 2745, 2730 }, { 0, 0 } }, 822, 2975 },
 };
 
-GpRoomCoordSet D_dryfield_main_street_80185588[1] = {
-    { 0, NULL, 16, D_dryfield_main_street_80184F88, 0, NULL },
+WorldCoordRoomLights D_dryfield_main_street_80185588[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_main_street_80184F88), D_dryfield_main_street_80184F88, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_dryfield_main_street_801855A0 = {

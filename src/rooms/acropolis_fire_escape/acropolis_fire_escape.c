@@ -179,10 +179,10 @@ s32 func_acropolis_fire_escape_8017FE48(Task*, s32, s32, s32);
 
 void func_acropolis_fire_escape_8017FB40(Task*);
 
-extern WorldCollisionGrid D_acropolis_fire_escape_801822A8[1];
-extern GpObj3A            D_acropolis_fire_escape_801828BC[2];
-extern GpObj4C            D_acropolis_fire_escape_801822CC[8];
-extern GpRoomCoordSet     D_acropolis_fire_escape_80182B54[1];
+extern WorldCollisionGrid   D_acropolis_fire_escape_801822A8[1];
+extern GpObj3A              D_acropolis_fire_escape_801828BC[2];
+extern GpObj4C              D_acropolis_fire_escape_801822CC[8];
+extern WorldCoordRoomLights D_acropolis_fire_escape_80182B54[1];
 
 extern SpriteDrawArea D_acropolis_fire_escape_80182D44[2];
 extern SpriteDrawArea D_acropolis_fire_escape_80182DF4[2];
@@ -347,8 +347,8 @@ WorldCoordPointLight D_acropolis_fire_escape_80182974[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3870, -4220, 1740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
 };
 
-GpRoomCoordSet D_acropolis_fire_escape_80182B54[1] = {
-    { 0, NULL, 5, D_acropolis_fire_escape_80182974, 0, NULL },
+WorldCoordRoomLights D_acropolis_fire_escape_80182B54[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_fire_escape_80182974), D_acropolis_fire_escape_80182974, 0, NULL },
 };
 
 SpriteBatch D_acropolis_fire_escape_80182B6C[2] = {

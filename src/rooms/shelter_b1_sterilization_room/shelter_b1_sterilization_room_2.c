@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "shelter_b1_sterilization_room_private.h"
 
@@ -67,7 +67,7 @@ static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1,
 
 // Indexed views below share one contiguous table.
 extern WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25];
-extern GpRoomCoordSet             D_shelter_b1_sterilization_room_8018B630[1];
+extern WorldCoordRoomLights       D_shelter_b1_sterilization_room_8018B630[1];
 
 void func_shelter_b1_sterilization_room_801814B0(void);
 void func_shelter_b1_sterilization_room_80181698(s32);
@@ -764,8 +764,8 @@ WorldCoordSpotLight D_shelter_b1_sterilization_room_8018B18C[11] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -4750, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 3686, 3276 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 5500, 6000, 853 },
 };
 
-GpRoomCoordSet D_shelter_b1_sterilization_room_8018B630[1] = {
-    { 0, NULL, 1, D_shelter_b1_sterilization_room_8018B12C, 11, D_shelter_b1_sterilization_room_8018B18C },
+WorldCoordRoomLights D_shelter_b1_sterilization_room_8018B630[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_b1_sterilization_room_8018B12C), D_shelter_b1_sterilization_room_8018B12C, ARRAY_SIZE(D_shelter_b1_sterilization_room_8018B18C), D_shelter_b1_sterilization_room_8018B18C },
 };
 
 GpObj4C D_shelter_b1_sterilization_room_8018B648[8] = {

@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_motel_room_5_private.h"
 
@@ -31,11 +31,11 @@ extern SVECTOR D_dryfield_night_motel_room_5_8017DA58[1];
 extern SVECTOR D_dryfield_night_motel_room_5_8017DA60[1];
 extern SVECTOR D_dryfield_night_motel_room_5_8017DA68[1];
 
-extern WorldCollisionGrid D_dryfield_night_motel_room_5_8017E03C[1];
-extern GpObj3A            D_dryfield_night_motel_room_5_80180ED8[2];
-extern GpObj4C            D_dryfield_night_motel_room_5_80180A18[8];
-extern GpObj4C            D_dryfield_night_motel_room_5_80180C78[8];
-extern GpRoomCoordSet     D_dryfield_night_motel_room_5_8018113C[1];
+extern WorldCollisionGrid   D_dryfield_night_motel_room_5_8017E03C[1];
+extern GpObj3A              D_dryfield_night_motel_room_5_80180ED8[2];
+extern GpObj4C              D_dryfield_night_motel_room_5_80180A18[8];
+extern GpObj4C              D_dryfield_night_motel_room_5_80180C78[8];
+extern WorldCoordRoomLights D_dryfield_night_motel_room_5_8018113C[1];
 
 SVECTOR D_dryfield_night_motel_room_5_8017DA58[1] = {
     { 400, -970, 1590, 0 },
@@ -793,8 +793,8 @@ WorldCoordSpotLight D_dryfield_night_motel_room_5_801810D0[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3392, -2274, 2163 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1311, 1269, 1208 }, { 0, 0 } }, { -238, 4082, -226, 0 }, 2320, 3500, 921 },
 };
 
-GpRoomCoordSet D_dryfield_night_motel_room_5_8018113C[1] = {
-    { 0, NULL, 4, D_dryfield_night_motel_room_5_80180F50, 1, D_dryfield_night_motel_room_5_801810D0 },
+WorldCoordRoomLights D_dryfield_night_motel_room_5_8018113C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_room_5_80180F50), D_dryfield_night_motel_room_5_80180F50, ARRAY_SIZE(D_dryfield_night_motel_room_5_801810D0), D_dryfield_night_motel_room_5_801810D0 },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_room_5_80181154[3] = {

@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -116,7 +116,7 @@ WorldCoordPointLight D_shelter_b1_control_room_access_tunnel_80182154[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3158, -223, 433 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2498, 2539, 2560 }, { 0, 0 } }, 1500, 2000 },
 };
 
-GpRoomCoordSet D_shelter_b1_control_room_access_tunnel_801822D4 = { 0, NULL, 4, D_shelter_b1_control_room_access_tunnel_80182154, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_control_room_access_tunnel_801822D4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_control_room_access_tunnel_80182154), D_shelter_b1_control_room_access_tunnel_80182154, 0, NULL };
 
 GpObj4C D_shelter_b1_control_room_access_tunnel_801822EC[2] = {
     { NULL, NULL, NULL, { 3454, -1167, 45, 0 }, { { -10, -1520, 2263, 0 }, { 11, -1520, -2263, 0 }, { -10, 1520, 2263, 0 }, { 11, 1520, -2263, 0 } }, { -4099, 0, -20, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 3, 2, 1, 0 },

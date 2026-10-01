@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "mist_parking_private.h"
 
@@ -50,8 +50,8 @@ extern GpObj4C                    D_mist_parking_80193A8C[12];
 extern GpObj4C                    D_mist_parking_80193E1C[13];
 extern GpObj4C                    D_mist_parking_801941F8[14];
 extern WorldCoordRoomAmbientEntry D_mist_parking_8019521C[21];
-extern GpRoomCoordSet             D_mist_parking_801950A0[1];
-extern GpRoomCoordSet             D_mist_parking_80195178[1];
+extern WorldCoordRoomLights       D_mist_parking_801950A0[1];
+extern WorldCoordRoomLights       D_mist_parking_80195178[1];
 
 EvsCommand D_mist_parking_80191154[8] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80190870 }, { .value = 0 } },
@@ -725,8 +725,8 @@ WorldCoordPointLight D_mist_parking_80194620[28] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 869, -3000, -5187 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
 };
 
-GpRoomCoordSet D_mist_parking_801950A0[1] = {
-    { 0, NULL, 28, D_mist_parking_80194620, 0, NULL },
+WorldCoordRoomLights D_mist_parking_801950A0[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mist_parking_80194620), D_mist_parking_80194620, 0, NULL },
 };
 
 WorldCoordPointLight D_mist_parking_801950B8[2] = {
@@ -734,8 +734,8 @@ WorldCoordPointLight D_mist_parking_801950B8[2] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8510, -2000, -1857 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2252, 2048 }, { 0, 0 } }, 1500, 2500 },
 };
 
-GpRoomCoordSet D_mist_parking_80195178[1] = {
-    { 0, NULL, 2, D_mist_parking_801950B8, 0, NULL },
+WorldCoordRoomLights D_mist_parking_80195178[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mist_parking_801950B8), D_mist_parking_801950B8, 0, NULL },
 };
 
 GpAreaTmdRec D_mist_parking_80195190[3] = {

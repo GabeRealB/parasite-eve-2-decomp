@@ -8,7 +8,7 @@
 #include <psyq/memory.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_motel_balcony_private.h"
 
@@ -100,8 +100,8 @@ extern GpObj4C                    D_dryfield_night_motel_balcony_8018EC2C[4];
 extern GpObj4C                    D_dryfield_night_motel_balcony_8018ED5C[7];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_balcony_8018EFE8[40];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_balcony_8018F128[40];
-extern GpRoomCoordSet             D_dryfield_night_motel_balcony_8018DA8C[1];
-extern GpRoomCoordSet             D_dryfield_night_motel_balcony_8018E2E4[1];
+extern WorldCoordRoomLights       D_dryfield_night_motel_balcony_8018DA8C[1];
+extern WorldCoordRoomLights       D_dryfield_night_motel_balcony_8018E2E4[1];
 
 extern WorldCollisionSurfaceProperties D_dryfield_night_motel_balcony_8018F28C[1];
 extern WorldCollisionSurfaceProperties D_dryfield_night_motel_balcony_8018F294[1];
@@ -2615,8 +2615,8 @@ WorldCoordPointLight D_dryfield_night_motel_balcony_8018D24C[22] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3635, -6200, -5930 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 3000, 5500 },
 };
 
-GpRoomCoordSet D_dryfield_night_motel_balcony_8018DA8C[1] = {
-    { 0, NULL, 22, D_dryfield_night_motel_balcony_8018D24C, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_motel_balcony_8018DA8C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_balcony_8018D24C), D_dryfield_night_motel_balcony_8018D24C, 0, NULL },
 };
 
 WorldCoordPointLight D_dryfield_night_motel_balcony_8018DAA4[22] = {
@@ -2644,8 +2644,8 @@ WorldCoordPointLight D_dryfield_night_motel_balcony_8018DAA4[22] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3635, -6200, -5930 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 3000, 5500 },
 };
 
-GpRoomCoordSet D_dryfield_night_motel_balcony_8018E2E4[1] = {
-    { 0, NULL, 22, D_dryfield_night_motel_balcony_8018DAA4, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_motel_balcony_8018E2E4[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_balcony_8018DAA4), D_dryfield_night_motel_balcony_8018DAA4, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_motel_balcony_8018E2FC[8] = {

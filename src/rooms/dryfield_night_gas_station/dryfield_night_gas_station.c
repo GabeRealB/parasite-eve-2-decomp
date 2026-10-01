@@ -261,8 +261,8 @@ extern GpObj4C                    D_dryfield_night_gas_station_8018FD90[11];
 extern GpObj4C                    D_dryfield_night_gas_station_801900D4[16];
 extern GpOverrideArg              D_dryfield_night_gas_station_801889DC;
 extern WorldCoordRoomAmbientEntry D_dryfield_night_gas_station_80190684[22];
-extern GpRoomCoordSet             D_dryfield_night_gas_station_8018FAC0[1];
-extern GpRoomCoordSet             D_dryfield_night_gas_station_8018FD78[1];
+extern WorldCoordRoomLights       D_dryfield_night_gas_station_8018FAC0[1];
+extern WorldCoordRoomLights       D_dryfield_night_gas_station_8018FD78[1];
 extern ActorTransform             D_dryfield_night_gas_station_8018897C;
 extern ActorTransform             D_dryfield_night_gas_station_80188994;
 extern ActorTransform             D_dryfield_night_gas_station_801889AC;
@@ -2350,8 +2350,8 @@ WorldCoordPointLight D_dryfield_night_gas_station_8018F7C0[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x40BE, -1000, -1697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2688, 1778 }, { 0, 0 } }, 4242, 6423 },
 };
 
-GpRoomCoordSet D_dryfield_night_gas_station_8018FAC0[1] = {
-    { 0, NULL, 8, D_dryfield_night_gas_station_8018F7C0, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_gas_station_8018FAC0[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_gas_station_8018F7C0), D_dryfield_night_gas_station_8018F7C0, 0, NULL },
 };
 
 WorldCoordPointLight D_dryfield_night_gas_station_8018FAD8[7] = {
@@ -2364,8 +2364,8 @@ WorldCoordPointLight D_dryfield_night_gas_station_8018FAD8[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9661, -2500, -5043 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1861, 5080 },
 };
 
-GpRoomCoordSet D_dryfield_night_gas_station_8018FD78[1] = {
-    { 0, NULL, 7, D_dryfield_night_gas_station_8018FAD8, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_gas_station_8018FD78[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_gas_station_8018FAD8), D_dryfield_night_gas_station_8018FAD8, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_gas_station_8018FD90[11] = {

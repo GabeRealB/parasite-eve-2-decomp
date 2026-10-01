@@ -807,7 +807,7 @@ WorldCoordPointLight D_shelter_b1_pod_access_tunnel_801846D4[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1299, -2529, -3253 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 9581, 0x3D41 },
 };
 
-GpRoomCoordSet D_shelter_b1_pod_access_tunnel_80184734 = { 0, NULL, 1, D_shelter_b1_pod_access_tunnel_801846D4, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_pod_access_tunnel_80184734 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_pod_access_tunnel_801846D4), D_shelter_b1_pod_access_tunnel_801846D4, 0, NULL };
 
 GpObj4C D_shelter_b1_pod_access_tunnel_8018474C[4] = {
     { NULL, NULL, NULL, { 1296, -1536, -3328, 0 }, { { -1936, -2016, 672, 0 }, { 1936, -2016, -672, 0 }, { -1936, 2016, 672, 0 }, { 1936, 2016, -672, 0 } }, { -1344, 0, -3872, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 2, 3, 1, 0 },

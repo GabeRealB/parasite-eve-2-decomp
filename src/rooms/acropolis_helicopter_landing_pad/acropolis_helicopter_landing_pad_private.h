@@ -40,7 +40,7 @@ extern GpObj4C D_acropolis_helicopter_landing_pad_80185E7C[9];
 
 extern GpObj3A D_acropolis_helicopter_landing_pad_80186128[2];
 
-extern GpRoomCoordSet D_acropolis_helicopter_landing_pad_80186AE8[1];
+extern WorldCoordRoomLights D_acropolis_helicopter_landing_pad_80186AE8[1];
 
 extern SVECTOR ActorContact_ScratchPosition;
 

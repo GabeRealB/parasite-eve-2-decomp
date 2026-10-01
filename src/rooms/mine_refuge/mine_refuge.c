@@ -178,7 +178,7 @@ extern WorldCollisionGrid         D_mine_refuge_80181BA4[1];
 extern GpObj4C                    D_mine_refuge_80182778[2];
 extern GpObj4C                    D_mine_refuge_80182810[6];
 extern WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8];
-extern GpRoomCoordSet             D_mine_refuge_80182760[1];
+extern WorldCoordRoomLights       D_mine_refuge_80182760[1];
 s32                               func_mine_refuge_8017FBB4(Task*, s32, s32, s32);
 s32                               func_mine_refuge_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_mine_refuge_8017FC2C(Task*, s32, s32, TaskMessageArg);
@@ -452,8 +452,8 @@ WorldCoordPointLight D_mine_refuge_801826A0[2] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1562, -2170, 3664 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0, 3000 },
 };
 
-GpRoomCoordSet D_mine_refuge_80182760[1] = {
-    { 0, NULL, 2, D_mine_refuge_801826A0, 0, NULL },
+WorldCoordRoomLights D_mine_refuge_80182760[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mine_refuge_801826A0), D_mine_refuge_801826A0, 0, NULL },
 };
 
 GpObj4C D_mine_refuge_80182778[2] = {

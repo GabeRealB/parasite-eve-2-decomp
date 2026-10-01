@@ -240,7 +240,7 @@ static WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0);
 
 static s32 Gp_CountRoomCoords(void);
 
-static GpRoomCoordSet* Gp_GetRoomCoordSet(GameLocationKey* arg0);
+static WorldCoordRoomLights* Gp_GetRoomCoordSet(GameLocationKey* arg0);
 
 static s32 Gp_GetObjLuma(WorldCoordLight* arg0);
 
@@ -287,12 +287,12 @@ static inline void _gpUpdateRoomCoordSlots(void)
     }
 }
 
-/// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
+/// First-run init plus per-frame update of the current room's `WorldCoordRoomLights`
 /// coordinate arrays (parented to `gGfxViewCoord`) and the `Gp_RoomCoords` slots.
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* task)
 {
-    GpRoomCoordSet*       set;
+    WorldCoordRoomLights* roomLights;
     SVECTOR*              vec;
     WorldCoordLight*      light;
     WorldCoordPointLight* point;
@@ -301,23 +301,23 @@ void Gp_UpdateRoomCoords(Task* task)
     s32                   i;
     s32                   j;
 
-    set = Gp_GetRoomCoordSet(&gGameSession->location.loc);
-    if (set == NULL) {
+    roomLights = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+    if (roomLights == NULL) {
         taskKill(task);
         return;
     }
 
     vec = SCRATCH_STACK_RESERVE_BYTES(0x1C);
     if (task->state == 0) {
-        point = set->arr60;
-        for (i = 0; i < set->n60; i++, point++) {
+        point = roomLights->pointLights;
+        for (i = 0; i < roomLights->pointLightCount; i++, point++) {
             coord               = &point->head.transform.coord;
             coord->parent       = &gGfxViewCoord;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
-        spot = set->arr6C;
-        for (i = 0; i < set->n6C; i++, spot++) {
+        spot = roomLights->coneLights;
+        for (i = 0; i < roomLights->coneLightCount; i++, spot++) {
             coord         = &spot->head.transform.coord;
             coord->parent = &gGfxViewCoord;
             // Aim the local Z column along the cone axis. The translation stays.
@@ -334,11 +334,11 @@ void Gp_UpdateRoomCoords(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
-        if (set->n58 > 0) {
+        if (roomLights->directionalLightCount > 0) {
             WorldCoordLight* dir;
 
-            dir = set->arr58;
-            for (i = 0; i < set->n58; i++, dir++) {
+            dir = roomLights->directionalLights;
+            for (i = 0; i < roomLights->directionalLightCount; i++, dir++) {
                 coord               = &dir->transform.coord;
                 coord->parent       = &gGfxViewCoord;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -358,21 +358,21 @@ void Gp_UpdateRoomCoords(Task* task)
 
     _gpUpdateRoomCoordSlots();
 
-    point = set->arr60;
-    for (i = 0; i < set->n60; i++, point++) {
+    point = roomLights->pointLights;
+    for (i = 0; i < roomLights->pointLightCount; i++, point++) {
         coord = &point->head.transform.coord;
         Gp_UpdateCoordEx(coord, &gGfxViewCoord);
     }
 
-    spot = set->arr6C;
-    for (i = 0; i < set->n6C; i++, spot++) {
+    spot = roomLights->coneLights;
+    for (i = 0; i < roomLights->coneLightCount; i++, spot++) {
         coord = &spot->head.transform.coord;
         Gp_UpdateCoordEx(coord, &gGfxViewCoord);
     }
 
-    if (set->n58 > 0) {
-        light = set->arr58;
-        for (i = 0; i < set->n58; i++, light++) {
+    if (roomLights->directionalLightCount > 0) {
+        light = roomLights->directionalLights;
+        for (i = 0; i < roomLights->directionalLightCount; i++, light++) {
             coord = &light->transform.coord;
             Gp_UpdateCoordEx(coord, &gGfxViewCoord);
         }
@@ -570,7 +570,7 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 /// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
 static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 {
-    GpRoomCoordSet*       set;
+    WorldCoordRoomLights* roomLights;
     WorldCoordPointLight* point;
     WorldCoordLight*      light;
     WorldCoordSpotLight*  cone;
@@ -579,17 +579,17 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     u32                   dist;
     s32                   i;
 
-    set           = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+    roomLights    = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     best          = 0x7FFFFFFF;
     arg1->kind    = -1;
     arg1->field_4 = 0;
     arg1->light   = NULL;
-    if (set != NULL) {
+    if (roomLights != NULL) {
         SCRATCH_STACK_RESERVE_BYTES(0x10);
         delta = SCRATCH_STACK_CURSOR(VECTOR);
-        if (set->n60 > 0) {
-            point = set->arr60;
-            for (i = 0; i < set->n60; i++, point++) {
+        if (roomLights->pointLightCount > 0) {
+            point = roomLights->pointLights;
+            for (i = 0; i < roomLights->pointLightCount; i++, point++) {
                 light     = &point->head;
                 delta->vx = (light->transform.coord.workm.t[0] - arg0->vx) >> 1;
                 delta->vy = (light->transform.coord.workm.t[1] - arg0->vy) >> 1;
@@ -602,9 +602,9 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
                 }
             }
         }
-        if (set->n6C > 0) {
-            cone = set->arr6C;
-            for (i = 0; i < set->n6C; i++, cone++) {
+        if (roomLights->coneLightCount > 0) {
+            cone = roomLights->coneLights;
+            for (i = 0; i < roomLights->coneLightCount; i++, cone++) {
                 light     = &cone->head;
                 delta->vx = (light->transform.coord.workm.t[0] - arg0->vx) >> 1;
                 delta->vy = (light->transform.coord.workm.t[1] - arg0->vy) >> 1;
@@ -749,10 +749,10 @@ static __inline__ void solve_rank0(GpRec12* slots, s32 val, s32 kind, void* obj,
 void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
 {
 
-    register s32                  startr;
-    register GpRoomCoordSet*      set;
-    register MATRIX*              colorMtx;
-    register GpLightSolveScratch* block;
+    register s32                   startr;
+    register WorldCoordRoomLights* roomLights;
+    register MATRIX*               colorMtx;
+    register GpLightSolveScratch*  block;
 
     s32                   n;
     s32                   nOcc;
@@ -763,15 +763,15 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     void**                cutoffPtr;
     WorldCoordPointLight* light;
 
-    startr   = start;
-    set      = Gp_GetRoomCoordSet(&gGameSession->location.loc);
-    colorMtx = extra->colorMtx;
-    nOcc     = 0;
-    if (set == NULL) {
+    startr     = start;
+    roomLights = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+    colorMtx   = extra->colorMtx;
+    nOcc       = 0;
+    if (roomLights == NULL) {
         return;
     }
 
-    n = set->n58 + set->n60 + set->n6C;
+    n = roomLights->directionalLightCount + roomLights->pointLightCount + roomLights->coneLightCount;
     for (idx = 0; idx < 8; idx++) {
         if (Gp_RoomCoords[idx].framesLeft != 0) {
             nOcc++;
@@ -862,23 +862,23 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         } while (pointIndex < 8);
     }
 
-    if (set->n60 > 0) {
-        light = set->arr60;
-        for (i = 0; i < set->n60; i++, light++) {
+    if (roomLights->pointLightCount > 0) {
+        light = roomLights->pointLights;
+        for (i = 0; i < roomLights->pointLightCount; i++, light++) {
             val              = Gp_LightPointRoom(light, (VECTOR3*)&block->pos);
             block->intensity = val;
             solve_rank(block->slots, val, 1, light, &block->slots[3]);
         }
     }
 
-    if (set->n6C > 0) {
+    if (roomLights->coneLightCount > 0) {
         register WorldCoordSpotLight* spot;
         s32                           coneRank;
 
-        spot = set->arr6C;
+        spot = roomLights->coneLights;
         i    = 0;
 
-        for (; i < set->n6C;) {
+        for (; i < roomLights->coneLightCount;) {
             val              = Gp_LightCone(spot, (VECTOR3*)&block->pos);
             coneRank         = 2;
             block->intensity = val;
@@ -888,17 +888,17 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         }
     }
 
-    if (set->n58 > 0) {
-        register WorldCoordLight* obj58;
+    if (roomLights->directionalLightCount > 0) {
+        register WorldCoordLight* directionalLight;
 
-        obj58 = set->arr58;
-        i     = 0;
-        for (; i < set->n58;) {
-            val              = solve_luma(obj58);
+        directionalLight = roomLights->directionalLights;
+        i                = 0;
+        for (; i < roomLights->directionalLightCount;) {
+            val              = solve_luma(directionalLight);
             block->intensity = val;
-            solve_rank0(block->slots, val, 0, obj58, block);
+            solve_rank0(block->slots, val, 0, directionalLight, block);
             i++;
-            obj58++;
+            directionalLight++;
         }
     }
 
@@ -1554,15 +1554,15 @@ static s32 Gp_CountRoomCoords(void)
     return count;
 }
 
-static GpRoomCoordSet* Gp_GetRoomCoordSet(GameLocationKey* arg0)
+static WorldCoordRoomLights* Gp_GetRoomCoordSet(GameLocationKey* arg0)
 {
-    GpRoomCoordRec** mid;
-    GpRoomCoordRec*  rec;
-    GpRoomCoordSet*  result;
+    GpRoomCoordRec**      mid;
+    GpRoomCoordRec*       rec;
+    WorldCoordRoomLights* roomLights;
 
-    result = NULL;
-    mid    = Gp_RoomCoordTables[arg0->stage - 1];
-    rec    = NULL;
+    roomLights = NULL;
+    mid        = Gp_RoomCoordTables[arg0->stage - 1];
+    rec        = NULL;
     if (mid != NULL) {
         rec = mid[arg0->area - 1];
         if (rec != NULL) {
@@ -1570,9 +1570,9 @@ static GpRoomCoordSet* Gp_GetRoomCoordSet(GameLocationKey* arg0)
         }
     }
     if (rec != NULL) {
-        result = rec->field_0;
+        roomLights = rec->field_0;
     }
-    return result;
+    return roomLights;
 }
 
 void func_800D96C8(Task* arg0)
@@ -1757,22 +1757,22 @@ static void Gp_CopyDefaultBound(WorldCoordRoomAmbientEntry* ambientEntry)
 
 static void Gp_BindDefaultMtx(Task* arg0)
 {
-    Task*           slot;
-    TmdObject*      extra;
-    GameActor*      actor;
-    GpRoomCoordSet* result;
-    s32             i;
+    Task*                 slot;
+    TmdObject*            extra;
+    GameActor*            actor;
+    WorldCoordRoomLights* roomLights;
+    s32                   i;
 
     slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     extra = slot->extra.tmd;
     if (slot != NULL) {
-        result = Gp_GetRoomCoordSet(&gGameSession->location.loc);
-        i      = 0;
-        if (result == 0) {
+        roomLights = Gp_GetRoomCoordSet(&gGameSession->location.loc);
+        i          = 0;
+        if (roomLights == 0) {
             taskKill(arg0);
             return;
         }
-        arg0->spawnArg2.pointer = result;
+        arg0->spawnArg2.pointer = roomLights;
         extra->lightMtx         = &Gp_DefaultMtx;
         extra->colorMtx         = &Gp_DefaultMtx2;
         actor                   = slot->work;

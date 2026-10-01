@@ -27,7 +27,7 @@ extern GpViewRec D_shelter_b6_corridor_8017FAB4[];
 
 extern GpSprtRec D_shelter_b6_corridor_8018004C[];
 
-extern GpRoomCoordSet D_shelter_b6_corridor_801800E8;
+extern WorldCoordRoomLights D_shelter_b6_corridor_801800E8;
 
 extern GpObj4A D_shelter_b6_corridor_80180100[];
 

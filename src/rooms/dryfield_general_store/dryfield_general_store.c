@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -95,7 +95,7 @@ extern GpObj3A                    D_dryfield_general_store_80184F78[4];
 extern GpObj4C                    D_dryfield_general_store_801840EC[28];
 extern GpObj4C                    D_dryfield_general_store_8018493C[21];
 extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
-extern GpRoomCoordSet             D_dryfield_general_store_801854E8[1];
+extern WorldCoordRoomLights       D_dryfield_general_store_801854E8[1];
 
 s32  func_dryfield_general_store_8017DDC0(Task*, s32, s32, s32);
 s32  func_dryfield_general_store_8017DDF4(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -1455,8 +1455,8 @@ WorldCoordPointLight D_dryfield_general_store_80185068[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
 };
 
-GpRoomCoordSet D_dryfield_general_store_801854E8[1] = {
-    { 0, NULL, 12, D_dryfield_general_store_80185068, 0, NULL },
+WorldCoordRoomLights D_dryfield_general_store_801854E8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_general_store_80185068), D_dryfield_general_store_80185068, 0, NULL },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17] = {

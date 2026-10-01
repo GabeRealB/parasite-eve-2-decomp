@@ -28,7 +28,7 @@ extern GpViewRec D_neo_ark_r31_8017DA5C[];
 
 extern GpSprtRec D_neo_ark_r31_8017DAF8[];
 
-extern GpRoomCoordSet D_neo_ark_r31_8017DB7C;
+extern WorldCoordRoomLights D_neo_ark_r31_8017DB7C;
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[];
 

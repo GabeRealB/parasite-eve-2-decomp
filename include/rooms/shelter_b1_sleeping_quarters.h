@@ -30,7 +30,7 @@ extern GpViewRec D_shelter_b1_sleeping_quarters_801810F8[];
 
 extern GpSprtRec D_shelter_b1_sleeping_quarters_80182E70[];
 
-extern GpRoomCoordSet D_shelter_b1_sleeping_quarters_80183234;
+extern WorldCoordRoomLights D_shelter_b1_sleeping_quarters_80183234;
 
 extern GpObj4A D_shelter_b1_sleeping_quarters_8018324C[];
 

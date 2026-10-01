@@ -37,7 +37,7 @@ extern GpViewRec D_shelter_b2_septic_tank_80183E30[];
 
 extern GpSprtRec D_shelter_b2_septic_tank_801866F4[];
 
-extern GpRoomCoordSet D_shelter_b2_septic_tank_80186A3C;
+extern WorldCoordRoomLights D_shelter_b2_septic_tank_80186A3C;
 
 extern GpObj4A D_shelter_b2_septic_tank_80186A54[];
 

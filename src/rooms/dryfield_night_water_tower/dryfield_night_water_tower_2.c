@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_water_tower_private.h"
 
@@ -50,10 +50,10 @@
 /// `E744` are only reached by name.
 extern SVECTOR D_dryfield_night_water_tower_8017E744;
 
-extern WorldCollisionGrid D_dryfield_night_water_tower_8017F3F4[1];
-extern GpObj4C            D_dryfield_night_water_tower_80182410[14];
-extern GpObj4C            D_dryfield_night_water_tower_80182838[9];
-extern GpRoomCoordSet     D_dryfield_night_water_tower_801823F8[1];
+extern WorldCollisionGrid   D_dryfield_night_water_tower_8017F3F4[1];
+extern GpObj4C              D_dryfield_night_water_tower_80182410[14];
+extern GpObj4C              D_dryfield_night_water_tower_80182838[9];
+extern WorldCoordRoomLights D_dryfield_night_water_tower_801823F8[1];
 
 extern TaskDesc D_80142604;
 
@@ -807,8 +807,8 @@ WorldCoordPointLight D_dryfield_night_water_tower_80182218[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2339, -2000, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 2000, 3000 },
 };
 
-GpRoomCoordSet D_dryfield_night_water_tower_801823F8[1] = {
-    { 4, D_dryfield_night_water_tower_801820B8, 5, D_dryfield_night_water_tower_80182218, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_water_tower_801823F8[1] = {
+    { ARRAY_SIZE(D_dryfield_night_water_tower_801820B8), D_dryfield_night_water_tower_801820B8, ARRAY_SIZE(D_dryfield_night_water_tower_80182218), D_dryfield_night_water_tower_80182218, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_water_tower_80182410[14] = {

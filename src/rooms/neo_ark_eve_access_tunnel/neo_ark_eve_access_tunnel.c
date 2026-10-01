@@ -333,8 +333,8 @@ WorldCoordPointLight D_neo_ark_eve_access_tunnel_801800F4[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3268, -2216, 973 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 3000, 6000 },
 };
 
-GpRoomCoordSet D_neo_ark_eve_access_tunnel_801802D4[1] = {
-    { 0, NULL, 5, D_neo_ark_eve_access_tunnel_801800F4, 0, NULL },
+WorldCoordRoomLights D_neo_ark_eve_access_tunnel_801802D4[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_eve_access_tunnel_801800F4), D_neo_ark_eve_access_tunnel_801800F4, 0, NULL },
 };
 
 GpObj4C D_neo_ark_eve_access_tunnel_801802EC[6] = {

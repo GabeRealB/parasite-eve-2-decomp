@@ -68,11 +68,11 @@ static const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
     { func_neo_ark_north_promenade_8017D67C, func_neo_ark_north_promenade_8017D6C0, taskKill },
 };
 
-extern WorldCollisionGrid D_neo_ark_north_promenade_801823EC[1];
-extern GpObj3A            D_neo_ark_north_promenade_8018328C[1];
-extern GpObj4C            D_neo_ark_north_promenade_80182DB4[8];
-extern GpObj4C            D_neo_ark_north_promenade_801830C4[6];
-extern GpRoomCoordSet     D_neo_ark_north_promenade_80182D9C[1];
+extern WorldCollisionGrid   D_neo_ark_north_promenade_801823EC[1];
+extern GpObj3A              D_neo_ark_north_promenade_8018328C[1];
+extern GpObj4C              D_neo_ark_north_promenade_80182DB4[8];
+extern GpObj4C              D_neo_ark_north_promenade_801830C4[6];
+extern WorldCoordRoomLights D_neo_ark_north_promenade_80182D9C[1];
 
 s32 func_neo_ark_north_promenade_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_north_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -310,8 +310,8 @@ WorldCoordLight D_neo_ark_north_promenade_80182CEC[2] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -332, 260, -220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1310, 1290, 1228 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_neo_ark_north_promenade_80182D9C[1] = {
-    { 2, D_neo_ark_north_promenade_80182CEC, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_neo_ark_north_promenade_80182D9C[1] = {
+    { ARRAY_SIZE(D_neo_ark_north_promenade_80182CEC), D_neo_ark_north_promenade_80182CEC, 0, NULL, 0, NULL },
 };
 
 GpObj4C D_neo_ark_north_promenade_80182DB4[8] = {

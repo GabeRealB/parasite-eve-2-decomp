@@ -120,7 +120,7 @@ extern GpObj3A                    D_dryfield_junk_yard_80181518[1];
 extern GpObj4C                    D_dryfield_junk_yard_80180C7C[10];
 extern GpObj4C                    D_dryfield_junk_yard_80180F74[19];
 extern WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8];
-extern GpRoomCoordSet             D_dryfield_junk_yard_80181BB4[1];
+extern WorldCoordRoomLights       D_dryfield_junk_yard_80181BB4[1];
 extern ActorTransform             D_dryfield_junk_yard_8017DE00;
 extern TaskDesc                   D_8014D8A4;
 void                              func_dryfield_junk_yard_8017DC54(s8);
@@ -1453,8 +1453,8 @@ DryfieldJunkYardSpotLightStorage D_dryfield_junk_yard_80181854 = {
     },
 };
 
-GpRoomCoordSet D_dryfield_junk_yard_80181BB4[1] = {
-    { 0, NULL, 8, D_dryfield_junk_yard_80181554, 2, D_dryfield_junk_yard_80181854.active },
+WorldCoordRoomLights D_dryfield_junk_yard_80181BB4[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_junk_yard_80181554), D_dryfield_junk_yard_80181554, ARRAY_SIZE(D_dryfield_junk_yard_80181854.active), D_dryfield_junk_yard_80181854.active },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8] = {

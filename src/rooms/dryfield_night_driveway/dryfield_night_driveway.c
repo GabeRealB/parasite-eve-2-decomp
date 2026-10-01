@@ -112,7 +112,7 @@ extern GpObj3A                    D_dryfield_night_driveway_80181FFC[2];
 extern GpObj4C                    D_dryfield_night_driveway_801818E8[6];
 extern GpObj4C                    D_dryfield_night_driveway_80181DC8[4];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_driveway_80182074[11];
-extern GpRoomCoordSet             D_dryfield_night_driveway_80181DB0[1];
+extern WorldCoordRoomLights       D_dryfield_night_driveway_80181DB0[1];
 
 extern AnimationPlayRequest D_dryfield_night_driveway_8017F380;
 extern AnimationPlayRequest D_dryfield_night_driveway_8017F3A8;
@@ -826,8 +826,8 @@ WorldCoordPointLight D_dryfield_night_driveway_80181AB0[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4860, -2500, 705 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3686, 4096 }, { 0, 0 } }, 1000, 3000 },
 };
 
-GpRoomCoordSet D_dryfield_night_driveway_80181DB0[1] = {
-    { 0, NULL, 8, D_dryfield_night_driveway_80181AB0, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_driveway_80181DB0[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_driveway_80181AB0), D_dryfield_night_driveway_80181AB0, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_driveway_80181DC8[4] = {

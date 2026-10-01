@@ -100,15 +100,15 @@ extern SVECTOR D_dryfield_gas_station_80183144;
 void func_dryfield_gas_station_80180944(void);
 void func_dryfield_gas_station_80180B2C(s16);
 
-extern WorldCollisionGrid D_dryfield_gas_station_80183EA4[1];
-extern GpObj4C            D_dryfield_gas_station_80184350[11];
-extern GpObj4C            D_dryfield_gas_station_80184694[10];
-extern GpRoomCoordSet     D_dryfield_gas_station_80184B48[1];
-extern TaskDesc           D_80142604;
-extern TaskDesc           D_8014D8A4;
-void                      func_dryfield_gas_station_801807E0(Task*);
-void                      func_dryfield_gas_station_80180984(Task*);
-void                      func_dryfield_gas_station_80180A60(void);
+extern WorldCollisionGrid   D_dryfield_gas_station_80183EA4[1];
+extern GpObj4C              D_dryfield_gas_station_80184350[11];
+extern GpObj4C              D_dryfield_gas_station_80184694[10];
+extern WorldCoordRoomLights D_dryfield_gas_station_80184B48[1];
+extern TaskDesc             D_80142604;
+extern TaskDesc             D_8014D8A4;
+void                        func_dryfield_gas_station_801807E0(Task*);
+void                        func_dryfield_gas_station_80180984(Task*);
+void                        func_dryfield_gas_station_80180A60(void);
 
 TaskDesc D_dryfield_gas_station_80181E7C[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_gas_station_801802C0, { .value = 0 } },
@@ -506,8 +506,8 @@ WorldCoordLight D_dryfield_gas_station_80184A98[2] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, 2000, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 1966, 2048 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_dryfield_gas_station_80184B48[1] = {
-    { 2, D_dryfield_gas_station_80184A98, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_dryfield_gas_station_80184B48[1] = {
+    { ARRAY_SIZE(D_dryfield_gas_station_80184A98), D_dryfield_gas_station_80184A98, 0, NULL, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_dryfield_gas_station_80184B60 = {

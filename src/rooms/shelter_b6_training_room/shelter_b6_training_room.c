@@ -1,4 +1,4 @@
-#include "types.h"
+#include "common.h"
 
 #include "main/task_types.h"
 
@@ -251,7 +251,7 @@ WorldCoordSpotLight D_shelter_b6_training_room_80185258[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -5750, 9740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
 };
 
-GpRoomCoordSet D_shelter_b6_training_room_80185768 = { 0, NULL, 12, D_shelter_b6_training_room_80184DD8, 12, D_shelter_b6_training_room_80185258 };
+WorldCoordRoomLights D_shelter_b6_training_room_80185768 = { 0, NULL, ARRAY_SIZE(D_shelter_b6_training_room_80184DD8), D_shelter_b6_training_room_80184DD8, ARRAY_SIZE(D_shelter_b6_training_room_80185258), D_shelter_b6_training_room_80185258 };
 
 GpObj4C D_shelter_b6_training_room_80185780[7] = {
     { NULL, NULL, NULL, { 2497, -2912, 4352, 0 }, { { 3360, -3312, 0, 0 }, { -3360, -3312, 0, 0 }, { 3360, 3312, 0, 0 }, { -3360, 3312, 0, 0 } }, { 0, 0, 4106, 0 }, { 0, 0, 4096, 0 }, 4692, 0, 4, 3, 1, 0 },

@@ -67,11 +67,11 @@
 /// is also reached through its own name.
 
 // Indexed views below share one contiguous table.
-extern WorldCollisionGrid D_shelter_b1_elevator_hall_80183414[1];
-extern GpObj3A            D_shelter_b1_elevator_hall_80184748[1];
-extern GpObj4C            D_shelter_b1_elevator_hall_80184288[10];
-extern GpObj4C            D_shelter_b1_elevator_hall_80184580[6];
-extern GpRoomCoordSet     D_shelter_b1_elevator_hall_80184270[1];
+extern WorldCollisionGrid   D_shelter_b1_elevator_hall_80183414[1];
+extern GpObj3A              D_shelter_b1_elevator_hall_80184748[1];
+extern GpObj4C              D_shelter_b1_elevator_hall_80184288[10];
+extern GpObj4C              D_shelter_b1_elevator_hall_80184580[6];
+extern WorldCoordRoomLights D_shelter_b1_elevator_hall_80184270[1];
 
 TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
@@ -369,8 +369,8 @@ WorldCoordPointLight D_shelter_b1_elevator_hall_80183D30[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4076, -601, -1312 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 900, 1800 },
 };
 
-GpRoomCoordSet D_shelter_b1_elevator_hall_80184270[1] = {
-    { 0, NULL, 14, D_shelter_b1_elevator_hall_80183D30, 0, NULL },
+WorldCoordRoomLights D_shelter_b1_elevator_hall_80184270[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_b1_elevator_hall_80183D30), D_shelter_b1_elevator_hall_80183D30, 0, NULL },
 };
 
 GpObj4C D_shelter_b1_elevator_hall_80184288[10] = {

@@ -8,7 +8,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -111,7 +111,7 @@ extern WorldCollisionGrid   D_acropolis_east_elevator_hall_80186838[1];
 extern GpObj4C              D_acropolis_east_elevator_hall_8018685C[6];
 extern GpObj4C              D_acropolis_east_elevator_hall_80186A24[7];
 extern EvsSceneKey          D_acropolis_east_elevator_hall_80185CB4;
-extern GpRoomCoordSet       D_acropolis_east_elevator_hall_80187A44[1];
+extern WorldCoordRoomLights D_acropolis_east_elevator_hall_80187A44[1];
 s32                         func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                         func_acropolis_east_elevator_hall_8017F370(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                         func_acropolis_east_elevator_hall_8017F378(Task*, s32, DirectionActionRequest* request, s32);
@@ -616,8 +616,8 @@ WorldCoordPointLight D_acropolis_east_elevator_hall_801878C4[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4070, -1700, -1420 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
 };
 
-GpRoomCoordSet D_acropolis_east_elevator_hall_80187A44[1] = {
-    { 0, NULL, 4, D_acropolis_east_elevator_hall_801878C4, 0, NULL },
+WorldCoordRoomLights D_acropolis_east_elevator_hall_80187A44[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_east_elevator_hall_801878C4), D_acropolis_east_elevator_hall_801878C4, 0, NULL },
 };
 
 GpViewRec D_acropolis_east_elevator_hall_80187A5C[7] = {

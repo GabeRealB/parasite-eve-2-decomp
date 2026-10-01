@@ -17,7 +17,7 @@ extern GpObj4C D_dryfield_factory_80189694[14];
 
 extern GpObj4C D_dryfield_factory_80189ABC[20];
 
-extern GpRoomCoordSet D_dryfield_factory_8018A28C[1];
+extern WorldCoordRoomLights D_dryfield_factory_8018A28C[1];
 
 extern WorldCoordRoomAmbientEntry D_dryfield_factory_8018A2A4[20];
 

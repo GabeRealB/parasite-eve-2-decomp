@@ -767,7 +767,7 @@ WorldCoordPointLight D_shelter_b6_nursery_801870B4[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1491, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
 };
 
-GpRoomCoordSet D_shelter_b6_nursery_80187294 = { 0, NULL, 5, D_shelter_b6_nursery_801870B4, 0, NULL };
+WorldCoordRoomLights D_shelter_b6_nursery_80187294 = { 0, NULL, ARRAY_SIZE(D_shelter_b6_nursery_801870B4), D_shelter_b6_nursery_801870B4, 0, NULL };
 
 GpObj4C D_shelter_b6_nursery_801872AC[6] = {
     { NULL, NULL, NULL, { 5616, -1504, 4352, 0 }, { { 2032, -1904, 0, 0 }, { -2032, -1904, 0, 0 }, { 2032, 1904, 0, 0 }, { -2032, 1904, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 2780, 0, 5, 4, 1, 0 },

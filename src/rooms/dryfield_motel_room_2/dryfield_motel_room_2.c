@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -37,7 +37,7 @@ extern GpObj3A            D_dryfield_motel_room_2_80180140[2];
 extern GpObj4C            D_dryfield_motel_room_2_8017FD18[8];
 extern GpObj4C            D_dryfield_motel_room_2_8017FF78[6];
 
-extern GpRoomCoordSet D_dryfield_motel_room_2_80180398[1];
+extern WorldCoordRoomLights D_dryfield_motel_room_2_80180398[1];
 
 GpMsgEntry D_dryfield_motel_room_2_8017D6BC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_2_8017D5D8 },
@@ -586,8 +586,8 @@ WorldCoordPointLight D_dryfield_motel_room_2_801801B8[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4606, -1570, 908 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3100, 3100, 3100 }, { 0, 0 } }, 841, 1490 },
 };
 
-GpRoomCoordSet D_dryfield_motel_room_2_80180398[1] = {
-    { 0, NULL, 5, D_dryfield_motel_room_2_801801B8, 0, NULL },
+WorldCoordRoomLights D_dryfield_motel_room_2_80180398[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_motel_room_2_801801B8), D_dryfield_motel_room_2_801801B8, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_2_801803B0[2] = {

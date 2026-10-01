@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -61,7 +61,7 @@ extern WorldCollisionGrid         D_dryfield_night_warehouse_8017EF08[1];
 extern GpObj4C                    D_dryfield_night_warehouse_8017F6F4[4];
 extern GpObj4C                    D_dryfield_night_warehouse_8017F84C[10];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_warehouse_8017F824[5];
-extern GpRoomCoordSet             D_dryfield_night_warehouse_8017F6DC[1];
+extern WorldCoordRoomLights       D_dryfield_night_warehouse_8017F6DC[1];
 
 GpMsgEntry D_dryfield_night_warehouse_8017E830[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_warehouse_8017D5D8 },
@@ -267,8 +267,8 @@ WorldCoordPointLight D_dryfield_night_warehouse_8017F49C[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3902, -1641, -3609 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2458, 2870, 2871 }, { 0, 0 } }, 1420, 4454 },
 };
 
-GpRoomCoordSet D_dryfield_night_warehouse_8017F6DC[1] = {
-    { 0, NULL, 6, D_dryfield_night_warehouse_8017F49C, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_warehouse_8017F6DC[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_warehouse_8017F49C), D_dryfield_night_warehouse_8017F49C, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_warehouse_8017F6F4[4] = {

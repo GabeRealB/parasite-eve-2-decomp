@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -251,7 +251,7 @@ WorldCoordPointLight D_shelter_b1_golem_freezer_1_8017EE04[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2916, -3502, -3635 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 2048, 1865 }, { 0, 0 } }, 6500, 8500 },
 };
 
-GpRoomCoordSet D_shelter_b1_golem_freezer_1_8017EE64 = { 0, NULL, 1, D_shelter_b1_golem_freezer_1_8017EE04, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_golem_freezer_1_8017EE64 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_golem_freezer_1_8017EE04), D_shelter_b1_golem_freezer_1_8017EE04, 0, NULL };
 
 GpObj4C D_shelter_b1_golem_freezer_1_8017EE7C[4] = {
     { NULL, NULL, NULL, { 3643, -1712, 668, 0 }, { { -50, -2576, -1587, 0 }, { 50, -2576, 1588, 0 }, { -50, 2576, -1587, 0 }, { 50, 2576, 1588, 0 } }, { 4098, 0, -130, 0 }, { 0, 0, 4096, 0 }, 3018, 0, 2, 3, 1, 0 },

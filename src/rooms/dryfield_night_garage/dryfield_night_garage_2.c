@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_garage_private.h"
 
@@ -81,7 +81,7 @@ extern GpObj4C            D_dryfield_night_garage_80186734[12];
 
 extern GpObj4C                    D_dryfield_night_garage_8018723C[7];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16];
-extern GpRoomCoordSet             D_dryfield_night_garage_80186D64[1];
+extern WorldCoordRoomLights       D_dryfield_night_garage_80186D64[1];
 
 void func_dryfield_night_garage_80180B20(Task*);
 void func_dryfield_night_garage_80180CEC(Task*);
@@ -869,8 +869,8 @@ WorldCoordPointLight D_dryfield_night_garage_80186AC4[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3110, -1735, 2693 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3277, 3281, 3290 }, { 0, 0 } }, 0, 4007 },
 };
 
-GpRoomCoordSet D_dryfield_night_garage_80186D64[1] = {
-    { 0, NULL, 7, D_dryfield_night_garage_80186AC4, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_garage_80186D64[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_garage_80186AC4), D_dryfield_night_garage_80186AC4, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_garage_80186D7C[16] = {

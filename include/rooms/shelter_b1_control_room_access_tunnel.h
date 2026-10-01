@@ -27,7 +27,7 @@ extern GpViewRec D_shelter_b1_control_room_access_tunnel_80182094[];
 
 extern GpSprtRec D_shelter_b1_control_room_access_tunnel_80182130[];
 
-extern GpRoomCoordSet D_shelter_b1_control_room_access_tunnel_801822D4;
+extern WorldCoordRoomLights D_shelter_b1_control_room_access_tunnel_801822D4;
 
 extern GpObj4A D_shelter_b1_control_room_access_tunnel_801822EC[];
 

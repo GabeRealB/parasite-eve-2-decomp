@@ -382,7 +382,7 @@ extern u16 D_dryfield_water_tower_801827A0[];
 static u16 func_dryfield_water_tower_8017EB7C(Task* arg0);
 static s32 func_dryfield_water_tower_8017DFAC(Task* arg0);
 
-extern GpRoomCoordSet D_dryfield_water_tower_801874E4[1];
+extern WorldCoordRoomLights D_dryfield_water_tower_801874E4[1];
 
 extern WorldCollisionGrid D_dryfield_water_tower_801835C4[1];
 extern GpObj4C            D_dryfield_water_tower_8018665C[14];
@@ -1650,8 +1650,8 @@ WorldCoordPointLight D_dryfield_water_tower_80187304[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3966, -2581, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1800, 3001 },
 };
 
-GpRoomCoordSet D_dryfield_water_tower_801874E4[1] = {
-    { 4, D_dryfield_water_tower_801871A4, 5, D_dryfield_water_tower_80187304, 0, NULL },
+WorldCoordRoomLights D_dryfield_water_tower_801874E4[1] = {
+    { ARRAY_SIZE(D_dryfield_water_tower_801871A4), D_dryfield_water_tower_801871A4, ARRAY_SIZE(D_dryfield_water_tower_80187304), D_dryfield_water_tower_80187304, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tower_801874FC[2] = {

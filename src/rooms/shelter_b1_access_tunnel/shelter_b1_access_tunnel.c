@@ -388,7 +388,7 @@ WorldCoordPointLight D_shelter_b1_access_tunnel_8017F83C[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3966, -2581, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1800, 3001 },
 };
 
-GpRoomCoordSet D_shelter_b1_access_tunnel_8017FA1C = { 4, D_shelter_b1_access_tunnel_8017F6DC, 5, D_shelter_b1_access_tunnel_8017F83C, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_access_tunnel_8017FA1C = { ARRAY_SIZE(D_shelter_b1_access_tunnel_8017F6DC), D_shelter_b1_access_tunnel_8017F6DC, ARRAY_SIZE(D_shelter_b1_access_tunnel_8017F83C), D_shelter_b1_access_tunnel_8017F83C, 0, NULL };
 
 GpObj4C D_shelter_b1_access_tunnel_8017FA34[6] = {
     { NULL, NULL, NULL, { 0x2711, -1536, 5121, 0 }, { { -1936, -2016, 672, 0 }, { 1936, -2016, -672, 0 }, { -1936, 2016, 672, 0 }, { 1936, 2016, -672, 0 } }, { -1344, 0, -3872, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 5, 2, 1, 0 },

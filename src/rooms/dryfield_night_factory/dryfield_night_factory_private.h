@@ -12,7 +12,7 @@
 
 #include "rooms/room_common.h"
 
-extern GpRoomCoordSet D_dryfield_night_factory_80189C88[1];
+extern WorldCoordRoomLights D_dryfield_night_factory_80189C88[1];
 
 extern GpObj4C D_dryfield_night_factory_80189CA0[14];
 

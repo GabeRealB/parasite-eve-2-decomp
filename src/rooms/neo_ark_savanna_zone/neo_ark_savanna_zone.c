@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -74,7 +74,7 @@ extern GpObj3A                    D_neo_ark_savanna_zone_801808CC[1];
 extern GpObj4C                    D_neo_ark_savanna_zone_801804EC[4];
 extern GpObj4C                    D_neo_ark_savanna_zone_8018061C[5];
 extern WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5];
-extern GpRoomCoordSet             D_neo_ark_savanna_zone_801804D4[1];
+extern WorldCoordRoomLights       D_neo_ark_savanna_zone_801804D4[1];
 extern TaskDesc                   D_8014D8A4;
 s32                               func_neo_ark_savanna_zone_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_neo_ark_savanna_zone_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -286,8 +286,8 @@ WorldCoordLight D_neo_ark_savanna_zone_80180424[2] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -834, -528, -362 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4243, 4202, 4138 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_neo_ark_savanna_zone_801804D4[1] = {
-    { 2, D_neo_ark_savanna_zone_80180424, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_neo_ark_savanna_zone_801804D4[1] = {
+    { ARRAY_SIZE(D_neo_ark_savanna_zone_80180424), D_neo_ark_savanna_zone_80180424, 0, NULL, 0, NULL },
 };
 
 GpObj4C D_neo_ark_savanna_zone_801804EC[4] = {

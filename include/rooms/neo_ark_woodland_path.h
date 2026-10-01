@@ -29,7 +29,7 @@ extern GpViewRec D_neo_ark_woodland_path_80181D80[];
 
 extern GpSprtRec D_neo_ark_woodland_path_80183C6C[];
 
-extern GpRoomCoordSet D_neo_ark_woodland_path_80183F84;
+extern WorldCoordRoomLights D_neo_ark_woodland_path_80183F84;
 
 extern GpObj4A D_neo_ark_woodland_path_80183F9C[];
 

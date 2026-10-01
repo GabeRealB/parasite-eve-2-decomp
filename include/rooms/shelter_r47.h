@@ -34,7 +34,7 @@ extern GpViewRec D_shelter_r47_801882B0[];
 
 extern GpSprtRec D_shelter_r47_80189C68[];
 
-extern GpRoomCoordSet D_shelter_r47_8018A5BC;
+extern WorldCoordRoomLights D_shelter_r47_8018A5BC;
 
 extern WorldCollisionSurfaceProperties* D_shelter_r47_8018A618[];
 

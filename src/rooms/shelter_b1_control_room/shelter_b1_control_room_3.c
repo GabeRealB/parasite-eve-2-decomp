@@ -27,7 +27,7 @@
 
 #include "shelter_b1_control_room_private.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "../../shared/room_visual_effects.h"
 
@@ -380,7 +380,7 @@ WorldCoordPointLight D_shelter_b1_control_room_8018341C[2] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9530, -2550, -4380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 2129, 1966 }, { 0, 0 } }, 2000, 2750 },
 };
 
-GpRoomCoordSet D_shelter_b1_control_room_801834DC = { 0, NULL, 2, D_shelter_b1_control_room_8018341C, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_control_room_801834DC = { 0, NULL, ARRAY_SIZE(D_shelter_b1_control_room_8018341C), D_shelter_b1_control_room_8018341C, 0, NULL };
 
 GpObj4C D_shelter_b1_control_room_801834F4[4] = {
     { NULL, NULL, NULL, { 6251, -1536, -4211, 0 }, { { -2, -2016, -2627, 0 }, { 2, -2016, 2628, 0 }, { -2, 2016, -2627, 0 }, { 2, 2016, 2628, 0 } }, { 4096, 0, -4, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 2, 3, 1, 0 },

@@ -1573,7 +1573,7 @@ ShelterR47SpotLightStorage D_shelter_r47_8018A1F0 = {
     },
 };
 
-GpRoomCoordSet D_shelter_r47_8018A5BC = { 0, NULL, 9, D_shelter_r47_80189E90, 2, D_shelter_r47_8018A1F0.active };
+WorldCoordRoomLights D_shelter_r47_8018A5BC = { 0, NULL, ARRAY_SIZE(D_shelter_r47_80189E90), D_shelter_r47_80189E90, ARRAY_SIZE(D_shelter_r47_8018A1F0.active), D_shelter_r47_8018A1F0.active };
 
 WorldCollisionFootstepSounds D_shelter_r47_8018A5D4 = {
     0x10000059,

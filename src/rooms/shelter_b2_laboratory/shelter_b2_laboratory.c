@@ -904,7 +904,7 @@ WorldCoordPointLight D_shelter_b2_laboratory_80185584[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2B0A, -3109, 2300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 562, 1280, 1485 }, { 0, 0 } }, 500, 1500 },
 };
 
-GpRoomCoordSet D_shelter_b2_laboratory_80185944 = { 0, NULL, 10, D_shelter_b2_laboratory_80185584, 0, NULL };
+WorldCoordRoomLights D_shelter_b2_laboratory_80185944 = { 0, NULL, ARRAY_SIZE(D_shelter_b2_laboratory_80185584), D_shelter_b2_laboratory_80185584, 0, NULL };
 
 GpObj4C D_shelter_b2_laboratory_8018595C[14] = {
     { NULL, NULL, NULL, { 5680, -1616, 1944, 0 }, { { 28, -3232, -2247, 0 }, { -47, -3232, 2228, 0 }, { 28, 3232, -2247, 0 }, { -47, 3232, 2228, 0 } }, { 4098, 0, 68, 0 }, { 0, 0, 4096, 0 }, 3924, 0, 4, 2, 1, 0 },

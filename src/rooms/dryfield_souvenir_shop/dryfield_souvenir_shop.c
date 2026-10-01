@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -50,10 +50,10 @@ s32 func_dryfield_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg
 s32 func_dryfield_souvenir_shop_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_souvenir_shop_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_souvenir_shop_8017E5DC[1];
-extern GpObj4C            D_dryfield_souvenir_shop_8017EEF4[2];
-extern GpObj4C            D_dryfield_souvenir_shop_8017EF8C[12];
-extern GpRoomCoordSet     D_dryfield_souvenir_shop_8017F55C[1];
+extern WorldCollisionGrid   D_dryfield_souvenir_shop_8017E5DC[1];
+extern GpObj4C              D_dryfield_souvenir_shop_8017EEF4[2];
+extern GpObj4C              D_dryfield_souvenir_shop_8017EF8C[12];
+extern WorldCoordRoomLights D_dryfield_souvenir_shop_8017F55C[1];
 
 GpMsgEntry D_dryfield_souvenir_shop_8017E014[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_souvenir_shop_8017D5D8 },
@@ -302,8 +302,8 @@ WorldCoordPointLight D_dryfield_souvenir_shop_8017F31C[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3700, -120, -2840 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 641, 879 },
 };
 
-GpRoomCoordSet D_dryfield_souvenir_shop_8017F55C[1] = {
-    { 0, NULL, 6, D_dryfield_souvenir_shop_8017F31C, 0, NULL },
+WorldCoordRoomLights D_dryfield_souvenir_shop_8017F55C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_souvenir_shop_8017F31C), D_dryfield_souvenir_shop_8017F31C, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_souvenir_shop_8017F574[3] = {

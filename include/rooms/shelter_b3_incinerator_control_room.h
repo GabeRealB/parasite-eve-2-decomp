@@ -27,7 +27,7 @@ extern GpViewRec D_shelter_b3_incinerator_control_room_80181CE4[];
 
 extern GpSprtRec D_shelter_b3_incinerator_control_room_80182140[];
 
-extern GpRoomCoordSet D_shelter_b3_incinerator_control_room_801824A0;
+extern WorldCoordRoomLights D_shelter_b3_incinerator_control_room_801824A0;
 
 extern GpObj4A D_shelter_b3_incinerator_control_room_801824B8[];
 

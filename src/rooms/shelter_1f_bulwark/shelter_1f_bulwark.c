@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -82,11 +82,11 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void func_shelter_1f_bulwark_8017DBD4(Task* task);
 static void func_shelter_1f_bulwark_8017DC18(Task* task);
 
-extern WorldCollisionGrid D_shelter_1f_bulwark_80180648[1];
-extern GpObj3A            D_shelter_1f_bulwark_80180E08[2];
-extern GpObj4C            D_shelter_1f_bulwark_80180A8C[2];
-extern GpObj4C            D_shelter_1f_bulwark_80180B24[8];
-extern GpRoomCoordSet     D_shelter_1f_bulwark_80180A74[1];
+extern WorldCollisionGrid   D_shelter_1f_bulwark_80180648[1];
+extern GpObj3A              D_shelter_1f_bulwark_80180E08[2];
+extern GpObj4C              D_shelter_1f_bulwark_80180A8C[2];
+extern GpObj4C              D_shelter_1f_bulwark_80180B24[8];
+extern WorldCoordRoomLights D_shelter_1f_bulwark_80180A74[1];
 
 s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -222,8 +222,8 @@ WorldCoordPointLight D_shelter_1f_bulwark_801807D4[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -6000, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 1638, 1228 }, { 0, 0 } }, 6000, 7000 },
 };
 
-GpRoomCoordSet D_shelter_1f_bulwark_80180A74[1] = {
-    { 0, NULL, 7, D_shelter_1f_bulwark_801807D4, 0, NULL },
+WorldCoordRoomLights D_shelter_1f_bulwark_80180A74[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_1f_bulwark_801807D4), D_shelter_1f_bulwark_801807D4, 0, NULL },
 };
 
 GpObj4C D_shelter_1f_bulwark_80180A8C[2] = {

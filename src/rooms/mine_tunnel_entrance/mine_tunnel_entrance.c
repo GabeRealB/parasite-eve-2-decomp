@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -74,7 +74,7 @@ extern WorldCollisionGrid         D_mine_tunnel_entrance_8017E0C0[1];
 extern GpObj4C                    D_mine_tunnel_entrance_8017ECEC[8];
 extern GpObj4C                    D_mine_tunnel_entrance_8017EF4C[4];
 extern WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7];
-extern GpRoomCoordSet             D_mine_tunnel_entrance_8017ECD4[1];
+extern WorldCoordRoomLights       D_mine_tunnel_entrance_8017ECD4[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -332,8 +332,8 @@ WorldCoordPointLight D_mine_tunnel_entrance_8017EA94[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2140, -2000, -90 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3112, 2211 }, { 0, 0 } }, 500, 3000 },
 };
 
-GpRoomCoordSet D_mine_tunnel_entrance_8017ECD4[1] = {
-    { 0, NULL, 6, D_mine_tunnel_entrance_8017EA94, 0, NULL },
+WorldCoordRoomLights D_mine_tunnel_entrance_8017ECD4[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mine_tunnel_entrance_8017EA94), D_mine_tunnel_entrance_8017EA94, 0, NULL },
 };
 
 GpObj4C D_mine_tunnel_entrance_8017ECEC[8] = {

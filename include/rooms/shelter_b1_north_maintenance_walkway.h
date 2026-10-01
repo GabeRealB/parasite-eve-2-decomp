@@ -27,7 +27,7 @@ extern GpViewRec D_shelter_b1_north_maintenance_walkway_80184F64[];
 
 extern GpSprtRec D_shelter_b1_north_maintenance_walkway_801853AC[];
 
-extern GpRoomCoordSet D_shelter_b1_north_maintenance_walkway_801855D4;
+extern WorldCoordRoomLights D_shelter_b1_north_maintenance_walkway_801855D4;
 
 extern GpObj4A D_shelter_b1_north_maintenance_walkway_801855EC[];
 

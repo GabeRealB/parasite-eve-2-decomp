@@ -384,7 +384,7 @@ extern GpObj4C                    D_shelter_b1_underground_parking_8018C844[20];
 extern GpObj4C                    D_shelter_b1_underground_parking_8018CE34[16];
 extern GpObj4C                    D_shelter_b1_underground_parking_8018D2F4[11];
 extern WorldCoordRoomAmbientEntry D_shelter_b1_underground_parking_8018D638[25];
-extern GpRoomCoordSet             D_shelter_b1_underground_parking_8018B07C[1];
+extern WorldCoordRoomLights       D_shelter_b1_underground_parking_8018B07C[1];
 s32                               func_shelter_b1_underground_parking_80182830(Task*, s32, RoomEventMsg*, TaskMessageArg);
 s32                               func_shelter_b1_underground_parking_80182A60(Task*, s32, s32, s32);
 s32                               func_shelter_b1_underground_parking_80183284(Task*, s32, s32, TaskMessageArg);
@@ -1371,8 +1371,8 @@ WorldCoordPointLight D_shelter_b1_underground_parking_8018ACBC[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7370, -2138, -2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 2560, 4352 },
 };
 
-GpRoomCoordSet D_shelter_b1_underground_parking_8018B07C[1] = {
-    { 0, NULL, 10, D_shelter_b1_underground_parking_8018ACBC, 0, NULL },
+WorldCoordRoomLights D_shelter_b1_underground_parking_8018B07C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_b1_underground_parking_8018ACBC), D_shelter_b1_underground_parking_8018ACBC, 0, NULL },
 };
 
 GpObj4C D_shelter_b1_underground_parking_8018B094[8] = {

@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "acropolis_helicopter_landing_pad_private.h"
 
@@ -207,8 +207,8 @@ WorldCoordPointLight D_acropolis_helicopter_landing_pad_801862A8[22] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1200, -4205, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2129, 2211 }, { 0, 0 } }, 500, 2000 },
 };
 
-GpRoomCoordSet D_acropolis_helicopter_landing_pad_80186AE8[1] = {
-    { 1, D_acropolis_helicopter_landing_pad_80186250, 22, D_acropolis_helicopter_landing_pad_801862A8, 0, NULL },
+WorldCoordRoomLights D_acropolis_helicopter_landing_pad_80186AE8[1] = {
+    { ARRAY_SIZE(D_acropolis_helicopter_landing_pad_80186250), D_acropolis_helicopter_landing_pad_80186250, ARRAY_SIZE(D_acropolis_helicopter_landing_pad_801862A8), D_acropolis_helicopter_landing_pad_801862A8, 0, NULL },
 };
 
 SpriteBatch D_acropolis_helicopter_landing_pad_80186B00[2] = {

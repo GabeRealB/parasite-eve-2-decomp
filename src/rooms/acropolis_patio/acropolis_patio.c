@@ -137,12 +137,12 @@ static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { func_acropolis_patio_8017D5EC, func_acropolis_patio_8017DF7C, taskKill },
 };
 
-extern WorldCollisionGrid D_acropolis_patio_80183DF8[1];
-extern GpObj3A            D_acropolis_patio_80184964[2];
-extern GpObj4C            D_acropolis_patio_80183E1C[14];
-extern GpObj4C            D_acropolis_patio_80184244[12];
-extern GpObj4C            D_acropolis_patio_801845D4[12];
-extern GpRoomCoordSet     D_acropolis_patio_80186D44[1];
+extern WorldCollisionGrid   D_acropolis_patio_80183DF8[1];
+extern GpObj3A              D_acropolis_patio_80184964[2];
+extern GpObj4C              D_acropolis_patio_80183E1C[14];
+extern GpObj4C              D_acropolis_patio_80184244[12];
+extern GpObj4C              D_acropolis_patio_801845D4[12];
+extern WorldCoordRoomLights D_acropolis_patio_80186D44[1];
 
 extern AnimationPlayRequest D_acropolis_patio_8018261C;
 extern ActorTransform       D_acropolis_patio_80182690;
@@ -1508,8 +1508,8 @@ WorldCoordPointLight D_acropolis_patio_80186444[24] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7200, -3490, -2150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2949, 2867, 2867 }, { 0, 0 } }, 500, 5000 },
 };
 
-GpRoomCoordSet D_acropolis_patio_80186D44[1] = {
-    { 0, NULL, 24, D_acropolis_patio_80186444, 0, NULL },
+WorldCoordRoomLights D_acropolis_patio_80186D44[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_patio_80186444), D_acropolis_patio_80186444, 0, NULL },
 };
 
 GpViewRec D_acropolis_patio_80186D5C[19] = {

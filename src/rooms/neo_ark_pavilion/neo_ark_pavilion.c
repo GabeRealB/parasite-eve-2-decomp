@@ -103,12 +103,12 @@ s32 func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, TaskMessageArg);
 s32 func_neo_ark_pavilion_8017EB78(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_neo_ark_pavilion_801841E4[1];
-extern GpObj3A            D_neo_ark_pavilion_8018798C[1];
-extern GpObj4C            D_neo_ark_pavilion_80187584[2];
-extern GpObj4C            D_neo_ark_pavilion_8018772C[4];
-extern GpObj4C            D_neo_ark_pavilion_8018785C[4];
-extern GpRoomCoordSet     D_neo_ark_pavilion_8018756C[1];
+extern WorldCollisionGrid   D_neo_ark_pavilion_801841E4[1];
+extern GpObj3A              D_neo_ark_pavilion_8018798C[1];
+extern GpObj4C              D_neo_ark_pavilion_80187584[2];
+extern GpObj4C              D_neo_ark_pavilion_8018772C[4];
+extern GpObj4C              D_neo_ark_pavilion_8018785C[4];
+extern WorldCoordRoomLights D_neo_ark_pavilion_8018756C[1];
 
 extern TaskDesc D_80147E48;
 
@@ -963,8 +963,8 @@ WorldCoordLight D_neo_ark_pavilion_8018740C[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_neo_ark_pavilion_8018756C[1] = {
-    { 4, D_neo_ark_pavilion_8018740C, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_neo_ark_pavilion_8018756C[1] = {
+    { ARRAY_SIZE(D_neo_ark_pavilion_8018740C), D_neo_ark_pavilion_8018740C, 0, NULL, 0, NULL },
 };
 
 GpObj4C D_neo_ark_pavilion_80187584[2] = {

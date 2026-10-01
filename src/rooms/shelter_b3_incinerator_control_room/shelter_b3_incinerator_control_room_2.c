@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "shelter_b3_incinerator_control_room_private.h"
 
@@ -237,7 +237,7 @@ WorldCoordPointLight D_shelter_b3_incinerator_control_room_801821A0[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4352, 0, -121 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 2100 },
 };
 
-GpRoomCoordSet D_shelter_b3_incinerator_control_room_801824A0 = { 0, NULL, 8, D_shelter_b3_incinerator_control_room_801821A0, 0, NULL };
+WorldCoordRoomLights D_shelter_b3_incinerator_control_room_801824A0 = { 0, NULL, ARRAY_SIZE(D_shelter_b3_incinerator_control_room_801821A0), D_shelter_b3_incinerator_control_room_801821A0, 0, NULL };
 
 GpObj4C D_shelter_b3_incinerator_control_room_801824B8[4] = {
     { NULL, NULL, NULL, { -5537, -1536, 687, 0 }, { { -2101, -2016, -224, 0 }, { 2099, -2016, 222, 0 }, { -2101, 2016, -224, 0 }, { 2099, 2016, 222, 0 } }, { 435, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 2918, 0, 4, 5, 1, 0 },

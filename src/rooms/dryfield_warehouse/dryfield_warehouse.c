@@ -1,4 +1,4 @@
-#include "types.h"
+#include "common.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 /// Volume last asked of the warehouse's ambient track, or 0 when none is
@@ -112,8 +112,8 @@ WorldCoordPointLight D_dryfield_warehouse_80181EA8[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3159, -1641, -3270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1941, 3832 },
 };
 
-GpRoomCoordSet D_dryfield_warehouse_801820E8[1] = {
-    { 0, NULL, 6, D_dryfield_warehouse_80181EA8, 0, NULL },
+WorldCoordRoomLights D_dryfield_warehouse_801820E8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_warehouse_80181EA8), D_dryfield_warehouse_80181EA8, 0, NULL },
 };
 
 GpAreaVariant D_dryfield_warehouse_80182100[13] = { 0 };

@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -56,11 +56,11 @@ s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_1f_airlock_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_1f_airlock_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_shelter_1f_airlock_8017E838[1];
-extern GpObj3A            D_shelter_1f_airlock_8017F7B8[2];
-extern GpObj4C            D_shelter_1f_airlock_8017F430[6];
-extern GpObj4C            D_shelter_1f_airlock_8017F5F8[4];
-extern GpRoomCoordSet     D_shelter_1f_airlock_8017F418[1];
+extern WorldCollisionGrid   D_shelter_1f_airlock_8017E838[1];
+extern GpObj3A              D_shelter_1f_airlock_8017F7B8[2];
+extern GpObj4C              D_shelter_1f_airlock_8017F430[6];
+extern GpObj4C              D_shelter_1f_airlock_8017F5F8[4];
+extern WorldCoordRoomLights D_shelter_1f_airlock_8017F418[1];
 
 GpMsgEntry D_shelter_1f_airlock_8017E494[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_airlock_8017D5D8 },
@@ -316,8 +316,8 @@ WorldCoordPointLight D_shelter_1f_airlock_8017F0B8[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1010, -2099, 4150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 4096, 2457 }, { 0, 0 } }, 100, 200 },
 };
 
-GpRoomCoordSet D_shelter_1f_airlock_8017F418[1] = {
-    { 0, NULL, 9, D_shelter_1f_airlock_8017F0B8, 0, NULL },
+WorldCoordRoomLights D_shelter_1f_airlock_8017F418[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_1f_airlock_8017F0B8), D_shelter_1f_airlock_8017F0B8, 0, NULL },
 };
 
 GpObj4C D_shelter_1f_airlock_8017F430[6] = {

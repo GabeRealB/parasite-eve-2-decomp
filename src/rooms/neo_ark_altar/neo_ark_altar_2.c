@@ -93,10 +93,10 @@ static s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
 static s16  func_neo_ark_altar_8017E260(Task* task);
 static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
 
-extern WorldCollisionGrid D_neo_ark_altar_8017F57C[1];
-extern GpObj4C            D_neo_ark_altar_8017FF08[4];
-extern GpRoomCoordSet     D_neo_ark_altar_8017FEF0[1];
-void                      func_neo_ark_altar_8017ECE0(Task*);
+extern WorldCollisionGrid   D_neo_ark_altar_8017F57C[1];
+extern GpObj4C              D_neo_ark_altar_8017FF08[4];
+extern WorldCoordRoomLights D_neo_ark_altar_8017FEF0[1];
+void                        func_neo_ark_altar_8017ECE0(Task*);
 
 void func_neo_ark_altar_8017DA40(Task*);
 void func_neo_ark_altar_8017DBF0(Task*);
@@ -410,8 +410,8 @@ WorldCoordLight D_neo_ark_altar_8017FE98[1] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4000, -0x3A98, 8000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4915, 4915 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_neo_ark_altar_8017FEF0[1] = {
-    { 1, D_neo_ark_altar_8017FE98, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_neo_ark_altar_8017FEF0[1] = {
+    { ARRAY_SIZE(D_neo_ark_altar_8017FE98), D_neo_ark_altar_8017FE98, 0, NULL, 0, NULL },
 };
 
 GpObj4C D_neo_ark_altar_8017FF08[4] = {

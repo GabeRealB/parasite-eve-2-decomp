@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -51,8 +51,8 @@ extern SVECTOR D_dryfield_r08_8017F464[];
 extern SVECTOR D_dryfield_r08_8017F4C4[];
 extern s32     D_dryfield_r08_80180C24;
 
-extern GpRoomCoordSet D_dryfield_r08_801809C0;
-extern GpRoomCoordSet D_dryfield_r08_80180B58;
+extern WorldCoordRoomLights D_dryfield_r08_801809C0;
+extern WorldCoordRoomLights D_dryfield_r08_80180B58;
 
 static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
@@ -429,7 +429,7 @@ WorldCoordPointLight D_dryfield_r08_80180960[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5215, -1041, 3017 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x3000, 0x3000, 0x3000 }, { 0, 0 } }, 381, 1500 },
 };
 
-GpRoomCoordSet D_dryfield_r08_801809C0 = { 0, NULL, 1, D_dryfield_r08_80180960, 0, NULL };
+WorldCoordRoomLights D_dryfield_r08_801809C0 = { 0, NULL, ARRAY_SIZE(D_dryfield_r08_80180960), D_dryfield_r08_80180960, 0, NULL };
 
 WorldCoordPointLight D_dryfield_r08_801809D8[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5781, 225, 2364 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 4096 }, { 0, 0 } }, 400, 1150 },
@@ -438,7 +438,7 @@ WorldCoordPointLight D_dryfield_r08_801809D8[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3860, -2042, 2980 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 409, 163 }, { 0, 0 } }, 0, 2700 },
 };
 
-GpRoomCoordSet D_dryfield_r08_80180B58 = { 0, NULL, 4, D_dryfield_r08_801809D8, 0, NULL };
+WorldCoordRoomLights D_dryfield_r08_80180B58 = { 0, NULL, ARRAY_SIZE(D_dryfield_r08_801809D8), D_dryfield_r08_801809D8, 0, NULL };
 
 GpAreaTmdRec D_dryfield_r08_80180B70[2] = {
     { 132, 213, 0, 0, { 0, 0 }, D_8013D390 },

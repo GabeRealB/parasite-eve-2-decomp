@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -73,10 +73,10 @@ s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEven
 s32 func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_night_g_r_kitchen_8017E554[1];
-extern GpObj4C            D_dryfield_night_g_r_kitchen_8017E864[2];
-extern GpObj4C            D_dryfield_night_g_r_kitchen_8017E8FC[7];
-extern GpRoomCoordSet     D_dryfield_night_g_r_kitchen_8017E84C[1];
+extern WorldCollisionGrid   D_dryfield_night_g_r_kitchen_8017E554[1];
+extern GpObj4C              D_dryfield_night_g_r_kitchen_8017E864[2];
+extern GpObj4C              D_dryfield_night_g_r_kitchen_8017E8FC[7];
+extern WorldCoordRoomLights D_dryfield_night_g_r_kitchen_8017E84C[1];
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -194,8 +194,8 @@ WorldCoordPointLight D_dryfield_night_g_r_kitchen_8017E6CC[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 0x186A0, 0x186A0 },
 };
 
-GpRoomCoordSet D_dryfield_night_g_r_kitchen_8017E84C[1] = {
-    { 0, NULL, 4, D_dryfield_night_g_r_kitchen_8017E6CC, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_g_r_kitchen_8017E84C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_g_r_kitchen_8017E6CC), D_dryfield_night_g_r_kitchen_8017E6CC, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_g_r_kitchen_8017E864[2] = {

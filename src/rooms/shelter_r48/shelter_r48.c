@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -108,14 +108,14 @@ extern GpAreaTmdRec D_shelter_r48_8018BB78[2];
 
 extern WorldCoordPointLight D_shelter_r48_8018A08C[57];
 
-extern GpObj4C        D_shelter_r48_8018B670[16];
-extern GpObj4C        D_shelter_r48_8018BC78[5];
-extern GpRoomCoordSet D_shelter_r48_8018B658[1];
-s32                   func_shelter_r48_8017DF50(Task*, s32, s32, TaskMessageArg);
-s32                   func_shelter_r48_8017E044(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_shelter_r48_8017E088(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                   func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, TaskMessageArg);
-s32                   func_shelter_r48_8017E0EC(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern GpObj4C              D_shelter_r48_8018B670[16];
+extern GpObj4C              D_shelter_r48_8018BC78[5];
+extern WorldCoordRoomLights D_shelter_r48_8018B658[1];
+s32                         func_shelter_r48_8017DF50(Task*, s32, s32, TaskMessageArg);
+s32                         func_shelter_r48_8017E044(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                         func_shelter_r48_8017E088(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32                         func_shelter_r48_8017E0EC(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern TmdBone D_shelter_r48_8018BE30[1];
 void           func_shelter_r48_8017D660(Task*);
@@ -1646,8 +1646,8 @@ WorldCoordSpotLight D_shelter_r48_8018B5EC[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -0x48A8, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3618, 2633, 2264 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 10, 0x4E20, 568 },
 };
 
-GpRoomCoordSet D_shelter_r48_8018B658[1] = {
-    { 0, NULL, 57, D_shelter_r48_8018A08C, 1, D_shelter_r48_8018B5EC },
+WorldCoordRoomLights D_shelter_r48_8018B658[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_r48_8018A08C), D_shelter_r48_8018A08C, ARRAY_SIZE(D_shelter_r48_8018B5EC), D_shelter_r48_8018B5EC },
 };
 
 GpObj4C D_shelter_r48_8018B670[16] = {

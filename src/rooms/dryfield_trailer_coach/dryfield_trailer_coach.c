@@ -225,7 +225,7 @@ extern WorldCollisionGrid                  D_dryfield_trailer_coach_801876B4[1];
 extern GpObj4C                             D_dryfield_trailer_coach_80189254[4];
 extern GpObj4C                             D_dryfield_trailer_coach_80189384[12];
 extern WorldCoordRoomAmbientEntry          D_dryfield_trailer_coach_80189BAC[12];
-extern GpRoomCoordSet                      D_dryfield_trailer_coach_80189B94[1];
+extern WorldCoordRoomLights                D_dryfield_trailer_coach_80189B94[1];
 extern ActorTransform                      D_dryfield_trailer_coach_80184FD8;
 extern ActorTransform                      D_dryfield_trailer_coach_80184FF0;
 extern ActorTransform                      D_dryfield_trailer_coach_80185008;
@@ -1307,8 +1307,8 @@ WorldCoordPointLight D_dryfield_trailer_coach_80189714[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3665, -1440, -2318 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3280, 3280, 3280 }, { 0, 0 } }, 2164, 2832 },
 };
 
-GpRoomCoordSet D_dryfield_trailer_coach_80189B94[1] = {
-    { 0, NULL, 12, D_dryfield_trailer_coach_80189714, 0, NULL },
+WorldCoordRoomLights D_dryfield_trailer_coach_80189B94[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_trailer_coach_80189714), D_dryfield_trailer_coach_80189714, 0, NULL },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_trailer_coach_80189BAC[12] = {

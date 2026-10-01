@@ -160,11 +160,11 @@ void func_dryfield_motel_room_1_8017DF08(void);
 extern EvsCommand D_dryfield_motel_room_1_8017E160[];
 extern EvsCommand D_dryfield_motel_room_1_8017E340[];
 
-extern WorldCollisionGrid D_dryfield_motel_room_1_8017EABC[1];
-extern GpObj3A            D_dryfield_motel_room_1_801811BC[1];
-extern GpObj4C            D_dryfield_motel_room_1_80180CFC[8];
-extern GpObj4C            D_dryfield_motel_room_1_80180F5C[8];
-extern GpRoomCoordSet     D_dryfield_motel_room_1_801813D8[1];
+extern WorldCollisionGrid   D_dryfield_motel_room_1_8017EABC[1];
+extern GpObj3A              D_dryfield_motel_room_1_801811BC[1];
+extern GpObj4C              D_dryfield_motel_room_1_80180CFC[8];
+extern GpObj4C              D_dryfield_motel_room_1_80180F5C[8];
+extern WorldCoordRoomLights D_dryfield_motel_room_1_801813D8[1];
 
 extern SpriteBatch  D_dryfield_motel_room_1_8017EC24[2];
 extern SpriteBatch  D_dryfield_motel_room_1_8017EC34[2];
@@ -849,8 +849,8 @@ WorldCoordPointLight D_dryfield_motel_room_1_801811F8[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4671, -1479, 4462 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4000, 4000, 4000 }, { 0, 0 } }, 1487, 3789 },
 };
 
-GpRoomCoordSet D_dryfield_motel_room_1_801813D8[1] = {
-    { 0, NULL, 5, D_dryfield_motel_room_1_801811F8, 0, NULL },
+WorldCoordRoomLights D_dryfield_motel_room_1_801813D8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_motel_room_1_801811F8), D_dryfield_motel_room_1_801811F8, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_1_801813F0[1] = {

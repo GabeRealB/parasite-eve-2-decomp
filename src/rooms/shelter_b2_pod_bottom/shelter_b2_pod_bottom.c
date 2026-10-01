@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "shelter_b2_pod_bottom_private.h"
 
@@ -54,7 +54,7 @@ s32 func_shelter_b2_pod_bottom_8017D640(Task*, s32, TaskMessageArg, TaskMessageA
 extern WorldCollisionGrid D_shelter_b2_pod_bottom_80182B5C[1];
 extern GpObj4C            D_shelter_b2_pod_bottom_80186FA8[20];
 
-extern GpRoomCoordSet D_shelter_b2_pod_bottom_80186F90[1];
+extern WorldCoordRoomLights D_shelter_b2_pod_bottom_80186F90[1];
 
 GpMsgEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_pod_bottom_8017D5F4 },
@@ -926,8 +926,8 @@ WorldCoordSpotLight D_shelter_b2_pod_bottom_80186F24[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -0x48A8, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3618, 2633, 2264 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 10, 0x4E20, 568 },
 };
 
-GpRoomCoordSet D_shelter_b2_pod_bottom_80186F90[1] = {
-    { 0, NULL, 57, D_shelter_b2_pod_bottom_801859C4, 1, D_shelter_b2_pod_bottom_80186F24 },
+WorldCoordRoomLights D_shelter_b2_pod_bottom_80186F90[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_b2_pod_bottom_801859C4), D_shelter_b2_pod_bottom_801859C4, ARRAY_SIZE(D_shelter_b2_pod_bottom_80186F24), D_shelter_b2_pod_bottom_80186F24 },
 };
 
 GpObj4C D_shelter_b2_pod_bottom_80186FA8[20] = {

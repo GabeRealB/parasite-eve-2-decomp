@@ -1,6 +1,6 @@
 #include "rooms/dryfield_night_dilapidated_house.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_dilapidated_house_private.h"
 
@@ -45,8 +45,8 @@ extern RoomEventReq gRoomEventReq;
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
 
-GpRoomCoordSet D_dryfield_night_dilapidated_house_80189B60[1] = {
-    { 0, NULL, 8, D_dryfield_night_dilapidated_house_80189500, 1, D_dryfield_night_dilapidated_house_80189800.active },
+WorldCoordRoomLights D_dryfield_night_dilapidated_house_80189B60[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80189500), D_dryfield_night_dilapidated_house_80189500, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80189800.active), D_dryfield_night_dilapidated_house_80189800.active },
 };
 
 GpObj4C D_dryfield_night_dilapidated_house_80189B78[12] = {

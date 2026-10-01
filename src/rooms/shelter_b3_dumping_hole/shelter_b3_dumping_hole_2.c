@@ -1728,7 +1728,7 @@ WorldCoordPointLight D_shelter_b3_dumping_hole_8018E2BC[3] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BB, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4914, 409, 0 }, { 0, 0 } }, 1500, 2000 },
 };
 
-GpRoomCoordSet D_shelter_b3_dumping_hole_8018E3DC = { 2, D_shelter_b3_dumping_hole_8018E20C, 3, D_shelter_b3_dumping_hole_8018E2BC, 0, NULL };
+WorldCoordRoomLights D_shelter_b3_dumping_hole_8018E3DC = { ARRAY_SIZE(D_shelter_b3_dumping_hole_8018E20C), D_shelter_b3_dumping_hole_8018E20C, ARRAY_SIZE(D_shelter_b3_dumping_hole_8018E2BC), D_shelter_b3_dumping_hole_8018E2BC, 0, NULL };
 
 WorldCoordPointLight D_shelter_b3_dumping_hole_8018E3F4[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1230, 1110, 985 }, { 0, 0 } }, 4202, 7241 },
@@ -1745,7 +1745,7 @@ WorldCoordPointLight D_shelter_b3_dumping_hole_8018E3F4[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6000, -9400, -3500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2215, 1970 }, { 0, 0 } }, 3000, 4000 },
 };
 
-GpRoomCoordSet D_shelter_b3_dumping_hole_8018E874 = { 0, NULL, 12, D_shelter_b3_dumping_hole_8018E3F4, 0, NULL };
+WorldCoordRoomLights D_shelter_b3_dumping_hole_8018E874 = { 0, NULL, ARRAY_SIZE(D_shelter_b3_dumping_hole_8018E3F4), D_shelter_b3_dumping_hole_8018E3F4, 0, NULL };
 
 GpObj4C D_shelter_b3_dumping_hole_8018E88C[8] = {
     { NULL, NULL, NULL, { 0x3F30, -5696, -5696, 0 }, { { 0, -6336, -4624, 0 }, { 0, -6336, 4624, 0 }, { 0, 6336, -4624, 0 }, { 0, 6336, 4624, 0 } }, { 4096, 0, 0, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 30, 29, 1, 0 },

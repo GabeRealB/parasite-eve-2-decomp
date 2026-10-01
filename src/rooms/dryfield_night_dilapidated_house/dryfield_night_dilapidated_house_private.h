@@ -23,7 +23,7 @@ STATIC_ASSERT_SIZEOF(DryfieldNightDilapidatedHouseSpotLightStorage, 864);
 /// sequence, entry 1 is the task that plays it.
 extern TaskDesc D_dryfield_night_dilapidated_house_801872B4[];
 
-extern GpRoomCoordSet D_dryfield_night_dilapidated_house_80189B60[1];
+extern WorldCoordRoomLights D_dryfield_night_dilapidated_house_80189B60[1];
 
 extern GpObj4C D_dryfield_night_dilapidated_house_80189B78[12];
 

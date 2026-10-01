@@ -116,7 +116,7 @@ extern WorldCollisionGrid         D_dryfield_night_motel_lobby_80182DB4[1];
 extern GpObj4C                    D_dryfield_night_motel_lobby_80184034[4];
 extern GpObj4C                    D_dryfield_night_motel_lobby_80184164[8];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8];
-extern GpRoomCoordSet             D_dryfield_night_motel_lobby_8018401C[1];
+extern WorldCoordRoomLights       D_dryfield_night_motel_lobby_8018401C[1];
 
 void func_dryfield_night_motel_lobby_80180D08(Task*);
 void func_dryfield_night_motel_lobby_80180D58(Task*);
@@ -457,8 +457,8 @@ WorldCoordPointLight D_dryfield_night_motel_lobby_80183D7C[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4500, -2100, 4500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 409, 696, 860 }, { 0, 0 } }, 100, 1500 },
 };
 
-GpRoomCoordSet D_dryfield_night_motel_lobby_8018401C[1] = {
-    { 0, NULL, 7, D_dryfield_night_motel_lobby_80183D7C, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_motel_lobby_8018401C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_lobby_80183D7C), D_dryfield_night_motel_lobby_80183D7C, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_motel_lobby_80184034[4] = {

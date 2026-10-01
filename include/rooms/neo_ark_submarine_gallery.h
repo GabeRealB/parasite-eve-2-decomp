@@ -48,7 +48,7 @@ extern GpViewRec D_neo_ark_submarine_gallery_801823C0[];
 
 extern GpSprtRec D_neo_ark_submarine_gallery_80184D10[];
 
-extern GpRoomCoordSet D_neo_ark_submarine_gallery_80185284;
+extern WorldCoordRoomLights D_neo_ark_submarine_gallery_80185284;
 
 extern GpObj4A D_neo_ark_submarine_gallery_8018529C[];
 

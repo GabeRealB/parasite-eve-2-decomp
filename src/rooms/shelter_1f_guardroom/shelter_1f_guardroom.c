@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/cap.h"
 #include "gameplay/captions.h"
@@ -53,7 +53,7 @@ extern WorldCollisionGrid         D_shelter_1f_guardroom_8017DBF0[1];
 extern GpObj4C                    D_shelter_1f_guardroom_8017DE3C[2];
 extern GpObj4C                    D_shelter_1f_guardroom_8017DED4[3];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4];
-extern GpRoomCoordSet             D_shelter_1f_guardroom_8017DE24[1];
+extern WorldCoordRoomLights       D_shelter_1f_guardroom_8017DE24[1];
 s32                               func_shelter_1f_guardroom_8017D73C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_shelter_1f_guardroom_8017D744(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_shelter_1f_guardroom_8017D788(Task*, s32, s32, TaskMessageArg);
@@ -160,8 +160,8 @@ WorldCoordPointLight D_shelter_1f_guardroom_8017DD04[3] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9000, -2110, -3400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 0, 0 }, { 0, 0 } }, 1000, 1500 },
 };
 
-GpRoomCoordSet D_shelter_1f_guardroom_8017DE24[1] = {
-    { 0, NULL, 3, D_shelter_1f_guardroom_8017DD04, 0, NULL },
+WorldCoordRoomLights D_shelter_1f_guardroom_8017DE24[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_1f_guardroom_8017DD04), D_shelter_1f_guardroom_8017DD04, 0, NULL },
 };
 
 GpObj4C D_shelter_1f_guardroom_8017DE3C[2] = {

@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -596,7 +596,7 @@ WorldCoordLight D_neo_ark_bridge_801845AC[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1232, 1232 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_neo_ark_bridge_8018470C = { 4, D_neo_ark_bridge_801845AC, 0, NULL, 0, NULL };
+WorldCoordRoomLights D_neo_ark_bridge_8018470C = { ARRAY_SIZE(D_neo_ark_bridge_801845AC), D_neo_ark_bridge_801845AC, 0, NULL, 0, NULL };
 
 GpObj4C D_neo_ark_bridge_80184724[8] = {
     { NULL, NULL, NULL, { -3040, -993, 3552, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 3, 2, 1, 0 },

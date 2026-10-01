@@ -261,9 +261,9 @@ void func_acropolis_sanctuary_8017DA40(Task*);
 
 void func_acropolis_sanctuary_8017DCE0(s32);
 
-extern WorldCollisionGrid D_acropolis_sanctuary_80183568;
-extern GpObj4C            D_acropolis_sanctuary_8018358C[18];
-extern GpRoomCoordSet     D_acropolis_sanctuary_801843EC[1];
+extern WorldCollisionGrid   D_acropolis_sanctuary_80183568;
+extern GpObj4C              D_acropolis_sanctuary_8018358C[18];
+extern WorldCoordRoomLights D_acropolis_sanctuary_801843EC[1];
 
 extern AnimationPlayRequest D_acropolis_sanctuary_80180904;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180944;
@@ -927,8 +927,8 @@ WorldCoordPointLight D_acropolis_sanctuary_8018408C[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6180, -3500, -8019 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 0x2710, 0x2710 },
 };
 
-GpRoomCoordSet D_acropolis_sanctuary_801843EC[1] = {
-    { 0, NULL, 9, D_acropolis_sanctuary_8018408C, 0, NULL },
+WorldCoordRoomLights D_acropolis_sanctuary_801843EC[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_sanctuary_8018408C), D_acropolis_sanctuary_8018408C, 0, NULL },
 };
 
 SpriteBatch D_acropolis_sanctuary_80184404[2] = {

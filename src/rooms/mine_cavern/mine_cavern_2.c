@@ -189,12 +189,12 @@ typedef struct _MineCavernHitScratch {
     s16     damage;
 } _MineCavernHitScratch;
 
-extern WorldCollisionGrid D_mine_cavern_8018981C[1];
-extern GpObj3A            D_mine_cavern_8018E078[2];
-extern GpObj4C            D_mine_cavern_8018D154[20];
-extern GpObj4C            D_mine_cavern_8018D744[18];
-extern GpObj4C            D_mine_cavern_8018DC9C[13];
-extern GpRoomCoordSet     D_mine_cavern_8018D13C[1];
+extern WorldCollisionGrid   D_mine_cavern_8018981C[1];
+extern GpObj3A              D_mine_cavern_8018E078[2];
+extern GpObj4C              D_mine_cavern_8018D154[20];
+extern GpObj4C              D_mine_cavern_8018D744[18];
+extern GpObj4C              D_mine_cavern_8018DC9C[13];
+extern WorldCoordRoomLights D_mine_cavern_8018D13C[1];
 
 extern SpriteBatch  D_mine_cavern_80189BC4[2];
 extern SpriteBatch  D_mine_cavern_80189FA8[4];
@@ -1971,8 +1971,8 @@ WorldCoordPointLight D_mine_cavern_8018CE3C[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3C5B, -2001, 8800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1324, 1676, 1723 }, { 0, 0 } }, 0, 4299 },
 };
 
-GpRoomCoordSet D_mine_cavern_8018D13C[1] = {
-    { 0, NULL, 8, D_mine_cavern_8018CE3C, 0, NULL },
+WorldCoordRoomLights D_mine_cavern_8018D13C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mine_cavern_8018CE3C), D_mine_cavern_8018CE3C, 0, NULL },
 };
 
 GpObj4C D_mine_cavern_8018D154[20] = {

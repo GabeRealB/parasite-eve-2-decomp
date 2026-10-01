@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -65,13 +65,13 @@ extern SVECTOR D_acropolis_hallway_8017F950[6];
 extern TmdBone D_acropolis_hallway_8017F880[1];
 extern u32     D_acropolis_hallway_8017F980[42];
 
-extern WorldCollisionGrid D_acropolis_hallway_8017E5D0[1];
-extern GpObj4C            D_acropolis_hallway_8017E5F4[4];
-extern GpObj4C            D_acropolis_hallway_8017E724[9];
-extern GpRoomCoordSet     D_acropolis_hallway_8017EBC4[1];
-s32                       func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                       func_acropolis_hallway_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_acropolis_hallway_8017D734(Task*, s32, s32, TaskMessageArg);
+extern WorldCollisionGrid   D_acropolis_hallway_8017E5D0[1];
+extern GpObj4C              D_acropolis_hallway_8017E5F4[4];
+extern GpObj4C              D_acropolis_hallway_8017E724[9];
+extern WorldCoordRoomLights D_acropolis_hallway_8017EBC4[1];
+s32                         func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                         func_acropolis_hallway_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_acropolis_hallway_8017D734(Task*, s32, s32, TaskMessageArg);
 
 GpMsgEntry D_acropolis_hallway_8017E238[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
@@ -191,8 +191,8 @@ WorldCoordPointLight D_acropolis_hallway_8017EAA4[3] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2297, -2384, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1360, 2384 },
 };
 
-GpRoomCoordSet D_acropolis_hallway_8017EBC4[1] = {
-    { 0, NULL, 3, D_acropolis_hallway_8017EAA4, 0, NULL },
+WorldCoordRoomLights D_acropolis_hallway_8017EBC4[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_hallway_8017EAA4), D_acropolis_hallway_8017EAA4, 0, NULL },
 };
 
 SpriteBatch D_acropolis_hallway_8017EBDC[2] = {

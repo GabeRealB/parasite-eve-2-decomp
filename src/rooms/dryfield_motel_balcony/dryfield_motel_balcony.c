@@ -89,7 +89,7 @@ extern GpObj3A                    D_dryfield_motel_balcony_80186130[2];
 extern GpObj4C                    D_dryfield_motel_balcony_80185DA0[8];
 extern GpObj4C                    D_dryfield_motel_balcony_80186000[4];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_balcony_80186600[23];
-extern GpRoomCoordSet             D_dryfield_motel_balcony_801865E8[1];
+extern WorldCoordRoomLights       D_dryfield_motel_balcony_801865E8[1];
 
 extern GpAreaTmdRec D_dryfield_motel_balcony_801861A8[1];
 
@@ -1047,8 +1047,8 @@ WorldCoordPointLight D_dryfield_motel_balcony_80186288[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7035, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5401, 4327, 4285 }, { 0, 0 } }, 1121, 3000 },
 };
 
-GpRoomCoordSet D_dryfield_motel_balcony_801865E8[1] = {
-    { 0, NULL, 9, D_dryfield_motel_balcony_80186288, 0, NULL },
+WorldCoordRoomLights D_dryfield_motel_balcony_801865E8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_motel_balcony_80186288), D_dryfield_motel_balcony_80186288, 0, NULL },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_motel_balcony_80186600[23] = {

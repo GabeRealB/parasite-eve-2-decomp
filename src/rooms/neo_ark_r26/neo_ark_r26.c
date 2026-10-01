@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -49,7 +49,7 @@ s32 func_neo_ark_r26_8017D69C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern WorldCollisionGrid         D_neo_ark_r26_8017E19C[1];
 extern WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5];
-extern GpRoomCoordSet             D_neo_ark_r26_8017E928[1];
+extern WorldCoordRoomLights       D_neo_ark_r26_8017E928[1];
 
 extern AnimationPlayRequest D_neo_ark_r26_8017D780;
 extern AnimationPlayRequest D_neo_ark_r26_8017D7C4;
@@ -378,8 +378,8 @@ WorldCoordPointLight D_neo_ark_r26_8017E8C8[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2458, 1640, 820 }, { 0, 0 } }, 7300, 9300 },
 };
 
-GpRoomCoordSet D_neo_ark_r26_8017E928[1] = {
-    { 0, NULL, 1, D_neo_ark_r26_8017E8C8, 0, NULL },
+WorldCoordRoomLights D_neo_ark_r26_8017E928[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_r26_8017E8C8), D_neo_ark_r26_8017E8C8, 0, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_r26_8017E940[3] = {

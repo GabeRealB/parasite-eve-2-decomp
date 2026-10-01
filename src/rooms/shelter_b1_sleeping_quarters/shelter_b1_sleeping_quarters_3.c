@@ -27,7 +27,7 @@
 
 #include "shelter_b1_sleeping_quarters_private.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "../../shared/room_visual_effects.h"
 
@@ -566,7 +566,7 @@ WorldCoordPointLight D_shelter_b1_sleeping_quarters_80183054[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3966, -2581, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1800, 3001 },
 };
 
-GpRoomCoordSet D_shelter_b1_sleeping_quarters_80183234 = { 4, D_shelter_b1_sleeping_quarters_80182EF4, 5, D_shelter_b1_sleeping_quarters_80183054, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_sleeping_quarters_80183234 = { ARRAY_SIZE(D_shelter_b1_sleeping_quarters_80182EF4), D_shelter_b1_sleeping_quarters_80182EF4, ARRAY_SIZE(D_shelter_b1_sleeping_quarters_80183054), D_shelter_b1_sleeping_quarters_80183054, 0, NULL };
 
 GpObj4C D_shelter_b1_sleeping_quarters_8018324C[18] = {
     { NULL, NULL, NULL, { 1936, -2000, 1200, 0 }, { { 2224, -3360, -256, 0 }, { -2224, -3360, 256, 0 }, { 2224, 3360, -256, 0 }, { -2224, 3360, 256, 0 } }, { 469, 0, 4076, 0 }, { 0, 0, 4096, 0 }, 4031, 0, 4, 3, 1, 0 },

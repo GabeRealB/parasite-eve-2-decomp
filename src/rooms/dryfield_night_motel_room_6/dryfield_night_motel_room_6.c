@@ -7,7 +7,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
@@ -169,15 +169,15 @@ static s32  func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 
 static void func_dryfield_night_motel_room_6_80181C34(Task* task);
 static void func_dryfield_night_motel_room_6_80181C78(Task* task);
 
-extern WorldCollisionGrid D_dryfield_night_motel_room_6_80183984[1];
-extern GpObj4C            D_dryfield_night_motel_room_6_80185A48[10];
-extern GpObj4C            D_dryfield_night_motel_room_6_80185D40[15];
-extern GpRoomCoordSet     D_dryfield_night_motel_room_6_80185A30[1];
-s32                       func_dryfield_night_motel_room_6_8018175C(Task*, s32, s32, s32);
-s32                       func_dryfield_night_motel_room_6_80181B74(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_dryfield_night_motel_room_6_80181BF8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, TaskMessageArg);
-void                      func_dryfield_night_motel_room_6_8018189C(Task*);
+extern WorldCollisionGrid   D_dryfield_night_motel_room_6_80183984[1];
+extern GpObj4C              D_dryfield_night_motel_room_6_80185A48[10];
+extern GpObj4C              D_dryfield_night_motel_room_6_80185D40[15];
+extern WorldCoordRoomLights D_dryfield_night_motel_room_6_80185A30[1];
+s32                         func_dryfield_night_motel_room_6_8018175C(Task*, s32, s32, s32);
+s32                         func_dryfield_night_motel_room_6_80181B74(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_dryfield_night_motel_room_6_80181BF8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, TaskMessageArg);
+void                        func_dryfield_night_motel_room_6_8018189C(Task*);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -745,8 +745,8 @@ WorldCoordPointLight D_dryfield_night_motel_room_6_80185850[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3295, -1382, 6280 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3340, 3277, 3227 }, { 0, 0 } }, 652, 2681 },
 };
 
-GpRoomCoordSet D_dryfield_night_motel_room_6_80185A30[1] = {
-    { 0, NULL, 5, D_dryfield_night_motel_room_6_80185850, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_motel_room_6_80185A30[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_room_6_80185850), D_dryfield_night_motel_room_6_80185850, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_motel_room_6_80185A48[10] = {

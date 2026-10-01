@@ -150,7 +150,7 @@ extern AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04;
 extern WorldCollisionGrid               D_acropolis_west_elevator_hall_801852FC[1];
 extern GpObj4C                          D_acropolis_west_elevator_hall_80185320[4];
 extern GpObj4C                          D_acropolis_west_elevator_hall_80185450[5];
-extern GpRoomCoordSet                   D_acropolis_west_elevator_hall_801869E4[1];
+extern WorldCoordRoomLights             D_acropolis_west_elevator_hall_801869E4[1];
 
 #include "../../shared/planar_reflection_data.inc.c"
 
@@ -903,8 +903,8 @@ WorldCoordPointLight D_acropolis_west_elevator_hall_80186444[15] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -1440, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2457 }, { 0, 0 } }, 500, 1500 },
 };
 
-GpRoomCoordSet D_acropolis_west_elevator_hall_801869E4[1] = {
-    { 0, NULL, 15, D_acropolis_west_elevator_hall_80186444, 0, NULL },
+WorldCoordRoomLights D_acropolis_west_elevator_hall_801869E4[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_west_elevator_hall_80186444), D_acropolis_west_elevator_hall_80186444, 0, NULL },
 };
 
 GpViewRec D_acropolis_west_elevator_hall_801869FC[5] = {

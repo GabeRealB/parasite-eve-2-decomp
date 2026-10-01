@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -54,11 +54,11 @@ s32 func_dryfield_night_toilet_8017D678(Task*, s32, TaskMessageArg, TaskMessageA
 s32 func_dryfield_night_toilet_8017D680(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_toilet_8017D688(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_night_toilet_8017DD88[1];
-extern GpObj3A            D_dryfield_night_toilet_8017F2C4[1];
-extern GpObj4C            D_dryfield_night_toilet_8017EE9C[6];
-extern GpObj4C            D_dryfield_night_toilet_8017F064[8];
-extern GpRoomCoordSet     D_dryfield_night_toilet_8017EE84[1];
+extern WorldCollisionGrid   D_dryfield_night_toilet_8017DD88[1];
+extern GpObj3A              D_dryfield_night_toilet_8017F2C4[1];
+extern GpObj4C              D_dryfield_night_toilet_8017EE9C[6];
+extern GpObj4C              D_dryfield_night_toilet_8017F064[8];
+extern WorldCoordRoomLights D_dryfield_night_toilet_8017EE84[1];
 
 GpMsgEntry D_dryfield_night_toilet_8017DA70[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
@@ -387,8 +387,8 @@ WorldCoordPointLight D_dryfield_night_toilet_8017ED04[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1720, -1000, 1170 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1700, 1500, 1300 }, { 0, 0 } }, 1042, 5024 },
 };
 
-GpRoomCoordSet D_dryfield_night_toilet_8017EE84[1] = {
-    { 1, D_dryfield_night_toilet_8017ECAC, 4, D_dryfield_night_toilet_8017ED04, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_toilet_8017EE84[1] = {
+    { ARRAY_SIZE(D_dryfield_night_toilet_8017ECAC), D_dryfield_night_toilet_8017ECAC, ARRAY_SIZE(D_dryfield_night_toilet_8017ED04), D_dryfield_night_toilet_8017ED04, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_toilet_8017EE9C[6] = {

@@ -205,7 +205,7 @@ WorldCoordPointLight D_shelter_b1_north_maintenance_walkway_801853F4[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1988, -223, 2836 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2659, 2760, 2850 }, { 0, 0 } }, 1741, 3222 },
 };
 
-GpRoomCoordSet D_shelter_b1_north_maintenance_walkway_801855D4 = { 0, NULL, 5, D_shelter_b1_north_maintenance_walkway_801853F4, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_north_maintenance_walkway_801855D4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_north_maintenance_walkway_801853F4), D_shelter_b1_north_maintenance_walkway_801853F4, 0, NULL };
 
 GpObj4C D_shelter_b1_north_maintenance_walkway_801855EC[6] = {
     { NULL, NULL, NULL, { 2080, -1584, -576, 0 }, { { -1376, -1904, 192, 0 }, { 1376, -1904, -192, 0 }, { -1376, 1904, 192, 0 }, { 1376, 1904, -192, 0 } }, { -569, 0, -4074, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 5, 4, 1, 0 },

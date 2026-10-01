@@ -5,7 +5,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "rooms/dryfield_night_factory.h"
 
@@ -103,8 +103,8 @@ WorldCoordPointLight D_dryfield_night_factory_80189B08[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3051, -1864, 5767 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1522, 4180 },
 };
 
-GpRoomCoordSet D_dryfield_night_factory_80189C88[1] = {
-    { 0, NULL, 4, D_dryfield_night_factory_80189B08, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_factory_80189C88[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_factory_80189B08), D_dryfield_night_factory_80189B08, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_factory_80189CA0[14] = {

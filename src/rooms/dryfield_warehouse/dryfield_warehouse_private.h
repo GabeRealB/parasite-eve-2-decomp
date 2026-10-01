@@ -21,7 +21,7 @@ extern GpObj4C D_dryfield_warehouse_801817D4[13];
 
 extern GpObj4C D_dryfield_warehouse_80181BB0[10];
 
-extern GpRoomCoordSet D_dryfield_warehouse_801820E8[1];
+extern WorldCoordRoomLights D_dryfield_warehouse_801820E8[1];
 
 extern Task* D_dryfield_warehouse_801821BC;
 

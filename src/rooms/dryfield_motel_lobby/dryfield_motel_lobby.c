@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -106,14 +106,14 @@ extern GpMsgEntry D_dryfield_motel_lobby_8017F810[];
 static void func_dryfield_motel_lobby_8017F44C(Task* task);
 static void func_dryfield_motel_lobby_8017F490(Task* task);
 
-extern WorldCollisionGrid D_dryfield_motel_lobby_8017FBE4[1];
-extern GpObj4C            D_dryfield_motel_lobby_80180AEC[4];
-extern GpObj4C            D_dryfield_motel_lobby_80180C1C[7];
-extern GpRoomCoordSet     D_dryfield_motel_lobby_80181010[1];
-s32                       func_dryfield_motel_lobby_8017F40C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_dryfield_motel_lobby_8017F414(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                       func_dryfield_motel_lobby_8017F43C(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_dryfield_motel_lobby_8017F444(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid   D_dryfield_motel_lobby_8017FBE4[1];
+extern GpObj4C              D_dryfield_motel_lobby_80180AEC[4];
+extern GpObj4C              D_dryfield_motel_lobby_80180C1C[7];
+extern WorldCoordRoomLights D_dryfield_motel_lobby_80181010[1];
+s32                         func_dryfield_motel_lobby_8017F40C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_dryfield_motel_lobby_8017F414(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                         func_dryfield_motel_lobby_8017F43C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_dryfield_motel_lobby_8017F444(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -423,8 +423,8 @@ WorldCoordPointLight D_dryfield_motel_lobby_80180E30[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -2500, 5450 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2949, 2949, 2703 }, { 0, 0 } }, 3000, 6000 },
 };
 
-GpRoomCoordSet D_dryfield_motel_lobby_80181010[1] = {
-    { 0, NULL, 5, D_dryfield_motel_lobby_80180E30, 0, NULL },
+WorldCoordRoomLights D_dryfield_motel_lobby_80181010[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_motel_lobby_80180E30), D_dryfield_motel_lobby_80180E30, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_dryfield_motel_lobby_80181028 = {

@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
@@ -1572,8 +1572,8 @@ WorldCoordPointLight D_shelter_b3_garbage_incinerator_8018D390[25] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3712, -1038, -0x4C68 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, 21, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2583 }, { 0, 0 } }, 1421, 3321 },
 };
 
-GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018DCF0[1] = {
-    { 2, D_shelter_b3_garbage_incinerator_8018D2E0, 25, D_shelter_b3_garbage_incinerator_8018D390, 0, NULL },
+WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018DCF0[1] = {
+    { ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018D2E0), D_shelter_b3_garbage_incinerator_8018D2E0, ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018D390), D_shelter_b3_garbage_incinerator_8018D390, 0, NULL },
 };
 
 WorldCoordLight D_shelter_b3_garbage_incinerator_8018DD08[2] = {
@@ -1605,8 +1605,8 @@ WorldCoordPointLight D_shelter_b3_garbage_incinerator_8018DDB8[21] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x44FD, 127, -0x55F0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2724, 2581 }, { 0, 0 } }, 1682, 2378 },
 };
 
-GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018E598[1] = {
-    { 2, D_shelter_b3_garbage_incinerator_8018DD08, 21, D_shelter_b3_garbage_incinerator_8018DDB8, 0, NULL },
+WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018E598[1] = {
+    { ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018DD08), D_shelter_b3_garbage_incinerator_8018DD08, ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018DDB8), D_shelter_b3_garbage_incinerator_8018DDB8, 0, NULL },
 };
 
 GpObj4C D_shelter_b3_garbage_incinerator_8018E5B0[22] = {

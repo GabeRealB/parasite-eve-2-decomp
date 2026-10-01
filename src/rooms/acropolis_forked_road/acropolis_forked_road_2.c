@@ -104,7 +104,7 @@ extern GpCopyArg            D_acropolis_forked_road_80182060;
 extern WorldCollisionGrid   D_acropolis_forked_road_80182BF0[1];
 extern GpObj4C              D_acropolis_forked_road_80182C14[6];
 extern GpObj4C              D_acropolis_forked_road_80182DDC[7];
-extern GpRoomCoordSet       D_acropolis_forked_road_80184E70[1];
+extern WorldCoordRoomLights D_acropolis_forked_road_80184E70[1];
 void                        func_acropolis_forked_road_8017E288(void);
 
 extern SpriteBatch  D_acropolis_forked_road_80183284[2];
@@ -1121,8 +1121,8 @@ WorldCoordPointLight D_acropolis_forked_road_80184570[24] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3700, -3420, 1250 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3031, 3194, 3358 }, { 0, 0 } }, 10, 6500 },
 };
 
-GpRoomCoordSet D_acropolis_forked_road_80184E70[1] = {
-    { 0, NULL, 24, D_acropolis_forked_road_80184570, 0, NULL },
+WorldCoordRoomLights D_acropolis_forked_road_80184E70[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_forked_road_80184570), D_acropolis_forked_road_80184570, 0, NULL },
 };
 
 GpViewRec D_acropolis_forked_road_80184E88[12] = {

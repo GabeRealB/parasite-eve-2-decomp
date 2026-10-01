@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "neo_ark_submarine_tunnel_private.h"
 
@@ -48,11 +48,11 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/screen_wave.h"
 
-extern WorldCollisionGrid D_neo_ark_submarine_tunnel_801824DC[1];
-extern GpObj3A            D_neo_ark_submarine_tunnel_8018781C[3];
-extern GpObj4C            D_neo_ark_submarine_tunnel_80187248[6];
-extern GpObj4C            D_neo_ark_submarine_tunnel_801874D8[11];
-extern GpRoomCoordSet     D_neo_ark_submarine_tunnel_80187230[1];
+extern WorldCollisionGrid   D_neo_ark_submarine_tunnel_801824DC[1];
+extern GpObj3A              D_neo_ark_submarine_tunnel_8018781C[3];
+extern GpObj4C              D_neo_ark_submarine_tunnel_80187248[6];
+extern GpObj4C              D_neo_ark_submarine_tunnel_801874D8[11];
+extern WorldCoordRoomLights D_neo_ark_submarine_tunnel_80187230[1];
 
 extern TaskDesc D_80147E48;
 
@@ -1171,8 +1171,8 @@ WorldCoordPointLight D_neo_ark_submarine_tunnel_80186D50[13] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 2052, 2052 }, { 0, 0 } }, 1000, 2000 },
 };
 
-GpRoomCoordSet D_neo_ark_submarine_tunnel_80187230[1] = {
-    { 4, D_neo_ark_submarine_tunnel_80186BF0, 13, D_neo_ark_submarine_tunnel_80186D50, 0, NULL },
+WorldCoordRoomLights D_neo_ark_submarine_tunnel_80187230[1] = {
+    { ARRAY_SIZE(D_neo_ark_submarine_tunnel_80186BF0), D_neo_ark_submarine_tunnel_80186BF0, ARRAY_SIZE(D_neo_ark_submarine_tunnel_80186D50), D_neo_ark_submarine_tunnel_80186D50, 0, NULL },
 };
 
 GpObj4C D_neo_ark_submarine_tunnel_80187248[6] = {

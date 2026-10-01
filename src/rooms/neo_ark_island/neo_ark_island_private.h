@@ -11,7 +11,7 @@
 
 extern WorldCollisionGrid D_neo_ark_island_801826C8[1];
 
-extern GpRoomCoordSet D_neo_ark_island_80183CB0[1];
+extern WorldCoordRoomLights D_neo_ark_island_80183CB0[1];
 
 extern GpObj4C D_neo_ark_island_80183CC8[4];
 

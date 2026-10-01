@@ -183,7 +183,7 @@ extern WorldCollisionGrid         D_dryfield_motel_room_6_8018381C[1];
 extern GpObj4C                    D_dryfield_motel_room_6_8018575C[10];
 extern GpObj4C                    D_dryfield_motel_room_6_80185A54[15];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13];
-extern GpRoomCoordSet             D_dryfield_motel_room_6_801866C0[1];
+extern WorldCoordRoomLights       D_dryfield_motel_room_6_801866C0[1];
 s32                               func_dryfield_motel_room_6_80181740(Task*, s32, s32, s32);
 s32                               func_dryfield_motel_room_6_80181918(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -1680,8 +1680,8 @@ DryfieldMotelRoom6SpotLightStorage D_dryfield_motel_room_6_80186288 = {
     },
 };
 
-GpRoomCoordSet D_dryfield_motel_room_6_801866C0[1] = {
-    { 0, NULL, 10, D_dryfield_motel_room_6_80185EC8, 2, D_dryfield_motel_room_6_80186288.active },
+WorldCoordRoomLights D_dryfield_motel_room_6_801866C0[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_motel_room_6_80185EC8), D_dryfield_motel_room_6_80185EC8, ARRAY_SIZE(D_dryfield_motel_room_6_80186288.active), D_dryfield_motel_room_6_80186288.active },
 };
 
 WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {

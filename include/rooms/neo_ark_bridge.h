@@ -41,7 +41,7 @@ extern GpViewRec D_neo_ark_bridge_80182838[];
 
 extern GpSprtRec D_neo_ark_bridge_80184564[];
 
-extern GpRoomCoordSet D_neo_ark_bridge_8018470C;
+extern WorldCoordRoomLights D_neo_ark_bridge_8018470C;
 
 extern GpObj4A D_neo_ark_bridge_80184724[];
 

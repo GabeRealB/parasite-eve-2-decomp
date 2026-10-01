@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -50,12 +50,12 @@ s32 func_dryfield_night_underpass_8017D8CC(Task*, s32, s32, s32);
 s32 func_dryfield_night_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_underpass_8017D908(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_night_underpass_8017E6D4[1];
-extern GpObj3A            D_dryfield_night_underpass_8017FBE0[3];
-extern GpObj4C            D_dryfield_night_underpass_8017F558[16];
-extern GpObj4C            D_dryfield_night_underpass_8017FA18[6];
-extern GpRoomCoordSet     D_dryfield_night_underpass_8017FFF4[1];
-extern GpRoomCoordSet     D_dryfield_night_underpass_8018024C[1];
+extern WorldCollisionGrid   D_dryfield_night_underpass_8017E6D4[1];
+extern GpObj3A              D_dryfield_night_underpass_8017FBE0[3];
+extern GpObj4C              D_dryfield_night_underpass_8017F558[16];
+extern GpObj4C              D_dryfield_night_underpass_8017FA18[6];
+extern WorldCoordRoomLights D_dryfield_night_underpass_8017FFF4[1];
+extern WorldCoordRoomLights D_dryfield_night_underpass_8018024C[1];
 
 TaskDesc gUnderpassSwitchTaskDesc[2] = {
     { { { TASK_BODY_NONE, 32 } }, underpassSwitchTask, { .value = 0 } },
@@ -602,8 +602,8 @@ WorldCoordPointLight D_dryfield_night_underpass_8017FC94[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4850, -3423, -7400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
 };
 
-GpRoomCoordSet D_dryfield_night_underpass_8017FFF4[1] = {
-    { 0, NULL, 9, D_dryfield_night_underpass_8017FC94, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_underpass_8017FFF4[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_underpass_8017FC94), D_dryfield_night_underpass_8017FC94, 0, NULL },
 };
 
 WorldCoordPointLight D_dryfield_night_underpass_8018000C[6] = {
@@ -615,8 +615,8 @@ WorldCoordPointLight D_dryfield_night_underpass_8018000C[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x314C, -1973, -3920 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 4096, 4096 }, { 0, 0 } }, 0, 8000 },
 };
 
-GpRoomCoordSet D_dryfield_night_underpass_8018024C[1] = {
-    { 0, NULL, 6, D_dryfield_night_underpass_8018000C, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_underpass_8018024C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_underpass_8018000C), D_dryfield_night_underpass_8018000C, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_underpass_80180264[2] = {

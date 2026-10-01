@@ -716,7 +716,7 @@ WorldCoordPointLight D_shelter_b2_operating_room_801831D8[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 600, -1731, 3937 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 4096 }, { 0, 0 } }, 500, 2021 },
 };
 
-GpRoomCoordSet D_shelter_b2_operating_room_80183718 = { 0, NULL, 14, D_shelter_b2_operating_room_801831D8, 0, NULL };
+WorldCoordRoomLights D_shelter_b2_operating_room_80183718 = { 0, NULL, ARRAY_SIZE(D_shelter_b2_operating_room_801831D8), D_shelter_b2_operating_room_801831D8, 0, NULL };
 
 GpObj4C D_shelter_b2_operating_room_80183730[10] = {
     { NULL, NULL, NULL, { 2075, -1440, 1530, 0 }, { { 16, -1936, 1216, 0 }, { -16, -1936, -1215, 0 }, { 16, 1937, 1216, 0 }, { -16, 1937, -1215, 0 } }, { -4112, 0, 53, 0 }, { 0, 0, 4096, 0 }, 2275, 0, 7, 4, 1, 0 },

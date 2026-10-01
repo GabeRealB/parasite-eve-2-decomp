@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_trailer_coach_private.h"
 
@@ -55,7 +55,7 @@ extern WorldCollisionGrid         D_dryfield_night_trailer_coach_80189A20[1];
 extern GpObj4C                    D_dryfield_night_trailer_coach_8018BBA4[4];
 extern GpObj4C                    D_dryfield_night_trailer_coach_8018BD1C[14];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_trailer_coach_8018BCD4[9];
-extern GpRoomCoordSet             D_dryfield_night_trailer_coach_8018BB8C[1];
+extern WorldCoordRoomLights       D_dryfield_night_trailer_coach_8018BB8C[1];
 
 EvsCommand D_dryfield_night_trailer_coach_80188708[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
@@ -743,8 +743,8 @@ WorldCoordPointLight D_dryfield_night_trailer_coach_8018B6AC[13] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7200, -1000, -2700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2458, 2050, 1642 }, { 0, 0 } }, 838, 1280 },
 };
 
-GpRoomCoordSet D_dryfield_night_trailer_coach_8018BB8C[1] = {
-    { 0, NULL, 13, D_dryfield_night_trailer_coach_8018B6AC, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_trailer_coach_8018BB8C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_trailer_coach_8018B6AC), D_dryfield_night_trailer_coach_8018B6AC, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_trailer_coach_8018BBA4[4] = {

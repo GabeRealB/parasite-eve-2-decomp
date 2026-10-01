@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
@@ -73,10 +73,10 @@ s32  func_neo_ark_substation_8017D724(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_substation_8017D768(Task*, s32, s32, TaskMessageArg);
 s32  func_neo_ark_substation_8017D7A4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_neo_ark_substation_8017E8A4[1];
-extern GpObj4C            D_neo_ark_substation_8017FC5C[12];
-extern GpObj4C            D_neo_ark_substation_8017FFEC[10];
-extern GpRoomCoordSet     D_neo_ark_substation_8017FC44[1];
+extern WorldCollisionGrid   D_neo_ark_substation_8017E8A4[1];
+extern GpObj4C              D_neo_ark_substation_8017FC5C[12];
+extern GpObj4C              D_neo_ark_substation_8017FFEC[10];
+extern WorldCoordRoomLights D_neo_ark_substation_8017FC44[1];
 
 GpMsgEntry D_neo_ark_substation_8017E294[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_substation_8017D724 },
@@ -435,8 +435,8 @@ WorldCoordPointLight D_neo_ark_substation_8017F5E4[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8560, -2060, -5500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 500, 1000 },
 };
 
-GpRoomCoordSet D_neo_ark_substation_8017FC44[1] = {
-    { 0, NULL, 17, D_neo_ark_substation_8017F5E4, 0, NULL },
+WorldCoordRoomLights D_neo_ark_substation_8017FC44[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_substation_8017F5E4), D_neo_ark_substation_8017F5E4, 0, NULL },
 };
 
 GpObj4C D_neo_ark_substation_8017FC5C[12] = {

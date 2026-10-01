@@ -138,11 +138,11 @@ void func_acropolis_promenade_8017DB9C(Task*);
 void func_acropolis_promenade_8017DF74(Task*);
 void func_acropolis_promenade_8017DFD4(Task*);
 
-extern WorldCollisionGrid D_acropolis_promenade_801823DC[1];
-extern WorldCollisionGrid D_acropolis_promenade_80182BD0[1];
-extern GpObj4C            D_acropolis_promenade_80182BF4[6];
-extern GpObj4C            D_acropolis_promenade_80182DBC[6];
-extern GpRoomCoordSet     D_acropolis_promenade_80183A08[1];
+extern WorldCollisionGrid   D_acropolis_promenade_801823DC[1];
+extern WorldCollisionGrid   D_acropolis_promenade_80182BD0[1];
+extern GpObj4C              D_acropolis_promenade_80182BF4[6];
+extern GpObj4C              D_acropolis_promenade_80182DBC[6];
+extern WorldCoordRoomLights D_acropolis_promenade_80183A08[1];
 
 extern AnimationPlayRequest D_acropolis_promenade_80180EBC;
 
@@ -812,8 +812,8 @@ WorldCoordPointLight D_acropolis_promenade_801830A8[25] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4630, -1500, -3219 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 2457, 2457 }, { 0, 0 } }, 0, 2 },
 };
 
-GpRoomCoordSet D_acropolis_promenade_80183A08[1] = {
-    { 0, NULL, 25, D_acropolis_promenade_801830A8, 0, NULL },
+WorldCoordRoomLights D_acropolis_promenade_80183A08[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_promenade_801830A8), D_acropolis_promenade_801830A8, 0, NULL },
 };
 
 SpriteBatch D_acropolis_promenade_80183A20[2] = {

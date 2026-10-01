@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -85,13 +85,13 @@ extern s32 D_dryfield_night_water_tank_8017EE4C;
 
 static void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
 
-extern WorldCollisionGrid D_dryfield_night_water_tank_8017F4B0;
-extern GpObj3A            D_dryfield_night_water_tank_801807CC[2];
-extern GpObj4C            D_dryfield_night_water_tank_8018038C[4];
-extern GpObj4C            D_dryfield_night_water_tank_801804BC[8];
-extern GpRoomCoordSet     D_dryfield_night_water_tank_80180374[1];
-extern TmdSource          D_dryfield_night_water_tank_8017EE04;
-void                      func_dryfield_night_water_tank_8017DB8C(Task*);
+extern WorldCollisionGrid   D_dryfield_night_water_tank_8017F4B0;
+extern GpObj3A              D_dryfield_night_water_tank_801807CC[2];
+extern GpObj4C              D_dryfield_night_water_tank_8018038C[4];
+extern GpObj4C              D_dryfield_night_water_tank_801804BC[8];
+extern WorldCoordRoomLights D_dryfield_night_water_tank_80180374[1];
+extern TmdSource            D_dryfield_night_water_tank_8017EE04;
+void                        func_dryfield_night_water_tank_8017DB8C(Task*);
 
 s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_water_tank_8017D714(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -496,8 +496,8 @@ WorldCoordLight D_dryfield_night_water_tank_80180214[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -5000, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 413, 823, 823 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_dryfield_night_water_tank_80180374[1] = {
-    { 4, D_dryfield_night_water_tank_80180214, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_water_tank_80180374[1] = {
+    { ARRAY_SIZE(D_dryfield_night_water_tank_80180214), D_dryfield_night_water_tank_80180214, 0, NULL, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_water_tank_8018038C[4] = {

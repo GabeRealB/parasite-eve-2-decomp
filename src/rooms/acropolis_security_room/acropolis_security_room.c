@@ -318,7 +318,7 @@ extern AcropolisSecurityRoomPalette D_acropolis_security_room_80183718;
 extern WorldCollisionGrid           D_acropolis_security_room_80183D94[1];
 extern GpObj4C                      D_acropolis_security_room_80183DB8[4];
 extern GpObj4C                      D_acropolis_security_room_80183EE8[5];
-extern GpRoomCoordSet               D_acropolis_security_room_801841C8[1];
+extern WorldCoordRoomLights         D_acropolis_security_room_801841C8[1];
 
 extern SpriteBatch  D_acropolis_security_room_801841E0[2];
 extern SpriteBatch  D_acropolis_security_room_80184358[3];
@@ -1564,8 +1564,8 @@ WorldCoordPointLight D_acropolis_security_room_801840A8[3] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2993, 1623 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1280, 2128 },
 };
 
-GpRoomCoordSet D_acropolis_security_room_801841C8[1] = {
-    { 0, NULL, 3, D_acropolis_security_room_801840A8, 0, NULL },
+WorldCoordRoomLights D_acropolis_security_room_801841C8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_security_room_801840A8), D_acropolis_security_room_801840A8, 0, NULL },
 };
 
 SpriteBatch D_acropolis_security_room_801841E0[2] = {

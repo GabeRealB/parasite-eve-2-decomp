@@ -177,8 +177,8 @@ extern GpObj4C                    D_dryfield_night_water_hole_8018284C[9];
 extern GpObj4C                    D_dryfield_night_water_hole_80182AF8[8];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_water_hole_801834C8[12];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_water_hole_80183528[12];
-extern GpRoomCoordSet             D_dryfield_night_water_hole_8018307C[1];
-extern GpRoomCoordSet             D_dryfield_night_water_hole_801833A0[1];
+extern WorldCoordRoomLights       D_dryfield_night_water_hole_8018307C[1];
+extern WorldCoordRoomLights       D_dryfield_night_water_hole_801833A0[1];
 
 extern AnimationSet* D_dryfield_night_water_hole_80180620[1];
 
@@ -903,8 +903,8 @@ WorldCoordSpotLight D_dryfield_night_water_hole_80183010[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7394, -3968, -1496 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3604, 2867 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 3000, 6000, 113 },
 };
 
-GpRoomCoordSet D_dryfield_night_water_hole_8018307C[1] = {
-    { 0, NULL, 6, D_dryfield_night_water_hole_80182DD0, 1, D_dryfield_night_water_hole_80183010 },
+WorldCoordRoomLights D_dryfield_night_water_hole_8018307C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_water_hole_80182DD0), D_dryfield_night_water_hole_80182DD0, ARRAY_SIZE(D_dryfield_night_water_hole_80183010), D_dryfield_night_water_hole_80183010 },
 };
 
 WorldCoordPointLight D_dryfield_night_water_hole_80183094[7] = {
@@ -921,8 +921,8 @@ WorldCoordSpotLight D_dryfield_night_water_hole_80183334[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7444, -3447, -1496 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3014, 2621 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 2500, 5000, 113 },
 };
 
-GpRoomCoordSet D_dryfield_night_water_hole_801833A0[1] = {
-    { 0, NULL, 7, D_dryfield_night_water_hole_80183094, 1, D_dryfield_night_water_hole_80183334 },
+WorldCoordRoomLights D_dryfield_night_water_hole_801833A0[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_water_hole_80183094), D_dryfield_night_water_hole_80183094, ARRAY_SIZE(D_dryfield_night_water_hole_80183334), D_dryfield_night_water_hole_80183334 },
 };
 
 GpAreaTmdRec D_dryfield_night_water_hole_801833B8[2] = {

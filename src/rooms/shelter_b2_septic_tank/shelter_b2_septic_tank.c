@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -1018,7 +1018,7 @@ WorldCoordPointLight D_shelter_b2_septic_tank_8018673C[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 78, -41, -2140 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 861, 4123 },
 };
 
-GpRoomCoordSet D_shelter_b2_septic_tank_80186A3C = { 0, NULL, 8, D_shelter_b2_septic_tank_8018673C, 0, NULL };
+WorldCoordRoomLights D_shelter_b2_septic_tank_80186A3C = { 0, NULL, ARRAY_SIZE(D_shelter_b2_septic_tank_8018673C), D_shelter_b2_septic_tank_8018673C, 0, NULL };
 
 GpObj4C D_shelter_b2_septic_tank_80186A54[6] = {
     { NULL, NULL, NULL, { -48, -1872, -1809, 0 }, { { 2576, -3904, -176, 0 }, { -2576, -3904, 176, 0 }, { 2576, 3904, -176, 0 }, { -2576, 3904, 176, 0 } }, { 279, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 5, 4, 1, 0 },

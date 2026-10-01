@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -54,13 +54,13 @@ extern EvsCommand D_dryfield_underpass_8017E8D8[];
 extern SVECTOR    D_dryfield_underpass_8017EAD0[8];
 extern s16        D_dryfield_underpass_8017EB10[8];
 
-extern WorldCollisionGrid D_dryfield_underpass_8017F484[1];
-extern GpObj3A            D_dryfield_underpass_80180AA8[3];
-extern GpObj4C            D_dryfield_underpass_80180388[16];
-extern GpObj4C            D_dryfield_underpass_80180848[2];
-extern GpObj4C            D_dryfield_underpass_801808E0[6];
-extern GpRoomCoordSet     D_dryfield_underpass_80180EBC[1];
-extern GpRoomCoordSet     D_dryfield_underpass_80181114[1];
+extern WorldCollisionGrid   D_dryfield_underpass_8017F484[1];
+extern GpObj3A              D_dryfield_underpass_80180AA8[3];
+extern GpObj4C              D_dryfield_underpass_80180388[16];
+extern GpObj4C              D_dryfield_underpass_80180848[2];
+extern GpObj4C              D_dryfield_underpass_801808E0[6];
+extern WorldCoordRoomLights D_dryfield_underpass_80180EBC[1];
+extern WorldCoordRoomLights D_dryfield_underpass_80181114[1];
 
 extern AnimationPlayRequest D_dryfield_underpass_8017E870;
 extern AnimationPlayRequest D_dryfield_underpass_8017E884;
@@ -738,8 +738,8 @@ WorldCoordPointLight D_dryfield_underpass_80180B5C[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4850, -3423, -7400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
 };
 
-GpRoomCoordSet D_dryfield_underpass_80180EBC[1] = {
-    { 0, NULL, 9, D_dryfield_underpass_80180B5C, 0, NULL },
+WorldCoordRoomLights D_dryfield_underpass_80180EBC[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_underpass_80180B5C), D_dryfield_underpass_80180B5C, 0, NULL },
 };
 
 WorldCoordPointLight D_dryfield_underpass_80180ED4[6] = {
@@ -751,8 +751,8 @@ WorldCoordPointLight D_dryfield_underpass_80180ED4[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x314C, -1973, -3920 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 4096, 4096 }, { 0, 0 } }, 0, 8000 },
 };
 
-GpRoomCoordSet D_dryfield_underpass_80181114[1] = {
-    { 0, NULL, 6, D_dryfield_underpass_80180ED4, 0, NULL },
+WorldCoordRoomLights D_dryfield_underpass_80181114[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_underpass_80180ED4), D_dryfield_underpass_80180ED4, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_dryfield_underpass_8018112C = {

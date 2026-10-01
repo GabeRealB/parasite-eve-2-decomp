@@ -7,7 +7,7 @@
 #include <psyq/rand.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "neo_ark_woodland_path_private.h"
 
@@ -625,7 +625,7 @@ WorldCoordPointLight D_neo_ark_woodland_path_80183CE4[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -5000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0x186A0, 0x186A0 },
 };
 
-GpRoomCoordSet D_neo_ark_woodland_path_80183F84 = { 0, NULL, 7, D_neo_ark_woodland_path_80183CE4, 0, NULL };
+WorldCoordRoomLights D_neo_ark_woodland_path_80183F84 = { 0, NULL, ARRAY_SIZE(D_neo_ark_woodland_path_80183CE4), D_neo_ark_woodland_path_80183CE4, 0, NULL };
 
 GpObj4C D_neo_ark_woodland_path_80183F9C[16] = {
     { NULL, NULL, NULL, { -3969, -2048, 7647, 0 }, { { 3476, -3712, -1, 0 }, { -3475, -3712, 2, 0 }, { 3476, 3712, -1, 0 }, { -3475, 3712, 2, 0 } }, { 1, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 5068, 0, 2, 3, 1, 0 },

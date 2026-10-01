@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "shelter_r36_private.h"
 
@@ -508,7 +508,7 @@ WorldCoordPointLight D_shelter_r36_8017F4FC[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3966, -2581, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1800, 3001 },
 };
 
-GpRoomCoordSet D_shelter_r36_8017F6DC = { 4, D_shelter_r36_8017F39C, 5, D_shelter_r36_8017F4FC, 0, NULL };
+WorldCoordRoomLights D_shelter_r36_8017F6DC = { ARRAY_SIZE(D_shelter_r36_8017F39C), D_shelter_r36_8017F39C, ARRAY_SIZE(D_shelter_r36_8017F4FC), D_shelter_r36_8017F4FC, 0, NULL };
 
 GpObj4C D_shelter_r36_8017F6F4[10] = {
     { NULL, NULL, NULL, { 5729, -1856, -3601, 0 }, { { 2395, -4896, -3, 0 }, { -2395, -4896, 3, 0 }, { 2395, 4896, -3, 0 }, { -2395, 4896, 3, 0 } }, { 5, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 5442, 0, 5, 4, 1, 0 },

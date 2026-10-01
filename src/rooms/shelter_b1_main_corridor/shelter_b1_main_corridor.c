@@ -527,7 +527,7 @@ WorldCoordPointLight D_shelter_b1_main_corridor_801851A0[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2366, -1643, -681 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2638, 2638, 2688 }, { 0, 0 } }, 2000, 6000 },
 };
 
-GpRoomCoordSet D_shelter_b1_main_corridor_801853E0 = { 0, NULL, 6, D_shelter_b1_main_corridor_801851A0, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_main_corridor_801853E0 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_main_corridor_801851A0), D_shelter_b1_main_corridor_801851A0, 0, NULL };
 
 GpObj4C D_shelter_b1_main_corridor_801853F8[16] = {
     { NULL, NULL, NULL, { 64, -1568, -0x2EE0, 0 }, { { -2316, -3712, 337, 0 }, { 2305, -3712, -348, 0 }, { -2316, 3712, 337, 0 }, { 2305, 3712, -348, 0 } }, { -603, 0, -4063, 0 }, { 0, 0, 4096, 0 }, 4374, 0, 3, 4, 1, 0 },

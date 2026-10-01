@@ -69,7 +69,7 @@ extern GpObj3A                    D_mine_secret_passage_801831A8[2];
 extern GpObj4C                    D_mine_secret_passage_80182DCC[10];
 extern GpObj4C                    D_mine_secret_passage_801830C4[3];
 extern WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9];
-extern GpRoomCoordSet             D_mine_secret_passage_80182DB4[1];
+extern WorldCoordRoomLights       D_mine_secret_passage_80182DB4[1];
 
 GpMsgEntry D_mine_secret_passage_80180E8C[6] = {
     { 5102, func_mine_secret_passage_8017D7CC },
@@ -507,8 +507,8 @@ WorldCoordPointLight D_mine_secret_passage_801829F4[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7287, -2470, 2020 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4045, 2789, 1583 }, { 0, 0 } }, 0, 4800 },
 };
 
-GpRoomCoordSet D_mine_secret_passage_80182DB4[1] = {
-    { 0, NULL, 10, D_mine_secret_passage_801829F4, 0, NULL },
+WorldCoordRoomLights D_mine_secret_passage_80182DB4[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mine_secret_passage_801829F4), D_mine_secret_passage_801829F4, 0, NULL },
 };
 
 GpObj4C D_mine_secret_passage_80182DCC[10] = {

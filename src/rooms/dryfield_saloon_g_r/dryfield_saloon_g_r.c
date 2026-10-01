@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -75,11 +75,11 @@ s32 func_dryfield_saloon_g_r_8017D994(Task*, s32, TaskMessageArg, TaskMessageArg
 s32 func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_saloon_g_r_8017D9C4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_saloon_g_r_8017F780[1];
-extern GpObj3A            D_dryfield_saloon_g_r_801817B0[2];
-extern GpObj4C            D_dryfield_saloon_g_r_80180EC8[16];
-extern GpObj4C            D_dryfield_saloon_g_r_80181388[14];
-extern GpRoomCoordSet     D_dryfield_saloon_g_r_80181AC8[1];
+extern WorldCollisionGrid   D_dryfield_saloon_g_r_8017F780[1];
+extern GpObj3A              D_dryfield_saloon_g_r_801817B0[2];
+extern GpObj4C              D_dryfield_saloon_g_r_80180EC8[16];
+extern GpObj4C              D_dryfield_saloon_g_r_80181388[14];
+extern WorldCoordRoomLights D_dryfield_saloon_g_r_80181AC8[1];
 
 extern SpriteBatch  D_dryfield_saloon_g_r_8017F978[2];
 extern SpriteBatch  D_dryfield_saloon_g_r_8017FADC[3];
@@ -639,8 +639,8 @@ WorldCoordPointLight D_dryfield_saloon_g_r_80181828[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2830, -1000, 3150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3276, 2048 }, { 0, 0 } }, 500, 2000 },
 };
 
-GpRoomCoordSet D_dryfield_saloon_g_r_80181AC8[1] = {
-    { 0, NULL, 7, D_dryfield_saloon_g_r_80181828, 0, NULL },
+WorldCoordRoomLights D_dryfield_saloon_g_r_80181AC8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_saloon_g_r_80181828), D_dryfield_saloon_g_r_80181828, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_saloon_g_r_80181AE0[2] = {

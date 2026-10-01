@@ -1512,7 +1512,7 @@ ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_801821
     },
 };
 
-GpRoomCoordSet D_shelter_b1_pod_service_gantry_801824F4 = { 0, NULL, 9, D_shelter_b1_pod_service_gantry_80181DC8, 2, D_shelter_b1_pod_service_gantry_80182128.active };
+WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80181DC8), D_shelter_b1_pod_service_gantry_80181DC8, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80182128.active), D_shelter_b1_pod_service_gantry_80182128.active };
 
 static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
 {

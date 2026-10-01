@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "neo_ark_garden_private.h"
 
@@ -57,10 +57,10 @@ extern SVECTOR D_neo_ark_garden_801813D8;
 
 static void func_neo_ark_garden_8017F42C(SVECTOR* arg0);
 
-extern WorldCollisionGrid D_neo_ark_garden_801816C4[1];
-extern GpObj4C            D_neo_ark_garden_8018270C[6];
-extern GpObj4C            D_neo_ark_garden_801828D4[7];
-extern GpRoomCoordSet     D_neo_ark_garden_801826F4[1];
+extern WorldCollisionGrid   D_neo_ark_garden_801816C4[1];
+extern GpObj4C              D_neo_ark_garden_8018270C[6];
+extern GpObj4C              D_neo_ark_garden_801828D4[7];
+extern WorldCoordRoomLights D_neo_ark_garden_801826F4[1];
 
 TaskDesc D_neo_ark_garden_80181398 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
@@ -377,8 +377,8 @@ WorldCoordLight D_neo_ark_garden_80182594[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_neo_ark_garden_801826F4[1] = {
-    { 4, D_neo_ark_garden_80182594, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_neo_ark_garden_801826F4[1] = {
+    { ARRAY_SIZE(D_neo_ark_garden_80182594), D_neo_ark_garden_80182594, 0, NULL, 0, NULL },
 };
 
 GpObj4C D_neo_ark_garden_8018270C[6] = {

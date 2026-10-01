@@ -35,7 +35,7 @@ extern GpViewRec D_shelter_b2_laboratory_80183580[];
 
 extern GpSprtRec D_shelter_b2_laboratory_801854D0[];
 
-extern GpRoomCoordSet D_shelter_b2_laboratory_80185944;
+extern WorldCoordRoomLights D_shelter_b2_laboratory_80185944;
 
 extern GpObj4A D_shelter_b2_laboratory_8018595C[];
 

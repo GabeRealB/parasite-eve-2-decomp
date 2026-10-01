@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -79,11 +79,11 @@ s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_pyramid_8017DA44(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 
-extern WorldCollisionGrid D_neo_ark_pyramid_801802C4[1];
-extern GpObj3A            D_neo_ark_pyramid_80181790[3];
-extern GpObj4C            D_neo_ark_pyramid_801812B0[6];
-extern GpObj4C            D_neo_ark_pyramid_80181478[7];
-extern GpRoomCoordSet     D_neo_ark_pyramid_80181298[1];
+extern WorldCollisionGrid   D_neo_ark_pyramid_801802C4[1];
+extern GpObj3A              D_neo_ark_pyramid_80181790[3];
+extern GpObj4C              D_neo_ark_pyramid_801812B0[6];
+extern GpObj4C              D_neo_ark_pyramid_80181478[7];
+extern WorldCoordRoomLights D_neo_ark_pyramid_80181298[1];
 
 GpMsgEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
@@ -373,8 +373,8 @@ WorldCoordPointLight D_neo_ark_pyramid_80180E78[11] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -230, -2000, -7890 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 4000 },
 };
 
-GpRoomCoordSet D_neo_ark_pyramid_80181298[1] = {
-    { 0, NULL, 11, D_neo_ark_pyramid_80180E78, 0, NULL },
+WorldCoordRoomLights D_neo_ark_pyramid_80181298[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_pyramid_80180E78), D_neo_ark_pyramid_80180E78, 0, NULL },
 };
 
 GpObj4C D_neo_ark_pyramid_801812B0[6] = {

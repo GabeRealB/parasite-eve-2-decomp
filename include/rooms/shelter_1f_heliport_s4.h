@@ -24,7 +24,7 @@ extern GpViewRec D_shelter_1f_heliport_s4_8017D9EC[];
 
 extern GpSprtRec D_shelter_1f_heliport_s4_8017DAF0[];
 
-extern GpRoomCoordSet D_shelter_1f_heliport_s4_8017DE6C;
+extern WorldCoordRoomLights D_shelter_1f_heliport_s4_8017DE6C;
 
 extern GpObj4A D_shelter_1f_heliport_s4_8017DE84[];
 

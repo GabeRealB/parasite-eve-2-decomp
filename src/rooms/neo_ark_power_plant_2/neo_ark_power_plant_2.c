@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -94,10 +94,10 @@ extern GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3];
 extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3];
 extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2];
 
-extern WorldCollisionGrid D_neo_ark_power_plant_2_80180DC4[1];
-extern GpObj4C            D_neo_ark_power_plant_2_801828C0[8];
-extern GpObj4C            D_neo_ark_power_plant_2_80182B20[8];
-extern GpRoomCoordSet     D_neo_ark_power_plant_2_801828A8[1];
+extern WorldCollisionGrid   D_neo_ark_power_plant_2_80180DC4[1];
+extern GpObj4C              D_neo_ark_power_plant_2_801828C0[8];
+extern GpObj4C              D_neo_ark_power_plant_2_80182B20[8];
+extern WorldCoordRoomLights D_neo_ark_power_plant_2_801828A8[1];
 
 s32  func_neo_ark_power_plant_2_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_power_plant_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -629,8 +629,8 @@ WorldCoordPointLight D_neo_ark_power_plant_2_801820C8[21] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, 700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
 };
 
-GpRoomCoordSet D_neo_ark_power_plant_2_801828A8[1] = {
-    { 0, NULL, 21, D_neo_ark_power_plant_2_801820C8, 0, NULL },
+WorldCoordRoomLights D_neo_ark_power_plant_2_801828A8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_power_plant_2_801820C8), D_neo_ark_power_plant_2_801820C8, 0, NULL },
 };
 
 GpObj4C D_neo_ark_power_plant_2_801828C0[8] = {

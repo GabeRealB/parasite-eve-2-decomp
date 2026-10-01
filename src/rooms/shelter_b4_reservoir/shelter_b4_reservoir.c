@@ -183,15 +183,15 @@ static const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
 
 void func_shelter_b4_reservoir_8017FADC(Task*);
 
-extern WorldCollisionGrid D_shelter_b4_reservoir_80185AB8[1];
-extern GpObj3A            D_shelter_b4_reservoir_801873B0[2];
-extern GpObj4C            D_shelter_b4_reservoir_80186AC0[8];
-extern GpObj4C            D_shelter_b4_reservoir_80186D20[7];
-extern GpObj4C            D_shelter_b4_reservoir_80186F34[9];
-extern GpRoomCoordSet     D_shelter_b4_reservoir_80186AA8[1];
-extern TaskDesc           D_80142604;
-extern TaskDesc           D_80147E48;
-extern TaskDesc           D_801575F0;
+extern WorldCollisionGrid   D_shelter_b4_reservoir_80185AB8[1];
+extern GpObj3A              D_shelter_b4_reservoir_801873B0[2];
+extern GpObj4C              D_shelter_b4_reservoir_80186AC0[8];
+extern GpObj4C              D_shelter_b4_reservoir_80186D20[7];
+extern GpObj4C              D_shelter_b4_reservoir_80186F34[9];
+extern WorldCoordRoomLights D_shelter_b4_reservoir_80186AA8[1];
+extern TaskDesc             D_80142604;
+extern TaskDesc             D_80147E48;
+extern TaskDesc             D_801575F0;
 
 s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -776,8 +776,8 @@ WorldCoordPointLight D_shelter_b4_reservoir_801867A8[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4500, -2000, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1500, 2500 },
 };
 
-GpRoomCoordSet D_shelter_b4_reservoir_80186AA8[1] = {
-    { 0, NULL, 8, D_shelter_b4_reservoir_801867A8, 0, NULL },
+WorldCoordRoomLights D_shelter_b4_reservoir_80186AA8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_b4_reservoir_801867A8), D_shelter_b4_reservoir_801867A8, 0, NULL },
 };
 
 GpObj4C D_shelter_b4_reservoir_80186AC0[8] = {

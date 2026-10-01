@@ -148,7 +148,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
 // Indexed views below share one contiguous table.
 void func_dryfield_night_saloon_g_r_8017E28C(Task*);
 
-extern GpRoomCoordSet D_dryfield_night_saloon_g_r_80188304[1];
+extern WorldCoordRoomLights D_dryfield_night_saloon_g_r_80188304[1];
 
 extern WorldCollisionGrid D_dryfield_night_saloon_g_r_80185B50[1];
 extern GpObj3A            D_dryfield_night_saloon_g_r_80188E18[2];
@@ -1696,8 +1696,8 @@ WorldCoordPointLight D_dryfield_night_saloon_g_r_80188064[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2490, -1000, 3100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3276, 2375 }, { 0, 0 } }, 1000, 3000 },
 };
 
-GpRoomCoordSet D_dryfield_night_saloon_g_r_80188304[1] = {
-    { 0, NULL, 7, D_dryfield_night_saloon_g_r_80188064, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_saloon_g_r_80188304[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_saloon_g_r_80188064), D_dryfield_night_saloon_g_r_80188064, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_saloon_g_r_8018831C[16] = {

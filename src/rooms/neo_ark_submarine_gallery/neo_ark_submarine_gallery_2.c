@@ -839,7 +839,7 @@ WorldCoordPointLight D_neo_ark_submarine_gallery_80184EC4[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1100, 4608, 3300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1000, 2000 },
 };
 
-GpRoomCoordSet D_neo_ark_submarine_gallery_80185284 = { 4, D_neo_ark_submarine_gallery_80184D64, 10, D_neo_ark_submarine_gallery_80184EC4, 0, NULL };
+WorldCoordRoomLights D_neo_ark_submarine_gallery_80185284 = { ARRAY_SIZE(D_neo_ark_submarine_gallery_80184D64), D_neo_ark_submarine_gallery_80184D64, ARRAY_SIZE(D_neo_ark_submarine_gallery_80184EC4), D_neo_ark_submarine_gallery_80184EC4, 0, NULL };
 
 GpObj4C D_neo_ark_submarine_gallery_8018529C[8] = {
     { NULL, NULL, NULL, { 1901, 1952, -1890, 0 }, { { 1807, -3712, -1820, 0 }, { -1807, -3712, 1819, 0 }, { 1807, 3712, -1820, 0 }, { -1807, 3712, 1819, 0 } }, { 2912, 0, 2892, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 5, 4, 1, 0 },

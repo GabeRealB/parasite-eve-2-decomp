@@ -1901,7 +1901,7 @@ WorldCoordPointLight D_mist_shooting_gallery_8018CC74[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2A59, -1770, 4361 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 243, 2622 },
 };
 
-GpRoomCoordSet D_mist_shooting_gallery_8018D1B4 = { 0, NULL, 14, D_mist_shooting_gallery_8018CC74, 0, NULL };
+WorldCoordRoomLights D_mist_shooting_gallery_8018D1B4 = { 0, NULL, ARRAY_SIZE(D_mist_shooting_gallery_8018CC74), D_mist_shooting_gallery_8018CC74, 0, NULL };
 
 WorldCoordLight D_mist_shooting_gallery_8018D1CC[1] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5655, -10, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } },
@@ -1946,7 +1946,7 @@ WorldCoordSpotLight D_mist_shooting_gallery_8018D8E4[15] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9910, -2750, -3470 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2867, 2457 }, { 0, 0 } }, { -939, 2797, -2840, 0 }, 3000, 4000, 341 },
 };
 
-GpRoomCoordSet D_mist_shooting_gallery_8018DF38 = { 1, D_mist_shooting_gallery_8018D1CC, 18, D_mist_shooting_gallery_8018D224, 15, D_mist_shooting_gallery_8018D8E4 };
+WorldCoordRoomLights D_mist_shooting_gallery_8018DF38 = { ARRAY_SIZE(D_mist_shooting_gallery_8018D1CC), D_mist_shooting_gallery_8018D1CC, ARRAY_SIZE(D_mist_shooting_gallery_8018D224), D_mist_shooting_gallery_8018D224, ARRAY_SIZE(D_mist_shooting_gallery_8018D8E4), D_mist_shooting_gallery_8018D8E4 };
 
 GpAreaTmdRec D_mist_shooting_gallery_8018DF50[3] = {
     { 76, 76, 0, 0, { 0, 0 }, &D_80134F94 },

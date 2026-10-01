@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -115,7 +115,7 @@ WorldCoordPointLight D_shelter_r37_8017DB64[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3966, -2581, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1800, 3001 },
 };
 
-GpRoomCoordSet D_shelter_r37_8017DD44 = { 4, D_shelter_r37_8017DA04, 5, D_shelter_r37_8017DB64, 0, NULL };
+WorldCoordRoomLights D_shelter_r37_8017DD44 = { ARRAY_SIZE(D_shelter_r37_8017DA04), D_shelter_r37_8017DA04, ARRAY_SIZE(D_shelter_r37_8017DB64), D_shelter_r37_8017DB64, 0, NULL };
 
 GpObj4C D_shelter_r37_8017DD5C[4] = {
     { NULL, NULL, NULL, { 192, -3504, 1359, 0 }, { { 1344, -4304, 3152, 0 }, { -1344, -4304, -3152, 0 }, { 1344, 4304, 3152, 0 }, { -1344, 4304, -3152, 0 } }, { -3775, 0, 1609, 0 }, { 0, 0, 4096, 0 }, 5490, 0, 3, 2, 1, 0 },

@@ -23,9 +23,9 @@ extern TaskDesc D_shelter_b3_garbage_incinerator_80185BA0;
 
 extern WorldCollisionGrid D_shelter_b3_garbage_incinerator_80188388[1];
 
-extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018DCF0[1];
+extern WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018DCF0[1];
 
-extern GpRoomCoordSet D_shelter_b3_garbage_incinerator_8018E598[1];
+extern WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018E598[1];
 
 extern GpObj4C D_shelter_b3_garbage_incinerator_8018E5B0[22];
 

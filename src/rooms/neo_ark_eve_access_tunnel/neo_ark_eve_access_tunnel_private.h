@@ -11,7 +11,7 @@
 
 #include "main/task_types.h"
 
-extern GpRoomCoordSet D_neo_ark_eve_access_tunnel_801802D4[1];
+extern WorldCoordRoomLights D_neo_ark_eve_access_tunnel_801802D4[1];
 
 extern GpObj4C D_neo_ark_eve_access_tunnel_801802EC[6];
 

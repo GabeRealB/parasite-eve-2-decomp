@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -73,7 +73,7 @@ extern GpCopyArg            D_dryfield_driveway_8017E328;
 extern WorldCollisionGrid   D_dryfield_driveway_8017ED74[1];
 extern GpObj4C              D_dryfield_driveway_8017FC98[6];
 extern GpObj4C              D_dryfield_driveway_801802F8[11];
-extern GpRoomCoordSet       D_dryfield_driveway_801802E0[1];
+extern WorldCoordRoomLights D_dryfield_driveway_801802E0[1];
 extern TaskDesc             D_8014D8A4;
 s32                         func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
 s32                         func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
@@ -559,8 +559,8 @@ WorldCoordPointLight D_dryfield_driveway_8017FE60[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2990, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4112, 4096, 4105 }, { 0, 0 } }, 498, 2000 },
 };
 
-GpRoomCoordSet D_dryfield_driveway_801802E0[1] = {
-    { 0, NULL, 12, D_dryfield_driveway_8017FE60, 0, NULL },
+WorldCoordRoomLights D_dryfield_driveway_801802E0[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_driveway_8017FE60), D_dryfield_driveway_8017FE60, 0, NULL },
 };
 
 GpObj4C D_dryfield_driveway_801802F8[11] = {

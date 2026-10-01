@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_parking_lot_private.h"
 
@@ -59,11 +59,11 @@ extern SVECTOR D_dryfield_night_parking_lot_8017EDFC[];
 
 static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
 
-extern WorldCollisionGrid D_dryfield_night_parking_lot_8017FAD0[1];
-extern GpObj3A            D_dryfield_night_parking_lot_80181330[2];
-extern GpObj4C            D_dryfield_night_parking_lot_80180CA8[10];
-extern GpObj4C            D_dryfield_night_parking_lot_80180FA0[12];
-extern GpRoomCoordSet     D_dryfield_night_parking_lot_80180C90[1];
+extern WorldCollisionGrid   D_dryfield_night_parking_lot_8017FAD0[1];
+extern GpObj3A              D_dryfield_night_parking_lot_80181330[2];
+extern GpObj4C              D_dryfield_night_parking_lot_80180CA8[10];
+extern GpObj4C              D_dryfield_night_parking_lot_80180FA0[12];
+extern WorldCoordRoomLights D_dryfield_night_parking_lot_80180C90[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -475,8 +475,8 @@ WorldCoordPointLight D_dryfield_night_parking_lot_80180630[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -1520, 350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2211 }, { 0, 0 } }, 500, 800 },
 };
 
-GpRoomCoordSet D_dryfield_night_parking_lot_80180C90[1] = {
-    { 0, NULL, 17, D_dryfield_night_parking_lot_80180630, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_parking_lot_80180C90[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_parking_lot_80180630), D_dryfield_night_parking_lot_80180630, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_parking_lot_80180CA8[10] = {

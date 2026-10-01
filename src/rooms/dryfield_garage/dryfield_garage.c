@@ -82,7 +82,7 @@ extern WorldCollisionGrid         D_dryfield_garage_8017E64C[1];
 extern GpObj4C                    D_dryfield_garage_8017F69C[14];
 extern GpObj4C                    D_dryfield_garage_8017FD1C[11];
 extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
-extern GpRoomCoordSet             D_dryfield_garage_8017FD04[1];
+extern WorldCoordRoomLights       D_dryfield_garage_8017FD04[1];
 s32                               func_dryfield_garage_8017D8BC(Task*, s32, s32, TaskMessageArg);
 s32                               func_dryfield_garage_8017D914(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -481,8 +481,8 @@ WorldCoordPointLight D_dryfield_garage_8017FAC4[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6622, -1012, 6746 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 522, 1542 },
 };
 
-GpRoomCoordSet D_dryfield_garage_8017FD04[1] = {
-    { 0, NULL, 6, D_dryfield_garage_8017FAC4, 0, NULL },
+WorldCoordRoomLights D_dryfield_garage_8017FD04[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_garage_8017FAC4), D_dryfield_garage_8017FAC4, 0, NULL },
 };
 
 GpObj4C D_dryfield_garage_8017FD1C[11] = {

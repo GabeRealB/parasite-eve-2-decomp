@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -66,7 +66,7 @@ extern GpObj3A                    D_shelter_b1_storeroom_80186D94[1];
 extern GpObj4C                    D_shelter_b1_storeroom_801862E0[12];
 extern GpObj4C                    D_shelter_b1_storeroom_80186670[15];
 extern WorldCoordRoomAmbientEntry D_shelter_b1_storeroom_80186D4C[9];
-extern GpRoomCoordSet             D_shelter_b1_storeroom_801862C8[1];
+extern WorldCoordRoomLights       D_shelter_b1_storeroom_801862C8[1];
 
 SVECTOR D_shelter_b1_storeroom_80184998[49] = {
     { -1130, -2290, 1920, 0 },
@@ -468,8 +468,8 @@ WorldCoordPointLight D_shelter_b1_storeroom_80186148[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3270, -1736, -2109 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3276, 2293 }, { 0, 0 } }, 661, 1921 },
 };
 
-GpRoomCoordSet D_shelter_b1_storeroom_801862C8[1] = {
-    { 1, D_shelter_b1_storeroom_801860F0, 4, D_shelter_b1_storeroom_80186148, 0, NULL },
+WorldCoordRoomLights D_shelter_b1_storeroom_801862C8[1] = {
+    { ARRAY_SIZE(D_shelter_b1_storeroom_801860F0), D_shelter_b1_storeroom_801860F0, ARRAY_SIZE(D_shelter_b1_storeroom_80186148), D_shelter_b1_storeroom_80186148, 0, NULL },
 };
 
 GpObj4C D_shelter_b1_storeroom_801862E0[12] = {

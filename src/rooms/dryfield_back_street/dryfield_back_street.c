@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -68,10 +68,10 @@ s32  func_dryfield_back_street_8017D89C(Task*, s32, TaskMessageArg, TaskMessageA
 s32  func_dryfield_back_street_8017D8A4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_back_street_8017D8AC(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_back_street_80180284[1];
-extern GpObj4C            D_dryfield_back_street_801804C0[6];
-extern GpObj4C            D_dryfield_back_street_80180688[11];
-extern GpRoomCoordSet     D_dryfield_back_street_80180FF8[1];
+extern WorldCollisionGrid   D_dryfield_back_street_80180284[1];
+extern GpObj4C              D_dryfield_back_street_801804C0[6];
+extern GpObj4C              D_dryfield_back_street_80180688[11];
+extern WorldCoordRoomLights D_dryfield_back_street_80180FF8[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -276,8 +276,8 @@ WorldCoordPointLight D_dryfield_back_street_80180AB8[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6000, -2985, 5955 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 3000, 5000 },
 };
 
-GpRoomCoordSet D_dryfield_back_street_80180FF8[1] = {
-    { 0, NULL, 14, D_dryfield_back_street_80180AB8, 0, NULL },
+WorldCoordRoomLights D_dryfield_back_street_80180FF8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_back_street_80180AB8), D_dryfield_back_street_80180AB8, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_dryfield_back_street_80181010 = {

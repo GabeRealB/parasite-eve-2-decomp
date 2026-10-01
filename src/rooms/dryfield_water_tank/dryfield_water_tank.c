@@ -142,10 +142,10 @@ static void func_dryfield_water_tank_8017DB48(void);
 
 extern GpAreaTmdRec D_dryfield_water_tank_80188BCC[2];
 
-extern WorldCollisionGrid D_dryfield_water_tank_80186EBC[1];
-extern GpObj4C            D_dryfield_water_tank_80187FF8[4];
-extern GpObj4C            D_dryfield_water_tank_80188920[9];
-extern GpRoomCoordSet     D_dryfield_water_tank_80188908[1];
+extern WorldCollisionGrid   D_dryfield_water_tank_80186EBC[1];
+extern GpObj4C              D_dryfield_water_tank_80187FF8[4];
+extern GpObj4C              D_dryfield_water_tank_80188920[9];
+extern WorldCoordRoomLights D_dryfield_water_tank_80188908[1];
 
 extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
 
@@ -835,8 +835,8 @@ WorldCoordPointLight D_dryfield_water_tank_80188128[21] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x4CCC, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
 };
 
-GpRoomCoordSet D_dryfield_water_tank_80188908[1] = {
-    { 0, NULL, 21, D_dryfield_water_tank_80188128, 0, NULL },
+WorldCoordRoomLights D_dryfield_water_tank_80188908[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_water_tank_80188128), D_dryfield_water_tank_80188128, 0, NULL },
 };
 
 GpObj4C D_dryfield_water_tank_80188920[9] = {

@@ -121,10 +121,10 @@ s32 func_neo_ark_forest_zone_801813BC(Task*, s32, TaskMessageArg, TaskMessageArg
 s32 func_neo_ark_forest_zone_80181494(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_forest_zone_801814B0(Task*, s32, u8*, TaskMessageArg);
 
-extern WorldCollisionGrid D_neo_ark_forest_zone_80182274[1];
-extern GpObj4C            D_neo_ark_forest_zone_801826B4[6];
-extern GpObj4C            D_neo_ark_forest_zone_801829D0[10];
-extern GpRoomCoordSet     D_neo_ark_forest_zone_8018269C[1];
+extern WorldCollisionGrid   D_neo_ark_forest_zone_80182274[1];
+extern GpObj4C              D_neo_ark_forest_zone_801826B4[6];
+extern GpObj4C              D_neo_ark_forest_zone_801829D0[10];
+extern WorldCoordRoomLights D_neo_ark_forest_zone_8018269C[1];
 
 void func_neo_ark_forest_zone_80181430(Task*);
 void func_neo_ark_forest_zone_8018151C(Task*);
@@ -373,8 +373,8 @@ WorldCoordPointLight D_neo_ark_forest_zone_801825DC[2] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -252, -969, 623 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, 6, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4100, 4096 }, { 0, 0 } }, 1601, 2781 },
 };
 
-GpRoomCoordSet D_neo_ark_forest_zone_8018269C[1] = {
-    { 0, NULL, 2, D_neo_ark_forest_zone_801825DC, 0, NULL },
+WorldCoordRoomLights D_neo_ark_forest_zone_8018269C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_neo_ark_forest_zone_801825DC), D_neo_ark_forest_zone_801825DC, 0, NULL },
 };
 
 GpObj4C D_neo_ark_forest_zone_801826B4[6] = {

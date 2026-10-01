@@ -30,7 +30,7 @@ extern GpViewRec D_shelter_b6_nursery_801858C4[];
 
 extern GpSprtRec D_shelter_b6_nursery_80186FD0[];
 
-extern GpRoomCoordSet D_shelter_b6_nursery_80187294;
+extern WorldCoordRoomLights D_shelter_b6_nursery_80187294;
 
 extern GpObj4A D_shelter_b6_nursery_801872AC[];
 

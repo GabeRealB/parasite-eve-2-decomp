@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -101,7 +101,7 @@ extern WorldCollisionGrid         D_shelter_1f_vehicular_airlock_80182438[1];
 extern GpObj4C                    D_shelter_1f_vehicular_airlock_80182714[2];
 extern GpObj4C                    D_shelter_1f_vehicular_airlock_801827AC[7];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4];
-extern GpRoomCoordSet             D_shelter_1f_vehicular_airlock_801826FC[1];
+extern WorldCoordRoomLights       D_shelter_1f_vehicular_airlock_801826FC[1];
 
 TmdBone D_shelter_1f_vehicular_airlock_80180C50[1] = {
 #include "assets/shelter_1f_vehicular_airlock_model_04A44_skeleton.inc"
@@ -250,8 +250,8 @@ WorldCoordPointLight D_shelter_1f_vehicular_airlock_8018251C[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9000, -1635, -1950 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 500, 1000 },
 };
 
-GpRoomCoordSet D_shelter_1f_vehicular_airlock_801826FC[1] = {
-    { 0, NULL, 5, D_shelter_1f_vehicular_airlock_8018251C, 0, NULL },
+WorldCoordRoomLights D_shelter_1f_vehicular_airlock_801826FC[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_1f_vehicular_airlock_8018251C), D_shelter_1f_vehicular_airlock_8018251C, 0, NULL },
 };
 
 GpObj4C D_shelter_1f_vehicular_airlock_80182714[2] = {

@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_breezeway_private.h"
 
@@ -66,11 +66,11 @@ extern GpAreaTmdRec D_dryfield_breezeway_80184268[3];
 extern GpAreaTmdRec D_dryfield_breezeway_8018428C[2];
 extern GpAreaTmdRec D_dryfield_breezeway_801842A4[3];
 
-extern WorldCollisionGrid D_dryfield_breezeway_80183628[1];
-extern GpObj4C            D_dryfield_breezeway_80183DE4[4];
-extern GpObj4C            D_dryfield_breezeway_80183F14[5];
-extern GpRoomCoordSet     D_dryfield_breezeway_80184250[1];
-extern TaskDesc           D_8014D8A4;
+extern WorldCollisionGrid   D_dryfield_breezeway_80183628[1];
+extern GpObj4C              D_dryfield_breezeway_80183DE4[4];
+extern GpObj4C              D_dryfield_breezeway_80183F14[5];
+extern WorldCoordRoomLights D_dryfield_breezeway_80184250[1];
+extern TaskDesc             D_8014D8A4;
 
 u_long D_dryfield_breezeway_80182F44[128] = {
     0x430000,
@@ -431,8 +431,8 @@ WorldCoordPointLight D_dryfield_breezeway_801841F0[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4049, -1500, 3608 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1536, 4096 },
 };
 
-GpRoomCoordSet D_dryfield_breezeway_80184250[1] = {
-    { 4, D_dryfield_breezeway_80184090, 1, D_dryfield_breezeway_801841F0, 0, NULL },
+WorldCoordRoomLights D_dryfield_breezeway_80184250[1] = {
+    { ARRAY_SIZE(D_dryfield_breezeway_80184090), D_dryfield_breezeway_80184090, ARRAY_SIZE(D_dryfield_breezeway_801841F0), D_dryfield_breezeway_801841F0, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_breezeway_80184268[3] = {

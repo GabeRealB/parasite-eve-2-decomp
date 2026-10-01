@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -34,10 +34,10 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-extern WorldCollisionGrid D_shelter_r49_8017DAAC[1];
-extern GpRoomCoordSet     D_shelter_r49_8017DD24[1];
-void                      func_shelter_r49_8017D71C(Task*);
-void                      func_shelter_r49_8017D8D8(Task*);
+extern WorldCollisionGrid   D_shelter_r49_8017DAAC[1];
+extern WorldCoordRoomLights D_shelter_r49_8017DD24[1];
+void                        func_shelter_r49_8017D71C(Task*);
+void                        func_shelter_r49_8017D8D8(Task*);
 
 TaskDesc D_shelter_r49_8017DA00[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_r49_8017D8D8, { .value = 0 } },
@@ -140,8 +140,8 @@ WorldCoordPointLight D_shelter_r49_8017DCC4[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 6000, 7000 },
 };
 
-GpRoomCoordSet D_shelter_r49_8017DD24[1] = {
-    { 0, NULL, 1, D_shelter_r49_8017DCC4, 0, NULL },
+WorldCoordRoomLights D_shelter_r49_8017DD24[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_r49_8017DCC4), D_shelter_r49_8017DCC4, 0, NULL },
 };
 
 GpAreaTmdRec D_shelter_r49_8017DD3C[2] = {

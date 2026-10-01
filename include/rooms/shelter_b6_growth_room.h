@@ -27,7 +27,7 @@ extern GpViewRec D_shelter_b6_growth_room_8017FB14[];
 
 extern GpSprtRec D_shelter_b6_growth_room_8017FEB8[];
 
-extern GpRoomCoordSet D_shelter_b6_growth_room_8017FF78;
+extern WorldCoordRoomLights D_shelter_b6_growth_room_8017FF78;
 
 extern GpObj4A D_shelter_b6_growth_room_8017FF90[];
 

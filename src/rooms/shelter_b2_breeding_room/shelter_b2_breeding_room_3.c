@@ -29,7 +29,7 @@
 
 #include "shelter_b2_breeding_room_private.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "../../shared/room_visual_effects.h"
 
@@ -633,7 +633,7 @@ WorldCoordPointLight D_shelter_b2_breeding_room_8018344C[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -100, -2090, -1141 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 3090, 2703 }, { 0, 0 } }, 0, 1600 },
 };
 
-GpRoomCoordSet D_shelter_b2_breeding_room_801837AC = { 0, NULL, 9, D_shelter_b2_breeding_room_8018344C, 0, NULL };
+WorldCoordRoomLights D_shelter_b2_breeding_room_801837AC = { 0, NULL, ARRAY_SIZE(D_shelter_b2_breeding_room_8018344C), D_shelter_b2_breeding_room_8018344C, 0, NULL };
 
 GpObj4C D_shelter_b2_breeding_room_801837C4[14] = {
     { NULL, NULL, NULL, { 2176, -1664, -671, 0 }, { { -1552, -3136, 1808, 0 }, { 1552, -3136, -1808, 0 }, { -1552, 3136, 1808, 0 }, { 1552, 3136, -1808, 0 } }, { -3108, 0, -2668, 0 }, { 0, 0, 4096, 0 }, 3932, 0, 2, 3, 1, 0 },

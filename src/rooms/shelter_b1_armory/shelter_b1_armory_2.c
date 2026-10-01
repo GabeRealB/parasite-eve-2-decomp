@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "shelter_b1_armory_private.h"
 
@@ -459,7 +459,7 @@ WorldCoordPointLight D_shelter_b1_armory_801842BC[22] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6462, -2500, 1553 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1474 }, { 0, 0 } }, 2000, 3000 },
 };
 
-GpRoomCoordSet D_shelter_b1_armory_80184AFC = { 0, NULL, 22, D_shelter_b1_armory_801842BC, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_armory_80184AFC = { 0, NULL, ARRAY_SIZE(D_shelter_b1_armory_801842BC), D_shelter_b1_armory_801842BC, 0, NULL };
 
 GpObj4C D_shelter_b1_armory_80184B14[10] = {
     { NULL, NULL, NULL, { 3248, -1473, 640, 0 }, { { -1536, -3136, -928, 0 }, { 1536, -3136, 928, 0 }, { -1536, 3136, -928, 0 }, { 1536, 3136, 928, 0 } }, { 2119, 0, -3509, 0 }, { 0, 0, 4096, 0 }, 3611, 0, 3, 2, 1, 0 },

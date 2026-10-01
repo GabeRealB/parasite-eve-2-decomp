@@ -174,7 +174,7 @@ extern GpObj4C            D_dryfield_night_main_street_80187704[26];
 extern GpObj4C            D_dryfield_night_main_street_80187EBC[12];
 
 extern WorldCoordRoomAmbientEntry D_dryfield_night_main_street_80188A70[25];
-extern GpRoomCoordSet             D_dryfield_night_main_street_8018899C[1];
+extern WorldCoordRoomLights       D_dryfield_night_main_street_8018899C[1];
 
 extern SpriteBatch  D_dryfield_night_main_street_801848C4[2];
 extern SpriteBatch  D_dryfield_night_main_street_80184CD0[8];
@@ -1490,8 +1490,8 @@ WorldCoordPointLight D_dryfield_night_main_street_801885DC[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6862, -2000, 316 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
 };
 
-GpRoomCoordSet D_dryfield_night_main_street_8018899C[1] = {
-    { 0, NULL, 10, D_dryfield_night_main_street_801885DC, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_main_street_8018899C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_main_street_801885DC), D_dryfield_night_main_street_801885DC, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_main_street_801889B4[3] = {

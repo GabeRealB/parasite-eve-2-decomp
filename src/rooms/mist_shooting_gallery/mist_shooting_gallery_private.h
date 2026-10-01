@@ -12,9 +12,9 @@ extern GpObj4C D_mist_shooting_gallery_8018BDE8[28];
 
 extern GpObj4C D_mist_shooting_gallery_8018C638[21];
 
-extern GpRoomCoordSet D_mist_shooting_gallery_8018D1B4;
+extern WorldCoordRoomLights D_mist_shooting_gallery_8018D1B4;
 
-extern GpRoomCoordSet D_mist_shooting_gallery_8018DF38;
+extern WorldCoordRoomLights D_mist_shooting_gallery_8018DF38;
 
 extern WorldCoordRoomAmbientEntry D_mist_shooting_gallery_8018DFD4[19];
 

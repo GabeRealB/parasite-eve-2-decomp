@@ -68,12 +68,12 @@ extern SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[];
 /// reaches `[1]` under its own name,
 /// `RoomFx_TrailOffsets[1]`.
 
-extern WorldCollisionGrid D_shelter_b2_pod_access_tunnel_801841B4[1];
-extern GpObj3A            D_shelter_b2_pod_access_tunnel_80185664[1];
-extern GpObj4C            D_shelter_b2_pod_access_tunnel_80184FD8[4];
-extern GpObj4C            D_shelter_b2_pod_access_tunnel_80185108[3];
-extern GpObj4C            D_shelter_b2_pod_access_tunnel_801851EC[3];
-extern GpRoomCoordSet     D_shelter_b2_pod_access_tunnel_80184FC0[1];
+extern WorldCollisionGrid   D_shelter_b2_pod_access_tunnel_801841B4[1];
+extern GpObj3A              D_shelter_b2_pod_access_tunnel_80185664[1];
+extern GpObj4C              D_shelter_b2_pod_access_tunnel_80184FD8[4];
+extern GpObj4C              D_shelter_b2_pod_access_tunnel_80185108[3];
+extern GpObj4C              D_shelter_b2_pod_access_tunnel_801851EC[3];
+extern WorldCoordRoomLights D_shelter_b2_pod_access_tunnel_80184FC0[1];
 
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -425,8 +425,8 @@ WorldCoordPointLight D_shelter_b2_pod_access_tunnel_80184CC0[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1793, 0, -2395 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1200, 2500 },
 };
 
-GpRoomCoordSet D_shelter_b2_pod_access_tunnel_80184FC0[1] = {
-    { 0, NULL, 8, D_shelter_b2_pod_access_tunnel_80184CC0, 0, NULL },
+WorldCoordRoomLights D_shelter_b2_pod_access_tunnel_80184FC0[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_b2_pod_access_tunnel_80184CC0), D_shelter_b2_pod_access_tunnel_80184CC0, 0, NULL },
 };
 
 GpObj4C D_shelter_b2_pod_access_tunnel_80184FD8[4] = {

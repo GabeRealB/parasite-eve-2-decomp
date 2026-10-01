@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "acropolis_fountain_private.h"
 
@@ -87,9 +87,9 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view);
 void func_acropolis_fountain_8017E3D4(Task*);
 void func_acropolis_fountain_8017E72C(Task*);
 
-extern WorldCollisionGrid D_acropolis_fountain_8017F60C[1];
-extern GpObj4C            D_acropolis_fountain_8017F630[12];
-extern GpRoomCoordSet     D_acropolis_fountain_8017FF34[1];
+extern WorldCollisionGrid   D_acropolis_fountain_8017F60C[1];
+extern GpObj4C              D_acropolis_fountain_8017F630[12];
+extern WorldCoordRoomLights D_acropolis_fountain_8017FF34[1];
 
 extern SpriteBatch  D_acropolis_fountain_8017FF4C[2];
 extern SpriteBatch  D_acropolis_fountain_8017FF5C[2];
@@ -268,8 +268,8 @@ WorldCoordPointLight D_acropolis_fountain_8017FCF4[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3840, -980, -6510 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2703, 2785, 2621 }, { 0, 0 } }, 10, 7500 },
 };
 
-GpRoomCoordSet D_acropolis_fountain_8017FF34[1] = {
-    { 0, NULL, 6, D_acropolis_fountain_8017FCF4, 0, NULL },
+WorldCoordRoomLights D_acropolis_fountain_8017FF34[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_fountain_8017FCF4), D_acropolis_fountain_8017FCF4, 0, NULL },
 };
 
 SpriteBatch D_acropolis_fountain_8017FF4C[2] = {

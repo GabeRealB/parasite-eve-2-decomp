@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -70,17 +70,17 @@ extern RoomEventReq gRoomEventReq;
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
 
-extern WorldCollisionGrid D_dryfield_parking_lot_8017E8DC[1];
-extern GpObj3A            D_dryfield_parking_lot_8017F6E4[2];
-extern GpObj4C            D_dryfield_parking_lot_8017F0A8[10];
-extern GpObj4C            D_dryfield_parking_lot_8017F3A0[11];
-extern GpRoomCoordSet     D_dryfield_parking_lot_8017F9FC[1];
-extern TaskDesc           D_8014D8A4;
-s32                       func_dryfield_parking_lot_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                       func_dryfield_parking_lot_8017DAA0(Task*, s32, s32, TaskMessageArg);
-s32                       func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid   D_dryfield_parking_lot_8017E8DC[1];
+extern GpObj3A              D_dryfield_parking_lot_8017F6E4[2];
+extern GpObj4C              D_dryfield_parking_lot_8017F0A8[10];
+extern GpObj4C              D_dryfield_parking_lot_8017F3A0[11];
+extern WorldCoordRoomLights D_dryfield_parking_lot_8017F9FC[1];
+extern TaskDesc             D_8014D8A4;
+s32                         func_dryfield_parking_lot_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                         func_dryfield_parking_lot_8017DAA0(Task*, s32, s32, TaskMessageArg);
+s32                         func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -351,8 +351,8 @@ WorldCoordPointLight D_dryfield_parking_lot_8017F75C[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4180, -980, -100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
 };
 
-GpRoomCoordSet D_dryfield_parking_lot_8017F9FC[1] = {
-    { 0, NULL, 7, D_dryfield_parking_lot_8017F75C, 0, NULL },
+WorldCoordRoomLights D_dryfield_parking_lot_8017F9FC[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_parking_lot_8017F75C), D_dryfield_parking_lot_8017F75C, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA14[1] = {

@@ -351,7 +351,7 @@ extern GpObj4C            D_acropolis_bridge_8018B6B8[4];
 extern GpObj4C            D_acropolis_bridge_8018B7E8[7];
 extern GpObj4C            D_acropolis_bridge_8018B9FC[7];
 
-extern GpRoomCoordSet            D_acropolis_bridge_80190A0C[1];
+extern WorldCoordRoomLights      D_acropolis_bridge_80190A0C[1];
 extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
 extern PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5];
 void                             func_acropolis_bridge_8017D954(void);
@@ -2019,8 +2019,8 @@ WorldCoordPointLight D_acropolis_bridge_801900AC[25] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4630, -1500, -3219 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 2457, 2457 }, { 0, 0 } }, 0, 2 },
 };
 
-GpRoomCoordSet D_acropolis_bridge_80190A0C[1] = {
-    { 0, NULL, 25, D_acropolis_bridge_801900AC, 0, NULL },
+WorldCoordRoomLights D_acropolis_bridge_80190A0C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_bridge_801900AC), D_acropolis_bridge_801900AC, 0, NULL },
 };
 
 GpViewRec D_acropolis_bridge_80190A24[10] = {

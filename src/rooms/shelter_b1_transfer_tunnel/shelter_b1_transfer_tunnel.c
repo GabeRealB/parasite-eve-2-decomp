@@ -201,7 +201,7 @@ WorldCoordPointLight D_shelter_b1_transfer_tunnel_80182C10[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1219, -223, -250 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2498, 2539, 2560 }, { 0, 0 } }, 1101, 2000 },
 };
 
-GpRoomCoordSet D_shelter_b1_transfer_tunnel_80182D90 = { 0, NULL, 4, D_shelter_b1_transfer_tunnel_80182C10, 0, NULL };
+WorldCoordRoomLights D_shelter_b1_transfer_tunnel_80182D90 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_transfer_tunnel_80182C10), D_shelter_b1_transfer_tunnel_80182C10, 0, NULL };
 
 GpObj4C D_shelter_b1_transfer_tunnel_80182DA8[4] = {
     { NULL, NULL, NULL, { 5257, -576, 234, 0 }, { { 124, -2016, -2746, 0 }, { -123, -2016, 2746, 0 }, { 124, 2016, -2746, 0 }, { -123, 2016, 2746, 0 } }, { 4104, 0, 184, 0 }, { 0, 0, 4096, 0 }, 3405, 0, 2, 3, 1, 0 },

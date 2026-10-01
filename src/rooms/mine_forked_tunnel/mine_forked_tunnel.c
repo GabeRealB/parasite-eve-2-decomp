@@ -190,7 +190,7 @@ extern WorldCollisionGrid         D_mine_forked_tunnel_80183D70;
 extern GpObj4C                    D_mine_forked_tunnel_80184F50[6];
 extern GpObj4C                    D_mine_forked_tunnel_80185118[6];
 extern WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8];
-extern GpRoomCoordSet             D_mine_forked_tunnel_80184F38[1];
+extern WorldCoordRoomLights       D_mine_forked_tunnel_80184F38[1];
 void                              func_mine_forked_tunnel_8017E2B4(void);
 
 TmdBone D_mine_forked_tunnel_8017E828[1] = {
@@ -1326,8 +1326,8 @@ WorldCoordPointLight D_mine_forked_tunnel_80184DB8[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1421, -769, 2480 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3316, 2385 }, { 0, 0 } }, 280, 2961 },
 };
 
-GpRoomCoordSet D_mine_forked_tunnel_80184F38[1] = {
-    { 0, NULL, 4, D_mine_forked_tunnel_80184DB8, 0, NULL },
+WorldCoordRoomLights D_mine_forked_tunnel_80184F38[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mine_forked_tunnel_80184DB8), D_mine_forked_tunnel_80184DB8, 0, NULL },
 };
 
 GpObj4C D_mine_forked_tunnel_80184F50[6] = {

@@ -3,7 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -281,7 +281,7 @@ WorldCoordPointLight D_shelter_b2_elevator_8017E7E0[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2FD1, -1742, -381 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2950, 3487, 3402 }, { 0, 0 } }, 679, 5240 },
 };
 
-GpRoomCoordSet D_shelter_b2_elevator_8017E840 = { 0, NULL, 1, D_shelter_b2_elevator_8017E7E0, 0, NULL };
+WorldCoordRoomLights D_shelter_b2_elevator_8017E840 = { 0, NULL, ARRAY_SIZE(D_shelter_b2_elevator_8017E7E0), D_shelter_b2_elevator_8017E7E0, 0, NULL };
 
 GpObj4C D_shelter_b2_elevator_8017E858[2] = {
     { NULL, NULL, NULL, { 3454, -1167, 45, 0 }, { { -10, -1520, 2263, 0 }, { 11, -1520, -2263, 0 }, { -10, 1520, 2263, 0 }, { 11, 1520, -2263, 0 } }, { -4099, 0, -20, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 3, 2, 1, 0 },

@@ -4,7 +4,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -94,7 +94,7 @@ WorldCoordPointLight D_neo_ark_r31_8017DB1C[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x2710, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0x186A0, 0x186A0 },
 };
 
-GpRoomCoordSet D_neo_ark_r31_8017DB7C = { 0, NULL, 1, D_neo_ark_r31_8017DB1C, 0, NULL };
+WorldCoordRoomLights D_neo_ark_r31_8017DB7C = { 0, NULL, ARRAY_SIZE(D_neo_ark_r31_8017DB1C), D_neo_ark_r31_8017DB1C, 0, NULL };
 
 GpAreaTmdRec D_neo_ark_r31_8017DB94[3] = {
     { 101, 618, 3, 0, { 0, 0 }, D_80139F8C },

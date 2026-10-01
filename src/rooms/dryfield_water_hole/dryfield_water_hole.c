@@ -117,8 +117,8 @@ extern GpObj4C                    D_dryfield_water_hole_80181724[14];
 extern GpObj4C                    D_dryfield_water_hole_80181B4C[7];
 extern GpObj4C                    D_dryfield_water_hole_80181D60[6];
 extern WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9];
-extern GpRoomCoordSet             D_dryfield_water_hole_80182468[1];
-extern GpRoomCoordSet             D_dryfield_water_hole_8018278C[1];
+extern WorldCoordRoomLights       D_dryfield_water_hole_80182468[1];
+extern WorldCoordRoomLights       D_dryfield_water_hole_8018278C[1];
 
 s32  func_dryfield_water_hole_8017D5E8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_water_hole_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -1233,8 +1233,8 @@ DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0 = {
     },
 };
 
-GpRoomCoordSet D_dryfield_water_hole_80182468[1] = {
-    { 0, NULL, 6, D_dryfield_water_hole_80181FA0, 1, D_dryfield_water_hole_801821E0.active },
+WorldCoordRoomLights D_dryfield_water_hole_80182468[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80181FA0), D_dryfield_water_hole_80181FA0, ARRAY_SIZE(D_dryfield_water_hole_801821E0.active), D_dryfield_water_hole_801821E0.active },
 };
 
 WorldCoordPointLight D_dryfield_water_hole_80182480[7] = {
@@ -1251,8 +1251,8 @@ WorldCoordSpotLight D_dryfield_water_hole_80182720[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7444, -3447, -1496 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3014, 2621 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 2500, 5000, 113 },
 };
 
-GpRoomCoordSet D_dryfield_water_hole_8018278C[1] = {
-    { 0, NULL, 7, D_dryfield_water_hole_80182480, 1, D_dryfield_water_hole_80182720 },
+WorldCoordRoomLights D_dryfield_water_hole_8018278C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_water_hole_80182480), D_dryfield_water_hole_80182480, ARRAY_SIZE(D_dryfield_water_hole_80182720), D_dryfield_water_hole_80182720 },
 };
 
 GpAreaTmdRec D_dryfield_water_hole_801827A4[2] = {

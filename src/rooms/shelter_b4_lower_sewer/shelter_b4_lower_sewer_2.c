@@ -338,7 +338,7 @@ WorldCoordPointLight D_shelter_b4_lower_sewer_80182EEC[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3700, -1900, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2300, 5121 },
 };
 
-GpRoomCoordSet D_shelter_b4_lower_sewer_8018342C = { 0, NULL, 14, D_shelter_b4_lower_sewer_80182EEC, 0, NULL };
+WorldCoordRoomLights D_shelter_b4_lower_sewer_8018342C = { 0, NULL, ARRAY_SIZE(D_shelter_b4_lower_sewer_80182EEC), D_shelter_b4_lower_sewer_80182EEC, 0, NULL };
 
 GpObj4C D_shelter_b4_lower_sewer_80183444[12] = {
     { NULL, NULL, NULL, { 0x2A5F, -3585, -1922, 0 }, { { -6, -3824, 2091, 0 }, { -7, -3824, -2101, 0 }, { -6, 3824, 2091, 0 }, { -7, 3824, -2101, 0 } }, { -4102, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 7, 6, 1, 0 },

@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -66,10 +66,10 @@ s32 func_dryfield_night_breezeway_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventM
 s32 func_dryfield_night_breezeway_8017D600(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_night_breezeway_8017D62C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_night_breezeway_8017EBC4[1];
-extern GpObj4C            D_dryfield_night_breezeway_80180170[4];
-extern GpObj4C            D_dryfield_night_breezeway_801802A0[3];
-extern GpRoomCoordSet     D_dryfield_night_breezeway_80180158[1];
+extern WorldCollisionGrid   D_dryfield_night_breezeway_8017EBC4[1];
+extern GpObj4C              D_dryfield_night_breezeway_80180170[4];
+extern GpObj4C              D_dryfield_night_breezeway_801802A0[3];
+extern WorldCoordRoomLights D_dryfield_night_breezeway_80180158[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -420,8 +420,8 @@ WorldCoordPointLight D_dryfield_night_breezeway_8017FEB8[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7500, -2000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } }, 0, 1 },
 };
 
-GpRoomCoordSet D_dryfield_night_breezeway_80180158[1] = {
-    { 4, D_dryfield_night_breezeway_8017FD58, 7, D_dryfield_night_breezeway_8017FEB8, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_breezeway_80180158[1] = {
+    { ARRAY_SIZE(D_dryfield_night_breezeway_8017FD58), D_dryfield_night_breezeway_8017FD58, ARRAY_SIZE(D_dryfield_night_breezeway_8017FEB8), D_dryfield_night_breezeway_8017FEB8, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_breezeway_80180170[4] = {

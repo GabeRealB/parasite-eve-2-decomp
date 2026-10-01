@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -47,11 +47,11 @@
 extern SVECTOR D_dryfield_night_junk_yard_8018073C[];
 extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 
-extern WorldCollisionGrid D_dryfield_night_junk_yard_801811B8[1];
-extern GpObj3A            D_dryfield_night_junk_yard_80184318[1];
-extern GpObj4C            D_dryfield_night_junk_yard_80183778[10];
-extern GpObj4C            D_dryfield_night_junk_yard_80183D28[20];
-extern GpRoomCoordSet     D_dryfield_night_junk_yard_80183D10[1];
+extern WorldCollisionGrid   D_dryfield_night_junk_yard_801811B8[1];
+extern GpObj3A              D_dryfield_night_junk_yard_80184318[1];
+extern GpObj4C              D_dryfield_night_junk_yard_80183778[10];
+extern GpObj4C              D_dryfield_night_junk_yard_80183D28[20];
+extern WorldCoordRoomLights D_dryfield_night_junk_yard_80183D10[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -735,8 +735,8 @@ WorldCoordPointLight D_dryfield_night_junk_yard_80183A70[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4863, -4059, 6797 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1706, 2302, 2709 }, { 0, 0 } }, 1980, 0x3346 },
 };
 
-GpRoomCoordSet D_dryfield_night_junk_yard_80183D10[1] = {
-    { 0, NULL, 7, D_dryfield_night_junk_yard_80183A70, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_junk_yard_80183D10[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_junk_yard_80183A70), D_dryfield_night_junk_yard_80183A70, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_junk_yard_80183D28[20] = {

@@ -30,7 +30,7 @@ extern GpViewRec D_shelter_b2_elevator_8017E108[];
 
 extern GpSprtRec D_shelter_b2_elevator_8017E7BC[];
 
-extern GpRoomCoordSet D_shelter_b2_elevator_8017E840;
+extern WorldCoordRoomLights D_shelter_b2_elevator_8017E840;
 
 extern GpObj4A D_shelter_b2_elevator_8017E858[];
 

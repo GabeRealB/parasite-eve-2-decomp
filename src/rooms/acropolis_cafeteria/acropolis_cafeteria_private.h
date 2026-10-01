@@ -29,7 +29,7 @@ extern s32 D_acropolis_cafeteria_80184CFC;
 
 extern WorldCoordPointLight D_acropolis_cafeteria_80189E24[15];
 
-extern GpRoomCoordSet D_acropolis_cafeteria_8018AA18[1];
+extern WorldCoordRoomLights D_acropolis_cafeteria_8018AA18[1];
 
 extern WorldCoordRoomAmbientEntry D_acropolis_cafeteria_8018C90C[25];
 

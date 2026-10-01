@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "dryfield_night_general_store_private.h"
 
@@ -47,7 +47,7 @@ extern GpObj3A                    D_dryfield_night_general_store_801855C4[4];
 extern GpObj4C                    D_dryfield_night_general_store_801847D0[28];
 extern GpObj4C                    D_dryfield_night_general_store_80185020[19];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_general_store_801857DC[17];
-extern GpRoomCoordSet             D_dryfield_night_general_store_801847B8[1];
+extern WorldCoordRoomLights       D_dryfield_night_general_store_801847B8[1];
 
 SVECTOR D_dryfield_night_general_store_8017E7EC[4] = {
     { 3240, -2820, 1750, 0 },
@@ -1271,8 +1271,8 @@ WorldCoordPointLight D_dryfield_night_general_store_80184338[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2621, 1720 }, { 0, 0 } }, 1500, 2000 },
 };
 
-GpRoomCoordSet D_dryfield_night_general_store_801847B8[1] = {
-    { 0, NULL, 12, D_dryfield_night_general_store_80184338, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_general_store_801847B8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_general_store_80184338), D_dryfield_night_general_store_80184338, 0, NULL },
 };
 
 GpObj4C D_dryfield_night_general_store_801847D0[28] = {

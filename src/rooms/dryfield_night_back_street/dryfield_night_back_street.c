@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -68,7 +68,7 @@ extern WorldCollisionGrid         D_dryfield_night_back_street_80180B34[1];
 extern GpObj4C                    D_dryfield_night_back_street_80180D70[6];
 extern GpObj4C                    D_dryfield_night_back_street_80180F38[10];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_back_street_801815C8[6];
-extern GpRoomCoordSet             D_dryfield_night_back_street_80181470[1];
+extern WorldCoordRoomLights       D_dryfield_night_back_street_80181470[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -234,8 +234,8 @@ WorldCoordPointLight D_dryfield_night_back_street_80181230[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9762, -2100, 4476 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3522, 3112 }, { 0, 0 } }, 1000, 3000 },
 };
 
-GpRoomCoordSet D_dryfield_night_back_street_80181470[1] = {
-    { 0, NULL, 6, D_dryfield_night_back_street_80181230, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_back_street_80181470[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_night_back_street_80181230), D_dryfield_night_back_street_80181230, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_back_street_80181488[2] = {

@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -42,7 +42,7 @@ extern GpObj3A                    D_mine_tunnel_8018025C[3];
 extern GpObj4C                    D_mine_tunnel_8017FBD8[6];
 extern GpObj4C                    D_mine_tunnel_8017FDA0[4];
 extern WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6];
-extern GpRoomCoordSet             D_mine_tunnel_8017FBC0[1];
+extern WorldCoordRoomLights       D_mine_tunnel_8017FBC0[1];
 
 extern SpriteBatch  D_mine_tunnel_8017E944[2];
 extern SpriteBatch  D_mine_tunnel_8017EA1C[4];
@@ -381,8 +381,8 @@ WorldCoordPointLight D_mine_tunnel_8017F9E0[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x398A, -2000, 60 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 600, 3000 },
 };
 
-GpRoomCoordSet D_mine_tunnel_8017FBC0[1] = {
-    { 0, NULL, 5, D_mine_tunnel_8017F9E0, 0, NULL },
+WorldCoordRoomLights D_mine_tunnel_8017FBC0[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mine_tunnel_8017F9E0), D_mine_tunnel_8017F9E0, 0, NULL },
 };
 
 GpObj4C D_mine_tunnel_8017FBD8[6] = {

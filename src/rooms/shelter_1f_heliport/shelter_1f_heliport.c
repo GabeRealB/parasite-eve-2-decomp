@@ -5,7 +5,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -221,7 +221,7 @@ extern WorldCollisionGrid         gFollowCollisionGrid;
 extern GpObj4C                    D_shelter_1f_heliport_80182178[12];
 extern GpObj4C                    D_shelter_1f_heliport_80182508[21];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
-extern GpRoomCoordSet             D_shelter_1f_heliport_80182160[1];
+extern WorldCoordRoomLights       D_shelter_1f_heliport_80182160[1];
 s32                               func_shelter_1f_heliport_801800A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_shelter_1f_heliport_80180334(Task*, s32, s32, TaskMessageArg);
 s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, TaskMessageArg);
@@ -476,8 +476,8 @@ WorldCoordSpotLight D_shelter_1f_heliport_80181FB0[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7550, -1500, -6360 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, { 2627, 0, 3142, 0 }, 0x4E20, 0x4E20, 887 },
 };
 
-GpRoomCoordSet D_shelter_1f_heliport_80182160[1] = {
-    { 0, NULL, 1, D_shelter_1f_heliport_80181F50, 4, D_shelter_1f_heliport_80181FB0 },
+WorldCoordRoomLights D_shelter_1f_heliport_80182160[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_1f_heliport_80181F50), D_shelter_1f_heliport_80181F50, ARRAY_SIZE(D_shelter_1f_heliport_80181FB0), D_shelter_1f_heliport_80181FB0 },
 };
 
 GpObj4C D_shelter_1f_heliport_80182178[12] = {

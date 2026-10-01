@@ -336,8 +336,8 @@ void func_acropolis_plaza_8017FF18(Task*);
 void func_acropolis_plaza_80180054(Task*);
 void func_acropolis_plaza_80180270(Task*);
 
-extern WorldCollisionGrid D_acropolis_plaza_80199180[1];
-extern GpRoomCoordSet     D_acropolis_plaza_80199EE8[1];
+extern WorldCollisionGrid   D_acropolis_plaza_80199180[1];
+extern WorldCoordRoomLights D_acropolis_plaza_80199EE8[1];
 
 extern SVECTOR D_acropolis_plaza_80198AA0[30];
 extern SVECTOR D_acropolis_plaza_80198B90[80];
@@ -2751,8 +2751,8 @@ WorldCoordPointLight D_acropolis_plaza_801993A8[30] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7017, -1457, 0x2960 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1617, 2412, 2039 }, { 0, 0 } }, 4000, 5500 },
 };
 
-GpRoomCoordSet D_acropolis_plaza_80199EE8[1] = {
-    { 0, NULL, 30, D_acropolis_plaza_801993A8, 0, NULL },
+WorldCoordRoomLights D_acropolis_plaza_80199EE8[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_plaza_801993A8), D_acropolis_plaza_801993A8, 0, NULL },
 };
 
 WorldCollisionFootstepSounds D_acropolis_plaza_80199F00 = {

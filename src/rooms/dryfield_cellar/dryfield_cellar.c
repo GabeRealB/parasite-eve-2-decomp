@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -56,13 +56,13 @@ s32 func_dryfield_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_cellar_8017D6FC(Task*, s32, s32, TaskMessageArg);
 
-extern WorldCollisionGrid D_dryfield_cellar_8017DF54[1];
-extern GpObj3A            D_dryfield_cellar_8018067C[1];
-extern GpObj4C            D_dryfield_cellar_8017FEC4[6];
-extern GpObj4C            D_dryfield_cellar_8018008C[10];
-extern GpObj4C            D_dryfield_cellar_80180384[10];
-extern GpRoomCoordSet     D_dryfield_cellar_80180898[1];
-extern GpRoomCoordSet     D_dryfield_cellar_80180A90[1];
+extern WorldCollisionGrid   D_dryfield_cellar_8017DF54[1];
+extern GpObj3A              D_dryfield_cellar_8018067C[1];
+extern GpObj4C              D_dryfield_cellar_8017FEC4[6];
+extern GpObj4C              D_dryfield_cellar_8018008C[10];
+extern GpObj4C              D_dryfield_cellar_80180384[10];
+extern WorldCoordRoomLights D_dryfield_cellar_80180898[1];
+extern WorldCoordRoomLights D_dryfield_cellar_80180A90[1];
 
 GpMsgEntry D_dryfield_cellar_8017DB8C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_cellar_8017D634 },
@@ -679,8 +679,8 @@ WorldCoordPointLight D_dryfield_cellar_801806B8[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9095, -2500, 2200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4505, 4096 }, { 0, 0 } }, 2700, 3500 },
 };
 
-GpRoomCoordSet D_dryfield_cellar_80180898[1] = {
-    { 0, NULL, 5, D_dryfield_cellar_801806B8, 0, NULL },
+WorldCoordRoomLights D_dryfield_cellar_80180898[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_cellar_801806B8), D_dryfield_cellar_801806B8, 0, NULL },
 };
 
 WorldCoordPointLight D_dryfield_cellar_801808B0[5] = {
@@ -691,8 +691,8 @@ WorldCoordPointLight D_dryfield_cellar_801808B0[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9095, -2500, 2200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1843, 1843, 2662 }, { 0, 0 } }, 2700, 3500 },
 };
 
-GpRoomCoordSet D_dryfield_cellar_80180A90[1] = {
-    { 0, NULL, 5, D_dryfield_cellar_801808B0, 0, NULL },
+WorldCoordRoomLights D_dryfield_cellar_80180A90[1] = {
+    { 0, NULL, ARRAY_SIZE(D_dryfield_cellar_801808B0), D_dryfield_cellar_801808B0, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_cellar_80180AA8[3] = {

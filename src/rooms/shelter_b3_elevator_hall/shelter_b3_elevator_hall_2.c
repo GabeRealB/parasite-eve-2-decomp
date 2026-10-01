@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "shelter_b3_elevator_hall_private.h"
 
@@ -337,7 +337,7 @@ WorldCoordPointLight D_shelter_b3_elevator_hall_80184230[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3591, -2723, -1583 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 4000 },
 };
 
-GpRoomCoordSet D_shelter_b3_elevator_hall_80184410 = { 0, NULL, 5, D_shelter_b3_elevator_hall_80184230, 0, NULL };
+WorldCoordRoomLights D_shelter_b3_elevator_hall_80184410 = { 0, NULL, ARRAY_SIZE(D_shelter_b3_elevator_hall_80184230), D_shelter_b3_elevator_hall_80184230, 0, NULL };
 
 GpObj4C D_shelter_b3_elevator_hall_80184428[8] = {
     { NULL, NULL, NULL, { 3519, 128, -2001, 0 }, { { 0, -4304, 2096, 0 }, { 0, -4304, -2096, 0 }, { 0, 4304, 2096, 0 }, { 0, 4304, -2096, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 4, 5, 1, 0 },

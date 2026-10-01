@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -51,7 +51,7 @@ extern GpObj4C                    D_mine_gorge_80182AD4[8];
 extern GpObj4C                    D_mine_gorge_80182D34[8];
 extern GpObj4C                    D_mine_gorge_80182F94[5];
 extern WorldCoordRoomAmbientEntry D_mine_gorge_801835A4[12];
-extern GpRoomCoordSet             D_mine_gorge_80182ABC[1];
+extern WorldCoordRoomLights       D_mine_gorge_80182ABC[1];
 
 u16 D_mine_gorge_8017E760[12] = {
     0,
@@ -867,8 +867,8 @@ WorldCoordPointLight D_mine_gorge_8018287C[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1131, -1993, 2674 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2703 }, { 0, 0 } }, 381, 2919 },
 };
 
-GpRoomCoordSet D_mine_gorge_80182ABC[1] = {
-    { 0, NULL, 6, D_mine_gorge_8018287C, 0, NULL },
+WorldCoordRoomLights D_mine_gorge_80182ABC[1] = {
+    { 0, NULL, ARRAY_SIZE(D_mine_gorge_8018287C), D_mine_gorge_8018287C, 0, NULL },
 };
 
 GpObj4C D_mine_gorge_80182AD4[8] = {

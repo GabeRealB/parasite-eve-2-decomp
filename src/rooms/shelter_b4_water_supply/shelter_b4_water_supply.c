@@ -8,7 +8,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -615,7 +615,7 @@ WorldCoordPointLight D_shelter_b4_water_supply_80184014[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2C24, -3800, -500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3358, 2949, 2539 }, { 0, 0 } }, 2000, 2500 },
 };
 
-GpRoomCoordSet D_shelter_b4_water_supply_801843D4 = { 0, NULL, 10, D_shelter_b4_water_supply_80184014, 0, NULL };
+WorldCoordRoomLights D_shelter_b4_water_supply_801843D4 = { 0, NULL, ARRAY_SIZE(D_shelter_b4_water_supply_80184014), D_shelter_b4_water_supply_80184014, 0, NULL };
 
 GpObj4C D_shelter_b4_water_supply_801843EC[18] = {
     { NULL, NULL, NULL, { 0x359F, -3328, -1152, 0 }, { { 0, -4160, 1376, 0 }, { 0, -4160, -1376, 0 }, { 0, 4160, 1376, 0 }, { 0, 4160, -1376, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4374, 0, 3, 2, 1, 0 },

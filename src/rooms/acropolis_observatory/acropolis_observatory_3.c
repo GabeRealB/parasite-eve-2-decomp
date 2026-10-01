@@ -99,10 +99,10 @@ extern s16 D_acropolis_observatory_8017FE68[];
 extern SVECTOR D_acropolis_observatory_8017FE78[8];
 extern u16     D_acropolis_observatory_8017FEB8[8];
 
-extern WorldCollisionGrid D_acropolis_observatory_80180A50[1];
-extern GpObj4C            D_acropolis_observatory_80180A74[10];
-extern GpObj4C            D_acropolis_observatory_80180D6C[9];
-extern GpRoomCoordSet     D_acropolis_observatory_8018177C[1];
+extern WorldCollisionGrid   D_acropolis_observatory_80180A50[1];
+extern GpObj4C              D_acropolis_observatory_80180A74[10];
+extern GpObj4C              D_acropolis_observatory_80180D6C[9];
+extern WorldCoordRoomLights D_acropolis_observatory_8018177C[1];
 
 void func_acropolis_observatory_8017E19C(Task*);
 
@@ -363,8 +363,8 @@ WorldCoordPointLight D_acropolis_observatory_801812FC[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5386, -4300, -1770 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3686, 4096 }, { 0, 0 } }, 100, 6000 },
 };
 
-GpRoomCoordSet D_acropolis_observatory_8018177C[1] = {
-    { 0, NULL, 12, D_acropolis_observatory_801812FC, 0, NULL },
+WorldCoordRoomLights D_acropolis_observatory_8018177C[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_observatory_801812FC), D_acropolis_observatory_801812FC, 0, NULL },
 };
 
 SpriteBatch D_acropolis_observatory_80181794[2] = {

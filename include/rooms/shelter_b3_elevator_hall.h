@@ -27,7 +27,7 @@ extern GpViewRec D_shelter_b3_elevator_hall_801834EC[];
 
 extern GpSprtRec D_shelter_b3_elevator_hall_801841DC[];
 
-extern GpRoomCoordSet D_shelter_b3_elevator_hall_80184410;
+extern WorldCoordRoomLights D_shelter_b3_elevator_hall_80184410;
 
 extern GpObj4A D_shelter_b3_elevator_hall_80184428[];
 

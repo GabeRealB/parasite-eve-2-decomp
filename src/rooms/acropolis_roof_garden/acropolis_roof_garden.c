@@ -110,11 +110,11 @@ static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
 
 static const RgSpriteLevels D_acropolis_roof_garden_8017D5D0 = { { 0x40, 0x60, 0x10 } };
 
-extern WorldCollisionGrid D_acropolis_roof_garden_801854A4[1];
-extern GpObj3A            D_acropolis_roof_garden_80186D14[2];
-extern GpObj4C            D_acropolis_roof_garden_801854C8[6];
-extern GpObj4C            D_acropolis_roof_garden_80185690[7];
-extern GpRoomCoordSet     D_acropolis_roof_garden_80186BDC[1];
+extern WorldCollisionGrid   D_acropolis_roof_garden_801854A4[1];
+extern GpObj3A              D_acropolis_roof_garden_80186D14[2];
+extern GpObj4C              D_acropolis_roof_garden_801854C8[6];
+extern GpObj4C              D_acropolis_roof_garden_80185690[7];
+extern WorldCoordRoomLights D_acropolis_roof_garden_80186BDC[1];
 
 extern AnimationPlayRequest D_acropolis_roof_garden_80184ACC;
 extern AnimationPlayRequest D_acropolis_roof_garden_80184AE0;
@@ -812,8 +812,8 @@ WorldCoordPointLight D_acropolis_roof_garden_8018669C[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3202, -700, -2566 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
 };
 
-GpRoomCoordSet D_acropolis_roof_garden_80186BDC[1] = {
-    { 0, NULL, 14, D_acropolis_roof_garden_8018669C, 0, NULL },
+WorldCoordRoomLights D_acropolis_roof_garden_80186BDC[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_roof_garden_8018669C), D_acropolis_roof_garden_8018669C, 0, NULL },
 };
 
 GpViewRec D_acropolis_roof_garden_80186BF4[8] = {

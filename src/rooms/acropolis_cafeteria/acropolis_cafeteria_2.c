@@ -141,8 +141,8 @@ extern SpriteSource   D_acropolis_cafeteria_8018B828[31];
 extern SpriteSource   D_acropolis_cafeteria_8018BB1C[12];
 extern SpriteSource   D_acropolis_cafeteria_8018BC74[75];
 
-GpRoomCoordSet D_acropolis_cafeteria_8018AA18[1] = {
-    { 0, NULL, 15, D_acropolis_cafeteria_80189E24, 1, D_acropolis_cafeteria_8018A3C4.active },
+WorldCoordRoomLights D_acropolis_cafeteria_8018AA18[1] = {
+    { 0, NULL, ARRAY_SIZE(D_acropolis_cafeteria_80189E24), D_acropolis_cafeteria_80189E24, ARRAY_SIZE(D_acropolis_cafeteria_8018A3C4.active), D_acropolis_cafeteria_8018A3C4.active },
 };
 
 SpriteBatch D_acropolis_cafeteria_8018AA30[2] = {

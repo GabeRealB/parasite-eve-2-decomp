@@ -7,7 +7,7 @@
 #include <psyq/rand.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "neo_ark_island_private.h"
 
@@ -459,8 +459,8 @@ WorldCoordLight D_neo_ark_island_80183B50[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_neo_ark_island_80183CB0[1] = {
-    { 4, D_neo_ark_island_80183B50, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_neo_ark_island_80183CB0[1] = {
+    { ARRAY_SIZE(D_neo_ark_island_80183B50), D_neo_ark_island_80183B50, 0, NULL, 0, NULL },
 };
 
 GpObj4C D_neo_ark_island_80183CC8[4] = {

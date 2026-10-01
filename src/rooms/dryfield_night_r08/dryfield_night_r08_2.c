@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -51,8 +51,8 @@
 
 extern SVECTOR D_dryfield_night_r08_8018056C[];
 
-extern WorldCollisionGrid D_dryfield_night_r08_80181474[1];
-extern GpRoomCoordSet     D_dryfield_night_r08_8018189C[1];
+extern WorldCollisionGrid   D_dryfield_night_r08_80181474[1];
+extern WorldCoordRoomLights D_dryfield_night_r08_8018189C[1];
 
 SVECTOR D_dryfield_night_r08_8018056C[8] = {
     { -667, -1910, -0x4A3D, 0 },
@@ -229,8 +229,8 @@ WorldCoordLight D_dryfield_night_r08_80181794[3] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2899, 1476, -7757 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6144, 6144, 6144 }, { 0, 0 } },
 };
 
-GpRoomCoordSet D_dryfield_night_r08_8018189C[1] = {
-    { 3, D_dryfield_night_r08_80181794, 0, NULL, 0, NULL },
+WorldCoordRoomLights D_dryfield_night_r08_8018189C[1] = {
+    { ARRAY_SIZE(D_dryfield_night_r08_80181794), D_dryfield_night_r08_80181794, 0, NULL, 0, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_r08_801818B4[3] = {

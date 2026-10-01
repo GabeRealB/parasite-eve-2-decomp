@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "types.h"
+#include "common.h"
 
 #include "actors/task_tables.h"
 
@@ -82,15 +82,15 @@ extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-extern WorldCollisionGrid D_shelter_b1_south_maintenance_walkway_801827B8[1];
-extern GpObj3A            D_shelter_b1_south_maintenance_walkway_80183274[1];
-extern GpObj4C            D_shelter_b1_south_maintenance_walkway_801830AC[6];
-extern GpObj4C            D_shelter_b1_south_maintenance_walkway_801832B0[2];
-extern GpRoomCoordSet     D_shelter_b1_south_maintenance_walkway_80183094[1];
-s32                       func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                       func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                       func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
+extern WorldCollisionGrid   D_shelter_b1_south_maintenance_walkway_801827B8[1];
+extern GpObj3A              D_shelter_b1_south_maintenance_walkway_80183274[1];
+extern GpObj4C              D_shelter_b1_south_maintenance_walkway_801830AC[6];
+extern GpObj4C              D_shelter_b1_south_maintenance_walkway_801832B0[2];
+extern WorldCoordRoomLights D_shelter_b1_south_maintenance_walkway_80183094[1];
+s32                         func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                         func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -298,8 +298,8 @@ WorldCoordPointLight D_shelter_b1_south_maintenance_walkway_80182E54[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2025, -223, -1515 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2588, 2641, 2677 }, { 0, 0 } }, 1923, 3843 },
 };
 
-GpRoomCoordSet D_shelter_b1_south_maintenance_walkway_80183094[1] = {
-    { 0, NULL, 6, D_shelter_b1_south_maintenance_walkway_80182E54, 0, NULL },
+WorldCoordRoomLights D_shelter_b1_south_maintenance_walkway_80183094[1] = {
+    { 0, NULL, ARRAY_SIZE(D_shelter_b1_south_maintenance_walkway_80182E54), D_shelter_b1_south_maintenance_walkway_80182E54, 0, NULL },
 };
 
 GpObj4C D_shelter_b1_south_maintenance_walkway_801830AC[6] = {

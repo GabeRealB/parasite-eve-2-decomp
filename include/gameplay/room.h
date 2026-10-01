@@ -27,28 +27,34 @@ typedef union {
 } WorldCoordRoomAmbientEntry;
 STATIC_ASSERT_SIZEOF(WorldCoordRoomAmbientEntry, 8);
 
-/// A room view's own lights, returned by `Gp_GetRoomCoordSet`
-/// (`GpRoomCoordRec.field_0`): its directional, point and spot lights.
-/// `Gp_UpdateRoomCoords` parents each light to `gGfxViewCoord` on first run,
-/// builds each spot light's orientation from its `axis`, then updates them every
-/// frame via `Gp_UpdateCoordEx`.
-typedef struct _GpRoomCoordSet {
-    /* 0x00 */ s32                   n58;
-    /* 0x04 */ WorldCoordLight*      arr58; // directional lights
-    /* 0x08 */ s32                   n60;
-    /* 0x0C */ WorldCoordPointLight* arr60; // point lights
-    /* 0x10 */ s32                   n6C;
-    /* 0x14 */ WorldCoordSpotLight*  arr6C; // spot lights
-} GpRoomCoordSet;
-STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
+/// A room's directional, point and cone lights for model shading and light queries.
+///
+/// The loaded room overlay owns these contiguous arrays; the room table selects
+/// this collection independently of the view. Each light's view filter controls
+/// its contribution. Counts are non-negative element counts, with (0, NULL) for
+/// an absent array; retained storage after a live array is outside its count.
+///
+/// Elements stay writable: coordinate updates parent them to `gGfxViewCoord`,
+/// initialize cone orientations and compose their transforms; lighting queries
+/// overwrite attenuation. The record, arrays and borrowed parent remain live
+/// while used, and room pointers must not outlive the loaded overlay.
+typedef struct {
+    s32                   directionalLightCount; // Number of directional-light elements.
+    WorldCoordLight*      directionalLights;     // Borrowed mutable directional-light array, or NULL.
+    s32                   pointLightCount;       // Number of point-light elements.
+    WorldCoordPointLight* pointLights;           // Borrowed mutable point-light array, or NULL.
+    s32                   coneLightCount;        // Number of live cone-light elements.
+    WorldCoordSpotLight*  coneLights;            // Borrowed mutable cone-light array, or NULL.
+} WorldCoordRoomLights;
+STATIC_ASSERT_SIZEOF(WorldCoordRoomLights, 0x18);
 
 /// 8-byte record in tables pointed to by `Gp_RoomCoordTables`. Indexed 1-based
 /// by `GameLocationKey.room`. `Gp_GetRoomCoordRec` returns the record (or NULL).
-/// `Gp_GetRoomCoordSet` returns `field_0`, the room view's lights (or NULL).
+/// `Gp_GetRoomCoordSet` returns `field_0`, the room's lights (or NULL).
 /// `Gp_GetRoomBound` walks `field_4` as a `WorldCoordRoomAmbientEntry` table, falling
 /// back to `Gp_RoomBoundDefault`.
 typedef struct _GpRoomCoordRec {
-    /* 0x0 */ GpRoomCoordSet*             field_0;
+    /* 0x0 */ WorldCoordRoomLights*       field_0;
     /* 0x4 */ WorldCoordRoomAmbientEntry* field_4;
 } GpRoomCoordRec;
 STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
