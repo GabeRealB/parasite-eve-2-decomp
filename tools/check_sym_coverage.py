@@ -17,6 +17,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import tomllib
+
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,12 +49,34 @@ def mapped_names(paths: list[str]) -> set[str]:
     return names
 
 
+def slot_siblings(version: str) -> dict[str, list[str]]:
+    """package -> the other packages built from the same manifest entry.
+
+    Such a package is one source compiled again with other defines, so its
+    function names come from that source: a sibling's map names them, at the
+    sibling's addresses. Giving each package its own map would make one name
+    stand for two offsets in the source, which check_symbols rejects.
+    """
+    manifest = tomllib.loads((ROOT / "configs" / version / "overlays.toml").read_text())
+    out: dict[str, list[str]] = {}
+    for fam in manifest.values():
+        if not isinstance(fam, dict) or "overlays" not in fam:
+            continue
+        for key, entry in fam["overlays"].items():
+            pkgs = [str(s["package"]) for s in entry.get("slots") or []]
+            for p in pkgs:
+                out[p] = [q for q in pkgs if q != p]
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--version", default="USA")
     ap.add_argument("images", nargs="*", help="basenames to check (default: every built image)")
     args = ap.parse_args()
     out_dir = ROOT / "build" / args.version / "out"
+    siblings = slot_siblings(args.version)
+    maps_of = {}
     problems = []
     checked = 0
     for cfg in configs(args.version):
@@ -61,17 +85,23 @@ def main() -> int:
         doc = yaml.safe_load(cfg.read_text())
         opts = (doc or {}).get("options") or {}
         name = opts.get("basename")
-        if not name or (args.images and name not in args.images):
-            continue
-        elf = out_dir / f"{name}.elf"
-        if not elf.exists():
+        if name and (out_dir / f"{name}.elf").exists():
+            maps_of[name] = opts.get("symbol_addrs_path") or []
+    for cfg_name, paths in maps_of.items():
+        if args.images and cfg_name not in args.images:
             continue
         checked += 1
-        known = mapped_names(opts.get("symbol_addrs_path") or [])
+        elf = out_dir / f"{cfg_name}.elf"
+        known = mapped_names(paths)
+        for sib in siblings.get(cfg_name, []):
+            known |= mapped_names(maps_of.get(sib, []))
         for addr, fn in image_functions(elf):
             if fn in known or re.fullmatch(rf"func_(\w+_)?{addr:08X}", fn):
                 continue
-            problems.append(f"{name}: {fn} at 0x{addr:08X} is not in {opts.get('symbol_addrs_path', ['its symbol map'])[0]}")
+            # a slot's own export (SLOT_FUNC): the source names it after a sibling's address
+            if cfg_name in siblings and re.fullmatch(rf"func_{re.escape(cfg_name)}_[0-9A-F]{{8}}", fn):
+                continue
+            problems.append(f"{cfg_name}: {fn} at 0x{addr:08X} is not in {(paths or ['its symbol map'])[0]}")
     if problems:
         print(f"{len(problems)} C function name(s) missing from symbol maps; objdiff will not pair them:")
         print("\n".join(f"  {p}" for p in problems[:60]))

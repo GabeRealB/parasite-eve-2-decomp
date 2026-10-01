@@ -1,5 +1,0 @@
-grenadeShellSpawn = 0x8011D3A8; // type:func
-grenadeShellFly = 0x8011D704; // type:func
-grenadeShellBlast = 0x8011DB68; // type:func
-grenadeShellExit = 0x8011DB94; // type:func
-func_mm1_8011DBD0 = 0x8011DBD8; // type:func
