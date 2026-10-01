@@ -55,6 +55,7 @@
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/no9_golem.h"
 
 s32 func_actor_510900_801391B8(Task*, s32, s32);
 
@@ -274,7 +275,6 @@ static void func_actor_510900_8013864C(Task* arg0);
 static void func_actor_510900_801387F4(Task* arg0);
 static void func_actor_510900_80138978(Task* arg0);
 static void func_actor_510900_80138A9C(Task* arg0);
-static void func_actor_510900_80138BF0(Task* arg0);
 static void func_actor_510900_80138D38(Task* arg0);
 static void func_actor_510900_80138F44(Task* arg0);
 static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1);
@@ -283,7 +283,6 @@ static void func_actor_510900_8013B870(Task* arg0);
 static void func_actor_510900_8013B988(Task* arg0);
 static void func_actor_510900_8013BA58(Task* arg0);
 static void func_actor_510900_8013BB20(Task* arg0);
-static void func_actor_510900_8013BBE4(Task* arg0);
 static void func_actor_510900_8013BC80(Task* arg0);
 
 static void func_actor_510900_8013C380(Task* arg0);
@@ -2336,51 +2335,7 @@ static void func_actor_510900_80138A9C(Task* arg0)
     }
 }
 
-/// Aims the head coordinate (`coords[4]`) at the player. Takes the head into
-/// view space, offsets the player position by 0x600 in Y, rotates that delta
-/// into the body's frame, clamps it to +/-0x400 yaw, +/-0x300 pitch and a
-/// minimum 0x200 forward, then builds the head rotation from it.
-///
-/// `head` is kept as its own pointer rather than indexing `coord` twice: CSE
-/// folds `head->workm` back onto `coord + 0x164` while `head` stays live, which
-/// is what puts the `coord += 0x140` in the clamp's branch delay slot. The
-/// `+ 0x600` likewise needs the temporary, or it is sunk into the subtrahend as
-/// `- 0x600` on the player coordinate.
-static void func_actor_510900_80138BF0(Task* arg0)
-{
-    ActorAimScratch* scratch;
-    GfxCoord*        coord;
-    GfxCoord*        head;
-    s32              offsetY;
-
-    coord = arg0->extra.tmd->coords;
-    head  = &coord[4];
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorAimScratch));
-    scratch = SCRATCH_STACK_CURSOR(ActorAimScratch);
-
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
-    scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - scratch->view.t[0];
-    offsetY           = scratch->view.t[1] + 0x600;
-    scratch->delta.vy = gPlayerStatus.coordMtx->t[1] - offsetY;
-    scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - scratch->view.t[2];
-    ApplyTransposeMatrixLV(&coord->coord, &scratch->delta, &scratch->local);
-
-    if (scratch->local.vx < -0x400) {
-        scratch->local.vx = -0x400;
-    } else if (scratch->local.vx > 0x400) {
-        scratch->local.vx = 0x400;
-    }
-    if (scratch->local.vy < -0x300) {
-        scratch->local.vy = -0x300;
-    } else if (scratch->local.vy > 0x300) {
-        scratch->local.vy = 0x300;
-    }
-    if (scratch->local.vz < 0x200) {
-        scratch->local.vz = 0x200;
-    }
-    Gp_OrientAlong(&scratch->local, &head->coord, 0);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorAimScratch));
-}
+#include "../../shared/no9_golem_aim_head.inc.c"
 
 /// Yaws the head coordinate (`coords[3]`) by the residual rotation in
 /// `Actor510900Work::field_570` and then walks that residual 0x20 back towards
@@ -3770,7 +3725,7 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
         arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         goto default_body;
     case1:
-        func_actor_510900_8013BBE4(arg1);
+        no9GolemDrawShadow(arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         return;
     case2:
@@ -3788,14 +3743,14 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
         func_actor_510900_80138978(arg1);
         func_actor_510900_80138A9C(arg1);
         func_actor_510900_8013BB20(arg1);
-        func_actor_510900_80138BF0(arg1);
+        no9GolemAimHead(arg1);
         if (temp_s2->field_584 != 0) {
             func_actor_510900_80138D38(arg1);
         }
         temp_s1->composeStamp                   = GRAPHICS_COORD_DIRTY;
         arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(temp_s1);
-        func_actor_510900_8013BBE4(arg1);
+        no9GolemDrawShadow(arg1);
         func_actor_510900_8013BC38(arg1, temp_s1);
         func_actor_510900_80138F44(arg1);
         func_actor_510900_8013BC80(arg1);
@@ -3963,22 +3918,7 @@ static void func_actor_510900_8013BB20(Task* arg0)
     }
 }
 
-/// Draws the actor's ground shadow: a 0x300-wide quad at shade 0x80, placed at
-/// the second coordinate's x/z and the first coordinate's y, so it lies on the
-/// ground under the body even when the two coordinates are apart.
-static void func_actor_510900_8013BBE4(Task* arg0)
-{
-    GfxCoord* coord;
-    GfxCoord* sub;
-    VECTOR3   vec;
-
-    coord  = arg0->extra.tmd->coords;
-    sub    = &arg0->extra.tmd->coords[1];
-    vec.vx = sub->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = sub->workm.t[2];
-    Gp_DrawEffGroundQuad(&vec, 0x300, 0x80);
-}
+#include "../../shared/no9_golem_draw_shadow.inc.c"
 
 void func_actor_510900_8013BC38(Task* arg0, GfxCoord* arg1)
 {
