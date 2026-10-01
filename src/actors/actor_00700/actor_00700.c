@@ -835,9 +835,6 @@ static const GpEnemyTaskFuncTable3 gMothStateHandlers = {
 
 #include "../../shared/moth_task.inc.c"
 
-/// A further copy, under this file's own name.
-#define ratUpdateColor mothUpdateColor
-#include "../../shared/rat_update_color.inc.c"
-#undef ratUpdateColor
+#include "../../shared/moth_update_color.inc.c"
 
 #include "../../shared/moth_squash.inc.c"

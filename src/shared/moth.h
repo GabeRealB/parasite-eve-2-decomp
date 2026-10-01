@@ -142,6 +142,7 @@ void mothTask(Task* arg0);
 void mothSquash(Task* arg0);
 
 /* Defined by each package. */
+
 void mothUpdateColor(Task* arg0);
 
 #endif /* SRC_SHARED_MOTH_H */

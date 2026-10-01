@@ -81,7 +81,6 @@ void skullStalkerLightRamp(Task* task);
 void skullStalkerFlatten(Task* arg0);
 void skullStalkerExit(Task* task);
 
-/* Defined by each package, as an include of sucklerceph_colour.inc.c. */
 void skullStalkerColour(Enemy* arg0, Task* task);
 
 static inline void skullStalkerTickAnim(Task* task);

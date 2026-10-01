@@ -179,10 +179,7 @@ static const GpEnemyTaskFuncTable3 gSkullStalkerTaskStates = {
 
 #include "../../shared/skull_stalker_animate.inc.c"
 
-/// The Skull Stalker's colour helper is the Sucklerceph's.
-#define sucklercephColour skullStalkerColour
-#include "../../shared/sucklerceph_colour.inc.c"
-#undef sucklercephColour
+#include "../../shared/skull_stalker_colour.inc.c"
 
 #include "../../shared/skull_stalker_light_ramp.inc.c"
 

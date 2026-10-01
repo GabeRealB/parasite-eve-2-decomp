@@ -420,10 +420,7 @@ static const GpEnemyTaskFuncTable3 gSkullStalkerTaskStates = {
 
 #include "../../shared/skull_stalker_animate.inc.c"
 
-/// A further copy, under this file's own name.
-#define sucklercephColour skullStalkerColour
-#include "../../shared/sucklerceph_colour.inc.c"
-#undef sucklercephColour
+#include "../../shared/skull_stalker_colour.inc.c"
 
 #include "../../shared/skull_stalker_light_ramp.inc.c"
 
