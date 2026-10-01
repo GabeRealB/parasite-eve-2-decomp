@@ -44,7 +44,8 @@ void golemPawnRookDecayHitTilt(Task* arg0);
 void golemPawnRookPlayAnimCues(Task* arg0);
 void golemPawnRookDeadState(Enemy* arg0, Task* arg1);
 
-void golemPawnRookHitTick(Task* arg0);
+/* Implemented by each package's hit and push handler. */
+void golemPawnRookTakeHits(Task* arg0);
 void golemPawnRookKnockdownState(Task* arg0);
 void golemPawnRookLungeStrikeState(Task* arg0);
 void golemPawnRookAimLaserSight(Task* arg0);
@@ -57,9 +58,6 @@ void golemPawnRookBulletDestroy(Enemy* arg0, Task* arg1);
 void golemPawnRookSilenceScreamState(Task* arg0);
 void golemPawnRookFrameState(Enemy* ctx, Task* actor);
 void golemPawnRookBurstPartTick(Enemy* arg0, Task* arg1);
-
-/* Defined by each package. */
-void golemPawnRookTakeHits(Task* arg0);
 
 static inline void golemPawnRookSpawnDust(Task* actor);
 static inline void golemPawnRookApplyReaction(Task* actor);
@@ -76,8 +74,5 @@ void golemPawnRookDelayedEffectSpawn(Enemy* arg0, Task* task);
 void golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task);
 void golemPawnRookGunSpawn(Enemy* arg0, Task* task);
 void golemPawnRookBurstPartSpawn(Enemy* arg0, Task* task);
-
-/* Defined by each package. */
-void golemPawnRookTakeHits(Task* arg0);
 
 #endif /* SRC_SHARED_GOLEM_PAWN_ROOK_H */

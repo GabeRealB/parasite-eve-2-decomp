@@ -8,7 +8,7 @@
 /// reaction animation picked into `field_6A6`), kind 3 a push-out whose
 /// deepest overlap is applied to the root after the loop. Finally raises
 /// `field_6B2` when the player's segment test against `field_4B4` fails.
-void golemPawnRookHitTick(Task* arg0)
+void golemPawnRookTakeHits(Task* arg0)
 {
     s32                    result;
     s32                    maxPush;
