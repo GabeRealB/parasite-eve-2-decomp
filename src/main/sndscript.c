@@ -214,7 +214,6 @@ STATIC_ASSERT_SIZEOF(SndBankInitEntry, 0xC);
 enum {
     SOUND_SCRIPT_ENTRY_TAG           = 0x43656E6F,
     SOUND_SCRIPT_VOLUME_UNITY        = 127,
-    SOUND_SCRIPT_ALLOW_DISABLED_TYPE = 0x01,
     SOUND_SCRIPT_USE_UNDUCKED_VOLUME = 0x02,
     SOUND_SCRIPT_GROUP_BY_FLAGS      = 0x10,
     SOUND_SCRIPT_REJECT_WHILE_MUTED  = 0x80,
@@ -734,6 +733,16 @@ loop:
 
 s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
 {
+    /// Entry flag permitting a script-start request while its bank type is disabled.
+    ///
+    /// Bit 0 of `SndScriptEntryControls::flags` bypasses the -4 rejection for
+    /// the request's type (bits 28..31 after type-1 bank remapping). The gate
+    /// stays unchanged; mute/unmute, pan and volume requests still require it
+    /// to be open. Load, bank/entry, reduced-volume and event-capacity checks
+    /// still apply, as does later script-slot allocation. The stored flags
+    /// word remains unchanged for same-sound grouping.
+    enum { SOUND_SCRIPT_ALLOW_DISABLED_TYPE = 0x01 };
+
     /// Empty-slot value in a sound-script bank image's entry-offset table.
     ///
     /// `SndBankHdr::entryOffsets` stores a byte offset from the image start to
