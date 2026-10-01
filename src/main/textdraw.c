@@ -589,7 +589,13 @@ static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontG
     /// Palette selectors and draw-mode commands for the two glyph passes.
     enum {
         TEXT_SINGLE_ENTRY_GLYPH_TEXTURE_DEPTH_4BIT = 0,
-        /// Color-modulated fill palette at VRAM word X=976, row Y=511.
+        /// GPU CLUT selector for the opaque, color-modulated fill in one OT entry.
+        ///
+        /// Encodes VRAM word X=976, row Y=511 as 0x7FFD for `SPRT::clut`.
+        /// The first 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// resident: indices 0..10 are transparent; 11..15 have RGB5 gray levels
+        /// 7, 13, 19, 25 and 31. These colors set the semi-transparency bit, but
+        /// the fill sprite disables blending and modulates them by RGB.
         TEXT_SINGLE_ENTRY_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
         /// Raw subtractive outline palette at VRAM word X=1008, row Y=511.
         TEXT_SINGLE_ENTRY_GLYPH_OUTLINE_CLUT = getClut(0x3F0, 0x1FF),
