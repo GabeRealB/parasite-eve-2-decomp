@@ -68,6 +68,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/bridge_model.h"
+#include "../../shared/acropolis_glows.h"
 
 #define D_acropolis_promenade_80181AFC (D_acropolis_promenade_80181AF4 + 1)
 
@@ -1976,118 +1977,9 @@ void func_acropolis_promenade_8017E394(Task* task)
     effectKillTask(work, task);
 }
 
-/// One frame of the promenade's twinkling star: two semi-transparent
-/// `POLY_FT4`s stacked on the same screen point, centred on the task's own
-/// coordinate frame. The frame's translation is projected through `GsWSMATRIX`
-/// into a 0x18-byte scratch stack block, and both quads are dropped
-/// entirely inside `otz` 0x11.
-///
-/// The lower quad is upright, of half-extent `0x1680 / otz`, and animates
-/// through six 0x10x0x10 cells at v = 0 on tpage 0x2B by stepping `u` with
-/// `work->age % 6`; it is drawn `code |= 3`, so semi-transparent *and*
-/// unshaded. The upper quad is the 0x27x0x27 flare at v = 0x10 with clut
-/// 0x4381, drawn at `0x3A80 / otz` from the centre along the spin angle
-/// `work->scale` and its quarter-turn (`+ 0x400`), so it rotates a frame at
-/// a time. Its colour is a fresh random grey (0x20..0x7F, equal on all three
-/// channels) every frame, which is what makes the star flicker.
-///
-/// Like the promenade's other glows, the task is one-shot: the work block is
-/// released as soon as both quads have been queued, so the room respawns it
-/// every frame it wants the star.
-void func_acropolis_promenade_8017E634(Task* task)
-{
-    GfxCoord*             coord;
-    EffectWork*           work;
-    void**                scratch;
-    u8*                   head;
-    OverlaySpriteScratch* blk;
-    s32*                  otzp;
-    POLY_FT4*             prim;
-    s32                   grey;
-
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
-    work->age   = task->spawnArg1.value;
-    scratch     = SCRATCH_STACK_CURSOR_SLOT;
-    head        = *scratch;
-    blk         = (OverlaySpriteScratch*)(head - 0x18);
-    otzp        = &blk->otz;
-    blk->vec.vx = coord->workm.t[0];
-    blk->vec.vy = coord->workm.t[1];
-    *scratch    = blk;
-    blk->vec.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vec);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&blk->sxy);
-    gte_stszotz(otzp);
-    if (blk->otz >= 0x11) {
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4380;
-        prim->code |= 3;
-        prim->u0    = (work->age % 6) * 16;
-        prim->v0    = 0;
-        prim->u1    = (work->age % 6) * 16 + 0xF;
-        prim->v1    = 0;
-        prim->u2    = (work->age % 6) * 16;
-        prim->v2    = 0xF;
-        prim->u3    = (work->age % 6) * 16 + 0xF;
-        prim->v3    = 0xF;
-        blk->dx     = 0x1680 / blk->otz;
-        blk->dy     = 0x1680 / blk->otz;
-        prim->x0 = prim->x2 = blk->sxy.vx - blk->dx;
-        prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
-        prim->y0 = prim->y1 = blk->sxy.vy - blk->dy;
-        prim->y2 = prim->y3 = blk->sxy.vy + blk->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        prim->clut      = 0x4381;
-        prim->tpage     = 0x2B;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        grey            = (gRandomLcgState >> 16) % 96 + 0x20;
-        prim->u0        = 0;
-        prim->v0        = 0x10;
-        prim->u1        = 0x27;
-        prim->v1        = 0x10;
-        prim->u2        = 0;
-        prim->v2        = 0x37;
-        prim->u3        = 0x27;
-        prim->v3        = 0x37;
-        prim->code     |= 2;
-        prim->r0        = grey;
-        prim->g0        = grey;
-        prim->b0        = grey;
-
-        work->scale = gDisplayState.animFrame + work->age;
-        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale)) >> 12;
-        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale)) >> 12;
-        prim->x0    = blk->sxy.vx + blk->dx;
-        prim->x3    = blk->sxy.vx - blk->dx;
-        prim->y0    = blk->sxy.vy - blk->dy;
-        prim->y3    = blk->sxy.vy + blk->dy;
-        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale + 0x400)) >> 12;
-        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale + 0x400)) >> 12;
-        prim->x1    = blk->sxy.vx + blk->dx;
-        prim->x2    = blk->sxy.vx - blk->dx;
-        prim->y1    = blk->sxy.vy - blk->dy;
-        prim->y2    = blk->sxy.vy + blk->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-    effectKillTask(work, task);
-}
+#define ACROPOLIS_GLOWS_STAR_TASK       func_acropolis_promenade_8017E634
+#define ACROPOLIS_GLOWS_STAR_OWN_HEIGHT 1
+#include "../../shared/acropolis_glows_star.inc.c"
 
 /// Draws one frame of the promenade's ground glow: a semi-transparent textured
 /// quad lying flat under the task's coordinate frame. The four corner signs in
@@ -2180,79 +2072,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
     effectKillTask(work, task);
 }
 
-/// Glow sprite task: queues one camera-facing, semi-transparent `POLY_FT4`
-/// centred on the task's coordinate frame. The frame's translation is
-/// projected through `GsWSMATRIX` into a 0x14-byte scratch stack block, and
-/// the quad is a square of half-extent `0x6180 / otz` around the projected
-/// point, so it shrinks with distance; nothing is drawn at `otz` 0x10 or less.
-///
-/// `Task::spawnArg1` (0..2) selects the 0x27x0x27 texture cell at
-/// `u = (arg + 1) * 0x28`, `v = 0x10` on tpage 0x2B, the clut
-/// `0x4380 | ((arg + 2) & 0x3F)`, and the grey level: a base of
-/// 0x20 / 0x60 / 0x20, plus 0x08 / 0x10 / 0x0C on odd
-/// `gDisplayState.animFrame`s.
-///
-/// The work block in `spawnArg2` is released after the quad is queued, so
-/// each spawn draws a single frame.
-void func_acropolis_promenade_8017F0BC(Task* task)
-{
-    GfxCoord*              coord;
-    EffectWork*            work;
-    RoomGlowSpriteScratch* blk;
-    POLY_FT4*              prim;
-    s32                    grey;
-    s32                    clut;
-
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
-    blk         = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-    blk->pos.vx = coord->workm.t[0];
-    blk->pos.vy = coord->workm.t[1];
-    blk->pos.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->pos);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&blk->sxy);
-    gte_stszotz(&blk->otz);
-    if (blk->otz >= 0x11) {
-        u8 base[3] = { 0x20, 0x60, 0x20 };
-        u8 step[3] = { 0x08, 0x10, 0x0C };
-
-        grey        = base[task->spawnArg1.value] + (gDisplayState.animFrame & 1) * step[task->spawnArg1.value];
-        prim->code |= 2;
-        prim->tpage = 0x2B;
-        prim->r0    = grey;
-        prim->g0    = grey;
-        prim->b0    = grey;
-        // Assigning through an `s32` keeps the load of `spawnArg1` in SImode;
-        // storing the expression straight into the `u16` field lets the front
-        // end shorten the whole chain and the load becomes an `lhu`.
-        clut       = ((task->spawnArg1.value + 2) & 0x3F) | 0x4380;
-        prim->clut = clut;
-        prim->u0   = (task->spawnArg1.value + 1) * 0x28;
-        prim->v0   = 0x10;
-        prim->u1   = (task->spawnArg1.value + 1) * 0x28 + 0x27;
-        prim->v1   = 0x10;
-        prim->u2   = (task->spawnArg1.value + 1) * 0x28;
-        prim->v2   = 0x37;
-        prim->u3   = (task->spawnArg1.value + 1) * 0x28 + 0x27;
-        prim->v3   = 0x37;
-        blk->half  = 0x6180 / blk->otz;
-        prim->x0 = prim->x2 = blk->sxy.vx - blk->half;
-        prim->x1 = prim->x3 = blk->sxy.vx + blk->half;
-        prim->y0 = prim->y1 = blk->sxy.vy - blk->half;
-        prim->y2 = prim->y3 = blk->sxy.vy + blk->half;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
-    effectKillTask(work, task);
-}
+#define ACROPOLIS_GLOWS_LAMP_TASK func_acropolis_promenade_8017F0BC
+#include "../../shared/acropolis_glows_lamp.inc.c"
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"

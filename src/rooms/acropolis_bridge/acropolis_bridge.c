@@ -95,6 +95,7 @@
 
 #include "../../shared/boss_stranger.h"
 #include "../../shared/bridge_model.h"
+#include "../../shared/acropolis_glows.h"
 
 /// Work block this room's script tasks keep at `Task::work`
 /// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
@@ -4175,111 +4176,8 @@ void func_acropolis_bridge_80180FF0(Task* task)
     effectKillTask(work, task);
 }
 
-/// One frame of the bridge's twinkling dust spark: the task coordinate's
-/// translation is projected through `GsWSMATRIX` with a single `RTPS` into an
-/// `OverlaySpriteScratch` block taken from the scratch stack, and two
-/// `POLY_FT4`s are linked into the OT at that depth. The first is an upright
-/// 0x1680 / otz square whose 0x10-wide texture cell is picked by
-/// `work->age % 6`, drawn with texture blending off (`code |= 3`). The
-/// second is the same point drawn as a spinning semi-transparent grey quad:
-/// its two half-diagonals are `(0x3A80 / otz) * rsin` / `rcos` of
-/// `work->scale`, which advances with `gDisplayState.animFrame`, and its tint
-/// is a fresh random grey (0x20..0x7F) every frame. Depths under 0x11 drop
-/// both quads. The task releases its work block each tick, so the spark lasts
-/// one frame.
-void func_acropolis_bridge_801812F4(Task* task)
-{
-    GfxCoord*             coord;
-    EffectWork*           work;
-    void**                scratch;
-    u8*                   head;
-    OverlaySpriteScratch* blk;
-    s32*                  otzp;
-    POLY_FT4*             prim;
-    s32                   grey;
-
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
-    work->age   = task->spawnArg1.value;
-    scratch     = SCRATCH_STACK_CURSOR_SLOT;
-    head        = *scratch;
-    blk         = (OverlaySpriteScratch*)(head - 0x18);
-    otzp        = &blk->otz;
-    blk->vec.vx = coord->workm.t[0];
-    blk->vec.vy = coord->workm.t[1];
-    *scratch    = blk;
-    blk->vec.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vec);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&blk->sxy);
-    gte_stszotz(otzp);
-    if (blk->otz >= 0x11) {
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4380;
-        prim->code |= 3;
-        prim->u0    = (work->age % 6) * 16;
-        prim->v0    = 0;
-        prim->u1    = (work->age % 6) * 16 + 0xF;
-        prim->v1    = 0;
-        prim->u2    = (work->age % 6) * 16;
-        prim->v2    = 0xF;
-        prim->u3    = (work->age % 6) * 16 + 0xF;
-        prim->v3    = 0xF;
-        blk->dx     = 0x1680 / blk->otz;
-        prim->x0 = prim->x2 = blk->sxy.vx - blk->dx;
-        prim->x1 = prim->x3 = blk->sxy.vx + blk->dx;
-        prim->y0 = prim->y1 = blk->sxy.vy - blk->dx;
-        prim->y2 = prim->y3 = blk->sxy.vy + blk->dx;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        prim->clut      = 0x4381;
-        prim->tpage     = 0x2B;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        grey            = (gRandomLcgState >> 16) % 96 + 0x20;
-        prim->u0        = 0;
-        prim->v0        = 0x10;
-        prim->u1        = 0x27;
-        prim->v1        = 0x10;
-        prim->u2        = 0;
-        prim->v2        = 0x37;
-        prim->u3        = 0x27;
-        prim->v3        = 0x37;
-        prim->code     |= 2;
-        prim->r0        = grey;
-        prim->g0        = grey;
-        prim->b0        = grey;
-
-        work->scale = gDisplayState.animFrame + work->age;
-        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale)) >> 12;
-        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale)) >> 12;
-        prim->x0    = blk->sxy.vx + blk->dx;
-        prim->x3    = blk->sxy.vx - blk->dx;
-        prim->y0    = blk->sxy.vy - blk->dy;
-        prim->y3    = blk->sxy.vy + blk->dy;
-        blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale + 0x400)) >> 12;
-        blk->dy     = ((0x3A80 / blk->otz) * rcos(work->scale + 0x400)) >> 12;
-        prim->x1    = blk->sxy.vx + blk->dx;
-        prim->x2    = blk->sxy.vx - blk->dx;
-        prim->y1    = blk->sxy.vy - blk->dy;
-        prim->y2    = blk->sxy.vy + blk->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-    effectKillTask(work, task);
-}
+#define ACROPOLIS_GLOWS_STAR_TASK func_acropolis_bridge_801812F4
+#include "../../shared/acropolis_glows_star.inc.c"
 
 /// The bridge's dust cloud: one semi-transparent `POLY_FT4` billboard placed at
 /// the task's world position. The four corners are taken from the unit quad in
@@ -4363,76 +4261,8 @@ void func_acropolis_bridge_801819C8(Task* task)
     effectKillTask(work, task);
 }
 
-/// One frame of a glow sprite: a camera-facing, semi-transparent `POLY_FT4`
-/// centred on the task's own coordinate frame, drawn as a square of
-/// half-extent `0x6180 / otz` around the projected point and dropped inside
-/// `otz` 0x11.
-///
-/// `Task::spawnArg1` picks one of three lamps: the 0x27x0x27 texture cell at
-/// `u = (arg + 1) * 0x28`, `v = 0x10` on tpage 0x2B, the clut
-/// `0x4380 | ((arg + 2) & 0x3F)`, and the grey levels the sprite flickers
-/// between on odd and even `gDisplayState.animFrame`. The work block is
-/// released once the quad is queued, so the task lives for one frame.
-void func_acropolis_bridge_80181D28(Task* task)
-{
-    GfxCoord*              coord;
-    EffectWork*            work;
-    RoomGlowSpriteScratch* blk;
-    POLY_FT4*              prim;
-    s32                    grey;
-    s32                    clut;
-
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
-    Gp_UpdateCoord(coord);
-    blk         = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-    blk->pos.vx = coord->workm.t[0];
-    blk->pos.vy = coord->workm.t[1];
-    blk->pos.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->pos);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&blk->sxy);
-    gte_stszotz(&blk->otz);
-    if (blk->otz >= 0x11) {
-        u8 base[3] = { 0x20, 0x60, 0x20 };
-        u8 step[3] = { 0x08, 0x10, 0x0C };
-
-        grey        = base[task->spawnArg1.value] + (gDisplayState.animFrame & 1) * step[task->spawnArg1.value];
-        prim->code |= 2;
-        prim->tpage = 0x2B;
-        prim->r0    = grey;
-        prim->g0    = grey;
-        prim->b0    = grey;
-        // Assigning through an `s32` keeps the load of `spawnArg1` in SImode;
-        // storing the expression straight into the `u16` field lets the front
-        // end shorten the whole chain and the load becomes an `lhu`.
-        clut       = ((task->spawnArg1.value + 2) & 0x3F) | 0x4380;
-        prim->clut = clut;
-        prim->u0   = (task->spawnArg1.value + 1) * 0x28;
-        prim->v0   = 0x10;
-        prim->u1   = (task->spawnArg1.value + 1) * 0x28 + 0x27;
-        prim->v1   = 0x10;
-        prim->u2   = (task->spawnArg1.value + 1) * 0x28;
-        prim->v2   = 0x37;
-        prim->u3   = (task->spawnArg1.value + 1) * 0x28 + 0x27;
-        prim->v3   = 0x37;
-        blk->half  = 0x6180 / blk->otz;
-        prim->x0 = prim->x2 = blk->sxy.vx - blk->half;
-        prim->x1 = prim->x3 = blk->sxy.vx + blk->half;
-        prim->y0 = prim->y1 = blk->sxy.vy - blk->half;
-        prim->y2 = prim->y3 = blk->sxy.vy + blk->half;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
-    effectKillTask(work, task);
-}
+#define ACROPOLIS_GLOWS_LAMP_TASK func_acropolis_bridge_80181D28
+#include "../../shared/acropolis_glows_lamp.inc.c"
 
 s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
