@@ -1,0 +1,586 @@
+# Enemy types, as identified by looking at each actor's models and placements
+# (local/actor_sheet). One entry per enemy parameter record: the package that
+# carries it and the record's address in that package (an `EnemyParams`).
+# A package can carry several enemies, and one enemy can ship in several
+# packages, sometimes as a variant with other stats or behaviour, named in
+# `variant`. Packages built from one source carry the same records, each at
+# its own address.
+
+[[enemy]]
+name = "Brain Stinger"
+package = "actor_100300"
+record = 0x80147E08
+
+[[enemy]]
+name = "Brain Stinger"
+package = "actor_200300"
+record = 0x8015FE08
+
+[[enemy]]
+name = "Bog Diver"
+package = "actor_100400"
+record = 0x80141BE8
+
+[[enemy]]
+name = "Bog Diver"
+package = "actor_200400"
+record = 0x80159BE8
+
+[[enemy]]
+name = "Rat"
+package = "actor_100700"
+record = 0x80138C00
+
+[[enemy]]
+name = "Rat"
+package = "actor_200700"
+record = 0x80150C00
+
+[[enemy]]
+name = "Moth"
+package = "actor_100700"
+record = 0x801393A8
+
+[[enemy]]
+name = "Moth"
+package = "actor_200700"
+record = 0x801513A8
+
+[[enemy]]
+name = "Brute"
+package = "actor_101100"
+record = 0x80139308
+
+[[enemy]]
+name = "Brute"
+package = "actor_104900"
+record = 0x80139308
+
+[[enemy]]
+name = "Brute"
+package = "actor_201100"
+record = 0x80151308
+
+[[enemy]]
+name = "Brute"
+package = "actor_204900"
+record = 0x80151308
+
+[[enemy]]
+name = "Brute"
+package = "actor_301100"
+record = 0x80169308
+
+[[enemy]]
+name = "Mossback"
+package = "actor_101100"
+record = 0x80139330
+
+[[enemy]]
+name = "Mossback"
+package = "actor_104900"
+record = 0x80139330
+
+[[enemy]]
+name = "Mossback"
+package = "actor_201100"
+record = 0x80151330
+
+[[enemy]]
+name = "Mossback"
+package = "actor_204900"
+record = 0x80151330
+
+[[enemy]]
+name = "Mossback"
+package = "actor_301100"
+record = 0x80169330
+
+[[enemy]]
+name = "Bone Suckler"
+package = "actor_101200"
+record = 0x80135E54
+
+[[enemy]]
+name = "Bone Suckler"
+package = "actor_201200"
+record = 0x8014DE54
+
+[[enemy]]
+name = "Bone Suckler"
+package = "actor_301200"
+record = 0x80165E54
+
+[[enemy]]
+name = "Mind Suckler"
+package = "actor_101500"
+record = 0x8013BDD8
+
+[[enemy]]
+name = "Mind Suckler"
+package = "actor_201500"
+record = 0x80153DD8
+
+[[enemy]]
+name = "Mind Suckler"
+package = "actor_301500"
+record = 0x8016BDD8
+
+[[enemy]]
+name = "Scavenger"
+package = "actor_101600"
+record = 0x8013BD2C
+
+[[enemy]]
+name = "Scavenger"
+package = "actor_201600"
+record = 0x80153D2C
+
+[[enemy]]
+name = "Scavenger"
+package = "actor_301600"
+record = 0x8016BD2C
+
+[[enemy]]
+name = "Grinning Stranger"
+package = "actor_101900"
+record = 0x8013CA74
+
+[[enemy]]
+name = "Grinning Stranger"
+package = "actor_301900"
+record = 0x8016CA74
+
+[[enemy]]
+name = "Pawn GOLEM"
+variant = "Beam Sword"
+package = "actor_102000"
+record = 0x80147B30
+
+[[enemy]]
+name = "Pawn GOLEM"
+variant = "Beam Sword"
+package = "actor_202000"
+record = 0x8015FB30
+
+[[enemy]]
+name = "Pawn GOLEM"
+variant = "Beam Sword"
+package = "actor_302000"
+record = 0x80177B30
+
+[[enemy]]
+name = "Watcher"
+package = "actor_102100"
+record = 0x80135B98
+
+[[enemy]]
+name = "Watcher"
+package = "actor_202100"
+record = 0x8014DB98
+
+[[enemy]]
+name = "Rook GOLEM"
+variant = "Beam Sword"
+package = "actor_102300"
+record = 0x801477F8
+
+[[enemy]]
+name = "Rook GOLEM"
+variant = "Beam Sword"
+package = "actor_202300"
+record = 0x8015F7F8
+
+[[enemy]]
+name = "Green Amoeba"
+package = "actor_102400"
+record = 0x801363D4
+
+[[enemy]]
+name = "Green Amoeba"
+package = "actor_202400"
+record = 0x8014E3D4
+
+[[enemy]]
+name = "Red Amoeba"
+package = "actor_102400"
+record = 0x801363E4
+
+[[enemy]]
+name = "Red Amoeba"
+package = "actor_202400"
+record = 0x8014E3E4
+
+[[enemy]]
+name = "Scorpion"
+package = "actor_102500"
+record = 0x80137958
+
+[[enemy]]
+name = "Scorpion"
+package = "actor_202500"
+record = 0x8014F958
+
+[[enemy]]
+name = "Scorpion"
+package = "actor_302500"
+record = 0x80167958
+
+[[enemy]]
+name = "Maggot"
+package = "actor_102600"
+record = 0x8013A788
+
+[[enemy]]
+name = "Maggot"
+package = "actor_202600"
+record = 0x80152788
+
+[[enemy]]
+name = "Maggot"
+package = "actor_302600"
+record = 0x8016A788
+
+[[enemy]]
+name = "Bat"
+package = "actor_103700"
+record = 0x80139D2C
+
+[[enemy]]
+name = "Bat"
+package = "actor_203700"
+record = 0x80151D2C
+
+[[enemy]]
+name = "Black Beetle"
+package = "actor_103800"
+record = 0x80137D64
+
+[[enemy]]
+name = "Black Beetle"
+package = "actor_203800"
+record = 0x8014FD64
+
+[[enemy]]
+name = "Blood Suckler"
+package = "actor_104000"
+record = 0x80138EA4
+
+[[enemy]]
+name = "Blood Suckler"
+package = "actor_204000"
+record = 0x80150EA4
+
+[[enemy]]
+name = "Blood Suckler"
+package = "actor_304000"
+record = 0x80168EA4
+
+[[enemy]]
+name = "Mad Chaser"
+package = "actor_104400"
+record = 0x8013F138
+
+[[enemy]]
+name = "Mad Chaser"
+package = "actor_342200"
+record = 0x8016F138
+
+[[enemy]]
+name = "Sucklerceph"
+package = "actor_104600"
+record = 0x80135F80
+
+[[enemy]]
+name = "Sucklerceph"
+package = "actor_204600"
+record = 0x8014DF80
+
+[[enemy]]
+name = "Skull Stalker"
+package = "actor_104600"
+record = 0x801376D4
+
+[[enemy]]
+name = "Skull Stalker"
+package = "actor_204600"
+record = 0x8014F6D4
+
+[[enemy]]
+name = "Puppet Stinger"
+package = "actor_105100"
+record = 0x80141398
+
+[[enemy]]
+name = "Beta Generator"
+package = "actor_105300"
+record = 0x8013D390
+
+[[enemy]]
+name = "Life Support system"
+package = "actor_105300"
+record = 0x8013D3A0
+
+[[enemy]]
+name = "Proto Generator"
+package = "actor_105400"
+record = 0x8013CE30
+
+[[enemy]]
+name = "Life Support system"
+package = "actor_105400"
+record = 0x8013CE40
+
+[[enemy]]
+name = "Caterpillar"
+package = "actor_105500"
+record = 0x8013A790
+
+[[enemy]]
+name = "Caterpillar"
+package = "actor_205500"
+record = 0x80152790
+
+[[enemy]]
+name = "Pawn GOLEM"
+variant = "Grenade Launcher"
+package = "actor_105600"
+record = 0x80147FF0
+
+[[enemy]]
+name = "Pawn GOLEM"
+variant = "Grenade Launcher"
+package = "actor_205600"
+record = 0x8015FFF0
+
+[[enemy]]
+name = "Rook GOLEM"
+variant = "Grenade Launcher"
+package = "actor_105700"
+record = 0x80148F28
+
+[[enemy]]
+name = "Rook GOLEM"
+variant = "Grenade Launcher"
+package = "actor_205700"
+record = 0x80160F28
+
+[[enemy]]
+name = "Sucklerceph"
+package = "actor_107000"
+record = 0x80138748
+
+[[enemy]]
+name = "Sucklerceph"
+package = "actor_207000"
+record = 0x80150748
+
+[[enemy]]
+name = "Slouch"
+package = "actor_107000"
+record = 0x80139EA0
+
+[[enemy]]
+name = "Slouch"
+package = "actor_207000"
+record = 0x80151EA0
+
+[[enemy]]
+name = "Boss Stranger"
+package = "actor_110600"
+record = 0x80138F14
+
+[[enemy]]
+name = "Bone Suckler"
+package = "actor_123200"
+record = 0x80134208
+
+[[enemy]]
+name = "Eve"
+variant = "Helmet"
+package = "actor_205200"
+record = 0x8014C9BC
+
+[[enemy]]
+name = "Sea Diver"
+package = "actor_206100"
+record = 0x80155198
+
+[[enemy]]
+name = "Skull Stalker"
+package = "actor_207200"
+record = 0x8014DBBC
+
+[[enemy]]
+name = "Creeping Stranger"
+package = "actor_207200"
+record = 0x8014E7D4
+
+[[enemy]]
+name = "Blood Suckler"
+package = "actor_223600"
+record = 0x8014CFCC
+
+[[enemy]]
+name = "Moth"
+package = "actor_300700"
+record = 0x80165B68
+
+[[enemy]]
+name = "Rat"
+package = "actor_300700"
+record = 0x8016932C
+
+[[enemy]]
+name = "Lesser Stranger"
+variant = "Hurt"
+package = "actor_311500"
+record = 0x801692C0
+
+[[enemy]]
+name = "Desert Chaser"
+package = "actor_323000"
+record = 0x80164D54
+
+[[enemy]]
+name = "Desert Chaser"
+package = "actor_323400"
+record = 0x80164D5C
+
+[[enemy]]
+name = "Mad Chaser"
+package = "actor_341700"
+record = 0x8017188C
+
+[[enemy]]
+name = "Mad Chaser"
+package = "actor_342400"
+record = 0x80170588
+
+[[enemy]]
+name = "Horned Stranger"
+package = "actor_356100"
+record = 0x8016A984
+
+[[enemy]]
+name = "Desert Chaser"
+package = "actor_400100"
+record = 0x8013DBC4
+
+[[enemy]]
+name = "Desert Chaser"
+package = "actor_407500"
+record = 0x8013DBC4
+
+[[enemy]]
+name = "Gray Stalker"
+package = "actor_400500"
+record = 0x80153C90
+
+[[enemy]]
+name = "Zebra Stalker"
+package = "actor_400600"
+record = 0x80144EB0
+
+[[enemy]]
+name = "Odd Stranger"
+package = "actor_401000"
+record = 0x8013E09C
+
+[[enemy]]
+name = "Horned Stranger"
+package = "actor_401300"
+record = 0x80141FA0
+
+[[enemy]]
+name = "Odd Stranger"
+package = "actor_401800"
+record = 0x8013E6F0
+
+[[enemy]]
+name = "Knight GOLEM"
+package = "actor_402200"
+record = 0x80153BFC
+
+[[enemy]]
+name = "Blizzard Chaser"
+package = "actor_403000"
+record = 0x8013DA00
+
+[[enemy]]
+name = "Zombie Blizzard Chaser"
+package = "actor_403000"
+record = 0x8013DA10
+
+[[enemy]]
+name = "Burner"
+package = "actor_403100"
+record = 0x8014762C
+
+[[enemy]]
+name = "Glutton"
+variant = "First encounter"
+package = "actor_403200"
+record = 0x80141C00
+
+[[enemy]]
+name = "Glutton"
+variant = "Second encounter"
+package = "actor_403200"
+record = 0x80141C10
+
+[[enemy]]
+name = "Eve"
+package = "actor_403600"
+record = 0x80150EC8
+
+[[enemy]]
+name = "Eve"
+variant = "Illusion"
+package = "actor_403600"
+record = 0x80150ED8
+
+[[enemy]]
+name = "Bishop GOLEM"
+package = "actor_403900"
+record = 0x80153C00
+
+[[enemy]]
+name = "Ivory Stalker"
+package = "actor_405800"
+record = 0x801418FC
+
+[[enemy]]
+name = "Desert Chaser"
+variant = "Water Tower Variant"
+package = "actor_421600"
+record = 0x8013EF38
+
+[[enemy]]
+name = "Glutton"
+variant = "First encounter"
+package = "actor_444000"
+record = 0x80144A18
+
+[[enemy]]
+name = "Glutton"
+variant = "Second encounter"
+package = "actor_444000"
+record = 0x80144A28
+
+[[enemy]]
+name = "Brahman"
+package = "actor_503500"
+record = 0x8016E7EC
+
+[[enemy]]
+name = "No. 9 GOLEM"
+variant = "Akropolis"
+package = "actor_510900"
+record = 0x80167980
+
+[[enemy]]
+name = "No. 9 GOLEM"
+variant = "Dryfield"
+package = "actor_521100"
+record = 0x8015F560
