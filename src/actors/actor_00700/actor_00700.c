@@ -48,8 +48,9 @@
 
 #include "overlay.h"
 #include "../../shared/rat.h"
+#include "../../shared/moth.h"
 
-/// The 0x2F4-byte allocation used by Actor00700_Fn01FE0.
+/// The 0x2F4-byte allocation used by mothSpawn.
 typedef struct Actor00700SpawnWork {
     /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[4];
@@ -104,7 +105,7 @@ typedef struct Actor00700SpawnWork {
 } Actor00700SpawnWork;
 STATIC_ASSERT_SIZEOF(Actor00700SpawnWork, 0x2F4);
 
-extern ActorSpriteUv Actor00700_D075BC[];
+extern ActorSpriteUv gMothBurstUvs[];
 
 extern s16 gRatSlowMoveChance[];
 extern u16 gRatSlowMoveTimes[];
@@ -113,9 +114,9 @@ extern u16 gRatFastMoveTimes[];
 extern s16 gRatAttackRepeatChance[];
 extern s16 gRatAnimBlend[];
 
-/// Per-`field_F` drift speed for the state-1 wander in `Actor00700_Fn02A28`,
+/// Per-`field_F` drift speed for the state-1 wander in `mothDrift`,
 /// summed with a 5-bit `gRandomLcgState` draw.
-extern s16 Actor00700_D07598[];
+extern s16 gMothSpeeds[];
 
 /// The records `ratSpawn` binds the first body to: the pair it packs
 /// into the fourth collision node's key, the context's parameter source (whose
@@ -124,29 +125,18 @@ extern struct DamageAttack gRatAttack;
 extern EnemyParams         gRatParams;
 extern AnimationSet*       gRatAnimSets[11];
 
-/// The same three for the second body, used by `Actor00700_Fn01FE0`.
-extern EnemyParams         Actor00700_D07588;
-extern struct DamageAttack Actor00700_D07584;
-extern AnimationSet*       Actor00700_D075B4[2];
+/// The same three for the second body, used by `mothSpawn`.
+extern EnemyParams         gMothParams;
+extern struct DamageAttack gMothAttack;
+extern AnimationSet*       gMothAnimSets[2];
 
-static void Actor00700_Fn01FE0(Enemy* ctx, Task* actor);
-static void Actor00700_Fn02290(Enemy* arg0, Task* arg1);
-static void Actor00700_Fn02414(Task* arg0);
-static void Actor00700_Fn0268C(Task* arg0);
-static void Actor00700_Fn02820(Task* arg0);
-static void Actor00700_Fn02A28(Task* arg0);
-static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1);
-static void Actor00700_Fn0305C(Task* arg0);
-void        mothUpdateColor(Task* arg0);
-static void Actor00700_Fn03570(Task* arg0);
+void mothUpdateColor(Task* arg0);
 
 /// The state handlers `ratTask` dispatches on `Task::state`:
 /// set-up, per-frame update, and the one entered once the health runs out.
 static const GpEnemyTaskFuncTable3 gRatStateHandlers = {
     { ratSpawn, ratUpdate, ratDeath },
 };
-
-static void Actor00700_Fn034BC(Task*);
 
 TmdBone Actor00700_D03670[7] = {
 #include "assets/actor_100700_model_04EB4_skeleton.inc"
@@ -560,11 +550,11 @@ AnimationSet Actor00700_D0755C = {
     { NULL, Actor00700_D07508, NULL, NULL, Actor00700_D07520, NULL, NULL, NULL },
 };
 
-DamageAttack Actor00700_D07584 = { 5, 1 };
+DamageAttack gMothAttack = { 5, 1 };
 
-EnemyParams Actor00700_D07588 = { &Actor00700_D07584, 1, 2, 18, 1, 100, 0, 100, 99 };
+EnemyParams gMothParams = { &gMothAttack, 1, 2, 18, 1, 100, 0, 100, 99 };
 
-s16 Actor00700_D07598[8] = {
+s16 gMothSpeeds[8] = {
     2,
     8,
     16,
@@ -575,14 +565,14 @@ s16 Actor00700_D07598[8] = {
     36,
 };
 
-TaskDesc Actor00700_D075A8 = { { { TASK_BODY_TMD, 96 } }, Actor00700_Fn034BC, { .model = &Actor00700_D074E4 } };
+TaskDesc Actor00700_D075A8 = { { { TASK_BODY_TMD, 96 } }, mothTask, { .model = &Actor00700_D074E4 } };
 
-AnimationSet* Actor00700_D075B4[2] = {
+AnimationSet* gMothAnimSets[2] = {
     NULL,
     &Actor00700_D0755C,
 };
 
-ActorSpriteUv Actor00700_D075BC[8] = {
+ActorSpriteUv gMothBurstUvs[8] = {
     { 96, 0, 96, 0 },
     { 0, 0, 160, 0 },
     { 0, 0, 192, 0 },
@@ -822,650 +812,34 @@ void ratBehavior(Task* arg0)
 
 #include "../../shared/rat_squash.inc.c"
 
-/// The state handlers `Actor00700_Fn034BC` dispatches on `Task::state`,
+/// The state handlers `mothTask` dispatches on `Task::state`,
 /// for the second body this package carries: set-up, per-frame update, and the
 /// one a resolved hit switches it to.
-static const GpEnemyTaskFuncTable3 Actor00700_D00054 = {
-    { Actor00700_Fn01FE0, Actor00700_Fn02290, Actor00700_Fn02D28 },
+static const GpEnemyTaskFuncTable3 gMothStateHandlers = {
+    { mothSpawn, mothUpdate, mothDeath },
 };
 
-static void Actor00700_Fn01FE0(Enemy* ctx, Task* actor)
-{
-    GfxCoord*            coord;
-    TmdObject*           obj;
-    s32                  i;
-    void*                rec1;
-    void*                rec2;
-    void*                rec3;
-    Actor00700SpawnWork* work;
+#include "../../shared/moth_spawn.inc.c"
 
-    obj   = actor->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(0x2F4U, false);
-    if (work == NULL) {
-        Gp_DestroyEnemy(ctx, actor);
-        return;
-    }
-    actor->work             = work;
-    obj->flags              = 0;
-    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
-    obj->texturePageOffset += 1;
-    obj->clutRowOffset     += 1;
-    tmdProcessStream(obj);
-    tmdProcessStream(obj);
-    obj->lightMtx = &work->field_114;
-    obj->colorMtx = &work->field_F4;
-    ctx->field_4  = &coord->coord;
-    ctx->field_48 = 0;
-    Gp_LinkNode(&ctx->node);
-    ctx->coord                  = coord;
-    ctx->node.state.parts.flags = 0;
-    ctx->bodyPos.vx             = 0;
-    ctx->bodyPos.vy             = 0;
-    ctx->bodyPos.vz             = 0;
-    ctx->param                  = &Actor00700_D07588;
-    ctx->recs                   = &work->field_154;
-    ctx->hp                     = (u16)Actor00700_D07588.hpMax;
-    work->field_228             = 0x100;
-    work->field_22A             = 1;
-    work->field_224             = coord;
-    func_800B3F84(&work->anim, Actor00700_D075B4, obj, &work->field_B4, work->slots);
-    for (i = 1; i < 4; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
-    }
-    Gp_IncStateF0Ref(0);
-    work->field_2D6 = 1;
-    work->field_2AC = (s32)coord->coord.t[0];
-    work->field_2B0 = (s32)coord->coord.t[1];
-    work->field_2B4 = (s32)coord->coord.t[2];
-    work->field_2DC = (u16)((Enemy*)actor->spawnArg2.pointer)->place->yaw;
-    rec1            = &work->field_154;
-    work->field_13C = coord;
-    work->field_140 = rec1;
-    work->field_144 = 0;
-    work->field_146 = 0;
-    work->field_148 = 0;
-    work->field_14C = 0x30008;
-    work->field_150 = 0xFA;
-    work->field_152 = 1U;
-    Gp_LinkObj(2, &work->field_134);
-    Gp_InitRec18Table(rec1, 1, 0);
-    rec2            = &work->field_18C;
-    work->field_174 = coord;
-    work->field_178 = rec2;
-    work->field_17C = 0;
-    work->field_17E = 0;
-    work->field_180 = 0;
-    work->field_184 = 0x30008;
-    work->field_188 = 0xFA;
-    work->field_18A = 1U;
-    work->field_152 = (u16)(work->field_152 | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Gp_LinkObj(2, &work->field_16C);
-    Gp_InitRec18Table(rec2, 4, 0);
-    rec3            = &work->field_20C;
-    work->field_1F4 = coord;
-    work->field_1F8 = rec3;
-    work->field_1FC = 0;
-    work->field_1FE = 0;
-    work->field_200 = 0;
-    work->field_18A = (u16)(work->field_18A | 0x4000);
-    work->field_204 = Gp_PackPair(&Actor00700_D07584, 0);
-    work->field_208 = 0x190;
-    work->field_20A = 1U;
-    Gp_LinkObj(3, &work->field_1EC);
-    Gp_InitRec18Table(rec3, 1, 0);
-    work->field_20A = (u16)(work->field_20A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    actor->state    = 1;
-}
+#include "../../shared/moth_update.inc.c"
 
-static void Actor00700_Fn02290(Enemy* arg0, Task* arg1)
-{
-    TmdObject* obj;
-    RatWork*   work;
-    GfxCoord*  coord;
-    s32        state;
-    s32        one;
+#include "../../shared/moth_contacts.inc.c"
 
-    work  = arg1->work;
-    obj   = arg1->extra.tmd;
-    state = gSceneCombatState.actorControl;
-    coord = obj->coords;
-    one   = 1;
-    if (state == one) {
-        goto case1;
-    }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags                   = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case1:
-    mothUpdateColor(arg1);
-    return;
-case2:
-    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
-    Actor00700_Fn02414(arg1);
-    Actor00700_Fn0268C(arg1);
-    if (work->field_2E6 == 0 && gSceneCombatState.actor00700DeathAlert != 0) {
-        work->field_2E6 = 1;
-        Gp_ArmStateF0(1);
-    }
-    Actor00700_Fn02820(arg1);
-    Actor00700_Fn02A28(arg1);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    mothUpdateColor(arg1);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((gRandomLcgState >> 16 & 0x7F) == 0) {
-        s32 temp;
-        s32 id;
+#include "../../shared/moth_oscillate_parts.inc.c"
 
-        id   = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070008;
-        temp = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        SndEvt_EnqueueType6(id, temp, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
-    }
-}
+#include "../../shared/moth_steer.inc.c"
 
-static void Actor00700_Fn02414(Task* arg0)
-{
-    RatWork*        work;
-    GfxCoord*       coord;
-    s32             movement;
-    s32             dx;
-    s32             dy;
-    s32             dz;
-    s32             amount;
-    s32             damage;
-    s32             z;
-    u16             state;
-    GfxCoord*       target;
-    GpDeltaScratch* head;
-    GpDeltaScratch* delta;
+#include "../../shared/moth_drift.inc.c"
 
-    work     = arg0->work;
-    head     = SCRATCH_STACK_CURSOR(void);
-    delta    = (SCRATCH_STACK_CURSOR(void) = head - 1);
-    coord    = arg0->extra.tmd->coords;
-    movement = func_800E0C10(&work->field_18C, delta, 4, 0);
-    switch (movement) {
-        case 0:
-            break;
-        case 1:
-            coord->coord.t[0] += head[-1].vx.halves.integer;
-            coord->coord.t[1] += delta->vy.halves.integer;
-            z                  = coord->coord.t[2] + delta->vz.halves.integer;
-            coord->coord.t[2]  = z;
-            break;
-        case 2:
-            coord->coord.t[0] = work->field_2BC;
-            coord->coord.t[1] = work->field_2C0;
-            coord->coord.t[2] = work->field_2C4;
-            break;
-    }
-    Gp_ClearRec18Occupied(&work->field_18C);
-    state = (u16)work->field_154.key.parts.kind;
-    switch ((u32)state) {
-        case 0:
-            break;
-        case 1:
-            arg0->state                           = 2;
-            ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
-            Gp_ArmStateF0(1);
-            break;
-        case 2:
-            arg0->state    = (s32)state;
-            target         = gPlayerActorTasks[(u8)work->field_154.key.parts.id >> 7]->extra.tmd->coords;
-            dx             = target->coord.t[0] - coord->coord.t[0];
-            delta->vx.word = dx;
-            dy             = target->coord.t[1] - coord->coord.t[1];
-            delta->vy.word = dy;
-            dz             = target->coord.t[2] - coord->coord.t[2];
-            delta->vz.word = dz;
-            damage         = Gp_ComputeDamage((s32)work->field_154.key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-            amount         = damage;
-            if (damage == 0) {
-                damage = 1;
-                amount = 1;
-            }
-            func_800DA6E8(&((Enemy*)arg0->spawnArg2.pointer)->node, amount, 0);
-            func_800E2C78(arg0->spawnArg2.pointer, (s32)work->field_154.key.value, damage, 0);
-            ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
-            func_800FDB18(Gp_GetIdParam1((s32)work->field_154.key.value) & 0xFFFF, arg0->extra.tmd->coords, 0, &work->field_224);
-            break;
-    }
-    Gp_ClearRec18Occupied(&work->field_154);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-}
+#include "../../shared/moth_death.inc.c"
 
-static void Actor00700_Fn0268C(Task* arg0)
-{
-    RatWork*  work;
-    GfxCoord* coord;
-    GfxCoord* coord2;
-    SVECTOR*  sc;
-    s32       direction;
-    s32       direction2;
-    s32       product;
-    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    work = arg0->work;
-    if (++work->field_2E0 >= 16) {
-        work->field_2E0 = 0;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->field_2D4 = !((gRandomLcgState >> 16) & 1);
-    }
-    switch (work->field_2D4) {
-        case 0:
-            work->field_2D8 += 0x100;
-            if (work->field_2D8 >= 0x200) {
-                work->field_2D8 = -0x100;
-                direction       = work->field_2D6;
-                work->field_2D6 = -direction;
-            }
-            break;
-        case 1:
-            work->field_2D8 = 0x100;
-            direction2      = work->field_2D6;
-            work->field_2D6 = -direction2;
-            break;
-    }
-    sc->vx = 0;
-    sc->vy = 0;
-    sc->vz = work->field_2D8 * work->field_2D6;
-    coord  = arg0->extra.tmd->coords;
-    RotMatrix(sc, &coord[2].coord);
-    coord[2].composeStamp = GRAPHICS_COORD_DIRTY;
-    sc->vx                = 0;
-    sc->vy                = 0;
-    product               = work->field_2D8 * work->field_2D6;
-    sc->vz                = -product;
-    coord2                = arg0->extra.tmd->coords;
-    RotMatrix(sc, &coord2[3].coord);
-    coord2[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
+#include "../../shared/moth_draw_burst.inc.c"
 
-static void Actor00700_Fn02820(Task* arg0)
-{
-    RatWork*          work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               random;
-    s32               amount;
-    s32               cur;
-    s32               cur2;
-    s32               cur3;
-    s32               random2;
-    s32               amount2;
-    u16               want;
-    s16               diff;
-    s32               adiff;
-    s16               turn;
-    s16               wrap;
-
-    sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    switch (work->field_2E6) {
-        case 0:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            random          = gRandomLcgState >> 16;
-            amount          = random & 0x1F;
-            cur             = work->field_2DC;
-            work->field_2DC = !(random & 0x20) ? cur - amount : cur + amount;
-            break;
-        case 1:
-            sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            sc->delta.vy = 0;
-            sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-            diff         = want - (work->field_2DC & 0xFFF);
-            adiff        = diff >= 0 ? diff : -diff;
-            turn         = diff;
-            if (adiff < 0x11) {
-                work->field_2DC = want;
-            } else {
-                if (adiff >= 0x801) {
-                    wrap = diff - 0x1000;
-                    if (diff <= 0)
-                        wrap = 0x1000 - diff;
-                    turn = wrap;
-                }
-                cur2 = work->field_2DC;
-                if (turn > 0) {
-                    work->field_2DC = cur2 + 0x10;
-                } else {
-                    work->field_2DC = cur2 - 0x10;
-                }
-            }
-            break;
-    }
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    random2         = gRandomLcgState >> 16;
-    amount2         = random2 & 0x3F;
-    cur3            = work->field_2DA;
-    work->field_2DA = !(random2 & 0x40) ? cur3 - amount2 : cur3 + amount2;
-    if (work->field_2DA > 0x100) {
-        work->field_2DA = 0x100;
-    } else if (work->field_2DA < -0x100) {
-        work->field_2DA = -0x100;
-    }
-    sc->rot.vx = work->field_2DA;
-    sc->rot.vy = work->field_2DC;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
-
-static void Actor00700_Fn02A28(Task* arg0)
-{
-    RatWork*  work;
-    GfxCoord* coord;
-    u32       random;
-    u32       random2;
-    u32       random3;
-    s32       amount;
-    s32       amountB;
-    s16       delta;
-    s16       speed;
-    s32       y;
-    s32       newY;
-    s16       base;
-
-    work            = arg0->work;
-    coord           = arg0->extra.tmd->coords;
-    work->field_2BC = coord->coord.t[0];
-    work->field_2C0 = coord->coord.t[1];
-    work->field_2C4 = coord->coord.t[2];
-    switch (work->field_2E6) {
-        case 0:
-            random = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
-            amount = random & 0x1F;
-            if (!(random & 0x20)) {
-                amount = -amount;
-            }
-            delta = amount;
-            if ((s16)(coord->coord.t[0] + (s16)delta) < work->field_2AC + 200 &&
-                work->field_2AC - 200 < (s16)(coord->coord.t[0] + (s16)delta)) {
-                coord->coord.t[0] += (s16)delta;
-            } else {
-                coord->coord.t[0] -= (s16)delta;
-            }
-            amountB = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F;
-            if (work->field_2D4 != 0) {
-                amountB = -amountB;
-            }
-            delta = amountB;
-            if ((s16)(coord->coord.t[1] + (s16)delta) < work->field_2B0 + 500 &&
-                work->field_2B0 - 500 < (s16)(coord->coord.t[1] + (s16)delta)) {
-                coord->coord.t[1] += (s16)delta;
-            } else {
-                coord->coord.t[1] -= (s16)delta;
-            }
-            random3 = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
-            amount  = random3 & 0x1F;
-            if (!(random3 & 0x20)) {
-                amount = -amount;
-            }
-            delta = amount;
-            if ((s16)random3 < work->field_2B4 + 200 && work->field_2B4 - 200 < (s16)random3) {
-                coord->coord.t[2] += (s16)delta;
-            } else {
-                coord->coord.t[2] -= (s16)delta;
-            }
-            break;
-        case 1:
-            speed = Actor00700_D07598[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] +
-                    (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F);
-            coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
-            coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
-            base               = gPlayerStatus.coordMtx->t[1] - 0x4B0;
-            random2            = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
-            y                  = coord->coord.t[1];
-            if (y >= base + 400) {
-                coord->coord.t[1] = y - (random2 & 0xF);
-            } else {
-                if (base - 400 >= y) {
-                    newY = y + (random2 & 0xF);
-                } else {
-                    amountB = random2 & 0x1F;
-                    if (work->field_2D4 != 0) {
-                        newY = y - amountB;
-                    } else {
-                        newY = y + amountB;
-                    }
-                }
-                coord->coord.t[1] = newY;
-            }
-            break;
-    }
-}
-
-static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1)
-{
-    RatWork*  work;
-    GfxCoord* coord;
-    SVECTOR*  head;
-    SVECTOR*  rot;
-    s32       angle;
-    u32       rnd;
-    u32       seed;
-    s32       id;
-    s32       pan;
-
-    coord = arg1->extra.tmd->coords;
-    work  = arg1->work;
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            break;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            break;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-        default:
-            head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-            rot                           = head - 1;
-            SCRATCH_STACK_CURSOR(SVECTOR) = rot;
-            switch (work->field_2DE) {
-                case 0:
-                    gSceneCombatState.actor00700DeathAlert = 1;
-                    seed                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    rnd                                    = seed >> 16;
-                    angle                                  = rnd & 0xFF;
-                    arg1->extra.tmd->flags                 = TMD_OBJECT_SEMI_TRANS;
-                    gRandomLcgState                        = seed;
-                    work->field_2E2                        = 0x1000;
-                    work->field_22C.matrix                 = coord->coord;
-                    if (!(rnd & 0x100)) {
-                        angle = -angle;
-                    }
-                    work->field_2E4                         = angle;
-                    arg0->recs                              = 0;
-                    ((Actor00700SpawnWork*)work)->field_152 = ((Actor00700SpawnWork*)work)->field_152 & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    ((Actor00700SpawnWork*)work)->field_18A = ((Actor00700SpawnWork*)work)->field_18A & 0xBFFF;
-                    ((Actor00700SpawnWork*)work)->field_20A = ((Actor00700SpawnWork*)work)->field_20A | WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    id                                      = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
-                    pan                                     = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-                    Gp_UnlinkNode(&arg0->node);
-                    Gp_ReleaseStateF0Add(arg1, 8);
-                    work->field_2E0 = 1;
-                    work->field_2DE = 1;
-                    break;
-                case 1:
-                    Actor00700_Fn03570(arg1);
-                    work->field_2DA = (work->field_2DA + work->field_2E4) & 0xFFF;
-                    work->field_2DC = (work->field_2DC + work->field_2E4) & 0xFFF;
-                    rot->vx         = work->field_2DA;
-                    rot->vy         = work->field_2DC;
-                    rot->vz         = 0;
-                    RotMatrix(rot, &coord->coord);
-                    work->field_22C.matrix.t[1] += 0x18;
-                    if ((s16)(work->field_2E0 / 3) < 8) {
-                        Actor00700_Fn0305C(arg1);
-                    } else {
-                        arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    }
-                    work->field_2E0++;
-                    if (work->field_2E0 >= 0x1E) {
-                        Gp_UnlinkObj(&((Actor00700SpawnWork*)work)->field_134);
-                        Gp_UnlinkObj(&((Actor00700SpawnWork*)work)->field_16C);
-                        Gp_UnlinkObj(&((Actor00700SpawnWork*)work)->field_1EC);
-                        work->field_2DE = 2;
-                    }
-                    break;
-                case 2:
-                    work->field_2E0--;
-                    if (work->field_2E0 <= 0) {
-                        Gp_DestroyEnemy(arg0, arg1);
-                    }
-                    break;
-            }
-            SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
-            break;
-    }
-}
-
-static void Actor00700_Fn0305C(Task* arg0)
-{
-    ActorQuadScratch* sc;
-    RatWork*          work;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    s32               size, x, y;
-    s16               i;
-    SVECTOR*          v;
-    POLY_FT4*         prim;
-    ActorSpriteUv*    uv;
-    obj         = arg0->extra.tmd;
-    sc          = (ActorQuadScratch*)SCRATCH_STACK_RESERVE_BYTES(0x28);
-    coord       = obj->coords;
-    work        = arg0->work;
-    sc->v[0].vx = coord->workm.t[0];
-    sc->v[0].vy = coord->workm.t[1];
-    sc->v[0].vz = coord->workm.t[2];
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->v[0]);
-    gte_rtps();
-    gte_stsxy(&sc->sxy);
-    gte_stszotz(&sc->otz);
-    if (sc->otz < 20) {
-        SCRATCH_STACK_RELEASE_BYTES(0x28);
-        return;
-    }
-    if (work->field_2E0 == 1) {
-        sc->v[0].vx = 0;
-        sc->v[0].vy = 0;
-        sc->v[0].vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFFF;
-        RotMatrix(&sc->v[0], &work->field_22C.quad.rotation);
-    }
-    size        = 0x7800 / sc->otz;
-    x           = sc->sxy & 0xFFFF;
-    y           = sc->sxy >> 16;
-    sc->v[0].vx = -size;
-    sc->v[0].vy = -size;
-    sc->v[0].vz = 0;
-    sc->v[1].vx = size;
-    sc->v[1].vy = -size;
-    sc->v[1].vz = 0;
-    sc->v[2].vx = -size;
-    sc->v[2].vy = size;
-    sc->v[2].vz = 0;
-    sc->v[3].vx = size;
-    sc->v[3].vy = size;
-    sc->v[3].vz = 0;
-    for (i = 0; i < 4; i++) {
-        gte_SetRotMatrix(&work->field_22C.quad.rotation);
-        v = &sc->v[i];
-        gte_ldv0(v);
-        gte_rtv0();
-        gte_stsv(v);
-        v->vx += x;
-        v->vy += y;
-    }
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2E);
-    setRGB0(prim, 0x80, 0x80, 0x80);
-    setShadeTex(prim, 1);
-    prim->tpage = (((obj->texturePageOffset * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
-    prim->clut  = (obj->clutRowOffset << 6) + 0x3D40;
-    uv          = &Actor00700_D075BC[(s16)(work->field_2E0 / 3)];
-    prim->u0    = uv->u;
-    prim->v0    = uv->v;
-    prim->u1    = uv->u + 31;
-    prim->v1    = uv->v;
-    prim->u2    = uv->u;
-    prim->v2    = uv->v + 31;
-    prim->u3    = uv->u + 31;
-    prim->v3    = uv->v + 31;
-    prim->x0    = sc->v[0].vx;
-    prim->y0    = sc->v[0].vy;
-    prim->x1    = sc->v[1].vx;
-    prim->y1    = sc->v[1].vy;
-    prim->x2    = sc->v[2].vx;
-    prim->y2    = sc->v[2].vy;
-    prim->x3    = sc->v[3].vx;
-    prim->y3    = sc->v[3].vy;
-    addPrim((&gGpuCurrentOt[(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), prim);
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
-}
-
-static void Actor00700_Fn034BC(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = Actor00700_D00054;
-    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
-}
+#include "../../shared/moth_task.inc.c"
 
 /// A further copy, under this file's own name.
 #define ratUpdateColor mothUpdateColor
 #include "../../shared/rat_update_color.inc.c"
 #undef ratUpdateColor
 
-static void Actor00700_Fn03570(Task* arg0)
-{
-    GfxCoord*          coord;
-    ActorScaleScratch* head;
-    ActorScaleScratch* scratch;
-    RatWork*           work;
-
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    work                                    = arg0->work;
-    scratch                                 = head - 1;
-    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
-    coord                                   = arg0->extra.tmd->coords;
-    if (work->field_2E2 >= 0x201) {
-        work->field_2E2 = (u16)work->field_2E2 - 0x50;
-    }
-    scratch->scale.vx          = 0x1000;
-    scratch->scale.vy          = (s32)work->field_2E2;
-    scratch->scale.vz          = 0x1000;
-    coord->coord               = work->field_22C.matrix;
-    scratch->mat.ident.m00_m01 = 0x1000;
-    scratch->mat.ident.m02_m10 = 0;
-    scratch->mat.ident.m11_m12 = 0x1000;
-    scratch->mat.ident.m20_m21 = 0;
-    scratch->mat.ident.m22     = 0x1000;
-    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
-}
+#include "../../shared/moth_squash.inc.c"

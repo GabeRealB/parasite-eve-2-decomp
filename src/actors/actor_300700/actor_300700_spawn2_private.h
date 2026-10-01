@@ -18,11 +18,11 @@
 ///
 /// This is the work block the overlay's second enemy variant runs on - the
 /// state table `gRatStateHandlers` (`ratUpdate` and
-/// friends), which reaches it as `Actor300700Work` and only ever touches the
+/// friends), which reaches it as `MothWork` and only ever touches the
 /// fields from 0x37A up. Those trailing fields, plus the animation context
 /// `func_800B3F84` fills in, are laid out identically in both views; the
 /// 0x1DC..0x333 run - the four list nodes and their record tables - is owned
-/// only here, so `Actor300700Work` carries it as padding.
+/// only here, so `MothWork` carries it as padding.
 typedef struct Actor300700Spawn2Work {
     /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[7];
@@ -42,7 +42,7 @@ typedef struct Actor300700Spawn2Work {
     /* 0x338 */ s16                   field_338;
     /* 0x33A */ s16                   field_33A;
     /* 0x33C */ byte                  pad_33C[0x42];
-    /* 0x37E */ s16                   field_37E; // current state id, `Actor300700Work`
+    /* 0x37E */ s16                   field_37E; // current state id, `MothWork`
     /* 0x380 */ s16                   field_380; // last applied state id
 } Actor300700Spawn2Work;
 

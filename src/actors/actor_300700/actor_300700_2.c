@@ -42,6 +42,7 @@
 
 #include "overlay.h"
 #include "../../shared/rat.h"
+#include "../../shared/moth.h"
 
 extern s16 gRatSlowMoveChance[8];
 
@@ -55,12 +56,6 @@ extern s16 gRatAttackRepeatChance[8];
 
 /// Per-state animation id handed to `func_800B4114`, indexed by `field_37E`.
 extern s16 gRatAnimBlend[];
-
-void func_actor_300700_801622B4(Task* arg0);
-void func_actor_300700_8016252C(Task* arg0);
-void func_actor_300700_801626C0(Task* arg0);
-void func_actor_300700_801628C8(Task* arg0);
-void func_actor_300700_80162EFC(Task* arg0);
 
 /// The second variant's state handlers, in the same order as the first's:
 /// spawn, per-frame update and state 2. `ratTask`
@@ -414,19 +409,19 @@ s16 gRatAnimBlend[10] = {
 /// push at the end.
 void ratContacts(Task* actor)
 {
-    Enemy*           ctx;
-    u32              lastId;
-    u32              id;
-    Actor300700Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        target;
-    GpDeltaScratch*  head;
-    GpDeltaScratch*  scratch;
-    s32              i;
-    s32              push;
-    s32              bestPush;
-    s32              damage;
-    s32              cooldown;
+    Enemy*          ctx;
+    u32             lastId;
+    u32             id;
+    RatWork*        work;
+    GfxCoord*       coord;
+    GfxCoord*       target;
+    GpDeltaScratch* head;
+    GpDeltaScratch* scratch;
+    s32             i;
+    s32             push;
+    s32             bestPush;
+    s32             damage;
+    s32             cooldown;
 
     bestPush = 0;
     lastId   = 0;
@@ -584,7 +579,7 @@ void ratContacts(Task* actor)
 
 void ratBehavior(Task* arg0)
 {
-    switch (((Actor300700Work*)arg0->work)->field_37A) {
+    switch (((RatWork*)arg0->work)->field_37A) {
         case 0:
             ratIdle(arg0);
             break;
