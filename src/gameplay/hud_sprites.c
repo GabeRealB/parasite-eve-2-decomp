@@ -133,18 +133,20 @@ typedef struct _GpXformScratch {
 } GpXformScratch;
 STATIC_ASSERT_SIZEOF(GpXformScratch, 0x48);
 
-/// Working state of a relative transform between two coordinate frames, carved
-/// from the scratch stack.
+/// Scratch workspace for expressing a transform relative to a reference frame.
 ///
-/// `rot` is the source frame's rotation transposed, so that multiplying a
-/// matrix by it yields that matrix's orientation relative to the source;
-/// `delta` is the target origin relative to the source, which the same
-/// rotation turns into the destination translation.
+/// Both input transforms share a containing frame. The reference rotation's
+/// transpose multiplies the target rotation and rotates their origin difference;
+/// this inverts the reference rotation when it is orthonormal.
+///
+/// Requires an initialized scratch stack with room for one 48-byte reservation,
+/// released after the conversion. Only the matrix rotation and vector XYZ are
+/// initialized; the matrix translation and vector's fourth word are unused.
 typedef struct {
-    MATRIX rot;   // source frame's rotation, transposed
-    VECTOR delta; // target origin minus source origin
-} _GpRelMatScratch;
-STATIC_ASSERT_SIZEOF(_GpRelMatScratch, 0x30);
+    MATRIX transposedRotation; // Reference rotation transposed, scaled by ONE (4096); t unused
+    VECTOR originDelta;        // Target origin minus reference origin in the containing frame, in signed game units
+} _GfxRelativeTransformScratch;
+STATIC_ASSERT_SIZEOF(_GfxRelativeTransformScratch, 0x30);
 
 u16 D_80114BB0[16];
 
@@ -1118,31 +1120,30 @@ s32 Gp_SpendMp(s32 arg0)
 /// the orientation and translation delta.
 static __inline__ void coordToRoot(GfxCoord* arg0, GfxCoord* root, GfxCoord* result)
 {
-    _GpRelMatScratch* tmp;
-    MATRIX*           rootm;
-    MATRIX*           world;
-    MATRIX*           out;
+    _GfxRelativeTransformScratch* scratch;
+    MATRIX*                       rootm;
+    MATRIX*                       world;
+    MATRIX*                       out;
 
     Gp_UpdateCoord(arg0);
     Gp_UpdateCoord(root);
 
-    rootm = &root->workm;
-    world = &arg0->workm;
-    tmp   = SCRATCH_STACK_CURSOR(_GpRelMatScratch) - 1;
-    out   = &result->coord;
+    rootm   = &root->workm;
+    world   = &arg0->workm;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxRelativeTransformScratch);
+    out     = &result->coord;
 
-    SCRATCH_STACK_CURSOR(_GpRelMatScratch) = tmp;
+    gte_TransposeMatrix(rootm, &scratch->transposedRotation);
 
-    gte_TransposeMatrix(rootm, &tmp->rot);
+    gte_MulMatrix0(&scratch->transposedRotation, world, out);
 
-    gte_MulMatrix0(&tmp->rot, world, out);
+    scratch->originDelta.vx = world->t[0] - rootm->t[0];
+    scratch->originDelta.vy = world->t[1] - rootm->t[1];
+    scratch->originDelta.vz = world->t[2] - rootm->t[2];
+    // The SDK writes only XYZ into the matrix's three-word translation.
+    ApplyMatrixLV(&scratch->transposedRotation, &scratch->originDelta, (VECTOR*)out->t);
 
-    tmp->delta.vx = world->t[0] - rootm->t[0];
-    tmp->delta.vy = world->t[1] - rootm->t[1];
-    tmp->delta.vz = world->t[2] - rootm->t[2];
-    ApplyMatrixLV(&tmp->rot, &tmp->delta, (VECTOR*)out->t);
-
-    SCRATCH_STACK_RELEASE_BLOCK(_GpRelMatScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxRelativeTransformScratch);
 }
 
 /// Points the active view at `arg0`: the transposed rotation goes to
@@ -1317,21 +1318,21 @@ void Gp_LoadStageView(void)
 
 void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
 {
-    _GpRelMatScratch* tmp;
+    _GfxRelativeTransformScratch* scratch;
 
-    tmp                                    = SCRATCH_STACK_CURSOR(_GpRelMatScratch) - 1;
-    SCRATCH_STACK_CURSOR(_GpRelMatScratch) = tmp;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GfxRelativeTransformScratch);
 
-    gte_TransposeMatrix(arg0, &tmp->rot);
+    gte_TransposeMatrix(arg0, &scratch->transposedRotation);
 
-    gte_MulMatrix0(&tmp->rot, arg1, arg2);
+    gte_MulMatrix0(&scratch->transposedRotation, arg1, arg2);
 
-    tmp->delta.vx = arg1->t[0] - arg0->t[0];
-    tmp->delta.vy = arg1->t[1] - arg0->t[1];
-    tmp->delta.vz = arg1->t[2] - arg0->t[2];
-    ApplyMatrixLV(&tmp->rot, &tmp->delta, (VECTOR*)arg2->t);
+    scratch->originDelta.vx = arg1->t[0] - arg0->t[0];
+    scratch->originDelta.vy = arg1->t[1] - arg0->t[1];
+    scratch->originDelta.vz = arg1->t[2] - arg0->t[2];
+    // The SDK writes only XYZ into the matrix's three-word translation.
+    ApplyMatrixLV(&scratch->transposedRotation, &scratch->originDelta, (VECTOR*)arg2->t);
 
-    SCRATCH_STACK_RELEASE_BLOCK(_GpRelMatScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxRelativeTransformScratch);
 }
 
 s32 Gp_TrySpawnViewTask(GpViewRec* arg0)

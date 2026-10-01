@@ -54,7 +54,7 @@ setup then filled the scratch-head load delay slot as required.
 
 Scratch `Gp_SetViewFromCoord-dehack/base_1.c` scored 99.718%; this interface
 change in `base_4.c` restored the seed's 99.906% (four symbol-name differences).
-Typed scratch allocation and `&tmp->delta` also preserve the match. The
+Typed scratch allocation and `&scratch->originDelta` also preserve the match. The
 unscoped build passes for both callers. The custom `gte_TransposeMatrix` asm
 macro remains: scalar, column-temporary, inline and full-snapshot C variants
 did not reproduce its fixed `t4`/`t5`/`t6` sequence. This finding removes the
@@ -34209,10 +34209,10 @@ Pin all three after the store so the overwrite sticks:
 
 ```c
 register MATRIX*          src asm("a3");
-register _GpRelMatScratch* tmp asm("a0");
+register _GfxRelativeTransformScratch* tmp asm("a0");
 
 src      = arg0;
-tmp      = (_GpRelMatScratch*)(head - 0x30);
+tmp      = (_GfxRelativeTransformScratch*)(head - 0x30);
 *scratch = tmp;
 __asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
 ```
@@ -34220,7 +34220,7 @@ __asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
 Type that scratch as `MATRIX` + `VECTOR` (0x30) and keep `tmp` itself
 pinned to `$a0`. A second `Scratch*` copy of `tmp` emits `move t1, a0`
 and `sw 0x20(t1)` for the translation delta. Pass the delta to
-`ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->delta`) so the
+`ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->originDelta`) so the
 call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)arg2->t` (`addiu a2,
 a2, 0x14` in the second subtract's load delay).
 
