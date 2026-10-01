@@ -41,6 +41,7 @@
 #include "../../shared/pyro_flame.h"
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
+#include "../../shared/jet_cone.h"
 
 /// Collision pair allocated by `func_pyrokinesis_8012EF48` (`memCalloc(0x58)`)
 /// and stored in `Task::work`. `obj` is linked on list 1 and carries the
@@ -69,8 +70,6 @@ static s32 D_pyrokinesis_80131DD8[] = {
     0xE0110003,
     0xE0110004,
 };
-
-static void func_pyrokinesis_80131784(GfxCoord* arg0, s16 arg1, s32 arg2, s32 arg3);
 
 /// Per-flame jitter of the cone, one 8-bit LCG roll each, re-rolled as a block
 /// when the cast starts.
@@ -244,8 +243,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameStar(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (arg0->spawnArg1.value != 0) {
-                func_pyrokinesis_80131784(coord, mem->age, mem->angle, 0);
-                func_pyrokinesis_80131784(coord, mem->age, mem->angle, 1);
+                jetConeDraw(coord, mem->age, mem->angle, 0);
+                jetConeDraw(coord, mem->age, mem->angle, 1);
             }
             if (mem->age < 0x1E) {
                 spawned = Gp_SpawnEff(0x60069, coord, 0, NULL);
@@ -633,105 +632,11 @@ void func_pyrokinesis_801311B8(Task* arg0)
 
 #include "../../shared/glow_draw_flame_ring.inc.c"
 
-/// Draws the pyrokinesis flame tube: two 16-vertex rings in `arg0`'s local XY
-/// plane, the rim of radius 0x200 or 0x480 sunk `-back` along local Z and the
-/// hub of radius 0x80 or 0x40 at Z=0. `arg3` non-zero picks the short fat
-/// tube (`back = arg2 * 2 + arg1 * 256`); zero the long thin one
-/// (`back = arg2 + arg1 * 16`). Each of the 16 segments is projected through
-/// `GsWSMATRIX` as one semi-transparent `POLY_FT4`. The texture cell is one of
-/// six 0x28-wide frames picked per vertex by `D_pyrokinesis_80131DFC[i]` plus
-/// `arg1`, and a negative `gte_stflg` drops the segment.
-static void func_pyrokinesis_80131784(GfxCoord* arg0, s16 arg1, s32 arg2, s32 arg3)
-{
-    GpBandScratch* block;
-    SVECTOR*       op;
-    POLY_FT4*      prim;
-    s32            rimRad;
-    s32            hubRad;
-    s32            rimSize;
-    s32            hubSize;
-    s32            i;
-    s32            next;
-    s32            ang;
-    s32            u0;
-    u16            back;
-    MATRIX*        rot;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
-    if (arg3 != 0) {
-        back    = (arg2 << 1) + (arg1 << 8);
-        hubSize = 0x80;
-        rimSize = 0x200;
-    } else {
-        back    = arg2 + (arg1 << 4);
-        hubSize = 0x40;
-        rimSize = 0x480;
-    }
-    gte_SetTransMatrix(&GsWSMATRIX);
-    i      = 0;
-    rimRad = rimSize;
-    rot    = &arg0->workm;
-    hubRad = hubSize;
-    for (; i < 0x10; i++) {
-        ang                = i << 8;
-        block->inner[i].vx = (rsin(ang) * rimRad) >> 12;
-        block->inner[i].vy = (rcos(ang) * rimRad) >> 12;
-        block->inner[i].vz = -back;
-        gte_SetRotMatrix(rot);
-        gte_ldv0(&block->inner[i]);
-        gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx += arg0->workm.t[0];
-        block->inner[i].vy += arg0->workm.t[1];
-        block->inner[i].vz += arg0->workm.t[2];
-        block->outer[i].vx  = (rsin(ang) * hubRad) >> 12;
-        op                  = &block->inner[i] + 16;
-        op->vy              = (rcos(ang) * hubRad) >> 12;
-        op->vz              = 0;
-        gte_SetRotMatrix(rot);
-        gte_ldv0(&block->outer[i]);
-        gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx += arg0->workm.t[0];
-        op->vy             += arg0->workm.t[1];
-        op->vz             += arg0->workm.t[2];
-    }
-    gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 0x10; i++) {
-        gte_ldv0(&block->inner[i]);
-        gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x4282;
-            setRGB0(prim, 0x30, 0x30, 0x30);
-            setSemiTrans(prim, 1);
-            u0 = (s16)((D_pyrokinesis_80131DFC[i] + arg1) % 6) * 40;
-            setUV4(prim, u0, 0x60, u0 + 0x27, 0x60, u0, 0x87, u0 + 0x27, 0x87);
-            prim->x0 = block->sxy0.vx;
-            prim->y0 = block->sxy0.vy;
-            prim->x1 = block->sxy1.vx;
-            prim->y1 = block->sxy1.vy;
-            prim->x2 = block->sxy2.vx;
-            prim->y2 = block->sxy2.vy;
-            prim->x3 = block->sxy3.vx;
-            prim->y3 = block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
-}
+#define JET_CONE_CLUT         0x4282
+#define JET_CONE_RIM_SHORT    0x200
+#define JET_CONE_RIM_LONG     0x480
+#define JET_CONE_FRAME_JITTER D_pyrokinesis_80131DFC
+#include "../../shared/jet_cone_draw.inc.c"
 
 void func_pyrokinesis_80131CE4(Task* arg0)
 {

@@ -10,3 +10,4 @@ func_hypervelocity_8011F168 = 0x8011F168; // type:func
 
 func_hypervelocity_8011D1E8 = 0x8011D1E8; // type:func
 spriteQuadDraw = 0x8011E494; // type:func
+jetConeDraw = 0x8011DF34; // type:func

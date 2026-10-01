@@ -45,6 +45,7 @@
 #include "overlay.h"
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
+#include "../../shared/jet_cone.h"
 
 /// 0x18-byte scratchpad block `func_hypervelocity_8011F724` reserves for one
 /// frame of the barrel's recoil kick. `dir` receives the third column of the
@@ -59,27 +60,6 @@ typedef struct HyperRecoil {
     /* 0x10 */ SVECTOR dir;
 } HyperRecoil;
 STATIC_ASSERT_SIZEOF(HyperRecoil, 0x18);
-
-/// 0x118-byte scratchpad block `func_hypervelocity_8011DF34` reserves for one
-/// half of the round's trail. The trail is a 16-segment tube: `rim` is the
-/// wide ring, pushed `back` along the round's own -Z so it trails behind, and
-/// `hub` the narrow ring sitting on the round itself. Both rings are built in
-/// the round's frame, rotated by its `workm` and shifted onto its world
-/// position, then projected a segment at a time - `sxy0`..`sxy3` are the four
-/// screen corners of the current quad, `flag` the `gte_stflg` that rejects a
-/// segment behind the eye and `otz` its `gte_stszotz` depth, which also picks
-/// the OT bucket.
-typedef struct HyperTrailScratch {
-    /* 0x000 */ SVECTOR rim[16];
-    /* 0x080 */ SVECTOR hub[16];
-    /* 0x100 */ s32     otz;
-    /* 0x104 */ s32     flag;
-    /* 0x108 */ DVECTOR sxy0;
-    /* 0x10C */ DVECTOR sxy1;
-    /* 0x110 */ DVECTOR sxy2;
-    /* 0x114 */ DVECTOR sxy3;
-} HyperTrailScratch;
-STATIC_ASSERT_SIZEOF(HyperTrailScratch, 0x118);
 
 /// 0x58-byte scratchpad block `func_hypervelocity_8011EC1C` reserves for the
 /// discharge cone. `hub` is the square collar sitting on the round itself and
@@ -119,7 +99,6 @@ static SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 static void func_hypervelocity_8011F11C(Task* task);
 static void func_hypervelocity_8011F6A0(Task* task);
 
-static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 side);
 static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin);
 
 static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb);
@@ -458,8 +437,8 @@ void func_hypervelocity_8011D830(Task* task)
             rgb[2]   = work->scale >> 1;
             spriteQuadDraw(coord, work->age, work->angle, work->period);
             Gp_DrawRing(coord, work->angle, rgb);
-            func_hypervelocity_8011DF34(coord, work->age, work->angle, 0);
-            func_hypervelocity_8011DF34(coord, work->age, work->angle, 1);
+            jetConeDraw(coord, work->age, work->angle, 0);
+            jetConeDraw(coord, work->age, work->angle, 1);
             if (gRoomEffectState->groundTraceEnabled != 0 && Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_hypervelocity_8011E8A0(&ground, work->angle);
             }
@@ -508,107 +487,11 @@ void func_hypervelocity_8011D830(Task* task)
     }
 }
 
-/// Draws one half of the hypervelocity round's trail: a 16-segment
-/// semi-transparent tube hanging off `coord`, built in the scratchpad as a
-/// `HyperTrailScratch`. `age` is the round's frame counter, `spin` its ring
-/// radius and `side` picks which half - `side` non-zero gives the short, fat
-/// half (rim 0x600, hub 0x80) trailing `spin * 2 + age * 256` behind, and
-/// `side` zero the long, thin one (rim 0x800, hub 0x40) trailing
-/// `spin + age * 16`. Each segment is a `POLY_FT4` from the six-frame strip at
-/// tpage 0x2A, the frame picked per segment by the stored jitter
-/// `D_hypervelocity_8012EF0C[i]` plus `age`, and is linked into the OT bucket
-/// its own projected depth names. Segments the GTE flags as behind the eye are
-/// dropped.
-static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 side)
-{
-    HyperTrailScratch* sc;
-    POLY_FT4*          prim;
-    SVECTOR*           vert;
-    s32                rimRad;
-    s32                hubRad;
-    s32                rimSize;
-    s32                hubSize;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                u0;
-    s16                back;
-    MATRIX*            rot;
-
-    /* `rimSize` / `hubSize` are latched into the loop's own `rimRad` /
-       `hubRad` on purpose: the ROM keeps the two copies the single pair would
-       have coalesced away, and `rot` is a second spelling of `&coord->workm`
-       for the same reason. `vert` reaches `hub[i]` through `rim[i]` rather
-       than off `sc`, so the `gte_ldv0` / `gte_stsv` address stays a register
-       of its own instead of being shared with the field stores. */
-    sc = SCRATCH_STACK_RESERVE_BLOCK(HyperTrailScratch);
-    if (side != 0) {
-        back    = (spin << 1) + (age << 8);
-        hubSize = 0x80;
-        rimSize = 0x600;
-    } else {
-        back    = spin + (age << 4);
-        hubSize = 0x40;
-        rimSize = 0x800;
-    }
-    gte_SetTransMatrix(&GsWSMATRIX);
-    i      = 0;
-    rimRad = rimSize;
-    rot    = &coord->workm;
-    hubRad = hubSize;
-    for (; i < 0x10; i++) {
-        ang           = i << 8;
-        sc->rim[i].vx = (rsin(ang) * rimRad) >> 12;
-        sc->rim[i].vy = (rcos(ang) * rimRad) >> 12;
-        sc->rim[i].vz = -back;
-        gte_SetRotMatrix(rot);
-        gte_ldv0(&sc->rim[i]);
-        gte_rtv0();
-        gte_stsv(&sc->rim[i]);
-        sc->rim[i].vx += (u16)coord->workm.t[0];
-        sc->rim[i].vy += (u16)coord->workm.t[1];
-        sc->rim[i].vz += (u16)coord->workm.t[2];
-        sc->hub[i].vx  = (rsin(ang) * hubRad) >> 12;
-        vert           = &sc->rim[i] + 16;
-        vert->vy       = (rcos(ang) * hubRad) >> 12;
-        vert->vz       = 0;
-        gte_SetRotMatrix(rot);
-        gte_ldv0(&sc->hub[i]);
-        gte_rtv0();
-        gte_stsv(&sc->hub[i]);
-        sc->hub[i].vx += (u16)coord->workm.t[0];
-        vert->vy      += (u16)coord->workm.t[1];
-        vert->vz      += (u16)coord->workm.t[2];
-    }
-    gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 0x10; i++) {
-        gte_ldv0(&sc->rim[i]);
-        gte_rtps();
-        gte_stsxy(&sc->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&sc->rim[next], &sc->hub[i], &sc->hub[next]);
-        gte_rtpt();
-        gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
-        gte_stflg(&sc->flag);
-        if (sc->flag >= 0) {
-            gte_stszotz(&sc->otz);
-            sc->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x42C1;
-            setRGB0(prim, 0x30, 0x30, 0x30);
-            setSemiTrans(prim, 1);
-            u0 = (s16)((D_hypervelocity_8012EF0C[i] + age) % 6) * 40;
-            setUV4(prim, u0, 0x60, u0 + 0x27, 0x60, u0, 0x87, u0 + 0x27, 0x87);
-            setXY4(prim, sc->sxy0.vx, sc->sxy0.vy, sc->sxy1.vx, sc->sxy1.vy, sc->sxy2.vx, sc->sxy2.vy, sc->sxy3.vx,
-                   sc->sxy3.vy);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(HyperTrailScratch);
-}
+#define JET_CONE_CLUT         0x42C1
+#define JET_CONE_RIM_SHORT    0x600
+#define JET_CONE_RIM_LONG     0x800
+#define JET_CONE_FRAME_JITTER D_hypervelocity_8012EF0C
+#include "../../shared/jet_cone_draw.inc.c"
 
 #define SPRITE_QUAD_TPAGE     0x29
 #define SPRITE_QUAD_CLUT      0x428B
