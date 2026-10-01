@@ -33,32 +33,7 @@
 #include "main/tmd_types.h"
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
-
-/// 0x20-byte scratch block `func_m4a1_hammer_8011E29C` carves off
-/// the scratch stack for the hammer's shock trail.
-///
-/// `vec` is the effect coordinate's world position (`workm.t`) truncated to
-/// s16; it and the caller's endpoint `SVECTOR` are projected by one `RTPS`
-/// each, filling `sxy0` / `sxy1` through `gte_stsxy`. `flag` is `gte_stflg` of
-/// whichever projection just ran - both are tested, so an off-screen endpoint
-/// drops the whole strip - and `otz` is `gte_stszotz` of the first point,
-/// bumped once per surviving projection so it serves as both the divisor of
-/// the strip's half-width and the OT index the primitive is queued at. `dx` /
-/// `dy` are that half-width rotated by `(size * 23 / otz) * rsin|rcos(angle)
-/// >> 12`, applied once at the strip's own screen angle and once at 90 degrees
-/// to it to give the `POLY_FT4` its four corners.
-typedef struct _M4a1HammerTrailScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ DVECTOR sxy0;
-    /* 0x1C */ DVECTOR sxy1;
-} M4a1HammerTrailScratch;
-STATIC_ASSERT_SIZEOF(M4a1HammerTrailScratch, 0x20);
-
-static void func_m4a1_hammer_8011E29C(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
+#include "../../shared/beam_strip.h"
 
 static void spriteQuadDrawCharge(long* arg0, u16 arg1, u16 arg2, s16 arg3);
 
@@ -206,7 +181,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                                 work->pos.vx = work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
                                 work->pos.vy = work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
                                 work->pos.vz = work->pos.vz + (u16)D_m4a1_hammer_8012D668.vz;
-                                func_m4a1_hammer_8011E29C(coord, &work->pos, work->age, 0x280);
+                                beamStripDraw(coord, &work->pos, work->age, 0x280);
                             }
                         }
                         lightSlot->framesLeft = 4;
@@ -289,7 +264,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
             if (mem->age & 1) {
                 spriteQuadDraw(coord, ++mem->index, 0x400, mem->angle);
                 if (mem->age < 8) {
-                    func_m4a1_hammer_8011E29C(coord, &D_m4a1_hammer_8012D668, mem->index, 0x280);
+                    beamStripDraw(coord, &D_m4a1_hammer_8012D668, mem->index, 0x280);
                 }
             }
             if (mem->age >= 0x19) {
@@ -307,76 +282,4 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
 #define SPRITE_QUAD_CLUT          0x4293
 #include "../../shared/sprite_quad_draw.inc.c"
 
-/// Handwritten GTE routine. Draws one semi-transparent `POLY_FT4` stretched
-/// between `coord`'s world position and `arg1`, the offset endpoint the hammer
-/// effect keeps in its data. Both points are projected with their own `RTPS`
-/// and the quad is given a half-width of `arg3 * 23 / otz`, rotated onto the
-/// strip's own screen-space angle so it stays perpendicular to it. `arg2`
-/// selects the strip out of the texture page: bit 0 picks the left or right
-/// half and bit 1 the upper or lower row. Nothing is drawn if either endpoint
-/// projects off-screen.
-static void func_m4a1_hammer_8011E29C(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
-{
-    u8*                     head;
-    M4a1HammerTrailScratch* block;
-    M4a1HammerTrailScratch* vecp;
-    POLY_FT4*               prim;
-    s16                     ang;
-    u16                     vz;
-
-    head                                             = SCRATCH_STACK_CURSOR(u8);
-    ((M4a1HammerTrailScratch*)(head - 0x20))->vec.vx = (u16)coord->workm.t[0];
-    block                                            = (M4a1HammerTrailScratch*)(head - 0x20);
-    block->vec.vy                                    = (u16)coord->workm.t[1];
-    vz                                               = (u16)coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(M4a1HammerTrailScratch)     = block;
-    block->vec.vz                                    = vz;
-    vecp                                             = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((M4a1HammerTrailScratch*)(head - 0x20))->sxy0);
-    gte_stflg(&((M4a1HammerTrailScratch*)(head - 0x20))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((M4a1HammerTrailScratch*)(head - 0x20))->otz);
-        block->otz++;
-        gte_ldv0(arg1);
-        gte_rtps();
-        gte_stsxy(&((M4a1HammerTrailScratch*)(head - 0x20))->sxy1);
-        gte_stflg(&((M4a1HammerTrailScratch*)(head - 0x20))->flag);
-        if (block->flag >= 0) {
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage = 0x28;
-            prim->clut  = 0x4287;
-            prim->u0    = (arg2 & 1) << 7;
-            prim->v0    = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
-            prim->u1    = ((arg2 & 1) << 7) + 0x7F;
-            prim->v1    = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
-            prim->u2    = (arg2 & 1) << 7;
-            prim->v2    = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
-            prim->u3    = ((arg2 & 1) << 7) + 0x7F;
-            prim->v3    = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
-            ang         = ratan2(block->sxy1.vy - block->sxy0.vy, block->sxy1.vx - block->sxy0.vx);
-            block->dx   = (((arg3 * 23) / block->otz) * rsin(ang)) >> 12;
-            block->dy   = (((arg3 * 23) / block->otz) * rcos(ang)) >> 12;
-            prim->x0    = (u16)block->sxy0.vx + (u16)block->dx;
-            prim->x3    = (u16)block->sxy1.vx - (u16)block->dx;
-            prim->y0    = (u16)block->sxy0.vy - (u16)block->dy;
-            prim->y3    = (u16)block->sxy1.vy + (u16)block->dy;
-            block->dx   = (((arg3 * 23) / block->otz) * rsin(ang + 0x400)) >> 12;
-            block->dy   = (((arg3 * 23) / block->otz) * rcos(ang + 0x400)) >> 12;
-            prim->x1    = (u16)block->sxy1.vx + (u16)block->dx;
-            prim->x2    = (u16)block->sxy0.vx - (u16)block->dx;
-            prim->y1    = (u16)block->sxy1.vy - (u16)block->dy;
-            prim->y2    = (u16)block->sxy0.vy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
-}
+#include "../../shared/beam_strip_draw.inc.c"

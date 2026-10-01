@@ -63,6 +63,7 @@ s32 D_mist_shooting_gallery_8018E0C0;
 #include "mapui/map_akropolis.h"
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
+#include "../../shared/beam_strip.h"
 
 /// The five round scripts of the gallery mini-game, indexed by
 /// `MistShootingGalleryWork::difficulty`. `func_mist_shooting_gallery_80184A14`
@@ -88,30 +89,6 @@ typedef struct MistShootingGallerySpawn {
     /* 0xA */ s16 z;
 } MistShootingGallerySpawn;
 STATIC_ASSERT_SIZEOF(MistShootingGallerySpawn, 0xC);
-
-/// 0x20-byte scratch block taken from the scratch stack by the gallery's tracer
-/// draw helper (`func_mist_shooting_gallery_801826C4`).
-///
-/// `vec` is the effect coordinate's world position (`workm.t`) truncated to
-/// s16; it and the caller's endpoint `SVECTOR` are projected by one `RTPS`
-/// each, filling `sxy0` / `sxy1` through `gte_stsxy`. `flag` is `gte_stflg` of
-/// whichever projection just ran - both are tested, so an off-screen endpoint
-/// drops the whole beam - and `otz` is `gte_stszotz` of the first point only,
-/// serving as both the divisor of the beam's half-width and the OT index the
-/// primitive is queued at. `dx` / `dy` are that half-width rotated by
-/// `(arg3 * 23 / otz) * rsin|rcos(angle) >> 12`, applied once at the beam's
-/// own angle and once at 90 degrees to it to give the `POLY_FT4` its four
-/// corners.
-typedef struct _MistShootingGalleryBeamScratch {
-    /* 0x00 */ SVECTOR vec;
-    /* 0x08 */ s32     otz;
-    /* 0x0C */ s32     flag;
-    /* 0x10 */ s32     dx;
-    /* 0x14 */ s32     dy;
-    /* 0x18 */ DVECTOR sxy0;
-    /* 0x1C */ DVECTOR sxy1;
-} MistShootingGalleryBeamScratch;
-STATIC_ASSERT_SIZEOF(MistShootingGalleryBeamScratch, 0x20);
 
 extern TaskDesc D_mist_shooting_gallery_801856D0;
 extern TaskDesc D_80134F94;
@@ -146,7 +123,6 @@ extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 extern void   func_8014A908(void);
 extern void   func_8014A9A0(void);
 extern void   func_8014B0D4(void);
-static void   func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
 static void   func_mist_shooting_gallery_80184A80(Task* arg0);
 static void   func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
 static u16    func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
@@ -2250,7 +2226,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         spriteQuadDraw(coord, work->index, 0x600, work->angle);
-        func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x600);
+        beamStripDraw(coord, &work->pos, work->index, 0x600);
         rgb[0] = work->scale >> 1;
         rgb[1] = work->scale >> 1;
         rgb[2] = work->scale;
@@ -2282,7 +2258,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
         case 1:
             if (work->age & 1) {
                 spriteQuadDraw(coord, ++work->index, 0x400, work->angle);
-                func_mist_shooting_gallery_801826C4(coord, &work->pos, work->index, 0x400);
+                beamStripDraw(coord, &work->pos, work->index, 0x400);
             }
             rgb[0] = work->scale >> 1;
             rgb[1] = work->scale >> 1;
@@ -2305,79 +2281,8 @@ void func_mist_shooting_gallery_80182064(Task* task)
 #define SPRITE_QUAD_OTZ_BIAS      0
 #include "../../shared/sprite_quad_draw.inc.c"
 
-/// Draws one frame of the gallery's tracer beam: a semi-transparent
-/// `POLY_FT4` stretched between the effect coordinate's world position and
-/// `arg1`, the endpoint the effect picked when it spawned. Both points are
-/// projected with their own `RTPS` and the quad is given a half-width of
-/// `arg3 * 23 / otz`, rotated onto the beam's own screen-space angle so the
-/// strip stays perpendicular to it. `arg2` selects the strip out of the
-/// texture page: bit 0 picks the left or right half and bit 1 the upper or
-/// lower row. Nothing is drawn if either endpoint projects off-screen.
-static void func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3)
-{
-    void**                          scratch;
-    u8*                             head;
-    MistShootingGalleryBeamScratch* block;
-    MistShootingGalleryBeamScratch* vecp;
-    POLY_FT4*                       prim;
-    s16                             ang;
-    u16                             vz;
-
-    scratch                                                  = SCRATCH_STACK_CURSOR_SLOT;
-    head                                                     = *scratch;
-    ((MistShootingGalleryBeamScratch*)(head - 0x20))->vec.vx = (u16)coord->workm.t[0];
-    block                                                    = (MistShootingGalleryBeamScratch*)(head - 0x20);
-    block->vec.vy                                            = (u16)coord->workm.t[1];
-    vz                                                       = (u16)coord->workm.t[2];
-    *scratch                                                 = block;
-    block->vec.vz                                            = vz;
-    vecp                                                     = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&vecp->vec);
-    gte_rtps();
-    gte_stsxy(&((MistShootingGalleryBeamScratch*)(head - 0x20))->sxy0);
-    gte_stflg(&((MistShootingGalleryBeamScratch*)(head - 0x20))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((MistShootingGalleryBeamScratch*)(head - 0x20))->otz);
-        gte_ldv0(arg1);
-        gte_rtps();
-        gte_stsxy(&((MistShootingGalleryBeamScratch*)(head - 0x20))->sxy1);
-        gte_stflg(&((MistShootingGalleryBeamScratch*)(head - 0x20))->flag);
-        if (block->flag >= 0) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage = 0x28;
-            prim->clut  = 0x4287;
-            prim->u0    = (arg2 & 1) << 7;
-            prim->v0    = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
-            prim->u1    = ((arg2 & 1) << 7) + 0x7F;
-            prim->v1    = ((u32)(arg2 & 3) >> 1) * 24 - 0x30;
-            prim->u2    = (arg2 & 1) << 7;
-            prim->v2    = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
-            prim->u3    = ((arg2 & 1) << 7) + 0x7F;
-            prim->v3    = ((u32)(arg2 & 3) >> 1) * 24 - 0x19;
-            ang         = ratan2(block->sxy1.vy - block->sxy0.vy, block->sxy1.vx - block->sxy0.vx);
-            block->dx   = (((arg3 * 23) / block->otz) * rsin(ang)) >> 12;
-            block->dy   = (((arg3 * 23) / block->otz) * rcos(ang)) >> 12;
-            prim->x0    = (u16)block->sxy0.vx + (u16)block->dx;
-            prim->x3    = (u16)block->sxy1.vx - (u16)block->dx;
-            prim->y0    = (u16)block->sxy0.vy - (u16)block->dy;
-            prim->y3    = (u16)block->sxy1.vy + (u16)block->dy;
-            block->dx   = (((arg3 * 23) / block->otz) * rsin(ang + 0x400)) >> 12;
-            block->dy   = (((arg3 * 23) / block->otz) * rcos(ang + 0x400)) >> 12;
-            prim->x1    = (u16)block->sxy1.vx + (u16)block->dx;
-            prim->x2    = (u16)block->sxy0.vx - (u16)block->dx;
-            prim->y1    = (u16)block->sxy1.vy - (u16)block->dy;
-            prim->y2    = (u16)block->sxy0.vy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
-}
+#define BEAM_STRIP_OTZ_BIAS 0
+#include "../../shared/beam_strip_draw.inc.c"
 
 static void func_mist_shooting_gallery_80182B1C(Task* arg0)
 {

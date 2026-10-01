@@ -22,5 +22,5 @@ Task* D_m4a1_hammer_8012D660 = NULL;
 /// vector that follows.
 static s32 s_unused_8012D664 = 0;
 
-/// Offset vector handed to the `func_m4a1_hammer_8011E29C` sprite draw.
+/// Offset vector handed to the `beamStripDraw` sprite draw.
 SVECTOR D_m4a1_hammer_8012D668 = { 0, 0, 0, 0 };
