@@ -107,13 +107,6 @@ void madChaserDeathCryUnlink(Task* arg0);
 void madChaserShrink(Task* arg0);
 s32  madChaserTakeKnockdownRequest(Task* arg0);
 
-/* Defined by each package. */
-s32  madChaserScaleBySpeed(Task* arg0, s16 arg1);
-s16  madChaserAnimEnded(Task* arg0);
-s16  madChaserJoinAlert(Task* arg0);
-void madChaserLurkRiseStart(Task* arg0);
-void madChaserDangleState(Task* arg0);
-
 static inline void madChaserEnterState(Task* arg0, s32 state);
 static inline void madChaserUpdateColor(void* enemy, GfxCoord* coord);
 static inline void madChaserCalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
