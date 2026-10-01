@@ -60,6 +60,7 @@
 #include "rooms/mine_mesa.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/actor_contacts.h"
 #define DESERT_CHASER_BUILD DESERT_CHASER_REGULAR
 #include "../../shared/desert_chaser.h"
 
@@ -94,7 +95,7 @@ typedef struct Actor00100ProjectScratch {
 STATIC_ASSERT_SIZEOF(Actor00100ProjectScratch, 0x24);
 
 /// 0x70-byte scratch from the scratch stack used by `Actor00100_Fn01388`, the
-/// 16-slot variant of the `Actor00100_Fn00508` walk. `flags` keeps the current
+/// 16-slot variant of the `ActorContact_Steer` walk. `flags` keeps the current
 /// record's `field_4` bit 0x80, which gates `blocked` for kind 0x10000.
 typedef struct Actor00100AvoidScratch16 {
     /* 0x00 */ MATRIX   m;
@@ -168,7 +169,13 @@ extern TmdSource Actor00100_D12470;
 
 extern DesertChaserAnimCommand Actor00100_D1B9AC;
 
-extern SVECTOR Actor00100_D1BA90;
+extern SVECTOR ActorContact_ScratchPosition;
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 extern DesertChaserAnimCommand Actor00100_D1B9D0;
 
@@ -307,17 +314,13 @@ static void Actor00100_Fn0BCBC(Enemy* enemy, Task* task);
 
 static __inline__ s16      Actor00100_FacingAway(GfxCoord* p);
 static __inline__ void     Actor00100_ScaleTransform(MATRIX* matrix, s16 amount);
-static __inline__ s16      Actor00100_HasRecord10(Task* actor);
 static __inline__ void     Actor00100_PositionDelta(GfxCoord* coord, SVECTOR* pos);
-static __inline__ s32      Actor00100_OutsideRadius(SVECTOR* pos, s32 radius);
 static __inline__ s16      Actor00100_InRegion(Task* actor);
 static __inline__ s16      Actor00100_InDirection(Task* actor, VECTOR* motion);
 static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head);
 static __inline__ s32      Actor00100_FindDamageHit(WorldCollisionContact* records, SVECTOR* pos);
 static __inline__ void     Actor00100_SetHitState(DesertChaserWork* work);
 static void                Actor00100_Fn001FC(GfxCoord* coord, s16 yaw);
-static s32                 Actor00100_Fn00508(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
-static s32                 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2);
 static s32                 Actor00100_Fn01388(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static void                Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
 static void                Actor00100_Fn01D74(Task* arg0);
@@ -390,44 +393,11 @@ static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleMatrixScratch);
 }
 
-static __inline__ s16 Actor00100_HasRecord10(Task* actor)
-{
-    DesertChaserWork* work  = (DesertChaserWork*)actor->work;
-    s16               found = 0;
-    s16               i;
-    for (i = 0; i < 5; i++) {
-        if (!work->capsuleBody.contacts[i].key.value) {
-            break;
-        }
-        if ((work->capsuleBody.contacts[i].key.value & 0xFFFF0000) == 0x100000) {
-            found = 1;
-        }
-    }
-    return found;
-}
-
 static __inline__ void Actor00100_PositionDelta(GfxCoord* coord, SVECTOR* pos)
 {
     pos->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     pos->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     pos->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-}
-
-static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)
-{
-    OverlayRangeScratch* head;
-    OverlayRangeScratch* scratch;
-    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-    scratch                                   = head - 1;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
-    scratch->dx                               = pos->vx;
-    scratch->dz                               = pos->vz;
-    scratch->r                                = radius;
-    scratch->dx                              *= scratch->dx;
-    scratch->dz                              *= scratch->dz;
-    scratch->r                               *= scratch->r;
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayRangeScratch);
-    return scratch->dx + scratch->dz >= scratch->r;
 }
 
 static __inline__ s16 Actor00100_InRegion(Task* actor)
@@ -1318,7 +1288,7 @@ Actor00100MessageEntry Actor00100_D1BA54[6] = {
 
 TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };
 
-SVECTOR Actor00100_D1BA90;
+SVECTOR ActorContact_ScratchPosition;
 
 static __inline__ s32 Actor00100_FindDamageHit(WorldCollisionContact* records, SVECTOR* pos)
 {
@@ -1367,146 +1337,9 @@ static void Actor00100_Fn001FC(GfxCoord* coord, s16 yaw)
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
-/// Pushes `coord` away from the obstacles in `recs`. Up to eight bearings
-/// are taken from records of kind 0x10000 or 0x30000, in the XZ plane unless
-/// the coordinate's axis is near vertical; any two more than a quarter turn
-/// apart cancel each other. Each remaining bearing becomes a short step
-/// against it, added to both `pos` and the coordinate's translation. Returns
-/// whether a kind 0x10000 record was among them. Does nothing, and returns 0,
-/// while the session's `viewReady` or `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is 1.
-static s32 Actor00100_Fn00508(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
-{
-    u8*                  head;
-    OverlayAvoidScratch* s;
-    s16                  diff;
+#include "../../shared/actor_contacts_steer.inc.c"
 
-    if (gGameSession->viewReady == 1 || gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
-        return 0;
-    }
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
-    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
-    s->blocked               = 0;
-    pos->vz                  = 0;
-    pos->vy                  = 0;
-    pos->vx                  = 0;
-
-    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
-    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
-
-    if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-    } else {
-        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
-    }
-
-    s->eye.vx = (u16)coord->workm.t[0];
-    s->eye.vy = (u16)coord->workm.t[1];
-    s->eye.vz = (u16)coord->workm.t[2];
-    s->count  = 0;
-
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
-            break;
-        }
-        s->kind = recs[s->i].key.value & 0xFFFF0000;
-        switch (s->kind) {
-            case 0x10000:
-                s->blocked = 1;
-            case 0x30000:
-                break;
-            default:
-                continue;
-        }
-
-        if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
-        } else {
-            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
-        }
-        s->ok[s->count] = 1;
-        s->count++;
-        if (s->count >= 8) {
-            break;
-        }
-    }
-
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
-            }
-        }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
-                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            s->diff = diff;
-            gfxRotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            pos->vx           += s->dir.vx;
-            pos->vz           += s->dir.vz;
-            coord->coord.t[0] += s->dir.vx;
-            coord->coord.t[2] += s->dir.vz;
-        }
-    }
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
-    return s->blocked != 0;
-}
-
-/// Steps `coord` by the movement the first `arg2` `WorldCollisionContact` records of `movement`
-/// resolve to, and latches the integer part of that delta into
-/// `Actor00100_D1BA90`. Returns the "moved" flag: set when the X or Z delta is
-/// nonzero, and also when its fractional half is, in which case the coordinate
-/// and the latched step are nudged one unit further away from zero.
-static s32 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]   += s->delta.vx.word >> 16;
-        coord->coord.t[2]   += s->delta.vz.word >> 16;
-        Actor00100_D1BA90.vx = s->delta.vx.word >> 16;
-        Actor00100_D1BA90.vy = s->delta.vy.word >> 16;
-        Actor00100_D1BA90.vz = s->delta.vz.word >> 16;
-        val                  = s->delta.vx.word;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                Actor00100_D1BA90.vx++;
-            } else {
-                coord->coord.t[0]--;
-                Actor00100_D1BA90.vx--;
-            }
-        }
-        val = s->delta.vz.word;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                Actor00100_D1BA90.vz++;
-            } else {
-                coord->coord.t[2]--;
-                Actor00100_D1BA90.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.word != 0 || s->delta.vz.word != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
 #include "../../shared/player_detection_sight.inc.c"
 
@@ -1674,7 +1507,7 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request)
 }
 
 /// Collects bearings from the obstacles in `recs` into a 16-slot scratch and
-/// steps `coord` along each survivor. Same walk as `Actor00100_Fn00508`, but
+/// steps `coord` along each survivor. Same walk as `ActorContact_Steer`, but
 /// `blocked` is raised only for a kind 0x10000 record whose `key` bit 0x80
 /// is clear. The scratch is carved before the early-out, so that path leaks it.
 static s32 Actor00100_Fn01388(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
@@ -3069,7 +2902,7 @@ static void Actor00100_Fn04864(Task* arg0)
     head[-1].delta.vx = move->field_C[move->field_14].x - arg0->extra.tmd->coords->coord.t[0];
     scratch->delta.vy = 0;
     scratch->delta.vz = move->field_C[move->field_14].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!Actor00100_OutsideRadius(&scratch->delta, 0xA0) || work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->delta, 0xA0) || work->field_6 >= 0x15) {
         if (move->field_14 == 0)
             move->field_14 = 1;
         else
@@ -3094,15 +2927,15 @@ static void Actor00100_Fn04864(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, yaw, 1);
     records = work->objs[0].contacts;
     if (work->field_82A == 0) {
-        if (Actor00100_HasRecord10(arg0)) {
+        if (desertChaserCapsuleTouchesGrid(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         }
         records = work->objs[0].contacts;
     }
-    Actor00100_Fn00508(arg0->extra.tmd->coords, records, 5, &scratch->delta);
-    if (Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5) == 1) {
+    ActorContact_Steer(arg0->extra.tmd->coords, records, 5, &scratch->delta);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5) == 1) {
         magnitude = abs((s16)work->field_840);
         if (magnitude < 0x80)
             work->field_6 = (u16)work->field_6 + 1;
@@ -3267,12 +3100,12 @@ static void Actor00100_Fn0503C(Task* arg0)
         work->field_6 += 1;
     }
 
-    if ((Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5) != 0) && (work->field_6 >= 0xB)) {
-        distanceSquared          = Actor00100_D1BA90.vx * Actor00100_D1BA90.vx;
+    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5) != 0) && (work->field_6 >= 0xB)) {
+        distanceSquared          = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
         scratch->distanceSquared = distanceSquared;
-        scratch->distanceSquared = (u32)(distanceSquared + (Actor00100_D1BA90.vz * Actor00100_D1BA90.vz));
+        scratch->distanceSquared = (u32)(distanceSquared + (ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz));
         temp_s0_4                = arg0->extra.tmd->coords;
-        temp_s0_5                = ratan2((s32)Actor00100_D1BA90.vx, (s32)Actor00100_D1BA90.vz);
+        temp_s0_5                = ratan2((s32)ActorContact_ScratchPosition.vx, (s32)ActorContact_ScratchPosition.vz);
         temp_s0_6                = temp_s0_5 - ratan2((s32)-temp_s0_4->coord.m[2][0], (s32)temp_s0_4->coord.m[2][2]);
         var_v1_2                 = actorNormalizeYaw(temp_s0_6);
         var_v0_5                 = var_v1_2 << 0x10;
@@ -3462,7 +3295,7 @@ static void Actor00100_Fn0503C(Task* arg0)
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)temp_a1_5, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
-        var_a1_4 = Actor00100_HasRecord10(arg0);
+        var_a1_4 = desertChaserCapsuleTouchesGrid(arg0);
         if (var_a1_4 != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0x55);
             var_v0_29 = (u16)work->distance + 0x55;
@@ -3593,7 +3426,7 @@ static void Actor00100_Fn061FC(Task* arg0)
     Actor00100_Fn02788(arg0);
     Actor00100_PositionDelta(arg0->extra.tmd->coords, &delta);
     if (work->slots[1].flags & 0x100) {
-        outside       = Actor00100_OutsideRadius(&delta, radius);
+        outside       = actorOutsideRadius(&delta, radius);
         work->field_0 = outside == 0 ? 0x1F : 0x26;
     }
 }
@@ -3727,7 +3560,7 @@ static void Actor00100_Fn06654(Task* arg0)
         case 5:
             if (work->slots[1].flags & 0x100) {
                 actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
-                outside = Actor00100_OutsideRadius(vec, 2000);
+                outside = actorOutsideRadius(vec, 2000);
                 if (outside) {
                     work->field_0 = 0x26;
                 } else {
@@ -3738,12 +3571,12 @@ static void Actor00100_Fn06654(Task* arg0)
         case 3:
             yaw       = actorPositionYaw(arg0, vec, &gPlayerStatus);
             vec[1].vz = yaw;
-            if (Actor00100_HasRecord10(arg0)) {
+            if (desertChaserCapsuleTouchesGrid(arg0)) {
                 actorMoveForward(arg0->extra.tmd->coords, 85);
             } else {
                 actorMoveForward(arg0->extra.tmd->coords, 200);
             }
-            if (Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5)) {
+            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5)) {
                 work->field_0 = 0x23;
             }
             if (work->field_6 >= 0x15) {
@@ -3784,7 +3617,7 @@ static void Actor00100_Fn06C10(Task* arg0)
         work->field_0 = 0x26;
     }
     if (((u32)((work->slots[1].currentPose.indices.recordIndex & 0x3FF) - 6) < 8U) && (work->field_8 < 5)) {
-        if (Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5) != 0) {
+        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5) != 0) {
             work->field_8 = (s16)((u16)work->field_8 + 1);
         }
         switch (work->slots[1].currentPose.indices.recordIndex & 0x3FF) {
@@ -3798,7 +3631,7 @@ static void Actor00100_Fn06C10(Task* arg0)
                 actorMoveForward(arg0->extra.tmd->coords, -15);
                 break;
             default:
-                if (Actor00100_HasRecord10(arg0)) {
+                if (desertChaserCapsuleTouchesGrid(arg0)) {
                     actorMoveForward(arg0->extra.tmd->coords, -85);
                 } else {
                     actorMoveForward(arg0->extra.tmd->coords, -120);
@@ -3806,7 +3639,7 @@ static void Actor00100_Fn06C10(Task* arg0)
                 break;
         }
     } else {
-        Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -3853,7 +3686,7 @@ static void Actor00100_Fn070DC(Task* arg0)
         Actor00100_Fn02788(arg0);
         work->field_6 = 0;
     }
-    Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = arg0->extra.tmd->coords;
     head[-1].x                            = (s16)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
@@ -3959,11 +3792,11 @@ static void Actor00100_Fn0747C(Task* arg0)
     }
     radius = 2000;
     Actor00100_Fn02788(arg0);
-    if (((s16)Actor00100_Fn00508(arg0->extra.tmd->coords, work->objs[0].contacts, 5, &delta) != 0) || ((s16)Actor00100_Fn00508(arg0->extra.tmd->coords, work->objs[1].contacts, 5, &delta) != 0)) {
+    if (((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, 5, &delta) != 0) || ((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->objs[1].contacts, 5, &delta) != 0)) {
         work->field_0 = 0x22;
     }
     Actor00100_PositionDelta(arg0->extra.tmd->coords, &delta);
-    if (Actor00100_OutsideRadius(&delta, radius) == 0) {
+    if (actorOutsideRadius(&delta, radius) == 0) {
         work->field_0 = 0x22;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4006,7 +3839,7 @@ static void Actor00100_Fn07650(Task* arg0)
             SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         }
     }
-    Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor00100_Fn02788(arg0);
     if (work->slots[1].flags & 0x100) {
@@ -4142,7 +3975,7 @@ static void Actor00100_Fn0782C(Task* arg0)
     target              = &head2[-1].target;
     target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
-    if (!Actor00100_OutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
         facing2  = arg0->extra.tmd->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
         delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
@@ -4244,15 +4077,15 @@ static void Actor00100_Fn0782C(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
     record = work->objs[0].contacts;
     if (work->field_82A == 0) {
-        if (Actor00100_HasRecord10(arg0)) {
+        if (desertChaserCapsuleTouchesGrid(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         }
         record = work->objs[0].contacts;
     }
-    Actor00100_Fn00508(arg0->extra.tmd->coords, record, 5, &scratch->vec);
-    if (Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5) == 1) {
+    ActorContact_Steer(arg0->extra.tmd->coords, record, 5, &scratch->vec);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5) == 1) {
         originalMagnitude = abs(scratch->original);
         if (originalMagnitude < 0x20) {
             work->field_6 += 1;
@@ -4262,8 +4095,8 @@ static void Actor00100_Fn0782C(Task* arg0)
     if ((detectSightBlocked(arg0) != 1) && (target2 = &scratch->target, coord3 = arg0->extra.tmd->coords, scratch->target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]), target2->vy = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1], target2->vz = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2], ((work->field_8 > work->poseVz) != 0))) {
         if (work->poseYawPrev <= 0) {
             if ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == (gDisplayState.animFrame % 15)) {
-                if (Actor00100_OutsideRadius(&scratch->target, radius)) {
-                    if (!Actor00100_OutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
+                if (actorOutsideRadius(&scratch->target, radius)) {
+                    if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
                         facing5  = arg0->extra.tmd->coords;
                         angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
                         delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
@@ -4522,7 +4355,7 @@ static void Actor00100_Fn08A14(Task* arg0)
     coord2              = arg0->extra.tmd->coords;
     coord2->coord.t[2] += scratch->vec.vz;
     actorMoveForward(arg0->extra.tmd->coords, -8);
-    Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
     if (abs(scratch->delta) < 0x20) {
         work->field_0 = 0x1C;
     }
@@ -4585,7 +4418,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
     gte_stdp(&head[-1].dp);
     gte_stflg(&head[-1].flag);
     gte_stszotz(&head[-1].depth);
-    Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = arg0->extra.tmd->coords;
     head[-1].x                            = (s16)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
@@ -5469,7 +5302,7 @@ static void Actor00100_Fn0B658(Task* arg0)
         Actor00100_Fn02788(arg0);
         Gp_ArmStateF0(1);
     }
-    Actor00100_Fn00A54(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor00100_Fn02788(arg0);
     if (work->slots[1].flags & 0x100) {

@@ -1946,7 +1946,6 @@ static void                                 func_actor_421600_80136138(Task* arg
 static __inline__ void                      Actor421600_ShrinkCoord(GfxCoord* coord, s16 y);
 static void                                 func_actor_421600_801366F4(Task* arg0);
 static void                                 func_actor_421600_801369A0(Task* arg0);
-static __inline__ s16                       Actor421600_HasRecord10(Task* arg0);
 static void                                 func_actor_421600_80136C88(Task* arg0);
 static void                                 func_actor_421600_801373D4(Task* arg0);
 static void                                 func_actor_421600_8013848C(Task* arg0);
@@ -3854,27 +3853,6 @@ static void func_actor_421600_801369A0(Task* arg0)
     }
 }
 
-/// Scans the 12 0x18-byte records at 0xCE4 for one whose `field_4` carries the
-/// 0x100000 kind, stopping at the first empty record. The 5-record twin of
-/// this body is `Actor00100_HasRecord10`, which reads the same halves of
-/// `field_0` instead; `func_actor_421600_80138D24` picks its aim scale with it.
-static __inline__ s16 Actor421600_HasRecord10(Task* arg0)
-{
-    DesertChaserWork* work  = arg0->work;
-    s16               found = 0;
-    s16               i;
-
-    for (i = 0; i < 0xC; i++) {
-        if (!work->capsuleBody.contacts[i].key.value) {
-            break;
-        }
-        if ((work->capsuleBody.contacts[i].key.value & 0xFFFF0000) == 0x100000) {
-            found = 1;
-        }
-    }
-    return found;
-}
-
 static void func_actor_421600_80136C88(Task* arg0)
 {
     DesertChaserWork*      work;
@@ -3944,7 +3922,7 @@ static void func_actor_421600_80136C88(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, yaw, 1);
     records = work->objs[0].contacts;
     if (work->field_82A == 0) {
-        if (Actor421600_HasRecord10(arg0)) {
+        if (desertChaserCapsuleTouchesGrid(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
             actorMoveForward(arg0->extra.tmd->coords, 20);
@@ -4288,7 +4266,7 @@ static void func_actor_421600_801373D4(Task* arg0)
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, temp_a1_5, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
-        var_a1_4 = Actor421600_HasRecord10(arg0);
+        var_a1_4 = desertChaserCapsuleTouchesGrid(arg0);
         if (var_a1_4 != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0x55);
             var_v0_24 = (u16)work->distance + 0x55;
@@ -4541,7 +4519,7 @@ static void func_actor_421600_80138750(Task* arg0)
         case 3:
             yaw       = actorPositionYaw(arg0, vec, &gPlayerStatus);
             vec[1].vz = yaw;
-            if (Actor421600_HasRecord10(arg0)) {
+            if (desertChaserCapsuleTouchesGrid(arg0)) {
                 actorMoveForward(arg0->extra.tmd->coords, 85);
             } else {
                 actorMoveForward(arg0->extra.tmd->coords, 200);
@@ -4603,7 +4581,7 @@ static void func_actor_421600_80138D24(Task* arg0)
         if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) {
             work->field_8++;
         }
-        found = Actor421600_HasRecord10(arg0);
+        found = desertChaserCapsuleTouchesGrid(arg0);
         if (found != 0) {
             actorMoveForward(arg0->extra.tmd->coords, -0x55);
         } else {
@@ -5079,7 +5057,7 @@ static void func_actor_421600_80139718(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
     record = work->objs[0].contacts;
     if (work->field_82A == 0) {
-        if (Actor421600_HasRecord10(arg0)) {
+        if (desertChaserCapsuleTouchesGrid(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
             actorMoveForward(arg0->extra.tmd->coords, 20);
@@ -6016,7 +5994,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
     record = work->objs[0].contacts;
     if (work->field_82A == 0) {
-        if (Actor421600_HasRecord10(arg0)) {
+        if (desertChaserCapsuleTouchesGrid(arg0)) {
             actorMoveForward(arg0->extra.tmd->coords, 20);
         } else {
             actorMoveForward(arg0->extra.tmd->coords, 20);

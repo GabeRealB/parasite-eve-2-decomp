@@ -287,6 +287,27 @@ STATIC_ASSERT_SIZEOF(DesertChaserWork, 0xC30);
 STATIC_ASSERT_SIZEOF(DesertChaserWork, 0xEB0);
 #endif
 
+#if DESERT_CHASER_BUILD != DESERT_CHASER_UNARMED
+/// Whether any of the capsule's contacts, up to the first empty one, is a
+/// room-grid contact (kind 0x10).
+static __inline__ s16 desertChaserCapsuleTouchesGrid(Task* arg0)
+{
+    DesertChaserWork* work  = arg0->work;
+    s16               found = 0;
+    s16               i;
+
+    for (i = 0; i < DESERT_CHASER_CONTACTS; i++) {
+        if (!work->capsuleBody.contacts[i].key.value) {
+            break;
+        }
+        if ((work->capsuleBody.contacts[i].key.value & 0xFFFF0000) == 0x100000) {
+            found = 1;
+        }
+    }
+    return found;
+}
+#endif
+
 /// 0x1C-byte block `func_actor_323000_801645A4` pushes on the scratch stack:
 /// the model root's world position for `Gp_UpdateActorColor`, and the local
 /// point walked up the coordinate chain into view space.
