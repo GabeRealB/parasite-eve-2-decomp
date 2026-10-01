@@ -553,10 +553,15 @@ u32* tmdDrawStreamPrimF4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
     /// normal drawing supplies 1024 entries, allowing offsets 0..4092.
     /// The mask enforces alignment without checking the cache's bounds.
     enum { TMD_F4_PRE_XFORM_DEPTH_REFERENCE_MASK = 0xFFFC };
-    enum {
-        // Sixteen scaled OTZ units per tag, before wrapping to the OT's ten index bits.
-        TMD_F4_PRE_XFORM_OT_INDEX_SHIFT = 4
-    };
+    /// Converts a flat quad's scaled GTE ordering depth to an OT tag index.
+    ///
+    /// After the u32 OTZ left shift by `gDisplayState.otDepthShift` (0..3),
+    /// discard four low bits: sixteen scaled depth units select one tag.
+    /// The following mask keeps ten index bits (scaled-depth bits 4..13),
+    /// wrapping to 0..1023 rather than clamping. Indices count four-byte
+    /// tags, not bytes. The selected table must contain the resulting entry,
+    /// including the model's signed offset already applied to `workspace->ot`.
+    enum { TMD_F4_PRE_XFORM_OT_INDEX_SHIFT = 4 };
     POLY_F4*            packet;
     s32*                gteResultDestination;
     const DisplayState* displayState;
