@@ -2130,10 +2130,10 @@ static void desertChaserArmedAnimTick(Task* arg0)
             work->field_82A = 0;
         }
     }
-    targetAngle      = (s16)work->field_840;
-    currentAngle     = (s16)work->field_844;
-    targetAngleBits  = work->field_840;
-    currentAngleBits = work->field_844;
+    targetAngle      = work->field_840;
+    currentAngle     = work->field_844;
+    targetAngleBits  = (u16)work->field_840;
+    currentAngleBits = (u16)work->field_844;
     if (currentAngle < targetAngle) {
         if ((targetAngle - currentAngle) >= 0x72) {
             work->field_844 = currentAngleBits + 0x71;
@@ -2146,8 +2146,8 @@ static void desertChaserArmedAnimTick(Task* arg0)
     block_26:
         work->field_844 = targetAngleBits;
     }
-    angle        = (s16)work->field_844;
-    clampedAngle = work->field_844;
+    angle        = work->field_844;
+    clampedAngle = (u16)work->field_844;
     if (angle != 0) {
         if (angle >= 0x501) {
             clampedAngle = 0x500;

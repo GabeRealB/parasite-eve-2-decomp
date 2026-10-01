@@ -2794,9 +2794,9 @@ static void desertChaserArmedAnimTick(Task* arg0)
             work->field_82A = 0;
         }
     }
-    targetAngle      = (s16)work->field_840;
+    targetAngle      = work->field_840;
     currentAngle     = work->field_844;
-    targetAngleBits  = work->field_840;
+    targetAngleBits  = (u16)work->field_840;
     currentAngleBits = (u16)work->field_844;
     if (currentAngle < targetAngle) {
         if ((targetAngle - currentAngle) >= 0x72) {
@@ -3204,7 +3204,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                     state5 = work->field_0;
                     if (state5 != 7) {
                         if (state5 == 4 || state5 == 11 || state5 == 20 || state5 == 17 ||
-                            (state5 == 36 && (s16)work->field_6 < 10)) {
+                            (state5 == 36 && work->field_6 < 10)) {
                             hitState      = 11;
                             work->field_0 = hitState;
                         } else if (state5 != 21 && state5 != 0 && state5 != 22 &&
@@ -3656,7 +3656,7 @@ static void func_actor_421600_801366F4(Task* arg0)
         work->field_6               = 0;
         work->field_8A0             = 0;
     }
-    if ((s16)work->field_6 < 0x401) {
+    if (work->field_6 < 0x401) {
         tick          = work->field_6 + 1;
         work->field_6 = tick;
         switch ((s16)tick) {
@@ -3675,8 +3675,8 @@ static void func_actor_421600_801366F4(Task* arg0)
                 work->field_0          = 0x16;
                 break;
         }
-        if ((s16)work->field_6 >= 0xB) {
-            t = ((s16)work->field_6 - 10) * 0x6B;
+        if (work->field_6 >= 0xB) {
+            t = (work->field_6 - 10) * 0x6B;
             if (t < 0x1000) {
                 Actor421600_ShrinkCoord(arg0->extra.tmd->coords, 0x1000 - t);
             } else {
@@ -3716,7 +3716,7 @@ static void func_actor_421600_801369A0(Task* arg0)
             return;
         }
     }
-    if ((s16)work->field_6 < 0x80) {
+    if (work->field_6 < 0x80) {
         work->field_6 = work->field_6 + 1;
     }
     if (work->field_EAC > 0) {
@@ -3820,7 +3820,7 @@ static void func_actor_421600_80138D24(Task* arg0)
     if (work->slots[1].flags & 0x100) {
         work->field_0 = 2;
     }
-    if (((u32)(work->field_6 - 9) < 0x10) && (work->field_8 < 5)) {
+    if (((u32)((u16)work->field_6 - 9) < 0x10) && (work->field_8 < 5)) {
         if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) {
             work->field_8++;
         }
@@ -4142,7 +4142,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     scratch       = (SCRATCH_STACK_CURSOR(Actor421600AttackScratch) = head - 1);
     coord         = arg0->extra.tmd->coords;
     scratch->zone = Actor421600_Zone(coord);
-    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
+    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) && (work->field_6 >= 0xB)) {
         work->field_0 = 5;
     }
     if ((ActorContact_Steer(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC, &scratch->vec) << 0x10) != 0 && work->field_82E == 3) {
@@ -4756,7 +4756,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
     target              = &head2[-1].target;
     target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
-    if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
         facing2  = arg0->extra.tmd->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
         delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
@@ -4839,7 +4839,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
     unsignedDelta     = (u16)scratch->delta;
     magnitude         = abs(scratch->delta);
     if (magnitude >= 0x601) {
-        targetDelta     = (s16)work->field_840;
+        targetDelta     = work->field_840;
         targetMagnitude = abs(targetDelta);
         if ((targetMagnitude >= 0x101) && ((targetDelta * delta) < 0)) {
             adjustedDelta = unsignedDelta - 0x1000;
@@ -5002,35 +5002,35 @@ static void func_actor_421600_8013C8E0(Task* arg0)
         vec.vy                      = 0;
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
     }
-    if ((s16)work->field_6 == 2) {
+    if (work->field_6 == 2) {
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_FreeBuffers(obj);
     }
-    if ((s16)work->field_6 == 3) {
+    if (work->field_6 == 3) {
         D_80114B34[5].data.model = &D_actor_421600_80143EF4;
         vec.vz                   = 0x64;
         vec.vy                   = 0;
         vec.vx                   = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), ctx);
     }
-    if ((s16)work->field_6 == 5) {
+    if (work->field_6 == 5) {
         D_80114B34[5].data.model = &D_actor_421600_801443C8;
         vec.vy                   = 0;
         vec.vx                   = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), ctx);
     }
-    if ((s16)work->field_6 == 7) {
+    if (work->field_6 == 7) {
         D_80114B34[5].data.model = &D_actor_421600_80145604;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), ctx);
     }
-    if ((s16)work->field_6 == 8) {
+    if (work->field_6 == 8) {
         D_80114B34[5].data.model = &D_actor_421600_80145124;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), ctx);
     }
-    if ((s16)work->field_6 == 0xA) {
+    if (work->field_6 == 0xA) {
         work->field_0 = 0x16;
     }
-    if ((s16)work->field_6 < 0x400) {
+    if (work->field_6 < 0x400) {
         work->field_6++;
     }
 }

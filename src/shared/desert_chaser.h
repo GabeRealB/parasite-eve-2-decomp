@@ -97,13 +97,7 @@ typedef struct DesertChaserWork {
     s16 field_2;
     s16 field_4;
     /// Frame counter the state handlers time their effects with.
-#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
     s16 field_6;
-#elif DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    s16 field_6;
-#elif DESERT_CHASER_BUILD == DESERT_CHASER_WATER_TOWER
-    u16 field_6;
-#endif
     /// Retry counter of the Water Tower build's contact walk.
     s16  field_8;
     byte pad_A[2];
@@ -140,23 +134,11 @@ typedef struct DesertChaserWork {
     u16 field_83A;
     s16 field_83C;
     u16 field_83E;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
     s16 field_840;
-#elif DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    u16 field_840;
-#elif DESERT_CHASER_BUILD == DESERT_CHASER_WATER_TOWER
-    u16 field_840;
-#endif
     s16 field_842;
     /// Turn angle the tick eases toward `field_840` and splits over the body
     /// joints; cleared by the spawn handler.
-#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
-    s16 field_844;
-#elif DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    u16 field_844;
-#elif DESERT_CHASER_BUILD == DESERT_CHASER_WATER_TOWER
-    s16 field_844;
-#endif
+    s16  field_844;
     byte pad_846[2];
     /// Clip id each slot was last seen playing, indexed like `slots`; zeroed
     /// (18 entries) when no watched clip plays.

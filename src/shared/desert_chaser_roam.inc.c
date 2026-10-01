@@ -134,7 +134,7 @@ void desertChaserRoam(Task* arg0)
     target              = &head2[-1].target;
     target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
-    if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
         facing2  = arg0->extra.tmd->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
         delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);

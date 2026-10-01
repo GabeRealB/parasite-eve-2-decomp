@@ -58,7 +58,7 @@ void desertChaserApproach(Task* arg0)
     head[-1].delta.vx = move->field_C[move->field_14].x - arg0->extra.tmd->coords->coord.t[0];
     scratch->delta.vy = 0;
     scratch->delta.vz = move->field_C[move->field_14].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!actorOutsideRadius(&scratch->delta, 0xA0) || (s16)work->field_6 >= 0x15) {
+    if (!actorOutsideRadius(&scratch->delta, 0xA0) || work->field_6 >= 0x15) {
         if (move->field_14 == 0)
             move->field_14 = 1;
         else
@@ -97,9 +97,9 @@ void desertChaserApproach(Task* arg0)
     ActorContact_Steer(arg0->extra.tmd->coords, records, 0xC, &scratch->delta);
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) == 1) {
 #endif
-        magnitude = abs((s16)work->field_840);
+        magnitude = abs(work->field_840);
         if (magnitude < 0x80)
-            work->field_6 = (u16)work->field_6 + 1;
+            work->field_6 += 1;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR

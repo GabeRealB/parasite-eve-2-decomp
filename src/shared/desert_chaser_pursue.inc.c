@@ -214,7 +214,7 @@ void desertChaserPursue(Task* arg0)
 
     if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5) != 0) && (work->field_6 >= 0xB)) {
 #else
-    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
+    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC) != 0) && (work->field_6 >= 0xB)) {
 #endif
         distanceSquared          = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
         scratch->distanceSquared = distanceSquared;

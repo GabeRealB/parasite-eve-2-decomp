@@ -92,7 +92,7 @@ void desertChaserStrike(Task* arg0)
 #endif
                 work->field_0 = 0x23;
             }
-            if ((s16)work->field_6 >= 0x15) {
+            if (work->field_6 >= 0x15) {
                 work->field_828 = 1;
                 work->field_82A = 0;
                 work->field_82E = 5;
