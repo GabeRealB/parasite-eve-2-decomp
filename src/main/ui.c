@@ -2792,7 +2792,7 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object)
             var_v0 -= 1;
         } while (var_v0 > 0);
     }
-    Text_DrawPrompt(object, list->field_18, list->field_1A, var_a3->text, list->field_1C, 1, 0);
+    Text_DrawPrompt(object, list->field_18, list->field_1A, var_a3->text, list->field_1C, TEXT_DRAW_OUTLINED, 0);
     if (list->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             temp                = USER_INTERFACE_RESULT_CONFIRM;

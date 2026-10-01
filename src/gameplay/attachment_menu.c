@@ -592,16 +592,16 @@ void Gp_ReloadPromptTask(Task* arg0)
     } else if (arg0->state < 0x20) {
         text = Gp_GetItemText(lo, 0, 0);
         if (arg0->state < 0x10) {
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrLoaded, 0x606060, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrLoaded, 0x606060, TEXT_DRAW_OUTLINED, 0);
         } else {
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrRemoved, 0x606060, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrRemoved, 0x606060, TEXT_DRAW_OUTLINED, 0);
         }
         one   = 1;
         width = Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, 0);
         color = 0x606060;
         Text_DrawPrompt(obj, width, obj->panel.contentTop.signedValue + 0x1E, Gp_StrDot, color, one, 0);
     } else {
-        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrRemovedAmmo, 0x606060, 1, 0);
+        Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrRemovedAmmo, 0x606060, TEXT_DRAW_OUTLINED, 0);
     }
     arg0->killCountdown--;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

@@ -867,7 +867,7 @@ void func_800CFAA8(UiObject* arg0, Task* arg1)
 
 void Gp_DrawOkCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrOk, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrOk, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
@@ -879,7 +879,7 @@ void Gp_DrawOkCmd(UiList* arg0, UiObject* arg1)
 
 void Gp_DrawCancelCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrCancel, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrCancel, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
@@ -893,7 +893,7 @@ void Gp_DrawYesCmd(UiList* arg0, UiObject* arg1)
 {
     s32 temp;
 
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrYes, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrYes, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     temp = arg0->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
@@ -910,7 +910,7 @@ void Gp_DrawYesCmd(UiList* arg0, UiObject* arg1)
 
 void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1)
 {
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrNo, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, Gp_StrNo, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
@@ -1682,7 +1682,7 @@ void Gp_HelpPanelTask(Task* arg0)
             }
             break;
         case 2:
-            Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x14, Fs_GetChunkPayload(), 0x606060, 1, 0);
+            Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x14, Fs_GetChunkPayload(), 0x606060, TEXT_DRAW_OUTLINED, 0);
             status = obj->panel.control.word;
             if (status == 1) {
                 if (Pad_CheckButtons(0, 1, Pad_MaskCancel | 0x10) != 0) {
@@ -2073,7 +2073,7 @@ void Gp_DiscardWarnTask(Task* arg0)
         arg0->state += 1;
     }
     Ui_DrawTextColored(&(obj)->panel, Gp_StrAttention2);
-    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, 1, 0);
+    Text_DrawMultiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, 0);
 
     child = arg0->firstChild;
     if (child != NULL) {

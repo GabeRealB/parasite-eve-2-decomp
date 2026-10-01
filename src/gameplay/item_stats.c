@@ -674,7 +674,7 @@ void Gp_UseKeyItemRow(Task* arg0)
         Ui_DrawText(&(obj)->panel, Gp_StrNotice);
         if (arg0->spawnArg1.value == -1) {
             color = Ui_LookupTable(obj, 1);
-            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoUseNow, color, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrNoUseNow, color, TEXT_DRAW_OUTLINED, 0);
         } else {
             color = Ui_LookupTable(obj, 1);
             one   = 1;

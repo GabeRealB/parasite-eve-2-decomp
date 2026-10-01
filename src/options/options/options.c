@@ -149,7 +149,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
 
     columnCount = 2;
     title       = D_options_801D5B60;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     i        = 0;
     p        = labels;
     saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
@@ -229,7 +229,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     count = 4;
     a0tmp = arg1;
     title = D_options_801D5B78;
-    Text_DrawPrompt(a0tmp, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(a0tmp, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     i        = 0;
     p        = labels;
     saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume;
@@ -288,7 +288,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     s32  n2;
     s32  status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5B90, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5B90, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     i        = 0;
     p        = labels;
     y        = i;
@@ -346,7 +346,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     s32  status;
 
     title = D_options_801D5B4C;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     i        = 0;
     p        = labels;
     y        = i;
@@ -404,7 +404,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     s32  status;
 
     title = D_options_801D5BB8;
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     i           = 0;
     p           = labels;
     y           = i;
@@ -907,7 +907,7 @@ static void func_options_801D5954(UiList* arg0, UiObject* arg1)
 {
     s32 status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5BAC, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5BAC, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5DA4, 0, 0);
@@ -923,7 +923,7 @@ static void func_options_801D5A4C(UiList* arg0, UiObject* arg1)
 {
     s32 status;
 
-    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5B2C, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, D_options_801D5B2C, arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5DDC, 0, 0);

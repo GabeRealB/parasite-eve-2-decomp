@@ -1138,9 +1138,9 @@ void func_800BDF6C(Task* task)
     panelY      = obj->panel.contentTop.signedValue;
     splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + state->dstQty)) + 1;
     textY       = panelY + 0x20;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, 1,
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, TEXT_DRAW_OUTLINED,
                     TEXT_ALIGNMENT_RIGHT);
-    Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, 1,
+    Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, TEXT_DRAW_OUTLINED,
                     TEXT_ALIGNMENT_RIGHT);
     caretY    = panelY + 0x16;
     negWidth  = -width;
@@ -1245,7 +1245,7 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
         }
     }
     mode = arg0->field_8;
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, TEXT_DRAW_OUTLINED, 0);
 
     if (arg0->field_C == 1) {
         if (arg0->field_8 == 2) {

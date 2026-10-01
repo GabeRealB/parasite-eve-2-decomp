@@ -29698,7 +29698,7 @@ if (flags & 3) {
     req.colorRgb = prompt->field_1C;
     req.glyphTable = 0;
     req.alignment = 0;
-    req.drawMode = 1;
+    req.drawMode = TEXT_DRAW_OUTLINED;
     func_8002E53C(&req, Gp_StrStrengthen);
 } else {
     req.x = ...;
@@ -29707,7 +29707,7 @@ if (flags & 3) {
     req.colorRgb = prompt->field_1C;
     req.glyphTable = 0;
     req.alignment = 0;
-    req.drawMode = 1;
+    req.drawMode = TEXT_DRAW_OUTLINED;
     func_8002E53C(&req, Gp_StrRevive);
 }
 ```
@@ -49880,7 +49880,7 @@ the `colorRgb` assignment:
 label0.colorRgb    = 0x606060;
 label0.glyphTable = 5;
 label0.alignment = 0;
-label0.drawMode    = 1;
+label0.drawMode    = TEXT_DRAW_OUTLINED;
 rating            = &missionLevels.entries[gMcSaveData.gameMode];
 label0.otIndex    = (s16)obj->drawOrder + 1;
 
@@ -49890,7 +49890,7 @@ rating            = &missionLevels.entries[gMcSaveData.gameMode];
 label0.colorRgb    = 0x606060;
 label0.glyphTable = 5;
 label0.alignment = 0;
-label0.drawMode    = 1;
+label0.drawMode    = TEXT_DRAW_OUTLINED;
 ```
 
 The store of `otIndex` itself still sinks to the jal's delay slot, which is why

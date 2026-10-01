@@ -46,8 +46,18 @@ enum {
 
 /// Glyph drawing paths selected by `TextDrawReq::drawMode`.
 enum {
-    TEXT_DRAW_QUEUED                = 0,  // Opaque fill in the selected OT entry.
-    TEXT_DRAW_OUTLINED              = 1,  // Opaque fill, outline in the next OT entry.
+    TEXT_DRAW_QUEUED = 0, // Opaque fill in the selected OT entry.
+    /// Draws opaque, color-modulated glyphs with a subtractive outline.
+    ///
+    /// Selector 1 in `TextDrawReq::drawMode`. The fill uses `colorRgb` at
+    /// `otIndex`; the unmodulated outline uses `otIndex + 1`. Both indices count
+    /// entries in `gGpuCurrentOt` and must be writable. Each glyph reserves two
+    /// sprites in the active primitive buffer. A line ending in this mode also
+    /// reserves one texture-page packet in each entry. Font textures and text
+    /// palettes must already be loaded.
+    /// Inline `\w1` or `\W1` also selects this path and stores the selector in
+    /// the request; inline `\w0` or `\W0` switches to translucent outlined text.
+    TEXT_DRAW_OUTLINED              = 1,
     TEXT_DRAW_OUTLINED_SINGLE_ENTRY = 2,  // Fill and outline with separate texture-page packets in one OT entry.
     TEXT_DRAW_TRANSLUCENT_OUTLINED  = 3,  // Translucent fill, alternate outline palette in the next OT entry.
     TEXT_DRAW_OUTLINE_ONLY          = 4,  // Unmodulated outline; ignores colorRgb.
