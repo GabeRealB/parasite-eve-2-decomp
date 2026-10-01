@@ -236,7 +236,6 @@ static s16  func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 a
 static void func_dryfield_breezeway_8017FD68(Task* task);
 static void func_dryfield_breezeway_8017FD9C(Task* task);
 static void func_dryfield_breezeway_8017FE08(Task* task);
-static void func_dryfield_breezeway_8017FE90(Task* arg0);
 static void func_dryfield_breezeway_8018034C(GfxCoord* coord, u8* data, s32 arg2, s32 arg3);
 static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2, s32 arg3);
 static void func_dryfield_breezeway_80181938(Task* task, u8* color);
@@ -252,7 +251,7 @@ static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
         func_dryfield_breezeway_8017E65C,
         func_dryfield_breezeway_8017FD9C,
         func_dryfield_breezeway_8017FE08,
-        func_dryfield_breezeway_8017FE90,
+        actionPromptEventEnd,
         func_dryfield_breezeway_8017E81C,
     }
 };
@@ -1371,25 +1370,7 @@ static void func_dryfield_breezeway_8017FE08(Task* task)
     task->state = *&state;
 }
 
-/// Exit state of the room's key-item event task, undoing its set-up
-/// (`func_dryfield_breezeway_8017E464`): sends the two player messages with 1,
-/// releases the display reference, clears the session's event, HUD and
-/// cutscene holds, puts `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` back from 6 to 4, kills the prompt task
-/// the set-up spawned (`Task::spawnArg2`) and asks for its own removal.
-static void func_dryfield_breezeway_8017FE90(Task* arg0)
-{
-    D_80114D08 = 0xA;
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
-    Display_ReleaseRef();
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
-    /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    taskKill(arg0->spawnArg2.pointer);
-    Task_RequestKill(arg0, 0);
-}
+#include "../../shared/action_prompt_event_end.inc.c"
 
 #include "../../shared/action_prompt_reset.inc.c"
 

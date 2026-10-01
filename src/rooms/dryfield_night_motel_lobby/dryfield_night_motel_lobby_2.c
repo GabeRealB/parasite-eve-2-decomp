@@ -86,7 +86,6 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task);
 static void func_dryfield_night_motel_lobby_80180FA4(Task* task);
 static void func_dryfield_night_motel_lobby_80180FD8(Task* task);
 static void func_dryfield_night_motel_lobby_8018103C(Task* task);
-static void func_dryfield_night_motel_lobby_801810AC(Task* arg0);
 static void func_dryfield_night_motel_lobby_80181138(Task* arg0);
 static void func_dryfield_night_motel_lobby_8018119C(Task* arg0);
 static void func_dryfield_night_motel_lobby_801811E0(Task* arg0);
@@ -102,7 +101,7 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
         func_dryfield_night_motel_lobby_8017FE90,
         func_dryfield_night_motel_lobby_80180FD8,
         func_dryfield_night_motel_lobby_8018103C,
-        func_dryfield_night_motel_lobby_801810AC,
+        actionPromptEventEnd,
         func_dryfield_night_motel_lobby_80181138,
         func_dryfield_night_motel_lobby_8018119C,
         func_dryfield_night_motel_lobby_801811E0,
@@ -838,20 +837,7 @@ static void func_dryfield_night_motel_lobby_8018103C(Task* task)
     task->state = 2;
 }
 
-static void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
-{
-    D_80114D08 = 0xA;
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
-    Display_ReleaseRef();
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
-    /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    taskKill(arg0->spawnArg2.pointer);
-    Task_RequestKill(arg0, 0);
-}
+#include "../../shared/action_prompt_event_end.inc.c"
 
 static void func_dryfield_night_motel_lobby_80181138(Task* arg0)
 {

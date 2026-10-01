@@ -120,3 +120,4 @@ glowDrawDiamond = 0x80181404; // type:func
 roomCutsceneTask = 0x8017F504; // type:func
 roomCutsceneSoundTask = 0x8017FA70; // type:func
 roomVariantParkingLotMsg = 0x8017FB08; // type:func
+actionPromptEventEnd = 0x801810AC; // type:func

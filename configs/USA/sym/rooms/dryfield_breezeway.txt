@@ -84,3 +84,4 @@ actionPromptHitTest = 0x8017FCB4; // type:func
 actionPromptReset = 0x8017FF1C; // type:func
 roomEventGate = 0x8017D638; // type:func
 roomEventTask = 0x8017D79C; // type:func
+actionPromptEventEnd = 0x8017FE90; // type:func
