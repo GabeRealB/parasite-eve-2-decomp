@@ -27,30 +27,18 @@ void gluttonEscortState(Task* arg0)
     s32 sfx;
     s32 pan;
 
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-    work = (GluttonWork*)arg0->work;
-#else
-    work = arg0->work;
-#endif
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->field_7B3 = 0xE;
-        work->field_7B0 = 1;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        escorts = (GluttonWork*)arg0->work;
-#else
-        escorts = arg0->work;
-#endif
+        work->field_7B3        = 0xE;
+        work->field_7B0        = 1;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
             if (escorts->field_ECC[i] != NULL) {
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
                 escorts->field_ECC[i]->task->extra.tmd->flags =
                     arg0->extra.tmd->flags;
-#else
-                escorts->field_ECC[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
-#endif
             }
         }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
@@ -91,11 +79,7 @@ void gluttonEscortState(Task* arg0)
                 work->field_7B3 = 0x10;
                 work->field_7B0 = 1;
                 work->field_EF4 = 1;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
                 work->field_F1A--;
-#else
-                work->field_F1A = work->field_F1A - 1;
-#endif
             } else {
                 work->field_0   = 0xA;
                 work->field_EFE = 0;
@@ -104,12 +88,8 @@ void gluttonEscortState(Task* arg0)
         case 0x74:
             sfx = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
             SndEvt_EnqueueType6(
                 sfx, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-#else
-            SndEvt_EnqueueType6(sfx, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-#endif
             break;
         case 0x1A4:
             work->field_0   = 0xA;

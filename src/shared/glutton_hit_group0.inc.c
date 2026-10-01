@@ -47,29 +47,21 @@ void gluttonHitGroup0(Task* arg0)
     s32                    dz2;
     s16                    angle;
     s16                    i;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-    s16    param;
-    u16    hp;
-    Enemy* esc3;
-    Enemy* esc0;
-    Enemy* esc1;
-#else
-#endif
+    s16                    param;
+    u16                    hp;
+    Enemy*                 esc3;
+    Enemy*                 esc0;
+    Enemy*                 esc1;
 
-    cfg = &gPlayerStatus;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
+    cfg   = &gPlayerStatus;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (GluttonWork*)arg0->work;
-#else
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-#endif
-    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
-    pos  = &sc->pos;
-    recs = work->hits[0].recs;
-    i    = 0;
-    mask = 0xFFFF0000;
-    kind = 0x20000;
+    sc    = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
+    pos   = &sc->pos;
+    recs  = work->hits[0].recs;
+    i     = 0;
+    mask  = 0xFFFF0000;
+    kind  = 0x20000;
 scan:
     if (recs[i].key.value == 0) {
         goto missed;

@@ -44,23 +44,15 @@ void gluttonHitGroups6To8(Task* arg0)
     s16                    i;
     s16                    i2;
     s16                    i3;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-    s16    param;
-    u16    hp;
-    Enemy* esc3;
-    Enemy* esc0;
-    Enemy* esc1;
-#else
-#endif
+    s16                    param;
+    u16                    hp;
+    Enemy*                 esc3;
+    Enemy*                 esc0;
+    Enemy*                 esc1;
 
-    cfg = &gPlayerStatus;
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
+    cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = (GluttonWork*)arg0->work;
-#else
-    host = arg0->spawnArg2.pointer;
-    work = arg0->work;
-#endif
     sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
     recs = work->hits[6].recs;

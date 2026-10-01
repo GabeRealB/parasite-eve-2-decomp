@@ -10,12 +10,8 @@
 /// `func_actor_444000_8013A77C`, plus the null test on the work block.
 void gluttonShakeTick(Task* arg0)
 {
-#if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-    GluttonWork* work;
-#else
     GluttonWork* work = arg0->work;
-#endif
-    s32 phase;
+    s32          phase;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
 
     work = (GluttonWork*)arg0->work;
