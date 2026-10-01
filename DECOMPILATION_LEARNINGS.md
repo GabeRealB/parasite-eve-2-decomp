@@ -40873,13 +40873,13 @@ Wrapping the copy plus the GTE setup in a `static __inline__` helper does fix
 it — the inlined local gets its address materialized at the `gte_ldv0`:
 
 ```c
-static __inline__ void gfxLoadRotSv(MATRIX* m, SVECTOR* src)
+static __inline__ void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR* source)
 {
-    SVECTOR sv;
+    SVECTOR input;
 
-    sv = *src;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&sv);
+    input = *source;
+    gte_SetRotMatrix(rotationMatrix);
+    gte_ldv0(&input);
 }
 ```
 
@@ -67916,9 +67916,8 @@ statement - the usual fix for a split `%hi`/`%lo` - is powerless here.
 
 **Fix:** route the sequence through the TU's existing inline helper rather than
 writing it out. `func_800D759C` in `src/gameplay/3A34.c` matched at 100.000% with
-zero penalties by calling `gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x2C))`, the same
-helper `func_800D7A9C` already used; its `SOFT_USE_REG(src)` emits nothing when
-the pointer is already in a register. The general lesson is that this shape -
+zero penalties by calling `_gfxLoadRotSv(mtx, (SVECTOR*)(head - 0x2C))`, the same
+helper `func_800D7A9C` already used. The general lesson is that this shape -
 copy into a stack local, then hand its address to an asm - is one the original
 sources factored into a helper, and reproducing the helper is what reproduces the
 schedule. Before fighting an address-formation `reorder`, grep the TU for a
@@ -116237,7 +116236,7 @@ __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
 ```
 
   That asm is a hack, and the natural source needs neither it nor the stack
-  local: `gfxLoadRotSv(matrix, &blk->delta)` (`include/main/gfxgte.h`) replaces
+  local: `_gfxLoadRotSv(matrix, &blk->delta)` (`include/main/gfxgte.h`) replaces
   the copy, `gte_SetRotMatrix` and the asm, and the helper's own inlined local
   gets its address formed at the `lwc2` pair (`Actor01100_Fn06954`, 100%).
 

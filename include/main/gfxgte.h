@@ -20,15 +20,20 @@ static __inline__ void gfxRotateSv(MATRIX* m, SVECTOR* v)
     gte_ApplyMatrixSV(m, &in, v);
 }
 
-/// Loads `src` into the GTE's V0 and `m`'s rotation into RT, through a local
-/// copy of the vector, ready for a rotate command.
-static __inline__ void gfxLoadRotSv(MATRIX* m, SVECTOR* src)
+/// Stages a rotation matrix and signed short vector for the next GTE command.
+///
+/// `rotationMatrix` supplies 4.12 coefficients; `source` keeps its caller's
+/// coordinate units. Both inputs are read-only and must remain valid through
+/// the call. The full `SVECTOR` is copied to a local snapshot before loading
+/// RT and V0. Translation registers are unchanged.
+/// Issue `gte_rtv0()` and read its result before replacing RT or V0.
+static __inline__ void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR* source)
 {
-    SVECTOR sv;
+    SVECTOR input;
 
-    sv = *src;
-    gte_SetRotMatrix(m);
-    gte_ldv0(&sv);
+    input = *source;
+    gte_SetRotMatrix(rotationMatrix);
+    gte_ldv0(&input);
 }
 
 /// Scales column `n` of `m`'s rotation by the matching component of `scale`

@@ -3312,7 +3312,7 @@ static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2)
     vec->vz         = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
     matrix          = &head[-1].rot;
     TransposeMatrix(&arg0->workm, matrix);
-    gfxLoadRotSv(matrix, vec);
+    _gfxLoadRotSv(matrix, vec);
     gte_rtv0();
     gte_stsv(vec);
     angle = ratan2(head[-1].rel.vx, vec->vz);

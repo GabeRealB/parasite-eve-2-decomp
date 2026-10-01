@@ -2713,7 +2713,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, ActorsShared80138efcWor
             arg->vec.vz  = 0;
             actorPart    = &actorCoords[10];
             playerPart   = &playerCoords[1];
-            gfxLoadRotSv(&actorPart->workm, &arg->vec);
+            _gfxLoadRotSv(&actorPart->workm, &arg->vec);
             gte_rtv0();
             gte_stsv(vec);
             arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
@@ -2855,7 +2855,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, ActorsShared80138efcWor
             arg->vec.vz  = 0;
             actorPart    = &actorCoords[6];
             playerPart   = &playerCoords[1];
-            gfxLoadRotSv(&actorPart->workm, &arg->vec);
+            _gfxLoadRotSv(&actorPart->workm, &arg->vec);
             gte_rtv0();
             gte_stsv(vec);
             arg->vec.vx += (u16)playerPart->workm.t[0] - (u16)actorPart->workm.t[0];
@@ -3832,7 +3832,7 @@ static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
     matrix = &blk->frame;
     TransposeMatrix(&arg0->workm, matrix);
 
-    gfxLoadRotSv(matrix, &blk->delta);
+    _gfxLoadRotSv(matrix, &blk->delta);
     gte_rtv0();
     gte_stsv(&blk->delta);
 

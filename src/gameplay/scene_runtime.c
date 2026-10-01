@@ -3866,7 +3866,7 @@ void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContac
     // Rotate and scale the offset in the view coordinate frame.
     VectorNormalSS(&scratch->vec, &scratch->vec);
     TransposeMatrix(&viewCoord->workm, &scratch->mtx);
-    gfxLoadRotSv(&scratch->mtx, &scratch->vec);
+    _gfxLoadRotSv(&scratch->mtx, &scratch->vec);
     gte_rtv0();
     gte_stsv(delta);
     gte_lddp(scale);

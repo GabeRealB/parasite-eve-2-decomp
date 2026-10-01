@@ -185,7 +185,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         sc->vec.vx = 0;
         sc->vec.vy = 0x12C;
         sc->vec.vz = 0;
-        gfxLoadRotSv(&coord->workm, &sc->vec);
+        _gfxLoadRotSv(&coord->workm, &sc->vec);
         gte_rtv0();
         gte_stsv(&sc->vec);
         sc->trans.vx = other->workm.t[0] + sc->vec.vx;
@@ -199,7 +199,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         sc->vec.vx = 0;
         sc->vec.vy = 0;
         sc->vec.vz = arg1;
-        gfxLoadRotSv(&coord->workm, &sc->vec);
+        _gfxLoadRotSv(&coord->workm, &sc->vec);
         gte_rtv0();
         gte_stsv(&sc->vec);
         sc->trans.vx = coord->workm.t[0] + sc->vec.vx;
