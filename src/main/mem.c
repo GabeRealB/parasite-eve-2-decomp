@@ -104,12 +104,19 @@ static inline void _memClearAllocation(void* allocation, size_t sizeBytes)
     zeroWord       = 0;
     zeroHalfword   = 0;
 
-    /// Clears one aligned-store chunk and advances its byte cursor and count.
+    /// Clears bytes through the next word boundary using aligned stores.
     ///
-    /// Arguments must have no side effects; they may be evaluated more than once.
-    /// `cursor` and `remaining` must be writable `u8*` and `size_t` lvalues, with
-    /// at least `sizeof(u32)` writable bytes remaining. `wordZero` and
-    /// `halfwordZero` must be zero values of type `u32` and `u16`.
+    /// Consumes 4, 3, 2 or 1 bytes for address residues 0, 1, 2 or 3 modulo four.
+    /// Advances `cursor` to word alignment and subtracts the cleared byte count
+    /// from `remaining`. Requires `remaining >= sizeof(u32)` and that many
+    /// writable bytes at `cursor`.
+    ///
+    /// `cursor` and `remaining` must be stable modifiable `u8*` and `size_t`
+    /// lvalues, distinct and outside the cleared storage. Expressions must have no
+    /// evaluation side effects; `cursor` is evaluated repeatedly. `wordZero`
+    /// and `halfwordZero` must be zero-valued `u32` and `u16` expressions; only
+    /// the selected store value is evaluated, at most once. No surrounding
+    /// locals or configuration macros are required.
 #define MEMORY_CLEAR_ALIGNED_CHUNK(cursor, remaining, wordZero, halfwordZero) \
     do {                                                                      \
         switch ((uintptr)(cursor) & 3) {                                      \
@@ -133,8 +140,7 @@ static inline void _memClearAllocation(void* allocation, size_t sizeBytes)
                 break;                                                        \
                                                                               \
             case 3:                                                           \
-                *(cursor)    = 0;                                             \
-                (cursor)    += 1;                                             \
+                *(cursor)++  = 0;                                             \
                 (remaining) -= 1;                                             \
                 break;                                                        \
         }                                                                     \
