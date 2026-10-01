@@ -51,8 +51,9 @@ u32* func_8009B500(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 ///
 /// `0x4000` asks for two primitives per element — the base the model is drawn
 /// from and the semi-transparent layer drawn over it — and the texture words of
-/// both are the process pass's, taken from the element and the object's extra
-/// page and CLUT offsets (`gpStreamPrimGt3OffsetLayer`). What a frame adds is the
+/// both are initialized by `tmdBuildStreamGt3OffsetLayer`: the element's texture
+/// words plus the independent layer offsets for the first packet, and plus the
+/// model's base offsets for the second. What a frame adds is the
 /// rest of each packet: the triangle's screen coordinates, the colours the pair
 /// is lit from, their lengths and primitive codes, and the links. The layer is
 /// lit from a grey material colour that follows the model's light level and the
@@ -515,25 +516,43 @@ u32* modelLightingStreamPrimF4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// element.
 u32* modelLightingStreamPrimF3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's layered textured-triangle records (`0x4038`) whose
-/// semi-transparent layer is textured from the object: each element contributes two
-/// triangles to the buffer half's second region, with the element's texture words
-/// written into both.
+/// Initializes both textures in each layered Gouraud triangle packet pair.
 ///
-/// The record is not pre-transformed, so its triangles are built in the region the
-/// draw pass transforms. `0x4000` asks for two primitives per element — the base the
-/// model is drawn from, and the semi-transparent layer drawn over it — and that layer
-/// is normally the transform pass's to texture, from a page of its own. The walk
-/// takes this handler where the layer is textured from the record instead: the same
-/// `u`/`v` fields go into both primitives, the base takes the model's texture page
-/// and CLUT, and the layer takes those plus the object's extra page and CLUT offsets,
-/// along with the semi-transparency rate it blends at.
-u32* gpStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `tmdProcessStream` selects this construction callback for `0x4038` in stage
+/// 2, areas 15 and 16. `elements` starts after the three-word record header.
+/// Words 0..2 pack three vertex and three normal references; words 3 and 4
+/// pack unsigned byte U/V texel coordinates with encoded CLUT and texture-page
+/// settings. Word 5's low half supplies U2/V2; its high half is ignored.
+///
+/// The first packet receives the element's texture fields plus the object's
+/// independent `layerTexturePageOffset` (-128..127 encoded units) and signed
+/// `layerClutRowOffset` (-128..127 palette rows, 64 encoded units per row).
+/// The relocated page's ABR bit 5 is then set, preserving bit 6 and selecting
+/// mode 1 or 3. The second packet instead adds the workspace's base
+/// `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128).
+/// All address sums wrap to u16; the base offsets are never added to the layer.
+/// Drawing supplies the layer's semi-transparent command and the base's opaque
+/// command, along with both packets' tags, positions and colours. Construction
+/// preserves those fields and the SDK pad fields.
+///
+/// The caller supplies `elemCount` (0..65535) and `elemStride` in u32 words,
+/// at least six for nonempty records, with every full stride readable.
+/// `primWrite` must have two writable, four-byte-aligned `POLY_GT3` slots per
+/// element within the selected buffer half's second region. Capacities are
+/// unchecked. Workspace, object, payload and packet storage are borrowed for
+/// the call; no pointer is retained. `objectFlags` is the shared callback
+/// argument, passed as zero during construction and ignored here.
+///
+/// Advances `primWrite` by two 40-byte packets per element and returns
+/// `elements + initial elemCount * elemStride`, leaving the next record or
+/// terminator unconsumed. The count is consumed to -1 even for an empty record;
+/// an empty record reads no element or object fields and advances neither cursor.
+u32* tmdBuildStreamGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Initializes the opaque base texture in each layered gouraud triangle pair.
 ///
 /// Construction selects this callback for `0x4038` outside the areas that use
-/// `gpStreamPrimGt3OffsetLayer`. `elements` starts after the three-word record
+/// `tmdBuildStreamGt3OffsetLayer`. `elements` starts after the three-word record
 /// header. The caller supplies `workspace->elemCount` (0..65535) and `elemStride`
 /// in u32 words, at least six per element. The first three words pack three
 /// vertex and three normal references; words 3 and 4 pack unsigned byte U/V

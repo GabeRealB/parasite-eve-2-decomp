@@ -309,10 +309,12 @@ after it. Verified on all four pairs (`0x38`, `0x78`, `0x39`, `0x79`):
 primitives per element goes 1 → 2 with the UV word positions unchanged.
 
 In this default path, the layer's texture coordinates do not come from the
-element. Each pair has an alternate handler,
-taken where the object carries extra page and CLUT offsets of its own, which is
-what the layer takes its page and CLUT from (`gpStreamPrimGt3OffsetLayer` is the
-transform-region triangle one). The default handlers differ by region: the
+element. Each pair has an alternate handler. For transform-region triangles,
+`tmdProcessStream` selects `tmdBuildStreamGt3OffsetLayer` in stage 2 areas 15 and
+16: both packets copy the element's texture words, with independent layer and
+base page/CLUT displacements. The layer sets only ABR bit 5 after relocation,
+preserving bit 6 (modes 1 or 3); it does not add the base offsets. The default
+handlers differ by region: the
 transform-region ones fill the base alone and leave the layer to the transform
 pass, while the pre-transformed ones write a fixed page and CLUT into it
 (`gpStreamPrimGt3PreXformFixedLayer`).

@@ -423,7 +423,7 @@ void tmdProcessStream(TmdObject* obj)
             case 0x4038:
                 handler = tmdBuildStreamGt3LayeredBase;
                 if (flag != 0) {
-                    handler = gpStreamPrimGt3OffsetLayer;
+                    handler = tmdBuildStreamGt3OffsetLayer;
                 }
                 break;
             case 0x38:

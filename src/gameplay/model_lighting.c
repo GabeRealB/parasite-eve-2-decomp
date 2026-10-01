@@ -297,6 +297,39 @@ static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWord
     triangle->clut      += workspace->encodedClutOffset;
 }
 
+/// Initializes a layered triangle's stream-relative first-layer texture.
+///
+/// `triangle` is a writable, four-byte-aligned `POLY_GT3`; `elementWords`
+/// addresses at least six aligned u32 words after a `0x4038` record header.
+/// The borrowed `workspace->obj` supplies independent signed page and CLUT-row
+/// displacements. Address sums wrap in the packet's u16 fields; setting the
+/// low ABR bit preserves the relocated page's high ABR bit (modes 1 or 3).
+/// Only texture fields are written, including just U2/V2 beside `pad2`.
+/// No pointer is retained and no workspace cursor or count is changed.
+static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* elementWords, const TmdStreamWorkspace* workspace)
+{
+    enum {
+        TMD_GT3_LAYER_UV0_CLUT_WORD  = 3,      // U0/V0 in low half, encoded CLUT in high half
+        TMD_GT3_LAYER_UV1_TPAGE_WORD = 4,      // U1/V1 in low half, encoded page settings in high half
+        TMD_GT3_LAYER_UV2_WORD       = 5,      // U2/V2 in low half; high half is not copied
+        TMD_LAYER_TPAGE_ABR_LOW_BIT  = 1 << 5, // Set ABR bit 5 without clearing bit 6
+        TMD_LAYER_CLUT_ROW_SHIFT     = 6       // One signed palette row adds 64 encoded CLUT units
+    };
+    s32 layerTexturePage;
+    s32 layerClutRowByte;
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_LAYER_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[TMD_GT3_LAYER_UV1_TPAGE_WORD];
+    *(u16*)&triangle->u2                    = (u16)elementWords[TMD_GT3_LAYER_UV2_WORD];
+    triangle->tpage                        += workspace->obj->layerTexturePageOffset;
+    // Load the encoded row byte before reloading the truncated page sum.
+    layerClutRowByte  = (u8)workspace->obj->layerClutRowOffset;
+    layerTexturePage  = triangle->tpage;
+    layerTexturePage |= TMD_LAYER_TPAGE_ABR_LOW_BIT;
+    triangle->tpage   = layerTexturePage;
+    triangle->clut   += (s8)layerClutRowByte << TMD_LAYER_CLUT_ROW_SHIFT;
+}
+
 /// Initializes one Gouraud textured triangle's texture from a per-corner-colour element.
 ///
 /// `triangle` must be a writable, four-byte-aligned `POLY_GT3`. `elementWords`
@@ -2371,37 +2404,23 @@ u32* modelLightingStreamPrimF3(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt3OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
-    s32       tpage;
-    s32       tmp;
+    POLY_GT3* triangle;
 
-    poly = (POLY_GT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
+    triangle = (POLY_GT3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
         do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
-            *(u16*)&poly->u2                    = (u16)stream[5];
-            poly->tpage                        += ws->obj->layerTexturePageOffset;
-            // Carry the encoded byte until adding its signed row displacement.
-            tmp         = (u8)ws->obj->layerClutRowOffset;
-            tpage       = poly->tpage;
-            tpage      |= 0x20;
-            poly->tpage = tpage;
-            poly->clut += (s8)tmp << 6;
-            poly++;
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
-            *(u16*)&poly->u2                    = (u16)stream[5];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Layer and base share UVs, with independent stream-relative GPU addresses.
+            _tmdInitGt3OffsetLayerTexture(triangle, elements, workspace);
+            triangle++;
+            _tmdInitGt3Texture(triangle, elements, workspace);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* tmdBuildStreamGt3LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
