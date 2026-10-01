@@ -233,6 +233,32 @@ static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* e
     triangle->clut                         += workspace->encodedClutOffset;
 }
 
+/// Initializes one flat textured quad's persistent UVs and encoded GPU addresses.
+///
+/// Borrows a writable, four-byte-aligned packet, a word-aligned element with at
+/// least five readable words, and a workspace with construction offsets set.
+/// Element words exclude the three-word record header. Packed U/V values are
+/// unsigned texel coordinates; signed page and CLUT displacements wrap in the
+/// packet's u16 address fields. One CLUT row contributes 64 encoded units.
+/// Leaves the tag, colour/command, screen positions, pad1/pad2 and all workspace
+/// cursors and counters untouched.
+static inline void _modelLightingInitFt4Texture(POLY_FT4* quad, const u32* elementWords, const TmdStreamWorkspace* workspace)
+{
+    enum {
+        MODEL_LIGHTING_FT4_UV0_CLUT_WORD  = 2, // U0/V0 in low half, CLUT address in high half
+        MODEL_LIGHTING_FT4_UV1_TPAGE_WORD = 3, // U1/V1 in low half, texture-page settings in high half
+        MODEL_LIGHTING_FT4_UV2_UV3_WORD   = 4  // U2/V2 in low half, U3/V3 in high half
+    };
+
+    MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[MODEL_LIGHTING_FT4_UV0_CLUT_WORD];
+    MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[MODEL_LIGHTING_FT4_UV1_TPAGE_WORD];
+    // Halfword stores copy each U/V pair without overwriting the SDK pad fields.
+    *(u16*)&quad->u2 = (u16)elementWords[MODEL_LIGHTING_FT4_UV2_UV3_WORD];
+    *(u16*)&quad->u3 = ((const u16*)&elementWords[MODEL_LIGHTING_FT4_UV2_UV3_WORD])[1];
+    quad->tpage     += workspace->texturePageOffset;
+    quad->clut      += workspace->encodedClutOffset;
+}
+
 u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     s32      prev;
@@ -2165,25 +2191,21 @@ u32* modelLightingStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, 
     return elements;
 }
 
-u32* gpStreamPrimFt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* modelLightingStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_FT4* poly;
+    POLY_FT4* quad;
 
-    poly = (POLY_FT4*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
+    quad = (POLY_FT4*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
+        // Seed persistent texture data before drawing projects and links the packets.
         do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            _modelLightingInitFt4Texture(quad, elements, workspace);
+            quad++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)quad;
+    return elements;
 }
 
 u32* modelLightingStreamPrimF4(TmdStreamWorkspace* ws, s32 flags, u32* stream)

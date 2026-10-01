@@ -487,7 +487,7 @@ void tmdProcessStream(TmdObject* obj)
                 break;
             case 0x5C:
             case 0x5E:
-                handler = gpStreamPrimFt4;
+                handler = modelLightingStreamPrimFt4;
                 break;
             case 0x30:
                 handler = gpStreamPrimGt3ElemColor;

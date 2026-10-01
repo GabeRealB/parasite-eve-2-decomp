@@ -418,17 +418,30 @@ u32* gpStreamPrimGt4Unlit(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// returns the word after the payload without consuming a terminator.
 u32* modelLightingStreamPrimFt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Handler of a stream's flat-textured-quad records (`0x5C`, `0x5E`): each
-/// element contributes one quad to the buffer half's second region, with the
-/// element's texture words written into it.
+/// Initializes persistent texture fields for flat textured-quad stream records.
 ///
-/// The opcode selects the flat form of the packet, which carries one colour for
-/// the quad where the gouraud form carries one per vertex. The record is not
-/// pre-transformed, so its quad is built in the region the draw pass transforms;
-/// this command writes only the polygon's `u`/`v` fields, and adds the model's
-/// texture page and CLUT to the primitive's own, which are stored relative to
-/// the model.
-u32* gpStreamPrimFt4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `tmdProcessStream` selects this construction callback for `0x5C` and `0x5E`.
+/// Each element reserves one `POLY_FT4` at `workspace->primWrite` in the selected
+/// buffer half's second region. Drawing supplies screen positions, packet
+/// length, the raw-texture command (opaque or semi-transparent) and the
+/// ordering-table link. Construction sets no colour or packet pad fields.
+/// `objectFlags` is the shared callback argument and is ignored here.
+///
+/// `elements` points past the three-word record header. Its first two words
+/// carry four vertex references. Words 2 and 3 pack unsigned byte U/V texel
+/// coordinates with encoded CLUT and texture-page settings; word 4 packs the
+/// third and fourth U/V pairs in its low and high halves. The workspace's
+/// signed encoded-page and CLUT displacements are added to the copied u16
+/// fields, wrapping to 16 bits. One CLUT row contributes 64 encoded units.
+///
+/// The initial `elemCount` is 0..65535; `elemStride` is in u32 words and must be
+/// at least five for nonempty records. The payload must cover every element
+/// stride, and the four-byte-aligned destination must have room for `elemCount`
+/// packets within its region. Workspace, payload and packets are borrowed for
+/// the call. Advances `primWrite` by that many packets, leaves `elemCount` at
+/// -1 even for an empty record, and returns the word after the payload without
+/// consuming a terminator.
+u32* modelLightingStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Handler of a stream's flat-quad records (`0x44`): each element contributes
 /// one untextured, unlit quad to the buffer half's second region, with the
