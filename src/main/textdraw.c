@@ -322,13 +322,23 @@ static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, con
     /// that byte must be readable even when the skipped operand is NUL.
     enum { TEXT_LINE_COMMAND_PAYLOAD_BYTES = 2 };
 
-    /// Skips adjacent commands, setting `endLine` on NUL, LF or a line command.
+    /// Skips adjacent backslash commands during UI-text line measurement.
     ///
-    /// `cursor` is a const u8* lvalue pointing at a backslash; `escapeByte` is
-    /// that stable byte and `endLine` is a flag initially false, never cleared.
-    /// All arguments are evaluated repeatedly and must be simple local lvalues.
-    /// Uses this function's `TEXT_LINE_COMMAND_PAYLOAD_BYTES`; applies no drawing
-    /// effects and leaves an unknown command's letter for glyph indexing.
+    /// `cursor` must be a simple const u8* lvalue initially pointing at '\\';
+    /// `escapeByte` is the already-read u8 prefix byte and must remain '\\'
+    /// throughout the expansion. `endLine` must be a distinct simple flag lvalue,
+    /// initially false; it is set to true on N/n, NUL or LF and never cleared.
+    /// CR does not end the scan. Arguments can be evaluated repeatedly and must
+    /// have no side effects beyond cursor/flag updates. The statement captures
+    /// the enclosing function's `TEXT_LINE_COMMAND_PAYLOAD_BYTES` constant.
+    ///
+    /// B/C/D/S/U/W (either case) skip the command letter and one operand without
+    /// applying their effects or inspecting the operand. Each skipped payload
+    /// and the byte after it must be readable, even if the operand is NUL.
+    /// The cursor remains at N/n or a terminator on exit, otherwise at the next
+    /// byte for glyph indexing; unknown commands discard only the backslash. '\\'
+    /// continues the scan, including consecutive backslashes. No bounds check
+    /// or text-buffer write is performed.
 #define TEXT_SKIP_LINE_WIDTH_COMMANDS(cursor, escapeByte, endLine) \
     do {                                                           \
         do {                                                       \
