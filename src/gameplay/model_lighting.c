@@ -265,52 +265,33 @@ static inline void _modelLightingInitFt4Texture(POLY_FT4* quad, const u32* eleme
     quad->clut      += workspace->encodedClutOffset;
 }
 
-/// Initializes one gouraud textured triangle's persistent texture fields.
+/// Initializes one gouraud textured triangle's persistent texture coordinates and GPU addresses.
 ///
-/// `triangle` is a writable, word-aligned packet; `elementWords` addresses at
-/// least six aligned u32 words after the record header. `workspace` supplies
-/// construction's signed encoded page and CLUT displacements. Packed word and
-/// halfword stores preserve the GPU field widths, including the unused high
-/// half beside U2/V2. All arguments are borrowed; no cursor or count is changed.
+/// `triangle` is a writable, four-byte-aligned `POLY_GT3`. `elementWords` points
+/// to a four-byte-aligned element of a `0x38`-family stream record, past its
+/// three-word header, with at least six readable u32 words. The first three
+/// words hold geometry references. Words 3 and 4 pack unsigned byte U/V texel
+/// coordinates in their low halves and encoded CLUT and texture-page settings
+/// in their high halves. Word 5's low half packs U2/V2; its high half is ignored.
+///
+/// The construction workspace supplies signed displacements in encoded address
+/// units: `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128,
+/// 64 per palette row). Each sum wraps in its u16 field without changing U/V.
+/// The packet's tag, colours/command, screen positions and pad fields remain
+/// untouched for the draw pass. All three objects are borrowed for the call;
+/// no pointer is retained and no workspace cursor or count is changed.
 static inline void _tmdInitGt3Texture(POLY_GT3* triangle, const u32* elementWords, const TmdStreamWorkspace* workspace)
 {
     // Word indices within the element, excluding the record header.
     enum {
-        /// Element-relative u32 index of vertex 0's U/V and CLUT in 0x38-family triangles.
-        ///
-        /// The three-word record header is excluded. Three vertex and three
-        /// normal u16 references fill words 0..2, so index 3 selects byte offset
-        /// 12. A complete element supplies at least six aligned u32 words. On the
-        /// little-endian target, bits 0..7 hold unsigned U, bits 8..15 unsigned V, and bits
-        /// 16..31 the encoded CLUT address before the object's palette offset.
-        /// `MODEL_LIGHTING_UV0_CLUT_WORD` copies all four bytes into the packet;
-        /// adding `workspace->encodedClutOffset` then wraps only its u16 CLUT.
-        TMD_GT3_UV0_CLUT_WORD = 3,
-        /// Element-relative u32 index of vertex 1's U/V and encoded texture-page settings.
-        ///
-        /// The three-word record header is excluded: index 4 selects byte offset
-        /// 16 in a 0x38-family triangle element, which supplies at least six
-        /// aligned u32 words. On the little-endian target, bits 0..7 hold unsigned
-        /// U texels, bits 8..15 hold unsigned V texels, and bits 16..31 hold the
-        /// encoded page location, colour depth and semi-transparency mode.
-        /// `MODEL_LIGHTING_UV1_TPAGE_WORD` copies all four bytes into the packet;
-        /// the signed `workspace->texturePageOffset` (-128..127 encoded units)
-        /// is then added only to its u16 `tpage`, wrapping without changing U/V.
-        TMD_GT3_UV1_TPAGE_WORD = 4,
-        /// Element-relative u32 index of vertex 2's packed U/V texel coordinates.
-        ///
-        /// The three-word record header is excluded: index 5 selects byte offset
-        /// 20 in a 0x38-family triangle element. Complete elements supply at least
-        /// six aligned u32 words. On the little-endian target, bits 0..7 hold
-        /// unsigned U texels and bits 8..15 hold unsigned V texels; the high half
-        /// is ignored. Truncating to u16 and storing through the packed halfword
-        /// view copies only `POLY_GT3.u2` and `v2`, preserving the adjacent `pad2`.
-        TMD_GT3_UV2_WORD = 5
+        TMD_GT3_UV0_CLUT_WORD  = 3, // U0/V0 in low half, CLUT address in high half
+        TMD_GT3_UV1_TPAGE_WORD = 4, // U1/V1 in low half, texture-page settings in high half
+        TMD_GT3_UV2_WORD       = 5  // U2/V2 in low half; high half is not copied
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_UV0_CLUT_WORD];
     MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[TMD_GT3_UV1_TPAGE_WORD];
-    // Copy the U/V pair without overwriting the SDK pad field.
+    // A halfword store copies U2/V2 without overwriting the adjacent pad2.
     *(u16*)&triangle->u2 = (u16)elementWords[TMD_GT3_UV2_WORD];
     triangle->tpage     += workspace->texturePageOffset;
     triangle->clut      += workspace->encodedClutOffset;
