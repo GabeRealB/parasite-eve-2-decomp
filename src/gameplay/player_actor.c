@@ -6977,6 +6977,9 @@ s32 func_80105ED4(Task* arg0)
     enum {
         PLAYER_ACTOR_FOOTSTEP_SCRIPTED_JUMP_MODE_STATE = (3 << 16) | GAME_ACTOR_MODE_SCRIPTED
     };
+    enum { PLAYER_ACTOR_FOOTSTEP_RUNNING_MOVEMENT_MODE = 3 };
+    // The loaded surface-sound bank keeps companion entries 100 slots after the player's.
+    enum { PLAYER_ACTOR_FOOTSTEP_COMPANION_ENTRY_OFFSET = 100 };
 
     GameActor*                          actor;
     const AnimationRecord*              rec;
@@ -6987,7 +6990,7 @@ s32 func_80105ED4(Task* arg0)
     s32                                 index;
     const WorldCollisionFootstepSounds* footstepSounds;
 
-    sound = 0;
+    sound = WORLD_COLLISION_FOOTSTEP_SILENT;
     actor = arg0->work;
     obj   = arg0->extra.tmd->coords + 1;
     rec   = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
@@ -7000,18 +7003,19 @@ s32 func_80105ED4(Task* arg0)
                 if (footstepSounds != NULL) {
                     if (*(s32*)&actor->mode == PLAYER_ACTOR_FOOTSTEP_SCRIPTED_JUMP_MODE_STATE) {
                         sound = footstepSounds->scriptedJump;
-                    } else if ((u16)actor->movementMode == 3) {
+                    } else if ((u16)actor->movementMode == PLAYER_ACTOR_FOOTSTEP_RUNNING_MOVEMENT_MODE) {
                         sound = footstepSounds->run;
                         Gp_SetStateF0Bit(5);
                     } else {
                         sound = footstepSounds->walk;
                     }
-                    if (sound != 0) {
+                    // Select the paired cue and companion entry only for a non-silent base.
+                    if (sound != WORLD_COLLISION_FOOTSTEP_SILENT) {
                         if (cueBits == ANIMATION_RECORD_CUE_1) {
                             sound++;
                         }
                         if (actor->companionWork != NULL) {
-                            sound += 0x64;
+                            sound += PLAYER_ACTOR_FOOTSTEP_COMPANION_ENTRY_OFFSET;
                         }
                         pan = (s8)worldCoordGetOriginAudioPan(obj);
                         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));

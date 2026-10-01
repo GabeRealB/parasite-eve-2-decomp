@@ -2596,7 +2596,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
     s32                                 pan;
 
     ret   = 0;
-    sound = 0;
+    sound = WORLD_COLLISION_FOOTSTEP_SILENT;
     actor = arg0->work;
     obj   = arg0->extra.tmd->coords;
     rec   = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
@@ -2635,7 +2635,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
                             Gp_SetStateF0Bit(5);
                         }
                     }
-                    if (sound != 0) {
+                    if (sound != WORLD_COLLISION_FOOTSTEP_SILENT) {
                         pan = (s8)worldCoordGetOriginAudioPan(obj);
                         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));
                         func_800EA3A0(cueBits != ANIMATION_RECORD_CUE_2);

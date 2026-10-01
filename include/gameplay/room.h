@@ -63,15 +63,22 @@ enum {
     WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK     = 1
 };
 
-/// Base sound IDs for alternating footstep cues on one collision surface.
+/// A footstep base that suppresses playback before either cue offset is added.
+enum { WORLD_COLLISION_FOOTSTEP_SILENT = 0 };
+
+/// Paired footstep sound-script requests for one collision surface.
 ///
-/// A zero base is silent. Standard playback adds one for the other foot's cue
-/// and 100 for a companion. The loaded room overlay owns the storage; surface
-/// records borrow it without modifying it.
+/// Each field is a 32-bit encoded request accepted by `SndEvt_EnqueueType6`.
+/// Room records use type-1 requests, which select the currently loaded bank.
+/// Standard playback uses the base for animation cue 2 and base + 1 for cue 1,
+/// then adds 100 to select a companion's entries. A zero base is silent and
+/// receives neither offset. Scripted jumps take precedence over running.
+/// The loaded room overlay owns the storage; surface records borrow it without
+/// modifying it and must not retain it after that overlay is unloaded.
 typedef struct {
-    s32 walk;         // Default base, including backward steps and walking.
-    s32 run;          // Running base (movementMode 3, except the scripted jump state).
-    s32 scriptedJump; // Scripted jump cue base (actor mode 2, state 3).
+    s32 walk;         // Default cue-2 base outside running and scripted jumps (0 silent).
+    s32 run;          // Running cue-2 base (movementMode 3; 0 silent).
+    s32 scriptedJump; // Scripted jump cue-2 base (actor mode 2, state 3; 0 silent).
 } WorldCollisionFootstepSounds;
 STATIC_ASSERT_SIZEOF(WorldCollisionFootstepSounds, 12);
 
