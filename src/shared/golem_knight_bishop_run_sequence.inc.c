@@ -4,8 +4,8 @@
 /// the sequence is 1.
 void golemKnightBishopRunSequence(Task* arg0)
 {
-    s16              temp_v1;
-    Actor402200Work* temp_s1;
+    s16                    temp_v1;
+    GolemKnightBishopWork* temp_s1;
 
     temp_s1 = arg0->work;
     temp_v1 = temp_s1->field_6CC;

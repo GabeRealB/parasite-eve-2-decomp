@@ -6,12 +6,12 @@
 /// reprocessing its model stream for both half-buffers.
 void golemPawnRookGunTick(Enemy* enemy, Task* task)
 {
-    Actor105600Work* work;
-    Enemy*           spawned;
-    TmdObject*       src;
-    TmdObject*       dst;
+    GolemPawnRookWork* work;
+    Enemy*             spawned;
+    TmdObject*         src;
+    TmdObject*         dst;
 
-    work                   = (Actor105600Work*)task->parent->work;
+    work                   = (GolemPawnRookWork*)task->parent->work;
     task->extra.tmd->flags = task->parent->extra.tmd->flags;
     if (work->field_6BA != 0) {
         work->field_6BA        = 0;

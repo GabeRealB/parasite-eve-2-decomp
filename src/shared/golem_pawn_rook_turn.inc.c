@@ -7,19 +7,19 @@
 /// step would overshoot. The result rebuilds the root coordinate's matrix.
 void golemPawnRookTurnTowardTarget(Task* arg0)
 {
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    SVECTOR*         rot;
-    s32              ang;
-    u16              want;
-    s16              diff;
-    s32              adiff;
-    s32              step;
-    s32              ustep;
-    s32              wstep;
-    s32              cur;
-    s32              next;
-    s32              wrapStep;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
+    SVECTOR*           rot;
+    s32                ang;
+    u16                want;
+    s16                diff;
+    s32                adiff;
+    s32                step;
+    s32                ustep;
+    s32                wstep;
+    s32                cur;
+    s32                next;
+    s32                wrapStep;
 
     rot   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     coord = arg0->extra.tmd->coords;

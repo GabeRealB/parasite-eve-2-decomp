@@ -11,18 +11,18 @@
 /// 0x5E and moves on to state 2 on animation 4.
 void golemPawnRookBeamSwingState(Task* arg0)
 {
-    s16              startFrame;
-    s16              state;
-    s16              frame;
-    void**           scratch;
-    s32              dz;
-    s32              sound;
-    s32              dx;
-    s32              pan;
-    u8*              head;
-    Actor105600Work* work;
-    GfxCoord*        self;
-    VECTOR*          delta;
+    s16                startFrame;
+    s16                state;
+    s16                frame;
+    void**             scratch;
+    s32                dz;
+    s32                sound;
+    s32                dx;
+    s32                pan;
+    u8*                head;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
+    VECTOR*            delta;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8) = head - 0x10;

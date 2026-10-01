@@ -11,9 +11,9 @@
 /// `Gp_UpdateActorColor`.
 void gluttonChunkFall(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work = task->work;
-    VECTOR               pos;
-    s32                  pan;
+    GluttonGrabWork* work = task->work;
+    VECTOR           pos;
+    s32              pan;
 
     if (gGluttonEnded == 1) {
         Gp_UnlinkObj(&work->obj0);

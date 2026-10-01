@@ -7,11 +7,11 @@
 /// flags and 3 replaces them with it, both restarting state 0.
 s32 desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2)
 {
-    TmdObject*       obj;
-    Actor323000Work* work;
+    TmdObject*        obj;
+    DesertChaserWork* work;
 
     obj  = task->extra.tmd;
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
     switch (arg2) {
         case 0:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

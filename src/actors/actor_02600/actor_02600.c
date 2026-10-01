@@ -705,36 +705,36 @@ static void Actor02600_Fn00FA0(Task* arg0);
 
 void maggotCaterpillarResolveContacts(Task* arg0)
 {
-    Actor105500Work*       work;
-    Actor105500HitScratch* head;
-    Actor105500HitScratch* scratch;
-    Enemy*                 enemy;
-    GfxCoord*              coord;
-    GfxCoord*              src;
-    s32                    result;
-    s32                    lastId;
-    u32                    damage;
-    s16                    amount;
-    s32                    best;
-    s32                    push;
-    s32                    dx;
-    s32                    dy;
-    s32                    dz;
-    VECTOR*                unit;
-    s32                    i;
-    s16                    timer;
-    s32                    one;
-    u32                    kind;
+    MaggotCaterpillarWork*       work;
+    MaggotCaterpillarHitScratch* head;
+    MaggotCaterpillarHitScratch* scratch;
+    Enemy*                       enemy;
+    GfxCoord*                    coord;
+    GfxCoord*                    src;
+    s32                          result;
+    s32                          lastId;
+    u32                          damage;
+    s16                          amount;
+    s32                          best;
+    s32                          push;
+    s32                          dx;
+    s32                          dy;
+    s32                          dz;
+    VECTOR*                      unit;
+    s32                          i;
+    s16                          timer;
+    s32                          one;
+    u32                          kind;
 
     best    = 0;
     lastId  = 0;
     work    = arg0->work;
     coord   = arg0->extra.tmd->coords;
-    head    = SCRATCH_STACK_CURSOR(Actor105500HitScratch);
-    scratch = SCRATCH_STACK_CURSOR(Actor105500HitScratch) = head - 1;
-    enemy                                                 = (Enemy*)arg0->spawnArg2.pointer;
-    work->field_3CC                                       = 0;
-    result                                                = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
+    head    = SCRATCH_STACK_CURSOR(MaggotCaterpillarHitScratch);
+    scratch = SCRATCH_STACK_CURSOR(MaggotCaterpillarHitScratch) = head - 1;
+    enemy                                                       = (Enemy*)arg0->spawnArg2.pointer;
+    work->field_3CC                                             = 0;
+    result                                                      = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
     if (result != 0) {
         if (work->field_39A == 2) {
             work->field_3CC = 1;
@@ -893,7 +893,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
         work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ClearRec18Occupied(work->field_304);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor105500HitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarHitScratch);
 }
 
 /// State handlers of the projectile task `Actor02600_Fn03DD0` dispatches,
@@ -918,15 +918,15 @@ static const GpEnemyTaskFuncTable3 Actor02600_D00038 = {
 
 static void Actor02600_Fn00754(Task* arg0)
 {
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              dx;
-    s32              dz;
-    u32              random;
-    s32              index;
-    VECTOR*          delta;
-    VECTOR*          scratchEnd;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    s32                    state;
+    s32                    dx;
+    s32                    dz;
+    u32                    random;
+    s32                    index;
+    VECTOR*                delta;
+    VECTOR*                scratchEnd;
 
     scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
     delta                                                                     = scratchEnd - 1;
@@ -967,17 +967,17 @@ static void Actor02600_Fn00754(Task* arg0)
 
 static void Actor02600_Fn00914(Task* arg0)
 {
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    s16              angle;
-    s32              magnitude;
-    s16              wrapped;
-    s16              difference;
-    s32              distance;
-    s32              dx;
-    s32              dz;
-    VECTOR*          delta;
-    VECTOR*          scratchEnd;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    s16                    angle;
+    s32                    magnitude;
+    s16                    wrapped;
+    s16                    difference;
+    s32                    distance;
+    s32                    dx;
+    s32                    dz;
+    VECTOR*                delta;
+    VECTOR*                scratchEnd;
 
     scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
     coord                                                                     = arg0->extra.tmd->coords;
@@ -1014,19 +1014,19 @@ static void Actor02600_Fn00914(Task* arg0)
 
 static void Actor02600_Fn00A94(Task* actor)
 {
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              pan0;
-    s32              pan1;
-    s32              pan2;
-    s32              locationWord;
-    s32              dx;
-    s32              dz;
-    s32              value;
-    s32              sound;
-    VECTOR*          delta;
-    VECTOR*          scratchEnd;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    s32                    state;
+    s32                    pan0;
+    s32                    pan1;
+    s32                    pan2;
+    s32                    locationWord;
+    s32                    dx;
+    s32                    dz;
+    s32                    value;
+    s32                    sound;
+    VECTOR*                delta;
+    VECTOR*                scratchEnd;
 
     scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
     delta                                                                     = scratchEnd - 1;
@@ -1147,20 +1147,20 @@ static void Actor02600_Fn00A94(Task* actor)
 
 static void Actor02600_Fn00FA0(Task* arg0)
 {
-    Actor105500Work*  work;
-    GfxCoord*         coord;
-    s32               state;
-    s16               timer;
-    s16               timer2;
-    s32               distance;
-    s32               sound;
-    s32               dx;
-    s32               dz;
-    s32               pan;
-    u32               random;
-    u32               random2;
-    ActorFaceScratch* delta;
-    ActorFaceScratch* scratchEnd;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    s32                    state;
+    s16                    timer;
+    s16                    timer2;
+    s32                    distance;
+    s32                    sound;
+    s32                    dx;
+    s32                    dz;
+    s32                    pan;
+    u32                    random;
+    u32                    random2;
+    ActorFaceScratch*      delta;
+    ActorFaceScratch*      scratchEnd;
 
     scratchEnd                                                                          = *(ActorFaceScratch**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
     delta                                                                               = scratchEnd - 1;
@@ -1271,7 +1271,7 @@ static void Actor02600_Fn02FFC(Enemy* ctx, Task* actor)
     WorldCollisionContact* rec3;
     SVECTOR*               positions;
     MATRIX*                matrix;
-    Actor105500Work*       work;
+    MaggotCaterpillarWork* work;
     s32                    variant;
     s32                    quotient;
     s32                    i;
@@ -1282,7 +1282,7 @@ static void Actor02600_Fn02FFC(Enemy* ctx, Task* actor)
 
     obj   = actor->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(sizeof(Actor105500Work), 0);
+    work  = memCalloc(sizeof(MaggotCaterpillarWork), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(ctx, actor);
         return;
@@ -1454,7 +1454,7 @@ static void Actor02600_Fn02FFC(Enemy* ctx, Task* actor)
 /// state 9, entered when the hit points run out, runs nothing.
 void maggotCaterpillarRunBehaviour(Task* arg0)
 {
-    switch (((Actor105500Work*)arg0->work)->field_39A) {
+    switch (((MaggotCaterpillarWork*)arg0->work)->field_39A) {
         case 0:
             Actor02600_Fn00754(arg0);
             break;

@@ -10,13 +10,13 @@
 /// projects the actor before moving on to 3.
 void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
 {
-    u8*              head;
-    SVECTOR*         sc;
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              mode;
-    u32              random;
-    s16              anim;
+    u8*                    head;
+    SVECTOR*               sc;
+    GolemKnightBishopWork* work;
+    GfxCoord*              coord;
+    s32                    mode;
+    u32                    random;
+    s16                    anim;
 
     work                     = arg1->work;
     coord                    = &arg1->extra.tmd->coords[0];
@@ -32,7 +32,7 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
             coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
             arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            actor402200UpdateTint(arg1);
+            golemKnightBishopUpdateTintInline(arg1);
             golemKnightBishopDrawShadowInline(arg1);
             return;
         case 2:
@@ -78,7 +78,7 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
     coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    actor402200UpdateTint(arg1);
+    golemKnightBishopUpdateTintInline(arg1);
     golemKnightBishopDrawShadowInline(arg1);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }

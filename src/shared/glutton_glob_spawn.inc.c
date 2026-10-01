@@ -18,13 +18,13 @@
 /// the work block cannot be allocated.
 void gluttonGlobSpawn(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work;
-    Enemy*               owner;
-    Actor403200Work*     host;
-    Task*                player;
-    SVECTOR              vec;
-    s32                  sfx;
-    s32                  pan;
+    GluttonGrabWork* work;
+    Enemy*           owner;
+    GluttonWork*     host;
+    Task*            player;
+    SVECTOR          vec;
+    s32              sfx;
+    s32              pan;
 
     owner  = task->parent->spawnArg2.pointer;
     host   = owner->task->work;
@@ -35,7 +35,7 @@ void gluttonGlobSpawn(Enemy* enemy, Task* task)
         return;
     }
 
-    work       = memCalloc(sizeof(Actor403200GrabWork), false);
+    work       = memCalloc(sizeof(GluttonGrabWork), false);
     task->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

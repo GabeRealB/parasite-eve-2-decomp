@@ -101,7 +101,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task);
 static void func_actor_323400_80164BD0(Enemy* enemy, Task* task);
 static void func_actor_323400_80164C4C(Enemy* enemy, Task* task);
 
-/// State handlers `desertChaserFrameState` runs by `Actor323000Work::field_0`.
+/// State handlers `desertChaserFrameState` runs by `DesertChaserWork::field_0`.
 #include "../../shared/actor_contacts.h"
 
 static const GpEnemyTaskFuncTable4 gDesertChaserStates = {
@@ -3033,7 +3033,7 @@ Actor323400Storage1228 gRigEffectRec;
 /// when no case claimed a record.
 ///
 /// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
-s32 desertChaserAnimCues(Task* task, Actor323000Work* work)
+s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
 {
     SVECTOR vec;
     s32     reset;
@@ -3303,14 +3303,14 @@ s32 desertChaserAnimCues(Task* task, Actor323000Work* work)
 /// The tick then runs and the root coordinate is marked for rebuilding.
 static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
 {
-    Actor323000Work* work;
-    TmdObject*       obj;
-    s32              id;
-    s32              pan;
-    SVECTOR          ofs2;
-    SVECTOR          ofs;
+    DesertChaserWork* work;
+    TmdObject*        obj;
+    s32               id;
+    s32               pan;
+    SVECTOR           ofs2;
+    SVECTOR           ofs;
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
     if (work->field_4 != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -3403,10 +3403,10 @@ void func_actor_323400_8016475C(void)
 /// bytes.
 s32 func_actor_323400_80164974(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor323000Work* work;
-    u16              mode;
+    DesertChaserWork* work;
+    u16               mode;
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
 
     work->field_91C = msg->context.loc.stage;
     work->field_91D = msg->context.loc.area;
@@ -3445,10 +3445,10 @@ s32 func_actor_323400_80164974(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 /// The tick runs every frame.
 static void func_actor_323400_80164BD0(Enemy* enemy, Task* task)
 {
-    Actor323000Work* work;
-    TmdObject*       obj;
+    DesertChaserWork* work;
+    TmdObject*        obj;
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
     if (work->field_4 != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
@@ -3471,10 +3471,10 @@ static void func_actor_323400_80164BD0(Enemy* enemy, Task* task)
 /// rebuilding.
 static void func_actor_323400_80164C4C(Enemy* enemy, Task* task)
 {
-    Actor323000Work* work;
-    TmdObject*       obj;
+    DesertChaserWork* work;
+    TmdObject*        obj;
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
     if (work->field_4 != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;

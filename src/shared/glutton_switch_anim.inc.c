@@ -6,8 +6,8 @@
 /// comes from the `[field_7B2][field_7B3]` transition table.
 void gluttonSwitchAnim(Task* arg0)
 {
-    Actor403200Work* work = arg0->work;
-    s32              i;
+    GluttonWork* work = arg0->work;
+    s32          i;
 
     if (work->field_7B2 != work->field_7B3) {
         for (i = 1; i < 8; i++) {

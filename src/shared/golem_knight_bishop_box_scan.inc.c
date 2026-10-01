@@ -10,16 +10,16 @@
 /// grid enables and the record, and drops back to state 0.
 void golemKnightBishopBoxScanSeq(Task* arg0)
 {
-    u8*                    head;
-    Actor402200BoxScratch* sc;
-    Actor402200Work*       work;
-    GfxCoord*              coord;
-    s32                    i;
+    u8*                          head;
+    GolemKnightBishopBoxScratch* sc;
+    GolemKnightBishopWork*       work;
+    GfxCoord*                    coord;
+    s32                          i;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
     work                     = arg0->work;
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200BoxScratch);
-    sc                       = (Actor402200BoxScratch*)(head - sizeof(Actor402200BoxScratch));
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GolemKnightBishopBoxScratch);
+    sc                       = (GolemKnightBishopBoxScratch*)(head - sizeof(GolemKnightBishopBoxScratch));
     switch (work->field_6CE) {
         case 0:
             for (i = 0; i < work->field_6FA; i++) {
@@ -40,7 +40,7 @@ void golemKnightBishopBoxScanSeq(Task* arg0)
                             gte_stlvnl(&sc->out);
                             work->field_6A4 = gPlayerStatus.coordMtx->t[0] + sc->out.vx;
                             work->field_6A8 = gPlayerStatus.coordMtx->t[1];
-                            SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
+                            SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopBoxScratch));
                             work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->out.vz;
                             work->field_5BA |= WORLD_COLLISION_BODY_GRID_ENABLED;
                             work->field_5DA |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -56,7 +56,7 @@ void golemKnightBishopBoxScanSeq(Task* arg0)
                             work->field_6CE = 0;
                             work->field_70E = 3;
                             work->field_708 = i;
-                            SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
+                            SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopBoxScratch));
                             return;
                         }
                         break;
@@ -74,5 +74,5 @@ void golemKnightBishopBoxScanSeq(Task* arg0)
             Gp_ClearRec18Occupied(&work->field_5F4);
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopBoxScratch));
 }

@@ -7,9 +7,9 @@
 /// `field_708` and answers 1. Otherwise it answers 0.
 s32 golemKnightBishopPlayerInBox(Task* arg0)
 {
-    Actor402200Work* work;
-    s16              count;
-    s32              i;
+    GolemKnightBishopWork* work;
+    s16                    count;
+    s32                    i;
 
     work  = arg0->work;
     count = work->field_6FA;

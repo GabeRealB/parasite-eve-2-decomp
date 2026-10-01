@@ -8,8 +8,8 @@
 /// animation 2, entry 2 and the shared state-F0 slot.
 void golemPawnRookIdleState(Task* arg0)
 {
-    Actor105600Work* work;
-    s16              state;
+    GolemPawnRookWork* work;
+    s16                state;
 
     work  = arg0->work;
     state = work->field_6A8;

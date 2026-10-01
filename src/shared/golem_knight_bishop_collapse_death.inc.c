@@ -5,13 +5,13 @@
 /// task to its dead state (2).
 void golemKnightBishopCollapseDeathSeq(Task* arg0)
 {
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              snd;
-    s32              pan;
-    s32              frames;
-    s16              timer;
+    GolemKnightBishopWork* work;
+    GfxCoord*              coord;
+    s32                    state;
+    s32                    snd;
+    s32                    pan;
+    s32                    frames;
+    s16                    timer;
 
     work  = arg0->work;
     state = work->field_6CE;

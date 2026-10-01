@@ -9,11 +9,11 @@
 /// sparks every fourth frame until `field_6AE` runs out.
 void golemPawnRookSilenceScreamState(Task* arg0)
 {
-    Actor105600Work* work;
-    GfxCoord*        self;
-    SVECTOR*         scratch;
-    s32              sound;
-    u32              random;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
+    SVECTOR*           scratch;
+    s32                sound;
+    u32                random;
 
     scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work    = arg0->work;

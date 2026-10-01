@@ -4,7 +4,7 @@
 /// `field_82E` and restarts the state machine at state 1.
 s32 desertChaserMsgPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
-    Actor323000Work* work = (Actor323000Work*)task->work;
+    DesertChaserWork* work = (DesertChaserWork*)task->work;
 
     work->field_82E = msg->animationId;
     work->field_0   = 1;

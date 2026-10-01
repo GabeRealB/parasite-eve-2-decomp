@@ -9,12 +9,12 @@
 /// to 0. The enemy is destroyed once the counter `field_42` reaches 0x3D.
 void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
 {
-    Actor05300Part* part;
-    Actor05300Work* parentWork;
-    u16             timer;
+    GeneratorPart* part;
+    GeneratorWork* parentWork;
+    u16            timer;
 
-    part       = (Actor05300Part*)arg1->work;
-    parentWork = (Actor05300Work*)arg1->parent->work;
+    part       = (GeneratorPart*)arg1->work;
+    parentWork = (GeneratorWork*)arg1->parent->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         timer          = part->field_42 + 1;
         part->field_42 = timer;

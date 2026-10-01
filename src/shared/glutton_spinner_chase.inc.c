@@ -13,15 +13,15 @@
 /// overlay is shutting down.
 void gluttonSpinnerChase(Enemy* enemy, Task* task)
 {
-    Actor403200SpinnerWork* work;
-    SVECTOR                 step;
-    SVECTOR*                stepp;
-    VECTOR3*                sq;
-    u8*                     head;
-    s16                     angle;
-    s32                     spin;
-    s32                     phase;
-    s32                     inside;
+    GluttonSpinnerWork* work;
+    SVECTOR             step;
+    SVECTOR*            stepp;
+    VECTOR3*            sq;
+    u8*                 head;
+    s16                 angle;
+    s32                 spin;
+    s32                 phase;
+    s32                 inside;
 
     work                                  = task->work;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

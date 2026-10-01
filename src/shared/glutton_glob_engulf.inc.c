@@ -14,15 +14,15 @@
 /// cancelling a still-installed animation on the way out.
 void gluttonGlobEngulf(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work;
-    Task*                player;
-    GameActor*           actor;
-    PlayerStatus*        cfg;
-    SVECTOR              gap;
-    VECTOR               pos;
-    s16                  step;
-    s16                  scale;
-    s32                  shrink;
+    GluttonGrabWork* work;
+    Task*            player;
+    GameActor*       actor;
+    PlayerStatus*    cfg;
+    SVECTOR          gap;
+    VECTOR           pos;
+    s16              step;
+    s16              scale;
+    s32              shrink;
 
     work   = task->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);

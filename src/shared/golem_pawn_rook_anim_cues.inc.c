@@ -8,7 +8,7 @@ void golemPawnRookPlayAnimCues(Task* arg0)
     s32                    snd;
     s32                    pan;
     s32                    pan2;
-    Actor105600Work*       work;
+    GolemPawnRookWork*     work;
     GfxCoord*              self;
     const AnimationRecord* rec;
 

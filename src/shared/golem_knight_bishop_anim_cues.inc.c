@@ -2,7 +2,7 @@
 
 /// Fires the cue pair the work block's `field_712` selects: while the second
 /// animation slot carries `flags` bit 0x20 or 0x10, a sound is queued on the
-/// frame that bit has just dropped from `Actor402200Work::field_6CA`, panned
+/// frame that bit has just dropped from `GolemKnightBishopWork::field_6CA`, panned
 /// and depth-attenuated from the actor's display object. The cue id is the
 /// matching word of `gGolemKnightBishopAnimCues` with the `Enemy` work id's high
 /// nibble in bits 8-11, and a zero `field_712` disarms the body. The record's
@@ -12,7 +12,7 @@ void golemKnightBishopPlayAnimCues(Task* arg0)
     s32                    snd;
     s32                    pan;
     s32                    pan2;
-    Actor402200Work*       work;
+    GolemKnightBishopWork* work;
     GfxCoord*              coord;
     const AnimationRecord* rec;
 

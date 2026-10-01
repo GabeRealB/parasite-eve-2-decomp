@@ -6,10 +6,10 @@
 /// used at full shade.
 void maggotCaterpillarDrawShadow(Task* arg0)
 {
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    VECTOR3          vec;
-    s16              hit;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    VECTOR3                vec;
+    s16                    hit;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;

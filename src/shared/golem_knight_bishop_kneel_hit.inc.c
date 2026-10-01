@@ -9,9 +9,9 @@
 /// `gRandomLcgState` LCG (0..0x3F).
 void golemKnightBishopKneelHitSeq(Task* arg0)
 {
-    Actor402200Work* work;
-    s16              state;
-    s32              next;
+    GolemKnightBishopWork* work;
+    s16                    state;
+    s32                    next;
 
     work  = arg0->work;
     state = work->field_6CE;

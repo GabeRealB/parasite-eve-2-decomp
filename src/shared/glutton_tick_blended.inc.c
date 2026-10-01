@@ -6,12 +6,12 @@
 /// written to the first is the mix of the two.
 void gluttonTickBlended(Task* arg0)
 {
-    AnimationPose    pose0;
-    AnimationPose    pose1;
-    Actor403200Work* work     = arg0->work;
-    s32              blend    = work->field_7C0;
-    s32              invBlend = 0x1000 - blend;
-    s16              i;
+    AnimationPose pose0;
+    AnimationPose pose1;
+    GluttonWork*  work     = arg0->work;
+    s32           blend    = work->field_7C0;
+    s32           invBlend = 0x1000 - blend;
+    s16           i;
 
     for (i = 1; i < 8; i++) {
         if (i < 11) {

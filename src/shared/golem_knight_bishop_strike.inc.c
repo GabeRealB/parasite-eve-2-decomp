@@ -17,17 +17,17 @@
 /// queue the strike cue, and 0x23 ends the strike in state 6.
 void golemKnightBishopStrikeSeq(Task* arg0)
 {
-    Actor402200OffsetScratch* sc;
-    Actor402200Work*          work;
-    GfxCoord*                 coord;
-    s32                       cue;
-    u32                       random;
-    u16                       delay;
-    s16                       part;
-    s16                       timer;
+    GolemKnightBishopOffsetScratch* sc;
+    GolemKnightBishopWork*          work;
+    GfxCoord*                       coord;
+    s32                             cue;
+    u32                             random;
+    u16                             delay;
+    s16                             part;
+    s16                             timer;
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor402200OffsetScratch));
-    sc    = SCRATCH_STACK_CURSOR(Actor402200OffsetScratch);
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(GolemKnightBishopOffsetScratch));
+    sc    = SCRATCH_STACK_CURSOR(GolemKnightBishopOffsetScratch);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_6CE) {
@@ -190,5 +190,5 @@ void golemKnightBishopStrikeSeq(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopOffsetScratch));
 }

@@ -17,18 +17,18 @@
 /// pointed into the work block.
 void gluttonChunkSpawn(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work;
-    Enemy*               owner;
-    Task*                player;
-    SVECTOR              vec;
-    s32                  sfx;
-    s32                  pan;
+    GluttonGrabWork* work;
+    Enemy*           owner;
+    Task*            player;
+    SVECTOR          vec;
+    s32              sfx;
+    s32              pan;
 
     owner  = task->parent->spawnArg2.pointer;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
     if (gGluttonEnded == 1 ||
-        (work = memCalloc(sizeof(Actor403200GrabWork), false), task->work = work, work == NULL)) {
+        (work = memCalloc(sizeof(GluttonGrabWork), false), task->work = work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }

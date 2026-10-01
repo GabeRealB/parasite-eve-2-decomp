@@ -1,5 +1,5 @@
 /* The code the Maggot (actor_102600) and the Caterpillar (actor_105500) share;
- * the code sees the work block as Actor105500Work. It waits until the player
+ * the code sees the work block as MaggotCaterpillarWork. It waits until the player
  * comes near, then either drops from above on a line, drawn fading grey, or
  * makes a scripted entrance. After that it turns toward the player and
  * chooses an attack. Close up it pounces forward, stepping along a per-frame
@@ -20,7 +20,89 @@
 
 #include "types.h"
 
+#include "actors/actor.h"
+
 #include "main/task_types.h"
+
+/// Work block of the enemy whose code both actor_05500 and actor_02600 carry,
+/// kept at `Task::work`. Animation setup fills the context and eight slots;
+/// the projectile task has its own smaller collision-work allocation.
+typedef struct MaggotCaterpillarWork {
+    AnimationContext      anim;
+    AnimationSlot         slots[8];
+    byte                  field_154[0x80];
+    MATRIX                field_1D4;
+    MATRIX                field_1F4;
+    WorldCollisionBody    field_214;
+    WorldCollisionContact field_234[4];
+    WorldCollisionBody    field_294;
+    WorldCollisionContact field_2B4[2];
+    WorldCollisionBody    field_2E4;
+    WorldCollisionContact field_304[1];
+    WorldCollisionBody    field_31C;
+    WorldCollisionContact field_33C[1];
+    EffectSpawnArg        field_354;
+    VECTOR3               field_35C;
+    byte                  pad_368[4];
+    TaskDesc*             field_36C;
+    MATRIX                field_370;
+    s16                   field_390;
+    s16                   field_392;
+    s16                   field_394;
+    u16                   field_396;
+    s16                   field_398;
+    s16                   field_39A;
+    s16                   field_39C;
+    s16                   field_39E;
+    s16                   field_3A0;
+    s16                   field_3A2;
+    s16                   field_3A4;
+    s16                   field_3A6;
+    s16                   field_3A8;
+    s16                   field_3AA;
+    u16                   field_3AC;
+    byte                  pad_3AE[2];
+    s16                   field_3B0;
+    s16                   field_3B2;
+    s16                   field_3B4;
+    s16                   field_3B6;
+    byte                  pad_3B8[2];
+    s16                   field_3BA;
+    s16                   field_3BC;
+    s16                   field_3BE;
+    s16                   field_3C0;
+    s16                   field_3C2;
+    s16                   field_3C4;
+    s16                   field_3C6;
+    s16                   field_3C8;
+    s16                   field_3CA;
+    s16                   field_3CC;
+    s16                   field_3CE;
+    s16                   field_3D0;
+    s16                   field_3D2;
+} MaggotCaterpillarWork;
+STATIC_ASSERT_SIZEOF(MaggotCaterpillarWork, 0x3D4);
+
+/// Scratch-pad block for projecting one end of the enemy's line primitives:
+/// the point, its screen position and the depth the line is sorted at.
+typedef struct MaggotCaterpillarLineScratch {
+    s32     unused[4];
+    SVECTOR position;
+    s32     screen;
+    s32     depth;
+} MaggotCaterpillarLineScratch;
+STATIC_ASSERT_SIZEOF(MaggotCaterpillarLineScratch, 0x20);
+
+/// Scratch-pad block of that enemy's push-back: the deltas the collision walk
+/// resolves, their normal and its image in grid space, and the rotation the
+/// actor is re-aimed with.
+typedef struct MaggotCaterpillarHitScratch {
+    GpDeltaScratch delta;
+    VECTOR         normal;
+    VECTOR         local;
+    SVECTOR        rot;
+} MaggotCaterpillarHitScratch;
+STATIC_ASSERT_SIZEOF(MaggotCaterpillarHitScratch, 0x38);
 
 void maggotCaterpillarSprayState(Task* arg0);
 void maggotCaterpillarPounceState(Task* arg0);

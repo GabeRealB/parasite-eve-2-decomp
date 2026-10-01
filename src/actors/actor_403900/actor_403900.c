@@ -56,7 +56,7 @@
 #include "../../shared/frame_capture.h"
 #include "../../shared/golem_knight_bishop.h"
 
-extern Actor402200FrameStep D_actor_403900_801383DC[];
+extern GolemKnightBishopFrameStep D_actor_403900_801383DC[];
 
 /// Per-roll wait lengths the wait state of `golemKnightBishopIdleSeq`
 /// scales by `16 - field_70C`, indexed by a 4-bit `gRandomLcgState` draw.
@@ -82,12 +82,12 @@ extern s32 gGolemKnightBishopStrikeCue;
 /// OR'd in as bits 8-11 of the cue id.
 extern s32 gGolemKnightBishopHoldCue;
 
-/// Cue-id table: `Actor402200Work::field_712` picks two adjacent words,
+/// Cue-id table: `GolemKnightBishopWork::field_712` picks two adjacent words,
 /// `[field_712 * 2 - 1]` for the `flags` bit 0x20 cue and `[field_712 * 2]`
 /// for the 0x10 one; the branch sequences read `[field_712 + 8]`.
 extern s32 gGolemKnightBishopAnimCues[];
 
-/// Weighted 16-entry roll for `Actor402200Work::field_6E4`: indices 0-10 hold 0
+/// Weighted 16-entry roll for `GolemKnightBishopWork::field_6E4`: indices 0-10 hold 0
 /// and 11-15 hold 1, so the short approach is taken about a third of the time.
 extern u16 gGolemKnightBishopApproachRoll[];
 
@@ -108,13 +108,13 @@ typedef struct {
 } Actor403900MessageEntry;
 STATIC_ASSERT_SIZEOF(Actor403900MessageEntry, 8);
 
-extern Actor403900MessageEntry D_actor_403900_801383A0[2];
-extern DamageAttack            gGolemKnightBishopAttacks[4];
-extern EnemyParams             D_actor_403900_80153C00;
-extern Actor402200Spot         D_actor_403900_80153C7C[];
-extern Actor402200Region*      D_actor_403900_80153F04[];
-extern s16*                    D_actor_403900_8015409C[];
-extern AnimationSet*           D_actor_403900_801540EC[22];
+extern Actor403900MessageEntry  D_actor_403900_801383A0[2];
+extern DamageAttack             gGolemKnightBishopAttacks[4];
+extern EnemyParams              D_actor_403900_80153C00;
+extern GolemKnightBishopSpot    D_actor_403900_80153C7C[];
+extern GolemKnightBishopRegion* D_actor_403900_80153F04[];
+extern s16*                     D_actor_403900_8015409C[];
+extern AnimationSet*            D_actor_403900_801540EC[22];
 
 /// Per-difficulty HP above which the player always breaks the grab.
 extern s16 D_actor_403900_80153C10[];
@@ -199,7 +199,7 @@ s16 gGolemKnightBishopAnimBlend[22] = {
     0,
 };
 
-Actor402200FrameStep D_actor_403900_801383DC[18] = {
+GolemKnightBishopFrameStep D_actor_403900_801383DC[18] = {
     { 3, 0xFFF6 },
     { 5, 350 },
     { 6, 210 },
@@ -902,7 +902,7 @@ u16 D_actor_403900_80153C5C[16] = {
     2,
 };
 
-Actor402200Spot D_actor_403900_80153C7C[9] = {
+GolemKnightBishopSpot D_actor_403900_80153C7C[9] = {
     { 1, 4, 32, 5 },
     { 2, 5, 21, 6 },
     { 3, 4, 35, 3 },
@@ -914,7 +914,7 @@ Actor402200Spot D_actor_403900_80153C7C[9] = {
     { 0, 0, 0, 0 },
 };
 
-Actor402200Region D_actor_403900_80153CC4[5] = {
+GolemKnightBishopRegion D_actor_403900_80153CC4[5] = {
     { 0, 1000, 2500, 4000, 0, 0, 0, 0 },
     { 1, 1024, 2500, 4300, 0x28A0, 5200, 0x32C8, 3400 },
     { 1, 2048, 0x2904, 5700, 0x2710, 1500, 0x2AF8, 0 },
@@ -922,7 +922,7 @@ Actor402200Region D_actor_403900_80153CC4[5] = {
     { 1, 0, 1700, -500, 1000, 5800, 2400, 3200 },
 };
 
-Actor402200Region D_actor_403900_80153D14[6] = {
+GolemKnightBishopRegion D_actor_403900_80153D14[6] = {
     { 0, 1000, 7000, -3500, 0, 0, 0, 0 },
     { 0, 2000, 7000, 6000, 0, 0, 0, 0 },
     { 1, 0, 800, 1000, 0, 6000, 1550, 3000 },
@@ -931,19 +931,19 @@ Actor402200Region D_actor_403900_80153D14[6] = {
     { 1, 1024, 500, 4500, 6000, 6000, 8000, 4000 },
 };
 
-Actor402200Region D_actor_403900_80153D74[3] = {
+GolemKnightBishopRegion D_actor_403900_80153D74[3] = {
     { 0, 3000, 7000, -1600, 0, 0, 0, 0 },
     { 0, 2000, 1600, -7300, 0, 0, 0, 0 },
     { 1, 2048, 1600, -1600, 1000, -7000, 2500, -8000 },
 };
 
-Actor402200Region D_actor_403900_80153DA4[3] = {
+GolemKnightBishopRegion D_actor_403900_80153DA4[3] = {
     { 0, 2000, 7000, 3000, 0, 0, 0, 0 },
     { 1, 1024, -1000, 2750, 1500, 3500, 3500, 2000 },
     { 1, 3072, 2500, 500, -3500, 1000, -2000, 0 },
 };
 
-Actor402200Region D_actor_403900_80153DD4[8] = {
+GolemKnightBishopRegion D_actor_403900_80153DD4[8] = {
     { 0, 2000, 1600, -1400, 0, 0, 0, 0 },
     { 0, 1000, 0x2710, 4200, 0, 0, 0, 0 },
     { 1, 3072, 0x2A94, 4200, 1000, 5000, 5000, 3500 },
@@ -954,7 +954,7 @@ Actor402200Region D_actor_403900_80153DD4[8] = {
     { 1, 1800, 1400, 4700, 2400, 1200, 3500, 0 },
 };
 
-Actor402200Region D_actor_403900_80153E54[5] = {
+GolemKnightBishopRegion D_actor_403900_80153E54[5] = {
     { 0, 800, 0x2710, 5300, 0, 0, 0, 0 },
     { 0, 800, 7500, 8000, 0, 0, 0, 0 },
     { 0, 800, 4000, 8000, 0, 0, 0, 0 },
@@ -962,19 +962,19 @@ Actor402200Region D_actor_403900_80153E54[5] = {
     { 1, 3072, 0x283C, 8000, 4000, 9000, 6000, 7000 },
 };
 
-Actor402200Region D_actor_403900_80153EA4[2] = {
+GolemKnightBishopRegion D_actor_403900_80153EA4[2] = {
     { 0, 600, -1900, 4800, 0, 0, 0, 0 },
     { 1, 3072, 2000, 4800, -5500, 5500, -1900, 4000 },
 };
 
-Actor402200Region D_actor_403900_80153EC4[4] = {
+GolemKnightBishopRegion D_actor_403900_80153EC4[4] = {
     { 0, 600, 3500, -1800, 0, 0, 0, 0 },
     { 1, 3072, 8500, -1800, 0, -1000, 2000, -2000 },
     { 1, 0, 7750, -7500, 6500, -1000, 9000, -2000 },
     { 1, 2048, 7750, -3000, 6500, -6000, 9000, -9000 },
 };
 
-Actor402200Region* D_actor_403900_80153F04[9] = {
+GolemKnightBishopRegion* D_actor_403900_80153F04[9] = {
     NULL,
     D_actor_403900_80153CC4,
     D_actor_403900_80153D14,
@@ -1244,27 +1244,27 @@ AnimationSet* D_actor_403900_801540EC[22] = {
 /// `golemKnightBishopPickHitReaction` unless the vocal cue is armed.
 void golemKnightBishopTakeHits(Task* arg0)
 {
-    s32                    lastId;
-    Actor402200Work*       work;
-    Actor402200HitScratch* head;
-    Actor402200HitScratch* sc;
-    Actor402200HitScratch* blk;
-    Enemy*                 enemy;
-    GfxCoord*              coord;
-    s32                    i;
-    s32                    damage;
-    s32                    kind;
-    s32                    wait;
-    s16                    t;
+    s32                          lastId;
+    GolemKnightBishopWork*       work;
+    GolemKnightBishopHitScratch* head;
+    GolemKnightBishopHitScratch* sc;
+    GolemKnightBishopHitScratch* blk;
+    Enemy*                       enemy;
+    GfxCoord*                    coord;
+    s32                          i;
+    s32                          damage;
+    s32                          kind;
+    s32                          wait;
+    s16                          t;
 
-    lastId                                      = 0;
-    work                                        = arg0->work;
-    head                                        = SCRATCH_STACK_CURSOR(Actor402200HitScratch);
-    blk                                         = head - 1;
-    SCRATCH_STACK_CURSOR(Actor402200HitScratch) = blk;
-    sc                                          = blk;
-    coord                                       = arg0->extra.tmd->coords;
-    enemy                                       = arg0->spawnArg2.pointer;
+    lastId                                            = 0;
+    work                                              = arg0->work;
+    head                                              = SCRATCH_STACK_CURSOR(GolemKnightBishopHitScratch);
+    blk                                               = head - 1;
+    SCRATCH_STACK_CURSOR(GolemKnightBishopHitScratch) = blk;
+    sc                                                = blk;
+    coord                                             = arg0->extra.tmd->coords;
+    enemy                                             = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_504, &sc->delta, 4, NULL)) {
         case 0:
@@ -1404,7 +1404,7 @@ void golemKnightBishopTakeHits(Task* arg0)
         work->field_582 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         Gp_ClearRec18Occupied(&work->field_584);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor402200HitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GolemKnightBishopHitScratch);
 }
 
 #include "../../shared/golem_knight_bishop_hit_reaction.inc.c"
@@ -1417,7 +1417,7 @@ void golemKnightBishopTakeHits(Task* arg0)
 /// settle the result, walking `field_70C` up to 8.
 void golemKnightBishopIdleSeq(Task* arg0)
 {
-    Actor402200Work* work;
+    GolemKnightBishopWork* work;
 
     work = arg0->work;
     switch (work->field_6CE) {
@@ -1543,24 +1543,24 @@ void golemKnightBishopIdleSeq(Task* arg0)
 /// then loads file 9/0x1E and queues cue 0x70010001 once the CD is idle.
 void golemKnightBishopGrabSeq(Task* arg0)
 {
-    Actor402200Work*        work;
-    GfxCoord*               coord;
-    Task*                   player;
-    Actor402200GrabScratch* sc;
-    GfxCoord*               pcoord;
-    s32                     flag;
-    s32                     snd;
-    s32                     chance;
-    u32                     random;
-    s16                     timer;
-    s16                     val;
-    s16                     sub;
+    GolemKnightBishopWork*        work;
+    GfxCoord*                     coord;
+    Task*                         player;
+    GolemKnightBishopGrabScratch* sc;
+    GfxCoord*                     pcoord;
+    s32                           flag;
+    s32                           snd;
+    s32                           chance;
+    u32                           random;
+    s16                           timer;
+    s16                           val;
+    s16                           sub;
 
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor402200GrabScratch));
-    sc     = SCRATCH_STACK_CURSOR(Actor402200GrabScratch);
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(GolemKnightBishopGrabScratch));
+    sc     = SCRATCH_STACK_CURSOR(GolemKnightBishopGrabScratch);
     pcoord = player->extra.tmd->coords;
     flag   = 0;
     switch (work->field_6CE) {
@@ -1792,7 +1792,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200GrabScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopGrabScratch));
 }
 
 #include "../../shared/golem_knight_bishop_strike.inc.c"
@@ -1807,23 +1807,23 @@ void golemKnightBishopGrabSeq(Task* arg0)
 /// `field_6D4` down back to state 0.
 void golemKnightBishopBoxApproachSeq(Task* arg0)
 {
-    u8*                       head;
-    Actor402200OffsetScratch* sc;
-    s32                       state;
-    Actor402200Work*          work;
-    GfxCoord*                 coord;
-    s32                       pan;
-    s32                       snd;
-    s32                       i;
-    s16                       diff;
-    s16                       dist;
-    s32                       adiff;
-    s32                       val;
-    s16                       timer;
+    u8*                             head;
+    GolemKnightBishopOffsetScratch* sc;
+    s32                             state;
+    GolemKnightBishopWork*          work;
+    GfxCoord*                       coord;
+    s32                             pan;
+    s32                             snd;
+    s32                             i;
+    s16                             diff;
+    s16                             dist;
+    s32                             adiff;
+    s32                             val;
+    s16                             timer;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200OffsetScratch);
-    sc                       = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GolemKnightBishopOffsetScratch);
+    sc                       = (GolemKnightBishopOffsetScratch*)(head - sizeof(GolemKnightBishopOffsetScratch));
     work                     = arg0->work;
     state                    = work->field_6CE;
     coord                    = arg0->extra.tmd->coords;
@@ -1960,7 +1960,7 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopOffsetScratch));
 }
 
 /// Cue body of the enemy's attack: state 0 arms animation `field_6C0`, sets
@@ -1972,12 +1972,12 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
 /// and depth-attenuated from the display object.
 void golemKnightBishopRecoverSeq(Task* arg0)
 {
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              pan;
-    u32              random;
-    s16              timer;
+    GolemKnightBishopWork* work;
+    GfxCoord*              coord;
+    s32                    state;
+    s32                    pan;
+    u32                    random;
+    s16                    timer;
 
     SCRATCH_STACK_RESERVE_BYTES(8);
     work  = arg0->work;
@@ -2043,18 +2043,18 @@ static const GpEnemyTaskFuncTable3 D_actor_403900_80131F18 = {
 /// muzzle and projects both world points to screen for the draw step.
 static void func_actor_403900_80135D5C(Task* arg0)
 {
-    u8*                    head;
-    Actor402200AimScratch* sc;
-    Actor402200Work*       work;
-    GfxCoord*              coord;
-    GfxCoord*              part;
-    s32                    i;
-    s16                    dist;
+    u8*                          head;
+    GolemKnightBishopAimScratch* sc;
+    GolemKnightBishopWork*       work;
+    GfxCoord*                    coord;
+    GfxCoord*                    part;
+    s32                          i;
+    s16                          dist;
 
     coord                    = arg0->extra.tmd->coords;
     head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200AimScratch);
-    sc                       = (Actor402200AimScratch*)(head - sizeof(Actor402200AimScratch));
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GolemKnightBishopAimScratch);
+    sc                       = (GolemKnightBishopAimScratch*)(head - sizeof(GolemKnightBishopAimScratch));
     work                     = arg0->work;
     part                     = &coord[3] + 1;
     coord->composeStamp      = GRAPHICS_COORD_DIRTY;
@@ -2122,7 +2122,7 @@ static void func_actor_403900_80135D5C(Task* arg0)
         }
         golemKnightBishopDrawAimBeam(arg0);
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200AimScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopAimScratch));
 }
 
 #include "../../shared/golem_knight_bishop_aim_beam.inc.c"
@@ -2145,7 +2145,7 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
 {
     u8                     param1[4];
     u8                     param2[4];
-    Actor402200Work*       work;
+    GolemKnightBishopWork* work;
     TmdObject*             obj;
     GfxCoord*              coord;
     s16*                   cues;
@@ -2346,9 +2346,9 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
 /// slot one frame and walks the id's frame counter up.
 void golemKnightBishopTickAnim(Task* arg0)
 {
-    Actor402200Work* work;
-    s32              i;
-    s32              value;
+    GolemKnightBishopWork* work;
+    s32                    i;
+    s32                    value;
 
     work = arg0->work;
     if (work->field_6C0 != work->field_6C2) {
@@ -2366,10 +2366,10 @@ void golemKnightBishopTickAnim(Task* arg0)
     }
 }
 
-/// Out-of-line `actor402200UpdateTint`, for the callers after the inline one.
+/// Out-of-line `golemKnightBishopUpdateTintInline`, for the callers after the inline one.
 void golemKnightBishopUpdateTint(Task* arg0)
 {
-    actor402200UpdateTint(arg0);
+    golemKnightBishopUpdateTintInline(arg0);
 }
 
 #include "../../shared/golem_knight_bishop_shadow.inc.c"
@@ -2380,7 +2380,7 @@ void golemKnightBishopUpdateTint(Task* arg0)
 s32 func_actor_403900_801381E4(Task* task)
 {
     if (gPlayerStatus.hp > 0) {
-        ((Actor402200Work*)task->work)->field_6F4 = 1;
+        ((GolemKnightBishopWork*)task->work)->field_6F4 = 1;
     }
     return 0;
 }

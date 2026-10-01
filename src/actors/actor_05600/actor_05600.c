@@ -77,7 +77,7 @@ extern AnimationSet* Actor05600_D164C4[31];
 /// in.
 extern s32 gGolemPawnRookShotSound;
 
-/// Frame counts of the actor's animations, indexed by `Actor105600Work.field_694`.
+/// Frame counts of the actor's animations, indexed by `GolemPawnRookWork.field_694`.
 extern s16 gGolemPawnRookAnimBlendFrames[];
 
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
@@ -85,10 +85,10 @@ extern s16 gGolemPawnRookAnimBlendFrames[];
 extern s16 gGolemPawnRookWeakPointWeapons[];
 extern s16 gGolemPawnRookWeakPointPe[];
 
-/// Sound ids of the actor's cues, indexed from `Actor105600Work.field_6D6`.
+/// Sound ids of the actor's cues, indexed from `GolemPawnRookWork.field_6D6`.
 extern s32 gGolemPawnRookVoiceCues[];
 
-/// The approach cycle's per-state handlers, indexed by `Actor105600Work.field_6A6`.
+/// The approach cycle's per-state handlers, indexed by `GolemPawnRookWork.field_6A6`.
 extern TaskFunc gGolemPawnRookStates[];
 
 extern AnimationSet Actor05600_D0B3CC;
@@ -1231,20 +1231,20 @@ static void Actor05600_Fn03924(Enemy* ctx, Task* actor);
 /// off the scratch stack and released on the way out.
 void Actor05600_Fn01E1C(Task* arg0)
 {
-    s16              diff;
-    s32              mag;
-    s16              angle;
-    s32              dx;
-    s32              dz;
-    VECTOR*          delta;
-    VECTOR*          normal;
-    VECTOR*          normal2;
-    GfxCoord*        target;
-    Actor105600Work* work;
-    GfxCoord*        coord;
+    s16                diff;
+    s32                mag;
+    s16                angle;
+    s32                dx;
+    s32                dz;
+    VECTOR*            delta;
+    VECTOR*            normal;
+    VECTOR*            normal2;
+    GfxCoord*          target;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
 
     delta = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x20);
-    work  = (Actor105600Work*)arg0->work;
+    work  = (GolemPawnRookWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_6A8) {
         case 0:
@@ -1406,21 +1406,21 @@ void Actor05600_Fn01E1C(Task* arg0)
 /// prime the animation state. Entry 0 of `Actor05600_D00098`.
 static void Actor05600_Fn03924(Enemy* ctx, Task* actor)
 {
-    Actor105600Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GfxCoord*        parts;
-    GfxCoord*        partsA;
-    GfxCoord*        partsB;
-    GfxCoord*        partsC;
-    GfxCoord*        partsD;
-    GfxCoord*        effParts;
-    Enemy*           eff;
-    u16*             tbl;
-    u8               param1[8];
-    u8               param2[8];
-    s32              i;
-    s32              param;
+    GolemPawnRookWork* work;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    GfxCoord*          parts;
+    GfxCoord*          partsA;
+    GfxCoord*          partsB;
+    GfxCoord*          partsC;
+    GfxCoord*          partsD;
+    GfxCoord*          effParts;
+    Enemy*             eff;
+    u16*               tbl;
+    u8                 param1[8];
+    u8                 param2[8];
+    s32                i;
+    s32                param;
 
     obj   = actor->extra.tmd;
     coord = obj->coords;
@@ -1597,30 +1597,30 @@ static void Actor05600_Fn03924(Enemy* ctx, Task* actor)
 /// `field_6DC` and drops back to state 0.
 void Actor05600_Fn041E4(Task* arg0)
 {
-    s16              yaw;
-    s16              yaw2;
-    s16              state;
-    s16              deltaYaw;
-    s16              deltaYaw2;
-    s16              speed;
-    s32              magnitude;
-    s32              magnitude2;
-    s16              wrapped;
-    s16              wrapped2;
-    s16              angle;
-    s32              dx;
-    s32              dz;
-    u16              flags;
-    u16              flags2;
-    u8*              head;
-    VECTOR*          delta;
-    Actor105600Work* work;
-    GfxCoord*        coord;
+    s16                yaw;
+    s16                yaw2;
+    s16                state;
+    s16                deltaYaw;
+    s16                deltaYaw2;
+    s16                speed;
+    s32                magnitude;
+    s32                magnitude2;
+    s16                wrapped;
+    s16                wrapped2;
+    s16                angle;
+    s32                dx;
+    s32                dz;
+    u16                flags;
+    u16                flags2;
+    u8*                head;
+    VECTOR*            delta;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
     delta                    = (VECTOR*)(head - 0x10);
     SCRATCH_STACK_CURSOR(u8) = (u8*)delta;
-    work                     = (Actor105600Work*)arg0->work;
+    work                     = (GolemPawnRookWork*)arg0->work;
     state                    = work->field_6A8;
     coord                    = arg0->extra.tmd->coords;
     switch (state) {

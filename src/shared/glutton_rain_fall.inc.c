@@ -9,12 +9,12 @@
 /// the model. Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
 void gluttonRainFall(Enemy* enemy, Task* task)
 {
-    Actor403200DropWork* work;
-    Actor403200DropCoord coord;
-    MATRIX*              mtx;
-    Enemy*               owner;
-    s32                  snd;
-    s32                  pan;
+    GluttonDropWork* work;
+    GluttonDropCoord coord;
+    MATRIX*          mtx;
+    Enemy*           owner;
+    s32              snd;
+    s32              pan;
 
     work = task->work;
     if (gGluttonEnded == 1) {

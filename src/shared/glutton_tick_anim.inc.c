@@ -9,9 +9,9 @@
 /// reports done. The three trailing flags run the shared reaction helpers.
 void gluttonTickAnim(Task* arg0)
 {
-    Actor403200Work* work = arg0->work;
-    Actor403200Work* w;
-    s32              i;
+    GluttonWork* work = arg0->work;
+    GluttonWork* w;
+    s32          i;
 
     if (work->field_7B0 == 1) {
         gluttonSwitchAnim(arg0);

@@ -8,9 +8,9 @@
 /// otherwise every slot is ticked and the count advances by one.
 static inline void generatorTickPoseInline(Task* task)
 {
-    Actor05300Work* work;
-    s32             i;
-    s32             value;
+    GeneratorWork* work;
+    s32            i;
+    s32            value;
 
     work = task->work;
     if ((s16)work->field_320 != work->field_322) {

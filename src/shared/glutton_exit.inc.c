@@ -5,11 +5,11 @@
 /// detach the enemy's contact records, then tear the enemy down.
 void gluttonExit(Task* arg0)
 {
-    Actor403200Work* work;
-    Enemy*           enemy;
-    s16              i;
+    GluttonWork* work;
+    Enemy*       enemy;
+    s16          i;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work != NULL) {
         for (i = 0; i < 7; i++) {

@@ -12,17 +12,17 @@
 /// and the model is drawn with its ground shadow.
 void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
 {
-    Actor105600Work* work;
-    Actor105600Work* animWork;
-    GfxCoord*        coord;
-    GfxCoord*        root;
-    GfxCoord*        part;
-    SVECTOR*         scratch;
-    VECTOR3          pos;
-    s16              anim;
-    s16              duration;
-    s32              i;
-    u32              random;
+    GolemPawnRookWork* work;
+    GolemPawnRookWork* animWork;
+    GfxCoord*          coord;
+    GfxCoord*          root;
+    GfxCoord*          part;
+    SVECTOR*           scratch;
+    VECTOR3            pos;
+    s16                anim;
+    s16                duration;
+    s32                i;
+    u32                random;
 
     work    = arg1->work;
     coord   = arg1->extra.tmd->coords;

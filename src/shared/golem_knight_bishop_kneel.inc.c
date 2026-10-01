@@ -9,13 +9,13 @@
 /// `field_6D4` countdown; states 3 and 4 then alternate on that countdown.
 void golemKnightBishopKneelSeq(Task* arg0)
 {
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              snd;
-    s32              anim;
-    u32              random;
-    s16              timer;
+    GolemKnightBishopWork* work;
+    GfxCoord*              coord;
+    s32                    state;
+    s32                    snd;
+    s32                    anim;
+    u32                    random;
+    s16                    timer;
 
     work  = arg0->work;
     state = work->field_6CE;

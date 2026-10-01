@@ -7,16 +7,16 @@
 /// scaled by `field_3BC / 45`.
 void maggotCaterpillarDrawThread(Task* actor)
 {
-    Actor105500LineScratch* s;
-    Actor105500Work*        work;
-    LINE_G2*                line;
-    DR_TPAGE*               page;
-    s32                     x;
-    s32                     y;
-    s32                     screen;
-    s32                     screen1;
+    MaggotCaterpillarLineScratch* s;
+    MaggotCaterpillarWork*        work;
+    LINE_G2*                      line;
+    DR_TPAGE*                     page;
+    s32                           x;
+    s32                           y;
+    s32                           screen;
+    s32                           screen1;
 
-    s              = (Actor105500LineScratch*)(*(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) -= sizeof(Actor105500LineScratch));
+    s              = (MaggotCaterpillarLineScratch*)(*(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) -= sizeof(MaggotCaterpillarLineScratch));
     work           = actor->work;
     s->position.vx = 0;
     s->position.vy = work->field_3A0 - 0x352;
@@ -28,7 +28,7 @@ void maggotCaterpillarDrawThread(Task* actor)
     gte_stsxy(&s->screen);
     gte_stszotz(&s->depth);
     if (s->depth < 30) {
-        *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(Actor105500LineScratch);
+        *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(MaggotCaterpillarLineScratch);
         return;
     }
     screen         = s->screen;
@@ -44,7 +44,7 @@ void maggotCaterpillarDrawThread(Task* actor)
     gte_stsxy(&s->screen);
     gte_stszotz(&s->depth);
     if (s->depth < 30) {
-        *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(Actor105500LineScratch);
+        *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(MaggotCaterpillarLineScratch);
         return;
     }
     line           = gGpuPrimCursor;
@@ -76,5 +76,5 @@ void maggotCaterpillarDrawThread(Task* actor)
     setlen(page, 1);
     page->code[0] = 0xE1000620;
     addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), page);
-    *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(Actor105500LineScratch);
+    *(u8**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += sizeof(MaggotCaterpillarLineScratch);
 }

@@ -7,17 +7,17 @@
 /// `arg0` is the spawn context every state handler takes and is unused here.
 void golemPawnRookDelayedEffectSpawn(Enemy* arg0, Task* task)
 {
-    Task*            parent;
-    TmdObject*       obj;
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        parentCoords;
+    Task*              parent;
+    TmdObject*         obj;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
+    GfxCoord*          parentCoords;
 
     parent       = task->parent;
     obj          = task->extra.tmd;
     parentCoords = parent->extra.tmd->coords;
     coord        = obj->coords;
-    work         = (Actor105600Work*)parent->work;
+    work         = (GolemPawnRookWork*)parent->work;
 
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->parent       = &parentCoords[7];

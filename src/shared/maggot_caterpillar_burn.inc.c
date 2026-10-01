@@ -7,13 +7,13 @@
 /// actor.
 void maggotCaterpillarBurnStep(Task* arg0)
 {
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    s32              sound;
-    s32              pan;
-    u16              timer;
-    u16              effectTimer;
-    u16              countdown;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    s32                    sound;
+    s32                    pan;
+    u16                    timer;
+    u16                    effectTimer;
+    u16                    countdown;
 
     work            = arg0->work;
     coord           = arg0->extra.tmd->coords;

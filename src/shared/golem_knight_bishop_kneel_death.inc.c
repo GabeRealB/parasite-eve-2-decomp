@@ -6,9 +6,9 @@
 /// 0x10 or 0x16, then park 2 in the context's `field_30` and drop back to 0.
 void golemKnightBishopKneelDeathSeq(Task* arg0)
 {
-    Actor402200Work* work;
-    s16              state;
-    s32              next;
+    GolemKnightBishopWork* work;
+    s16                    state;
+    s32                    next;
 
     work  = arg0->work;
     state = work->field_6CE;

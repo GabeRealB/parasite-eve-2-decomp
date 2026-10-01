@@ -9,15 +9,15 @@
 /// `gGolemPawnRookShotSound`.
 void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
 {
-    Actor105600FxWork*       work;
-    Actor105600PlaceScratch* scratch;
-    Enemy*                   ctx;
-    GfxCoord*                coord;
-    GfxCoord*                parentCoord;
-    TmdObject*               tmd;
-    Task*                    parent;
-    s32                      sound;
-    s32                      pan;
+    GolemPawnRookFxWork*       work;
+    GolemPawnRookPlaceScratch* scratch;
+    Enemy*                     ctx;
+    GfxCoord*                  coord;
+    GfxCoord*                  parentCoord;
+    TmdObject*                 tmd;
+    Task*                      parent;
+    s32                        sound;
+    s32                        pan;
 
     tmd         = arg1->extra.tmd;
     coord       = tmd->coords;
@@ -30,7 +30,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     }
     arg1->work    = work;
     tmd->flags    = 0;
-    scratch       = (Actor105600PlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x38);
+    scratch       = (GolemPawnRookPlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x38);
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 

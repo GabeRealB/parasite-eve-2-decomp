@@ -6,9 +6,9 @@
 /// bit 2 lets it run its `Gp_ReleaseStateF0Add` call.
 s32 generatorSetReleaseBits(Task* task, s32 msgId, ActorCommand* msg)
 {
-    Actor05300Work* work;
+    GeneratorWork* work;
 
-    work = (Actor05300Work*)task->work;
+    work = (GeneratorWork*)task->work;
     switch (msg->command) {
         case 0:
             break;

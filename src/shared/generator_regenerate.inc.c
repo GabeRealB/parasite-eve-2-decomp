@@ -6,9 +6,9 @@
 /// through the lock-on node as a damage of -1.
 void generatorRegenerate(Task* arg0)
 {
-    Actor05300Work* work;
-    Enemy*          enemy;
-    s16             timer;
+    GeneratorWork* work;
+    Enemy*         enemy;
+    s16            timer;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;

@@ -9,22 +9,22 @@
 /// the two idle clips until each length runs out.
 void golemPawnRookKnockdownState(Task* arg0)
 {
-    s16              state;
-    s16              nextAnim;
-    s16              nextAnim2;
-    s32              snd;
-    s32              random3;
-    s32              pan;
-    s32              pan2;
-    s32              pan3;
-    u16              timer;
-    u16              timer2;
-    u32              random;
-    u32              random2;
-    Actor105600Work* work;
-    GfxCoord*        self;
+    s16                state;
+    s16                nextAnim;
+    s16                nextAnim2;
+    s32                snd;
+    s32                random3;
+    s32                pan;
+    s32                pan2;
+    s32                pan3;
+    u16                timer;
+    u16                timer2;
+    u32                random;
+    u32                random2;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
 
-    work  = (Actor105600Work*)arg0->work;
+    work  = (GolemPawnRookWork*)arg0->work;
     self  = arg0->extra.tmd->coords;
     state = work->field_6A8;
     switch (state) {

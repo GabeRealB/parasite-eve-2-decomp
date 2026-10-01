@@ -55,6 +55,7 @@
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/golem_pawn_rook.h"
 #include "../../shared/no9_golem.h"
 
 s32 func_actor_510900_801391B8(Task*, s32, s32);
@@ -2704,15 +2705,15 @@ static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
 /// distance to the player in units of 1000, clamped to the last entry.
 static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
 {
-    Actor510900ChildFx*      work;
-    Actor105600PlaceScratch* scratch;
-    TmdObject*               tmd;
-    GfxCoord*                coord;
-    GfxCoord*                parentCoords;
-    GfxCoord*                parentCoord;
-    s32                      dx;
-    s32                      dz;
-    s32                      idx;
+    Actor510900ChildFx*        work;
+    GolemPawnRookPlaceScratch* scratch;
+    TmdObject*                 tmd;
+    GfxCoord*                  coord;
+    GfxCoord*                  parentCoords;
+    GfxCoord*                  parentCoord;
+    s32                        dx;
+    s32                        dz;
+    s32                        idx;
 
     tmd          = arg1->extra.tmd;
     coord        = tmd->coords;
@@ -2725,7 +2726,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     }
     arg1->work    = work;
     tmd->flags    = 0;
-    scratch       = (Actor105600PlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor105600PlaceScratch));
+    scratch       = (GolemPawnRookPlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GolemPawnRookPlaceScratch));
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 
@@ -2807,7 +2808,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     work->obj78.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
     arg1->state = 1;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor105600PlaceScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemPawnRookPlaceScratch));
 }
 
 /// Per-frame handler of the effect child while it is alive: spins the object by

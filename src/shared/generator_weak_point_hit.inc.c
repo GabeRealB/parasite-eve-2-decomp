@@ -5,15 +5,15 @@
 /// field_336, spawns the burst effects and plays the break sound.
 void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
 {
-    VECTOR*         vec;
-    Actor05300Part* part;
-    GfxCoord*       coord;
-    s32             damage;
-    s32             snd;
-    s32             hitTime;
+    VECTOR*        vec;
+    GeneratorPart* part;
+    GfxCoord*      coord;
+    s32            damage;
+    s32            snd;
+    s32            hitTime;
 
     coord = arg1->extra.tmd->coords;
-    part  = (Actor05300Part*)arg1->work;
+    part  = (GeneratorPart*)arg1->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             return;
@@ -49,9 +49,9 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             func_800DA6E8(&arg0->node, damage, 0);
             arg0->hp -= damage;
             if (arg0->hp <= 0) {
-                arg1->state                                      = 2;
-                part->field_42                                   = 0;
-                ((Actor05300Work*)arg1->parent->work)->field_336 = 1;
+                arg1->state                                     = 2;
+                part->field_42                                  = 0;
+                ((GeneratorWork*)arg1->parent->work)->field_336 = 1;
                 Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
                 Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
                 snd  = gGeneratorSoundIds[1];

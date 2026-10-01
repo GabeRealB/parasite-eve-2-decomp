@@ -5,10 +5,10 @@
 /// it, part 4 against it, each net of the pitch it already has.
 void gluttonPitchNeck(Task* task, s16 arg1)
 {
-    Actor403200Work* work = task->work;
-    s16              value;
-    s16              pitch4;
-    s16              pitch3;
+    GluttonWork* work = task->work;
+    s16          value;
+    s16          pitch4;
+    s16          pitch3;
 
     value = arg1;
     if (arg1 > 0x500) {

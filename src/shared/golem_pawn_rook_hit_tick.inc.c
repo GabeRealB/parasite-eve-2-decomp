@@ -10,39 +10,39 @@
 /// `field_6B2` when the player's segment test against `field_4B4` fails.
 void golemPawnRookHitTick(Task* arg0)
 {
-    s32                    result;
-    s32                    maxPush;
-    s32                    hit;
-    u32                    lastId;
-    Actor105600Work*       work;
-    GpDeltaScratch*        head;
-    Actor105600HitScratch* scratch;
-    Enemy*                 enemy;
-    GfxCoord*              self;
-    GfxCoord*              other;
-    GfxCoord*              part;
-    s32                    i;
-    s32                    x, y, z;
-    s32                    damage;
-    s32                    kind;
-    s32                    dz;
-    s32                    clamped;
-    s32                    val;
-    s32                    push;
-    s16                    cooldown;
-    u32                    rng;
-    s32                    tilt;
-    s32                    byte1;
+    s32                      result;
+    s32                      maxPush;
+    s32                      hit;
+    u32                      lastId;
+    GolemPawnRookWork*       work;
+    GpDeltaScratch*          head;
+    GolemPawnRookHitScratch* scratch;
+    Enemy*                   enemy;
+    GfxCoord*                self;
+    GfxCoord*                other;
+    GfxCoord*                part;
+    s32                      i;
+    s32                      x, y, z;
+    s32                      damage;
+    s32                      kind;
+    s32                      dz;
+    s32                      clamped;
+    s32                      val;
+    s32                      push;
+    s16                      cooldown;
+    u32                      rng;
+    s32                      tilt;
+    s32                      byte1;
 
     result  = 0;
     maxPush = 0;
     hit     = 0;
     lastId  = 0;
-    work    = (Actor105600Work*)arg0->work;
+    work    = (GolemPawnRookWork*)arg0->work;
     head    = SCRATCH_STACK_CURSOR(GpDeltaScratch);
     self    = arg0->extra.tmd->coords;
-    SCRATCH_STACK_RESERVE_BLOCK(Actor105600HitScratch);
-    scratch = SCRATCH_STACK_CURSOR(Actor105600HitScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GolemPawnRookHitScratch);
+    scratch = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
     enemy   = (Enemy*)arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_584, head - 4, 4, NULL)) {

@@ -11,19 +11,19 @@
 /// fourth part on odd animation frames.
 void golemKnightBishopTranslucencyFade(Task* arg0)
 {
-    SVECTOR*          sc;
-    Actor402200Work*  work;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    GfxRotationWords* m;
-    s32               snd;
-    s32               pan;
-    s32               v;
-    s32               w;
-    s32               sy;
-    s32               y;
-    u32               random;
-    s16               t;
+    SVECTOR*               sc;
+    GolemKnightBishopWork* work;
+    TmdObject*             obj;
+    GfxCoord*              coord;
+    GfxRotationWords*      m;
+    s32                    snd;
+    s32                    pan;
+    s32                    v;
+    s32                    w;
+    s32                    sy;
+    s32                    y;
+    u32                    random;
+    s16                    t;
 
     sc    = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work  = arg0->work;

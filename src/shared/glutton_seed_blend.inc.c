@@ -6,8 +6,8 @@
 /// `field_7BC`.
 void gluttonSeedBlend(Task* task)
 {
-    Actor403200Work* work;
-    s32              i;
+    GluttonWork* work;
+    s32          i;
 
     work            = task->work;
     work->field_7BE = 0x30;

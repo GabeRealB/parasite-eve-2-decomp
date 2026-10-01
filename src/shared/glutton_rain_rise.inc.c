@@ -10,8 +10,8 @@
 /// Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
 void gluttonRainRise(Enemy* enemy, Task* task)
 {
-    Actor403200DropWork* work;
-    s32                  y;
+    GluttonDropWork* work;
+    s32              y;
 
     work = task->work;
     if (gGluttonEnded == 1) {

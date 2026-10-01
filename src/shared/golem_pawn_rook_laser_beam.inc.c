@@ -7,16 +7,16 @@
 /// `gGolemPawnRookBeamRibbonCorners`), a red `LINE_F2` core and a blend `DR_TPAGE`.
 void golemPawnRookDrawLaserBeam(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
 {
-    Actor105600BeamScratch* s;
-    GfxCoord*               self;
-    POLY_G4*                poly;
-    LINE_F2*                line;
-    DR_TPAGE*               page;
-    s32                     i;
-    s32                     j;
-    s32                     depth;
+    GolemPawnRookBeamScratch* s;
+    GfxCoord*                 self;
+    POLY_G4*                  poly;
+    LINE_F2*                  line;
+    DR_TPAGE*                 page;
+    s32                       i;
+    s32                       j;
+    s32                       depth;
 
-    s          = (Actor105600BeamScratch*)SCRATCH_STACK_RESERVE_BYTES(0x48);
+    s          = (GolemPawnRookBeamScratch*)SCRATCH_STACK_RESERVE_BYTES(0x48);
     self       = arg0->extra.tmd->coords;
     s->step.vx = (arg1->vx - arg2->vx) / 8;
     s->step.vy = (arg1->vy - arg2->vy) / 8;

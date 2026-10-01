@@ -5,8 +5,8 @@
 /// 0x80 to its y while `field_714` is below 2.
 void golemKnightBishopStepForward(Task* arg0)
 {
-    Actor402200Work* work;
-    GfxCoord*        coord;
+    GolemKnightBishopWork* work;
+    GfxCoord*              coord;
 
     coord              = &arg0->extra.tmd->coords[0];
     work               = arg0->work;

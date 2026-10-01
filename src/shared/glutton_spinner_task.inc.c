@@ -6,8 +6,8 @@
 /// it.
 void gluttonSpinnerTask(Task* arg0)
 {
-    GpEnemyTaskFuncTable4   sp;
-    Actor403200SpinnerWork* work;
+    GpEnemyTaskFuncTable4 sp;
+    GluttonSpinnerWork*   work;
 
     sp = gGluttonSpinnerStates;
 
@@ -24,7 +24,7 @@ void gluttonSpinnerTask(Task* arg0)
     }
 
     if (arg0->work != NULL) {
-        work = (Actor403200SpinnerWork*)arg0->work;
+        work = (GluttonSpinnerWork*)arg0->work;
         if (work->field_94 != arg0->state) {
             work->field_90 = 1;
         } else {

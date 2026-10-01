@@ -4,9 +4,9 @@
 /// table gives for the new id; otherwise ticks every slot one frame.
 static inline void maggotCaterpillarTickAnimInline(Task* task)
 {
-    Actor105500Work* work;
-    s32              i;
-    s32              value;
+    MaggotCaterpillarWork* work;
+    s32                    i;
+    s32                    value;
 
     work = task->work;
     if (work->field_392 != work->field_394) {

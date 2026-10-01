@@ -14,14 +14,14 @@
 /// and the shared state-F0 slot.
 void golemPawnRookApproachState(Task* arg0)
 {
-    Enemy*           spawn;
-    Actor105600Work* work;
-    GfxCoord*        self;
-    u8*              head;
-    s16              state;
-    s16              delta;
-    s32              ang;
-    s32              param;
+    Enemy*             spawn;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
+    u8*                head;
+    s16                state;
+    s16                delta;
+    s32                ang;
+    s32                param;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8) = head - 0x10;

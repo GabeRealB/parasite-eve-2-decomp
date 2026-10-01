@@ -7,9 +7,9 @@
 /// by one.
 void generatorTickPose(Task* arg0)
 {
-    Actor05300Work* work;
-    s32             i;
-    s32             value;
+    GeneratorWork* work;
+    s32            i;
+    s32            value;
 
     work = arg0->work;
     if ((s16)work->field_320 != work->field_322) {

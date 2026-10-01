@@ -6,9 +6,9 @@
 /// fourth body coordinate with a random upward velocity.
 static __inline__ void golemPawnRookSpawnDust(Task* actor)
 {
-    Actor105600Work* work;
-    SVECTOR*         head;
-    SVECTOR*         rot;
+    GolemPawnRookWork* work;
+    SVECTOR*           head;
+    SVECTOR*           rot;
 
     work                          = actor->work;
     head                          = SCRATCH_STACK_CURSOR(SVECTOR);
@@ -29,9 +29,9 @@ static __inline__ void golemPawnRookSpawnDust(Task* actor)
 /// the `field_6A6` table with animation 0x14.
 static inline void golemPawnRookApplyReaction(Task* actor)
 {
-    Enemy*           spawn;
-    Actor105600Work* work;
-    u8               flags;
+    Enemy*             spawn;
+    GolemPawnRookWork* work;
+    u8                 flags;
 
     spawn = actor->spawnArg2.pointer;
     flags = spawn->reactionFlags;
@@ -50,8 +50,8 @@ static inline void golemPawnRookApplyReaction(Task* actor)
 /// is below 2.
 static inline void golemPawnRookStepRoot(Task* actor)
 {
-    GfxCoord*        coord;
-    Actor105600Work* work;
+    GfxCoord*          coord;
+    GolemPawnRookWork* work;
 
     coord              = actor->extra.tmd->coords;
     work               = actor->work;
@@ -70,9 +70,9 @@ static inline void golemPawnRookStepRoot(Task* actor)
 /// over the animation's `gGolemPawnRookAnimBlendFrames` duration.
 static inline void golemPawnRookTickAnim(Task* actor)
 {
-    Actor105600Work* work;
-    s16              duration;
-    s32              i;
+    GolemPawnRookWork* work;
+    s16                duration;
+    s32                i;
 
     work = actor->work;
     if (work->field_694 != work->field_696) {

@@ -10,13 +10,13 @@
 /// half scale.
 void gluttonGlobFall(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work = task->work;
-    GfxCoord*            coord;
-    VECTOR               pos;
-    s32                  sfx;
-    s32                  pan;
-    s32                  drop;
-    s32                  bounce;
+    GluttonGrabWork* work = task->work;
+    GfxCoord*        coord;
+    VECTOR           pos;
+    s32              sfx;
+    s32              pan;
+    s32              drop;
+    s32              bounce;
 
     if (gGluttonEnded == 1) {
         Gp_DestroyEnemy(enemy, task);

@@ -5,5 +5,5 @@
 /// from the armed level. Nothing in either package calls it.
 void gluttonSetShakeLevel(s8 arg0)
 {
-    ((Actor403200Work*)GLUTTON_HOST_TASK->work)->field_EAC = arg0;
+    ((GluttonWork*)GLUTTON_HOST_TASK->work)->field_EAC = arg0;
 }

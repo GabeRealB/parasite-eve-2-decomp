@@ -19,11 +19,11 @@
 /// overlay is shutting down or the host actor has left the grab states.
 void gluttonThrowFly(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work;
-    Actor403200Work*     host;
-    Enemy*               owner;
-    u8*                  head;
-    SVECTOR*             dir;
+    GluttonGrabWork* work;
+    GluttonWork*     host;
+    Enemy*           owner;
+    u8*              head;
+    SVECTOR*         dir;
     /// Second live alias of `dir`: the GTE operand is kept in its own register
     /// for the whole function, which is what gives this function its seventh
     /// callee-saved slot.

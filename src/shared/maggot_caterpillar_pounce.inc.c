@@ -9,9 +9,9 @@
 /// returns to state 3 with a random delay.
 void maggotCaterpillarPounceState(Task* arg0)
 {
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    SVECTOR*         rotation;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    SVECTOR*               rotation;
     s16(*motion0)[2];
     s16(*motion1)[2];
     s16 state;

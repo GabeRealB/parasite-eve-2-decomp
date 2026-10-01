@@ -9,17 +9,17 @@
 /// vector it is accumulated in.
 void golemPawnRookLungeStrikeState(Task* arg0)
 {
-    Actor105600Work* work;
-    GfxCoord*        self;
-    VECTOR*          delta;
-    s16              anim;
-    s32              dx;
-    s32              dz;
-    s32              distance;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
+    VECTOR*            delta;
+    s16                anim;
+    s32                dx;
+    s32                dz;
+    s32                distance;
 
     SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     delta = SCRATCH_STACK_CURSOR(VECTOR);
-    work  = (Actor105600Work*)arg0->work;
+    work  = (GolemPawnRookWork*)arg0->work;
     anim  = gGolemPawnRookAnimBlendFrames[work->field_694];
     self  = arg0->extra.tmd->coords;
     if (work->field_698 == anim + 0x1C) {

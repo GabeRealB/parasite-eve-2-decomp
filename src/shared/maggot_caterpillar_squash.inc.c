@@ -6,10 +6,10 @@
 /// block that is released again.
 void maggotCaterpillarSquash(Task* arg0)
 {
-    GfxCoord*          coord;
-    ActorScaleScratch* head;
-    ActorScaleScratch* scratch;
-    Actor105500Work*   work;
+    GfxCoord*              coord;
+    ActorScaleScratch*     head;
+    ActorScaleScratch*     scratch;
+    MaggotCaterpillarWork* work;
 
     head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
     work                                    = arg0->work;

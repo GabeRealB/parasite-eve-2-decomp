@@ -9,8 +9,8 @@
 void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
 {
     TmdObject*             obj;
-    Actor05300Work*        work;
-    Actor05300Part*        part;
+    GeneratorWork*         work;
+    GeneratorPart*         part;
     GfxCoord*              coord;
     WorldCollisionContact* rec18;
     s32                    flag;
@@ -18,7 +18,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
-    work  = (Actor05300Work*)arg1->parent->work;
+    work  = (GeneratorWork*)arg1->parent->work;
     part  = memCalloc(0x48, 0);
     if (part == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
@@ -49,7 +49,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     part->obj.pos.vx           = 0;
     part->obj.pos.vy           = 0;
     part->obj.pos.vz           = 0;
-    part->obj.key              = ((Actor05300Work*)arg1->parent->work)->node0.key;
+    part->obj.key              = ((GeneratorWork*)arg1->parent->work)->node0.key;
     part->obj.radius           = 0xC8;
     part->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &part->obj);

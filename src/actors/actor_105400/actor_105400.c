@@ -58,13 +58,13 @@ typedef struct Actor05400Pose {
 } Actor05400Pose;
 STATIC_ASSERT_SIZEOF(Actor05400Pose, 0x10);
 
-extern EnemyParams        gGeneratorLifeSupportParams;
-extern Actor05300SpawnPos gGeneratorLifeSupportPos[2];
-extern Actor05300Clip     gGeneratorIdlePulse[];
-extern Actor05300SndRow   gGeneratorViewSound[];
-extern u32                gGeneratorPulseSoundId;
-extern s32                gGeneratorSoundIds[3];
-extern SVECTOR            gGeneratorHitEffectOffsets[];
+extern EnemyParams       gGeneratorLifeSupportParams;
+extern GeneratorSpawnPos gGeneratorLifeSupportPos[2];
+extern GeneratorClip     gGeneratorIdlePulse[];
+extern GeneratorSndRow   gGeneratorViewSound[];
+extern u32               gGeneratorPulseSoundId;
+extern s32               gGeneratorSoundIds[3];
+extern SVECTOR           gGeneratorHitEffectOffsets[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -86,9 +86,9 @@ extern TaskDesc            D_actor_105400_8013CEA0[2];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-extern Actor05300Clip gGeneratorHitPulse[];
-extern s16            gGeneratorPoseStartFrames[];
-extern s16            gGeneratorReleaseIds[];
+extern GeneratorClip gGeneratorHitPulse[];
+extern s16           gGeneratorPoseStartFrames[];
+extern s16           gGeneratorReleaseIds[];
 
 extern AnimationSet D_actor_105400_8013C5E0;
 extern AnimationSet D_actor_105400_8013CA20;
@@ -108,7 +108,7 @@ s16 gGeneratorPoseStartFrames[4] = {
     4,
 };
 
-Actor05300SpawnPos gGeneratorLifeSupportPos[2] = {
+GeneratorSpawnPos gGeneratorLifeSupportPos[2] = {
     { 6140, -6090, -8500 },
     { 1865, -1095, -4500 },
 };
@@ -237,7 +237,7 @@ u32 gGeneratorPulseSoundId = 0x55110008;
 
 u32 D_actor_105400_8013CE60 = 0x55110009;
 
-Actor05300SndRow gGeneratorViewSound[8] = {
+GeneratorSndRow gGeneratorViewSound[8] = {
     { 0, 0, 0, 0 },
     { 0, 0, 0, 0 },
     { -4, -1, 64, 0 },
@@ -248,13 +248,13 @@ Actor05300SndRow gGeneratorViewSound[8] = {
     { 12, 0, 32, 0 },
 };
 
-Actor05300Clip gGeneratorIdlePulse[3] = {
+GeneratorClip gGeneratorIdlePulse[3] = {
     { 0, 4032 },
     { 0, 4096 },
     { 1, 4160 },
 };
 
-Actor05300Clip gGeneratorHitPulse[4] = {
+GeneratorClip gGeneratorHitPulse[4] = {
     { 0, 3968 },
     { 0, 3840 },
     { 0, 4096 },
@@ -307,7 +307,7 @@ static void func_actor_105400_8013310C(Enemy* arg0, Task* arg1)
     TmdObject*       obj;
     TmdObject*       model;
     GfxCoord*        coord;
-    Actor05300Work*  work;
+    GeneratorWork*   work;
     GameLocationKey  key;
     GpAreaVariant*   rec;
     AreaPlacement*   place;
@@ -320,7 +320,7 @@ static void func_actor_105400_8013310C(Enemy* arg0, Task* arg1)
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
-    work  = memCalloc(sizeof(Actor05300Work), 0);
+    work  = memCalloc(sizeof(GeneratorWork), 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

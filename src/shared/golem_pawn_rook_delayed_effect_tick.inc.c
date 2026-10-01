@@ -8,13 +8,13 @@
 /// every state handler takes and is unused here.
 void golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task)
 {
-    EffectWork*      effect;
-    Task*            parent;
-    Actor105600Work* work;
-    s16              count;
+    EffectWork*        effect;
+    Task*              parent;
+    GolemPawnRookWork* work;
+    s16                count;
 
     parent                 = task->parent;
-    work                   = (Actor105600Work*)parent->work;
+    work                   = (GolemPawnRookWork*)parent->work;
     task->extra.tmd->flags = (u16)parent->extra.tmd->flags;
     if (work->field_6D8 > 0) {
         count           = (u16)work->field_6D8 - 1;

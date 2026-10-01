@@ -10,11 +10,11 @@
 /// sequence already held by `field_6F2` running.
 void golemKnightBishopPickHitReaction(Task* arg0, s32 arg1)
 {
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    s16              hp    = enemy->hp;
-    Actor402200Work* work  = arg0->work;
-    u32              state = 0;
-    s32              max;
+    Enemy*                 enemy = arg0->spawnArg2.pointer;
+    s16                    hp    = enemy->hp;
+    GolemKnightBishopWork* work  = arg0->work;
+    u32                    state = 0;
+    s32                    max;
 
     if (hp <= 0) {
         state = 6;

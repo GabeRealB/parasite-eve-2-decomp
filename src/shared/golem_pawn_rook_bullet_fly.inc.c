@@ -9,20 +9,20 @@
 /// to state 2, and a kind-1 body contact also starts a pad rumble.
 void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
 {
-    Actor105600FxWork* work;
-    GfxCoord*          coord;
-    TmdObject*         tmd;
-    SVECTOR*           scratch;
-    Enemy*             ctx;
-    s32                found;
-    s32                idx;
-    s32                sound;
-    s32                pan;
-    VECTOR             pos;
+    GolemPawnRookFxWork* work;
+    GfxCoord*            coord;
+    TmdObject*           tmd;
+    SVECTOR*             scratch;
+    Enemy*               ctx;
+    s32                  found;
+    s32                  idx;
+    s32                  sound;
+    s32                  pan;
+    VECTOR               pos;
 
     tmd   = arg1->extra.tmd;
     coord = tmd->coords;
-    work  = (Actor105600FxWork*)arg1->work;
+    work  = (GolemPawnRookFxWork*)arg1->work;
     found = 0;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

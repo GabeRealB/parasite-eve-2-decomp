@@ -16,18 +16,18 @@
 /// host actor has left the grab states, or the work block cannot be allocated.
 void gluttonThrowSpawn(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work;
-    Enemy*               owner;
-    Actor403200Work*     host;
-    SVECTOR              pos;
-    SVECTOR              vec;
+    GluttonGrabWork* work;
+    Enemy*           owner;
+    GluttonWork*     host;
+    SVECTOR          pos;
+    SVECTOR          vec;
 
     owner = task->parent->spawnArg2.pointer;
     host  = owner->task->work;
 
     if (gGluttonEnded == 1 || host->field_0 == 0x10 || host->field_0 == 5 ||
         host->field_0 == 0xC || host->field_0 == 0x12 ||
-        (work = memCalloc(sizeof(Actor403200GrabWork), false), task->work = work, work == NULL)) {
+        (work = memCalloc(sizeof(GluttonGrabWork), false), task->work = work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }

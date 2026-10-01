@@ -9,11 +9,11 @@
 /// cleared once `Gp_ObjFlag4Expired` returns non-zero.
 void maggotCaterpillarApplyStatus(Task* arg0)
 {
-    Actor105500Work* work;
-    s32              damage;
-    s32              remaining;
-    u8               flags;
-    Enemy*           ctx;
+    MaggotCaterpillarWork* work;
+    s32                    damage;
+    s32                    remaining;
+    u8                     flags;
+    Enemy*                 ctx;
 
     ctx   = arg0->spawnArg2.pointer;
     flags = ctx->reactionFlags;

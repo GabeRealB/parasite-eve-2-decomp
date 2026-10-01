@@ -5,9 +5,9 @@
 /// `Actor02000_Fn02A34` plus the dust effect.
 void golemPawnRookFrameState(Enemy* ctx, Task* actor)
 {
-    TmdObject*       model;
-    Actor105600Work* work;
-    GfxCoord*        coord;
+    TmdObject*         model;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
 
     work  = actor->work;
     model = actor->extra.tmd;

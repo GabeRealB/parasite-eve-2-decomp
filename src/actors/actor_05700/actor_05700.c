@@ -55,7 +55,7 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/golem_pawn_rook.h"
 
-/// Sound ids this actor's cues play, indexed by `Actor105600Work.field_6D6`
+/// Sound ids this actor's cues play, indexed by `GolemPawnRookWork.field_6D6`
 /// (row `field_6D6` starts at the second word, the `- 1` in the body).
 extern s32 gGolemPawnRookVoiceCues[];
 
@@ -1315,17 +1315,17 @@ static void            Actor05700_Fn03CC4(Enemy* ctx, Task* actor);
 /// and state 4 spawns effect 0x6006E on frame 0x1A.
 void Actor05700_Fn01E28(Task* arg0)
 {
-    s16              diff;
-    s32              mag;
-    s16              angle;
-    s32              dx;
-    s32              dz;
-    VECTOR*          delta;
-    VECTOR*          normal;
-    VECTOR*          normal2;
-    GfxCoord*        target;
-    Actor105600Work* work;
-    GfxCoord*        coord;
+    s16                diff;
+    s32                mag;
+    s16                angle;
+    s32                dx;
+    s32                dz;
+    VECTOR*            delta;
+    VECTOR*            normal;
+    VECTOR*            normal2;
+    GfxCoord*          target;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
 
     delta = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x20);
     work  = arg0->work;
@@ -1508,22 +1508,22 @@ static __inline__ void _actor05700TintSpawn(Enemy* spawned, Enemy* ctx)
 /// 0) or parks it on one of the two resume animations (states 1 and 2).
 static void Actor05700_Fn03CC4(Enemy* ctx, Task* actor)
 {
-    Actor105600Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GfxCoord*        parts;
-    GfxCoord*        partsA;
-    GfxCoord*        partsB;
-    GfxCoord*        partsC;
-    GfxCoord*        partsD;
-    GfxCoord*        effParts;
-    Enemy*           eff;
-    u16*             tbl;
-    u8               param1[8];
-    u8               param2[8];
-    s32              i;
-    s32              param;
-    u32              lcg;
+    GolemPawnRookWork* work;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    GfxCoord*          parts;
+    GfxCoord*          partsA;
+    GfxCoord*          partsB;
+    GfxCoord*          partsC;
+    GfxCoord*          partsD;
+    GfxCoord*          effParts;
+    Enemy*             eff;
+    u16*               tbl;
+    u8                 param1[8];
+    u8                 param2[8];
+    s32                i;
+    s32                param;
+    u32                lcg;
 
     obj   = actor->extra.tmd;
     coord = obj->coords;
@@ -1698,26 +1698,26 @@ static void Actor05700_Fn03CC4(Enemy* ctx, Task* actor)
 
 void Actor05700_Fn04714(Task* arg0)
 {
-    s16              yaw;
-    s16              yaw2;
-    s16              state;
-    s16              deltaYaw;
-    s16              deltaYaw2;
-    s16              speed;
-    s32              magnitude;
-    s32              magnitude2;
-    s16              wrapped;
-    s16              wrapped2;
-    s16              angle;
-    s32              dx;
-    s32              dz;
-    u32              random;
-    u16              flags;
-    u16              flags2;
-    u8*              head;
-    VECTOR*          delta;
-    Actor105600Work* work;
-    GfxCoord*        coord;
+    s16                yaw;
+    s16                yaw2;
+    s16                state;
+    s16                deltaYaw;
+    s16                deltaYaw2;
+    s16                speed;
+    s32                magnitude;
+    s32                magnitude2;
+    s16                wrapped;
+    s16                wrapped2;
+    s16                angle;
+    s32                dx;
+    s32                dz;
+    u32                random;
+    u16                flags;
+    u16                flags2;
+    u8*                head;
+    VECTOR*            delta;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
     delta                    = (VECTOR*)(head - 0x10);

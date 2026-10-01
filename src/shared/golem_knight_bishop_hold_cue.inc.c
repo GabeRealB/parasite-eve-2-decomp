@@ -5,12 +5,12 @@
 /// the player and disarms.
 void golemKnightBishopHoldCueTimer(Task* arg0)
 {
-    Actor402200Work* work;
-    s16              timer;
-    s32              sound;
-    s32              pan;
-    Task*            slot;
-    GfxCoord*        coord;
+    GolemKnightBishopWork* work;
+    s16                    timer;
+    s32                    sound;
+    s32                    pan;
+    Task*                  slot;
+    GfxCoord*              coord;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;

@@ -6,9 +6,9 @@
 /// cleared and the enemy parks on animation 2 (entry 2) when done.
 void golemPawnRookRecoilState(Task* arg0)
 {
-    Actor105600Work* work;
-    s32              state;
-    s32              next;
+    GolemPawnRookWork* work;
+    s32                state;
+    s32                next;
 
     work  = arg0->work;
     state = work->field_6A8;

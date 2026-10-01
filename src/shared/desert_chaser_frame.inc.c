@@ -8,20 +8,20 @@
 /// local position, parented to the view.
 void desertChaserFrameState(Enemy* enemy, Task* task)
 {
-    Actor323000Work*        work;
-    GpEnemyTaskFuncTable4   sp;
-    Actor323000TickScratch* scratch;
-    u8*                     head;
-    GfxCoord*               walker;
-    SVECTOR*                pos;
+    DesertChaserWork*        work;
+    GpEnemyTaskFuncTable4    sp;
+    DesertChaserTickScratch* scratch;
+    u8*                      head;
+    GfxCoord*                walker;
+    SVECTOR*                 pos;
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     sp                                    = gDesertChaserStates;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head                                  = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8)              = head - 0x1C;
-    scratch                               = (Actor323000TickScratch*)(head - 0x1C);
+    scratch                               = (DesertChaserTickScratch*)(head - 0x1C);
     Gp_UpdateCoord(task->extra.tmd->coords);
     scratch->pos.vx = task->extra.tmd->coords->workm.t[0];
     scratch->pos.vy = task->extra.tmd->coords->workm.t[1];

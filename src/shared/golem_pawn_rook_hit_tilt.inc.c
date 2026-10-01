@@ -6,16 +6,16 @@
 /// settled, `field_6B4` is cleared.
 void golemPawnRookDecayHitTilt(Task* arg0)
 {
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    MATRIX*          matrix;
-    s32              angleX;
-    s32              angleY;
-    s32              absX;
-    s32              nextX;
-    s32              absY;
-    s32              nextY;
-    s32              active;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
+    MATRIX*            matrix;
+    s32                angleX;
+    s32                angleY;
+    s32                absX;
+    s32                nextX;
+    s32                absY;
+    s32                nextY;
+    s32                active;
 
     matrix = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     active = 0;

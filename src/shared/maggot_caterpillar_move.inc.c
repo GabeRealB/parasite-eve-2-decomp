@@ -6,8 +6,8 @@
 /// unit; `field_3A8` is added to the height unscaled.
 void maggotCaterpillarMoveStep(Task* arg0)
 {
-    GfxCoord*        coord;
-    Actor105500Work* work;
+    GfxCoord*              coord;
+    MaggotCaterpillarWork* work;
 
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;

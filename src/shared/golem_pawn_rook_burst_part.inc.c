@@ -4,14 +4,14 @@
 /// to the pan/depth sound cue, then parks the work block in state 2.
 void golemPawnRookBurstPartTick(Enemy* arg0, Task* arg1)
 {
-    Task*            owner;
-    TmdObject*       obj;
-    TmdObject*       ownerObj;
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    s16              state;
-    s32              snd;
-    s32              pan;
+    Task*              owner;
+    TmdObject*         obj;
+    TmdObject*         ownerObj;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
+    s16                state;
+    s32                snd;
+    s32                pan;
 
     owner      = arg1->parent;
     obj        = arg1->extra.tmd;

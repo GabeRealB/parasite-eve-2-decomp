@@ -10,11 +10,11 @@
 /// the fade and `func_8009EA50`.
 void golemKnightBishopFrameState(Enemy* arg0, Task* arg1)
 {
-    Actor402200Work* temp_s1;
-    TmdObject*       temp_a1;
-    GfxCoord*        temp_s2;
-    s32              state;
-    s32              one;
+    GolemKnightBishopWork* temp_s1;
+    TmdObject*             temp_a1;
+    GfxCoord*              temp_s2;
+    s32                    state;
+    s32                    one;
 
     temp_s1 = arg1->work;
     temp_a1 = arg1->extra.tmd;

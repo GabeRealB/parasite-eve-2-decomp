@@ -22,16 +22,16 @@
 /// the work block cannot be allocated.
 void gluttonRainSpawn(Enemy* enemy, Task* task)
 {
-    Actor403200DropWork* work;
-    Enemy*               owner;
-    Task*                parent;
-    Task*                player;
-    OverlayMat*          mtx;
-    SVECTOR              vec;
-    s32                  dist;
-    s32                  rnd;
-    s32                  snd;
-    s32                  pan;
+    GluttonDropWork* work;
+    Enemy*           owner;
+    Task*            parent;
+    Task*            player;
+    OverlayMat*      mtx;
+    SVECTOR          vec;
+    s32              dist;
+    s32              rnd;
+    s32              snd;
+    s32              pan;
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     owner  = task->parent->spawnArg2.pointer;
@@ -41,7 +41,7 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    work       = memCalloc(sizeof(Actor403200DropWork), false);
+    work       = memCalloc(sizeof(GluttonDropWork), false);
     task->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);

@@ -7,7 +7,7 @@
 void gluttonChunkTask(Task* arg0)
 {
     GpEnemyTaskFuncTable4 sp;
-    Actor403200GrabWork*  work;
+    GluttonGrabWork*      work;
 
     sp = gGluttonChunkStates;
 
@@ -24,7 +24,7 @@ void gluttonChunkTask(Task* arg0)
     }
 
     if (arg0->work != NULL) {
-        work = (Actor403200GrabWork*)arg0->work;
+        work = (GluttonGrabWork*)arg0->work;
         if (work->field_1B4 != arg0->state) {
             work->field_1A8 = 1;
         } else {

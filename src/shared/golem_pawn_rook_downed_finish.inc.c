@@ -6,9 +6,9 @@
 /// chain advances to state 2.
 void golemPawnRookDownedFinishState(Task* arg0)
 {
-    Actor105600Work* work;
-    s32              sel;
-    s16              state;
+    GolemPawnRookWork* work;
+    s32                sel;
+    s16                state;
 
     work  = arg0->work;
     state = work->field_6A8;

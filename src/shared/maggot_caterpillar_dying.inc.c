@@ -12,12 +12,12 @@
 /// frames later.
 void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
 {
-    VECTOR           vec;
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        colorCoord;
-    TmdObject*       obj;
-    s32              releaseId;
+    VECTOR                 vec;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    GfxCoord*              colorCoord;
+    TmdObject*             obj;
+    s32                    releaseId;
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;

@@ -10,9 +10,9 @@
 /// still-installed animation on the way out.
 void gluttonGlobHold(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work;
-    Task*                player;
-    s32                  armed;
+    GluttonGrabWork* work;
+    Task*            player;
+    s32              armed;
 
     work   = task->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);

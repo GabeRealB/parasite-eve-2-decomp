@@ -6,10 +6,10 @@
 /// load with the store and transposes it.
 void desertChaserHideState(Enemy* arg0, Task* arg1)
 {
-    Actor323000Work* work;
-    TmdObject*       obj;
+    DesertChaserWork* work;
+    TmdObject*        obj;
 
-    work = (Actor323000Work*)arg1->work;
+    work = (DesertChaserWork*)arg1->work;
     if (work->field_4 != 0) {
         obj                          = arg1->extra.tmd;
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;

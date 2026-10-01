@@ -9,9 +9,9 @@
 /// fresh 6-bit dwell into `field_6AE`.
 void golemPawnRookDownedShiftState(Task* arg0)
 {
-    Actor105600Work* work;
-    s16              state;
-    s32              next;
+    GolemPawnRookWork* work;
+    s16                state;
+    s32                next;
 
     work  = arg0->work;
     state = work->field_6A8;

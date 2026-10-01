@@ -6,15 +6,15 @@
 /// offset along the screen normal, a centre line and a tpage.
 void golemKnightBishopDrawAimBeam(Task* arg0)
 {
-    Actor402200TrailScratch* sc;
-    Actor402200Work*         work;
-    POLY_G4*                 poly;
-    LINE_F2*                 line;
-    DR_TPAGE*                tp;
-    s32                      i;
-    s32                      j;
+    GolemKnightBishopTrailScratch* sc;
+    GolemKnightBishopWork*         work;
+    POLY_G4*                       poly;
+    LINE_F2*                       line;
+    DR_TPAGE*                      tp;
+    s32                            i;
+    s32                            j;
 
-    sc         = SCRATCH_STACK_RESERVE_BLOCK(Actor402200TrailScratch);
+    sc         = SCRATCH_STACK_RESERVE_BLOCK(GolemKnightBishopTrailScratch);
     work       = arg0->work;
     sc->dir.vx = work->field_6FC[1] - work->field_6FC[0];
     sc->dir.vy = work->field_700[1] - work->field_700[0];
@@ -76,5 +76,5 @@ void golemKnightBishopDrawAimBeam(Task* arg0)
         tp->code[0] = 0xE1000620;
         addPrim((&gGpuCurrentOt[((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), tp);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(Actor402200TrailScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GolemKnightBishopTrailScratch);
 }

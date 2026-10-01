@@ -9,14 +9,14 @@
 /// task to the per-frame driver.
 void desertChaserSpawn(Enemy* enemy, Task* task)
 {
-    SVECTOR          unused; // never referenced; only reserves the frame slot the ROM has
-    VECTOR           pos;
-    TmdObject*       obj;
-    TmdObject*       tmd;
-    GfxCoord*        coord;
-    Actor323000Work* work;
-    Actor323000Work* work2;
-    Actor323000Work* mem;
+    SVECTOR           unused; // never referenced; only reserves the frame slot the ROM has
+    VECTOR            pos;
+    TmdObject*        obj;
+    TmdObject*        tmd;
+    GfxCoord*         coord;
+    DesertChaserWork* work;
+    DesertChaserWork* work2;
+    DesertChaserWork* mem;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -28,7 +28,7 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
         return;
     }
     task->exitCallback = desertChaserExit;
-    work2              = (Actor323000Work*)task->work;
+    work2              = (DesertChaserWork*)task->work;
     tmd                = task->extra.tmd;
     tmd->lightMtx      = &work2->light;
     tmd->colorMtx      = &work2->color;

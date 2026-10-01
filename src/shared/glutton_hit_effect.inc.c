@@ -9,7 +9,7 @@
 /// scratchpad stack for the duration of the call.
 void gluttonHitEffect(GfxCoord* coord, s32 id)
 {
-    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200EffScratch));
+    GluttonEffScratch* sc = (GluttonEffScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonEffScratch));
 
     sc->eff.spawnArgLo = 0x500;
     sc->eff.coord      = coord;
@@ -56,5 +56,5 @@ void gluttonHitEffect(GfxCoord* coord, s32 id)
             break;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200EffScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonEffScratch));
 }

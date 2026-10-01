@@ -11,16 +11,16 @@
 /// target 0x4B out along the result, enabling grid tests through `field_5BA`.
 void golemKnightBishopPlaceTarget(Task* arg0)
 {
-    u8*                       head;
-    Actor402200OffsetScratch* sc;
-    Actor402200Work*          work;
-    GfxCoord*                 coord;
-    u32                       random;
-    s32                       angle;
+    u8*                             head;
+    GolemKnightBishopOffsetScratch* sc;
+    GolemKnightBishopWork*          work;
+    GfxCoord*                       coord;
+    u32                             random;
+    s32                             angle;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200OffsetScratch);
-    sc                       = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GolemKnightBishopOffsetScratch);
+    sc                       = (GolemKnightBishopOffsetScratch*)(head - sizeof(GolemKnightBishopOffsetScratch));
     work                     = arg0->work;
     if (work->field_6CE == 3) {
         coord           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
@@ -65,5 +65,5 @@ void golemKnightBishopPlaceTarget(Task* arg0)
         work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->in.vz;
         work->field_5BA |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopOffsetScratch));
 }

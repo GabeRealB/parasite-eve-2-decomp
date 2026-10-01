@@ -9,42 +9,42 @@
 /// plays the sound `desertChaserAnimCues` returns, panned at the root.
 void desertChaserAnimTick(Task* task)
 {
-    Actor323000Work* work;
-    Actor323000Work* seekWork;
-    Actor323000Work* resetWork;
-    Actor323000Work* secondaryWork;
-    Actor323000Work* tickWork;
-    Actor323000Work* turnWork;
-    u32              table;
-    s16              state;
-    s32              seekIndex;
-    s32              seekSlotIndex;
-    s32              animation;
-    s32              index;
-    s32              resetIndex;
-    s32              resetSlotIndex;
-    s32              secondaryIndex;
-    s32              secondarySlotIndex;
-    s32              tickIndex;
-    s32              tickSlotIndex;
-    s32              targetAngle;
-    s32              currentAngle;
-    s32              targetAngleBits;
-    s32              currentAngleBits;
-    s16              angle;
-    s32              clampedAngle;
-    s16              thirdAngle;
-    s32              targetTurn;
-    u16              originalTurn;
-    s32              signedTurn;
-    s16              currentTurn;
-    s32              updatedTurn;
-    u16              updatedTurnBits;
-    s32              delta;
-    s32              sound;
-    s32              pan;
+    DesertChaserWork* work;
+    DesertChaserWork* seekWork;
+    DesertChaserWork* resetWork;
+    DesertChaserWork* secondaryWork;
+    DesertChaserWork* tickWork;
+    DesertChaserWork* turnWork;
+    u32               table;
+    s16               state;
+    s32               seekIndex;
+    s32               seekSlotIndex;
+    s32               animation;
+    s32               index;
+    s32               resetIndex;
+    s32               resetSlotIndex;
+    s32               secondaryIndex;
+    s32               secondarySlotIndex;
+    s32               tickIndex;
+    s32               tickSlotIndex;
+    s32               targetAngle;
+    s32               currentAngle;
+    s32               targetAngleBits;
+    s32               currentAngleBits;
+    s16               angle;
+    s32               clampedAngle;
+    s16               thirdAngle;
+    s32               targetTurn;
+    u16               originalTurn;
+    s32               signedTurn;
+    s16               currentTurn;
+    s32               updatedTurn;
+    u16               updatedTurnBits;
+    s32               delta;
+    s32               sound;
+    s32               pan;
 
-    work  = (Actor323000Work*)task->work;
+    work  = (DesertChaserWork*)task->work;
     state = work->field_828;
     if (state == 1) {
         if (work->field_82C != work->field_82E) {
@@ -79,7 +79,7 @@ void desertChaserAnimTick(Task* task)
         Mem_Set(work->field_848, 0U, 0x48U);
     }
     if (work->field_836 == 2) {
-        secondaryWork            = (Actor323000Work*)task->work;
+        secondaryWork            = (DesertChaserWork*)task->work;
         secondaryIndex           = 1;
         secondaryWork->field_83A = 0x20;
         secondaryWork->field_83C = 0x800;
@@ -93,7 +93,7 @@ void desertChaserAnimTick(Task* task)
     }
     work->field_830 = (u16)(work->field_830 + 1);
     if (work->field_82A == 0) {
-        tickWork  = (Actor323000Work*)task->work;
+        tickWork  = (DesertChaserWork*)task->work;
         tickIndex = 1;
         do {
             tickSlotIndex                   = tickIndex;
@@ -140,7 +140,7 @@ void desertChaserAnimTick(Task* task)
         ActorContact_TurnJoint(&task->extra.tmd->coords[4], (s16)clampedAngle / 2);
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    turnWork     = (Actor323000Work*)task->work;
+    turnWork     = (DesertChaserWork*)task->work;
     targetTurn   = (u16)turnWork->field_83E;
     originalTurn = targetTurn;
     if ((s16)targetTurn >= 0x201) {

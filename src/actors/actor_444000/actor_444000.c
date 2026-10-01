@@ -74,7 +74,7 @@
 
 /// Work block of the overlay's event/controller task -- the one
 /// `D_actor_444000_80161860` points at, which is a different and much smaller
-/// block than the enemy's `Actor403200Work` above.
+/// block than the enemy's `GluttonWork` above.
 ///
 /// `func_actor_444000_80132358` allocates it with `memCalloc(0x34, 0)`,
 /// `Mem_Set`s 0x34 bytes and parks it in that task's `Task::work` slot, so
@@ -108,7 +108,7 @@ STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 /// Scratchpad frame `func_actor_444000_8013482C` carves off the scratch stack
 /// for the run-out / turn / run-back pass. `dir` is first the offset from the
 /// model to the player, whose yaw against the model's own facing becomes
-/// `Actor403200Work::field_7C4`, and later the normalised, GPF-scaled step the
+/// `GluttonWork::field_7C4`, and later the normalised, GPF-scaled step the
 /// turn adds to the coordinate; `m` is the working copy of the model's root
 /// coordinate and `angle` the yaw `gfxRotMatrixY` rebuilds it from.
 typedef struct Actor444000RunScratch {
@@ -313,7 +313,7 @@ extern SVECTOR gGluttonSpinnerTarget;
 
 /// Shared coordinate `func_actor_444000_80140BBC` rebuilds when the fight
 /// reaches sub-state 0x2D of state 9, parented to the host model's fifth part.
-extern Actor403200DropCoord D_actor_444000_801618B8;
+extern GluttonDropCoord D_actor_444000_801618B8;
 
 /// Which of the three shared debris coordinates below the next launch uses,
 /// cycled 0/1/2 by `func_actor_444000_801404C0`.
@@ -2686,7 +2686,7 @@ SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
 Actor444000Storage1898 gGluttonGrabQuery = { { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-Actor403200DropCoord D_actor_444000_801618B8 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
+GluttonDropCoord D_actor_444000_801618B8 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
 Actor444000Storage1908 D_actor_444000_80161908 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
@@ -2701,7 +2701,7 @@ static __inline__ void Actor444000_StepForward(GfxCoord* coord);
 static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y);
 static void            func_actor_444000_8013A77C(Task* task);
 static __inline__ void Actor444000_RebuildRotation(Task* task);
-static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* work);
+static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work);
 static void            func_actor_444000_8013C060(Task* task);
 static void            func_actor_444000_8013C4B0(Task* task);
 static void            func_actor_444000_8013CA60(Task* task);
@@ -2711,7 +2711,7 @@ static __inline__ void Actor444000_ReleaseRotScratch(void);
 static __inline__ void Actor444000_FlattenRotation(GfxCoord* coord, s32 vy);
 static void            func_actor_444000_8013D96C(Task* arg0);
 static void            func_actor_444000_8013E058(Task* task);
-static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor403200Work* work,
+static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* work,
                                                     Task* player, Actor444000WarpScratch* sc,
                                                     PlayerStatus* cfg);
 static void            func_actor_444000_8013EC84(Task* arg0);
@@ -3062,7 +3062,7 @@ static __inline__ void Actor444000_StepForward(GfxCoord* coord)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
-/// The run-out / turn / run-back pass, stepped by `Actor403200Work::field_F08`.
+/// The run-out / turn / run-back pass, stepped by `GluttonWork::field_F08`.
 ///
 /// A reset request re-arms the block: the model's flag word and the enemy's
 /// link state are cleared, both colour steps are switched on, animation 2 is
@@ -3081,7 +3081,7 @@ static void func_actor_444000_8013482C(Task* task)
     Actor444000RunScratch* sc;
     OverlayMat*            mat;
     TmdObject*             tmd;
-    Actor403200Work*       work;
+    GluttonWork*           work;
     Enemy*                 enemy;
     GfxCoord*              coord;
     GfxCoord*              model;
@@ -3362,14 +3362,14 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 /// step 0xA0 enqueues the collapse cue.
 static void func_actor_444000_80135448(Task* task)
 {
-    Actor403200Work* work;
-    Enemy*           enemy;
-    TmdObject*       tmd;
-    MATRIX           mat;
-    SVECTOR          pos;
-    SVECTOR*         verts;
-    s32              frame;
-    s32              step;
+    GluttonWork* work;
+    Enemy*       enemy;
+    TmdObject*   tmd;
+    MATRIX       mat;
+    SVECTOR      pos;
+    SVECTOR*     verts;
+    s32          frame;
+    s32          step;
 
     work  = task->work;
     enemy = task->spawnArg2.pointer;
@@ -3921,8 +3921,8 @@ static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
 /// itself once the counter runs out.
 static void func_actor_444000_8013A77C(Task* task)
 {
-    Actor403200Work* work = task->work;
-    s32              phase;
+    GluttonWork* work = task->work;
+    s32          phase;
 
     if (work->field_EAC != work->field_EAD) {
         switch (work->field_EAC) {
@@ -4024,16 +4024,16 @@ static void func_actor_444000_8013A77C(Task* task)
 /// is always true.
 s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
 {
-    TmdObject*       tmd;
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* buffers;
-    Actor403200Work* rebuilt;
-    TmdObject*       hostTmd;
-    TmdObject*       escortTmd;
-    s32              flags;
-    s16              i;
-    s16              j;
+    TmdObject*   tmd;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* buffers;
+    GluttonWork* rebuilt;
+    TmdObject*   hostTmd;
+    TmdObject*   escortTmd;
+    s32          flags;
+    s16          i;
+    s16          j;
 
     tmd  = task->extra.tmd;
     work = task->work;
@@ -4165,10 +4165,10 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
 /// raising eight floor vertices and flattening the model's rotation.
 s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg)
 {
-    Actor403200Work* work  = task->work;
-    Enemy*           enemy = task->spawnArg2.pointer;
-    SVECTOR*         verts;
-    s32              action;
+    GluttonWork* work  = task->work;
+    Enemy*       enemy = task->spawnArg2.pointer;
+    SVECTOR*     verts;
+    s32          action;
 
     work->field_EC4 = msg->context.loc.stage;
     work->field_EC5 = msg->context.loc.area;
@@ -4231,7 +4231,7 @@ s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg)
 /// matrix lives in a frame taken off the scratch stack, which is handed back
 /// once the rotation has been copied out; inlined so each scratch-head access
 /// keeps its own `lui` instead of sharing a CSE'd register.
-static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* work)
+static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work)
 {
     GfxCoord*             coord = task->extra.tmd->coords;
     ActorScaleRotScratch* sc;
@@ -4262,7 +4262,7 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* wo
     SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
-/// Spawn state of the arena boss: allocate its `Actor403200Work`, wire the host
+/// Spawn state of the arena boss: allocate its `GluttonWork`, wire the host
 /// enemy up to the model's root coordinate and its nine collision objects, then
 /// spawn the seven escorts that make up the rest of the creature.
 ///
@@ -4281,23 +4281,23 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* wo
 /// before the fight announces itself with message 0x7DA.
 static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 {
-    Actor403200Work* work;
-    Actor403200Work* buffers;
-    Actor403200Work* escorts;
-    OverlayMat*      mtx;
-    TmdObject*       tmd;
-    TmdObject*       model;
-    TmdObject*       escortTmd;
-    GfxCoord*        coord;
-    GfxCoord*        freeCoord;
-    Enemy*           esc;
-    Task*            escTask;
-    SVECTOR          dir;
-    SVECTOR*         gteDir;
-    VECTOR           pos;
-    s16              i;
-    s16              j;
-    s16              k;
+    GluttonWork* work;
+    GluttonWork* buffers;
+    GluttonWork* escorts;
+    OverlayMat*  mtx;
+    TmdObject*   tmd;
+    TmdObject*   model;
+    TmdObject*   escortTmd;
+    GfxCoord*    coord;
+    GfxCoord*    freeCoord;
+    Enemy*       esc;
+    Task*        escTask;
+    SVECTOR      dir;
+    SVECTOR*     gteDir;
+    VECTOR       pos;
+    s16          i;
+    s16          j;
+    s16          k;
 
     tmd   = task->extra.tmd;
     coord = tmd->coords;
@@ -4606,8 +4606,8 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 /// to be spelled out, since nothing lifts them out of a goto loop.
 static void func_actor_444000_8013C060(Task* task)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
+    GluttonHitScratch*     sc;
+    GluttonWork*           work;
     Enemy*                 enemy;
     WorldCollisionContact* recs;
     PlayerStatus*          cfg;
@@ -4624,7 +4624,7 @@ static void func_actor_444000_8013C060(Task* task)
     cfg   = &gPlayerStatus;
     enemy = task->spawnArg2.pointer;
     work  = task->work;
-    sc    = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    sc    = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos   = &sc->pos;
     recs  = work->hits[0].recs;
     i     = 0;
@@ -4717,7 +4717,7 @@ found:
         enemy->hp -= sc->damage;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// The hit handler for collision groups 1 and 2 -- the same scan
@@ -4738,8 +4738,8 @@ found:
 /// that escort's facing, wrapped to +/-0x800.
 static void func_actor_444000_8013C4B0(Task* task)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
+    GluttonHitScratch*     sc;
+    GluttonWork*           work;
     Enemy*                 host;
     PlayerStatus*          cfg;
     GfxCoord*              coord;
@@ -4760,7 +4760,7 @@ static void func_actor_444000_8013C4B0(Task* task)
     cfg  = &gPlayerStatus;
     host = task->spawnArg2.pointer;
     work = task->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
     recs = work->hits[1].recs;
     for (i = 0; i < 5; i++) {
@@ -4900,7 +4900,7 @@ hit:
         }
     }
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// The hit handler for collision groups 3, 4 and 5 -- `func_actor_444000_8013C4B0`
@@ -4918,8 +4918,8 @@ out:
 /// while `field_F08` is clear, or while the player hold is armed.
 static void func_actor_444000_8013CA60(Task* task)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
+    GluttonHitScratch*     sc;
+    GluttonWork*           work;
     Enemy*                 host;
     PlayerStatus*          cfg;
     GfxCoord*              coord;
@@ -4943,7 +4943,7 @@ static void func_actor_444000_8013CA60(Task* task)
     cfg  = &gPlayerStatus;
     host = task->spawnArg2.pointer;
     work = task->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
     recs = work->hits[3].recs;
     for (i = 0; i < 5; i++) {
@@ -5099,7 +5099,7 @@ stored:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
@@ -5121,8 +5121,8 @@ out:
 /// yaw of the contact point relative to the *first* escort's facing.
 static void func_actor_444000_8013D128(Task* task)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
+    GluttonHitScratch*     sc;
+    GluttonWork*           work;
     Enemy*                 host;
     PlayerStatus*          cfg;
     GfxCoord*              coord;
@@ -5146,7 +5146,7 @@ static void func_actor_444000_8013D128(Task* task)
     cfg  = &gPlayerStatus;
     host = task->spawnArg2.pointer;
     work = task->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
     recs = work->hits[6].recs;
     for (i = 0; i < 5; i++) {
@@ -5306,7 +5306,7 @@ stored:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// Reset/teardown handler: when the work block is asking for a reset, arm the
@@ -5316,11 +5316,11 @@ out:
 /// every escort's model buffers.
 static void func_actor_444000_8013D810(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    s16              i;
-    s16              j;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    s16          i;
+    s16          j;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -5405,9 +5405,9 @@ static __inline__ void Actor444000_FlattenRotation(GfxCoord* coord, s32 vy)
 /// like a copy-paste slip in the original but is what the ROM does.
 static void func_actor_444000_8013D96C(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    s16              i;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    s16          i;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -5479,13 +5479,13 @@ static void func_actor_444000_8013D96C(Task* arg0)
 /// its two spawned escorts.
 static void func_actor_444000_8013E058(Task* task)
 {
-    Actor403200Work*        work  = task->work;
+    GluttonWork*            work  = task->work;
     Enemy*                  enemy = task->spawnArg2.pointer;
     Task*                   slot3;
     GameActor*              actor;
     Actor444000DragScratch* sc;
-    Actor403200Work*        escorts;
-    Actor403200Work*        buffers;
+    GluttonWork*            escorts;
+    GluttonWork*            buffers;
     PlayerStatus*           cfg;
     GfxCoord*               coord;
     GfxCoord*               facing;
@@ -5760,7 +5760,7 @@ static void func_actor_444000_8013E058(Task* task)
 /// send (`..._80161680` past a quarter turn, `..._80161670` within it), and the
 /// opposite yaw is stowed in `field_7C4` for the drive step. The normalised
 /// direction scaled to 0x384 is where the player is asked to stand.
-static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor403200Work* work,
+static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* work,
                                                     Task* player, Actor444000WarpScratch* sc,
                                                     PlayerStatus* cfg)
 {
@@ -5847,9 +5847,9 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, Actor403200Work*
 static void func_actor_444000_8013EC84(Task* arg0)
 {
     Actor444000WarpScratch* sc;
-    Actor403200Work*        work;
-    Actor403200Work*        escorts;
-    Actor403200Work*        buffers;
+    GluttonWork*            work;
+    GluttonWork*            escorts;
+    GluttonWork*            buffers;
     Enemy*                  enemy;
     Task*                   player;
     PlayerStatus*           cfg;
@@ -6063,9 +6063,9 @@ static void func_actor_444000_8013EC84(Task* arg0)
 /// cancels the animation with message 0x3F1 and drops the hold.
 static void func_actor_444000_8013FB74(Task* arg0)
 {
-    Actor403200Work*       work;
-    Actor403200Work*       escorts;
-    Actor403200Work*       buffers;
+    GluttonWork*           work;
+    GluttonWork*           escorts;
+    GluttonWork*           buffers;
     Enemy*                 enemy;
     Task*                  player;
     Task*                  target;
@@ -6327,20 +6327,20 @@ scanned:
 /// second animation slot raises its flag.
 static void func_actor_444000_801404C0(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Enemy*           enemy;
-    Enemy*           spawned;
-    GfxCoord*        coord;
-    SVECTOR          pos;
-    SVECTOR*         posp;
-    s16              i;
-    s32              resetId;
-    s32              resetPan;
-    s32              cueId;
-    s32              cuePan;
-    s32              hitId;
-    s32              hitPan;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    Enemy*       enemy;
+    Enemy*       spawned;
+    GfxCoord*    coord;
+    SVECTOR      pos;
+    SVECTOR*     posp;
+    s16          i;
+    s32          resetId;
+    s32          resetPan;
+    s32          cueId;
+    s32          cuePan;
+    s32          hitId;
+    s32          hitPan;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -6454,16 +6454,16 @@ static void func_actor_444000_801404C0(Task* arg0)
 /// rebuild.
 static void func_actor_444000_80140BBC(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* buffers;
-    TmdObject*       tmd;
-    TmdObject*       escortTmd;
-    OverlayMat*      mtx;
-    GfxCoord*        coords;
-    s16              i;
-    s16              j;
-    s32              frame;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* buffers;
+    TmdObject*   tmd;
+    TmdObject*   escortTmd;
+    OverlayMat*  mtx;
+    GfxCoord*    coords;
+    s16          i;
+    s16          j;
+    s32          frame;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -6536,16 +6536,16 @@ static void func_actor_444000_80140BBC(Task* arg0)
 /// so the spawn does not repeat while the frame is held.
 static void func_actor_444000_80140E28(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* buffers;
-    Enemy*           obj;
-    TmdObject*       tmd;
-    TmdObject*       escortTmd;
-    s16              i;
-    s16              j;
-    s16              k;
-    s32              frame;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* buffers;
+    Enemy*       obj;
+    TmdObject*   tmd;
+    TmdObject*   escortTmd;
+    s16          i;
+    s16          j;
+    s16          k;
+    s32          frame;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -6595,12 +6595,12 @@ static void func_actor_444000_80140E28(Task* arg0)
 
 static void func_actor_444000_8014105C(Task* arg0)
 {
-    Actor403200Work* work;
-    Enemy*           obj;
-    TmdObject*       tmd;
-    s32              state;
-    s32              id;
-    s32              pan;
+    GluttonWork* work;
+    Enemy*       obj;
+    TmdObject*   tmd;
+    s32          state;
+    s32          id;
+    s32          pan;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -6658,15 +6658,15 @@ static void func_actor_444000_8014105C(Task* arg0)
 /// outlive the first `ratan2` call.
 static void func_actor_444000_801411C8(Task* arg0)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
-    Enemy*                 enemy;
-    Task*                  player;
-    GfxCoord*              coord;
-    GfxCoord*              facing;
-    SVECTOR                vec;
-    SVECTOR*               d;
-    s16                    angle;
+    GluttonHitScratch* sc;
+    GluttonWork*       work;
+    Enemy*             enemy;
+    Task*              player;
+    GfxCoord*          coord;
+    GfxCoord*          facing;
+    SVECTOR            vec;
+    SVECTOR*           d;
+    s16                angle;
 
     work   = arg0->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -6757,7 +6757,7 @@ static void func_actor_444000_801411C8(Task* arg0)
         return;
     }
 
-    sc           = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    sc           = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     sc->delta.vx = player->extra.tmd->coords->coord.t[0] -
                    arg0->extra.tmd->coords->coord.t[0] - 0x51F;
     sc->delta.vy = player->extra.tmd->coords->coord.t[1] -
@@ -6785,7 +6785,7 @@ static void func_actor_444000_801411C8(Task* arg0)
     } else {
         work->field_0 = 3;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// Escort-spawn tick of the arena fight: re-arms the block on request and, on
@@ -6796,27 +6796,27 @@ static void func_actor_444000_801411C8(Task* arg0)
 /// or 1 a 0x7DB order whose action is picked from `field_F08` and a coin flip.
 static void func_actor_444000_80141618(Task* task)
 {
-    Actor403200SpawnScratch* sc;
-    Actor403200Work*         work;
-    Enemy*                   host;
-    Enemy*                   escort;
-    PlayerStatus*            cfg;
-    GfxCoord*                coord;
-    GfxCoord*                facing;
-    TmdObject*               model;
-    AreaPlacement*           entry;
-    GameLocationKey          key;
-    GameLocationKey*         sessionKey;
-    s32                      cueId;
-    s32                      cuePan;
-    s32                      blastId;
-    s32                      blastPan;
-    s32                      rnd;
-    s32                      state;
-    s16                      angle;
-    u32                      frame;
+    GluttonSpawnScratch* sc;
+    GluttonWork*         work;
+    Enemy*               host;
+    Enemy*               escort;
+    PlayerStatus*        cfg;
+    GfxCoord*            coord;
+    GfxCoord*            facing;
+    TmdObject*           model;
+    AreaPlacement*       entry;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    s32                  cueId;
+    s32                  cuePan;
+    s32                  blastId;
+    s32                  blastPan;
+    s32                  rnd;
+    s32                  state;
+    s16                  angle;
+    u32                  frame;
 
-    sc   = (Actor403200SpawnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200SpawnScratch));
+    sc   = (GluttonSpawnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonSpawnScratch));
     work = task->work;
     host = task->spawnArg2.pointer;
     if (work->field_4 != 0) {
@@ -6986,7 +6986,7 @@ static void func_actor_444000_80141618(Task* task)
         TASK_MESSAGE_DISPATCH_POINTER(work->field_EE8[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.value, 0);
     }
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200SpawnScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonSpawnScratch));
 }
 
 /// Gives `model` the texture page and palette of the third placement in the
@@ -7017,22 +7017,22 @@ static inline void _actor444000TintEscort(TmdObject* model)
 /// the player's coordinate matrix through the shared drive step.
 static void func_actor_444000_80141DFC(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* buffers;
-    Enemy*           obj;
-    Enemy*           child;
-    GfxCoord*        coord;
-    GfxCoord*        headCoord;
-    TmdObject*       tmd;
-    TmdObject*       escortTmd;
-    SVECTOR          vec;
-    SVECTOR*         v;
-    s16              i;
-    s16              j;
-    s16              angle;
-    s32              id;
-    s32              pan;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* buffers;
+    Enemy*       obj;
+    Enemy*       child;
+    GfxCoord*    coord;
+    GfxCoord*    headCoord;
+    TmdObject*   tmd;
+    TmdObject*   escortTmd;
+    SVECTOR      vec;
+    SVECTOR*     v;
+    s16          i;
+    s16          j;
+    s16          angle;
+    s32          id;
+    s32          pan;
 
     work = arg0->work;
     obj  = arg0->spawnArg2.pointer;
@@ -7213,7 +7213,7 @@ static void func_actor_444000_80142254(void)
 
 /// Per-frame body of the boss task: refreshes the host model's coordinate,
 /// times out the "model buffers freed" countdown, re-lights the host and its
-/// escorts, then runs the state handler `Actor403200Work::field_0` selects and
+/// escorts, then runs the state handler `GluttonWork::field_0` selects and
 /// republishes every collision group.
 ///
 /// `gSceneCombatState.actorControl` gates how much of that runs. While the controller task is
@@ -7241,10 +7241,10 @@ static void func_actor_444000_80142254(void)
 /// The dispatch table is a local, as in `func_actor_444000_80142F28`.
 static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
 {
-    PlayerStatus*    cfg  = &gPlayerStatus;
-    Actor403200Work* work = task->work;
-    VECTOR           pos;
-    TaskFunc         handlers[0x15] = {
+    PlayerStatus* cfg  = &gPlayerStatus;
+    GluttonWork*  work = task->work;
+    VECTOR        pos;
+    TaskFunc      handlers[0x15] = {
         func_actor_444000_8013D810,
         func_actor_444000_80143F4C,
         NULL,
@@ -7267,11 +7267,11 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         func_actor_444000_8013D96C,
         NULL,
     };
-    Actor403200Work* escorts;
-    Actor403200Work* flagged;
-    s32              view;
-    s16              i;
-    s16              j;
+    GluttonWork* escorts;
+    GluttonWork* flagged;
+    s32          view;
+    s16          i;
+    s16          j;
 
     view                                    = Gp_GetViewIndex() & 0xFF;
     task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -7581,13 +7581,13 @@ void func_actor_444000_80142F28(Task* arg0)
         func_actor_444000_801423C4,
         Gp_DestroyEnemy,
     };
-    SVECTOR          result;
-    Actor403200Work* work;
-    Enemy*           enemy;
-    Task*            player;
-    SVECTOR*         verts;
-    s32              diff;
-    s16              state;
+    SVECTOR      result;
+    GluttonWork* work;
+    Enemy*       enemy;
+    Task*        player;
+    SVECTOR*     verts;
+    s32          diff;
+    s16          state;
 
     enemy  = arg0->spawnArg2.pointer;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -7733,8 +7733,8 @@ void func_actor_444000_80142F28(Task* arg0)
 /// yaw presets in `field_7C4`, alternating every 60 counts.
 static void func_actor_444000_801434C4(Task* arg0)
 {
-    Actor403200Work* work;
-    s16              tick;
+    GluttonWork* work;
+    s16          tick;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -7762,11 +7762,11 @@ static void func_actor_444000_801434C4(Task* arg0)
 
 static void func_actor_444000_801435CC(Task* arg0)
 {
-    Actor403200Work* work;
-    Enemy*           obj;
-    TmdObject*       tmd;
-    s32              id;
-    s32              pan;
+    GluttonWork* work;
+    Enemy*       obj;
+    TmdObject*   tmd;
+    s32          id;
+    s32          pan;
 
     work = arg0->work;
     obj  = arg0->spawnArg2.pointer;
@@ -7828,7 +7828,7 @@ s32 func_actor_444000_80143D68(Task* arg0)
 /// dirty. Same body as `ActorsShared80135990` with that state gate added.
 s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement)
 {
-    Actor403200Work* work = arg0->work;
+    GluttonWork* work = arg0->work;
 
     arg0->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     arg0->extra.tmd->coords->coord.t[1] = placement->pos.vy;
@@ -7849,8 +7849,8 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement)
 /// enemy whose HP has run out.
 s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2)
 {
-    Actor403200Work* work = arg0->work;
-    Enemy*           obj  = arg0->spawnArg2.pointer;
+    GluttonWork* work = arg0->work;
+    Enemy*       obj  = arg0->spawnArg2.pointer;
 
     switch (arg2) {
         case 0:
@@ -7878,7 +7878,7 @@ s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2)
 
 s32 func_actor_444000_80143F38(Task* arg0)
 {
-    ((Actor403200Work*)arg0->work)->field_0 = 0;
+    ((GluttonWork*)arg0->work)->field_0 = 0;
     return 1;
 }
 
@@ -7888,9 +7888,9 @@ s32 func_actor_444000_80143F38(Task* arg0)
 /// the ordinary re-arm in `gluttonTickAnim`.
 static void func_actor_444000_80143F4C(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    s16              i;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    s16          i;
 
     work = arg0->work;
     if (work->field_4 != 0) {

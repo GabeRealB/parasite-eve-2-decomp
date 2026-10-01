@@ -8,9 +8,9 @@
 /// with animation 0xB, `field_3D2` cleared and a random 0..15 in `field_39E`.
 void maggotCaterpillarStunState(Task* arg0)
 {
-    Actor105500Work* work;
-    s16              state;
-    u32              random;
+    MaggotCaterpillarWork* work;
+    s16                    state;
+    u32                    random;
 
     work  = arg0->work;
     state = work->field_39C;

@@ -5,10 +5,10 @@
 /// destroys the child once 0x3D frames have passed.
 void golemPawnRookBulletDestroy(Enemy* arg0, Task* arg1)
 {
-    Actor105600FxWork* work;
-    u16                temp_v0;
+    GolemPawnRookFxWork* work;
+    u16                  temp_v0;
 
-    work = (Actor105600FxWork*)arg1->work;
+    work = (GolemPawnRookFxWork*)arg1->work;
     switch (work->field_EC) {
         case 0:
             Gp_UnlinkObj(&work->obj40);

@@ -144,30 +144,30 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor);
 /// `field_6B2` when the player's segment test against `field_4B4` fails.
 void golemPawnRookTakeHits(Task* arg0)
 {
-    s32                    result;
-    s32                    maxPush;
-    s32                    hit;
-    u32                    lastId;
-    Actor105600Work*       work;
-    GpDeltaScratch*        head;
-    Actor105600HitScratch* scratch;
-    Enemy*                 enemy;
-    GfxCoord*              self;
-    GfxCoord*              other;
-    GfxCoord*              part;
-    s32                    i;
-    s32                    x, y, z;
-    s32                    damage;
-    s32                    kind;
-    s32                    dz;
-    s32                    clamped;
-    s32                    val;
-    s32                    push;
-    s16                    cooldown;
-    u32                    rng;
-    s32                    tilt;
-    s32                    byte1;
-    s32                    max;
+    s32                      result;
+    s32                      maxPush;
+    s32                      hit;
+    u32                      lastId;
+    GolemPawnRookWork*       work;
+    GpDeltaScratch*          head;
+    GolemPawnRookHitScratch* scratch;
+    Enemy*                   enemy;
+    GfxCoord*                self;
+    GfxCoord*                other;
+    GfxCoord*                part;
+    s32                      i;
+    s32                      x, y, z;
+    s32                      damage;
+    s32                      kind;
+    s32                      dz;
+    s32                      clamped;
+    s32                      val;
+    s32                      push;
+    s16                      cooldown;
+    u32                      rng;
+    s32                      tilt;
+    s32                      byte1;
+    s32                      max;
 
     result  = 0;
     maxPush = 0;
@@ -176,8 +176,8 @@ void golemPawnRookTakeHits(Task* arg0)
     work    = arg0->work;
     head    = SCRATCH_STACK_CURSOR(GpDeltaScratch);
     self    = arg0->extra.tmd->coords;
-    SCRATCH_STACK_RESERVE_BLOCK(Actor105600HitScratch);
-    scratch = SCRATCH_STACK_CURSOR(Actor105600HitScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(GolemPawnRookHitScratch);
+    scratch = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
     enemy   = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_584, head - 4, 4, NULL)) {
@@ -1443,20 +1443,20 @@ TaskFunc gGolemPawnRookStates[15] = {
 
 void Actor02000_Fn00E0C(Task* arg0)
 {
-    s16              state;
-    s16              nextAnim;
-    s16              nextAnim2;
-    s32              snd;
-    s32              random3;
-    s32              pan;
-    s32              pan2;
-    s32              pan3;
-    u16              timer;
-    u16              timer2;
-    u32              random;
-    u32              random2;
-    Actor105600Work* work;
-    GfxCoord*        self;
+    s16                state;
+    s16                nextAnim;
+    s16                nextAnim2;
+    s32                snd;
+    s32                random3;
+    s32                pan;
+    s32                pan2;
+    s32                pan3;
+    u16                timer;
+    u16                timer2;
+    u32                random;
+    u32                random2;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
 
     work  = arg0->work;
     self  = arg0->extra.tmd->coords;
@@ -1581,25 +1581,25 @@ void Actor02000_Fn00E0C(Task* arg0)
 
 void Actor02000_Fn01DF0(Task* arg0)
 {
-    s16              state;
-    s16              yawDiff;
-    s32              magnitude;
-    s16              angle;
-    s16              wrapped;
-    void**           scratch;
-    s32              sound;
-    s32              dx0;
-    s32              dx2;
-    s32              dz2;
-    s32              dx1;
-    s32              dz1;
-    s32              dist;
-    s32              dz0;
-    s32              pan;
-    u8*              head;
-    Actor105600Work* work;
-    GfxCoord*        self;
-    VECTOR*          delta;
+    s16                state;
+    s16                yawDiff;
+    s32                magnitude;
+    s16                angle;
+    s16                wrapped;
+    void**             scratch;
+    s32                sound;
+    s32                dx0;
+    s32                dx2;
+    s32                dz2;
+    s32                dx1;
+    s32                dz1;
+    s32                dist;
+    s32                dz0;
+    s32                pan;
+    u8*                head;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
+    VECTOR*            delta;
 
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = head - 0x10;
@@ -1735,22 +1735,22 @@ void Actor02000_Fn01DF0(Task* arg0)
 /// while 1 and 2 only prime the animation state and hand the task to state 2.
 static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
 {
-    Actor105600Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GfxCoord*        parts;
-    GfxCoord*        partsA;
-    GfxCoord*        partsB;
-    GfxCoord*        partsC;
-    GfxCoord*        effParts;
-    Enemy*           eff;
-    u16*             tbl;
-    u8               param1[8];
-    u8               param2[8];
-    s32              i;
-    s32              one;
-    s32              kind;
-    s32              param;
+    GolemPawnRookWork* work;
+    TmdObject*         obj;
+    GfxCoord*          coord;
+    GfxCoord*          parts;
+    GfxCoord*          partsA;
+    GfxCoord*          partsB;
+    GfxCoord*          partsC;
+    GfxCoord*          effParts;
+    Enemy*             eff;
+    u16*               tbl;
+    u8                 param1[8];
+    u8                 param2[8];
+    s32                i;
+    s32                one;
+    s32                kind;
+    s32                param;
 
     obj   = actor->extra.tmd;
     coord = obj->coords;
@@ -1916,25 +1916,25 @@ case2:
 
 void Actor02000_Fn02D5C(Task* arg0)
 {
-    s16              yaw;
-    s16              yaw2;
-    s16              state;
-    s16              deltaYaw;
-    s16              deltaYaw2;
-    s16              speed;
-    s32              magnitude;
-    s32              magnitude2;
-    s16              wrapped;
-    s16              wrapped2;
-    s16              angle;
-    s32              dx;
-    s32              dz;
-    u16              flags;
-    u16              flags2;
-    u8*              head;
-    VECTOR*          delta;
-    Actor105600Work* work;
-    GfxCoord*        coord;
+    s16                yaw;
+    s16                yaw2;
+    s16                state;
+    s16                deltaYaw;
+    s16                deltaYaw2;
+    s16                speed;
+    s32                magnitude;
+    s32                magnitude2;
+    s16                wrapped;
+    s16                wrapped2;
+    s16                angle;
+    s32                dx;
+    s32                dz;
+    u16                flags;
+    u16                flags2;
+    u8*                head;
+    VECTOR*            delta;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
 
     head                     = SCRATCH_STACK_CURSOR(u8);
     delta                    = (VECTOR*)(head - 0x10);

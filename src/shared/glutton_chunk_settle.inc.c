@@ -12,9 +12,9 @@
 /// model's own `workm` translation is handed to `Gp_UpdateActorColor`.
 void gluttonChunkSettle(Enemy* enemy, Task* task)
 {
-    Actor403200GrabWork* work = task->work;
-    VECTOR               pos;
-    s16                  step;
+    GluttonGrabWork* work = task->work;
+    VECTOR           pos;
+    s16              step;
 
     if (gGluttonEnded == 1) {
         Gp_UnlinkObj(&work->obj0);

@@ -6,10 +6,10 @@
 /// (entry 2).
 void golemPawnRookFlagWaitState(Task* task)
 {
-    Actor105600Work* work;
-    s16              state;
+    GolemPawnRookWork* work;
+    s16                state;
 
-    work  = (Actor105600Work*)task->work;
+    work  = (GolemPawnRookWork*)task->work;
     state = work->field_6A8;
     switch (state) {
         case 0:

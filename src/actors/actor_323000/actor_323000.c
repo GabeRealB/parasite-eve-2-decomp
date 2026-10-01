@@ -100,7 +100,7 @@ static void func_actor_323000_8016409C(Enemy* enemy, Task* task);
 static void func_actor_323000_8016420C(Enemy* enemy, Task* task);
 static void func_actor_323000_80164C58(Enemy* enemy, Task* task);
 
-/// State handlers `desertChaserFrameState` runs by `Actor323000Work::field_0`.
+/// State handlers `desertChaserFrameState` runs by `DesertChaserWork::field_0`.
 #include "../../shared/actor_contacts.h"
 
 static const GpEnemyTaskFuncTable4 gDesertChaserStates = {
@@ -3054,7 +3054,7 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2);
 /// the `SndEvt_EnqueueType6` id to play (0 where only effects fire).
 /// `field_848` remembers each slot's last clip so the step fires once; it is
 /// cleared when none of the watched clips is playing.
-s32 desertChaserAnimCues(Task* task, Actor323000Work* work)
+s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
 {
     SVECTOR vec;
     s32     reset;
@@ -3296,11 +3296,11 @@ s32 desertChaserAnimCues(Task* task, Actor323000Work* work)
 /// spawn argument 0x80002300 while slot 1 plays clip 7 or 9, 0x80003400 for 8.
 static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
 {
-    Actor323000Work* work;
-    TmdObject*       obj;
-    SVECTOR          sp10;
+    DesertChaserWork* work;
+    TmdObject*        obj;
+    SVECTOR           sp10;
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
     if (work->field_4 != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
@@ -3344,14 +3344,14 @@ static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
 /// `placeKey`.
 static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
 {
-    Actor323000Work* work;
-    TmdObject*       obj;
-    s32              id;
-    s32              pan;
-    SVECTOR          ofs2;
-    SVECTOR          ofs;
+    DesertChaserWork* work;
+    TmdObject*        obj;
+    s32               id;
+    s32               pan;
+    SVECTOR           ofs2;
+    SVECTOR           ofs;
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
     if (work->field_4 != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -3447,9 +3447,9 @@ void func_actor_323000_8016483C(void)
 /// the bytes.
 s32 func_actor_323000_80164A54(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
-    Actor323000Work* work;
+    DesertChaserWork* work;
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
 
     work->field_91C = msg->context.loc.stage;
     work->field_91D = msg->context.loc.area;
@@ -3521,11 +3521,11 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2)
 /// tick runs every frame.
 static void func_actor_323000_80164C58(Enemy* enemy, Task* task)
 {
-    Actor323000Work* work;
-    TmdObject*       obj;
-    SVECTOR          unused; // never referenced; only reserves the frame slot the ROM has
+    DesertChaserWork* work;
+    TmdObject*        obj;
+    SVECTOR           unused; // never referenced; only reserves the frame slot the ROM has
 
-    work = (Actor323000Work*)task->work;
+    work = (DesertChaserWork*)task->work;
     if (work->field_4 != 0) {
         obj                           = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;

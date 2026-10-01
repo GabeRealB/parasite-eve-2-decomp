@@ -17,20 +17,20 @@
 /// sequence has ended and the release has run.
 void generatorDeathState(Enemy* arg0, Task* arg1)
 {
-    SVECTOR         ofs;
-    VECTOR          pos;
-    TmdObject*      obj;
-    Actor05300Work* work;
-    GfxCoord*       coord;
-    GfxCoord*       tmp;
-    Actor05300Clip* clip;
-    u16             scale;
-    s32             r;
-    s8              flag;
-    s32             x;
-    s32             z;
-    s32             x2;
-    s32             z2;
+    SVECTOR        ofs;
+    VECTOR         pos;
+    TmdObject*     obj;
+    GeneratorWork* work;
+    GfxCoord*      coord;
+    GfxCoord*      tmp;
+    GeneratorClip* clip;
+    u16            scale;
+    s32            r;
+    s8             flag;
+    s32            x;
+    s32            z;
+    s32            x2;
+    s32            z2;
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;

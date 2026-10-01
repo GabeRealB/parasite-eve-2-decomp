@@ -11,9 +11,9 @@ void desertChaserBlendTick(Task* task)
     AnimationContext* anim;
     s16               weight;
     s16               i;
-    Actor323000Work*  work;
+    DesertChaserWork* work;
 
-    work   = (Actor323000Work*)task->work;
+    work   = (DesertChaserWork*)task->work;
     weight = work->field_83C;
     anim   = &work->anim;
     for (i = 1; i < 0x12; i++) {

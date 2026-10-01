@@ -8,11 +8,11 @@
 /// spray's tail length, with a random delay taken from the placement-row table.
 void maggotCaterpillarSprayState(Task* arg0)
 {
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    s32              sound;
-    s32              pan;
-    u32              random;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    s32                    sound;
+    s32                    pan;
+    u32                    random;
 
     work            = arg0->work;
     coord           = arg0->extra.tmd->coords;

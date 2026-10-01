@@ -6,11 +6,11 @@
 /// matrix is multiplied into it.
 void golemKnightBishopApplyScale(Task* arg0)
 {
-    void**           scratch;
-    OverlayMat*      head;
-    OverlayMat*      m;
-    GfxCoord*        coord;
-    Actor402200Work* work;
+    void**                 scratch;
+    OverlayMat*            head;
+    OverlayMat*            m;
+    GfxCoord*              coord;
+    GolemKnightBishopWork* work;
 
     scratch                              = SCRATCH_HEAD_ADDR;
     head                                 = SCRATCH_HEAD_AT(scratch, OverlayMat);

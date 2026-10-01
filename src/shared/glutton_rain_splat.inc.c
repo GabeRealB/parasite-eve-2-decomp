@@ -10,7 +10,7 @@
 /// coordinate keeps tracking the model.
 void gluttonRainSplat(Enemy* enemy, Task* task)
 {
-    Actor403200DropWork* work;
+    GluttonDropWork* work;
 
     work = task->work;
     work->timer++;

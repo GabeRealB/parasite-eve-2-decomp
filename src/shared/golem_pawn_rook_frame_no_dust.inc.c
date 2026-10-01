@@ -9,9 +9,9 @@
 /// `field_6C4` dust spawn.
 void golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor)
 {
-    TmdObject*       model;
-    Actor105600Work* work;
-    GfxCoord*        coord;
+    TmdObject*         model;
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
 
     work  = actor->work;
     model = actor->extra.tmd;

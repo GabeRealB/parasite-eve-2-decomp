@@ -10,12 +10,12 @@
 /// otherwise to state 3 with animation 1 and a random 0..15 in `field_39E`.
 void maggotCaterpillarHurtState(Task* arg0)
 {
-    Actor105500Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              sound;
-    s32              pan;
-    u32              random;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    s32                    state;
+    s32                    sound;
+    s32                    pan;
+    u32                    random;
 
     work  = arg0->work;
     state = work->field_39C;

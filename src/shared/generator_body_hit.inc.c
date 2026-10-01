@@ -12,17 +12,17 @@
 /// and plays the hit sound.
 void generatorBodyHit(Task* arg0)
 {
-    Actor05300Scratch* scr;
-    Actor05300Work*    work;
-    Enemy*             enemy;
-    GfxCoord*          coord;
-    s32                damage;
-    s32                lastId;
-    s32                val;
-    s32                snd;
-    s32                i;
+    GeneratorScratch* scr;
+    GeneratorWork*    work;
+    Enemy*            enemy;
+    GfxCoord*         coord;
+    s32               damage;
+    s32               lastId;
+    s32               val;
+    s32               snd;
+    s32               i;
 
-    scr    = SCRATCH_STACK_RESERVE_BLOCK(Actor05300Scratch);
+    scr    = SCRATCH_STACK_RESERVE_BLOCK(GeneratorScratch);
     coord  = arg0->extra.tmd->coords;
     work   = arg0->work;
     enemy  = arg0->spawnArg2.pointer;
@@ -92,5 +92,5 @@ void generatorBodyHit(Task* arg0)
     }
 end:
     Gp_ClearRec18Occupied(work->rec18);
-    SCRATCH_STACK_RELEASE_BLOCK(Actor05300Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GeneratorScratch);
 }

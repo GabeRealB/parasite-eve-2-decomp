@@ -7,14 +7,14 @@
 /// animation 4 and state 1.
 void golemPawnRookCheckProximity(Task* arg0)
 {
-    Actor105600Work* work;
-    GfxCoord*        self;
-    s32              dx;
-    s32              distance;
-    s32              dz;
-    s32              trigger;
-    VECTOR*          head;
-    VECTOR*          delta;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
+    s32                dx;
+    s32                distance;
+    s32                dz;
+    s32                trigger;
+    VECTOR*            head;
+    VECTOR*            delta;
 
     self                         = arg0->extra.tmd->coords;
     work                         = arg0->work;

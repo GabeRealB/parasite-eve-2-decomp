@@ -10,7 +10,7 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     Task*                        parent;
     TmdObject*                   parentObj;
     GfxCoord*                    coord;
-    Actor105500Work*             parentWork;
+    MaggotCaterpillarWork*       parentWork;
     GfxCoord*                    parentCoord;
     ActorsShared80135c4cObjWork* work;
     u16                          pair;
@@ -18,7 +18,7 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     parent      = task->parent;
     parentObj   = parent->extra.tmd;
     coord       = task->extra.tmd->coords;
-    parentWork  = (Actor105500Work*)parent->work;
+    parentWork  = (MaggotCaterpillarWork*)parent->work;
     parentCoord = &parentObj->coords[4];
     work        = memCalloc(sizeof(*work), false);
     if (work == NULL) {

@@ -9,10 +9,10 @@
 void gluttonGlobTask(Task* arg0)
 {
     GpEnemyTaskFuncTable5 sp;
-    Actor403200GrabWork*  work;
+    GluttonGrabWork*      work;
 
     sp   = gGluttonGlobStates;
-    work = (Actor403200GrabWork*)arg0->work;
+    work = (GluttonGrabWork*)arg0->work;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

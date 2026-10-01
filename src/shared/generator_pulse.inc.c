@@ -18,11 +18,11 @@
 /// with the work block's sound id.
 void generatorPulse(Task* arg0)
 {
-    Actor05300Work* work;
-    GfxCoord*       coord;
-    u16             scale;
-    s32             pan;
-    s32             sndId;
+    GeneratorWork* work;
+    GfxCoord*      coord;
+    u16            scale;
+    s32            pan;
+    s32            sndId;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;

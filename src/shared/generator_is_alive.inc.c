@@ -4,5 +4,5 @@
 /// sets to 1 and generatorBodyHit clears when the killing hit lands.
 s16 generatorIsAlive(Task* arg0)
 {
-    return ((Actor05300Work*)arg0->work)->field_338;
+    return ((GeneratorWork*)arg0->work)->field_338;
 }

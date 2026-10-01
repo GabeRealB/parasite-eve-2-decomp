@@ -9,10 +9,10 @@
 /// `field_6CC` if it was 1.
 void golemKnightBishopLightFlinchSeq(Task* arg0)
 {
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    s32              state;
-    s32              pan;
+    GolemKnightBishopWork* work;
+    GfxCoord*              coord;
+    s32                    state;
+    s32                    pan;
 
     work  = arg0->work;
     state = work->field_6CE;

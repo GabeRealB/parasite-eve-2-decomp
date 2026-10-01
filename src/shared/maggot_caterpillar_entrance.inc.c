@@ -8,9 +8,9 @@
 /// fall speed amid rising dust. Either way it then joins the idle state.
 void maggotCaterpillarEntranceState(Task* arg0)
 {
-    TmdObject*       obj;
-    Actor105500Work* work;
-    GfxCoord*        coord;
+    TmdObject*             obj;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
     s16(*motion)[2];
     SVECTOR* scratchEnd;
     SVECTOR* velocity;

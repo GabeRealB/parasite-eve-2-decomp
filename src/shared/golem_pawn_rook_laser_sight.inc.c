@@ -10,13 +10,13 @@
 /// the rotated result and the parked point go to `golemPawnRookDrawLaserBeam`.
 void golemPawnRookAimLaserSight(Task* arg0)
 {
-    Actor105600AimScratch* scratch;
-    Actor105600Work*       work;
-    GfxCoord*              self;
+    GolemPawnRookAimScratch* scratch;
+    GolemPawnRookWork*       work;
+    GfxCoord*                self;
 
-    scratch              = (Actor105600AimScratch*)SCRATCH_STACK_RESERVE_BYTES(0x40);
+    scratch              = (GolemPawnRookAimScratch*)SCRATCH_STACK_RESERVE_BYTES(0x40);
     self                 = arg0->extra.tmd->coords;
-    work                 = (Actor105600Work*)arg0->work;
+    work                 = (GolemPawnRookWork*)arg0->work;
     self[0].composeStamp = GRAPHICS_COORD_DIRTY;
     self[7].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&self[7]);

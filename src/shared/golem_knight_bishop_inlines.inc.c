@@ -4,9 +4,9 @@
 /// 1..0x12 when the animation id changes, otherwise ticks them a frame.
 static inline void golemKnightBishopTickAnimInline(Task* arg0)
 {
-    Actor402200Work* work;
-    s32              i;
-    s32              value;
+    GolemKnightBishopWork* work;
+    s32                    i;
+    s32                    value;
 
     work = arg0->work;
     if (work->field_6C0 != work->field_6C2) {
@@ -27,10 +27,10 @@ static inline void golemKnightBishopTickAnimInline(Task* arg0)
 /// Inlined copy of `golemKnightBishopDrawShadow`: draws the ground shadow quad.
 static inline void golemKnightBishopDrawShadowInline(Task* arg0)
 {
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        sub;
-    VECTOR3          vec;
+    GolemKnightBishopWork* work;
+    GfxCoord*              coord;
+    GfxCoord*              sub;
+    VECTOR3                vec;
 
     work  = arg0->work;
     coord = &arg0->extra.tmd->coords[0];

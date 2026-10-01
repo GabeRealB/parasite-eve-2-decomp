@@ -10,8 +10,8 @@
 /// was handed; anything past the six it knows poses like the 0x54-step phase.
 void gluttonPoseLimb(Task* task)
 {
-    Actor403200Work* work = task->work;
-    s16              i;
+    GluttonWork* work = task->work;
+    s16          i;
 
     if (work->field_ECC[4]->task->extra.tmd->buffer == NULL) {
         return;

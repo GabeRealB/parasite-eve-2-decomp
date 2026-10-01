@@ -5,10 +5,10 @@
 /// zero turns into -1 first, so a shadow nothing has raised is not drawn.
 void golemKnightBishopDrawShadow(Task* arg0)
 {
-    Actor402200Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        sub;
-    VECTOR3          vec;
+    GolemKnightBishopWork* work;
+    GfxCoord*              coord;
+    GfxCoord*              sub;
+    VECTOR3                vec;
 
     work  = arg0->work;
     coord = &arg0->extra.tmd->coords[0];

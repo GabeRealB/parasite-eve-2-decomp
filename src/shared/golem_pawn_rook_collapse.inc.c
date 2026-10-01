@@ -9,10 +9,10 @@
 /// to state 2.
 void golemPawnRookCollapseState(Task* arg0)
 {
-    Actor105600Work* work;
-    GfxCoord*        self;
-    s32              snd;
-    s16              state;
+    GolemPawnRookWork* work;
+    GfxCoord*          self;
+    s32                snd;
+    s16                state;
 
     work  = arg0->work;
     self  = arg0->extra.tmd->coords;

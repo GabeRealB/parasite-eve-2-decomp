@@ -5,8 +5,8 @@
 /// refresh part 3, the root of the fifth escort's model and part 4.
 void gluttonTurnNeck(Task* task, s16 arg1)
 {
-    Actor403200Work* work = task->work;
-    s16              value;
+    GluttonWork* work = task->work;
+    s16          value;
 
     value = arg1;
     if (arg1 > 0x200) {

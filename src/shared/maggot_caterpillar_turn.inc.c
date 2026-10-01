@@ -6,17 +6,17 @@
 /// `field_3A2` and rebuilds the coordinate's rotation as that pure yaw.
 void maggotCaterpillarTurnStep(Task* arg0)
 {
-    Actor105500Work*  work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               ang;
-    u16               want;
-    s16               diff;
-    s32               adiff;
-    s32               step;
-    s32               cur;
-    s32               next;
-    s32               wrapStep;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
+    ActorFaceScratch*      sc;
+    s32                    ang;
+    u16                    want;
+    s16                    diff;
+    s32                    adiff;
+    s32                    step;
+    s32                    cur;
+    s32                    next;
+    s32                    wrapStep;
 
     sc    = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord = arg0->extra.tmd->coords;

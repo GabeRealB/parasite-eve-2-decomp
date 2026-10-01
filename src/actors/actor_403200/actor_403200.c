@@ -265,7 +265,7 @@ extern Actor403200StorageF900 gGluttonGrabQuery;
 /// which splat names separately because the code takes that address directly.
 extern GfxCoord D_actor_403200_8015F920;
 
-extern Actor403200DropCoord D_actor_403200_8015F970;
+extern GluttonDropCoord D_actor_403200_8015F970;
 
 /// Position and Euler rotation the launch tick sends the player as message
 /// 0x3E9.
@@ -2860,7 +2860,7 @@ Actor403200StorageF900 gGluttonGrabQuery = { { { 0, 0, 0, 0 }, 0, { 0, 0, 0, 0, 
 
 GfxCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
-Actor403200DropCoord D_actor_403200_8015F970 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
+GluttonDropCoord D_actor_403200_8015F970 = { .c = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
 
 Actor403200StorageF9C0 D_actor_403200_8015F9C0;
 
@@ -2898,7 +2898,7 @@ static void func_actor_403200_80141234(Task* arg0);
 static void func_actor_403200_8014123C(Task* arg0);
 
 static __inline__ void Actor403200_StepForward(GfxCoord* coord);
-static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work);
+static __inline__ void Actor403200_SeedRootCoord(Task* task, GluttonWork* work);
 static void            func_actor_403200_80134D40(Task* arg0);
 static void            func_actor_403200_80138284(Task* arg0);
 static void            func_actor_403200_80138AFC(Enemy* enemy, Task* task);
@@ -2955,7 +2955,7 @@ static __inline__ void Actor403200_StepForward(GfxCoord* coord)
 
 #include "../../shared/glutton_inlines.inc.c"
 
-static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work)
+static __inline__ void Actor403200_SeedRootCoord(Task* task, GluttonWork* work)
 {
     GfxCoord*             coord = task->extra.tmd->coords;
     ActorScaleRotScratch* sc;
@@ -3589,12 +3589,12 @@ done:
 /// state 1 the step advances and re-arms `field_0`.
 static void func_actor_403200_80134D40(Task* arg0)
 {
-    Actor403200Work* work;
-    Enemy*           enemy;
-    GfxCoord*        model;
-    s16              frame;
+    GluttonWork* work;
+    Enemy*       enemy;
+    GfxCoord*    model;
+    s16          frame;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
 
     if (work->field_4 != 0) {
@@ -3761,10 +3761,10 @@ static const GpEnemyTaskFuncTable4 gGluttonSpinnerStates = {
 /// `func_actor_444000_8013A77C`, plus the null test on the work block.
 static void func_actor_403200_80138284(Task* arg0)
 {
-    Actor403200Work* work;
-    s32              phase;
+    GluttonWork* work;
+    s32          phase;
 
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
     if (work == NULL) {
         return;
     }
@@ -3867,24 +3867,24 @@ static void func_actor_403200_80138284(Task* arg0)
 /// unconditionally.
 s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
 {
-    Actor403200Work* work;
-    Actor403200Work* buffers;
-    Actor403200Work* escorts;
-    Actor403200Work* rebuilt;
-    s16              i;
-    s16              j;
+    GluttonWork* work;
+    GluttonWork* buffers;
+    GluttonWork* escorts;
+    GluttonWork* rebuilt;
+    s16          i;
+    s16          j;
 
-    work = (Actor403200Work*)task->work;
+    work = (GluttonWork*)task->work;
     switch (arg2) {
         case 0:
-            buffers = (Actor403200Work*)task->work;
+            buffers = (GluttonWork*)task->work;
             Tmd_AllocBuffers(task->extra.tmd);
             for (j = 0; j < 7; j++) {
                 if (buffers->field_ECC[j] != NULL) {
                     Tmd_AllocBuffers(buffers->field_ECC[j]->task->extra.tmd);
                 }
             }
-            escorts                = (Actor403200Work*)task->work;
+            escorts                = (GluttonWork*)task->work;
             escorts->field_7F3     = 0;
             task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             for (i = 0; i < 7; i++) {
@@ -3895,7 +3895,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
             work->field_0 = 0;
             break;
         case 1:
-            escorts                = (Actor403200Work*)task->work;
+            escorts                = (GluttonWork*)task->work;
             escorts->field_7F3     = 0;
             task->extra.tmd->flags = 0;
             for (i = 0; i < 7; i++) {
@@ -3903,7 +3903,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
                     escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
                 }
             }
-            rebuilt = (Actor403200Work*)task->work;
+            rebuilt = (GluttonWork*)task->work;
             Tmd_AllocBuffers(task->extra.tmd);
             for (j = 0; j < 7; j++) {
                 if (rebuilt->field_ECC[j] != NULL) {
@@ -3924,7 +3924,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
             break;
         case 3:
             i                      = 0;
-            escorts                = (Actor403200Work*)task->work;
+            escorts                = (GluttonWork*)task->work;
             escorts->field_7F3     = 0;
             task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             for (; i < 7; i++) {
@@ -3941,17 +3941,17 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
 /// action to reset the escorts, select an attack, or finish the return pose.
 s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* rebuilt;
-    Enemy*           temp_enemy;
-    s16              i;
-    s16              j;
-    s32              sound;
-    s32              pan;
-    s32              action;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* rebuilt;
+    Enemy*       temp_enemy;
+    s16          i;
+    s16          j;
+    s32          sound;
+    s32          pan;
+    s32          action;
 
-    work       = (Actor403200Work*)task->work;
+    work       = (GluttonWork*)task->work;
     temp_enemy = (Enemy*)task->spawnArg2.pointer;
 
     work->field_EC4 = msg->context.loc.stage;
@@ -3985,7 +3985,7 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
 
             case 5:
                 work->field_0          = 0xA;
-                escorts                = (Actor403200Work*)task->work;
+                escorts                = (GluttonWork*)task->work;
                 escorts->field_7F3     = 0;
                 task->extra.tmd->flags = 0;
                 for (i = 0; i < 7; i++) {
@@ -3994,7 +3994,7 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
                             task->extra.tmd->flags;
                     }
                 }
-                rebuilt = (Actor403200Work*)task->work;
+                rebuilt = (GluttonWork*)task->work;
                 Tmd_AllocBuffers(task->extra.tmd);
                 for (j = 0; j < 7; j++) {
                     if (rebuilt->field_ECC[j] != NULL) {
@@ -4073,9 +4073,9 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg)
 /// the seven escorts that make up the rest of the creature.
 static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 {
-    Actor403200Work*       work;
-    Actor403200Work*       buffers;
-    Actor403200Work*       escorts;
+    GluttonWork*           work;
+    GluttonWork*           buffers;
+    GluttonWork*           escorts;
     OverlayMat*            mtx;
     TmdObject*             tmd;
     GfxCoord*              coord;
@@ -4364,7 +4364,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 /// The group-0 hit handler: takes at most one hit this frame and turns it into
 /// damage.
 ///
-/// It carves a 0x30-byte `Actor403200HitScratch` off the scratchpad stack and
+/// It carves a 0x30-byte `GluttonHitScratch` off the scratchpad stack and
 /// scans the five `WorldCollisionContact` records of `hits[0]` for the first whose `key`
 /// high halfword is attack kind 2 -- the contact point goes into the frame's
 /// `pos` and the id is kept. A record with `key` 0 ends the scan with no
@@ -4394,8 +4394,8 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 /// between the escort 3 and escort 0 ones to land where the original has it.
 static void func_actor_403200_80139A60(Task* arg0)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
+    GluttonHitScratch*     sc;
+    GluttonWork*           work;
     Enemy*                 enemy;
     WorldCollisionContact* recs;
     PlayerStatus*          cfg;
@@ -4416,8 +4416,8 @@ static void func_actor_403200_80139A60(Task* arg0)
 
     cfg   = &gPlayerStatus;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (Actor403200Work*)arg0->work;
-    sc    = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    work  = (GluttonWork*)arg0->work;
+    sc    = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos   = &sc->pos;
     recs  = work->hits[0].recs;
     i     = 0;
@@ -4519,7 +4519,7 @@ found:
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// The hit handler for collision groups 1 and 2 -- the same scan
@@ -4558,8 +4558,8 @@ found:
 /// exchange registers and the function stops at 99.06%.
 static void func_actor_403200_80139E94(Task* arg0)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
+    GluttonHitScratch*     sc;
+    GluttonWork*           work;
     Enemy*                 host;
     PlayerStatus*          cfg;
     GfxCoord*              coord;
@@ -4584,8 +4584,8 @@ static void func_actor_403200_80139E94(Task* arg0)
 
     cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
-    work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    work = (GluttonWork*)arg0->work;
+    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
     recs = work->hits[1].recs;
     for (i = 0; i < 5; i++) {
@@ -4735,7 +4735,7 @@ hit:
         work->field_7C4 = 0;
     }
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// The hit handler for collision groups 3, 4 and 5 -- `func_actor_403200_80139E94`
@@ -4763,8 +4763,8 @@ out:
 /// value for the same reason.
 static void func_actor_403200_8013A4A0(Task* arg0)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
+    GluttonHitScratch*     sc;
+    GluttonWork*           work;
     Enemy*                 host;
     PlayerStatus*          cfg;
     WorldCollisionContact* recs;
@@ -4791,8 +4791,8 @@ static void func_actor_403200_8013A4A0(Task* arg0)
 
     cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
-    work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    work = (GluttonWork*)arg0->work;
+    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
     recs = work->hits[3].recs;
     for (i = 0; i < 5; i++) {
@@ -4956,7 +4956,7 @@ stored:
     work->field_7C8 = 0;
     work->field_7C4 = 0;
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
@@ -4982,8 +4982,8 @@ out:
 /// and the `hp` load sit after `func_800DA6E8`, unlike the group 3-5 handler.
 static void func_actor_403200_8013AB70(Task* arg0)
 {
-    Actor403200HitScratch* sc;
-    Actor403200Work*       work;
+    GluttonHitScratch*     sc;
+    GluttonWork*           work;
     Enemy*                 host;
     PlayerStatus*          cfg;
     GfxCoord*              coord;
@@ -5011,8 +5011,8 @@ static void func_actor_403200_8013AB70(Task* arg0)
 
     cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
-    work = (Actor403200Work*)arg0->work;
-    sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
+    work = (GluttonWork*)arg0->work;
+    sc   = (GluttonHitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonHitScratch));
     pos  = &sc->pos;
     recs = work->hits[6].recs;
     for (i = 0; i < 5; i++) {
@@ -5176,7 +5176,7 @@ stored:
     work->field_7C8 = 0;
     work->field_7C4 = 0;
 out:
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200HitScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonHitScratch));
 }
 
 /// Reset handler: pushes the host model's `field_C` onto each of the seven
@@ -5189,20 +5189,20 @@ out:
 /// first arm's constant and the second `li $v0, 0x80` disappears.
 static void func_actor_403200_8013B23C(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    TmdObject*       tmd;
-    s32              flag;
-    s32              modelFlag;
-    s16              i;
-    s16              j;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    TmdObject*   tmd;
+    s32          flag;
+    s32          modelFlag;
+    s16          i;
+    s16          j;
 
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
     tmd  = arg0->extra.tmd;
     if (work->field_4 != 0) {
         tmd->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         i                      = 0;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = (flag = TMD_OBJECT_SKIP_ACTIVE_DRAW);
@@ -5217,7 +5217,7 @@ static void func_actor_403200_8013B23C(Task* arg0)
     }
     if (work->field_6 == 2) {
         tmd->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         modelFlag              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         i                      = 0;
         escorts->field_7F3     = 0;
@@ -5228,7 +5228,7 @@ static void func_actor_403200_8013B23C(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_FreeBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -5256,9 +5256,9 @@ static void func_actor_403200_8013B23C(Task* arg0)
 /// `func_actor_403200_8013D9EC`.
 static void func_actor_403200_8013B3C8(Task* arg0)
 {
-    Actor403200Work*        work;
-    Actor403200Work*        escorts;
-    Actor403200Work*        dying;
+    GluttonWork*            work;
+    GluttonWork*            escorts;
+    GluttonWork*            dying;
     GfxCoord*               model;
     GfxCoord*               facing;
     Actor403200TurnScratch* sc;
@@ -5268,12 +5268,12 @@ static void func_actor_403200_8013B3C8(Task* arg0)
     s16                     ang;
 
     sc   = (Actor403200TurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200TurnScratch));
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
     if (work->field_4 != 0) {
         work->field_F1D        = 2;
         work->field_7B3        = 3;
         work->field_7B0        = 2;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -5282,7 +5282,7 @@ static void func_actor_403200_8013B3C8(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -5354,12 +5354,12 @@ static void func_actor_403200_8013B3C8(Task* arg0)
 /// a spawn fails. Each member's index becomes the high nibble of its place key.
 static void func_actor_403200_8013B740(Task* arg0)
 {
-    Actor403200Work* work;
-    Enemy*           enemy;
-    s16              i;
-    s16              formation;
+    GluttonWork* work;
+    Enemy*       enemy;
+    s16          i;
+    s16          formation;
 
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     formation       = (gRandomLcgState >> 16) & 3;
@@ -5389,9 +5389,9 @@ static void func_actor_403200_8013B740(Task* arg0)
 /// them (0x3E9) and hands over an animation (0x3F4).
 static void func_actor_403200_8013B8C4(Task* arg0)
 {
-    Actor403200Work*        work;
-    Actor403200Work*        escorts;
-    Actor403200Work*        dying;
+    GluttonWork*            work;
+    GluttonWork*            escorts;
+    GluttonWork*            dying;
     Enemy*                  enemy;
     Task*                   task;
     PlayerStatus*           cfg;
@@ -5399,7 +5399,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     s16                     i;
     s16                     j;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     task  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     cfg   = &gPlayerStatus;
@@ -5409,7 +5409,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         work->field_F1D        = 3;
         work->field_7B3        = 3;
         work->field_7B0        = 2;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -5418,7 +5418,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -5705,20 +5705,20 @@ static void func_actor_403200_8013B8C4(Task* arg0)
 /// its address is the one computed first.
 static void func_actor_403200_8013C84C(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    Enemy*           enemy;
-    Task*            task;
-    PlayerStatus*    cfg;
-    SVECTOR          view;
-    SVECTOR*         posp;
-    GfxCoord*        coord;
-    s16              i;
-    s16              j;
-    s16              yaw;
+    GluttonWork*  work;
+    GluttonWork*  escorts;
+    GluttonWork*  dying;
+    Enemy*        enemy;
+    Task*         task;
+    PlayerStatus* cfg;
+    SVECTOR       view;
+    SVECTOR*      posp;
+    GfxCoord*     coord;
+    s16           i;
+    s16           j;
+    s16           yaw;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     task  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     cfg   = &gPlayerStatus;
@@ -5731,7 +5731,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         SndEvt_EnqueueType7((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
         work->field_7B3        = 0xF;
         work->field_7B0        = 2;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -5740,7 +5740,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -5897,9 +5897,9 @@ static void func_actor_403200_8013C84C(Task* arg0)
 /// `sll`/`sra` re-extension pair the original does not have.
 static void func_actor_403200_8013D028(Task* arg0)
 {
-    Actor403200Work*       work;
-    Actor403200Work*       escorts;
-    Actor403200Work*       dying;
+    GluttonWork*           work;
+    GluttonWork*           escorts;
+    GluttonWork*           dying;
     WorldCollisionContact* recs;
     Enemy*                 enemy;
     Task*                  task;
@@ -5922,7 +5922,7 @@ static void func_actor_403200_8013D028(Task* arg0)
     s32                    cueId;
     s32                    cuePan;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     task  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     SCRATCH_STACK_RESERVE_BYTES(0x30);
@@ -5931,7 +5931,7 @@ static void func_actor_403200_8013D028(Task* arg0)
         work->field_F1D        = 0xB;
         work->field_7B3        = 4;
         work->field_7B0        = 2;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -5940,7 +5940,7 @@ static void func_actor_403200_8013D028(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -6115,18 +6115,18 @@ scanned:
 /// truncation is what puts the `sll 16` / `sra 16` pair in front of the `slti`.
 static void func_actor_403200_8013D78C(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    s16              i;
-    s16              j;
-    s16              frame;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    s16          i;
+    s16          j;
+    s16          frame;
 
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
     if (work->field_4 != 0) {
         work->field_7B3        = 1;
         work->field_7B0        = 2;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -6135,7 +6135,7 @@ static void func_actor_403200_8013D78C(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -6185,24 +6185,24 @@ static void func_actor_403200_8013D78C(Task* arg0)
 /// `sll`/`sra` pair (dropping 2 instructions and 2.8% of the match).
 static void func_actor_403200_8013D9EC(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    Enemy*           enemy;
-    Enemy*           spawned;
-    s16              i;
-    s16              j;
-    s16              state;
-    s32              sfx;
-    s32              pan;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    Enemy*       enemy;
+    Enemy*       spawned;
+    s16          i;
+    s16          j;
+    s16          state;
+    s32          sfx;
+    s32          pan;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->field_F1D        = 6;
         work->field_7B3        = 6;
         work->field_7B0        = 2;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -6211,7 +6211,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -6274,29 +6274,29 @@ static void func_actor_403200_8013D9EC(Task* arg0)
 /// second animation slot raises its flag.
 static void func_actor_403200_8013DC3C(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    Enemy*           enemy;
-    Enemy*           spawned;
-    SVECTOR          pos;
-    SVECTOR*         posp;
-    s16              i;
-    s16              j;
-    s32              resetId;
-    s32              resetPan;
-    s32              cueId;
-    s32              cuePan;
-    s32              hitId;
-    s32              hitPan;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    Enemy*       enemy;
+    Enemy*       spawned;
+    SVECTOR      pos;
+    SVECTOR*     posp;
+    s16          i;
+    s16          j;
+    s32          resetId;
+    s32          resetPan;
+    s32          cueId;
+    s32          cuePan;
+    s32          hitId;
+    s32          hitPan;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->field_F1D        = 7;
         work->field_7B3        = 0xB;
         work->field_7B0        = 2;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -6305,7 +6305,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -6399,19 +6399,19 @@ static void func_actor_403200_8013DC3C(Task* arg0)
 
 static void func_actor_403200_8013E2FC(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    OverlayMat*      mtx;
-    GfxCoord*        coords;
-    s32              state;
-    s32              frame;
-    s16              i;
-    s16              j;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    OverlayMat*  mtx;
+    GfxCoord*    coords;
+    s32          state;
+    s32          frame;
+    s16          i;
+    s16          j;
 
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
     if (work->field_4 != 0) {
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         work->field_7F3        = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -6420,7 +6420,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -6495,21 +6495,21 @@ static void func_actor_403200_8013E2FC(Task* arg0)
 /// and 0x71 of `slots0[3]`, each latching the frame it saw in `field_7A8`.
 static void func_actor_403200_8013E5A8(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    Enemy*           enemy;
-    Enemy*           obj;
-    s16              i;
-    s16              j;
-    s32              state;
-    s32              frame;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    Enemy*       enemy;
+    Enemy*       obj;
+    s16          i;
+    s16          j;
+    s32          state;
+    s32          frame;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj                    = arg0->spawnArg2.pointer;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         work->field_7F3        = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -6518,7 +6518,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -6606,13 +6606,13 @@ static void func_actor_403200_8013E5A8(Task* arg0)
 /// passed 0x190 and clearing `field_F06` once `field_6` has passed 0x14.
 static void func_actor_403200_8013E9C0(Task* arg0)
 {
-    Actor403200Work* work;
-    Enemy*           obj;
-    s32              state;
-    s32              id;
-    s32              pan;
+    GluttonWork* work;
+    Enemy*       obj;
+    s32          state;
+    s32          id;
+    s32          pan;
 
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
     if (work->field_4 != 0) {
         obj             = arg0->spawnArg2.pointer;
         state           = work->field_7B3;
@@ -6678,7 +6678,7 @@ static void func_actor_403200_8013E9C0(Task* arg0)
 static void func_actor_403200_8013EB64(Task* arg0)
 {
     Actor403200ApproachScratch* sc;
-    Actor403200Work*            work;
+    GluttonWork*                work;
     Enemy*                      enemy;
     Task*                       player;
     GfxCoord*                   coord;
@@ -6686,7 +6686,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
     SVECTOR*                    view;
     s16                         angle;
 
-    work   = (Actor403200Work*)arg0->work;
+    work   = (GluttonWork*)arg0->work;
     enemy  = arg0->spawnArg2.pointer;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
@@ -6807,7 +6807,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
 
 /// Escort-spawn tick of the arena fight. While `gGluttonEnded` is 1
 /// the whole body is skipped; otherwise it carves an
-/// `Actor403200SpawnScratch` off the scratch-pad stack.
+/// `GluttonSpawnScratch` off the scratch-pad stack.
 ///
 /// On the dispatcher's re-arm tick it tops the two `field_EE8` slots back up
 /// to two live escorts (`field_F1C` < 2 and `field_F1B` < 8), dresses each
@@ -6818,31 +6818,31 @@ static void func_actor_403200_8013EB64(Task* arg0)
 /// `field_F08` and a coin flip of `gRandomLcgState`.
 static void func_actor_403200_8013EF6C(Task* arg0)
 {
-    Actor403200SpawnScratch* sc;
-    Actor403200Work*         work;
-    Enemy*                   host;
-    Enemy*                   escort;
-    PlayerStatus*            cfg;
-    GfxCoord*                coord;
-    GfxCoord*                facing;
-    TmdObject*               model;
-    AreaPlacement*           entry;
-    GameLocationKey          key;
-    GameLocationKey*         sessionKey;
-    s32                      cueId;
-    s32                      cuePan;
-    s32                      blastId;
-    s32                      blastPan;
-    s32                      rnd;
-    s32                      state;
-    s16                      angle;
-    s16                      sel;
-    u32                      frame;
+    GluttonSpawnScratch* sc;
+    GluttonWork*         work;
+    Enemy*               host;
+    Enemy*               escort;
+    PlayerStatus*        cfg;
+    GfxCoord*            coord;
+    GfxCoord*            facing;
+    TmdObject*           model;
+    AreaPlacement*       entry;
+    GameLocationKey      key;
+    GameLocationKey*     sessionKey;
+    s32                  cueId;
+    s32                  cuePan;
+    s32                  blastId;
+    s32                  blastPan;
+    s32                  rnd;
+    s32                  state;
+    s16                  angle;
+    s16                  sel;
+    u32                  frame;
 
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
     host = arg0->spawnArg2.pointer;
     if (gGluttonEnded != 1) {
-        sc = (Actor403200SpawnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200SpawnScratch));
+        sc = (GluttonSpawnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(GluttonSpawnScratch));
         if (work->field_4 != 0) {
             state           = work->field_7B3;
             work->field_EF4 = 0;
@@ -7006,7 +7006,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             }
         }
     out:
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403200SpawnScratch));
+        SCRATCH_STACK_RELEASE_BYTES(sizeof(GluttonSpawnScratch));
     }
 }
 
@@ -7027,27 +7027,27 @@ static inline void _actor403200TintEscort(TmdObject* model)
 
 static void func_actor_403200_8013F700(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    Actor403200Work* dying;
-    Enemy*           enemy;
-    Enemy*           spawned;
-    SVECTOR          vec;
-    SVECTOR*         v;
-    GfxCoord*        coord;
-    GfxCoord*        rot;
-    s16              i;
-    s16              j;
-    s16              angle;
-    s32              sfx;
-    s32              pan;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    Enemy*       enemy;
+    Enemy*       spawned;
+    SVECTOR      vec;
+    SVECTOR*     v;
+    GfxCoord*    coord;
+    GfxCoord*    rot;
+    s16          i;
+    s16          j;
+    s16          angle;
+    s32          sfx;
+    s32          pan;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->field_7B3        = 0xE;
         work->field_7B0        = 1;
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         escorts->field_7F3     = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {
@@ -7056,7 +7056,7 @@ static void func_actor_403200_8013F700(Task* arg0)
                     arg0->extra.tmd->flags;
             }
         }
-        dying = (Actor403200Work*)arg0->work;
+        dying = (GluttonWork*)arg0->work;
         Tmd_AllocBuffers(arg0->extra.tmd);
         for (j = 0; j < 7; j++) {
             if (dying->field_ECC[j] != NULL) {
@@ -7183,9 +7183,9 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
 {
     VECTOR                  pos;
     Actor403200StateTable   states;
-    Actor403200Work*        work;
-    Actor403200Work*        dying;
-    Actor403200Work*        vis;
+    GluttonWork*            work;
+    GluttonWork*            dying;
+    GluttonWork*            vis;
     Actor403200TickScratch* scratch;
     WorldCollisionTrigger*  pending;
     TmdObject*              tmd;
@@ -7205,14 +7205,14 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
     s8                      nodeFlags;
     s32                     t2;
 
-    work   = (Actor403200Work*)arg1->work;
+    work   = (GluttonWork*)arg1->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     states = D_actor_403200_80132154;
 
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
 
-    dying = (Actor403200Work*)arg1->work;
+    dying = (GluttonWork*)arg1->work;
     if (dying->field_7F3 != 0) {
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         dying->field_7F3--;
@@ -7263,7 +7263,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
     }
 
     if (((Gp_GetViewIndex() & 0xFF) == 0x1E) || ((Gp_GetViewIndex() & 0xFF) == 0x1D)) {
-        vis                    = (Actor403200Work*)arg1->work;
+        vis                    = (GluttonWork*)arg1->work;
         vis->field_7F3         = 0;
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         for (j = 0; j < 7; j++) {
@@ -7273,7 +7273,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
             }
         }
     } else if (work->field_0 != 0) {
-        vis                    = (Actor403200Work*)arg1->work;
+        vis                    = (GluttonWork*)arg1->work;
         vis->field_7F3         = 0;
         arg1->extra.tmd->flags = 0;
         for (k = 0; k < 7; k++) {
@@ -7643,7 +7643,7 @@ static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 inde
 void func_actor_403200_80140E6C(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
-    Actor403200Work*      work;
+    GluttonWork*          work;
     Task*                 player;
     Enemy*                enemy;
     s32                   diff;
@@ -7653,7 +7653,7 @@ void func_actor_403200_80140E6C(Task* arg0)
 
     sp     = D_actor_403200_801321B8;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work   = (Actor403200Work*)arg0->work;
+    work   = (GluttonWork*)arg0->work;
     enemy  = arg0->spawnArg2.pointer;
     if (work != NULL) {
         if (work->field_EE8[0] != NULL && work->field_EE8[0]->hp <= 0) {
@@ -7755,10 +7755,10 @@ static void func_actor_403200_80141234(Task* arg0)
 /// task (message 0x13F4) and plays the actor's cue.
 static void func_actor_403200_8014123C(Task* arg0)
 {
-    Actor403200Work* work;
-    Enemy*           enemy;
+    GluttonWork* work;
+    Enemy*       enemy;
 
-    work  = (Actor403200Work*)arg0->work;
+    work  = (GluttonWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->field_6 = 0;
@@ -7809,8 +7809,8 @@ void func_actor_403200_8014196C(void)
 /// escort slots.
 s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2)
 {
-    Actor403200Work* work  = (Actor403200Work*)arg0->work;
-    Enemy*           enemy = arg0->spawnArg2.pointer;
+    GluttonWork* work  = (GluttonWork*)arg0->work;
+    Enemy*       enemy = arg0->spawnArg2.pointer;
 
     switch (arg2) {
         case 0:
@@ -7845,13 +7845,13 @@ s32 func_actor_403200_80141B30(void)
 /// `func_actor_444000_80143F4C`.
 static void func_actor_403200_80141B40(Task* arg0)
 {
-    Actor403200Work* work;
-    Actor403200Work* escorts;
-    s16              i;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    s16          i;
 
-    work = (Actor403200Work*)arg0->work;
+    work = (GluttonWork*)arg0->work;
     if (work->field_4 != 0) {
-        escorts                = (Actor403200Work*)arg0->work;
+        escorts                = (GluttonWork*)arg0->work;
         work->field_7F3        = 0;
         arg0->extra.tmd->flags = 0;
         for (i = 0; i < 7; i++) {

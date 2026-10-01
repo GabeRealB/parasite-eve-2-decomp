@@ -10,10 +10,10 @@
 /// animates the actor and refreshes its coordinate.
 void maggotCaterpillarTick(Enemy* arg0, Task* arg1)
 {
-    s32              state;
-    TmdObject*       obj;
-    Actor105500Work* work;
-    GfxCoord*        coord;
+    s32                    state;
+    TmdObject*             obj;
+    MaggotCaterpillarWork* work;
+    GfxCoord*              coord;
 
     obj   = arg1->extra.tmd;
     state = gSceneCombatState.actorControl;
