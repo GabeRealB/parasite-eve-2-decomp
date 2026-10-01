@@ -95,15 +95,14 @@ typedef struct Actor300700Work {
 
 extern TmdSource D_actor_300700_80167400;
 
-extern DamageAttack D_actor_300700_80169328;
+extern DamageAttack gRatAttack;
 
-extern EnemyParams D_actor_300700_8016932C;
+extern EnemyParams gRatParams;
 
-extern u32 D_actor_300700_801693B8;
+extern AnimationSet* gRatAnimSets[11];
 
 /// Second variant's spawn: allocates its 0x39C-byte work block, binds the two
 /// pose matrices into the TMD object, then hangs the four render nodes on
 /// their global lists with the record tables `Gp_InitRec18Table` zeroes.
-void func_actor_300700_80163510(Enemy* arg0, Task* arg1);
 
 #endif // SRC_ACTORS_ACTOR_300700_ACTOR_300700_PRIVATE_H

@@ -12,12 +12,12 @@
 #include "main/coord.h"
 #include "main/session_types.h"
 
-/// The 0x39C-byte allocation `func_actor_300700_80163510` makes with
+/// The 0x39C-byte allocation `ratSpawn` makes with
 /// `memCalloc` and stores in `Task::work`, then fills with the four `WorldCollisionBody`
 /// render nodes (`Gp_LinkObj`, shapes 3/2/2/3) and their `WorldCollisionContact` tables.
 ///
 /// This is the work block the overlay's second enemy variant runs on - the
-/// state table `D_actor_300700_80161E30` (`func_actor_300700_80164D3C` and
+/// state table `gRatStateHandlers` (`ratUpdate` and
 /// friends), which reaches it as `Actor300700Work` and only ever touches the
 /// fields from 0x37A up. Those trailing fields, plus the animation context
 /// `func_800B3F84` fills in, are laid out identically in both views; the

@@ -47,6 +47,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/rat.h"
 
 extern DamageAttack D_actor_300700_80165B64;
 
@@ -91,27 +92,12 @@ STATIC_ASSERT_SIZEOF(Actor300700SpawnWork, 0x2F4);
 extern ActorSpriteUv D_actor_300700_80165B9C[];
 
 static void func_actor_300700_80163410(Task* arg0);
-void        func_actor_300700_801637E4(Task* arg0);
-void        func_actor_300700_80164794(Task* arg0);
-void        func_actor_300700_80163D64(Task* arg0);
-void        func_actor_300700_80164070(Task* arg0);
-void        func_actor_300700_801643D0(Task* arg0);
-void        func_actor_300700_801645F8(Task* arg0);
-void        func_actor_300700_80164E38(Task* arg0);
-void        func_actor_300700_80164F68(Task* arg0);
-void        func_actor_300700_80165000(Task* arg0);
-void        func_actor_300700_801650C0(Task* arg0);
-void        func_actor_300700_801651A0(Task* arg0);
-void        func_actor_300700_80165230(Task* arg0);
-void        func_actor_300700_801652F4(Task* arg0);
-void        func_actor_300700_8016534C(Task* arg0);
-void        func_actor_300700_8016539C(Task* arg0);
+void        func_actor_300700_801633B8(Task* arg0);
 
 static void func_actor_300700_801622B4(Task* arg0);
 static void func_actor_300700_8016252C(Task* arg0);
 static void func_actor_300700_801626C0(Task* arg0);
 static void func_actor_300700_801628C8(Task* arg0);
-static void func_actor_300700_801633B8(Task* arg0);
 static void func_actor_300700_80162EFC(Task* arg0);
 
 static void func_actor_300700_8016335C(Task*);
@@ -863,19 +849,10 @@ static void func_actor_300700_8016335C(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Updates the actor's lighting colour from the world position of its model
-/// root, with both extra arguments zero.
-static void func_actor_300700_801633B8(Task* arg0)
-{
-    GfxCoord* coord;
-    VECTOR    vec;
-
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
-}
+/// The Moth's copy of the colour helper.
+#define ratUpdateColor func_actor_300700_801633B8
+#include "../../shared/rat_update_color.inc.c"
+#undef ratUpdateColor
 
 static void func_actor_300700_80163410(Task* arg0)
 {
@@ -908,97 +885,4 @@ static void func_actor_300700_80163410(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
-/// Second variant's spawn: allocates its 0x39C-byte work block, binds the two
-/// pose matrices into the TMD object, then hangs the four render nodes on
-/// their global lists with the record tables `Gp_InitRec18Table` zeroes.
-void func_actor_300700_80163510(Enemy* arg0, Task* arg1)
-{
-    Actor300700Spawn2Work* work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    s32                    i;
-
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(0x39CU, false);
-    if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-    arg1->work          = work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->field_1BC;
-    obj->colorMtx       = &work->field_19C;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
-    arg0->coord                  = &arg1->extra.tmd->coords[4];
-    arg0->node.state.parts.flags = 0;
-    arg0->bodyPos.vx             = 0;
-    arg0->bodyPos.vy             = 0;
-    arg0->bodyPos.vz             = 0;
-    arg0->param                  = &D_actor_300700_8016932C;
-    arg0->recs                   = work->rec2;
-    arg0->hp                     = (u16)D_actor_300700_8016932C.hpMax;
-    work->field_338              = 0x100;
-    work->field_33A              = 1;
-    work->field_334              = coord;
-    func_800B3F84(&work->anim, &D_actor_300700_801693B8, obj,
-                  work->field_12C, work->slots);
-    for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
-    }
-    (Gp_IncStateF0Ref)(0);
-
-    work->field_37E             = 1;
-    work->field_380             = 1;
-    work->obj1.coord            = coord;
-    work->obj1.context.contacts = work->rec1;
-    work->obj1.pos.vx           = 0;
-    work->obj1.pos.vy           = 0;
-    work->obj1.pos.vz           = 0x2EE;
-    work->obj1.key              = 0;
-    work->obj1.radius           = 0x12C;
-    work->obj1.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj1);
-    Gp_InitRec18Table(work->rec1, 1, 0);
-    work->obj1.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-
-    work->obj2.coord            = &arg1->extra.tmd->coords[4];
-    work->obj2.context.contacts = work->rec2;
-    work->obj2.pos.vx           = 0;
-    work->obj2.pos.vy           = 0;
-    work->obj2.pos.vz           = 0;
-    work->obj2.key              = 0x30007;
-    work->obj2.radius           = 0x96;
-    work->obj2.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->obj2);
-    Gp_InitRec18Table(work->rec2, 3, 0);
-
-    work->obj3.coord            = coord;
-    work->obj3.context.contacts = work->rec3;
-    work->obj3.pos.vx           = 0;
-    work->obj3.pos.vy           = -0xFA;
-    work->obj3.pos.vz           = 0;
-    work->obj3.key              = 0x30007;
-    work->obj3.radius           = 0xFA;
-    work->obj3.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->obj2.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    Gp_LinkObj(2, &work->obj3);
-    Gp_InitRec18Table(work->rec3, 4, 0);
-
-    work->obj4.coord            = coord;
-    work->obj4.context.contacts = work->rec4;
-    work->obj4.pos.vx           = 0;
-    work->obj4.pos.vy           = 0;
-    work->obj4.pos.vz           = 0x1F4;
-    work->obj3.flags           |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
-    work->obj4.key              = Gp_PackPair(&D_actor_300700_80169328, 0);
-    work->obj4.radius           = 0xC8;
-    work->obj4.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(3, &work->obj4);
-    Gp_InitRec18Table(work->rec4, 1, 0);
-    work->obj4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    arg1->state       = 1;
-}
+#include "../../shared/rat_spawn.inc.c"
