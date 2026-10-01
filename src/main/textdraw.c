@@ -43,7 +43,16 @@ enum {
 
 /// Page-local texture V offsets, encoded modulo 256 in the request's signed byte.
 enum {
-    TEXT_GLYPH_V_BIAS_MEDIUM = 0x26,
+    /// Medium-face texture V translation in page-local texels.
+    ///
+    /// Adds 38 to `_FontGlyph::v` to address the medium glyphs in the font
+    /// texture page. Stored unchanged in `TextDrawReq::vBias`; the sprite's
+    /// unsigned V byte stores the sum modulo 256.
+    /// Initial `TEXT_GLYPH_TABLE_MEDIUM` selection and an inline \sM command
+    /// (either letter's case) set this bias. The inline command also selects
+    /// medium metrics without changing `glyphTable`, so measurement and pair
+    /// tightening still follow the request's initial selector.
+    TEXT_GLYPH_V_BIAS_MEDIUM = 38,
     TEXT_GLYPH_V_BIAS_SMALL  = 0,
     /// Large-face texture V translation in page-local texels.
     ///
