@@ -463,7 +463,7 @@ STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 typedef struct ActorAnimRig20 {
     AnimationContext anim;
     AnimationSlot    slots[0x14];
-    byte             poses[0x14][0x10];
+    byte             poses[0x14][ANIMATION_POSE_BUFFER_BYTES];
 } ActorAnimRig20;
 STATIC_ASSERT_SIZEOF(ActorAnimRig20, 0x474);
 

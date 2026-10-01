@@ -32734,29 +32734,30 @@ val = one << 4;
 
 `Gp_AnimSeekSlotEx` is the example.
 
-## Pin the 4th call arg's base in `$a3` so `+ off` stays in the `jal` delay
+## Calculate the typed pose-buffer entry early so its address add stays in the `jal` delay
 
-`animationTickSlotPose(ctx, i, 0, (u8*)ctx->poseBuffer + (i << 4))` wants `addu a3, a3, t0` in
-the `jal` delay and `move a2, zero` in an earlier `lw` delay. A named
-`call_a3 = (u8*)ctx->poseBuffer + off` emits the add too early and leaves `a2 = 0` as
-the `jal` delay.
+`animationTickSlotPose(ctx, i, 0, bufferedPose)` wants `addu a3, a3, t0` in
+the `jal` delay and `move a2, zero` in an earlier `lw` delay. A named byte-view
+destination computed from the buffer base plus a byte offset emitted the add
+too early and left `a2 = 0` as the `jal` delay. Calculating the array entry
+only in the call instead delayed the stride shift and reused `$v0`.
 
-Pin the base to `$a3` and add only at the call. A `register s32 raw
-asm("a2")` plus `asm volatile("" : "+r"(raw))` after saving `arg2` keeps
-the first `slot->sets` index as `sll v1, a2, 2` instead of the saved `$s2`
-copy:
+Assign the typed entry pointer before calculating the playback-slot pointer.
+The compiler keeps the 16-byte stride shift early in `$t0` and schedules the
+address addition in the call's delay slot; no byte view or register pin is
+needed for the buffer address:
 
 ```c
-register s32 raw asm("a2");
-register s32 off asm("t0");
-register u8* poseBytes asm("a3");
+u8 (*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-raw = arg2;
-off = arg1 << 4;
-poseBytes = (u8*)arg0->poseBuffer;
-asm volatile("" : "+r"(raw));
-animationTickSlotPose(arg0, arg1, 0, poseBytes + off);
+bufferedPose = ctx->poseBuffer + i;
+slot = &ctx->slots[i];
+animationTickSlotPose(ctx, i, 0, bufferedPose);
 ```
+
+A `register s32 raw asm("a2")` plus `asm volatile("" : "+r"(raw))` after
+saving `arg2` keeps the first `slot->sets` index as `sll v1, a2, 2` instead
+of the saved `$s2` copy.
 
 `Gp_AnimSeekSlotEx` is the example. `slot->sets[arg2]` loads `sets`
 first; `(arg2 << 2) + (s32)slot->sets` is what puts the shift before

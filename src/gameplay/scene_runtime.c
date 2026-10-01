@@ -2483,11 +2483,12 @@ static inline void _gpAnimSeekSlot(AnimationContext* context, s32 arg1, u16 arg2
     const AnimationRecord* rec;
     u16                    recordIndex;
     u16                    blendTime;
-    s32                    poseBufferOffset;
+    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-    poseBufferOffset = arg1 * ANIMATION_POSE_BUFFER_BYTES;
-    slot             = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, 0, (u8*)context->poseBuffer + poseBufferOffset);
+    // Capture this slot's encoded blend before replacing its destination keyframe.
+    bufferedPose = context->poseBuffer + arg1;
+    slot         = &context->slots[arg1];
+    animationTickSlotPose(context, arg1, 0, bufferedPose);
     slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
     set                                = slot->sets[arg2];
     recs                               = set->records;
@@ -2541,17 +2542,18 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
     s32                    setIndex;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
-        u8  slotIndex;
-        s32 poseBufferOffset;
+        u8 slotIndex;
+        u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
         slotIndex        = arg1->trackIndex;
         setIndex         = arg3;
         context->slots   = arg1 - slotIndex;
         arg1->coordIndex = arg2;
         slotIndex        = arg1->trackIndex;
-        poseBufferOffset = slotIndex * ANIMATION_POSE_BUFFER_BYTES;
-        slot             = &context->slots[slotIndex];
-        animationTickSlotPose(context, slotIndex, 0, (u8*)context->poseBuffer + poseBufferOffset);
+        // Capture this slot's encoded blend before replacing its destination keyframe.
+        bufferedPose = context->poseBuffer + slotIndex;
+        slot         = &context->slots[slotIndex];
+        animationTickSlotPose(context, slotIndex, 0, bufferedPose);
         slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
         set                                = slot->sets[(u16)setIndex];
         recs                               = set->records;
@@ -2852,11 +2854,12 @@ void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16
     const AnimationRecord* rec;
     u16                    recordIndex;
     u16                    blendTime;
-    s32                    poseBufferOffset;
+    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-    poseBufferOffset = arg1 * ANIMATION_POSE_BUFFER_BYTES;
-    slot             = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, arg2, (u8*)context->poseBuffer + poseBufferOffset);
+    // Capture this slot's encoded blend before replacing its destination keyframe.
+    bufferedPose = context->poseBuffer + arg1;
+    slot         = &context->slots[arg1];
+    animationTickSlotPose(context, arg1, arg2, bufferedPose);
     slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
     set                                = slot->sets[arg3];
     recs                               = set->records;
@@ -2943,11 +2946,12 @@ void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, AnimationPose* arg2, u
     const AnimationRecord* rec;
     u16                    recordIndex;
     u16                    blendTime;
-    s32                    poseBufferOffset;
+    u8(*bufferedPose)[ANIMATION_POSE_BUFFER_BYTES];
 
-    poseBufferOffset = arg1 * ANIMATION_POSE_BUFFER_BYTES;
-    slot             = &context->slots[arg1];
-    animationTickSlotPose(context, arg1, arg2, (u8*)context->poseBuffer + poseBufferOffset);
+    // Capture this slot's encoded blend before replacing its destination keyframe.
+    bufferedPose = context->poseBuffer + arg1;
+    slot         = &context->slots[arg1];
+    animationTickSlotPose(context, arg1, arg2, bufferedPose);
     slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
     if (arg7 != NULL) {
         context->sets = arg7;
