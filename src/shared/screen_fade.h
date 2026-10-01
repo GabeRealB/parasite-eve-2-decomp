@@ -3,6 +3,8 @@
  * black; the other ramps it up from nothing, taking the picture down to black.
  * Each task allocates an 8-byte OverlayFadeWork, steps by its spawnArg1 each
  * frame, and kills itself at the end.
+ * screenFadeInTileTask is the fade-in with its overlay tile linked in place
+ * rather than drawn through Fade_DrawOverlay.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -17,5 +19,6 @@
 
 void screenFadeInTask(Task* arg0);
 void screenFadeOutTask(Task* arg0);
+void screenFadeInTileTask(Task* arg0);
 
 #endif /* SRC_SHARED_SCREEN_FADE_H */

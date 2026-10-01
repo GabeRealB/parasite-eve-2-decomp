@@ -109,8 +109,6 @@ void func_dryfield_water_tank_8017E194(s16);
 
 void func_dryfield_water_tank_8017E1B4(void);
 
-void func_dryfield_water_tank_8017E220(Task*);
-
 void func_dryfield_water_tank_8017EC38(u32);
 
 void func_dryfield_water_tank_8017EC6C(Task*);

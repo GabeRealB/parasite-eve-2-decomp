@@ -45,6 +45,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/screen_fade.h"
 
 /// Work block for the water-tank cutscene task, allocated as 0xC zeroed bytes
 /// by `func_dryfield_water_tank_8017E9F8` and hung off `Task::work` (0x1C): only
@@ -320,7 +321,7 @@ EvsCommand D_dryfield_water_tank_8018068C[9] = {
 TaskDesc D_dryfield_water_tank_80180764[4] = {
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E568, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E220, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, screenFadeInTileTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E3C4, { .value = 0 } },
 };
 
@@ -872,7 +873,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task);
 /// `0xE1000240` `DR_TPAGE` into `gGpuCurrentOt[-16]`, tinting the tile `r`/`g`/`r`,
 /// then steps all three channels by `Task::spawnArg1`. Once `r` saturates past
 /// 0xFF the screen is fully covered, so the task kills itself. The fade-up half
-/// of the same pair is `func_dryfield_water_tank_8017E220`.
+/// of the same pair is `screenFadeInTileTask`.
 void func_dryfield_water_tank_8017E3C4(Task* arg0)
 {
     OverlayFadeWork* fade;

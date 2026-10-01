@@ -278,3 +278,4 @@ func_acropolis_plaza_801802C0 = 0x801802C0; // type:func
 func_acropolis_plaza_801811D0 = 0x801811D0; // type:func
 
 func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func
+screenFadeInTileTask = 0x8017DA58; // type:func
