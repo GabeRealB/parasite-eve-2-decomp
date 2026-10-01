@@ -1701,7 +1701,7 @@ WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
 };
 
 AreaResource D_dryfield_motel_room_6_80186740[2] = {
-    { 101, 205, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_8013843C },
+    { 101, 205, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_8013843C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

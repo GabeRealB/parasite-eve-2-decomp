@@ -956,20 +956,20 @@ GpObj3A D_acropolis_patio_80184964[2] = {
 };
 
 AreaResource D_acropolis_patio_801849DC[3] = {
-    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80149120 },
+    { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80149120 },
     { 107, 122, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80169F7C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_patio_80184A00[3] = {
     { 10, 170, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016CF44 },
-    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80149120 },
+    { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80149120 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_patio_80184A24[3] = {
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138C80 },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801393C8 },
+    { 7, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80138C80 },
+    { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801393C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

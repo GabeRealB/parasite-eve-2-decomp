@@ -864,7 +864,7 @@ AreaResource D_dryfield_motel_room_1_801813FC[3] = {
 };
 
 AreaResource D_dryfield_motel_room_1_80181420[3] = {
-    { 112, 232, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137234 },
+    { 112, 232, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137234 },
     { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
@@ -876,7 +876,7 @@ AreaResource D_dryfield_motel_room_1_80181444[3] = {
 };
 
 AreaResource D_dryfield_motel_room_1_80181468[3] = {
-    { 112, 232, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137234 },
+    { 112, 232, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80137234 },
     { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

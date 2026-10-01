@@ -931,12 +931,12 @@ AreaResource D_dryfield_night_water_hole_801833B8[2] = {
 };
 
 AreaResource D_dryfield_night_water_hole_801833D0[2] = {
-    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_water_hole_801833E8[2] = {
-    { 101, 460, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801351FC },
+    { 101, 460, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801351FC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

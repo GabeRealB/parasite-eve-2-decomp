@@ -163,7 +163,7 @@ AreaPlacement D_shelter_r47_80187C70[2] = {
 };
 
 AreaResource D_shelter_r47_80187C90[2] = {
-    { 100, 434, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, NULL },
+    { 100, 434, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, NULL },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

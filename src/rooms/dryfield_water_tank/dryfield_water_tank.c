@@ -851,7 +851,7 @@ WorldCollisionTrigger D_dryfield_water_tank_80188920[9] = {
 };
 
 AreaResource D_dryfield_water_tank_80188BCC[2] = {
-    { 140, 204, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013E748 },
+    { 140, 204, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013E748 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

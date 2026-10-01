@@ -814,7 +814,7 @@ AreaResource D_shelter_b1_sterilization_room_8018C0F8[1] = {
 };
 
 AreaResource D_shelter_b1_sterilization_room_8018C104[2] = {
-    { 117, 606, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013DFA0 },
+    { 117, 606, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_8013DFA0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

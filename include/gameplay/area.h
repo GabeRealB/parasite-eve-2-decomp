@@ -13,15 +13,22 @@
 /// The loader adds the decimal file number's hundreds to this base. The base-60
 /// selector queues base files only for entries with a placement whose fileIdLow=0.
 enum {
-    AREA_RESOURCE_FILE_GROUP_BASE_10 = 0,
-    AREA_RESOURCE_FILE_GROUP_BASE_20 = 1,
-    AREA_RESOURCE_FILE_GROUP_BASE_30 = 2,
-    AREA_RESOURCE_FILE_GROUP_BASE_40 = 3,
-    AREA_RESOURCE_FILE_GROUP_BASE_50 = 4,
-    AREA_RESOURCE_FILE_GROUP_BASE_60 = 5,
-    AREA_RESOURCE_FILE_GROUP_BASE_0  = 6,
-    AREA_RESOURCE_FILE_GROUP_BASE_1  = 7,
-    AREA_RESOURCE_FILE_GROUP_BASE_2  = 8
+    /// Selects file-group base 10 for an area's global-library loads.
+    ///
+    /// Store this index in `AreaResource.fileGroupIndex`; its value zero
+    /// selects base 10. For file numbers 0..999, the stage-zero
+    /// ID is `100000 + fileNumber * 100 + low`, in the regular actor-slot-1
+    /// family. `low` is zero for a base load or `AreaPlacement.fileIdLow` for
+    /// an additional file. The selector does not require a task descriptor.
+    LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR = 0,
+    AREA_RESOURCE_FILE_GROUP_BASE_20         = 1,
+    AREA_RESOURCE_FILE_GROUP_BASE_30         = 2,
+    AREA_RESOURCE_FILE_GROUP_BASE_40         = 3,
+    AREA_RESOURCE_FILE_GROUP_BASE_50         = 4,
+    AREA_RESOURCE_FILE_GROUP_BASE_60         = 5,
+    AREA_RESOURCE_FILE_GROUP_BASE_0          = 6,
+    AREA_RESOURCE_FILE_GROUP_BASE_1          = 7,
+    AREA_RESOURCE_FILE_GROUP_BASE_2          = 8
 };
 
 /// An area resource's file selection and task recipes, keyed by placement-entry ID.

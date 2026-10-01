@@ -523,7 +523,7 @@ WorldCollisionTrigger D_shelter_r36_8017F6F4[10] = {
 };
 
 AreaResource D_shelter_r36_8017F9EC[3] = {
-    { 111, 439, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801413EC },
+    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801413EC },
     { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80149664 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

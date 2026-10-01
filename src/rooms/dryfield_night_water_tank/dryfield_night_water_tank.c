@@ -523,13 +523,13 @@ AreaResource D_dryfield_night_water_tank_8018071C[1] = {
 };
 
 AreaResource D_dryfield_night_water_tank_80180728[3] = {
-    { 143, 463, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801427C8 },
+    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801427C8 },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_dryfield_night_water_tank_8018074C[2] = {
-    { 143, 463, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801427C8 },
+    { 143, 463, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801427C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

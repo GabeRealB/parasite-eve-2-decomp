@@ -868,14 +868,14 @@ GpObj3A D_acropolis_cafeteria_80189C94[2] = {
 };
 
 AreaResource D_acropolis_cafeteria_80189D0C[4] = {
-    { 10, 106, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148670 },
+    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148670 },
     { 29, 29, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80156E24 },
     { 102, 106, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801796A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_cafeteria_80189D3C[4] = {
-    { 10, 106, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148670 },
+    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80148670 },
     { 19, 106, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015A4EC },
     { 102, 106, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801796A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -892,12 +892,12 @@ AreaResource D_acropolis_cafeteria_80189D84[2] = {
 };
 
 AreaResource D_acropolis_cafeteria_80189D9C[2] = {
-    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138E98 },
+    { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80138E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaResource D_acropolis_cafeteria_80189DB4[2] = {
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
+    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_801491F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

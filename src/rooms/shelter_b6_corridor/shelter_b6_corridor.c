@@ -436,7 +436,7 @@ WorldCollisionTrigger D_shelter_b6_corridor_80180100[6] = {
 
 AreaResource D_shelter_b6_corridor_801802C8[5] = {
     { 131, 505, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80168EA4 },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_80147400 },
     { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014CA60 },
     { 60, 60, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801567C4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },

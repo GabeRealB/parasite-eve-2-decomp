@@ -1784,7 +1784,7 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EB90[2] = {
 };
 
 AreaResource D_shelter_b3_dumping_hole_8018EBB0[5] = {
-    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 1, { 0, 0 }, &D_80142604 },
+    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 1, { 0, 0 }, &D_80142604 },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_801575F0 },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_80151E60 },
     { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, &D_80164B78 },
