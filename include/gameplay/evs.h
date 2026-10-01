@@ -31,10 +31,19 @@ STATIC_ASSERT_SIZEOF(EvsSceneKey, 6);
 /// operands read by the selected opcode need meaningful initialization. Width
 /// conversions below describe truncation at dispatch, not narrower storage.
 enum {
-    EVENT_SCRIPT_OPCODE_END          = -1, // End the script, release its display reference and clear the active scene key.
-    EVENT_SCRIPT_OPCODE_SEND_MESSAGE = 1,  // 0 slot (4 placed enemy, -1 other scene child), 1 child selector, 2 message id, 3/4 payload words.
-    EVENT_SCRIPT_OPCODE_START_FLASH  = 2,  // 0 hold frames, 1 blend-mode selector; replaces the primary effect-task pointer.
-    EVENT_SCRIPT_OPCODE_SET_VIEW     = 3,  // 0 saved view id, truncated to u8.
+    /// Terminates the entire event script; operands 0-4 are ignored.
+    ///
+    /// Requests framebuffer-blend task exit, clears the selected scene key and
+    /// event state, releases the display reference, and restores CAP view-id
+    /// mapping. Releases event HUD control if still held. If any scene was
+    /// selected during the event, also ends its stream and restores the saved
+    /// random states. The script task enters its kill state for the next update
+    /// without advancing the command pointer.
+    /// Unlike `EVENT_SCRIPT_OPCODE_RETURN`, this does not pop a script call.
+    EVENT_SCRIPT_OPCODE_END          = -1,
+    EVENT_SCRIPT_OPCODE_SEND_MESSAGE = 1, // 0 slot (4 placed enemy, -1 other scene child), 1 child selector, 2 message id, 3/4 payload words.
+    EVENT_SCRIPT_OPCODE_START_FLASH  = 2, // 0 hold frames, 1 blend-mode selector; replaces the primary effect-task pointer.
+    EVENT_SCRIPT_OPCODE_SET_VIEW     = 3, // 0 saved view id, truncated to u8.
     /// Yields the script and delays the following command by a frame countdown.
     ///
     /// `operand0.value` is a nonnegative s32 count of interpreter updates.
