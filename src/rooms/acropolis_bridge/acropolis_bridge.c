@@ -83,13 +83,17 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
-#define EFFECT_SPRITE_OWN_DRAWERS
-#include "../../shared/effect_sprite.h"
-#include "../../shared/patrol_walker.h"
 
-/* The debris task draws with this room's own builds. */
-void effectSpriteDrawChip(GfxCoord* coord, u16 frame, s16 size, s16 angle);
-void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size);
+/// Selects the bridge billboard's `u16` frame and `s16` size arguments.
+///
+/// Presence-only configuration for the first inclusion of `effect_sprite.h`.
+/// The shared debris task calls this room's billboard implementation; the
+/// chip drawer retains the common signature. Undefine after the header include.
+#define EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
+#include "../../shared/effect_sprite.h"
+#undef EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
+
+#include "../../shared/patrol_walker.h"
 
 /// Work block this room's script tasks keep at `Task::work`
 /// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is

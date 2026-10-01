@@ -370,6 +370,11 @@ introducing a qualifier; do not assume that they are one API.
 tasks. Its implementation interface is `src/shared/room_events.h`; record types
 used by several room overlays are declared in `include/rooms/room_common.h`.
 
+`effectSprite` owns the included animated sprite and debris tasks and their
+textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its
+configuration macros use `EFFECT_SPRITE_` and select declarations matching each
+carrier's drawer signatures.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before
