@@ -160,7 +160,7 @@ void func_necrosis_8012EF34(Task* arg0)
             work->obj2.flags = (work->obj2.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             pan              = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_necrosis_801306C8[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
-                                (s8)gpGetObjDepth(coord));
+                                (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_SpawnPadLerp((s16)((u16)D_necrosis_801306BC[mem->index].field_2 + 0xC), 0xFF, 8);
             arg0->state = 1;
             /* fallthrough */

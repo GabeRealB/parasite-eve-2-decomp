@@ -1039,7 +1039,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.source.index);
                             Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_PLAY, &D_shelter_b1_sterilization_room_80188624, 0);
                             pan = (s8)worldCoordGetOriginAudioPan(coord);
-                            SndEvt_EnqueueType6(0x54100011, pan, (s8)gpGetObjDepth(coord));
+                            SndEvt_EnqueueType6(0x54100011, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                             task->killCountdown = 0;
                         }
                         st           = &Gp_StateC08;

@@ -1614,7 +1614,7 @@ block_22:
             } else {
                 if (temp_v1_4 == 3) {
                     temp_s0_3 = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(0x54160009, temp_s0_3, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(0x54160009, temp_s0_3, (s8)worldCoordGetOriginAudioDepth(coord));
                     var_v0 = (rand() & 0xF) + 0x10;
                     goto block_34;
                 }
@@ -1706,7 +1706,7 @@ block_22:
     block_54:
         if ((arg0->spawnArg1.value < 0x1000) && (Gp_FindRec18(work->recs, 0) != 0)) {
             temp_s0_5 = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(0x5416000A, temp_s0_5, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(0x5416000A, temp_s0_5, (s8)worldCoordGetOriginAudioDepth(coord));
             work->life = -1;
         }
         if (work->life < 0) {

@@ -21,7 +21,7 @@ void spiderSprayState(Task* arg0)
     if ((s16)work->field_396 == 0x28) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0003;
         pan   = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
+        SndEvt_EnqueueType6(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
     if ((u32)(work->field_396 - 0x2B) < 7U) {
         Gp_SpawnEnemyFromTable(work->field_36C, 1, 0, arg0->spawnArg2.pointer);

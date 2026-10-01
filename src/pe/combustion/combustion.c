@@ -110,7 +110,7 @@ void func_combustion_8012EF34(Task* arg0)
             mem->move.vz = 0x200;
             pan          = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_combustion_80130998[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
-                                (s8)gpGetObjDepth(coord));
+                                (s8)worldCoordGetOriginAudioDepth(coord));
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;

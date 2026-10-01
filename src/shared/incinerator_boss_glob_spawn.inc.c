@@ -52,7 +52,7 @@ void incinBossGlobSpawn(Enemy* enemy, Task* task)
         tmdProcessStream(task->extra.tmd);
         sfx = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020001C;
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(sfx, pan, (s8)(gpGetObjDepth(task->extra.tmd->coords) / 2));
+        SndEvt_EnqueueType6(sfx, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
     }
 
     task->extra.tmd->lightMtx = &work->lightMtx;

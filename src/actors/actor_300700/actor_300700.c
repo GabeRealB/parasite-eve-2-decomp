@@ -381,7 +381,7 @@ default_body:
 
         id   = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070008;
         temp = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        SndEvt_EnqueueType6(id, temp, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
+        SndEvt_EnqueueType6(id, temp, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
     }
 }
 
@@ -719,7 +719,7 @@ static void func_actor_300700_80162BC8(Enemy* arg0, Task* arg1)
                     ((Actor300700SpawnWork*)work)->obj1EC.flags = ((Actor300700SpawnWork*)work)->obj1EC.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
                     id                                          = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
                     pan                                         = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     Gp_UnlinkNode(&arg0->node);
                     Gp_ReleaseStateF0Add(arg1, 8);
                     work->field_2E0 = 1;

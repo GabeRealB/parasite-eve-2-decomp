@@ -1419,7 +1419,7 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(
             cue, pan,
-            (s8)gpGetObjDepth(task->extra.tmd->coords));
+            (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
     if (work->field_20C != 0) {
         func_800D7A9C(task->extra.tmd,

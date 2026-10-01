@@ -90,7 +90,7 @@ void stalkerCloakFade(Task* arg0)
                     }
                     snd = gStalkerFadeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
             t               = work->field_6E2 - 0x80 / work->field_6DC;

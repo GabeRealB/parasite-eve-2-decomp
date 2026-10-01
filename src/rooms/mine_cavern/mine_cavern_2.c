@@ -3148,7 +3148,7 @@ found:
             }
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54020014;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(arg1->extra.tmd->coords) / 2));
+            SndEvt_EnqueueType6(id, pan, (s8)(worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords) / 2));
             arg1->state++;
         }
     }

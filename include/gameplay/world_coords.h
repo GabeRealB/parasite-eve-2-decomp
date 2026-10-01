@@ -29,12 +29,18 @@ void Gp_UpdateActorColor(struct Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
 void Gp_SetLightMode(struct Enemy* arg0, s32 arg1);
 
-/// How far a coordinate's origin lies from the current view's projection plane,
-/// in the form the sound events take their depth argument: saturated to ±0x7FFF
-/// and scaled down by 256, which lands in the signed byte they read.
+/// Returns the signed attenuation depth for spatial sound at a coordinate's local origin.
 ///
-/// `worldCoordGetOriginAudioPan` is the pan that goes with it.
-s32 gpGetObjDepth(GfxCoord* coord);
+/// Subtracts the current view's projection distance from `coord->workm.t[2]`,
+/// clamps to [-32767, 32767] game-coordinate units and shifts right by eight,
+/// rounding negative values down. One depth unit spans 256 game-coordinate
+/// units; the result is in [-128, 127]. Negative is nearer than the projection
+/// plane, positive is farther, and zero supplies no sound attenuation.
+///
+/// `coord` must be live with its local-to-view matrix already composed. Reads
+/// the cached matrix without updating it; changes no node, scratch or GTE state.
+/// `worldCoordGetOriginAudioPan` supplies the corresponding spatial pan offset.
+s32 worldCoordGetOriginAudioDepth(const GfxCoord* coord);
 
 /// Returns the spatial sound pan offset for a coordinate node's local origin.
 ///

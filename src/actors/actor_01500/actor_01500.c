@@ -1065,7 +1065,7 @@ static void Actor01500_Fn00AFC(Task* actor, s32 damage)
         work->field_378 = 1;
     }
     id = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400F0004;
-    SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+    SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     if (enemy->hp <= (Actor01500_D09FB8.hpMax * 60) / 100) {
         work->field_358 = 2;
         if (work->field_35A != 5) {
@@ -2111,7 +2111,7 @@ static void Actor01500_Fn02A1C(Task* arg0)
         if ((s16)((s16)work->field_356 % 3) == 1) {
             soundId = objectSoundId | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             pan     = (s8)worldCoordGetOriginAudioPan(object);
-            SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(object));
+            SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(object));
         }
         if (work->field_380 > 0) {
             timer           = (u16)work->field_380 - 1;

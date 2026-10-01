@@ -54,7 +54,7 @@ void lungerCollapseState(Task* arg0)
                           ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)worldCoordGetOriginAudioPan(self);
 
-                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
+                    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
                 }
                 if (work->field_698 == 0x2C) {
                     s32 pan;
@@ -63,7 +63,7 @@ void lungerCollapseState(Task* arg0)
                           ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)worldCoordGetOriginAudioPan(self);
 
-                    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
+                    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
                 }
             } else if (work->field_698 == 0x19) {
                 s32 pan;
@@ -72,7 +72,7 @@ void lungerCollapseState(Task* arg0)
                       ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)worldCoordGetOriginAudioPan(self);
 
-                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
+                SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
             }
             work->field_6AE--;
             if (work->field_6AE <= 0) {

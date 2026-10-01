@@ -2094,7 +2094,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
         part               = task->extra.tmd->coords;
         part              += 1;
         *(s16*)&arg->pan   = worldCoordGetOriginAudioPan(part);
-        *(s16*)&arg->depth = gpGetObjDepth(part);
+        *(s16*)&arg->depth = worldCoordGetOriginAudioDepth(part);
         table.funcs[work->state](enemy, task, work, arg);
         Actor01100_Fn01D98(enemy, task, work, arg);
         switch (work->field_BA6) {
@@ -3572,7 +3572,7 @@ static void Actor01100_Fn06198(Task* task)
             }
         fire:
             id = (flag << 22) | (0x400B000B | (Actor01100_D15670 << 8));
-            SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)gpGetObjDepth(soundCoord));
+            SndEvt_EnqueueType6(id, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
             work->obj.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             task->killCountdown = 0x1E;
             task->state        += 1;
@@ -3612,7 +3612,7 @@ static void Actor01100_Fn0638C(Task* task)
     soundBase  = (variant << 22) | 0x400B000C;
     sound      = soundBase | (Actor01100_D15670 << 8);
     pan        = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+    SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     effect = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
     if (effect != NULL) {
         Task_Reparent(task, effect->task);

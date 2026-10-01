@@ -1468,7 +1468,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 s32       p;
                 work->field_15A++;
                 p = (s8)worldCoordGetOriginAudioPan(o);
-                SndEvt_EnqueueType6(0x51140007, p, (s8)gpGetObjDepth(o));
+                SndEvt_EnqueueType6(0x51140007, p, (s8)worldCoordGetOriginAudioDepth(o));
             }
         case 3: {
             u16 w = work->field_50;
@@ -1510,7 +1510,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 s32       p;
                 Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                 p = (s8)worldCoordGetOriginAudioPan(o);
-                SndEvt_EnqueueType6(0x51140013, p, (s8)gpGetObjDepth(o));
+                SndEvt_EnqueueType6(0x51140013, p, (s8)worldCoordGetOriginAudioDepth(o));
             } else if ((s16)work->field_166 == 210) {
                 GfxCoord* c;
                 s32       p;
@@ -1521,7 +1521,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 Gp_SpawnEff(0x601BD, c, 0, NULL);
                 p = (s8)worldCoordGetOriginAudioPan(c);
-                SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
+                SndEvt_EnqueueType6(0x5114000E, p, (s8)worldCoordGetOriginAudioDepth(c));
                 if (actor->mode != GAME_ACTOR_MODE_DAMAGE) {
                     if (gPlayerStatus.hp < 11) {
                         ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->field_22 = 1;
@@ -1533,7 +1533,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                     actor->damageReaction = 5;
                     func_8010A9D0(player);
                     pan = (s8)worldCoordGetOriginAudioPan(c);
-                    SndEvt_EnqueueType6(6, pan, (s8)gpGetObjDepth(c));
+                    SndEvt_EnqueueType6(6, pan, (s8)worldCoordGetOriginAudioDepth(c));
                 }
             }
             break;
@@ -1617,7 +1617,7 @@ static void func_actor_107600_801337FC(Task* arg0)
                 work->field_15C = 0;
                 Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                 pan = (s8)worldCoordGetOriginAudioPan(obj);
-                SndEvt_EnqueueType6(0x51140009, pan, (s8)gpGetObjDepth(obj));
+                SndEvt_EnqueueType6(0x51140009, pan, (s8)worldCoordGetOriginAudioDepth(obj));
             }
             break;
         case 2:
@@ -1683,7 +1683,7 @@ static void func_actor_107600_801339A4(Task* arg0)
                 id = 0x51140012;
             }
             pan = (s8)worldCoordGetOriginAudioPan(obj);
-            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
+            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
             work->field_52  = (obj->parent)->param.rot.vy;
             work->field_54  = (obj->parent)->param.rot.vz;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1802,7 +1802,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
                         obj = arg0->extra.tmd->coords;
                         work->field_16B++;
                         pan = (s8)worldCoordGetOriginAudioPan(obj);
-                        SndEvt_EnqueueType6(0x51140008, pan, (s8)gpGetObjDepth(obj));
+                        SndEvt_EnqueueType6(0x51140008, pan, (s8)worldCoordGetOriginAudioDepth(obj));
                     }
                     if (damage >= 0x14) {
                         work->field_15E = 2;

@@ -121,7 +121,7 @@ void func_plasma_8012EF34(Task* arg0)
             arg0->state = st;
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
             SndEvt_EnqueueType6(D_plasma_8012FF48[(u16)(Gp_StateC08.field_0 % 10) - 1], pan,
-                                (s8)gpGetObjDepth(coord));
+                                (s8)worldCoordGetOriginAudioDepth(coord));
             Gp_SpawnPadLerp((s16)(mem->index * 4 + 0x10), 0xFF, 8);
             return;
         case 1:

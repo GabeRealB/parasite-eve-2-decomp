@@ -154,7 +154,7 @@ void func_energyshot_8012EF34(Task* arg0)
 
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(D_energyshot_801300FC[mem->index], pan,
-                                        (s8)gpGetObjDepth(coord));
+                                        (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 return;
             }

@@ -1001,7 +1001,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->eff1A8.spawnArgLo = 0x120;
             work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[4], NULL, &work->eff1A8);
-            Gp_SpawnScript18Ex(Actor01200_D04044, Actor01200_D04050, (s16)gpGetObjDepth(arg1->extra.tmd->coords));
+            Gp_SpawnScript18Ex(Actor01200_D04044, Actor01200_D04050, (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             work->obj300.radius = 0x320;
             work->obj338.radius = 0xC8;
             work->obj300.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1030,7 +1030,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             Gp_SpawnEff(0x6009E, arg1->extra.tmd->coords, 0, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             break;
         case 9:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1127,7 +1127,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             Gp_SpawnEff(0x60030, arg1->extra.tmd->coords, 0x10030, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
+            SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 1:
@@ -1564,7 +1564,7 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
     if (id != 0) {
         snd = id | ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
+        SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
     }
     if (work->field_3D8 != 0) {
         func_800D7A9C(arg1->extra.tmd, (VECTOR*)arg1->extra.tmd->coords->workm.t, 0, 3);

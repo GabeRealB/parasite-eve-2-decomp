@@ -56,7 +56,7 @@ void podWeakPointHit(Enemy* arg0, Task* arg1)
                 Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
                 snd  = gPodSoundIds[1];
                 snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (damage > 0) {
                 if (part->field_44 == 0) {
                     if ((Gp_GetIdParam0(part->rec18[0].key.value) & 0xFFFF) == 7) {
@@ -71,7 +71,7 @@ void podWeakPointHit(Enemy* arg0, Task* arg1)
                 }
                 snd  = gPodSoundIds[0];
                 snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
-                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
         }
     }

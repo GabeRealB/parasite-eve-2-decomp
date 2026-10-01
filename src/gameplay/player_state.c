@@ -985,7 +985,7 @@ void Gp_PlayerStepSfx(Task* arg0)
     }
     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
     temp  = (s8)worldCoordGetOriginAudioPan(obj);
-    temp2 = (s8)gpGetObjDepth(obj);
+    temp2 = (s8)worldCoordGetOriginAudioDepth(obj);
     snd   = 7;
     if ((u16)inner->hitRegion == 1) {
         snd = 6;

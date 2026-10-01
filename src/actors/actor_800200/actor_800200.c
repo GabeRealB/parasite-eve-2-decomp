@@ -2125,7 +2125,7 @@ static void func_actor_800200_8016436C(Task* arg0)
         actor->statePhase = next;
         Gp_AnimPlayChildSlotsEx(arg0, actor->attackControl.targetVariant + 0xA, 0, 4);
         pan = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(actor->attackControl.targetVariant + 0x40720009, pan, (s8)gpGetObjDepth(coord));
+        SndEvt_EnqueueType6(actor->attackControl.targetVariant + 0x40720009, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     tick:
         if (func_80105894(arg0, 1, 0, 0) == 0) {
             dist = func_8010BCF4(arg0, vec);
@@ -2637,7 +2637,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
                     }
                     if (sound != 0) {
                         pan = (s8)worldCoordGetOriginAudioPan(obj);
-                        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(obj));
+                        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));
                         func_800EA3A0(cueBits != ANIMATION_RECORD_CUE_2);
                     }
                 }
@@ -2993,7 +2993,7 @@ static void func_actor_800200_80165B84(Task* arg0)
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(0x4072000A, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(0x4072000A, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
     }
     Gp_TickActorAnimState(arg0);

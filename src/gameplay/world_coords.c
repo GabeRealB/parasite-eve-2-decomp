@@ -1379,18 +1379,25 @@ void Gp_SetLightMode(Enemy* arg0, s32 arg1)
     }
 }
 
-s32 gpGetObjDepth(GfxCoord* coord)
+s32 worldCoordGetOriginAudioDepth(const GfxCoord* coord)
 {
-    s32 val;
+    // Signed game-coordinate limits and the shift for 256 coordinates per depth unit.
+    enum {
+        WORLD_COORDINATE_AUDIO_DEPTH_MIN   = -0x7FFF,
+        WORLD_COORDINATE_AUDIO_DEPTH_MAX   = 0x7FFF,
+        WORLD_COORDINATE_AUDIO_DEPTH_SHIFT = 8
+    };
+    s32 depthFromPlane;
 
-    val = coord->workm.t[2] - gDisplayState.screenDistance;
-    if (val >= 0x7FFF) {
-        val = 0x7FFF;
+    depthFromPlane = coord->workm.t[2] - gDisplayState.screenDistance;
+    if (depthFromPlane >= WORLD_COORDINATE_AUDIO_DEPTH_MAX) {
+        depthFromPlane = WORLD_COORDINATE_AUDIO_DEPTH_MAX;
     }
-    if (val < -0x7FFF) {
-        val = -0x7FFF;
+    if (depthFromPlane < WORLD_COORDINATE_AUDIO_DEPTH_MIN) {
+        depthFromPlane = WORLD_COORDINATE_AUDIO_DEPTH_MIN;
     }
-    return val >> 8;
+    // Arithmetic shifting rounds negative depths down and retains the -128 endpoint.
+    return depthFromPlane >> WORLD_COORDINATE_AUDIO_DEPTH_SHIFT;
 }
 
 /// Projects a local origin into the reserved record immediately below `scratchEnd`.

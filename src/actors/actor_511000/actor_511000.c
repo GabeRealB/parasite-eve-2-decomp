@@ -2131,7 +2131,7 @@ static void func_actor_511000_80131E78(Task* arg0)
             if (++work->field_4D2 == 0x10) {
                 obj = work->field_4C4->extra.tmd->coords;
                 pan = (s8)worldCoordGetOriginAudioPan(obj);
-                SndEvt_EnqueueType6(0x313A0003, pan, (s8)gpGetObjDepth(obj));
+                SndEvt_EnqueueType6(0x313A0003, pan, (s8)worldCoordGetOriginAudioDepth(obj));
                 Gp_SpawnEff(0x6006A, obj, 0, &D_actor_511000_8014733C);
             }
         }

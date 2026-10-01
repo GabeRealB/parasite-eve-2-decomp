@@ -34,7 +34,7 @@ void stalkerHeavyFlinchSeq(Task* arg0)
                 work->field_6DE = 0xF;
                 work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan             = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(work->field_6BC, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 break;
             }
             break;

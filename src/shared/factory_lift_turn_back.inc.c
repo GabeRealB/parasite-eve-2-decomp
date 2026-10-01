@@ -16,9 +16,9 @@ s32 factoryLiftTurnBack(Task* task)
             break;
         case 1:
             if (gGameSession->location.loc.stage == 2) {
-                Gp_EnqueueStageSnd6(0x5217000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                Gp_EnqueueStageSnd6(0x5217000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                Gp_EnqueueStageSnd6(0x5317000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                Gp_EnqueueStageSnd6(0x5317000F, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->field_16++;
             break;
@@ -42,10 +42,10 @@ s32 factoryLiftTurnBack(Task* task)
                 factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
-                    Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                    Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
                     Gp_EnqueueStageSnd7(0x5317000F, 1);
-                    Gp_EnqueueStageSnd6(0x53170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                    Gp_EnqueueStageSnd6(0x53170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 work->field_10.word = 0;
                 work->field_16++;
@@ -60,10 +60,10 @@ s32 factoryLiftTurnBack(Task* task)
         factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
-            Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+            Gp_EnqueueStageSnd6(0x52170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         } else {
             Gp_EnqueueStageSnd7(0x5317000F, 1);
-            Gp_EnqueueStageSnd6(0x53170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+            Gp_EnqueueStageSnd6(0x53170011, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
         done                = 1;
         work->field_10.word = 0;

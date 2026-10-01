@@ -1102,7 +1102,7 @@ post:
         snd             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070003;
         gRandomLcgState = rng6;
         pan             = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
     Actor00700_Fn01B50(arg0);
 }
@@ -1215,7 +1215,7 @@ case2:
     }
     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070004;
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((s32)((gRandomLcgState >> 16) & 0xF) < Actor00700_D06E50[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
         work->field_37C = 0;
@@ -1539,7 +1539,7 @@ death:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070005;
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     return;
 dying:
     Actor00700_Fn01EEC(arg1);
@@ -1710,7 +1710,7 @@ static void Actor00700_Fn01B50(Task* arg0)
         gRandomLcgState = random;
         snd             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070001;
         pan             = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(coord));
+        SndEvt_EnqueueType6(snd, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
 }
 
@@ -1742,7 +1742,7 @@ case0:
     work->field_37C = 1;
     snd             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070002;
     pan             = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+    SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     return;
 case1:
     if ((s16)work->field_382 < 0x18) {
@@ -2003,7 +2003,7 @@ default_body:
 
         id   = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070008;
         temp = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        SndEvt_EnqueueType6(id, temp, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
+        SndEvt_EnqueueType6(id, temp, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
     }
 }
 
@@ -2326,7 +2326,7 @@ static void Actor00700_Fn02D28(Enemy* arg0, Task* arg1)
                     ((Actor00700SpawnWork*)work)->field_20A = ((Actor00700SpawnWork*)work)->field_20A | 0x8000;
                     id                                      = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
                     pan                                     = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     Gp_UnlinkNode(&arg0->node);
                     Gp_ReleaseStateF0Add(arg1, 8);
                     work->field_2E0 = 1;

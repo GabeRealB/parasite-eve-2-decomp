@@ -2002,7 +2002,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030006;
                 pan1  = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan1,
-                                    (s32)(s8)gpGetObjDepth(coord));
+                                    (s32)(s8)worldCoordGetOriginAudioDepth(coord));
                 scratch->rot.vy = -0x5DC;
                 scratch->rot.vx = 0;
                 scratch->rot.vz = 0x320;
@@ -2018,7 +2018,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                     ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030009;
                 effectPan = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(work->field_658, (s32)effectPan,
-                                    (s32)(s8)gpGetObjDepth(coord));
+                                    (s32)(s8)worldCoordGetOriginAudioDepth(coord));
             }
             if ((s16)work->field_672 >= Actor00300_D15FF8[work->field_66A]) {
                 work->field_686 = 2;
@@ -2060,7 +2060,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030005;
                 pan2  = (s8)worldCoordGetOriginAudioPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan2,
-                                    (s32)(s8)gpGetObjDepth(coord));
+                                    (s32)(s8)worldCoordGetOriginAudioDepth(coord));
             }
             if ((s16)work->field_672 >= 0x13) {
                 work->field_686 = 3;
@@ -2139,7 +2139,7 @@ static void Actor00300_Fn02620(Task* arg0)
                 work->obj5B8.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 sound               = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4003000A;
                 pan                 = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if ((s16)work->field_672 >= 0x37) {
                 work->field_676     = 0;
@@ -2217,7 +2217,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                 }
                 work->field_658 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030009;
                 pan0            = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(work->field_658, pan0, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(work->field_658, pan0, (s8)worldCoordGetOriginAudioDepth(coord));
                 return;
             }
             return;
@@ -2256,7 +2256,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                 }
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4003000B;
                 pan1  = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, pan1, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, pan1, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case 2:
@@ -2346,7 +2346,7 @@ static void Actor00300_Fn02CE8(Task* arg0)
             soundBase = 0x40030007;
             sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
             pan0      = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, (s32)pan0, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(sound, (s32)pan0, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 1:
             if ((s16)work->field_672 >= work->field_688) {
@@ -2365,14 +2365,14 @@ static void Actor00300_Fn02CE8(Task* arg0)
                     soundBase = 0x40030003;
                     sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
                     pan1      = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             } else if (animation == 10) {
                 if ((s16)work->field_672 == 0xC) {
                     soundBase = 0x40030003;
                     sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
                     pan2      = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, (s32)pan2, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
             break;
@@ -2400,14 +2400,14 @@ static void Actor00300_Fn02CE8(Task* arg0)
                     soundBase = 0x40030004;
                     sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
                     pan3      = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, (s32)pan3, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s32)pan3, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             } else if (work->field_66E == 0xC) {
                 if ((s16)work->field_672 == 0x12) {
                     soundBase = 0x40030004;
                     sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
                     pan4      = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, (s32)pan4, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s32)pan4, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
             break;
@@ -2479,7 +2479,7 @@ static void Actor00300_Fn030B8(Task* arg0)
                 gRandomLcgState = nextRandom;
                 sound           = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4003000B;
                 pan             = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             return;
     }
@@ -2767,12 +2767,12 @@ static void Actor00300_Fn03A1C(Task* arg0)
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_696 & ANIMATION_RECORD_CUE_2)) {
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030001;
             pan   = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
         if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->field_696 & ANIMATION_RECORD_CUE_1)) {
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030002;
             pan2  = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, pan2, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(sound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
         }
         work->field_696 = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
     }
@@ -2843,7 +2843,7 @@ common:
             }
             sound = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030008;
             pan   = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 1:
             if (work->field_674 >= 0x201)

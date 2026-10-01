@@ -1137,7 +1137,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
     D_shelter_b2_laboratory_801864DC.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&D_shelter_b2_laboratory_801864DC);
     pan   = worldCoordGetOriginAudioPan(&D_shelter_b2_laboratory_801864DC);
-    depth = gpGetObjDepth(&D_shelter_b2_laboratory_801864DC);
+    depth = worldCoordGetOriginAudioDepth(&D_shelter_b2_laboratory_801864DC);
     switch (arg0->state) {
         case 0:
             SndEvt_EnqueueType6(0x541F000E, pan, depth);

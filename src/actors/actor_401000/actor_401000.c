@@ -1932,11 +1932,11 @@ static void func_actor_401000_80133D50(Task* arg0)
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;
                 deathPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(deathSound, deathPan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
+                SndEvt_EnqueueType6(deathSound, deathPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             } else {
                 hitSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0007;
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                SndEvt_EnqueueType6(hitSound, hitPan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
+                SndEvt_EnqueueType6(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
             work->field_BE8 = Gp_GetIdParam2(s->id);
             switch (Gp_GetIdParam0(s->id) & 0xFFFF) {
@@ -3422,7 +3422,7 @@ static void func_actor_401000_8013922C(Task* arg0)
     } else if (work->field_6 == 0) {
         sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51030008;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
+        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->field_6 = 1;
     }
     blendRigDrive(arg0);

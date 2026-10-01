@@ -38,7 +38,7 @@ extern u16 Gp_WeaponIdBase[2];
 extern GpAnimBlk* Gp_PlayerAnimBlkTbl[34];
 
 /// Queues sound event `sfx` from the object's world position, panned and
-/// depth-attenuated by `worldCoordGetOriginAudioPan` / `gpGetObjDepth`. A third argument of
+/// depth-attenuated by `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth`. A third argument of
 /// 1 raises the mid-action bit alongside it; the role of that argument at the
 /// call sites is not established.
 void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2);

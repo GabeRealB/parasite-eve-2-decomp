@@ -176,6 +176,6 @@ void rigAnimTick(Task* task)
     sound                                    = rigAnimCues(task, work);
     if (sound != 0) {
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        SndEvt_EnqueueType6(sound, pan, (s32)(s8)gpGetObjDepth(task->extra.tmd->coords));
+        SndEvt_EnqueueType6(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }

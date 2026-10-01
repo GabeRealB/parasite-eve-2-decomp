@@ -18,7 +18,7 @@ void hopperDangleLand(Task* arg0)
         soundId  |= 0x402C0004;
         pan       = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan     >>= 24;
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
+        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if ((s16)work->field_412 == 2) {
         soundId   = (u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -27,7 +27,7 @@ void hopperDangleLand(Task* arg0)
         soundId  |= 0x402C0003;
         pan       = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
         pan     >>= 24;
-        SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
+        SndEvt_EnqueueType6(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (hopperAnimEnded(arg0)) {
         next             = (Actor341700Work*)arg0->work;

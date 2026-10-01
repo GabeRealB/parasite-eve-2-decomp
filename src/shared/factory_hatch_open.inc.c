@@ -15,10 +15,10 @@ s32 factoryHatchOpen(Task* task)
             work->field_0 = 0;
             if (gGameSession->location.loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x5217000D, (s8)worldCoordGetOriginAudioPan(coord),
-                                    (s8)gpGetObjDepth(coord));
+                                    (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x5317000D, (s8)worldCoordGetOriginAudioPan(coord),
-                                    (s8)gpGetObjDepth(coord));
+                                    (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->step++;
             break;

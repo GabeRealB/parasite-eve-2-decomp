@@ -68,7 +68,7 @@ void stalkerStrikeSeq(Task* arg0)
                 }
                 work->field_6DA = 1;
                 work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(work->field_6B8, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(work->field_6B8, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 work->field_70A = 0;
                 work->field_6F2 = 1;
             }
@@ -163,11 +163,11 @@ void stalkerStrikeSeq(Task* arg0)
                 work->field_57C  = Gp_PackPair(gStalkerAttacks, 1);
                 work->field_582 |= 0x8000;
                 cue              = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (work->field_6C4 == 0x1C) {
                 work->field_56C = &arg0->extra.tmd->coords[12];
                 cue             = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->field_6C4 == 0x23) {
                 work->field_6CE  = 6;
@@ -177,7 +177,7 @@ void stalkerStrikeSeq(Task* arg0)
                 work->field_6DE  = 0xA;
                 work->field_582 &= 0x7FFF;
                 work->field_6BC  = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(work->field_6BC, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case 6:

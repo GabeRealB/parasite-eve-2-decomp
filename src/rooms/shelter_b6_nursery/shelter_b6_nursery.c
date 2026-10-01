@@ -953,7 +953,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
     D_shelter_b6_nursery_801879A0.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&D_shelter_b6_nursery_801879A0);
     pan   = worldCoordGetOriginAudioPan(&D_shelter_b6_nursery_801879A0);
-    depth = gpGetObjDepth(&D_shelter_b6_nursery_801879A0);
+    depth = worldCoordGetOriginAudioDepth(&D_shelter_b6_nursery_801879A0);
     switch (arg0->state) {
         case 0:
             SndEvt_EnqueueType6(0x55160001, (s8)pan, (s8)depth);

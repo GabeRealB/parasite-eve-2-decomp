@@ -1945,7 +1945,7 @@ static void func_actor_800300_80162658(Task* arg0)
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
             pan   = (s8)worldCoordGetOriginAudioPan(obj);
-            depth = (s8)gpGetObjDepth(obj);
+            depth = (s8)worldCoordGetOriginAudioDepth(obj);
             sound = 7;
             if ((u16)actor->hitRegion == 1) {
                 sound = 6;

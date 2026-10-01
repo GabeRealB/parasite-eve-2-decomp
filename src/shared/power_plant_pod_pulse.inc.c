@@ -38,7 +38,7 @@ void podPulse(Task* arg0)
                     sndId           = gPodPulseSoundId |
                             ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sndId, pan, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sndId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 } else {
                     work->field_328 = work->field_328 + 1;
                 }

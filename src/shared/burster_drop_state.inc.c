@@ -42,7 +42,7 @@ void bursterDropState(Enemy* arg0, Task* arg1)
             coord = arg1->extra.tmd->coords;
             if (coord->coord.t[1] >= 0) {
                 soundId = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0008;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 work->field_2B2                     = 1;
                 work->field_2C8                     = 1;
                 work->field_2BE                     = 0;

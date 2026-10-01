@@ -1064,7 +1064,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
                     pan0  = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, (s32)pan0, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s32)pan0, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
@@ -1088,7 +1088,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
                     pan1  = (s8)worldCoordGetOriginAudioPan(coord);
-                    SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));
+                    SndEvt_EnqueueType6(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
@@ -1119,7 +1119,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 sound                  = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan2                   = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan2, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case 3:
@@ -1206,7 +1206,7 @@ static void Actor02600_Fn00FA0(Task* arg0)
             if ((s16)work->field_396 == 0xC) {
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0001;
                 pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if ((s16)work->field_396 >= 0x29) {
                 work->field_396 = 0xB;

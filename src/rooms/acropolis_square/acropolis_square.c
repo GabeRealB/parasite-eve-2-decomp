@@ -1279,7 +1279,7 @@ void func_acropolis_square_80181AEC(Task* task)
             Gp_UpdateCoord(&D_acropolis_square_801888CC);
             pan = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
             SndEvt_EnqueueType6(
-                0x51010009, (s8)pan, (s8)gpGetObjDepth(&D_acropolis_square_801888CC));
+                0x51010009, (s8)pan, (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
             goto advance;
 
         case 4:
@@ -1294,7 +1294,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
                 pan2 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan2,
-                                    (s8)gpGetObjDepth(&D_acropolis_square_801888CC));
+                                    (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
             }
             if (gGameSession->eventState != 0) {
                 return;
@@ -1339,7 +1339,7 @@ void func_acropolis_square_80181AEC(Task* task)
                 Gp_UpdateCoord(&D_acropolis_square_801888CC);
                 pan3 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
                 SndEvt_EnqueueType6(0x51010009, (s8)pan3,
-                                    (s8)gpGetObjDepth(&D_acropolis_square_801888CC));
+                                    (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
             }
             break;
     }

@@ -2374,7 +2374,7 @@ void func_800FAA14(Task* arg0)
         if (mem->scale < 0x20) {
             if (mem->scale == 0) {
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             Gp_SpawnEff(0x60032, coord, 0, 0);
             mem->scale++;
@@ -2558,7 +2558,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
                                                ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
                                                ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(arg0->spawnArg1.value, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 1:
             Gp_UpdateCoord(coord);
@@ -2948,7 +2948,7 @@ continue_fx:
                 }
             }
             temp = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(0xE, temp, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(0xE, temp, (s8)worldCoordGetOriginAudioDepth(coord));
         } else if (mem->angle < 0x80) {
             mem->angle = 0x80;
         }
@@ -3082,7 +3082,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
         case 0:
             if (gRoomEffectState->rumbleCount == 0) {
                 temp = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(0xD, temp, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(0xD, temp, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             gRoomEffectState->rumbleCount++;
             arg0->state = 1;
@@ -3539,7 +3539,7 @@ void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3
             Gp_SpawnEff(0x6007F, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), NULL);
             pan = (s8)worldCoordGetOriginAudioPan(arg1);
             SndEvt_EnqueueType6(D_80112C7C[(u16)(Gp_StateC08.field_0 % 10U) - 1], pan,
-                                (s8)gpGetObjDepth(arg1));
+                                (s8)worldCoordGetOriginAudioDepth(arg1));
             break;
         case 12:
             Gp_SpawnEff(0x600F7, arg1, 1, NULL);
@@ -7009,7 +7009,7 @@ s32 func_80105ED4(Task* arg0)
                             sound += 0x64;
                         }
                         pan = (s8)worldCoordGetOriginAudioPan(obj);
-                        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(obj));
+                        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));
                     }
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
                         index = 0x12;
@@ -7207,7 +7207,7 @@ void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2)
     s32 temp;
 
     temp = (s8)worldCoordGetOriginAudioPan(coord);
-    SndEvt_EnqueueType6(sfx, temp, (s8)gpGetObjDepth(coord));
+    SndEvt_EnqueueType6(sfx, temp, (s8)worldCoordGetOriginAudioDepth(coord));
     if (arg2 == 1) {
         Gp_SetStateF0Bit(1);
     }

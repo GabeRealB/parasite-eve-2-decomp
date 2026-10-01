@@ -100,7 +100,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
             }
             Gp_StateC08.field_6 |= 8;
             pan                  = (s8)worldCoordGetOriginAudioPan(coord);
-            SndEvt_EnqueueType6(0xE03F0001, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(0xE03F0001, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             break;
         case 1:
             mem->scale  = mem->scale - age * (mem->scale >> 4);

@@ -70,7 +70,7 @@ void lungerBulletFly(Enemy* arg0, Task* arg1)
         ctx                    = arg1->spawnArg2.pointer;
         sound                  = gLungerImpactSound.value | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan                    = (s8)worldCoordGetOriginAudioPan(coord);
-        SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
+        SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         arg1->state = 2;
         if ((work->rec60[0].key.value & 0xFFFF0080) == 0x10000) {
             Gp_SpawnPadLerp(0xA, 0xFF, 8);

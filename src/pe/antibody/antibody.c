@@ -161,7 +161,7 @@ void func_antibody_8012EF34(Task* arg0)
 
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
                     SndEvt_EnqueueType6(D_antibody_80130C00[mem->index], pan,
-                                        (s8)gpGetObjDepth(coord));
+                                        (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 return;
             }

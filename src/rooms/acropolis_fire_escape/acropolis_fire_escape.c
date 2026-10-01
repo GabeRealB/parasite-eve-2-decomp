@@ -857,7 +857,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
                     break;
             }
             if (play && work->scale >= 0x20) {
-                SndEvt_EnqueueType6(0x510F0006, (s8)worldCoordGetOriginAudioPan(coord), (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(0x510F0006, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             block->radius  = (((task->spawnArg1.value >> 8) & 0xFF) * 0x600) / block->otz;
             block->radius2 = (((task->spawnArg1.value >> 8) & 0xFF) * 0xC0) / block->otz;

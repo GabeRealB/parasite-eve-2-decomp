@@ -52,7 +52,7 @@ void stalkerCollapseDeathSeq(Task* arg0)
             if (work->field_6C4 == frames) {
                 snd = gStalkerAnimCues[work->field_712 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
+                SndEvt_EnqueueType6(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             timer           = work->field_6D4 - 1;
             work->field_6D4 = timer;
