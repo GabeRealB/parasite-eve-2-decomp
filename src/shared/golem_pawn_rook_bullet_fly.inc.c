@@ -68,7 +68,7 @@ void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
         Gp_SpawnEff(D_80115750, coord, (s32)(work->field_EE), NULL);
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         ctx                    = arg1->spawnArg2.pointer;
-        sound                  = gGolemPawnRookImpactSound.value | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+        sound                  = GOLEM_PAWN_ROOK_IMPACT_SOUND | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan                    = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         arg1->state = 2;

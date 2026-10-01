@@ -52,6 +52,8 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 #include "../../shared/player_detection.h"
+// The impact cue symbol carries twelve zero bytes after the id.
+#define GOLEM_PAWN_ROOK_IMPACT_SOUND gGolemPawnRookImpactSound.value
 #include "../../shared/golem_pawn_rook.h"
 
 /// Placement descriptor for this actor.
