@@ -50,8 +50,19 @@ STATIC_ASSERT_SIZEOF(DamageAttack, 0x4);
 /// Bits 3 and 4 have no observed consumers and are cleared along with list
 /// state on unlink. Enabling/disabling a trigger does not clear its hit latch.
 enum {
-    WORLD_COLLISION_TRIGGER_KIND_MASK           = 0x07,
-    WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY       = 1,
+    WORLD_COLLISION_TRIGGER_KIND_MASK     = 0x07,
+    WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY = 1,
+    /// An action quad requiring the body to face against its configured normal.
+    ///
+    /// The kind occupies `WorldCollisionTrigger::flags` bits selected by
+    /// `WORLD_COLLISION_TRIGGER_KIND_MASK`. Supply `facingNormal` in the space
+    /// of the querying body's coordinate parent, with 4096 per unit.
+    /// Its dot product with column 2 (+Z) of the body's
+    /// `coord->coord.m` must be <= -12582912: at least 3/4 opposing alignment
+    /// for unit vectors. The gate uses both vectors without transformation or
+    /// normalization. A hit also requires the broad-phase radius check,
+    /// sphere overlap on the quad plane's negative side, and the body's
+    /// projected centre strictly inside all four edges.
     WORLD_COLLISION_TRIGGER_FACING_QUAD         = 2,
     WORLD_COLLISION_TRIGGER_QUAD                = 3,
     WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD = 4,
