@@ -77041,7 +77041,7 @@ var_s0 = 1;                    /* m2c */
 do {
     temp_a1 = var_s0;
     var_s0 += 1;
-    Gp_AnimTickIndex(&D->anim, temp_a1);
+    animationTickSlot(&D->anim, temp_a1);
 } while (var_s0 < 0x14);
 ```
 
@@ -77056,7 +77056,7 @@ has to be written *after* the call, which is how the original was written:
 ```c
 i = 1;
 do {
-    Gp_AnimTickIndex(&D->anim, i);
+    animationTickSlot(&D->anim, i);
     i++;
 } while (i < 0x14);
 ```
@@ -81012,7 +81012,7 @@ form the sibling files were matched with.
 ## A temp for a call argument erases the anti-dependency that orders it before the counter's increment
 
 `func_actor_207200_8014AF2C` walks a 1..3 counter through `func_800B4114` and
-`Gp_AnimTickIndex`. m2c emits the first loop with a temp for the argument, so
+`animationTickSlot`. m2c emits the first loop with a temp for the argument, so
 the counter's increment can be hoisted between the argument setup and the call:
 
 ```c
@@ -87695,7 +87695,7 @@ after the `0x1194` rescale (see "`0x2C(x)` vs `-8(head)` after a scratch pop").
 
 Same push when the block outlives a *call*: `ActorsShared80131e24Sub1` (the
 argument `actor_110700` carries) stores the head, then writes the three
-`VECTOR` fields after a `Gp_AnimTickIndex` loop, so the block pointer crosses
+`VECTOR` fields after an `animationTickSlot` loop, so the block pointer crosses
 that call. `head = *scratch - 0x10; *scratch = head; block = (VECTOR*)head;`
 compiles to `addiu s3,v0,-0x10` / `sw s3,0(a0)` and swaps the two crossing
 locals ($s3 block, $s2 coord), one instruction short of the `addiu v0` /
@@ -98767,7 +98767,7 @@ diagnosis. The original is bottom-tested, and the siblings say so:
         TOUCH_REG(i);
         work->field_24C += i;
         do {
-            Gp_AnimTickIndex((AnimationContext*)work, i);
+            animationTickSlot((AnimationContext*)work, i);
             i++;
         } while (i < 6);
     }
@@ -116546,7 +116546,7 @@ what decides the fold:
         next->field_512 = next->field_512 + 1;   /* stays addiu */
     }
     for (i = 1; i < 0xF; i++) {
-        Gp_AnimTickIndex(&next->anim, i);
+        animationTickSlot(&next->anim, i);
     }
 ```
 
@@ -124980,7 +124980,7 @@ own -
     if (work->field_474 == 3) {
         work->field_47A++;
         tick = (Actor311900Work*)task->work;     /* was: start = ... */
-        for (k = 1; k < 0x14; k++) { Gp_AnimTickIndex(&tick->anim.context, k); }
+        for (k = 1; k < 0x14; k++) { animationTickSlot(&tick->anim.context, k); }
     }
 ```
 
@@ -137930,7 +137930,7 @@ is 1 because the leading run is `byte pad_0[0x60]`. Replacing the front with a
 ## A per-case reload of the same pointer must not share a C variable with the copy used in the first loop
 
 `func_actor_111800_8013214C` loads `task->work` into `work`, copies it to `ctx`
-for the opening `Gp_AnimTickIndex` loop, then reloads `task->work` in two switch
+for the opening `animationTickSlot` loop, then reloads `task->work` in two switch
 cases before `func_800B4114`. One C variable for those three lifetimes is one
 pseudo: 13 refs across 37 insns, which outranks the whole-function `work`
 (20/108) and takes `$s1`. Split the reloads (`work0` / `work4`, 4/13 each) so
@@ -144053,7 +144053,7 @@ if (work->animId != work->prevAnimId) {
     for (i = 1; i < 0x13; i++) { func_800B4114(work, i, work->animId, 0, val); }
 } else {
     work->frame++;
-    for (i = 1; i < 0x13; i++) { Gp_AnimTickIndex(work, i); }
+    for (i = 1; i < 0x13; i++) { animationTickSlot(work, i); }
 }
 ```
 

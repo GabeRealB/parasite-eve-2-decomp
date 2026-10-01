@@ -950,7 +950,7 @@ static void Actor01900_Fn01950(Task* arg0)
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->rig.slots[i].rate = (work->field_8A2 - 3);
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }
@@ -1128,7 +1128,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         i4 = 1;
         do {
             w3->rig.slots[i4].rate = w3->field_8A2;
-            Gp_AnimTickIndex(&w3->rig.anim, i4);
+            animationTickSlot(&w3->rig.anim, i4);
             i4++;
         } while (i4 < 0x13);
     } else {

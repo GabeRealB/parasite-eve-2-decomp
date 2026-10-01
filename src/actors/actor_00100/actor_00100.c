@@ -2083,7 +2083,7 @@ static void Actor00100_Fn01D74(Task* arg0)
         } else {
             offset                       = index * 0x28;
             *(s8*)(work + offset + 0x39) = (s8)(((Actor00100Work*)work)->field_832 - 3);
-            Gp_AnimTickIndex(&((Actor00100Work*)work)->anim0, (s32)index);
+            animationTickSlot(&((Actor00100Work*)work)->anim0, (s32)index);
         }
     }
 }
@@ -2490,7 +2490,7 @@ static void Actor00100_Fn02788(Task* arg0)
         do {
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
-            Gp_AnimTickIndex(&tickWork->anim0, tickSlotIndex);
+            animationTickSlot(&tickWork->anim0, tickSlotIndex);
             tickSlot  += sizeof(AnimationSlot);
             tickIndex += 1;
         } while (tickIndex < 0x12);

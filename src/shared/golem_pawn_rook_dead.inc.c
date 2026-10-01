@@ -98,7 +98,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
     } else {
         animWork->field_698++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&animWork->rig.anim, i);
+            animationTickSlot(&animWork->rig.anim, i);
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }

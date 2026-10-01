@@ -464,7 +464,7 @@ static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
     start = anim;
     work  = (Actor342000Work*)arg0->work;
     for (i = start; i < arg1; i++) {
-        Gp_AnimTickIndex(&work->ctx, i);
+        animationTickSlot(&work->ctx, i);
     }
     i    = start;
     done = 1;

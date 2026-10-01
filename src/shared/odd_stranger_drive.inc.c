@@ -99,7 +99,7 @@ void oddStrangerDrive(Task* arg0)
         do {
             tickSlotIndex                       = tickIndex;
             tickWork->rig.slots[tickIndex].rate = tickWork->field_8A2;
-            Gp_AnimTickIndex(&tickWork->rig.anim, tickSlotIndex);
+            animationTickSlot(&tickWork->rig.anim, tickSlotIndex);
             tickIndex += 1;
         } while (tickIndex < 0x13);
     } else {

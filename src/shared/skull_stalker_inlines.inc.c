@@ -18,7 +18,7 @@ static __inline__ void skullStalkerTickAnim(Task* task)
     } else {
         work->field_290++;
         for (i = 1; i < 3; i++) {
-            Gp_AnimTickIndex(&work->context, i);
+            animationTickSlot(&work->context, i);
         }
     }
 }

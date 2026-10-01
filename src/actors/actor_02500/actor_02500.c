@@ -1782,7 +1782,7 @@ static void Actor02500_Fn02318(Task* arg0)
     j = 1;
     work->field_320++;
     do {
-        Gp_AnimTickIndex(&work->anim, j);
+        animationTickSlot(&work->anim, j);
         j++;
     } while (j < 5);
 }

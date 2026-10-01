@@ -1078,7 +1078,7 @@ static __inline__ void Actor107000_TickAnim(Task* task)
         } else {
             work->field_2BC++;
             for (i = 1; i < 3; i++) {
-                Gp_AnimTickIndex((AnimationContext*)work, i);
+                animationTickSlot((AnimationContext*)work, i);
             }
         }
     }
@@ -1965,7 +1965,7 @@ static __inline__ void update_animation(Task* task)
     } else {
         work->field_374++;
         for (i = 1; i < 7; i++)
-            Gp_AnimTickIndex(&work->context, i);
+            animationTickSlot(&work->context, i);
     }
 }
 
@@ -2734,7 +2734,7 @@ static void Actor07000_Fn05ED4(Task* arg0)
     } else {
         work->field_374++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((AnimationContext*)work, i);
+            animationTickSlot((AnimationContext*)work, i);
         }
     }
 }

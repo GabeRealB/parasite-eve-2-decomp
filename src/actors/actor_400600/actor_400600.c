@@ -1690,7 +1690,7 @@ static __inline__ void Actor400600_TickAnim(Task* arg0)
     i = 1;
     do {
         work->slots[i].rate = work->field_726;
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
         i++;
     } while (i < 0x12);
 }
@@ -4914,7 +4914,7 @@ static void func_actor_400600_80139CAC(Task* arg0)
     i = 1;
     do {
         work->slots[i].rate = work->field_726;
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
         i++;
     } while (i < 0x12);
 }

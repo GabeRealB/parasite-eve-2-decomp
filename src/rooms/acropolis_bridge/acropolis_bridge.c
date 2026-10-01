@@ -4883,7 +4883,7 @@ static void func_acropolis_bridge_8018581C(Task* task)
         tick = (AcropolisBridgeEnemyWork*)task->work;
         for (k = 1; k < 4; k++) {
             tick->slots[k].rate = tick->field_108;
-            Gp_AnimTickIndex(&tick->anim, k);
+            animationTickSlot(&tick->anim, k);
         }
     }
 }

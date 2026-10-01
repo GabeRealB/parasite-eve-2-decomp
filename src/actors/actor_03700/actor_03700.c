@@ -2232,7 +2232,7 @@ static void Actor03700_Fn033F0(Task* task)
     } else {
         work->field_24C++;
         for (i = 1; i < 6; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }

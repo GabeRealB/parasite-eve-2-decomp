@@ -378,7 +378,7 @@ static void func_actor_317000_80161E68(Task* task)
     work->walk.acc[2].word = work->walk.acc[2].halves.fraction;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (gGameSession->viewReady != 0) {
@@ -553,7 +553,7 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// `model.animId` goes back to -1), and a changed `field_4` -- or a preset asking
 /// for slots when `model.ticking` says the slots are already ticking -- is pushed
 /// onto `func_800B4114`'s per-slot loop instead of the `animationResetSlot`
-/// one, followed by a `Gp_AnimTickIndex` pass over the same 0x12 slots and
+/// one, followed by a `animationTickSlot` pass over the same 0x12 slots and
 /// `model.ticking` raised. Returns 0 either way.
 s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Actor317000SpawnAnim* anim)
 {
@@ -605,7 +605,7 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->model.ticking = 1;
     }

@@ -2307,7 +2307,7 @@ static inline void _actor400500TickAnim(Task* task)
     i = 1;
     do {
         work->slots[i].rate = work->field_9F8;
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
         i++;
     } while (i < 0x12);
 }
@@ -2737,7 +2737,7 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         i = 1;
         do {
             work2->slots[i].rate = work2->field_9F8;
-            Gp_AnimTickIndex(&work2->anim, i);
+            animationTickSlot(&work2->anim, i);
             i++;
         } while (i < 0x12);
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2783,7 +2783,7 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         i = 1;
         do {
             work3->slots[i].rate = work3->field_9F8;
-            Gp_AnimTickIndex(&work3->anim, i);
+            animationTickSlot(&work3->anim, i);
             i++;
         } while (i < 0x12);
         work->field_9F8 = 0x10;
@@ -3254,7 +3254,7 @@ static void func_actor_400500_80135EBC(Task* arg0)
         i = 1;
         do {
             work2->slots[i].rate = work2->field_9F8;
-            Gp_AnimTickIndex(&work2->anim, i);
+            animationTickSlot(&work2->anim, i);
             i++;
         } while (i < 0x12);
         work3 = (Actor400500Work*)arg0->work;
@@ -3289,7 +3289,7 @@ static void func_actor_400500_80135EBC(Task* arg0)
         i = 1;
         do {
             work4->slots[i].rate = work4->field_9F8;
-            Gp_AnimTickIndex(&work4->anim, i);
+            animationTickSlot(&work4->anim, i);
             i++;
         } while (i < 0x12);
     }
@@ -3377,7 +3377,7 @@ static void func_actor_400500_801361EC(Task* arg0)
             i = 1;
             do {
                 work2->slots[i].rate = work2->field_9F8;
-                Gp_AnimTickIndex(&work2->anim, i);
+                animationTickSlot(&work2->anim, i);
                 i++;
             } while (i < 0x12);
             switch ((s16)((u16)work->field_A1A - 1)) {
@@ -4184,7 +4184,7 @@ static void func_actor_400500_801375B8(Task* arg0)
     i = 1;
     do {
         work4->slots[i].rate = work4->field_9F8;
-        Gp_AnimTickIndex(&work4->anim, i);
+        animationTickSlot(&work4->anim, i);
         i++;
     } while (i < 0x12);
     work->field_A04 = 0;
@@ -4418,7 +4418,7 @@ static void func_actor_400500_80138088(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
 
@@ -4523,7 +4523,7 @@ static void func_actor_400500_801385D0(Task* arg0)
         i = 1;
         do {
             work2->slots[i].rate = work2->field_9F8;
-            Gp_AnimTickIndex(&work2->anim, i);
+            animationTickSlot(&work2->anim, i);
             i++;
         } while (i < 0x12);
     }
@@ -4645,7 +4645,7 @@ static void func_actor_400500_8013899C(Task* arg0)
         i = 1;
         do {
             work2->slots[i].rate = work2->field_9F8;
-            Gp_AnimTickIndex(&work2->anim, i);
+            animationTickSlot(&work2->anim, i);
             i++;
         } while (i < 0x12);
         work3            = (Actor400500Work*)arg0->work;
@@ -4810,7 +4810,7 @@ static void func_actor_400500_80138EA0(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
     work3            = (Actor400500Work*)arg0->work;
@@ -4860,7 +4860,7 @@ static void func_actor_400500_8013905C(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
 }
@@ -4939,7 +4939,7 @@ static void func_actor_400500_801392D8(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
     work3            = (Actor400500Work*)arg0->work;
@@ -5039,7 +5039,7 @@ static void func_actor_400500_801395D0(Task* arg0)
         i = 1;
         do {
             work2->slots[i].rate = work2->field_9F8;
-            Gp_AnimTickIndex(&work2->anim, i);
+            animationTickSlot(&work2->anim, i);
             i++;
         } while (i < 0x12);
     }
@@ -5180,7 +5180,7 @@ static void func_actor_400500_8013973C(Task* arg0)
         i = 1;
         do {
             workAnim->slots[i].rate = workAnim->field_9F8;
-            Gp_AnimTickIndex(&workAnim->anim, i);
+            animationTickSlot(&workAnim->anim, i);
             i++;
         } while (i < 0x12);
         root->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5274,7 +5274,7 @@ static void func_actor_400500_80139C1C(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
     work3            = (Actor400500Work*)arg0->work;
@@ -5375,7 +5375,7 @@ static void func_actor_400500_80139F6C(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
     work3            = (Actor400500Work*)arg0->work;
@@ -5485,7 +5485,7 @@ static void func_actor_400500_8013A0B8(Task* arg0)
             i = 1;
             do {
                 anim->slots[i].rate = anim->field_9F8;
-                Gp_AnimTickIndex(&anim->anim, i);
+                animationTickSlot(&anim->anim, i);
                 i++;
             } while (i < 0x12);
             coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5574,7 +5574,7 @@ static void func_actor_400500_8013A484(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
 }
@@ -5721,7 +5721,7 @@ static void func_actor_400500_8013A8E4(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
     Gp_UnlinkNode(&enemy->node);
@@ -5770,7 +5770,7 @@ static void func_actor_400500_8013AA98(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
     hit = (Actor400500HitView*)arg0->work;
@@ -5874,7 +5874,7 @@ static void func_actor_400500_8013AD60(Task* arg0)
         i = 1;
         do {
             work2->slots[i].rate = work2->field_9F8;
-            Gp_AnimTickIndex(&work2->anim, i);
+            animationTickSlot(&work2->anim, i);
             i++;
         } while (i < 0x12);
     }
@@ -5940,7 +5940,7 @@ static void func_actor_400500_8013AF44(Task* arg0)
         i = 1;
         do {
             work3->slots[i].rate = work3->field_9F8;
-            Gp_AnimTickIndex(&work3->anim, i);
+            animationTickSlot(&work3->anim, i);
             i++;
         } while (i < 0x12);
         switch ((s16)((u16)work->field_A1A - 1)) {
@@ -6212,7 +6212,7 @@ static void func_actor_400500_8013B5E0(Task* arg0)
     i = 1;
     do {
         work2->slots[i].rate = work2->field_9F8;
-        Gp_AnimTickIndex(&work2->anim, i);
+        animationTickSlot(&work2->anim, i);
         i++;
     } while (i < 0x12);
 }

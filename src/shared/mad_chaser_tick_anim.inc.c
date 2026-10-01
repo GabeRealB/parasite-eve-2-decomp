@@ -45,6 +45,6 @@ void madChaserTickAnim(Task* arg0)
     }
     for (k = 1; k < 9; k++) {
         (&work->slot_B4)[k].rate = work->field_41C;
-        Gp_AnimTickIndex(&work->anim, k);
+        animationTickSlot(&work->anim, k);
     }
 }

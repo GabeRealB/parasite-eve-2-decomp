@@ -59,7 +59,7 @@ s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, GpSpawnAnim
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->model.ticking = 1;
     }

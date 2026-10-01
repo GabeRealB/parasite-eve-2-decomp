@@ -2856,9 +2856,9 @@ void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, AnimationPose* ar
     SCRATCH_STACK_RELEASE_BLOCK(AnimationPose);
 }
 
-void Gp_AnimTickIndex(AnimationContext* context, s32 arg1)
+void animationTickSlot(AnimationContext* context, s32 slotIndex)
 {
-    animationTickSlotPose(context, arg1, 0, 0);
+    animationTickSlotPose(context, slotIndex, NULL, NULL);
 }
 
 void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6)

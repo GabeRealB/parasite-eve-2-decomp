@@ -4344,7 +4344,7 @@ static s32 func_actor_560800_80132498(Task* arg0)
         return 0;
     }
     for (i = 1; i < work->field_4BA; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;
@@ -6487,7 +6487,7 @@ void func_actor_560800_80137820(Task* arg0)
             anim = (Actor560800ModelWork*)arg0->work;
             i    = 1;
             do {
-                Gp_AnimTickIndex(&anim->anim, i & 0xFFFF);
+                animationTickSlot(&anim->anim, i & 0xFFFF);
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);
             for (i = 1; (u32)(i & 0xFFFF) < 7U; i++) {

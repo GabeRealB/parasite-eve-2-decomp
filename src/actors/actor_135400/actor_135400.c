@@ -710,7 +710,7 @@ static void func_actor_135400_801322A8(Task* task)
     ext  = task->extra.tmd;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -898,7 +898,7 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, ActorCommand* msg, s32 arg
 
 /// Per-frame tick of the second task. Once `func_actor_135400_80132D24` has
 /// raised `model.ticking` it ticks slots 1..18 of the work block through
-/// `Gp_AnimTickIndex`; while the model is not hidden (flag 0x80 of
+/// `animationTickSlot`; while the model is not hidden (flag 0x80 of
 /// `TmdObject::flags`) it draws the ground shadow under the model's
 /// root part, as `func_actor_135400_801322A8` does for the main task. It then
 /// steps the 0x7D3 animation on the `D_actor_135400_8013F8C4` frame counts, and
@@ -917,7 +917,7 @@ static void func_actor_135400_801329B0(Task* task)
     ext  = task->extra.tmd;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[0].workm), &pos) != 0)) {
@@ -1050,7 +1050,7 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* param
         }
     }
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
     return 0;

@@ -2377,7 +2377,7 @@ void func_actor_510900_801355B4(Enemy* arg0, Task* arg1)
     }
     work->field_58A++;
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);

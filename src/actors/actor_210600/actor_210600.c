@@ -442,7 +442,7 @@ static void func_actor_210600_8014B2C0(Task* task)
     tick = (Actor210600Work*)task->work;
     for (k = 1; k < 0x13; k++) {
         tick->rig.slots[k].rate = tick->field_886.byte;
-        Gp_AnimTickIndex(&tick->rig.anim, k);
+        animationTickSlot(&tick->rig.anim, k);
     }
 }
 

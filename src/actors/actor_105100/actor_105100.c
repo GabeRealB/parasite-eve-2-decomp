@@ -1746,7 +1746,7 @@ static inline void _actor105100AnimUpdate(Task* task)
     } else {
         work->field_592++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

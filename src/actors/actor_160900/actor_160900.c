@@ -1062,7 +1062,7 @@ static s32 func_actor_160900_80132844(Task* arg0)
         return 0;
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;

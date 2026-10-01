@@ -1060,7 +1060,7 @@ static void func_actor_356100_801633DC(Task* arg0)
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->slots[i].rate = (work->field_982 - 3);
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }
@@ -1122,7 +1122,7 @@ static void func_actor_356100_80163508(Task* arg0)
         tick = (Actor356100AnimWork*)arg0->work;
         for (i = 1; i < 0x15; i++) {
             tick->slots[i].rate = tick->field_982;
-            Gp_AnimTickIndex(&tick->anim, i);
+            animationTickSlot(&tick->anim, i);
         }
     } else {
         func_actor_356100_801633DC(arg0);

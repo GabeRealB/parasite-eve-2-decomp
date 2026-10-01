@@ -26,7 +26,7 @@ void oddStrangerTickBlended(Task* arg0)
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
             work->rig.slots[i].rate = (work->field_8A2 - 3);
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

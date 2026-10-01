@@ -500,7 +500,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
     states[(s16)work->walk.motion](arg0);
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         if (work->field_500 != 0) {
             if (work->rig.slots[1].flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
@@ -681,7 +681,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
                     }
                 }
                 for (i = 1; i < 0x13; i++) {
-                    Gp_AnimTickIndex(&work->rig.anim, i);
+                    animationTickSlot(&work->rig.anim, i);
                 }
                 work->model.ticking = 1;
             }
@@ -984,7 +984,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
 
     if (work->field_43C != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 
@@ -1187,7 +1187,7 @@ static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest
             }
         }
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->field_43C = 1;
     }

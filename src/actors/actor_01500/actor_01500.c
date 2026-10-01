@@ -2087,7 +2087,7 @@ static void Actor01500_Fn02958(Task* arg0)
     } else {
         work->field_356++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }

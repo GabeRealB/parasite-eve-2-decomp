@@ -364,7 +364,7 @@ static void func_actor_311900_80162100(Task* task)
         work->field_47A++;
         tick = (Actor311900Work*)task->work;
         for (k = 1; k < 0x14; k++) {
-            Gp_AnimTickIndex(&tick->rig.anim, k);
+            animationTickSlot(&tick->rig.anim, k);
         }
     }
 }

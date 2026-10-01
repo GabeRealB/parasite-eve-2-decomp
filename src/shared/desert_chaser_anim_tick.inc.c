@@ -98,7 +98,7 @@ void desertChaserAnimTick(Task* task)
         do {
             tickSlotIndex                   = tickIndex;
             tickWork->slots[tickIndex].rate = tickWork->field_832;
-            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
+            animationTickSlot(&tickWork->anim, tickSlotIndex);
             tickIndex += 1;
         } while (tickIndex < 0x12);
     } else {

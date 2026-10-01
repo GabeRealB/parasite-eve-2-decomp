@@ -1792,7 +1792,7 @@ static s32 func_actor_121300_80132818(Task* arg0)
 
     work = (Actor121300Work*)arg0->work;
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     i    = 1;
     done = 1;

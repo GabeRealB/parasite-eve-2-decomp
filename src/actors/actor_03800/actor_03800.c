@@ -2004,7 +2004,7 @@ static inline void _actor03800TickAnim(Task* task)
     } else {
         work->field_34C++;
         for (i = 1; i < 6; i++) {
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
         }
     }
 }

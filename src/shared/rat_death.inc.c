@@ -87,7 +87,7 @@ death:
     } else {
         work2->field_382++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex(&work2->anim, i);
+            animationTickSlot(&work2->anim, i);
         }
     }
     c      = arg1->extra.tmd->coords;
@@ -123,7 +123,7 @@ dying:
     } else {
         work2->field_382++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex(&work2->anim, i);
+            animationTickSlot(&work2->anim, i);
         }
     }
     c      = arg1->extra.tmd->coords;

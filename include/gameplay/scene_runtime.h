@@ -93,8 +93,6 @@ void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, AnimationPose* a
 void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, AnimationPose* arg2, AnimationPose* arg3, s32 arg4,
                           s32 arg5);
 
-void Gp_AnimTickIndex(AnimationContext* context, s32 arg1);
-
 void func_800B4538(AnimationContext* context, s32 arg1, AnimationPose* arg2, u16 arg3, s32 arg4, s32 arg5,
                    s32 arg6);
 

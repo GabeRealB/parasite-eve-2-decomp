@@ -627,7 +627,7 @@ void func_actor_120500_8013241C(Task* arg0)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&slotsWork->rig.anim, (u16)i);
+        animationTickSlot(&slotsWork->rig.anim, (u16)i);
         i++;
     } while ((u16)i < 0x14U);
 

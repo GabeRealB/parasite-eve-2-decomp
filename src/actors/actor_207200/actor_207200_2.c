@@ -1287,7 +1287,7 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
     } else {
         work->field_490++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((AnimationContext*)work, i);
+            animationTickSlot((AnimationContext*)work, i);
         }
     }
 }

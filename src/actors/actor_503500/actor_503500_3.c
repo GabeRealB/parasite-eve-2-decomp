@@ -1636,7 +1636,7 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex((AnimationContext*)work, i);
+        animationTickSlot((AnimationContext*)work, i);
     }
     work->field_7D4 = 1;
     work2           = arg0->work;
@@ -2349,8 +2349,8 @@ static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 /// (`field_7D4`), a clear 0x100 bit in the animation flags means the clip is
 /// still running, so every slot 1..0x13 is ticked; once the bit is set the clip
 /// has finished, and in state 0 the boss resets the slot rates and re-applies
-/// preset `D_actor_503500_8016EAD4`. The block is passed to `Gp_AnimTickIndex`
-/// as the `AnimationContext` it is fronted by (`ActorAnimRig20::anim`).
+/// preset `D_actor_503500_8016EAD4`. `animationTickSlot` uses the animation
+/// context at the start of the boss block.
 static void func_actor_503500_80136D30(Task* arg0)
 {
     Actor503500Work* work;
@@ -2365,7 +2365,7 @@ static void func_actor_503500_80136D30(Task* arg0)
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimTickIndex((AnimationContext*)work, i);
+                animationTickSlot((AnimationContext*)work, i);
             }
         }
     }

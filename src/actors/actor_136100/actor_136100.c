@@ -1275,7 +1275,7 @@ static s32 func_actor_136100_80131FBC(Task* arg0)
 
     work = (Actor136100Work*)arg0->work;
     for (i = 1; i < 20; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     for (done = i = 1; i < 20; i++) {
         if (!(work->rig.slots[i].flags & ANIMATION_SLOT_SETTLED)) {

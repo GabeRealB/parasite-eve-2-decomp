@@ -3751,7 +3751,7 @@ static void func_actor_403100_801327CC()
         D_actor_403100_80155808->field_5E0 += 1;
     }
     for (i = 1; i < 15; i++) {
-        Gp_AnimTickIndex(&D_actor_403100_80155808->field_B8.animation.anim, i);
+        animationTickSlot(&D_actor_403100_80155808->field_B8.animation.anim, i);
     }
 }
 static void func_actor_403100_801328DC(Task* arg0)

@@ -869,7 +869,7 @@ static void func_actor_135600_801324D0(Task* arg0)
         work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
         if (work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimTickIndex(&work->rig.anim, i);
+                animationTickSlot(&work->rig.anim, i);
             }
         }
         if (gGameSession->viewReady != 0) {

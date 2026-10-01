@@ -172,6 +172,22 @@ void animationResetSlot(AnimationContext* context, s32 slotIndex, s32 setIndex);
 void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination,
                            void* encodedDestination);
 
+/// Advances one animation slot and applies its blended pose to the model coordinate.
+///
+/// Consumes the slot's signed `rate` in sixteenths of a frame, with the death
+/// playback adjustment and boundary flags described by `animationTickSlotPose`.
+/// Encoding 1 writes local translation and rotation; encoding 4 writes rotation
+/// and preserves translation. Both mark the coordinate dirty. Zero `timeSpan`
+/// and unsupported encodings skip pose writes. No transition pose is captured.
+///
+/// `slotIndex` is a nonnegative element index into `context->slots` and its
+/// corresponding encoded pose-buffer entry; zero is valid. The slot's
+/// `coordIndex` selects the destination and must be below `context->partCount`.
+/// The context's bindings are retained. Borrowed storage, loaded clip data,
+/// record bounds, scratch-stack capacity and GTE requirements are those of
+/// `animationTickSlotPose`; no array lengths are checked here.
+void animationTickSlot(AnimationContext* context, s32 slotIndex);
+
 /// Persistent head-tracking state for `func_800B17D4`, allocated by the task
 /// that drives the head turn and kept in its `Task::work`. `yawLimit` /
 /// `pitchLimit` are the base clamps (widened to the head's current pose each

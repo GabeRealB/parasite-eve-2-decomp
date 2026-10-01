@@ -1240,7 +1240,7 @@ static void func_actor_113000_80132070(Task* task)
     extra = task->extra.tmd;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
@@ -1314,7 +1314,7 @@ s32 func_actor_113000_80132208(Task* task, s32 msgId, AnimationPlayRequest* msg,
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->field_474 = 1;
     return 0;

@@ -49,15 +49,15 @@ void gluttonTickAnim(Task* arg0)
         w = arg0->work;
         for (i = 1; i < 8; i++) {
             w->slots0[i].rate = w->field_7B6;
-            Gp_AnimTickIndex(&w->anim0, i);
+            animationTickSlot(&w->anim0, i);
         }
         for (i = 0; i < 4; i++) {
             w->slots2[i].rate = w->field_7B6;
-            Gp_AnimTickIndex(&w->anim2, i);
+            animationTickSlot(&w->anim2, i);
         }
         for (i = 0; i < 4; i++) {
             w->slots4[i].rate = w->field_7B6;
-            Gp_AnimTickIndex(&w->anim4, i);
+            animationTickSlot(&w->anim4, i);
         }
     } else {
         gluttonTickBlended(arg0);

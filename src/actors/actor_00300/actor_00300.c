@@ -3374,7 +3374,7 @@ static void Actor00300_Fn04ED4(Task* arg0)
     } else {
         work->field_672++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

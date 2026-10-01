@@ -5672,7 +5672,7 @@ void Gp_AnimTickChildSlots(Task* arg0)
     i     = 1;
     if (i < inner->animationSlotCount) {
         do {
-            Gp_AnimTickIndex(&inner->animationContext, i);
+            animationTickSlot(&inner->animationContext, i);
             i++;
         } while (i < inner->animationSlotCount);
     }

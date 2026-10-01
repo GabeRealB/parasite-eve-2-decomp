@@ -3867,7 +3867,7 @@ static __inline__ void _actor403600UpdateAnimation(Task* task, u8 count)
             work->field_73A++;
             for (i = 1; i < count; i++) {
                 work->rig.slots[i].rate = work->field_778;
-                Gp_AnimTickIndex(&work->rig.anim, i);
+                animationTickSlot(&work->rig.anim, i);
             }
         }
     }

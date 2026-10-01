@@ -1215,7 +1215,7 @@ static void func_actor_210700_8014A0AC(Task* task)
     ext  = task->extra.tmd;
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
@@ -1288,7 +1288,7 @@ s32 func_actor_210700_8014A224(Task* task, s32 arg1, Actor210700Anim* msg, s32 a
             }
         }
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->field_474 = 1;
     }

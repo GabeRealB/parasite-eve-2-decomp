@@ -788,7 +788,7 @@ static void func_actor_205200_8014C7CC(Task* arg0)
     } else {
         work->field_582++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

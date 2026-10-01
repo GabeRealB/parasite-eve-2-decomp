@@ -1597,7 +1597,7 @@ static void func_actor_401300_80133324(Task* arg0)
             } while (0);
         } else {
             work->rig.slots[i].rate = (work->field_8A6 - 3);
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }
@@ -1981,9 +1981,9 @@ static __inline__ void Actor401300_TickAnim(Task* arg0)
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = work->field_8A6;
         if (i < 7) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         } else if (i >= 9) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

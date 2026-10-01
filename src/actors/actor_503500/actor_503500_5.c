@@ -1732,7 +1732,7 @@ static void func_actor_503500_80145FDC(Task* task)
     work->field_4A8     = (u16)work->field_4A8;
     if (work->model.ticking != 0) {
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {

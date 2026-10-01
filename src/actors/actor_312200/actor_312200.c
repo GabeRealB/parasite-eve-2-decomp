@@ -385,7 +385,7 @@ static void func_actor_312200_80162FB4(Task* task)
     tick = (Actor312200Work*)task->work;
     for (m = 1; m < 0x13; m++) {
         tick->rig.slots[m].rate = tick->field_896.byte;
-        Gp_AnimTickIndex(&tick->rig.anim, m);
+        animationTickSlot(&tick->rig.anim, m);
     }
 }
 

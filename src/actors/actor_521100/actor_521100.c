@@ -3593,7 +3593,7 @@ static void func_actor_521100_80135964(Task* arg0)
     i                = 1;
     work->field_68A += i;
     do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
         i++;
     } while (i < 0x13);
 }

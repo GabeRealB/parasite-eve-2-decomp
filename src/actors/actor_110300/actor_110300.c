@@ -358,7 +358,7 @@ void viewFigureTickAnim(void)
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&gViewFigureWork->rig.anim, i);
+        animationTickSlot(&gViewFigureWork->rig.anim, i);
         i++;
     } while (i < 0x14);
 }

@@ -53,7 +53,7 @@ s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, GpSpawnAni
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->model.ticking = 1;
     return 0;

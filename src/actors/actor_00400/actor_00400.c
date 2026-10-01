@@ -2711,7 +2711,7 @@ static void Actor00400_Fn03920(Task* arg0)
         anim->field_62A = (u16)anim->field_62A + 1;
     }
     for (index = 1; index < 0xF; index++) {
-        Gp_AnimTickIndex(&anim->anim, index);
+        animationTickSlot(&anim->anim, index);
     }
     work->field_620 = 0x1000;
     work->field_622 = 0x1000;
@@ -2860,7 +2860,7 @@ static void Actor00400_Fn04414(Task* arg0)
     }
     i = 1;
     do {
-        Gp_AnimTickIndex(&w->anim, i);
+        animationTickSlot(&w->anim, i);
         i++;
     } while (i < 0xF);
     if (arg0->spawnArg1.value != 7) {
@@ -2946,7 +2946,7 @@ static void Actor00400_Fn04580(Task* arg0)
             }
             i = 1;
             do {
-                Gp_AnimTickIndex(&w->anim, i);
+                animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
             work->flags_62C.half = work->slots[1].flags;
@@ -3228,7 +3228,7 @@ static void Actor00400_Fn04E18(Task* arg0)
             }
             i = 1;
             do {
-                Gp_AnimTickIndex(&w->anim, i);
+                animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
             work->flags_62C.half = work->slots[1].flags;
@@ -3870,7 +3870,7 @@ static void Actor00400_Fn06798(Task* arg0)
         }
         i = 1;
         do {
-            Gp_AnimTickIndex(&a->anim, i);
+            animationTickSlot(&a->anim, i);
             i++;
         } while (i < 0xF);
     }
@@ -3957,7 +3957,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
             }
             i = 1;
             do {
-                Gp_AnimTickIndex(&w->anim, i);
+                animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
             work->flags_62C.half = work->slots[1].flags;
@@ -4139,7 +4139,7 @@ static void Actor00400_Fn070C0(Task* arg0)
             }
             i = 1;
             do {
-                Gp_AnimTickIndex(&w->anim, i);
+                animationTickSlot(&w->anim, i);
                 i++;
             } while (i < 0xF);
             work->flags_62C.half = work->slots[1].flags;
@@ -4497,7 +4497,7 @@ static void Actor00400_Fn07CC4(Task* arg0)
     }
     i = 1;
     do {
-        Gp_AnimTickIndex(&w->anim, i);
+        animationTickSlot(&w->anim, i);
         i++;
     } while (i < 0xF);
     if (work->field_636 >= 0x3C) {
@@ -4894,7 +4894,7 @@ static void Actor00400_Fn08814(Task* arg0)
     }
     i = 1;
     do {
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
         i++;
     } while (i < 0xF);
 }
@@ -5044,7 +5044,7 @@ static void Actor00400_Fn08C54(Task* arg0)
     }
 
     for (i = 1; i < 15; i++) {
-        Gp_AnimTickIndex(&state->anim, i);
+        animationTickSlot(&state->anim, i);
     }
 
     if (work->field_636 >= 0x1E) {

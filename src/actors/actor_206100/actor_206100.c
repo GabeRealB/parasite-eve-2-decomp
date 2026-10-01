@@ -1851,7 +1851,7 @@ static inline void _actor206100AnimUpdate(Task* task)
         work->field_512 = work->field_512 + 1;
     }
     for (i = 1; i < 0xF; i++) {
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
     }
 }
 
@@ -2059,7 +2059,7 @@ static void func_actor_206100_8014C458(Task* task)
                 anim->field_512 = anim->field_512 + 1;
             }
             for (i = 1; i < 0xF; i++) {
-                Gp_AnimTickIndex(&anim->anim, i);
+                animationTickSlot(&anim->anim, i);
             }
             work->flags_514.parts.half = work->slots[1].flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
@@ -2859,7 +2859,7 @@ static void func_actor_206100_8014DA28(Task* task)
                 next->field_512 = next->field_512 + 1;
             }
             for (i = 1; i < 0xF; i++) {
-                Gp_AnimTickIndex(&next->anim, i);
+                animationTickSlot(&next->anim, i);
             }
             work->flags_514.parts.half = work->slots[1].flags;
             func_actor_206100_8014B0AC(task, work->field_54D);
@@ -3351,7 +3351,7 @@ static void func_actor_206100_8014E964(Task* task, void* unusedTable)
         next->field_512 = next->field_512 + 1;
     }
     for (i = 1; i < 0xF; i++) {
-        Gp_AnimTickIndex(&next->anim, i);
+        animationTickSlot(&next->anim, i);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((s16)work->field_51E >= 0x32) {
@@ -3990,7 +3990,7 @@ static void func_actor_206100_8014FCD4(Task* task, void* unusedTable)
         next->field_512 = next->field_512 + 1;
     }
     for (i = 1; i < 0xF; i++) {
-        Gp_AnimTickIndex(&next->anim, i);
+        animationTickSlot(&next->anim, i);
     }
     work->field_520 = work->field_520 + 1;
 }

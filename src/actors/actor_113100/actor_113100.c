@@ -1328,7 +1328,7 @@ static void func_actor_113100_80132104(Task* task)
         work->walk.acc[2].word  = (u16)work->walk.acc[2].word;
         if (work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimTickIndex(&work->rig.anim, i);
+                animationTickSlot(&work->rig.anim, i);
             }
             rec = Gp_AnimGetRec(&work->rig.anim, &work->rig.slots[1]);
             if (rec != NULL) {
@@ -1645,7 +1645,7 @@ s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, Act
             }
         }
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->model.ticking = 1;
     }
@@ -1894,7 +1894,7 @@ s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* pres
             }
         }
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->model.ticking = 1;
     }

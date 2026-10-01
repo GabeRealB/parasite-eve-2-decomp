@@ -83,7 +83,7 @@ typedef struct Actor510900GridScratch {
 STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
 
 /// `Task::work` of the child task `func_actor_510900_8013A85C` drives: an
-/// animation context `Gp_AnimTickIndex` ticks slots 1..10 of, with a pair of
+/// animation context `animationTickSlot` ticks slots 1..10 of, with a pair of
 /// words past it. Below 2, `field_334` + 0xB is the game-flag nibble index
 /// `field_336` is written to; otherwise `field_336` goes to the parent work's
 /// `field_5C2`.
@@ -3195,7 +3195,7 @@ case0:
     if (func_actor_510900_8013C240(arg1) == 0) {
         i = 1;
         do {
-            Gp_AnimTickIndex(&work->anim, i);
+            animationTickSlot(&work->anim, i);
             i++;
         } while (i < 0xB);
         return;
@@ -3216,7 +3216,7 @@ body:
     }
     i = 1;
     do {
-        Gp_AnimTickIndex(&work->anim, i);
+        animationTickSlot(&work->anim, i);
         i++;
     } while (i < 0xB);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3914,7 +3914,7 @@ static void func_actor_510900_8013BB20(Task* arg0)
     } else {
         work->field_58A++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

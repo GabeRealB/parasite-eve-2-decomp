@@ -2361,7 +2361,7 @@ void golemKnightBishopTickAnim(Task* arg0)
     } else {
         work->field_6C4++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
 }

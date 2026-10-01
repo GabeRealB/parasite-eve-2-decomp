@@ -3304,7 +3304,7 @@ static void Actor01600_Fn03D48(Task* arg0)
             work->field_50A = (u16)work->field_50A + 1;
             for (i = 1; i < 9; i++) {
                 work->slots[i].rate = work->field_538;
-                Gp_AnimTickIndex(&work->anim, i);
+                animationTickSlot(&work->anim, i);
             }
         }
         anim = work->field_506;

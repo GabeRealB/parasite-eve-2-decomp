@@ -2605,7 +2605,7 @@ static void func_actor_421600_80133B30(Task* arg0)
             Gp_AnimWritePoseCopy(&work->anim, index, &pose, &blendPose, blend, invBlend);
         } else {
             work->slots[index].rate = (work->field_832 - 3);
-            Gp_AnimTickIndex(&work->anim, index);
+            animationTickSlot(&work->anim, index);
         }
         next  = index + 1;
         index = next;
@@ -3029,7 +3029,7 @@ static void func_actor_421600_80134604(Task* arg0)
         do {
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
-            Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
+            animationTickSlot(&tickWork->anim, tickSlotIndex);
             tickSlot  += sizeof(AnimationSlot);
             tickIndex += 1;
         } while (tickIndex < 0x12);

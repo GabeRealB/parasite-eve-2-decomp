@@ -241,7 +241,7 @@ static inline void _actor111800TickAnim(Task* task)
     u16              i;
 
     for (i = 1; i < 0x13; i++) {
-        Gp_AnimTickIndex(&work->rig.anim, i);
+        animationTickSlot(&work->rig.anim, i);
     }
     work->field_492 = work->rig.slots[1].currentPose.indices.recordIndex;
 }
@@ -458,7 +458,7 @@ void func_actor_111800_8013251C(Task* task)
             ctx = work;
             i   = 1;
             do {
-                Gp_AnimTickIndex(&ctx->rig.anim, i & 0xFFFF);
+                animationTickSlot(&ctx->rig.anim, i & 0xFFFF);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
             ctx->field_492 = ctx->rig.slots[1].currentPose.indices.recordIndex;

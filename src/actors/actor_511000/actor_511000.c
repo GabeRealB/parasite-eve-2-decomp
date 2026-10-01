@@ -2125,7 +2125,7 @@ static void func_actor_511000_80131E78(Task* arg0)
     coord = &extra->coords[1];
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         if (work->field_478 == 1) {
             if (++work->field_4D2 == 0x10) {
@@ -2324,7 +2324,7 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
             }
         }
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
         work->field_474 = 1;
     }
@@ -3122,7 +3122,7 @@ static void func_actor_511000_80133B80(Enemy* enemy, Task* task)
     pos    = SCRATCH_STACK_CURSOR(VECTOR);
     if (flag != 0) {
         for (i = 1; i < 19; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
+            animationTickSlot(&work->rig.anim, i);
         }
     }
     if (work->field_47C < 3) {
