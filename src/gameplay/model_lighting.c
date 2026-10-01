@@ -356,6 +356,14 @@ static inline void _modelLightingInitGt3TextureWords(POLY_GT3* triangle, const u
 {
     // Relative word positions in the packed texture suffix, independent of its element prefix.
     enum {
+        /// Offset in u32 stream words from a GT3 element's U0/V0/CLUT word to its U1/V1/texture-page word.
+        ///
+        /// The next four-byte word packs U1 in bits 0..7, V1 in bits 8..15 and
+        /// encoded texture-page settings in bits 16..31 on the little-endian
+        /// target. This is independent of the element prefix and of the byte
+        /// spacing between the destination packet's texture fields. Adding it
+        /// to `uv0ClutWordIndex` must fit in s32 and select a readable word in
+        /// the same element. The full word is copied before page relocation.
         MODEL_LIGHTING_GT3_UV1_TPAGE_WORD_OFFSET = 1,
         MODEL_LIGHTING_GT3_UV2_WORD_OFFSET       = 2
     };
