@@ -69,6 +69,8 @@ STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 #define DESERT_CHASER_SLOT_RATE(work)  ((work)->field_834) /* the chaser's own speed */
 /* seeing the player raises the alert and starts the chase */
 #define DESERT_CHASER_NOTICE(work) (Gp_ArmStateF0(1), (work)->field_0 = 0x26)
+/* how near the player has to be before a steering chaser closes in */
+#define DESERT_CHASER_CLOSE_IN 2000
 #else
 #define DESERT_CHASER_CONTACTS         12
 #define DESERT_CHASER_RUN_SEQUENCE     1
@@ -79,6 +81,7 @@ STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 #define DESERT_CHASER_CLIP_STUNNED     0x18
 #define DESERT_CHASER_SLOT_RATE(work)  0x10 /* every runner alike */
 #define DESERT_CHASER_NOTICE(work)     ((work)->field_0 = 0x1C)
+#define DESERT_CHASER_CLOSE_IN         1500
 #endif
 
 /// Sphere body and the contact table supplied by its owner.
