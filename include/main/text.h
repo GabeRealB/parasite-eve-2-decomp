@@ -17,7 +17,17 @@ enum {
     /// pair tightening remains two pixels and measurement keeps medium metrics.
     TEXT_GLYPH_TABLE_MEDIUM          = 0,
     TEXT_GLYPH_TABLE_LARGE_ALTERNATE = 2,
-    TEXT_GLYPH_TABLE_LARGE           = 4,
+    /// Selects the large UI face for initial drawing and line measurement.
+    ///
+    /// Stored as 4 in `TextDrawReq::glyphTable`. Glyph bytes 0x20..0xFF index
+    /// the metrics by subtracting space; drawing initializes `vBias` to -128,
+    /// adding 128 texels to texture V modulo 256. Eligible kerning pairs
+    /// tighten by two pixels.
+    /// Inline font commands change the drawing face and V bias without changing
+    /// this selector, so alignment measurement keeps large metrics and pair
+    /// tightening remains two pixels. `TEXT_GLYPH_TABLE_LARGE_ALTERNATE` has
+    /// the same drawing and measurement behavior.
+    TEXT_GLYPH_TABLE_LARGE = 4,
     /// Small UI face, covering character bytes 0x20..0x7A.
     ///
     /// Drawing stores V bias 0. Pair kerning tightens by one pixel while the
