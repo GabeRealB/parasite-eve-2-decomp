@@ -1400,24 +1400,27 @@ s32 worldCoordGetOriginAudioDepth(const GfxCoord* coord)
     return depthFromPlane >> WORLD_COORDINATE_AUDIO_DEPTH_SHIFT;
 }
 
-/// Projects a local origin into the reserved record immediately below `scratchEnd`.
+/// Projects a coordinate node's local origin into a caller-owned projection record.
 ///
-/// `scratchEnd` is the cursor before reservation. Keeps the GTE projection
-/// settings, replaces its matrices/results and leaves the scratch cursor alone.
-static inline void _worldCoordProjectOrigin(const GfxCoord* coord, WorldCoordProjectionScratch* scratchEnd)
+/// `coord->workm` must already map local coordinates into view space. `result`
+/// must address a live, word-aligned `WorldCoordProjectionScratch`; its point
+/// becomes (0, 0, 0), and its screen pixels, depth cue, flags and quarter-depth
+/// are written even when projection reports an error. The unused point halfword
+/// is left unchanged. Keeps the current GTE projection settings, replaces its
+/// rotation/translation matrices and results, and performs no scratch reservation
+/// or release.
+static inline void _worldCoordProjectOrigin(const GfxCoord* coord, WorldCoordProjectionScratch* result)
 {
-    WorldCoordProjectionScratch* projection;
-    SVECTOR*                     inputPoint;
+    SVECTOR* inputPoint;
 
-    projection = scratchEnd - 1;
-    inputPoint = &projection->point;
+    inputPoint = &result->point;
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
-    projection->point.vz = 0;
-    projection->point.vy = 0;
-    projection->point.vx = 0;
-    gte_RotTransPers(inputPoint, &scratchEnd[-1].screen, &scratchEnd[-1].depthCue,
-                     &scratchEnd[-1].projectionFlags, &scratchEnd[-1].orderingDepth);
+    result->point.vz = 0;
+    result->point.vy = 0;
+    result->point.vx = 0;
+    gte_RotTransPers(inputPoint, &result->screen, &result->depthCue,
+                     &result->projectionFlags, &result->orderingDepth);
 }
 
 s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
@@ -1446,14 +1449,12 @@ s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
         /// Zero is a signed pan offset; the sound's base pan may be off-centre.
         WORLD_COORDINATE_AUDIO_PAN_NO_OFFSET = 0
     };
-    WorldCoordProjectionScratch* scratchEnd;
     WorldCoordProjectionScratch* projection;
     s32                          negativePan;
 
     projection = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
-    scratchEnd = projection + 1;
     // Project the coordinate's local origin through its composed view matrix.
-    _worldCoordProjectOrigin(coord, scratchEnd);
+    _worldCoordProjectOrigin(coord, projection);
     if (projection->projectionFlags >= 0) {
         if (projection->screen.vx > WORLD_COORDINATE_AUDIO_PAN_MAX_X) {
             projection->screen.vx = WORLD_COORDINATE_AUDIO_PAN_MAX_X;

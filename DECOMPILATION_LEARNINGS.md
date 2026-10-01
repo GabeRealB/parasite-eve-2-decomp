@@ -134926,7 +134926,7 @@ macro body is the place to edit - true only when the name is spelled *in* the
 body. The common shape here spells it in the argument, since the `gte_*` store
 macros take the address of a struct field:
 
-    gte_stdp(&scratchEnd[-1].depthCue);
+    gte_stdp(&result->depthCue);
 
 There the invocation is the place, and the edit count printed at the end of the
 run counts none of them: a rename of a type used only this way can report nine
