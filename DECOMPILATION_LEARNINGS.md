@@ -134232,9 +134232,10 @@ account for the two, and write the cull against `flags` rather than a constant.
 ## A draw walk's `flags`-selected twin differs by one branch, and that branch is the facing sign
 
 The early-image draw handlers lay their element walk out twice and choose between
-the two copies with a bit of the `flags` argument. `tmdDrawStreamGt3` does it on
-`flags & 0x10`, and the same shape repeats in the pre-transformed triangle and
-quad families (`tmdDrawStreamPrimGt3PreXform`, `tmdDrawStreamPrimGt4PreXform`), so it is the
+the two copies with a bit of the drawing object's flags. `tmdDrawStreamGt3` does
+it on `objectFlags & TMD_OBJECT_REVERSE_CULLING` (`0x10`), and the same shape
+repeats in the pre-transformed triangle and quad families
+(`tmdDrawStreamPrimGt3PreXform`, `tmdDrawStreamPrimGt4PreXform`), so it is the
 family's, not one handler's. The copies are the same instructions except for the
 branch that follows the facing result: one skips the element when `MAC0 <= 0`,
 the other when `MAC0 >= 0`. The bit therefore picks which winding the walk keeps,

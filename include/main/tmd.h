@@ -72,26 +72,39 @@ void Tmd_DrawFlaggedNodes(TmdObject* node);
 
 void Tmd_DrawActiveNodes(TmdObject* node);
 
-/// Draw-pass handler of a stream's gouraud-shaded textured-triangle records
-/// (`0x38`, `0x3A`): each element contributes one triangle to the buffer half's
-/// second region, with its corners projected and lit and the primitive linked
-/// into the ordering table at the model's own offset.
+/// Projects, lights and links a stream record's gouraud textured triangles.
 ///
-/// The record's texture words belong to the pass that builds the primitive
-/// (`gpStreamPrimGt3` writes them), so what is filled here is the triangle's
-/// three corners and the colours they are lit from, which come from the three
-/// normals the element names. An element whose projection the GTE rejects, or
-/// whose triangle turns away, is stepped over rather than drawn, though its
-/// packet slot is passed over either way, so the primitives stay aligned with
-/// the elements that named them.
+/// This is the ordinary `0x38` draw handler. `objectFlags` is `TmdObject.flags`,
+/// not the record opcode: `TMD_OBJECT_SEMI_TRANS` selects GPU code 0x36 instead
+/// of 0x34, and `TMD_OBJECT_REVERSE_CULLING` keeps negative rather than positive
+/// `NCLIP` areas for mirrored geometry. Zero area and a projection reporting
+/// `TMD_GTE_ERROR_FLAG` are rejected. The `0x3A` entry,
+/// `tmdDrawStreamGt3SemiTrans`, shares the walks but always selects code 0x36.
 ///
-/// The record's `0x3A` form — `tmdDrawStreamGt3SemiTrans` — is the same body
-/// reached with the semi-transparent shading constant, and this entry is the one
-/// that picks the shading from `flags`. One further bit of `flags` picks between
-/// the body's two copies of the walk, which keep opposite signs of the facing
-/// result: a model drawn as a reflection asks for it, because a mirroring
-/// transform reverses the model's faces.
-u32* tmdDrawStreamGt3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `elements` starts after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `workspace->elemStride` in u32 words,
+/// at least three words per element. Those first three words pack six u16 byte
+/// offsets in order: vertex 0, vertex 1, vertex 2, normal 0, normal 1, normal 2.
+/// Each offset must name a complete eight-byte `SVECTOR` in the corresponding
+/// borrowed array. Standard records also carry three texture words, initialized
+/// into the packets by construction; drawing does not read those words.
+///
+/// The GTE must already hold the part transform, light/colour matrices and
+/// background colour. Lighting uses three normals with a fixed RGB (128,128,128).
+/// `workspace->primWrite` must address `elemCount` consecutive `POLY_GT3` slots
+/// in the selected buffer half's second region, with UVs, page and CLUT already
+/// built. Every element consumes one 40-byte slot, including rejected triangles.
+/// Accepted packets receive screen coordinates, lit colours and a nine-word DMA
+/// length, and are prepended to `workspace->ot` at bucket
+/// `(((u32)OTZ << workspace->otDepthShift) & 0x3FFF) >> 4`. This is a wrapped
+/// 0..1023 index relative to an OT base already displaced by the model's offset;
+/// the resulting entry must fit the backing table. Normal draw supplies shifts
+/// 0..3. Geometry, stream and packet capacities are not checked here.
+///
+/// Returns `elements + elemCount * elemStride` and advances `primWrite` past all
+/// packet slots; workspace counts and saved GTE results are unchanged. No pointer
+/// is retained. Keep the packet storage alive until the GPU finishes using it.
+u32* tmdDrawStreamGt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Draw handler of a stream's gouraud textured-quad records (`0x78`): each
 /// element contributes one quad, projected and lit into the buffer slot the build

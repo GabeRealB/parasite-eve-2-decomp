@@ -389,7 +389,7 @@ class MeshView(ttk.Frame):
                 # Cull the way the game does. tmdDrawStreamGt3 runs NCLIP
                 # on the *projected* points and drops the primitive when MAC0
                 # <= 0; it never consults a normal for visibility. The stored
-                # normals feed NCCS, which is lighting only - using them to
+                # normals feed NCCT, which is lighting only - using them to
                 # decide facing drops real surface, which is what made heads
                 # and legs disappear.
                 (x0, y0, _), (x1, y1, _), (x2, y2, _) = pts[f[0]], pts[f[1]], pts[f[2]]

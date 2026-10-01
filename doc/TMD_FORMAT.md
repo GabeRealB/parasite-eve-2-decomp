@@ -676,7 +676,7 @@ they are exact closed manifolds (χ = 2).
 **Backface culling is `NCLIP`, not a normal test.** `tmdDrawStreamGt3`
 runs the projected points through `NCLIP` (`0x4B400006`) and drops the
 primitive when `MAC0 <= 0` — `mfc2 $t0, $24` then `blez`. It never consults a
-normal to decide visibility. The stored normals are the input to `NCCS`, which
+normal to decide visibility. The stored normals are the input to `NCCT`, which
 is *lighting*: a normal here is a shading normal, not necessarily the geometric
 face normal, so culling on it removes real surface. That is what makes heads
 and legs vanish from an offline render while a single-part object like a hand
