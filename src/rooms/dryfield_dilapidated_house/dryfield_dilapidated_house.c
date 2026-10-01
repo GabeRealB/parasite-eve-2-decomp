@@ -205,8 +205,6 @@ extern s32                D_dryfield_dilapidated_house_80186804[16];
 extern SVECTOR            D_dryfield_dilapidated_house_80186844[2];
 extern OverlayMorphTarget D_dryfield_dilapidated_house_8018669C;
 extern SVECTOR            D_dryfield_dilapidated_house_801866B4[];
-extern s8                 D_dryfield_dilapidated_house_801866F4[16][4];
-extern u8                 D_dryfield_dilapidated_house_80186734[24][4];
 extern SVECTOR            D_dryfield_dilapidated_house_80186794[2];
 extern SVECTOR            D_dryfield_dilapidated_house_801867A4[6];
 extern SVECTOR            D_dryfield_dilapidated_house_801867D4[6];
@@ -214,7 +212,6 @@ extern SVECTOR            D_dryfield_dilapidated_house_801867D4[6];
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
 static void func_dryfield_dilapidated_house_8017EBB8(Task* task);
 static void func_dryfield_dilapidated_house_8017EE58(Task* task);
-static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2);
 static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3);
 static void func_dryfield_dilapidated_house_80180FB8(Task* task);
 static s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
@@ -799,7 +796,7 @@ SVECTOR D_dryfield_dilapidated_house_801866B4[8] = {
     { -81, -162, -82, 0 },
 };
 
-s8 D_dryfield_dilapidated_house_801866F4[16][4] = {
+s8 gGlowRingBeamQuads[16][4] = {
     { 0, 6, 1, 11 },
     { 0, 6, 5, 7 },
     { 0, 3, 1, 2 },
@@ -818,7 +815,7 @@ s8 D_dryfield_dilapidated_house_801866F4[16][4] = {
     { 1, 11, 13, 23 },
 };
 
-u8 D_dryfield_dilapidated_house_80186734[24][4] = {
+u8 gGlowRingBeamColors[24][4] = {
     { 255, 255, 255, 0 },
     { 255, 255, 255, 0 },
     { 255, 255, 120, 0 },
@@ -3070,105 +3067,11 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
 
-static void func_dryfield_dilapidated_house_8017F568(Task* task, SVECTOR* verts, s32 arg2)
-{
-    CVECTOR   colors[24];
-    s8*       quad;
-    CVECTOR*  col;
-    POLY_G4*  poly;
-    DR_TPAGE* tpage;
-    s32       i;
-    u16       scale;
-    s32       a, b, c, d;
-
-    quad                 = D_dryfield_dilapidated_house_801866F4[0];
-    scale                = ((DdhCoordWork*)((Task*)task->spawnArg2.pointer)->work)->field_4;
-    task->killCountdown += 0x40;
-    if (task->killCountdown >= 0x800) {
-        task->killCountdown = 0;
-    }
-    rsin(task->killCountdown);
-    for (i = 0; i < 24; i++) {
-        colors[i].r = (D_dryfield_dilapidated_house_80186734[i][0] * (s16)scale) >> 12;
-        colors[i].g = (D_dryfield_dilapidated_house_80186734[i][1] * (s16)scale) >> 12;
-        colors[i].b = (D_dryfield_dilapidated_house_80186734[i][2] * (s16)scale) >> 12;
-    }
-    col = colors;
-    for (i = 0; i < 6; i++) {
-        a              = quad[0];
-        b              = quad[1];
-        c              = quad[2];
-        d              = quad[3];
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 8);
-        poly->code = 0x3A;
-        poly->r0   = col[a].r;
-        poly->g0   = col[a].g;
-        poly->b0   = col[a].b;
-        poly->r1   = col[b].r;
-        poly->g1   = col[b].g;
-        poly->b1   = col[b].b;
-        poly->r2   = col[c].r;
-        poly->g2   = col[c].g;
-        poly->b2   = col[c].b;
-        poly->r3   = col[d].r;
-        poly->g3   = col[d].g;
-        poly->b3   = col[d].b;
-        poly->x0   = verts[a].vx;
-        poly->y0   = verts[a].vy;
-        poly->x1   = verts[b].vx;
-        poly->y1   = verts[b].vy;
-        poly->x2   = verts[c].vx;
-        poly->y2   = verts[c].vy;
-        poly->x3   = verts[d].vx;
-        poly->y3   = verts[d].vy;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + 3, poly);
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = tpage + 1;
-        setlen(tpage, 1);
-        tpage->code[0] = 0xE1000425;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + 3, tpage);
-        quad += 4;
-    }
-    for (i = 6; i < 16; i++) {
-        a              = quad[0];
-        b              = quad[1];
-        c              = quad[2];
-        d              = quad[3];
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 8);
-        poly->code = 0x3A;
-        poly->r0   = col[a].r;
-        poly->g0   = col[a].g;
-        poly->b0   = col[a].b;
-        poly->r1   = col[b].r;
-        poly->g1   = col[b].g;
-        poly->b1   = col[b].b;
-        poly->r2   = col[c].r;
-        poly->g2   = col[c].g;
-        poly->b2   = col[c].b;
-        poly->r3   = col[d].r;
-        poly->g3   = col[d].g;
-        poly->b3   = col[d].b;
-        poly->x0   = verts[a].vx;
-        poly->y0   = verts[a].vy;
-        poly->x1   = verts[b].vx;
-        poly->y1   = verts[b].vy;
-        poly->x2   = verts[c].vx;
-        poly->y2   = verts[c].vy;
-        poly->x3   = verts[d].vx;
-        poly->y3   = verts[d].vy;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + 3, poly);
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = tpage + 1;
-        setlen(tpage, 1);
-        tpage->code[0] = 0xE1000465;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + 3, tpage);
-        quad += 4;
-    }
-}
+#define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((DdhCoordWork*)((Task*)(t)->spawnArg2.pointer)->work)->field_4
+#define GLOW_DRAW_RING_BEAM_PHASE_STEP    0x40
+#define GLOW_DRAW_RING_BEAM_OT_OFFSET     3
+#define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000465
+#include "../../shared/glow_draw_ring_beam.inc.c"
 
 /// Lays out 24 screen-space points in `verts` as four rings of six around two
 /// ends of a segment. The ends come from `D_dryfield_dilapidated_house_80186794`,
@@ -3733,8 +3636,8 @@ static void func_dryfield_dilapidated_house_801813DC(Task* task)
     s32     sp1;
 
     func_dryfield_dilapidated_house_8017FAD4(task, verts, &sp0, &sp1);
-    func_dryfield_dilapidated_house_8017F568(task, verts, sp0);
-    func_dryfield_dilapidated_house_8017F568(task, verts, sp0);
+    glowDrawRingBeam(task, verts, sp0);
+    glowDrawRingBeam(task, verts, sp0);
 }
 
 static void func_dryfield_dilapidated_house_8018142C(Task* arg0)

@@ -36,18 +36,13 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/glow_draw.h"
 
 extern GpImgRec D_actor_141000_8013D72C[2];
 
 extern GpImgRec D_actor_141000_8013D4DC[2];
 
 extern GpImgRec D_actor_141000_8013D28C[2];
-
-typedef struct Actor141000Point {
-    /* 0x0 */ s16  field_0;
-    /* 0x2 */ s16  field_2;
-    /* 0x4 */ byte pad_4[4];
-} Actor141000Point;
 
 typedef struct Actor141000Proj {
     /* 0x0 */ DVECTOR sxy;
@@ -110,10 +105,8 @@ extern SVECTOR D_actor_141000_80134228[];
 extern SVECTOR D_actor_141000_801344F8[];
 
 /// Quad index table: sixteen quads, four point/colour indices each.
-extern s8 D_actor_141000_801347C8[][4];
 
 /// Base vertex colours, scaled by the controller's `field_0` each frame.
-extern u8 D_actor_141000_80134808[][4];
 
 extern SVECTOR D_actor_141000_80134868[2];
 extern SVECTOR D_actor_141000_80134878[];
@@ -464,7 +457,7 @@ SVECTOR D_actor_141000_801344F8[90] = {
     { 1766, -666, -6406, 0 },
 };
 
-s8 D_actor_141000_801347C8[16][4] = {
+s8 gGlowRingBeamQuads[16][4] = {
     { 0, 6, 1, 11 },
     { 0, 6, 5, 7 },
     { 0, 3, 1, 2 },
@@ -483,7 +476,7 @@ s8 D_actor_141000_801347C8[16][4] = {
     { 1, 11, 13, 23 },
 };
 
-u8 D_actor_141000_80134808[24][4] = {
+u8 gGlowRingBeamColors[24][4] = {
     { 200, 176, 160, 0 },
     { 200, 176, 160, 0 },
     { 112, 88, 64, 0 },
@@ -1891,111 +1884,14 @@ Actor141000MsgEntry D_actor_141000_8013D788[7] = {
     { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
-static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 arg2);
-static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3);
+static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32* arg3);
 
-/// Draws the sixteen gouraud quads, each followed by a semi-transparency
-/// tpage change, at `arg2` depth minus 20.
-static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 arg2)
-{
-    CVECTOR   colors[24];
-    s8*       quad;
-    CVECTOR*  col;
-    POLY_G4*  poly;
-    DR_TPAGE* tpage;
-    s32       i;
-    u16       scale;
-    s32       a, b, c, d;
+#define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((Actor141000CtrlWork*)((Task*)(t)->spawnArg2.pointer)->work)->field_0
+#define GLOW_DRAW_RING_BEAM_OT_OFFSET     (-20)
+#define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000425
+#include "../../shared/glow_draw_ring_beam.inc.c"
 
-    quad  = D_actor_141000_801347C8[0];
-    scale = ((Actor141000CtrlWork*)((Task*)arg0->spawnArg2.pointer)->work)->field_0;
-    if (arg0->killCountdown >= 0x800) {
-        arg0->killCountdown = 0;
-    }
-    rsin(arg0->killCountdown);
-    for (i = 0; i < 24; i++) {
-        colors[i].r = (D_actor_141000_80134808[i][0] * (s16)scale) >> 12;
-        colors[i].g = (D_actor_141000_80134808[i][1] * (s16)scale) >> 12;
-        colors[i].b = (D_actor_141000_80134808[i][2] * (s16)scale) >> 12;
-    }
-    col = colors;
-    for (i = 0; i < 6; i++) {
-        a              = quad[0];
-        b              = quad[1];
-        c              = quad[2];
-        d              = quad[3];
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 8);
-        poly->code = 0x3A;
-        poly->r0   = col[a].r;
-        poly->g0   = col[a].g;
-        poly->b0   = col[a].b;
-        poly->r1   = col[b].r;
-        poly->g1   = col[b].g;
-        poly->b1   = col[b].b;
-        poly->r2   = col[c].r;
-        poly->g2   = col[c].g;
-        poly->b2   = col[c].b;
-        poly->r3   = col[d].r;
-        poly->g3   = col[d].g;
-        poly->b3   = col[d].b;
-        poly->x0   = arg1[a].field_0;
-        poly->y0   = arg1[a].field_2;
-        poly->x1   = arg1[b].field_0;
-        poly->y1   = arg1[b].field_2;
-        poly->x2   = arg1[c].field_0;
-        poly->y2   = arg1[c].field_2;
-        poly->x3   = arg1[d].field_0;
-        poly->y3   = arg1[d].field_2;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) - 20, poly);
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = tpage + 1;
-        setlen(tpage, 1);
-        tpage->code[0] = 0xE1000425;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) - 20, tpage);
-        quad += 4;
-    }
-    for (i = 6; i < 16; i++) {
-        a              = quad[0];
-        b              = quad[1];
-        c              = quad[2];
-        d              = quad[3];
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 8);
-        poly->code = 0x3A;
-        poly->r0   = col[a].r;
-        poly->g0   = col[a].g;
-        poly->b0   = col[a].b;
-        poly->r1   = col[b].r;
-        poly->g1   = col[b].g;
-        poly->b1   = col[b].b;
-        poly->r2   = col[c].r;
-        poly->g2   = col[c].g;
-        poly->b2   = col[c].b;
-        poly->r3   = col[d].r;
-        poly->g3   = col[d].g;
-        poly->b3   = col[d].b;
-        poly->x0   = arg1[a].field_0;
-        poly->y0   = arg1[a].field_2;
-        poly->x1   = arg1[b].field_0;
-        poly->y1   = arg1[b].field_2;
-        poly->x2   = arg1[c].field_0;
-        poly->y2   = arg1[c].field_2;
-        poly->x3   = arg1[d].field_0;
-        poly->y3   = arg1[d].field_2;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) - 20, poly);
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = tpage + 1;
-        setlen(tpage, 1);
-        tpage->code[0] = 0xE1000425;
-        addPrim((&gGpuCurrentOt[((((u32)(arg2 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) - 20, tpage);
-        quad += 4;
-    }
-}
-
-static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* arg2, s32* arg3)
+static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32* arg3)
 {
     SVECTOR           a;
     SVECTOR           b;
@@ -2080,8 +1976,8 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
         gte_ldv0(&a);
         gte_rtv0();
         gte_stsv(&b);
-        arg1[i].field_0 = b.vx + x0;
-        arg1[i].field_2 = b.vy + y0;
+        arg1[i].vx = b.vx + x0;
+        arg1[i].vy = b.vy + y0;
     }
     for (i = 0; i < 6; i++) {
         a.vx = D_actor_141000_801348A8[i].vx * scale / proj[1].z;
@@ -2089,8 +1985,8 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
         gte_ldv0(&a);
         gte_rtv0();
         gte_stsv(&b);
-        arg1[i + 6].field_0 = b.vx + x1;
-        arg1[i + 6].field_2 = b.vy + y1;
+        arg1[i + 6].vx = b.vx + x1;
+        arg1[i + 6].vy = b.vy + y1;
     }
     r = 0x2000 - rsin(arg0->killCountdown);
     for (i = 0; i < 6; i++) {
@@ -2099,8 +1995,8 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
         gte_ldv0(&a);
         gte_rtv0();
         gte_stsv(&b);
-        arg1[i + 12].field_0 = b.vx + x0;
-        arg1[i + 12].field_2 = b.vy + y0;
+        arg1[i + 12].vx = b.vx + x0;
+        arg1[i + 12].vy = b.vy + y0;
     }
     for (i = 0; i < 6; i++) {
         a.vx = ((D_actor_141000_801348A8[i].vx * r) >> 12) * scale / proj[1].z;
@@ -2108,8 +2004,8 @@ static void func_actor_141000_801323F0(Task* arg0, Actor141000Point* arg1, s32* 
         gte_ldv0(&a);
         gte_rtv0();
         gte_stsv(&b);
-        arg1[i + 18].field_0 = b.vx + x1;
-        arg1[i + 18].field_2 = b.vy + y1;
+        arg1[i + 18].vx = b.vx + x1;
+        arg1[i + 18].vy = b.vy + y1;
     }
 }
 
@@ -2362,12 +2258,12 @@ static void func_actor_141000_80133204(Task* task)
 
 static void func_actor_141000_80133260(Task* arg0)
 {
-    Actor141000Point sp10[24];
-    s32              spD0;
-    s32              spD4;
+    SVECTOR sp10[24];
+    s32     spD0;
+    s32     spD4;
 
     func_actor_141000_801323F0(arg0, sp10, &spD0, &spD4);
-    func_actor_141000_80131E94(arg0, sp10, spD0);
+    glowDrawRingBeam(arg0, sp10, spD0);
 }
 
 /// Per-frame tick of the model actor: runs the motion handler `walk.motion` selects, steps the 16.16 accumulators

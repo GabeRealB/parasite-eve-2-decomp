@@ -58,9 +58,14 @@ void glowDrawPrism(GfxCoord* coord, s16 arg1);
 void glowDrawTaperedBeam(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 void glowDrawWedge(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 void glowDrawHalo(GfxCoord* coord, s32 inner, s32 width, u8* rgb);
-void glowDrawFlare(SVECTOR* arg0, s32 arg1, s32 arg2);
-void glowDrawFlareClipped(SVECTOR* arg0, s32 arg1, s32 arg2);
-void glowDrawFlareLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
+void glowDrawRingBeam(Task* task, SVECTOR* points, s32 otz);
+
+/* glowDrawRingBeam's tables, the package's data at its own positions */
+extern s8 gGlowRingBeamQuads[16][4];
+extern u8 gGlowRingBeamColors[24][4];
+void      glowDrawFlare(SVECTOR* arg0, s32 arg1, s32 arg2);
+void      glowDrawFlareClipped(SVECTOR* arg0, s32 arg1, s32 arg2);
+void      glowDrawFlareLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
 void glowDrawFlameBand(GfxCoord* arg0, s16 arg1, s16 arg2);
 void glowDrawFlameStar(GfxCoord* arg0, s16 arg1, s16 arg2);
