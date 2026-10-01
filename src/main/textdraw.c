@@ -597,7 +597,15 @@ static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontG
         /// 7, 13, 19, 25 and 31. These colors set the semi-transparency bit, but
         /// the fill sprite disables blending and modulates them by RGB.
         TEXT_SINGLE_ENTRY_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
-        /// Raw subtractive outline palette at VRAM word X=1008, row Y=511.
+        /// GPU CLUT selector for the subtractive glyph outline in one OT entry.
+        ///
+        /// Encodes VRAM word X=1008, row Y=511 as 0x7FFF for `SPRT::clut`.
+        /// The final 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// resident: indices 0..5 are transparent, 6..9 have RGB5 gray levels
+        /// 1, 3, 6 and 9, and 10..15 are white. Every nonzero color sets the
+        /// semi-transparency bit. The outline sprite uses raw texture colors,
+        /// ignoring RGB modulation; its subtractive page command must execute
+        /// first so this coverage darkens the background before the opaque fill.
         TEXT_SINGLE_ENTRY_GLYPH_OUTLINE_CLUT = getClut(0x3F0, 0x1FF),
         /// Complete GPU draw-mode word for the opaque fill in one OT entry.
         ///
