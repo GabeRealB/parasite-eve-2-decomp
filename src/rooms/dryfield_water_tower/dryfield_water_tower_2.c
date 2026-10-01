@@ -425,7 +425,7 @@ DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7] = {
     { 5104, { .call2 = func_dryfield_water_tower_8017DD04 } },
     { 5106, { .call3 = func_dryfield_water_tower_8017DC64 } },
     { 5108, { .call2 = func_dryfield_water_tower_8017DD44 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_dryfield_water_tower_801803D8[2] = {
@@ -671,8 +671,8 @@ DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80182374[2] = {
 
 TaskDesc D_dryfield_water_tower_80182384[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tower_8017F128, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E764, { .model = &D_dryfield_water_tower_80180DC8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E1DC, { .model = &D_dryfield_water_tower_80181A1C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E764, { .model = &D_dryfield_water_tower_80180DC8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E1DC, { .model = &D_dryfield_water_tower_80181A1C } },
 };
 
 ActorTransform D_dryfield_water_tower_801823A8 = { { -700, -1, -4500, 0 }, { 0, 3072, 0, 0 } };
@@ -1654,23 +1654,23 @@ WorldCoordRoomLights D_dryfield_water_tower_801874E4[1] = {
     { ARRAY_SIZE(D_dryfield_water_tower_801871A4), D_dryfield_water_tower_801871A4, ARRAY_SIZE(D_dryfield_water_tower_80187304), D_dryfield_water_tower_80187304, 0, NULL },
 };
 
-GpAreaTmdRec D_dryfield_water_tower_801874FC[2] = {
-    { 1, 216, 3, 0, { 0, 0 }, D_80151254 },
+AreaResource D_dryfield_water_tower_801874FC[2] = {
+    { 1, 216, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151254 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_water_tower_80187514[2] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+AreaResource D_dryfield_water_tower_80187514[2] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_water_tower_8018752C[2] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+AreaResource D_dryfield_water_tower_8018752C[2] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_water_tower_80187544[2] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+AreaResource D_dryfield_water_tower_80187544[2] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

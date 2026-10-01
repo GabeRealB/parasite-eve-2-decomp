@@ -1497,7 +1497,7 @@ s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
         arg1->workm.t[0] = block->dir.vx;
         arg1->workm.t[1] = block->dir.vy;
         arg1->workm.t[2] = block->dir.vz;
-        Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
+        gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
         arg1->parent       = PARENT_OF(world, GfxCoord, workm);
         arg1->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(arg1);
@@ -1569,28 +1569,29 @@ void func_800EA3A0(s32 arg0)
 
 static void Gp_DecRoomCoordRefs(void)
 {
-    s32        i;
-    GpCoord64* p;
+    s32                            i;
+    WorldCoordTransientPointLight* lightSlot;
 
-    p = Gp_RoomCoords;
-    for (i = 0; i < 8; i++) {
-        if (p->framesLeft != 0) {
-            p->framesLeft--;
+    // Expire contributions in place, retaining their light records for reuse.
+    lightSlot = gWorldCoordTransientPointLights;
+    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++) {
+        if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
+            lightSlot->framesLeft--;
         }
-        p++;
+        lightSlot++;
     }
 }
 
 static void Gp_InitRoomCoords(void)
 {
-    s32        i;
-    GpCoord64* p;
+    s32                            i;
+    WorldCoordTransientPointLight* lightSlot;
 
-    p = Gp_RoomCoords;
-    for (i = 0; i < 8; i++) {
-        p->light.head.transform.coord.parent = &gGfxViewCoord;
-        p->framesLeft                        = 0;
-        p++;
+    lightSlot = gWorldCoordTransientPointLights;
+    for (i = 0; i < ARRAY_SIZE(gWorldCoordTransientPointLights); i++) {
+        lightSlot->light.head.transform.coord.parent = &gGfxViewCoord;
+        lightSlot->framesLeft                        = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
+        lightSlot++;
     }
 }
 
@@ -1655,7 +1656,7 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
             gte_ldv0(arg3);
             gte_rtv0tr();
             gte_stlvnl(coord->workm.t);
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
         }
         coord->parent       = &gGfxViewCoord;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;

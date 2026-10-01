@@ -237,8 +237,18 @@ STATIC_ASSERT_SIZEOF(Task, 0x48);
 
 /// Shared model-buffer option and table terminator for task descriptors.
 enum {
-    TASK_DESC_SKIP_MODEL_BUFFER = 0x100, // TMD body: disable automatic primitive-buffer allocation and recovery
-    TASK_DESC_END               = 0xFFFF // Complete flags halfword ending a walked descriptor table; never spawn it
+    /// Disables automatic primitive-buffer allocation for a task's TMD body.
+    ///
+    /// Bit 8 of the u16 `TaskDesc::header.fields.flags`; combine with
+    /// `TASK_BODY_TMD`. Spawning still creates the model and its coordinates,
+    /// leaves its buffer NULL and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. Later
+    /// missing-buffer recovery skips the model while that runtime bit is set.
+    /// Explicit allocation remains allowed, and existing buffers are released
+    /// normally. The option is ignored for bodyless and coordinate-body spawns.
+    /// This descriptor mask is separate from creation-buffer bit 0 and from
+    /// the runtime mask in `TmdObject::flags`.
+    TASK_DESC_SKIP_AUTO_MODEL_BUFFER = 1 << 8,
+    TASK_DESC_END                    = 0xFFFF // Complete flags halfword ending a walked descriptor table; never spawn it
 };
 
 /// A 12-byte spawn recipe supplying a task's body, execution priority and initial callback.
@@ -261,7 +271,7 @@ enum {
 typedef struct {
     union {
         struct {
-            u16 flags;    // Low byte: body kind (0 none, 1 TMD model, 2 coordinate body); bit 8: skip automatic model-buffer allocation
+            u16 flags;    // Low byte: body kind (0 none, 1 TMD model, 2 coordinate body); bit 8: skip automatic model-buffer allocation and recovery
             u16 priority; // Low byte sets ascending execution order; equal priorities retain spawn order
         } fields;
         s32 word;         // Both complete halfwords, used for descriptor selection; priority in the upper half

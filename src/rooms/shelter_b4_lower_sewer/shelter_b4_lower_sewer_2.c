@@ -369,36 +369,36 @@ WorldCollisionTrigger D_shelter_b4_lower_sewer_801837D4[12] = {
     { NULL, NULL, NULL, { -2784, -64, 2560, 0 }, { { -1360, 0, -720, 0 }, { 1360, 0, -720, 0 }, { -1360, 0, 720, 0 }, { 1360, 0, 720, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b4_lower_sewer_80183B64[2] = {
-    { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
+AreaResource D_shelter_b4_lower_sewer_80183B64[2] = {
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_lower_sewer_80183B7C[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_shelter_b4_lower_sewer_80183B7C[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_lower_sewer_80183B94[4] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
+AreaResource D_shelter_b4_lower_sewer_80183B94[4] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
+    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_lower_sewer_80183BC4[2] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
+AreaResource D_shelter_b4_lower_sewer_80183BC4[2] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_lower_sewer_80183BDC[2] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
+AreaResource D_shelter_b4_lower_sewer_80183BDC[2] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_lower_sewer_80183BF4[3] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_shelter_b4_lower_sewer_80183BF4[3] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

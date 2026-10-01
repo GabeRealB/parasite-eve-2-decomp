@@ -101,9 +101,9 @@ static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 ar
 static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 color);
 
-extern GpAreaTmdRec D_shelter_r48_8018BB30[3];
-extern GpAreaTmdRec D_shelter_r48_8018BB54[3];
-extern GpAreaTmdRec D_shelter_r48_8018BB78[2];
+extern AreaResource D_shelter_r48_8018BB30[3];
+extern AreaResource D_shelter_r48_8018BB54[3];
+extern AreaResource D_shelter_r48_8018BB78[2];
 
 extern WorldCoordPointLight D_shelter_r48_8018A08C[57];
 
@@ -129,7 +129,7 @@ TmdSource D_shelter_r48_80182F88[1] = {
     { 0, 0x4000, 0, 1, NULL, NULL, NULL, D_shelter_r48_8018BE30, D_shelter_r48_80182F7C },
 };
 
-TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_r48_8017D660, { .model = D_shelter_r48_80182F88 } };
+TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_r48_8017D660, { .model = D_shelter_r48_80182F88 } };
 
 TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r48_8017E044 },
@@ -1668,20 +1668,20 @@ WorldCollisionTrigger D_shelter_r48_8018B670[16] = {
     { NULL, NULL, NULL, { 4943, -4864, 1056, 0 }, { { 545, -6160, 1696, 0 }, { -572, -6160, -1719, 0 }, { 545, 6160, 1696, 0 }, { -572, 6160, -1719, 0 } }, { -3900, 0, 1275, 0 }, { 0, 0, 4096, 0 }, 6415, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_r48_8018BB30[3] = {
-    { 35, 35, 4, 0, { 0, 0 }, D_8016E924 },
-    { 45, 45, 5, 0, { 0, 0 }, D_80176524 },
+AreaResource D_shelter_r48_8018BB30[3] = {
+    { 35, 35, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_8016E924 },
+    { 45, 45, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80176524 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_r48_8018BB54[3] = {
-    { 35, 35, 4, 0, { 0, 0 }, D_8016E924 },
-    { 45, 45, 5, 0, { 0, 0 }, D_80176524 },
+AreaResource D_shelter_r48_8018BB54[3] = {
+    { 35, 35, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_8016E924 },
+    { 45, 45, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80176524 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_r48_8018BB78[2] = {
-    { 36, 36, 3, 0, { 0, 0 }, D_80160514 },
+AreaResource D_shelter_r48_8018BB78[2] = {
+    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80160514 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -3118,7 +3118,7 @@ void func_shelter_r48_801810B0(Task* task)
                     task->state = 2;
                     eff         = Gp_SpawnEff(0x60191, coord, 0, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(task, eff->task);
+                        taskReparent(task, eff->task);
                     }
                 }
                 return;

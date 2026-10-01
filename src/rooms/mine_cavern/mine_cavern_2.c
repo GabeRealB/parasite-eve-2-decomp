@@ -245,7 +245,7 @@ MineCavernMessageEntry D_mine_cavern_80183C6C[7] = {
     { 5104, { .call2 = func_mine_cavern_8017DAA0 } },
     { 5108, { .call0 = func_mine_cavern_8017DC9C } },
     { 5106, { .call4 = func_mine_cavern_8017DD38 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_mine_cavern_80183CA4[2] = {
@@ -2039,28 +2039,28 @@ GpObj3A D_mine_cavern_8018E078[2] = {
     { NULL, NULL, { 9183, -2320, 4399, 0 }, { { -5890, -3344, 1060, 0 }, { 5891, -3344, -1059, 0 }, { -5890, 3344, 1060, 0 }, { 5891, 3344, -1059, 0 } }, { -726, 0, -4034, 0 }, { -62, 26 }, 129, 0 },
 };
 
-GpAreaTmdRec D_mine_cavern_8018E0F0[2] = {
-    { 30, 30, 3, 0, { 0, 0 }, D_80158D58 },
+AreaResource D_mine_cavern_8018E0F0[2] = {
+    { 30, 30, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158D58 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_cavern_8018E108[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_mine_cavern_8018E108[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_cavern_8018E120[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_mine_cavern_8018E120[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_cavern_8018E138[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_mine_cavern_8018E138[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_cavern_8018E150[2] = {
-    { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
+AreaResource D_mine_cavern_8018E150[2] = {
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80154188 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2468,19 +2468,19 @@ static void func_mine_cavern_80181864(void)
 /// shared LCG.
 static void func_mine_cavern_80181CAC(s16 point)
 {
-    GpCoord64*            light = &Gp_RoomCoords[4 + point];
-    WorldCoordPointLight* work  = &light->light;
+    WorldCoordTransientPointLight* lightSlot  = &gWorldCoordTransientPointLights[4 + point];
+    WorldCoordPointLight*          pointLight = &lightSlot->light;
 
-    light->framesLeft                              = 2;
-    work->inner                                    = D_mine_cavern_8018E366;
-    work->outer                                    = D_mine_cavern_8018E368 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
-    work->head.color.r                             = D_mine_cavern_8018E360;
-    work->head.color.g                             = D_mine_cavern_8018E362;
-    work->head.color.b                             = D_mine_cavern_8018E364;
-    work->head.transform.lighting.local.t[0]       = D_mine_cavern_8018E39C[point].vx;
-    work->head.transform.lighting.local.t[1]       = D_mine_cavern_8018E39C[point].vy;
-    work->head.transform.lighting.local.t[2]       = D_mine_cavern_8018E39C[point].vz;
-    light->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    lightSlot->framesLeft                              = 2;
+    pointLight->inner                                  = D_mine_cavern_8018E366;
+    pointLight->outer                                  = D_mine_cavern_8018E368 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
+    pointLight->head.color.r                           = D_mine_cavern_8018E360;
+    pointLight->head.color.g                           = D_mine_cavern_8018E362;
+    pointLight->head.color.b                           = D_mine_cavern_8018E364;
+    pointLight->head.transform.lighting.local.t[0]     = D_mine_cavern_8018E39C[point].vx;
+    pointLight->head.transform.lighting.local.t[1]     = D_mine_cavern_8018E39C[point].vy;
+    pointLight->head.transform.lighting.local.t[2]     = D_mine_cavern_8018E39C[point].vz;
+    lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Draws a glow at cavern point `point` of `D_mine_cavern_8018E39C`: a fan of

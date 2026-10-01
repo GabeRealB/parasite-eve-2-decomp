@@ -822,31 +822,31 @@ WorldCollisionTrigger D_dryfield_main_street_80184B5C[10] = {
     { NULL, NULL, NULL, { -2144, -64, -3952, 0 }, { { -640, 0, -3136, 0 }, { 544, 0, -3104, 0 }, { -544, 0, 3104, 0 }, { 640, 0, 3136, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 3197, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_main_street_80184E54[3] = {
-    { 101, 230, 2, 0, { 0, 0 }, D_80173A08 },
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+AreaResource D_dryfield_main_street_80184E54[3] = {
+    { 101, 230, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80173A08 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_main_street_80184E78[2] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+AreaResource D_dryfield_main_street_80184E78[2] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_main_street_80184E90[2] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+AreaResource D_dryfield_main_street_80184E90[2] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_main_street_80184EA8[3] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
+AreaResource D_dryfield_main_street_80184EA8[3] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_main_street_80184ECC[3] = {
-    { 101, 230, 2, 0, { 0, 0 }, D_80173A08 },
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+AreaResource D_dryfield_main_street_80184ECC[3] = {
+    { 101, 230, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80173A08 },
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

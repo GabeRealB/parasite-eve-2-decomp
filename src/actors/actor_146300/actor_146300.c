@@ -1250,7 +1250,7 @@ Actor146300MsgEntry D_actor_146300_801427A0[5] = {
     { 2005, { .call3 = actorMsgSetPairVisibility } },
     { 2004, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_146300_80132B14 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_146300_801427C8[2] = {
@@ -1546,7 +1546,7 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
     helper                           = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
     gActorHelperTask                 = helper;
     actorTintTask(helper, enemy);
-    Task_Reparent(task, gActorHelperTask);
+    taskReparent(task, gActorHelperTask);
     obj->lightMtx = &gScriptedWalkWork->light;
     obj->colorMtx = &gScriptedWalkWork->color;
     vec.vx        = coord->workm.t[0];

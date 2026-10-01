@@ -90,7 +90,7 @@ static void Reflection_InitPlayer(Task* task)
     parts->parent   = &work->coord;
     extra->lightMtx = &work->light;
     extra->colorMtx = &work->color;
-    Task_Reparent(owner, task);
+    taskReparent(owner, task);
     task->state++;
     work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
     work->field_4   = 1;
@@ -104,7 +104,7 @@ static void Reflection_InitPlayer(Task* task)
         if (child != NULL) {
             spawned = Task_SpawnFromTable(Reflection_GetTasks(), 1, i, task);
             if (spawned != NULL) {
-                Task_Reparent(child, spawned);
+                taskReparent(child, spawned);
             }
         }
     }
@@ -176,7 +176,7 @@ static void Reflection_UpdatePlayer(Task* task)
             if (child != NULL) {
                 spawned = Task_SpawnFromTable(Reflection_GetTasks(), 1, i + 2, task);
                 if (spawned != NULL) {
-                    Task_Reparent(child, spawned);
+                    taskReparent(child, spawned);
                 }
             }
         }

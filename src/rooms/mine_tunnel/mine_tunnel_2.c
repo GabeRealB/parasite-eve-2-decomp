@@ -400,31 +400,31 @@ WorldCollisionTrigger D_mine_tunnel_8017FDA0[4] = {
     { NULL, NULL, NULL, { 4255, -64, 3336, 0 }, { { -2527, 0, 88, 0 }, { -127, 0, -936, 0 }, { -32, 0, 792, 0 }, { 2689, 0, 56, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 2684, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_mine_tunnel_8017FED0[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_mine_tunnel_8017FED0[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_tunnel_8017FEE8[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_mine_tunnel_8017FEE8[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_tunnel_8017FF00[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 37, 37, 1, 0, { 0, 0 }, D_80151DAC },
+AreaResource D_mine_tunnel_8017FF00[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80151DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_tunnel_8017FF24[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
+AreaResource D_mine_tunnel_8017FF24[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153E28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_mine_tunnel_8017FF48[3] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 37, 37, 1, 0, { 0, 0 }, D_80151DAC },
+AreaResource D_mine_tunnel_8017FF48[3] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80151DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

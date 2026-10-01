@@ -135,7 +135,7 @@ extern AnimationSet*  D_actor_141000_8013D74C[11];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_141000_8013392C`; terminator id 0x7FFFFFFF.
+/// `func_actor_141000_8013392C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -1879,7 +1879,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_141000_8013D74C,
 };
 
-TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
+TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
 
 Actor141000MsgEntry D_actor_141000_8013D788[7] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
@@ -1888,7 +1888,7 @@ Actor141000MsgEntry D_actor_141000_8013D788[7] = {
     { 2013, { .call3 = func_actor_141000_801336DC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_141000_80133F6C } },
     { 2016, { .call4 = func_actor_141000_80133FA8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 static void func_actor_141000_80131E94(Task* arg0, Actor141000Point* arg1, s32 arg2);
@@ -2350,12 +2350,12 @@ void func_actor_141000_801331AC(Task* task)
 }
 
 /// Chains this actor's root coordinate under the spawner's root coordinate,
-/// hands the task to the spawner with `Task_Reparent`, arms `killCountdown` at
+/// hands the task to the spawner with `taskReparent`, arms `killCountdown` at
 /// 0x7FF and advances the state.
 static void func_actor_141000_80133204(Task* task)
 {
     task->extra.tmd->coords->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
-    Task_Reparent((Task*)task->spawnArg2.pointer, task);
+    taskReparent(task->spawnArg2.pointer, task);
     task->killCountdown = 0x7FF;
     task->state        += 1;
 }

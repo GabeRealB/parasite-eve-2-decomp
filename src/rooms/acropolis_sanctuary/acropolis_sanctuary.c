@@ -888,14 +888,14 @@ WorldCollisionTrigger D_acropolis_sanctuary_80183AE4[17] = {
     { NULL, NULL, NULL, { -6912, -64, -8073, 0 }, { { -276, 0, 0, 0 }, { -4, 0, -155, 0 }, { 10, 0, 146, 0 }, { 270, 0, 9, 0 } }, { 0, 4095, 0, 0 }, { -4093, 0, 0, 0 }, 275, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_sanctuary_80183FF0[3] = {
-    { 27, 107, 0, 0, { 0, 0 }, D_8013BF94 },
-    { 102, 107, 1, 0, { 0, 0 }, D_801585CC },
+AreaResource D_acropolis_sanctuary_80183FF0[3] = {
+    { 27, 107, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BF94 },
+    { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801585CC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_sanctuary_80184014[2] = {
-    { 102, 107, 1, 0, { 0, 0 }, D_801585CC },
+AreaResource D_acropolis_sanctuary_80184014[2] = {
+    { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801585CC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

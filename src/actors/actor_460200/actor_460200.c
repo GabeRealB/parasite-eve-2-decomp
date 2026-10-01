@@ -1299,7 +1299,7 @@ Actor460200MessageEntry gPacedWalkMsgTable[6] = {
     { 2004, { .call3 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80132C8C } },
     { 2013, { .call3 = pacedWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_460200_8013FC80 = { { { TASK_BODY_TMD, 96 } }, func_actor_460200_801327B4, { .model = &D_actor_460200_8013D77C } };
@@ -1650,12 +1650,12 @@ Actor460200MessageEntry gStrideWalkMessages[6] = {
     { 2004, { .call3 = func_actor_460200_801334F0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80133568 } },
     { 2013, { .call3 = strideWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc gStrideWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_460200_801330C8, { .model = &D_actor_460200_80145E28 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, strideWalkSubModelTask, { .model = &D_actor_460200_801406F8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_460200_801330C8, { .model = &D_actor_460200_80145E28 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, strideWalkSubModelTask, { .model = &D_actor_460200_801406F8 } },
 };
 
 u8 gStrideWalkAnimParams[48] = {
@@ -2121,7 +2121,7 @@ Actor460200MessageEntry D_actor_460200_801514FC[6] = {
     { 2004, { .call3 = func_actor_460200_80133D4C } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_460200_80133DC4 } },
     { 2013, { .call3 = func_actor_460200_80133DCC } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_460200_8015152C = { { { TASK_BODY_TMD, 96 } }, func_actor_460200_8013386C, { .model = &D_actor_460200_8014DB94 } };

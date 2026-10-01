@@ -57,7 +57,7 @@ extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 extern TaskDesc     gRoomEventTaskDesc;
 
-/// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
+/// The room's message table, `(msgId, handler)` pairs ending at `TASK_MESSAGE_TABLE_END`,
 /// which the entry task installs as its own `Task::msgTable`.
 extern TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[];
 
@@ -212,22 +212,22 @@ WorldCollisionTrigger D_dryfield_night_g_r_kitchen_8017E8FC[7] = {
     { NULL, NULL, NULL, { 784, -64, -912, 0 }, { { -464, 0, -1296, 0 }, { 464, 0, -1296, 0 }, { -464, 0, 1296, 0 }, { 464, 0, 1296, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB10[3] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
+AreaResource D_dryfield_night_g_r_kitchen_8017EB10[3] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB34[4] = {
-    { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
-    { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
+AreaResource D_dryfield_night_g_r_kitchen_8017EB34[4] = {
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013E500 },
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801513C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB64[3] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
+AreaResource D_dryfield_night_g_r_kitchen_8017EB64[3] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80156500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

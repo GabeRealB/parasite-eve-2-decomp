@@ -15,7 +15,27 @@
 
 struct Enemy;
 
-extern GpCoord64 Gp_RoomCoords[8];
+/// Number of directly indexed transient point-light slots.
+enum { WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT = 8 };
+
+/// Shared transient point lights contributing alongside the room's authored lights.
+///
+/// Storage lives with the gameplay overlay and is indexed from 0 through
+/// `WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT - 1`. Writers select slots directly;
+/// there is no allocation or exclusive reservation, and a later writer can
+/// replace a light that is still active.
+///
+/// Slot 0 serves muzzle, impact and parasite-energy flashes; slot 1 serves
+/// weapon and impact lights; slot 2 serves actor, fireball and room glows;
+/// slot 3 serves actor lights. Room effects also use slots 4-7, energy balls
+/// use 4-6, and the plaza beam effects wrap their indices across all eight.
+/// These assignments overlap rather than partitioning the pool by owner.
+///
+/// Gameplay and room-light initialization disable all entries and parent their
+/// transforms to the persistent view coordinate. Activation, placement and
+/// countdown behavior follow `WorldCoordTransientPointLight`; expiry retains
+/// each record for the next writer.
+extern WorldCoordTransientPointLight gWorldCoordTransientPointLights[WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT];
 
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 

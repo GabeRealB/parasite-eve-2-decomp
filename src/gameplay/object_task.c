@@ -52,7 +52,7 @@ TaskDesc* D_8010FABC[6] = {
 GpLocationMsgEntry D_8010FAD4[3] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .location = func_800E3FF0 } },
     { 5105, { .empty = func_800E4018 } },
-    { 0x7FFFFFFF, { .empty = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .empty = NULL } },
 };
 
 void func_800E31E8(Task* arg0)

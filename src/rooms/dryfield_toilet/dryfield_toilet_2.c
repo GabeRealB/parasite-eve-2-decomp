@@ -71,9 +71,9 @@ extern SVECTOR                D_dryfield_toilet_80181184[7];
 extern SVECTOR                D_dryfield_toilet_801811BC[38];
 extern s16*                   D_dryfield_toilet_801813FC[2];
 
-extern GpAreaTmdRec D_dryfield_toilet_801828C4[3];
-extern GpAreaTmdRec D_dryfield_toilet_801828E8[2];
-extern GpAreaTmdRec D_dryfield_toilet_80182900[2];
+extern AreaResource D_dryfield_toilet_801828C4[3];
+extern AreaResource D_dryfield_toilet_801828E8[2];
+extern AreaResource D_dryfield_toilet_80182900[2];
 
 extern SVECTOR D_dryfield_toilet_8018662C[326];
 extern SVECTOR D_dryfield_toilet_8018705C[1604];
@@ -503,19 +503,19 @@ WorldCoordRoomLights D_dryfield_toilet_801828AC[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_toilet_8018272C), D_dryfield_toilet_8018272C, 0, NULL },
 };
 
-GpAreaTmdRec D_dryfield_toilet_801828C4[3] = {
-    { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
-    { 9, 233, 2, 0, { 0, 0 }, D_8017255C },
+AreaResource D_dryfield_toilet_801828C4[3] = {
+    { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155004 },
+    { 9, 233, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8017255C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_toilet_801828E8[2] = {
-    { 12, 12, 0, 0, { 0, 0 }, D_80138E98 },
+AreaResource D_dryfield_toilet_801828E8[2] = {
+    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_toilet_80182900[2] = {
-    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
+AreaResource D_dryfield_toilet_80182900[2] = {
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

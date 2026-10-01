@@ -162,38 +162,45 @@ u32* tmdDrawStreamPrimF4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
 /// alive until the GPU finishes consuming them.
 u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// The draw pass's handler for a stream's layered pre-transformed textured-triangle
-/// records whose semi-transparent layer is textured from a page of its own
-/// (`0x4039`): each element's two triangles are filed and linked into the ordering
-/// table.
+/// Culls and links pre-transformed textured triangles with an environment layer.
 ///
-/// The record is the pre-transformed `0x39` triangle's with `0x4000` set, so its
-/// corners are already in screen space — the vertex commands have written each
-/// corner's coordinates and lit colour into the packets and its depth into the
-/// per-vertex screen-Z table — and each element contributes the two packets built
-/// for it: the semi-transparent layer, and the base the model is drawn from. The
-/// element names its three corners in that table, so both packets are culled and
-/// filed from the one triangle it names. Nothing is projected or lit here; what a
-/// frame adds is the pair's filing: the three cached depths are averaged for the
-/// ordering-table links, the facing comes from the coordinates the packets already
-/// carry, and each packet's length and primitive code are written — the layer's
-/// the blended `0x36`, the base's the opaque `0x34`. An element whose cached depth
-/// carries the transform's error mark, or whose triangle turns away, is passed
-/// over, though both packets' room is stepped over either way, so the primitives
-/// stay in step with the elements that named them.
+/// Resolving stream opcode `0x4039` selects this callback outside stage 2,
+/// area 16. `objectFlags` is ignored, including reverse-culling and transparency
+/// flags. `elements` starts after the three-word record header; the caller sets
+/// `workspace->elemCount` (0..65535) and `elemStride` in u32 words. Each element's
+/// first three u16 values are depth-cache byte references: clear bits 0..1 and
+/// divide by four to select `szTable` entries. Their low bits' meaning and the
+/// complete payload extent are unproven. Construction reads through word 4,
+/// so each element needs at least five words. Every cache index must be below
+/// 1024 and initialized by an earlier projection in this draw walk.
 ///
-/// The layer's page is settled here as well, because the record's layer is
-/// textured from a page of its own rather than from the model's. The command that
-/// lays the packets out (`gpStreamPrimGt3PreXformFixedLayer`) fixes the layer's
-/// page and leaves its texture coordinates to the vertex commands, which derive
-/// them from the vertices' normals; this handler picks between the two pages the
-/// layer may be drawn from, and takes with it the corners whose texture
-/// coordinates are not already on the page it picks. Where the layer takes the
-/// object's own page and CLUT offsets instead, the command has written them and
-/// the walk takes the record's other entry, which leaves the page alone. The entry
-/// is picked when the model's stream is resolved, by the area the session is in, so
-/// `flags` selects nothing here and goes unread.
-u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `preXformWrite` addresses two word-aligned `POLY_GT3` slots per element in
+/// the selected buffer half's first region: environment layer first, opaque
+/// base second. Projection supplies both packets' signed screen XY in pixels,
+/// lit colours and the layer's U/V in texels. The layer's code/p1/p2 bytes must
+/// initially hold 0/1 second-page markers, replaced by projection each draw.
+/// Positive NCLIP area of its three corners accepts the facing test; zero or
+/// negative area, or any `TMD_VERTEX_DEPTH_INVALID` corner, rejects both packets.
+///
+/// With no markers, the layer uses fixed page `0x137`; any marker selects
+/// `0x139`. These are 15-bit additive pages at VRAM (448,256) and (576,256).
+/// On the second page, marked corners retain U; unmarked corners subtract 128
+/// when U >= 128 and clamp to zero otherwise. V and the fixed construction CLUT
+/// remain intact. Accepted packets receive length 9 and commands `0x36` for
+/// the layer and `0x34` for the base; the base's texture fields are preserved.
+///
+/// Loads cached depths into SZ1..SZ3 and runs AVSZ3 with the current ZSF3 scale.
+/// Unsigned OTZ is shifted by `gDisplayState.otDepthShift`, divided by 16 and
+/// wrapped to 0..1023 relative to `workspace->ot`, already displaced by the
+/// model's signed offset. The selected OT must contain that entry. Links the
+/// layer first and base second, so the head-inserted base precedes the layer.
+///
+/// Advances `preXformWrite` by one pair per element even when culled and returns
+/// `elements + initial elemCount * elemStride`; consumes the count to -1 even
+/// for an empty record. Reuses `gteResult` for facing and OTZ. Workspace, payload
+/// and depth cache are borrowed for the draw walk. Packets and OT must remain
+/// alive until the GPU finishes consuming them; no pointers are retained here.
+u32* tmdDrawStreamPrimGt3PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Draw-pass handler of a stream's layered pre-transformed textured-quad records
 /// (`0x4079`): each element's two quads — the base the model is drawn from and the

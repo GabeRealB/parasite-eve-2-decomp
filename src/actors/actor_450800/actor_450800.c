@@ -2262,14 +2262,14 @@ Actor450800MsgEntry D_actor_450800_8014AC58[6] = {
     { 2004, { .call3 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_450800_80132CE0 } },
     { 2013, { .call5 = func_actor_450800_80132D74 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_450800_8014AC88[5] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132790, { .model = &D_actor_450800_80145148 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132958, { .model = &D_actor_450800_8014A538 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132958, { .model = &D_actor_450800_8014A048 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_450800_80132790, { .model = &D_actor_450800_80140604 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_450800_80132790, { .model = &D_actor_450800_80140604 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132958, { .model = &D_actor_450800_8014AC34 } },
 };
 
@@ -2580,12 +2580,12 @@ Actor450800MsgEntry gPairWalkMessages[6] = {
     { 2004, { .call3 = pairWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_450800_80133670 } },
     { 2013, { .call4 = pairWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc gPairWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_450800_80133264, { .model = &D_actor_450800_80150024 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &D_actor_450800_80150568 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_450800_80133264, { .model = &D_actor_450800_80150024 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &D_actor_450800_80150568 } },
 };
 
 u8 gPairWalkAnimParams[24] = {

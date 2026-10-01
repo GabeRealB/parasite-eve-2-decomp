@@ -1093,7 +1093,7 @@ Actor210700MsgEntry D_actor_210700_801585D8[5] = {
     { 2004, { .call1 = func_actor_210700_8014A344 } },
     { 2005, { .call2 = func_actor_210700_8014A3D4 } },
     { 2016, { .call2 = func_actor_210700_8014A4B0 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Texture-upload step, run by the tick state: while `field_53C` names an
 
 static void func_actor_210700_80149E30(Task* arg0);

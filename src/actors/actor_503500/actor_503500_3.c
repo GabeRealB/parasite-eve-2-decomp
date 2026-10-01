@@ -2682,7 +2682,7 @@ static void func_actor_503500_801374BC(Task* arg0)
                         coord->coord.t[0] = D_actor_503500_8016F070.vx;
                         coord->coord.t[1] = D_actor_503500_8016F070.vy;
                         coord->coord.t[2] = D_actor_503500_8016F070.vz;
-                        Task_Reparent(arg0, task);
+                        taskReparent(arg0, task);
                     }
                 }
                 work->field_15A = 0;

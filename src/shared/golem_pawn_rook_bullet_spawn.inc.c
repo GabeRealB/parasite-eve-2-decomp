@@ -38,7 +38,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     Gp_UpdateCoord(&gGfxViewCoord);
     parentCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(parentCoord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
 
     scratch->rot.vx = 0;
     scratch->rot.vy = 0x1F4;

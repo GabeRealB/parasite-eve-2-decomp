@@ -661,7 +661,7 @@ Actor151000MsgEntry gFootstepWalkMsgTable[6] = {
     { 2004, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_151000_8013288C } },
     { 2013, { .call3 = footstepWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_151000_8013D2E0 = { { { TASK_BODY_TMD, 192 } }, func_actor_151000_801323F4, { .model = &D_actor_151000_80139270 } };

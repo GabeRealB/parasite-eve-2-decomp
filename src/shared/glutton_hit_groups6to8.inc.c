@@ -3,8 +3,7 @@
 /// The hit handler for collision groups 6, 7 and 8 -- the same three-scan shape
 /// as `func_actor_403200_8013A4A0` runs for groups 3, 4 and 5, with the next
 /// group only scanned when the previous one landed nothing and the part it hit
-/// reported no attack id back. Like the sibling actor's
-/// `func_actor_444000_8013D128`, the first two groups share one call site
+/// reported no attack id back. In both room builds, the first two groups share one call site
 /// through `coord`, and `Gp_GetIdParam0` is called and its kind thrown away.
 ///
 /// Damage is the distance-scaled hit -- measured from an offset point rather

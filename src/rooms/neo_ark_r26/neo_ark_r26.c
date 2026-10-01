@@ -381,9 +381,9 @@ WorldCoordRoomLights D_neo_ark_r26_8017E928[1] = {
     { 0, NULL, ARRAY_SIZE(D_neo_ark_r26_8017E8C8), D_neo_ark_r26_8017E8C8, 0, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_r26_8017E940[3] = {
-    { 111, 439, 0, 0, { 0, 0 }, D_801413EC },
-    { 112, 601, 5, 0, { 0, 0 }, D_80149664 },
+AreaResource D_neo_ark_r26_8017E940[3] = {
+    { 111, 439, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801413EC },
+    { 112, 601, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80149664 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

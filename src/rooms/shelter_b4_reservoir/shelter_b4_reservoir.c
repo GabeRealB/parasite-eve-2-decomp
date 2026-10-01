@@ -263,7 +263,7 @@ TaskDesc D_shelter_b4_reservoir_801848EC[4] = {
 ActorCommand D_shelter_b4_reservoir_8018491C = { { .loc = { 4, 45 } }, 6 };
 
 TaskDesc D_shelter_b4_reservoir_80184920[1] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 32 } }, func_shelter_b4_reservoir_8017E558, { .model = &D_shelter_b4_reservoir_80184898 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, func_shelter_b4_reservoir_8017E558, { .model = &D_shelter_b4_reservoir_80184898 } },
 };
 
 Task* D_shelter_b4_reservoir_8018492C = 0;
@@ -813,27 +813,27 @@ WorldCollisionTrigger D_shelter_b4_reservoir_80186F34[9] = {
     { NULL, NULL, NULL, { -2768, -2080, -944, 0 }, { { -496, 0, -1200, 0 }, { 496, 0, -1200, 0 }, { -496, 0, 1200, 0 }, { 496, 0, 1200, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 1292, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b4_reservoir_801871E0[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_shelter_b4_reservoir_801871E0[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_reservoir_801871F8[4] = {
-    { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
-    { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
+AreaResource D_shelter_b4_reservoir_801871F8[4] = {
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
+    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_reservoir_80187228[4] = {
-    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 70, 70, 1, 0, { 0, 0 }, &D_801575F0 },
-    { 71, 71, 1, 0, { 0, 0 }, &D_80151E60 },
+AreaResource D_shelter_b4_reservoir_80187228[4] = {
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_801575F0 },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_80151E60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_reservoir_80187258[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_shelter_b4_reservoir_80187258[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1707,7 +1707,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                     work->field_26 = ABS(D_shelter_b4_reservoir_801850AC[i].vx - c->workm.t[0]) +
                                      ABS(D_shelter_b4_reservoir_801850AC[i].vy - c->workm.t[1]) +
                                      ABS(D_shelter_b4_reservoir_801850AC[i].vz - c->workm.t[2]) + 0x20;
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &c->workm, &coord.coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &c->workm, &coord.coord);
                     coord.parent       = &gGfxViewCoord;
                     coord.coord.t[1]   = gGameSession->waterY;
                     coord.composeStamp = GRAPHICS_COORD_DIRTY;

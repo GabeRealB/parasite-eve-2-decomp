@@ -617,30 +617,30 @@ WorldCollisionTrigger D_shelter_b1_sleeping_quarters_801838D0[17] = {
     { NULL, NULL, NULL, { 9984, -64, 3296, 0 }, { { -480, 0, -368, 0 }, { 480, 0, -368, 0 }, { -480, 0, 368, 0 }, { 480, 0, 368, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 603, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_sleeping_quarters_80183DDC[3] = {
-    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
+AreaResource D_shelter_b1_sleeping_quarters_80183DDC[3] = {
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155AC4 },
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801693AC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_sleeping_quarters_80183E00[2] = {
-    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
+AreaResource D_shelter_b1_sleeping_quarters_80183E00[2] = {
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_sleeping_quarters_80183E18[3] = {
-    { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
-    { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
+AreaResource D_shelter_b1_sleeping_quarters_80183E18[3] = {
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_sleeping_quarters_80183E3C[2] = {
-    { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
+AreaResource D_shelter_b1_sleeping_quarters_80183E3C[2] = {
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80154188 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_sleeping_quarters_80183E54[2] = {
-    { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
+AreaResource D_shelter_b1_sleeping_quarters_80183E54[2] = {
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_801540E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

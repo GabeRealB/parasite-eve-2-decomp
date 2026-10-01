@@ -317,34 +317,34 @@ WorldCollisionTrigger D_shelter_b2_south_maintenance_walkway_80183474[2] = {
     { NULL, NULL, NULL, { 1952, -48, 4448, 0 }, { { 1024, 0, -544, 0 }, { 1024, 0, 544, 0 }, { -1024, 0, -544, 0 }, { -1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, 29, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_8018350C[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 24, 24, 1, 0, { 0, 0 }, D_8014E47C },
+AreaResource D_shelter_b2_south_maintenance_walkway_8018350C[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E47C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_80183530[3] = {
-    { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
-    { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
+AreaResource D_shelter_b2_south_maintenance_walkway_80183530[3] = {
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_80183554[4] = {
-    { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
-    { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
+AreaResource D_shelter_b2_south_maintenance_walkway_80183554[4] = {
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
+    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_80183584[3] = {
-    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 55, 55, 1, 0, { 0, 0 }, D_801528DC },
+AreaResource D_shelter_b2_south_maintenance_walkway_80183584[3] = {
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801528DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_801835A8[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
+AreaResource D_shelter_b2_south_maintenance_walkway_801835A8[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

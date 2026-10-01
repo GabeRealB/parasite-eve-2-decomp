@@ -77,7 +77,7 @@ static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 /// - State 1 first republishes the flare's world position as
 ///   `D_m4a1_hammer_8012D668`, then dispatches on the charge phase. Phase 1
 ///   idles the flare: it re-rolls the spin angle every 16 frames and the radius
-///   every frame, draws it on even frames and claims room-light slot 1 as a
+///   every frame, draws it on even frames and refreshes transient light slot 1 as a
 ///   narrow (`0x80` / `0x400`) light. Phase 2 charges: on the first frame it
 ///   seeds the eight sparks in `D_m4a1_hammer_8012D630`, and on every even
 ///   frame it walks each spark, rotates its offset through the flare's frame
@@ -86,20 +86,20 @@ static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 ///   winds `age` back down and redraws instead of advancing.
 void func_m4a1_hammer_8011D1E0(Task* task)
 {
-    EffectWork*           work;
-    GfxCoord*             coord;
-    GfxCoord*             light;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    GfxRotationWords*     dstm;
-    s32                   i;
-    s32                   j;
+    EffectWork*                    work;
+    GfxCoord*                      coord;
+    GfxCoord*                      light;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    GfxRotationWords*              dstm;
+    s32                            i;
+    s32                            j;
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    base  = &Gp_RoomCoords[1];
-    light = &base->light.head.transform.coord;
-    slot  = &base->light;
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    lightSlot = &gWorldCoordTransientPointLights[1];
+    light     = &lightSlot->light.head.transform.coord;
+    slot      = &lightSlot->light;
 
     if (((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age = work->age + 1;
@@ -148,14 +148,14 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                             func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
                                                       work->angle);
                         }
-                        base->framesLeft   = 4;
-                        slot->inner        = 0x80;
-                        slot->outer        = 0x400;
-                        gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x400;
-                        slot->head.color.r = (u16)slot->head.color.b >> 1;
-                        slot->head.color.g = (u16)slot->head.color.b >> 1;
-                        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+                        lightSlot->framesLeft = 4;
+                        slot->inner           = 0x80;
+                        slot->outer           = 0x400;
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
+                        slot->head.color.r    = (u16)slot->head.color.b >> 1;
+                        slot->head.color.g    = (u16)slot->head.color.b >> 1;
+                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                         light->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->index         = 0;
                         return;
@@ -208,14 +208,14 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                                 func_m4a1_hammer_8011E29C(coord, &work->pos, work->age, 0x280);
                             }
                         }
-                        base->framesLeft   = 4;
-                        slot->inner        = 0x400;
-                        slot->outer        = 0x4000;
-                        gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-                        slot->head.color.r = (u16)slot->head.color.b >> 1;
-                        slot->head.color.g = slot->head.color.b >> 1;
-                        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
+                        lightSlot->framesLeft = 4;
+                        slot->inner           = 0x400;
+                        slot->outer           = 0x4000;
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+                        slot->head.color.r    = (u16)slot->head.color.b >> 1;
+                        slot->head.color.g    = slot->head.color.b >> 1;
+                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                         light->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->index         = work->index + 1;
                         if (work->index >= 5) {
@@ -306,7 +306,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            Task_Reparent(D_m4a1_hammer_8012D660, arg0);
+            taskReparent(D_m4a1_hammer_8012D660, arg0);
             if (arg0->spawnArg1.value != 0) {
                 parent              = mem->parent;
                 coord->coord.t[0]   = 0;

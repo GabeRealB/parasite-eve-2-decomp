@@ -236,7 +236,7 @@ ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_shelter_b1_sterilization_room_8017FC78 } },
     { 5104, { .call3 = func_shelter_b1_sterilization_room_8017FF80 } },
     { 5106, { .call3 = func_shelter_b1_sterilization_room_80180430 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_shelter_b1_sterilization_room_80184E70 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80180188, { .value = 0 } };

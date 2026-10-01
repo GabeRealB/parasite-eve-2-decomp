@@ -8,7 +8,7 @@
 // --- from main (26 symbols)
 taskKill = 0x8002CCB8; // absolute:True
 Task_Spawn = 0x8002CFDC; // absolute:True
-Task_Reparent = 0x8002D14C; // absolute:True
+taskReparent = 0x8002D14C; // absolute:True
 gameGetTaskSlot = 0x8002D22C; // absolute:True
 Mem_Set = 0x8002D894; // absolute:True
 memCalloc = 0x8002D978; // absolute:True
@@ -35,7 +35,7 @@ gPlayerStatus = 0x80073B88; // absolute:True
 
 // --- from gameplay (38 symbols)
 Gp_UpdateCoord = 0x80098F58; // absolute:True
-Gp_WorldToLocal = 0x800A8864; // absolute:True
+gfxMakeRelativeTransform = 0x800A8864; // absolute:True
 Gp_AnimGetRec = 0x800B4668; // absolute:True
 Gp_ConsumeSlotQty = 0x800B6DA4; // absolute:True
 Gp_GetItemSlot = 0x800BAFE0; // absolute:True
@@ -70,7 +70,7 @@ Gp_PlayObjSfx = 0x801064A4; // absolute:True
 func_80106518 = 0x80106518; // absolute:True
 func_80106550 = 0x80106550; // absolute:True
 Gp_RoomParamTables = 0x8010CBB8; // absolute:True
-Gp_RoomCoords = 0x80114F30; // absolute:True
+gWorldCoordTransientPointLights = 0x80114F30; // absolute:True
 gRoomEffectState = 0x80115740; // absolute:True
 
 // --- still unnamed in their own overlay (12)

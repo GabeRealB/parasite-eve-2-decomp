@@ -32,7 +32,7 @@ void madChaserLeapAttack(Task* arg0)
         Gp_UpdateCoord(&gGfxViewCoord);
         coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&coords[6]);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[6].workm, &local);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[6].workm, &local);
         v                      = &work->field_98;
         v->vx                  = local.t[0];
         v->vy                  = local.t[1];

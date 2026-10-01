@@ -483,8 +483,8 @@ static GpEnemyDesc D_map_akropolis_8017A66C[1] = {
 };
 
 static GpEnemyDesc D_map_akropolis_8017A67C[3] = {
-    { 4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_8018286C, { &D_acropolis_cafeteria_8018D230 } } },
-    { 0x107, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_801827C4, { &D_acropolis_cafeteria_8018D57C } } },
+    { 4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_8018286C, { &D_acropolis_cafeteria_8018D230 } } },
+    { 0x107, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_801827C4, { &D_acropolis_cafeteria_8018D57C } } },
     { 0xFFFF },
 };
 
@@ -515,8 +515,8 @@ static GpEnemyDesc D_map_akropolis_8017A71C[1] = {
 };
 
 static GpEnemyDesc D_map_akropolis_8017A72C[3] = {
-    { 0x103, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, func_acropolis_sanctuary_80180264, { &D_acropolis_sanctuary_80186C68 } } },
-    { 0x702, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &D_acropolis_sanctuary_80186A08 } } },
+    { 0x103, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_sanctuary_80180264, { &D_acropolis_sanctuary_80186C68 } } },
+    { 0x702, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &D_acropolis_sanctuary_80186A08 } } },
     { 0xFFFF },
 };
 
@@ -544,7 +544,7 @@ static GpBit2Rec D_map_akropolis_8017A7AC[2] = {
 
 static GpEnemyDesc D_map_akropolis_8017A7CC[3] = {
     { 0x204, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_helicopter_landing_pad_8017D964, { &D_acropolis_helicopter_landing_pad_801836EC } } },
-    { 0xA4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, func_acropolis_helicopter_landing_pad_801822B0, { &D_acropolis_helicopter_landing_pad_80187F50 } } },
+    { 0xA4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_helicopter_landing_pad_801822B0, { &D_acropolis_helicopter_landing_pad_80187F50 } } },
     { 0xFFFF },
 };
 

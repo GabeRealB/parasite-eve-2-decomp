@@ -93,14 +93,14 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                     slot->workm  = coord->workm;
                     gte_SetRotMatrix(&coord->workm);
                     gte_SetTransMatrix(&coord->workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
                     slot         = &gBladeTrailTip[i];
                     slot->parent = &gGfxViewCoord;
                     slot->workm  = hilt.workm;
                     gte_SetRotMatrix(&hilt.workm);
                     gte_SetTransMatrix(&hilt.workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
                 }
                 break;
             case 1:
@@ -119,14 +119,14 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
                 slot->workm  = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
                 slot         = &gBladeTrailTip[work->age & 7];
                 slot->parent = &gGfxViewCoord;
                 slot->workm  = hilt.workm;
                 gte_SetRotMatrix(&hilt.workm);
                 gte_SetTransMatrix(&hilt.workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
 
                 for (i = 0; i < 8; i++) {
                     slot               = &gBladeTrailBase[i];

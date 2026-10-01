@@ -45,8 +45,10 @@ Allocated with `memCalloc(sizeof(Task), 0)` (0x48 bytes). Inserted into the **ac
 
 Parent/child is a **sibling ring**: `firstChild` is the head, `nextSibling`
 walks the ring and is self when the task is an only child. `taskKill` runs
-every child’s `exitCallback` first (with `parent` cleared). `Task_Reparent`
-moves a live task onto another parent’s ring.
+every child’s `exitCallback` first (with `parent` cleared). `taskReparent`
+detaches a live task from its old ring and appends it to the destination
+parent’s ring, preserving that ring’s head. Reattaching to the same parent can
+change child teardown order. Execution-list membership is unchanged.
 
 `work` is an opaque `void*` to callback-defined storage. Default teardown
 passes a non-NULL value to `memFree`, so heap work belongs to the primary heap;
@@ -71,7 +73,7 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 spawnArg1, s32 spawnArg2, TaskNode*
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `header.fields.flags` | Low byte = body kind (0/1/2); `TASK_DESC_SKIP_MODEL_BUFFER` disables automatic TMD primitive-buffer allocation |
+| 0x0 | `header.fields.flags` | Low byte = body kind (0/1/2); `TASK_DESC_SKIP_AUTO_MODEL_BUFFER` disables automatic TMD primitive-buffer allocation and missing-buffer recovery |
 | 0x2 | `header.fields.priority` | Low byte copied to `Task::priority`; equal priorities retain spawn order |
 | 0x4 | `callback` | Per-frame entry (`Task::callback`) |
 | 0x8 | `data.model` / `data.value` | Type-1 only, the `TmdSource*` for `Gp_AttachTmdFlags`; metadata ignored by ordinary spawning for other body kinds |
@@ -84,6 +86,13 @@ Its walk ends when the complete flags halfword is `TASK_DESC_END`.
 
 The descriptor is read synchronously; no descriptor pointer is retained in the
 new task. Its data word is separate from the two call-supplied spawn payloads.
+
+`TASK_DESC_SKIP_AUTO_MODEL_BUFFER` occupies descriptor bit 8 (`0x100`). For a
+TMD body, spawning translates it to creation-buffer bit 0 (`1`), which leaves
+the primitive buffer NULL and sets the runtime `TMD_OBJECT_SKIP_AUTO_BUFFER`
+mask (`0x04`). The model and its coordinates are still allocated. Missing-buffer
+recovery skips the model while that runtime bit remains set; explicit buffer
+allocation and release ignore it. Other body kinds ignore this descriptor option.
 
 Spawn type (low byte of `header.fields.flags`, stored as `Task::bodyKind`) is the body:
 

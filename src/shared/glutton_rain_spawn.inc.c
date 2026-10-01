@@ -141,7 +141,7 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
 
     work->eff = Gp_SpawnEff(0x6019B, task->extra.tmd->coords, 0, NULL);
     if (work->eff != NULL) {
-        Task_Reparent(task, work->eff->task);
+        taskReparent(task, work->eff->task);
     }
     task->state++;
 }

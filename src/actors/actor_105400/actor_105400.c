@@ -82,7 +82,7 @@ extern TmdSource    D_actor_105400_8013C46C;
 GeneratorMsgEntry gGeneratorMessages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = generatorSetReleaseBits } },
     { 2006, { .call0 = generatorIsAlive } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 s16 gGeneratorPoseStartFrames[4] = {

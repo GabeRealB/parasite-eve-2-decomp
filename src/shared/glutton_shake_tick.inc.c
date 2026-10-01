@@ -1,13 +1,13 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Screen-shake driver for the enemy task: `func_actor_403200_8013FB54` writes a
+/// Screen-shake driver for the enemy task: `gluttonSetShakeLevel` writes a
 /// level into `field_EAC`, and a change from the armed level in `field_EAD`
 /// starts a shake of 5, 10 or 22 frames -- any other level is ignored. Each tick
 /// spends one frame and drives `displaySetShakeY` off the frame counter's
 /// low bits, so level 1 alternates 0 / 2, level 2 walks a four-frame 0 / 2 / 3 / 2
 /// pattern and level 3 an eight-frame ramp that peaks at 4. The shake clears
-/// itself once the counter runs out. Same body as
-/// `func_actor_444000_8013A77C`, plus the null test on the work block.
+/// itself once the counter runs out. The dumping-hole build also checks for
+/// a NULL work block before updating the shake.
 void gluttonShakeTick(Task* arg0)
 {
     GluttonWork* work = arg0->work;

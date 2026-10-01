@@ -1127,23 +1127,23 @@ DamageAttack D_actor_510900_80167968 = { 14, 7 };
 
 void func_actor_510900_80131F24(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    WorldCoordPointLight* slot;
-    GpCoord64*            base;
-    EffectWork*           eff;
-    GfxRotationWords*     mat;
-    s32                   i;
-    s32                   bits;
-    s32                   z;
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    WorldCoordPointLight*          slot;
+    WorldCoordTransientPointLight* lightSlot;
+    EffectWork*                    eff;
+    GfxRotationWords*              mat;
+    s32                            i;
+    s32                            bits;
+    s32                            z;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    base  = &Gp_RoomCoords[2];
-    slot  = &base->light;
+    mem       = arg0->spawnArg2.pointer;
+    coord     = arg0->extra.coordBody->coord;
+    lightSlot = &gWorldCoordTransientPointLights[2];
+    slot      = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            base->framesLeft = 0;
+            lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
         }
         if (arg0->spawnArg1.value == 4) {
             effectKillTask(mem, arg0);
@@ -1166,17 +1166,17 @@ void func_actor_510900_80131F24(Task* arg0)
         arg0->state         = 1;
     }
     Gp_UpdateCoord(coord);
-    if (base->framesLeft != 0) {
+    if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
         slot->head.color.r = 0x1000;
         slot->head.color.g = 0x800;
         slot->head.color.b = 0x400;
         if (slot->inner >= 0x191) {
             slot->inner -= 0x190;
         }
-        base->framesLeft--;
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.transform.coord.coord);
-        base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-        if (base->framesLeft == 0) {
+        lightSlot->framesLeft--;
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
+        lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+        if (lightSlot->framesLeft == WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
             arg0->spawnArg1.value = 0;
             mem->age              = 0;
             mem->scale            = 0;
@@ -1195,14 +1195,14 @@ void func_actor_510900_80131F24(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
-            base->framesLeft = 0x10;
-            slot->inner      = 0x1F40;
-            slot->outer      = 0x2710;
-            gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            bits             = gRandomLcgState >> 16;
+            lightSlot->framesLeft = 0x10;
+            slot->inner           = 0x1F40;
+            slot->outer           = 0x2710;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            bits                  = gRandomLcgState >> 16;
             /* The `field_24 + 0x10000` sums below are evaluated as their own
              * operand. Written plainly, `fold` reassociates the constant onto
              * the draw; held in a local, sched1 moves the load ahead of it. */
@@ -1215,7 +1215,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
                                               &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
@@ -1228,7 +1228,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 eff             = Gp_SpawnEff(0x6004C, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
                                               &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
@@ -1240,7 +1240,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
@@ -1252,7 +1252,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
@@ -1264,14 +1264,14 @@ void func_actor_510900_80131F24(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             break;
         case 2:
-            base->framesLeft = 0x10;
-            slot->inner      = 0x1F40;
-            slot->outer      = 0x2710;
+            lightSlot->framesLeft = 0x10;
+            slot->inner           = 0x1F40;
+            slot->outer           = 0x2710;
             for (i = 0; i < 3; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
@@ -1280,7 +1280,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1293,7 +1293,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
@@ -1305,7 +1305,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
@@ -1317,7 +1317,7 @@ void func_actor_510900_80131F24(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             break;
@@ -1334,7 +1334,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x80, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->task);
+                        taskReparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
@@ -1346,7 +1346,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->task);
+                        taskReparent(arg0, eff->task);
                     }
                 }
                 for (i = 0; i < 2; i++) {
@@ -1357,7 +1357,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     eff             = Gp_SpawnEff(0x6004C, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->task);
+                        taskReparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
@@ -1369,7 +1369,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->task);
+                        taskReparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
@@ -1381,7 +1381,7 @@ void func_actor_510900_80131F24(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->task);
+                        taskReparent(arg0, eff->task);
                     }
                 }
                 for (i = 0; i < 2; i++) {
@@ -1392,24 +1392,24 @@ void func_actor_510900_80131F24(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                     if (eff != NULL) {
-                        Task_Reparent(arg0, eff->task);
+                        taskReparent(arg0, eff->task);
                     }
                 }
-                base->framesLeft = 0x10;
-                slot->inner      = 0x1F40;
-                slot->outer      = 0x2710;
+                lightSlot->framesLeft = 0x10;
+                slot->inner           = 0x1F40;
+                slot->outer           = 0x2710;
             } else if (mem->age < 0x3C) {
-                base->framesLeft = 2;
-                slot->inner      = 0x190;
-                slot->outer      = 0x190;
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx     = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy     = 0x80;
-                mem->move.vz     = 0;
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff              = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
+                lightSlot->framesLeft = 2;
+                slot->inner           = 0x190;
+                slot->outer           = 0x190;
+                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx          = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy          = 0x80;
+                mem->move.vz          = 0;
+                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff                   = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
-                    Task_Reparent(arg0, eff->task);
+                    taskReparent(arg0, eff->task);
                 }
             }
             break;
@@ -1828,19 +1828,19 @@ void func_actor_510900_80133C84(Task* arg0)
 
 void func_actor_510900_801340E8(Task* arg0)
 {
-    GpCoord64*            base;
-    GfxCoord*             cam;
-    WorldCoordPointLight* ext;
-    EffectWork*           eff;
-    GfxCoord*             coord;
-    GfxRotationWords*     mat;
-    s32                   i;
+    WorldCoordTransientPointLight* lightSlot;
+    GfxCoord*                      lightCoord;
+    WorldCoordPointLight*          pointLight;
+    EffectWork*                    eff;
+    GfxCoord*                      coord;
+    GfxRotationWords*              mat;
+    s32                            i;
 
-    base  = &Gp_RoomCoords[3];
-    cam   = &base->light.head.transform.coord;
-    eff   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    ext   = &base->light;
+    lightSlot  = &gWorldCoordTransientPointLights[3];
+    lightCoord = &lightSlot->light.head.transform.coord;
+    eff        = arg0->spawnArg2.pointer;
+    coord      = arg0->extra.coordBody->coord;
+    pointLight = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         effectKillTask(eff, arg0);
         return;
@@ -1865,14 +1865,14 @@ void func_actor_510900_801340E8(Task* arg0)
         Gp_SpawnEff(0x60065, coord, 0, &eff->move);
         Gp_SpawnEff(0x600A4, coord, 1, NULL);
     }
-    base->framesLeft  = 4;
-    ext->inner        = 0xFA0;
-    ext->outer        = 0x12C0;
-    ext->head.color.r = 0xC00;
-    ext->head.color.g = 0x800;
-    ext->head.color.b = 0x400;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &cam->coord);
-    cam->composeStamp = GRAPHICS_COORD_DIRTY;
+    lightSlot->framesLeft    = 4;
+    pointLight->inner        = 0xFA0;
+    pointLight->outer        = 0x12C0;
+    pointLight->head.color.r = 0xC00;
+    pointLight->head.color.g = 0x800;
+    pointLight->head.color.b = 0x400;
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
+    lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     effectKillTask(eff, arg0);
 }
 
@@ -1992,7 +1992,7 @@ void func_actor_510900_801346D4(Task* arg0)
         case 0:
             eff = Gp_SpawnEff(0x60184, coord, 0x480, NULL);
             if (eff != NULL) {
-                Task_Reparent(arg0, eff->task);
+                taskReparent(arg0, eff->task);
             }
             arg0->state++;
             break;
@@ -2084,7 +2084,7 @@ void func_actor_510900_8013482C(Task* arg0)
                 do {
                     spawned = Gp_SpawnEff(0x60184, coord, ((s32)((u16)eff->scale << 16) >> 17) | 0x02001000, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->task);
+                        taskReparent(arg0, spawned->task);
                     }
                     i += 1;
                 } while (i < n);
@@ -2095,7 +2095,7 @@ void func_actor_510900_8013482C(Task* arg0)
                 do {
                     spawned = Gp_SpawnEff(0x60184, coord, ((s32)((u16)eff->scale << 16) >> 17) | 0x01002000, NULL);
                     if (spawned != NULL) {
-                        Task_Reparent(arg0, spawned->task);
+                        taskReparent(arg0, spawned->task);
                     }
                     i += 1;
                 } while (i < n);
@@ -2284,7 +2284,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     eff             = Gp_SpawnEff(0x80060043, spawned->task->extra.tmd->coords, 0, NULL);
     if (eff != NULL) {
         work->field_564 = (s32*)eff->task;
-        Task_Reparent(arg1, eff->task);
+        taskReparent(arg1, eff->task);
     }
     if (work->field_564 != NULL) {
         work->field_564[0xD] = 0;

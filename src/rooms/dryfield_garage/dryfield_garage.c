@@ -498,23 +498,23 @@ WorldCollisionTrigger D_dryfield_garage_8017FD1C[11] = {
     { NULL, NULL, NULL, { 3624, -64, 2944, 0 }, { { -1864, 0, -1552, 0 }, { 1912, 0, -1552, 0 }, { -1928, 0, 1008, 0 }, { 1880, 0, 1008, 0 } }, { 0, 4119, 0, 0 }, { 201, 0, -4091, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_garage_80180060[2] = {
-    { 106, 203, 0, 0, { 0, 0 }, D_80141B6C },
+AreaResource D_dryfield_garage_80180060[2] = {
+    { 106, 203, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80141B6C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_garage_80180078[2] = {
-    { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
+AreaResource D_dryfield_garage_80180078[2] = {
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_garage_80180090[2] = {
-    { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
+AreaResource D_dryfield_garage_80180090[2] = {
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_garage_801800A8[2] = {
-    { 75, 75, 3, 0, { 0, 0 }, &D_8014D8A4 },
+AreaResource D_dryfield_garage_801800A8[2] = {
+    { 75, 75, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

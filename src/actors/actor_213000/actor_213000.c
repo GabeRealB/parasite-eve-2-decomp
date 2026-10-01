@@ -56,7 +56,7 @@ STATIC_ASSERT_SIZEOF(Actor213000Work, 0x4C4);
 extern TaskDesc D_actor_213000_80157DE0[];
 
 /// The actor's message table: `(message id, handler)` pairs for 0x7D3 / 0x7D4 /
-/// 0x7D5 / 0x7DB, ended by `0x7FFFFFFF`. The spawn handler parks its address in
+/// 0x7D5 / 0x7DB, ended by `TASK_MESSAGE_TABLE_END`. The spawn handler parks its address in
 /// `Task::msgTable`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -501,7 +501,7 @@ Actor213000MsgEntry D_actor_213000_80157E1C[5] = {
     { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call3 = func_actor_213000_8014A8A4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_213000_8014A980 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Spawn handler: allocates the work block, seeds its animation bytes and
 
 static void func_actor_213000_80149E54(Task* task);
@@ -692,7 +692,7 @@ static void func_actor_213000_8014A35C(Task* task)
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     obj->otOffset = -4;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     task->state += 1;
 }
 

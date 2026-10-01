@@ -651,90 +651,90 @@ WorldCollisionTrigger D_acropolis_forked_road_80182DDC[7] = {
     { NULL, NULL, NULL, { -2336, -96, -512, 0 }, { { -256, 0, -2624, 0 }, { 1344, 0, -1600, 0 }, { -1344, 0, 1600, 0 }, { 256, 0, 2624, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 2635, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80182FF0[2] = {
-    { 19, 19, 2, 0, { 0, 0 }, D_80179120 },
+AreaResource D_acropolis_forked_road_80182FF0[2] = {
+    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80179120 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183008[3] = {
-    { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
-    { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
+AreaResource D_acropolis_forked_road_80183008[3] = {
+    { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155004 },
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801693AC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_8018302C[2] = {
-    { 55, 55, 0, 0, { 0, 0 }, D_8013A8DC },
+AreaResource D_acropolis_forked_road_8018302C[2] = {
+    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183044[3] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
+AreaResource D_acropolis_forked_road_80183044[3] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150C80 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183068[2] = {
-    { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
+AreaResource D_acropolis_forked_road_80183068[2] = {
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183080[2] = {
-    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+AreaResource D_acropolis_forked_road_80183080[2] = {
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155AC4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183098[3] = {
-    { 7, 7, 0, 0, { 0, 0 }, D_80138C80 },
-    { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
+AreaResource D_acropolis_forked_road_80183098[3] = {
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138C80 },
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801393C8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_801830BC[2] = {
-    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
+AreaResource D_acropolis_forked_road_801830BC[2] = {
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_801830D4[2] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+AreaResource D_acropolis_forked_road_801830D4[2] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_801830EC[2] = {
-    { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
+AreaResource D_acropolis_forked_road_801830EC[2] = {
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183104[2] = {
-    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
+AreaResource D_acropolis_forked_road_80183104[2] = {
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_8018311C[2] = {
-    { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
+AreaResource D_acropolis_forked_road_8018311C[2] = {
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183134[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_acropolis_forked_road_80183134[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_8018314C[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_acropolis_forked_road_8018314C[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183164[3] = {
-    { 46, 46, 0, 0, { 0, 0 }, D_80137698 },
-    { 47, 47, 0, 0, { 0, 0 }, D_801382BC },
+AreaResource D_acropolis_forked_road_80183164[3] = {
+    { 46, 46, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137698 },
+    { 47, 47, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801382BC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_forked_road_80183188[5] = {
-    { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
-    { 71, 71, 0, 0, { 0, 0 }, D_80139E60 },
-    { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
+AreaResource D_acropolis_forked_road_80183188[5] = {
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013F5F0 },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139E60 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
+    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1264,7 +1264,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
                 work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185058,
                                                                  D_acropolis_forked_road_80185070);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                Task_Reparent(task, work->script);
+                taskReparent(task, work->script);
                 task->state = task->state + 1;
             }
             break;
@@ -1354,7 +1354,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185038,
                                                                  D_acropolis_forked_road_80185050);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                Task_Reparent(task, work->script);
+                taskReparent(task, work->script);
                 SetDispMask(0);
                 task->killCountdown = 0;
                 task->state         = task->state + 1;

@@ -626,42 +626,42 @@ WorldCollisionTrigger D_shelter_b4_upper_sewer_801886F4[8] = {
     { NULL, NULL, NULL, { 1568, -64, 3696, 0 }, { { -448, 0, -864, 0 }, { 448, 0, -864, 0 }, { -448, 0, 864, 0 }, { 448, 0, 864, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 972, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b4_upper_sewer_80188954[3] = {
-    { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
-    { 71, 71, 0, 0, { 0, 0 }, D_80139E60 },
+AreaResource D_shelter_b4_upper_sewer_80188954[3] = {
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013F5F0 },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139E60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_upper_sewer_80188978[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_shelter_b4_upper_sewer_80188978[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_upper_sewer_80188990[3] = {
-    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 4, 4, 1, 0, { 0, 0 }, D_8015FE48 },
+AreaResource D_shelter_b4_upper_sewer_80188990[3] = {
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FE48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_upper_sewer_801889B4[3] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_shelter_b4_upper_sewer_801889B4[3] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_upper_sewer_801889D8[2] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
+AreaResource D_shelter_b4_upper_sewer_801889D8[2] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_upper_sewer_801889F0[2] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
+AreaResource D_shelter_b4_upper_sewer_801889F0[2] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b4_upper_sewer_80188A08[3] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 4, 4, 1, 0, { 0, 0 }, D_8015FE48 },
+AreaResource D_shelter_b4_upper_sewer_80188A08[3] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FE48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -51,7 +51,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 spawned         = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3], coord, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
             }
             if (mem->scale < 0xC0) {

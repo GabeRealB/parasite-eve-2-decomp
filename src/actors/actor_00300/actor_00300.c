@@ -1175,7 +1175,7 @@ Actor00300RecoveredMsgEntry Actor00300_D16314[5] = {
     { 2004, { .call2 = actorMsgPlaceRotMatrix } },
     { 2005, { .call3 = Actor00300_Fn053EC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor00300_Fn05434 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 AnimationSet* Actor00300_D1633C[22] = {
@@ -2011,7 +2011,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                                 Actor00300_D15FF8[work->field_66A] - 0x32, &scratch->rot);
                 work->field_654 = effect;
                 if (effect != NULL) {
-                    Task_Reparent(arg0, effect->task);
+                    taskReparent(arg0, effect->task);
                     work->field_69C = Actor00300_D15FF8[work->field_66A] - 0x32;
                 }
                 work->field_658 =
@@ -2212,7 +2212,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                 effect          = Gp_SpawnEff(D_80115744, coord, 0x10014, &sp10);
                 work->field_654 = effect;
                 if (effect != NULL) {
-                    Task_Reparent(arg0, effect->task);
+                    taskReparent(arg0, effect->task);
                     work->field_69C = 0x13;
                 }
                 work->field_658 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030009;
@@ -2252,7 +2252,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                 func_800DA6E8(&enemy->node, -0x64, 0);
                 burst = Gp_SpawnEff(D_80115720, coord, 0, NULL);
                 if (burst != NULL) {
-                    Task_Reparent(arg0, burst->task);
+                    taskReparent(arg0, burst->task);
                 }
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4003000B;
                 pan1  = (s8)worldCoordGetOriginAudioPan(coord);

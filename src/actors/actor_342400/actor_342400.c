@@ -76,7 +76,7 @@ void func_actor_342400_801626AC(Task*, s32, ActorCommand* request);
 
 Actor342400MessageEntry D_actor_342400_8016BF48[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_342400_801626AC } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 OverlayEncounterSlot gMadChaserWaveSlots[17] = {

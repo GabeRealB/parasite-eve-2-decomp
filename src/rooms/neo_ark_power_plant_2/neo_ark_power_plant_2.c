@@ -89,9 +89,9 @@ static const TaskFuncTable3 D_neo_ark_power_plant_2_8017D5C4 = {
     { func_neo_ark_power_plant_2_8017D6F4, func_neo_ark_power_plant_2_8017D758, taskKill },
 };
 
-extern GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3];
-extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3];
-extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2];
+extern AreaResource D_neo_ark_power_plant_2_80182D80[3];
+extern AreaResource D_neo_ark_power_plant_2_80182DA4[3];
+extern AreaResource D_neo_ark_power_plant_2_80182DC8[2];
 
 extern WorldCollisionGrid    D_neo_ark_power_plant_2_80180DC4[1];
 extern WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8];
@@ -654,20 +654,20 @@ WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8] = {
     { NULL, NULL, NULL, { 6864, -5120, -4256, 0 }, { { -400, 0, -2352, 0 }, { 400, 0, -2352, 0 }, { -400, 0, 2352, 0 }, { 400, 0, 2352, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 2374, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3] = {
-    { 53, 53, 0, 0, { 0, 0 }, D_8013D3FC },
-    { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
+AreaResource D_neo_ark_power_plant_2_80182D80[3] = {
+    { 53, 53, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013D3FC },
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3] = {
-    { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
-    { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
+AreaResource D_neo_ark_power_plant_2_80182DA4[3] = {
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801491F8 },
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014DC30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2] = {
-    { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
+AreaResource D_neo_ark_power_plant_2_80182DC8[2] = {
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_801540E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -885,10 +885,10 @@ void func_neo_ark_power_plant_2_8017D854(Task* task)
 
 void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
 {
-    u32                   rnd;
-    u16                   intensity;
-    WorldCoordPointLight* work;
-    GpCoord64*            light;
+    u32                            rnd;
+    u16                            intensity;
+    WorldCoordPointLight*          pointLight;
+    WorldCoordTransientPointLight* lightSlot;
 
     if (arg0->state == 0) {
         D_80115758  = 0x601DC;
@@ -911,21 +911,21 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
             }
             break;
         case 8:
-            light                                          = &Gp_RoomCoords[4];
-            light->framesLeft                              = 4;
-            work                                           = &light->light;
-            work->inner                                    = 0x400;
-            work->outer                                    = 0x4000;
-            light->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            rnd                                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                                = rnd;
-            intensity                                      = ((rnd >> 16) & 0x700) + 0x800;
-            work->head.color.b                             = intensity;
-            work->head.color.r                             = intensity >> 1;
-            work->head.color.g                             = intensity >> 1;
-            work->head.transform.lighting.local.t[0]       = D_neo_ark_power_plant_2_80180668.vx;
-            work->head.transform.lighting.local.t[1]       = D_neo_ark_power_plant_2_80180668.vy;
-            work->head.transform.lighting.local.t[2]       = D_neo_ark_power_plant_2_80180668.vz;
+            lightSlot                                          = &gWorldCoordTransientPointLights[4];
+            lightSlot->framesLeft                              = 4;
+            pointLight                                         = &lightSlot->light;
+            pointLight->inner                                  = 0x400;
+            pointLight->outer                                  = 0x4000;
+            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            rnd                                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                                    = rnd;
+            intensity                                          = ((rnd >> 16) & 0x700) + 0x800;
+            pointLight->head.color.b                           = intensity;
+            pointLight->head.color.r                           = intensity >> 1;
+            pointLight->head.color.g                           = intensity >> 1;
+            pointLight->head.transform.lighting.local.t[0]     = D_neo_ark_power_plant_2_80180668.vx;
+            pointLight->head.transform.lighting.local.t[1]     = D_neo_ark_power_plant_2_80180668.vy;
+            pointLight->head.transform.lighting.local.t[2]     = D_neo_ark_power_plant_2_80180668.vz;
             break;
     }
 }

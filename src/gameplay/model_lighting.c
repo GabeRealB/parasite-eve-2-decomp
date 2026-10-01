@@ -311,9 +311,29 @@ static inline void _tmdInitGt3CornerColorsTexture(POLY_GT3* triangle, const u32*
 {
     // Word indices within the element, excluding the record header.
     enum {
-        TMD_GT3_CORNER_COLORS_UV0_CLUT_WORD  = 6, // U0/V0 in low half, CLUT address in high half
-        TMD_GT3_CORNER_COLORS_UV1_TPAGE_WORD = 7, // U1/V1 in low half, texture-page settings in high half
-        TMD_GT3_CORNER_COLORS_UV2_WORD       = 8  // U2/V2 in low half; high half is not copied
+        /// Element-relative u32 index of vertex 0's texture coordinates and CLUT.
+        ///
+        /// Opcode `0x130` places three geometry words and three corner-colour
+        /// words before this word; the three-word record header is excluded.
+        /// On the little-endian target, bits 0..7 hold unsigned U0 texels,
+        /// bits 8..15 hold unsigned V0 texels, and bits 16..31 hold the encoded
+        /// CLUT address before the model's signed encoded displacement
+        /// (64 per palette row) is added to that halfword.
+        TMD_GT3_CORNER_COLORS_UV0_CLUT_WORD = 6,
+        /// Element-relative u32 index of vertex 1's texture coordinates and page settings.
+        ///
+        /// Opcode `0x130` places three geometry words, three corner-colour
+        /// words and the U0/V0/CLUT word before this word; the three-word
+        /// record header is excluded. Reading it requires at least eight
+        /// readable, four-byte-aligned u32 words from the element start.
+        /// On the little-endian target, bits 0..7 hold unsigned U1 texels,
+        /// bits 8..15 hold unsigned V1 texels, and bits 16..31 hold the GPU's
+        /// encoded page origin, colour depth and semi-transparency mode.
+        /// All four bytes are copied into `POLY_GT3`; the signed model page
+        /// displacement is then added only to its u16 `tpage` field, wrapping
+        /// modulo 65536 without changing U1/V1.
+        TMD_GT3_CORNER_COLORS_UV1_TPAGE_WORD = 7,
+        TMD_GT3_CORNER_COLORS_UV2_WORD       = 8 // U2/V2 in low half; high half is not copied
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[TMD_GT3_CORNER_COLORS_UV0_CLUT_WORD];

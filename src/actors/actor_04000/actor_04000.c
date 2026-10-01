@@ -1121,7 +1121,7 @@ Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor04000_Fn0093C } },
     { 2004, { .call2 = actorMsgPlace } },
     { 2014, { .call4 = Actor04000_Fn06704 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc Actor04000_D0C6E0 = { { { TASK_BODY_TMD, 96 } }, Actor04000_Fn06E4C, { .model = &Actor04000_D08718 } };

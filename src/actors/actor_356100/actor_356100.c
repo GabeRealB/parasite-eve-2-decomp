@@ -681,7 +681,7 @@ Actor356100MessageEntry D_actor_356100_80173258[7] = {
     { 2004, { .call3 = actorMsgPlaceRecordYaw } },
     { 2014, { .call1 = actorMsgReleaseHold } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_356100_8016A0B8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 u16 D_actor_356100_80173290 = 0;

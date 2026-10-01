@@ -319,7 +319,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
                 _uiSpawnResult->panel.contentCallback       = _uiSpawnDescriptor->contentCallback;                              \
                 _uiSpawnResult->panel.animationTicks        = _uiSpawnAnimationTicks;                                           \
                 if (_uiSpawnParent != NULL) {                                                                                   \
-                    Task_Reparent(_uiSpawnParent->owner, _uiSpawnTask);                                                         \
+                    taskReparent(_uiSpawnParent->owner, _uiSpawnTask);                                                          \
                 }                                                                                                               \
             } else {                                                                                                            \
                 taskKill(_uiSpawnTask);                                                                                         \
@@ -521,7 +521,7 @@ static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_AnimOpenStep,
     Ui_DrawAndCallback,
     Ui_LayoutDrawAndCallback,
-    Ui_TickAnimCounter,
+    [USER_INTERFACE_PANEL_CLOSING] = Ui_TickAnimCounter,
     Ui_AnimCloseStep,
     Ui_ClipAndCallback,
 } };
@@ -1794,25 +1794,44 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     }
 }
 
-void Ui_DrawHBar(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3)
+/// Initializes a textured quad with the horizontal UI separator's unmodulated texture.
+///
+/// Uses the 4-bit atlas at VRAM (896, 256) and the palette at (48, 240).
+/// Leaves screen vertices unchanged; raw-texture drawing ignores colour bytes.
+static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
 {
-    POLY_FT4* p;
-    s32       y;
+    enum {
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U    = 0x68,
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V    = 0x50,
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE = getTPage(0, 0, 0x380, 0x100),
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_PALETTE      = getClut(0x30, 0xF0)
+    };
 
-    if (arg1 < arg2) {
-        p     = gGpuPrimCursor;
-        p->x0 = p->x2  = panel->contentOriginX.unsignedValue + arg1;
-        gGpuPrimCursor = p + 1;
-        p->x1 = p->x3 = panel->contentOriginX.unsignedValue + arg2;
-        y             = panel->contentOriginY.unsignedValue + arg3;
-        p->y0 = p->y1 = y - 4;
-        p->y2 = p->y3 = y + 3;
-        setUV4(p, 0x68, 0x50, 0x6F, 0x50, 0x68, 0x57, 0x6F, 0x57);
-        p->tpage = 0x1E;
-        p->clut  = 0x3C03;
-        setPolyFT4(p);
-        setShadeTex(p, 1);
-        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 2, p);
+    setUVWH(separator, USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U,
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V, 7, 7);
+    separator->tpage = USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE;
+    separator->clut  = USER_INTERFACE_HORIZONTAL_SEPARATOR_PALETTE;
+    setPolyFT4(separator);
+    setShadeTex(separator, 1);
+}
+
+void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 centerY)
+{
+    enum { USER_INTERFACE_HORIZONTAL_SEPARATOR_OT_OFFSET = 2 };
+    POLY_FT4* separator;
+    s32       screenY;
+
+    if (left < right) {
+        // Translate content coordinates before narrowing into the GPU packet.
+        separator     = gGpuPrimCursor;
+        separator->x0 = separator->x2 = panel->contentOriginX.unsignedValue + left;
+        gGpuPrimCursor                = separator + 1;
+        separator->x1 = separator->x3 = panel->contentOriginX.unsignedValue + right;
+        screenY                       = panel->contentOriginY.unsignedValue + centerY;
+        separator->y0 = separator->y1 = screenY - 4;
+        separator->y2 = separator->y3 = screenY + 3;
+        _uiInitHorizontalSeparatorPacket(separator);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_HORIZONTAL_SEPARATOR_OT_OFFSET, separator);
     }
 }
 
@@ -1870,7 +1889,7 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
     p->x1         = textX + 3;
     addPrim(gGpuCurrentOt + otIdx, p);
 
-    Ui_DrawHBar(panel, x - panel->contentOriginX.signedValue, req.x - panel->contentOriginX.signedValue, y + 7 - panel->contentOriginY.signedValue);
+    uiDrawHorizontalSeparator(panel, x - panel->contentOriginX.signedValue, req.x - panel->contentOriginX.signedValue, y + 7 - panel->contentOriginY.signedValue);
 }
 
 void Ui_DrawTextColored(UiPanel* panel, char* arg1)

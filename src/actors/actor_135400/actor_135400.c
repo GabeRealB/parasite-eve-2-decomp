@@ -98,7 +98,7 @@ extern TaskDesc D_actor_135400_8013A4AC[];
 /// the 0x7D3 / 0x7D4 / 0x7D5 / 0x7DB handlers of the main task.
 /// Message entries with the payload signature selected by each message id.
 typedef struct {
-    s32 id; // Message id; 0x7FFFFFFF terminates the table
+    s32 id; // Message id; `TASK_MESSAGE_TABLE_END` terminates the table
     union {
         s32                (*animation)(Task*, s32, AnimationPlayRequest*, s32);
         s32                (*placement)(Task*, s32, ActorTransform*, s32);
@@ -116,7 +116,7 @@ extern _Actor135400MessageEntry D_actor_135400_8013A4D0[5];
 extern GsF_LIGHT D_actor_135400_8013F904[3];
 
 /// The second task's message table: `(message id, handler)` pairs for 0x7D3 /
-/// 0x7D4 / 0x7D5, ended by `0x7FFFFFFF`. `func_actor_135400_80132B60` parks
+/// 0x7D4 / 0x7D5, ended by `TASK_MESSAGE_TABLE_END`. `func_actor_135400_80132B60` parks
 /// its address in `Task::msgTable`.
 extern _Actor135400MessageEntry D_actor_135400_8013F8E4[4];
 
@@ -395,7 +395,7 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_135400_8013A4AC[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_135400_801325A8, { .model = &D_actor_135400_80138A08 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_135400_801325A8, { .model = &D_actor_135400_80138A08 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_135400_801323F8, { .model = &D_actor_135400_80138EE0 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_135400_801324D4, { .model = &D_actor_135400_80139174 } },
 };
@@ -405,7 +405,7 @@ _Actor135400MessageEntry D_actor_135400_8013A4D0[5] = {
     { 2004, { .placement = actorMsgPlaceEuler } },
     { 2005, { .mode = func_actor_135400_801327E8 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_135400_801328DC } },
-    { 0x7FFFFFFF, { .animation = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
 };
 
 TmdBone D_actor_135400_8013A4F8[19] = {
@@ -575,13 +575,13 @@ AnimationSet** D_actor_135400_8013F8D4[1] = {
     D_actor_135400_8013F8A8,
 };
 
-TaskDesc D_actor_135400_8013F8D8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_135400_80132AF4, { .model = &D_actor_135400_8013E250 } };
+TaskDesc D_actor_135400_8013F8D8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_135400_80132AF4, { .model = &D_actor_135400_8013E250 } };
 
 _Actor135400MessageEntry D_actor_135400_8013F8E4[4] = {
     { 2003, { .animation = func_actor_135400_80132D24 } },
     { 2004, { .placement = func_actor_135400_80132E40 } },
     { 2005, { .mode = func_actor_135400_80132EBC } },
-    { 0x7FFFFFFF, { .animation = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .animation = NULL } },
 };
 
 GsF_LIGHT D_actor_135400_8013F904[3] = {

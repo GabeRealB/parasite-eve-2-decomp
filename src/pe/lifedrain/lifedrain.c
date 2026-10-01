@@ -156,7 +156,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             do {
                 spawned = Gp_SpawnEff(0x600EA, coord, i, NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
                 i += 0x2AA;
             } while (i < 0x556);
@@ -267,7 +267,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             spawned      = Gp_SpawnEff(0x600AD, coord, (s32)(D_lifedrain_80130AB4[mem->index].unk6),
                                        &mem->move);
             if (spawned != NULL) {
-                Task_Reparent(arg0, spawned->task);
+                taskReparent(arg0, spawned->task);
             }
             if (mem->angle >= D_lifedrain_80130AB4[mem->index].unk6) {
                 arg0->state = 3;
@@ -415,7 +415,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0:
-                Task_Reparent(D_lifedrain_80130B0C, arg0);
+                taskReparent(D_lifedrain_80130B0C, arg0);
                 D_lifedrain_80130B0C->spawnArg1.value += arg0->spawnArg1.value;
                 gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 mem->move.vx                           = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
@@ -442,7 +442,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     if (((gRandomLcgState >> 16) & 3) == 0) {
                         spawned = Gp_SpawnEff(0x600AD, coord, (s32)(mem->angle), NULL);
                         if (spawned != NULL) {
-                            Task_Reparent(arg0, spawned->task);
+                            taskReparent(arg0, spawned->task);
                         }
                     }
                 }
@@ -489,7 +489,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     if (((gRandomLcgState >> 16) & 3) == 0) {
                         spawned = Gp_SpawnEff(0x600AD, coord, (s32)(mem->angle), NULL);
                         if (spawned != NULL) {
-                            Task_Reparent(arg0, spawned->task);
+                            taskReparent(arg0, spawned->task);
                         }
                     }
                 }

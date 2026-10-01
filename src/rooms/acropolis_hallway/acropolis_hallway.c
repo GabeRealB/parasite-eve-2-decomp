@@ -147,24 +147,24 @@ WorldCollisionTrigger D_acropolis_hallway_8017E724[9] = {
     { NULL, NULL, NULL, { -2128, -1042, -1024, 0 }, { { -400, 0, -304, 0 }, { 400, 0, -304, 0 }, { -400, 0, 304, 0 }, { 400, 0, 304, 0 } }, { 0, 4100, 0, 0 }, { 200, 0, 4090, 0 }, 501, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_hallway_8017E9D0[2] = {
-    { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
+AreaResource D_acropolis_hallway_8017E9D0[2] = {
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801693AC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_hallway_8017E9E8[2] = {
-    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+AreaResource D_acropolis_hallway_8017E9E8[2] = {
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155AC4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_hallway_8017EA00[2] = {
-    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+AreaResource D_acropolis_hallway_8017EA00[2] = {
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155AC4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_hallway_8017EA18[3] = {
-    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
+AreaResource D_acropolis_hallway_8017EA18[3] = {
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155AC4 },
+    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801693AC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

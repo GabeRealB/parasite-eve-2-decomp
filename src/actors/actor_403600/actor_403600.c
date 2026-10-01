@@ -1379,7 +1379,7 @@ void func_actor_403600_80134288(Task* arg0)
         arg0->work             = fx;
         child                  = Task_SpawnFromTable(D_actor_403600_801421A0, 2, 0, 0);
         if (child != NULL) {
-            Task_Reparent(arg0, child);
+            taskReparent(arg0, child);
         }
         work                    = (Actor403600Work*)arg0->parent->work;
         work->field_710         = arg0;

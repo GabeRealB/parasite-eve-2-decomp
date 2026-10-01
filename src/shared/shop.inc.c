@@ -580,7 +580,7 @@ static void Shop_ItemListTask(Task* task)
     }
     shop = (RoomShopList*)task->work;
     Ui_UpdateListNoAnim(shop, obj);
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 6);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 6);
 
     x              = obj->panel.contentOriginX.unsignedValue - 2;
     req.x          = obj->panel.contentRight.unsignedValue + x;
@@ -968,7 +968,7 @@ static void Shop_ChargeTask(Task* task)
 
     y = obj->panel.contentTop.signedValue;
     Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0xF, curItem, 0x606060, 0);
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, y + 0x12);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, y + 0x12);
     Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, relItem, 0x606060, 0);
     Gp_DrawQty(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, Shop_Data_80187628 >> 8, 0x606060);
     h = obj->panel.contentBottom.signedValue;
@@ -1121,7 +1121,7 @@ static void Shop_QuantityTask(Task* task)
     count = task->extraState.value;
     Text_DrawPrompt(obj, left + 0x98, y, Shop_Data_80181AD0, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     Text_DrawPrompt(obj, -x, y, Text_ItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    Ui_DrawHBar(&(obj)->panel, left, -x + 2, top + 0x12);
+    uiDrawHorizontalSeparator(&(obj)->panel, left, -x + 2, top + 0x12);
 
     req.x          = obj->panel.contentOriginX.unsignedValue - x;
     y              = top + 0x1A;

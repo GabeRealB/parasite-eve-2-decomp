@@ -169,7 +169,7 @@ static const TaskFuncTable4 D_mist_r18_8017D5DC = {
     { func_mist_r18_8017DD7C, func_mist_r18_8017E8B8, crossfadeOutState, taskKill },
 };
 
-extern GpAreaTmdRec D_mist_r18_80186BD8[3];
+extern AreaResource D_mist_r18_80186BD8[3];
 
 extern WorldCollisionGrid D_mist_r18_801866F8[1];
 
@@ -1055,9 +1055,9 @@ GpSprtRec D_mist_r18_80186B60[10] = {
     { { .empty = D_mist_r18_80186B50 }, D_mist_r18_80186B50, NULL },
 };
 
-GpAreaTmdRec D_mist_r18_80186BD8[3] = {
-    { 144, 130, 0, 0, { 0, 0 }, D_8013ABB4 },
-    { 105, 130, 1, 0, { 0, 0 }, D_80157DE0 },
+AreaResource D_mist_r18_80186BD8[3] = {
+    { 144, 130, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013ABB4 },
+    { 105, 130, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80157DE0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

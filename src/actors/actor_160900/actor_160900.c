@@ -939,10 +939,10 @@ TaskDesc D_actor_160900_8013FB50[8] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_160900_8013418C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_160900_801344D8, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_160900_801343E4, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132C08, { .model = &D_actor_160900_801393B8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132C08, { .model = &D_actor_160900_801393B8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
     { { { TASK_BODY_COORD, 192 } }, func_actor_160900_80132E80, { .value = 0 } },
 };
 
@@ -1139,7 +1139,7 @@ void func_actor_160900_80132A14(Task* arg0)
         } else if (arg0->spawnArg1.value == 2) {
             Gp_SetTmdBytes(arg0->extra.tmd, 0, 0);
         }
-        Task_Reparent(parent, arg0);
+        taskReparent(parent, arg0);
         arg0->msgTable = D_actor_160900_8013F200;
         arg0->state   += 1;
         return;
@@ -1203,7 +1203,7 @@ void func_actor_160900_80132C08(Task* task)
                 place++;
             }
             Gp_SetTmdBytes(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
-            Task_Reparent(D_actor_160900_8013FBB4, task);
+            taskReparent(D_actor_160900_8013FBB4, task);
             failed = 0;
         }
         if ((u16)failed) {

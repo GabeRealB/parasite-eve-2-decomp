@@ -809,12 +809,12 @@ WorldCollisionTrigger D_shelter_b1_sterilization_room_8018B8A8[28] = {
     { NULL, NULL, NULL, { 6304, -64, 0x2840, 0 }, { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, { 0, 4101, 0, 0 }, { -2276, 0, -3406, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_sterilization_room_8018C0F8[1] = {
+AreaResource D_shelter_b1_sterilization_room_8018C0F8[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_sterilization_room_8018C104[2] = {
-    { 117, 606, 0, 0, { 0, 0 }, D_8013DFA0 },
+AreaResource D_shelter_b1_sterilization_room_8018C104[2] = {
+    { 117, 606, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013DFA0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

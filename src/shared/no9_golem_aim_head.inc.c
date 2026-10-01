@@ -22,7 +22,7 @@ void no9GolemAimHead(Task* arg0)
     SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorAimScratch));
     scratch = SCRATCH_STACK_CURSOR(ActorAimScratch);
 
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &head->workm, &scratch->view);
     scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - scratch->view.t[0];
     offsetY           = scratch->view.t[1] + 0x600;
     scratch->delta.vy = gPlayerStatus.coordMtx->t[1] - offsetY;

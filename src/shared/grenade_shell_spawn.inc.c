@@ -48,7 +48,7 @@ void grenadeShellSpawn(Task* arg0)
     gte_rtv0tr();
     gte_stlvnl(coord->workm.t);
     mtx = &coord->coord;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mtx);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, mtx);
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     extra->flags        = 0;

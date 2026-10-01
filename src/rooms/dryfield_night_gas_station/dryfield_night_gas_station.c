@@ -307,7 +307,7 @@ DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { 5104, { .call3 = func_dryfield_night_gas_station_8017F89C } },
     { 5106, { .call3 = gasStationCueSoundMsg } },
     { 5108, { .call0 = func_dryfield_night_gas_station_8017F9E8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_dryfield_night_gas_station_8018406C[2] = {
@@ -2401,30 +2401,30 @@ WorldCollisionTrigger D_dryfield_night_gas_station_801900D4[16] = {
     { NULL, NULL, NULL, { 4384, -64, -608, 0 }, { { -480, 0, -560, 0 }, { 480, 0, -560, 0 }, { -480, 0, 560, 0 }, { 480, 0, 560, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 735, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_gas_station_80190594[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_dryfield_night_gas_station_80190594[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_gas_station_801905AC[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_dryfield_night_gas_station_801905AC[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_gas_station_801905C4[2] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
+AreaResource D_dryfield_night_gas_station_801905C4[2] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_gas_station_801905DC[3] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_dryfield_night_gas_station_801905DC[3] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_gas_station_80190600[3] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 15, 15, 2, 0, { 0, 0 }, D_8016BE28 },
+AreaResource D_dryfield_night_gas_station_80190600[3] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

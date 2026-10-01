@@ -150,7 +150,7 @@ static void func_actor_503500_801464E8(Task* arg0);
 static void func_actor_503500_80146508(Task* arg0);
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_503500_8014642C`; terminator id 0x7FFFFFFF.
+/// `func_actor_503500_8014642C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -226,7 +226,7 @@ Actor5035003MsgEntry D_actor_503500_8016EA2C[5] = {
     { 2004, { .call2 = func_actor_503500_80137088 } },
     { 2005, { .call3 = func_actor_503500_80137158 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_80135B74 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 AnimationSet* D_actor_503500_8016EA54[20] = {
@@ -1116,14 +1116,14 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_503500_80176514,
 };
 
-TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_503500_801463C0, { .model = &D_actor_503500_80175DC8 } };
+TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_503500_801463C0, { .model = &D_actor_503500_80175DC8 } };
 
 Actor5035005MsgEntry D_actor_503500_80176530[5] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call2 = func_actor_503500_80146664 } },
     { 2005, { .call3 = func_actor_503500_801466E0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_801467C0 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 static void func_actor_503500_80144E8C(Task* arg0)
@@ -1195,7 +1195,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
         }
         child          = eff->task;
         work->field_98 = child;
-        Task_Reparent(arg0, child);
+        taskReparent(arg0, child);
     }
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x4023000A, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
@@ -1419,7 +1419,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     }
     child          = eff->task;
     work->field_38 = child;
-    Task_Reparent(arg0, child);
+    taskReparent(arg0, child);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     SndEvt_EnqueueType6(0x4023000C, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     func_actor_503500_80137290(6);
@@ -1580,7 +1580,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     }
     child          = eff->task;
     work->field_98 = child;
-    Task_Reparent(arg0, child);
+    taskReparent(arg0, child);
     if (gGameSession->eventState != 0) {
         pan = (s8)worldCoordGetOriginAudioPan(coord);
         SndEvt_EnqueueType6(0x40230013, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));

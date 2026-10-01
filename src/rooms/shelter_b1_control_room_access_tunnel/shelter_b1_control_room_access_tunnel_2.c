@@ -127,30 +127,30 @@ WorldCollisionTrigger D_shelter_b1_control_room_access_tunnel_80182384[2] = {
     { NULL, NULL, NULL, { 800, -48, 64, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 18, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_control_room_access_tunnel_8018241C[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 24, 24, 1, 0, { 0, 0 }, D_8014E47C },
+AreaResource D_shelter_b1_control_room_access_tunnel_8018241C[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E47C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_control_room_access_tunnel_80182440[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 11, 11, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_shelter_b1_control_room_access_tunnel_80182440[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_control_room_access_tunnel_80182464[2] = {
-    { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
+AreaResource D_shelter_b1_control_room_access_tunnel_80182464[2] = {
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_control_room_access_tunnel_8018247C[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 20, 20, 1, 0, { 0, 0 }, D_8015FDF0 },
+AreaResource D_shelter_b1_control_room_access_tunnel_8018247C[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FDF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_control_room_access_tunnel_801824A0[1] = {
+AreaResource D_shelter_b1_control_room_access_tunnel_801824A0[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -738,9 +738,9 @@ WorldCoordRoomLights D_mist_parking_80195178[1] = {
     { 0, NULL, ARRAY_SIZE(D_mist_parking_801950B8), D_mist_parking_801950B8, 0, NULL },
 };
 
-GpAreaTmdRec D_mist_parking_80195190[3] = {
-    { 143, 131, 0, 0, { 0, 0 }, D_80144308 },
-    { 115, 131, 1, 0, { 0, 0 }, D_801521A8 },
+AreaResource D_mist_parking_80195190[3] = {
+    { 143, 131, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80144308 },
+    { 115, 131, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801521A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

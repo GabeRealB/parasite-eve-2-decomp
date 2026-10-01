@@ -374,8 +374,8 @@ GpViewRec D_dryfield_underpass_8017F4A8[26] = {
     { { { { -4047, 0, 631 }, { -451, 2858, -2898 }, { -440, -2933, -2824 } }, { -0x4229, 2000, 6853 } }, 348 },
 };
 
-GpAreaTmdRec D_dryfield_underpass_8017F850[2] = {
-    { 5, 5, 3, 0, { 0, 0 }, D_80153D60 },
+AreaResource D_dryfield_underpass_8017F850[2] = {
+    { 5, 5, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80153D60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -623,7 +623,7 @@ store order, but they do not create the extra locals that push `0xFFFFFF` off
 
 `func_dryfield_dilapidated_house_80180B84` copies vertices then normals from a
 `TmdSource` into a `DdhRoomRec`. Written with one `SVECTOR* verts` reused for
-both walks, the `task->extra` reload after `Task_Reparent` joins the local
+both walks, the `task->extra` reload after `taskReparent` joins the local
 quantity of `rec = &D_...`'s `%hi` temp (`$v0`). sched1 then dumps the
 extra→source→verts chain at the start of the preheader, so extra is loaded
 *before* `lui` and needs a nop in its delay. Target has `lui`/`addiu rec` first
@@ -958,7 +958,7 @@ ours, and changing it costs nothing when the callers ignore the value.
 
 `actorRescaleYaw(coord, 1)` and `actorResetYaw(coord)` compute the
 same thing, but only the second compiles to the target's tail in
-`func_actor_401800_8013BF48`. Inlining the *scaled* body nine times gave
+`oddStrangerWalkingDeath`. Inlining the *scaled* body nine times gave
 98.166% (`regs=56 reorder=10 delete=8`); the unit-scale body gave 100.000%.
 
 Both bodies push `0x34` bytes of `ActorScaleRotScratch`, rebuild the yaw with
@@ -3540,7 +3540,7 @@ Inputs: `base_1.i`
 
 ### The same weighting breaks a *one-reference* tie between two long-lived pointers
 
-`func_actor_403200_80139E94` (`actor_403200`) stalled at 99.057% with
+`gluttonHitGroups1To2` (`actor_403200`) stalled at 99.057% with
 `Structure: match` and every one of its 365 penalised lines the same `$s1` <->
 `$s2` swap: `sc` (the scratch frame) and `work` (the work block). Both are
 298/299 insns long and cross 13 calls, so the only thing separating them is
@@ -4108,7 +4108,7 @@ to get this: other readers of `field_A04` use `lhu`.
 ## Copy a field address across a `jal` to rematerialize `addiu` in a load delay
 
 `work->field_9A0.x = local.t[0]; work->field_9A0.z = local.t[2];` after
-`Gp_WorldToLocal` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
+`gfxMakeRelativeTransform` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
 nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
 as `sh $v1, 4($v0)`.
 
@@ -4119,7 +4119,7 @@ there:
 ```c
 pos2 = &work->field_9A0;
 Gp_UpdateCoord(&coords[0xE]);
-Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
 pos    = pos2;
 pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
 pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
@@ -6375,7 +6375,7 @@ if (f2 == 0) {
 ```
 
 Parenthesizing `c | (a | b)` without pins reshuffles the loads.
-`gpDrawStreamPrimGt3PreXformFixedLayer` is the example.
+`tmdDrawStreamPrimGt3PreXformEnvLayer` is the example.
 
 ## Subtract a constant from a saved coord via `base + (saved - K)`
 
@@ -6563,7 +6563,7 @@ parameter's own register (`register s32 sz asm("a0")`), that copy is the
 parameter being moved out of the pinned register's way and GCC emits it with or
 without the source-level copy: naming the parameter and deleting both the local
 declaration and the assignment left the body byte-identical in
-`gpDrawStreamPrimGt3PreXformFixedLayer`, whose m2c form had `ws = index` and
+`tmdDrawStreamPrimGt3PreXformEnvLayer`, whose m2c form had `ws = index` and
 whose `sz` is pinned to `$a0`.
 
 So the shape is load-bearing only where something pins *it* — `TOUCH_REG(ws)` or
@@ -8813,7 +8813,7 @@ increments a second counter, a pointer `p++` plus `i++` still becomes
 ```c
 count = 0;
 for (i = 0; i < 8; i++) {
-    if (Gp_RoomCoords[i].framesLeft != 0) {
+    if (gWorldCoordTransientPointLights[i].framesLeft != 0) {
         count++;
     }
 }
@@ -10385,7 +10385,7 @@ read off the object: `rodata_head` alone suffices whenever the bytes unit 1's
 `.align 3` then pads nothing. `actor_401800` is that shape - `rodata_head =
 "0x4"` moves the id word into `actor_401800_hdr`, unit 1's `.rodata` starts at
 `0x4` with the 30-word table (`0x78` bytes) of the still-asm function ahead of
-`func_actor_401800_80139B18`, and `jtbl_actor_401800_80131E9C` lands at `0x7C`
+`oddStrangerDie`, and `jtbl_actor_401800_80131E9C` lands at `0x7C`
 with no pad - so no `units`/`rodata` pair is needed even though four more
 tables follow it.
 
@@ -11680,7 +11680,7 @@ command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 is the template: `gte_SetRotMatrix` + `gte_SetTransMatrix` + `gte_ldv0` +
 that command + `gte_stlvnl`.
 
-`Gfx_ViewWorldMtx` is `gGfxViewCoord.workm`. After `Gp_WorldToLocal(&Gfx_ViewWorldMtx, ...)`,
+`Gfx_ViewWorldMtx` is `gGfxViewCoord.workm`. After `gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, ...)`,
 recover the parent as
 `(GfxCoord*)((u8*)world - OFFSET_OF(GfxCoord, workm))` so the
 compiler emits `addiu s0, s0, -0x24`. A second `&gGfxViewCoord` symbol load
@@ -16671,37 +16671,37 @@ jr    ra
 /* use path walks from v1; a0 is then reused as the first-child sentinel */
 ```
 
-Writing `cur = temp` *before* the null test CSE's both into one register and you
+Writing `lastChild = childHead` *before* the null test CSE's both into one register and you
 get a plain `lw v1` with a `nop` delay:
 
 ```c
-/* BAD — CSE merges temp and cur into v1 */
-temp = arg0->field_c;
-cur  = temp;
-if (temp == NULL) { arg0->field_c = arg1; return; }
+/* BAD — CSE merges childHead and lastChild into v1 */
+childHead = newParent->firstChild;
+lastChild = childHead;
+if (childHead == NULL) { newParent->firstChild = task; return; }
 ```
 
-Assign the walk pointer only on the non-null path, and rebind the dead parent
-argument as the first-child sentinel (so the loop compare uses `$a0`):
+Assign the walk pointer only on the non-null path, then copy the head into a
+separate first-child sentinel (so the loop compare uses `$a0`):
 
 ```c
-temp = arg0->field_c;
-if (temp == NULL) {
-    arg0->field_c = arg1;
+childHead = newParent->firstChild;
+if (childHead == NULL) {
+    newParent->firstChild = task;
     return;
 }
-cur  = temp;  /* delay-slot: move v1, v0 */
-arg0 = temp;  /* later: move a0, v1 before the walk */
-if (cur->field_10 != cur) {
+lastChild  = childHead;  /* delay-slot: move v1, v0 */
+firstChild = childHead;  /* later: move a0, v1 before the walk */
+if (lastChild->nextSibling != lastChild) {
     do {
-        cur = cur->field_10;
-    } while (cur->field_10 != arg0);
+        lastChild = lastChild->nextSibling;
+    } while (lastChild->nextSibling != firstChild);
 }
-arg1->field_10 = arg0;
-cur->field_10  = arg1;
+task->nextSibling      = firstChild;
+lastChild->nextSibling = task;
 ```
 
-`Task_Reparent` is the pure example (reparent: detach then insert into parent's
+`taskReparent` is the pure example (reparent: detach then insert into parent's
 circular child list — same unlink shape as `Task_DetachFromParent`).
 
 ## Force a second `(s8)` cast into the same reg (`sll v1; sra v1,v1`)
@@ -19038,42 +19038,42 @@ entry->field_0 = (entry->field_0 & flags) | ((ret & 1) * 8);
 
 When a POLY_FT4 setup reuses `$a1`/`$a2` for fixed U coordinates after their last
 use as real arguments (target: `li a1,0x6F` right after the `gGpuPrimCursor` update,
-`li a2,0x68` right after `field_20 + arg2`), separate locals for those constants
+`li a2,0x68` right after `panel->contentOriginX.unsignedValue + right`), separate locals for those constants
 usually rematerialize as late `li v0,K`. Two tricks together match:
 
-1. **Reassign the argument** after its last real use (`arg2 = 0x68`) so the
+1. **Reassign the argument** after its last real use (`right = 0x68`) so the
    constant stays in `$a2` through the U stores.
-2. **Pin the mid-section temps** so `field_20` reloads into `$v0` *before* the
+2. **Pin the mid-section temps** so `panel->contentOriginX.unsignedValue` reloads into `$v0` *before* the
    prim-cursor advance, and the advance uses `$v1` — the same interleaving as
    the target between the first X pair and `li a1,0x6F`:
 
 ```c
-p->x2 = temp;
-p->x0 = temp;
+separator->x2 = temp;
+separator->x0 = temp;
 {
     register u16 f20 asm("v0");
     register s32 next asm("v1");
     register s32 ur asm("a1");
 
-    f20  = arg0->field_20;          /* lhu into $v0 before cursor update */
-    next = (s32)(p + 1);
+    f20  = panel->contentOriginX.unsignedValue; /* lhu into $v0 before cursor update */
+    next = (s32)(separator + 1);
     gGpuPrimCursor = next; /* addiu/sw via $v1; frees $a1 */
     ur   = 0x6F;                    /* li a1,0x6F */
-    temp = f20 + arg2;
-    arg2 = 0x68;                    /* li a2,0x68 — reuses arg reg */
-    p->x3 = temp;
-    p->x1 = temp;
+    temp = f20 + right;
+    right = 0x68;                   /* li a2,0x68 — reuses arg reg */
+    separator->x3 = temp;
+    separator->x1 = temp;
     /* … UV setup … */
-    p->u1 = ur;
-    p->u3 = ur;
-    p->u0 = arg2;
-    p->u2 = arg2;
+    separator->u1 = ur;
+    separator->u3 = ur;
+    separator->u0 = right;
+    separator->u2 = right;
 }
 ```
 
 Without the `f20`/`next` pins, GCC advances the cursor in `$v0` first and
-hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `arg2 = 0x68`,
-`$a2` is rematerialized at the U stores. `Ui_DrawHBar` is the pure example.
+hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `right = 0x68`,
+`$a2` is rematerialized at the U stores. `uiDrawHorizontalSeparator` is the pure example.
 
 `Ui_DrawVBar` is the vertical sibling (Y from arg1..arg2, X from
 `field_20+arg3±offsets`) and cannot reassign `arg2` — both arg1 and arg2 are
@@ -19472,7 +19472,7 @@ worse than the real project match.
 ## POLY color-before-y and `fourth = f22 - 7` for call args
 
 UI text-draw helpers that emit a `POLY_F4` then call a bar/underline routine
-(e.g. `Ui_DrawTextUnderline` → `Ui_DrawHBar`) need two scheduling tricks:
+(e.g. `Ui_DrawTextUnderline` → `uiDrawHorizontalSeparator`) need two scheduling tricks:
 
 **1. Store the solid color before the y-coords.** Target after the text call:
 
@@ -25982,7 +25982,7 @@ a byte comparison, so the load has to be `lhu`. The union is only needed when th
 same field must *keep* two widths at once.
 
 **`lhu` vs `lw` is the same class, and its tell is the opcode alone.** In
-`func_actor_401000_80134DB4` the loop guard tests bits `0x102` at
+`oddStrangerStunned` the loop guard tests bits `0x102` at
 `Actor401000Work` + 0x68, and the target loads a **word** (`lw $v0, 0x68($s0)`)
 while 13 guards in the same overlay read that offset with `lhu`. `0x102` fits a
 `u16`, so the constant-fits-the-type tell above stays silent: only the opcode
@@ -34188,10 +34188,10 @@ and pin `mask` to `$t2`.
 
 ## Relative matrix: reuse `$a0` as 0x30 scratch, pin after the overwrite
 
-`Gp_WorldToLocal` is `arg2 = inverse(index) * value` for rigid transforms:
-transpose the parent rotation into scratch (same `t4`/`t5`/`t6` halfword
-pattern as `Gfx_TransposeRot`), `gte_MulMatrix0` into `arg2`, then
-`ApplyMatrixLV` of `child.t - parent.t`. Splat tags it "Handwritten"
+`gfxMakeRelativeTransform` is `out = inverse(reference) * target` for rigid transforms:
+transpose the reference rotation into scratch (same `t4`/`t5`/`t6` halfword
+pattern as `Gfx_TransposeRot`), `gte_MulMatrix0` into `out`, then
+`ApplyMatrixLV` of `target.t - reference.t`. Splat tags it "Handwritten"
 because of COP2; the C is still GCC 2.8.1.
 
 The target copies the incoming parent out of `$a0` immediately:
@@ -34203,7 +34203,7 @@ sw     a0, 0(s0)
 lhu    t4, 0(a3)     /* not 0(a0) */
 ```
 
-`src = index; tmp = (Scratch*)(head - 0x30)` without a barrier keeps the
+`src = reference; tmp = (Scratch*)(head - 0x30)` without a barrier keeps the
 old `$a0` live for the first `lhu` and parks the new pointer in `$t1`.
 Pin all three after the store so the overwrite sticks:
 
@@ -34211,7 +34211,7 @@ Pin all three after the store so the overwrite sticks:
 register MATRIX*          src asm("a3");
 register _GfxRelativeTransformScratch* tmp asm("a0");
 
-src      = arg0;
+src      = reference;
 tmp      = (_GfxRelativeTransformScratch*)(head - 0x30);
 *scratch = tmp;
 __asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
@@ -34221,7 +34221,7 @@ Type that scratch as `MATRIX` + `VECTOR` (0x30) and keep `tmp` itself
 pinned to `$a0`. A second `Scratch*` copy of `tmp` emits `move t1, a0`
 and `sw 0x20(t1)` for the translation delta. Pass the delta to
 `ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->originDelta`) so the
-call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)arg2->t` (`addiu a2,
+call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)out->t` (`addiu a2,
 a2, 0x14` in the second subtract's load delay).
 
 ## Pin array base and the loaded byte both to `$v0` so stores beat `sll 24` / `slti`
@@ -35578,15 +35578,15 @@ LCG `addu` dest stays `v0` and the store sits immediately after it.
 
 ## Embedded point light so colour fields are `s5+0x50`, not `base+0x54`
 
-`Gp_RoomCoords` is an array of `GpCoord64` whose embedded point lights' colour and radius fields start at `+0x54`.
-Accessing them as `Gp_RoomCoords->light.head.color.r` uses the slot base (`sw 0x54(a0)`).
-The target computes `s5 = a0+4` (`&base->light`) and stores at `0x50(s5)`.
+`gWorldCoordTransientPointLights` is an array of `WorldCoordTransientPointLight` whose embedded point lights' colour and radius fields start at `+0x54`.
+Accessing them as `gWorldCoordTransientPointLights->light.head.color.r` uses the slot's address (`sw 0x54(a0)`).
+The target computes `s5 = a0+4` (`&lightSlot->light`) and stores at `0x50(s5)`.
 Hold the embedded point light as a `WorldCoordPointLight*` and assign it **before** the `if` so `addiu s5, a0, 4` fills the
 entry `beqz` delay:
 
 ```c
-base = Gp_RoomCoords;
-slot = &base->light;
+lightSlot = gWorldCoordTransientPointLights;
+slot = &lightSlot->light;
 st   = gRoomEffectState;
 if (st->effectControl < 2) {
     slot->head.color.r = 0xC00;
@@ -35597,8 +35597,8 @@ if (st->effectControl < 2) {
 }
 ```
 
-A local `RoomEffectState* st = gRoomEffectState` interleaves `lui s6, %hi(Gp_RoomCoords)`
-with the `gRoomEffectState` load so `addiu a0, s6, %lo(Gp_RoomCoords)` stays in
+A local `RoomEffectState* st = gRoomEffectState` interleaves `lui s6, %hi(gWorldCoordTransientPointLights)`
+with the `gRoomEffectState` load so `addiu a0, s6, %lo(gWorldCoordTransientPointLights)` stays in
 the prologue. `Gp_EffCtlTask6B` is the example.
 
 Zero `coord->composeStamp` **after** the three `coord.t[]` stores so `sw zero, 0(s3)`
@@ -36266,7 +36266,7 @@ own block, then pin the product to `$a0` in the multiply-add block:
 
 ## Split `%hi` into `$v0` so `%lo` can land in a different dest
 
-`p = Gp_RoomCoords` with `p` in `$s1` emits `lui s1, %hi` / `addiu s1, s1, %lo`.
+`p = gWorldCoordTransientPointLights` with `p` in `$s1` emits `lui s1, %hi` / `addiu s1, s1, %lo`.
 The target materializes the address as `lui v0, %hi` / `addiu s1, v0, %lo`.
 Pin a dummy `$v0` temp and emit that pair:
 
@@ -36274,12 +36274,12 @@ Pin a dummy `$v0` temp and emit that pair:
 register s32 hi asm("v0");
 register T*  p asm("s1");
 __asm__ volatile(
-    "lui\t%0, %%hi(Gp_RoomCoords)\n\t"
-    "addiu\t%1, %0, %%lo(Gp_RoomCoords)"
+    "lui\t%0, %%hi(gWorldCoordTransientPointLights)\n\t"
+    "addiu\t%1, %0, %%lo(gWorldCoordTransientPointLights)"
     : "=r"(hi), "=r"(p));
 ```
 
-An empty `asm volatile("" : "=r"(hi))` before `p = Gp_RoomCoords` is not
+An empty `asm volatile("" : "=r"(hi))` before `p = gWorldCoordTransientPointLights` is not
 enough — GCC still uses `$s1` for both halves.
 
 `Gp_UpdateRoomCoords` is the example.
@@ -37484,7 +37484,7 @@ were scaffolding and are gone.)
 
 `gpDrawStreamPrimGt4PreXformLayer` is the pure example: it is the POLY_GT4 (0x34 stride, `avsz4`,
 len 12 / code 0x3C-0x3E, 4-iteration u-fixup loop) sibling of the POLY_GT3
-`gpDrawStreamPrimGt3PreXformFixedLayer`, and porting that function with the
+`tmdDrawStreamPrimGt3PreXformEnvLayer`, and porting that function with the
 type, stride and loop bound swapped matched on the first attempt. When a TU holds a family
 of these clippers, diff the target against the nearest already-matched sibling
 before writing anything from scratch.
@@ -38086,7 +38086,7 @@ jumps to it.
 
 `func_800AA120` walks a list and, for three different conditions, runs the same
 `CdCmd_Enqueue` preamble. The ROM has **three verbatim copies** of the
-`param1[3]=0; param1[0]=0; val=(s16)rec->field_2; if (val >= 100) {...}` head,
+`param1[3]=0; param1[0]=0; val=rec->fileNumber; if (val >= 100) {...}` head,
 but only **one** copy of the `< 100` else-branch and of the `param1[2]=…; jal
 CdCmd_Enqueue` tail. Factoring the shared part after the `if`/`else` (or using
 `a || b` plus one inner `if`) scores ~65%: GCC keeps one copy of everything and
@@ -38096,7 +38096,7 @@ Writing each arm as a complete copy — preamble *and* enqueue *and* `break` —
 reproduces the ROM exactly (65% → 90%):
 
 ```c
-if (rec->field_4 != 5) {
+if (rec->fileGroupIndex != AREA_RESOURCE_FILE_GROUP_BASE_60) {
     if (found) { d = ...; e = ...; PREP; ENQUEUE; break; }
     else       { d = 0;   e = 0;   PREP; ENQUEUE; break; }
 } else if (found) {
@@ -39123,8 +39123,8 @@ the target emits `lb` in one and `lbu; sll 24; sra 24` in the other. The signed 
 identical in both; what differs is the assignment:
 
 ```c
-decrementedTime = slot->timeLeft - 1;              /* lhu, then lb  for rate */
-slot->timeLeft = decrementedTime - ((slot->rate - 1) >> 1);
+timeLeftMinusOne = slot->timeLeft - 1;              /* lhu, then lb  for rate */
+slot->timeLeft = timeLeftMinusOne - ((slot->rate - 1) >> 1);
 ...
 slot->timeLeft -= slot->rate;               /* lbu; sll 24; sra 24 */
 ```
@@ -40587,7 +40587,7 @@ The mechanism, from the `.sched` trace: backward sched1 breaks ties between
 equal-priority ready insns by LUID, higher first. The loads feeding
 statements written *after* the LCG therefore land between `srl`/`andi` and the
 `addu` that uses the mask. That stretches the mask quantity's life until its
-local-alloc priority (`floor_log2(refs)*refs/span`) falls below the work
+local-alloc priority (`floor_log2(refs)*refs/span`) falls below the pointLight
 pointer's, and the two swap registers. The statement order, and whether the
 step is split, decide which loads sit inside the mask's live range.
 Search order and form together, and take the order from a matched sibling that
@@ -43858,7 +43858,7 @@ with no other edit. `func_actor_143000_80133EE4` is the example.
 
 The same split is needed even when the shared local itself is coloured
 correctly, so the diagnostic above (a `$a0` where the target has `$v1`) does
-not fire. `func_actor_401000_801365C8` clamps a turn by 1000 on each side:
+not fire. `oddStrangerChase` clamps a turn by 1000 on each side:
 
 ```c
 if (turn >= 0) {
@@ -44316,7 +44316,7 @@ lw   $20, 0($3)
 sw   $18, 0($3)
 ```
 
-`Gp_WorldToLocal` and `Gp_DrawMapCursor` want that register form and write
+`gfxMakeRelativeTransform` and `Gp_DrawMapCursor` want that register form and write
 `scratch = SCRATCH_STACK_CURSOR_SLOT; head = *scratch; ... *scratch = blk;`. When
 the target keeps both absolute, hide the load's address from CSE the way
 `Gp_AimYawToLock` does, and leave the store as the plain macro:
@@ -46752,7 +46752,7 @@ The structure that *is* universal, and the better anchor:
 
 * `Task::msgTable` holds id/handler records viewed by the dispatcher as
   `TaskMessageEntry[]` -- `{s32 messageId; TaskMessageHandler handler;}`,
-  already defined in `include/gameplay/message.h` -- terminated by `0x7FFFFFFF` with
+  already defined in `include/gameplay/message.h` -- terminated by `TASK_MESSAGE_TABLE_END` with
   one zero word after it. `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
   are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
@@ -47654,10 +47654,10 @@ uses in the entry block still share one `lui/ori` through CSE.
 ## `Gfx_ViewWorldMtx` versus `gGfxViewCoord.workm` is a relocation-name diff only
 
 `Gfx_ViewWorldMtx` (0x80070F34) *is* `gGfxViewCoord.workm` (0x80070F10 + 0x24).
-When a function passes that matrix to `Gp_WorldToLocal` and then parents a
+When a function passes that matrix to `gfxMakeRelativeTransform` and then parents a
 coordinate to world, the target derives the second address from the first
 (`lui/addiu %hi/%lo(Gfx_ViewWorldMtx)`, then `addiu s0, s0, -0x24`). The clean
-C — `Gp_WorldToLocal(&gGfxViewCoord.workm, ...)` plus `coord->parent =
+C — `gfxMakeRelativeTransform(&gGfxViewCoord.workm, ...)` plus `coord->parent =
 &gGfxViewCoord` — emits `%hi(gGfxViewCoord)` / `%lo(gGfxViewCoord+0x24)` and
 the same `-0x24`, so the *linked words are identical* and only the scratch
 normalizer's symbol names differ (99.95%, `regs=2`). Prefer the struct-member
@@ -48560,7 +48560,7 @@ so whichever sorts first takes `$s0`, and `allocno_compare` ranks by
 
 ```c
 if (D_actor_444000_80144A68 == 1 ||
-    (work = memCalloc(sizeof(Actor403200GrabWork), false), task->field_1C = work, work == NULL)) {
+    (work = memCalloc(sizeof(GluttonGrabWork), false), task->field_1C = work, work == NULL)) {
     Gp_DestroyEnemy(enemy, (Task*)task);
     return;
 }
@@ -48577,7 +48577,7 @@ if (D_actor_444000_80144A68 == 1) {
     return;
 }
 
-work           = memCalloc(sizeof(Actor403200GrabWork), false);
+work           = memCalloc(sizeof(GluttonGrabWork), false);
 task->field_1C = work;
 if (work == NULL) {
     Gp_DestroyEnemy(enemy, (Task*)task);
@@ -50755,7 +50755,7 @@ head  = *SCRATCH_STACK_CURSOR_SLOT;
 *SCRATCH_STACK_CURSOR_SLOT = head - 0x50;
 block = (GpEdgeScratch*)(head - 0x50);
 mat   = (MATRIX*)(head - 0x20);      /* not `head -= 0x20` */
-Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, mat);
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coord->workm, mat);
 gte_SetRotMatrix(mat);
 ```
 
@@ -52409,18 +52409,18 @@ include when the body is ported.
 
 `func_acropolis_helicopter_landing_pad_80180E40` writes through
 `D_801150C0` (rooms.imports.txt), which has no declaration anywhere in
-`include/`. `sym.gameplay.txt` places it inside `Gp_RoomCoords`
+`include/`. `sym.gameplay.txt` places it inside `gWorldCoordTransientPointLights`
 (`0x80114F30`, size `0x320`): `0x801150C0 - 0x80114F30 = 0x190 = 4 * 0x64`,
-so it is `&Gp_RoomCoords[4]`, and the sibling imports `D_80115124` /
-`D_80115188` are slots 5 and 6. Writing it as `base = &Gp_RoomCoords[4];
-slot = &base->light;` — the shape gameplay's matched
+so it is `&gWorldCoordTransientPointLights[4]`, and the sibling imports `D_80115124` /
+`D_80115188` are slots 5 and 6. Writing it as `lightSlot = &gWorldCoordTransientPointLights[4];
+slot = &lightSlot->light;` — the shape gameplay's matched
 `Gp_EffCtlTask6B` uses for slot 0 — reproduces the `lui/addiu` pair, the
 `%lo(sym)($s5)` store for `framesLeft` and the `4($s6)` store for `light.head.transform.coord.composeStamp`.
 
 Two consequences. When an import label is undeclared, check the sized symbols
 just below it in the owning overlay's sym file before typing it as a fresh
 struct. And the scratch scorer reports the spelling difference
-(`%lo(Gp_RoomCoords+0x190)` vs `%lo(D_801150C0)`) as a `regs` penalty
+(`%lo(gWorldCoordTransientPointLights+0x190)` vs `%lo(D_801150C0)`) as a `regs` penalty
 (99.9%, three "differences" that are all relocation names), while the linked
 build is a byte-for-byte match — verify with `build-and-verify.sh` instead
 of chasing that last tenth in the scratch.
@@ -55580,7 +55580,7 @@ hoist, here it lets a store sink.
 **Problem.** `func_m4a1_pyke_8011D1F8` keeps five callee-saved pointers. Every
 instruction matched except that the task argument and one alias pointer had
 swapped registers — the ROM uses `s2` for the `Task*` and `s3` for the
-`WorldCoordPointLight*` member at `&Gp_RoomCoords[1].light`, ours used `s3` and `s2`.
+`WorldCoordPointLight*` member at `&gWorldCoordTransientPointLights[1].light`, ours used `s3` and `s2`.
 
 **Symptom.** Nothing in the C looked register-related; `.greg` showed the
 allocation order line
@@ -55598,11 +55598,11 @@ outranks one with the same number of uses spread over the whole function.
 the guard clauses, instead of after them:
 
 ```c
-work  = task->spawnArg2;
-coord = task->extra.coordBody->coord;
-base  = &Gp_RoomCoords[1];
-light = &base->light.head.transform.coord; /* not after the two `return`s */
-slot  = &base->light;
+work      = task->spawnArg2;
+coord     = task->extra.coordBody->coord;
+lightSlot = &gWorldCoordTransientPointLights[1];
+light     = &lightSlot->light.head.transform.coord; /* not after the two `return`s */
+slot      = &lightSlot->light;
 if ((((TmdObject*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra)->flags & 0x80) != 0) {
     return;
 }
@@ -60612,7 +60612,7 @@ for (i = 0; i < 2;) {
 leaves `i` live across the call, so it takes `$s1` and one more long-lived
 pointer gets spilled instead. That is not cosmetic: it decides *which* pseudo
 loses. In `func_acropolis_plaza_801802C0` the target spills the
-`&Gp_RoomCoords[n]` pointer to `0x10($sp)`; with the increment in the default
+`&gWorldCoordTransientPointLights[n]` pointer to `0x10($sp)`; with the increment in the default
 place a colour component spilled instead and the whole `$s0`-`$s8` assignment
 came out shifted. The single edit moved the score 88.99% -> 90.57% and dropped
 the `regs` penalty from 384 to 160.
@@ -61783,15 +61783,15 @@ even though the destination is a global. The ROM has both stores, so the
 register.
 
 The fix is to notice what the ROM interleaves. The same block copies the
-coordinate translation into the room light slot, and moving one of those copies
+coordinate translation into the transient point-light slot, and moving one of those copies
 between the two LCG steps restores the store, because a write through a pointer
 may alias the global and blocks the elimination:
 
 ```c
-slot->coord.coord.t[0] = coord->coord.t[0];
+slot->head.transform.coord.coord.t[0] = coord->coord.t[0];
 gRandomLcgState            = gRandomLcgState * 5 + 0x71357911;
 yaw                    = (((u32)gRandomLcgState >> 16) & 0x3FF) + 0xA00;
-slot->coord.coord.t[1] = coord->coord.t[1];   /* keeps the first sw alive */
+slot->head.transform.coord.coord.t[1] = coord->coord.t[1];   /* keeps the first sw alive */
 gRandomLcgState            = gRandomLcgState * 5 + 0x71357911;
 spread                 = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
@@ -63263,8 +63263,8 @@ the reload. `func_energyball_8012F180` cases 3 and 4 are the example (99.19% →
 `lui`; a `tbl = D_x; SOFT_TOUCH_REG(tbl)` guards the pointer, not its `high`
 pseudo, so neither reproduces it.
 
-Also from the same function: `&Gp_RoomCoords[index->spawnArg1 + 4]` assembles
-to the same bytes as the splat name `D_801150C0` (`%lo(Gp_RoomCoords+0x190)`),
+Also from the same function: `&gWorldCoordTransientPointLights[index->spawnArg1 + 4]` assembles
+to the same bytes as the splat name `D_801150C0` (`%lo(gWorldCoordTransientPointLights+0x190)`),
 so a "slot base four entries in" needs no separate extern.
 
 ## `if (*p != x) p++; else return 1` keeps `bne` and a mid-loop `return 1`
@@ -64813,7 +64813,7 @@ The same function improved from 90.686% by loading each text request's
 `otIndex` source into a separate temporary before its attribute stores, as
 in its matched sibling, and splitting the item-walking pointers between
 initial totals, the bonus sum, and the draw-time sum. Initializing the text
-color after `Ui_DrawHBar` also let the common `a0 = obj` move fill both
+color after `uiDrawHorizontalSeparator` also let the common `a0 = obj` move fill both
 state-exit branch delay slots. The final unpinned seed is `base_12.c`.
 
 
@@ -67552,7 +67552,7 @@ stores out. Duplicating the store in the source is what keeps the value local
 long enough for `local-alloc` to see the free register; cross-jumping puts the
 single store back.
 
-The lever is not specific to `?:`. `func_actor_401800_80139118` picks the same
+The lever is not specific to `?:`. `oddStrangerGrabRelease` picks the same
 kind of value from a *three*-arm chain (`if (kind == 1) { if (f(arg0) == kind)
 ... } else ...`) and hit the identical `regs=4`: one shared `state` temp spanning
 three blocks collected `;; 84 conflicts: 81 83 84 178 2 29` and lost `$v0` to
@@ -71413,7 +71413,7 @@ to get this: other readers of `field_A04` use `lhu`.
 ## Copy a field address across a `jal` to rematerialize `addiu` in a load delay
 
 `work->field_9A0.x = local.t[0]; work->field_9A0.z = local.t[2];` after
-`Gp_WorldToLocal` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
+`gfxMakeRelativeTransform` folds the Z store to `sh …, 0x9A4($s1)` with a load-delay
 nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
 as `sh $v1, 4($v0)`.
 
@@ -71424,7 +71424,7 @@ there:
 ```c
 pos2 = &work->field_9A0;
 Gp_UpdateCoord(&coords[0xE]);
-Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
 pos    = pos2;
 pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
 pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
@@ -71686,7 +71686,7 @@ This supports the eligibility rule in CODEGEN_MODEL §10.3; it does not establis
 ## Two overlay globals of the same struct type can own differently-sized work blocks
 
 **Problem.** `actor_444000` publishes two task pointers, `D_actor_444000_80161860`
-and `D_actor_444000_80161878`, and the header had typed both `Actor444000*` with a
+and `_gGluttonHostTask.task`, and the header had typed both `Actor444000*` with a
 single `Actor444000Work* field_1C`. Fields were then filed into that one struct from
 whichever function touched them, so `field_2C` / `field_2E` (reached through
 `80161860`) and `field_0` / `field_EAC` (reached through `80161878`) shared a
@@ -72792,7 +72792,7 @@ slti v0,a0,3 / beqz  -> [3]
 li   v0,1 / beq a0,v0 -> case1
 ```
 
-`func_actor_444000_8013A77C` instead tests 1 first and then an *ordered* bound:
+`gluttonShakeTick` instead tests 1 first and then an *ordered* bound:
 
 ```
 beq  a0,a1 -> case1        # a1 == 1
@@ -72829,7 +72829,7 @@ that a switch compares in the promoted index type, so it yields `slti`; the same
 `work->field_EAE--` followed by `work->field_EAE & K` in several later blocks
 compiles to *no* load: cse1 records the store's value for that MEM, follows the
 dispatch branch into each case (`-fcse-follow-jumps`) and substitutes, so the
-`andi` reads the decrement's register. `func_actor_444000_8013A77C` reloads
+`andi` reads the decrement's register. `gluttonShakeTick` reloads
 `lbu v0,0xEAE($s0)` at the head of all three cases, and the only difference is
 how the byte is read:
 
@@ -73440,8 +73440,8 @@ Two details of that shape matter beyond the loop form:
 - Statement order in the preamble is what sched1 ties on. `recs` assigned
   before `sc` reorders the whole prologue.
 
-`func_actor_444000_8013C060` is the worked example (85.7% -> 92.9% -> 97.3% ->
-99.2% -> 100%); the sibling scan in `func_actor_444000_8013C4B0` has the same
+`gluttonHitGroup0` is the worked example (85.7% -> 92.9% -> 97.3% ->
+99.2% -> 100%); the sibling scan in `gluttonHitGroups1To2` has the same
 shape. See also "Mid-loop unlink: `goto` resists loop rotation", which is the
 same `goto`-instead-of-loop move for a different loop.c/stmt.c transformation -
 `expand_end_loop` rolling the leading test to the bottom. Both apply here: the
@@ -73449,7 +73449,7 @@ angle-wrapping `while` loops in the same function are top-tested with a `j`
 back, which is the unrolled form, so they are `goto` loops too.
 
 **Read the target before picking the form: the sibling wanted the opposite
-one.** `func_actor_444000_8013C4B0` runs that identical scan twice - group 1,
+one.** `gluttonHitGroups1To2` runs that identical scan twice - group 1,
 then group 2 if group 1 caught nothing - and there both match arms *are* parked
 out of line, so both scans are ordinary `for (i = 0; i < 5; i++)` loops with a
 `goto` out of the match arm. The `goto` form scored 92.3% with the arms inline;
@@ -75662,10 +75662,10 @@ penalty mix had to be operands. It was two symptoms:
 -move  a1,s1                                   # then sh,sh / jal / sh(delay)
  sh    zero,6(s0)
  sh    zero,4(s0)
--jal    Task_Reparent
+-jal    taskReparent
  sh    zero,2(s0)
 +lw    a0,%lo(...)(v0)                         # seed: load left next to the jal,
-+jal    Task_Reparent                          # a1 setup in the delay slot
++jal    taskReparent                          # a1 setup in the delay slot
 +move  a1,s1
 ...
 -lhu   v0,2(s0)                                # retail: halfword RMW
@@ -75698,7 +75698,7 @@ if ((s16)work->r >= 0x100) { ... }
 ```
 
 100%, every penalty zero, on the next build — the `reorder` went with the
-widths, so the `Task_Reparent` argument load was never a scheduler question.
+widths, so the `taskReparent` argument load was never a scheduler question.
 Read a penalty mix of `reorder`/`insert`/`delete` at zero `regs` and zero
 `stack`, with `topology: match`, as an operand-width error first: diff for the
 load/store widths, and treat any order difference as downstream until the
@@ -76201,7 +76201,7 @@ Example: `func_actor_107600_80132A7C`. Input: `base_1.i`
 `Task::work` is overloaded by every actor overlay, so an offset alone (`0xE`
 here) does not name a type, and any same-width struct scores 100% anyway. The
 parent is not arbitrary: `Gp_AllocEnemy(Task* task, Enemy* parent)`
-(`src/gameplay/1BC.c`) ends in `Task_Reparent(parent->task, task)`, so
+(`src/gameplay/1BC.c`) ends in `taskReparent(parent->task, task)`, so
 `index->parent` is the task of whatever spawned this actor, and its `work` is
 that spawner's work block.
 
@@ -76213,7 +76213,7 @@ grep -rnF 'D_80134F94' asm/USA/          # -> only mist_shooting_gallery
 ```
 
 `func_mist_shooting_gallery_80184CD0` spawns it, calls
-`Task_Reparent(s0, spawned->task)`, then does `lbu` / `addiu -1` / `sb` on
+`taskReparent(s0, spawned->task)`, then does `lbu` / `addiu -1` / `sb` on
 `s0->work + 0xE` - and that room's `MistShootingGalleryWork::field_0E` is the
 `u8` there. The gallery's other spawn site (`0x200D`, the phase-2 cursor
 target) skips the increment, which is exactly the `!= 2` guard being matched
@@ -81247,7 +81247,7 @@ lw    v1, 0x8(v1)
 lw    v0, 0x8(v0)
 sw    v0, 0x4C(v1)     /* ->field_8->parent */
 lw    a0, 0x20(s0)     /* spawnArg2 again, for the call */
-jal   Task_Reparent
+jal   taskReparent
 ```
 
 The sibling shared helper `ActorsShared80132450` names every one of these in a
@@ -81263,8 +81263,8 @@ twice** reads as a source-shape difference, not a scheduling one: the fix is to
 write the read out again where it is used, keeping the expression inline.
 
 ```c
-((TmdObject*)task->extra)->coords->parent = ((TmdObject*)((Task*)task->spawnArg2)->extra)->coords;
-Task_Reparent((Task*)task->spawnArg2, task);
+task->extra.tmd->coords->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
+taskReparent(task->spawnArg2.pointer, task);
 ```
 
 Note the locals were introduced only to please the struct-usage style; the
@@ -81594,10 +81594,10 @@ and `+0x24` is `workm`; and the `0x50` stride is `sizeof(GfxCoord)`.
 Rewriting the seed with those types reached 100.000% with every penalty zero and
 the same allocation. `Task::spawnArg2` here is a *model task* (`Task*`), not the
 `Enemy*` the `Gp_AllocEnemy` path puts in that slot elsewhere — a body that
-passes it straight to `Task_Reparent` and dereferences `+0x2C` is the tell.
+passes it straight to `taskReparent` and dereferences `+0x2C` is the tell.
 
 Two non-conclusions. The `(TmdObject*)` / `(Task*)` casts exist only because
-`Task::spawnArg2` is `void*`; they are codegen-neutral — a variant expressing the
+`Task::spawnArg2.pointer` is `void*`; they are codegen-neutral — a variant expressing the
 same graph through an overlay struct typed `field_20` as a pointer to itself
 produced byte-identical assembly. And `overlay_dup_index.py find` reported this
 body as its own only copy, so there was no shared-body promotion to do: being
@@ -82499,7 +82499,7 @@ forces. Assigning it *before* both stores scores 100% and turns it into the
 copy:
 
 ```c
-escorts = (Actor403200Work*)arg0->work;
+escorts = (GluttonWork*)arg0->work;
 work->field_7F3 = 0;
 ((TmdObject*)arg0->extra)->flags = 0;
 ```
@@ -82655,7 +82655,7 @@ on whether the function that references it landed in the same subsegment.
 `actor_403200` had ten jump tables and two pointer runs in one leading rodata
 subsegment, all emitted as standalone `<sym>.s` files holding only
 `.section .rodata` + `dlabel` (the carrier functions live in *other* units).
-`func_actor_403200_80138284`'s table is GCC-generated and sits at `0x11C`, so
+`gluttonShakeTick`'s table is GCC-generated and sits at `0x11C`, so
 the block had to be cut there:
 
 ```toml
@@ -83748,7 +83748,7 @@ on the state access. Inputs: `base_2.i`
 
 ## A ported `similar` sibling's struct starts at offset 0 — the leading pad is part of the layout
 
-`func_actor_401800_8013E0A0` (USA/actors/actor_401800) is the case sections 26
+`oddStrangerExit` (USA/actors/actor_401800) is the case sections 26
 and 27 describe: BRIEF listed `Actor01900_Fn0A6CC` at 1.00 in `shape` and
 `calls`, `overlay_dup_index.py find` reported a single copy — itself — and the
 sibling's matched C in `src/actors/lib/actor_101900_text.c` is the whole control
@@ -84018,7 +84018,7 @@ distinct.** Here the sibling's exact C body *was* the whole match — one attemp
 
 The typed form is what pins the allocation, not the offsets: this body is the
 attach sequence (`coord->composeStamp = 0`, `coord->parent = &parentExtra->field_8[part]`,
-inherit `field_1C`/`field_20`, `Task_Reparent`, `state += 1`). Written with m2c's
+inherit `field_1C`/`field_20`, `taskReparent`, `state += 1`). Written with m2c's
 `void *` temps and `M2C_FIELD` it scored 75.875% (`regs=14 insert=4 delete=3`),
 because the compiler kept `task->extra` in `$a2` and its `field_8` in `$a3`;
 written with `TmdObject*` / `GfxCoord*` locals it puts
@@ -85154,7 +85154,7 @@ Gp_UnlinkObj(&work->field_BF0);
 ```
 
 The BRIEF's "similar matched bodies" list is the shortcut: the same-shaped
-teardown exists in several actors (`func_actor_401800_8013E0A0` is 1.00 shape
+teardown exists in several actors (`oddStrangerExit` is 1.00 shape
 and calls), and it already spells the pattern out. Do not copy its *offsets*
 though - actor 401300 keeps its three nodes at 0x970/0xAB0/0xBF0 where 01900 and
 401800 keep theirs at 0x8C8/0xA08/0xB48. Only the shape transfers.
@@ -85181,7 +85181,7 @@ nothing else - is arity, not allocation.
 
 The actor message handlers give the arity directly. They are installed in a
 `TaskMessageEntry` table (`{ s32 messageId; TaskMessageHandler handler; }`, terminator
-`0x7FFFFFFF`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
+`TASK_MESSAGE_TABLE_END`) in the overlay's `.data` - here `D_actor_210600_8015A4CC`, whose
 `0x7DB` row points at this function. `Gp_DispatchMsg` walks that table and
 calls `entry->handler(index, value, arg2, arg3)`, so the handler's full
 signature is:
@@ -85971,7 +85971,7 @@ A room function no `jal` reaches - nothing in `src/` calls it, its only
 reference is a `.word` in the room's `_data` blob - is a callback, and the
 neighbouring words say which kind. `func_dryfield_breezeway_8017FBC8` sits in
 `D_dryfield_breezeway_80182DD0` with `0x13F1` in the word before it and
-`0x7FFFFFFF` after it: that is the `TaskMessageEntry` spelling above, a one-entry
+`TASK_MESSAGE_TABLE_END` after it: that is the `TaskMessageEntry` spelling above, a one-entry
 message table plus terminator. The room function that owns the table confirms
 it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
 (the record's id half) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
@@ -88629,7 +88629,7 @@ variation `base_2.i`
 ext->field_1C = parentExt->field_1C;
 ext->field_20 = parentExt->field_20;
 ext->field_E  = -1;                 /* last in the source */
-Task_Reparent(parent, task);
+taskReparent(parent, task);
 ```
 
 m2c read the *emitted* order off the target instead - the copy of `0x1C`, then
@@ -88726,9 +88726,9 @@ Inputs: `base_1.i`
 ## m2c's third argument to a two-argument function was a value living in `$a2` (func_mine_forked_tunnel_8017DE54, 2026-09-15)
 
 m2c read the target's `lw a2,8(v1)` / `move a1,s1` / `jal` triple as a three
-argument call and emitted `Task_Reparent(temp_a0, index, temp_a2)`, which compiles
+argument call and emitted `taskReparent(temp_a0, index, temp_a2)`, which compiles
 only because the seed declares the callee itself instead of including the header.
-`Task_Reparent` takes two arguments (`include/main/task.h`, `src/main/task.c`),
+`taskReparent` takes two arguments (`include/main/task.h`, `src/main/task.c`),
 and the `$a2` value - the parent object's coordinate pointer - is stored into
 `coord->parent` before the call: a local the allocator parked in an argument
 register, not an argument.
@@ -89210,7 +89210,7 @@ lands in the right slot.
 
 Recovering the slot and the type is a data-table read, not guesswork. A room's
 handlers are `TaskMessageEntry[]` records - `{ s32 messageId; TaskMessageHandler handler; }`, 8
-bytes, `0x7FFFFFFF`-terminated - and they live in the overlay's trailing data
+bytes, `TASK_MESSAGE_TABLE_END`-terminated - and they live in the overlay's trailing data
 blob, so the built overlay image still holds them verbatim. Searching the image
 for the handler's address little-endian prints the id in the word just before it,
 which here named the message (`0x13EF`) and so pointed at the two already-matched
@@ -90720,11 +90720,11 @@ Inputs: `base_2.i` (93.4%, `regs=8 reorder=8`), `base_4.i` (100%).
 ## Two field accesses through the same `&arr[k]` split into a folded `addiu` and a live pointer, so the source names the element (func_actor_510900_80138BF0, 2026-09-16)
 
 `func_actor_510900_80138BF0` touches `coord[4]` twice, far apart: `&coord[4].workm`
-for `Gp_WorldToLocal` at the top and `&coord[4].coord` for `Gp_OrientAlong` at the
+for `gfxMakeRelativeTransform` at the top and `&coord[4].coord` for `Gp_OrientAlong` at the
 bottom. Written as two index expressions, GCC 2.8.1 folds each into one `addiu`:
 
 ```c
-Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord[4].workm, &scratch->view);
+gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coord[4].workm, &scratch->view);
 ...
 Gp_OrientAlong(&scratch->local, &coord[4].coord, 0);   /* addiu a1,s2,0x144 */
 ```
@@ -95566,7 +95566,7 @@ instead.
 
 `func_actor_510900_8013A9BC` reads `work->field_32C` (a `Task*`) in four
 different places: once to store the task `Gp_SpawnEff` just created and hand it
-to `Task_Reparent`, and once in each arm of the later state machine, where it is
+to `taskReparent`, and once in each arm of the later state machine, where it is
 only tested and written through. Using one `Task* child` local for all of them
 put the pointer in `$a1` in arms that contain no call at all, for `regs=10`.
 
@@ -95577,7 +95577,7 @@ The reason is in the `.greg` dump, not the object dump:
 
 `$v1` (3) is not in the conflict set, so plain candidate order would have taken
 it; the copy preference for `$5` — earned by the *other* use, where the local is
-copied into `$a1` as `Task_Reparent`'s second argument — overrides it
+copied into `$a1` as `taskReparent`'s second argument — overrides it
 (`CODEGEN_MODEL.md` §10.4 step 3). A preference is a property of the allocno,
 so it applies to every reference of the shared local, including branches that
 never see the call. Giving the argument its own local (`spawned`) dropped the
@@ -96709,7 +96709,7 @@ something to read. Example: `func_actor_421600_8013E9D8`. Inputs: `base_2.i`
 `a5fac8bb0c991fc5d6b006606a115c03937d73dcabd15bc38780ccf248936585` (100.000%),
 `base.c` `8d046d78a99c4533238d9d50c1355bf918e0348adf343e92340ebf9e76c55ece`
 (99.717%, tried `if/else` with the test on the field: same 99.717%).
-## sched1 schedules one basic block at a time, so a load hoisted *across a branch* was hoisted in the source (func_actor_401800_8013E44C, 2026-09-16)
+## sched1 schedules one basic block at a time, so a load hoisted *across a branch* was hoisted in the source (oddStrangerScriptPose8, 2026-09-16)
 
 `schedule_block` takes a single block: `head` and `tail` are
 `basic_block_head[b]` / `basic_block_end[b]`, and `schedule_insns` calls it once
@@ -96720,7 +96720,7 @@ anything across a branch boundary is `reorg`, and it moves an instruction into a
 *delay slot* -- not above a branch, and not out of a block.
 
 So when the target has an instruction on the far side of a branch from where m2c
-put it, the answer is in the C, not in the scheduler. `func_actor_401800_8013E44C`
+put it, the answer is in the C, not in the scheduler. `oddStrangerScriptPose8`
 scored 90.53% (`regs=1`, `insert=3`) on one such line: the target loads the enemy
 pointer *unconditionally*, and m2c had the load at its use, inside the `if`.
 
@@ -97183,7 +97183,7 @@ overlay's task global they read (`D_actor_461800_80143898` against
 serve both — matching each copy separately is the correct call, not a pairing.
 Check `build/USA/dup_index.json`'s per-function `refs` before trusting a promote
 run to have refused.
-## A global's address is materialised from the first *use*, so a folded cast address makes `&D+4` the base (func_actor_401000_801383F0, 2026-09-16)
+## A global's address is materialised from the first *use*, so a folded cast address makes `&D+4` the base (oddStrangerGrabHold, 2026-09-16)
 
 m2c's seed wrote both halves of one global through the same cast expression —
 `M2C_FIELD(&D_actor_401000_80154F1C, s32 *, 4) = 2;` then
@@ -99011,7 +99011,7 @@ lw s0,0x2c(s1) ; lw a0,0x20(s1) ; lw a2,0x34(s1) ; lw v0,0x2c(a0) ; lw v1,8(s0) 
 ```
 
 and every source shape tried emitted the `0x20` load (the one whose value is
-also `Task_Reparent`'s first argument) first, with `0x2C` second - seven
+also `taskReparent`'s first argument) first, with `0x2C` second - seven
 statement permutations, an intermediate `TmdObject*` local for `parent->extra`,
 and taking the argument inline as `(Task*)task->spawnArg2` (which instead adds a
 second `lw a0,0x20(s1)` before the call) all reproduce the swap. The permuter
@@ -105344,7 +105344,7 @@ one fresh value, not the loop variable: writing the wrap as
 `sc->angle = WrapAngle(angle); func(value, sc->angle, sc->id);` gave 100%. The
 inline's parameter copy is also what explains the target's `move a1,s0` before
 the `bgez s0` sign test. The goto-loop hit scan in the same function is the
-`func_actor_444000_8013C060` shape ("loop.c relocates a loop block that ends in
+`gluttonHitGroup0` shape ("loop.c relocates a loop block that ends in
 a jump out"); `(s8)` on a `s32 pan` local moves the extension before the second
 call, matching `sll s1,v0,24; sra s1,s1,24`.
 
@@ -107479,7 +107479,7 @@ wrong instinct is to hunt for the symbol it names. (Third instance of this rule 
 
 Both fixes were applied at once: 100.000% on the first build, all penalties zero.
 
-## A halfword field's signedness is pinned by the read nothing can narrow (func_actor_401800_8013A034, 2026-09-16)
+## A halfword field's signedness is pinned by the read nothing can narrow (oddStrangerDormant, 2026-09-16)
 
 The twin transcription above was again worth six attempts' worth of progress: the m2c seed
 scored 74.948% and a straight transcription of `func_actor_401300_801397F8` (the brief's
@@ -107557,9 +107557,9 @@ block instruction-for-instruction - same registers, same memory offsets, even th
 scheduler-placed `nop` padding. Removing or "improving" it is where an exact template turns back
 into a search.
 
-## One `s16` field loads `lh` at one use and `lhu` at the next, and both are right (func_actor_401800_80139118, 2026-09-16)
+## One `s16` field loads `lh` at one use and `lhu` at the next, and both are right (oddStrangerGrabRelease, 2026-09-16)
 
-`func_actor_401800_80139118` reads `Actor401800Work.field_C04` three times; the target loads it
+`oddStrangerGrabRelease` reads `Actor401800Work.field_C04` three times; the target loads it
 two different ways:
 
 ```asm
@@ -107668,16 +107668,16 @@ loads it `lh` for the comparison and `lhu` for the `+-0x28`. One `s16` declarati
 both if the step is written `(u16)work->field_8AE + 0x28` (same splitting as the
 `field_C04` entry above), which is why the arm's two loads differ in signedness.
 
-## The BRIEF's `INCLUDE_ASM site` block quotes the *next* function's doc comment (func_actor_401800_8013B444, 2026-09-16)
+## The BRIEF's `INCLUDE_ASM site` block quotes the *next* function's doc comment (oddStrangerHoldAim, 2026-09-16)
 
 `BRIEF.md` prints seven lines either side of the `INCLUDE_ASM` line, and in this
 tree the line after it is always blank and the one after that is the `///` block
 of the *following* function. Reading it as a description of your own target is
 easy to do and expensive to believe.
 
-`func_actor_401800_8013B444`'s brief carried "turning the stored yaw toward the
+`oddStrangerHoldAim`'s brief carried "turning the stored yaw toward the
 target by at most 0x28 a frame instead of the hard clamp
-`func_actor_401800_80135F58` uses" - which is `func_actor_401800_8013B784`, the
+`oddStrangerFacePlayer` uses" - which is `func_actor_401800_8013B784`, the
 function that begins at the line below the snippet. The target itself does the
 opposite of what that sentence implies: both of its yaw tests write zero
 (`lh`/`blez`/`sh $zero`/`lh`/`bgez`/`sh $zero`), so the turn is dropped, not
@@ -107719,7 +107719,7 @@ same clamp shape is in the matched `Actor00100_Fn02788`
 (`src/actors/lib/actor_400100_damage.c`), which uses `s32 clampedAngle` for
 exactly this reason.
 
-## An identical tail in both arms of an `if`/`else` is not dead code: it moves the promotion of a loop bound out of the loop (`func_actor_401800_8013629C`, 2026-09-16)
+## An identical tail in both arms of an `if`/`else` is not dead code: it moves the promotion of a loop bound out of the loop (`oddStrangerPushContacts`, 2026-09-16)
 
 The record-walking push body writes its coordinate update in both arms of the
 length test, which `jump2` (`-fcross-jumping`, on at `-O2`) merges back into one
@@ -107793,7 +107793,7 @@ polarity" is this same rule for `== 0`, where the test is a simple branch and no
 
 ## A `shape` 0.99 sibling in another overlay is a source *template*, not a near-miss
 
-`overlay_dup_index.py find func_actor_401800_8013AF1C` reported one copy — the
+`overlay_dup_index.py find oddStrangerBackOff` reported one copy — the
 function itself — but the brief's similar tier ranked `func_actor_401300_8013A5C0`
 0.99 on shape and 0.97 on cflow. That sibling is matched, and its C is the whole
 answer: the `ABS()` ternary (which compiles to `bgez` / `negu` / `slti`, so an
@@ -107849,7 +107849,7 @@ and the `andi` reads a zero-extended register, which is the same value only
 while the mask holds. Read the receiver's declaration before concluding anything
 from the mask.
 
-Evidence, `func_actor_401800_80137DDC` (preprocessed sha256 `8feb6a24f5f8be27…`
+Evidence, `oddStrangerSidestep` (preprocessed sha256 `8feb6a24f5f8be27…`
 / `113607fbc247e89e…` for the two below, one token apart):
 
 | receiver | score | penalties | difference |
@@ -107883,7 +107883,7 @@ HImode, and on the little-endian R3000 a HImode load at the field's own address
 *is* the low half of the `long`. Do not go hunting for an `s16 t[3]` struct to
 justify the load — write the plain `long` arithmetic and it comes out. Three
 overlays reproduce it from the same helper with no cast anywhere:
-`func_actor_401800_80137714` (100.000%, all-zero penalties),
+`oddStrangerTurnAround` (100.000%, all-zero penalties),
 `func_actor_401300_801376E4` and `Actor01900_Fn0551C`.
 
 The narrowing is also why the same field shows up as a signed `lh` elsewhere in
@@ -107891,9 +107891,9 @@ the same function: the scratch block's `delta.vx` is an `s16` that a later
 `ratan2` argument sign-extends, so the reload is `lh` there — the load width
 tracks the destination, not the field.
 
-## A reused pointer local: give the last short-lived use its own name (`func_actor_401800_8013CD98`, 2026-09-16)
+## A reused pointer local: give the last short-lived use its own name (`oddStrangerStalk`, 2026-09-16)
 
-`func_actor_401800_8013CD98`, the walk body of actor 401800 and the twin of
+`oddStrangerStalk`, the walk body of actor 401800 and the twin of
 `Actor01900_Fn042BC`, stalled at 98.339% with `blocks=58/58`,
 `instructions=557/557`, `predicates_match=True`, `calls_match=True` and every
 penalty but `regs` at zero: one `coord = index->field_2C->field_8` sat in `$s0`
@@ -107923,9 +107923,9 @@ That alone took the function to 100.000%. A callee-saved register holding a
 value that is dead at the call is the tell — before touching the allocator,
 check whether the twin used a second name for that use.
 
-## A `static __inline__` helper defined *after* its call site is not inlined, so the scratch matches and the overlay does not (`func_actor_401800_80136EAC`, 2026-09-16)
+## A `static __inline__` helper defined *after* its call site is not inlined, so the scratch matches and the overlay does not (`oddStrangerChase`, 2026-09-16)
 
-`func_actor_401800_80136EAC` reached 100.000% in the scratch env with all
+`oddStrangerChase` reached 100.000% in the scratch env with all
 penalties at zero, and the overlay still failed its checksum: the built function
 started `addiu sp,sp,-0x30` where the target has `-0x38`, and held `index` in
 `$s5` instead of `$s7`. Disassembling `build/USA/out/actor_401800` and comparing
@@ -107945,8 +107945,8 @@ Fix by moving the **helper** up, not the function down — a unit's function ord
 is the overlay's `.text` layout, and reordering functions breaks the checksum in
 a way that looks nothing like the original symptom. Moving the helper is
 layout-neutral as long as every call inlines: a `static` function that is never
-called out-of-line is not emitted. Both call sites (`func_actor_401800_80136EAC`
-and `func_actor_401800_80139118`) inlined after the move, and the checksum passed
+called out-of-line is not emitted. Both call sites (`oddStrangerChase`
+and `oddStrangerGrabRelease`) inlined after the move, and the checksum passed
 with the function order untouched.
 
 The tell is the same as any scratch-versus-overlay divergence: the scratch env
@@ -108017,9 +108017,9 @@ own instructions are identical either way. `insn.py <uid>` printing `rtl` and
 `cse` with different registers is the tell that the difference is a substitution
 and not an allocation.
 
-## A duplicated store triplet survives CSE: the ROM has two, so the source wrote two (`func_actor_401800_8013A2E8`, 2026-09-16)
+## A duplicated store triplet survives CSE: the ROM has two, so the source wrote two (`oddStrangerPatrol`, 2026-09-16)
 
-`func_actor_401800_8013A2E8` is the patrol body its twins `Actor01900_Fn06F40`
+`oddStrangerPatrol` is the patrol body its twins `Actor01900_Fn06F40`
 and `func_actor_401300_80139AB0` are, with the helpers inlined. Written the same
 way — the waypoint delta into `s->delta`, then
 `if (!overlayOutOfRange(&s->delta, 0xA0) || work->field_6 >= 0x15)` — it
@@ -108050,7 +108050,7 @@ before the scheduler is suspected. The deltas here were not identical either:
 the duplicated triplet accounts for three stores plus the five instructions that
 re-materialise the two expressions feeding them.
 
-## An inlined helper's statement order is a scheduling lever (`func_actor_401800_8013A2E8`, 2026-09-16)
+## An inlined helper's statement order is a scheduling lever (`oddStrangerPatrol`, 2026-09-16)
 
 With the triplet duplicated the score was 99.779%: two instructions left, both
 the same store. The TU's `overlayOutOfRange` helper writes
@@ -108074,7 +108074,7 @@ store can only follow the `r` store:
 Moving the statement up one slot in the helper —
 `blk = (...)  (head - 0xC); blk->dx = d->vx; *(RangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk; blk->dz = d->vz; ...` —
 gave 100.000% with every penalty zero, and the unscoped build still matched the
-helper's two other call sites in the same TU (`func_actor_401800_8013A034`,
+helper's two other call sites in the same TU (`oddStrangerDormant`,
 `func_actor_80137714`), which turn out to be insensitive to the order.
 
 Two consequences. Reordering statements *inside* an inlined helper is the lever
@@ -108220,7 +108220,7 @@ over the affected overlays rather than as the tail of the match that triggered
 it. The match itself is unaffected: it lands in the overlay's own `.c` and the
 promotion is deferred.
 
-## An m2c seed's *widths* and *strides* are guesses too, not just its parameters (func_actor_401000_8013D958, 2026-09-16)
+## An m2c seed's *widths* and *strides* are guesses too, not just its parameters (oddStrangerApplyCommand, 2026-09-16)
 
 The companion to the section above: that one is the seed dropping a parameter, this one is the seed
 reading the right address at the wrong width or stride. Both leave a 91% seed whose penalties
@@ -108319,7 +108319,7 @@ Scratch `nonmatchings/func_actor_401000_80138BB4-vacuum`.
 
 ## A payload global in the overlay's data is the shared message struct, and the twin may keep it inline instead
 
-`func_actor_401000_801380B8` writes three `sw` at `0`/`4`/`8` and three `sh` at
+`oddStrangerGrab` writes three `sw` at `0`/`4`/`8` and three `sh` at
 `0x10`/`0x12`/`0x14` into `D_actor_401000_80155018`, a 0x20-byte zeroed run in
 the package's `.data` with no symbol anywhere under `src/`. That is `ActorTransform`
 (`include/gameplay/message.h`) — the same 0x18-byte slot-3 payload the stack-local
@@ -108401,7 +108401,7 @@ Inputs: `base_1.i` SHA256
 `101111bdef09f992b82e9ff1bb137e842b982bead64a56a0cc773a54867db1e2`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## An m2c seed's flattened scratch helper is the twin's `static __inline__`, two head stores and all (func_actor_401000_8013922C, 2026-09-16)
+## An m2c seed's flattened scratch helper is the twin's `static __inline__`, two head stores and all (oddStrangerDormant, 2026-09-16)
 
 The seed for this actor state body scored 76.5% with `insert=16 delete=19
 branch=4 regs=54 reorder=6`, and the whole residual was one inlined helper m2c
@@ -108501,7 +108501,7 @@ Inputs: `base_2.i` SHA256
 `2a9fde3deef65509c1a4e1d9d51c801f77ddc2517d0c52be4f085d12c21443e4`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Jump.c rewrites `if (c) x = a; else x = b;` into `x = b; if (c) x = a;` — the second def lands in the *call* block, so `x` conflicts with `$v0` (func_actor_401000_801385B0, 2026-09-16)
+## Jump.c rewrites `if (c) x = a; else x = b;` into `x = b; if (c) x = a;` — the second def lands in the *call* block, so `x` conflicts with `$v0` (oddStrangerGrabRelease, 2026-09-16)
 
 The seed reached 99.880% with `regs=5`; the only differing operands were the state value's register,
 `$v1` in the build against `$v0` in the target, on four lines of the tail:
@@ -108552,14 +108552,14 @@ else if (f(arg0) == kind) { ... }`), and the outer test inverted (`if (kind != 1
 GCC canonicalises all four into the same blocks, so only the store form reaches the target.
 
 Confirmed alongside, same function: `(u32)((work->field_5A & 0x3FF) - 0x10) < 7U` is the exact
-range-test idiom (`func_actor_401000_801385B0`'s `sltiu`), matching `Actor01900_Fn05F38`.
+range-test idiom (`oddStrangerGrabRelease`'s `sltiu`), matching `Actor01900_Fn05F38`.
 
 Inputs: `base_9.i` SHA256
 `3640a55079bd08537a312231a0c0b1e10df334a846aba76517f5ff6831035931`; target SHA256
 `0d17afd01ddd9ca2f2e0d3b05f1ff1642bf6ba27e7d82eaa1212943d7d057cc8`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A repeated `gPlayerStatus.hp` read needs a `PlayerStatus*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (func_actor_401000_801385B0, 2026-09-16)
+## A repeated `gPlayerStatus.hp` read needs a `PlayerStatus*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (oddStrangerGrabRelease, 2026-09-16)
 
 Two independent source forms, both worth about 20 points on this function.
 
@@ -108602,7 +108602,7 @@ flag `expand_expr` widens the load with, which is the whole difference between `
 `s16` field with `(u16)` reads is the 100.000% form; the `u16` field with `(s16)` reads scores
 99.976% on the single store constant.
 
-## A jump-table switch's `addiu $-K` / `sltiu $N` dispatch is GCC's; switch on the raw field (func_actor_401000_8013DF6C, 2026-09-16)
+## A jump-table switch's `addiu $-K` / `sltiu $N` dispatch is GCC's; switch on the raw field (oddStrangerIdle, 2026-09-16)
 
 Once a `switch` becomes a jump table, `expand_end_case` in `stmt.c` builds the
 range check out of the case values themselves: `range = maxval - minval` folded
@@ -108665,7 +108665,7 @@ static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
 ```
 
 The `Nonzero` variant (the only one 401000 had, added when
-`func_actor_401000_801385B0` landed) wraps the same block in an `if (amount != 0)`
+`oddStrangerGrabRelease` landed) wraps the same block in an `if (amount != 0)`
 and, above it, `gteVec = vec;` — feeding `gte_ldsv`/`gte_stsv` from that copy.
 Writing this body with `Nonzero` and the constant `-0x57` folds the `amount != 0`
 test away but **keeps the copy**, so it scores 96.000% with `regs=81 insert=3`:
@@ -108699,7 +108699,7 @@ Inputs: `base_3.c` `71caf188b2f58c827c2ef36378dffe664905f9e19252691150080782bf6b
 `ba33c338c559e51596a909d1b4b276c2692b58b8952f0c37ef995b6e3ad3aedc`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Flattening the twin's helpers into one body inflates the allocno set, not just the addressing (func_actor_401000_80134F98, 2026-09-16)
+## Flattening the twin's helpers into one body inflates the allocno set, not just the addressing (oddStrangerFacePlayer, 2026-09-16)
 
 The 401300 twin of this turn-toward-the-player body (`func_actor_401300_80136238`,
 0.93 shape) is built out of four `static __inline__` helpers — `PositionYaw`,
@@ -108754,10 +108754,10 @@ Inputs: `base_4.i` SHA256
 `cbad33dbd533ce6c57fe1fdc3c7eab85c920518f6fbd9ad4aef5a993fabeefda`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A 0.95 twin with different constants still lends its helper boundary — port the shape first, the values second (func_actor_401000_8013A5F0, 2026-09-16)
+## A 0.95 twin with different constants still lends its helper boundary — port the shape first, the values second (oddStrangerHoldAim, 2026-09-16)
 
-The next function along from the entry above, `func_actor_401000_8013A5F0`, is
-the same turn-toward-the-player body as `func_actor_401000_80134F98` (0.95
+The next function along from the entry above, `oddStrangerHoldAim`, is
+the same turn-toward-the-player body as `oddStrangerFacePlayer` (0.95
 shape / 0.97 fields / 0.95 calls). The m2c seed scored 80.62 with `regs=41
 insert=17 delete=17 branch=6`, and `.diagnosis.json` showed the candidate at 17
 blocks against the ROM's 16 — the flattened-helper symptom again. Writing the
@@ -108879,7 +108879,7 @@ M2C_FIELD(temp_a3, M2C_UNK *, -1) = M2C_UNALIGNED32(M2C_ERROR(/* Unable to handl
 ```
 
 `M2C_ERROR(desc)` expands to `(0)` and `M2C_UNALIGNED32` to its argument, so the
-seed compiles to two plain `sw`s per 8-byte copy. `func_actor_401000_80133940`
+seed compiles to two plain `sw`s per 8-byte copy. `oddStrangerSpawnHitEffect`
 carries twelve of those copies — one per switch arm — so its m2c seed holds 108
 of the target's 260 instructions and scores 29.585% with `delete=165`. Iterating
 on that seed is hopeless: the missing 152 instructions are not a register or
@@ -109040,7 +109040,7 @@ Inputs: base_14.i SHA256
 `b9d7dca55f8e146e91190e59d0d42dd303a8f1c274cb1c856290d793579ae0cb`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A helper defined *below* its caller is implicitly declared, so GCC emits a real call instead of inlining it (func_actor_401000_80136E20, 2026-09-16)
+## A helper defined *below* its caller is implicitly declared, so GCC emits a real call instead of inlining it (oddStrangerTurnAround, 2026-09-16)
 
 A `static __inline__` helper only inlines where its definition has already been
 seen. Called from above the definition, the name is an implicit `extern int
@@ -109056,8 +109056,8 @@ image does not:
 
 ```
 build/USA/src/.../actor_401000.c.s   jal   overlayOutOfRange   <- should be the 31-insn inline
-.map  pristine  func_actor_401000_801374D4  0x801374d4
-.map  rebuilt   func_actor_401000_801374D4  0x80137458   (-0x7C, the missing inline)
+.map  pristine  oddStrangerSidestep  0x801374d4
+.map  rebuilt   oddStrangerSidestep  0x80137458   (-0x7C, the missing inline)
 ```
 
 Everything after the function then links 0x7C early and the overlay's sha256
@@ -109119,9 +109119,9 @@ Retained inputs, dumps, instruction walks and prediction/results:
 `PERMUTER_EVIDENCE/68f51493f5024fb1/analysis/observations.json`.
 The router itself produced no discovery; this is an independent controlled fix.
 
-## One block's locals swap hard registers on a re-spelling that emits the same instructions: `s32` intermediate + `(s32)(s16)` at the use, and a dedicated `u8* head` (func_actor_401000_8013B61C, 2026-09-16)
+## One block's locals swap hard registers on a re-spelling that emits the same instructions: `s32` intermediate + `(s32)(s16)` at the use, and a dedicated `u8* head` (oddStrangerWalkingDeath, 2026-09-16)
 
-`func_actor_401000_8013B61C` reached 99.543% with the structure already matching
+`oddStrangerWalkingDeath` reached 99.543% with the structure already matching
 (37/37 blocks, `916/917` instructions, `branch=4 regs=23 insert=2 delete=1`).
 Every penalty sat in the single block that rebuilds the root coordinate from the
 model yaw -- `ratan2` -> `gfxRotMatrixY` -> `ScaleMatrix` over the 0x34-byte
@@ -109163,7 +109163,7 @@ address pseudo's allocno.
 So when the only leftover is *which* register one block's locals got -- `regs=N`
 with everything else zero and the instructions already identical -- retype and
 re-split that block's locals before reaching for pins. Copying the matched
-twin's declaration shape verbatim (`func_actor_401000_80138D08` here: `void*
+twin's declaration shape verbatim (`oddStrangerDie` here: `void*
 scratch_base; u8* head; u8* tail; s16 cur; s32 k; s32 sy;`) is the cheapest way
 to land on it, because the twin's object *is* the target's allocation.
 
@@ -109172,9 +109172,9 @@ Inputs: base_5.i SHA256
 `d16801539777963daac3e52e8465ae00edcb55847dce0c8e2caad49072360709`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## For the actor_401000 state bodies, port the cross-overlay twin's *declaration block* verbatim; it lands 100% first try (func_actor_401000_8013C46C, 2026-09-16)
+## For the actor_401000 state bodies, port the cross-overlay twin's *declaration block* verbatim; it lands 100% first try (oddStrangerStalk, 2026-09-16)
 
-`func_actor_401000_8013C46C` matched on the first real attempt (m2c baseline
+`oddStrangerStalk` matched on the first real attempt (m2c baseline
 69.9%, then `base_1.c` score 100.000% with all penalties zero). Nothing about it
 needed a scheduling or allocation experiment, and the thing that made it cheap is
 worth copying: the function is the 401000 twin of `func_actor_401300_8013CBAC`
@@ -109192,7 +109192,7 @@ Three things made it one-shot:
    *and* `ActorAimScratch* s;` (the same value, `head - 1`) rather than one
    pointer is what produced the target's `lw v0,0(a0); addiu v0,v0,-0x10; sw v0,0(a0)`
    followed by `addu s2,v0,$zero` in the `jal` delay slot. As the entry on
-   `func_actor_401000_80138D08` says from the other direction: the twin's object
+   `oddStrangerDie` says from the other direction: the twin's object
    *is* the target's allocation, so its declarations are the cheapest oracle.
 
 2. **Use the *host* overlay's inline helpers, not the twin's.** The 401300 side
@@ -109249,11 +109249,11 @@ Two corollaries the same function showed:
   `cse`/`fold_rtx` folds the address back through the pointer's known value;
   do not read the mixed bases as two C expressions.
 - The push's own `sw` is a store like any other and sinks: in
-  `func_actor_401000_80139D10` it lands after all three delta stores, here
+  `oddStrangerAdvance` it lands after all three delta stores, here
   between `vy` and `vz`. Position of the `sw` is not where the `-= 1` sits in
   the source.
 
-Worked example: `func_actor_401000_801394EC`, matched at `base_7.c` after
+Worked example: `oddStrangerPatrol`, matched at `base_7.c` after
 `base_4`–`base_6` (99.253%) each spelled the pointer directly. Inputs: base_7.i
 SHA256 `3c6e5416b9428507050f03e919cc4d0ec7bf2aebe0f0f0c6a12fb72cc23a09cd`;
 target.o SHA256 `011697edbdc0d7ec7feb062aaebfadb649fb782d14c37d76cfffe087b448ed12`;
@@ -111441,7 +111441,7 @@ diff <(norm asm/USA/actors/matchings/actor_444000/actor_444000_5/func_actor_4440
 That prints two lines, both the global's name, out of 258. Same instruction
 count, same registers, same delay slots: what is left is a transcription, not a
 search. Writing the sibling's source with this overlay's types
-(`Actor403200GrabWork`, `host->field_ECC[0]`, `(Actor403200Work*)owner->task->work`)
+(`GluttonGrabWork`, `host->field_ECC[0]`, `(GluttonWork*)owner->task->work`)
 scored 100.000% with every penalty zero on the first real attempt.
 
 **Reading it.** Byte-identity is not the bar for porting; "different symbol
@@ -111501,7 +111501,7 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_403200_8013E5A8-vacuum`.
 
-## A run of `p->f = v` stores through separate loaded pointers shares one register unless the addresses are evaluated first (func_actor_403200_80139A60, 2026-09-16)
+## A run of `p->f = v` stores through separate loaded pointers shares one register unless the addresses are evaluated first (gluttonHitGroup0, 2026-09-16)
 
 The group-0 hit handler mirrors the host's remaining HP onto three escorts:
 
@@ -111548,10 +111548,10 @@ the source: split the assignment. The `.lreg` dump tells you which it was -
 `REG_DEAD (reg:SI N)` on the store's base plus a `REG_DEP_OUTPUT` chain between
 consecutive stores is one-register reuse.
 
-Scratch `nonmatchings/func_actor_403200_80139A60-vacuum`,
+Scratch `nonmatchings/gluttonHitGroup0-vacuum`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Two `&local` call arguments: cse merges the frame address into one call-crossing pseudo (func_actor_403200_8013F700, 2026-09-16)
+## Two `&local` call arguments: cse merges the frame address into one call-crossing pseudo (gluttonEscortState, 2026-09-16)
 
 A local `GameLocationKey` is filled from `gGameSession` and its address passed to
 `areaSyncLocationVariant` and then to `Gp_GetNestedAreaRec`. The target rematerializes
@@ -111601,7 +111601,7 @@ the pointer shifts the third component out of `$a1` into `$v0`, where the
 `lw $v0, 0x2c($s3)` of the following `ratan2` setup clobbers it and reload
 re-reads the component off the stack (98.534%).
 
-Scratch `nonmatchings/func_actor_403200_8013F700-vacuum` (best `base_11.c`),
+Scratch `nonmatchings/gluttonEscortState-vacuum` (best `base_11.c`),
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 ## The long-lived clone owns the uses: move a store ahead of a per-case copy to flip two allocnos' registers (func_actor_403200_80138468, 2026-09-16)
@@ -111634,7 +111634,7 @@ uses can be spread over two registers inside one function. The store keeps
 `work` only if it is emitted *before* the case's copy creates the rival clone.
 Two constraints make that reproducible:
 
-1. The copy must be a plain register copy (`escorts = (Actor403200Work*)work;`),
+1. The copy must be a plain register copy (`escorts = (GluttonWork*)work;`),
    not a re-read of `task->work`. With the load, the store between them
    (`sb $zero, 0x7F3(work)`) kills cse's memory equivalence, the copy comes back
    as a real load, and the extra reference lands on `task` instead — 98.1% with
@@ -111805,7 +111805,7 @@ the same reason), and the fix is not just the argument pair: the extra
 call-crossing `&pos` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
 and its `+4` were left as `$s0`/`$s1` against the target's `$s1`/`$s0`. Naming
 the pointer gave `$s0` back and both pairs fell into place. Distinct from the
-`&local` *call argument* entry above (`func_actor_403200_8013F700`), where the
+`&local` *call argument* entry above (`gluttonEscortState`), where the
 address never needs to survive a call and a pointer local alone is folded away —
 here the same register really is reused by the GTE reads and writes after it.
 
@@ -120842,7 +120842,7 @@ Scratch `nonmatchings/func_dryfield_night_parking_lot_8017D8D0-vacuum`.
 ## One leftover `reorder` between two independent insns: the scheduler's LAUNCH_PRIORITY boost, and the fix is an adjacent statement's order (func_dryfield_water_tank_8017DD20, 2026-09-17)
 
 Symptom: 99.38%, `reorder=1`, and the only difference is `lui $v0,%hi(SYM)` and
-`move $a1,$s2` swapped in front of `Task_Reparent(SYM, index)` - two insns with
+`move $a1,$s2` swapped in front of `taskReparent(SYM, index)` - two insns with
 no dependence between them.
 
 `dump.sh` (and any build >= 90%) leaves the pre-reload scheduler's ready-list
@@ -127080,7 +127080,7 @@ work->field_896 = work->slots[0].currentPose.indices.recordIndex & 0x3FF;      /
 
 Slot 1 is what is watched (`0x3E`), slot 0 is what is remembered (`0x16`, stored
 to `field_896` as an `s16` but loaded `lhu` before the mask). The `+ 1` on the
-coordinate argument is one `GfxCoord`, i.e. `+ 0x50`; `func_actor_401000_8013922C`
+coordinate argument is one `GfxCoord`, i.e. `+ 0x50`; `oddStrangerDormant`
 is the same guard one actor over (`field_5A` / `field_8B4`, `field_8 + 5` =
 `0x190`) and is the body to read first. `Actor110600_ScaleRotation` in
 `actor_110600.c` already spells the inlined rescale, so the whole function is a
@@ -128755,7 +128755,7 @@ sha256 `af1f3d8aa05712e46bf5db055ea30e972bfb680301d3b475709a1818ffb1c678`
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 
-## Two reads of one `short` member: `lh` or `lhu` is decided by the *store width*, not by the source type (func_actor_105400_8013310C, 2026-09-17)
+## Two reads of one `short` member: `lh` or `lhu` is decided by the *store width*, not by the source type (generatorSpawn, 2026-09-17)
 
 **Symptom.** One function reads the same halfword triple twice, and the target
 loads it signed in one place and unsigned in the other:
@@ -128834,7 +128834,7 @@ call-clobbered register in its own block. Same lesson as the `$s1`/`$s2` tie
 above: the number of *declarations* is the allocation input, not the number of
 assignments.
 
-Inputs: scratch `nonmatchings/func_actor_105400_8013310C-vacuum`, `base_5.c`
+Inputs: scratch `nonmatchings/generatorSpawn-vacuum`, `base_5.c`
 95.605% (casts, loads hoisted, `regs=21`), `base_6.c` 99.907% (member access,
 `regs=4`), `base_7.c` 100.000%; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, preprocessed
@@ -129347,7 +129347,7 @@ call-saved register and the arithmetic cannot be hoisted --
 ```
 
 -- while the sibling's idiom (`sy = k - (cur - 0x14) * 0xB;` in
-`func_actor_401800_80139B18`, then `blk->scale.vy = (s32)(s16)sy;`) splits it:
+`oddStrangerDie`, then `blk->scale.vy = (s32)(s16)sy;`) splits it:
 
 ```c
             sy    = 0x1000 - (cur - 0x14) * 0xA;   /* before the calls */
@@ -133247,7 +133247,7 @@ The demonstrated dependency is specific to these aggregate layouts; inspect
 BLK dependencies before applying the same source transformation elsewhere.
 
 
-## A redundant coordinate alias splits two lifetimes; port it as two locals (func_actor_444000_80141DFC, 2026-09-19)
+## A redundant coordinate alias splits two lifetimes; port it as two locals (gluttonEscortState, 2026-09-19)
 
 A permuter mutation changed the first `coord = model->coords` into
 `new_var = model->coords; coord = new_var;`, leaving a later coordinate reload
@@ -133274,7 +133274,7 @@ actor_401300/actor_421600 touched-key-pointer idiom, producing 100.000% with
 all-zero penalties and a successful unscoped build. A do/while(0) boundary
 failed: cse1 kept the two key addresses separate, but cse2 merged them again.
 
-Evidence: `tools/permuter_findings/func_actor_444000_80141DFC/` retains the
+Evidence: `tools/permuter_findings/gluttonEscortState/` retains the
 `66df4d6d18494b42` paired inputs, analysis and controlled variation; scratch
 `base_3` is the controlled probe and `base_2` the integrated match.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -135168,7 +135168,7 @@ and the plans preceding those builds. Final unscoped build verification passed.
 
 ## Fence a reload-generated constant separately from its empty-asm consumer (actor 401800 tick, 2026-09-20)
 
-`func_actor_401800_8013D64C`'s archived 99.707% seed already had every register right. Its lone mismatch was `li s3,21` filling the first load delay in `lhu; sh; lh; sll`, whereas the target fills the second. Earlier attempts changed dependencies on `TOUCH_REG_MEM(stop)` and called the residue unreachable from C.
+`oddStrangerTick`'s archived 99.707% seed already had every register right. Its lone mismatch was `li s3,21` filling the first load delay in `lhu; sh; lh; sll`, whereas the target fills the second. Earlier attempts changed dependencies on `TOUCH_REG_MEM(stop)` and called the residue unreachable from C.
 
 The dumps narrow that claim. Combine puts literal 21 directly into the tied register input of the empty asm (UID 486). Reload then creates a separate constant load (UID 909), which sched2 can move before store UID 481. Dependencies on the consuming asm do not by themselves prevent its new input load from moving. Meanwhile the volatile asm keeps the signed state load after itself.
 
@@ -135840,7 +135840,7 @@ base_3: `9f5a709da399986dcb7aee89ca5f958e9f748229f91c1e3c250a594b438eebbd`.
 Both traced compilations emitted byte-identical assembly with/without observation.
 
 
-## Later memory operations change an earlier call delay slot through block-wide potential weighting (func_actor_401000_80135704, 2026-09-20)
+## Later memory operations change an earlier call delay slot through block-wide potential weighting (oddStrangerPushContacts, 2026-09-20)
 
 A pre-call zero store followed by two argument copies had the wrong order:
 `sh; move a0; jal; move a1`, while the target wanted the store in the call
@@ -135886,7 +135886,7 @@ Scope: this measured scheduler decision, not a universal tail-duplication fix.
 Evidence: `tools/compiler_evidence/2026-09-20-actor401000-35704.json`, including
 plans, scores, source/compiler hashes and selected raw events. Full sources,
 dumps and traces are retained in
-`tools/permuter_findings/func_actor_401000_80135704/` and the scratch.
+`tools/permuter_findings/oddStrangerPushContacts/` and the scratch.
 Compiler: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Input base_1: `6aaa8a5c2cb06b31bd5c6f63afffad4615041cc43e34bf66d23e4e35f81ca84d`.
 Input base_2: `61faca5d9755b13ba0b9e7a6a6e7d2c242201bad5a83358cc99327e295add754`.
@@ -135903,7 +135903,7 @@ A tracer on the exact candidate observes block16 q1=[230,229,87,223], refs8/span
 
 Unscoped build verification succeeded. Compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd; traced input 43688afde3e933cb9fe7a0d2ecab0b7d50472028d9cec4336ae4faa6961ed795. Observer assembly was unchanged. Selected events, plans/build fingerprints and limits: tools/compiler_evidence/2026-09-20-actor401000-35aa4.json. Full trace and the independent unresolved permuter wrapper gain are retained under tools/permuter_findings/func_actor_401000_80135AA4/.
 
-## A conditional assigned directly to a field expands differently from a shared next-state local (func_actor_401000_80133D50, 2026-09-20)
+## A conditional assigned directly to a field expands differently from a shared next-state local (oddStrangerTakeHit, 2026-09-20)
 
 The archived seed kept only three of seven yaw/0x400 tests after jump2, even though all seven survived sched2. Its `next = (mag < 0x400) ? 0x13 : 0x14; ... work->field_0 = next;` joined the yaw choice with a 0x1f assignment. RTL assigned both yaw constants to one `reg/v:HI 103`; the first jump pass introduced UID2703, `next = 20`, before the branch. Sched1 moved it before the comparison and greg allocated next to v1.
 
@@ -136059,7 +136059,7 @@ needed; internal scheduler comparisons were not investigated. The router
 skipped stale incompatible archived candidates and contributed no discovery.
 
 
-## Consistent local-vector pointer reads preserve CSE forwarding (func_actor_403200_8013F700, 2026-09-20)
+## Consistent local-vector pointer reads preserve CSE forwarding (gluttonEscortState, 2026-09-20)
 
 A retry reproduced 99.206% with all control-flow/call diagnostics matching.
 Its only differences were the absent vector-base address and two stores:
@@ -136088,7 +136088,7 @@ identical assembly: cse materializes coord+24 in a2, then reads +4/+8, while
 vector stores remain sp-relative. This lower score did not solve the target's
 vector-address requirement. The final match uses the sibling idiom above.
 
-Evidence: tools/permuter_findings/func_actor_403200_8013F700/sessions/
+Evidence: tools/permuter_findings/gluttonEscortState/sessions/
 6f3b62826bdc4518a2abadfee6876884/5205167bcc17aa0b04c5, including notes,
 retained router run 1ef7d478de864c11, and planned base_1/base_2/base_3 probes.
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -137175,7 +137175,7 @@ The allocation prediction also held: global order stayed unchanged, task remaine
 
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Selected .sched/.sched2 nodes, allocation headers and complete input/source/object hashes: [2026-09-20-actor121300-33854.json](tools/compiler_evidence/2026-09-20-actor121300-33854.json). Full inputs and dumps are retained with the scratch/permuter findings.
 
-### An array read restores scheduler memory edges that a scalar symbol loses (func_actor_105300_8013310C, 2026-09-20)
+### An array read restores scheduler memory edges that a scalar symbol loses (generatorSpawn, 2026-09-20)
 
 The archived seed reproduced 98.884% with only `reorder=4`: the halfword read
 from `D_actor_105300_8013D394` and three address/constant materializations were
@@ -137215,7 +137215,7 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 Preprocessed inputs: base_1 `f33cf4dd69be9317dbc703c8ae1f10998280d37b141fc6f07ae83cb90784fe07`,
 base_2 `15a633637a4f05fee2410102cedfa5bf7b918432e66f2c2a4b5318343f15d0f9`.
 Notes, predictions, sources, inputs and compressed RTL evidence are retained in
-`tools/permuter_findings/func_actor_105300_8013310C/`, session
+`tools/permuter_findings/generatorSpawn/`, session
 `d0a2a182dc504f54a08d1def7002adfe`. The required router found no output; these
 were subsequent manual experiments informed by the sibling and archived hypothesis.
 
@@ -139624,7 +139624,7 @@ plain-C form. Inputs: `base_54.i`
 The earlier session left this function at 98.868% (`reorder=2`). It traced the
 swap to sched1's birthing boost on the LCG load, confirmed that with a
 `REG_N_SETS` experiment, and called the mechanism settled. The retry matched on
-its first build by writing the body with the real types: `AhlpLight` for the
+its first build by writing the body with the real types: `WorldCoordTransientPointLight` for the
 light array and `SVECTOR` for the position it copies from.
 
 Controlled builds isolated the cause to one declaration. The m2c seed declared
@@ -139633,7 +139633,7 @@ the source vector as a 4-byte `M2C_UNK` and read `vx`/`vy`/`vz` as
 drops to 99.151% (`regs=6 reorder=1`). The light array's declaration, the
 switch shape and the LCG temporaries had no effect. This fits the entry on
 fixed scalars not aliasing struct stores. A cast read from a scalar-typed
-symbol is not `MEM_IN_STRUCT_P`, so its dependences against the `work->…`
+symbol is not `MEM_IN_STRUCT_P`, so its dependences against the `pointLight->…`
 stores change, and so do the block's priorities. That mechanism was not traced
 here. The lesson: a "settled" scheduler explanation on an untyped seed may be
 downstream of how the seed typed its memory. When the seed still uses
@@ -140990,10 +140990,10 @@ earlier C `const`), it believes it is still in `.rodata` and emits the next
 between. Defining each table beside its user usually does that; otherwise put
 the `INCLUDE_RODATA` after a function, or define the included data in C too.
 
-## A constant-index element of a global array keeps `%hi(arr+off)` only through a pointer local (Gp_RoomCoords, 2026-09-25)
+## A constant-index element of a global array keeps `%hi(arr+off)` only through a pointer local (gWorldCoordTransientPointLights, 2026-09-25)
 
 **Symptom.** Replacing a global named by address (`D_80114FF8`) with the
-array element it really is (`Gp_RoomCoords[2]`) changed the code, although
+array element it really is (`gWorldCoordTransientPointLights[2]`) changed the code, although
 both name the same address:
 
 ```
@@ -141002,21 +141002,21 @@ sw    v0,%lo(D_80114FF8)(a3)
 addiu a3,a3,%lo(D_80114FF8)
 ```
 ```
-lui   a3,%hi(Gp_RoomCoords)       ; Gp_RoomCoords[2].f = 2; p = &Gp_RoomCoords[2].g;
-addiu a3,a3,%lo(Gp_RoomCoords)
+lui   a3,%hi(gWorldCoordTransientPointLights)       ; gWorldCoordTransientPointLights[2].f = 2; p = &gWorldCoordTransientPointLights[2].g;
+addiu a3,a3,%lo(gWorldCoordTransientPointLights)
 sw    v0,200(a3)
 ```
 
 **Fix.** Take the element's address into a pointer local and go through it:
 
 ```c
-slot             = &Gp_RoomCoords[2];
+slot             = &gWorldCoordTransientPointLights[2];
 slot->framesLeft = 2;
 light            = &slot->light;
 ```
 
-This compiles to `lui %hi(Gp_RoomCoords+200)` / `sw %lo(Gp_RoomCoords+200)`,
-byte-identical after linking to the target. `(&Gp_RoomCoords[2])->f` works too,
+This compiles to `lui %hi(gWorldCoordTransientPointLights+200)` / `sw %lo(gWorldCoordTransientPointLights+200)`,
+byte-identical after linking to the target. `(&gWorldCoordTransientPointLights[2])->f` works too,
 but the named local is the natural spelling. Written directly, two accesses at
 different offsets into the element share the array base in a register instead.
 
@@ -142948,7 +142948,7 @@ try the parameter at the width of the field the callers pass before reaching
 for a block-scoped copy of the body - both a hand-inlined copy and a `{ }`
 block scored worse than either helper form here.
 
-### A second-primitive pointer local (`xy = poly + 1`) blocks its own strength reduction; write `&poly[1]` (gpDrawStreamPrimGt3PreXformFixedLayer, 2026-09-26)
+### A second-primitive pointer local (`xy = poly + 1`) blocks its own strength reduction; write `&(*packetPair)[1]` (tmdDrawStreamPrimGt3PreXformEnvLayer, 2026-09-26)
 
 **Symptom.** A loop filling primitive pairs keeps `poly + 1` in its own register, stepped by
 the pair stride beside `poly`, and every field of both primitives is addressed off it. A
@@ -142961,7 +142961,8 @@ absorbs the `xy = poly + 1` DEST_REG giv - set once (`n_times_used` is really a 
 and mentioned by the representative's own insn - it *replaces* the summed benefit with
 that giv's 2, and `2 - add_cost` is 0.
 
-**Fix.** No local: write `poly->...` and `&poly[1]` (e.g. `addPrim(ot, &poly[1])`). The
+**Fix.** No second-packet local: write `(*packetPair)[0].…` and `&(*packetPair)[1]`
+(e.g. `addPrim(ot, &(*packetPair)[1])`). The
 representative no longer mentions a single-set register, the benefits sum, and the giv is
 reduced to the retail separate register.
 ## A walk to a terminator flag: index it, and exit with `break` from `for (;;)` (Gp_LinkRoomObjects, 2026-09-26)
@@ -143332,7 +143333,7 @@ middle = &coords[2];
 lower  = &coords[1];
 part   = 3;
 ...
-Gp_WorldToLocal(&gGfxViewCoord.workm, &root[part].workm, &m);
+gfxMakeRelativeTransform(&gGfxViewCoord.workm, &root[part].workm, &m);
 ...
 } else if (arg1 == 3) {
 ```

@@ -103,7 +103,14 @@ STATIC_ASSERT_SIZEOF(TaskMessageArg, 4);
 /// types in either payload position under GCC's function-type compatibility rules.
 typedef s32 (*TaskMessageHandler)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg);
 
-/// Ends a task-message table; this reserved ID must never be dispatched.
+/// Reserved message ID marking the end of a task-message table.
+///
+/// Use it in the final record's signed ID word, paired with a null callback. A lookup
+/// for any other ID returns zero when it reaches this record. The end test
+/// uses this ID alone: neither -1 nor a null callback terminates the search.
+/// Never dispatch this reserved ID; equality is tested before the end marker,
+/// so it would select the terminal null callback. A table without this marker
+/// may receive only IDs with non-null callbacks in its entries.
 enum {
     TASK_MESSAGE_TABLE_END = 0x7FFFFFFF,
 };

@@ -157,7 +157,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// its leading null. `light` / `color` go to the object's `field_1C` / `field_20`
 /// (the lower offset is the light matrix, as in every actor).
 ///
-/// `field_26C` is the task the spawn argument named, handed to `Task_Reparent`;
+/// `field_26C` is the task the spawn argument named, handed to `taskReparent`;
 /// `field_270` / `field_274` / `field_278` are the three `gRandomLcgState` draws
 /// `func_actor_560800_801376E0` takes at spawn; `field_280` is the slot count it
 /// seeds from the spawner's `spawnArg1`, which `func_actor_560800_80137820` then
@@ -3693,14 +3693,14 @@ TaskDesc D_actor_560800_801718F0[14] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80136A88, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80136094, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80135FA0, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_801326C4, { .model = &D_actor_560800_8013E230 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_80132C60, { .model = &D_actor_560800_8014854C } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_80132F64, { .model = &D_actor_560800_8014EDFC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &D_actor_560800_8014F250 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &D_actor_560800_8014F6A4 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &D_actor_560800_801502EC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &D_actor_560800_8014FEA8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_801326C4, { .model = &D_actor_560800_80143A08 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_801326C4, { .model = &D_actor_560800_8013E230 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132C60, { .model = &D_actor_560800_8014854C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132F64, { .model = &D_actor_560800_8014EDFC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &D_actor_560800_8014F250 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &D_actor_560800_8014F6A4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &D_actor_560800_801502EC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &D_actor_560800_8014FEA8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_801326C4, { .model = &D_actor_560800_80143A08 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_560800_801366B0, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_560800_801369E0, { .value = 0 } },
 };
@@ -4100,8 +4100,8 @@ Actor560800MessageEntry D_actor_560800_80175744[3] = {
 
 TaskDesc D_actor_560800_8017575C[4] = {
     { { { TASK_BODY_COORD, 192 } }, func_actor_560800_801386D4, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_80137820, { .model = &D_actor_560800_80172788 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_560800_80138FC8, { .model = &D_actor_560800_80173D48 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80137820, { .model = &D_actor_560800_80172788 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80138FC8, { .model = &D_actor_560800_80173D48 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_560800_80137BEC, { .model = &D_actor_560800_8017359C } },
 };
 
@@ -4413,7 +4413,7 @@ void func_actor_560800_801326C4(Task* arg0)
                         id = place->entryId;
                     }
                     Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
-                    Task_Reparent(D_actor_560800_8017578C, arg0);
+                    taskReparent(D_actor_560800_8017578C, arg0);
                     failed = 0;
                 }
             }
@@ -4541,7 +4541,7 @@ void func_actor_560800_80132A14(Task* arg0)
             }
             Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
         }
-        Task_Reparent(parent, arg0);
+        taskReparent(parent, arg0);
         arg0->msgTable = D_actor_560800_8016F34C;
         arg0->state   += 1;
         return;
@@ -4590,7 +4590,7 @@ void func_actor_560800_80132C60(Task* arg0)
                     id = place->entryId;
                 }
                 Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
-                Task_Reparent(D_actor_560800_8017578C, arg0);
+                taskReparent(D_actor_560800_8017578C, arg0);
                 failed = 0;
             }
         }
@@ -4680,7 +4680,7 @@ void func_actor_560800_80132F64(Task* arg0)
                     id = place->entryId;
                 }
                 Gp_SetTmdBytes(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
-                Task_Reparent(D_actor_560800_8017578C, arg0);
+                taskReparent(D_actor_560800_8017578C, arg0);
                 failed = 0;
             }
         }
@@ -5795,7 +5795,7 @@ void func_actor_560800_80135FA0(Task* arg0)
             work->b = 0;
             work->g = 0;
             work->r = 0;
-            Task_Reparent(D_actor_560800_8017578C, arg0);
+            taskReparent(D_actor_560800_8017578C, arg0);
             arg0->state += 1;
             /* fallthrough */
         case 1:
@@ -5829,7 +5829,7 @@ void func_actor_560800_80136094(Task* arg0)
             work->b = 0xFF;
             work->g = 0xFF;
             work->r = 0xFF;
-            Task_Reparent(D_actor_560800_8017578C, arg0);
+            taskReparent(D_actor_560800_8017578C, arg0);
             goto state_inc;
         case 6:
             SetDispMask(1);
@@ -6400,7 +6400,7 @@ static void func_actor_560800_801376E0(Task* arg0)
     coord->parent   = child->extra.tmd->coords;
     obj->lightMtx   = &work->light;
     obj->colorMtx   = &work->color;
-    Task_Reparent(work->field_26C, arg0);
+    taskReparent(work->field_26C, arg0);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->field_270 = gRandomLcgState >> 16;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -6877,7 +6877,7 @@ void func_actor_560800_801386D4(Task* task)
                 spawned           = w;
                 spawned->field_40 = (Task*)task->spawnArg2.pointer;
                 task->msgTable    = D_actor_560800_801756D4;
-                Task_Reparent(spawned->field_40, task);
+                taskReparent(spawned->field_40, task);
                 do {
                     spawned->parts[i & 0xFFFF] =
                         Task_SpawnFromTable(D_actor_560800_8017575C, 1, (i & 0xFFFF) + 1, task);
@@ -7171,7 +7171,7 @@ void func_actor_560800_80138FC8(Task* task)
                 mem->field_26C = (Task*)task->spawnArg2.pointer;
                 obj->lightMtx  = &mem->light;
                 obj->colorMtx  = &mem->color;
-                Task_Reparent((Task*)task->spawnArg2.pointer, task);
+                taskReparent(task->spawnArg2.pointer, task);
                 task->msgTable          = D_actor_560800_80175744;
                 D_actor_560800_801757AC = task;
                 m0                      = &root->coord;

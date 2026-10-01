@@ -26,13 +26,25 @@
 #ifndef SRC_SHARED_GLUTTON_H
 #define SRC_SHARED_GLUTTON_H
 
-/// The Glutton's host task, as the helpers reach it. A package whose symbol
-/// is a wider object holding the pointer defines this as the member before
-/// including the header.
+/// Binds the shared shake helper to the current instance's borrowed host task.
+///
+/// Must expand to a side-effect-free `Task*` expression. The default selects
+/// actor_403200's private pointer; actor_444000 overrides it before this header
+/// with its storage record's `task` member. Both carriers declare the storage
+/// before including the shake helper. Evaluated once per shake request; the
+/// host and its `GluttonWork` must be alive. Spawn publishes the pointer,
+/// and teardown leaves it stale, so requests require a successfully spawned,
+/// still-live host. The binding neither owns the task nor checks for NULL.
 #ifndef GLUTTON_HOST_TASK
-#define GLUTTON_HOST_TASK gGluttonHostTask
+#define GLUTTON_HOST_TASK (_gGluttonHostTask)
 #endif
 
+/// Compile-time `GLUTTON_ROOM` selector for the Shelter B3 dumping-hole Glutton.
+///
+/// `actor_403200` binds `GLUTTON_ROOM` to this value before including this
+/// header and keeps that binding for the shared fragments. It selects the
+/// encounter's hit, escort and shake behavior. This dimensionless integer must
+/// remain a macro because the fragments compare it in `#if` directives.
 #define GLUTTON_DUMPING_HOLE 1
 #define GLUTTON_INCINERATOR  2
 #ifndef GLUTTON_ROOM
@@ -78,7 +90,7 @@ typedef struct GluttonHitGroup {
 STATIC_ASSERT_SIZEOF(GluttonHitGroup, 0x98);
 
 /// 0x30-byte scratchpad frame the group-0 hit handler
-/// `func_actor_403200_80139A60` carves off `SCRATCH_STACK_CURSOR` for the one hit it
+/// `gluttonHitGroup0` carves off `SCRATCH_STACK_CURSOR` for the one hit it
 /// takes this frame. `pos` is the contact point copied out of the `WorldCollisionContact`;
 /// `delta` is the player-relative offset whose length is `dist`, the range
 /// `Gp_ComputeDamage` scales `damage` by. `rot` doubles as `Gp_SpawnEff`'s
@@ -377,7 +389,7 @@ typedef struct GluttonWork {
     /// Companion value handed to the follow helper alongside `field_E94`.
     /* 0xE98 */ s16  field_E98;
     /* 0xE9A */ byte pad_E9A[0x12];
-    /// Screen-shake level `func_actor_403200_80138284` drives, and the level
+    /// Screen-shake level `gluttonShakeTick` drives, and the level
     /// armed last tick in `field_EAD`; a change from the armed level starts a
     /// shake.
     /* 0xEAC */ u8 field_EAC;
@@ -435,11 +447,11 @@ typedef struct GluttonWork {
     /// refills to 0x32 when it runs out.
     /* 0xF0A */ s16 field_F0A;
     /// Damage pool the hit handler for collision groups 6, 7 and 8
-    /// (`func_actor_403200_8013AB70`) draws down alongside the host's HP, and
+    /// (`gluttonHitGroups6To8`) draws down alongside the host's HP, and
     /// refills to 0x3C when it runs out.
     /* 0xF0C */ s16 field_F0C;
     /// Damage pool the hit handler for collision groups 1 and 2
-    /// (`func_actor_403200_80139E94`) draws down alongside the host's HP.
+    /// (`gluttonHitGroups1To2`) draws down alongside the host's HP.
     /* 0xF0E */ s16 field_F0E;
     /// Start-of-state countdown the attack state reads against `field_6`: the
     /// state body only runs once `field_6` has reached it, and it is seeded to

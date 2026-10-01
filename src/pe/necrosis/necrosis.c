@@ -179,7 +179,7 @@ void func_necrosis_8012EF34(Task* arg0)
                                       (s16)D_necrosis_801306BC[mem->index].field_0 + (mem->age * 0x60),
                                       NULL);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
                 work->obj.radius = work->obj.radius + 0x20;
             } else {
@@ -251,7 +251,7 @@ void func_necrosis_8012F52C(Task* arg0)
     if (mem->age % 3 == 0) {
         spawned = Gp_SpawnEff(0x6001A, coord, (s32)(mem->period), 0);
         if (spawned != NULL) {
-            Task_Reparent(arg0, spawned->task);
+            taskReparent(arg0, spawned->task);
         }
     }
 }

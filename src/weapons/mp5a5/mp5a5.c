@@ -162,7 +162,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       WEAPON_ID, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->equipmentTasks[1], eff->task);
+                        taskReparent(actor->equipmentTasks[1], eff->task);
                     }
                 }
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);

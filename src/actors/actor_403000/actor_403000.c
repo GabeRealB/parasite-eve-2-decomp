@@ -3491,7 +3491,7 @@ Actor403000MessageEntry D_actor_403000_80158CA8[7] = {
     { 2004, { .call3 = func_actor_403000_8013D364 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_403000_801324EC } },
     { 2003, { .call2 = func_actor_403000_8013D464 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_403000_80158CE0[13] = {
@@ -3529,7 +3529,7 @@ u8 D_actor_403000_80158D48[16] = {
     2,
 };
 
-TaskDesc D_actor_403000_80158D58 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_403000_8013D59C, { .model = &D_actor_403000_80145324 } };
+TaskDesc D_actor_403000_80158D58 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403000_8013D59C, { .model = &D_actor_403000_80145324 } };
 
 SVECTOR D_actor_403000_80158D64[4] = {
     { 4550, 0, 310, 0 },

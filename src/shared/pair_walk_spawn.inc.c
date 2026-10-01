@@ -30,7 +30,7 @@ void pairWalkSpawn(Enemy* enemy, Task* task)
     work->enemy                      = enemy;
     spawned                          = Gp_SpawnEnemyFromTable(gPairWalkTasks, 1, 0, enemy);
     actorTintModel(spawned->task->extra.tmd, enemy);
-    Task_Reparent(task, spawned->task);
+    taskReparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;
     obj->colorMtx  = &work->color;

@@ -1098,12 +1098,12 @@ Actor401800MessageEntry D_actor_401800_80155A80[8] = {
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = actorMsgReleaseHold } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = oddStrangerApplyCommand } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 u16 gOddStrangerChaseDistance = 0;
 
-TaskDesc D_actor_401800_80155AC4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_401800_8013E68C, { .model = &D_actor_401800_80143918 } };
+TaskDesc D_actor_401800_80155AC4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_401800_8013E68C, { .model = &D_actor_401800_80143918 } };
 
 static SVECTOR ActorContact_ScratchPosition;
 

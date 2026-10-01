@@ -709,7 +709,7 @@ Actor01900RecoveredMsgEntry Actor01900_D1728C[8] = {
     { 2004, { .call3 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = Actor01900_Fn0A59C } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call5 = Actor01900_Fn0A5A4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 ActorHeightClamp Actor01900_D172CC[3] = {

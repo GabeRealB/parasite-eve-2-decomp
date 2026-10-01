@@ -125,7 +125,7 @@ STATIC_ASSERT_SIZEOF(Actor335800MsgEntry, 8);
 extern Actor335800MsgEntry D_actor_335800_8016EB00[];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_335800_80163AA0`; terminator id 0x7FFFFFFF.
+/// `func_actor_335800_80163AA0`; terminator id `TASK_MESSAGE_TABLE_END`.
 extern Actor335800MsgEntry D_actor_335800_80172EA8[];
 
 static void func_actor_335800_80162640(Task* arg0);
@@ -845,7 +845,7 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_335800_8016EADC[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C0CC } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C6C0 } },
 };
@@ -856,7 +856,7 @@ Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
     { 2005, { .call5 = func_actor_335800_8016343C } },
     { 2013, { .call4 = actorMotionStartWalk } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_335800_8016354C } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TmdBone D_actor_335800_8016EB30[19] = {
@@ -922,7 +922,7 @@ AnimationSet** D_actor_335800_80172E98[1] = {
     D_actor_335800_80172E90,
 };
 
-TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
+TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
 
 Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
     { 2003, { .call1 = actorMotionPlayAnim19 } },
@@ -930,7 +930,7 @@ Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
     { 2005, { .call5 = func_actor_335800_80163FB8 } },
     { 2013, { .call4 = func_actor_335800_80163880 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_335800_80164098 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 static inline void _actor335800SetView(s32 view);

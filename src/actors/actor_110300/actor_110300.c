@@ -242,7 +242,7 @@ AnimationSet D_actor_110300_8013A02C = {
 Actor110300MsgEntry gViewFigureMessages[3] = {
     { 2003, { .call0 = viewFigurePlayMessage } },
     { 2005, { .call1 = actorMsgSetPairVisibility } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc gViewFigureTasks[2] = {

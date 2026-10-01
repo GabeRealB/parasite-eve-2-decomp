@@ -716,7 +716,7 @@ void Gp_HpMpBarTask(Task* arg0)
     setcode(poly, 0x2D);
     addPrim(gGpuCurrentOt + obj->panel.otIndex.signedValue + 1, poly);
     Ui_DrawVBar(&(obj)->panel, obj->panel.contentTop.signedValue - 3, obj->panel.contentBottom.signedValue + 2, obj->panel.contentRight.signedValue - 0x32);
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue - 2, obj->panel.contentRight.signedValue - 0x32, obj->panel.contentTop.signedValue + 8);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue - 2, obj->panel.contentRight.signedValue - 0x32, obj->panel.contentTop.signedValue + 8);
     Gp_DrawHpMpStats(&(obj)->panel, 0xB);
 }
 
@@ -743,7 +743,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     cfg         = &gPlayerStatus;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
 
     savedX = obj->panel.contentLeft.signedValue;
     x      = savedX + 2;
@@ -965,7 +965,7 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     color = 0x606060;
     Gp_DrawItemLabel(PARENT_OF(arg0, UiObject, panel), arg1, arg2, item, color, 0);
-    Ui_DrawHBar(arg0, arg0->contentLeft.signedValue, arg0->contentRight.signedValue, arg0->contentTop.signedValue + 0x11);
+    uiDrawHorizontalSeparator(arg0, arg0->contentLeft.signedValue, arg0->contentRight.signedValue, arg0->contentTop.signedValue + 0x11);
     arg2          += 7;
     req.x          = arg0->contentOriginX.unsignedValue + arg1;
     req.y          = arg0->contentOriginY.unsignedValue + 2 + arg2;
@@ -1694,7 +1694,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
         Gp_DrawItemIcon(obj, x, y, item, 0);
     }
 
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
 
     req.x          = obj->panel.contentOriginX.unsignedValue + prompt->field_18;
     req.y          = prompt->field_1A + (obj->panel.contentOriginY.unsignedValue + 9);
@@ -2435,7 +2435,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         obj->panel.otIndex.signedValue -= 1;
     }
 
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
 
     {
         s32 grey;

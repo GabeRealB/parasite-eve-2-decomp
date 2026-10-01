@@ -232,7 +232,7 @@ EvsCommand D_dryfield_water_tank_8017FEC8[8] = {
 
 TaskDesc D_dryfield_water_tank_8017FF88[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017DEA4, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
 };
 
 AnimationPackedPose D_dryfield_water_tank_8017FFA0[2] = {

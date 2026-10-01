@@ -128,7 +128,7 @@ void func_combustion_8012EF34(Task* arg0)
             mem->move.vz = mem->move.vz + D_combustion_80130980[mem->index].field_2;
             spawned      = Gp_SpawnEff(0x8006001C, coord, (s32)(mem->age), &mem->move);
             if (spawned != NULL) {
-                Task_Reparent(arg0, spawned->task);
+                taskReparent(arg0, spawned->task);
             }
             if (D_combustion_80130980[mem->index].field_4 < mem->age) {
                 Gp_StateC08.field_6 |= 8;
@@ -225,7 +225,7 @@ void func_combustion_8012F2BC(Task* arg0)
                 gRandomLcgState = spawnRng1b;
                 spawned         = Gp_SpawnEff(0x600A9, coord, ((u32)spawnRng1b >> 16) & 1, 0);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
             }
             return;
@@ -247,7 +247,7 @@ void func_combustion_8012F2BC(Task* arg0)
                 gRandomLcgState = spawnRng2b;
                 spawned         = Gp_SpawnEff(0x600A9, coord, ((u32)spawnRng2b >> 16) & 1, 0);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
             }
             return;

@@ -15,7 +15,7 @@ void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, StalkerZebraIvoryVie
     Gp_UpdateCoord(&gGfxViewCoord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     out->x              = local.t[0];
     out->z              = local.t[2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

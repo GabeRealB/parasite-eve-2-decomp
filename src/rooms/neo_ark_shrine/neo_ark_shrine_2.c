@@ -953,39 +953,39 @@ WorldCollisionTrigger D_neo_ark_shrine_801863B4[8] = {
     { NULL, NULL, NULL, { 8399, -64, -2161, 0 }, { { 317, 0, -1041, 0 }, { 1052, 0, -375, 0 }, { -1051, 0, 376, 0 }, { -316, 0, 1042, 0 } }, { 0, 4098, 0, 0 }, { -3290, 0, -2440, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_shrine_80186614[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_shrine_80186614[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_shrine_8018662C[2] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+AreaResource D_neo_ark_shrine_8018662C[2] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_shrine_80186644[2] = {
-    { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
+AreaResource D_neo_ark_shrine_80186644[2] = {
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801379A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_shrine_8018665C[3] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
+AreaResource D_neo_ark_shrine_8018665C[3] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014F9A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_shrine_80186680[2] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
+AreaResource D_neo_ark_shrine_80186680[2] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_shrine_80186698[2] = {
-    { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
+AreaResource D_neo_ark_shrine_80186698[2] = {
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80154188 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_shrine_801866B0[2] = {
-    { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
+AreaResource D_neo_ark_shrine_801866B0[2] = {
+    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_801540E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -354,10 +354,10 @@ AnimationSet D_actor_511000_801398FC = {
 };
 
 TaskDesc D_actor_511000_80139924[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_511000_80133850, { .model = &D_actor_511000_8013BB10 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_511000_801338A8, { .model = &D_actor_511000_8013BEF8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_511000_801338A8, { .model = &D_actor_511000_8013C058 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_511000_80133900, { .model = &D_actor_511000_8013C65C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_80133850, { .model = &D_actor_511000_8013BB10 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_801338A8, { .model = &D_actor_511000_8013BEF8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_801338A8, { .model = &D_actor_511000_8013C058 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_80133900, { .model = &D_actor_511000_8013C65C } },
 };
 
 TmdBone D_actor_511000_80139954[1] = {
@@ -1258,7 +1258,7 @@ AnimationSet** D_actor_511000_801472E4[1] = {
 };
 
 TaskDesc D_actor_511000_801472E8[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_511000_80132428, { .model = &D_actor_511000_80142554 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_80132428, { .model = &D_actor_511000_80142554 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_511000_80132150, { .model = &D_actor_511000_80142AAC } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_511000_8013222C, { .model = &D_actor_511000_80142C90 } },
 };
@@ -1269,7 +1269,7 @@ Actor511000MessageEntry D_actor_511000_8014730C[6] = {
     { 2005, { .call4 = func_actor_511000_801327A0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_511000_8013287C } },
     { 2016, { .call4 = func_actor_511000_80132904 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_511000_8014733C = { -30, 440, 140, 0 };
@@ -1845,7 +1845,7 @@ Actor511000MsgEntry D_actor_511000_80148FC4[4] = {
     { 2003, { .call0 = func_actor_511000_801334B8 } },
     { 2004, { .call1 = func_actor_511000_801334C4 } },
     { 2005, { .call2 = func_actor_511000_80133554 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_511000_80148FE4[4] = {
@@ -2092,7 +2092,7 @@ Actor511000MessageEntry D_actor_511000_801550A0[4] = {
     { 2003, { .call0 = func_actor_511000_80133DEC } },
     { 2004, { .call3 = actorMsgPlaceRotMatrix } },
     { 2005, { .call4 = func_actor_511000_80133EAC } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 AnimationSet* D_actor_511000_801550C0[4] = {
@@ -2766,7 +2766,7 @@ static void func_actor_511000_80133240(Task* task)
     }
     func_actor_511000_80133760(task);
     coord->parent = dest;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     task->state += 1;
 }
 
@@ -2835,7 +2835,7 @@ static void func_actor_511000_801333C4(Task* task)
     }
     func_actor_511000_80133760(task);
     (coord)->parent = dest;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     coord->param.rot.vx = D_actor_511000_80147AC4[0].vx;
     coord->param.rot.vy = D_actor_511000_80147AC4[0].vy;
     coord->param.rot.vz = D_actor_511000_80147AC4[0].vz;

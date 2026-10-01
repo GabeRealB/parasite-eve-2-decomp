@@ -237,7 +237,7 @@ void Gp_UpdateCoordEx(GfxCoord* coord, GfxCoord* root)
     if (coord->parent == NULL) {
         _gActorRenderLastFullChainCoord = coord;
         actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     } else {
         actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, root);
     }

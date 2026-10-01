@@ -1498,10 +1498,10 @@ Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { 2005, { .value = Actor00100_Fn0B1A4 } },
     { 2006, { .task = actorMsgIsPresent } },
     { 2004, { .placement = actorMsgPlaceRecordYaw } },
-    { 0x7FFFFFFF, { .command = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .command = NULL } },
 };
 
-TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };
+TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };
 
 SVECTOR Actor00100_D1BA90;
 
@@ -1980,8 +1980,8 @@ static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16
         s = (ActorBeamScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->first.vy   = height;
         s->second.vy  = height;
         s->first.vx   = s->firstMatrix.t[0];

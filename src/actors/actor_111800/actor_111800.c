@@ -223,7 +223,7 @@ AnimationSet* D_actor_111800_8013A448[8] = {
     NULL,
 };
 
-TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 
 static inline void    _actor111800TickAnim(Task* task);
 static inline void    _actor111800Reseed(Task* task, u16 id, u16 frames);

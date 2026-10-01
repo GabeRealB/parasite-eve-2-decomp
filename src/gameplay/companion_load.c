@@ -505,7 +505,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
     }
     spawned = Task_Spawn(0, 0x1B, 0, 0);
     if (spawned != NULL) {
-        Task_Reparent(task, spawned);
+        taskReparent(task, spawned);
     }
     gGameSession->roomObjsDirty = 0;
     task->state++;

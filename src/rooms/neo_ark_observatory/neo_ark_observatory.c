@@ -117,7 +117,7 @@ extern EvsCommand D_neo_ark_observatory_801812C0[];
 /// Descriptor of the cap-file task `func_neo_ark_observatory_8017FB1C`.
 extern TaskDesc D_neo_ark_observatory_801811AC;
 
-/// Messages the room task answers, terminated by id 0x7FFFFFFF.
+/// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_neo_ark_observatory_801811B8[];
 
 /// Offset `func_neo_ark_observatory_8017FA98` hands the mesh rebuild; only its
@@ -1493,8 +1493,8 @@ WorldCollisionTrigger D_neo_ark_observatory_8018742C[14] = {
     { NULL, NULL, NULL, { 5728, -64, 1152, 0 }, { { -768, 0, -1504, 0 }, { 768, 0, -1504, 0 }, { -768, 0, 1504, 0 }, { 768, 0, 1504, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 1688, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 4, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_observatory_80187854[2] = {
-    { 101, 502, 3, 0, { 0, 0 }, D_80137A60 },
+AreaResource D_neo_ark_observatory_80187854[2] = {
+    { 101, 502, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80137A60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

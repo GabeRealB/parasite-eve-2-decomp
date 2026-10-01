@@ -398,24 +398,24 @@ GpObj3A D_shelter_b1_elevator_hall_80184748[1] = {
     { NULL, NULL, { 2768, -1360, 3664, 0 }, { { -1968, -2384, 1936, 0 }, { 1968, -2384, -1936, 0 }, { -1968, 2384, 1936, 0 }, { 1968, 2384, -1936, 0 } }, { -2879, 0, -2926, 0 }, { 63, 14 }, 129, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_elevator_hall_80184784[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_shelter_b1_elevator_hall_80184784[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_elevator_hall_8018479C[2] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
+AreaResource D_shelter_b1_elevator_hall_8018479C[2] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_elevator_hall_801847B4[2] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+AreaResource D_shelter_b1_elevator_hall_801847B4[2] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_elevator_hall_801847CC[3] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
-    { 56, 56, 1, 0, { 0, 0 }, D_801602C0 },
+AreaResource D_shelter_b1_elevator_hall_801847CC[3] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801602C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

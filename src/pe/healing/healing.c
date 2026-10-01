@@ -138,7 +138,7 @@ void func_healing_8012EF34(Task* arg0)
             spawned         = Gp_SpawnEff(0x60017, coord, (s32)(D_healing_8012FC1C[mem->index].field_6),
                                           &mem->move);
             if (spawned != NULL) {
-                Task_Reparent(arg0, spawned->task);
+                taskReparent(arg0, spawned->task);
             }
             if (mem->angle >= D_healing_8012FC1C[mem->index].field_6) {
                 arg0->state = 2;
@@ -288,7 +288,7 @@ void func_healing_8012F5E4(Task* arg0)
             if ((mem->age & 7) == 1) {
                 spawned = Gp_SpawnEff(0x60016, coord, (s32)(mem->angle), 0);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
             }
         }

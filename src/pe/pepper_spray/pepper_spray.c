@@ -38,8 +38,8 @@ static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2);
 /// nozzle. `func_pepper_spray_8012F634` draws one quad per entry every frame.
 static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 
-/// Runs one frame of the pepper spray. State 0 parks the room light slot on
-/// the nozzle coordinate, seeds the spray yaw / spread / brightness from
+/// Runs one frame of the pepper spray. State 0 enables transient point-light
+/// slot 0 at the nozzle's position, seeds the spray yaw / spread / brightness from
 /// `gRandomLcgState`, refills the six cone yaws and plays the spray sound; state 1
 /// just decays the yaw and the brightness by a sixteenth each, scaled by how
 /// long the spray has run. Either state then redraws the nozzle, flashes the
@@ -50,22 +50,22 @@ static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 
 void func_pepper_spray_8012EF34(Task* arg0)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    GpCoord64*            base;
-    WorldCoordPointLight* slot;
-    s32                   i;
-    s32                   age;
-    s32                   tz;
-    s32                   yaw;
-    s32                   spread;
-    s32                   pan;
-    u8                    rgb[3];
+    EffectWork*                    mem;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          slot;
+    s32                            i;
+    s32                            age;
+    s32                            tz;
+    s32                            yaw;
+    s32                            spread;
+    s32                            pan;
+    u8                             rgb[3];
 
-    base  = Gp_RoomCoords;
-    slot  = &base->light;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    lightSlot = gWorldCoordTransientPointLights;
+    slot      = &lightSlot->light;
+    mem       = arg0->spawnArg2.pointer;
+    coord     = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         SndEvt_EnqueueType7(0xE03F0001, 1);
         effectKillTask(mem, arg0);
@@ -75,25 +75,25 @@ void func_pepper_spray_8012EF34(Task* arg0)
     mem->age = age;
     switch (arg0->state) {
         case 0:
-            slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
-            gRandomLcgState                               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            yaw                                           = ((gRandomLcgState >> 16) & 0x3FF) + 0xA00;
-            slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
-            gRandomLcgState                               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            spread                                        = (gRandomLcgState >> 16) & 0xFFF;
-            tz                                            = coord->coord.t[2];
-            base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            slot->head.color.r                            = 0x1000;
-            slot->head.color.g                            = 0x1000;
-            slot->head.color.b                            = 0x1000;
-            slot->inner                                   = 0xFA0;
-            slot->outer                                   = 0x12C0;
-            base->framesLeft                              = 6;
-            slot->head.transform.coord.coord.t[2]         = tz;
-            mem->period                                   = 0xE0;
-            mem->scale                                    = yaw;
-            mem->angle                                    = spread;
-            arg0->state                                   = 1;
+            slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
+            gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            yaw                                                = ((gRandomLcgState >> 16) & 0x3FF) + 0xA00;
+            slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
+            gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            spread                                             = (gRandomLcgState >> 16) & 0xFFF;
+            tz                                                 = coord->coord.t[2];
+            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->head.color.r                                 = 0x1000;
+            slot->head.color.g                                 = 0x1000;
+            slot->head.color.b                                 = 0x1000;
+            slot->inner                                        = 0xFA0;
+            slot->outer                                        = 0x12C0;
+            lightSlot->framesLeft                              = 6;
+            slot->head.transform.coord.coord.t[2]              = tz;
+            mem->period                                        = 0xE0;
+            mem->scale                                         = yaw;
+            mem->angle                                         = spread;
+            arg0->state                                        = 1;
             for (i = 0; i < 6; i++) {
                 gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 D_pepper_spray_8012FB9C[i] = ((i & 3) << 10) + ((gRandomLcgState >> 16) & 0x3FF);

@@ -724,9 +724,9 @@ EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
 TaskDesc D_shelter_b3_dumping_hole_80188BC8[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017F820, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017FBA0, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_801877F4 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187A70 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187D74 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_801877F4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187A70 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187D74 } },
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80188C04[4] = {
@@ -830,7 +830,7 @@ EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
     { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8018005C, { .value = 0 } },
 };
 
@@ -1039,7 +1039,7 @@ ActorsShared801673f8Spot D_shelter_b3_dumping_hole_8018B74C[12] = {
 
 ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_shelter_b3_dumping_hole_80183530 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[16] = {
@@ -1765,16 +1765,16 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EAEC[5] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_b3_dumping_hole_8018EB3C[5] = {
-    { 32, 32, 3, 0, { 0, 0 }, D_8015F8D0 },
-    { 103, 417, 2, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
-    { 252, 417, 5, 0, { 0, 0 }, D_80176354 },
-    { 44, 44, 5, 2, { 0, 0 }, &D_80174D58 },
+AreaResource D_shelter_b3_dumping_hole_8018EB3C[5] = {
+    { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8015F8D0 },
+    { 103, 417, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
+    { 252, 417, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_80176354 },
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_60, 2, { 0, 0 }, &D_80174D58 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b3_dumping_hole_8018EB78[2] = {
-    { 32, 32, 3, 0, { 0, 0 }, D_8015F8D0 },
+AreaResource D_shelter_b3_dumping_hole_8018EB78[2] = {
+    { 32, 32, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8015F8D0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1783,11 +1783,11 @@ AreaPlacement D_shelter_b3_dumping_hole_8018EB90[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_shelter_b3_dumping_hole_8018EBB0[5] = {
-    { 44, 44, 0, 1, { 0, 0 }, &D_80142604 },
-    { 70, 70, 1, 2, { 0, 0 }, &D_801575F0 },
-    { 71, 71, 1, 1, { 0, 0 }, &D_80151E60 },
-    { 103, 421, 2, 1, { 0, 0 }, &D_80164B78 },
+AreaResource D_shelter_b3_dumping_hole_8018EBB0[5] = {
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 1, { 0, 0 }, &D_80142604 },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 2, { 0, 0 }, &D_801575F0 },
+    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 1, { 0, 0 }, &D_80151E60 },
+    { 103, 421, AREA_RESOURCE_FILE_GROUP_BASE_30, 1, { 0, 0 }, &D_80164B78 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -2400,7 +2400,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     Gfx_RotMatrixX(&coord->coord, placement->rot.vx, 0);
     Gfx_RotMatrixZ(&coord->coord, placement->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Task_Reparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
+    taskReparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
     Gp_UpdateCoord(coord);
     e2   = arg0->extra.tmd;
     v.vx = e2->coords->workm.t[0];

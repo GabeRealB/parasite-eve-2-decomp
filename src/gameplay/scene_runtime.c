@@ -389,7 +389,7 @@ static GpAreaObj* Gp_GetAreaObj(GameLocationKey* key);
 
 static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState);
 
-static GpAreaTmdRec* Gp_GetNestedAreaObj(GameLocationKey* key);
+static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key);
 
 static void Gp_KillSlot4Children(void);
 
@@ -998,7 +998,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
         gte_ldv0(arg2);
         gte_rtv0tr();
         gte_stlvnl(dest->workm.t);
-        Gp_WorldToLocal(&world->workm, &dest->workm, &dest->coord);
+        gfxMakeRelativeTransform(&world->workm, &dest->workm, &dest->coord);
     }
     dest->parent       = &gGfxViewCoord;
     dest->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1022,9 +1022,9 @@ static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent)
     enemy->task             = task;
     enemy->coord            = &gGfxViewCoord;
     if (parent != NULL) {
-        Task_Reparent(parent->task, task);
+        taskReparent(parent->task, task);
     } else {
-        Task_Reparent(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), enemy->task);
+        taskReparent(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), enemy->task);
     }
     return enemy;
 }
@@ -2307,7 +2307,6 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     GfxCoord*              coord;
     AnimationSet*          set;
     const AnimationRecord* records;
-    const AnimationRecord* record;
     const u8*              poseBytes;
     u16                    nextRecordIndex;
     u16                    previousRecordIndex;
@@ -2317,12 +2316,50 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     u16                    segmentDuration;
     s16                    remainingTime;
     s32                    poseEncoding;
-    u16                    decrementedTime;
+    u16                    timeLeftMinusOne;
 
-    slot  = &context->slots[slotIndex];
-    coord = &context->coords[slot->coordIndex];
-    SCRATCH_STACK_RESERVE_BLOCK(_AnimationTickScratch);
-    scratch     = SCRATCH_STACK_CURSOR(_AnimationTickScratch);
+    /// Resolves a forward control chain to this tick's next keyframe or retained endpoint.
+    ///
+    /// `playbackSlot` is a live writable `AnimationSlot*`; `recordArray` is its
+    /// next set's borrowed `const AnimationRecord*`. `candidateIndex` is a
+    /// writable `u16` absolute element index, separate from the slot and records.
+    /// All visited indices and the slot's prior next index must fit that array;
+    /// no length is available here. The control chain must reach a keyframe or stop.
+    /// Jumps replace the index and add `ANIMATION_SLOT_FOLLOWED_JUMP`; a jump to
+    /// the prior next index also adds `ANIMATION_SLOT_REACHED_BOUNDARY`. Stops
+    /// restore that prior index, add the boundary flag and ignore their offset.
+    /// The endpoint itself is left for the caller to install; flags accumulate.
+    ///
+    /// Arguments are evaluated repeatedly: pointer values and the index lvalue
+    /// must stay stable, have no side effects and not refer to `controlRecord`,
+    /// the block-local temporary. Only the candidate index and slot flags change;
+    /// the internal break leaves only the control walk. The signed-byte cast tests
+    /// the control bit; the stop threshold compares the original unsigned flags.
+    /// Negating the `u16` index in `s32` is representable and preserves the matching
+    /// address-add operand order without converting a pointer to an integer.
+#define ANIMATION_RESOLVE_TICK_NEXT_RECORD(playbackSlot, recordArray, candidateIndex)   \
+    do {                                                                                \
+        const AnimationRecord* controlRecord;                                           \
+                                                                                        \
+        while ((s8)(recordArray)[(candidateIndex)].flags < 0) {                         \
+            controlRecord = (recordArray) - -(s32)(candidateIndex);                     \
+            if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {                \
+                (candidateIndex) = controlRecord->wordOffset;                           \
+                if ((candidateIndex) == (playbackSlot)->nextPose.indices.recordIndex) { \
+                    (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;           \
+                }                                                                       \
+                (playbackSlot)->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;                  \
+            } else {                                                                    \
+                (candidateIndex)       = (playbackSlot)->nextPose.indices.recordIndex;  \
+                (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;               \
+                break;                                                                  \
+            }                                                                           \
+        }                                                                               \
+    } while (0)
+
+    slot        = &context->slots[slotIndex];
+    coord       = &context->coords[slot->coordIndex];
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(_AnimationTickScratch);
     slot->flags = 0;
     // A latched hold whose endpoints still agree reports only the hold and does not step time.
     if (slot->atEnd == 1) {
@@ -2333,8 +2370,9 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
         }
     } else {
         if (gGameSession->deathVariant != 0) {
-            decrementedTime = slot->timeLeft - 1;
-            slot->timeLeft  = decrementedTime - ((slot->rate - 1) >> 1);
+            // Keep the halfword truncation before the signed half-rate subtraction.
+            timeLeftMinusOne = slot->timeLeft - 1;
+            slot->timeLeft   = timeLeftMinusOne - ((slot->rate - 1) >> 1);
         } else {
             slot->timeLeft -= slot->rate;
         }
@@ -2349,20 +2387,8 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             nextRecordIndex       = slot->nextPose.indices.recordIndex + 1;
             nextSetIndex          = slot->nextPose.indices.setIndex;
             records               = slot->sets[nextSetIndex]->records;
-            while ((s8)records[nextRecordIndex].flags < 0) {
-                record = records - -(s32)nextRecordIndex;
-                if (record->flags < ANIMATION_RECORD_END_THRESHOLD) {
-                    nextRecordIndex = record->wordOffset;
-                    if (nextRecordIndex == slot->nextPose.indices.recordIndex) {
-                        slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
-                    }
-                    slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
-                } else {
-                    nextRecordIndex = slot->nextPose.indices.recordIndex;
-                    slot->flags    |= ANIMATION_SLOT_REACHED_BOUNDARY;
-                    break;
-                }
-            }
+            ANIMATION_RESOLVE_TICK_NEXT_RECORD(slot, records, nextRecordIndex);
+#undef ANIMATION_RESOLVE_TICK_NEXT_RECORD
             slot->nextPose.indices.setIndex    = nextSetIndex;
             slot->nextPose.indices.recordIndex = nextRecordIndex;
             records                            = slot->sets[slot->nextPose.indices.setIndex]->records;
@@ -2378,6 +2404,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             slot->atEnd = 0;
         }
     } else if (slot->timeSpan < remainingTime) {
+        // Reverse traversal uses physical predecessor records, without following controls.
         slot->field_A = 0;
         while (slot->timeLeft > slot->timeSpan) {
             slot->timeLeft     -= slot->timeSpan;
@@ -3022,7 +3049,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     GpAreaVariant* variants;
     GpAreaObj*     areaState;
     AreaPlacement* placement;
-    GpAreaTmdRec*  resource;
+    AreaResource*  resource;
     Enemy*         enemy;
     Task*          task;
     TmdObject*     model;
@@ -3053,7 +3080,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     // Match each placement with the resource entry that defines its actor.
     do {
         resource   = variants[location->variant].field_4;
-        resourceId = resource->field_0;
+        resourceId = resource->entryId;
         if (resourceId != AREA_PLACEMENT_END) {
             do {
                 if (resourceId == placement->entryId) {
@@ -3074,7 +3101,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                             break;
                         }
                     }
-                    enemy = Gp_SpawnEnemyFromTable(resource->field_8, resource->field_5,
+                    enemy = Gp_SpawnEnemyFromTable(resource->taskTable, resource->taskIndex,
                                                    (placement->variant << 16) | placement->mode, NULL);
                     if (enemy != NULL) {
                         u16 placementKey;
@@ -3132,7 +3159,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                     break;
                 }
                 resource++;
-                resourceId = resource->field_0;
+                resourceId = resource->entryId;
             } while (resourceId != AREA_PLACEMENT_END);
         }
         placementIndex++;
@@ -3361,8 +3388,8 @@ void Gp_ApplyAreaTmdFlags(void)
     GameLocationKey* key;
     GpAreaRec*       rec;
     GpAreaVariant*   nested;
-    GpAreaTmdRec*    table;
-    GpAreaTmdRec*    entry;
+    AreaResource*    table;
+    AreaResource*    entry;
     GpWorkObj*       work;
     AreaPlacement*   place;
     TmdObject*       extra;
@@ -3390,21 +3417,21 @@ void Gp_ApplyAreaTmdFlags(void)
                     }
                 }
                 entry = table;
-                id    = entry->field_0;
+                id    = entry->entryId;
                 if (id != AREA_PLACEMENT_END) {
                     limit = AREA_PLACEMENT_END;
                     do {
                         if (id == place->entryId) {
-                            flags = entry->field_8->header.fields.flags;
+                            flags = entry->taskTable->header.fields.flags;
                             if (flags == TASK_BODY_TMD) {
                                 extra->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                            } else if (flags == (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER)) {
+                            } else if (flags == (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER)) {
                                 extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             }
                             break;
                         }
                         entry++;
-                        id = entry->field_0;
+                        id = entry->entryId;
                     } while (id != limit);
                 }
             }
@@ -3422,7 +3449,7 @@ void Gp_ReparentCoord(GfxCoord* arg0, GfxCoord* arg1)
         Gp_UpdateCoord(arg0);
         Gp_UpdateCoord(dest);
         dest->parent = arg0;
-        Gp_WorldToLocal(&arg0->workm, &dest->workm, &dest->coord);
+        gfxMakeRelativeTransform(&arg0->workm, &dest->workm, &dest->coord);
         dest->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
@@ -3597,11 +3624,11 @@ void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
     }
 }
 
-static GpAreaTmdRec* Gp_GetNestedAreaObj(GameLocationKey* key)
+static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key)
 {
     GpAreaRec*     areaRecords;
     GpAreaVariant* variants;
-    GpAreaTmdRec*  resources;
+    AreaResource*  resources;
 
     areaRecords = Gp_AreaTables[key->stage];
     resources   = NULL;
@@ -3989,7 +4016,7 @@ GpSlot4MessageEntry Gp_Slot4MsgTable[5] = {
     { 2008, { .find = Gp_FindChildExceptType9 } },
     { 2009, { .exit = Gp_ExitChildrenType9 } },
     { 2010, { .send = Gp_SendMsgType9 } },
-    { 0x7FFFFFFF, { .exit = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .exit = NULL } },
 };
 GpBit2Bank Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, GameFlag_AcropolisBanks[0].header.entryStates }, { D_map_dryfield_8017A564, GameFlag_DryfieldBanks[0].header.entryStates }, { D_map_dryfield_full_8017A46C, GameFlag_DryfieldBanks[0].header.entryStates }, { D_map_shelter_8017A998, GameFlag_ShelterBanks[0].header.entryStates }, { D_map_neo_ark_8017A6EC, GameFlag_NeoArkBanks[0].header.entryStates } };
 

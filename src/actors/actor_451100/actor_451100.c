@@ -895,7 +895,7 @@ Actor451100MsgEntry D_actor_451100_8013F704[6] = {
     { 2004, { .call3 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_451100_8013268C } },
     { 2013, { .call5 = footstepWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_451100_8013F734 = { { { TASK_BODY_TMD, 192 } }, func_actor_451100_801322D4, { .model = &D_actor_451100_8013B964 } };
@@ -1362,12 +1362,12 @@ Actor451100MsgEntry D_actor_451100_8014E6B4[6] = {
     { 2004, { .call3 = pairWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_451100_80132FE0 } },
     { 2013, { .call4 = func_actor_451100_80132FE8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_451100_8014E6E4[2] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_451100_80132BD4, { .model = &D_actor_451100_80146060 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_451100_801330B0, { .model = &D_actor_451100_80146318 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_451100_801330B0, { .model = &D_actor_451100_80146318 } },
 };
 
 u8 D_actor_451100_8014E6FC[72] = {
@@ -1603,7 +1603,7 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
 /// State 0 of the `func_actor_451100_80132BD4` dispatcher: allocates the
 /// actor's 0x4C0-byte `Actor150400Work` block and hangs it off the task, spawns
 /// entry 1 of `D_actor_451100_8014E6E4` (the sub-model task
-/// `func_actor_451100_801330B0`), hands it to `Task_Reparent` with this task
+/// `func_actor_451100_801330B0`), hands it to `taskReparent` with this task
 /// and keeps it in `pairTask`, then seeds the animation and runs the step
 /// routine once.
 ///
@@ -1640,7 +1640,7 @@ static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
     spawned                          = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
-    Task_Reparent(task, spawned->task);
+    taskReparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;
     obj->colorMtx  = &work->color;

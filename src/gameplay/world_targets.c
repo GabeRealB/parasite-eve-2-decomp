@@ -695,7 +695,7 @@ void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out)
     SCRATCH_STACK_CURSOR(void) = head - 0x28;
     Gp_UpdateCoord(coord);
     mat = (MATRIX*)(head - 0x20);
-    Gp_WorldToLocal(&world->workm, &coord->workm, mat);
+    gfxMakeRelativeTransform(&world->workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     gte_SetTransMatrix(mat);
     gte_ldlvl(&GP_NODE_ENEMY(arg0)->bodyPos);

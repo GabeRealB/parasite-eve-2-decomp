@@ -1506,7 +1506,7 @@ void Gp_EffSprTask81(Task* arg0)
     gte_SetRotMatrix(&parent->workm);
     gte_SetTransMatrix(&parent->workm);
     world = &gGfxViewCoord.workm;
-    Gp_WorldToLocal(world, &coord->workm, &coord->coord);
+    gfxMakeRelativeTransform(world, &coord->workm, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
 
@@ -2944,7 +2944,7 @@ continue_fx:
             for (i = 0; i < 0x555; i += 0x2AA) {
                 spawned = Gp_SpawnEff(0x600C1, coord, i, 0);
                 if (spawned != NULL) {
-                    Task_Reparent(arg0, spawned->task);
+                    taskReparent(arg0, spawned->task);
                 }
             }
             temp = (s8)worldCoordGetOriginAudioPan(coord);
@@ -5507,7 +5507,7 @@ Task* Gp_SpawnWeaponEff(void)
 
 do_success:
     actor->weaponEffectTask = eff->task;
-    Task_Reparent(work, eff->task);
+    taskReparent(work, eff->task);
     func_80106350(work, gPlayerStatus.weapon, 0);
     goto join_50;
 
@@ -5876,7 +5876,7 @@ void Gp_PlaceCoordOffset(GfxCoord* arg0, GfxCoord* arg1, SVECTOR* arg2)
     gte_rtv0tr();
     gte_stlvnl(arg1->workm.t);
     world = &gGfxViewCoord.workm;
-    Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
+    gfxMakeRelativeTransform(world, &arg1->workm, &arg1->coord);
     arg1->parent       = PARENT_OF(world, GfxCoord, workm);
     arg1->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1);

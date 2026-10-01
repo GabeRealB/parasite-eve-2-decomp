@@ -549,14 +549,14 @@ WorldCoordRoomLights D_dryfield_night_motel_room_4_801802A8[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_room_4_801800BC), D_dryfield_night_motel_room_4_801800BC, ARRAY_SIZE(D_dryfield_night_motel_room_4_8018023C), D_dryfield_night_motel_room_4_8018023C },
 };
 
-GpAreaTmdRec D_dryfield_night_motel_room_4_801802C0[2] = {
-    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+AreaResource D_dryfield_night_motel_room_4_801802C0[2] = {
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155AC4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_motel_room_4_801802D8[3] = {
-    { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
-    { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
+AreaResource D_dryfield_night_motel_room_4_801802D8[3] = {
+    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801393C8 },
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80156500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

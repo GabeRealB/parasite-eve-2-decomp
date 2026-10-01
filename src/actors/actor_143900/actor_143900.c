@@ -705,7 +705,7 @@ Actor143900MsgEntry D_actor_143900_801413BC[6] = {
     { 2004, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_143900_80132778 } },
     { 2013, { .call3 = scriptedWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_143900_801413EC = { { { TASK_BODY_TMD, 192 } }, func_actor_143900_80132324, { .model = &D_actor_143900_80139800 } };
@@ -1117,7 +1117,7 @@ Actor143900MsgEntry D_actor_143900_80149634[6] = {
     { 2004, { .call2 = func_actor_143900_801332E4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_143900_80133360 } },
     { 2013, { .call3 = func_actor_143900_801333C4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_143900_80149664[3] = {

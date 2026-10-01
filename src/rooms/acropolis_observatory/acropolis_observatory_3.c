@@ -229,33 +229,33 @@ WorldCollisionTrigger D_acropolis_observatory_80180D6C[9] = {
     { NULL, NULL, NULL, { -4864, -3104, -3584, 0 }, { { -1664, 0, 560, 0 }, { 1664, 0, -1072, 0 }, { -1664, 0, 1072, 0 }, { 1664, 0, -560, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1978, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_observatory_80181018[2] = {
-    { 19, 19, 2, 0, { 0, 0 }, D_80179120 },
+AreaResource D_acropolis_observatory_80181018[2] = {
+    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80179120 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_observatory_80181030[2] = {
-    { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
+AreaResource D_acropolis_observatory_80181030[2] = {
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_observatory_80181048[2] = {
-    { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
+AreaResource D_acropolis_observatory_80181048[2] = {
+    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80139DAC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_observatory_80181060[2] = {
-    { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
+AreaResource D_acropolis_observatory_80181060[2] = {
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_observatory_80181078[2] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+AreaResource D_acropolis_observatory_80181078[2] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_observatory_80181090[2] = {
-    { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
+AreaResource D_acropolis_observatory_80181090[2] = {
+    { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155004 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -264,8 +264,8 @@ AreaPlacement D_acropolis_observatory_801810A8[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_acropolis_observatory_801810C8[2] = {
-    { 12, 12, 0, 0, { 0, 0 }, D_80138E98 },
+AreaResource D_acropolis_observatory_801810C8[2] = {
+    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80138E98 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -284,8 +284,8 @@ AreaPlacement D_acropolis_observatory_80181100[7] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_acropolis_observatory_80181170[2] = {
-    { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
+AreaResource D_acropolis_observatory_80181170[2] = {
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013E500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -295,7 +295,7 @@ AreaPlacement D_acropolis_observatory_80181188[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_acropolis_observatory_801811B8[1] = {
+AreaResource D_acropolis_observatory_801811B8[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -305,8 +305,8 @@ AreaPlacement D_acropolis_observatory_801811C4[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_acropolis_observatory_801811F4[2] = {
-    { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
+AreaResource D_acropolis_observatory_801811F4[2] = {
+    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80155AC4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -315,8 +315,8 @@ AreaPlacement D_acropolis_observatory_8018120C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpAreaTmdRec D_acropolis_observatory_8018122C[2] = {
-    { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
+AreaResource D_acropolis_observatory_8018122C[2] = {
+    { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80149120 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

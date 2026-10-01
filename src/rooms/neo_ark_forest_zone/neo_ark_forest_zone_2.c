@@ -385,41 +385,41 @@ WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6] = {
     { NULL, NULL, NULL, { -4176, -2657, 110, 0 }, { { 192, -3056, 3755, 0 }, { -200, -3056, -3764, 0 }, { 192, 3057, 3755, 0 }, { -200, 3057, -3764, 0 } }, { -4098, 0, 213, 0 }, { 0, 0, 4096, 0 }, 4830, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_forest_zone_8018287C[3] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 10, 561, 2, 0, { 0, 0 }, D_80173294 },
+AreaResource D_neo_ark_forest_zone_8018287C[3] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
+    { 10, 561, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80173294 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_forest_zone_801828A0[2] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+AreaResource D_neo_ark_forest_zone_801828A0[2] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_forest_zone_801828B8[2] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+AreaResource D_neo_ark_forest_zone_801828B8[2] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_forest_zone_801828D0[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_forest_zone_801828D0[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_forest_zone_801828E8[3] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 20, 20, 2, 0, { 0, 0 }, D_80177DF0 },
+AreaResource D_neo_ark_forest_zone_801828E8[3] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80177DF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_forest_zone_8018290C[3] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 56, 56, 1, 0, { 0, 0 }, D_801602C0 },
+AreaResource D_neo_ark_forest_zone_8018290C[3] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801602C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_forest_zone_80182930[2] = {
-    { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
+AreaResource D_neo_ark_forest_zone_80182930[2] = {
+    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80158A18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -550,7 +550,7 @@ NeoArkForestZone2MsgEntry gRoamerMsgTableA[4] = {
     { 5103, { .call0 = roamerLatchRequest } },
     { 5108, { .call2 = roamerBankRetreat } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_forest_zone_801813BC } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 NeoArkForestZoneSpawnPos gRoamerSpawnPointsA[7] = {

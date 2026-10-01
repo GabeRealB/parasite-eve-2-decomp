@@ -1292,10 +1292,10 @@ AnimationSet Actor01600_D1277C = {
 Actor01600RecoveredMsgEntry Actor01600_D127A4[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = Actor01600_Fn05B08 } },
     { 2014, { .call0 = Actor01600_Fn07100 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
-TaskDesc Actor01600_D127BC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor01600_Fn066E8, { .model = &Actor01600_D08F74 } };
+TaskDesc Actor01600_D127BC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor01600_Fn066E8, { .model = &Actor01600_D08F74 } };
 
 AnimationSet* Actor01600_D127C8[4] = {
     NULL,

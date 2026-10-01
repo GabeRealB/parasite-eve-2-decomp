@@ -1368,7 +1368,7 @@ Actor160700MessageEntry D_actor_160700_80141678[6] = {
     { 2004, { .call2 = pacedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_160700_80132738 } },
     { 2013, { .call2 = pacedWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_160700_801416A8[2] = {
@@ -1552,7 +1552,7 @@ static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
     work->enemy                      = enemy;
     spawned                          = Gp_SpawnEnemyFromTable(D_actor_160700_801416A8, 1, 0, enemy);
     actorTintModel(spawned->task->extra.tmd, enemy);
-    Task_Reparent(task, spawned->task);
+    taskReparent(task, spawned->task);
     work->pairTask  = spawned->task;
     work->st.animId = 1;
     obj->lightMtx   = &work->light;

@@ -2,31 +2,31 @@
 
 /* Part of the fireball library; see fireball.h. */
 
-/// Lights `Gp_RoomCoords[2]` at `coord` with a randomly flickering
+/// Lights `gWorldCoordTransientPointLights[2]` at `coord` with a randomly flickering
 /// intensity, projects `coord` and draws two `POLY_FT4` glow billboards around
 /// it, the outer one half again as large as `size`; when
 /// `gRoomEffectState->groundTraceEnabled` is set, traces the ground below and draws the
 /// ground quad there at twice the outer size.
 void fireballDrawGlow(GfxCoord* coord, s16 size)
 {
-    GfxCoord              ground;
-    POLY_FT4*             prim;
-    s16                   intensity;
-    s16                   outerLeft;
-    s16                   outerRight;
-    s16                   outerTop;
-    s16                   outerBottom;
-    s16                   left;
-    s16                   right;
-    s16                   top;
-    s16                   bottom;
-    s32                   outerSize;
-    u32                   random;
-    GpCoord64*            slot;
-    WorldCoordPointLight* light;
-    GpRingScratch*        sc;
+    GfxCoord                       ground;
+    POLY_FT4*                      prim;
+    s16                            intensity;
+    s16                            outerLeft;
+    s16                            outerRight;
+    s16                            outerTop;
+    s16                            outerBottom;
+    s16                            left;
+    s16                            right;
+    s16                            top;
+    s16                            bottom;
+    s32                            outerSize;
+    u32                            random;
+    WorldCoordTransientPointLight* slot;
+    WorldCoordPointLight*          light;
+    GpRingScratch*                 sc;
 
-    slot                                          = &Gp_RoomCoords[2];
+    slot                                          = &gWorldCoordTransientPointLights[2];
     slot->framesLeft                              = 2;
     light                                         = &slot->light;
     light->inner                                  = 0x300;

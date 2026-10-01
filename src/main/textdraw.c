@@ -466,9 +466,23 @@ static void _textDrawGlyphTranslucentOutlined(TextDrawReq* request, const _FontG
 {
     /// GPU CLUT selectors for the palettes in the final VRAM row.
     enum {
-        /// Fill palette at word X=976, Y=511; nonzero colors permit blending.
+        /// GPU CLUT selector for the color-modulated fill of translucent outlined UI text.
+        ///
+        /// Encodes VRAM word X=976, row Y=511 as 0x7FFD for `SPRT::clut`.
+        /// The first 16-color palette uploaded there by `Text_LoadClutImages`
+        /// must be resident: indices 0..10 are transparent, and 11..15 are
+        /// increasing gray with the semi-transparency bit set. The fill sprite
+        /// modulates those colors by RGB and enables blending; its ordering-table
+        /// entry must select additive texture-page blending before the fill draws.
         TEXT_TRANSLUCENT_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
-        /// Alternate outline palette at word X=992, Y=511, used without RGB modulation.
+        /// GPU CLUT selector for the subtractive outline of translucent UI text.
+        ///
+        /// Encodes VRAM word X=992, row Y=511 as 0x7FFE for `SPRT::clut`.
+        /// The middle 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// resident: indices 0..10 are transparent, and 11..15 contain RGB5
+        /// grays 2, 4, 6, 16 and 31 with the semi-transparency bit set.
+        /// The raw-texture sprite ignores RGB modulation and requires subtractive
+        /// page blending to darken the background before the additive fill draws.
         TEXT_TRANSLUCENT_GLYPH_OUTLINE_CLUT = getClut(0x3E0, 0x1FF),
     };
 

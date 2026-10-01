@@ -534,15 +534,15 @@ WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-GpAreaTmdRec D_shelter_1f_heliport_80182BAC[3] = {
-    { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
-    { 115, 605, 1, 0, { 0, 0 }, D_80159DB0 },
+AreaResource D_shelter_1f_heliport_80182BAC[3] = {
+    { 116, 615, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801401B0 },
+    { 115, 605, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80159DB0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_1f_heliport_80182BD0[3] = {
-    { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
-    { 144, 604, 1, 0, { 0, 0 }, D_80154C18 },
+AreaResource D_shelter_1f_heliport_80182BD0[3] = {
+    { 116, 615, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801401B0 },
+    { 144, 604, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80154C18 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

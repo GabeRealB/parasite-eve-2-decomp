@@ -1035,36 +1035,36 @@ WorldCollisionTrigger D_shelter_b2_septic_tank_80186C1C[4] = {
     { NULL, NULL, NULL, { 0, -64, -6080, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b2_septic_tank_80186D4C[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_shelter_b2_septic_tank_80186D4C[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_septic_tank_80186D64[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_shelter_b2_septic_tank_80186D64[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_septic_tank_80186D7C[3] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_shelter_b2_septic_tank_80186D7C[3] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_septic_tank_80186DA0[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_shelter_b2_septic_tank_80186DA0[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_septic_tank_80186DB8[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 4, 4, 1, 0, { 0, 0 }, D_8015FE48 },
+AreaResource D_shelter_b2_septic_tank_80186DB8[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FE48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_septic_tank_80186DDC[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 20, 20, 1, 0, { 0, 0 }, D_8015FDF0 },
+AreaResource D_shelter_b2_septic_tank_80186DDC[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FDF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

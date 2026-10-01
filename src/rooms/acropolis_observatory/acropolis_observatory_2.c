@@ -730,7 +730,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                 work->script                  = Gp_SpawnScript18(D_acropolis_observatory_80183480,
                                                                  D_acropolis_observatory_80183498);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                Task_Reparent(task, work->script);
+                taskReparent(task, work->script);
                 task->state = task->state + 1;
             }
             break;
@@ -840,7 +840,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                 work->script                  = Gp_SpawnScript18(D_acropolis_observatory_801834A0,
                                                                  D_acropolis_observatory_801834B8);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                Task_Reparent(task, work->script);
+                taskReparent(task, work->script);
                 task->state = task->state + 1;
             }
             break;

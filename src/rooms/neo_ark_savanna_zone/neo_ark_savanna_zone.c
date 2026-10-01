@@ -304,38 +304,38 @@ WorldCollisionTrigger D_neo_ark_savanna_zone_8018061C[5] = {
     { NULL, NULL, NULL, { 6976, -64, 2720, 0 }, { { -6992, 0, -432, 0 }, { 6992, 0, -432, 0 }, { -6992, 0, 432, 0 }, { 6992, 0, 432, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 7001, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_savanna_zone_80180798[3] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
+AreaResource D_neo_ark_savanna_zone_80180798[3] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801679A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_savanna_zone_801807BC[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_savanna_zone_801807BC[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_savanna_zone_801807D4[3] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 26, 26, 2, 0, { 0, 0 }, D_8016A8D4 },
+AreaResource D_neo_ark_savanna_zone_801807D4[3] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016A8D4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_savanna_zone_801807F8[3] = {
-    { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
+AreaResource D_neo_ark_savanna_zone_801807F8[3] = {
+    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_8014D8A4 },
+    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801679A8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_savanna_zone_8018081C[3] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 56, 56, 1, 0, { 0, 0 }, D_801602C0 },
+AreaResource D_neo_ark_savanna_zone_8018081C[3] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801602C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_savanna_zone_80180840[3] = {
-    { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
-    { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
+AreaResource D_neo_ark_savanna_zone_80180840[3] = {
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801482C0 },
+    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_801611F8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

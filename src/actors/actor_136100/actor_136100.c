@@ -1196,10 +1196,10 @@ EvsCommand D_actor_136100_8014063C[11] = {
 };
 
 TaskDesc D_actor_136100_80140744[6] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_136100_80133BC8, { .model = &D_actor_136100_8013A500 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_136100_80133BC8, { .model = &D_actor_136100_8013A500 } },
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_136100_801320E0, { .model = &D_actor_136100_8013A9D8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_136100_80132284, { .model = &D_actor_136100_8013AFCC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_136100_801320E0, { .model = &D_actor_136100_8013A9D8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_136100_80132284, { .model = &D_actor_136100_8013AFCC } },
     { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_136100_80134588, { .value = 0 } },
 };
@@ -1338,7 +1338,7 @@ void func_actor_136100_801320E0(Task* task)
             tmd->lightMtx  = &work->field_474;
             tmd->colorMtx  = &work->field_494;
             task->msgTable = D_actor_136100_8013F2F4;
-            Task_Reparent(D_actor_136100_8014078C, task);
+            taskReparent(D_actor_136100_8014078C, task);
         }
         place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
         id    = place->entryId;
@@ -1384,7 +1384,7 @@ void func_actor_136100_80132284(Task* arg0)
             tmd->lightMtx  = &work->field_474;
             tmd->colorMtx  = &work->field_494;
             arg0->msgTable = D_actor_136100_8013F2F4;
-            Task_Reparent(D_actor_136100_8014078C, arg0);
+            taskReparent(D_actor_136100_8014078C, arg0);
         }
         arg0->state += 1;
         if (arg0->spawnArg1.value != 0) {

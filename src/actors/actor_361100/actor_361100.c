@@ -783,14 +783,14 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_361100_8016BAD0,
 };
 
-TaskDesc D_actor_361100_8016BAE4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_361100_80162CBC, { .model = &D_actor_361100_8016B2B8 } };
+TaskDesc D_actor_361100_8016BAE4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_361100_80162CBC, { .model = &D_actor_361100_8016B2B8 } };
 
 Actor361100MsgEntry D_actor_361100_8016BAF0[5] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call2 = func_actor_361100_80162F58 } },
     { 2005, { .call3 = func_actor_361100_80162FF4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_801630D4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TmdBone D_actor_361100_8016BB18[19] = {
@@ -925,14 +925,14 @@ AnimationSet** D_actor_361100_80171BA8[1] = {
     D_actor_361100_80171B94,
 };
 
-TaskDesc D_actor_361100_80171BAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_361100_801633A4, { .model = &D_actor_361100_801712CC } };
+TaskDesc D_actor_361100_80171BAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_361100_801633A4, { .model = &D_actor_361100_801712CC } };
 
 Actor361100MessageEntry D_actor_361100_80171BB8[5] = {
     { 2003, { .call0 = func_actor_361100_801634D0 } },
     { 2004, { .call2 = actorMsgPlaceEuler } },
     { 2005, { .call3 = func_actor_361100_80163670 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_80163750 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 Task* D_actor_361100_80171BE0;

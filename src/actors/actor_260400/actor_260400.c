@@ -888,7 +888,7 @@ Actor260400MessageEntry D_actor_260400_80154BE8[6] = {
     { 2004, { .call2 = scriptedWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260400_8014AAA4 } },
     { 2013, { .call3 = scriptedWalkTo } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_260400_80154C18[2] = {

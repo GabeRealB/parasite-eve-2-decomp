@@ -49,29 +49,29 @@ extern GpAreaApplyRec D_neo_ark_garden_80182BF8[];
 extern s32 D_801334EC;
 extern s32 D_80133954;
 
-extern GpAreaTmdRec D_neo_ark_garden_80182AE8[2];
-extern GpAreaTmdRec D_neo_ark_garden_80182B00[2];
-extern GpAreaTmdRec D_neo_ark_garden_80182B18[3];
-extern GpAreaTmdRec D_neo_ark_garden_80182B3C[2];
+extern AreaResource D_neo_ark_garden_80182AE8[2];
+extern AreaResource D_neo_ark_garden_80182B00[2];
+extern AreaResource D_neo_ark_garden_80182B18[3];
+extern AreaResource D_neo_ark_garden_80182B3C[2];
 
-GpAreaTmdRec D_neo_ark_garden_80182AE8[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_garden_80182AE8[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_garden_80182B00[2] = {
-    { 132, 510, 0, 0, { 0, 0 }, D_8013D2E0 },
+AreaResource D_neo_ark_garden_80182B00[2] = {
+    { 132, 510, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013D2E0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_garden_80182B18[3] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
+AreaResource D_neo_ark_garden_80182B18[3] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015F400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_garden_80182B3C[2] = {
-    { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
+AreaResource D_neo_ark_garden_80182B3C[2] = {
+    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013647C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

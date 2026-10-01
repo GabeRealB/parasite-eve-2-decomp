@@ -1295,10 +1295,10 @@ EvsCommand D_actor_120300_80141A34[13] = {
 };
 
 TaskDesc D_actor_120300_80141B6C[5] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_120300_801337C4, { .model = &D_actor_120300_80139A04 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_801337C4, { .model = &D_actor_120300_80139A04 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_120300_80133F14, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_120300_80132004, { .model = &D_actor_120300_80139EDC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_120300_801321C8, { .model = &D_actor_120300_8013A4D0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_80132004, { .model = &D_actor_120300_80139EDC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_801321C8, { .model = &D_actor_120300_8013A4D0 } },
     { { { TASK_BODY_NONE, 192 } }, screenFadeOutTask, { .value = 0 } },
 };
 
@@ -2012,8 +2012,8 @@ static void func_actor_120300_801335D8(Task* task)
     work->field_4BC = Task_SpawnFromTable(D_actor_120300_80141B6C, 3, 0, task);
     task->msgTable  = D_actor_120300_80140A44;
     work->field_4E0 = 0x1000;
-    Task_Reparent(task, work->field_4B8);
-    Task_Reparent(task, work->field_4BC);
+    taskReparent(task, work->field_4B8);
+    taskReparent(task, work->field_4BC);
 }
 
 /// Main tick of the cutscene actor. State 0 waits until no other cutscene is

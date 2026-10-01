@@ -6,7 +6,7 @@
 // same here as it does in main/ or gameplay/.
 
 // --- from main (20 symbols)
-Task_Reparent = 0x8002D14C; // absolute:True
+taskReparent = 0x8002D14C; // absolute:True
 gameGetTaskSlot = 0x8002D22C; // absolute:True
 memCalloc = 0x8002D978; // absolute:True
 gfxRotMatrixY = 0x8003C98C; // absolute:True
@@ -48,7 +48,7 @@ Gp_DrawBandEx = 0x800EBF18; // absolute:True
 effectKillTask = 0x800EC7E4; // absolute:True
 gpuSetPrimitiveBlendMode = 0x800EC914; // absolute:True
 Gp_StateC08 = 0x80114C08; // absolute:True
-Gp_RoomCoords = 0x80114F30; // absolute:True
+gWorldCoordTransientPointLights = 0x80114F30; // absolute:True
 gSceneCombatState = 0x801153F0; // absolute:True
 gRoomEffectState = 0x80115740; // absolute:True
 

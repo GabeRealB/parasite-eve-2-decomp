@@ -257,7 +257,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimGt4PreXformSemiTrans;
                     break;
                 case 0x4039:
-                    handler = gpDrawStreamPrimGt3PreXformFixedLayer;
+                    handler = tmdDrawStreamPrimGt3PreXformEnvLayer;
                     if (flag != 0) {
                         handler = gpDrawStreamPrimGt3PreXformOffsetLayer;
                     }

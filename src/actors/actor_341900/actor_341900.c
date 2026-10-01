@@ -429,14 +429,14 @@ EvsCommand D_actor_341900_80163FB0[20] = {
 TaskDesc D_actor_341900_80164190[10] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_341900_80162EFC, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_341900_80163148, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_80162708, { .model = &D_actor_444000_80146F68 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014BE0C } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014A650 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_80147D10 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_80148E94 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014D5FC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_80162200, { .model = &D_actor_444000_8014FE00 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_80162200, { .model = &D_actor_444000_80150170 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_80162708, { .model = &D_actor_444000_80146F68 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014BE0C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014A650 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_80147D10 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_80148E94 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014D5FC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_80162200, { .model = &D_actor_444000_8014FE00 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_80162200, { .model = &D_actor_444000_80150170 } },
 };
 
 Task* D_actor_341900_80164208;
@@ -556,7 +556,7 @@ void func_actor_341900_80162200(Task* arg0)
             extra->colorMtx                 = &mtx->color;
             extra->otOffset                 = 0x1F;
             arg0->msgTable                  = D_actor_341900_80163A38;
-            Task_Reparent(mtx->field_40, arg0);
+            taskReparent(mtx->field_40, arg0);
         }
         arg0->state++;
     }
@@ -634,7 +634,7 @@ static void func_actor_341900_80162330(Task* arg0)
             }
             break;
     }
-    Task_Reparent(w->field_248, arg0);
+    taskReparent(w->field_248, arg0);
 }
 
 /// Attaches the actor to the bone its spawn record names, copies that record's
@@ -695,14 +695,14 @@ void func_actor_341900_80162708(Task* arg0)
             if (work->field_254 == arg0->state) {
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x12) && (work->field_230 != frame)) {
-                    Task_Reparent(arg0,
-                                  Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+                    taskReparent(arg0,
+                                 Gp_SpawnScript18(&D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
                 frame = work->field_66 & 0x3FF;
                 if ((frame == 0x18) && (work->field_230 != frame)) {
-                    Task_Reparent(arg0,
-                                  Gp_SpawnScript18(&D_80144A74, D_80144A7C));
+                    taskReparent(arg0,
+                                 Gp_SpawnScript18(&D_80144A74, D_80144A7C));
                     func_80143490(3);
                 }
                 work->field_230 = work->field_66 & 0x3FF;

@@ -37,7 +37,7 @@ void Gp_EnemyTaskExit(Task* task);
 /// adding `arg2` in that space. If `arg1->parent` is world (`gGfxViewCoord`),
 /// copies `coord` and transforms in place; otherwise computes `workm`
 /// via `Gp_UpdateCoord`, transforms there, and converts to local with
-/// `Gp_WorldToLocal`. Always parents the dest to world and clears `composeStamp`.
+/// `gfxMakeRelativeTransform`. Always parents the dest to world and clears `composeStamp`.
 /// Returns `arg0` (or NULL).
 Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2);
 

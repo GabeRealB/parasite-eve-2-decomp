@@ -1247,7 +1247,7 @@ Actor401300MessageEntry D_actor_401300_80158988[8] = {
     { 2004, { .call3 = func_actor_401300_80141614 } },
     { 2014, { .call0 = actorMsgReleaseHold } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_401300_80132554 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 ActorHeightClamp D_actor_401300_801589C8[3] = {

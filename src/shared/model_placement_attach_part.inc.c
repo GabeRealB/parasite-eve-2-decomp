@@ -23,6 +23,6 @@ void modelPlacementAttachPart(Task* task)
     coord->parent       = dest;
     extra->lightMtx     = parentExtra->lightMtx;
     extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     task->state += 1;
 }

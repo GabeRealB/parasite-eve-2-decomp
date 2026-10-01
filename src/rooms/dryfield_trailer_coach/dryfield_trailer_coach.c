@@ -839,8 +839,8 @@ WorldCollisionGrid D_dryfield_trailer_coach_801876B4[1] = {
     { NULL, D_dryfield_trailer_coach_8018725C, D_dryfield_trailer_coach_801872AC, D_dryfield_trailer_coach_801874B4, D_dryfield_trailer_coach_801876A8, 200, 3450, 3, 1, 4000, 32 },
 };
 
-GpAreaTmdRec D_dryfield_trailer_coach_801876D8[2] = {
-    { 106, 207, 3, 0, { 0, 0 }, D_8013EF68 },
+AreaResource D_dryfield_trailer_coach_801876D8[2] = {
+    { 106, 207, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_8013EF68 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

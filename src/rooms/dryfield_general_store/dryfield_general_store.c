@@ -1478,14 +1478,14 @@ WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17] = {
     { .color = { 16, 0, 0, 6 } },
 };
 
-GpAreaTmdRec D_dryfield_general_store_80185588[2] = {
-    { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
+AreaResource D_dryfield_general_store_80185588[2] = {
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013E500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_general_store_801855A0[3] = {
-    { 140, 236, 1, 0, { 0, 0 }, D_80150B48 },
-    { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
+AreaResource D_dryfield_general_store_801855A0[3] = {
+    { 140, 236, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80150B48 },
+    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013E500 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

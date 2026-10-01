@@ -618,28 +618,28 @@ WorldCoordRoomLights D_dryfield_night_underpass_8018024C[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_night_underpass_8018000C), D_dryfield_night_underpass_8018000C, 0, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_underpass_80180264[2] = {
-    { 5, 5, 3, 0, { 0, 0 }, D_80153D60 },
+AreaResource D_dryfield_night_underpass_80180264[2] = {
+    { 5, 5, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80153D60 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_underpass_8018027C[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_dryfield_night_underpass_8018027C[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_underpass_80180294[2] = {
-    { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
+AreaResource D_dryfield_night_underpass_80180294[2] = {
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_underpass_801802AC[2] = {
-    { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
+AreaResource D_dryfield_night_underpass_801802AC[2] = {
+    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80154188 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_underpass_801802C4[2] = {
-    { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
+AreaResource D_dryfield_night_underpass_801802C4[2] = {
+    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013BE28 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

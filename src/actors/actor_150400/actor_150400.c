@@ -110,7 +110,7 @@ TmdSource D_actor_150400_80132CCC = {
     D_actor_150400_80132A64,
 };
 
-TaskDesc D_actor_150400_80132CF0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 32 } }, func_actor_150400_80131E24, { .model = &D_actor_150400_80132CCC } };
+TaskDesc D_actor_150400_80132CF0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, func_actor_150400_80131E24, { .model = &D_actor_150400_80132CCC } };
 
 AnimationPlayRequest D_actor_150400_80132CFC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -335,12 +335,12 @@ Actor150400MsgEntry D_actor_150400_8013C8C4[6] = {
     { 2004, { .call2 = pairWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_150400_801327EC } },
     { 2013, { .call2 = func_actor_150400_801327F4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_150400_8013C8F4[2] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_150400_801323E0, { .model = &D_actor_150400_80139A64 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &D_actor_150400_8013C8A0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &D_actor_150400_8013C8A0 } },
 };
 
 u8 D_actor_150400_8013C90C[24] = {
@@ -479,7 +479,7 @@ static void func_actor_150400_80132014(Enemy* enemy, Task* task)
     work->enemy                      = enemy;
     spawned                          = Gp_SpawnEnemyFromTable(D_actor_150400_8013C8F4, 1, 0, enemy);
     actorTintModel(spawned->task->extra.tmd, enemy);
-    Task_Reparent(task, spawned->task);
+    taskReparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;
     obj->colorMtx  = &work->color;

@@ -2705,9 +2705,9 @@ WorldCollisionTrigger D_acropolis_plaza_8019923C[4] = {
     { NULL, NULL, NULL, { 0x5AA0, -32, 2048, 0 }, { { 2418, 0, 652, 0 }, { -2420, 0, 505, 0 }, { 2419, 0, -506, 0 }, { -2419, 0, -653, 0 } }, { 0, 4096, 0, 0 }, { -201, 0, -4092, 0 }, 2495, WORLD_COLLISION_TRIGGER_ACTION_CLEAR, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_plaza_8019936C[3] = {
-    { 109, 101, 2, 0, { 0, 0 }, D_actor_310100_80179920 },
-    { 108, 101, 2, 0, { 0, 0 }, D_actor_310100_801798FC },
+AreaResource D_acropolis_plaza_8019936C[3] = {
+    { 109, 101, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_310100_80179920 },
+    { 108, 101, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_310100_801798FC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -4353,26 +4353,26 @@ void func_acropolis_plaza_80180270(Task* arg0)
 
 void func_acropolis_plaza_801802C0(Task* task)
 {
-    GpCoord64*                 entry;
-    WorldCoordPointLight*      light;
-    GfxCoord*                  coord;
-    GfxCoord*                  lightCoord;
-    AcropolisPlazaBeamWork*    work;
-    AcropolisPlazaBeamScratch* blk;
-    SVECTOR*                   point;
-    POLY_G3*                   tri;
-    POLY_G4*                   prim;
-    s32                        i;
-    u32                        brightness;
-    u16                        red, green, blue;
-    s32                        slot, pulse;
-    u32                        pulse2;
-    s16                        spread, depthVal;
-    u16                        yaw;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          light;
+    GfxCoord*                      coord;
+    GfxCoord*                      lightCoord;
+    AcropolisPlazaBeamWork*        work;
+    AcropolisPlazaBeamScratch*     blk;
+    SVECTOR*                       point;
+    POLY_G3*                       tri;
+    POLY_G4*                       prim;
+    s32                            i;
+    u32                            brightness;
+    u16                            red, green, blue;
+    s32                            slot, pulse;
+    u32                            pulse2;
+    s16                            spread, depthVal;
+    u16                            yaw;
 
     slot       = task->spawnArg1.value;
-    entry      = &Gp_RoomCoords[slot & 7];
-    light      = &entry->light;
+    lightSlot  = &gWorldCoordTransientPointLights[slot & (ARRAY_SIZE(gWorldCoordTransientPointLights) - 1)];
+    light      = &lightSlot->light;
     coord      = task->extra.coordBody->coord;
     work       = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
     lightCoord = &light->head.transform.coord;
@@ -4393,7 +4393,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     gte_rtps();
     gte_stsxy(&blk->sx);
     gte_stszotz(&blk->otz);
-    entry->framesLeft = 0;
+    lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -4416,7 +4416,7 @@ void func_acropolis_plaza_801802C0(Task* task)
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            entry->framesLeft        = 2;
+            lightSlot->framesLeft    = 2;
             light->inner             = 0x600;
             light->outer             = work->spread + 0x600;
             light->head.color.r      = red << 4;

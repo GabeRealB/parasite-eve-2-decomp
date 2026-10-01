@@ -5,30 +5,30 @@
 /// Draws a glow at the coordinate: two camera-facing textured squares, an
 /// inner one of half-extent `size` and an outer one of `size * 3 / 2`
 /// (each scaled by 0x37 / otz), plus a flat quad on the ground beneath it.
-/// It also points the `Gp_RoomCoords[2]` light at the
+/// It also points the `gWorldCoordTransientPointLights[2]` light at the
 /// coordinate with a randomly flickering intensity. Nothing is drawn when the
 /// GTE flags the projection.
 static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
 {
-    GfxCoord              ground;
-    POLY_FT4*             prim;
-    s16                   outerLeft;
-    s16                   outerRight;
-    s16                   outerTop;
-    s16                   outerBottom;
-    s16                   intensity;
-    s16                   left;
-    s16                   right;
-    s16                   top;
-    s16                   bottom;
-    s32                   outerSize;
-    s32                   shifted;
-    u32                   random;
-    GpCoord64*            slot;
-    WorldCoordPointLight* light;
-    GpRingScratch*        block;
+    GfxCoord                       ground;
+    POLY_FT4*                      prim;
+    s16                            outerLeft;
+    s16                            outerRight;
+    s16                            outerTop;
+    s16                            outerBottom;
+    s16                            intensity;
+    s16                            left;
+    s16                            right;
+    s16                            top;
+    s16                            bottom;
+    s32                            outerSize;
+    s32                            shifted;
+    u32                            random;
+    WorldCoordTransientPointLight* slot;
+    WorldCoordPointLight*          light;
+    GpRingScratch*                 block;
 
-    slot                                          = &Gp_RoomCoords[2];
+    slot                                          = &gWorldCoordTransientPointLights[2];
     slot->framesLeft                              = 2;
     light                                         = &slot->light;
     light->inner                                  = 0x300;

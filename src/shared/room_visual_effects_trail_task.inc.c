@@ -54,13 +54,13 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
                 dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 dst         = &coords[i + 8];
                 dst->parent = &gGfxViewCoord;
                 dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
             }
             break;
 
@@ -81,13 +81,13 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             dst->workm  = objCoord->workm;
             gte_SetRotMatrix(&objCoord->workm);
             gte_SetTransMatrix(&objCoord->workm);
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
             dst         = &coords[(work->age & 7) + 8];
             dst->parent = &gGfxViewCoord;
             dst->workm  = coord.workm;
             gte_SetRotMatrix(&coord.workm);
             gte_SetTransMatrix(&coord.workm);
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
             for (i = 0; i < 8; i++) {
                 dst               = &coords[i];
                 dst->composeStamp = GRAPHICS_COORD_DIRTY;

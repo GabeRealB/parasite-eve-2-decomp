@@ -45,7 +45,7 @@ extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 extern u8           gRoomEventActive;
 
-/// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
+/// The room's message table, `(msgId, handler)` pairs ending at `TASK_MESSAGE_TABLE_END`,
 /// which the entry task installs as its own `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
 

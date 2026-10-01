@@ -171,7 +171,7 @@ ShelterB1PodAccessTunnelMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] 
     { 5103, { .call0 = func_shelter_b1_pod_access_tunnel_8017DDD8 } },
     { 5104, { .call2 = func_shelter_b1_pod_access_tunnel_8017DD70 } },
     { 5106, { .call2 = func_shelter_b1_pod_access_tunnel_8017DDE0 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80181108[2] = {
@@ -825,39 +825,39 @@ WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_801848B8[3] = {
     { NULL, NULL, NULL, { 4721, -64, -672, 0 }, { { -880, 0, -480, 0 }, { 880, 0, -480, 0 }, { -880, 0, 480, 0 }, { 880, 0, 480, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1001, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b1_pod_access_tunnel_8018499C[2] = {
-    { 132, 410, 0, 0, { 0, 0 }, D_8013D77C },
+AreaResource D_shelter_b1_pod_access_tunnel_8018499C[2] = {
+    { 132, 410, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013D77C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_pod_access_tunnel_801849B4[2] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+AreaResource D_shelter_b1_pod_access_tunnel_801849B4[2] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_pod_access_tunnel_801849CC[2] = {
-    { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
+AreaResource D_shelter_b1_pod_access_tunnel_801849CC[2] = {
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_pod_access_tunnel_801849E4[2] = {
-    { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
+AreaResource D_shelter_b1_pod_access_tunnel_801849E4[2] = {
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_pod_access_tunnel_801849FC[2] = {
-    { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
+AreaResource D_shelter_b1_pod_access_tunnel_801849FC[2] = {
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147AB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_pod_access_tunnel_80184A14[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
+AreaResource D_shelter_b1_pod_access_tunnel_80184A14[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b1_pod_access_tunnel_80184A38[2] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
+AreaResource D_shelter_b1_pod_access_tunnel_80184A38[2] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

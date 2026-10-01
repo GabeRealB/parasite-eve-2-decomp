@@ -67,10 +67,10 @@ extern GpAreaApplyRec D_dryfield_night_garage_80187620[];
 extern SVECTOR D_dryfield_night_garage_801833A4[];
 extern SVECTOR D_dryfield_night_garage_801833D4;
 
-extern GpAreaTmdRec D_dryfield_night_garage_80187450[2];
-extern GpAreaTmdRec D_dryfield_night_garage_80187468[3];
-extern GpAreaTmdRec D_dryfield_night_garage_8018748C[2];
-extern GpAreaTmdRec D_dryfield_night_garage_801874A4[2];
+extern AreaResource D_dryfield_night_garage_80187450[2];
+extern AreaResource D_dryfield_night_garage_80187468[3];
+extern AreaResource D_dryfield_night_garage_8018748C[2];
+extern AreaResource D_dryfield_night_garage_801874A4[2];
 
 extern TaskDesc D_8013B11C[];
 
@@ -901,24 +901,24 @@ WorldCollisionTrigger D_dryfield_night_garage_8018723C[7] = {
     { NULL, NULL, NULL, { 6704, -64, 896, 0 }, { { -1200, 0, -32, 0 }, { 1200, 0, -32, 0 }, { -1200, 0, 1088, 0 }, { 1200, 0, 1088, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1619, WORLD_COLLISION_TRIGGER_ACTION_CAP, 56, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_garage_80187450[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_dryfield_night_garage_80187450[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_garage_80187468[3] = {
-    { 106, 354, 0, 0, { 0, 0 }, D_8013A4AC },
-    { 114, 354, 5, 0, { 0, 0 }, D_8013F8D8 },
+AreaResource D_dryfield_night_garage_80187468[3] = {
+    { 106, 354, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013A4AC },
+    { 114, 354, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_8013F8D8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_garage_8018748C[2] = {
-    { 101, 363, 0, 0, { 0, 0 }, D_8013B11C },
+AreaResource D_dryfield_night_garage_8018748C[2] = {
+    { 101, 363, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013B11C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_garage_801874A4[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_dryfield_night_garage_801874A4[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

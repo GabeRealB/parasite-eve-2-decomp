@@ -341,7 +341,7 @@ AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[5] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call2 = func_acropolis_security_room_8017D740 } },
     { 5104, { .call1 = func_acropolis_security_room_8017D708 } },
     { 5105, { .call1 = func_acropolis_security_room_8017D6D4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 AnimationPlayRequest D_acropolis_security_room_80182604 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -1545,9 +1545,9 @@ WorldCollisionTrigger D_acropolis_security_room_80183EE8[5] = {
     { NULL, NULL, NULL, { -880, -1056, -2880, 0 }, { { -432, 0, -304, 0 }, { 432, 0, -304, 0 }, { -432, 0, 304, 0 }, { 432, 0, 304, 0 } }, { 0, 4096, 0, 0 }, { 1189, 0, 3920, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_security_room_80184064[3] = {
-    { 102, 119, 2, 0, { 0, 0 }, D_8016EC0C },
-    { 110, 119, 5, 0, { 0, 0 }, D_8016EC00 },
+AreaResource D_acropolis_security_room_80184064[3] = {
+    { 102, 119, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_8016EC0C },
+    { 110, 119, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_8016EC00 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

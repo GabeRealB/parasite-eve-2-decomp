@@ -41,7 +41,7 @@ extern AnimationSet*  D_actor_350700_801708C0[6];
 extern AnimationSet** gActorMotionAnimBanks[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `reverseWalkSpawn`; terminator id 0x7FFFFFFF.
+/// `reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -62,7 +62,7 @@ extern Actor350700MsgEntry gReverseWalkMessages[];
 /// The `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks from,
 /// and the message table it points the parent's `Task::msgTable` at: ids
 /// 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
-/// `actorMotionPlayAnim`, terminated by 0x7FFFFFFF.
+/// `actorMotionPlayAnim`, terminated by `TASK_MESSAGE_TABLE_END`.
 extern TaskDesc            D_actor_350700_801708DC[];
 extern Actor350700MsgEntry D_actor_350700_8017090C[];
 
@@ -272,7 +272,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_350700_80169CF8,
 };
 
-TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_350700_80162398, { .model = &D_actor_350700_801686C8 } };
+TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350700_80162398, { .model = &D_actor_350700_801686C8 } };
 
 Actor350700MsgEntry gReverseWalkMessages[6] = {
     { 2003, { .call1 = actorMotionPlayAnim19 } },
@@ -280,7 +280,7 @@ Actor350700MsgEntry gReverseWalkMessages[6] = {
     { 2005, { .call5 = reverseWalkVisibilityMsg } },
     { 2013, { .call4 = reverseWalkStartMsg } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_350700_80162AF4 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TmdBone D_actor_350700_80169D4C[20] = {
@@ -535,7 +535,7 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_350700_801708DC[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_350700_80163350, { .model = &D_actor_350700_8016E86C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350700_80163350, { .model = &D_actor_350700_8016E86C } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &D_actor_350700_8016F1B0 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &D_actor_350700_8016ECC0 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &D_actor_350700_8016F5F4 } },
@@ -547,7 +547,7 @@ Actor350700MsgEntry D_actor_350700_8017090C[6] = {
     { 2005, { .call5 = func_actor_350700_80163840 } },
     { 2013, { .call4 = actorMotionStartWalk } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_350700_8016395C } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table
 #include "../../shared/reversing_walker_update.inc.c"
 

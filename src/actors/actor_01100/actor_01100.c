@@ -1040,7 +1040,7 @@ AnimationSet* Actor01100_D15604[23] = {
 
 Actor01100RecoveredMsgEntry Actor01100_D15660[2] = {
     { 2005, { .call0 = Actor01100_Fn0670C } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 u8 Actor01100_D15670;
@@ -3020,7 +3020,7 @@ static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, ActorsShared80138efcWor
                 spawned     = Task_SpawnFromTable(Actor01100_D155E0, kind, yaw, 0);
                 if (spawned != NULL) {
                     Gp_CopyCoordOffset(spawned, part, &arg->vec);
-                    Task_Reparent(task, spawned);
+                    taskReparent(task, spawned);
                 }
                 SndEvt_EnqueueType6((work->field_BB8 << 22) | (((u8)work->actorId << 8) | 0x400B000A), arg->pan, arg->depth);
             }
@@ -3468,7 +3468,7 @@ static void Actor01100_Fn05E68(Task* task)
         return;
     }
     task->spawnArg2.pointer = eff->task;
-    Task_Reparent(task, eff->task);
+    taskReparent(task, eff->task);
     angle               = task->spawnArg1.value;
     task->killCountdown = 0x5A;
 
@@ -3615,7 +3615,7 @@ static void Actor01100_Fn0638C(Task* task)
     SndEvt_EnqueueType6(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     effect = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
     if (effect != NULL) {
-        Task_Reparent(task, effect->task);
+        taskReparent(task, effect->task);
     }
     task->killCountdown   = 0x5A;
     rotation              = (GfxRotationWords*)&coord->coord;
@@ -4286,7 +4286,7 @@ static void Actor01100_Fn073DC(Task* task)
             if (((u16)task->killCountdown & 1) == 0) {
                 eff = Gp_SpawnEff(0x60070, coord, 0xC0031FFF, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->task);
+                    taskReparent(task, eff->task);
                 }
             }
             if (Gp_CountRec18Hi(&work->rec18[0], 0x10000) != 0) {

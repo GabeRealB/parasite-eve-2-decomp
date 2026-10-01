@@ -234,13 +234,13 @@ WorldCollisionTrigger D_acropolis_fountain_8017F9C0[9] = {
     { NULL, NULL, NULL, { 3792, -64, -7536, 0 }, { { -544, 0, -368, 0 }, { 544, 0, -368, 0 }, { -544, 0, 368, 0 }, { 544, 0, 368, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 655, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_acropolis_fountain_8017FC6C[2] = {
-    { 11, 11, 2, 0, { 0, 0 }, D_80177400 },
+AreaResource D_acropolis_fountain_8017FC6C[2] = {
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_80177400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_acropolis_fountain_8017FC84[2] = {
-    { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
+AreaResource D_acropolis_fountain_8017FC84[2] = {
+    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

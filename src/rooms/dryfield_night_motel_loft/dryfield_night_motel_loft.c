@@ -34,10 +34,10 @@ extern WorldCollisionTrigger D_dryfield_night_motel_loft_801803F4[14];
 /// The room's 0x7DB payload buffer.
 extern ActorCommand D_dryfield_night_motel_loft_8018092C;
 
-extern GpAreaTmdRec D_dryfield_night_motel_loft_8018081C[2];
-extern GpAreaTmdRec D_dryfield_night_motel_loft_80180834[3];
-extern GpAreaTmdRec D_dryfield_night_motel_loft_80180858[2];
-extern GpAreaTmdRec D_dryfield_night_motel_loft_80180870[2];
+extern AreaResource D_dryfield_night_motel_loft_8018081C[2];
+extern AreaResource D_dryfield_night_motel_loft_80180834[3];
+extern AreaResource D_dryfield_night_motel_loft_80180858[2];
+extern AreaResource D_dryfield_night_motel_loft_80180870[2];
 
 ActorTransform D_dryfield_night_motel_loft_8017FB84[2] = {
     { { 0, 0, 0xFFFF, 0 }, { 0, 0, 0, 0 } },
@@ -125,24 +125,24 @@ WorldCollisionTrigger D_dryfield_night_motel_loft_801803F4[14] = {
     { NULL, NULL, NULL, { -2672, -64, -1664, 0 }, { { -1712, 0, -400, 0 }, { 1712, 0, -400, 0 }, { -1712, 0, 400, 0 }, { 1712, 0, 400, 0 } }, { 0, 4113, 0, 0 }, { -1, 0, 4096, 0 }, 1755, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_dryfield_night_motel_loft_8018081C[2] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
+AreaResource D_dryfield_night_motel_loft_8018081C[2] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_motel_loft_80180834[3] = {
-    { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 16, 16, 2, 0, { 0, 0 }, D_801745DC },
+AreaResource D_dryfield_night_motel_loft_80180834[3] = {
+    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_80151B10 },
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_801745DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_motel_loft_80180858[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_dryfield_night_motel_loft_80180858[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_dryfield_night_motel_loft_80180870[2] = {
-    { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
+AreaResource D_dryfield_night_motel_loft_80180870[2] = {
+    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801445DC },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

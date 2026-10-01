@@ -2268,9 +2268,9 @@ WorldCoordRoomLights D_dryfield_dilapidated_house_801898FC[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_dilapidated_house_8018929C), D_dryfield_dilapidated_house_8018929C, ARRAY_SIZE(D_dryfield_dilapidated_house_8018959C), D_dryfield_dilapidated_house_8018959C },
 };
 
-GpAreaTmdRec D_dryfield_dilapidated_house_80189914[3] = {
-    { 34, 211, 4, 0, { 0, 0 }, D_8015F6E4 },
-    { 29, 212, 4, 0, { 0, 0 }, D_8016A388 },
+AreaResource D_dryfield_dilapidated_house_80189914[3] = {
+    { 34, 211, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_8015F6E4 },
+    { 29, 212, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_8016A388 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -3658,7 +3658,7 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     coord->parent       = parentCoord;
     obj->lightMtx       = parentObj->lightMtx;
     obj->colorMtx       = parentObj->colorMtx;
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
 
     rec    = &D_dryfield_dilapidated_house_8018669C;
     source = task->extra.tmd->source;
@@ -3814,7 +3814,7 @@ void func_dryfield_dilapidated_house_80181134(Task* task)
 /// State 0 of the handler table at `D_dryfield_dilapidated_house_8017D61C`:
 /// snapshots the placed model coordinate's matrix into a fresh `DdhModelWork`,
 /// seeds its 0x1000 word, marks the model's `TmdObject` hidden (bit 0x80 of
-/// `field_C`), re-parents the task that spawned this one under it and advances
+/// `field_C`), attaches this task under the task that spawned it and advances
 /// to state 1.
 static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
 {
@@ -3833,7 +3833,7 @@ static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
     work->field_20 = 0x1000;
     work->mtx      = coord->coord;
     obj->flags    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
+    taskReparent(arg0->spawnArg2.pointer, arg0);
     arg0->state += 1;
 }
 
@@ -3868,7 +3868,7 @@ static void func_dryfield_dilapidated_house_80181340(Task* arg0)
     }
     arg0->work    = work;
     coord->parent = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords;
-    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
+    taskReparent(arg0->spawnArg2.pointer, arg0);
     arg0->exitCallback = func_dryfield_dilapidated_house_8018142C;
     arg0->state       += 1;
 }
@@ -3908,7 +3908,7 @@ void func_dryfield_dilapidated_house_8018145C(Task* task)
 /// `DdhAngleStep` with the shared per-part angle table scaled by this task's spawn
 /// arg (each wrapped into the 0x4000 angle period), links the model coordinate
 /// this task works on to the parent model's coordinate array, and re-parents the
-/// task that spawned this one under it.
+/// task under the task that spawned it.
 static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
 {
     DdhAngleStep* work;
@@ -3926,7 +3926,7 @@ static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
         work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1.value) & 0x3FFF;
     }
     coord->parent = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords;
-    Task_Reparent((Task*)arg0->spawnArg2.pointer, arg0);
+    taskReparent(arg0->spawnArg2.pointer, arg0);
     arg0->state += 1;
 }
 
@@ -4114,13 +4114,13 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                     dst->workm  = objCoord->workm;
                     gte_SetRotMatrix(&objCoord->workm);
                     gte_SetTransMatrix(&objCoord->workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                     dst         = &D_dryfield_dilapidated_house_8018A060[i];
                     dst->parent = &gGfxViewCoord;
                     dst->workm  = coord.workm;
                     gte_SetRotMatrix(&coord.workm);
                     gte_SetTransMatrix(&coord.workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 return;
 
@@ -4141,13 +4141,13 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
                 dst->workm  = objCoord->workm;
                 gte_SetRotMatrix(&objCoord->workm);
                 gte_SetTransMatrix(&objCoord->workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 dst         = &D_dryfield_dilapidated_house_8018A060[work->age & 7];
                 dst->parent = &gGfxViewCoord;
                 dst->workm  = coord.workm;
                 gte_SetRotMatrix(&coord.workm);
                 gte_SetTransMatrix(&coord.workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
                     dst               = &D_dryfield_dilapidated_house_80189DE0[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4239,7 +4239,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// handler: state 0 seeds the work block (0xC0 / 0x500 scale and angle, a
 /// 12-bit `gRandomLcgState` draw as the third ramp value, a `Gp_SpawnEff` and a
 /// fade quad), maps the task's own coordinate onto
-/// `Gp_RoomCoords[0]` and spawns the ring of `0x60275` flame effects, then
+/// `gWorldCoordTransientPointLights[0]` and spawns the ring of `0x60275` flame effects, then
 /// re-parents each onto this task. State 1 steps the angle by 0x40 per frame
 /// and runs two more draws against the same coordinate. While
 /// `gRoomEffectState->effectControl` is not running the frame counter is rolled back and the work
@@ -4247,25 +4247,25 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// 0x580.
 void func_dryfield_dilapidated_house_80182744(Task* task)
 {
-    DdhEffWork*           work;
-    GfxCoord*             coord;
-    GpCoord64*            rc;
-    WorldCoordPointLight* tail;
-    EffectWork*           eff;
-    u16                   tick;
-    u16                   tick1;
-    s16                   size;
-    s32                   angle;
-    s32                   i;
-    u8                    rgb[3];
+    DdhEffWork*                    work;
+    GfxCoord*                      coord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          pointLight;
+    EffectWork*                    eff;
+    u16                            tick;
+    u16                            tick1;
+    s16                            size;
+    s32                            angle;
+    s32                            i;
+    u8                             rgb[3];
 
     work           = task->spawnArg2.pointer;
     coord          = task->extra.coordBody->coord;
     tick           = work->field_22;
     tick1          = tick + 1;
     work->field_22 = tick1;
-    rc             = &Gp_RoomCoords[0];
-    tail           = &rc->light;
+    lightSlot      = &gWorldCoordTransientPointLights[0];
+    pointLight     = &lightSlot->light;
 
     switch (task->state) {
         case 0:
@@ -4286,26 +4286,26 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
             Gp_DrawFadeQuad(rgb, 1);
-            Gp_RoomCoords[0].framesLeft                 = 4;
-            tail->inner                                 = 0x200;
-            tail->outer                                 = 0x2000;
-            gRandomLcgState                             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            size                                        = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            tail->head.color.r                          = size;
-            tail->head.color.g                          = size >> 1;
-            tail->head.color.b                          = size >> 2;
-            tail->head.transform.coord.coord.t[0]       = coord->coord.t[0];
-            tail->head.transform.coord.coord.t[1]       = coord->coord.t[1];
-            tail->head.transform.coord.coord.t[2]       = coord->coord.t[2];
-            rc->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            i                                           = 0;
+            gWorldCoordTransientPointLights[0].framesLeft      = 4;
+            pointLight->inner                                  = 0x200;
+            pointLight->outer                                  = 0x2000;
+            gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            size                                               = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+            pointLight->head.color.r                           = size;
+            pointLight->head.color.g                           = size >> 1;
+            pointLight->head.color.b                           = size >> 2;
+            pointLight->head.transform.coord.coord.t[0]        = coord->coord.t[0];
+            pointLight->head.transform.coord.coord.t[1]        = coord->coord.t[1];
+            pointLight->head.transform.coord.coord.t[2]        = coord->coord.t[2];
+            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            i                                                  = 0;
             func_dryfield_dilapidated_house_801832A8(coord, (s16)work->field_22, work->field_26, work->field_28);
             glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
             work->field_26 = 0x380;
             do {
                 eff = Gp_SpawnEff(0x60275, coord, i, NULL);
                 if (eff != NULL) {
-                    Task_Reparent(task, eff->task);
+                    taskReparent(task, eff->task);
                 }
                 i += 0x2AA;
             } while (i < 0x556);

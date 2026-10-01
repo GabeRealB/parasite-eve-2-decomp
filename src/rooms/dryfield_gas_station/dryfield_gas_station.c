@@ -143,7 +143,7 @@ DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5] = {
     { 5105, { .call0 = func_dryfield_gas_station_8017FD4C } },
     { 5104, { .call2 = func_dryfield_gas_station_8017FD54 } },
     { 5106, { .call2 = gasStationCueSoundMsg } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 /// Telephone menu title, including retained bytes after its terminator.

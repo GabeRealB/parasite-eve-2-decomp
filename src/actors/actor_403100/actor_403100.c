@@ -3065,7 +3065,7 @@ GpImgRec D_actor_403100_801555EC[2] = {
 };
 
 TaskDesc D_actor_403100_8015560C[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_403100_8013E0FC, { .model = &D_actor_403100_801475F0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403100_8013E0FC, { .model = &D_actor_403100_801475F0 } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_403100_8013E04C, { .value = 0 } },
 };
 
@@ -3109,7 +3109,7 @@ Actor403100MessageEntry D_actor_403100_801556EC[4] = {
     { 2014, { .call0 = func_actor_403100_8013D5F4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403100_8013D564 } },
     { 2005, { .call1 = func_actor_403100_8013D608 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 /// Borrowed player animation table with a dynamically selected clip in entry four.
@@ -3819,8 +3819,8 @@ static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoi
     if (firstJoint != secondJoint) {
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
         first.vy   = (s16)height;
         second.vy  = (s16)height;
         first.vx   = firstMatrix.t[0];
@@ -7217,7 +7217,7 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     angles    = &allocated->angles;
     gfxSetRotIdentity(matrices);
     root = arg0->extra.tmd->coords;
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &root[part].workm, &worldMatrix);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &root[part].workm, &worldMatrix);
     delta.vx = D_actor_403100_80155808->field_98 - worldMatrix.t[0];
     offsetY  = worldMatrix.t[1] + 0x600;
     delta.vy = D_actor_403100_80155808->field_9A - offsetY;
@@ -7987,14 +7987,14 @@ static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
 }
 static void func_actor_403100_8013D11C(Task* arg0)
 {
-    GfxCoord*             coords;
-    GpCoord64*            slot;
-    WorldCoordPointLight* light;
-    s16                   value;
-    u32                   random;
+    GfxCoord*                      coords;
+    WorldCoordTransientPointLight* slot;
+    WorldCoordPointLight*          light;
+    s16                            value;
+    u32                            random;
 
     coords                                        = arg0->extra.tmd->coords;
-    slot                                          = &Gp_RoomCoords[2];
+    slot                                          = &gWorldCoordTransientPointLights[2];
     slot->framesLeft                              = 8;
     light                                         = &slot->light;
     light->inner                                  = 0x300;

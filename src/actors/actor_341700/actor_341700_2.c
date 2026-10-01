@@ -138,7 +138,7 @@ Actor3417002MessageEntry D_actor_341700_80175F5C[4] = {
     { 2005, { .call2 = func_actor_341700_8016CE28 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_341700_8016CEB4 } },
     { 2004, { .call1 = actorMsgPlace } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 SVECTOR D_actor_341700_80175F7C[48] = {
@@ -795,7 +795,7 @@ u8 D_actor_341700_801760FC[600] = {
     0,
 };
 
-TaskDesc D_actor_341700_80176354 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_341700_8016D32C, { .model = &D_actor_341700_80175F38 } };
+TaskDesc D_actor_341700_80176354 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_341700_8016D32C, { .model = &D_actor_341700_80175F38 } };
 
 static SVECTOR ActorContact_ScratchPosition;
 

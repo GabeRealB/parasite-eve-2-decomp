@@ -10,6 +10,7 @@
 #include "gameplay/direction_input.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
+#include "gameplay/message.h"
 
 #include "main/display.h"
 #include "main/display_types.h"
@@ -283,7 +284,7 @@ TaskDesc D_actor_548100_801351B4 = { { { TASK_BODY_NONE, 192 } }, func_actor_548
 
 Actor548100MsgEntry D_actor_548100_801351C0[2] = {
     { 5105, { .call0 = func_actor_548100_80134778 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 Actor548100Edge D_actor_548100_801351D0[92] = {

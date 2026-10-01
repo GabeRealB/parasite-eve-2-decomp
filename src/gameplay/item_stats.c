@@ -275,9 +275,9 @@ void func_800C5F70(Task* arg0)
     hbar_setup:
         if (item >= 0x500) {
             flags |= 0x400;
-            Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, 0x25);
+            uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, 0x25);
         } else {
-            Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, 5);
+            uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, 5);
         }
         if (ready == 1) {
             x       = 2;

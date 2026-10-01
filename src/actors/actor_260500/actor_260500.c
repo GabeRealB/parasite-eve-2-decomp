@@ -1345,7 +1345,7 @@ Actor260500MsgEntry D_actor_260500_80159D80[6] = {
     { 2004, { .call2 = footstepWalkPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260500_8014A818 } },
     { 2013, { .call3 = func_actor_260500_8014A83C } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_260500_80159DB0 = { { { TASK_BODY_TMD, 192 } }, func_actor_260500_8014A460, { .model = &D_actor_260500_80159D58 } };

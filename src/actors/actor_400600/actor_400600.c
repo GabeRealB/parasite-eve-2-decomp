@@ -1550,7 +1550,7 @@ AnimationSet* D_actor_400600_80151A54[35] = {
 Actor400600MessageEntry D_actor_400600_80151AE0[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_400600_8013A338 } },
     { 2014, { .call0 = func_actor_400600_8013A3A8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_400600_80151AF8[2] = {
@@ -1779,8 +1779,8 @@ static void func_actor_400600_80132294(Task* task, s16 firstJoint, s16 secondJoi
         s = (ActorBeamScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorBeamScratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
         s->first.vx                = s->firstMatrix.t[0];
         s->first.vy                = s->firstMatrix.t[1];
         s->second.vx               = s->secondMatrix.t[0];
@@ -4324,7 +4324,7 @@ static void func_actor_400600_80138224(Task* arg0, s16 arg1, u8 arg2)
         coord               = &arg0->extra.tmd->coords[D_actor_400600_80151B88[i]];
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &mtx);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &mtx);
         pts[i].vx = mtx.t[0];
         pts[i].vy = arg1;
         pts[i].vz = mtx.t[2];
@@ -4953,8 +4953,8 @@ static void func_actor_400600_80139E68(Task* arg0, s16 arg1, StalkerZebraIvoryVi
     Gp_UpdateCoord(&gGfxViewCoord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[0].workm, &root);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     coords[0].coord.t[0]   = arg2->x - (local.t[0] - root.t[0]);
     coords[0].coord.t[2]   = arg2->z - (local.t[2] - root.t[2]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4972,7 +4972,7 @@ static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, StalkerZebraIvoryVi
     coords = arg0->extra.tmd->coords;
     coord  = &coords[arg1];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     arg2->x             = local.t[0];
     arg2->y             = local.t[1];
     arg2->z             = coords[0].coord.t[2];
@@ -4989,8 +4989,8 @@ static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, StalkerZebraIvoryVi
     coords = arg0->extra.tmd->coords;
     coord  = &coords[arg1];
     Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coords[0].workm, &root);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[0].workm, &root);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &local);
     coords[0].coord.t[0]   = arg2->x - (local.t[0] - root.t[0]);
     coords[0].coord.t[1]   = arg2->y - (local.t[1] - root.t[1]);
     coords[0].composeStamp = GRAPHICS_COORD_DIRTY;

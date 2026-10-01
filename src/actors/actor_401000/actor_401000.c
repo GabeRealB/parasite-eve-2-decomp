@@ -1074,7 +1074,7 @@ Actor401000MessageEntry D_actor_401000_80154F90[8] = {
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = actorMsgReleaseHold } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = oddStrangerApplyCommand } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 ActorHeightClamp D_actor_401000_80154FD0[3] = {
@@ -1085,7 +1085,7 @@ ActorHeightClamp D_actor_401000_80154FD0[3] = {
 
 u16 gOddStrangerChaseDistance = 0;
 
-TaskDesc D_actor_401000_80155004 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_401000_8013E038, { .model = &D_actor_401000_80143614 } };
+TaskDesc D_actor_401000_80155004 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_401000_8013E038, { .model = &D_actor_401000_80143614 } };
 
 SVECTOR ActorContact_ScratchPosition;
 

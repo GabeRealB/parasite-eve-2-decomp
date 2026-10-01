@@ -156,7 +156,7 @@ DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_motel_lobby_8017FC6C } },
     { 5104, { .call3 = func_dryfield_night_motel_lobby_8017FB7C } },
     { 5106, { .call3 = func_dryfield_night_motel_lobby_8017FCDC } },
-    { 2147483647, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {

@@ -59,7 +59,7 @@ static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern WorldCollisionGrid D_dryfield_r08_8017FB98[1];
 
-extern GpAreaTmdRec D_dryfield_r08_80180B70[2];
+extern AreaResource D_dryfield_r08_80180B70[2];
 
 SVECTOR D_dryfield_r08_8017F464[12] = {
     { 4950, -1750, 2570, 0 },
@@ -439,8 +439,8 @@ WorldCoordPointLight D_dryfield_r08_801809D8[4] = {
 
 WorldCoordRoomLights D_dryfield_r08_80180B58 = { 0, NULL, ARRAY_SIZE(D_dryfield_r08_801809D8), D_dryfield_r08_801809D8, 0, NULL };
 
-GpAreaTmdRec D_dryfield_r08_80180B70[2] = {
-    { 132, 213, 0, 0, { 0, 0 }, D_8013D390 },
+AreaResource D_dryfield_r08_80180B70[2] = {
+    { 132, 213, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013D390 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

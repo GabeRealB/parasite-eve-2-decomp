@@ -55,3 +55,4 @@ generatorSetReleaseBits = 0x8013391C; // type:func
 generatorUpdateColor = 0x801335B8; // type:func
 generatorLifeSupportTask = 0x801337DC; // type:func
 generatorTask = 0x801339A4; // type:func
+generatorSpawn = 0x8013310c; // type:func

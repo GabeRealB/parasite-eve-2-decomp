@@ -424,12 +424,12 @@ AnimationSet Actor07000_D08008 = {
 
 Actor07000RecoveredMsgEntry gSucklercephDropMsgTable[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = sucklercephMessage } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &Actor07000_D079C8 } };
 
-TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &Actor07000_D079C8 } };
+TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &Actor07000_D079C8 } };
 
 AnimationSet* gSucklercephAnimSets[4] = {
     NULL,
@@ -863,7 +863,7 @@ SVECTOR Actor07000_D0D7B8 = { 0, -300, 0, 0 };
 
 Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = Actor07000_Fn05AB8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 TaskDesc Actor07000_D0D7D0[2] = {
@@ -871,7 +871,7 @@ TaskDesc Actor07000_D0D7D0[2] = {
     { { { TASK_BODY_COORD, 96 } }, Actor07000_Fn06338, { .value = 0 } },
 };
 
-TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
+TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
 
 /// The 0x39C-byte work block the actor's *other* spawn handler
 /// (`Actor07000_Fn05068`) allocates, next to `SucklercephWork`:
@@ -2174,7 +2174,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     arg0->work              = work;
     eff                     = Gp_SpawnEff(0x60081, coord, 0, NULL);
     arg0->spawnArg2.pointer = eff->task;
-    Task_Reparent(arg0, eff->task);
+    taskReparent(arg0, eff->task);
     angle           = arg0->spawnArg1.value;
     vec->vy         = -rcos(angle);
     vec->vx         = rsin(angle);
@@ -2873,7 +2873,7 @@ static void Actor07000_Fn062A8(Task* arg0)
     task      = Task_SpawnFromTable(Actor07000_D0D7D0, 1, angle, 0);
     if (task != NULL) {
         Gp_CopyCoordOffset(task, child, &offset);
-        Task_Reparent(arg0, task);
+        taskReparent(arg0, task);
     }
 }
 

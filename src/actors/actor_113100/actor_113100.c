@@ -81,7 +81,7 @@ extern TaskDesc D_actor_113100_80144308[];
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3
 /// (`func_actor_113100_801331E8`), 0x7D4 (`actorMsgPlaceEuler`), 0x7D5
 /// (`func_actor_113100_80132790`), 0x7DD (`func_actor_113100_801328EC`) and
-/// 0x7DB (`func_actor_113100_801333B8`), terminated by 0x7FFFFFFF.
+/// 0x7DB (`func_actor_113100_801333B8`), terminated by `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -1157,7 +1157,7 @@ extern TmdSource D_actor_113100_80139860;
 extern TmdSource D_actor_113100_80139908;
 
 TaskDesc D_actor_113100_80144308[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_113100_80132E98, { .model = &D_actor_113100_80139664 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_113100_80132E98, { .model = &D_actor_113100_80139664 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_113100_80132AD8, { .model = &D_actor_113100_80139B98 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_113100_80132C9C, { .model = &D_actor_113100_80139860 } },
     { { { TASK_BODY_TMD, 192 } }, func_actor_113100_80132C9C, { .model = &D_actor_113100_80139908 } },
@@ -1169,7 +1169,7 @@ Actor113100MsgEntry D_actor_113100_80144338[6] = {
     { 2005, { .call4 = func_actor_113100_80132790 } },
     { 2013, { .call3 = func_actor_113100_801328EC } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_113100_801333B8 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 /// Setup handler (state 0): allocates the 0x540-byte work block, clears the
@@ -1681,7 +1681,7 @@ static void func_actor_113100_80132B30(Task* task)
     node->composeStamp = GRAPHICS_COORD_DIRTY;
     node->parent       = &part[index];
 
-    Task_Reparent(parent, task);
+    taskReparent(parent, task);
     if (GameFlag_GetNibble(0xF1) == 0) {
         model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {

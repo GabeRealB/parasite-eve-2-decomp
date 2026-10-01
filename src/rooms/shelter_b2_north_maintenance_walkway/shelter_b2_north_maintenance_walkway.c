@@ -74,11 +74,11 @@ extern RoomEventReq gRoomEventReq;
 /// spawned the event task; every call clears it first.
 extern u8 gRoomEventActive;
 
-extern GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186008[3];
-extern GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_8018602C[3];
-extern GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186050[3];
-extern GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186074[4];
-extern GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_801860A4[3];
+extern AreaResource D_shelter_b2_north_maintenance_walkway_80186008[3];
+extern AreaResource D_shelter_b2_north_maintenance_walkway_8018602C[3];
+extern AreaResource D_shelter_b2_north_maintenance_walkway_80186050[3];
+extern AreaResource D_shelter_b2_north_maintenance_walkway_80186074[4];
+extern AreaResource D_shelter_b2_north_maintenance_walkway_801860A4[3];
 
 extern TaskDesc D_80142604;
 extern TaskDesc D_801575F0;
@@ -546,34 +546,34 @@ WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[3] = {
     { NULL, NULL, NULL, { 2064, -64, 3055, 0 }, { { -1008, 0, -272, 0 }, { 1040, 0, -48, 0 }, { -1040, 0, 48, 0 }, { 1008, 0, 272, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186008[3] = {
-    { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 100, 413, 2, 2, { 0, 0 }, D_80165208 },
+AreaResource D_shelter_b2_north_maintenance_walkway_80186008[3] = {
+    { 3, 3, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80148110 },
+    { 100, 413, AREA_RESOURCE_FILE_GROUP_BASE_30, 2, { 0, 0 }, D_80165208 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_8018602C[3] = {
-    { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
-    { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
+AreaResource D_shelter_b2_north_maintenance_walkway_8018602C[3] = {
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_8013F5F0 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186050[3] = {
-    { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
-    { 70, 70, 1, 0, { 0, 0 }, &D_801575F0 },
+AreaResource D_shelter_b2_north_maintenance_walkway_80186050[3] = {
+    { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147400 },
+    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &D_801575F0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186074[4] = {
-    { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
-    { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
+AreaResource D_shelter_b2_north_maintenance_walkway_80186074[4] = {
+    { 44, 44, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80142604 },
+    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80153EC8 },
+    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8014E7A4 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_801860A4[3] = {
-    { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 20, 20, 1, 0, { 0, 0 }, D_8015FDF0 },
+AreaResource D_shelter_b2_north_maintenance_walkway_801860A4[3] = {
+    { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80135C30 },
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FDF0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

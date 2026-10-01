@@ -864,24 +864,24 @@ WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[10] = {
     { NULL, NULL, NULL, { -3169, 4896, -1632, 0 }, { { -1575, 0, 924, 0 }, { 496, 0, -1725, 0 }, { -495, 0, 1725, 0 }, { 1575, 0, -923, 0 } }, { 0, 4102, 0, 0 }, { 3614, 0, 1930, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_submarine_gallery_801857F4[3] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 61, 61, 1, 0, { 0, 0 }, D_80158B0C },
+AreaResource D_neo_ark_submarine_gallery_801857F4[3] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
+    { 61, 61, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_80158B0C },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_submarine_gallery_80185818[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_neo_ark_submarine_gallery_80185818[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_submarine_gallery_80185830[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_neo_ark_submarine_gallery_80185830[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_submarine_gallery_80185848[2] = {
-    { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
+AreaResource D_neo_ark_submarine_gallery_80185848[2] = {
+    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, &D_80147E48 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

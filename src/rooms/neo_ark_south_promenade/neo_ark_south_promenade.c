@@ -271,27 +271,27 @@ WorldCollisionTrigger D_neo_ark_south_promenade_801806B0[6] = {
     { NULL, NULL, NULL, { 0x2B2F, -64, 1375, 0 }, { { -1874, 0, -1634, 0 }, { 2368, 0, 812, 0 }, { -2367, 0, -811, 0 }, { 1875, 0, 1635, 0 } }, { 0, 4099, 0, 0 }, { -2276, 0, 3406, 0 }, 2495, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpAreaTmdRec D_neo_ark_south_promenade_80180878[1] = {
+AreaResource D_neo_ark_south_promenade_80180878[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_south_promenade_80180884[1] = {
+AreaResource D_neo_ark_south_promenade_80180884[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_south_promenade_80180890[2] = {
-    { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
+AreaResource D_neo_ark_south_promenade_80180890[2] = {
+    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80137D74 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_south_promenade_801808A8[2] = {
-    { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
+AreaResource D_neo_ark_south_promenade_801808A8[2] = {
+    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_801482C0 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-GpAreaTmdRec D_neo_ark_south_promenade_801808C0[3] = {
-    { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
+AreaResource D_neo_ark_south_promenade_801808C0[3] = {
+    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_10, 0, { 0, 0 }, D_80147DF0 },
+    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, D_8015FAB8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

@@ -54,7 +54,7 @@ extern AnimationSet*  D_actor_317000_8016CF1C[9];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_317000_8016267C`; terminator id 0x7FFFFFFF.
+/// `func_actor_317000_8016267C`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -335,7 +335,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_317000_8016CF1C,
 };
 
-TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_317000_80162624, { .model = &D_actor_317000_801683A4 } };
+TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_317000_80162624, { .model = &D_actor_317000_801683A4 } };
 
 Actor317000MsgEntry D_actor_317000_8016CF50[6] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
@@ -343,7 +343,7 @@ Actor317000MsgEntry D_actor_317000_8016CF50[6] = {
     { 2005, { .call4 = func_actor_317000_80162BC4 } },
     { 2013, { .call3 = func_actor_317000_80162458 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_317000_80162CA0 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Per-frame tick. Runs the state body `Actor317000Work::walk.motion` selects
 /// from a two-entry stack table, then integrates the 16.16 position: `step` is
 /// added to `walk.acc`, `step.vy` gains 0x120000 while `field_4C4` is raised, the

@@ -41,7 +41,7 @@ typedef struct Actor503500ColorMtx {
 STATIC_ASSERT_SIZEOF(Actor503500ColorMtx, 0x48);
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
-/// `func_actor_503500_80132430`; terminator id 0x7FFFFFFF.
+/// `func_actor_503500_80132430`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -77,7 +77,7 @@ Actor503500MsgEntry D_actor_503500_80146888[4] = {
     { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call2 = func_actor_503500_80132584 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_503500_80132664 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 };
 
 PadScriptCmd D_actor_503500_801468A8[2] = {

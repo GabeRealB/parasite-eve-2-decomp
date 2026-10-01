@@ -81,13 +81,13 @@ void func_gunblade_8011D1E4(Task* task)
                     dst->workm  = coord->workm;
                     gte_SetRotMatrix(&coord->workm);
                     gte_SetTransMatrix(&coord->workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                     dst         = &gBladeTrailTip[i];
                     dst->parent = &gGfxViewCoord;
                     dst->workm  = local.workm;
                     gte_SetRotMatrix(&local.workm);
                     gte_SetTransMatrix(&local.workm);
-                    Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 }
                 return;
             case 1:
@@ -104,13 +104,13 @@ void func_gunblade_8011D1E4(Task* task)
                 dst->workm  = coord->workm;
                 gte_SetRotMatrix(&coord->workm);
                 gte_SetTransMatrix(&coord->workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 dst         = &gBladeTrailTip[work->age & 7];
                 dst->parent = &gGfxViewCoord;
                 dst->workm  = local.workm;
                 gte_SetRotMatrix(&local.workm);
                 gte_SetTransMatrix(&local.workm);
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
                 for (i = 0; i < 8; i++) {
                     dst               = &gBladeTrailBase[i];
                     dst->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -127,7 +127,7 @@ void func_gunblade_8011D1E4(Task* task)
                     work->index++;
                     eff = Gp_SpawnEff(0x6029A, coord, task->spawnArg1.value, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(task, eff->task);
+                        taskReparent(task, eff->task);
                     }
                 }
                 bladeTrailDraw(work->age & 7, 0x331);

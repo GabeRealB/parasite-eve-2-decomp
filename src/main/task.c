@@ -111,7 +111,7 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
     /// `gTaskDeferModelBufferAllocation` is set. A nonzero creation argument
     /// skips auxiliary-heap buffer allocation but still creates the model body
     /// and its coordinates. This bit does not set `TMD_OBJECT_SKIP_AUTO_BUFFER`;
-    /// recovery remains eligible unless `TASK_DESC_SKIP_MODEL_BUFFER` also
+    /// recovery remains eligible unless `TASK_DESC_SKIP_AUTO_MODEL_BUFFER` also
     /// supplies bit 0. No allocation is scheduled by this flag: a later
     /// buffer-allocation pass must run.
     enum { TASK_SPAWN_DEFER_MODEL_BUFFER = 1 << 1 };
@@ -132,7 +132,8 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
     switch (flags & TASK_DESC_BODY_KIND_MASK) {
         case TASK_BODY_TMD:
             attachFlags = 0;
-            if (flags & TASK_DESC_SKIP_MODEL_BUFFER) {
+            if (flags & TASK_DESC_SKIP_AUTO_MODEL_BUFFER) {
+                // Descriptor bit 8 becomes creation bit 0, suppressing allocation and recovery.
                 attachFlags = 1;
             }
             if (gTaskDeferModelBufferAllocation) {
@@ -439,48 +440,70 @@ void Task_DetachFromParent(Task* task)
     task->parent = NULL;
 }
 
-void Task_Reparent(Task* arg0, Task* arg1)
+/// Detaches a task from its parent's circular child ring while keeping it live.
+///
+/// `task` must be non-NULL and live throughout the call. If it has a parent,
+/// that live parent's `firstChild` must head a closed ring containing `task`,
+/// with live siblings whose `parent` identifies that owner. Removal preserves
+/// the remaining siblings' order and advances the head only when removing it;
+/// removing an only child clears the head. The detached task has `parent == NULL`
+/// and `nextSibling == task`.
+///
+/// A parentless task is left unchanged, including its sibling link. The task
+/// keeps its children, execution-list links and resources; no handlers run.
+static inline void _taskDetachForReparent(Task* task)
 {
-    Task* parent;
-    Task* next;
-    Task* cur;
-    Task* temp;
+    Task* oldParent;
+    Task* nextSibling;
+    Task* predecessor;
 
-    parent = arg1->parent;
-    if (parent != NULL) {
-        next = arg1->nextSibling;
-        if (next == arg1) {
-            parent->firstChild = NULL;
+    oldParent = task->parent;
+    if (oldParent != NULL) {
+        nextSibling = task->nextSibling;
+        if (nextSibling == task) {
+            oldParent->firstChild = NULL;
         } else {
-            if (parent->firstChild == arg1) {
-                parent->firstChild = next;
+            if (oldParent->firstChild == task) {
+                oldParent->firstChild = nextSibling;
             }
-            cur = arg1;
-            if (arg1->nextSibling != arg1) {
-                do {
-                    cur = cur->nextSibling;
-                } while (cur->nextSibling != arg1);
+            // The child ring has only forward links, so locate the predecessor.
+            predecessor = task;
+            while (predecessor->nextSibling != task) {
+                predecessor = predecessor->nextSibling;
             }
-            cur->nextSibling  = arg1->nextSibling;
-            arg1->nextSibling = arg1;
+            predecessor->nextSibling = task->nextSibling;
+            task->nextSibling        = task;
         }
-        arg1->parent = NULL;
+        task->parent = NULL;
     }
-    arg1->parent = arg0;
-    temp         = arg0->firstChild;
-    if (temp == NULL) {
-        arg0->firstChild = arg1;
+}
+
+void taskReparent(Task* newParent, Task* task)
+{
+    Task* childHead;
+    Task* lastChild;
+    Task* firstChild;
+
+    // Restore the old parent's ring before changing the teardown relationship.
+    _taskDetachForReparent(task);
+
+    task->parent = newParent;
+    childHead    = newParent->firstChild;
+    if (childHead == NULL) {
+        newParent->firstChild = task;
         return;
     }
-    cur  = temp;
-    arg0 = temp;
-    if (cur->nextSibling != cur) {
+
+    // Append after the last child, retaining the destination ring's head.
+    lastChild  = childHead;
+    firstChild = childHead;
+    if (lastChild->nextSibling != lastChild) {
         do {
-            cur = cur->nextSibling;
-        } while (cur->nextSibling != arg0);
+            lastChild = lastChild->nextSibling;
+        } while (lastChild->nextSibling != firstChild);
     }
-    arg1->nextSibling = arg0;
-    cur->nextSibling  = arg1;
+    task->nextSibling      = firstChild;
+    lastChild->nextSibling = task;
 }
 
 void Game_SetPtrSlot(void* ptr, s32 index)

@@ -15,7 +15,23 @@ s32 Gp_IsDebugAttachRoom(void);
 
 void Gp_TriggerPeIfArmed(void);
 
-void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
+/// Expresses a target transform relative to a reference transform.
+///
+/// `reference` and `target` map into the same containing frame. Writes
+/// `out.m = transpose(reference.m) * target.m` and
+/// `out.t = transpose(reference.m) * (target.t - reference.t)` using GTE
+/// arithmetic. Rotation elements use `ONE` (4096) for 1.0; translations are
+/// signed 32-bit game coordinates. The transpose inverts an orthonormal
+/// reference rotation; scale and shear are transposed rather than inverted.
+/// Refresh coordinate caches before passing their `workm` matrices.
+///
+/// The matrices must be word-aligned. `out` may equal either complete input
+/// matrix; otherwise it must be disjoint from both. Writes the nine rotation
+/// elements and three translation words, leaving the alignment bytes untouched.
+/// Requires an initialized scratch stack with 48 free bytes disjoint from the
+/// matrices. Releases the reservation before returning and retains no pointers.
+/// Changes GTE rotation and arithmetic state; does not update coordinate stamps.
+void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MATRIX* out);
 
 s32 Gp_TrySpawnViewTask(GpViewRec* arg0);
 

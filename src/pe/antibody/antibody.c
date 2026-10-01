@@ -219,7 +219,7 @@ void func_antibody_8012EF34(Task* arg0)
                                            12;
                             eff = Gp_SpawnEff(0x600F5, coord, 0, &mem->move);
                             if (eff != NULL) {
-                                Task_Reparent(arg0, eff->task);
+                                taskReparent(arg0, eff->task);
                             }
                             i += 0x400;
                         } while (i < 0x1000);

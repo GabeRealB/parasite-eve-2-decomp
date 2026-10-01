@@ -443,7 +443,7 @@ void Gp_EquipSummaryTask(Task* arg0)
         _gpDrawItemNameAt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Ui_LookupTable(obj, 1), item, 1);
     }
 
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
     if (skip == 0) {
         func_800C7DA8(obj, item, 0, 0);
     }
@@ -674,7 +674,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
     obj  = arg0->spawnArg2.pointer;
     cfg  = &gPlayerStatus;
     Ui_DrawText(&(obj)->panel, Gp_StrSelectWeapon);
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     if (arg0->state == 0) {
         parent     = arg0->parent;
         D_80114DD8 = -1;

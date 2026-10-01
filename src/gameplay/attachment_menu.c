@@ -353,7 +353,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             Ui_SetState4(parent->spawnArg2.pointer, parent);
             Ui_SpawnFromDesc(&D_8010EC3C, 1, 0, 0x10, obj);
         }
-        Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
+        uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
         val = Gp_AttachListIds[menu->field_10];
         if (val != 0) {
             func_800C7DA8(obj, val, 1, 0);
@@ -479,7 +479,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         arg0->state++;
     }
 
-    Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
+    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
 
     GP_FIND_SPARE_ARMOR(found, menu->field_10);

@@ -65,7 +65,7 @@ STATIC_ASSERT_SIZEOF(Actor113000Work, 0x4CC);
 /// segment.
 
 /// Message dispatch table the spawn handler parks in `Task::msgTable`:
-/// message id / handler pairs, terminated by 0x7FFFFFFF and a null word.
+/// message id / handler pairs, terminated by `TASK_MESSAGE_TABLE_END` and a null word.
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -1129,7 +1129,7 @@ Actor113000MessageEntry D_actor_113000_8013ABC0[5] = {
     { 2004, { .call1 = actorMsgPlaceEuler } },
     { 2005, { .call3 = func_actor_113000_80132398 } },
     { 2016, { .call2 = func_actor_113000_80132474 } },
-    { 0x7FFFFFFF, { .call0 = NULL } },
+    { TASK_MESSAGE_TABLE_END, { .call0 = NULL } },
 }; /// Texture-upload state: runs the countdown at `field_4C2` down one a frame
 
 static void func_actor_113000_80131E30(Task* arg0);

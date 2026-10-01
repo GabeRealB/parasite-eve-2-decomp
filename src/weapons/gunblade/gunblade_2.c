@@ -170,7 +170,7 @@ static void func_gunblade_8011E040(Task* arg0)
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0x17, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->equipmentTasks[1], eff->task);
+                        taskReparent(actor->equipmentTasks[1], eff->task);
                     }
                 } else if (actor->statePhase >= 4) {
                     actor->statePhase = 7;
