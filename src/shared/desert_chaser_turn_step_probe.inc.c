@@ -26,22 +26,17 @@ void desertChaserTurnStepProbe(Task* arg0)
     ctx     = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         obj = arg0->extra.tmd;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#if !DESERT_CHASER_RUN_SEQUENCE
         work->hitFlag = 0;
-#else
 #endif
         obj->flags                  = 0;
         work->objs[0].obj.radius    = 0x19C;
         work->objs[2].obj.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
         ctx->node.state.parts.flags = 0;
         work->field_828             = 1;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        work->field_82E = 0x12;
-#else
-        work->field_82E = 0x15;
-#endif
-        work->field_832 = 0x10;
-        work->field_6   = 0;
+        work->field_82E             = DESERT_CHASER_CLIP_TURN_PROBE;
+        work->field_832             = 0x10;
+        work->field_6               = 0;
     }
     work->field_6 += 1;
     desertChaserAnimTick(arg0);
@@ -96,10 +91,8 @@ void desertChaserTurnStepProbe(Task* arg0)
     coord2              = arg0->extra.tmd->coords;
     coord2->coord.t[2] += scratch->vec.vz;
     actorMoveForward(arg0->extra.tmd->coords, -8);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5);
-#else
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, DESERT_CHASER_CONTACTS);
+#if DESERT_CHASER_RUN_SEQUENCE
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #endif
     if (abs(scratch->delta) < 0x20) {

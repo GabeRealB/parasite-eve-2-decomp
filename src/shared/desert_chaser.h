@@ -52,10 +52,40 @@ typedef struct DesertChaserWaypoint {
 STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
+/* The armed builds. DESERT_CHASER_RUN_SEQUENCE is the Water Tower run: one
+ * more state ahead of the turn states, hits that only reply to the player
+ * while the chaser lives and rumble the pad, and the hit effect offset built on
+ * the stack. The regular build instead keeps the effect offset in the work
+ * block, checks the Mine region before backing off, and tells the scene when
+ * it starts its lunge. */
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#define DESERT_CHASER_CONTACTS 5
+#define DESERT_CHASER_CONTACTS         5
+#define DESERT_CHASER_RUN_SEQUENCE     0
+#define DESERT_CHASER_STATE_TURN_RIGHT 8
+#define DESERT_CHASER_STATE_TURN_LEFT  9
+#define DESERT_CHASER_CLIP_STAGGER     0x10
+#define DESERT_CHASER_CLIP_COLLAPSE    0x13
+#define DESERT_CHASER_CLIP_STUNNED     0x15
+#define DESERT_CHASER_CLIP_TURN_STEP   0x11
+#define DESERT_CHASER_CLIP_TURN_PROBE  0x12
+#define DESERT_CHASER_SLOT_RATE(work)  ((work)->field_834) /* the chaser's own speed */
+/* seeing the player raises the alert and starts the chase */
+#define DESERT_CHASER_NOTICE(work) (Gp_ArmStateF0(1), (work)->field_0 = 0x26)
+/* how near the player has to be before a steering chaser closes in */
+#define DESERT_CHASER_CLOSE_IN 2000
 #else
-#define DESERT_CHASER_CONTACTS 12
+#define DESERT_CHASER_CONTACTS         12
+#define DESERT_CHASER_RUN_SEQUENCE     1
+#define DESERT_CHASER_STATE_TURN_RIGHT 9
+#define DESERT_CHASER_STATE_TURN_LEFT  10
+#define DESERT_CHASER_CLIP_STAGGER     0x13 /* three more clips before these */
+#define DESERT_CHASER_CLIP_COLLAPSE    0x16
+#define DESERT_CHASER_CLIP_STUNNED     0x18
+#define DESERT_CHASER_CLIP_TURN_STEP   0x14
+#define DESERT_CHASER_CLIP_TURN_PROBE  0x15
+#define DESERT_CHASER_SLOT_RATE(work)  0x10 /* every runner alike */
+#define DESERT_CHASER_NOTICE(work)     ((work)->field_0 = 0x1C)
+#define DESERT_CHASER_CLOSE_IN         1500
 #endif
 
 /// Sphere body and the contact table supplied by its owner.
@@ -264,11 +294,11 @@ typedef struct DesertChaserWork {
     s16  distance;
     byte pad_EA0[2];
     /// One pose row latched from the pose table, and the yaw one step behind.
-    u16  poseVy;
+    s16  poseVy;
     u16  poseVx;
-    u16  poseVz;
+    s16  poseVz;
     u16  poseYaw;
-    u16  poseYawPrev;
+    s16  poseYawPrev;
     s16  field_EAC;
     byte pad_EAE[2];
 #endif

@@ -2,42 +2,20 @@
 
 void desertChaserSpawnAim(Task* arg0)
 {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
+    Enemy*            ctx;
     DesertChaserWork* work;
-#endif
-    Enemy* ctx;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    DesertChaserWork* work;
-#else
-    SVECTOR* head;
-#endif
-    SVECTOR* vec;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    SVECTOR* head;
-#else
-    SVECTOR* gteVec;
-#endif
-    TmdObject* obj;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
-    Task* player;
-#endif
-    s32 x;
-    s32 z;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    SVECTOR* gteVec;
-#else
-#endif
-    s32 sound;
-    s32 pan;
-    s32 eventPan;
-    s32 state;
-    u16 tick;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    Task* player;
-#else
-#endif
+    SVECTOR*          vec;
+    SVECTOR*          head;
+    TmdObject*        obj;
+    s32               x;
+    s32               z;
+    SVECTOR*          gteVec;
+    s32               sound;
+    s32               pan;
+    s32               eventPan;
+    s32               state;
+    u16               tick;
+    Task*             player;
 
     work                          = arg0->work;
     player                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -49,9 +27,8 @@ void desertChaserSpawnAim(Task* arg0)
     if (work->field_4 != 0) {
         obj                         = arg0->extra.tmd;
         ctx->node.state.parts.flags = 0;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#if !DESERT_CHASER_RUN_SEQUENCE
         work->hitFlag = 0;
-#else
 #endif
         obj->flags = 0;
         Tmd_AllocBuffers(obj);
@@ -64,9 +41,8 @@ void desertChaserSpawnAim(Task* arg0)
         work->field_832          = work->field_834;
         desertChaserAnimTick(arg0);
         Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, vec);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#if !DESERT_CHASER_RUN_SEQUENCE
         work->field_C28 = 0;
-#else
 #endif
         work->field_6 = 0;
         VectorNormalSS(vec, vec);
@@ -86,9 +62,8 @@ void desertChaserSpawnAim(Task* arg0)
         work->routePos.vz = z;
         pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(7, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        Gp_SpawnPadLerp(8, 0xFFU, 8U);
-#else
+#if !DESERT_CHASER_RUN_SEQUENCE
+        Gp_SpawnPadLerp(8, 0xFF, 8);
 #endif
     }
     tick          = work->field_6 + 1;
@@ -102,8 +77,8 @@ void desertChaserSpawnAim(Task* arg0)
         }
     }
     desertChaserAnimTick(arg0);
-    if (work->slots[1].flags & 0x100) {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    if (work->slots[1].flags & ANIMATION_SLOT_SETTLED) {
+#if !DESERT_CHASER_RUN_SEQUENCE
         work->field_0 = 0x1F;
 #else
         state = work->actorId.word & 0xFFFFFF;

@@ -23,19 +23,11 @@ void desertChaserStrike(Task* arg0)
         Tmd_AllocBuffers(obj);
         work->objs[0].obj.radius = 0x19C;
         work->field_828          = 1;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
-        work->field_82A = 0;
-#endif
-        work->field_82E = 5;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        work->field_82A = 0;
-#else
-#endif
-        work->field_83E = 0;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+        work->field_82A          = 0;
+        work->field_82E          = 5;
+        work->field_83E          = 0;
+#if !DESERT_CHASER_RUN_SEQUENCE
         work->field_C28 = 0;
-#else
 #endif
         work->field_6            = 0;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -54,12 +46,12 @@ void desertChaserStrike(Task* arg0)
         work->poseBlend                    = 1;
         work->capsuleBody.shape.ends[1].vz = 0x320;
         work->routePos.vz                  = z;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        Gp_SpawnPadLerp(3, 0xFFU, 8U);
-#else
+#if DESERT_CHASER_RUN_SEQUENCE
         if ((work->actorId.word & 0xFFFFFF) == 0x11402) {
             work->field_0 = 5;
         }
+#else
+        Gp_SpawnPadLerp(3, 0xFF, 8);
 #endif
     }
     work->field_6 += 1;
@@ -85,11 +77,7 @@ void desertChaserStrike(Task* arg0)
             } else {
                 actorMoveForward(arg0->extra.tmd->coords, 200);
             }
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5)) {
-#else
-            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 0xC)) {
-#endif
+            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, DESERT_CHASER_CONTACTS)) {
                 work->field_0 = 0x23;
             }
             if (work->field_6 >= 0x15) {
