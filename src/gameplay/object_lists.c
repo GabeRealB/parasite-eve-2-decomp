@@ -448,7 +448,7 @@ s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
             rec = &arg0[i];
             if ((rec->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (rec->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
                 mask |= 1 << rec->key.value;
-                if (Gp_RoomParams[rec->key.value & 7] == 0) {
+                if (Gp_RoomParams[rec->key.value & 7] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
                     if (rec->response.normal.vy >= -0xDDA) {
                         s->acc[0].vx += rec->response.normal.vx * rec->distance;
                         s->acc[0].vy += rec->response.normal.vy * rec->distance;
@@ -528,7 +528,7 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
         rec = &arg0[i];
         if ((rec->flags & WORLD_COLLISION_CONTACT_OCCUPIED) && (rec->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
             mask |= 1 << rec->key.value;
-            if (Gp_RoomParams[rec->key.value & 7] == 0) {
+            if (Gp_RoomParams[rec->key.value & 7] == WORLD_COLLISION_SURFACE_APPLY_PUSHBACK) {
                 switch ((u32)(rec->key.value & 0xF00) >> 8) {
                     case 0:
                         s->acc[0].vx += rec->distance * rec->response.normal.vx;
@@ -861,7 +861,7 @@ void Gp_LoadRoomParams(void)
     WorldCollisionSurfaceProperties** surfaceProperties;
 
     for (i = ARRAY_SIZE(Gp_RoomParams) - 1; i >= 0; i--) {
-        Gp_RoomParams[i] = 0;
+        Gp_RoomParams[i] = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK;
     }
 
     session           = gGameSession;

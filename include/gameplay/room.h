@@ -59,8 +59,14 @@ enum {
     WORLD_COLLISION_SURFACE_PASS_PROBES           = 1,
     WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS = 0,
     WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS  = 1,
-    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK        = 0,
-    WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK     = 1
+    /// Enables displacement calculation from this surface class's grid contacts.
+    ///
+    /// Stored in `WorldCollisionSurfaceProperties.suppressPushback` and cached
+    /// by surface class (0..7) in `Gp_RoomParams`. Ordinary, floor and edge
+    /// responses honor this zero value. Suppressed contacts still appear in
+    /// surface masks and count as hits.
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK    = 0,
+    WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK = 1
 };
 
 /// A footstep base that suppresses playback before either cue offset is added.
