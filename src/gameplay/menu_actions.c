@@ -1109,7 +1109,7 @@ static void Gp_DrawMapCursor(Task* arg0)
     setcode(p, 0x7E);
     p->clut = GetClut(0, 0x101);
 
-    ang = (u16)actor->field_52;
+    ang = (u16)actor->rotation.vy;
     if (((ang - 0xF00) & 0xFFFF) < 0x100U) {
         u0 = 0x40;
     } else if (ang < 0x100U) {

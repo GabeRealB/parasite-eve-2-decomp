@@ -564,7 +564,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
 
     switch (work->field_58A) {
         case 0:
-            if (((GameActor*)player->work)->field_954 != 2) {
+            if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 scratch->delta.vx                  = target->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vy                  = 0;
                 scratch->delta.vz                  = target->coord.t[2] - coord->coord.t[2];

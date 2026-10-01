@@ -231,8 +231,8 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     block->self.vy += gGfxViewCoord.workm.t[1];
     block->self.vz += gGfxViewCoord.workm.t[2];
 
-    if (actor->field_90C != NULL && flag != 0) {
-        node      = actor->field_90C;
+    if (actor->targetNode != NULL && flag != 0) {
+        node      = actor->targetNode;
         baseAngle = ratan2(GP_NODE_ENEMY(node)->playerRelPos.vx, GP_NODE_ENEMY(node)->playerRelPos.vz);
     } else {
         baseAngle = 0;
@@ -261,7 +261,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
                 dist += sub / 3;
             }
             angle >>= 10;
-            if (node == actor->field_90C) {
+            if (node == actor->targetNode) {
                 angle += 0x1000;
             }
             if (angle == bestAngle && dist > bestDist) {
@@ -278,7 +278,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
             if (flag == 1) {
                 angle = -angle;
             }
-            if (node == actor->field_90C) {
+            if (node == actor->targetNode) {
                 angle += 0x1000;
             }
         }
@@ -509,8 +509,8 @@ void Gp_UnlinkNode(WorldTargetNode* node)
         work = *p;
         if (work != NULL) {
             actor = work->work;
-            if (actor->field_90C == node) {
-                actor->field_90C = NULL;
+            if (actor->targetNode == node) {
+                actor->targetNode = NULL;
             }
         }
         i++;
@@ -570,7 +570,7 @@ s32 Gp_NodeSlotMask(WorldTargetNode* node)
     do {
         work = *p;
         if (work != NULL) {
-            if (((GameActor*)work->work)->field_90C == node) {
+            if (((GameActor*)work->work)->targetNode == node) {
                 mask |= one << i;
             }
         }
@@ -590,11 +590,11 @@ void Gp_AssignNodeSlot0(WorldTargetNode* node)
     work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work != NULL) {
         actor    = work->work;
-        previous = actor->field_90C;
+        previous = actor->targetNode;
         if (previous != NULL) {
             previous->state.parts.targeted = 0;
         }
-        actor->field_90C = node;
+        actor->targetNode = node;
     }
     val                        = node->state.parts.flags;
     node->state.parts.targeted = 1;
@@ -615,8 +615,8 @@ void Gp_ClearNodeSlots(WorldTargetNode* node)
         work = *p;
         if (work != NULL) {
             actor = work->work;
-            if (actor->field_90C == node) {
-                actor->field_90C = NULL;
+            if (actor->targetNode == node) {
+                actor->targetNode = NULL;
             }
         }
         i++;
@@ -760,7 +760,7 @@ void Gp_ClearSlotNodeFlags(void)
     do {
         work = *p;
         if (work != NULL) {
-            node = ((GameActor*)work->work)->field_90C;
+            node = ((GameActor*)work->work)->targetNode;
             if (node != NULL) {
                 node->state.parts.targeted = 0;
             }

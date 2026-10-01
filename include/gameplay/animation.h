@@ -118,32 +118,6 @@ typedef struct AnimationSet {
 } AnimationSet;
 STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 
-/// Bytes reserved for one slot's encoded transition pose, independent of encoding.
-enum { ANIMATION_POSE_BUFFER_BYTES = 16 };
-
-/// Playback bindings and encoded transition poses for one model's part animations.
-///
-/// The context borrows the model allocation's coordinate tail, the animation-set
-/// pointer table, writable slots and a word-aligned pose buffer. Their storage
-/// and the sets' data must remain live while playback uses them. Slot setup
-/// copies the context's set table; individual slots can retain different tables.
-///
-/// Indexed calls require a valid slot index and the corresponding buffer entry;
-/// each slot's coordinate index must be below `partCount`. The buffer holds
-/// `AnimationPackedPose` (12 bytes) or `AnimationPackedRotation` (4 bytes) at the
-/// start of each 16-byte entry, selected by the slot's encoding. It does not hold
-/// unpacked `AnimationPose` values. Buffer and slot capacities are supplied by the
-/// caller and are not stored or checked here. Slot-pointer tick helpers rebind
-/// `slots` using the slot's track index, which must equal its array index.
-typedef struct {
-    AnimationSet** sets;                                       // Borrowed default set table copied into newly initialized slots
-    GfxCoord*      coords;                                     // Borrowed mutable model-part transforms, indexed by each slot's coordIndex
-    u8             (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES]; // Borrowed writable encoded poses, indexed by playback slot
-    AnimationSlot* slots;                                      // Borrowed playback array; may be rebound by slot-pointer helpers
-    s32            partCount;                                  // Number of model-part coordinates, copied from TmdObject.partCount
-} AnimationContext;
-STATIC_ASSERT_SIZEOF(AnimationContext, 0x14);
-
 /// Advances one playback slot and writes its interpolated pose.
 ///
 /// `slotIndex` must name a slot in the context's per-part array. With

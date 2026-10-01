@@ -56,57 +56,57 @@ static void func_pa3_8011D1DC(Task* arg0)
     spot  = SCRATCH_STACK_CURSOR(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            actor->field_956 = 4;
-            actor->field_95E = 1;
-            actor->field_979 = PA3_FIELD_979;
-            actor->field_954 = 0;
-            actor->field_95A = 0;
-            actor->field_95C = 0;
-            actor->field_981 = 0;
-            actor->field_934 = 0x1F;
+            actor->state             = 4;
+            actor->statePhase        = 1;
+            actor->attackCancelTicks = PA3_FIELD_979;
+            actor->mode              = GAME_ACTOR_MODE_NORMAL;
+            actor->turnRateIndex     = 0;
+            actor->animationState    = 0;
+            actor->rumblePosted      = 0;
+            actor->stateTimer        = 0x1F;
             func_80106238(arg0, 0, 0);
-            actor->field_12A |= 0x400;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
             if (gPlayerStatus.weaponSlotItem == 0xE) {
-                actor->field_12A |= 0x800;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
             } else {
-                actor->field_12A &= ~0x800;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= ~0x800;
             }
             anim = 1;
-            if (((u16)actor->field_958 | actor->field_975) != 0) {
+            if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
             Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
-            actor->field_958 = 0;
+            actor->movementMode = 0;
             /* fallthrough */
         case 1:
-            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
-                actor->field_95E++;
+                actor->statePhase++;
             }
             break;
         case 2:
-            actor->field_95E++;
-            actor->field_12A |= 0xC000;
+            actor->statePhase++;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
             Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
                           ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
             Gp_SpawnEff(0x600A1,
-                        actor->field_91C->extra.tmd->coords,
+                        actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             break;
         case 3:
-            actor->field_95E++;
-            actor->field_12A &= 0x3FFF;
+            actor->statePhase++;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
             if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = Gp_PickNearestRec18(actor->field_32C, coord, spot);
+                hit = Gp_PickNearestRec18(actor->weaponContacts, coord, spot);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {
-                    if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                        spot->workm.t[0] = actor->field_32C[0].point.vx;
-                        spot->workm.t[1] = actor->field_32C[0].point.vy;
-                        spot->workm.t[2] = actor->field_32C[0].point.vz;
+                    if (hit != 0 || Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+                        spot->workm.t[0] = actor->weaponContacts[0].point.vx;
+                        spot->workm.t[1] = actor->weaponContacts[0].point.vy;
+                        spot->workm.t[2] = actor->weaponContacts[0].point.vz;
                         Gp_PlayObjSfx(spot,
                                       ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000004 | (WEAPON_ID << 16), 1);
                     }
@@ -116,19 +116,19 @@ static void func_pa3_8011D1DC(Task* arg0)
             }
             /* fallthrough */
         case 4:
-            if (--actor->field_934 == 0) {
-                actor->field_95E++;
+            if (--actor->stateTimer == 0) {
+                actor->statePhase++;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords,
                               ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000002 | (WEAPON_ID << 16), 0);
             }
             /* fallthrough */
         case 5:
-            if (actor->field_979 != 0) {
-                actor->field_979--;
+            if (actor->attackCancelTicks != 0) {
+                actor->attackCancelTicks--;
             }
             if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
-                ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
-                actor->field_940 = 1;
+                ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
+                actor->attackControl.cooldownTicks = 1;
                 func_80106550(arg0);
             }
             break;

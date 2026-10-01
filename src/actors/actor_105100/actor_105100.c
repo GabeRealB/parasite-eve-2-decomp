@@ -1626,7 +1626,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
 
     switch (work->field_5A4) {
         case 0:
-            if (((GameActor*)player->work)->field_954 != 2) {
+            if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 scratch->delta.vx                  = target->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vy                  = 0;
                 scratch->delta.vz                  = target->coord.t[2] - coord->coord.t[2];
@@ -1815,7 +1815,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             goto color_update;
         case 2:
             flag = work->field_5BA;
-            if ((flag == 1) && (((GameActor*)player->work)->field_954 != 2) && (Gp_StateC08.field_A != flag) &&
+            if ((flag == 1) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != flag) &&
                 (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 work->field_5BA = 0;

@@ -1005,7 +1005,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_26 = 0;
                     work->field_28 = 0;
                     work->field_34 =
-                        (((GameActor*)(work->field_0)->work)->field_52 + 0xC00) % 0x1000;
+                        (((GameActor*)(work->field_0)->work)->rotation.vy + 0xC00) % 0x1000;
                     if (work->field_34 > 0x800) {
                         s32 weapon;
 

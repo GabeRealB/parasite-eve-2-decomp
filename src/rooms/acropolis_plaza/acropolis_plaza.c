@@ -3179,14 +3179,14 @@ static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w)
     w->fwd  = 0;
     w->back = 0;
     if (dist >= 0xC9) {
-        if ((u16)w->actor->field_958 == 3) {
+        if ((u16)w->actor->movementMode == 3) {
             w->fwd = 2;
         } else {
             w->fwd = 1;
         }
     } else if (dist < -0x14) {
         if (cq->sceneFrame != 1) {
-            if ((u16)w->actor->field_958 == 3) {
+            if ((u16)w->actor->movementMode == 3) {
                 w->back = 2;
             } else {
                 w->back = 1;

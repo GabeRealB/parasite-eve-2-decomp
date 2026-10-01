@@ -1750,7 +1750,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, ActorsShared80138efcWork
 /// +-0x10 band, or straight to zero inside it - and the counter at 0xBAA is
 /// cleared. `Task::spawnArg1` then picks the threshold: 0 takes 0x5F5E0F
 /// outright, 0x20000 takes 0x3D08FF, and anything else 0xF423FF while the
-/// player's `GameActor::field_958` reads 3 and 0xF423F otherwise; the 0x20000
+/// player's `GameActor::movementMode` reads 3 and 0xF423F otherwise; the 0x20000
 /// case also closes in whenever the player flag at `Gp_StateF0.prefix.bytes.field_2` reads 1
 /// without measuring at all. Either way the link transform is re-armed exactly
 /// as its siblings arm it - model part 3 through `TmdObject::coords[3]`, the
@@ -1796,7 +1796,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, ActorsShared80138efcWor
 
         if (player != NULL) {
             actor = (GameActor*)player->work;
-            if (((Gp_StateF0.prefix.bytes.field_2 ^ 1) == 0) || (((u16)actor->field_958 == 3) && dist <= 0x3D08FF)) {
+            if (((Gp_StateF0.prefix.bytes.field_2 ^ 1) == 0) || (((u16)actor->movementMode == 3) && dist <= 0x3D08FF)) {
                 flag = 1;
             }
         }
@@ -1806,7 +1806,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, ActorsShared80138efcWor
 
         if (player != NULL) {
             actor = (GameActor*)player->work;
-            if ((((u16)actor->field_958 == 3) && dist <= 0xF423FF) || dist <= 0xF423F) {
+            if ((((u16)actor->movementMode == 3) && dist <= 0xF423FF) || dist <= 0xF423F) {
                 flag = 1;
             }
         }
@@ -3269,7 +3269,7 @@ static void Actor01100_Fn05678(
     if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
         status = &gPlayerStatus;
-        if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
+        if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
             work->field_BC8 = 1;
         }

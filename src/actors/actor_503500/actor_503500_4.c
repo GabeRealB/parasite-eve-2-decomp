@@ -4312,7 +4312,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
         if ((rec[i].key.value & 0xFFFF0000) == 0x10000) {
             player = gameGetPtrSlot(3);
             pcoord = player->extra.tmd->coords;
-            if (((GameActor*)player->work)->field_954 != 2 &&
+            if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
                 Gp_DispatchMsgPtr(player, 0x3F8, &D_actor_503500_80171544, 0) == 0) {
                 coord = arg0->parent->extra.tmd->coords;
                 src   = (s32*)&coord->coord;

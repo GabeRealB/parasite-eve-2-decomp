@@ -5724,7 +5724,7 @@ static void func_actor_444000_8013E058(Task* task)
         sc->push.vx = sc->dir.vx;
         sc->push.vy = 0;
         sc->push.vz = sc->dir.vz;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 2 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xA && actor->field_954 != 2) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 2 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xA && actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
             func_80105B74(&sc->push);
         }
     }
@@ -5976,10 +5976,10 @@ static void func_actor_444000_8013EC84(Task* arg0)
                 target = gameGetPtrSlot(3);
                 Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
                 if (cfg->hp <= 0) {
-                    ((GameActor*)player->work)->field_956 = 0xA;
-                    gGameSession->deathSoundCountdown     = 0x1E;
-                    gGameSession->deathFadeFrames         = 0x36;
-                    gGameSession->deathRestartDelay       = 0x5A;
+                    ((GameActor*)player->work)->state = 0xA;
+                    gGameSession->deathSoundCountdown = 0x1E;
+                    gGameSession->deathFadeFrames     = 0x36;
+                    gGameSession->deathRestartDelay   = 0x5A;
                 }
             }
             frame = work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
@@ -6246,7 +6246,7 @@ scanned:
         target          = gameGetPtrSlot(3);
         work->field_ECA = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
         if (work->field_ECA == 1) {
-            ((GameActor*)player->work)->field_956 = 0xA;
+            ((GameActor*)player->work)->state = 0xA;
         }
         work->anim.source.sets = D_actor_444000_80161670;
         work->field_EC8        = 1;

@@ -4342,7 +4342,7 @@ static void func_actor_421600_801373D4(Task* arg0)
         }
     }
     if ((func_actor_421600_801335BC(arg0->extra.tmd->coords, &work->field_90C, 0xC, (SVECTOR*)scratch) << 0x10) != 0) {
-        if ((work->field_82E == 3) && (playerWork->field_954 != 2)) {
+        if ((work->field_82E == 3) && (playerWork->mode != GAME_ACTOR_MODE_SCRIPTED)) {
             work->field_8E4     = 0x80;
             temp_a1_2           = arg0->extra.tmd->coords;
             scratch->vx         = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a1_2->coord.t[0]);
@@ -4444,7 +4444,7 @@ static void func_actor_421600_801373D4(Task* arg0)
                             }
                         }
                         if (scratch->messageResult == 1) {
-                            ((GameActor*)player->work)->field_956 = 0xA;
+                            ((GameActor*)player->work)->state = 0xA;
                         }
                         work->field_E80          = 1;
                         work->field_E84          = 0;
@@ -5599,7 +5599,7 @@ static void func_actor_421600_8013A554(Task* arg0)
                     }
                 }
                 if (scratch->reply == 1) {
-                    ((GameActor*)player->work)->field_956 = 0xA;
+                    ((GameActor*)player->work)->state = 0xA;
                 }
                 work->field_E80          = 1;
                 work->field_E84          = 0;

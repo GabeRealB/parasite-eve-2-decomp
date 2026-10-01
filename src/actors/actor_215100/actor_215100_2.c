@@ -1793,7 +1793,7 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task);
 ///
 /// Otherwise the player has to be standing in the zone — its model root's X
 /// below -0x1806 and its Z inside [0x10CD, 0x1644) — not aiming
-/// (`GameActor.field_954 != 2`), with the caption system idle, `D_80115768`
+/// (`GameActor.mode != 2`), with the caption system idle, `D_80115768`
 /// and `gDisplayState.pendingMode` clear, its yaw inside one of the two 0x3FF-wide windows
 /// opening at 0x201 and 0xA01, and one of the 0x1000 / 0x4000 pad masks held.
 /// Either mask runs the handoff `func_actor_215100_8014AA54` uses: the weapon
@@ -1822,12 +1822,12 @@ static void func_actor_215100_8014A398(void)
                 D_actor_215100_8014D044 -= 1;
                 return;
             }
-            if ((actor->field_954 != 2) && (Gp_CapBusy() == 0) && (D_actor_215100_8014D03C == 0) &&
+            if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_CapBusy() == 0) && (D_actor_215100_8014D03C == 0) &&
                 (D_80115768 == 0) && (coord->coord.t[0] < -0x1806)) {
                 z = coord->coord.t[2];
                 if (z < 0x1644) {
                     if ((z >= 0x10CD) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                        facing = (u16)actor->field_52 & 0xFFF;
+                        facing = (u16)actor->rotation.vy & 0xFFF;
                         if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                             if ((u32)(facing - 0xA01) < 0x3FFU) {
                                 Gp_MsgPlayerWeapon(0);
@@ -1959,8 +1959,8 @@ void func_actor_215100_8014A7C4(Task* arg0)
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             SndEvt_EnqueueType2(0, 0x1E);
-            actor->field_97B        = 0;
-            D_actor_215100_8014D038 = 0;
+            actor->movementInputDisabled = 0;
+            D_actor_215100_8014D038      = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_StateC08.field_6 &= 0xFD;
             if (gDisplayState.holdCount != 0) {

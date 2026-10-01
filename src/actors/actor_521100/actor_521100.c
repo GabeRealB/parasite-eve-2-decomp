@@ -2101,7 +2101,7 @@ static void func_actor_521100_80132958(Task* arg0)
 /// narrowed by `field_69C` being armed with 0x50; the request goes out only
 /// while fewer than 0x4E2 units of the actor's health are left, the latch
 /// `field_6BE` is clear, `gPlayerStatus.hp` (the player's current HP) is positive
-/// and the player's own `GameActor::field_954` is not its mode 2. On acceptance
+/// and the player's own `GameActor::mode` is not its mode 2. On acceptance
 /// the body rearms the motion state (2 into `field_69E`, 0xA frames of blend
 /// into `field_686`, the 0xA/0xFF/0x80 pad lerp) and returns 1; the 0x3F8
 /// query buffer is the 0x18 bytes pushed on the scratch-pad stack.
@@ -2129,7 +2129,7 @@ static s32 func_actor_521100_80132C70(Task* arg0)
     } else {
         wrap = diff + 0x1000;
     }
-    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (gPlayerStatus.hp > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->field_954 != 2)) {
+    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (gPlayerStatus.hp > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED)) {
         msg->field_14 = 0x19;
         if (Gp_DispatchMsgPtr(player, 0x3F8, msg, 0) == 0) {
             ret             = 1;
@@ -2829,14 +2829,14 @@ static void func_actor_521100_801339B0(Task* arg0)
             break;
         case 5:
             if ((s16)work->field_68A == 0x1A) {
-                ((GameActor*)player->work)->field_956 = 0xA;
-                work->field_6A0                       = 6;
-                work->field_68E                       = 0;
-                gGameSession->deathRestartDelay       = 0x5A;
-                gGameSession->deathSoundCountdown     = GAME_SESSION_DEATH_SOUND_HOLD;
-                sc->vec.vx                            = 0;
-                sc->vec.vy                            = -0x96;
-                sc->vec.vz                            = 0xC8;
+                ((GameActor*)player->work)->state = 0xA;
+                work->field_6A0                   = 6;
+                work->field_68E                   = 0;
+                gGameSession->deathRestartDelay   = 0x5A;
+                gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
+                sc->vec.vx                        = 0;
+                sc->vec.vy                        = -0x96;
+                sc->vec.vz                        = 0xC8;
                 func_800FDB18(1, gameGetPtrSlot(3)->extra.tmd->coords + 4, &sc->vec,
                               &D_actor_521100_8015F804);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);

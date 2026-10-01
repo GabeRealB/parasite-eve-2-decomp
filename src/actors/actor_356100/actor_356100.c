@@ -1950,7 +1950,7 @@ static void func_actor_356100_80166018(Task* arg0)
         work->field_B68                       = 0;
     }
     func_actor_356100_80163508(arg0);
-    if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
+    if ((work->field_5A & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &pos, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {

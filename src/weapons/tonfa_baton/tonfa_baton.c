@@ -188,7 +188,7 @@ static void func_tonfa_baton_8011DA74(Task* arg0)
     coord->coord.t[1] = 0x60;
     coord->coord.t[2] = 0;
 
-    if (*(u32*)&actor->field_954 != 0x40000) {
+    if (*(u32*)&actor->mode != 0x40000) {
         arg0->spawnArg1.value = 0;
     }
 
@@ -261,100 +261,100 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
     actor    = arg0->work;
     SCRATCH_STACK_RESERVE_BYTES(0x18);
     swing = SCRATCH_STACK_CURSOR(TonfaSwing);
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            actor->field_956 = 4;
-            actor->field_95E = 1;
-            actor->field_954 = 0;
-            actor->field_958 = 0;
-            actor->field_95A = 0;
-            actor->field_95C = 0;
-            actor->field_934 = 8;
-            actor->field_93E = 0;
+            actor->state          = 4;
+            actor->statePhase     = 1;
+            actor->mode           = GAME_ACTOR_MODE_NORMAL;
+            actor->movementMode   = 0;
+            actor->turnRateIndex  = 0;
+            actor->animationState = 0;
+            actor->stateTimer     = 8;
+            actor->actionValue    = 0;
             func_80106518(0x13);
-            actor->field_124 = 0x21317;
-            actor->field_12A = (actor->field_12A & 0xF7FF) | 0x400;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key   = 0x21317;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & 0xF7FF) | 0x400;
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             break;
         case 1:
         case 2:
-            delay = actor->field_934;
+            delay = actor->stateTimer;
             if (delay == 0) {
-                actor->field_973 = 1;
-                swinging         = 1;
-                if (actor->field_966 & 0xA) {
-                    actor->field_95E = 2;
+                actor->movementSign = 1;
+                swinging            = 1;
+                if (actor->padPressed & 0xA) {
+                    actor->statePhase = 2;
                 }
             } else {
                 delay--;
-                actor->field_934 = delay;
+                actor->stateTimer = delay;
                 if (delay == 0) {
-                    actor->field_91C->spawnArg1.value = 1;
-                    actor->field_12A                 |= 0x8000;
+                    actor->equipmentTasks[1]->spawnArg1.value             = 1;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x8000;
                     func_80106238(arg0, 0, 0);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130001, 0);
                     eff = Gp_SpawnEff(0x6003A,
-                                      actor->field_91C->extra.tmd->coords,
+                                      actor->equipmentTasks[1]->extra.tmd->coords,
                                       0, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->field_91C, eff->task);
+                        Task_Reparent(actor->equipmentTasks[1], eff->task);
                     }
                 }
             }
-            if (actor->field_93E != 1 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                actor->field_93E = 1;
+            if (actor->actionValue != 1 && Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+                actor->actionValue = 1;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130003, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
-                actor->field_12A &= 0x7FFF;
-                if (actor->field_95E == 2) {
-                    actor->field_95E = 3;
-                    actor->field_934 = 0xC;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x7FFF;
+                if (actor->statePhase == 2) {
+                    actor->statePhase = 3;
+                    actor->stateTimer = 0xC;
                     func_80106518(0x13);
-                    actor->field_124 = 0x21315;
-                    eff              = Gp_SpawnEff(
-                        0x6003A, actor->field_91C->extra.tmd->coords, 1,
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x21315;
+                    eff                                                = Gp_SpawnEff(
+                        0x6003A, actor->equipmentTasks[1]->extra.tmd->coords, 1,
                         NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->field_91C, eff->task);
+                        Task_Reparent(actor->equipmentTasks[1], eff->task);
                     }
                     Gp_AnimResetChildSlots(arg0, 0xB);
                 } else {
-                    actor->field_95E                  = 5;
-                    actor->field_934                  = 0xA;
-                    actor->field_91C->spawnArg1.value = 0;
+                    actor->statePhase                         = 5;
+                    actor->stateTimer                         = 0xA;
+                    actor->equipmentTasks[1]->spawnArg1.value = 0;
                     Gp_AnimResetChildSlots(arg0, 0xE);
                 }
             }
             break;
         case 3:
-            if (actor->field_934 != 0) {
-                actor->field_973 = 1;
-                swinging         = 1;
-                step             = actor->field_934 - 1;
-                actor->field_934 = step;
+            if (actor->stateTimer != 0) {
+                actor->movementSign = 1;
+                swinging            = 1;
+                step                = actor->stateTimer - 1;
+                actor->stateTimer   = step;
                 if (step == 3) {
-                    actor->field_12A |= 0x8000;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x8000;
                     func_80106238(arg0, 0, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130002, 0);
                 } else if (step == 0) {
-                    actor->field_95E                  = 4;
-                    actor->field_934                  = 9;
-                    actor->field_91C->spawnArg1.value = 0;
+                    actor->statePhase                         = 4;
+                    actor->stateTimer                         = 9;
+                    actor->equipmentTasks[1]->spawnArg1.value = 0;
                 }
             }
             /* fallthrough */
         case 4:
-            if (actor->field_95E == 4) {
-                fade = actor->field_934;
+            if (actor->statePhase == 4) {
+                fade = actor->stateTimer;
                 fade--;
-                actor->field_934 = fade;
+                actor->stateTimer = fade;
                 if (fade == 0) {
-                    actor->field_12A &= 0x7FFF;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x7FFF;
                 }
             }
-            if (actor->field_93E != 2 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                actor->field_93E = 2;
+            if (actor->actionValue != 2 && Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+                actor->actionValue = 2;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130004, 0);
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
@@ -362,10 +362,10 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
             }
             break;
         case 5:
-            if (actor->field_934 != 0) {
-                actor->field_973 = 1;
-                swinging         = 1;
-                actor->field_934 = actor->field_934 - 1;
+            if (actor->stateTimer != 0) {
+                actor->movementSign = 1;
+                swinging            = 1;
+                actor->stateTimer   = actor->stateTimer - 1;
             }
             if (func_80105894(arg0, 1, 0, 0) == 0) {
                 func_80106550(arg0);

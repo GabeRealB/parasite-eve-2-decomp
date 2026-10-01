@@ -86,105 +86,105 @@ static void func_gunblade_8011E040(Task* arg0)
     shake = 0;
     actor = arg0->work;
     sfx   = (gPlayerStatus.weaponSlotItem - 0xD) << 24;
-    rec   = &actor->field_14C;
+    rec   = &actor->weaponShape;
     SCRATCH_STACK_RESERVE_BYTES(sizeof(GunbladeScratch));
     blk   = SCRATCH_STACK_CURSOR(GunbladeScratch);
     coord = arg0->extra.tmd->coords;
     if (sfx < 0) {
         sfx = 0;
     }
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            actor->field_954 = 0;
-            actor->field_956 = 4;
-            actor->field_95A = 0;
-            actor->field_95C = 0;
+            actor->mode           = GAME_ACTOR_MODE_NORMAL;
+            actor->state          = 4;
+            actor->turnRateIndex  = 0;
+            actor->animationState = 0;
             func_80106238(arg0, 0, 0);
-            anim              = 1;
-            actor->field_12A |= 0x400;
-            actor->field_95E += anim;
-            if (((u16)actor->field_958 | actor->field_975) != 0) {
+            anim                                                  = 1;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
+            actor->statePhase                                    += anim;
+            if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 6;
             }
             Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
-            actor->field_958 = 0;
+            actor->movementMode = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
-                actor->field_95E++;
+                actor->statePhase++;
             }
             break;
         case 2:
-            if (actor->field_97F == 1) {
-                actor->field_95E = 3;
-                actor->field_934 = 0x12;
-                actor->field_93E = 0;
-                actor->field_952 = 0x39;
+            if (actor->attackButton == 1) {
+                actor->statePhase        = 3;
+                actor->stateTimer        = 0x12;
+                actor->actionValue       = 0;
+                actor->gunbladeSpinTicks = 0x39;
                 func_80106518(0x17);
-                actor->field_124 = 0x2171B;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x2171B;
                 {
                     u16 reach       = rec->ends[1].vz + D_80112F60[23];
                     rec->end0Radius = 0x180;
                     rec->end1Radius = 0x180;
                     rec->ends[0].vz = reach;
                 }
-                actor->field_12A &= 0xF7FF;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
                 break;
             }
-            actor->field_95E = 6;
-            actor->field_14C.ends[0].vz =
-                actor->field_14C.ends[1].vz + 0x2200;
-            actor->field_124 = gPlayerStatus.weaponSlotItem | 0x21700;
-            rec->end1Radius  = 0x100;
-            rec->ends[0].vz  = rec->ends[1].vz + 0x2200;
-            spread           = 0x900;
+            actor->statePhase = 6;
+            actor->weaponShape.ends[0].vz =
+                actor->weaponShape.ends[1].vz + 0x2200;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = gPlayerStatus.weaponSlotItem | 0x21700;
+            rec->end1Radius                                    = 0x100;
+            rec->ends[0].vz                                    = rec->ends[1].vz + 0x2200;
+            spread                                             = 0x900;
             if (gPlayerStatus.weaponSlotItem != 0xD) {
                 spread = 0x100;
             }
             rec->end0Radius = spread;
             if (gPlayerStatus.weaponSlotItem == 0xE) {
-                actor->field_12A |= 0x800;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
             } else {
-                actor->field_12A &= 0xF7FF;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
             }
             Gp_ConsumeSlotQty(0x96, 1);
-            actor->field_12A |= 0xC000;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
             Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
-            Gp_SpawnEff(0x600A1, actor->field_91C->extra.tmd->coords,
+            Gp_SpawnEff(0x600A1, actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 16) | 0x17, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
             break;
         case 3:
         case 4:
         case 5:
-            actor->field_934 = actor->field_934 - 1;
-            if (actor->field_934 == 0) {
-                if (actor->field_95E == 3) {
-                    actor->field_95E  = 4;
-                    actor->field_934  = 8;
-                    actor->field_12A |= 0xC000;
+            actor->stateTimer = actor->stateTimer - 1;
+            if (actor->stateTimer == 0) {
+                if (actor->statePhase == 3) {
+                    actor->statePhase                                     = 4;
+                    actor->stateTimer                                     = 8;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170006, 0);
                     eff = Gp_SpawnEff(0x60186,
-                                      actor->field_91C->extra.tmd->coords,
+                                      actor->equipmentTasks[1]->extra.tmd->coords,
                                       0x17, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->field_91C, eff->task);
+                        Task_Reparent(actor->equipmentTasks[1], eff->task);
                     }
-                } else if (actor->field_95E >= 4) {
-                    actor->field_95E = 7;
+                } else if (actor->statePhase >= 4) {
+                    actor->statePhase = 7;
                 }
             }
-            if (actor->field_95E == 4 && (s8)func_801060E0(arg0) == 2) {
-                actor->field_95E = 5;
+            if (actor->statePhase == 4 && (s8)func_801060E0(arg0) == 2) {
+                actor->statePhase = 5;
                 if (func_80106264(1) != 0) {
                     if (gPlayerStatus.weaponSlotItem < 0xF) {
                         lvl = gPlayerStatus.weaponSlotItem + 0xB;
                     } else {
                         lvl = 0x20;
                     }
-                    actor->field_124 = lvl | 0x21700;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = lvl | 0x21700;
                     Gp_ConsumeSlotQty(0x96, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170008, 1);
                     func_gunblade_8011E008(gPlayerStatus.weaponSlotItem);
@@ -192,25 +192,25 @@ static void func_gunblade_8011E040(Task* arg0)
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170001, 0);
                 }
             }
-            if (actor->field_93E != 1 && Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                actor->field_93E = 1;
+            if (actor->actionValue != 1 && Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+                actor->actionValue = 1;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170007, 0);
             }
-            if (actor->field_952 != 0) {
-                shake             = 1;
-                actor->field_52  += 0xC;
-                actor->field_952 -= 1;
+            if (actor->gunbladeSpinTicks != 0) {
+                shake                     = 1;
+                actor->rotation.vy       += 0xC;
+                actor->gunbladeSpinTicks -= 1;
             }
             break;
         case 6:
-            actor->field_95E++;
+            actor->statePhase++;
             if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = Gp_PickNearestRec18(actor->field_32C, coord, &blk->coord);
+                hit = Gp_PickNearestRec18(actor->weaponContacts, coord, &blk->coord);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {
-                    if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
-                        blk->coord.workm.t[0] = actor->field_32C[0].point.vx;
-                        blk->coord.workm.t[1] = actor->field_32C[0].point.vy;
-                        blk->coord.workm.t[2] = actor->field_32C[0].point.vz;
+                    if (hit != 0 || Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
+                        blk->coord.workm.t[0] = actor->weaponContacts[0].point.vx;
+                        blk->coord.workm.t[1] = actor->weaponContacts[0].point.vy;
+                        blk->coord.workm.t[2] = actor->weaponContacts[0].point.vz;
                         Gp_PlayObjSfx(&blk->coord, sfx | 0x20170004, 1);
                     }
                 } else if (hit != 0) {
@@ -219,19 +219,19 @@ static void func_gunblade_8011E040(Task* arg0)
             }
             /* fallthrough */
         case 7:
-            actor->field_12A &= 0x3FFF;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
             if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;
     }
     Gfx_MatrixCol2(&coord->coord, &blk->dir);
-    actor->field_973   = shake;
-    blk->step.vx       = (s16)(blk->dir.vx / 136) * shake;
-    blk->step.vy       = (s16)(blk->dir.vy / 136) * shake;
-    blk->step.vz       = (s16)(blk->dir.vz / 136) * shake;
-    coord->coord.t[0] += blk->step.vx;
-    coord->coord.t[1] += blk->step.vy;
-    coord->coord.t[2] += blk->step.vz;
+    actor->movementSign = shake;
+    blk->step.vx        = (s16)(blk->dir.vx / 136) * shake;
+    blk->step.vy        = (s16)(blk->dir.vy / 136) * shake;
+    blk->step.vz        = (s16)(blk->dir.vz / 136) * shake;
+    coord->coord.t[0]  += blk->step.vx;
+    coord->coord.t[1]  += blk->step.vy;
+    coord->coord.t[2]  += blk->step.vz;
     SCRATCH_STACK_RELEASE_BYTES(sizeof(GunbladeScratch));
 }

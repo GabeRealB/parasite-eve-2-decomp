@@ -1785,7 +1785,7 @@ static __inline__ s32 Actor01900_ArmIfPlayerLevel(Task* arg0)
     s32   dy;
 
     player = gameGetPtrSlot(3);
-    if (((GameActor*)player->work)->field_954 != 2) {
+    if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         dy = arg0->extra.tmd->coords->coord.t[1] - player->extra.tmd->coords->coord.t[1];
         if (ABS(dy) < 0x1F4) {
             Gp_ArmStateF0(1);

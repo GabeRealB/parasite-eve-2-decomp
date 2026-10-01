@@ -1582,7 +1582,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
     if (!overlayOutOfRange(&sc->d, 600)) {
         mag = (sc->angle >= 0) ? sc->angle : -sc->angle;
         if (mag < 0x200) {
-            if (actor->field_954 != 2) {
+            if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 work->field_490 = 0xC;
                 if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, work->field_47C, 0) == 0) {
                     coord     = player->extra.tmd->coords;
@@ -1720,7 +1720,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
     switch ((s16)(work->field_6 - 0x5B)) {
         case 0:
             if (work->field_496 == 1) {
-                if (((GameActor*)(gameGetPtrSlot(3))->work)->field_954 == 2) {
+                if (((GameActor*)(gameGetPtrSlot(3))->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
                     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
                 }
                 work->field_496 = 0;
@@ -1968,7 +1968,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
             break;
         case 1:
             if (work->field_496 == 1) {
-                if (((GameActor*)(gameGetPtrSlot(3))->work)->field_954 == 2) {
+                if (((GameActor*)(gameGetPtrSlot(3))->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
                     Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
                 }
                 work->field_496 = 0;
@@ -2303,7 +2303,7 @@ found:
             work->field_0 = 6;
         }
         if (work->field_496 == 1) {
-            if (((GameActor*)gameGetPtrSlot(3)->work)->field_954 == 2) {
+            if (((GameActor*)gameGetPtrSlot(3)->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             }
             work->field_496 = 0;
@@ -2853,7 +2853,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
     table.fn[work->field_0](arg0, arg1);
     if (work->field_496 == 1) {
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 || arg0->hp < 0) {
-            if (((GameActor*)gameGetPtrSlot(3)->work)->field_954 == 2) {
+            if (((GameActor*)gameGetPtrSlot(3)->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
                 Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             }
             work->field_496 = 0;

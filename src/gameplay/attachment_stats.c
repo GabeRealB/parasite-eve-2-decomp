@@ -1042,8 +1042,8 @@ static __inline__ s32 hudSwapReady(void)
     if (work != NULL) {
         actor = work->work;
         p     = &gPlayerStatus;
-        if (actor->field_954 == 0) {
-            if (actor->field_956 == 0 || actor->field_956 == 2) {
+        if (actor->mode == GAME_ACTOR_MODE_NORMAL) {
+            if (actor->state == 0 || actor->state == 2) {
                 if (gGameSession->dirActionBusy == 0) {
                     if (p->interactionPressed == 0) {
                         flag = 1;
@@ -1166,7 +1166,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         if (gGameSession->padPressed & 0x50) {
             work = gameGetPtrSlot(3);
             if (work != NULL) {
-                ((GameActor*)work->work)->field_962 |= 0x40;
+                ((GameActor*)work->work)->padHeld |= 0x40;
             }
             Gp_StateC08.field_A = 0;
             D_80115768          = 0;
@@ -1278,7 +1278,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         flag = 1;
     }
     actor = gameGetPtrSlot(3)->work;
-    if ((Gp_StateC08.field_E != 0 && actor->field_954 == 2) || (Gp_StateC08.field_6 & 1)) {
+    if ((Gp_StateC08.field_E != 0 && actor->mode == GAME_ACTOR_MODE_SCRIPTED) || (Gp_StateC08.field_6 & 1)) {
         Gp_StateC08.field_E = 0;
     }
     if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
@@ -1453,8 +1453,8 @@ void Gp_HudTask(GpIdMapC* arg0)
 
                 actor = work->work;
                 p     = &gPlayerStatus;
-                if (actor->field_954 == 0) {
-                    mode = actor->field_956;
+                if (actor->mode == GAME_ACTOR_MODE_NORMAL) {
+                    mode = actor->state;
                     if (mode == 0 || mode == 2) {
                         if (gGameSession->dirActionBusy == 0) {
                             if (p->interactionPressed == 0) {
@@ -1640,7 +1640,7 @@ after:
                 }
             }
             if (w != NULL) {
-                if (((GameActor*)w->work)->field_95E == 0x3E8) {
+                if (((GameActor*)w->work)->statePhase == 0x3E8) {
                     hit = 1;
                 }
             }

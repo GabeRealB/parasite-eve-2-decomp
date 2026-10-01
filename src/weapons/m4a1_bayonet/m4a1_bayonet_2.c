@@ -50,78 +50,78 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = &actor->field_14C;
+    rec   = &actor->weaponShape;
     SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            anim              = 1;
-            actor->field_956  = 4;
-            actor->field_954  = 0;
-            actor->field_95A  = 0;
-            actor->field_95C  = 0;
-            actor->field_95E += anim;
-            actor->field_12A |= 0x400;
-            if (((u16)actor->field_958 | actor->field_975) != 0) {
+            anim                                                  = 1;
+            actor->state                                          = 4;
+            actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
+            actor->turnRateIndex                                  = 0;
+            actor->animationState                                 = 0;
+            actor->statePhase                                    += anim;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
+            if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
             Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
-            actor->field_958 = 0;
+            actor->movementMode = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
-                actor->field_95E++;
+                actor->statePhase++;
             }
             break;
         case 2:
-            actor->field_981 = 0;
-            if (actor->field_97F & 1) {
-                actor->field_95E  = 3;
-                actor->field_934  = 0;
-                actor->field_979  = 9;
-                actor->field_93E  = 3;
-                actor->field_124  = gPlayerStatus.weaponSlotItem | 0x21A00;
-                actor->field_12A |= 0x800;
+            actor->rumblePosted = 0;
+            if (actor->attackButton & 1) {
+                actor->statePhase                                     = 3;
+                actor->stateTimer                                     = 0;
+                actor->attackCancelTicks                              = 9;
+                actor->actionValue                                    = 3;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | 0x21A00;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
                 func_80106238(arg0, 0, 1);
-            } else if (actor->field_97F & 2) {
-                actor->field_95E = 5;
-                actor->field_979 = 0xA;
-                actor->field_93E = 0x12;
+            } else if (actor->attackButton & 2) {
+                actor->statePhase        = 5;
+                actor->attackCancelTicks = 0xA;
+                actor->actionValue       = 0x12;
                 func_80106518(0x1A);
-                actor->field_940  = 0x1C;
-                rec->ends[0].vz   = rec->ends[1].vz + 0x340;
-                actor->field_124  = 0x21A1D;
-                actor->field_12A &= 0xF7FF;
+                actor->attackControl.cooldownTicks                    = 0x1C;
+                rec->ends[0].vz                                       = rec->ends[1].vz + 0x340;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x21A1D;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
                 func_80106238(arg0, 0, 0);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xB, 1, 3);
                 break;
             }
             /* fallthrough */
         case 3:
-            if (actor->field_93E != 0) {
-                delay = actor->field_934;
+            if (actor->actionValue != 0) {
+                delay = actor->stateTimer;
                 if (delay == 0) {
-                    actor->field_93E--;
-                    actor->field_934  = 3;
-                    actor->field_981  = 0;
-                    rec->ends[0].vz   = rec->ends[1].vz + D_80112F60[26];
-                    actor->field_12A |= 0xC000;
+                    actor->actionValue--;
+                    actor->stateTimer                                     = 3;
+                    actor->rumblePosted                                   = 0;
+                    rec->ends[0].vz                                       = rec->ends[1].vz + D_80112F60[26];
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
                     Gp_ConsumeSlotQty(0x99, 1);
                     if (func_80106264(1) == 0) {
-                        actor->field_93E = 0;
+                        actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0004, 1);
                     Gp_SpawnEff(0x6006B,
-                                actor->field_91C->extra.tmd->coords,
+                                actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1A, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
                 }
-                actor->field_934 = delay - 1;
+                actor->stateTimer = delay - 1;
                 if (delay - 1 == 2) {
-                    actor->field_12A &= 0x3FFF;
-                    if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                    if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                         Gp_PlayObjSfx(spot, 0x17, 1);
                     }
                 }
@@ -129,44 +129,44 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
             }
             /* fallthrough */
         case 4:
-            actor->field_95E  = 7;
-            actor->field_12A &= 0x3FFF;
-            if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+            actor->statePhase                                     = 7;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }
             break;
         case 5:
         case 6:
-            frames           = (u16)actor->field_93E - 1;
-            actor->field_93E = frames;
+            frames             = (u16)actor->actionValue - 1;
+            actor->actionValue = frames;
             if (frames == 0) {
-                if (actor->field_95E == 5) {
-                    actor->field_95E++;
-                    actor->field_93E  = 0xA;
-                    actor->field_12A |= 0xC000;
+                if (actor->statePhase == 5) {
+                    actor->statePhase++;
+                    actor->actionValue                                    = 0xA;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0006, 0);
                     eff = Gp_SpawnEff(0x6003E,
-                                      actor->field_91C->extra.tmd->coords,
+                                      actor->equipmentTasks[1]->extra.tmd->coords,
                                       0x1A, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->field_91C, eff->task);
+                        Task_Reparent(actor->equipmentTasks[1], eff->task);
                     }
                 } else {
-                    actor->field_95E  = 7;
-                    actor->field_12A &= 0x3FFF;
+                    actor->statePhase                                     = 7;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
                 }
             }
-            if (Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
+            if (Gp_CountRec18Hi(actor->weaponContacts, 0x30000) != 0) {
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0005, 0);
             }
             break;
         case 7:
-            if (actor->field_979 != 0) {
-                actor->field_979--;
+            if (actor->attackCancelTicks != 0) {
+                actor->attackCancelTicks--;
             }
             if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
-                ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
-                actor->field_940 = 0xC;
+                ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
+                actor->attackControl.cooldownTicks = 0xC;
                 func_80106550(arg0);
             }
             break;

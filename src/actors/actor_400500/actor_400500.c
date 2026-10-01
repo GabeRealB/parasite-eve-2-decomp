@@ -4325,7 +4325,7 @@ static void func_actor_400500_8013771C(Task* arg0)
         work->field_9BC += -((u16)work->field_9BC << 20) >> 23;
     }
     if ((s16)work->field_A04 == 7) {
-        if (player->field_954 != 2) {
+        if (player->mode != GAME_ACTOR_MODE_SCRIPTED) {
             if (_actor400500PlayerDistance(&arg0->extra.tmd->coords[8]) < 0x500) {
                 AnimationPlayRequest msg;
 
@@ -4368,8 +4368,8 @@ static void func_actor_400500_8013771C(Task* arg0)
     if ((s16)work->field_A04 == 0x1F) {
         Gp_SpawnPadLerp(6, 0xFFU, 0x80U);
         if (actorPlayerContactMessage(spawn, 1) != 0) {
-            player->field_956 = 0xA;
-            work->field_A4D   = 1;
+            player->state   = 0xA;
+            work->field_A4D = 1;
         }
     }
     hit = (Actor400500HitView*)arg0->work;

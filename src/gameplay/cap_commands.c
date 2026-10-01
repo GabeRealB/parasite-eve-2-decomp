@@ -173,7 +173,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
                 arg0->state++;
             }
-            if (actor->field_954 != 2) {
+            if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 taskKill(arg0);
             }
             break;
@@ -220,7 +220,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
                 arg0->state++;
             }
-            if (actor->field_954 != 2) {
+            if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 taskKill(arg0);
                 Gp_StateF0.field_4 = 0;
             }

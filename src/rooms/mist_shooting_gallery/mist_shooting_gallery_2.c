@@ -2262,14 +2262,14 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     work->difficulty = arg0->spawnArg1.value & 0xF;
     work->field_0C   = -0xDC;
 
-    actor->field_14C.ends[0].vz =
-        (actor->field_14C.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
+    actor->weaponShape.ends[0].vz =
+        (actor->weaponShape.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
     func_801066DC(slot, 1);
 
     if (work->difficulty < 3) {
         Gp_StateC08.field_6 |= 2;
         if (work->difficulty < 2) {
-            actor->field_97B = 1;
+            actor->movementInputDisabled = 1;
             Display_AcquireRef();
         }
     }
@@ -2858,7 +2858,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
         case 6:
             actor = gameGetPtrSlot(3)->work;
             func_800E9BDC(5, 0xA);
-            if (actor->field_982 == 0) {
+            if (actor->scriptedMotionPending == 0) {
                 Gp_EnterActorMode2(
                     gameGetPtrSlot(3), 0, 2, 0);
                 work->field_04++;
@@ -3139,9 +3139,9 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
                 return;
             }
             work->field_04++;
-            actor->field_97B                               = 0;
-            actor->field_983                               = 7;
-            ((WorldCollisionBody*)actor->field_AC)->flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
+            actor->movementInputDisabled                        = 0;
+            actor->pendingCollisionUpdates                      = 7;
+            actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
             Gp_ReleaseStateF0Clear(arg0, 0);
             func_8014A908();
             return;
@@ -3369,10 +3369,10 @@ static void func_mist_shooting_gallery_80184A80(Task* arg0)
 {
     GameActor* actor;
 
-    actor                                          = gameGetPtrSlot(3)->work;
-    actor->field_97B                               = 0;
-    actor->field_983                               = 7;
-    ((WorldCollisionBody*)actor->field_AC)->flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
+    actor                                               = gameGetPtrSlot(3)->work;
+    actor->movementInputDisabled                        = 0;
+    actor->pendingCollisionUpdates                      = 7;
+    actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     Display_ReleaseRef();
     Gp_ReleaseStateF0Clear(arg0, 0);
     taskKill(arg0);

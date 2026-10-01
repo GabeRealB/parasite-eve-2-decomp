@@ -3006,7 +3006,7 @@ static void func_actor_401300_801365F8(Task* arg0)
         sc->dz = dz = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
         dist        = SquareRoot0(dx * dx + dy * dy + dz * dz);
         sc->dist    = dist;
-        if (player->field_954 != 2 && work->field_6 >= 0x28) {
+        if (player->mode != GAME_ACTOR_MODE_SCRIPTED && work->field_6 >= 0x28) {
             if (dist > 4000) {
                 work->field_0 = 0x21;
             } else if (dist > 2000) {
@@ -3407,7 +3407,7 @@ static void func_actor_401300_80138160(Task* arg0)
         work->field_D20                       = 0;
     }
     func_actor_401300_80133A3C(arg0);
-    if ((work->field_5E & 0x3FF) == 0x10 && player->field_954 != 2) {
+    if ((work->field_5E & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &pos, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
             work->field_CAC.source.sets = D_actor_401300_801588F0;
@@ -3515,7 +3515,7 @@ static void func_actor_401300_80138B24(Task* arg0)
         work->field_8A2 = 6;
         work->field_89C = 2;
         if ((s16)Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 0), 0) == 1) {
-            ((GameActor*)player->work)->field_956 = 0xA;
+            ((GameActor*)player->work)->state = 0xA;
         }
         work->field_CAC.animationId = 2;
         Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->field_CAC, 0);
@@ -4787,7 +4787,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 work->field_89C = 2;
                 work->field_6   = 0;
             }
-            if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->field_954 != 2 && abs(aim->turn) < 0x100 &&
+            if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && abs(aim->turn) < 0x100 &&
                 enemy->hp > 0) {
                 work->field_D00 = 0x7F;
                 if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_CEC, 0) == 0) {
@@ -4815,7 +4815,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                         ret                         = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 5), 0);
                     }
                     if (ret == 1) {
-                        player->field_956 = 0xA;
+                        player->state = 0xA;
                     }
                     work->field_CD4.vx = task->extra.tmd->coords->coord.t[0];
                     work->field_CD4.vy = task->extra.tmd->coords->coord.t[1];
@@ -5008,7 +5008,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                 work->field_89C = 2;
                 work->field_6   = 0;
             }
-            if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->field_954 != 2 && work->field_6 >= 8 &&
+            if (func_actor_401300_80132910(arg0, work->field_990, 0xC) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && work->field_6 >= 8 &&
                 enemy->hp > 0) {
                 work->field_D00 = 0x7F;
                 if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_CEC, 0) == 0) {
@@ -5033,7 +5033,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                         ret                         = Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
                     }
                     if (ret == 1) {
-                        player->field_956 = 0xA;
+                        player->state = 0xA;
                     }
                     work->field_CD4.vx = task->extra.tmd->coords->coord.t[0];
                     work->field_CD4.vy = task->extra.tmd->coords->coord.t[1];

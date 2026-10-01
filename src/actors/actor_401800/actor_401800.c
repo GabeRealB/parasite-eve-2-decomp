@@ -2890,7 +2890,7 @@ static void func_actor_401800_801381E4(Task* arg0)
         work->field_8C2                       = 0xA;
     }
     blendRigDrive(arg0);
-    if ((work->field_5A & 0x3FF) == 0x10 && gactor->field_954 != 2) {
+    if ((work->field_5A & 0x3FF) == 0x10 && gactor->mode != GAME_ACTOR_MODE_SCRIPTED) {
         Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
         ang = actorViewYaw(arg0->extra.tmd->coords, &dir);
         if (ang < 0) {

@@ -3565,7 +3565,7 @@ static s32 Actor01600_Fn047A0(Task* arg0)
     task  = work->field_4D4;
     other = task->extra.tmd->coords;
     coord = arg0->extra.tmd->coords;
-    if (((GameActor*)gPlayerActorTasks[work->field_53E]->work)->field_954 != 2) {
+    if (((GameActor*)gPlayerActorTasks[work->field_53E]->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         if (Actor01600_D12870 != 1) {
             difference = Actor01600_Fn045A8(arg0, &distance);
             if (difference < 0) {
@@ -3626,7 +3626,7 @@ static s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
     work  = actor->work;
     coord = actor->extra.tmd->coords;
     other = (*gPlayerActorTasks)->extra.tmd->coords;
-    if (((GameActor*)gPlayerActorTasks[flags]->work)->field_954 != 2) {
+    if (((GameActor*)gPlayerActorTasks[flags]->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         if (Actor01600_D12870 == 0) {
             otherY     = other->coord.t[1];
             tmp        = coord->coord.t[1];

@@ -183,144 +183,211 @@ STATIC_ASSERT(OFFSET_OF(GameSession, location) == 4, GameSession_location);
 STATIC_ASSERT(OFFSET_OF(GameSession, location.loc) == 4, GameSession_location_loc);
 STATIC_ASSERT(OFFSET_OF(GameSession, ptrSlots) == 0xC, GameSession_ptrSlots);
 
-/// Large object pointed to by Task::work for the slot-3 game object
-/// (gameGetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
-typedef struct _GameActor {
-    /* 0x000 */ s32                           field_0;  // per-frame X velocity (Gp_PlayerMode2State3)
-    /* 0x004 */ s32                           field_4;  // per-frame Y velocity
-    /* 0x008 */ s32                           field_8;  // per-frame Z velocity
-    /* 0x00C */ byte                          pad_C[4];
-    /* 0x010 */ s32                           field_10; // copy of GfxCoord.coord.t[0]
-    /* 0x014 */ s32                           field_14; // copy of GfxCoord.coord.t[1]
-    /* 0x018 */ s32                           field_18; // copy of GfxCoord.coord.t[2]
-    /* 0x01C */ byte                          pad_1C[4];
-    /* 0x020 */ s32                           field_20; // copied from Gp_SetActorDest arg2
-    /* 0x024 */ s32                           field_24;
-    /* 0x028 */ s32                           field_28;
-    /* 0x02C */ byte                          pad_2C[4];
-    /* 0x030 */ VECTOR                        field_30; // push-back dir (func_80109BB4); low halves go to a scratch SVECTOR
-    /* 0x040 */ s32                           field_40;
-    /* 0x044 */ s32                           field_44;
-    /* 0x048 */ s32                           field_48;
-    /* 0x04C */ byte                          pad_4C[4];
-    /* 0x050 */ s16                           field_50; // SVECTOR.vx; func_80104D68 / RotMatrix
-    /* 0x052 */ s16                           field_52; // facing angle (lh); func_8010BCF4 / func_80103E7C
-    /* 0x054 */ s16                           field_54; // SVECTOR.vz; func_80104D68 / RotMatrix
-    /* 0x056 */ byte                          pad_56[2];
-    /* 0x058 */ s16                           field_58;
-    /* 0x05A */ byte                          pad_5A[2];
-    /* 0x05C */ s16                           field_5C; // pitch; Gp_AimPitchToLockAlt
-    /* 0x05E */ byte                          pad_5E[2];
-    /* 0x060 */ s16                           field_60;
-    /* 0x062 */ byte                          pad_62[2];
-    /* 0x064 */ s16                           field_64; // pitch; Gp_AimPitchToLockAlt
-    /* 0x066 */ byte                          pad_66[2];
-    /* 0x068 */ s16                           field_68;
-    /* 0x06A */ s16                           field_6A;        // aim/look yaw offset; func_8010BE5C
-    /* 0x06C */ byte                          pad_6C[4];
-    /* 0x070 */ s16                           field_70;        // pitch-like angle; Gp_AimPitchRec
-    /* 0x072 */ byte                          pad_72[6];
-    /* 0x078 */ s16                           field_78;        // pitch; Gp_AimPitchDirect
-    /* 0x07A */ byte                          pad_7A[6];
-    /* 0x080 */ s16                           field_80;        // copied from func_80104F5C arg2
-    /* 0x082 */ s16                           field_82;        // target facing angle; func_80104E00 / Gp_PlayerMode2State2
-    /* 0x084 */ byte                          pad_84[4];
-    /* 0x088 */ WorldCollisionMotionContext   field_88[3];     // `context.motion` of the `WorldCollisionBody` nodes at `field_AC`, `field_CC` and `field_EC`
-    /* 0x0AC */ byte                          field_AC[0x20];  // first of the five `WorldCollisionBody` nodes at 0xAC..0x14C
-    /* 0x0CC */ byte                          field_CC[0x20];  // `WorldCollisionBody` node
-    /* 0x0EC */ byte                          field_EC[0x20];  // `WorldCollisionBody` node
-    /* 0x10C */ byte                          field_10C[0x18]; // `WorldCollisionBody` node; `field_124` is its key
-    /* 0x124 */ u32                           field_124;
-    /* 0x128 */ byte                          pad_128[2];
-    /* 0x12A */ u16                           field_12A;       // that node's flags
-    /* 0x12C */ byte                          field_12C[0x20];
-    /* 0x14C */ WorldCollisionCapsule         field_14C;       // the actor's own collision shape; the weapon attach re-arms it
-    /* 0x164 */ byte                          pad_164[0x18];
-    /* 0x17C */ WorldCollisionContact         field_17C[18];   // Gp_ClearRec18Occupied / func_801041B4
-    /* 0x32C */ WorldCollisionContact         field_32C[6];    // Gp_AttachActorObj / Gp_InitRec18Table
-    /* 0x3BC */ WorldCollisionContact         aimContacts[1];  // Single result for the aiming capsule
-    /* 0x3D4 */ GfxCoord                      field_3D4;       // copy of the attached model's root coordinate; the frame of the body at `field_10C`
-    /* 0x424 */ byte                          field_424[0x14]; // AnimationContext overlay; Gp_AnimTickIndex
-    /* 0x438 */ AnimationSlot                 field_438[19];   // the actor's animation slots, the array its `AnimationContext` walks
-    /* 0x730 */ byte                          pad_730[0x10];
-    /* 0x740 */ byte                          pad_740[0x68];
-    /* 0x7A8 */ byte                          field_7A8; // addr taken as func_800B3F84 arg3
-    /* 0x7A9 */ byte                          pad_7A9[0x163];
-    /* 0x90C */ struct WorldTargetNode*       field_90C;
-    /* 0x910 */ struct CompanionWork*         field_910;
-    /* 0x914 */ struct Task*                  field_914;
-    /* 0x918 */ struct Task*                  field_918;
-    /* 0x91C */ struct Task*                  field_91C;
-    /* 0x920 */ struct Task*                  field_920;
-    /* 0x924 */ struct Task*                  field_924;
-    struct AnimationSet**                     animationSets; // Borrowed set table used by the player's or companion's animation slots
-    /* 0x92C */ const struct AnimationRecord* field_92C;     // last Gp_AnimGetRec result (Gp_PlayerNormalState5)
-    /* 0x930 */ s32                           field_930;     // sw from Gp_MsgPlayerDirFacing; addr taken by func_801011D0
-    /* 0x934 */ s32                           field_934;
-    /* 0x938 */ s16                           field_938;     // number of animation slots the actor walks (init 0x13)
-    /* 0x93A */ u16                           field_93A;     // Gp_WeaponIdBase[field_22-1] + field_21
-    /* 0x93C */ u16                           field_93C;
-    /* 0x93E */ s16                           field_93E;
-    /* 0x940 */ s16                           field_940;
-    /* 0x942 */ s16                           field_942;
-    /* 0x944 */ s16                           field_944;
-    /* 0x946 */ s16                           field_946;
-    /* 0x948 */ s16                           field_948;
-    /* 0x94A */ s16                           field_94A;
-    /* 0x94C */ s16                           field_94C;
-    /* 0x94E */ s16                           field_94E;
-    /* 0x950 */ s16                           field_950;
-    /* 0x952 */ s16                           field_952;
-    /* 0x954 */ u16                           field_954;
-    /* 0x956 */ u16                           field_956;
-    /* 0x958 */ s16                           field_958;
-    /* 0x95A */ u16                           field_95A;
-    /* 0x95C */ u16                           field_95C;
-    /* 0x95E */ u16                           field_95E;
-    /* 0x960 */ u16                           field_960;
-    /* 0x962 */ u16                           field_962;
-    /* 0x964 */ u16                           field_964; // previous field_962
-    /* 0x966 */ u16                           field_966;
-    /* 0x968 */ u16                           field_968; // released buttons: field_964 & ~field_962
-    /* 0x96A */ u16                           field_96A; // set to 0xF89A by func_8010615C
-    /* 0x96C */ s16                           field_96C;
-    /* 0x96E */ s16                           field_96E;
-    /* 0x970 */ s16                           field_970;
-    /* 0x972 */ u8                            field_972;
-    /* 0x973 */ s8                            field_973;
-    /* 0x974 */ s8                            field_974;
-    /* 0x975 */ s8                            field_975;
-    /* 0x976 */ s8                            field_976;
-    /* 0x977 */ s8                            field_977;
-    /* 0x978 */ s8                            field_978;
-    /* 0x979 */ s8                            field_979; // countdown; `func_mongoose_8011D1D8` loads 0xB
-    /* 0x97A */ u8                            field_97A;
-    /* 0x97B */ s8                            field_97B;
-    /* 0x97C */ s8                            field_97C;
-    /* 0x97D */ u8                            field_97D;
-    /* 0x97E */ s8                            field_97E;
-    /* 0x97F */ s8                            field_97F;
-    /* 0x980 */ byte                          pad_980;
-    /* 0x981 */ s8                            field_981;
-    /* 0x982 */ s8                            field_982;
-    /* 0x983 */ u8                            field_983;
-    /* 0x984 */ u8                            field_984;
-    /* 0x985 */ u8                            field_985;
-    /* 0x986 */ s8                            field_986;
-    /* 0x987 */ u8                            field_987; // texture upload seq A (func_801030CC / D_80112E74)
-    /* 0x988 */ u8                            field_988; // field_987 delay; reload 4 after each upload
-    /* 0x989 */ u8                            field_989; // field_987 frame index
-    /* 0x98A */ u8                            field_98A; // texture upload seq B (func_801030CC / D_80112EB4)
-    /* 0x98B */ u8                            field_98B; // field_98A delay; reload 8 after each upload
-    /* 0x98C */ u8                            field_98C; // field_98A frame index
-    /* 0x98D */ u8                            field_98D;
-    /* 0x98E */ u8                            field_98E;
-    /* 0x98F */ s8                            field_98F; // cleared by Gp_SpawnWeaponEff
-    /* 0x990 */ u8                            field_990;
-    /* 0x991 */ s8                            field_991; // func_80109374 requires 0 to write field_97D = 1
-    /* 0x992 */ u8                            field_992; // Gp_PlayerWorkState1: func_801011D0 result when field_984 & 1
-    /* 0x993 */ u8                            field_993;
+/// Collision-body indices in a player or companion's contiguous body array.
+enum {
+    GAME_ACTOR_BODY_ROOT   = 0,
+    GAME_ACTOR_BODY_PART4  = 1,
+    GAME_ACTOR_BODY_PART1  = 2,
+    GAME_ACTOR_BODY_WEAPON = 3,
+    GAME_ACTOR_BODY_AIM    = 4,
+    GAME_ACTOR_BODY_COUNT  = 5
+};
+
+/// Active animation-slot counts; storage beyond the largest observed count is unproven.
+enum {
+    GAME_ACTOR_NORMAL_ANIMATION_SLOTS          = 19,
+    GAME_ACTOR_ARMED_COMPANION_ANIMATION_SLOTS = 20
+};
+
+/// Top-level actor dispatch modes, retained in an unsigned halfword.
+enum {
+    GAME_ACTOR_MODE_NORMAL   = 0,
+    GAME_ACTOR_MODE_DAMAGE   = 1,
+    GAME_ACTOR_MODE_SCRIPTED = 2
+};
+
+/// Aim requests and tracking states use separate byte fields.
+enum {
+    GAME_ACTOR_AIM_REQUEST_ENTER    = 1,
+    GAME_ACTOR_AIM_REQUEST_EXIT     = 2,
+    GAME_ACTOR_AIM_REQUEST_SCRIPTED = 4,
+    GAME_ACTOR_AIM_TRACKING_OFF     = 0,
+    GAME_ACTOR_AIM_TRACKING_DECAY   = 1,
+    GAME_ACTOR_AIM_TRACKING_TARGET  = 2
+};
+
+/// Collision update requests enable low bits or disable their counterparts three bits higher.
+///
+/// The update loops apply the first two bits to their selected body pair. Bit 2
+/// is included in the all-pass requests but has no individual consumer here.
+enum {
+    GAME_ACTOR_COLLISION_REQUEST_MASK          = 7,
+    GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS    = 3,
+    GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT = 3
+};
+
+/// Proven pending-reaction IDs; 4..7 select separate presentation paths whose identities remain unproven.
+enum {
+    GAME_ACTOR_REACTION_ORDINARY  = 0,
+    GAME_ACTOR_REACTION_DARKNESS  = 1,
+    GAME_ACTOR_REACTION_PARALYSIS = 2,
+    GAME_ACTOR_REACTION_POISON    = 3,
+    GAME_ACTOR_REACTION_SILENCE   = 8,
+    GAME_ACTOR_REACTION_STATUS20  = 9,
+    GAME_ACTOR_REACTION_CONFUSION = 10,
+    GAME_ACTOR_REACTION_BERSERKER = 11
+};
+
+/// Work owned by the player or companion task, including its embedded collision and animation state.
+///
+/// Player and companion spawns allocate and clear the complete block. The task
+/// owns its optional companion work and attached tasks; collision bodies borrow
+/// this block's contexts, shapes, contacts and transforms until they are unlinked.
+/// Animation resources and model coordinates are borrowed and must remain loaded
+/// while playback or a cached cue record uses them.
+///
+/// Positions and per-tick displacement use integer game-coordinate units in the
+/// root coordinate's parent space. Euler angles use 4096 units per turn. The
+/// normal actor walks 19 animation slots; the armed companion walks 20. Only
+/// that minimum storage extent is established; the subsequent bytes remain
+/// unknown. State arguments, timers and auxiliary values are reused by the
+/// selected mode/state, rather than having one action-specific interpretation.
+typedef struct {
+    VECTOR3 velocity;                                                                                  // Root displacement per active movement tick
+    byte    unknown_C[4];                                                                              // Unaccessed storage; role unproven
+    VECTOR3 previousPosition;                                                                          // Accepted root translation used to reject excessive vertical movement
+    byte    unknown_1C[4];                                                                             // Unaccessed storage; role unproven
+    VECTOR3 destination;                                                                               // Scripted movement destination in the root's parent space
+    byte    unknown_2C[4];                                                                             // Unaccessed storage; role unproven
+    VECTOR  pushbackDirection;                                                                         // Normalized collision displacement (4096 per unit); temporarily the previous cached position
+    VECTOR3 pendingDisplacement;                                                                       // Additional displacement applied and cleared by the player update
+    byte    unknown_4C[4];                                                                             // Unaccessed storage; role unproven
+    SVECTOR rotation;                                                                                  // Root Euler rotation; vy is the facing yaw, masked to 0..4095 when turned
+    s16     part2Pitch;                                                                                // Additional X rotation of model part 2
+    byte    unknown_5A[2];                                                                             // Unaccessed storage; role unproven
+    s16     part2Roll;                                                                                 // Additional Z rotation of model part 2
+    byte    unknown_5E[2];                                                                             // Unaccessed storage; role unproven
+    s16     part3Pitch;                                                                                // Additional X rotation of model part 3
+    byte    unknown_62[2];                                                                             // Unaccessed storage; role unproven
+    s16     part3Roll;                                                                                 // Additional Z rotation of model part 3
+    byte    unknown_66[2];                                                                             // Unaccessed storage; role unproven
+    s16     field_68;                                                                                  // Cleared on scripted entry; role unproven
+    s16     aimYaw;                                                                                    // Relative yaw applied to model part 4
+    byte    unknown_6C[4];                                                                             // Unaccessed storage; role unproven
+    s16     part6Pitch;                                                                                // Additional X rotation of model part 6
+    byte    unknown_72[6];                                                                             // Unaccessed storage; role unproven
+    s16     directAimPitch;                                                                            // Independently tracked pitch measured from the weapon origin
+    byte    unknown_7A[6];                                                                             // Unaccessed storage; role unproven
+    s16     jumpVariant;                                                                               // Scripted jump pitch selector (0 positive pitch, nonzero negative pitch)
+    union {
+        s16 targetYaw;                                                                                 // Scripted turn/approach heading, in 1/4096 turns
+        s16 jumpSteps;                                                                                 // Remaining animation-cue movement steps in scripted jump state 3
+        s16 surfaceIndexBase;                                                                          // Subtracted from a direction nibble in surface-table selection; domain unproven
+    } scriptMotion;                                                                                    // Interpretation selected by the scripted action or surface lookup
+    byte unknown_84[4];                                                                                // Unaccessed storage; role unproven
+
+    WorldCollisionMotionContext collisionMotionContexts[3];                                            // Root, part-4 and part-1 spheres share collisionContacts
+    WorldCollisionBody          collisionBodies[GAME_ACTOR_BODY_COUNT];                                // Three motion spheres, weapon capsule and aim capsule, in that order
+    WorldCollisionCapsule       weaponShape;                                                           // Weapon reach/spread and its six-result contact table
+    WorldCollisionCapsule       aimShape;                                                              // Companion aiming capsule with a single retained-body contact
+    WorldCollisionContact       collisionContacts[18];                                                 // Shared motion-sphere contacts; LAST terminates the table
+    WorldCollisionContact       weaponContacts[6];                                                     // Weapon capsule contacts; LAST terminates the table
+    WorldCollisionContact       aimContacts[1];                                                        // Single contact for the aim capsule
+    GfxCoord                    weaponCollisionCoord;                                                  // Copy of the weapon root transform, rotated for its collision capsules
+    AnimationContext            animationContext;                                                      // Borrows this block's slots and encoded buffer, the model coordinates and set table
+
+    AnimationSlot animationSlots[GAME_ACTOR_ARMED_COMPANION_ANIMATION_SLOTS];                          // Active prefix includes slot 0; child playback starts at 1
+    byte          unknown_758[0x50];                                                                   // Bytes beyond the 20 established slots; role and further slot capacity unproven
+    u8            poseBuffer[GAME_ACTOR_ARMED_COMPANION_ANIMATION_SLOTS][ANIMATION_POSE_BUFFER_BYTES]; // Word-aligned encoded blend poses, 16 bytes per slot
+    byte          unknown_8E8[0x24];                                                                   // Bytes beyond the 20 established pose entries; role and further buffer capacity unproven
+
+    struct WorldTargetNode*       targetNode;                                                          // Borrowed current lock target, or NULL; each actor slot can hold one
+    struct CompanionWork*         companionWork;                                                       // Owned separate behavior/probe allocation; NULL identifies the player
+    struct Task*                  weaponEffectTask;                                                    // Optional owned persistent effect for the equipped weapon
+    struct Task*                  equipmentTasks[2];                                                   // Owned optional model tasks (0 creation/role unproven, 1 equipped weapon)
+    struct Task*                  attachmentTasks[2];                                                  // Owned model anchors attached to the actor skeleton; the weapon is parented under slot 1
+    struct AnimationSet**         animationSets;                                                       // Borrowed current set table; individual animation slots retain their own bindings
+    const struct AnimationRecord* lastCueRecord;                                                       // Borrowed last processed record identity; suppresses duplicate cue effects/sounds
+
+    s32 surfaceClass;                                                                                  // Room surface/resource index, from collision response or a scripted override
+    s32 stateTimer;                                                                                    // State-owned tick counter/countdown, or scripted input-count threshold
+    s16 animationSlotCount;                                                                            // Active prefix of animationSlots (19 normal, 20 armed companion)
+    u16 animationBankIndex;                                                                            // Player/companion animation-table index; 0x7FFF selects a directly supplied set table
+    u16 actionArgument;                                                                                // Initial/override animation ID, or the selected action's variant
+    s16 actionValue;                                                                                   // State-owned argument/counter, including repetitions, cue counts and finish animation
+    union {
+        s16 cooldownTicks;                                                                             // Ticks before another weapon attack is allowed
+        s16 targetVariant;                                                                             // Scripted companion attack animation/sound variant (0 no target, 1 target)
+    } attackControl;                                                                                   // Player/armed-companion cooldown or scripted-companion variant
+    s16 idleTicks;                                                                                     // Idle/decision elapsed ticks; noncombatant also uses it for its flinch interval
+    union {
+        s16 darknessTicks;                                                                             // Player: remaining active ticks of PLAYER_STATUS_DARKNESS
+        s16 waterDripTicks;                                                                            // Armed companion: water-surface drip-effect countdown
+    } effectTimer;                                                                                     // Interpretation selected by the actor identity
+    s16 paralysisTicks;                                                                                // Remaining active ticks of PLAYER_STATUS_PARALYSIS
+    s16 poisonTicks;                                                                                   // Remaining active ticks of PLAYER_STATUS_POISON
+    s16 silenceTicks;                                                                                  // Remaining active ticks of PLAYER_STATUS_SILENCE
+    s16 status20Ticks;                                                                                 // Remaining active ticks of status bit 0x20; effect identity unproven
+    s16 confusionTicks;                                                                                // Remaining active ticks of PLAYER_STATUS_CONFUSION
+    s16 berserkerTicks;                                                                                // Remaining eligible ticks of PLAYER_STATUS_BERSERKER
+    s16 gunbladeSpinTicks;                                                                             // Remaining ticks of the Gunblade's yaw-spin/shake phase
+
+    u16 mode;                                                                                          // Top-level dispatch (0 normal, 1 damage reaction, 2 scripted)
+    u16 state;                                                                                         // Mode/companion-specific state-table index; valid domain depends on its dispatcher
+    s16 movementMode;                                                                                  // Movement-speed/behavior table selector (0 stopped; player 1..4, companions also 5..7)
+    u16 turnRateIndex;                                                                                 // Turn-rate table selector (0 disables turning)
+    u16 animationState;                                                                                // Cue/end-driven animation controller selector (observed 0..10)
+    u16 statePhase;                                                                                    // Progress within the selected state; cue/end handlers advance it
+    u16 stateAux;                                                                                      // State-owned auxiliary value: saved state, reload slot, companion subphase or action variant
+    u16 padHeld;                                                                                       // Current remapped/suppressed buttons, also altered by confusion
+    u16 previousPadHeld;                                                                               // Previous captured padHeld
+    u16 padPressed;                                                                                    // Press edges: padHeld & ~previousPadHeld
+    u16 padReleased;                                                                                   // Release edges: previousPadHeld & ~padHeld
+    u16 actionPadMask;                                                                                 // Buttons allowed to interrupt a completed attack after attackCancelTicks expires
+    s16 hitRegion;                                                                                     // Pending collision reaction (0 none, 1 body index 1, 2 other body)
+    s16 pendingDamage;                                                                                 // Damage selected from the pending contact, applied by the reaction state
+    s16 confusionDirections;                                                                           // Synthetic d-pad bits ORed into held input during confusion
+
+    u8   damageReaction;                                                                               // Pending GAME_ACTOR_REACTION_* code (observed 0..11); 4..7 presentation identities unproven
+    s8   movementSign;                                                                                 // Forward/backward movement multiplier (-1 backward, 0 stopped, 1 forward)
+    s8   previousMovementSign;                                                                         // Previous captured movementSign
+    s8   turnSign;                                                                                     // Yaw or strafe multiplier (-1 negative, 0 none, 1 positive)
+    s8   previousTurnSign;                                                                             // Previous captured turnSign
+    s8   runButtonHeld;                                                                                // Captured logical run button (0 released, 1 held)
+    s8   previousRunButtonHeld;                                                                        // Previous captured runButtonHeld
+    s8   attackCancelTicks;                                                                            // Weapon action ticks before held actionPadMask buttons may cancel it
+    u8   recoveryTicks;                                                                                // Recovery/cue suppression ticks; countdown/comparisons interpret the byte as s8
+    s8   movementInputDisabled;                                                                        // Direction-input gate (0 derives movement/turn signs, nonzero clears both)
+    s8   aimTransitionPending;                                                                         // Target assignment latch for the next completed aim transition (0/1)
+    u8   aimControl;                                                                                   // Aim request bits (1 enter, 2 exit, 4 scripted weapon action)
+    s8   aimTrackingState;                                                                             // Aim-angle state (0 inactive, 1 decay toward zero, 2 track the lock target)
+    s8   attackButton;                                                                                 // Selected fire input (0 none, 1 primary, 2 secondary)
+    byte unknown_980;                                                                                  // Unaccessed storage; role unproven
+    s8   rumblePosted;                                                                                 // Current action's pad-event latch (0 not posted, 1 posted)
+    s8   scriptedMotionPending;                                                                        // Scripted movement/turn/jump command in progress (0 complete, 1 pending)
+    u8   pendingCollisionUpdates;                                                                      // Deferred pass changes: low bits enable; corresponding bits 3..5 disable
+    u8   collisionEnableMask;                                                                          // Applied collision-pass enables (bits 0..2); bit 0 also gates grid response
+    u8   animationRate;                                                                                // Per-tick animation rate copied into signed slot rates (16 normal speed)
+    s8   usesPushbackDirection;                                                                        // Collision heading override (0 model forward axis times movementSign, 1 pushbackDirection)
+    u8   textureSequenceA;                                                                             // First null-terminated texture sequence selector (0 inactive); read as s8
+    u8   textureDelayA;                                                                                // First sequence countdown, reloaded to 4; tested as s8
+    u8   textureFrameA;                                                                                // First sequence image index; read as s8
+    u8   textureSequenceB;                                                                             // Second null-terminated texture sequence selector (0 inactive); read as s8
+    u8   textureDelayB;                                                                                // Second sequence countdown, reloaded to 8; tested as s8
+    u8   textureFrameB;                                                                                // Second sequence image index; read as s8
+    u8   poisonDamageTicks;                                                                            // Ticks until the next poison HP loss; decrement/comparison uses s8
+    u8   paralysisProgress;                                                                            // Ticks toward a paralysis episode, then press edges left to escape; tested as s8
+    s8   reloadEffectSuppressed;                                                                       // Suppresses first reload effect (0 emit, 1 skip); cleared after the reload cue
+    u8   confusionDirectionTicks;                                                                      // Ticks until confusion chooses new direction bits; comparison uses s8
+    s8   restrictRunAndAim;                                                                            // Spawn-location restriction (0 ordinary run/aim rules, 1 suppress run and aim entry)
+    u8   gridResponse;                                                                                 // Latest grid push/floor response result (0 none, nonzero correction; companions special-case 2)
+    u8   hitBodyIndex;                                                                                 // Receiving motion-body index from contact flags (0..2); consumers explicitly read as s8
+    byte unknown_994[4];                                                                               // Final bytes included by both full allocation clears; role unproven
 } GameActor;
-STATIC_ASSERT_SIZEOF(GameActor, 0x994);
+STATIC_ASSERT_SIZEOF(GameActor, 0x998);
+STATIC_ASSERT(OFFSET_OF(GameActor, collisionBodies) == 0xAC, GameActor_collisionBodies);
+STATIC_ASSERT(OFFSET_OF(GameActor, animationContext) == 0x424, GameActor_animationContext);
+STATIC_ASSERT(OFFSET_OF(GameActor, poseBuffer) == 0x7A8, GameActor_poseBuffer);
+STATIC_ASSERT(OFFSET_OF(GameActor, targetNode) == 0x90C, GameActor_targetNode);
 
 #endif // MAIN_SESSION_TYPES_H

@@ -5814,10 +5814,10 @@ static void func_actor_403200_8013C84C(Task* arg0)
         if (cfg->hp > 0) {
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
             if (cfg->hp <= 0) {
-                ((GameActor*)task->work)->field_956 = 0xA;
-                gGameSession->deathSoundCountdown   = 0x1E;
-                gGameSession->deathFadeFrames       = 0x36;
-                gGameSession->deathRestartDelay     = 0x5A;
+                ((GameActor*)task->work)->state   = 0xA;
+                gGameSession->deathSoundCountdown = 0x1E;
+                gGameSession->deathFadeFrames     = 0x36;
+                gGameSession->deathRestartDelay   = 0x5A;
             }
         }
         if (((work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x19) && (work->field_7A8 != (work->slots0[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
@@ -6079,7 +6079,7 @@ scanned:
         reply           = Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 4), 0);
         work->field_ECA = reply;
         if (reply == 1) {
-            ((GameActor*)task->work)->field_956 = 0xA;
+            ((GameActor*)task->work)->state = 0xA;
         }
         work->anim.source.sets = D_actor_403200_8015E6AC;
         work->field_EC8        = 1;

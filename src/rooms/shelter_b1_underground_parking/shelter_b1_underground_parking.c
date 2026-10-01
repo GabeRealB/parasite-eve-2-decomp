@@ -1704,12 +1704,12 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
     task  = gameGetPtrSlot(3);
     actor = (GameActor*)task->work;
     coord = task->extra.tmd->coords;
-    if ((actor->field_954 != 2) && (Gp_CapBusy() == 0) && (gGameSession->location.loc.room >= 7) &&
+    if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_CapBusy() == 0) && (gGameSession->location.loc.room >= 7) &&
         (coord->coord.t[0] < -0x1266)) {
         z = coord->coord.t[2];
         if (z < 0x7D0) {
             if ((z >= -0x7CF) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                facing = (u16)actor->field_52 & 0xFFF;
+                facing = (u16)actor->rotation.vy & 0xFFF;
                 if (Pad_CheckButtons(0, 0, 0x1000) != 0) {
                     if ((u32)(facing - 0xA01) < 0x3FFU) {
                         Gp_MsgPlayerWeapon(0);

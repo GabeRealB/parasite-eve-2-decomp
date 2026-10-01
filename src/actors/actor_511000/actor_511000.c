@@ -2121,7 +2121,7 @@ static void func_actor_511000_80131E78(Task* arg0)
     s32               pan;
 
     extra = arg0->extra.tmd;
-    work  = (Actor511000Work2*)((GameActor*)arg0->work);
+    work  = (Actor511000Work2*)arg0->work;
     coord = &extra->coords[1];
     if (work->field_474 != 0) {
         for (i = 1; i < 0x14; i++) {
@@ -2168,7 +2168,7 @@ static void func_actor_511000_80132048(Task* arg0)
     Actor511000Work2* work;
     RECT              rect;
 
-    work   = (Actor511000Work2*)((GameActor*)arg0->work);
+    work   = (Actor511000Work2*)arg0->work;
     rect.x = 0;
     rect.y = 0x28;
     rect.w = 0x18;
@@ -2350,7 +2350,7 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode)
     s32               ret;
 
     obj  = arg0->extra.tmd;
-    work = (Actor511000Work2*)((GameActor*)arg0->work);
+    work = (Actor511000Work2*)arg0->work;
     ret  = 0;
 
     switch (mode) {
@@ -2395,7 +2395,7 @@ s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg)
     u16               mode;
 
     mode = msg->command;
-    work = (Actor511000Work2*)((GameActor*)arg0->work);
+    work = (Actor511000Work2*)arg0->work;
 
     switch (mode) {
         case 0:
@@ -2447,9 +2447,9 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode)
             img = &D_actor_511000_80146C74[0];
             break;
         case 3:
-            ((Actor511000Work2*)((GameActor*)arg0->work))->field_4D0 = 1;
-            ((Actor511000Work2*)((GameActor*)arg0->work))->field_4CC = 1;
-            img                                                      = &D_actor_511000_80146F94[0];
+            ((Actor511000Work2*)arg0->work)->field_4D0 = 1;
+            ((Actor511000Work2*)arg0->work)->field_4CC = 1;
+            img                                        = &D_actor_511000_80146F94[0];
             break;
         default:
             img = NULL;

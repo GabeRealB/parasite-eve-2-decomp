@@ -326,12 +326,12 @@ static Task* Display_SpawnFromMode(void)
         Stage_Ctx->field_11 = 2;
         slot                = gameGetPtrSlot(3);
         obj                 = (GameActor*)slot->work;
-        flag                = obj->field_984 & 1;
+        flag                = obj->collisionEnableMask & 1;
         ptr                 = slot->extra.tmd->coords;
         if (flag) {
-            func_801011D0(ptr, obj->field_88[0].contacts, 6, &obj->field_930);
+            func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
         }
-        Gp_ClearRec18Occupied(obj->field_17C);
+        Gp_ClearRec18Occupied(obj->collisionContacts);
         ptr->composeStamp = GRAPHICS_COORD_DIRTY;
     block_case13:
         Stage_Ctx->field_15 = 1;
@@ -359,12 +359,12 @@ block_default:
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
     slot                                    = gameGetPtrSlot(3);
     obj                                     = (GameActor*)slot->work;
-    flag                                    = obj->field_984 & 1;
+    flag                                    = obj->collisionEnableMask & 1;
     ptr                                     = slot->extra.tmd->coords;
     if (flag) {
-        func_801011D0(ptr, obj->field_88[0].contacts, 6, &obj->field_930);
+        func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
     }
-    Gp_ClearRec18Occupied(obj->field_17C);
+    Gp_ClearRec18Occupied(obj->collisionContacts);
     ptr->composeStamp = GRAPHICS_COORD_DIRTY;
 
 block_end:

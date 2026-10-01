@@ -463,43 +463,43 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
     coord = arg0->extra.tmd->coords;
     SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            anim              = 1;
-            actor->field_956  = 4;
-            actor->field_954  = 0;
-            actor->field_95C  = 0;
-            actor->field_95E += anim;
-            actor->field_12A |= 0x400;
-            if (((u16)actor->field_958 | actor->field_975) != 0) {
+            anim                                                  = 1;
+            actor->state                                          = 4;
+            actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
+            actor->animationState                                 = 0;
+            actor->statePhase                                    += anim;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
+            if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
             Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
-            actor->field_958 = 0;
+            actor->movementMode = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
-                actor->field_95E++;
+                actor->statePhase++;
             }
             break;
         case 2:
-            actor->field_981 = 0;
-            if (actor->field_97F & 1) {
-                actor->field_95E = 3;
-                actor->field_95A = 0;
-                actor->field_934 = 0;
-                actor->field_979 = 9;
-                actor->field_93E = 3;
+            actor->rumblePosted = 0;
+            if (actor->attackButton & 1) {
+                actor->statePhase        = 3;
+                actor->turnRateIndex     = 0;
+                actor->stateTimer        = 0;
+                actor->attackCancelTicks = 9;
+                actor->actionValue       = 3;
                 func_80106238(arg0, 0, 1);
-                actor->field_12A |= 0x800;
-            } else if (actor->field_97F & 2) {
-                beam             = actor->field_914;
-                actor->field_95E = 5;
-                actor->field_95A = 2;
-                actor->field_940 = 0x28;
-                actor->field_979 = 0x1C;
-                actor->field_93E = 0x14;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
+            } else if (actor->attackButton & 2) {
+                beam                               = actor->weaponEffectTask;
+                actor->statePhase                  = 5;
+                actor->turnRateIndex               = 2;
+                actor->attackControl.cooldownTicks = 0x28;
+                actor->attackCancelTicks           = 0x1C;
+                actor->actionValue                 = 0x14;
                 if (beam != NULL) {
                     beam->spawnArg1.value = 2;
                 }
@@ -510,28 +510,28 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
             }
             /* fallthrough */
         case 3:
-            if (actor->field_93E != 0) {
-                delay = actor->field_934;
+            if (actor->actionValue != 0) {
+                delay = actor->stateTimer;
                 if (delay == 0) {
-                    actor->field_93E--;
-                    actor->field_934  = 3;
-                    actor->field_981  = 0;
-                    actor->field_12A |= 0xC000;
+                    actor->actionValue--;
+                    actor->stateTimer                                     = 3;
+                    actor->rumblePosted                                   = 0;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
                     Gp_ConsumeSlotQty(0x9B, 1);
                     if (func_80106264(1) == 0) {
-                        actor->field_93E = 0;
+                        actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201C0004, 1);
                     Gp_SpawnEff(0x6006B,
-                                actor->field_91C->extra.tmd->coords,
+                                actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1C, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
                 }
-                actor->field_934 = delay - 1;
+                actor->stateTimer = delay - 1;
                 if (delay - 1 == 2) {
-                    actor->field_12A &= 0x3FFF;
-                    if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                    if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                         Gp_PlayObjSfx(spot, 0x17, 1);
                     }
                 }
@@ -539,21 +539,21 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
             }
             /* fallthrough */
         case 4:
-            actor->field_95E  = 6;
-            actor->field_12A &= 0x3FFF;
-            if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+            actor->statePhase                                     = 6;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }
             break;
         case 5:
-            if (actor->field_93E == 0) {
+            if (actor->actionValue == 0) {
                 spent = func_80106264(2);
                 if ((s8)func_801060E0(arg0) == 2 && spent != 0) {
-                    actor->field_93E = 0x14;
+                    actor->actionValue = 0x14;
                     Gp_ConsumeSlotQty(0x9B, 0x101);
                 } else {
-                    beam             = actor->field_914;
-                    actor->field_95E = 6;
+                    beam              = actor->weaponEffectTask;
+                    actor->statePhase = 6;
                     if (beam != NULL) {
                         beam->spawnArg1.value = spent != 0 ? 3 : 4;
                     }
@@ -561,16 +561,16 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
                     Gp_AnimPlayChildSlotsEx(arg0, 0xF, 0, 2);
                 }
             } else {
-                actor->field_93E = (u16)actor->field_93E - 1;
+                actor->actionValue = (u16)actor->actionValue - 1;
             }
             break;
         case 6:
-            if (actor->field_979 != 0) {
-                actor->field_979--;
+            if (actor->attackCancelTicks != 0) {
+                actor->attackCancelTicks--;
             }
             if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
-                ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
-                actor->field_940 = 0xC;
+                ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
+                actor->attackControl.cooldownTicks = 0xC;
                 func_80106550(arg0);
             }
             break;

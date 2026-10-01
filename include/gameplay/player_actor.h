@@ -17,7 +17,7 @@
 struct GfxCoord;
 
 /// Argument for `func_801052B8`. `field_0` is copied onto
-/// `GameActor.field_93E`; `field_4` is copied onto `GameActor.field_934`.
+/// `GameActor.actionValue`; `field_4` is copied onto `GameActor.stateTimer`.
 typedef struct _GpCountArg {
     /* 0x0 */ u16  field_0;
     /* 0x2 */ byte pad_2[2];

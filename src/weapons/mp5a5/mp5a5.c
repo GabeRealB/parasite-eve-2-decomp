@@ -104,80 +104,80 @@ static void func_mp5a5_8011DDA4(Task* arg0)
     spot  = SCRATCH_STACK_CURSOR(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            actor->field_956  = 4;
-            actor->field_95A  = 2;
-            actor->field_954  = 0;
-            actor->field_95C  = 0;
-            actor->field_934  = 1;
-            actor->field_95E += 1;
-            actor->field_12A |= 0x400;
-            anim              = 1;
-            if (((u16)actor->field_958 | actor->field_975) != 0) {
+            actor->state                                          = 4;
+            actor->turnRateIndex                                  = 2;
+            actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
+            actor->animationState                                 = 0;
+            actor->stateTimer                                     = 1;
+            actor->statePhase                                    += 1;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
+            anim                                                  = 1;
+            if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 5;
             }
             Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
-            actor->field_958 = 0;
+            actor->movementMode = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
-                actor->field_95E++;
+                actor->statePhase++;
             }
             break;
         case 2:
         fire:
-            actor->field_95E = 3;
-            actor->field_981 = 0;
+            actor->statePhase   = 3;
+            actor->rumblePosted = 0;
             /* fallthrough */
         case 3:
-            if (--actor->field_934 == 0) {
-                rec = &actor->field_14C;
-                if (actor->field_97F == 1) {
-                    actor->field_95E  = 4;
-                    actor->field_934  = 3;
-                    actor->field_940  = 0;
-                    actor->field_124  = gPlayerStatus.weaponSlotItem | 0x20000 | (WEAPON_ID << 8);
-                    rec->end0Radius   = rec->end1Radius;
-                    actor->field_12A |= 0x800;
+            if (--actor->stateTimer == 0) {
+                rec = &actor->weaponShape;
+                if (actor->attackButton == 1) {
+                    actor->statePhase                                     = 4;
+                    actor->stateTimer                                     = 3;
+                    actor->attackControl.cooldownTicks                    = 0;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | 0x20000 | (WEAPON_ID << 8);
+                    rec->end0Radius                                       = rec->end1Radius;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
                     func_80106238(arg0, 0, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
                     Gp_SpawnEff(0x6002B,
-                                actor->field_91C->extra.tmd->coords,
+                                actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_ID, NULL);
                     Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                 } else {
-                    actor->field_95E  = 5;
-                    actor->field_940  = 0x12;
-                    actor->field_934  = 0x12;
-                    actor->field_124  = 0x20016 | (WEAPON_ID << 8);
-                    rec->end0Radius   = 0xC00;
-                    actor->field_12A &= 0xF7FF;
+                    actor->statePhase                                     = 5;
+                    actor->attackControl.cooldownTicks                    = 0x12;
+                    actor->stateTimer                                     = 0x12;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x20016 | (WEAPON_ID << 8);
+                    rec->end0Radius                                       = 0xC00;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
                     func_80106238(arg0, 0, 0);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000005 | (WEAPON_ID << 16), 0);
                     Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 0x101);
                     eff = Gp_SpawnEff(0x60041,
-                                      actor->field_91C->extra.tmd->coords,
+                                      actor->equipmentTasks[1]->extra.tmd->coords,
                                       WEAPON_ID, NULL);
                     if (eff != NULL) {
-                        Task_Reparent(actor->field_91C, eff->task);
+                        Task_Reparent(actor->equipmentTasks[1], eff->task);
                     }
                 }
-                actor->field_12A |= 0xC000;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
             }
             break;
         case 4:
         case 5:
-            if (actor->field_95E < 5 && Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+            if (actor->statePhase < 5 && Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                 Gp_PlayObjSfx(spot, 0x17, 1);
             }
-            actor->field_95E  = 6;
-            actor->field_12A &= 0x3FFF;
+            actor->statePhase                                     = 6;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
             /* fallthrough */
         case 6:
-            if ((s8)func_801060E0(arg0) == 1 && func_80106264(1) > 0 && actor->field_940 == 0) {
+            if ((s8)func_801060E0(arg0) == 1 && func_80106264(1) > 0 && actor->attackControl.cooldownTicks == 0) {
                 goto fire;
             }
             if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {

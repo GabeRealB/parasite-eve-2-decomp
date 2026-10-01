@@ -2821,7 +2821,7 @@ s32 func_acropolis_cafeteria_8017E22C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 void func_acropolis_cafeteria_8017E27C(s32 arg0)
 {
-    ((GameActor*)(gameGetPtrSlot(3))->work)->field_930 = arg0;
+    ((GameActor*)(gameGetPtrSlot(3))->work)->surfaceClass = arg0;
 }
 
 void func_acropolis_cafeteria_8017E2B0(void)

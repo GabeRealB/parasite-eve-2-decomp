@@ -140,8 +140,8 @@ void Gp_UpdatePadInput(void)
     actor = work->work;
     Gp_ClearPadHalt();
     if (Gp_MenuLockHold == 0) {
-        if (actor->field_954 == 0 && gGameSession->eventState == 0 && gGameSession->cutsceneHold == 0 &&
-            actor->field_956 != 6 && cfg->hp > 0 && gGameSession->deathVariant == 0) {
+        if (actor->mode == GAME_ACTOR_MODE_NORMAL && gGameSession->eventState == 0 && gGameSession->cutsceneHold == 0 &&
+            actor->state != 6 && cfg->hp > 0 && gGameSession->deathVariant == 0) {
             if (Gp_MenuLockDelay > 0) {
                 Gp_MenuLockDelay--;
                 Gp_MenuLockNow = 1;
@@ -184,7 +184,7 @@ void Gp_UpdatePadInput(void)
         releasedButtons = pad->releasedButtons;
         if (pad->stickAxes[PAD_STICK_LEFT_Y] < -PAD_STICK_DIRECTION_THRESHOLD) {
             mask |= 0x1000;
-            if (actor->field_954 != 0 || actor->field_956 < 2) {
+            if (actor->mode != GAME_ACTOR_MODE_NORMAL || actor->state < 2) {
                 if (pad->stickAxes[PAD_STICK_LEFT_Y] < -0xE80) {
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 0) {
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
@@ -264,7 +264,7 @@ static u16 Gp_RemapButtons(GameActor* actor, u16 mask)
             }
             break;
         case 2:
-            if (actor->field_954 == 0 && actor->field_956 >= 2) {
+            if (actor->mode == GAME_ACTOR_MODE_NORMAL && actor->state >= 2) {
                 for (i = 0; i < 0x10; i++) {
                     if ((mask >> i) & 1) {
                         result |= 1 << Gp_BtnMap2Alt[i];

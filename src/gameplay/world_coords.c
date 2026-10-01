@@ -1136,7 +1136,7 @@ static void Gp_DebugPanTask(Task* arg0)
         Task* task;
 
         for (i = 0; i < 2; i++) {
-            task = (&actor->field_920)[i];
+            task = actor->attachmentTasks[i];
             if (task != NULL) {
                 extra           = task->extra.tmd;
                 extra->lightMtx = &Gp_DefaultMtx;
@@ -1144,7 +1144,7 @@ static void Gp_DebugPanTask(Task* arg0)
             }
         }
         for (i = 0; i < 2; i++) {
-            task = (&actor->field_918)[i];
+            task = actor->equipmentTasks[i];
             if (task != NULL) {
                 extra           = task->extra.tmd;
                 extra->lightMtx = &Gp_DefaultMtx;
@@ -1172,7 +1172,7 @@ static void Gp_DebugPanTask(Task* arg0)
             Task* task;
 
             for (i = 0; i < 2; i++) {
-                task = (&actor2->field_920)[i];
+                task = actor2->attachmentTasks[i];
                 if (task != NULL) {
                     extra           = task->extra.tmd;
                     extra->lightMtx = &D_80114ED8;
@@ -1180,7 +1180,7 @@ static void Gp_DebugPanTask(Task* arg0)
                 }
             }
             for (i = 0; i < 2; i++) {
-                task = (&actor2->field_918)[i];
+                task = actor2->equipmentTasks[i];
                 if (task != NULL) {
                     extra           = task->extra.tmd;
                     extra->lightMtx = &D_80114ED8;
@@ -1728,7 +1728,7 @@ static void Gp_BindDefaultMtx(Task* arg0)
         Gp_OverrideVec2Flag     = 0;
         D_80114F28              = 0;
         do {
-            extra           = (&actor->field_920)[i]->extra.tmd;
+            extra           = actor->attachmentTasks[i]->extra.tmd;
             extra->lightMtx = &Gp_DefaultMtx;
             extra->colorMtx = &Gp_DefaultMtx2;
             i++;

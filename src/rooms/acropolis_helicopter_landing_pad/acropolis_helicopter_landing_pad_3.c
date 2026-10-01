@@ -795,7 +795,7 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
         func_acropolis_helicopter_landing_pad_8017EEDC,
     };
 
-    actor->field_930 = 2;
+    actor->surfaceClass = 2;
     states[arg0->state](arg0);
 }
 

@@ -54,7 +54,7 @@ void incinBossGlobEngulf(Enemy* enemy, Task* task)
         gap.vz = task->extra.tmd->coords->coord.t[2] -
                  player->extra.tmd->coords->coord.t[2];
 
-        if (actorOutOfReach(&gap) == 0 && actor->field_954 != 2 &&
+        if (actorOutOfReach(&gap) == 0 && actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
             cfg->hp > 0) {
             gIncinBossGrabQuery.value.field_14 = 0x28;
             if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &gIncinBossGrabQuery.value, 0) == 0) {

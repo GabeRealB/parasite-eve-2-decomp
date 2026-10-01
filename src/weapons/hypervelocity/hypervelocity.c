@@ -978,7 +978,7 @@ static void func_hypervelocity_8011F374(Task* arg0)
     SCRATCH_STACK_RESERVE_BYTES(0x10);
     switch (arg0->spawnArg1.value & 0xF) {
         case 0:
-            if (*(u32*)&((GameActor*)work->work)->field_954 != 0x40000) {
+            if (*(u32*)&((GameActor*)work->work)->mode != 0x40000) {
                 arg0->spawnArg1.value = 0;
             }
             break;
@@ -1110,31 +1110,31 @@ static void func_hypervelocity_8011F724(Task* arg0)
     rec                               = (HyperRecoil*)(head - 0x18);
     SCRATCH_STACK_CURSOR(HyperRecoil) = rec;
     actor                             = arg0->work;
-    eff                               = actor->field_91C;
-    switch (actor->field_95E) {
+    eff                               = actor->equipmentTasks[1];
+    switch (actor->statePhase) {
         case 0:
-            actor->field_954                  = 0;
-            actor->field_956                  = 4;
-            actor->field_958                  = 0;
-            actor->field_95A                  = 0;
-            actor->field_95C                  = 0;
-            actor->field_95E                  = 1;
-            actor->field_914->spawnArg1.value = 1;
-            actor->field_934                  = 0;
-            eff->spawnArg1.value             |= 0x10;
+            actor->mode                              = GAME_ACTOR_MODE_NORMAL;
+            actor->state                             = 4;
+            actor->movementMode                      = 0;
+            actor->turnRateIndex                     = 0;
+            actor->animationState                    = 0;
+            actor->statePhase                        = 1;
+            actor->weaponEffectTask->spawnArg1.value = 1;
+            actor->stateTimer                        = 0;
+            eff->spawnArg1.value                    |= 0x10;
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160003, 0);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160005, 0);
             Gp_AnimPlayChildSlotsEx(arg0, 0xE, 0, 3);
             /* fallthrough */
         case 1:
-            if (actor->field_962 & 0xA) {
-                count            = actor->field_934 + 1;
-                actor->field_934 = count;
+            if (actor->padHeld & 0xA) {
+                count             = actor->stateTimer + 1;
+                actor->stateTimer = count;
                 if (count >= 0x5A) {
-                    actor->field_981 = 0;
-                    actor->field_95E++;
+                    actor->rumblePosted = 0;
+                    actor->statePhase++;
                     eff->spawnArg1.value = 0;
-                    actor->field_934     = 0x15;
+                    actor->stateTimer    = 0x15;
                     Gp_ConsumeSlotQty(0x95, 1);
                     SndEvt_EnqueueType7(0x20160005, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160007, 1);
@@ -1146,9 +1146,9 @@ static void func_hypervelocity_8011F724(Task* arg0)
                 }
                 SndEvt_EnqueueType7(0x20160004, 1);
             } else {
-                actor->field_95E                  = 3;
-                actor->field_914->spawnArg1.value = -1;
-                eff->spawnArg1.value              = 0;
+                actor->statePhase                        = 3;
+                actor->weaponEffectTask->spawnArg1.value = -1;
+                eff->spawnArg1.value                     = 0;
                 SndEvt_EnqueueType7(0x20160003, 1);
                 SndEvt_EnqueueType7(0x20160005, 1);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160004, 0);
@@ -1156,8 +1156,8 @@ static void func_hypervelocity_8011F724(Task* arg0)
             }
             break;
         case 2:
-            step             = actor->field_934 - 1;
-            actor->field_934 = step;
+            step              = actor->stateTimer - 1;
+            actor->stateTimer = step;
             if (step != 0) {
                 if (step < 0x13) {
                     coord = arg0->extra.tmd->coords;
@@ -1165,17 +1165,17 @@ static void func_hypervelocity_8011F724(Task* arg0)
                     if (step == 0x12) {
                         div = 0xF4;
                     }
-                    actor->field_973 = -1;
+                    actor->movementSign = -1;
                     Gfx_MatrixCol2(&coord->coord, (SVECTOR*)(head - 8));
-                    rec->vx            = -(rec->dir.vx * actor->field_934 / div);
-                    rec->vy            = -(rec->dir.vy * actor->field_934 / div);
-                    rec->vz            = -(rec->dir.vz * actor->field_934 / div);
+                    rec->vx            = -(rec->dir.vx * actor->stateTimer / div);
+                    rec->vy            = -(rec->dir.vy * actor->stateTimer / div);
+                    rec->vz            = -(rec->dir.vz * actor->stateTimer / div);
                     coord->coord.t[0] += rec->vx;
                     coord->coord.t[1] += rec->vy;
                     coord->coord.t[2] += rec->vz;
                 }
             } else {
-                actor->field_95E++;
+                actor->statePhase++;
             }
             /* fallthrough */
         case 3:

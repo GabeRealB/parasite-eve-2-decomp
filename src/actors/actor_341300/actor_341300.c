@@ -440,7 +440,7 @@ static void func_actor_341300_80161E84(void)
 /// id resolves to, then kills itself once it is close enough.
 ///
 /// The aim angle is `ratan2` of the target's x/z pair minus the player's own
-/// coordinate translation; the delta against `GameActor::field_52` is
+/// coordinate translation; the delta against `GameActor::rotation.vy` is
 /// unwrapped into `-0x800..0x800` and stepped by `0x80` per frame, so the
 /// player rotates at a fixed rate. Inside `0x80` of the target the facing
 /// snaps to the exact angle and the task ends.
@@ -468,7 +468,7 @@ void func_actor_341300_80162278(Task* task)
         self      = player->extra.tmd->coords;
         target    = &D_actor_341300_80165330.pos;
         angle     = ratan2(target->vx - self->coord.t[0], target->vz - self->coord.t[2]);
-        delta     = angle - actor->field_52;
+        delta     = angle - actor->rotation.vy;
         magnitude = ABS(delta);
         if (magnitude >= 0x801) {
             wrapped = delta - 0x1000;
@@ -483,10 +483,10 @@ void func_actor_341300_80162278(Task* task)
             if (delta < 0) {
                 step = -0x80;
             }
-            actor->field_52 = (s16)((u16)actor->field_52 + step);
+            actor->rotation.vy = (s16)((u16)actor->rotation.vy + step);
             return;
         }
-        actor->field_52 = angle;
+        actor->rotation.vy = angle;
     }
     taskKill(task);
 }

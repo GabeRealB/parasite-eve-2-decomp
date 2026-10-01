@@ -1618,9 +1618,9 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 temp_v1_2                        = gameGetPtrSlot(3)->work;
                                 D_actor_403600_801606A4.reaction = 0;
                                 D_actor_403600_801606A4.power    = (u16)((u16)D_actor_403600_801606A4.power >> 2);
-                                temp_v1_2->field_96C             = 2;
-                                temp_v1_2->field_96E             = (u16)D_actor_403600_801606A4.power;
-                                temp_v1_2->field_972             = 0;
+                                temp_v1_2->hitRegion             = 2;
+                                temp_v1_2->pendingDamage         = (u16)D_actor_403600_801606A4.power;
+                                temp_v1_2->damageReaction        = GAME_ACTOR_REACTION_ORDINARY;
                             } else {
                                 if ((u32)(sp10 - 0x9C4) < 0x5DCU) {
                                     D_actor_403600_801606A4.reaction = 0;

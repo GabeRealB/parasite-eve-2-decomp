@@ -306,7 +306,7 @@ identity `MATRIX` (`0x1000` = PS1 `ONE` on the diagonal) + TMD-like streams
 | `10500` | 41 | Another full costume |
 
 Shared walk / aim / hit clips live in **gameplay `.data`**
-(`Gp_WeaponIdBase`, `Gp_AllyIdBase`, `Gp_PlayerAnimBlkTbl[field_93A]`, …). The costume
+(`Gp_WeaponIdBase`, `Gp_AllyIdBase`, `Gp_PlayerAnimBlkTbl[animationBankIndex]`, …). The costume
 package only replaces skeleton + mesh + texture.
 
 Also at this address: `21000` (replay-clear bonus: “Complete Bonus”,
@@ -603,7 +603,7 @@ who is moving:
 
 | Who | Clip data |
 |-----|-----------|
-| **Aya** | Gameplay `.data`. `GameActor.field_928` ← `Gp_PlayerAnimBlkTbl[field_93A]` / `Gp_AnimBlkTbl[…]`. Costume overlay only swaps skeleton + mesh + TIM. |
+| **Aya** | Gameplay `.data`. `GameActor.animationSets` ← `Gp_PlayerAnimBlkTbl[animationBankIndex]` / `Gp_AnimBlkTbl[…]`. Costume overlay only swaps skeleton + mesh + TIM. |
 | **Guns** | Pointer tables inside the **weapon** overlay (right after the mesh). |
 | **Enemies / NPCs** | Mesh, clips, and AI in the **same** relocated actor binary. |
 

@@ -292,7 +292,7 @@ void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match)
         if ((node->flags & msk) == mch) {
             for (; other != NULL; other = other->next) {
                 if (other->field_4A & 0x40) {
-                    func_800DF6AC(node, other, (VECTOR3*)&actor->field_10);
+                    func_800DF6AC(node, other, &actor->previousPosition);
                 }
             }
         }

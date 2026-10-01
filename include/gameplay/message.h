@@ -102,7 +102,7 @@ typedef struct _GpMsgEntry {
 STATIC_ASSERT_SIZEOF(GpMsgEntry, 8);
 
 /// 0x10-byte spawn argument for `Gp_SpawnAlly` / `Gp_SpawnPlayer`. `field_0`
-/// is copied to `GameActor.field_52`; `field_4` / `field_8` / `field_C` are
+/// is copied to `GameActor.rotation.vy`; `field_4` / `field_8` / `field_C` are
 /// copied to the extra coordinate translation.
 typedef struct _GpActorArg {
     /* 0x0 */ u16  field_0;

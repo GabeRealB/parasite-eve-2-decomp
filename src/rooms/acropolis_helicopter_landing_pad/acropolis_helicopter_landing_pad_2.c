@@ -944,7 +944,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
 }
 
 /// Turn-to-heading task: rotates the player actor's yaw
-/// (`GameActor.field_52`, masked to 12 bits) to `spawnArg1` in `0x100` steps
+/// (`GameActor.rotation.vy`, masked to 12 bits) to `spawnArg1` in `0x100` steps
 /// along the shorter direction. State 0 picks the unwrapped start angle
 /// (`yaw`, or `yaw +/- 0x1000` when that is closer to the target) and the
 /// step sign; state 1 steps, clamps onto the target and kills the task.
@@ -964,7 +964,7 @@ void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            D_acropolis_helicopter_landing_pad_80187F74 = actor->field_52 & 0xFFF;
+            D_acropolis_helicopter_landing_pad_80187F74 = actor->rotation.vy & 0xFFF;
             if (arg0->spawnArg1.value < D_acropolis_helicopter_landing_pad_80187F74) {
                 wrapped = D_acropolis_helicopter_landing_pad_80187F74 - 0x1000;
             } else {
@@ -1007,7 +1007,7 @@ void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
                     taskKill(arg0);
                 }
             }
-            actor->field_52 = D_acropolis_helicopter_landing_pad_80187F74;
+            actor->rotation.vy = D_acropolis_helicopter_landing_pad_80187F74;
             break;
     }
 }

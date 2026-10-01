@@ -47,51 +47,51 @@ static void func_m93r_8011D1C4(Task* arg0)
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
     lockedOut = 0;
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            actor->field_956 = 4;
-            actor->field_954 = 0;
-            actor->field_95A = 0;
-            actor->field_95C = 0;
-            actor->field_95E = 1;
-            actor->field_981 = 0;
-            actor->field_934 = 0;
-            actor->field_979 = 0xA;
-            shots            = 1;
-            if (actor->field_97F == 1) {
+            actor->state             = 4;
+            actor->mode              = GAME_ACTOR_MODE_NORMAL;
+            actor->turnRateIndex     = 0;
+            actor->animationState    = 0;
+            actor->statePhase        = 1;
+            actor->rumblePosted      = 0;
+            actor->stateTimer        = 0;
+            actor->attackCancelTicks = 0xA;
+            shots                    = 1;
+            if (actor->attackButton == 1) {
                 shots = 3;
             }
-            actor->field_93E = shots;
-            func_80106238(arg0, 0, actor->field_97F == 1);
-            actor->field_12A |= 0xC00;
-            anim              = 1;
-            if (((u16)actor->field_958 | actor->field_975) != 0) {
+            actor->actionValue = shots;
+            func_80106238(arg0, 0, actor->attackButton == 1);
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC00;
+            anim                                                  = 1;
+            if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 6;
             }
             Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
-            actor->field_958 = 0;
+            actor->movementMode = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
-                actor->field_95E++;
+                actor->statePhase++;
             }
             break;
         case 2:
-            if (actor->field_93E != 0) {
-                delay = actor->field_934;
+            if (actor->actionValue != 0) {
+                delay = actor->stateTimer;
                 if (delay == 0) {
-                    actor->field_93E--;
-                    actor->field_934  = 1;
-                    actor->field_981  = 0;
-                    actor->field_12A |= 0xC000;
+                    actor->actionValue--;
+                    actor->stateTimer                                     = 1;
+                    actor->rumblePosted                                   = 0;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC000;
                     Gp_ConsumeSlotQty(0x81, 1);
                     if (func_80106264(1) == 0) {
-                        actor->field_93E = 0;
+                        actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20020004, 1);
                     Gp_SpawnEff(0x6002B,
-                                actor->field_91C->extra.tmd->coords, 2,
+                                actor->equipmentTasks[1]->extra.tmd->coords, 2,
                                 NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
                     break;
@@ -101,10 +101,10 @@ static void func_m93r_8011D1C4(Task* arg0)
                    live and turns the second test into a compare against the
                    switch's `1`. */
                 delay--;
-                actor->field_934 = delay;
+                actor->stateTimer = delay;
                 if (delay == 0) {
-                    actor->field_12A &= 0x3FFF;
-                    if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                    if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                         Gp_PlayObjSfx(spot, 0x17, 1);
                     }
                 }
@@ -112,25 +112,25 @@ static void func_m93r_8011D1C4(Task* arg0)
                 /* Spelled out in both arms rather than shared after the `if`;
                    GCC cross-jumps the common tail itself, keeping only the
                    `field_12A` load duplicated, which is what the ROM has. */
-                actor->field_95E  = 3;
-                actor->field_12A &= 0x3FFF;
-                if (Gp_PickNearestRec18(actor->field_32C, coord, spot) != 0) {
+                actor->statePhase                                     = 3;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
                     Gp_PlayObjSfx(spot, 0x17, 1);
                 }
             }
             break;
         case 3:
-            if (actor->field_979 != 0) {
-                actor->field_979--;
+            if (actor->attackCancelTicks != 0) {
+                actor->attackCancelTicks--;
             }
-            if ((actor->field_962 & actor->field_96A) != 0) {
-                lockedOut = actor->field_979 == 0;
+            if ((actor->padHeld & actor->actionPadMask) != 0) {
+                lockedOut = actor->attackCancelTicks == 0;
             }
             if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 || lockedOut) {
                 if (lockedOut) {
-                    actor->field_940 = 0xA;
+                    actor->attackControl.cooldownTicks = 0xA;
                 } else {
-                    actor->field_940 = 0;
+                    actor->attackControl.cooldownTicks = 0;
                 }
                 func_80106550(arg0);
             }

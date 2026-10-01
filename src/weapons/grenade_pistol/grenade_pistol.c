@@ -68,34 +68,34 @@ static void func_grenade_pistol_8011D1D4(Task* arg0)
     s32        anim;
 
     actor = arg0->work;
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            anim              = 1;
-            actor->field_956  = 4;
-            actor->field_954  = 0;
-            actor->field_95A  = 0;
-            actor->field_95C  = 0;
-            actor->field_95E += anim;
-            if (((u16)actor->field_958 | actor->field_975) != 0) {
+            anim                  = 1;
+            actor->state          = 4;
+            actor->mode           = GAME_ACTOR_MODE_NORMAL;
+            actor->turnRateIndex  = 0;
+            actor->animationState = 0;
+            actor->statePhase    += anim;
+            if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 8;
             }
             Gp_AnimPlayChildSlotsEx(arg0, 9, 0, anim);
-            actor->field_958 = 0;
+            actor->movementMode = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
-                actor->field_95E++;
+                actor->statePhase++;
             }
             break;
         case 2:
-            actor->field_95E = 3;
-            actor->field_981 = 0;
-            actor->field_940 = 0x28;
+            actor->statePhase                  = 3;
+            actor->rumblePosted                = 0;
+            actor->attackControl.cooldownTicks = 0x28;
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
                           ((gPlayerStatus.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
             Gp_SpawnEff(0x6006C,
-                        actor->field_91C->extra.tmd->coords, GRENADE_WEAPON,
+                        actor->equipmentTasks[1]->extra.tmd->coords, GRENADE_WEAPON,
                         NULL);
             Gp_ConsumeSlotQty(WEAPON_ITEM(GRENADE_WEAPON), 1);
             /* The projectile's kind and its row of the muzzle-offset and speed tables

@@ -3290,10 +3290,10 @@ that same field to an `s8` field of the same struct reads like the same value,
 but it does not share:
 
 ```c
-    switch (actor->field_960) {
+    switch (actor->stateAux) {
         ...
         case 1:
-            companion->routeComplete = actor->field_960;   /* lbu v0, 0x960(s0) */
+            companion->routeComplete = actor->stateAux;   /* lbu v0, 0x960(s0) */
 ```
 
 `expand_assignment`/`store_field` expands the RHS in the *field's* mode, so the
@@ -3313,7 +3313,7 @@ switch wants, and the byte store subregs it:
 ```c
     u32 state;
 
-    state = actor->field_960;
+    state = actor->stateAux;
     switch (state) {
         ...
         case 1:
@@ -3344,7 +3344,7 @@ field read 94.4%. Inputs: `base_4.i`
 ## A narrow literal store needs its own `li`; route it through a **single-use** `s32` local so allocation puts it in the compare's `$v0`
 
 The other side of the section above: nothing has been loaded yet, the constant
-has not been materialized. `actor->field_960 = 1;` into a `u16` field expands
+has not been materialized. `actor->stateAux = 1;` into a `u16` field expands
 the RHS *in the field's mode*, so `emit_move_insn` finds no
 `(set (mem:HI) (const_int 1))` pattern and forces a pseudo — `.rtl` already
 carries `(set (reg:HI 86) (const_int 1))` with `REG_EQUAL (const_int 1)`,
@@ -6650,7 +6650,7 @@ argument, assign 0, then a volatile `+r` so the rest cannot float above it:
 register s32 zero asm("a0");
 zero = 0;
 asm volatile("" : "+r"(zero));
-link = (WorldCollisionContact*)actor->field_94;
+link = &actor->collisionMotionContexts[1];
 obj->flags |= 0xF200;
 Gp_LinkObj(zero, obj);
 ```
@@ -6989,13 +6989,13 @@ through `$v0` then copy to `$a1` (`move a1, v0`) so the compare and
 
 ## Pin `three`/`packed`/`flag` so `flags = 3` interleaves with `arg << 8`
 
-`obj->flags = 3; actor->field_124 = (value << 8) | (arg2 | 0x20000)` hoists the
+`obj->flags = 3; actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = (value << 8) | (arg2 | 0x20000)` hoists the
 pack immediately after the preceding call. Pin `three` to `$v0`, `packed` to
 `$v1`, `flag` to `$v0` (reusing extra's pin after the copy), assign `three = 3`
 then `packed = id << 8` then `obj->flags = three`, then `flag = 0x20000`. A
 `memory` barrier after `obj->field_C` keeps that block from floating above the
 coordinate stores. Keep a dead `$s4` / `$s1` live with `asm volatile("" :: "r"(id))`
-so `table[id]` is `sll v1, s4, 1` and `&actor->field_32C` is `addiu v0, s1, 0x32C`.
+so `table[id]` is `sll v1, s4, 1` and `&actor->weaponContacts` is `addiu v0, s1, 0x32C`.
 `Gp_AttachActorObj` is the example.
 
 ## Split `la` into `$s0` so `%hi` lands in `$v0` and `%lo` is a C `addiu`
@@ -7350,7 +7350,7 @@ s16 delta;
 s32 val;
 s32 temp;
 
-val   = actor->field_6A >> 3;
+val   = actor->aimYaw >> 3;
 delta = val;
 temp  = val;
 if (ABS(temp) < 0x40) {
@@ -7687,7 +7687,7 @@ call. Overwriting the original saved `actor` puts the second reload in
 `$s0` instead.
 
 The target wants the first reload in `$a3` (it becomes
-`&inner->field_7A8`, the 4th arg) and the second in `$v0` (store-only
+`inner->poseBuffer`, the 4th arg) and the second in `$v0` (store-only
 scratch before `Gp_AnimPlayChildSlotsEx`):
 
 ```
@@ -7701,22 +7701,22 @@ sh    zero,0x954(v0)
 ```
 
 Use three distinct locals: keep the original actor in a saved register
-for the later `field_914` kill, one local that dies at `func_800B3F84`,
+for the later `weaponEffectTask` kill, one local that dies at `func_800B3F84`,
 and a third that exists only for the post-`Gp_AnimResetChildSlots` stores:
 
 ```c
 actor = arg0->actor;
-/* taskKill(actor->field_91C); actor->field_91C = NULL; */
+/* taskKill(actor->equipmentTasks[1]); actor->equipmentTasks[1] = NULL; */
 inner            = arg0->actor;
-inner->field_93A = table[idx] + addend;
-inner->animationSets = ptrs[inner->field_93A]->table.sets;
-func_800B3F84(..., &inner->field_7A8, ...);
+inner->animationBankIndex = table[idx] + addend;
+inner->animationSets = ptrs[inner->animationBankIndex]->table.sets;
+func_800B3F84(..., inner->poseBuffer, ...);
 Gp_AnimResetChildSlots(arg0, 1);
 next            = arg0->actor;
-next->field_954 = 0;
+next->mode = 0;
 /* ... */
 Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
-/* taskKill(actor->field_914); */
+/* taskKill(actor->weaponEffectTask); */
 ```
 
 `Gp_EndPlayerActorTask` is the example. One reused reload stuck at 98.8%
@@ -7798,8 +7798,8 @@ reusing `val` as the helper's second arg and its result keeps the
 clamp in `$a1`:
 
 ```c
-val = ratan2(dx, dz) - actor->field_52;
-val = func_80103E7C(actor->field_6A, val);
+val = ratan2(dx, dz) - actor->rotation.vy;
+val = func_80103E7C(actor->aimYaw, val);
 ```
 
 `func_8010BE5C` is the example. The fused call stuck at 96.3% with
@@ -8071,15 +8071,15 @@ reuse itself for a later HImode/QImode store (`p->field = K` rematerializes
 ```c
 s32 flag;
 
-switch (p->field_95E) { /* lhu; beqz; li v0,1; beq */
+switch (p->statePhase) { /* lhu; beqz; li v0,1; beq */
 case 0:
     flag = 1;
-    p->field_95E = flag; /* sh v0 — same reg, nop in the load delay */
+    p->statePhase = flag; /* sh v0 — same reg, nop in the load delay */
     ...
 }
 ```
 
-`Gp_PlayerMode2State7` is the pure example. A bare `p->field_95E = 1` stuck at ~94%
+`Gp_PlayerMode2State7` is the pure example. A bare `p->statePhase = 1` stuck at ~94%
 with an otherwise identical switch.
 
 ## Assign the delay-slot default first so `bnez` keeps the `== 0` overwrite
@@ -8099,12 +8099,12 @@ the delay slot. Assign the default, then overwrite on `== 0`:
 
 ```c
 arg2 = 1;
-if (p->field_934 == 0) {
+if (p->stateTimer == 0) {
     arg2 = 6;
 }
 ```
 
-`Gp_PlayerMode2State5` is the example. `if (p->field_934) { arg2 = 1; } else { arg2 = 6; }`
+`Gp_PlayerMode2State5` is the example. `if (p->stateTimer) { arg2 = 1; } else { arg2 = 6; }`
 stuck at 96% with only that branch flipped.
 
 ## Write the `== 0` arm first so a sibling store rematerializes the field
@@ -9260,7 +9260,7 @@ elsewhere and the conflict is upstream — not that the pin is wrong.
 
 A local `register T* x asm("v0")` reserves `$v0` for the *whole* function as
 far as the allocator is concerned, even when the declaration sits in a nested
-block. In `Gp_DebugPanTask` a pin that fixed four `field_918` / `field_920`
+block. In `Gp_DebugPanTask` a pin that fixed four `equipmentTasks` / `attachmentTasks`
 loops (`lw v0,0x920(a0)`) simultaneously broke an unrelated color-matrix block
 earlier in the function, which flipped from `mtx` in `$v0` / constant in `$v1`
 to the reverse.
@@ -9278,7 +9278,7 @@ The fix is not to drop the pin but to pin the other block's variable to the
 {
     register Task* task asm("v0");
     i = 0;
-    do { task = (&actor->field_920)[i]; ... } while (i < 2);
+    do { task = actor->attachmentTasks[i]; ... } while (i < 2);
 }
 ```
 
@@ -11290,7 +11290,7 @@ target reads a preserved register).
 Fix: assign the field to an explicit local *before* the calls. The pseudo's
 live range then necessarily spans them, so global alloc must home it in `$sN`.
 `func_actor_800200_80165E90` dispatches through a copied `TaskFuncTable4`;
-writing the index inline as `sp.funcs[(u16)index->actor->field_96C](index)`
+writing the index inline as `sp.funcs[(u16)index->actor->hitRegion](index)`
 scores 76%, while hoisting the pointer matches at 100%:
 
 ```c
@@ -11300,7 +11300,7 @@ scores 76%, while hoisting the pointer matches at 100%:
     actor = arg0->actor;          /* must precede the two ticks */
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
-    sp.funcs[(u16)actor->field_96C](arg0);
+    sp.funcs[(u16)actor->hitRegion](arg0);
 ```
 
 This is the mirror of "skip the local pointer when all accesses are pre-call":
@@ -16545,7 +16545,7 @@ mask into the same register as the load by assigning the masked result first:
 ```c
 s32 flag;
 
-flag = obj->field_984 & 1;
+flag = obj->collisionEnableMask & 1;
 if (flag) {
     /* ... */
 }
@@ -23616,7 +23616,7 @@ Task*               task;
 inner          = work->actor;
 work->field_18 = NULL; /* must precede the global */
 gPlayerActorTasks[0]  = NULL; /* declare as T* volatile, not volatile T* */
-task           = inner->field_914;
+task           = inner->weaponEffectTask;
 if (task != NULL) {
     taskKill(task);
 }
@@ -23715,9 +23715,9 @@ constants in **both** arms instead:
 
 ```c
 if (arg2 == 0) {
-    inner->field_958 = 1;
+    inner->movementMode = 1;
 } else {
-    inner->field_958 = 3;
+    inner->movementMode = 3;
 }
 ```
 
@@ -23930,8 +23930,8 @@ That extra zero test is a *separate* compare, not CSE of `== 1`. Write it as
 two nested checks so the first branch only needs the loaded value:
 
 ```c
-if (inner->field_95E != 0) {
-    if (inner->field_95E == 1) {
+if (inner->statePhase != 0) {
+    if (inner->statePhase == 1) {
         /* body */
     }
 }
@@ -24712,7 +24712,7 @@ Declaring that same callee `void` frees `$v0` immediately, so you get
 s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3);
 
 Gp_SetActorDest(arg0, arg1, transform, arg3); /* jal; nop — $v0 still "holds" the return */
-actor->field_956 = 8;    /* li v1,8; sh v1,0x956(s2) */
+actor->state = 8;    /* li v1,8; sh v1,0x956(s2) */
 return 0;                /* move v0,zero after the restores */
 ```
 
@@ -24723,7 +24723,7 @@ still assigns `saved` to `$s1` and `actor` to `$s2`.
 
 ## Keep the `i * sizeof(slot)` overlay inside the loop body
 
-`GameActor` helpers walk the actor's animation slots (`GameActor.field_438`),
+`GameActor` helpers walk the actor's animation slots (`GameActor.animationSlots`),
 each `sizeof(AnimationSlot)` past the one before, and then store through the
 slot's own field (`func_80105894` / `func_801058BC`).
 A 1-based walk that the target implements as
@@ -24744,11 +24744,11 @@ has filled the `lh count` delay:
 
 ```c
 i = 1;
-if (i < actor->field_938) {
+if (i < actor->animationSlotCount) {
     do {
-        actor->field_438[i].rate = arg2;
+        actor->animationSlots[i].rate = arg2;
         i++;
-    } while (i < actor->field_938);
+    } while (i < actor->animationSlotCount);
 }
 ```
 
@@ -24757,9 +24757,9 @@ if (i < actor->field_938) {
 ## An index-`sizeof` sum must be the address's left operand
 
 The same stride where the index is used once instead of walked: a helper
-reaching slot `value` of an actor's `field_438` array and reading its `flags`
+reaching slot `value` of an actor's `animationSlots` array and reading its `flags`
 at 0x448. Written as the indexing the type supports,
-`index->actor->field_438[value].flags`, GCC emits the sum with the base as its
+`index->actor->animationSlots[value].flags`, GCC emits the sum with the base as its
 destination:
 
 ```
@@ -24779,11 +24779,11 @@ fails its checksum with no other symptom. Put the multiply first and the
 array's own address second:
 
 ```c
-slot = (AnimationSlot*)((arg1 * sizeof(AnimationSlot)) + (s32)arg0->actor->field_438);
+slot = (AnimationSlot*)((arg1 * sizeof(AnimationSlot)) + (s32)arg0->actor->animationSlots);
 return (slot->flags & 0x102) == 0;
 ```
 
-Casting the *struct* pointer instead and reading `field_438[0]` through it
+Casting the *struct* pointer instead and reading `animationSlots[0]` through it
 lands on the same byte, but states a view of the struct that does not exist;
 the array's address is the base to use.
 
@@ -24994,7 +24994,7 @@ Index through `index->actor->field` in the call itself:
 
 ```c
 sp = Gp_PlayerMode1States;
-sp.funcs[(u16)arg0->actor->field_96C](arg0);
+sp.funcs[(u16)arg0->actor->hitRegion](arg0);
 ```
 
 `Gp_TickPlayerMode1` is the example.
@@ -25348,9 +25348,9 @@ Symptom: target has one `lhu a2, field` then `bne v1, a2`; your build has
 u16 mode;
 s32 flags;
 
-mode = actor->field_954;
+mode = actor->mode;
 if (mode != 2) {
-    flags = actor->field_962;
+    flags = actor->padHeld;
 } else {
     flags = D_80071624;
     if (D_80072310 == mode) { /* reuse a2; no second lhu */
@@ -25757,9 +25757,9 @@ GameActor* actor;
 
 inner            = arg0->actor;
 func_8010B210(arg0);
-inner->field_97A = 0x12; /* sb K, off(s1) */
+inner->recoveryTicks = 0x12; /* sb K, off(s1) */
 actor            = arg0->actor; /* lw v0, 0x1C(s0) */
-actor->field_954 = 0;    /* sh zero, off(v0) */
+actor->mode = 0;    /* sh zero, off(v0) */
 ```
 
 `func_8010C180` is the example. A single `inner` reused for both groups stuck
@@ -25830,7 +25830,7 @@ coord->parent = parent + 1; /* addiu 0x50 in the jal delay */
 `-O2` runs `schedule-insns` before local-alloc. A pointer used twice (scratch
 `head`, for `vec = head - 0x10` and later `head[-0x10].vx`) appears first in
 the scheduled RTL and takes `$s2`. A single-use local that still has to live
-across both calls (the `GameActor*` loaded only for `field_52` after `ratan2`)
+across both calls (the `GameActor*` loaded only for `rotation.vy` after `ratan2`)
 is scheduled just before the first `jal` and takes `$s3`.
 
 The target often wants the opposite (`head` in `$s3`, actor in `$s2`) even
@@ -26263,10 +26263,10 @@ stays a distinct access.
 
 ```c
 kind = (u16)arg1->field_4; /* lhu, hoisted */
-if ((u16)inner->field_96C == 0) {
-    inner->field_993 = arg2; /* sb sits in the first beq delay slot */
+if ((u16)inner->hitRegion == 0) {
+    inner->hitBodyIndex = arg2; /* sb sits in the first beq delay slot */
     /* == 2 / < 3 / == 3 / != 4 tree — see "explicit decision tree" */
-    inner->field_96E = func(arg1->field_4, 0); /* lw */
+    inner->pendingDamage = func(arg1->field_4, 0); /* lw */
 }
 ```
 
@@ -26511,7 +26511,7 @@ p->field = table16[i] + addend;
 p->ptr   = table32[p->field];
 ```
 
-`Gp_BindActorAnim` is the example (`Gp_PlayerAnimBlkTbl[actor->field_93A]`).
+`Gp_BindActorAnim` is the example (`Gp_PlayerAnimBlkTbl[actor->animationBankIndex]`).
 
 ## Empty `while (x == K) p++` inverts; `while (1)` + `!=` break does not
 
@@ -26556,14 +26556,14 @@ temp (same wider-constant rule as the CSE entry above):
 
 ```c
 buttons          = session->padHeld;
-actor->field_962 = buttons;
-actor->field_966 = actor->field_962 & ~actor->field_964;
-actor->field_968 = actor->field_964 & ~actor->field_962;
+actor->padHeld = buttons;
+actor->padPressed = actor->padHeld & ~actor->previousPadHeld;
+actor->padReleased = actor->previousPadHeld & ~actor->padHeld;
 flag             = 1;
-actor->field_977 = (actor->field_962 >> 6) & flag;
+actor->runButtonHeld = (actor->padHeld >> 6) & flag;
 ```
 
-`actor->field_966 = buttons & ~actor->field_964` (and a literal `& 1`) stuck
+`actor->padPressed = buttons & ~actor->previousPadHeld` (and a literal `& 1`) stuck
 at 84% with only that register move missing. `Gp_CaptureActorPad` is the example.
 
 ## Hoist the list-head load before the already-linked early-out
@@ -26627,7 +26627,7 @@ if (flag == 0) {
 } else {
     flag = 7;
 }
-p->field_983 = flag;
+p->pendingCollisionUpdates = flag;
 ```
 
 `func_80104CAC` is the example. `flag = 7; if (arg2->field_10 == 0) flag = 0x38;`
@@ -26847,13 +26847,13 @@ if (func_8010583C(arg0, 0, 0, 0) != 0) {
 anim  = 9;
 extra = 5;
 i     = 1;
-actor->field_95E += i;
+actor->statePhase += i;
 actor = arg0->actor;
-if (i < actor->field_938) {
+if (i < actor->animationSlotCount) {
     do {
         Gp_AnimPlaySlot(..., anim, ..., extra, ...);
         i++;
-    } while (i < actor->field_938);
+    } while (i < actor->animationSlotCount);
 }
 ```
 
@@ -27028,42 +27028,42 @@ the constant 1). Capture the signed load once and reuse it for both the
 compare and the store:
 
 ```c
-temp = inner->field_973;
+temp = inner->movementSign;
 if (temp == 0) {
-    if (inner->field_975 != 0) { /* invert so GCC emits beqz + li 9 */
+    if (inner->turnSign != 0) { /* invert so GCC emits beqz + li 9 */
         mode = 0xD;
     } else {
         mode = 9;
     }
 } else if (temp == 1) {
-    inner->field_97E = temp; /* sb v1 */
+    inner->aimTrackingState = temp; /* sb v1 */
 }
 ```
 
-`Gp_ResetActorAnimState` is the example. `inner->field_97E = inner->field_973` (or
-`= 1`) stuck at 95% with an extra `lbu` and inverted `field_975` polarity.
+`Gp_ResetActorAnimState` is the example. `inner->aimTrackingState = inner->movementSign` (or
+`= 1`) stuck at 95% with an extra `lbu` and inverted `turnSign` polarity.
 
 ## Access a pointer field per block so temps stay in `$v1` / `$a1`
 
 A function-scope `Task* task` is coalesced into `$a0` for every
-`field_914` load. The target instead uses a fresh scratch in each arm
+`weaponEffectTask` load. The target instead uses a fresh scratch in each arm
 (`$v1` on a NULL-check store, `$a1` when a sibling `s32 value` occupies
 `$a0`, `$v1` again on a read-modify-write).
 
-Write `actor->field_914` at each use. Combined with the usual
+Write `actor->weaponEffectTask` at each use. Combined with the usual
 assign-default-then-overwrite (`value = 1; if (p->spawnArg1 == 2) value = 3;`),
 the 1/3 path becomes `lw a1; bne; li a0,1; li a0,3; sw a0,0x34(a1)`:
 
 ```c
-if (actor->field_914 != NULL) {
-    actor->field_914->spawnArg1 = -1; /* lw v1; sw v0,0x34(v1) */
+if (actor->weaponEffectTask != NULL) {
+    actor->weaponEffectTask->spawnArg1 = -1; /* lw v1; sw v0,0x34(v1) */
 }
 /* ... */
 value = 1;
-if (actor->field_914->spawnArg1 == 2) {
+if (actor->weaponEffectTask->spawnArg1 == 2) {
     value = 3;
 }
-actor->field_914->spawnArg1 = value;
+actor->weaponEffectTask->spawnArg1 = value;
 ```
 
 `func_80106350` is the example. A shared `task` local stuck at 99.4% with
@@ -27111,7 +27111,7 @@ if (node != arg1) {
     if (node != NULL) {
         node->targeted = 0;
     }
-    actor->field_90C = arg1; /* sw a1 — v0 already holds 1 */
+    actor->targetNode = arg1; /* sw a1 — v0 already holds 1 */
 }
 arg1->field_5 = flag;
 ```
@@ -28105,12 +28105,12 @@ the calls:
 
 ```c
 actor = arg0->actor;
-switch (actor->field_95E) {
+switch (actor->statePhase) {
 case 1:
     if (func(actor->ctx, actor->slot + 1) != NULL) {
         if (func2(...) == 0) {
             inner = arg0->actor; /* second local → $s0 */
-            inner->field_954 = 0;
+            inner->mode = 0;
             ...
         }
     }
@@ -28176,12 +28176,12 @@ kills the old value, so `li v1,1` fills the delay slot and both stores
 use `$v1`:
 
 ```c
-temp = inner->field_973;
-if ((inner->field_962 & 0x40) && (temp != -1)) {
+temp = inner->movementSign;
+if ((inner->padHeld & 0x40) && (temp != -1)) {
     temp             = 1;
-    inner->field_95A = temp;
+    inner->turnRateIndex = temp;
     ...
-    inner->field_958 = temp;
+    inner->movementMode = temp;
 }
 ```
 
@@ -28521,8 +28521,8 @@ also keeps `$v0` live through `lhu pad`, so the store fills the load delay:
 
 ```c
 next             = (rand() & 0x1F) + 0xA;
-pad              = inner->field_962;
-inner->field_990 = next;          /* lhu v1; sb v0 */
+pad              = inner->padHeld;
+inner->confusionDirectionTicks = next;          /* lhu v1; sb v0 */
 bits             = pad & 0xF000;  /* andi v0, v1, 0xF000 */
 if (bits == left || bits == (right = 0x2000)) {
     ...
@@ -28801,7 +28801,7 @@ Pass that local, not a fresh `0`:
 
 ```c
 ret = 0;
-if (actor->field_954 != 2) {
+if (actor->mode != 2) {
     /* ... */
     func_80106350(arg0, p->field_21, ret);
     /* ... */
@@ -29773,7 +29773,7 @@ through a `u16` cast so the mask stays and the compare is signed
 the divide temp before the `* 0x60` stores:
 
 ```c
-temp = (u16)((u16)inner->field_96E / 12);
+temp = (u16)((u16)inner->pendingDamage / 12);
 idx  = 2;
 if (temp < 3) {
     idx = temp;
@@ -30097,7 +30097,7 @@ branch and `v` is not replaced by the constant:
 
 ```c
 if (save->field_5C2 == 0 && (field13 = save->field_13) == 1) {
-    save->field_6C8 -= actor->field_96E;
+    save->field_6C8 -= actor->pendingDamage;
     if ((s16)save->field_6C8 <= 0 && gGameSession->eventState != 0) {
         save->field_6C8 = field13; /* sh a1, not li 1 */
     }
@@ -31382,7 +31382,7 @@ __asm__ volatile("" : "+r"(temp) : "r"(head), "r"(vec));
 ```
 
 `+r`(temp) also stops copy-prop of `temp = idx`, freeing `$a0` for
-the switch's `li a0, 1` (reused as `field_95E = 1`). `func_80109844`
+the switch's `li a0, 1` (reused as `statePhase = 1`). `func_80109844`
 is the example.
 
 ## `gpl 1` is `0x4BA8003E`; keep an `s32` index after `lbu`
@@ -31525,8 +31525,8 @@ order and add the second address to `sym.*.txt` so a later extract
 splits them.
 
 `func_80108A0C` / `func_80108AD4` is the example. The first function is
-the `field_956 = 6` body of `func_80109290` (without the
-`field_3 == -2` guard); the second is the `field_956 = 7` body inlined
+the `state = 6` body of `func_80109290` (without the
+`field_3 == -2` guard); the second is the `state = 7` body inlined
 in `Gp_TickPlayerNormal`.
 
 ## Duplicate the 1/0 call so the flag stays a branch, not `sltu`
@@ -32308,13 +32308,13 @@ Write the zero arm first so the nonzero arm is the `else` and must
 emit a fresh `lhu a1`:
 
 ```c
-if (actor->field_93C == 0) {
+if (actor->actionArgument == 0) {
     mode = 2;
-    if (actor->field_91C == NULL) {
+    if (actor->equipmentTasks[1] == NULL) {
         mode = 0x13;
     }
 } else {
-    mode = actor->field_93C;
+    mode = actor->actionArgument;
 }
 ```
 
@@ -32334,7 +32334,7 @@ on the close path, which immediately reloads `$v0`):
 
 ```c
 dx = coord->coord.t[0];
-dx -= actor->field_20;
+dx -= actor->destination.vx;
 if (dx < 0) {
     dx = -dx;
 }
@@ -32342,7 +32342,7 @@ if (dx < 0x69) {
     /* second axis… */
 } else {
     dx = 1;
-    actor->field_973 = dx;
+    actor->movementSign = dx;
 }
 ```
 
@@ -32507,7 +32507,7 @@ head     = *scratch;
 actor    = arg0->actor;
 tmp      = head - 0x84;
 *scratch = tmp;
-if (actor->field_90C != NULL) {
+if (actor->targetNode != NULL) {
     block = (GpPitchScratch*)tmp;
     __asm__ volatile("" : "+r"(block));
 ```
@@ -32519,14 +32519,14 @@ leave `addiu a2, head, -0x14` in the jal delay. Name the first call
 argument so those loads exist, then write the zeros after that load:
 
 ```c
-src = (GfxCoord*)((GameActorExt*)actor->field_91C->extra)->field_8;
+src = actor->equipmentTasks[1]->extra.tmd->coords;
 block->rot.vx = 0;
 block->rot.vy = 0;
 block->rot.vz = 0;
 Gp_PlaceCoordOffset(src, (GfxCoord*)block, (SVECTOR*)(head - 0x14));
 ```
 
-`-fschedule-insns` lifts the three `sh zero` into the `field_91C` /
+`-fschedule-insns` lifts the three `sh zero` into the `equipmentTasks[1]` /
 `extra` / `field_8` load delays and puts the last one in the jal delay
 slot. `Gp_AimPitchDirect` is the example.
 
@@ -33375,7 +33375,7 @@ addu   v0, v0, v1
 ```
 
 Write the constant grouped with the *other* operand:
-`D_80112E74[(s8)a->field_987 * 4 + (gPlayerStatus.resourceVariant - 5)][frame]`.
+`D_80112E74[(s8)a->textureSequenceA * 4 + (gPlayerStatus.resourceVariant - 5)][frame]`.
 fold moves a constant term of the right-hand sum onto the left
 (`x * 4 + (y - 5)` becomes `(x * 4 - 5) + y`), and the chain then ties into
 one pseudo. The ungrouped `x * 4 + y - 5` keeps the constant last and
@@ -33501,13 +33501,13 @@ a shared temp (`val = 0x78 / 0x14 / 0x3C; field = val`) inverts to
 `beqz` and drops the `j`. Store in each arm instead:
 
 ```c
-mode = (u16)actor->field_958;
+mode = (u16)actor->movementMode;
 if (mode == 0) {
-    actor->field_98D = 0x78;
+    actor->poisonDamageTicks = 0x78;
 } else if (mode == 3) {
-    actor->field_98D = 0x14;
+    actor->poisonDamageTicks = 0x14;
 } else {
-    actor->field_98D = 0x3C;
+    actor->poisonDamageTicks = 0x3C;
 }
 ```
 
@@ -36210,10 +36210,10 @@ keeps the dests distinct:
 
 ```c
 p = work->actor;          /* v1 */
-prev = p->field_962;
+prev = p->padHeld;
 actor = p;                /* move s0, v1 */
 asm volatile("" : "+r"(actor), "+r"(p));
-p->field_976 = f975;      /* sb ..., (v1) */
+p->previousTurnSign = f975;      /* sb ..., (v1) */
 ```
 
 Pin `extra` to `$v0` so the actor load is `lw v1, 0x1C` (not `$v0`).
@@ -36560,7 +36560,7 @@ dst = q;
 
 `&table[i]` is `addu dst, table, i<<3`. `i = (i << 3) + (s32)table`
 keeps the add in `$v1`: `addu v1, v1, v0`. Split
-`gPlayerStatus.weapon` / table / `field_91C` with `+r` barriers so
+`gPlayerStatus.weapon` / table / `equipmentTasks[1]` with `+r` barriers so
 the `lbu` fills the preceding `beqz` delay and `lw 0x91C` sits between
 `addiu table` and `sll`. A `u16` temp for the first `rot.vx` load lets
 `field_8` sit between `lhu` and `sh`. `Gp_AimPitchToLockAlt` is the example.
@@ -36720,10 +36720,10 @@ keeps `$v1` and the `la` can use `$a0`:
 ```c
 {
     register u16* tbl asm("a0");
-    idx = actor->field_95A;
+    idx = actor->turnRateIndex;
     if (idx != 0) {
         tbl = D_80112E20;
-        actor->field_52 = (actor->field_52 + tbl[idx] * yaw) & 0xFFF;
+        actor->rotation.vy = (actor->rotation.vy + tbl[idx] * yaw) & 0xFFF;
     }
 }
 ```
@@ -36746,7 +36746,7 @@ the step was clamped). Same decay shape as `func_80109720`, plus the flag.
 
 ```c
 coord = (GfxCoord*)&coord->coord;
-RotMatrix((SVECTOR*)&actor->field_50, (MATRIX*)coord);
+RotMatrix(&actor->rotation, (MATRIX*)coord);
 ```
 
 emits `addiu s0, s0, 4` then `addiu a0, s1, 0x50`. Compute the SVECTOR* first,
@@ -36754,7 +36754,7 @@ pin it to `$a0`, and barrier before the increment:
 
 ```c
 register SVECTOR* rot asm("a0");
-rot = (SVECTOR*)&actor->field_50;
+rot = &actor->rotation;
 asm volatile("" : "+r"(rot), "+r"(coord));
 coord = (GfxCoord*)&coord->coord;
 RotMatrix(rot, (MATRIX*)coord);
@@ -38630,7 +38630,7 @@ blk = (GpDashScratch*)(head - 0x2C);
 vel = blk;                 /* move s4, s3 — same address, second register */
 …
 blk->div       = 0x6E;     /* store through blk */
-actor->field_0 = vel->dir.vx / vel->div;   /* reads through vel → lw each time */
+actor->velocity.vx = vel->dir.vx / vel->div;   /* reads through vel → lw each time */
 ```
 
 The copy also has to be assigned up front (next to the original), which is what
@@ -39810,7 +39810,7 @@ scheduler sink it to just before the `jal`, which is where the target has it:
 ```c
 Gp_PlayObjSfx(obj, base | 0x20000003, 0);
 done = 1;                 /* li s3,1 ends up immediately before the jal */
-actor->field_95E = 0x64;
+actor->statePhase = 0x64;
 ```
 
 `Gp_PlayerNormalState5` gained 1.6% across eight call sites from this alone. Same
@@ -41698,7 +41698,7 @@ worse). Writing the guarded initialisation as a plain assignment
 ```c
 dir = 1;
 if (D_80112EF8[gPlayerStatus.weapon] != 0) {
-    dir = actor->field_97F;
+    dir = actor->attackButton;
 }
 ```
 
@@ -41708,7 +41708,7 @@ all four references (89.7%, `regs=21`). The ternary — or the equivalent
 reference folds on its own (98.2%):
 
 ```c
-dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->field_97F : 1;
+dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->attackButton : 1;
 ```
 
 Both forms emit the identical `li s1, 1` in the branch delay slot followed by
@@ -41867,8 +41867,8 @@ void func(WorldTargetNode* node)  /* was arg0 */
 {
     WorldTargetNode* node;        /* the local the body already had */
 
-    node = actor->field_90C; /* the local */
-    actor->field_90C = node; /* meant the parameter; now the local */
+    node = actor->targetNode; /* the local */
+    actor->targetNode = node; /* meant the parameter; now the local */
 }
 ```
 
@@ -49364,7 +49364,7 @@ writes `$a0`, because `$a0` still holds the caller's own `index`; m2c emitted th
 call with three arguments and got a uniform shift on all of them:
 
 ```
--lhu    a1,0x956(v0)      # target: $a1 holds field_956, then arg 1
+-lhu    a1,0x956(v0)      # target: $a1 holds state, then arg 1
 +lhu    a0,0x956(v0)      # ours
 -li     a1,1 / li a2,0 / li a3,6      # target
 +li     a0,1 / li a1,0 / li a2,6      # ours
@@ -49743,7 +49743,7 @@ the case the label goes in, and every other user of it becomes a forward goto.
 A nested record inside a struct reads naturally through one named pointer:
 
 ```c
-WorldCollisionCapsule* rec = &actor->field_14C;
+WorldCollisionCapsule* rec = &actor->weaponShape;
 rec->ends[0].vz = (rec->ends[1].vz + D_80112F60[D_80073BA9]) << 1;
 ```
 
@@ -49762,8 +49762,8 @@ GCC CSEs the constant offset into the addressing mode and never materializes the
 interior pointer:
 
 ```c
-actor->field_14C.ends[0].vz =
-    (actor->field_14C.ends[1].vz + D_80112F60[D_80073BA9]) << 1;
+actor->weaponShape.ends[0].vz =
+    (actor->weaponShape.ends[1].vz + D_80112F60[D_80073BA9]) << 1;
 ```
 
 This is the opposite of "Hold a global's address in a local pointer": a global
@@ -50508,7 +50508,7 @@ global mode byte:
 sc->push.vx = sc->dir.vx;
 sc->push.vy = 0;
 sc->push.vz = sc->dir.vz;
-if (D_8007218B != 2 && D_8007218B != 0xA && actor->field_954 != 2) {
+if (D_8007218B != 2 && D_8007218B != 0xA && actor->mode != 2) {
     func_80105B74(&sc->push);
 }
 ```
@@ -52500,7 +52500,7 @@ seen from the other end: not a store that sinks, but a *load* that rises past a
 run of struct stores.
 
 `func_m4a1_javelin_8011F5D4` state 2 writes five `actor->` fields and then packs
-a byte of `gPlayerStatus` into `field_124`. The target keeps every store ahead
+a byte of `gPlayerStatus` into `collisionBodies[GAME_ACTOR_BODY_WEAPON].key`. The target keeps every store ahead
 of the load:
 
 ```asm
@@ -52514,15 +52514,15 @@ lbu  v0,%lo(D_80073BAA)(v0)   /* after all four stores */
 ```
 
 Written as `extern u8 D_80073BAA;` the `lbu` is issued right after the `lui`,
-the stores shuffle in behind it, and the constant `3` shared by `field_95E` and
-`field_93E` lands in `$v0` instead of `$v1`. That block cost 1.35% and would not
+the stores shuffle in behind it, and the constant `3` shared by `statePhase` and
+`actionValue` lands in `$v0` instead of `$v1`. That block cost 1.35% and would not
 close: all 120 permutations of the five stores, every position for the
-`field_124` and `field_12A` statements, `register s32 asm("v1")` pins, and a
+`collisionBodies[GAME_ACTOR_BODY_WEAPON].key` and `collisionBodies[GAME_ACTOR_BODY_WEAPON].flags` statements, `register s32 asm("v1")` pins, and a
 6-minute permuter run all topped out at 98.6%.
 
 `0x80073BAA` is `gPlayerStatus + 0x22`, already declared as
 `PlayerStatus::weaponSlotItem` in `include/main/wipsys_types.h`. It is the
-compact primary weapon-slot item, packed into `GameActor.field_124` by the
+compact primary weapon-slot item, packed into `GameActor.collisionBodies[GAME_ACTOR_BODY_WEAPON].key` by the
 very use being decompiled.
 Writing `gPlayerStatus.weaponSlotItem` restores the dependence and the block matched
 with no other change.
@@ -53762,7 +53762,7 @@ statements rather than one `&&`/`||` condition.
 
 The `else if` chain above is not the only way back. `func_actor_215100_8014A398`
 has the same pair sitting inside a longer `&&` chain whose other terms have to
-stay in that one expression (`field_954 != 2 && Gp_CapBusy() == 0 && … && z <
+stay in that one expression (`mode != 2 && Gp_CapBusy() == 0 && … && z <
 0x1644 && z >= 0x10CD && …`), and there the cheapest split is to nest just the
 second bound:
 
@@ -55252,17 +55252,17 @@ survives when cse left two separate `(set reg K)` insns, which needs the
 ```c
 /* sh a3 - cse folds the store into anim */
 anim             = 1;
-actor->field_956 = 4;
-actor->field_95E = anim;
+actor->state = 4;
+actor->statePhase = anim;
 
 /* li a3,1 / move v0,a3 / sh v0 - target shape */
-actor->field_956 = 4;
-actor->field_95E = 1;
+actor->state = 4;
+actor->statePhase = 1;
 anim             = 1;
 ```
 
 `func_p08_8011D1D8` is the worked example, and the neighbouring statement
-still matters: with the `field_956` store *after* the pair the copy appears
+still matters: with the `state` store *after* the pair the copy appears
 but `reorder=1` remains, so keep the unrelated store ahead of both.
 
 Narrowing the variable (`u8 anim`) is the false trail. It does split the
@@ -55346,7 +55346,7 @@ example (93.3% → 100% on that one change).
 
 ### A switch case that compares against the switch value needs the value in a local
 
-`func_m4a1_p2_8011D1C4` dispatches on `actor->field_95E` and, inside `case 2`,
+`func_m4a1_p2_8011D1C4` dispatches on `actor->statePhase` and, inside `case 2`,
 compares a counter against that same field:
 
 ```
@@ -55356,19 +55356,19 @@ sw    v0,0x934(s0)
 bne   v0,v1,...         <- still the entry load
 ```
 
-Writing the compare as `if (count != actor->field_95E)` reloads it
+Writing the compare as `if (count != actor->statePhase)` reloads it
 (`lhu v1,0x95e(s0)` + `nop` right before the `bne`): the preceding
-`actor->field_934 = count` store is a memory write, and cse drops the earlier
+`actor->stateTimer = count` store is a memory write, and cse drops the earlier
 `lhu` from the table rather than disambiguating the two constant offsets off
 `s0`. Hold the dispatch value in a local instead, so the comparison is a
 register use with no memory reference at all:
 
 ```c
-state = actor->field_95E;
+state = actor->statePhase;
 switch (state) {
 case 2:
-    count            = actor->field_934 - 1;
-    actor->field_934 = count;
+    count            = actor->stateTimer - 1;
+    actor->stateTimer = count;
     if (count != state) {
         break;
     }
@@ -55381,7 +55381,7 @@ same temp (`temp_v1`), which is the hint that the original was one variable.
 ### Narrow the case-local so it cannot steal the switch's constant register
 
 Complement to "A `reload_cse` copy in front of a struct-field store": moving
-`anim = 1` *after* `actor->field_95E = 1` fixes the store (it picks up the
+`anim = 1` *after* `actor->statePhase = 1` fixes the store (it picks up the
 constant the switch tree already materialised) but leaves the *next* use of the
 same constant wrong. In `func_m4a1_p2_8011D1C4` case 0 the target is
 
@@ -55389,7 +55389,7 @@ same constant wrong. In `func_m4a1_p2_8011D1C4` case 0 the target is
 li    a0,1              <- the switch tree's constant
 ...
 sh    a0,0x95e(s0)
-bne   v1,a0,...         <- if (actor->field_97F == 1)
+bne   v1,a0,...         <- if (actor->attackButton == 1)
 li    a3,3              <- anim
 ```
 
@@ -55399,7 +55399,7 @@ Declaring the local at the width it is actually stored at puts its constant in a
 different mode class, and the SImode uses go back to the switch's register:
 
 ```c
-s16 anim;   /* stored to actor->field_93E, an s16 */
+s16 anim;   /* stored to actor->actionValue, an s16 */
 s32 fade;   /* separate local for the later Gp_AnimPlayChildSlotsEx argument */
 ```
 
@@ -55411,7 +55411,7 @@ second, unrelated 1 into its own `s32` local keeps that distinction visible.
 ## Sweep one store's position when `$v0`/`$v1` are swapped in a block of struct stores
 
 A run of stores to *different* fields of one struct does not pin its own order.
-GCC 2.8.1 proves `actor->field_934` and `actor->field_95E` cannot alias, so
+GCC 2.8.1 proves `actor->stateTimer` and `actor->statePhase` cannot alias, so
 `sched1` — which runs *before* `local_alloc` — reorders them freely, and the
 store order you read off the target is the schedule, not the source. What the
 source order still decides is the order the block's pseudos are born in, and
@@ -55426,18 +55426,18 @@ permuting the local declarations and hoisting the `0x95E` read into an explicit
 local all scored exactly 98.56% — none of them changed the RTL the allocator
 sees.
 
-Moving the *store* did. Sweeping `actor->field_934 = 1;` through the seven
+Moving the *store* did. Sweeping `actor->stateTimer = 1;` through the seven
 store positions of the block, one file per position, went 96.8 / 98.0 / 98.6 /
 98.6 / **100** / 100 / 100:
 
 ```c
-actor->field_956  = 4;
-actor->field_95A  = 2;
-actor->field_954  = 0;
-actor->field_95C  = 0;
-actor->field_934  = 1;   /* not third, where the target's store order puts it */
-actor->field_95E += 1;
-actor->field_12A |= 0x400;
+actor->state  = 4;
+actor->turnRateIndex  = 2;
+actor->mode  = 0;
+actor->animationState  = 0;
+actor->stateTimer  = 1;   /* not third, where the target's store order puts it */
+actor->statePhase += 1;
+actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
 ```
 
 So when a block of struct stores is instruction-for-instruction correct but two
@@ -55513,10 +55513,10 @@ the differing immediates make the disassembly text differ.
 byte global into the fourth:
 
 ```c
-actor->field_95E = 4;
-actor->field_934 = 3;
-actor->field_940 = 0;
-actor->field_124 = gPlayerStatus.weaponSlotItem | 0x21E00;
+actor->statePhase = 4;
+actor->stateTimer = 3;
+actor->attackControl.cooldownTicks = 0;
+actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = gPlayerStatus.weaponSlotItem | 0x21E00;
 ```
 
 The target keeps that order — `sh 0x95E`, `sw 0x934`, `lui %hi`, `sh 0x940`,
@@ -55683,7 +55683,7 @@ bnez  v0, .Lout
 ```
 
 Ported from an already-matched sibling whose reload constant was `3`, the arm
-read `actor->field_934 = delay - 1; if (delay - 1 == 0)`. That is correct C and
+read `actor->stateTimer = delay - 1; if (delay - 1 == 0)`. That is correct C and
 scores 98.8%, but it produces two registers and a different second branch:
 
 ```
@@ -55703,13 +55703,13 @@ duplicated — but `delay` itself stays live across it for the second test, whic
 Assigning through the local instead collapses it:
 
 ```c
-delay = actor->field_934;
+delay = actor->stateTimer;
 if (delay == 0) {
     /* fire */
     break;
 }
 delay--;
-actor->field_934 = delay;
+actor->stateTimer = delay;
 if (delay == 0) {
     /* lock-on */
 }
@@ -55759,9 +55759,9 @@ scratch load's delay slot:
 ```c
 actor = arg0->actor;
 coord = arg0->extra->coords;
-rec   = &actor->field_14C;
+rec   = &actor->weaponShape;
 { /* scratch borrow, as above */ }
-switch (actor->field_95E) {
+switch (actor->statePhase) {
 ```
 
 `func_p229_8011DDA0` went 97.3% → 100% on that move alone (the residue was
@@ -55834,12 +55834,12 @@ and the same C shape that matched `func_m93r_8011D1C4` is what gets it wrong.
 Cached in a local, the guard's slot always gets filled:
 
 ```c
-step = actor->field_934;
+step = actor->stateTimer;
 if (step != 0) {
-    actor->field_973 = 1;
+    actor->movementSign = 1;
     swinging         = 1;
     step--;
-    actor->field_934 = step;
+    actor->stateTimer = step;
     if (step == 3) { /* ... */ }
 }
 ```
@@ -55862,11 +55862,11 @@ Reading the field directly in the guard and subtracting from the field again
 produces exactly that:
 
 ```c
-if (actor->field_934 != 0) {
-    actor->field_973 = 1;
+if (actor->stateTimer != 0) {
+    actor->movementSign = 1;
     swinging         = 1;
-    step             = actor->field_934 - 1;
-    actor->field_934 = step;
+    step             = actor->stateTimer - 1;
+    actor->stateTimer = step;
     if (step == 3) { /* ... */ }
 }
 ```
@@ -56208,7 +56208,7 @@ no statement permutation and 8500 permuter iterations could shift. The block
 was one straight run of stores plus one global load:
 
 ```c
-actor->field_124 = gPlayerStatus.weaponSlotItem | 0x21900;
+actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = gPlayerStatus.weaponSlotItem | 0x21900;
 rec->field_10    = 0x100;
 rec->field_12    = 0x100;
 rec->field_4     = rec->field_C + D_80112F92;   /* extern u16 D_80112F92; */
@@ -56442,9 +56442,9 @@ then eats it as the delay slot (`li a0; li a1; jal; sh` — a `reorder`
 penalty of 1):
 
 ```c
-if (cond) { flags = actor->field_12A | 0x800; }
-else      { flags = actor->field_12A & 0xF7FF; }
-actor->field_12A = flags;
+if (cond) { flags = actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags | 0x800; }
+else      { flags = actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & 0xF7FF; }
+actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = flags;
 ```
 
 Writing the store into each arm instead leaves it at the end of its own
@@ -56453,8 +56453,8 @@ two copies into the join *after* scheduling has run — which is exactly the
 target's order:
 
 ```c
-if (cond) { actor->field_12A |= 0x800; }
-else      { actor->field_12A &= 0xF7FF; }
+if (cond) { actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800; }
+else      { actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF; }
 ```
 
 Both spellings produce one shared `sh` at the join, so the object dumps
@@ -63980,7 +63980,7 @@ read off the code rather than guessed. m2c renders this as a `s32*` walk with
 loop then copies from the wrong addresses and nothing downstream can match.
 `func_actor_800200_80165F50` is the worked example - the 0x24 bytes are a
 9-entry `TaskFuncTable9`, and `sp = D_actor_800200_80161EC8;` with
-`sp.funcs[actor->field_956](index)` and a `RotMatrix((SVECTOR*)&actor->field_50,
+`sp.funcs[actor->state](index)` and a `RotMatrix(&actor->rotation,
 &coord->coord)` matches at 100% on the first rewrite, against 67% for m2c's
 element-wise `M2C_FIELD` version. Sizes at or below 32 bytes never reach this
 loop (see the section above); they are batched into one or two groups of four.
@@ -64013,7 +64013,7 @@ table's first word (`M2C_UNK (*sp10)(void*, M2C_UNK, s32, s32)`, plus dead
 `sp14`/`sp18`) and scores 72% with `insert=3 delete=6`. The load count is the
 table's entry count, not the callee's arity: three loads mean `TaskFuncTable3`
 and a one-argument `TaskFunc`. `func_actor_800200_801652EC` is the worked
-example — `sp = D_actor_800200_80161E34; sp.funcs[actor->field_954](index);`
+example — `sp = D_actor_800200_80161E34; sp.funcs[actor->mode](index);`
 matches at 100% first try.
 
 ## Name a two-step pointer chase used inside a store's RHS, or it schedules after the store
@@ -64990,11 +64990,11 @@ miss, not a permuter candidate.
 ## A ternary can stop global-address CSE even when its final branch matches an if
 
 `Gp_PlayerMode2StateA` reached 98.010% with `dir = 1; if (flag) dir =
-(s8)actor->field_97F;`. The only missing instructions were a second
+(s8)actor->attackButton;`. The only missing instructions were a second
 `lui`/`addiu` for `gPlayerStatus`; the branch penalties were displaced targets.
 The `.cse` dump reused the initial address pseudo throughout the function.
 
-Changing that selection to `dir = flag ? (s8)actor->field_97F : 1;` matched
+Changing that selection to `dir = flag ? (s8)actor->attackButton : 1;` matched
 100% without pins or barriers. In `.jump` and `.cse`, the ternary retained
 separate arms and a join, and the later global access kept its own address
 pseudo. `.greg` assigned both disjoint address lifetimes to `$s2`. Later
@@ -68354,7 +68354,7 @@ D.y = coord->coord.t[1];
 D.z = coord->coord.t[2];
 
 rot = &D.rot;           /* anchor order matters */
-rot->vx = actor->field_50;
+rot->vx = actor->rotation.vx;
 ```
 
 Taking `rot = &D.rot;` *before* the word stores instead anchors the whole
@@ -68371,7 +68371,7 @@ addresses `(plus rot 2)` / `(plus rot 4)`, which are not bare registers, so they
 keep the pointer — which is what forces it to be materialised, and lets local-alloc
 reuse the dying base register for it.
 
-Corollary: the `lhu` is free. `field_50` is declared `s16`, but only the low
+Corollary: the `lhu` is free. `rotation.vx` is declared `s16`, but only the low
 half reaches the `sh`, so combine narrows the `lh` to `lhu` on its own. Do not
 retype the source field to `u16` to chase an unsigned load.
 
@@ -75272,7 +75272,7 @@ no spelling of the `&&` keeps both branches; the tests have to be separate
 *statements*:
 
 ```c
-u16 state = arg0->actor->field_95E;
+u16 state = arg0->actor->statePhase;
 
 if (state != 0) {
     if (state == 1) {
@@ -75296,11 +75296,11 @@ and the target keeps the two in different registers (`$s0` for the first,
 
 ```c
 GameActor* actor = arg0->actor;   /* -> $s0 */
-actor->field_910->activity.combat.repeatsRemaining = arg1;
-if (Gp_StateF0.field_0 == 1) { actor->field_90C = Gp_FindLockNode(arg0); }
+actor->companionWork->activity.combat.repeatsRemaining = arg1;
+if (Gp_StateF0.field_0 == 1) { actor->targetNode = Gp_FindLockNode(arg0); }
 ...
 actor = arg0->actor;              /* still the same pseudo: one quantity */
-actor->field_954 = 0;
+actor->mode = 0;
 ```
 
 RTL keeps a `reg/v` per user variable and just writes it again -
@@ -75349,8 +75349,8 @@ declared signedness disagrees with the target's opcode, cast the *member
 access*:
 
 ```c
-if ((u16)d4->field_96C != 0)   /* lhu; plain `!= 0` on the s16 member is lh */
-if ((s8)actor->field_97A == 0) /* lb;  plain `== 0` on the u8 member is lbu  */
+if ((u16)d4->hitRegion != 0)   /* lhu; plain `!= 0` on the s16 member is lh */
+if ((s8)actor->recoveryTicks == 0) /* lb;  plain `== 0` on the u8 member is lbu  */
 ```
 
 This contradicts the `s8`-globals entry above only in scope: a global's
@@ -75748,7 +75748,7 @@ point-value case of the same fold as the `!=`-chain and `||`-band entries above.
 see them as a pair. Either the early-return form
 
 ```c
-value = actor->field_95E;
+value = actor->statePhase;
 if (value == 0) {
     return;
 }
@@ -75905,9 +75905,9 @@ Inputs: `base_1.i`
 ## A pointer derived between the last pre-loop load and a block move takes its delay slot
 
 `func_actor_800100_80166514` copies a 0x50-byte `GfxCoord` into a stack local
-(`sp10 = *((TmdObject*)actor->field_91C->extra)->coords;`), which is the
+(`sp10 = *((TmdObject*)actor->equipmentTasks[1]->extra)->coords;`), which is the
 `movstrsi` 5x16-byte loop of the entry above, and then uses a *second* pointer
-taken from the same actor (`obj = (WorldCollisionBody*)actor->field_12C;`). Both the copy's
+taken from the same actor (`obj = &actor->collisionBodies[GAME_ACTOR_BODY_AIM];`). Both the copy's
 destination `&sp10` and that pointer are register-only computations with no
 consumers until after the loop, so where each is *written in the source* decides
 which pre-loop slot it gets:
@@ -75928,8 +75928,8 @@ the copy's end pointer), and `$a1`/`$a0` swap roles throughout the tail - 96.09%
 load and the copy is the 100%:
 
 ```c
-src  = ((TmdObject*)actor->field_91C->extra)->coords;
-obj  = (WorldCollisionBody*)actor->field_12C;   /* here: last pre-loop def, second delay slot */
+src  = ((TmdObject*)actor->equipmentTasks[1]->extra)->coords;
+obj  = &actor->collisionBodies[GAME_ACTOR_BODY_AIM];   /* here: last pre-loop def, second delay slot */
 sp10 = *src;
 obj->flags |= 0xC000;              /* stays after the copy */
 ```
@@ -75980,8 +75980,8 @@ and `depth` starts at **1** at the top level (flow.c:402), incrementing on
 single reference in a constant-false `do{}while(0)`:
 
 ```c
-count = (u16) actor->field_942 + 1;
-do { actor->field_942 = count; } while (0);   /* 98.796% -> 100% */
+count = (u16) actor->idleTicks + 1;
+do { actor->idleTicks = count; } while (0);   /* 98.796% -> 100% */
 ```
 
 raises that allocno to 7 refs, `floor_log2(7)*7/56 = 2500 > 33/154`, which orders
@@ -76025,7 +76025,7 @@ actually has, so `$a3` keeps whatever the switch tree left in it:
 ```c
 s32 func_actor_800100_80166B40(WorldCollisionContact* rec, GfxCoord* coord, GfxCoord* place);
 ...
-if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0)   /* 99.055% -> 100% */
+if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0)   /* 99.055% -> 100% */
 ```
 
 Symptom to look for: a one-instruction `insert` penalty on an argument register,
@@ -82120,7 +82120,7 @@ argument 6 / 5 in case 1 under one `s32 flag`:
 
 ```c
             flag             = 1;
-            actor->field_960 = flag;
+            actor->stateAux = flag;
             ...
             flag = 6;                                   /* case 1 */
             if (companion->waypointIndex == 1) {
@@ -84179,7 +84179,7 @@ predicates already matching. The dispatch's `1` and the stored `1` are the same
 value but not the same pseudo.
 
 ```
-target                     base (m2c: `field_95E = 1`)
+target                     base (m2c: `statePhase = 1`)
 beqz  v1,.L5C              beqz  v1,.L5C
  addiu v0,zero,1            addiu v0,zero,1
 beq   v1,v0,.L70           beq   v1,v0,.L70
@@ -84198,14 +84198,14 @@ merge, so neither set can be deleted: `dbr` threads the compare's set into the
 `beqz` delay slot, and the arm's `li` survives next to the store.
 
 Store through an `s32` local instead — the idiom the already-matched gameplay
-sibling `Gp_PlayerMode2State7` uses for the same `field_95E`:
+sibling `Gp_PlayerMode2State7` uses for the same `statePhase`:
 
 ```c
 s32 flag;
 ...
 case 0:
     flag             = 1;
-    actor->field_95E = flag;
+    actor->statePhase = flag;
 ```
 
 The arm's set is now SImode and the store becomes
@@ -89695,8 +89695,8 @@ state block's `0x1C`.
 
 **Do not add that field to `GameActor`.** `session.h` declares both `GameSession`
 (the type of `gGameSession`) and `GameActor`, and both have something at 0x122:
-the session field above, and `WorldCollisionBody.pos.pad` inside `GameActor`'s embedded 0x10C
-list node. A field added to the wrong struct compiles; the failure surfaces only
+the session field above, and `GameActor.collisionBodies[GAME_ACTOR_BODY_WEAPON].pos.pad`.
+A field added to the wrong struct compiles; the failure surfaces only
 at the function that uses it:
 
 ```
@@ -105485,7 +105485,7 @@ names that is defined later in the file.
 ## CSE sharing of a switch comparison's constant depends on the arm's EBB
 
 The `record_jump_equiv` sharing described in the `if (f() == K) { x = K; }`
-section above also applies to a `switch`: `case 0: actor->field_960 = 1;` after
+section above also applies to a `switch`: `case 0: actor->stateAux = 1;` after
 `switch (state)` is emitted as `sh $v0, 0x960($a2)` when `$v0` is the register
 `case 1`'s comparison materialised — one SImode constant-1 pseudo serves the
 comparison and the store (the store's RTL is
@@ -105516,7 +105516,7 @@ register up a slot and adds a save/restore — `func_actor_800200_80163A54` sat
 at 86.4% (13/13 blocks, calls matching, two extra frame insns) with
 `Register 129 used 4 times across 30 insns; crosses 1 call` in `.lreg` as the
 tell. Reading the store back to a value that is *not* the compared register
-(`companion->routeComplete = actor->field_960;`) restores `predicates_match=True` and the
+(`companion->routeComplete = actor->stateAux;`) restores `predicates_match=True` and the
 target's `bnez`, at the cost of one load.
 
 Symptoms to look for: a `sh`/`sb` in one arm using a fresh `li` where the
@@ -105525,7 +105525,7 @@ range "crosses N calls" only because a constant was canonicalised into it.
 
 ## A switch arm that cannot reach the comparison's constant still shares it through an `SI` local (func_actor_800200_80163B90, 2026-09-16)
 
-**Symptom:** case 0 of `switch (actor->field_960)` writes `actor->field_960 = 1`, and the target stores it
+**Symptom:** case 0 of `switch (actor->stateAux)` writes `actor->stateAux = 1`, and the target stores it
 with the *same* `$v0` the `== 1` test uses, materialised once in the `beqz` delay slot:
 
 ```
@@ -105549,19 +105549,19 @@ is the only one in its EBB (see the `switch` + `field = 1` entry above for the c
     ...
     case 0:
         flag             = 1;
-        actor->field_960 = flag;
+        actor->stateAux = flag;
 ```
 
 `.rtl` then holds `(set (mem/s:HI ...) (subreg:HI (reg/v:SI 85) 0))` on a register with
 `REG_EQUIV (const_int 1)` instead of a fresh `(set (reg:HI 86) (const_int 1))`. That register is the one
 the delay slot already carries, so the sharing the target has appears on its own: 92.1% -> 100% with no
 other change and no `li` added anywhere else. Reading the compared field back
-(`= actor->field_960`) also kills the extra `li` but costs a load and flips `predicates_match`; the local
+(`= actor->stateAux`) also kills the extra `li` but costs a load and flips `predicates_match`; the local
 keeps the constant.
 
 The same shape written as an `if` chain and not a `switch` is the same trade.
 `func_actor_800200_8016436C` compares `state != 0` (the `beqz` the arm is reached by) and then
-`state != 1`, so the constant is again materialised on the path the `beqz` skips: `actor->field_95E = 1;`
+`state != 1`, so the constant is again materialised on the path the `beqz` skips: `actor->statePhase = 1;`
 grew its own `(set (reg:HI 111) (const_int 1))` and stopped at 99.24%. One `s32 next = 1;` whose value
 the arm stores makes the store `(set (mem:HI ...) (subreg:HI (reg:SI ...) 0))`, cse gives the compare
 and the store one SImode register, and the scheduler parks its `li` in the `beqz` delay slot - 100%.
@@ -105579,7 +105579,7 @@ CSE materialize a fresh QI constant there. In controlled `base_1`, the state
 became 3 refs/5 insns and the HI constant 2 refs/4 insns, neither crossing calls;
 the work pointer returned from s2 to s1. Score: 98.700%, only one extra `li`.
 
-For that last instruction, `s32 flag; flag = 1; actor->field_960 = flag;`
+For that last instruction, `s32 flag; flag = 1; actor->stateAux = flag;`
 changed case-0 UID26 from a HI set to an SI set. **CSE did not merge the
 constants in this experiment.** Both case-0 UID26 and dispatch UID195 remained
 separate through `.jump2`, allocated to v0. In `.dbr`, UID26 disappeared and
@@ -105713,12 +105713,12 @@ in the branch's delay slot:
 
 That compiles to `slti v0,v0,0x31` / `bnez v0,<then>` / `addiu v0,a1,-0x1000` /
 `subu v0,a0,v0` / `bgez v0` / `negu v0,v0`, the target's shape. The sibling read
-`u16 raw = inner->field_82;` next to the `s16 tgt = inner->field_82;` on the same
+`u16 raw = inner->scriptMotion.targetYaw;` next to the `s16 tgt = inner->scriptMotion.targetYaw;` on the same
 line group is what puts the early `lhu $v1,0x82($s0)` live across the whole test.
 
 Worked example: `func_actor_800200_80165FF0` is `Gp_PlayerMode2State2`
 (`src/gameplay/3FB8.c`) with 0x41/0x40 narrowed to 0x31/0x30 and two stores
-(`field_958 = 5`, `field_973 = 1`) added before the angle update. Transcribing
+(`movementMode = 5`, `movementSign = 1`) added before the angle update. Transcribing
 the already-matched sibling's body and changing only those gave 100% on the
 first attempt, where m2c's rendering of the same function scored 78.6%. The
 brief's `similar` search ranks `calls`/`cflow` at 1.00 for exactly this pair; a
@@ -105847,7 +105847,7 @@ table as an untyped scalar and scaled `coord + 0x18` by `sizeof(GfxCoord)`.
 ## A stored literal the arm also compares against needs no `SC` local (func_actor_800200_8016337C, 2026-09-16)
 
 "A switch arm that cannot reach the comparison's constant still shares it through an `SI` local" records
-the arm that grew its own `li` for `field_960 = 1` and needed the local. The neighbouring shadow function,
+the arm that grew its own `li` for `stateAux = 1` and needed the local. The neighbouring shadow function,
 `func_actor_800200_8016337C`, has the same shape and matched 100% on the first attempt with plain
 literals, because the value its arm stores is also the constant a nearby test compares against:
 
@@ -105857,7 +105857,7 @@ literals, because the value its arm stores is also the constant a nearby test co
         ...
     }
     if (func_8010BC70(coord) >= 0xC00) {
-        actor->field_960 = 2;
+        actor->stateAux = 2;
 ```
 
 cse gives the constant `2` one register for both uses, so the arm materialises nothing of its own: the
@@ -105992,7 +105992,7 @@ Inputs: `base_5.i` (95.375%, one-statement divide), `base_6.i` (96.414%).
 
 ## An `if/else` with equal block and insn counts left only `reorder`: the block that falls through is the `then` (func_actor_800200_80163F5C, 2026-09-16)
 
-`func_actor_800200_80163F5C` dispatches on a `u16` state with `switch (actor->field_95E)` and cases
+`func_actor_800200_80163F5C` dispatches on a `u16` state with `switch (actor->statePhase)` and cases
 0..3. Two things about the shape are worth keeping:
 
 The **dispatch** is `lhu $v0, 0x95E($s0)` / `beqz $v0, case0` / `bltz $v0, default` /
@@ -106013,15 +106013,15 @@ falling through from `bnez`, with the resume-block after a `j`:
                 ...
             } else {
                 mode             = 4;
-                actor->field_95E = 2;
-                actor->field_958 = 6;
+                actor->statePhase = 2;
+                actor->movementMode = 6;
             }
 ```
 ```c
             if (func_8010BC70(coord) >= 0xE00) {  /* 100%: >= is the then, so it lands first */
                 mode             = 4;
-                actor->field_95E = 2;
-                actor->field_958 = 6;
+                actor->statePhase = 2;
+                actor->movementMode = 6;
             } else {
             resume:
                 ...
@@ -106040,9 +106040,9 @@ Same function, second leftover: `mode = 4` was assigned *before* the `if` and on
 it and it never leaves `$a1`, as the target's `li a1,4` shows. m2c had hoisted the assignment with the
 `var_a1 = 4` it invented, and that is where the register and the delay slot both came from.
 
-Also in this function: `temp_s0->field_910 + 0xA0` where `field_910` is a `CompanionWork*` (sizeof 0xD4)
+Also in this function: `temp_s0->companionWork + 0xA0` where `companionWork` is a `CompanionWork*` (sizeof 0xD4)
 compiles to `li $v1,0x8480` + `addu $a1,$a1,$v1` - m2c's pointer-typed add is *scaled*, and the
-constant is unrecognisable. Reaching the same address by field, `actor->field_910->probe.contacts`,
+constant is unrecognisable. Reaching the same address by field, `actor->companionWork->probe.contacts`,
 gives the target's `addiu $a1,$a1,0xA0`. Read `CompanionWork`'s field list before debugging the constant.
 
 Inputs: `base_2.i` (96.343%, `< 0xE00` polarity), `base_3.i` (100%)
@@ -106063,7 +106063,7 @@ sh    a0,0x940(v0)      /* boolean store, in the jump delay slot */
 ```
 
 Written the way m2c renders it, as the block's trailing statement
-`actor2->field_940 = (actor->field_90C != NULL);`, the load sits *after* the six
+`actor2->attackControl.targetVariant = (actor->targetNode != NULL);`, the load sits *after* the six
 stores in the RTL, and nothing can move it up: a load may not cross a
 may-aliasing store, and the target's load precedes all of them. The read must
 therefore be evaluated before the store block in the source. The matched sibling
@@ -106073,15 +106073,15 @@ therefore be evaluated before the store block in the source. The matched sibling
 ```c
     u16 flag;
     ...
-                flag              = actor->field_90C != 0;
+                flag              = actor->targetNode != 0;
                 actor2            = arg0->actor;
-                actor2->field_954 = 0;
+                actor2->mode = 0;
                 ... five more stores ...
-                actor2->field_940 = flag;
+                actor2->attackControl.targetVariant = flag;
 ```
 
 The flag local is also what fixed the *allocation*: the constant-`1` pseudo the
-three `field_95E/973/975 = 1` stores share had been taking `$s0` and pushing
+three `statePhase/movementSign/turnSign = 1` stores share had been taking `$s0` and pushing
 `actor` to `$s1`; with the comparison hoisted into its own pseudo the order
 `global.c` computes flips and the target's `$s0`/`$s1` split appears. The
 trailing-statement form scored 94.4% (`regs=19 branch=4 insert=4 delete=2`,
@@ -106146,7 +106146,7 @@ lands on the `u16` store's brand-new pseudo rather than on the `li $s2,1` the
 switch's equality compare already materialised:
 
 ```
-li   v0,1            # movhi's fresh HI pseudo, for field_95E = 1
+li   v0,1            # movhi's fresh HI pseudo, for statePhase = 1
 sh   s2,0x95E(s0)    # ...which CSE itself replaced with the compare's constant
 li   v0,1            # movqi's fresh QI pseudo, merged into the HI one instead
 sb   v0,0x973(s0)
@@ -106160,8 +106160,8 @@ share the one pseudo, and its duplicate `li` is dropped by
 
 ```c
 flag             = 1;          /* one SImode def, not two sub-word ones */
-actor->field_95E = flag;
-actor->field_973 = flag;
+actor->statePhase = flag;
+actor->movementSign = flag;
 ```
 
 `func_actor_800200_80164598`: 99.16% with the literals (`regs=1 insert=1`, the
@@ -106182,7 +106182,7 @@ changed, and the clean-room rewrite of it reached 95.49% on the first build --
 
 ```
 lw  $v0, 0x18($s3)      ; coord->coord.t[0]
-lw  $v1, 0x20($s0)      ; actor->field_20
+lw  $v1, 0x20($s0)      ; actor->destination.vx
 subu $v0, $v0, $v1
 bgez $v0, .L54
 nop                     ; <- reorg leaves this slot empty
@@ -106224,7 +106224,7 @@ The next copy of the family in the same unit, `func_actor_800200_80164C54`,
 confirms both halves. Its target is an instruction-for-instruction twin of
 `Gp_PlayerMode2State4` -- 154 instructions, every register the same, 153 of them
 identical -- differing only in `addiu $v0,$zero,0x5` against `0x1`
-(`actor->field_958 = 5` against `= 1`). The copies are variants of one body that
+(`actor->movementMode = 5` against `= 1`). The copies are variants of one body that
 differ in *data constants*: State4 stores 1, `80164C54` stores 5, the already
 matched `func_actor_800200_80164EBC` stores 6 and differs further only in its
 `case 1` mode selection. Porting State4's source with that one constant changed
@@ -106255,7 +106255,7 @@ the one that defines the source, CSE rewrites that definition to target the
 copy's destination and turns the copy into a dead store of the source, which
 then disappears. The precondition is `SET_DEST (PATTERN (prev)) ==
 SET_SRC (copy)` with `prev` found by skipping notes. Any real insn between the
-definition and the copy defeats it — an interposed `companion = actor->field_910;` was
+definition and the copy defeats it — an interposed `companion = actor->companionWork;` was
 enough.
 
 **CSE's `src_eqv` substitution**: a copy whose source register holds a plain
@@ -109354,7 +109354,7 @@ the three `temp | packed | 0x80` chains and took `regs` from 24 to 10 by itself.
 while the C source produces a single `li $s5,0x14` hoisted to the top of the
 function, in a callee-saved register.
 
-**Cause:** `actor->field_938 = 0x14;` and `obj2->flags = 0x14;` are both HImode
+**Cause:** `actor->animationSlotCount = 0x14;` and `obj2->flags = 0x14;` are both HImode
 stores of 20, so cse gives them one shared pseudo. It lives across ~90
 instructions and therefore has to be callee-saved, where the oracle
 rematerialises the constant at both sites.
@@ -109397,11 +109397,11 @@ The same shape appears whenever a computed value is written to memory and also
 kept in a named local - put the store first.
 
 Same function, second mechanism (inverse of the "same literal stored twice"
-entry above): `actor->field_95E = 1;` for a `u16` field expands to an **HImode**
+entry above): `actor->statePhase = 1;` for a `u16` field expands to an **HImode**
 `li` (a distinct pseudo that cse cannot equate with the switch's SImode `li $v0,1`
 for the case compare), so it took a callee-saved register and pushed the
 parameter into an extra saved reg. Making the stored value SImode - the matched
-sibling `func_actor_800300_80162F24`'s `flag = 1; actor->field_95E = flag;` - let
+sibling `func_actor_800300_80162F24`'s `flag = 1; actor->statePhase = flag;` - let
 cse share the switch's constant and removed both.
 
 ## An `SVECTOR` filler written in address order beats the asm's store order
@@ -109475,8 +109475,8 @@ in `$s3`, the shared constant in `$s2` - so 7 `regs` rows and nothing else.
 `floor_log2 (allocno_n_refs) * allocno_n_refs / allocno_live_length * 10000 *
 allocno_size` and hands out the lowest free callee-saved register first, so the
 allocno with the higher priority takes `$s2`. Doing the same statement twice with
-one variable (`flag = 1; ... actor->field_95E = flag;` and later
-`flag = 7; actor->field_95C = flag;`) makes cse give the `1` one pseudo with
+one variable (`flag = 1; ... actor->statePhase = flag;` and later
+`flag = 7; actor->animationState = flag;`) makes cse give the `1` one pseudo with
 **five** references - its own define/compare/store plus the 7's define and store -
 and `refs=5 span=37` (priority 2702) beats the parameter's `refs=8 span=109`
 (priority 2201). Giving the `7` its own local drops the constant to three
@@ -109516,7 +109516,7 @@ sh    $s3,0x95E($s0)     ; delay slot
 ```
 
 The natural C (`if (val >= 0x201) { Gp_TrackAllyLockTarget(index, 1); break; }`
-then `actor->field_95E = flag;`) emits the *then* arm first, so the store lands
+then `actor->statePhase = flag;`) emits the *then* arm first, so the store lands
 after the hand-off block and the test inverts to `bnez $v0,<store>`.
 
 **Cause and dead ends:** GCC 2.8.1 emits `if (c) THEN else ELSE` as
@@ -109536,13 +109536,13 @@ makes its block end in a jump:
 
 ```c
         case 0:
-            if (actor->field_90C != NULL) {
+            if (actor->targetNode != NULL) {
                 ...
                 if (val >= 0x201) {
                     goto track;
                 }
             }
-            actor->field_95E = flag;
+            actor->statePhase = flag;
             goto caseOne;
         track:
             Gp_TrackAllyLockTarget(arg0, 1);
@@ -109560,7 +109560,7 @@ across all 13 dumps).
 ## Re-reading the same object needs a distinct block-local, or the reload reuses the global pseudo (func_actor_800100_80164580, 2026-09-16)
 
 **Symptom:** the last mismatch was one load. The oracle reloads the actor inside
-the `field_95E == 3` arm as `lw $v1,0x1C($a0)` and writes six fields through
+the `statePhase == 3` arm as `lw $v1,0x1C($a0)` and writes six fields through
 `$v1`; the C produced `lw $s0,0x1C($a0)` and wrote them through `$s0`, the
 register holding the function-wide `actor` pseudo.
 
@@ -109586,13 +109586,14 @@ dump (`func_actor_800100_80164E60`):
   — compiles to `lui`/`ori` plus `addu`, because m2c prints a *typed* pointer
   plus a byte offset and the offset is then scaled by `sizeof(*temp_s0)`. The
   target's bare `addiu $a0, $s0, 0x424` is the tell: a two-instruction constant
-  where the target has a one-instruction small immediate means the argument's
-  cast is missing. Use the project idiom (`(AnimationContext*)actor->field_424`,
-  `actor->field_438 + 1`) so the pointee is byte-sized.
+  where the target has a one-instruction small immediate means the pointer
+  arithmetic has the wrong scale. Address the embedded members directly
+  (`&actor->animationContext`, `actor->animationSlots + 1`) to express their
+  established containing-object relationship.
 - A `sll $v0, $v0, 2` before the `addu` that the target does not have means the
   indexed symbol is a byte array: declare `extern u8 D_...[ ];` rather than the
   scalar m2c invents for `*(idx + &sym)`, and the scale disappears.
-- `coord = (GfxCoord*)((TmdObject*)actor->field_91C->extra)->coords;`
+- `coord = (GfxCoord*)((TmdObject*)actor->equipmentTasks[1]->extra)->coords;`
   sits in the entry block although only `case 12` calls `Gp_SpawnEff` with it.
   sched1 cannot have moved it there: `schedule_insns` schedules per basic block
   ("Schedule each basic block, block by block", `sched.c`, one
@@ -109638,14 +109639,14 @@ satisfies it, and the message-sized load is neither `in_struct` nor varying).
 **Fix:** make that one access volatile.
 
 ```c
-*(volatile GpLockPos**)&actor->field_90C = NULL;
+*(volatile GpLockPos**)&actor->targetNode = NULL;
 ```
 
 **Correction (later retype):** the qualifier in that spelling applies to the
 pointee, not to the stored pointer, so the store MEM is not volatile at all.
-With the view type gone, `*(WorldTargetNode**)&actor->field_90C = NULL;` - no
+With the view type gone, `*(WorldTargetNode**)&actor->targetNode = NULL;` - no
 qualifier - matches as well, while the plain member store
-`actor->field_90C = NULL;` does not. What the cast changes is that the store is
+`actor->targetNode = NULL;` does not. What the cast changes is that the store is
 no longer a component reference, so its MEM loses the in-struct flag the
 member access sets - the likely mechanism, not yet confirmed in a dump.
 
@@ -109763,7 +109764,7 @@ local was declared `s16`.
 
 ```c
     s16 anim = 1;
-    actor3->field_97E = anim;
+    actor3->aimTrackingState = anim;
     ...
     Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
 ```
@@ -109785,7 +109786,7 @@ Input: `base_11.i`
 as the gameplay twin `func_801030CC`: two countdown sequences, each posting its
 image over an 8-byte scratch `RECT`. The natural C reached 97.885% with
 `regs=4 insert=1 delete=1` and exactly one instruction out of place: `li s0,8`,
-the constant shared by `rect->x = 8` and the post-call `field_98B = 8`, came out
+the constant shared by `rect->x = 8` and the post-call `textureDelayB = 8`, came out
 between `li v0,0xD` and its store where the target has it as the block's first
 instruction.
 
@@ -109815,8 +109816,8 @@ from the target (`regs=44`, otherwise identical). The permuter's fix was to
 reach the subscript through a second, chained assignment:
 
 ```c
-    idx = (row = (s8)actor->field_98A - 1);
-    img = table[row][(s8)actor->field_98C];
+    idx = (row = (s8)actor->textureSequenceB - 1);
+    img = table[row][(s8)actor->textureFrameB];
 ```
 
 Both split forms - `row = ...; idx = row;` and `idx = ...; row = idx;` - compile
@@ -109830,7 +109831,7 @@ Observed effect, from `tools/trace_gcc.py` on the matching build: the chain's
 pass's highest priority (20000) and take `$v0`, while the address pseudo goes
 *global* to `$v1`; in the 95.962% build the address pseudo was `$v0` and the
 chain `$v1`. The change is not local to the block it is written in - the fix was
-applied to the `field_98A` chain and the `field_987` chain's allocation moved
+applied to the `textureSequenceB` chain and the `textureSequenceA` chain's allocation moved
 with it - so read it as a numbering/pressure perturbation of `local-alloc`, not
 as a per-chain trick.
 
@@ -109887,7 +109888,7 @@ Input: `base_17.i` (98.650%) `8b706a23c2a0b24ae8b73a191ce4c0be735b993bd2f03d3328
 
 ## `bltz` against a zero-extended load is a `switch` decision tree, not an `if` chain (func_actor_800100_80164184, 2026-09-16)
 
-A state machine dispatching on the `u16` `GameActor::field_95E` opens
+A state machine dispatching on the `u16` `GameActor::statePhase` opens
 
 ```
 lhu   v0, 0x95E(s0)
@@ -109960,11 +109961,11 @@ Setting only the differing argument in each arm and calling once is exact:
 
 ```c
             if (func_8010BC70(coord) >= 0x1600) {
-                actor->field_95E = 2; actor->field_958 = 3; arg = 4;
+                actor->statePhase = 2; actor->movementMode = 3; arg = 4;
             } else {
             enter:
-                if (actor->field_95E != 3) { actor->field_95E = 1; }
-                actor->field_958 = 1; arg = 2;
+                if (actor->statePhase != 3) { actor->statePhase = 1; }
+                actor->movementMode = 1; arg = 2;
             }
             Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 5);
 ```
@@ -110005,7 +110006,7 @@ sh    t0,0x960(v0)
 while every attempt produced the same instructions with the homes rotated:
 `actor2` in `$t0`, the `0xa` / `anim` constants in `$v0`, `old` in `$v1`. The
 chain is one decision: whichever register holds the pointer decides where the
-constant, the saved `field_956` and the `field_910` load land, and the store
+constant, the saved `state` and the `companionWork` load land, and the store
 order follows them.
 
 The trigger is scope, not expression. `actor2` was assigned in **two** basic
@@ -110026,9 +110027,9 @@ compiles to the target:
         ...
     }
     ...
-    if (val >= angle || actor->field_95E == 2) {
+    if (val >= angle || actor->statePhase == 2) {
         actor3 = arg0->actor;           /* separate variable, separate pseudo */
-        actor3->field_954 = 0;
+        actor3->mode = 0;
         ...
     }
 ```
@@ -110272,7 +110273,7 @@ all of it one swap: the target has `d4` in `$s2` and the scratch `place` in
 `$s3`, the pointer in `$s2` and the record in `$s3`.
 
 Nothing in the emitted code hinted at it: the source writes the same tail three
-times (the `field_934` countdown path, the `field_93E == 0` path, and case 4),
+times (the `stateTimer` countdown path, the `actionValue == 0` path, and case 4),
 and GCC's cross-jumper merges the identical copies, so the final assembly is
 the target's either way. But **cross-jumping runs after global allocation**
 (`jump` -> ... -> local-alloc -> global-alloc -> reload -> `sched2` -> `jump2`),
@@ -110287,23 +110288,23 @@ priority is `floor_log2(n_refs) * n_refs * 10000 / live_length` (`global.c`,
                  d4    refs=5 span=68 priority=1470 -> $s2
 ```
 
-The two-copy source is also the natural one: the `field_93E == 0` path needs
+The two-copy source is also the natural one: the `actionValue == 0` path needs
 the state store, and case 4 already has it, so it falls through instead of
 repeating its own copy.
 
 ```c
         case 3:
-            if (actor->field_93E != 0) {
-                if (actor->field_934 == 0) {
+            if (actor->actionValue != 0) {
+                if (actor->stateTimer == 0) {
                     /* ... */
                     break;
                 }
-                actor->field_934 -= 1;
-                if (actor->field_934 != 0) {
+                actor->stateTimer -= 1;
+                if (actor->stateTimer != 0) {
                     break;
                 }
-                actor->field_12A &= 0x3FFF;
-                if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+                if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
                     Gp_PlayObjSfx(place, 0x17, 1);
                 }
                 break;
@@ -110311,9 +110312,9 @@ repeating its own copy.
             /* fallthrough */
 
         case 4:
-            actor->field_960 = 6;
-            actor->field_12A &= 0x3FFF;
-            if (func_actor_800100_80166B40(actor->field_32C, coord, place) != 0) {
+            actor->stateAux = 6;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
+            if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
                 Gp_PlayObjSfx(place, 0x17, 1);
             }
             break;
@@ -115736,14 +115737,14 @@ tracer shows the post-pin block down to two quantities (`q0 [91] -> $v1`,
 A pin is not the only way out of the broken sort; taking one quantity out of the
 block works as well. `func_80104684` stores through `p->extra.tmd`, then reloads
 `p` and loads `p->firstChild` into a variable tested at the end of the block.
-With `first = actor->field_91C->firstChild;` the block has three quantities
-(the tmd pointer, the flags value and the reloaded `field_91C` temp), so they
+With `first = actor->equipmentTasks[1]->firstChild;` the block has three quantities
+(the tmd pointer, the flags value and the reloaded `equipmentTasks[1]` temp), so they
 are allocated in birth order. The tmd pointer then takes `$v0` where retail has
 it in `$v1`. `trace_gcc.py` shows `q0 span=4 -> $v0`, `q1 span=2 -> $v1`,
 `q2 span=2 -> $v0`.
 
 ```c
-node = actor->field_91C;     /* intermediate lands in `node` itself */
+node = actor->equipmentTasks[1];     /* intermediate lands in `node` itself */
 node = node->firstChild;
 if (node != NULL) { child = node; ... }
 ```
@@ -123113,7 +123114,7 @@ The baseline says which of the two the difference is. m2c's version scored
 93.422% with `blocks=18/18 instructions=101/102 predicates_match=True
 calls_match=True` and only `regs`/`insert`/`delete` left: topology and call
 targets already right, so the residual was source *shape*, not structure.
-Porting the sibling's exact source - its `flag = 1; actor->field_95E = flag;`
+Porting the sibling's exact source - its `flag = 1; actor->statePhase = flag;`
 constant-sharing trick, its `head`/`pos` split, its `-0x10($a1)` store form -
 plus the one extra call scored 100.000% on the first attempt.
 
@@ -123159,13 +123160,13 @@ source load at *expand*".)
 compare-chain shape or the fallthrough shape as the target's layout requires:
 
 ```c
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
             ...
         case 1:
         case 2:
         case 3:
-            actor->field_973 = 1;
+            actor->movementSign = 1;
             dist             = func_8010BC70(coord);
 ```
 
@@ -123175,7 +123176,7 @@ homes: the discarded state temporary had been taking `$s0`, pushing `actor` to
 `$s1` and everything downstream with it.
 
 **Where the shared statement goes.** The two remaining hunks were both the
-`actor->field_973 = 1` that case 0 and cases 1-3 share. The sibling
+`actor->movementSign = 1` that case 0 and cases 1-3 share. The sibling
 (`func_actor_800200_80163F5C`) writes it as the *last* statement of case 0,
 before the fallthrough; the target wants it as the **first** statement of the
 1/2/3 body, so case 0 reaches it after its call and the dispatch's `j` can carry
@@ -132408,18 +132409,19 @@ it, and the usual response is to keep the member a byte run and cast at each
 use:
 
 ```c
-/* GameActor */
-/* 0x14C */ byte field_14C[0x18];   /* record type; the function that fills it */
+/* Owner */
+byte embeddedRecord[0x18];   /* record type; the function that fills it */
 
 /* every overlay that reads it */
-rec = (Record*)actor->field_14C;
+rec = (Record*)owner->embeddedRecord;
 ```
 
 Those casts are the count of what this costs. The fix is not a restated
 duplicate, which only trades the casts for two declarations of one layout, but
-the declaration itself, moved into the owner's header beside the records main
-already embeds - precisely how `WorldCollisionContact` came to be declared in
-`main/session.h`. It has no caller in `src/main/`. A prototype that
+the declaration itself, exposed through a dependency-only public type header
+that both layers can include. `WorldCollisionContact` lives in
+`gameplay/world_collision_types.h`, which `main/session_types.h` includes for
+the records it embeds. It has no caller in `src/main/`. A prototype that
 merely *names* an overlay type is the other case: there the include goes at the
 one call site that needs it.
 
@@ -136466,7 +136468,7 @@ hoists it before the byte load, so the local byte in v0 becomes a hard conflict
 and the global angle/timer value takes v1 (base_11, 94.688%).
 
 The successful controlled experiment reuses that angle/timer variable for the
-byte too: `val = (u8)companion->turnDir; actor->field_975 = val; val = actor->field_52;
+byte too: `val = (u8)companion->turnDir; actor->turnSign = val; val = actor->rotation.vy;
 state = companion->targetHeading; dist = val - state;`. In base_12.lreg the actor-angle
 load UID128 has REG_DEP_OUTPUT on byte load UID120 and REG_DEP_ANTI on byte
 store UID123. It stays after the store. Global r87 loses hard conflict 2 and
@@ -141594,15 +141596,15 @@ two tails back into one. Three further knobs sat in the same loop:
   pointer initialised before it and stepped at the bottom.
 ### A field of an embedded object written through the container is `off(container)`, not `off(member_ptr)` (Gp_AttachActorObj, 2026-09-26)
 
-With `obj = (WorldCollisionBody*)actor->field_10C` held in `s2`, the target stored the key
+With `obj = &actor->collisionBodies[GAME_ACTOR_BODY_WEAPON]` held in `s2`, the target stored the key
 as `sw v1,0x124(s1)` - off the actor, not `0x18(s2)`. Writing
 `obj->key = ...` emits the latter, and because the two stores have different
 bases sched1 also moves the neighbouring `obj->pos` stores around it. The
-source wrote the key through the containing struct (`actor->field_124`), so
+source wrote the key through the containing struct (`actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key`), so
 the store's base names which object the code reached it through. The same
 function recomputes `addiu v0,s1,0x14C` for `obj->context.capsule` even though
-`rec = &actor->field_14C` sits in `s0`: a struct-copy loop just before it ends
-CSE's extended block, so a re-spelled `&actor->field_14C` after the loop is a
+`rec = &actor->weaponShape` sits in `s0`: a struct-copy loop just before it ends
+CSE's extended block, so a re-spelled `&actor->weaponShape` after the loop is a
 fresh computation while `rec->...` keeps using `s0`. The old body pinned
 `obj`/`rec` with an `asm("" : "+r"...)` and barriers to get both shapes.
 
@@ -144327,16 +144329,17 @@ and that single-set temporary is birthing and sinks just the same.
 
 ## A byte-array member cast to a struct pointer is a pseudo CSE reuses; a typed member array is not (Gp_InitPlayerWork, 2026-09-26)
 
-`GameActor` held three 12-byte records at 0x88 as `byte field_88[8]; s32
-field_90;` repeated, and the player setup passed `(WorldCollisionMotionContext*)actor->field_94`
-to `WorldCollisionBody.context.motion` while storing the contact table through `actor->field_9C`.
+`GameActor` held three 12-byte records at 0x88 as separate byte-array and word
+fields. The player setup passed a byte-to-record pointer cast to
+`WorldCollisionBody.context.motion` while storing the contact table through
+the separate word at 0x9C, now `actor->collisionMotionContexts[1].contacts`.
 Folding the three setups into one inline helper that took the record and stored
 `rec->contacts` addressed that store as `sw s1,8(v1)`; the target has
 `sw s1,0x9C(s4)`. Indexing the byte array through a cast
-(`((WorldCollisionMotionContext*)actor->field_88)[i].contacts`) gave the same: the decayed array
+(`((Record*)bytes)[i].contacts`) gave the same: the decayed array
 address is forced into a pseudo, and CSE addresses the neighbouring field
-through it. Declaring the member as `WorldCollisionMotionContext field_88[3]` and writing
-`&actor->field_88[i]` / `actor->field_88[i].contacts` in the helper matched: a
+through it. Declaring the member as `WorldCollisionMotionContext collisionMotionContexts[3]` and writing
+`&actor->collisionMotionContexts[i]` / `actor->collisionMotionContexts[i].contacts` in the helper matched: a
 `COMPONENT_REF` of a constant-index `ARRAY_REF` expands straight to
 `(plus actor 0x9C)`. When a store the target addresses from the struct base
 comes out relative to a sibling pointer, the layout usually wants a real member

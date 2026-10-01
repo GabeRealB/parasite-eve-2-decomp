@@ -49,7 +49,7 @@ static void Reflection_HeldObjectTask(Task* task);
 /// matrices, and reparents the task under the player task so it dies with it.
 /// `spawnArg1` must be 0 or 1, otherwise the task kills itself; 0 also raises
 /// `GameSession::field_4E`. For each held-object task the player has
-/// (`GameActor::field_920` / `field_924`) it spawns a reflection task and
+/// (`GameActor::attachmentTasks`) it spawns a reflection task and
 /// hangs it under that held object, then runs the first per-frame update.
 static void Reflection_InitPlayer(Task* task)
 {
@@ -100,7 +100,7 @@ static void Reflection_InitPlayer(Task* task)
     work->viewFlg   = -1;
     actor           = (GameActor*)owner->work;
     for (i = 0; i < 2; i++) {
-        child = (&actor->field_920)[i];
+        child = actor->attachmentTasks[i];
         if (child != NULL) {
             spawned = Task_SpawnFromTable(Reflection_GetTasks(), 1, i, task);
             if (spawned != NULL) {
@@ -172,7 +172,7 @@ static void Reflection_UpdatePlayer(Task* task)
         actor           = gameGetPtrSlot(3)->work;
         work->configRev = status->weapon;
         for (i = 0; i < 2; i++) {
-            child = (&actor->field_918)[i];
+            child = actor->equipmentTasks[i];
             if (child != NULL) {
                 spawned = Task_SpawnFromTable(Reflection_GetTasks(), 1, i + 2, task);
                 if (spawned != NULL) {

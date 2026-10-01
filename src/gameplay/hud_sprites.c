@@ -817,7 +817,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
     if (work != NULL) {
         actor = work->work;
         if (actor != NULL) {
-            target = actor->field_90C;
+            target = actor->targetNode;
         }
         node = gWorldTargetListHead;
         if (node != NULL) {
@@ -1063,8 +1063,8 @@ static s32 func_800A7E5C(s32 arg0)
     if (work != NULL) {
         actor = work->work;
         p     = &gPlayerStatus;
-        if (actor->field_954 == 0) {
-            if (actor->field_956 == 0 || actor->field_956 == 2) {
+        if (actor->mode == GAME_ACTOR_MODE_NORMAL) {
+            if (actor->state == 0 || actor->state == 2) {
                 if (gGameSession->dirActionBusy == 0) {
                     if (p->interactionPressed == 0) {
                         flag = 1;

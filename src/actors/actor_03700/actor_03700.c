@@ -2127,7 +2127,7 @@ case1:
 /// Asks the player for the melee hold (message 0x3F8, range 8) and, once it is
 /// accepted, starts the grab on the actor's animation slot (message 0x3FF) and
 /// flags `Actor103700Work::field_262`. The task's own unit is held for as long
-/// as `GameActor::field_954` stays out of mode 2; the two message buffers come
+/// as `GameActor::mode` stays out of mode 2; the two message buffers come
 /// from one 0x2C-byte scratch stack push.
 static s32 Actor03700_Fn03130(Task* task)
 {
@@ -2144,7 +2144,7 @@ static s32 Actor03700_Fn03130(Task* task)
     scratch                    = SCRATCH_STACK_CURSOR(Actor103700HoldScratch);
 
     ret = 0;
-    if (((GameActor*)player->work)->field_954 != 2) {
+    if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         scratch->query.field_14 = 8;
         if (Gp_DispatchMsgPtr(player, 0x3F8, scratch, 0) == 0) {
             scratch->anim.source.sets          = Actor03700_D080FC;

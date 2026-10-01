@@ -134,7 +134,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
 
     if (id != 0) {
         if ((u32)(id - 0x80) < 0x20U) {
-            if (actor->field_954 != 2) {
+            if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 rec       = NULL;
                 scanEquip = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                 prevId    = cfg->weapon + 0x7F;

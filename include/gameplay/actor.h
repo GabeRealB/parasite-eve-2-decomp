@@ -12,70 +12,6 @@
 #include "main/coord.h"
 #include "main/session_types.h"
 
-/// Collision-body kinds and flags stored together in one unsigned halfword.
-///
-/// KIND_MASK selects the context interpretation; bits 4..7 are the receiving
-/// body index (0..15) copied to contact flags. FLOOR_QUERY adds the motion sphere's
-/// vertical floor test. CLIP_TO_GRID_CONTACT shortens a capsule at its grid
-/// contact; SINGLE_CONTACT also clips it at a pair contact and replaces the
-/// first contact while retaining the other body's encoded address.
-/// ROOM_TRIGGER_ENABLED tests room-transition quads, and VIEW_TRIGGER_ENABLED
-/// tests saved-view quads. GRID_ENABLED and PAIR_ENABLED gate the collision
-/// passes independently. FLAGS_MASK preserves the width of explicit masks.
-enum {
-    WORLD_COLLISION_BODY_NONE                 = 0,
-    WORLD_COLLISION_BODY_SPHERE               = 1,
-    WORLD_COLLISION_BODY_CONTACT_PROXY        = 2,
-    WORLD_COLLISION_BODY_CAPSULE              = 3,
-    WORLD_COLLISION_BODY_MOTION_SPHERE        = 4,
-    WORLD_COLLISION_BODY_KIND_MASK            = 7,
-    WORLD_COLLISION_BODY_LINKED               = 8,
-    WORLD_COLLISION_BODY_FLOOR_QUERY          = 0x200,
-    WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT = 0x400,
-    WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED = 0x1000,
-    WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED = 0x2000,
-    WORLD_COLLISION_BODY_GRID_ENABLED         = 0x4000,
-    WORLD_COLLISION_BODY_PAIR_ENABLED         = 0x8000,
-    WORLD_COLLISION_BODY_FLAGS_MASK           = 0xFFFF
-};
-
-/// A borrowed collision body linked into one of the world's object lists.
-///
-/// `pos` is a signed local offset in game-coordinate units. Spheres use it as
-/// their centre; capsules add it to both local endpoints. The cached `coord`
-/// transform determines the collision calculation's composition space.
-/// `key` is the packed contact category in the high halfword and identity in
-/// the low halfword; zero suppresses recording this body in pair contacts.
-///
-/// Kind 0 has no contact storage, 1 is a sphere with a direct table, 2 borrows
-/// a direct-table body's contacts, 3 supplies capsule/segment geometry and its
-/// table, and 4 is a sphere with motion direction and contacts. Kind 2 has no
-/// grid or pair test in the current dispatch tables. PAIR_ENABLED requires
-/// kind 1..4. Contact tables retain
-/// their final-entry marker and may be shared by several bodies.
-///
-/// Owners initialize the body, context and contact storage before linking,
-/// and keep all borrowed pointers alive until unlinking. Unlinking clears
-/// every flag except the kind, so pass enables and the body index must be
-/// restored before reuse. A SINGLE_CONTACT result retaining this body's
-/// address additionally requires it to stay alive until that result is reset.
-typedef struct WorldCollisionBody {
-    struct WorldCollisionBody*  next;              // Next body on the list; NULL at the tail
-    struct WorldCollisionBody** prev;              // Link containing this body: list head or preceding body's next
-    GfxCoord*                   coord;             // Borrowed transform for the local offset and shape
-    union {
-        WorldCollisionContact*       contacts;     // Kind 1: initialized contact table
-        struct WorldCollisionBody*   contactOwner; // Kind 2: body whose context.contacts supplies the table
-        WorldCollisionCapsule*       capsule;      // Kind 3: local endpoints, end radii and contacts
-        WorldCollisionMotionContext* motion;       // Kind 4: motion direction and contact table
-    } context;                                     // Borrowed payload selected by flags & KIND_MASK
-    SVECTOR pos;                                   // Local sphere centre or capsule origin, in game-coordinate units
-    s32     key;                                   // Packed contact category << 16 | identity; 0 omits pair-contact recording
-    u16     radius;                                // Sphere/trigger radius and floor-query half-height, in game-coordinate units
-    u16     flags;                                 // Kind, LINKED, body index and independent pass options; see above
-} WorldCollisionBody;
-STATIC_ASSERT_SIZEOF(WorldCollisionBody, 0x20);
-
 /// Probe sweep step in angle units and clearance-distance sentinels.
 enum {
     COMPANION_SCAN_UNTESTED   = -1,
@@ -85,7 +21,7 @@ enum {
 
 /// Companion behavior state and its forward collision probe.
 ///
-/// `GameActor.field_910` owns this separately allocated, zeroed primary-heap
+/// `GameActor.companionWork` owns this separately allocated, zeroed primary-heap
 /// block; a NULL pointer identifies an ordinary actor. The armed and scripted
 /// companions bind the probe; the noncombatant leaves it unbound. Its embedded
 /// transform, capsule and single-result table must stay alive while the body
@@ -129,8 +65,8 @@ STATIC_ASSERT_SIZEOF(CompanionWork, 0xD4);
 
 /// 0x14-byte scratch from the scratch stack used by `Gp_PlayerMode2State4`.
 /// `field_0` is the clamped `func_80103E7C` turn delta applied to
-/// `GameActor.field_52`. `vec` is the target-minus-current offset
-/// (`GameActor.field_20/24/28` minus `GfxCoord.coord.t`).
+/// `GameActor.rotation.vy`. `vec` is the target-minus-current offset
+/// (`GameActor.destination` minus `GfxCoord.coord.t`).
 typedef struct _GpApproachScratch {
     /* 0x00 */ s32     field_0;
     /* 0x04 */ VECTOR3 vec;

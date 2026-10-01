@@ -42,10 +42,13 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+/// Duration of each timed player ailment, in active status updates.
+enum { PLAYER_STATE_STATUS_DURATION_TICKS = 600 };
+
 /// 0x14-byte scratch from the scratch stack used by `func_8010BD88`.
 /// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
 /// the `ratan2` result and the clamped turn delta applied to
-/// `GameActor.field_52`.
+/// `GameActor.rotation.vy`.
 typedef struct _GpTurnScratch {
     /* 0x00 */ s32 vx;
     /* 0x04 */ s32 vy;
@@ -142,8 +145,8 @@ static inline void _gpResumeBaseState(Task* arg0)
 
     inner = arg0->work;
     func_8010B210(arg0);
-    inner->field_97A = 0x12;
-    if (inner->field_956 != 0) {
+    inner->recoveryTicks = 0x12;
+    if (inner->state != 0) {
         func_8010870C(arg0, 0xC);
     } else {
         func_801066DC(arg0, 0);
@@ -256,12 +259,12 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
                 case 2:
                     break;
                 case 3:
-                    if ((s8)actor->field_992 != 0) {
+                    if ((s8)actor->gridResponse != 0) {
                         break;
                     }
                     id = rec->key.parts.id;
                     if (id < 0x46 && D_80113F9C[id] == 1) {
-                        obj = &((WorldCollisionBody*)actor->field_AC)[(u8)rec->flags >> 4];
+                        obj = &actor->collisionBodies[(u8)rec->flags >> 4];
                         gte_SetRotMatrix(&obj->coord->workm);
                         gte_ldv0(&obj->pos);
                         gte_rtv0();
@@ -302,20 +305,20 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
     }
 
     if (best > 0) {
-        actor->field_986    = 1;
-        actor->field_30.vx  = coord->workm.t[0];
-        actor->field_30.vy  = coord->workm.t[1];
-        actor->field_30.vz  = coord->workm.t[2];
-        s->pos.vx           = coord->coord.t[0];
-        s->pos.vz           = coord->coord.t[2];
-        coord->coord.t[0]  += (best * s->local.vx) >> 12;
-        coord->coord.t[2]  += (best * s->local.vz) >> 12;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actor->usesPushbackDirection = 1;
+        actor->pushbackDirection.vx  = coord->workm.t[0];
+        actor->pushbackDirection.vy  = coord->workm.t[1];
+        actor->pushbackDirection.vz  = coord->workm.t[2];
+        s->pos.vx                    = coord->coord.t[0];
+        s->pos.vz                    = coord->coord.t[2];
+        coord->coord.t[0]           += (best * s->local.vx) >> 12;
+        coord->coord.t[2]           += (best * s->local.vz) >> 12;
+        coord->composeStamp          = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        actor->field_30.vx = coord->workm.t[0] - actor->field_30.vx;
-        actor->field_30.vy = coord->workm.t[1] - actor->field_30.vy;
-        actor->field_30.vz = coord->workm.t[2] - actor->field_30.vz;
-        VectorNormal(&actor->field_30, &actor->field_30);
+        actor->pushbackDirection.vx = coord->workm.t[0] - actor->pushbackDirection.vx;
+        actor->pushbackDirection.vy = coord->workm.t[1] - actor->pushbackDirection.vy;
+        actor->pushbackDirection.vz = coord->workm.t[2] - actor->pushbackDirection.vz;
+        VectorNormal(&actor->pushbackDirection, &actor->pushbackDirection);
         coord->coord.t[0]   = s->pos.vx + ((best * s->local.vx) >> 14);
         coord->coord.t[2]   = s->pos.vz + ((best * s->local.vz) >> 14);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -335,64 +338,64 @@ void func_80109FC4(Task* arg0)
     actor = arg0->work;
     if (flags != 0) {
         if (flags & PLAYER_STATUS_DARKNESS) {
-            temp             = (u16)actor->field_944 - 1;
-            actor->field_944 = temp;
+            temp                             = (u16)actor->effectTimer.darknessTicks - 1;
+            actor->effectTimer.darknessTicks = temp;
             if ((s16)temp <= 0) {
                 flags &= ~PLAYER_STATUS_DARKNESS;
             }
         }
         if (flags & PLAYER_STATUS_PARALYSIS) {
-            temp             = (u16)actor->field_946 - 1;
-            actor->field_946 = temp;
+            temp                  = (u16)actor->paralysisTicks - 1;
+            actor->paralysisTicks = temp;
             if ((s16)temp <= 0) {
                 flags &= ~PLAYER_STATUS_PARALYSIS;
             }
         }
         if (flags & PLAYER_STATUS_POISON) {
-            temp             = actor->field_98D - 1;
-            actor->field_98D = temp;
+            temp                     = actor->poisonDamageTicks - 1;
+            actor->poisonDamageTicks = temp;
             if ((s8)temp <= 0) {
                 Gp_ApplyHpDamage(1);
-                mode = (u16)actor->field_958;
+                mode = (u16)actor->movementMode;
                 if (mode == 0) {
-                    actor->field_98D = 0x78;
+                    actor->poisonDamageTicks = 0x78;
                 } else if (mode == 3) {
-                    actor->field_98D = 0x14;
+                    actor->poisonDamageTicks = 0x14;
                 } else {
-                    actor->field_98D = 0x3C;
+                    actor->poisonDamageTicks = 0x3C;
                 }
             }
-            temp             = (u16)actor->field_948 - 1;
-            actor->field_948 = temp;
+            temp               = (u16)actor->poisonTicks - 1;
+            actor->poisonTicks = temp;
             if ((s16)temp <= 0) {
                 flags &= ~PLAYER_STATUS_POISON;
             }
         }
         if (flags & PLAYER_STATUS_SILENCE) {
-            temp             = (u16)actor->field_94A - 1;
-            actor->field_94A = temp;
+            temp                = (u16)actor->silenceTicks - 1;
+            actor->silenceTicks = temp;
             if ((s16)temp <= 0) {
                 flags &= ~PLAYER_STATUS_SILENCE;
             }
         }
         if (flags & 0x20) {
-            temp             = (u16)actor->field_94C - 1;
-            actor->field_94C = temp;
+            temp                 = (u16)actor->status20Ticks - 1;
+            actor->status20Ticks = temp;
             if ((s16)temp <= 0) {
                 flags &= ~0x20;
             }
         }
         if (flags & PLAYER_STATUS_CONFUSION) {
-            temp             = (u16)actor->field_94E - 1;
-            actor->field_94E = temp;
+            temp                  = (u16)actor->confusionTicks - 1;
+            actor->confusionTicks = temp;
             if ((s16)temp <= 0) {
                 flags &= ~PLAYER_STATUS_CONFUSION;
             }
         }
         if (flags & PLAYER_STATUS_BERSERKER) {
             if ((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) {
-                temp             = (u16)actor->field_950 - 1;
-                actor->field_950 = temp;
+                temp                  = (u16)actor->berserkerTicks - 1;
+                actor->berserkerTicks = temp;
                 if ((s16)temp <= 0) {
                     flags &= ~PLAYER_STATUS_BERSERKER;
                 }
@@ -414,8 +417,8 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         if (arg1 & PLAYER_STATUS_DARKNESS) {
             inner = work->work;
             if (func_800B9D80(0x101) == 0) {
-                gPlayerStatus.statusFlags |= PLAYER_STATUS_DARKNESS;
-                inner->field_944           = 0x258;
+                gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
+                inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
                 func_800EC9C8();
                 Gp_DetachLinkNode(work);
                 Gp_SetState1CPe(1);
@@ -425,8 +428,8 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             inner = work->work;
             if (func_800B9D80(0x102) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
-                inner->field_946           = 0x258;
-                inner->field_98E           = 0;
+                inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+                inner->paralysisProgress   = 0;
                 func_8010B210(work);
                 Gp_SetState1CPe(2);
             }
@@ -435,8 +438,8 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             inner = work->work;
             if (func_800B9D80(0x104) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
-                inner->field_948           = 0x258;
-                inner->field_98D           = 0;
+                inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
+                inner->poisonDamageTicks   = 0;
                 Gp_SetState1CPe(4);
             }
         }
@@ -444,7 +447,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             inner = work->work;
             if (func_800B9D80(0x108) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
-                inner->field_94A           = 0x258;
+                inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x10);
             }
         }
@@ -452,17 +455,17 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             inner = work->work;
             if (func_800B9D80(0x110) == 0) {
                 gPlayerStatus.statusFlags |= 0x20;
-                inner->field_94C           = 0x258;
+                inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x20);
             }
         }
         if (mask & PLAYER_STATUS_CONFUSION) {
             inner = work->work;
             if (func_800B9D80(0x120) == 0) {
-                gPlayerStatus.statusFlags |= PLAYER_STATUS_CONFUSION;
-                inner->field_94E           = 0x258;
-                inner->field_990           = (rand() & 0x1F) + 0xA;
-                inner->field_970           = 0;
+                gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
+                inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
+                inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
+                inner->confusionDirections     = 0;
                 Gp_SetState1CPe(0x40);
             }
         }
@@ -470,7 +473,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             inner = work->work;
             if (func_800B9D80(0x140) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
-                inner->field_950           = 0x258;
+                inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x80);
                 func_800ECA54();
             }
@@ -496,8 +499,8 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x101) != 0) {
                     return;
                 }
-                gPlayerStatus.statusFlags |= PLAYER_STATUS_DARKNESS;
-                inner->field_944           = 0x258;
+                gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
+                inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
                 func_800EC9C8();
                 Gp_DetachLinkNode(arg0);
                 Gp_SetState1CPe(1);
@@ -511,8 +514,8 @@ void func_8010A42C(Task* arg0, s32 arg1)
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
-                inner->field_946           = 0x258;
-                inner->field_98E           = 0;
+                inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+                inner->paralysisProgress   = 0;
                 func_8010B210(arg0);
                 Gp_SetState1CPe(2);
                 break;
@@ -525,8 +528,8 @@ void func_8010A42C(Task* arg0, s32 arg1)
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
-                inner->field_948           = 0x258;
-                inner->field_98D           = 0;
+                inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
+                inner->poisonDamageTicks   = 0;
                 Gp_SetState1CPe(4);
                 break;
             }
@@ -541,7 +544,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
-                inner->field_94A           = 0x258;
+                inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x10);
                 break;
             }
@@ -553,7 +556,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                     return;
                 }
                 gPlayerStatus.statusFlags |= 0x20;
-                inner->field_94C           = 0x258;
+                inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x20);
                 break;
             }
@@ -564,10 +567,10 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x120) != 0) {
                     return;
                 }
-                gPlayerStatus.statusFlags |= PLAYER_STATUS_CONFUSION;
-                inner->field_94E           = 0x258;
-                inner->field_990           = (rand() & 0x1F) + 0xA;
-                inner->field_970           = 0;
+                gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
+                inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
+                inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
+                inner->confusionDirections     = 0;
                 Gp_SetState1CPe(0x40);
                 break;
             }
@@ -579,7 +582,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
-                inner->field_950           = 0x258;
+                inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x80);
                 func_800ECA54();
                 break;
@@ -601,47 +604,47 @@ void func_8010A670(Task* arg0)
     s32              mode;
     s32              dir;
 
-    inner            = arg0->work;
-    timer            = inner->field_990 - 1;
-    inner->field_990 = timer;
+    inner                          = arg0->work;
+    timer                          = inner->confusionDirectionTicks - 1;
+    inner->confusionDirectionTicks = timer;
     if ((s8)timer == 0) {
-        left             = 0x8000;
-        next             = (rand() & 0x1F) + 0xA;
-        pad              = inner->field_962;
-        inner->field_990 = next;
-        bits             = pad & 0xF000;
+        left                           = 0x8000;
+        next                           = (rand() & 0x1F) + 0xA;
+        pad                            = inner->padHeld;
+        inner->confusionDirectionTicks = next;
+        bits                           = pad & 0xF000;
         if (bits == left || bits == (right = 0x2000)) {
-            if (!(inner->field_970 & 0x5000)) {
+            if (!(inner->confusionDirections & 0x5000)) {
                 if (rand() & 1) {
                     dir = 0x4000;
                 } else {
                     dir = 0x1000;
                 }
-                inner->field_970 = dir;
+                inner->confusionDirections = dir;
             }
         } else {
             bits = pad & 0x5000;
             if (bits) {
                 if (rand() & 4) {
-                    inner->field_970 &= 0xAFFF;
+                    inner->confusionDirections &= 0xAFFF;
                 } else if (rand() & 1) {
-                    inner->field_970 = left;
+                    inner->confusionDirections = left;
                 } else {
-                    inner->field_970 = right;
+                    inner->confusionDirections = right;
                 }
             }
         }
         if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-            if (inner->field_90C != NULL) {
+            if (inner->targetNode != NULL) {
                 if (rand() & 3) {
                     Gp_DetachLinkNode(arg0);
                 }
             } else {
-                mode = inner->field_956;
+                mode = inner->state;
                 if (mode == 2 && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) && (rand() & 3)) {
                     node = Gp_FindLockNode(arg0);
                     if (node != NULL) {
-                        inner->field_97E = mode;
+                        inner->aimTrackingState = mode;
                         func_80108E0C(arg0, node);
                     }
                 }
@@ -649,7 +652,7 @@ void func_8010A670(Task* arg0)
         }
     }
     if (gGameSession->padHeld & 0xF000) {
-        inner->field_962 |= inner->field_970;
+        inner->padHeld |= inner->confusionDirections;
     }
 }
 
@@ -702,7 +705,7 @@ void func_8010A9D0(Task* arg0)
 
     inner = arg0->work;
     func_8010AAB4(arg0);
-    if ((u16)inner->field_96C == 1) {
+    if ((u16)inner->hitRegion == 1) {
         mode = 0x10;
     } else {
         mode = 0x11;
@@ -714,20 +717,20 @@ void Gp_StopPlayerAnim(Task* arg0, s32 arg1)
 {
     GameActor* inner;
 
-    inner            = arg0->work;
-    inner->field_954 = 1;
-    inner->field_958 = 0;
-    inner->field_95A = 0;
-    inner->field_95C = 0;
-    inner->field_95E = 0;
-    inner->field_96C = 3;
+    inner                 = arg0->work;
+    inner->mode           = GAME_ACTOR_MODE_DAMAGE;
+    inner->movementMode   = 0;
+    inner->turnRateIndex  = 0;
+    inner->animationState = 0;
+    inner->statePhase     = 0;
+    inner->hitRegion      = 3;
     if (arg1 == 0) {
         Gp_AnimResetChildSlots(arg0, 0x12);
     } else {
         Gp_AnimPlayChildSlotsEx(arg0, 0x12, 0, arg1);
     }
     Gp_DetachLinkNode(arg0);
-    inner->field_983 |= 0x18;
+    inner->pendingCollisionUpdates |= (GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
 }
 
 static void func_8010AAB4(Task* arg0)
@@ -740,18 +743,18 @@ static void func_8010AAB4(Task* arg0)
     Gp_StateC08.field_6 |= 1;
     func_80106350(arg0, p->weapon, 0);
     if (p->hp > 0) {
-        inner->field_954 = 1;
-        inner->field_958 = 0;
-        inner->field_95A = 0;
-        inner->field_95C = 7;
-        inner->field_95E = 0;
-        inner->field_973 = 0;
-        Gp_ApplyHpDamage(inner->field_96E);
-        inner->field_12A &= 0x3FFF;
-        if ((s8)inner->field_97E == 2) {
-            inner->field_97E = 1;
+        inner->mode           = GAME_ACTOR_MODE_DAMAGE;
+        inner->movementMode   = 0;
+        inner->turnRateIndex  = 0;
+        inner->animationState = 7;
+        inner->statePhase     = 0;
+        inner->movementSign   = 0;
+        Gp_ApplyHpDamage(inner->pendingDamage);
+        inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        if ((s8)inner->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
+            inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         }
-        func_8010A42C(arg0, inner->field_972);
+        func_8010A42C(arg0, inner->damageReaction);
     }
 }
 
@@ -765,11 +768,11 @@ void func_8010ABD4(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if (inner->field_95E != 0) {
-        if (inner->field_95E == 1) {
+    if (inner->statePhase != 0) {
+        if (inner->statePhase == 1) {
             func_8010B210(arg0);
-            inner->field_97A = 0x12;
-            if (inner->field_956 != 0) {
+            inner->recoveryTicks = 0x12;
+            if (inner->state != 0) {
                 func_8010870C(arg0, 0xC);
             } else {
                 func_801066DC(arg0, 0);
@@ -784,29 +787,29 @@ void func_8010AC54(Task* arg0)
     GameActor* inner2;
 
     inner = arg0->work;
-    if (inner->field_95E == 0) {
-        inner->field_95E = 1;
-        inner->field_934 = 0;
-        inner->field_93E = 0;
+    if (inner->statePhase == 0) {
+        inner->statePhase  = 1;
+        inner->stateTimer  = 0;
+        inner->actionValue = 0;
     }
-    if (inner->field_934 == 0) {
-        inner->field_93E++;
-        if (inner->field_93E == 3) {
+    if (inner->stateTimer == 0) {
+        inner->actionValue++;
+        if (inner->actionValue == 3) {
             inner2 = arg0->work;
             func_8010B210(arg0);
-            inner2->field_97A = 0x12;
-            if (inner2->field_956 != 0) {
+            inner2->recoveryTicks = 0x12;
+            if (inner2->state != 0) {
                 func_8010870C(arg0, 0xC);
             } else {
                 func_801066DC(arg0, 0);
             }
         } else {
-            inner->field_934 = 5;
+            inner->stateTimer = 5;
         }
         Gp_SpawnEff(
-            0x600E0, &arg0->extra.tmd->coords[4 - inner->field_93E], 0x320, 0);
+            0x600E0, &arg0->extra.tmd->coords[4 - inner->actionValue], 0x320, 0);
     } else {
-        inner->field_934--;
+        inner->stateTimer--;
     }
 }
 
@@ -827,17 +830,17 @@ void func_8010AD64(Task* arg0)
     params                            = &D_80113358;
     vec                               = (SVECTOR*)(head - 8);
     SCRATCH_HEAD_AT(scratch, SVECTOR) = vec;
-    switch (inner->field_95E) {
+    switch (inner->statePhase) {
         case 0:
-            idx                     = (s8)inner->field_993;
-            inner->field_95E        = 1;
-            coord                   = ((WorldCollisionBody*)inner->field_AC)[idx].coord;
+            idx                     = (s8)inner->hitBodyIndex;
+            inner->statePhase       = 1;
+            coord                   = (idx + inner->collisionBodies)->coord;
             params->spawnArgLo      = 0xC0;
             params->spawnArgHi      = 2;
             D_80113358.coord        = coord;
             ((SVECTOR*)head)[-1].vx = 0;
             val                     = 0;
-            if ((s8)inner->field_993 == 0) {
+            if ((s8)inner->hitBodyIndex == 0) {
                 val = -0x190;
             }
             vec->vy = val;
@@ -861,8 +864,8 @@ static void func_8010AE98(Task* arg0)
     if (func_800B9D80(0x101) != 0) {
         return;
     }
-    gPlayerStatus.statusFlags |= PLAYER_STATUS_DARKNESS;
-    inner->field_944           = 0x258;
+    gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
+    inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
     func_800EC9C8();
     Gp_DetachLinkNode(arg0);
     Gp_SetState1CPe(1);
@@ -877,8 +880,8 @@ static void func_8010AF04(Task* arg0)
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
-    inner->field_946           = 0x258;
-    inner->field_98E           = 0;
+    inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+    inner->paralysisProgress   = 0;
     func_8010B210(arg0);
     Gp_SetState1CPe(2);
 }
@@ -892,8 +895,8 @@ static void func_8010AF6C(Task* arg0)
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
-    inner->field_948           = 0x258;
-    inner->field_98D           = 0;
+    inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
+    inner->poisonDamageTicks   = 0;
     Gp_SetState1CPe(4);
 }
 
@@ -906,7 +909,7 @@ static void func_8010AFC0(Task* arg0)
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
-    inner->field_94A           = 0x258;
+    inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
     Gp_SetState1CPe(0x10);
 }
 
@@ -919,7 +922,7 @@ static void func_8010B010(Task* arg0)
         return;
     }
     gPlayerStatus.statusFlags |= 0x20;
-    inner->field_94C           = 0x258;
+    inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
     Gp_SetState1CPe(0x20);
 }
 
@@ -931,10 +934,10 @@ static void func_8010B060(Task* arg0)
     if (func_800B9D80(0x120) != 0) {
         return;
     }
-    gPlayerStatus.statusFlags |= PLAYER_STATUS_CONFUSION;
-    inner->field_94E           = 0x258;
-    inner->field_990           = (rand() & 0x1F) + 0xA;
-    inner->field_970           = 0;
+    gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
+    inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
+    inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
+    inner->confusionDirections     = 0;
     Gp_SetState1CPe(0x40);
 }
 
@@ -947,7 +950,7 @@ static void func_8010B0C8(Task* arg0)
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
-    inner->field_950           = 0x258;
+    inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
     Gp_SetState1CPe(0x80);
     func_800ECA54();
 }
@@ -967,24 +970,24 @@ void Gp_PlayerStepSfx(Task* arg0)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode != 0) {
         return;
     }
-    if ((s8)inner->field_97A != 0) {
+    if ((s8)inner->recoveryTicks != 0) {
         return;
     }
-    func_80109BB4(arg0, inner->field_17C);
-    if ((u16)inner->field_96C == 0) {
+    func_80109BB4(arg0, inner->collisionContacts);
+    if ((u16)inner->hitRegion == 0) {
         return;
     }
     inner2 = arg0->work;
     func_8010AAB4(arg0);
     mode = 0x11;
-    if ((u16)inner2->field_96C == 1) {
+    if ((u16)inner2->hitRegion == 1) {
         mode = 0x10;
     }
     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
     temp  = (s8)Gp_GetObjPan(obj);
     temp2 = (s8)gpGetObjDepth(obj);
     snd   = 7;
-    if ((u16)inner->field_96C == 1) {
+    if ((u16)inner->hitRegion == 1) {
         snd = 6;
     }
     SndEvt_EnqueueType6(snd, temp, temp2);
@@ -994,10 +997,10 @@ void func_8010B210(Task* arg0)
 {
     GameActor* inner;
 
-    inner            = arg0->work;
-    inner->field_96C = 0;
-    inner->field_972 = 0;
-    inner->field_96E = 0;
+    inner                 = arg0->work;
+    inner->hitRegion      = 0;
+    inner->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
+    inner->pendingDamage  = 0;
 }
 
 static s32 Gp_TestHpDamage(s32 arg0)
@@ -1032,17 +1035,17 @@ static void func_8010B2D4(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
     s32        flag;
 
     inner = arg0->work;
-    flag  = inner->field_910 != 0;
-    if ((u16)inner->field_96C == 0) {
-        inner->field_993 = arg2;
-        arg2             = (u16)arg2;
+    flag  = inner->companionWork != 0;
+    if ((u16)inner->hitRegion == 0) {
+        inner->hitBodyIndex = arg2;
+        arg2                = (u16)arg2;
         if (arg2 == 1) {
-            inner->field_96C = arg2;
+            inner->hitRegion = arg2;
         } else {
-            inner->field_96C = 2;
+            inner->hitRegion = 2;
         }
-        inner->field_96E = Gp_ScaleDamage(arg1->key.value, 0, &out, flag);
-        inner->field_972 = out;
+        inner->pendingDamage  = Gp_ScaleDamage(arg1->key.value, 0, &out, flag);
+        inner->damageReaction = out;
     }
 }
 
@@ -1053,8 +1056,8 @@ static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
 
     inner = arg0->work;
     kind  = (u16)arg1->key.value;
-    if ((u16)inner->field_96C == 0) {
-        inner->field_993 = arg2;
+    if ((u16)inner->hitRegion == 0) {
+        inner->hitBodyIndex = arg2;
         if (kind == 2) {
             goto case24;
         }
@@ -1070,22 +1073,22 @@ static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
     case24:
         arg2 = (u16)arg2;
         if (arg2 == 1) {
-            inner->field_96C = arg2;
+            inner->hitRegion = arg2;
         } else {
-            inner->field_96C = 2;
+            inner->hitRegion = 2;
         }
-        inner->field_972 = 5;
+        inner->damageReaction = 5;
         goto do_call;
     case3:
         arg2 = (u16)arg2;
         if (arg2 == 1) {
-            inner->field_96C = arg2;
+            inner->hitRegion = arg2;
         } else {
-            inner->field_96C = 2;
+            inner->hitRegion = 2;
         }
-        inner->field_972 = 0;
+        inner->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
     do_call:
-        inner->field_96E = Gp_LookupIdField(arg1->key.value, 0);
+        inner->pendingDamage = Gp_LookupIdField(arg1->key.value, 0);
     }
 }
 
@@ -1202,34 +1205,34 @@ void Gp_EndPlayerActorTask(Task* arg0)
     Task*      task;
 
     actor = arg0->work;
-    task  = actor->field_91C;
+    task  = actor->equipmentTasks[1];
     if (task != NULL) {
         taskKill(task);
-        actor->field_91C     = NULL;
-        extra                = arg0->extra.tmd;
-        inner                = arg0->work;
-        inner->field_93A     = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-        inner->animationSets = Gp_AnimBlkTbl[inner->field_93A]->table.sets;
-        func_800B3F84((AnimationContext*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
-                      inner->field_438);
+        actor->equipmentTasks[1]  = NULL;
+        extra                     = arg0->extra.tmd;
+        inner                     = arg0->work;
+        inner->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+        inner->animationSets      = Gp_AnimBlkTbl[inner->animationBankIndex]->table.sets;
+        func_800B3F84(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
+                      inner->animationSlots);
         Gp_AnimResetChildSlots(arg0, 1);
-        next            = arg0->work;
-        next->field_954 = 0;
-        next->field_956 = 0;
-        next->field_958 = 0;
-        next->field_95A = 0;
-        next->field_95C = 0;
-        next->field_95E = 0;
-        next->field_942 = 0;
-        next->field_93E = 0;
-        next->field_973 = 0;
-        next->field_975 = 0;
+        next                 = arg0->work;
+        next->mode           = GAME_ACTOR_MODE_NORMAL;
+        next->state          = 0;
+        next->movementMode   = 0;
+        next->turnRateIndex  = 0;
+        next->animationState = 0;
+        next->statePhase     = 0;
+        next->idleTicks      = 0;
+        next->actionValue    = 0;
+        next->movementSign   = 0;
+        next->turnSign       = 0;
         Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
     }
-    task = actor->field_914;
+    task = actor->weaponEffectTask;
     if (task != NULL) {
         taskKill(task);
-        actor->field_914 = NULL;
+        actor->weaponEffectTask = NULL;
     }
 }
 
@@ -1254,48 +1257,48 @@ Task* Gp_SetupAllyWeapon(void)
         return 0;
     }
 
-    if (actor->field_924 != NULL) {
-        save             = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        task             = func_80104364(actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
-        actor->field_91C = task;
+    if (actor->attachmentTasks[1] != NULL) {
+        save                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        task                     = func_80104364(actor->attachmentTasks[1], save->state.companionType + 1, save->state.companionVariant, 0);
+        actor->equipmentTasks[1] = task;
         if (task != NULL) {
-            companion = actor->field_910;
+            companion = actor->companionWork;
             val1      = D_80167218[save->state.companionVariant];
             val2      = D_80167224[save->state.companionVariant];
             Gp_AttachActorObj(work, val1, val2);
-            actor->field_124                           |= 0x80;
-            companion->activity.combat.attacksRemaining = D_80167230[save->state.companionVariant];
-            if ((u8)save->state.companionVariant == 4 && actor->field_914 == NULL) {
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= 0x80;
+            companion->activity.combat.attacksRemaining         = D_80167230[save->state.companionVariant];
+            if ((u8)save->state.companionVariant == 4 && actor->weaponEffectTask == NULL) {
                 eff = Gp_SpawnEff(
-                    0x80060180, actor->field_91C->extra.tmd->coords, (s32)(val1), 0);
+                    0x80060180, actor->equipmentTasks[1]->extra.tmd->coords, (s32)(val1), 0);
                 if (eff != NULL) {
-                    actor->field_914 = eff->task;
+                    actor->weaponEffectTask = eff->task;
                     func_80106350(work, val1, 0);
                 }
             }
         }
     }
 
-    inner                = work->work;
-    extra                = work->extra.tmd;
-    inner->field_93A     = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    inner->animationSets = Gp_AnimBlkTbl[inner->field_93A]->table.sets;
-    func_800B3F84((AnimationContext*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
-                  inner->field_438);
-    next            = work->work;
-    next->field_954 = 0;
-    next->field_956 = 0;
-    next->field_958 = 0;
-    next->field_95A = 0;
-    next->field_95C = 0;
-    next->field_95E = 0;
-    next->field_942 = 0;
-    next->field_93E = 0;
-    next->field_973 = 0;
-    next->field_975 = 0;
+    inner                     = work->work;
+    extra                     = work->extra.tmd;
+    inner->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    inner->animationSets      = Gp_AnimBlkTbl[inner->animationBankIndex]->table.sets;
+    func_800B3F84(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
+                  inner->animationSlots);
+    next                 = work->work;
+    next->mode           = GAME_ACTOR_MODE_NORMAL;
+    next->state          = 0;
+    next->movementMode   = 0;
+    next->turnRateIndex  = 0;
+    next->animationState = 0;
+    next->statePhase     = 0;
+    next->idleTicks      = 0;
+    next->actionValue    = 0;
+    next->movementSign   = 0;
+    next->turnSign       = 0;
     Gp_AnimResetChildSlots(work, 1);
-    ret              = actor->field_91C;
-    actor->field_983 = 7;
+    ret                            = actor->equipmentTasks[1];
+    actor->pendingCollisionUpdates = GAME_ACTOR_COLLISION_REQUEST_MASK;
     return ret;
 }
 
@@ -1307,30 +1310,30 @@ void func_8010B9A4(Task* arg0)
     u16         temp;
     u16         anim;
 
-    actor            = arg0->work;
-    actor->field_954 = 1;
-    actor->field_95C = 7;
-    save             = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    actor->field_958 = 0;
-    actor->field_95A = 0;
-    actor->field_95E = 0;
-    actor->field_960 = 0;
-    actor->field_973 = 0;
-    actor->field_975 = 0;
+    actor                 = arg0->work;
+    actor->mode           = GAME_ACTOR_MODE_DAMAGE;
+    actor->animationState = 7;
+    save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    actor->movementMode   = 0;
+    actor->turnRateIndex  = 0;
+    actor->statePhase     = 0;
+    actor->stateAux       = 0;
+    actor->movementSign   = 0;
+    actor->turnSign       = 0;
     if (save->state.cheatMode == 0 && (field13 = save->state.companionType) == 1) {
-        temp                    = save->state.companionHp - actor->field_96E;
+        temp                    = save->state.companionHp - actor->pendingDamage;
         save->state.companionHp = temp;
         if ((s16)temp <= 0 && gGameSession->eventState != 0) {
             save->state.companionHp = field13;
         }
     }
-    actor->field_12A &= 0x3FFF;
-    if ((s8)actor->field_97E == 2) {
-        actor->field_97E = 1;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    if ((s8)actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
+        actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     }
     func_80106350(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     anim = 0x11;
-    if ((u16)actor->field_96C == 1) {
+    if ((u16)actor->hitRegion == 1) {
         anim = 0x10;
     }
     Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);
@@ -1356,7 +1359,7 @@ Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
     return NULL;
 
 have_task:
-    actor = memCalloc(0x998, 0);
+    actor = memCalloc(sizeof(*actor), 0);
     if (actor != NULL) {
         goto have_actor;
     }
@@ -1370,17 +1373,17 @@ have_actor:
         goto fail;
     }
     Game_SetPtrSlot(task, 0xA);
-    Mem_Set(actor, 0, 0x998);
+    Mem_Set(actor, 0, sizeof(*actor));
     Mem_Set(companion, 0, sizeof(*companion));
-    task->work       = actor;
-    actor->field_910 = companion;
+    task->work           = actor;
+    actor->companionWork = companion;
     Gp_PumpTmdStream(task);
-    actor->field_93C  = *arg3;
-    actor->field_52   = arg0->field_0;
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = arg0->field_4;
-    coord->coord.t[1] = arg0->field_8;
-    coord->coord.t[2] = arg0->field_C;
+    actor->actionArgument = *arg3;
+    actor->rotation.vy    = arg0->field_0;
+    coord                 = task->extra.tmd->coords;
+    coord->coord.t[0]     = arg0->field_4;
+    coord->coord.t[1]     = arg0->field_8;
+    coord->coord.t[2]     = arg0->field_C;
     return task;
 }
 
@@ -1388,17 +1391,17 @@ void Gp_ResetActorMove(Task* arg0, s16 arg1)
 {
     GameActor* inner;
 
-    inner            = arg0->work;
-    inner->field_954 = 0;
-    inner->field_956 = 0;
-    inner->field_958 = 0;
-    inner->field_95A = 0;
-    inner->field_95C = 0;
-    inner->field_95E = 0;
-    inner->field_942 = 0;
-    inner->field_93E = 0;
-    inner->field_973 = 0;
-    inner->field_975 = 0;
+    inner                 = arg0->work;
+    inner->mode           = GAME_ACTOR_MODE_NORMAL;
+    inner->state          = 0;
+    inner->movementMode   = 0;
+    inner->turnRateIndex  = 0;
+    inner->animationState = 0;
+    inner->statePhase     = 0;
+    inner->idleTicks      = 0;
+    inner->actionValue    = 0;
+    inner->movementSign   = 0;
+    inner->turnSign       = 0;
     if (arg1 != 0) {
         Gp_AnimResetChildSlots(arg0, 1);
     } else {
@@ -1434,7 +1437,7 @@ s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     vec    = SCRATCH_STACK_RESERVE_BYTES(0x10);
     actor  = arg0->work;
     func_80103C74(coords, arg1, vec);
-    ret = func_80103E7C(actor->field_52, ratan2(vec->vx, vec->vz));
+    ret = func_80103E7C(actor->rotation.vy, ratan2(vec->vx, vec->vz));
     SCRATCH_STACK_RELEASE_BYTES(0x10);
     return ret;
 }
@@ -1453,14 +1456,14 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1)
     actor                                     = arg0->work;
     func_80103C74(extra->coords, arg1, (VECTOR3*)vec);
     vec->angle = ratan2(((GpTurnScratch*)(head - 0x14))->vx, vec->vz);
-    val        = func_80103E7C(actor->field_52, vec->angle);
+    val        = func_80103E7C(actor->rotation.vy, vec->angle);
     vec->angle = val;
     if (val > 0x40) {
         vec->angle = 0x40;
     } else if (val < -0x40) {
         vec->angle = -0x40;
     }
-    actor->field_52 = (actor->field_52 + vec->angle) & 0xFFF;
+    actor->rotation.vy = (actor->rotation.vy + vec->angle) & 0xFFF;
     SCRATCH_STACK_RELEASE_BYTES(0x14);
 }
 
@@ -1493,22 +1496,22 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     Gp_PlaceCoordOffset(parts + 4, coord, offset);
     func_80103C74(coord, targetPoint, &block->vec);
     // Turn toward the target relative to body facing, preserving the strict aim limit.
-    yawStep = ratan2(head[-1].vec.vx, block->vec.vz) - actor->field_52;
-    yawStep = func_80103E7C(actor->field_6A, yawStep);
+    yawStep = ratan2(head[-1].vec.vx, block->vec.vz) - actor->rotation.vy;
+    yawStep = func_80103E7C(actor->aimYaw, yawStep);
     if (yawStep > PLAYER_ACTOR_AIM_YAW_STEP) {
         yawStep = PLAYER_ACTOR_AIM_YAW_STEP;
     } else if (yawStep < -PLAYER_ACTOR_AIM_YAW_STEP) {
         yawStep = -PLAYER_ACTOR_AIM_YAW_STEP;
     }
-    if (ABS(actor->field_6A + yawStep) < PLAYER_ACTOR_AIM_YAW_LIMIT) {
-        actor->field_6A += yawStep;
+    if (ABS(actor->aimYaw + yawStep) < PLAYER_ACTOR_AIM_YAW_LIMIT) {
+        actor->aimYaw += yawStep;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimScratch);
 }
 
 void func_8010BF7C(Task* arg0, s32 arg1, s32 arg2)
 {
-    ((GameActor*)arg0->work)->field_910->decisionTimer = arg1 + (arg2 & rand());
+    ((GameActor*)arg0->work)->companionWork->decisionTimer = arg1 + (arg2 & rand());
 }
 
 void func_8010BFCC(Task* arg0)
@@ -1516,12 +1519,12 @@ void func_8010BFCC(Task* arg0)
     GameActor* actor;
     TmdObject* extra;
 
-    actor                = arg0->work;
-    extra                = arg0->extra.tmd;
-    actor->field_93A     = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    actor->animationSets = Gp_AnimBlkTbl[actor->field_93A]->table.sets;
-    func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
-                  actor->field_438);
+    actor                     = arg0->work;
+    extra                     = arg0->extra.tmd;
+    actor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    actor->animationSets      = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
+    func_800B3F84(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+                  actor->animationSlots);
 }
 
 s32 func_8010C058(void)
@@ -1545,11 +1548,11 @@ void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1)
     s32              val;
 
     actor = arg0->work;
-    node  = actor->field_90C;
+    node  = actor->targetNode;
     if (node == NULL || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-        actor->field_90C = NULL;
-        actor->field_97E = 1;
-    } else if ((s8)actor->field_97E == 2) {
+        actor->targetNode       = NULL;
+        actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+    } else if ((s8)actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
         if (arg1 & 1) {
             val = 0;
             if (arg1 != 1) {
@@ -1574,18 +1577,18 @@ void func_8010C180(Task* arg0)
 
     inner = arg0->work;
     func_8010B210(arg0);
-    inner->field_97A = 0x12;
-    actor            = arg0->work;
-    actor->field_954 = 0;
-    actor->field_956 = 0;
-    actor->field_958 = 0;
-    actor->field_95A = 0;
-    actor->field_95C = 0;
-    actor->field_95E = 0;
-    actor->field_942 = 0;
-    actor->field_93E = 0;
-    actor->field_973 = 0;
-    actor->field_975 = 0;
+    inner->recoveryTicks  = 0x12;
+    actor                 = arg0->work;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = 0;
+    actor->movementMode   = 0;
+    actor->turnRateIndex  = 0;
+    actor->animationState = 0;
+    actor->statePhase     = 0;
+    actor->idleTicks      = 0;
+    actor->actionValue    = 0;
+    actor->movementSign   = 0;
+    actor->turnSign       = 0;
     Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
 }
 
@@ -1597,7 +1600,7 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
     WorldCollisionCapsule* rec;
     s16                    vz;
 
-    companion              = ((GameActor*)arg0->work)->field_910;
+    companion              = ((GameActor*)arg0->work)->companionWork;
     src                    = arg0->extra.tmd->coords;
     obj                    = &companion->probe.body;
     rec                    = &companion->probe.shape;
@@ -1643,24 +1646,24 @@ s32 func_8010C30C(Task* arg0)
     vec.vy = next->coord.t[1];
     vec.vz = next->coord.t[2];
     ApplyMatrixLV(&coord->coord, &vec, &vec);
-    coord->coord.t[0]   += vec.vx;
-    coord->coord.t[2]   += vec.vz;
-    next->coord.t[0]     = 0;
-    next->coord.t[2]     = 0;
-    actor->field_10      = coord->coord.t[0];
-    actor->field_14      = coord->coord.t[1];
-    actor->field_18      = coord->coord.t[2];
-    prev                 = actor->animationSets;
-    actor->field_93A     = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    anim                 = Gp_AnimBlkTbl[actor->field_93A]->table.sets;
-    changed              = prev != anim;
-    actor->animationSets = anim;
-    func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
-                  actor->field_438);
-    actor->field_985 = 0x10;
-    actor->field_983 = 7;
-    actor->field_95E = 0;
-    actor->field_960 = 0;
+    coord->coord.t[0]         += vec.vx;
+    coord->coord.t[2]         += vec.vz;
+    next->coord.t[0]           = 0;
+    next->coord.t[2]           = 0;
+    actor->previousPosition.vx = coord->coord.t[0];
+    actor->previousPosition.vy = coord->coord.t[1];
+    actor->previousPosition.vz = coord->coord.t[2];
+    prev                       = actor->animationSets;
+    actor->animationBankIndex  = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    anim                       = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
+    changed                    = prev != anim;
+    actor->animationSets       = anim;
+    func_800B3F84(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+                  actor->animationSlots);
+    actor->animationRate           = ANIMATION_RATE_ONE;
+    actor->pendingCollisionUpdates = GAME_ACTOR_COLLISION_REQUEST_MASK;
+    actor->statePhase              = 0;
+    actor->stateAux                = 0;
     Gp_ResetActorMove(arg0, changed);
     return 0;
 }
@@ -1669,20 +1672,20 @@ static void func_8010C46C(Task* arg0)
 {
     GameActor* actor;
 
-    actor             = arg0->work;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                                                 = arg0->work;
+    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
+    actor->statePhase                                     = 0;
+    actor->movementSign                                   = 0;
+    actor->turnSign                                       = 0;
+    actor->part3Pitch                                     = 0;
+    actor->part2Pitch                                     = 0;
+    actor->part3Roll                                      = 0;
+    actor->part2Roll                                      = 0;
+    actor->aimYaw                                         = 0;
+    actor->field_68                                       = 0;
+    actor->part6Pitch                                     = 0;
+    actor->hitRegion                                      = 0;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     func_80106350(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
 }
 
@@ -1691,40 +1694,40 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
     GameActor* actor;
     TmdObject* extra;
 
-    actor             = task->work;
-    extra             = task->extra.tmd;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                                                 = task->work;
+    extra                                                 = task->extra.tmd;
+    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
+    actor->statePhase                                     = 0;
+    actor->movementSign                                   = 0;
+    actor->turnSign                                       = 0;
+    actor->part3Pitch                                     = 0;
+    actor->part2Pitch                                     = 0;
+    actor->part3Roll                                      = 0;
+    actor->part2Roll                                      = 0;
+    actor->aimYaw                                         = 0;
+    actor->field_68                                       = 0;
+    actor->part6Pitch                                     = 0;
+    actor->hitRegion                                      = 0;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     func_80106350(task, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     // Select the animation table before resetting or blending its slots.
-    actor->field_956 = 1;
+    actor->state = 1;
     if (actor->animationSets != Gp_AnimBlkTbl[request->source.index]->table.sets) {
         actor->animationSets = Gp_AnimBlkTbl[request->source.index]->table.sets;
-        func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
-                      actor->field_438);
-        actor->field_93A = (u16)request->source.index;
+        func_800B3F84(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+                      actor->animationSlots);
+        actor->animationBankIndex = (u16)request->source.index;
     }
-    actor->field_985 = ANIMATION_RATE_ONE;
+    actor->animationRate = ANIMATION_RATE_ONE;
     if (request->blend == ANIMATION_BLEND_RESET) {
         Gp_AnimResetChildSlots(task, request->animationId);
     } else {
         Gp_AnimPlayChildSlotsEx(task, request->animationId, 1, request->blendFrames);
     }
     if (request->enableWorldCollision == ANIMATION_WORLD_COLLISION_DISABLE) {
-        actor->field_983 = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
+        actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     } else {
-        actor->field_983 = PLAYER_ACTOR_WORLD_COLLISION_ENABLE;
+        actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_ENABLE;
     }
     return 0;
 }
@@ -1776,7 +1779,7 @@ s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg
     savedInteractionPressed = p->interactionPressed;
     Gp_SetActorDest(arg0, arg1, transform, arg3);
     p->interactionPressed = savedInteractionPressed;
-    actor->field_956      = 8;
+    actor->state          = 8;
     return 0;
 }
 
@@ -1785,26 +1788,26 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
     GameActor* actor;
 
     actor = arg0->work;
-    if ((s8)actor->field_97A != 0) {
+    if ((s8)actor->recoveryTicks != 0) {
         return 1;
     }
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
+    actor->statePhase                                     = 0;
+    actor->movementSign                                   = 0;
+    actor->turnSign                                       = 0;
+    actor->part3Pitch                                     = 0;
+    actor->part2Pitch                                     = 0;
+    actor->part3Roll                                      = 0;
+    actor->part2Roll                                      = 0;
+    actor->aimYaw                                         = 0;
+    actor->field_68                                       = 0;
+    actor->part6Pitch                                     = 0;
+    actor->hitRegion                                      = 0;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     func_80106350(arg0, D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
-    actor->field_956 = 6;
-    actor->field_934 = arg2->field_14;
-    actor->field_93E = 0;
+    actor->state       = 6;
+    actor->stateTimer  = arg2->field_14;
+    actor->actionValue = 0;
     return 0;
 }
 

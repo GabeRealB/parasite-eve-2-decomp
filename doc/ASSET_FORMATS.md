@@ -620,7 +620,7 @@ they hold point into *other* RAM slots — the packages that get loaded on top:
 | `Gp_PlayerAnimBlkTbl` | `0x80112D6C` | 34 | `0x8012A0D8`–`0x8012EDD0` | weapons, `0x8011D1C0` |
 | `Gp_AnimBlkTbl` | `0x80113368` | 8 | `0x8016CB98`–`0x801772E8` | Kyle, `0x80167A70` |
 
-`Gp_PlayerAnimBlkTbl` is indexed by `GameActor.field_93A`
+`Gp_PlayerAnimBlkTbl` is indexed by `GameActor.animationBankIndex`
 (`Gp_WeaponIdBase[...] + gPlayerStatus.weapon`), so an entry is only
 meaningful while *that weapon's* package is loaded. Two consequences:
 

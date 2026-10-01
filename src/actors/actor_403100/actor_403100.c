@@ -3700,9 +3700,9 @@ static void func_actor_403100_80132528(Task* arg0)
     coordLocalToWorld(joint, &pos);
     func_actor_403100_8013D2F4(joint, &matrix);
     Gp_MtxToEuler(&matrix, &rotation);
-    player->field_50 = rotation.vx;
-    player->field_52 = rotation.vy;
-    player->field_54 = rotation.vz;
+    player->rotation.vx = rotation.vx;
+    player->rotation.vy = rotation.vy;
+    player->rotation.vz = rotation.vz;
     RotMatrix(&rotation, &playerCoord->coord);
     playerCoord->coord.t[0]   = pos.vx;
     playerCoord->coord.t[1]   = pos.vy;
@@ -5692,7 +5692,7 @@ static void func_actor_403100_801376D8(Task* arg0)
             D_actor_403100_80155808->field_5F2 = 1;
             task                               = gameGetPtrSlot(3);
             if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
-                ((GameActor*)(*gPlayerActorTasks)->work)->field_956 = 0xA;
+                ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
             }
         }
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -5756,7 +5756,7 @@ static void func_actor_403100_801379B4(Task* arg0)
             D_actor_403100_80155808->field_5F2 = 1;
             task                               = gameGetPtrSlot(3);
             if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
-                ((GameActor*)(*gPlayerActorTasks)->work)->field_956 = 0xA;
+                ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
             }
         }
         D_actor_403100_80155808->field_668.b.field_668 = 0;
@@ -6104,7 +6104,7 @@ static void func_actor_403100_80138844(Task* arg0)
         D_actor_403100_80155808->field_5F2 = 1;
         player                             = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
-            ((GameActor*)(*gPlayerActorTasks)->work)->field_956 = 0xA;
+            ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
         }
     }
     func_actor_403100_8013C7B4(arg0);
@@ -6150,7 +6150,7 @@ static void func_actor_403100_80138AB4(Task* task)
         D_actor_403100_80155808->field_5F2 = 1;
         player                             = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
-            ((GameActor*)(*gPlayerActorTasks)->work)->field_956 = 0xA;
+            ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
         }
     }
     if (Actor403100_TestFlags104()) {
@@ -6736,7 +6736,7 @@ static void func_actor_403100_8013A064(Task* arg0)
             }
             message                             = 0x3FF;
             D_actor_403100_80155808->pad_670[0] = 1;
-            actor->field_956                    = 0xA;
+            actor->state                        = 0xA;
         } else {
             state   = 2;
             message = 0x3F4;
@@ -7001,9 +7001,9 @@ static void func_actor_403100_8013AC04(Task* task)
         }
         func_actor_403100_8013D0B8(-0x1928, -0xC7C, 0x29D6, 0x800);
         if ((u8)D_actor_403100_80155808->pad_670[0] != 0) {
-            actor->field_956 = 0xA;
-            state            = 7;
-            message          = 0x3FF;
+            actor->state = 0xA;
+            state        = 7;
+            message      = 0x3FF;
         } else {
             state   = 2;
             message = 0x3F4;

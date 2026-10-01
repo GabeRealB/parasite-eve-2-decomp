@@ -1144,7 +1144,7 @@ static void func_actor_113000_80131E30(Task* arg0)
     Actor113000Work* work;
     RECT             rect;
 
-    work   = (Actor113000Work*)((GameActor*)arg0->work);
+    work   = (Actor113000Work*)arg0->work;
     rect.x = 0;
     rect.y = 0x28;
     rect.w = 0x20;
@@ -1396,9 +1396,9 @@ s32 func_actor_113000_80132474(Task* arg0, s32 arg1, s32 mode)
             img = &D_actor_113000_8013A32C[0];
             break;
         case 3:
-            ((Actor113000Work*)((GameActor*)arg0->work))->field_4C4 = 1;
-            ((Actor113000Work*)((GameActor*)arg0->work))->field_4C0 = 1;
-            img                                                     = &D_actor_113000_8013A74C[0];
+            ((Actor113000Work*)arg0->work)->field_4C4 = 1;
+            ((Actor113000Work*)arg0->work)->field_4C0 = 1;
+            img                                       = &D_actor_113000_8013A74C[0];
             break;
         default:
             img = NULL;

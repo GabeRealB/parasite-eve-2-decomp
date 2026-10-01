@@ -1116,8 +1116,8 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
             dx    = coords->coord.t[0] - player->coord.t[0];
             dz    = coords->coord.t[2] - player->coord.t[2];
             actor = (GameActor*)gameGetPtrSlot(3)->work;
-            c     = rcos(actor->field_52);
-            if (dx * rsin(actor->field_52) + dz * c < 0) {
+            c     = rcos(actor->rotation.vy);
+            if (dx * rsin(actor->rotation.vy) + dz * c < 0) {
                 D_actor_420700_8013EFF0 = 0x40;
             } else {
                 D_actor_420700_8013EFF0 = -0x80;

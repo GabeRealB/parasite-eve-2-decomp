@@ -1903,9 +1903,9 @@ void func_actor_503500_80132DEC(void)
      * anchors the whole function on `D_actor_503500_8017655C + 0x10`. */
     rot = &D_actor_503500_8017655C.rot;
 
-    rot->vx = ((GameActor*)slot3->work)->field_50;
-    rot->vy = ((GameActor*)slot3->work)->field_52;
-    rot->vz = ((GameActor*)slot3->work)->field_54;
+    rot->vx = ((GameActor*)slot3->work)->rotation.vx;
+    rot->vy = ((GameActor*)slot3->work)->rotation.vy;
+    rot->vz = ((GameActor*)slot3->work)->rotation.vz;
 }
 
 void func_actor_503500_80132E7C(void)

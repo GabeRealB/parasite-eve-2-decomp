@@ -2214,7 +2214,7 @@ static void func_actor_405800_801340E0(Task* arg0)
     s32                  pan;
 
     work = (Actor405800Work*)arg0->work;
-    if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->field_954 == 2 || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {
+    if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->mode == GAME_ACTOR_MODE_SCRIPTED || (func_actor_405800_8013728C(arg0) << 0x10) != 0) {
         func_actor_405800_801379F8(arg0);
         work3            = (Actor405800Work*)arg0->work;
         work3->field_846 = 2;
@@ -2999,7 +2999,7 @@ static void func_actor_405800_801361F8(Task* arg0)
     work->field_852 = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
     VectorNormalSS(&v, &v);
     work->field_856 = (ratan2(v.vx, v.vz) - work->field_82) & 0xFFF;
-    work->field_854 = (ratan2(-v.vx, -v.vz) - actor->field_52) & 0xFFF;
+    work->field_854 = (ratan2(-v.vx, -v.vz) - actor->rotation.vy) & 0xFFF;
 }
 
 static void func_actor_405800_80136388(Task* arg0)

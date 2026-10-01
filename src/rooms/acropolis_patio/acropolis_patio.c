@@ -1909,11 +1909,11 @@ void func_acropolis_patio_8017E054(Task* task)
             task->state++;
             /* fallthrough */
         case 1:
-            angle = actor->field_52 - 0x80;
+            angle = actor->rotation.vy - 0x80;
             if (angle < -0x800) {
-                angle = actor->field_52 + 0xF80;
+                angle = actor->rotation.vy + 0xF80;
             }
-            actor->field_52 = angle;
+            actor->rotation.vy = angle;
             task->killCountdown--;
             if (task->killCountdown > 0) {
                 break;

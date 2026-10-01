@@ -1599,7 +1599,7 @@ void stalkerGrabSeq(Task* arg0)
     flag   = 0;
     switch (work->field_6CE) {
         case 0:
-            if (((GameActor*)player->work)->field_954 != 2 && gPlayerStatus.hp > 0) {
+            if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED && gPlayerStatus.hp > 0) {
                 sc->query.field_14 = 0x19;
                 if (Gp_DispatchMsgPtr(player, 0x3F8, sc, 0) == 0) {
                     work->field_6C0 = 1;
@@ -1784,14 +1784,14 @@ void stalkerGrabSeq(Task* arg0)
                     SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             } else if (work->field_6C4 == 0x1A) {
-                ((GameActor*)player->work)->field_956 = 0xA;
-                work->field_6CE                       = 7;
-                work->field_6D4                       = 0;
-                gGameSession->deathRestartDelay       = 0x5A;
-                gGameSession->deathSoundCountdown     = GAME_SESSION_DEATH_SOUND_HOLD;
-                sc->in.vy                             = -0x96;
-                sc->in.vx                             = 0;
-                sc->in.vz                             = 0xC8;
+                ((GameActor*)player->work)->state = 0xA;
+                work->field_6CE                   = 7;
+                work->field_6D4                   = 0;
+                gGameSession->deathRestartDelay   = 0x5A;
+                gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
+                sc->in.vy                         = -0x96;
+                sc->in.vx                         = 0;
+                sc->in.vz                         = 0xC8;
                 func_800FDB18(1, &gameGetPtrSlot(3)->extra.tmd->coords[4], &sc->in, &D_actor_402200_80154170);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);

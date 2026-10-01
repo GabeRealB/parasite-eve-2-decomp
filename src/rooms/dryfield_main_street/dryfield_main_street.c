@@ -1038,7 +1038,7 @@ void func_dryfield_main_street_8017E168(Task* task)
 ///
 /// The aim angle is `ratan2` of the translation of the *second*
 /// `GfxCoord` node of the target's model (`field_8[1]`) minus the
-/// player's own (`field_8[0]`); the delta against `GameActor::field_52` is
+/// player's own (`field_8[0]`); the delta against `GameActor::rotation.vy` is
 /// unwrapped into `-0x800..0x800` and stepped by `0x80` per frame, so the
 /// player rotates at a fixed rate. Inside `0x80` of the target the facing
 /// snaps to the exact angle and the task ends.
@@ -1066,7 +1066,7 @@ void func_dryfield_main_street_8017E1C0(Task* task)
         self      = player->extra.tmd->coords;
         target    = &(work->field_0)->extra.tmd->coords[1];
         angle     = ratan2(target->coord.t[0] - self->coord.t[0], target->coord.t[2] - self->coord.t[2]);
-        delta     = angle - actor->field_52;
+        delta     = angle - actor->rotation.vy;
         magnitude = ABS(delta);
         if (magnitude >= 0x801) {
             wrapped = delta - 0x1000;
@@ -1081,10 +1081,10 @@ void func_dryfield_main_street_8017E1C0(Task* task)
             if (delta < 0) {
                 step = -0x80;
             }
-            actor->field_52 = (s16)((u16)actor->field_52 + step);
+            actor->rotation.vy = (s16)((u16)actor->rotation.vy + step);
             return;
         }
-        actor->field_52 = angle;
+        actor->rotation.vy = angle;
     }
     taskKill(task);
 }

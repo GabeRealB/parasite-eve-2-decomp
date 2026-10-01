@@ -1659,7 +1659,7 @@ static void func_actor_120300_80132338(Task* arg0)
             player      = (GameActor*)playerTask->work;
             switch ((u16)work->field_4C2) {
                 case 0:
-                    work->field_4DC = player->field_6A;
+                    work->field_4DC = player->aimYaw;
                     work->field_4C2++;
                     /* fallthrough */
                 case 1:
@@ -1685,7 +1685,7 @@ static void func_actor_120300_80132338(Task* arg0)
                     }
                     /* fallthrough */
                 case 2:
-                    player->field_6A = work->field_4DC;
+                    player->aimYaw = work->field_4DC;
                     return;
             }
             return;
@@ -1701,7 +1701,7 @@ static void func_actor_120300_80132338(Task* arg0)
             } else {
                 work->field_4DC -= 0x30;
             }
-            aim->field_6A = work->field_4DC;
+            aim->aimYaw = work->field_4DC;
             return;
         }
     }

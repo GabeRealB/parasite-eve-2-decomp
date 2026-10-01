@@ -2432,7 +2432,7 @@ static void func_actor_141000_801335D4(Task* arg0)
     Actor141000Work* work;
     RECT             rect;
 
-    work   = (Actor141000Work*)((GameActor*)arg0->work);
+    work   = (Actor141000Work*)arg0->work;
     rect.x = 0;
     rect.y = 0x40;
     rect.w = 0x19;

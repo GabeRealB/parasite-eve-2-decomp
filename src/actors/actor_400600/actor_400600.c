@@ -2507,7 +2507,7 @@ static void func_actor_400600_80133FC0(Task* arg0)
     s32                  pan;
 
     work = (Actor400600Work*)arg0->work;
-    if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->field_954 == 2 || (func_actor_400600_801376EC(arg0) << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
+    if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->mode == GAME_ACTOR_MODE_SCRIPTED || (func_actor_400600_801376EC(arg0) << 0x10) != 0 || work->field_728 >= 0x7D0 || (u32)(work->field_72C - 0x200) < 0xC01U) {
         func_actor_400600_80138B40(arg0);
         work2            = (Actor400600Work*)arg0->work;
         work2->field_71C = 2;
@@ -3482,7 +3482,7 @@ static void func_actor_400600_80136670(Task* arg0)
     work->field_728 = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
     VectorNormalSS(&v, &v);
     work->field_72C = (ratan2(v.vx, v.vz) - work->field_82) & 0xFFF;
-    work->field_72A = (ratan2(-v.vx, -v.vz) - actor->field_52) & 0xFFF;
+    work->field_72A = (ratan2(-v.vx, -v.vz) - actor->rotation.vy) & 0xFFF;
 }
 
 static const TaskFuncTable3 D_actor_400600_80131F34 = { {

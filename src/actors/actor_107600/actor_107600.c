@@ -1522,15 +1522,15 @@ static void func_actor_107600_801332D4(Task* arg0)
                 Gp_SpawnEff(0x601BD, c, 0, NULL);
                 p = (s8)Gp_GetObjPan(c);
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
-                if (actor->field_954 != 1) {
+                if (actor->mode != GAME_ACTOR_MODE_DAMAGE) {
                     if (gPlayerStatus.hp < 11) {
                         ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->field_22 = 1;
-                        actor->field_96E                                                             = 0;
+                        actor->pendingDamage                                                         = 0;
                     } else {
-                        actor->field_96E = 10;
+                        actor->pendingDamage = 10;
                     }
-                    actor->field_96C = 1;
-                    actor->field_972 = 5;
+                    actor->hitRegion      = 1;
+                    actor->damageReaction = 5;
                     func_8010A9D0(player);
                     pan = (s8)Gp_GetObjPan(c);
                     SndEvt_EnqueueType6(6, pan, (s8)gpGetObjDepth(c));

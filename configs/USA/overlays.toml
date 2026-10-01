@@ -333,7 +333,7 @@ objects = [
 [weapons.overlays.pa3]
 label = "PA3"
 # One source built twice: the SP12 differs in the weapon index, which keys the
-# sound, shot and item, and in the value field_979 is primed with.
+# sound, shot and item, and in the value attackCancelTicks is primed with.
 slots = [
   { package = "pa3", prefix = "pa3", id = 20, label = "PA3", defines = { WEAPON_ID = 0xD, PA3_FIELD_979 = 0x20 } },
   { package = "sp12", prefix = "sp12", id = 21, label = "SP12", defines = { WEAPON_ID = 0xE, PA3_FIELD_979 = 0x24 }, objects = [

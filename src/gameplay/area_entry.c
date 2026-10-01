@@ -72,7 +72,7 @@ void Gp_AreaEnterTask(Task* arg0)
         for (i = 0; i < PLAYER_ACTOR_TASK_COUNT; i++) {
             slot = gPlayerActorTasks[i];
             if (slot != NULL) {
-                ((GameActor*)slot->work)->field_90C = NULL;
+                ((GameActor*)slot->work)->targetNode = NULL;
             }
         }
         SndEvt_EnqueueType8(0xD);

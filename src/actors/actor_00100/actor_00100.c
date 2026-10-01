@@ -3483,7 +3483,7 @@ static void Actor00100_Fn0503C(Task* arg0)
         }
     }
     if ((Actor00100_Fn01388(arg0->extra.tmd->coords, work->objs[0].contacts, 5, (SVECTOR*)scratch) << 0x10) != 0) {
-        if (((s16)work->field_82E == 3) && (playerWork->field_954 != 2)) {
+        if (((s16)work->field_82E == 3) && (playerWork->mode != GAME_ACTOR_MODE_SCRIPTED)) {
             ((Actor00100FacingWork*)work)->field_900 = 0x80;
             temp_a1_2                                = arg0->extra.tmd->coords;
             scratch->vx                              = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a1_2->coord.t[0]);
@@ -3503,7 +3503,7 @@ static void Actor00100_Fn0503C(Task* arg0)
             scratch->contactYaw = (u16)var_v0_13;
             var_v0_13           = abs(var_v0_13);
             if (var_v0_13 < 0x180) {
-                printf("EM01 PLAYER WORK %d, %d\n", playerWork->field_954, playerWork->field_956);
+                printf("EM01 PLAYER WORK %d, %d\n", playerWork->mode, playerWork->state);
                 if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, (&work->pad_8EB[1]), 0) == 0) {
                     Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
                     temp_v0_6           = ratan2((s32)scratch->vx, (s32)scratch->vz) + 0x800;
@@ -3578,7 +3578,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                             scratch->messageResult = actorPlayerContactMessage(ctx, 1);
                         }
                         if (scratch->messageResult == 1) {
-                            ((GameActor*)player->work)->field_956 = 0xA;
+                            ((GameActor*)player->work)->state = 0xA;
                         }
                         work->field_BFC = 1;
                         work->field_C00 = 0;

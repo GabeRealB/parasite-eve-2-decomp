@@ -5785,7 +5785,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                         pw                              = (GameActor*)player->work;
                         gGameSession->deathFadeFrames   = 0x28;
                         gGameSession->deathRestartDelay = 0x28;
-                        pw->field_956                   = 0xA;
+                        pw->state                       = 0xA;
                     }
                 }
             }
@@ -6051,7 +6051,7 @@ static void func_actor_403000_801386E8(Task* arg0)
                 pw                              = (GameActor*)player->work;
                 gGameSession->deathFadeFrames   = 0x1C;
                 gGameSession->deathRestartDelay = 0x1E;
-                pw->field_956                   = 0xA;
+                pw->state                       = 0xA;
             }
             work->field_0   = 9;
             work->field_F90 = D_actor_403000_80158C08;
@@ -7075,7 +7075,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
                 pw                              = (GameActor*)player->work;
                 gGameSession->deathFadeFrames   = 0x28;
                 gGameSession->deathRestartDelay = 0x28;
-                pw->field_956                   = frame;
+                pw->state                       = frame;
             }
             work->field_0   = 0xD;
             work->field_F90 = D_actor_403000_80158C08;

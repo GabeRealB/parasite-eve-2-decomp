@@ -51,18 +51,11 @@ typedef struct {
 } GpActorPathStep;
 
 /// 0x18-byte scratch stack block `func_actor_800200_801622B0` takes for the
-/// ground-quad heading it copies into the three `GameActor.field_88` records.
+/// ground-quad heading it copies into the three `GameActor.collisionMotionContexts` records.
 typedef struct {
     /* 0x00 */ byte    pad_0[0x10];
     /* 0x10 */ SVECTOR vec;
 } Actor800200VecScratch;
-
-/// View of `GameActor.field_973` as the unsigned byte its rotation
-/// multiply sign-extends.
-typedef struct {
-    byte pad[0x973];
-    u8   field_973;
-} ActorDirByte;
 
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -938,28 +931,28 @@ static void func_actor_800200_80162088(Task* arg0)
     arg0->state++;
     arg0->msgTable                                 = D_actor_800200_80169EF0;
     arg0->exitCallback                             = &func_actor_800200_801626A0;
-    actor->field_938                               = 0x13;
+    actor->animationSlotCount                      = GAME_ACTOR_NORMAL_ANIMATION_SLOTS;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = arg0;
     coord->parent                                  = &gGfxViewCoord;
     coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
     extra->flags                                   = 0;
-    RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
+    RotMatrix(&actor->rotation, &coord->coord);
     func_8010BFCC(arg0);
-    actor->field_985 = 0x10;
-    Gp_AnimResetChildSlots(arg0, actor->field_93C);
+    actor->animationRate = ANIMATION_RATE_ONE;
+    Gp_AnimResetChildSlots(arg0, actor->actionArgument);
     Gp_AnimTickChildSlots(arg0);
-    recs                        = actor->field_17C;
-    obj                         = (WorldCollisionBody*)actor->field_AC;
-    actor->field_10             = coord->coord.t[0];
-    actor->field_14             = coord->coord.t[1];
-    actor->field_18             = coord->coord.t[2];
-    obj->context.motion         = &actor->field_88[0];
-    obj->coord                  = coord;
-    actor->field_88[0].contacts = recs;
-    save                        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    obj->pos.vx                 = 0;
-    obj->pos.vy                 = -0xFA;
-    obj->pos.vz                 = 0;
+    recs                                       = actor->collisionContacts;
+    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    actor->previousPosition.vx                 = coord->coord.t[0];
+    actor->previousPosition.vy                 = coord->coord.t[1];
+    actor->previousPosition.vz                 = coord->coord.t[2];
+    obj->context.motion                        = &actor->collisionMotionContexts[0];
+    obj->coord                                 = coord;
+    actor->collisionMotionContexts[0].contacts = recs;
+    save                                       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    obj->pos.vx                                = 0;
+    obj->pos.vy                                = -0xFA;
+    obj->pos.vz                                = 0;
     {
         s32 temp;
 
@@ -970,16 +963,16 @@ static void func_actor_800200_80162088(Task* arg0)
         obj->key    = temp | packed;
         Gp_LinkObj(0, obj);
     }
-    Gp_InitRec18Table(actor->field_88[0].contacts, ARRAY_SIZE(actor->field_17C), 0);
-    obj->flags                 |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    obj                         = (WorldCollisionBody*)actor->field_CC;
-    next                        = arg0->extra.tmd->coords;
-    obj->context.motion         = &actor->field_88[1];
-    obj->coord                  = next + 4;
-    actor->field_88[1].contacts = recs;
-    obj->pos.vx                 = 0;
-    obj->pos.vy                 = 0;
-    obj->pos.vz                 = 0;
+    Gp_InitRec18Table(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
+    obj->flags                                |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
+    next                                       = arg0->extra.tmd->coords;
+    obj->context.motion                        = &actor->collisionMotionContexts[1];
+    obj->coord                                 = next + 4;
+    actor->collisionMotionContexts[1].contacts = recs;
+    obj->pos.vx                                = 0;
+    obj->pos.vy                                = 0;
+    obj->pos.vz                                = 0;
     {
         s32 temp;
 
@@ -990,7 +983,7 @@ static void func_actor_800200_80162088(Task* arg0)
         Gp_LinkObj(0, obj);
     }
     obj->flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    actor->field_984            = 7;
+    actor->collisionEnableMask  = GAME_ACTOR_COLLISION_REQUEST_MASK;
     ((SVECTOR3*)(head - 8))->vx = 0;
     scratch->vy                 = -0x100;
     scratch->vz                 = 0x200;
@@ -1021,69 +1014,69 @@ static void func_actor_800200_801622B0(Task* arg0)
     sc                             = (Actor800200VecScratch*)(head - 0x18);
     coord                          = extra->coords;
     actor                          = arg0->work;
-    companion                      = actor->field_910;
-    if (actor->field_954 != 2 &&
-        (dy = coord->coord.t[1], dy = dy - actor->field_14, dy = ABS(dy), dy >= 0x200)) {
-        coord->coord.t[0] = actor->field_10;
-        coord->coord.t[1] = actor->field_14;
-        coord->coord.t[2] = actor->field_18;
+    companion                      = actor->companionWork;
+    if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
+        (dy = coord->coord.t[1], dy = dy - actor->previousPosition.vy, dy = ABS(dy), dy >= 0x200)) {
+        coord->coord.t[0] = actor->previousPosition.vx;
+        coord->coord.t[1] = actor->previousPosition.vy;
+        coord->coord.t[2] = actor->previousPosition.vz;
     } else {
-        if (actor->field_984 & 1) {
-            actor->field_992 = func_801011D0(coord, actor->field_88[0].contacts, ARRAY_SIZE(actor->field_17C), &actor->field_930);
-            if ((s8)actor->field_992 == 2) {
-                coord->coord.t[0] = actor->field_10;
-                coord->coord.t[1] = actor->field_14;
-                coord->coord.t[2] = actor->field_18;
+        if (actor->collisionEnableMask & 1) {
+            actor->gridResponse = func_801011D0(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+            if ((s8)actor->gridResponse == 2) {
+                coord->coord.t[0] = actor->previousPosition.vx;
+                coord->coord.t[1] = actor->previousPosition.vy;
+                coord->coord.t[2] = actor->previousPosition.vz;
             }
         } else {
-            actor->field_992 = 0;
+            actor->gridResponse = 0;
         }
-        actor->field_10 = coord->coord.t[0];
-        actor->field_14 = coord->coord.t[1];
-        actor->field_18 = coord->coord.t[2];
+        actor->previousPosition.vx = coord->coord.t[0];
+        actor->previousPosition.vy = coord->coord.t[1];
+        actor->previousPosition.vz = coord->coord.t[2];
     }
     companion->probe.coord = *arg0->extra.tmd->coords;
-    objs[0]                = (WorldCollisionBody*)actor->field_AC;
-    objs[1]                = (WorldCollisionBody*)actor->field_CC;
+    objs[0]                = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    objs[1]                = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
     for (i = 0; i < 2; i++) {
-        bits = actor->field_983;
+        bits = actor->pendingCollisionUpdates;
         if ((bits >> i) & 1) {
-            actor->field_984 |= 1 << i;
-            objs[i]->flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
+            actor->collisionEnableMask |= 1 << i;
+            objs[i]->flags             |= WORLD_COLLISION_BODY_GRID_ENABLED;
         } else if (bits & (8 << i)) {
-            actor->field_984 &= ~(1 << i);
-            objs[i]->flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+            actor->collisionEnableMask &= ~(1 << i);
+            objs[i]->flags             &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
-    actor->field_983 = 0;
+    actor->pendingCollisionUpdates = 0;
     if (D_80115768 == 0 && Gp_StateF0.field_4 == 0) {
         func_actor_800200_801652EC(arg0);
     }
-    Gp_ClearRec18Occupied(actor->field_17C);
-    Gp_ClearRec18Occupied(actor->field_910->probe.contacts);
-    if (actor->field_984 & 1) {
-        coord->coord.t[1] = actor->field_14 + 8;
+    Gp_ClearRec18Occupied(actor->collisionContacts);
+    Gp_ClearRec18Occupied(actor->companionWork->probe.contacts);
+    if (actor->collisionEnableMask & 1) {
+        coord->coord.t[1] = actor->previousPosition.vy + 8;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    if ((s8)actor->field_986 != 0) {
-        sc->vec.vx = (u16)actor->field_30.vx;
-        sc->vec.vy = (u16)actor->field_30.vy;
-        sc->vec.vz = (u16)actor->field_30.vz;
+    if ((s8)actor->usesPushbackDirection != 0) {
+        sc->vec.vx = (u16)actor->pushbackDirection.vx;
+        sc->vec.vy = (u16)actor->pushbackDirection.vy;
+        sc->vec.vz = (u16)actor->pushbackDirection.vz;
     } else {
-        sc->vec.vx = (u16)coord->workm.m[0][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
-        sc->vec.vy = (u16)coord->workm.m[1][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
-        sc->vec.vz = (u16)coord->workm.m[2][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
+        sc->vec.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
+        sc->vec.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
+        sc->vec.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
     }
-    actor->field_88[0].motionDirection.vx = sc->vec.vx;
-    actor->field_88[0].motionDirection.vy = sc->vec.vy;
-    actor->field_88[0].motionDirection.vz = sc->vec.vz;
-    actor->field_88[1].motionDirection.vx = sc->vec.vx;
-    actor->field_88[1].motionDirection.vy = sc->vec.vy;
-    actor->field_88[1].motionDirection.vz = sc->vec.vz;
-    actor->field_88[2].motionDirection.vx = sc->vec.vx;
-    actor->field_88[2].motionDirection.vy = sc->vec.vy;
-    actor->field_88[2].motionDirection.vz = sc->vec.vz;
+    actor->collisionMotionContexts[0].motionDirection.vx = sc->vec.vx;
+    actor->collisionMotionContexts[0].motionDirection.vy = sc->vec.vy;
+    actor->collisionMotionContexts[0].motionDirection.vz = sc->vec.vz;
+    actor->collisionMotionContexts[1].motionDirection.vx = sc->vec.vx;
+    actor->collisionMotionContexts[1].motionDirection.vy = sc->vec.vy;
+    actor->collisionMotionContexts[1].motionDirection.vz = sc->vec.vz;
+    actor->collisionMotionContexts[2].motionDirection.vx = sc->vec.vx;
+    actor->collisionMotionContexts[2].motionDirection.vy = sc->vec.vy;
+    actor->collisionMotionContexts[2].motionDirection.vz = sc->vec.vz;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         Gp_DrawEffGroundQuad(MATRIX_TRANS(&coord->workm), 0x200, gRoomEffectState->groundShadowShade);
     }
@@ -1105,8 +1098,8 @@ static void func_actor_800200_801626A0(Task* task)
 
     actor                                          = (GameActor*)task->work;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
-    Gp_UnlinkObj((WorldCollisionBody*)actor->field_AC);
-    Gp_UnlinkObj((WorldCollisionBody*)actor->field_CC);
+    Gp_UnlinkObj(&actor->collisionBodies[GAME_ACTOR_BODY_ROOT]);
+    Gp_UnlinkObj(&actor->collisionBodies[GAME_ACTOR_BODY_PART4]);
     taskKill(task);
 }
 
@@ -1120,7 +1113,7 @@ static const TaskFuncTable4 D_actor_800200_80161E24 = { {
     func_actor_800200_801626A0,
 } };
 
-/// Handlers `func_actor_800200_801652EC` runs, indexed by `field_954`.
+/// Handlers `func_actor_800200_801652EC` runs, indexed by `mode`.
 static const TaskFuncTable3 D_actor_800200_80161E34 = { {
     func_actor_800200_80165B84,
     func_actor_800200_80165E90,
@@ -1158,12 +1151,12 @@ static void func_actor_800200_80162750(Task* arg0)
     vec                      = (VECTOR3*)(head - 0x10);
     SCRATCH_STACK_CURSOR(u8) = head - 0x10;
     actor                    = arg0->work;
-    actor->field_93E        += 1;
-    companion                = actor->field_910;
+    actor->actionValue      += 1;
+    companion                = actor->companionWork;
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-        state            = 0;
-        lock             = Gp_FindLockNode(arg0);
-        actor->field_90C = lock;
+        state             = 0;
+        lock              = Gp_FindLockNode(arg0);
+        actor->targetNode = lock;
         if (lock != NULL) {
             Gp_GetLockPos(lock, vec);
             func_80103C74(coord, vec, vec);
@@ -1179,7 +1172,7 @@ static void func_actor_800200_80162750(Task* arg0)
             case 0:
                 break;
             case 1:
-                Gp_GetLockPos(actor->field_90C, (VECTOR3*)&actor->field_20);
+                Gp_GetLockPos(actor->targetNode, &actor->destination);
                 func_actor_800200_80165408(arg0, 6);
                 break;
             case 2:
@@ -1199,9 +1192,9 @@ static void func_actor_800200_80162750(Task* arg0)
                 diff = -diff;
             }
             if (diff >= 0x200) {
-                actor->field_90C = NULL;
+                actor->targetNode = NULL;
                 func_actor_800200_801653A0(arg0);
-            } else if (actor->field_93E >= ((rand() & 0x7F) + 0x96)) {
+            } else if (actor->actionValue >= ((rand() & 0x7F) + 0x96)) {
                 func_actor_800200_801653C0(arg0);
             }
         }
@@ -1220,22 +1213,22 @@ static void func_actor_800200_80162990(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            actor->field_960 = 1;
-            actor->field_20  = D_actor_800200_80169FF8[3].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_80169FF8[3].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            actor->stateAux       = 1;
+            actor->destination.vx = D_actor_800200_80169FF8[3].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_80169FF8[3].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_80169FF8[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_80169FF8[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_80169FF8[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_80169FF8[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1243,9 +1236,9 @@ static void func_actor_800200_80162990(Task* arg0)
                     return;
                 }
                 if (func_8010BC70(coord) >= 0xE00 || (companion->waypointIndex == 2 && Gp_HasCollectedBit(0x114) == 0)) {
-                    actor->field_960 = 2;
-                    actor->field_934 = 0;
-                    actor->field_90C = NULL;
+                    actor->stateAux   = 2;
+                    actor->stateTimer = 0;
+                    actor->targetNode = NULL;
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
@@ -1261,13 +1254,13 @@ static void func_actor_800200_80162990(Task* arg0)
         case 2:
             if ((func_8010BC70(coord) < 0xC01 && companion->waypointIndex < 2) || (companion->waypointIndex == state && Gp_HasCollectedBit(0x114) != 0)) {
                 companion->waypointIndex++;
-                actor->field_960 = 1;
+                actor->stateAux = 1;
                 return;
             }
-            delay            = actor->field_934 - 1;
-            actor->field_934 = delay;
+            delay             = actor->stateTimer - 1;
+            actor->stateTimer = delay;
             if (delay <= 0) {
-                actor->field_934 = rand() & 0x7F;
+                actor->stateTimer = rand() & 0x7F;
                 func_actor_800200_8016545C(arg0, 1);
             }
             return;
@@ -1285,22 +1278,22 @@ static void func_actor_800200_80162BFC(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            actor->field_960 = 1;
-            actor->field_20  = D_actor_800200_8016A020[3].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A020[3].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            actor->stateAux       = 1;
+            actor->destination.vx = D_actor_800200_8016A020[3].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A020[3].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A020[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A020[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A020[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A020[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1308,9 +1301,9 @@ static void func_actor_800200_80162BFC(Task* arg0)
                     return;
                 }
                 if (func_8010BC70(coord) >= 0xC00) {
-                    actor->field_960 = 2;
-                    actor->field_934 = 0;
-                    actor->field_90C = NULL;
+                    actor->stateAux   = 2;
+                    actor->stateTimer = 0;
+                    actor->targetNode = NULL;
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
@@ -1326,13 +1319,13 @@ static void func_actor_800200_80162BFC(Task* arg0)
         case 2:
             if (func_8010BC70(coord) < 0xB01 && companion->waypointIndex > 0) {
                 companion->waypointIndex++;
-                actor->field_960 = 1;
+                actor->stateAux = 1;
                 return;
             }
-            delay            = actor->field_934 - 1;
-            actor->field_934 = delay;
+            delay             = actor->stateTimer - 1;
+            actor->stateTimer = delay;
             if (delay <= 0) {
-                actor->field_934 = rand() & 0x7F;
+                actor->stateTimer = rand() & 0x7F;
                 func_actor_800200_8016545C(arg0, 1);
             }
             return;
@@ -1350,25 +1343,25 @@ static void func_actor_800200_80162E0C(Task* arg0)
     coord     = arg0->extra.tmd->coords;
     target    = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor     = arg0->work;
-    companion = actor->field_910;
-    switch (actor->field_960) {
+    companion = actor->companionWork;
+    switch (actor->stateAux) {
         case 0:
-            actor->field_20 = D_actor_800200_80169FE0[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_80169FE0[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_80169FE0[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_80169FE0[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
-                    actor->field_960 = 3;
-                    actor->field_95E = 0;
-                    actor->field_95C = 7;
+                    actor->stateAux       = 3;
+                    actor->statePhase     = 0;
+                    actor->animationState = 7;
                     Gp_AnimPlayChildSlotsEx(arg0, 7, 0, 3);
                     func_actor_800200_80165408(arg0, 6);
                     return;
                 }
                 if (func_8010BC70(coord) >= 0xE00) {
-                    actor->field_960 = 1;
-                    actor->field_934 = 0;
-                    actor->field_90C = 0;
+                    actor->stateAux   = 1;
+                    actor->stateTimer = 0;
+                    actor->targetNode = 0;
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
@@ -1379,25 +1372,25 @@ static void func_actor_800200_80162E0C(Task* arg0)
         case 1:
             if ((func_8010BC70(coord) < 0xA01) || (coord->coord.t[0] < target->coord.t[0])) {
                 companion->waypointIndex++;
-                actor->field_960 = 0;
+                actor->stateAux = 0;
                 return;
             }
-            delay            = actor->field_934 - 1;
-            actor->field_934 = delay;
+            delay             = actor->stateTimer - 1;
+            actor->stateTimer = delay;
             if (delay <= 0) {
                 companion->activity.combat.repeatsRemaining = 1;
-                actor->field_934                            = rand() & 0x7F;
+                actor->stateTimer                           = rand() & 0x7F;
                 func_actor_800200_80165434(arg0, 0);
             }
             return;
         case 3:
-            if (actor->field_95E != 0) {
-                actor->field_960++;
+            if (actor->statePhase != 0) {
+                actor->stateAux++;
             }
             return;
         case 4:
-            actor->field_95C = 0;
-            actor->field_960++;
+            actor->animationState = 0;
+            actor->stateAux++;
             Gp_AnimResetChildSlots(arg0, 9);
             return;
         default:
@@ -1417,23 +1410,23 @@ static void func_actor_800200_80163044(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            flag             = 1;
-            actor->field_960 = flag;
-            actor->field_20  = D_actor_800200_8016A048[1].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A048[1].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            flag                  = 1;
+            actor->stateAux       = flag;
+            actor->destination.vx = D_actor_800200_8016A048[1].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A048[1].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A048[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A048[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A048[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A048[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1460,22 +1453,22 @@ static void func_actor_800200_80163180(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            actor->field_960 = 1;
-            actor->field_20  = D_actor_800200_8016A058[1].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A058[1].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            actor->stateAux       = 1;
+            actor->destination.vx = D_actor_800200_8016A058[1].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A058[1].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A058[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A058[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A058[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A058[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1483,9 +1476,9 @@ static void func_actor_800200_80163180(Task* arg0)
                     return;
                 }
                 if (func_8010BC70(coord) >= 0xC00) {
-                    actor->field_960 = 2;
-                    actor->field_934 = 0;
-                    actor->field_90C = NULL;
+                    actor->stateAux   = 2;
+                    actor->stateTimer = 0;
+                    actor->targetNode = NULL;
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
@@ -1497,13 +1490,13 @@ static void func_actor_800200_80163180(Task* arg0)
         case 2:
             if (func_8010BC70(coord) < 0x801) {
                 companion->waypointIndex++;
-                actor->field_960 = 1;
+                actor->stateAux = 1;
                 return;
             }
-            delay            = actor->field_934 - 1;
-            actor->field_934 = delay;
+            delay             = actor->stateTimer - 1;
+            actor->stateTimer = delay;
             if (delay <= 0) {
-                actor->field_934 = rand() & 0x7F;
+                actor->stateTimer = rand() & 0x7F;
                 func_actor_800200_8016545C(arg0, 1);
             }
             return;
@@ -1521,22 +1514,22 @@ static void func_actor_800200_8016337C(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            actor->field_960 = 1;
-            actor->field_20  = D_actor_800200_8016A068[2].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A068[2].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            actor->stateAux       = 1;
+            actor->destination.vx = D_actor_800200_8016A068[2].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A068[2].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A068[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A068[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A068[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A068[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1544,9 +1537,9 @@ static void func_actor_800200_8016337C(Task* arg0)
                     return;
                 }
                 if (func_8010BC70(coord) >= 0xC00) {
-                    actor->field_960 = 2;
-                    actor->field_934 = 0;
-                    actor->field_90C = NULL;
+                    actor->stateAux   = 2;
+                    actor->stateTimer = 0;
+                    actor->targetNode = NULL;
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
@@ -1562,13 +1555,13 @@ static void func_actor_800200_8016337C(Task* arg0)
         case 2:
             if (func_8010BC70(coord) < 0x901) {
                 companion->waypointIndex++;
-                actor->field_960 = 1;
+                actor->stateAux = 1;
                 return;
             }
-            delay            = actor->field_934 - 1;
-            actor->field_934 = delay;
+            delay             = actor->stateTimer - 1;
+            actor->stateTimer = delay;
             if (delay <= 0) {
-                actor->field_934 = rand() & 0x7F;
+                actor->stateTimer = rand() & 0x7F;
                 func_actor_800200_8016545C(arg0, 1);
             }
             return;
@@ -1586,26 +1579,26 @@ static void func_actor_800200_80163584(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            actor->field_960 = 1;
-            actor->field_20  = D_actor_800200_8016A080[1].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A080[1].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            actor->stateAux       = 1;
+            actor->destination.vx = D_actor_800200_8016A080[1].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A080[1].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_960++;
+            actor->stateAux++;
             func_actor_800200_80165534(arg0);
             return;
         case 2:
-            actor->field_20 = D_actor_800200_8016A080[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A080[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A080[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A080[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 1) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1613,9 +1606,9 @@ static void func_actor_800200_80163584(Task* arg0)
                     return;
                 }
                 if (func_8010BC70(coord) >= 0xC00) {
-                    actor->field_960 = 3;
-                    actor->field_934 = 0;
-                    actor->field_90C = NULL;
+                    actor->stateAux   = 3;
+                    actor->stateTimer = 0;
+                    actor->targetNode = NULL;
                     func_actor_800200_801653A0(arg0);
                     return;
                 }
@@ -1631,13 +1624,13 @@ static void func_actor_800200_80163584(Task* arg0)
         case 3:
             if (func_8010BC70(coord) < 0x901) {
                 companion->waypointIndex++;
-                actor->field_960 = 1;
+                actor->stateAux = 1;
                 return;
             }
-            delay            = actor->field_934 - 1;
-            actor->field_934 = delay;
+            delay             = actor->stateTimer - 1;
+            actor->stateTimer = delay;
             if (delay <= 0) {
-                actor->field_934 = rand() & 0x7F;
+                actor->stateTimer = rand() & 0x7F;
                 func_actor_800200_8016545C(arg0, 1);
             }
             return;
@@ -1655,23 +1648,23 @@ static void func_actor_800200_801637B4(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            flag             = 1;
-            actor->field_960 = flag;
-            actor->field_20  = D_actor_800200_8016A098[2].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A098[2].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            flag                  = 1;
+            actor->stateAux       = flag;
+            actor->destination.vx = D_actor_800200_8016A098[2].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A098[2].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A098[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A098[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A098[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A098[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1703,23 +1696,23 @@ static void func_actor_800200_8016390C(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            flag             = 1;
-            actor->field_960 = flag;
-            actor->field_20  = D_actor_800200_8016A0B0[2].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A0B0[2].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            flag                  = 1;
+            actor->stateAux       = flag;
+            actor->destination.vx = D_actor_800200_8016A0B0[2].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A0B0[2].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A0B0[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A0B0[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A0B0[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A0B0[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1746,24 +1739,24 @@ static void func_actor_800200_80163A54(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    companion = actor->field_910;
-    switch (actor->field_960) {
+    companion = actor->companionWork;
+    switch (actor->stateAux) {
         case 0:
-            flag             = 1;
-            actor->field_960 = flag;
-            actor->field_20  = D_actor_800200_8016A0C8[2].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A0C8[2].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            flag                  = 1;
+            actor->stateAux       = flag;
+            actor->destination.vx = D_actor_800200_8016A0C8[2].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A0C8[2].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
             func_actor_800200_80165534(arg0);
             break;
         case 1:
-            actor->field_20 = D_actor_800200_8016A0C8[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A0C8[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A0C8[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A0C8[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1789,25 +1782,25 @@ static void func_actor_800200_80163B90(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            flag             = 1;
-            actor->field_960 = flag;
-            actor->field_20  = D_actor_800200_8016A0E0[4].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A0E0[4].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            flag                  = 1;
+            actor->stateAux       = flag;
+            actor->destination.vx = D_actor_800200_8016A0E0[4].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A0E0[4].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
             func_actor_800200_80165534(arg0);
             return;
         case 1:
-            actor->field_20 = D_actor_800200_8016A0E0[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A0E0[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A0E0[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A0E0[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 4) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1835,23 +1828,23 @@ static void func_actor_800200_80163CCC(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            flag             = 1;
-            actor->field_960 = flag;
-            actor->field_20  = D_actor_800200_8016A108[3].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A108[3].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            flag                  = 1;
+            actor->stateAux       = flag;
+            actor->destination.vx = D_actor_800200_8016A108[3].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A108[3].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A108[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A108[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A108[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A108[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1880,23 +1873,23 @@ static void func_actor_800200_80163E14(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            flag             = 1;
-            actor->field_960 = flag;
-            actor->field_20  = D_actor_800200_8016A130[4].field_0;
-            actor->field_24  = coord->coord.t[1];
-            actor->field_28  = D_actor_800200_8016A130[4].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+            flag                  = 1;
+            actor->stateAux       = flag;
+            actor->destination.vx = D_actor_800200_8016A130[4].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A130[4].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 goto arrived;
             }
         case 1:
-            actor->field_20 = D_actor_800200_8016A130[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A130[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x201) {
+            actor->destination.vx = D_actor_800200_8016A130[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A130[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 4) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1933,38 +1926,38 @@ static void func_actor_800200_80163F5C(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
-    dist   = _actor800200GetContactDistance(coord, actor->field_910->probe.contacts, NULL);
+    dist   = _actor800200GetContactDistance(coord, actor->companionWork->probe.contacts, NULL);
     if (dist != 0 && dist < 0x301) {
         hit                      = arg0->work;
-        companion                = hit->field_910;
-        hit->field_956           = 0xA;
-        hit->field_95A           = 2;
-        hit->field_954           = 0;
-        hit->field_95C           = 0;
-        hit->field_95E           = 0;
-        hit->field_973           = 0;
-        hit->field_975           = 0;
+        companion                = hit->companionWork;
+        hit->state               = 0xA;
+        hit->turnRateIndex       = 2;
+        hit->mode                = GAME_ACTOR_MODE_NORMAL;
+        hit->animationState      = 0;
+        hit->statePhase          = 0;
+        hit->movementSign        = 0;
+        hit->turnSign            = 0;
         companion->scanClearance = COMPANION_SCAN_UNTESTED;
         companion->scanAngle     = 0;
         Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 3);
         return;
     }
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            actor->field_934 = 0;
+            actor->stateTimer = 0;
             if (func_8010BC70(coord) >= 0xE00) {
-                mode             = 4;
-                actor->field_95E = 2;
-                actor->field_958 = 6;
+                mode                = 4;
+                actor->statePhase   = 2;
+                actor->movementMode = 6;
             } else {
             resume:
-                if (actor->field_95E != 3) {
-                    actor->field_95E = 1;
+                if (actor->statePhase != 3) {
+                    actor->statePhase = 1;
                 }
-                actor->field_958 = 5;
-                mode             = 2;
+                actor->movementMode = 5;
+                mode                = 2;
             }
-            actor->field_973 = 1;
+            actor->movementSign = 1;
             Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
         case 1:
         case 2:
@@ -1974,30 +1967,30 @@ static void func_actor_800200_80163F5C(Task* arg0)
                 Gp_ResetActorMove(arg0, 0);
                 break;
             }
-            if (actor->field_95E == 3) {
+            if (actor->statePhase == 3) {
                 break;
             }
-            actor->field_934++;
-            if (actor->field_934 == 0xF0) {
-                actor->field_95E = 3;
+            actor->stateTimer++;
+            if (actor->stateTimer == 0xF0) {
+                actor->statePhase = 3;
                 goto resume;
             }
             angle = rand() & 0x3FF;
             if ((0x800 - angle) < dist) {
                 goto in_range;
             }
-            if (actor->field_95E == 2) {
+            if (actor->statePhase == 2) {
                 goto reset;
             }
         in_range:
             if (dist < angle + 0xC00) {
                 break;
             }
-            if (actor->field_95E != 1) {
+            if (actor->statePhase != 1) {
                 break;
             }
         reset:
-            actor->field_95E = 0;
+            actor->statePhase = 0;
             break;
         default:
             break;
@@ -2022,35 +2015,35 @@ static void func_actor_800200_80164180(Task* arg0)
     u16              flag;
 
     actor                    = arg0->work;
-    companion                = actor->field_910;
+    companion                = actor->companionWork;
     target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
     head                     = SCRATCH_STACK_CURSOR(u8);
     tmp                      = head - 0x10;
     SCRATCH_STACK_CURSOR(u8) = tmp;
     vec                      = (VECTOR3*)tmp;
-    node                     = actor->field_90C;
+    node                     = actor->targetNode;
     if (node != NULL) {
         if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             Gp_GetLockPos(node, vec);
         } else {
-            actor->field_95E = 2;
+            actor->statePhase = 2;
         }
     } else {
         ((VECTOR3*)(head - 0x10))->vx = target->coord.t[0];
         vec->vy                       = target->coord.t[1];
         vec->vz                       = target->coord.t[2];
     }
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 0:
-            actor->field_95E = 1;
-            actor->field_958 = 5;
-            actor->field_973 = 1;
+            actor->statePhase   = 1;
+            actor->movementMode = 5;
+            actor->movementSign = 1;
             if (func_8010BCF4(arg0, vec) < 0) {
-                actor->field_975 = -1;
-                anim             = 5;
+                actor->turnSign = -1;
+                anim            = 5;
             } else {
-                actor->field_975 = 1;
-                anim             = 6;
+                actor->turnSign = 1;
+                anim            = 6;
             }
             Gp_AnimPlayChildSlotsEx(arg0, anim, 1, 5);
         case 1:
@@ -2059,17 +2052,17 @@ static void func_actor_800200_80164180(Task* arg0)
             if (dist < 0) {
                 dist = -dist;
             }
-            if ((dist < 0x101) || (actor->field_95E == 2)) {
+            if ((dist < 0x101) || (actor->statePhase == 2)) {
                 if ((s8)companion->activity.combat.repeatsRemaining > 0) {
-                    flag              = actor->field_90C != 0;
-                    actor2            = arg0->work;
-                    actor2->field_954 = 0;
-                    actor2->field_956 = 4;
-                    actor2->field_958 = 0;
-                    actor2->field_95A = 0;
-                    actor2->field_95C = 0;
-                    actor2->field_95E = 0;
-                    actor2->field_940 = flag;
+                    flag                                = actor->targetNode != 0;
+                    actor2                              = arg0->work;
+                    actor2->mode                        = GAME_ACTOR_MODE_NORMAL;
+                    actor2->state                       = 4;
+                    actor2->movementMode                = 0;
+                    actor2->turnRateIndex               = 0;
+                    actor2->animationState              = 0;
+                    actor2->statePhase                  = 0;
+                    actor2->attackControl.targetVariant = flag;
                 } else {
                     Gp_ResetActorMove(arg0, 0);
                 }
@@ -2101,16 +2094,16 @@ static void func_actor_800200_8016436C(Task* arg0)
     GameActor*       actor2;
 
     actor                    = arg0->work;
-    companion                = actor->field_910;
+    companion                = actor->companionWork;
     target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
     head                     = SCRATCH_STACK_CURSOR(u8);
     tmp                      = head - 0x10;
     SCRATCH_STACK_CURSOR(u8) = tmp;
     vec                      = (VECTOR3*)tmp;
     coord                    = arg0->extra.tmd->coords;
-    if (actor->field_90C != NULL) {
-        node             = Gp_FindLockNode(arg0);
-        actor->field_90C = node;
+    if (actor->targetNode != NULL) {
+        node              = Gp_FindLockNode(arg0);
+        actor->targetNode = node;
         if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             Gp_GetLockPos(node, vec);
         } else {
@@ -2121,7 +2114,7 @@ static void func_actor_800200_8016436C(Task* arg0)
         vec->vy                       = target->coord.t[1];
         vec->vz                       = target->coord.t[2];
     }
-    state = actor->field_95E;
+    state = actor->statePhase;
     if (state != 0) {
         if (state != 1) {
             scratch = SCRATCH_HEAD_ADDR;
@@ -2129,10 +2122,10 @@ static void func_actor_800200_8016436C(Task* arg0)
             goto tick;
         }
     } else {
-        actor->field_95E = next;
-        Gp_AnimPlayChildSlotsEx(arg0, actor->field_940 + 0xA, 0, 4);
+        actor->statePhase = next;
+        Gp_AnimPlayChildSlotsEx(arg0, actor->attackControl.targetVariant + 0xA, 0, 4);
         pan = (s8)Gp_GetObjPan(coord);
-        SndEvt_EnqueueType6(actor->field_940 + 0x40720009, pan, (s8)gpGetObjDepth(coord));
+        SndEvt_EnqueueType6(actor->attackControl.targetVariant + 0x40720009, pan, (s8)gpGetObjDepth(coord));
     tick:
         if (func_80105894(arg0, 1, 0, 0) == 0) {
             dist = func_8010BCF4(arg0, vec);
@@ -2140,19 +2133,19 @@ static void func_actor_800200_8016436C(Task* arg0)
                 dist = -dist;
             }
             if ((dist >= 0x281) && (func_80103DD4(MATRIX_TRANS(&coord->coord), vec) >= 0x201)) {
-                actor2            = arg0->work;
-                actor2->field_954 = 0;
-                actor2->field_956 = 2;
-                actor2->field_95A = 2;
-                actor2->field_95C = 0;
-                actor2->field_95E = 0;
+                actor2                 = arg0->work;
+                actor2->mode           = GAME_ACTOR_MODE_NORMAL;
+                actor2->state          = 2;
+                actor2->turnRateIndex  = 2;
+                actor2->animationState = 0;
+                actor2->statePhase     = 0;
             } else {
                 count                                       = companion->activity.combat.repeatsRemaining - 1;
                 companion->activity.combat.repeatsRemaining = count;
                 if (count <= 0) {
                     Gp_ResetActorMove(arg0, 0);
                 } else {
-                    actor->field_95E = 0;
+                    actor->statePhase = 0;
                 }
             }
         }
@@ -2170,50 +2163,50 @@ static void func_actor_800200_80164598(Task* arg0)
     s32                mode;
     s32                flag;
 
-    actor           = arg0->work;
-    coord           = arg0->extra.tmd->coords;
-    block           = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
-    block->vec.vx   = actor->field_20 - coord->coord.t[0];
-    block->vec.vy   = actor->field_24 - coord->coord.t[1];
-    block->vec.vz   = actor->field_28 - coord->coord.t[2];
-    actor->field_82 = ratan2(block->vec.vx, block->vec.vz);
-    val             = func_80103E7C(actor->field_52, actor->field_82);
-    block->field_0  = val;
+    actor                         = arg0->work;
+    coord                         = arg0->extra.tmd->coords;
+    block                         = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
+    block->vec.vx                 = actor->destination.vx - coord->coord.t[0];
+    block->vec.vy                 = actor->destination.vy - coord->coord.t[1];
+    block->vec.vz                 = actor->destination.vz - coord->coord.t[2];
+    actor->scriptMotion.targetYaw = ratan2(block->vec.vx, block->vec.vz);
+    val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
+    block->field_0                = val;
     if (val > 0x30) {
         block->field_0 = 0x30;
     } else if (val < -0x30) {
         block->field_0 = -0x30;
-    } else if (actor->field_95E == 0) {
-        actor->field_95E = 1;
+    } else if (actor->statePhase == 0) {
+        actor->statePhase = 1;
     }
-    actor->field_52 = (actor->field_52 + block->field_0) & 0xFFF;
-    switch (actor->field_95E) {
+    actor->rotation.vy = (actor->rotation.vy + block->field_0) & 0xFFF;
+    switch (actor->statePhase) {
         case 0:
-            flag             = 1;
-            actor->field_95E = flag;
-            actor->field_973 = flag;
-            mode             = 6;
+            flag                = 1;
+            actor->statePhase   = flag;
+            actor->movementSign = flag;
+            mode                = 6;
             if (block->field_0 < 0) {
                 mode = 5;
             }
             Gp_AnimPlayChildSlots(arg0, mode, 1);
         case 1:
             if (block->field_0 == 0) {
-                actor->field_958 = actor->field_934;
-                actor->field_95E++;
+                actor->movementMode = actor->stateTimer;
+                actor->statePhase++;
                 mode = 4;
-                if ((u16)actor->field_934 == 5) {
+                if ((u16)actor->stateTimer == 5) {
                     mode = 2;
                 }
                 Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
             }
             break;
         case 2:
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0xC1 ||
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0xC1 ||
                 func_801041B4(arg0) != 0) {
                 Gp_ResetActorMove(arg0, 0);
             } else {
-                actor->field_973 = 1;
+                actor->movementSign = 1;
             }
             break;
     }
@@ -2245,14 +2238,14 @@ static void func_actor_800200_801647A8(Task* arg0)
     vec                      = (VECTOR3*)tmp;
     actor                    = arg0->work;
     coord                    = arg0->extra.tmd->coords;
-    state                    = actor->field_95E;
+    state                    = actor->statePhase;
     switch (state) {
         case 0:
-            initialState     = 1;
-            actor->field_95E = initialState;
+            initialState      = 1;
+            actor->statePhase = initialState;
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-                node             = Gp_FindLockNode(arg0);
-                actor->field_90C = node;
+                node              = Gp_FindLockNode(arg0);
+                actor->targetNode = node;
                 if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
                     Gp_GetLockPos(node, vec);
                     dist = func_80103DD4(MATRIX_TRANS(&coord->coord), vec);
@@ -2269,34 +2262,34 @@ static void func_actor_800200_801647A8(Task* arg0)
             if (dist >= 8) {
                 dist = 7;
             }
-            value            = (rand() & 0x1FF) - (dist * 0x30);
-            actor->field_934 = value;
+            value             = (rand() & 0x1FF) - (dist * 0x30);
+            actor->stateTimer = value;
             if (value < 0x60) {
                 value = 0x60;
             store:
-                actor->field_934 = value;
+                actor->stateTimer = value;
             }
         case 1:
-            value            = actor->field_934 - 1;
-            actor->field_934 = value;
+            value             = actor->stateTimer - 1;
+            actor->stateTimer = value;
             if (value <= 0) {
-                actor2                                              = arg0->work;
-                next                                                = 1;
-                actor2->field_910->activity.combat.repeatsRemaining = next;
+                actor2                                                  = arg0->work;
+                next                                                    = 1;
+                actor2->companionWork->activity.combat.repeatsRemaining = next;
                 if (Gp_StateF0.prefix.bytes.field_0 == next) {
-                    actor2->field_90C = Gp_FindLockNode(arg0);
+                    actor2->targetNode = Gp_FindLockNode(arg0);
                 } else {
-                    actor2->field_90C = NULL;
+                    actor2->targetNode = NULL;
                 }
-                flag              = actor2->field_90C != 0;
-                actor3            = arg0->work;
-                actor3->field_954 = 0;
-                actor3->field_956 = 4;
-                actor3->field_958 = 0;
-                actor3->field_95A = 0;
-                actor3->field_95C = 0;
-                actor3->field_95E = 0;
-                actor3->field_940 = flag;
+                flag                                = actor2->targetNode != 0;
+                actor3                              = arg0->work;
+                actor3->mode                        = GAME_ACTOR_MODE_NORMAL;
+                actor3->state                       = 4;
+                actor3->movementMode                = 0;
+                actor3->turnRateIndex               = 0;
+                actor3->animationState              = 0;
+                actor3->statePhase                  = 0;
+                actor3->attackControl.targetVariant = flag;
             }
             break;
     }
@@ -2321,9 +2314,9 @@ static void func_actor_800200_801649D8(Task* arg0)
     u16            target;
 
     actor     = arg0->work;
-    companion = actor->field_910;
+    companion = actor->companionWork;
     distance  = _actor800200GetContactDistance(arg0->extra.tmd->coords, companion->probe.contacts, 0);
-    value     = actor->field_95E;
+    value     = actor->statePhase;
     one       = 1;
     switch (value) {
         case 0:
@@ -2336,10 +2329,10 @@ static void func_actor_800200_801649D8(Task* arg0)
                 companion->scanAngle = (u16)companion->scanAngle + COMPANION_SCAN_ANGLE_STEP;
                 return;
             }
-            actor->field_95E         = one;
-            target                   = ((u16)companion->targetHeading + actor->field_52) & ACTOR_TRANSFORM_ANGLE_MASK;
+            actor->statePhase        = one;
+            target                   = ((u16)companion->targetHeading + actor->rotation.vy) & ACTOR_TRANSFORM_ANGLE_MASK;
             companion->targetHeading = target;
-            turn                     = func_80103E7C((s16)actor->field_52, (s16)target) << 0x10;
+            turn                     = func_80103E7C((s16)actor->rotation.vy, (s16)target) << 0x10;
             turnAnim                 = 5;
             if (turn > 0) {
                 turnAnim           = 6;
@@ -2351,9 +2344,9 @@ static void func_actor_800200_801649D8(Task* arg0)
             return;
 
         case 1:
-            actor->field_975 = companion->turnDir;
+            actor->turnSign = companion->turnDir;
             do {
-                heading = (s16)actor->field_52;
+                heading = (s16)actor->rotation.vy;
                 value   = companion->targetHeading;
                 delta   = heading - value;
             } while (0);
@@ -2361,24 +2354,24 @@ static void func_actor_800200_801649D8(Task* arg0)
                 delta = -delta;
             }
             if (delta < 0x40) {
-                actor->field_95E += 1;
-                actor->field_52   = (u16)companion->targetHeading;
-                actor->field_975  = 0;
+                actor->statePhase += 1;
+                actor->rotation.vy = (u16)companion->targetHeading;
+                actor->turnSign    = 0;
                 if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-                    idleAnim         = 4;
-                    actor->field_958 = 6;
-                    random           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState  = random;
-                    random           = ((random >> 0x10) & 0x1F) + 0x14;
-                    actor->field_934 = random;
+                    idleAnim            = 4;
+                    actor->movementMode = 6;
+                    random              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState     = random;
+                    random              = ((random >> 0x10) & 0x1F) + 0x14;
+                    actor->stateTimer   = random;
                     Gp_AnimPlayChildSlotsEx(arg0, idleAnim, 0, 3);
                 } else {
-                    idleAnim         = 2;
-                    actor->field_958 = 5;
-                    random           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState  = random;
-                    random           = ((random >> 0x10) & 0x7F) + 0x3C;
-                    actor->field_934 = random;
+                    idleAnim            = 2;
+                    actor->movementMode = 5;
+                    random              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState     = random;
+                    random              = ((random >> 0x10) & 0x7F) + 0x3C;
+                    actor->stateTimer   = random;
                     Gp_AnimPlayChildSlotsEx(arg0, idleAnim, 0, 3);
                 }
                 return;
@@ -2387,14 +2380,14 @@ static void func_actor_800200_801649D8(Task* arg0)
 
         case 2:
             if ((distance >= 0x341) || (distance == 0)) {
-                tick             = actor->field_934 - 1;
-                actor->field_934 = tick;
+                tick              = actor->stateTimer - 1;
+                actor->stateTimer = tick;
                 if (tick <= 0) {
                 reset:
                     Gp_ResetActorMove(arg0, 0);
                     break;
                 }
-                actor->field_973 = 1;
+                actor->movementSign = 1;
                 break;
             }
             goto reset;
@@ -2409,60 +2402,60 @@ static void func_actor_800200_80164C54(Task* arg0)
     s32                val;
     s32                mode;
 
-    actor           = arg0->work;
-    coord           = arg0->extra.tmd->coords;
-    block           = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
-    block->vec.vx   = actor->field_20 - coord->coord.t[0];
-    block->vec.vy   = actor->field_24 - coord->coord.t[1];
-    block->vec.vz   = actor->field_28 - coord->coord.t[2];
-    actor->field_82 = ratan2(block->vec.vx, block->vec.vz);
-    val             = func_80103E7C(actor->field_52, actor->field_82);
-    block->field_0  = val;
+    actor                         = arg0->work;
+    coord                         = arg0->extra.tmd->coords;
+    block                         = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
+    block->vec.vx                 = actor->destination.vx - coord->coord.t[0];
+    block->vec.vy                 = actor->destination.vy - coord->coord.t[1];
+    block->vec.vz                 = actor->destination.vz - coord->coord.t[2];
+    actor->scriptMotion.targetYaw = ratan2(block->vec.vx, block->vec.vz);
+    val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
+    block->field_0                = val;
     if (val > 0x40) {
         block->field_0 = 0x40;
     } else if (val < -0x40) {
         block->field_0 = -0x40;
-    } else if (actor->field_95E == 0) {
-        actor->field_95E = 1;
+    } else if (actor->statePhase == 0) {
+        actor->statePhase = 1;
     }
-    actor->field_52 = (actor->field_52 + block->field_0) & 0xFFF;
-    switch (actor->field_95E) {
+    actor->rotation.vy = (actor->rotation.vy + block->field_0) & 0xFFF;
+    switch (actor->statePhase) {
         case 0:
-            actor->field_95E = 1;
-            mode             = 6;
+            actor->statePhase = 1;
+            mode              = 6;
             if (block->field_0 < 0) {
                 mode = 5;
             }
             Gp_AnimPlayChildSlots(arg0, mode, 1);
         case 1:
             if (block->field_0 == 0) {
-                actor->field_958 = 5;
-                actor->field_95E++;
-                if (actor->field_93C == 0) {
+                actor->movementMode = 5;
+                actor->statePhase++;
+                if (actor->actionArgument == 0) {
                     mode = 2;
-                    if (actor->field_91C == NULL) {
+                    if (actor->equipmentTasks[1] == NULL) {
                         mode = 0x13;
                     }
                 } else {
-                    mode = actor->field_93C;
+                    mode = actor->actionArgument;
                 }
                 Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
             }
             break;
         case 2:
-            if (abs(coord->coord.t[0] - actor->field_20) < 0x69) {
-                if (abs(coord->coord.t[2] - actor->field_28) < 0x69) {
-                    actor->field_982 = 0;
-                    actor->field_956 = 1;
-                    mode             = 1;
-                    if (actor->field_93E != 0) {
-                        mode = actor->field_93E;
+            if (abs(coord->coord.t[0] - actor->destination.vx) < 0x69) {
+                if (abs(coord->coord.t[2] - actor->destination.vz) < 0x69) {
+                    actor->scriptedMotionPending = 0;
+                    actor->state                 = 1;
+                    mode                         = 1;
+                    if (actor->actionValue != 0) {
+                        mode = actor->actionValue;
                     }
                     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
                     break;
                 }
             }
-            actor->field_973 = 1;
+            actor->movementSign = 1;
             Gp_StepPlayerMove(arg0);
             func_80105ED4(arg0);
             break;
@@ -2479,56 +2472,56 @@ static void func_actor_800200_80164EBC(Task* arg0)
     s32                val;
     s32                mode;
 
-    actor           = arg0->work;
-    coord           = arg0->extra.tmd->coords;
-    block           = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
-    block->vec.vx   = actor->field_20 - coord->coord.t[0];
-    block->vec.vy   = actor->field_24 - coord->coord.t[1];
-    block->vec.vz   = actor->field_28 - coord->coord.t[2];
-    actor->field_82 = ratan2(block->vec.vx, block->vec.vz);
-    val             = func_80103E7C(actor->field_52, actor->field_82);
-    block->field_0  = val;
+    actor                         = arg0->work;
+    coord                         = arg0->extra.tmd->coords;
+    block                         = SCRATCH_STACK_RESERVE_BLOCK(GpApproachScratch);
+    block->vec.vx                 = actor->destination.vx - coord->coord.t[0];
+    block->vec.vy                 = actor->destination.vy - coord->coord.t[1];
+    block->vec.vz                 = actor->destination.vz - coord->coord.t[2];
+    actor->scriptMotion.targetYaw = ratan2(block->vec.vx, block->vec.vz);
+    val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
+    block->field_0                = val;
     if (val > 0x40) {
         block->field_0 = 0x40;
     } else if (val < -0x40) {
         block->field_0 = -0x40;
-    } else if (actor->field_95E == 0) {
-        actor->field_95E = 1;
+    } else if (actor->statePhase == 0) {
+        actor->statePhase = 1;
     }
-    actor->field_52 = (actor->field_52 + block->field_0) & 0xFFF;
-    switch (actor->field_95E) {
+    actor->rotation.vy = (actor->rotation.vy + block->field_0) & 0xFFF;
+    switch (actor->statePhase) {
         case 0:
-            actor->field_95E = 1;
-            mode             = 6;
+            actor->statePhase = 1;
+            mode              = 6;
             if (block->field_0 < 0) {
                 mode = 5;
             }
             Gp_AnimPlayChildSlots(arg0, mode, 1);
         case 1:
             if (block->field_0 == 0) {
-                actor->field_958 = 6;
-                actor->field_95E++;
+                actor->movementMode = 6;
+                actor->statePhase++;
                 mode = 4;
-                if (actor->field_93C != 0) {
-                    mode = actor->field_93C;
+                if (actor->actionArgument != 0) {
+                    mode = actor->actionArgument;
                 }
                 Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
             }
             break;
         case 2:
-            if (abs(coord->coord.t[0] - actor->field_20) < 0x69) {
-                if (abs(coord->coord.t[2] - actor->field_28) < 0x69) {
-                    actor->field_982 = 0;
-                    actor->field_956 = 1;
-                    mode             = 1;
-                    if (actor->field_93E != 0) {
-                        mode = actor->field_93E;
+            if (abs(coord->coord.t[0] - actor->destination.vx) < 0x69) {
+                if (abs(coord->coord.t[2] - actor->destination.vz) < 0x69) {
+                    actor->scriptedMotionPending = 0;
+                    actor->state                 = 1;
+                    mode                         = 1;
+                    if (actor->actionValue != 0) {
+                        mode = actor->actionValue;
                     }
                     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
                     break;
                 }
             }
-            actor->field_973 = 1;
+            actor->movementSign = 1;
             Gp_StepPlayerMove(arg0);
             break;
     }
@@ -2536,7 +2529,7 @@ static void func_actor_800200_80164EBC(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(GpApproachScratch);
 }
 
-/// Handlers `func_actor_800200_80165B84` runs, indexed by `field_956`.
+/// Handlers `func_actor_800200_80165B84` runs, indexed by `state`.
 static const TaskFuncTable12 D_actor_800200_80161E5C = { {
     func_actor_800200_80165CB4,
     func_actor_800200_80163F5C,
@@ -2568,7 +2561,7 @@ static const TaskFuncTable11 D_actor_800200_80161E8C = { {
     func_actor_800200_80165708,
 } };
 
-/// Handlers `func_actor_800200_80165E90` runs, indexed by `field_96C`.
+/// Handlers `func_actor_800200_80165E90` runs, indexed by `hitRegion`.
 static const TaskFuncTable4 D_actor_800200_80161EB8 = { {
     func_actor_800200_80165F28,
     func_actor_800200_80165F28,
@@ -2576,7 +2569,7 @@ static const TaskFuncTable4 D_actor_800200_80161EB8 = { {
     func_actor_800200_80165F48,
 } };
 
-/// Handlers `func_actor_800200_80165F50` runs, indexed by `field_956`; the
+/// Handlers `func_actor_800200_80165F50` runs, indexed by `state`; the
 /// gameplay entries are the player's own mode-2 state handlers.
 static const TaskFuncTable9 D_actor_800200_80161EC8 = { {
     Gp_PlayerMode2State0,
@@ -2606,16 +2599,16 @@ static s32 func_actor_800200_80165104(Task* arg0)
     sound = 0;
     actor = arg0->work;
     obj   = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
-    if (rec != NULL && rec != actor->field_92C) {
-        actor->field_92C = rec;
+    rec   = Gp_AnimGetRec(&actor->animationContext, actor->animationSlots + 1);
+    if (rec != NULL && rec != actor->lastCueRecord) {
+        actor->lastCueRecord = rec;
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
-                param  = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->field_930];
+                param  = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass];
                 sounds = param->field_4;
                 if (sounds != NULL) {
-                    if ((u16)actor->field_958 - 5 < 2U) {
+                    if ((u16)actor->movementMode - 5 < 2U) {
                         switch (sounds[0]) {
                             case 0x10000015:
                                 sound = 0x40720007;
@@ -2638,7 +2631,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
                         if (cueBits == ANIMATION_RECORD_CUE_1) {
                             sound++;
                         }
-                        if ((u16)actor->field_958 == 6) {
+                        if ((u16)actor->movementMode == 6) {
                             Gp_SetStateF0Bit(5);
                         }
                     }
@@ -2662,46 +2655,46 @@ static void func_actor_800200_801652EC(Task* arg0)
 
     sp    = D_actor_800200_80161E34;
     actor = arg0->work;
-    if ((s8)actor->field_97A > 0) {
-        actor->field_97A--;
+    if ((s8)actor->recoveryTicks > 0) {
+        actor->recoveryTicks--;
     }
-    sp.funcs[actor->field_954](arg0);
+    sp.funcs[actor->mode](arg0);
     func_actor_800200_80165104(arg0);
-    actor->field_986 = 0;
+    actor->usesPushbackDirection = 0;
 }
 
 static void func_actor_800200_80165380(Task* arg0)
 {
     GameActor* actor = arg0->work;
 
-    actor->field_954 = 0;
-    actor->field_956 = 1;
-    actor->field_95A = 0;
-    actor->field_95C = 0;
-    actor->field_95E = 0;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = 1;
+    actor->turnRateIndex  = 0;
+    actor->animationState = 0;
+    actor->statePhase     = 0;
 }
 
 static void func_actor_800200_801653A0(Task* arg0)
 {
     GameActor* actor = arg0->work;
 
-    actor->field_954 = 0;
-    actor->field_956 = 2;
-    actor->field_95A = 2;
-    actor->field_95C = 0;
-    actor->field_95E = 0;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = 2;
+    actor->turnRateIndex  = 2;
+    actor->animationState = 0;
+    actor->statePhase     = 0;
 }
 
 static void func_actor_800200_801653C0(Task* arg0)
 {
     GameActor* actor = arg0->work;
 
-    actor->field_954 = 0;
-    actor->field_956 = 7;
-    actor->field_958 = 0;
-    actor->field_95A = 0;
-    actor->field_95C = 7;
-    actor->field_95E = 0;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = 7;
+    actor->movementMode   = 0;
+    actor->turnRateIndex  = 0;
+    actor->animationState = 7;
+    actor->statePhase     = 0;
     Gp_AnimPlayChildSlotsEx(arg0, 7, 0, 3);
 }
 
@@ -2709,26 +2702,26 @@ static void func_actor_800200_80165408(Task* arg0, s32 arg1)
 {
     GameActor* actor = arg0->work;
 
-    actor->field_956 = 8;
-    actor->field_954 = 0;
-    actor->field_958 = 5;
-    actor->field_95A = 0;
-    actor->field_95C = 0;
-    actor->field_95E = 0;
-    actor->field_934 = arg1;
+    actor->state          = 8;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode   = 5;
+    actor->turnRateIndex  = 0;
+    actor->animationState = 0;
+    actor->statePhase     = 0;
+    actor->stateTimer     = arg1;
 }
 
 static void func_actor_800200_80165434(Task* arg0, s16 arg1)
 {
     GameActor* actor = arg0->work;
 
-    actor->field_954 = 0;
-    actor->field_956 = 4;
-    actor->field_958 = 0;
-    actor->field_95A = 0;
-    actor->field_95C = 0;
-    actor->field_95E = 0;
-    actor->field_940 = arg1;
+    actor->mode                        = GAME_ACTOR_MODE_NORMAL;
+    actor->state                       = 4;
+    actor->movementMode                = 0;
+    actor->turnRateIndex               = 0;
+    actor->animationState              = 0;
+    actor->statePhase                  = 0;
+    actor->attackControl.targetVariant = arg1;
 }
 
 static void func_actor_800200_8016545C(Task* arg0, s8 arg1)
@@ -2737,33 +2730,33 @@ static void func_actor_800200_8016545C(Task* arg0, s8 arg1)
     GameActor* actor2;
     u16        flag;
 
-    actor->field_910->activity.combat.repeatsRemaining = arg1;
+    actor->companionWork->activity.combat.repeatsRemaining = arg1;
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-        actor->field_90C = Gp_FindLockNode(arg0);
+        actor->targetNode = Gp_FindLockNode(arg0);
     } else {
-        actor->field_90C = 0;
+        actor->targetNode = 0;
     }
-    flag              = actor->field_90C != 0;
-    actor2            = arg0->work;
-    actor2->field_954 = 0;
-    actor2->field_956 = 4;
-    actor2->field_958 = 0;
-    actor2->field_95A = 0;
-    actor2->field_95C = 0;
-    actor2->field_95E = 0;
-    actor2->field_940 = flag;
+    flag                                = actor->targetNode != 0;
+    actor2                              = arg0->work;
+    actor2->mode                        = GAME_ACTOR_MODE_NORMAL;
+    actor2->state                       = 4;
+    actor2->movementMode                = 0;
+    actor2->turnRateIndex               = 0;
+    actor2->animationState              = 0;
+    actor2->statePhase                  = 0;
+    actor2->attackControl.targetVariant = flag;
 }
 
 static void func_actor_800200_801654EC(Task* arg0, s32 arg1)
 {
     GameActor* actor = arg0->work;
 
-    actor->field_954 = 0;
-    actor->field_956 = 9;
-    actor->field_958 = 0;
-    actor->field_95A = 0;
-    actor->field_95C = 0;
-    actor->field_95E = 0;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = 9;
+    actor->movementMode   = 0;
+    actor->turnRateIndex  = 0;
+    actor->animationState = 0;
+    actor->statePhase     = 0;
     Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 3);
 }
 
@@ -2771,12 +2764,12 @@ static void func_actor_800200_80165534(Task* arg0)
 {
     GameActor* actor = arg0->work;
 
-    actor->field_956 = 0xB;
-    actor->field_954 = 0;
-    actor->field_958 = 0;
-    actor->field_95A = 0;
-    actor->field_95C = 7;
-    actor->field_95E = 0;
+    actor->state          = 0xB;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode   = 0;
+    actor->turnRateIndex  = 0;
+    actor->animationState = 7;
+    actor->statePhase     = 0;
     Gp_AnimPlayChildSlotsEx(arg0, 0xE, 0, 3);
 }
 
@@ -2784,7 +2777,7 @@ static void func_actor_800200_80165580(Task* arg0)
 {
     u8 temp_v1;
 
-    if (((GameActor*)arg0->work)->field_910->routeComplete == COMPANION_ROUTE_COMPLETE) {
+    if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
@@ -2809,7 +2802,7 @@ static void func_actor_800200_80165644(Task* arg0)
 {
     u8 temp_v1;
 
-    if (((GameActor*)arg0->work)->field_910->routeComplete == COMPANION_ROUTE_COMPLETE) {
+    if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
@@ -2834,7 +2827,7 @@ static void func_actor_800200_80165708(Task* arg0)
 {
     u8 temp_v0;
 
-    if (((GameActor*)arg0->work)->field_910->routeComplete == COMPANION_ROUTE_COMPLETE) {
+    if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
@@ -2879,12 +2872,12 @@ static void func_actor_800200_80165814(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    companion = actor->field_910;
-    if (actor->field_960 == 0) {
-        actor->field_20 = D_actor_800200_8016A018[companion->waypointIndex].field_0;
-        actor->field_24 = coord->coord.t[1];
-        actor->field_28 = D_actor_800200_8016A018[companion->waypointIndex].field_4;
-        if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+    companion = actor->companionWork;
+    if (actor->stateAux == 0) {
+        actor->destination.vx = D_actor_800200_8016A018[companion->waypointIndex].field_0;
+        actor->destination.vy = coord->coord.t[1];
+        actor->destination.vz = D_actor_800200_8016A018[companion->waypointIndex].field_4;
+        if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_801654EC(arg0, 0);
             return;
@@ -2905,12 +2898,12 @@ static void func_actor_800200_801658E0(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    companion = actor->field_910;
-    if (actor->field_960 == 0) {
-        actor->field_20 = D_actor_800200_8016A040[companion->waypointIndex].field_0;
-        actor->field_24 = coord->coord.t[1];
-        actor->field_28 = D_actor_800200_8016A040[companion->waypointIndex].field_4;
-        if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+    companion = actor->companionWork;
+    if (actor->stateAux == 0) {
+        actor->destination.vx = D_actor_800200_8016A040[companion->waypointIndex].field_0;
+        actor->destination.vy = coord->coord.t[1];
+        actor->destination.vz = D_actor_800200_8016A040[companion->waypointIndex].field_4;
+        if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_801654EC(arg0, 0);
             return;
@@ -2921,7 +2914,7 @@ static void func_actor_800200_801658E0(Task* arg0)
 
 static void func_actor_800200_8016599C(Task* arg0)
 {
-    ((GameActor*)arg0->work)->field_910->routeComplete = COMPANION_ROUTE_COMPLETE;
+    ((GameActor*)arg0->work)->companionWork->routeComplete = COMPANION_ROUTE_COMPLETE;
     func_actor_800200_801654EC(arg0, 0);
 }
 
@@ -2934,15 +2927,15 @@ static void func_actor_800200_801659CC(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    state     = actor->field_960;
-    companion = actor->field_910;
+    state     = actor->stateAux;
+    companion = actor->companionWork;
     switch (state) {
         case 0:
-            actor->field_20 = D_actor_800200_8016A090[companion->waypointIndex].field_0;
-            actor->field_24 = coord->coord.t[1];
-            actor->field_28 = D_actor_800200_8016A090[companion->waypointIndex].field_4;
-            if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
-                actor->field_960++;
+            actor->destination.vx = D_actor_800200_8016A090[companion->waypointIndex].field_0;
+            actor->destination.vy = coord->coord.t[1];
+            actor->destination.vz = D_actor_800200_8016A090[companion->waypointIndex].field_4;
+            if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+                actor->stateAux++;
                 if (companion->routeComplete != COMPANION_ROUTE_COMPLETE) {
                     func_actor_800200_80165534(arg0);
                 }
@@ -2965,12 +2958,12 @@ static void func_actor_800200_80165ACC(Task* arg0)
 
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
-    companion = actor->field_910;
-    if (actor->field_960 == 0) {
-        actor->field_20 = D_actor_800200_8016A128[companion->waypointIndex].field_0;
-        actor->field_24 = coord->coord.t[1];
-        actor->field_28 = D_actor_800200_8016A128[companion->waypointIndex].field_4;
-        if (func_80103DD4(MATRIX_TRANS(&coord->coord), (VECTOR3*)&actor->field_20) < 0x401) {
+    companion = actor->companionWork;
+    if (actor->stateAux == 0) {
+        actor->destination.vx = D_actor_800200_8016A128[companion->waypointIndex].field_0;
+        actor->destination.vy = coord->coord.t[1];
+        actor->destination.vz = D_actor_800200_8016A128[companion->waypointIndex].field_4;
+        if (func_80103DD4(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             func_actor_800200_80165534(arg0);
             return;
@@ -2989,15 +2982,15 @@ static void func_actor_800200_80165B84(Task* arg0)
 
     sp        = D_actor_800200_80161E5C;
     actor     = arg0->work;
-    companion = actor->field_910;
+    companion = actor->companionWork;
     coord     = arg0->extra.tmd->coords;
     if (companion->decisionTimer > 0) {
         companion->decisionTimer--;
     }
-    sp.funcs[actor->field_956](arg0);
-    if ((s8)actor->field_97A == 0) {
-        func_80109BB4(arg0, actor->field_17C);
-        if ((u16)actor->field_96C != 0) {
+    sp.funcs[actor->state](arg0);
+    if ((s8)actor->recoveryTicks == 0) {
+        func_80109BB4(arg0, actor->collisionContacts);
+        if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
             pan = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(0x4072000A, pan, (s8)gpGetObjDepth(coord));
@@ -3026,15 +3019,15 @@ static void func_actor_800200_80165D44(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
-    switch (actor->field_95E) {
+    switch (actor->statePhase) {
         case 1:
-            actor->field_95C  = 0;
-            actor->field_95E += 1;
+            actor->animationState = 0;
+            actor->statePhase    += 1;
             Gp_AnimResetChildSlots(arg0, 9);
         case 2:
             if ((func_8010BC70(coord) >= 0x500) || (Gp_StateF0.prefix.bytes.field_0 == 1)) {
-                actor->field_95C  = 7;
-                actor->field_95E += 1;
+                actor->animationState = 7;
+                actor->statePhase    += 1;
                 Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 3);
             }
             break;
@@ -3051,7 +3044,7 @@ static void func_actor_800200_80165D44(Task* arg0)
 
 static void func_actor_800200_80165E50(Task* arg0)
 {
-    u16 state = ((GameActor*)arg0->work)->field_95E;
+    u16 state = ((GameActor*)arg0->work)->statePhase;
 
     if (state != 0) {
         if (state == 1) {
@@ -3069,7 +3062,7 @@ static void func_actor_800200_80165E90(Task* arg0)
     actor = arg0->work;
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
-    sp.funcs[(u16)actor->field_96C](arg0);
+    sp.funcs[(u16)actor->hitRegion](arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
 }
@@ -3092,8 +3085,8 @@ static void func_actor_800200_80165F50(Task* arg0)
     sp    = D_actor_800200_80161EC8;
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    sp.funcs[actor->field_956](arg0);
-    RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
+    sp.funcs[actor->state](arg0);
+    RotMatrix(&actor->rotation, &coord->coord);
 }
 
 static void func_actor_800200_80165FF0(Task* arg0)
@@ -3108,18 +3101,18 @@ static void func_actor_800200_80165FF0(Task* arg0)
     s32        flag;
 
     actor = arg0->work;
-    cur   = actor->field_52;
-    tgt   = actor->field_82;
-    raw   = actor->field_82;
+    cur   = actor->rotation.vy;
+    tgt   = actor->scriptMotion.targetYaw;
+    raw   = actor->scriptMotion.targetYaw;
     temp  = cur - tgt;
     if (temp < 0) {
         temp = -temp;
     }
     if (temp < 0x31 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), temp < 0x31)) {
-        flag             = 1;
-        actor->field_52  = raw;
-        actor->field_982 = 0;
-        actor->field_956 = flag;
+        flag                         = 1;
+        actor->rotation.vy           = raw;
+        actor->scriptedMotionPending = 0;
+        actor->state                 = flag;
         Gp_AnimPlayChildSlotsEx(arg0, flag, 0, 5);
     } else {
         delta = func_80103E7C(cur, tgt);
@@ -3128,9 +3121,9 @@ static void func_actor_800200_80165FF0(Task* arg0)
         } else if (delta < -0x30) {
             delta = -0x30;
         }
-        actor->field_958 = 5;
-        actor->field_973 = 1;
-        actor->field_52  = ((u16)actor->field_52 + delta) & 0xFFF;
+        actor->movementMode = 5;
+        actor->movementSign = 1;
+        actor->rotation.vy  = ((u16)actor->rotation.vy + delta) & 0xFFF;
     }
     Gp_AnimTickChildSlots(arg0);
 }

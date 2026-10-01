@@ -32,7 +32,7 @@
 /// 8-byte pair of byte-table pointers at `D_801149FC`. `Gp_MsgPlayerDirFacing`
 /// indexes by `(Gp_DirByte & 0x70) >> 4`. `Gp_DirFlags & 0x100` selects
 /// `field_4` over `field_0`. The byte at `(Gp_DirByte & 0xF) -
-/// GameActor.field_82` is stored into `GameActor.field_930`.
+/// GameActor.scriptMotion.surfaceIndexBase` is stored into `GameActor.surfaceClass`.
 typedef struct _GpDirPair {
     /* 0x0 */ u8* field_0;
     /* 0x4 */ u8* field_4;
@@ -81,22 +81,22 @@ void Gp_MsgPlayerDirFacing(void)
     Task*      slot;
     GameActor* actor;
     u8         flags;
-    s32        facing;
+    s32        surfaceIndexBase;
     u8*        row;
 
     actor = gameGetPtrSlot(3)->work;
     flags = Gp_DirByte;
     if (flags & 0x80) {
-        facing = actor->field_82;
+        surfaceIndexBase = actor->scriptMotion.surfaceIndexBase;
         if (Gp_DirFlags & 0x100) {
-            row              = D_801149FC[(flags & 0x70) >> 4].field_4;
-            actor->field_930 = row[(flags & 0xF) - facing];
+            row                 = D_801149FC[(flags & 0x70) >> 4].field_4;
+            actor->surfaceClass = row[(flags & 0xF) - surfaceIndexBase];
         } else {
-            row              = D_801149FC[(flags & 0x70) >> 4].field_0;
-            actor->field_930 = row[(flags & 0xF) - facing];
+            row                 = D_801149FC[(flags & 0x70) >> 4].field_0;
+            actor->surfaceClass = row[(flags & 0xF) - surfaceIndexBase];
         }
     } else {
-        actor->field_930 = (flags & 0x70) >> 4;
+        actor->surfaceClass = (flags & 0x70) >> 4;
     }
 
     slot = gameGetPtrSlot(3);

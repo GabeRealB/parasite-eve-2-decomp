@@ -2965,7 +2965,7 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->field_C1B                       = 0xA;
     }
     blendRigDrive(arg0);
-    if ((work->field_5A & 0x3FF) == 0x10 && player->field_954 != 2) {
+    if ((work->field_5A & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &delta, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !overlayOutOfRange(&delta, 0x44C)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
