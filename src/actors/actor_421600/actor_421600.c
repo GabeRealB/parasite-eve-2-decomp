@@ -4691,8 +4691,8 @@ static void func_actor_421600_8013BA70(Task* arg0)
     target2                               = &scratch->target;
     target2->vy                           = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
     target2->vz                           = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-    if (work->field_8 > (s16)work->poseVy) {
-        if ((s16)work->poseYawPrev <= 0) {
+    if (work->field_8 > work->poseVy) {
+        if (work->poseYawPrev <= 0) {
 
             if (actorOutsideRadius(&scratch->target, radius)) {
                 if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {

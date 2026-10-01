@@ -247,7 +247,7 @@ void desertChaserPursue(Task* arg0)
     if (work->field_82E == 2) {
         work->field_8 = (u16)work->field_8 + 1;
     }
-    if (work->field_8 > (s16)work->poseVy) {
+    if (work->field_8 > work->poseVy) {
         state = work->field_82E;
         if (state == 2) {
             if ((abs(scratch->targetYaw) < 0x80) || (work->slots[1].flags & ANIMATION_SLOT_SETTLED)) {

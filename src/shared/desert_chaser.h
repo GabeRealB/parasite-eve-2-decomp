@@ -294,11 +294,11 @@ typedef struct DesertChaserWork {
     s16  distance;
     byte pad_EA0[2];
     /// One pose row latched from the pose table, and the yaw one step behind.
-    u16  poseVy;
+    s16  poseVy;
     u16  poseVx;
-    u16  poseVz;
+    s16  poseVz;
     u16  poseYaw;
-    u16  poseYawPrev;
+    s16  poseYawPrev;
     s16  field_EAC;
     byte pad_EAE[2];
 #endif

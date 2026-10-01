@@ -1,5 +1,12 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
+/// Wandering between its waypoints while it watches for the player: once its
+/// watch delay (poseYawPrev) has run out and it has wandered long enough
+/// (field_8 past poseVz), a player within range, or within 8000 and ahead of
+/// it, or behind its back, starts the chase (0x1C). The regular build only
+/// looks with a clear line of sight on its own frame of fifteen and also
+/// reacts to Parasite Energy in use; the run sequence counts its delay down
+/// here.
 void desertChaserRoam(Task* arg0)
 {
     s32                    radius = 0x5DC;
@@ -55,31 +62,29 @@ void desertChaserRoam(Task* arg0)
     s32                    yawDifference;
     u16                    unsignedDelta;
     work = arg0->work;
-    ctx  = arg0->spawnArg2.pointer;
+#if !DESERT_CHASER_RUN_SEQUENCE
+    ctx = arg0->spawnArg2.pointer; /* also read by the look-around below */
+#endif
     if (work->field_4 != 0) {
         head    = SCRATCH_STACK_CURSOR(ActorMoveScratch);
         obj     = arg0->extra.tmd;
         scratch = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head - 1);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        ctx->node.state.parts.flags = 0;
-#else
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+#if DESERT_CHASER_RUN_SEQUENCE
+        ctx = arg0->spawnArg2.pointer;
 #endif
-        obj->flags = 0;
+        ctx->node.state.parts.flags = 0;
+        obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].obj.radius = 0x19C;
         work->field_828          = 1;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
-        work->field_832 = 0x10;
+#if DESERT_CHASER_RUN_SEQUENCE
+        work->field_832 = DESERT_CHASER_SLOT_RATE(work);
 #endif
         work->field_82A          = 0;
         work->field_82E          = 0;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        work->field_832 = work->field_834;
-#else
-
+#if !DESERT_CHASER_RUN_SEQUENCE
+        work->field_832 = DESERT_CHASER_SLOT_RATE(work);
 #endif
         desertChaserAnimTick(arg0);
         desertChaserAnimTick(arg0);
@@ -243,117 +248,109 @@ void desertChaserRoam(Task* arg0)
         }
         record = work->objs[0].contacts;
     }
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    ActorContact_Steer(arg0->extra.tmd->coords, record, 5, &scratch->vec);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 5) == 1) {
-#else
-    ActorContact_Steer(arg0->extra.tmd->coords, record, 12, &scratch->vec);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, 12) == 1) {
-#endif
+    ActorContact_Steer(arg0->extra.tmd->coords, record, DESERT_CHASER_CONTACTS, &scratch->vec);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objs[2].contacts, DESERT_CHASER_CONTACTS) == 1) {
         originalMagnitude = abs(scratch->original);
         if (originalMagnitude < 0x20) {
             work->field_6 += 1;
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    if ((detectSightBlocked(arg0) != 1) && (target2 = &scratch->target, coord3 = arg0->extra.tmd->coords, scratch->target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]), target2->vy = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1], target2->vz = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2], ((work->field_8 > work->poseVz) != 0))) {
-        if (work->poseYawPrev <= 0) {
-            if ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == (gDisplayState.animFrame % 15)) {
-#else
-    coord3             = arg0->extra.tmd->coords;
-    scratch->target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]);
-    target2            = &scratch->target;
-    target2->vy        = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
-    target2->vz        = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-    if (work->field_8 > (s16)work->poseVz) {
-        if ((s16)work->poseYawPrev <= 0) {
-
+#if !DESERT_CHASER_RUN_SEQUENCE
+    if (detectSightBlocked(arg0) != 1)
 #endif
-                if (actorOutsideRadius(&scratch->target, radius)) {
-                    if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
-                        facing5  = arg0->extra.tmd->coords;
-                        angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
-                        delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
-                        wrapped5 = delta5;
-                        if (delta5 < 0) {
-                        wrapNegative5:
-                            if (wrapped5 < -0x800) {
-                                wrapped5 += 0x1000;
-                                goto wrapNegative5;
+    {
+        coord3             = arg0->extra.tmd->coords;
+        scratch->target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]);
+        target2            = &scratch->target;
+        target2->vy        = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
+        target2->vz        = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
+        if (work->field_8 > work->poseVz) {
+            if (work->poseYawPrev <= 0) {
+#if !DESERT_CHASER_RUN_SEQUENCE
+                /* each chaser looks on its own frame of fifteen */
+                if ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == (gDisplayState.animFrame % 15))
+#endif
+                {
+                    if (actorOutsideRadius(&scratch->target, radius)) {
+                        if (!actorOutsideRadius(&scratch->target, 0x1F40) && work->field_8 >= 0x1C3) {
+                            facing5  = arg0->extra.tmd->coords;
+                            angle5   = ratan2((s32)scratch->vec.vx, (s32)scratch->vec.vz);
+                            delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
+                            wrapped5 = delta5;
+                            if (delta5 < 0) {
+                            wrapNegative5:
+                                if (wrapped5 < -0x800) {
+                                    wrapped5 += 0x1000;
+                                    goto wrapNegative5;
+                                }
+                            } else {
+                            wrapPositive5:
+                                if (wrapped5 >= 0x801) {
+                                    wrapped5 -= 0x1000;
+                                    goto wrapPositive5;
+                                }
                             }
-                        } else {
-                        wrapPositive5:
-                            if (wrapped5 >= 0x801) {
-                                wrapped5 -= 0x1000;
-                                goto wrapPositive5;
+                            finalDelta     = wrapped5;
+                            scratch->delta = (s16)finalDelta;
+                            finalDelta     = abs(finalDelta);
+                            if (finalDelta < 0x300) {
+                                goto changeState;
                             }
                         }
-                        finalDelta     = wrapped5;
-                        scratch->delta = (s16)finalDelta;
-                        finalDelta     = abs(finalDelta);
-                        if (finalDelta < 0x300) {
-                            goto changeState;
+                    } else {
+                    changeState:
+                        work->field_0 = 0x1C;
+                    }
+                    playerX            = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
+                    scratch->playerYaw = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+                    targetYaw          = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x800;
+                    wrappedYaw         = targetYaw;
+                    scratch->yaw       = targetYaw;
+                    if (targetYaw < 0) {
+                    wrapYawNegative:
+                        if (wrappedYaw < -0x800) {
+                            wrappedYaw += 0x1000;
+                            goto wrapYawNegative;
+                        }
+                    } else {
+                    wrapYawPositive:
+                        if (wrappedYaw >= 0x801) {
+                            wrappedYaw -= 0x1000;
+                            goto wrapYawPositive;
                         }
                     }
-                } else {
-                changeState:
-                    work->field_0 = 0x1C;
-                }
-                playerX            = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
-                scratch->playerYaw = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-                targetYaw          = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x800;
-                wrappedYaw         = targetYaw;
-                scratch->yaw       = targetYaw;
-                if (targetYaw < 0) {
-                wrapYawNegative:
-                    if (wrappedYaw < -0x800) {
-                        wrappedYaw += 0x1000;
-                        goto wrapYawNegative;
+                    finalYaw      = wrappedYaw;
+                    scratch->yaw  = (s16)finalYaw;
+                    yawDifference = finalYaw - scratch->playerYaw;
+                    if (yawDifference < 0) {
+                        yawDifference = -yawDifference;
                     }
-                } else {
-                wrapYawPositive:
-                    if (wrappedYaw >= 0x801) {
-                        wrappedYaw -= 0x1000;
-                        goto wrapYawPositive;
-                    }
-                }
-                finalYaw      = wrappedYaw;
-                scratch->yaw  = (s16)finalYaw;
-                yawDifference = finalYaw - scratch->playerYaw;
-                if (yawDifference < 0) {
-                    yawDifference = -yawDifference;
-                }
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-                if ((yawDifference >= 0x601) || (Gp_NodeSlotMask(&ctx->node) == 0)) {
-#else
-            if (yawDifference >= 0x601) {
+                    if ((yawDifference >= 0x601)
+#if !DESERT_CHASER_RUN_SEQUENCE
+                        || (Gp_NodeSlotMask(&ctx->node) == 0)
 #endif
-                    work->field_0 = 0x1C;
+                    ) {
+                        work->field_0 = 0x1C;
+                    }
                 }
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
             }
-            goto checkFlag;
-        }
-#else
-#endif
-    } else {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    checkFlag:
-        if ((work->poseYawPrev <= 0) && (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
-            work->field_0 = 0x1C;
-#else
-            work->poseYawPrev -= 1;
+#if DESERT_CHASER_RUN_SEQUENCE
+            else {
+                work->poseYawPrev -= 1;
+            }
 #endif
         }
     }
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+#if !DESERT_CHASER_RUN_SEQUENCE
+    if ((work->poseYawPrev <= 0) && (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE)) {
+        work->field_0 = 0x1C;
+    }
 #else
     func_actor_421600_80133334(arg0->extra.tmd->coords);
 #endif
     SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
+#if DESERT_CHASER_RUN_SEQUENCE
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #endif
 }
