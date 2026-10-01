@@ -42,9 +42,9 @@ void Gp_EvtCapWeaponTask(Task* arg0);
 static void func_800E4020(Task* task);
 
 TaskDesc Gp_EvtSpawnTable[3] = {
-    { 0, 32, Gp_EvtCapTask, { NULL } },
-    { 0, 32, Gp_EvtCapWeaponTask, { NULL } },
-    { 0xFFFF, 0, NULL, { NULL } },
+    { { { TASK_BODY_NONE, 32 } }, Gp_EvtCapTask, { NULL } },
+    { { { TASK_BODY_NONE, 32 } }, Gp_EvtCapWeaponTask, { NULL } },
+    { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 
 AnimationPlayRequest D_8010FB10 = { { 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -54,9 +54,9 @@ AnimationPlayRequest D_8010FB24 = { { 1 }, 33, ANIMATION_BLEND_RESET, 0, ANIMATI
 AnimationPlayRequest Gp_WeaponMsgRec = { { 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
 TaskDesc D_8010FB4C[3] = {
-    { 0, 32, func_800E6EF4, { NULL } },
-    { 0, 32, Gp_DelayedMsgTask, { NULL } },
-    { 0xFFFF, 0, NULL, { NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_800E6EF4, { NULL } },
+    { { { TASK_BODY_NONE, 32 } }, Gp_DelayedMsgTask, { NULL } },
+    { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 
 GlyphUvwh D_8010FB70[4] = {

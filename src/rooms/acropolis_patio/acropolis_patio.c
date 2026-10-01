@@ -344,10 +344,10 @@ AcropolisPatioMessageEntry D_acropolis_patio_8018028C[6] = {
 };
 
 TaskDesc D_acropolis_patio_801802BC[4] = {
-    { 0, 192, func_acropolis_patio_8017DD80, { .model = NULL } },
-    { 0, 192, func_acropolis_patio_8017DA5C, { .model = NULL } },
-    { 0, 97, func_acropolis_patio_8017DE2C, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017DD80, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017DA5C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_acropolis_patio_8017DE2C, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 ActorTransform D_acropolis_patio_801802EC = { { -5255, 1, -124, 0 }, { 0, -800, 0, 0 } };
@@ -697,7 +697,7 @@ ActorCommand D_acropolis_patio_801827F8 = { { .loc = { 0, 0 } }, 1 };
 
 ActorCommand D_acropolis_patio_801827FC = { { .loc = { 0, 0 } }, 2 };
 
-TaskDesc D_acropolis_patio_80182800 = { 0, 192, func_acropolis_patio_8017E054, { .model = NULL } };
+TaskDesc D_acropolis_patio_80182800 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017E054, { .value = 0 } };
 
 EvsCommand D_acropolis_patio_8018280C[41] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_acropolis_patio_801825C4 }, { .value = 0 } },

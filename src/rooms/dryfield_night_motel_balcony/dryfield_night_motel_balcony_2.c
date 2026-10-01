@@ -32,7 +32,7 @@ void func_dryfield_night_motel_balcony_8017E068(Task*);
 
 void func_dryfield_night_motel_balcony_8017DDD0(Task*);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_night_motel_balcony_80182804[6] = {
     { 5102, roomVariantMotelBalconyDoorsMsg },
@@ -44,11 +44,11 @@ GpMsgEntry D_dryfield_night_motel_balcony_80182804[6] = {
 };
 
 TaskDesc D_dryfield_night_motel_balcony_80182834[2] = {
-    { 0, 192, func_dryfield_night_motel_balcony_8017E0C8, { .model = NULL } },
-    { 0, 192, func_dryfield_night_motel_balcony_8017DDD0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017E0C8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017DDD0, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_night_motel_balcony_8018284C = { 0, 192, func_dryfield_night_motel_balcony_8017E068, { .model = NULL } }; /// The balcony movie task. It blanks the display, allocates the movie
+TaskDesc D_dryfield_night_motel_balcony_8018284C = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017E068, { .value = 0 } }; /// The balcony movie task. It blanks the display, allocates the movie
 /// buffers and plays two streams keyed on the current location - view 0x65
 /// then 0x64, or 0x67 then 0x66 when `Wip_SysFlags.field_0` is 2 - either of
 /// which the pad can skip, then restores the stream state, resets the display

@@ -720,13 +720,13 @@ Actor3424002MessageEntry gHopperMsgTable[3] = {
 };
 
 TaskDesc D_actor_342400_80173A54[2] = {
-    { TASK_BODY_TMD, 96, func_actor_342400_80169810, { .model = &D_actor_342400_80170560 } },
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_342400_80169810, { .model = &D_actor_342400_80170560 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } },
 };
 
-TaskDesc D_actor_342400_80173A6C = { TASK_BODY_COORD, 96, taskKill, { .model = NULL } };
+TaskDesc D_actor_342400_80173A6C = { { { TASK_BODY_COORD, 96 } }, taskKill, { .value = 0 } };
 
-TaskDesc D_actor_342400_80173A78 = { TASK_BODY_TMD, 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } };
+TaskDesc D_actor_342400_80173A78 = { { { TASK_BODY_TMD, 96 } }, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } };
 
 u8 gHopperAnimStance[20] = {
     0,

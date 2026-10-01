@@ -215,21 +215,21 @@ s16* D_dryfield_night_factory_80186DB4[2] = {
 GpGridParams gFactoryLiftTurnedTemplate = { NULL, D_dryfield_night_factory_80186D14, D_dryfield_night_factory_80186D34, D_dryfield_night_factory_80186D74, D_dryfield_night_factory_80186DB4, 750, 1950, 1, 2, 4000, 4 };
 
 TaskDesc gFactoryNightSpawnTable[8] = {
-    { 0, 192, factoryPowerScene, { .model = NULL } },
-    { 0, 192, factoryLampScene, { .model = NULL } },
-    { 0, 192, factoryCapScene, { .model = NULL } },
-    { 0, 192, factoryWhiteoutScene, { .model = NULL } },
-    { TASK_BODY_TMD, 192, factoryLiftRun, { .model = &D_dryfield_night_factory_80186768 } },
-    { TASK_BODY_COORD, 192, factoryBarrierCollision, { .model = NULL } },
-    { 0, 192, factoryHatchScene, { .model = NULL } },
-    { TASK_BODY_TMD, 192, factoryHatchRun, { .model = &D_dryfield_night_factory_80186B88 } },
+    { { { TASK_BODY_NONE, 192 } }, factoryPowerScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, factoryLampScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, factoryCapScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, factoryWhiteoutScene, { .value = 0 } },
+    { { { TASK_BODY_TMD, 192 } }, factoryLiftRun, { .model = &D_dryfield_night_factory_80186768 } },
+    { { { TASK_BODY_COORD, 192 } }, factoryBarrierCollision, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, factoryHatchScene, { .value = 0 } },
+    { { { TASK_BODY_TMD, 192 } }, factoryHatchRun, { .model = &D_dryfield_night_factory_80186B88 } },
 };
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskDesc gFactoryPanelSessionDesc[2] = {
-    { 0, 32, factoryPanelSpawn, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, factoryPanelSpawn, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry gFactoryMsgTable[6] = {
@@ -242,11 +242,11 @@ GpMsgEntry gFactoryMsgTable[6] = {
 };
 
 TaskDesc gFactoryPromptDesc[1] = {
-    { 0, 192, factoryPromptTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, factoryPromptTask, { .value = 0 } },
 };
 
 TaskDesc gFactoryNightPanelDesc[1] = {
-    { 0, 192, factoryPanelRun, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, factoryPanelRun, { .value = 0 } },
 };
 
 FactoryControlMessageEntry gFactoryPanelMsgTable[2] = {

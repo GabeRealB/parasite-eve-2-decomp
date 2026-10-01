@@ -481,9 +481,9 @@ Actor07000RecoveredMsgEntry Actor07000_D08030[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor07000_D08040 = { TASK_BODY_TMD, 96, Actor07000_Fn02548, { .model = &Actor07000_D079C8 } };
+TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, Actor07000_Fn02548, { .model = &Actor07000_D079C8 } };
 
-TaskDesc Actor07000_D0804C = { (TASK_BODY_TMD | 0x100), 96, Actor07000_Fn02D10, { .model = &Actor07000_D079C8 } };
+TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor07000_Fn02D10, { .model = &Actor07000_D079C8 } };
 
 AnimationSet* Actor07000_D08058[4] = {
     NULL,
@@ -921,11 +921,11 @@ Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2] = {
 };
 
 TaskDesc Actor07000_D0D7D0[2] = {
-    { TASK_BODY_TMD, 96, Actor07000_Fn05E6C, { .model = &Actor07000_D0A6C8 } },
-    { TASK_BODY_COORD, 96, Actor07000_Fn06338, { .model = NULL } },
+    { { { TASK_BODY_TMD, 96 } }, Actor07000_Fn05E6C, { .model = &Actor07000_D0A6C8 } },
+    { { { TASK_BODY_COORD, 96 } }, Actor07000_Fn06338, { .value = 0 } },
 };
 
-TaskDesc Actor07000_D0D7E8 = { (TASK_BODY_TMD | 0x100), 96, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
+TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
 
 /// The 0x39C-byte work block the actor's *other* spawn handler
 /// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:
@@ -1017,7 +1017,7 @@ extern DamageAttack Actor07000_D08078[2];
 /// Enemy parameters of the second form; its `hpMax` seeds the enemy's HP.
 extern EnemyParams Actor07000_D08080;
 
-/// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`, one per
+/// Models effect 0x80005 spawns, set in `D_800626EC[5].data.model`, one per
 /// random variant the roll selects.
 extern TmdSource Actor07000_D0AB40;
 
@@ -3446,22 +3446,22 @@ static void Actor07000_Fn049C0(Task* arg0)
     switch (r) {
         case 0:
         case 1:
-            D_800626EC[5].arg.model = &Actor07000_D0B730;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 1, 0, NULL);
+            D_800626EC[5].data.model = &Actor07000_D0B730;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 1, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 2:
-            D_800626EC[5].arg.model = &Actor07000_D0B194;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 5, 0, NULL);
+            D_800626EC[5].data.model = &Actor07000_D0B194;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 5, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 3:
-            D_800626EC[5].arg.model = &Actor07000_D0AB40;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 4, 0, NULL);
+            D_800626EC[5].data.model = &Actor07000_D0AB40;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 4, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }

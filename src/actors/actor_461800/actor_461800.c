@@ -152,8 +152,8 @@ Task* D_actor_461800_80133EB4 = NULL;
 Task* D_actor_461800_80133EB8 = NULL;
 
 TaskDesc D_actor_461800_80133EBC[2] = {
-    { 0, 32, func_actor_461800_80132048, { .model = NULL } },
-    { 0, 32, func_actor_461800_80131E38, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_actor_461800_80132048, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_actor_461800_80131E38, { .value = 0 } },
 };
 
 ActorTransform D_actor_461800_80133ED4 = { { 7710, 980, 6290, 0 }, { 0, -1479, 0, 0 } };
@@ -420,9 +420,9 @@ Actor461800MessageEntry D_actor_461800_80139F5C[6] = {
 };
 
 TaskDesc D_actor_461800_80139F8C[3] = {
-    { TASK_BODY_TMD, 192, func_actor_461800_801329B0, { .model = &D_actor_461800_80139050 } },
-    { TASK_BODY_TMD, 192, func_actor_461800_80132B74, { .model = &D_actor_461800_80139908 } },
-    { TASK_BODY_TMD, 192, func_actor_461800_80132B74, { .model = &D_actor_461800_80139418 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_461800_801329B0, { .model = &D_actor_461800_80139050 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_461800_80132B74, { .model = &D_actor_461800_80139908 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_461800_80132B74, { .model = &D_actor_461800_80139418 } },
 };
 
 AnimationSet* D_actor_461800_80139FB0[6] = {
@@ -829,7 +829,7 @@ Actor461800MessageEntry gFootstepWalkMsgTable[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_461800_801437EC = { TASK_BODY_TMD, 192, func_actor_461800_80133554, { .model = &D_actor_461800_8013F77C } };
+TaskDesc D_actor_461800_801437EC = { { { TASK_BODY_TMD, 192 } }, func_actor_461800_80133554, { .model = &D_actor_461800_8013F77C } };
 
 AnimationSet* gFootstepWalkAnims[35] = {
     NULL,

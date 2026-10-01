@@ -91,8 +91,8 @@ void func_dryfield_night_garage_801809A4(Task*);
 void func_dryfield_night_garage_80180AB0(void);
 
 TaskDesc D_dryfield_night_garage_80182C98[2] = {
-    { 0, 192, func_dryfield_night_garage_801809A4, { .model = NULL } },
-    { 0, 192, func_dryfield_night_garage_801807E4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_801809A4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_801807E4, { .value = 0 } },
 };
 
 AnimationSet* D_dryfield_night_garage_80182CB0[5] = {
@@ -212,11 +212,11 @@ EvsCommand D_dryfield_night_garage_801831B8[19] = {
 };
 
 TaskDesc D_dryfield_night_garage_80183380[2] = {
-    { 0, 192, func_dryfield_night_garage_80180D4C, { .model = NULL } },
-    { 0, 192, func_dryfield_night_garage_80180B20, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_80180D4C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_80180B20, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_night_garage_80183398 = { 0, 192, func_dryfield_night_garage_80180CEC, { .model = NULL } };
+TaskDesc D_dryfield_night_garage_80183398 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_80180CEC, { .value = 0 } };
 
 SVECTOR D_dryfield_night_garage_801833A4[6] = {
     { 1950, -3260, 6199, 0 },

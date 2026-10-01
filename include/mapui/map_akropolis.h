@@ -9,7 +9,6 @@
 #include "gameplay/item_pickup.h"
 #include "gameplay/map.h"
 #include "gameplay/room.h"
-#include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -51,7 +50,7 @@ extern GpBit2List D_map_akropolis_8017A7FC[];
 
 /// This stage's `D_8010FABC` entry: the task each room starts, keyed by
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
-extern GpTaskDesc D_map_akropolis_8017A8AC[];
+extern TaskDesc D_map_akropolis_8017A8AC[];
 
 /// This stage's flag table for `Gp_LookupStageFlag`.
 extern u16 D_map_akropolis_8017AA0C[];

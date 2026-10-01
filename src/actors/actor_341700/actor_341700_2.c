@@ -796,7 +796,7 @@ u8 D_actor_341700_801760FC[600] = {
     0,
 };
 
-TaskDesc D_actor_341700_80176354 = { (TASK_BODY_TMD | 0x100), 96, func_actor_341700_8016D32C, { .model = &D_actor_341700_80175F38 } };
+TaskDesc D_actor_341700_80176354 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_341700_8016D32C, { .model = &D_actor_341700_80175F38 } };
 
 static SVECTOR ActorContact_ScratchPosition;
 

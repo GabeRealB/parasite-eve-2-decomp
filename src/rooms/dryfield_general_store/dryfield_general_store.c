@@ -103,12 +103,12 @@ s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, TaskMessage
 void func_dryfield_general_store_8017DFB4(Task*);
 void func_dryfield_general_store_8017E064(Task*);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskDesc gStoreTaskDescs[3] = {
-    { 0, 32, storeToggleTask, { .model = NULL } },
-    { 0, 32, storeCutsceneTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, storeToggleTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, storeCutsceneTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_dryfield_general_store_8017E188[6] = {
@@ -144,9 +144,9 @@ AnimationSet D_dryfield_general_store_8017E498 = {
     { NULL, D_dryfield_general_store_8017E1BC, NULL, NULL, D_dryfield_general_store_8017E204, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_general_store_8017E4C0 = { 0, 192, func_dryfield_general_store_8017DFB4, { .model = NULL } };
+TaskDesc D_dryfield_general_store_8017E4C0 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_general_store_8017DFB4, { .value = 0 } };
 
-TaskDesc D_dryfield_general_store_8017E4CC = { 0, 192, func_dryfield_general_store_8017E064, { .model = NULL } };
+TaskDesc D_dryfield_general_store_8017E4CC = { { { TASK_BODY_NONE, 192 } }, func_dryfield_general_store_8017E064, { .value = 0 } };
 
 AnimationSet* D_dryfield_general_store_8017E4D8[2] = {
     NULL,

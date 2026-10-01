@@ -1199,10 +1199,10 @@ s16 Actor05700_D173C8[2][4] = {
 };
 
 TaskDesc Actor05700_D173D8[4] = {
-    { TASK_BODY_TMD, 96, Actor05700_Fn05470, { .model = &Actor05700_D0A3D8 } },
-    { TASK_BODY_TMD, 96, Actor05700_Fn05040, { .model = &Actor05700_D0A824 } },
-    { TASK_BODY_TMD, 96, Actor05700_Fn0517C, { .model = &Actor05700_D0AE78 } },
-    { TASK_BODY_TMD, 96, Actor05700_Fn05270, { .model = &Actor05700_D0AB4C } },
+    { { { TASK_BODY_TMD, 96 } }, Actor05700_Fn05470, { .model = &Actor05700_D0A3D8 } },
+    { { { TASK_BODY_TMD, 96 } }, Actor05700_Fn05040, { .model = &Actor05700_D0A824 } },
+    { { { TASK_BODY_TMD, 96 } }, Actor05700_Fn0517C, { .model = &Actor05700_D0AE78 } },
+    { { { TASK_BODY_TMD, 96 } }, Actor05700_Fn05270, { .model = &Actor05700_D0AB4C } },
 };
 
 AnimationSet* Actor05700_D17408[31] = {

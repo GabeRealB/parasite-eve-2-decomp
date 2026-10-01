@@ -14,7 +14,6 @@
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
-#include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -430,33 +429,33 @@ static GpEnemyDesc D_map_shelter_8017A888[1] = {
 };
 
 static GpEnemyDesc D_map_shelter_8017A898[2] = {
-    { 0x20D, { 0 }, { TASK_BODY_TMD, 0x62, func_mine_forked_tunnel_8017DBE4, { &D_mine_forked_tunnel_801807B4 } } },
+    { 0x20D, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_mine_forked_tunnel_8017DBE4, { &D_mine_forked_tunnel_801807B4 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A8B8[2] = {
-    { 0x127, { 0 }, { TASK_BODY_TMD, 0x62, func_shelter_b1_sleeping_quarters_8017D608, { &D_shelter_b1_sleeping_quarters_801804F4 } } },
+    { 0x127, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_b1_sleeping_quarters_8017D608, { &D_shelter_b1_sleeping_quarters_801804F4 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A8D8[2] = {
-    { 0x70A, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_shelter_b2_laboratory_801829E4 } } },
+    { 0x70A, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &D_shelter_b2_laboratory_801829E4 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A8F8[2] = {
-    { 0x129, { 0 }, { TASK_BODY_TMD, 0x62, func_shelter_b2_breeding_room_8017D5F8, { &D_shelter_b2_breeding_room_801803F0 } } },
+    { 0x129, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_b2_breeding_room_8017D5F8, { &D_shelter_b2_breeding_room_801803F0 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A918[2] = {
-    { 0x37, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_shelter_b3_dumping_hole_80187550 } } },
+    { 0x37, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &D_shelter_b3_dumping_hole_80187550 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A938[3] = {
-    { 0x20B, { 0 }, { TASK_BODY_TMD, 0x62, func_actor_503500_8013270C, { &D_actor_503500_80147314 } } },
-    { 0x20C, { 0 }, { TASK_BODY_TMD, 0x62, func_actor_503500_8013270C, { &D_actor_503500_80147D6C } } },
+    { 0x20B, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_actor_503500_8013270C, { &D_actor_503500_80147314 } } },
+    { 0x20C, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_actor_503500_8013270C, { &D_actor_503500_80147D6C } } },
     { 0xFFFF },
 };
 
@@ -465,7 +464,7 @@ static GpEnemyDesc D_map_shelter_8017A968[1] = {
 };
 
 static GpEnemyDesc D_map_shelter_8017A978[2] = {
-    { 0x708, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_shelter_b1_sterilization_room_80184DF8 } } },
+    { 0x708, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &D_shelter_b1_sterilization_room_80184DF8 } } },
     { 0xFFFF },
 };
 
@@ -523,57 +522,57 @@ GpBit2List D_map_shelter_8017A998[51] = {
     { { .sentinel = -1 }, NULL },
 };
 
-GpTaskDesc D_map_shelter_8017AB30[] = {
-    { { 0, 0x20, func_mine_mesa_8017DD98, { .value = GP_TASK_LOC_KEY(4, 1, 0) } } },
-    { { 0, 0x20, func_mine_cavern_8017DF54, { .value = GP_TASK_LOC_KEY(4, 2, 0) } } },
-    { { 0, 0x20, func_mine_tunnel_entrance_8017D6BC, { .value = GP_TASK_LOC_KEY(4, 3, 0) } } },
-    { { 0, 0x20, func_mine_tunnel_8017D77C, { .value = GP_TASK_LOC_KEY(4, 4, 0) } } },
-    { { 0, 0x20, func_mine_gorge_8017D9A0, { .value = GP_TASK_LOC_KEY(4, 5, 0) } } },
-    { { 0, 0x20, func_mine_refuge_8017FFBC, { .value = GP_TASK_LOC_KEY(4, 6, 0) } } },
-    { { 0, 0x20, func_mine_forked_tunnel_8017E25C, { .value = GP_TASK_LOC_KEY(4, 7, 0) } } },
-    { { 0, 0x20, func_mine_secret_passage_8017D970, { .value = GP_TASK_LOC_KEY(4, 8, 0) } } },
-    { { 0, 0x20, func_shelter_b1_elevator_hall_8017DC28, { .value = GP_TASK_LOC_KEY(4, 9, 0) } } },
-    { { 0, 0x20, func_shelter_b1_south_maintenance_walkway_8017DA34, { .value = GP_TASK_LOC_KEY(4, 10, 0) } } },
-    { { 0, 0x20, func_shelter_b1_storeroom_8017D794, { .value = GP_TASK_LOC_KEY(4, 11, 0) } } },
-    { { 0, 0x20, func_shelter_b1_north_maintenance_walkway_8017DAFC, { .value = GP_TASK_LOC_KEY(4, 12, 0) } } },
-    { { 0, 0x20, func_shelter_b1_armory_8018078C, { .value = GP_TASK_LOC_KEY(4, 13, 0) } } },
-    { { 0, 0x20, func_shelter_b1_sleeping_quarters_8017D888, { .value = GP_TASK_LOC_KEY(4, 14, 0) } } },
-    { { 0, 0x20, func_shelter_b1_main_corridor_8017DD98, { .value = GP_TASK_LOC_KEY(4, 15, 0) } } },
-    { { 0, 0x20, func_shelter_b1_sterilization_room_80180518, { .value = GP_TASK_LOC_KEY(4, 16, 0) } } },
-    { { 0, 0x20, func_shelter_b1_pod_access_tunnel_8017DEE8, { .value = GP_TASK_LOC_KEY(4, 17, 0) } } },
-    { { 0, 0x20, func_shelter_b1_access_tunnel_8017DD08, { .value = GP_TASK_LOC_KEY(4, 19, 0) } } },
-    { { 0, 0x20, func_shelter_b1_underground_parking_801838B4, { .value = GP_TASK_LOC_KEY(4, 20, 0) } } },
-    { { 0, 0x20, func_shelter_b1_golem_freezer_1_8017D6EC, { .value = GP_TASK_LOC_KEY(4, 21, 0) } } },
-    { { 0, 0x20, func_shelter_b1_transfer_tunnel_8017D678, { .value = GP_TASK_LOC_KEY(4, 24, 0) } } },
-    { { 0, 0x20, func_shelter_b1_control_room_access_tunnel_8017D68C, { .value = GP_TASK_LOC_KEY(4, 25, 0) } } },
-    { { 0, 0x20, func_shelter_b2_elevator_8017DB18, { .value = GP_TASK_LOC_KEY(4, 26, 0) } } },
-    { { 0, 0x20, func_shelter_b2_elevator_hall_8017DD08, { .value = GP_TASK_LOC_KEY(4, 27, 0) } } },
-    { { 0, 0x20, func_shelter_b2_south_maintenance_walkway_8017DC6C, { .value = GP_TASK_LOC_KEY(4, 28, 0) } } },
-    { { 0, 0x20, func_shelter_b2_operating_room_8017DD60, { .value = GP_TASK_LOC_KEY(4, 29, 0) } } },
-    { { 0, 0x20, func_shelter_b2_north_maintenance_walkway_8017DD90, { .value = GP_TASK_LOC_KEY(4, 30, 0) } } },
-    { { 0, 0x20, func_shelter_b2_laboratory_801804A4, { .value = GP_TASK_LOC_KEY(4, 31, 0) } } },
-    { { 0, 0x20, func_shelter_b2_breeding_room_8017D840, { .value = GP_TASK_LOC_KEY(4, 32, 0) } } },
-    { { 0, 0x20, func_shelter_b2_main_corridor_8017E338, { .value = GP_TASK_LOC_KEY(4, 33, 0) } } },
-    { { 0, 0x20, func_shelter_b2_septic_tank_8017DB10, { .value = GP_TASK_LOC_KEY(4, 34, 0) } } },
-    { { 0, 0x20, func_shelter_b2_pod_access_tunnel_8017DC14, { .value = GP_TASK_LOC_KEY(4, 35, 0) } } },
-    { { 0, 0x20, func_shelter_r36_8017D9DC, { .value = GP_TASK_LOC_KEY(4, 36, 0) } } },
-    { { 0, 0x20, func_shelter_r37_8017D678, { .value = GP_TASK_LOC_KEY(4, 37, 0) } } },
-    { { 0, 0x20, func_shelter_1f_heliport_s4_8017D678, { .value = GP_TASK_LOC_KEY(4, 38, 0) } } },
-    { { 0, 0x20, func_shelter_b3_dumping_hole_8017D9A8, { .value = GP_TASK_LOC_KEY(4, 39, 0) } } },
-    { { 0, 0x20, func_shelter_b3_garbage_incinerator_8017DC7C, { .value = GP_TASK_LOC_KEY(4, 40, 0) } } },
-    { { 0, 0x20, func_shelter_b3_incinerator_control_room_8017FCB8, { .value = GP_TASK_LOC_KEY(4, 41, 0) } } },
-    { { 0, 0x20, func_shelter_b3_elevator_hall_8017DE18, { .value = GP_TASK_LOC_KEY(4, 42, 0) } } },
-    { { 0, 0x20, func_shelter_b4_lower_sewer_8017D6D4, { .value = GP_TASK_LOC_KEY(4, 43, 0) } } },
-    { { 0, 0x20, func_shelter_b4_upper_sewer_8017DC30, { .value = GP_TASK_LOC_KEY(4, 44, 0) } } },
-    { { 0, 0x20, func_shelter_b4_reservoir_8017E88C, { .value = GP_TASK_LOC_KEY(4, 45, 0) } } },
-    { { 0, 0x20, func_shelter_b4_water_supply_8017DDA4, { .value = GP_TASK_LOC_KEY(4, 46, 0) } } },
-    { { 0, 0x20, func_shelter_r48_8017E224, { .value = GP_TASK_LOC_KEY(4, 48, 0) } } },
-    { { 0, 0x20, func_shelter_r47_801807B4, { .value = GP_TASK_LOC_KEY(4, 47, 0) } } },
-    { { 0, 0x20, func_shelter_r49_8017D6C4, { .value = GP_TASK_LOC_KEY(4, 49, 0) } } },
-    { { 0, 0x20, func_shelter_b1_control_room_8017EECC, { .value = GP_TASK_LOC_KEY(4, 18, 0) } } },
-    { { 0, 0x20, func_shelter_b1_pod_service_gantry_8017D89C, { .value = GP_TASK_LOC_KEY(4, 23, 0) } } },
-    { { 0, 0x20, func_shelter_b2_pod_bottom_8017D708, { .value = GP_TASK_LOC_KEY(4, 22, 0) } } },
-    { { 0xFFFF, 0x20, NULL, { 0 } } },
+TaskDesc D_map_shelter_8017AB30[] = {
+    { { { TASK_BODY_NONE, 0x20 } }, func_mine_mesa_8017DD98, { .value = GP_TASK_LOC_KEY(4, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mine_cavern_8017DF54, { .value = GP_TASK_LOC_KEY(4, 2, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mine_tunnel_entrance_8017D6BC, { .value = GP_TASK_LOC_KEY(4, 3, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mine_tunnel_8017D77C, { .value = GP_TASK_LOC_KEY(4, 4, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mine_gorge_8017D9A0, { .value = GP_TASK_LOC_KEY(4, 5, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mine_refuge_8017FFBC, { .value = GP_TASK_LOC_KEY(4, 6, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mine_forked_tunnel_8017E25C, { .value = GP_TASK_LOC_KEY(4, 7, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mine_secret_passage_8017D970, { .value = GP_TASK_LOC_KEY(4, 8, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_elevator_hall_8017DC28, { .value = GP_TASK_LOC_KEY(4, 9, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_south_maintenance_walkway_8017DA34, { .value = GP_TASK_LOC_KEY(4, 10, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_storeroom_8017D794, { .value = GP_TASK_LOC_KEY(4, 11, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_north_maintenance_walkway_8017DAFC, { .value = GP_TASK_LOC_KEY(4, 12, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_armory_8018078C, { .value = GP_TASK_LOC_KEY(4, 13, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_sleeping_quarters_8017D888, { .value = GP_TASK_LOC_KEY(4, 14, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_main_corridor_8017DD98, { .value = GP_TASK_LOC_KEY(4, 15, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_sterilization_room_80180518, { .value = GP_TASK_LOC_KEY(4, 16, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_pod_access_tunnel_8017DEE8, { .value = GP_TASK_LOC_KEY(4, 17, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_access_tunnel_8017DD08, { .value = GP_TASK_LOC_KEY(4, 19, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_underground_parking_801838B4, { .value = GP_TASK_LOC_KEY(4, 20, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_golem_freezer_1_8017D6EC, { .value = GP_TASK_LOC_KEY(4, 21, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_transfer_tunnel_8017D678, { .value = GP_TASK_LOC_KEY(4, 24, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_control_room_access_tunnel_8017D68C, { .value = GP_TASK_LOC_KEY(4, 25, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_elevator_8017DB18, { .value = GP_TASK_LOC_KEY(4, 26, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_elevator_hall_8017DD08, { .value = GP_TASK_LOC_KEY(4, 27, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_south_maintenance_walkway_8017DC6C, { .value = GP_TASK_LOC_KEY(4, 28, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_operating_room_8017DD60, { .value = GP_TASK_LOC_KEY(4, 29, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_north_maintenance_walkway_8017DD90, { .value = GP_TASK_LOC_KEY(4, 30, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_laboratory_801804A4, { .value = GP_TASK_LOC_KEY(4, 31, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_breeding_room_8017D840, { .value = GP_TASK_LOC_KEY(4, 32, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_main_corridor_8017E338, { .value = GP_TASK_LOC_KEY(4, 33, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_septic_tank_8017DB10, { .value = GP_TASK_LOC_KEY(4, 34, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_pod_access_tunnel_8017DC14, { .value = GP_TASK_LOC_KEY(4, 35, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_r36_8017D9DC, { .value = GP_TASK_LOC_KEY(4, 36, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_r37_8017D678, { .value = GP_TASK_LOC_KEY(4, 37, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_heliport_s4_8017D678, { .value = GP_TASK_LOC_KEY(4, 38, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b3_dumping_hole_8017D9A8, { .value = GP_TASK_LOC_KEY(4, 39, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b3_garbage_incinerator_8017DC7C, { .value = GP_TASK_LOC_KEY(4, 40, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b3_incinerator_control_room_8017FCB8, { .value = GP_TASK_LOC_KEY(4, 41, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b3_elevator_hall_8017DE18, { .value = GP_TASK_LOC_KEY(4, 42, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b4_lower_sewer_8017D6D4, { .value = GP_TASK_LOC_KEY(4, 43, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b4_upper_sewer_8017DC30, { .value = GP_TASK_LOC_KEY(4, 44, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b4_reservoir_8017E88C, { .value = GP_TASK_LOC_KEY(4, 45, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b4_water_supply_8017DDA4, { .value = GP_TASK_LOC_KEY(4, 46, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_r48_8017E224, { .value = GP_TASK_LOC_KEY(4, 48, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_r47_801807B4, { .value = GP_TASK_LOC_KEY(4, 47, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_r49_8017D6C4, { .value = GP_TASK_LOC_KEY(4, 49, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_control_room_8017EECC, { .value = GP_TASK_LOC_KEY(4, 18, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_pod_service_gantry_8017D89C, { .value = GP_TASK_LOC_KEY(4, 23, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_pod_bottom_8017D708, { .value = GP_TASK_LOC_KEY(4, 22, 0) } },
+    { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };
 
 u16 D_map_shelter_8017AD88[30] = {

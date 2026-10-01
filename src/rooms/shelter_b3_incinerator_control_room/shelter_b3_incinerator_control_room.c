@@ -122,9 +122,9 @@ s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task*, s32, s32, TaskMessa
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[6] = {

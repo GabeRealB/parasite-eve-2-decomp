@@ -218,10 +218,10 @@ void func_actor_403600_80134398(Task*);
 void func_actor_403600_80135C28(Task*);
 
 TaskDesc D_actor_403600_801421A0[4] = {
-    { 0, 95, func_actor_403600_80134288, { .model = NULL } },
-    { TASK_BODY_COORD, 96, func_actor_403600_80134398, { .model = NULL } },
-    { 0, 97, func_actor_403600_80138C34, { .model = NULL } },
-    { TASK_BODY_COORD, 112, func_actor_403600_80135C28, { .model = NULL } },
+    { { { TASK_BODY_NONE, 95 } }, func_actor_403600_80134288, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, func_actor_403600_80134398, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_actor_403600_80138C34, { .value = 0 } },
+    { { { TASK_BODY_COORD, 112 } }, func_actor_403600_80135C28, { .value = 0 } },
 };
 
 TmdBone D_actor_403600_801421D0[20] = {

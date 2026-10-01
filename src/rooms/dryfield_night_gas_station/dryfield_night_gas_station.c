@@ -311,8 +311,8 @@ DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
 };
 
 TaskDesc D_dryfield_night_gas_station_8018406C[2] = {
-    { 0, 32, func_dryfield_night_gas_station_8017FA6C, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_gas_station_8017FA6C, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPlayRequest D_dryfield_night_gas_station_80184084 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
@@ -811,10 +811,10 @@ void func_dryfield_night_gas_station_80180A60(Task*);
 void func_dryfield_night_gas_station_80180B5C(Task*);
 
 TaskDesc D_dryfield_night_gas_station_801888A0[4] = {
-    { 0, 192, func_dryfield_night_gas_station_80180828, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_dryfield_night_gas_station_80180998, { .model = NULL } },
-    { 0, 192, func_dryfield_night_gas_station_80180A60, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_dryfield_night_gas_station_80180B5C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_gas_station_80180828, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_dryfield_night_gas_station_80180998, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_gas_station_80180A60, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_dryfield_night_gas_station_80180B5C, { .value = 0 } },
 };
 
 AnimationSet* D_dryfield_night_gas_station_801888D0[6] = {

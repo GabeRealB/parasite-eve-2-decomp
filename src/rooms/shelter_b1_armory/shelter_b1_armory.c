@@ -178,13 +178,13 @@ void func_shelter_b1_armory_8018034C(Task*);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_shelter_b1_armory_801824D0 = { 0, 192, Shop_SessionTask, { .model = NULL } };
+TaskDesc D_shelter_b1_armory_801824D0 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskDesc D_shelter_b1_armory_801824E8[2] = {
-    { 0, 192, func_shelter_b1_armory_80180214, { .model = NULL } },
-    { 0, 192, func_shelter_b1_armory_8018034C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_armory_80180214, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_armory_8018034C, { .value = 0 } },
 };
 
 GpMsgEntry D_shelter_b1_armory_80182500[5] = {

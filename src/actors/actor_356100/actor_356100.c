@@ -688,7 +688,7 @@ Actor356100MessageEntry D_actor_356100_80173258[7] = {
 
 u16 D_actor_356100_80173290 = 0;
 
-TaskDesc D_actor_356100_80173294 = { TASK_BODY_TMD, 96, func_actor_356100_8016A910, { .model = &D_actor_356100_8016FC74 } };
+TaskDesc D_actor_356100_80173294 = { { { TASK_BODY_TMD, 96 } }, func_actor_356100_8016A910, { .model = &D_actor_356100_8016FC74 } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 

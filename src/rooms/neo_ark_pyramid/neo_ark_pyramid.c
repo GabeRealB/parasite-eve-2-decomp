@@ -94,7 +94,7 @@ GpMsgEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_neo_ark_pyramid_8017FC0C = { 0, 32, func_neo_ark_pyramid_8017D600, { .model = NULL } };
+TaskDesc D_neo_ark_pyramid_8017FC0C = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_pyramid_8017D600, { .value = 0 } };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 

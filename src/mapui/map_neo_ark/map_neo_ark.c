@@ -12,7 +12,6 @@
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
-#include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -414,7 +413,7 @@ static GpEnemyDesc D_map_neo_ark_8017A6AC[1] = {
 };
 
 static GpEnemyDesc D_map_neo_ark_8017A6BC[2] = {
-    { 0x124, { 0 }, { TASK_BODY_TMD, 0x62, func_shelter_1f_vehicular_airlock_8017D5E4, { &D_shelter_1f_vehicular_airlock_80182004 } } },
+    { 0x124, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_1f_vehicular_airlock_8017D5E4, { &D_shelter_1f_vehicular_airlock_80182004 } } },
     { 0xFFFF },
 };
 
@@ -460,41 +459,41 @@ GpBit2List D_map_neo_ark_8017A6EC[35] = {
     { { .sentinel = -1 }, NULL },
 };
 
-GpTaskDesc D_map_neo_ark_8017A804[] = {
-    { { 0, 0x20, func_shelter_1f_parking_garage_8017DF14, { .value = GP_TASK_LOC_KEY(5, 1, 0) } } },
-    { { 0, 0x20, func_shelter_1f_vehicular_airlock_8017DA48, { .value = GP_TASK_LOC_KEY(5, 2, 0) } } },
-    { { 0, 0x20, func_shelter_1f_bulwark_8017DC20, { .value = GP_TASK_LOC_KEY(5, 3, 0) } } },
-    { { 0, 0x20, func_shelter_1f_airlock_8017D678, { .value = GP_TASK_LOC_KEY(5, 5, 0) } } },
-    { { 0, 0x20, func_shelter_1f_guardroom_8017D880, { .value = GP_TASK_LOC_KEY(5, 6, 0) } } },
-    { { 0, 0x20, func_neo_ark_observatory_8017FDDC, { .value = GP_TASK_LOC_KEY(5, 7, 0) } } },
-    { { 0, 0x20, func_neo_ark_eve_access_tunnel_8017E038, { .value = GP_TASK_LOC_KEY(5, 8, 0) } } },
-    { { 0, 0x20, func_neo_ark_eve_elevator_8017D6C4, { .value = GP_TASK_LOC_KEY(5, 9, 0) } } },
-    { { 0, 0x20, func_neo_ark_north_promenade_8017D6C8, { .value = GP_TASK_LOC_KEY(5, 10, 0) } } },
-    { { 0, 0x20, func_neo_ark_forest_zone_8017DBBC, { .value = GP_TASK_LOC_KEY(5, 11, 0) } } },
-    { { 0, 0x20, func_neo_ark_submarine_tunnel_8017F434, { .value = GP_TASK_LOC_KEY(5, 12, 0) } } },
-    { { 0, 0x20, func_neo_ark_pavilion_8017EBF4, { .value = GP_TASK_LOC_KEY(5, 13, 0) } } },
-    { { 0, 0x20, func_neo_ark_island_8017EB10, { .value = GP_TASK_LOC_KEY(5, 14, 0) } } },
-    { { 0, 0x20, func_neo_ark_garden_8017EA44, { .value = GP_TASK_LOC_KEY(5, 15, 0) } } },
-    { { 0, 0x20, func_neo_ark_savanna_zone_8017D954, { .value = GP_TASK_LOC_KEY(5, 18, 0) } } },
-    { { 0, 0x20, func_neo_ark_south_promenade_8017D678, { .value = GP_TASK_LOC_KEY(5, 19, 0) } } },
-    { { 0, 0x20, func_neo_ark_altar_8017D9E8, { .value = GP_TASK_LOC_KEY(5, 20, 0) } } },
-    { { 0, 0x20, func_neo_ark_shrine_8017D948, { .value = GP_TASK_LOC_KEY(5, 21, 0) } } },
-    { { 0, 0x20, func_shelter_b6_nursery_8017FF9C, { .value = GP_TASK_LOC_KEY(5, 22, 0) } } },
-    { { 0, 0x20, func_shelter_b6_growth_room_8017D7D4, { .value = GP_TASK_LOC_KEY(5, 23, 0) } } },
-    { { 0, 0x20, func_shelter_b6_corridor_8017E144, { .value = GP_TASK_LOC_KEY(5, 24, 0) } } },
-    { { 0, 0x20, func_shelter_b6_training_room_8017D8E8, { .value = GP_TASK_LOC_KEY(5, 25, 0) } } },
-    { { 0, 0x20, func_neo_ark_bridge_8017E8FC, { .value = GP_TASK_LOC_KEY(5, 27, 0) } } },
-    { { 0, 0x20, func_neo_ark_r26_8017D720, { .value = GP_TASK_LOC_KEY(5, 26, 0) } } },
-    { { 0, 0x20, func_neo_ark_submarine_gallery_8017EBCC, { .value = GP_TASK_LOC_KEY(5, 30, 0) } } },
-    { { 0, 0x20, func_neo_ark_r31_8017D990, { .value = GP_TASK_LOC_KEY(5, 31, 0) } } },
-    { { 0, 0x20, func_shelter_1f_tent_8017FDB8, { .value = GP_TASK_LOC_KEY(5, 28, 0) } } },
-    { { 0, 0x20, func_neo_ark_woodland_path_8017E9B0, { .value = GP_TASK_LOC_KEY(5, 29, 0) } } },
-    { { 0, 0x20, func_neo_ark_power_plant_2_8017D854, { .value = GP_TASK_LOC_KEY(5, 16, 0) } } },
-    { { 0, 0x20, func_neo_ark_power_plant_1_8017D9C0, { .value = GP_TASK_LOC_KEY(5, 17, 0) } } },
-    { { 0, 0x20, func_shelter_1f_heliport_80180768, { .value = GP_TASK_LOC_KEY(5, 4, 0) } } },
-    { { 0, 0x20, func_neo_ark_pyramid_8017DB98, { .value = GP_TASK_LOC_KEY(5, 32, 0) } } },
-    { { 0, 0x20, func_neo_ark_substation_8017D81C, { .value = GP_TASK_LOC_KEY(5, 33, 0) } } },
-    { { 0xFFFF, 0x20, NULL, { 0 } } },
+TaskDesc D_map_neo_ark_8017A804[] = {
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_parking_garage_8017DF14, { .value = GP_TASK_LOC_KEY(5, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_vehicular_airlock_8017DA48, { .value = GP_TASK_LOC_KEY(5, 2, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_bulwark_8017DC20, { .value = GP_TASK_LOC_KEY(5, 3, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_airlock_8017D678, { .value = GP_TASK_LOC_KEY(5, 5, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_guardroom_8017D880, { .value = GP_TASK_LOC_KEY(5, 6, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_observatory_8017FDDC, { .value = GP_TASK_LOC_KEY(5, 7, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_eve_access_tunnel_8017E038, { .value = GP_TASK_LOC_KEY(5, 8, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_eve_elevator_8017D6C4, { .value = GP_TASK_LOC_KEY(5, 9, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_north_promenade_8017D6C8, { .value = GP_TASK_LOC_KEY(5, 10, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_forest_zone_8017DBBC, { .value = GP_TASK_LOC_KEY(5, 11, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_submarine_tunnel_8017F434, { .value = GP_TASK_LOC_KEY(5, 12, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_pavilion_8017EBF4, { .value = GP_TASK_LOC_KEY(5, 13, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_island_8017EB10, { .value = GP_TASK_LOC_KEY(5, 14, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_garden_8017EA44, { .value = GP_TASK_LOC_KEY(5, 15, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_savanna_zone_8017D954, { .value = GP_TASK_LOC_KEY(5, 18, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_south_promenade_8017D678, { .value = GP_TASK_LOC_KEY(5, 19, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_altar_8017D9E8, { .value = GP_TASK_LOC_KEY(5, 20, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_shrine_8017D948, { .value = GP_TASK_LOC_KEY(5, 21, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b6_nursery_8017FF9C, { .value = GP_TASK_LOC_KEY(5, 22, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b6_growth_room_8017D7D4, { .value = GP_TASK_LOC_KEY(5, 23, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b6_corridor_8017E144, { .value = GP_TASK_LOC_KEY(5, 24, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b6_training_room_8017D8E8, { .value = GP_TASK_LOC_KEY(5, 25, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_bridge_8017E8FC, { .value = GP_TASK_LOC_KEY(5, 27, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_r26_8017D720, { .value = GP_TASK_LOC_KEY(5, 26, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_submarine_gallery_8017EBCC, { .value = GP_TASK_LOC_KEY(5, 30, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_r31_8017D990, { .value = GP_TASK_LOC_KEY(5, 31, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_tent_8017FDB8, { .value = GP_TASK_LOC_KEY(5, 28, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_woodland_path_8017E9B0, { .value = GP_TASK_LOC_KEY(5, 29, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_power_plant_2_8017D854, { .value = GP_TASK_LOC_KEY(5, 16, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_power_plant_1_8017D9C0, { .value = GP_TASK_LOC_KEY(5, 17, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_heliport_80180768, { .value = GP_TASK_LOC_KEY(5, 4, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_pyramid_8017DB98, { .value = GP_TASK_LOC_KEY(5, 32, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_substation_8017D81C, { .value = GP_TASK_LOC_KEY(5, 33, 0) } },
+    { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };
 
 /// Four bytes between the task table and the flag table that nothing

@@ -98,7 +98,7 @@ s32 func_dryfield_motel_balcony_8017DB6C(Task*, s32, TaskMessageArg, TaskMessage
 s32 func_dryfield_motel_balcony_8017DB74(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_balcony_8017DB7C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_motel_balcony_8018227C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },

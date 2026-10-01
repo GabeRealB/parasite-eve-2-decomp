@@ -413,7 +413,7 @@ extern s8 D_actor_421600_801511D0[];
 extern s32 D_actor_421600_801511D4[][8];
 
 /// The records closing four of the overlay's model streams, which the
-/// death-tick frames point `D_80114B34[5].arg.model` at before each `Gp_SpawnEff`.
+/// death-tick frames point `D_80114B34[5].data.model` at before each `Gp_SpawnEff`.
 extern TmdSource D_actor_421600_80143EF4;
 extern TmdSource D_actor_421600_801443C8;
 extern TmdSource D_actor_421600_80145124;
@@ -2150,7 +2150,7 @@ s32 D_actor_421600_801511D4[4][8] = {
     { 0x1F7BC, 1553, 0x1FBDC, 1606, 0x10459, 0xF66F, 0x106C9, 0xFB85 },
 };
 
-TaskDesc D_actor_421600_80151254 = { (TASK_BODY_TMD | 0x100), 96, func_actor_421600_8013EEC8, { .model = &D_actor_421600_80143A54 } };
+TaskDesc D_actor_421600_80151254 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_421600_8013EEC8, { .model = &D_actor_421600_80143A54 } };
 
 SVECTOR ActorContact_ScratchPosition;
 
@@ -6394,24 +6394,24 @@ static void func_actor_421600_8013C8E0(Task* arg0)
         Tmd_FreeBuffers(obj);
     }
     if ((s16)work->field_6 == 3) {
-        D_80114B34[5].arg.model = &D_actor_421600_80143EF4;
-        vec.vz                  = 0x64;
-        vec.vy                  = 0;
-        vec.vx                  = 0;
+        D_80114B34[5].data.model = &D_actor_421600_80143EF4;
+        vec.vz                   = 0x64;
+        vec.vy                   = 0;
+        vec.vx                   = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), ctx);
     }
     if ((s16)work->field_6 == 5) {
-        D_80114B34[5].arg.model = &D_actor_421600_801443C8;
-        vec.vy                  = 0;
-        vec.vx                  = 0;
+        D_80114B34[5].data.model = &D_actor_421600_801443C8;
+        vec.vy                   = 0;
+        vec.vx                   = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), ctx);
     }
     if ((s16)work->field_6 == 7) {
-        D_80114B34[5].arg.model = &D_actor_421600_80145604;
+        D_80114B34[5].data.model = &D_actor_421600_80145604;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), ctx);
     }
     if ((s16)work->field_6 == 8) {
-        D_80114B34[5].arg.model = &D_actor_421600_80145124;
+        D_80114B34[5].data.model = &D_actor_421600_80145124;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), ctx);
     }
     if ((s16)work->field_6 == 0xA) {

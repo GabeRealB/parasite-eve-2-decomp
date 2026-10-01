@@ -223,7 +223,7 @@ void func_actor_361100_80161E3C(Task*);
 void func_actor_361100_801627D4(Task*);
 void func_actor_361100_80162A54(Task*);
 
-TaskDesc D_actor_361100_801637C8 = { TASK_BODY_COORD, 192, func_actor_361100_80161E3C, { .model = NULL } };
+TaskDesc D_actor_361100_801637C8 = { { { TASK_BODY_COORD, 192 } }, func_actor_361100_80161E3C, { .value = 0 } };
 
 AnimationPackedPose D_actor_361100_801637D4[6] = {
 #include "assets/actor_361100_animation_01C90_bank1.inc"
@@ -424,8 +424,8 @@ AnimationSet D_actor_361100_80165C30 = {
 };
 
 TaskDesc D_actor_361100_80165C58[2] = {
-    { 0, 192, func_actor_361100_801627D4, { .model = NULL } },
-    { 0, 192, func_actor_361100_80162A54, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_361100_801627D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_361100_80162A54, { .value = 0 } },
 };
 
 AnimationSet* D_actor_361100_80165C70[10] = {
@@ -783,7 +783,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_361100_8016BAD0,
 };
 
-TaskDesc D_actor_361100_8016BAE4 = { (TASK_BODY_TMD | 0x100), 192, func_actor_361100_80162CBC, { .model = &D_actor_361100_8016B2B8 } };
+TaskDesc D_actor_361100_8016BAE4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_361100_80162CBC, { .model = &D_actor_361100_8016B2B8 } };
 
 Actor361100MsgEntry D_actor_361100_8016BAF0[5] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
@@ -925,7 +925,7 @@ AnimationSet** D_actor_361100_80171BA8[1] = {
     D_actor_361100_80171B94,
 };
 
-TaskDesc D_actor_361100_80171BAC = { (TASK_BODY_TMD | 0x100), 192, func_actor_361100_801633A4, { .model = &D_actor_361100_801712CC } };
+TaskDesc D_actor_361100_80171BAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_361100_801633A4, { .model = &D_actor_361100_801712CC } };
 
 Actor361100MessageEntry D_actor_361100_80171BB8[5] = {
     { 2003, { .call0 = func_actor_361100_801634D0 } },

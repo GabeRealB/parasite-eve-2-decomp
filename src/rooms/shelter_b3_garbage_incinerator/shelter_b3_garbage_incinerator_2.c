@@ -192,7 +192,7 @@ void func_shelter_b3_garbage_incinerator_8017F968(void);
 void func_shelter_b3_garbage_incinerator_8017F9B4(s32);
 void func_shelter_b3_garbage_incinerator_8017FA3C(void);
 
-TaskDesc D_shelter_b3_garbage_incinerator_801855E0 = { 0, 192, func_shelter_b3_garbage_incinerator_8017DCD4, { .model = NULL } };
+TaskDesc D_shelter_b3_garbage_incinerator_801855E0 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_8017DCD4, { .value = 0 } };
 
 TmdBone D_shelter_b3_garbage_incinerator_801855EC[1] = {
 #include "assets/shelter_b3_garbage_incinerator_model_0855C_skeleton.inc"
@@ -239,11 +239,11 @@ ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
 
 ActorTransform D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x4650, 0 }, { 0, 0, 0, 0 } };
 
-TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { (TASK_BODY_TMD | 0x100), 192, func_shelter_b3_garbage_incinerator_8017E158, { .model = &D_shelter_b3_garbage_incinerator_80185B1C } };
+TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_garbage_incinerator_8017E158, { .model = &D_shelter_b3_garbage_incinerator_80185B1C } };
 
 TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
-    { 0, 192, screenWaveGridTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
@@ -374,10 +374,10 @@ EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[17] = {
 };
 
 TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
-    { 0, 192, func_shelter_b3_garbage_incinerator_8017F6D8, { .model = NULL } },
-    { 0, 192, taskKill, { .model = NULL } },
-    { 0, 192, blazeFadeTask, { .model = NULL } },
-    { 0, 192, blazeBodyFireTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_8017F6D8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, blazeFadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, blazeBodyFireTask, { .value = 0 } },
 };
 
 #include "../../shared/cap_captions_settings.inc.c"
@@ -385,7 +385,7 @@ TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
 static void CapCaption_RunSchedule(Task* task);
 
 static TaskDesc D_shelter_b3_garbage_incinerator_80187184[1] = {
-    { 0, 32, CapCaption_RunSchedule, { .value = 0 } }
+    { { { TASK_BODY_NONE, 32 } }, CapCaption_RunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"

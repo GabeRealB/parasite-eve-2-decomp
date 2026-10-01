@@ -107,9 +107,9 @@ s32 func_shelter_b2_elevator_hall_8017DC78(Task*, s32, TaskMessageArg, TaskMessa
 s32 func_shelter_b2_elevator_hall_8017DC80(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b2_elevator_hall_8017DC88(Task*, s32, s32, TaskMessageArg);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b2_elevator_hall_8018379C = { 0, 32, shelterElevatorTask, { .model = NULL } };
+TaskDesc D_shelter_b2_elevator_hall_8018379C = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b2_elevator_hall_801837A8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_hall_8017DAD4 },

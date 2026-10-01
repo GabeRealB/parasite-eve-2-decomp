@@ -175,7 +175,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task*);
 void func_shelter_b2_main_corridor_8017E210(Task*);
 void func_shelter_b2_main_corridor_8017EB8C(Task*);
 
-ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { 0, 32, roomDepartureTask, { .model = NULL } } };
+ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } } };
 
 AnimationPackedPose D_shelter_b2_main_corridor_801828F0[2] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"
@@ -199,7 +199,7 @@ AnimationSet D_shelter_b2_main_corridor_80182BE0 = {
     { NULL, D_shelter_b2_main_corridor_801828F0, NULL, NULL, D_shelter_b2_main_corridor_80182908, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b2_main_corridor_80182C08 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b2_main_corridor_80182C08 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b2_main_corridor_80182C14[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_main_corridor_8017D9C4 },
@@ -211,8 +211,8 @@ GpMsgEntry D_shelter_b2_main_corridor_80182C14[6] = {
 };
 
 TaskDesc D_shelter_b2_main_corridor_80182C44[2] = {
-    { 0, 32, func_shelter_b2_main_corridor_8017DEB0, { .model = NULL } },
-    { 0, 32, func_shelter_b2_main_corridor_8017E210, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_main_corridor_8017DEB0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_main_corridor_8017E210, { .value = 0 } },
 };
 
 AnimationSet* D_shelter_b2_main_corridor_80182C5C[1] = {
@@ -244,7 +244,7 @@ EvsCommand D_shelter_b2_main_corridor_80182CA8[13] = {
 };
 
 TaskDesc D_shelter_b2_main_corridor_80182DE0[1] = {
-    { 0, 96, func_shelter_b2_main_corridor_8017EB8C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 96 } }, func_shelter_b2_main_corridor_8017EB8C, { .value = 0 } },
 };
 
 RoomWaterSurface D_shelter_b2_main_corridor_80182DEC[5] = {

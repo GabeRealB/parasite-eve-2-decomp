@@ -84,8 +84,8 @@ GpMsgEntry D_dryfield_back_street_8017F964[5] = {
 };
 
 TaskDesc D_dryfield_back_street_8017F98C[2] = {
-    { 0, 32, func_dryfield_back_street_8017D5D0, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_back_street_8017D5D0, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"

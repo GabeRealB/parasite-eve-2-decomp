@@ -87,7 +87,7 @@ GpMsgEntry D_neo_ark_substation_8017E294[5] = {
 };
 
 TaskDesc D_neo_ark_substation_8017E2BC[1] = {
-    { 0, 32, func_neo_ark_substation_8017D608, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_substation_8017D608, { .value = 0 } },
 };
 
 RoomAmbienceEntry D_neo_ark_substation_8017E2C8[9] = {

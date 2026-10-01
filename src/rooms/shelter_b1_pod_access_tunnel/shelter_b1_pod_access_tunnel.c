@@ -165,7 +165,7 @@ void                        func_shelter_b1_pod_access_tunnel_8017E704(void);
 void                        func_shelter_b1_pod_access_tunnel_8017E734(s32);
 void                        func_shelter_b1_pod_access_tunnel_8017E7B4(void);
 
-TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 ShelterB1PodAccessTunnelMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_shelter_b1_pod_access_tunnel_8017D7B4 } },
@@ -177,8 +177,8 @@ ShelterB1PodAccessTunnelMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] 
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80181108[2] = {
-    { 0, 32, func_shelter_b1_pod_access_tunnel_8017DA74, { .model = NULL } },
-    { 0, 32, func_shelter_b1_pod_access_tunnel_8017DC18, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_pod_access_tunnel_8017DA74, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_pod_access_tunnel_8017DC18, { .value = 0 } },
 };
 
 EvsCommand D_shelter_b1_pod_access_tunnel_80181120[7] = {
@@ -191,7 +191,7 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80181120[7] = {
     { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-TaskDesc D_shelter_b1_pod_access_tunnel_801811C8 = { 0, 192, func_shelter_b1_pod_access_tunnel_8017DF40, { .model = NULL } };
+TaskDesc D_shelter_b1_pod_access_tunnel_801811C8 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017DF40, { .value = 0 } };
 
 AnimationPackedPose D_shelter_b1_pod_access_tunnel_801811D4[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank1.inc"
@@ -348,9 +348,9 @@ AnimationSet D_shelter_b1_pod_access_tunnel_80182D04 = {
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C[3] = {
-    { 0, 192, func_shelter_b1_pod_access_tunnel_8017E44C, { .model = NULL } },
-    { 0, 192, func_shelter_b1_pod_access_tunnel_8017E55C, { .model = NULL } },
-    { 0, 192, func_shelter_b1_pod_access_tunnel_8017E778, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017E44C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017E55C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017E778, { .value = 0 } },
 };
 
 AnimationSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {

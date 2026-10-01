@@ -203,9 +203,9 @@ extern SpriteSource   D_acropolis_fire_escape_80182D58[5];
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_acropolis_fire_escape_80181D3C[5] = {
@@ -217,8 +217,8 @@ GpMsgEntry D_acropolis_fire_escape_80181D3C[5] = {
 };
 
 TaskDesc D_acropolis_fire_escape_80181D64[2] = {
-    { 0, 32, func_acropolis_fire_escape_8017FB40, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_fire_escape_8017FB40, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s16 D_acropolis_fire_escape_80181D7C[24] = {

@@ -274,7 +274,7 @@ extern ActorTransform     Actor01600_D12890;
 extern s32 Actor01600_D12874;
 extern s32 Actor01600_D12870;
 
-/// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
+/// Models effect 0x80005 spawns, set in `D_800626EC[5].data.model`.
 extern TmdSource Actor01600_D0973C;
 extern TmdSource Actor01600_D09CFC;
 extern TmdSource Actor01600_D09EE0;
@@ -1295,7 +1295,7 @@ Actor01600RecoveredMsgEntry Actor01600_D127A4[3] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor01600_D127BC = { (TASK_BODY_TMD | 0x100), 96, Actor01600_Fn066E8, { .model = &Actor01600_D08F74 } };
+TaskDesc Actor01600_D127BC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor01600_Fn066E8, { .model = &Actor01600_D08F74 } };
 
 AnimationSet* Actor01600_D127C8[4] = {
     NULL,
@@ -4542,18 +4542,18 @@ static void Actor01600_Fn0646C(Task* arg0)
     s32         choice;
 
     if (((Actor01600Work*)arg0->work)->field_540 != 0) {
-        D_800626EC[5].arg.model = &Actor01600_D0973C;
-        effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 1, 0, NULL);
+        D_800626EC[5].data.model = &Actor01600_D0973C;
+        effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 1, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(effect->task, arg0);
         }
-        D_800626EC[5].arg.model = &Actor01600_D09EE0;
-        effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 2, 0, NULL);
+        D_800626EC[5].data.model = &Actor01600_D09EE0;
+        effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 2, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(effect->task, arg0);
         }
-        D_800626EC[5].arg.model = &Actor01600_D09EE0;
-        effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 3, 0, NULL);
+        D_800626EC[5].data.model = &Actor01600_D09EE0;
+        effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 3, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(effect->task, arg0);
         }
@@ -4566,22 +4566,22 @@ static void Actor01600_Fn0646C(Task* arg0)
     switch (choice) {
         case 0:
         case 1:
-            D_800626EC[5].arg.model = &Actor01600_D0973C;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 1, 0, NULL);
+            D_800626EC[5].data.model = &Actor01600_D0973C;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 1, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(effect->task, arg0);
             }
             break;
         case 2:
-            D_800626EC[5].arg.model = &Actor01600_D09EE0;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 2, 0, NULL);
+            D_800626EC[5].data.model = &Actor01600_D09EE0;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 2, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(effect->task, arg0);
             }
             break;
         case 3:
-            D_800626EC[5].arg.model = &Actor01600_D09CFC;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 6, 0, NULL);
+            D_800626EC[5].data.model = &Actor01600_D09CFC;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 6, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(effect->task, arg0);
             }

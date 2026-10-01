@@ -64,7 +64,7 @@ GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_shelter_b3_garbage_incinerator_801855CC = { 0, 32, func_shelter_b3_garbage_incinerator_8017D6EC, { .model = NULL } };
+TaskDesc D_shelter_b3_garbage_incinerator_801855CC = { { { TASK_BODY_NONE, 32 } }, func_shelter_b3_garbage_incinerator_8017D6EC, { .value = 0 } };
 
 u16 D_shelter_b3_garbage_incinerator_801855DE;
 

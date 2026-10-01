@@ -615,18 +615,18 @@ EvsCommand D_acropolis_plaza_80183764[8] = {
 };
 
 TaskDesc D_acropolis_plaza_80183824[12] = {
-    { 0, 192, func_acropolis_plaza_80180054, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017DFE0, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017E9A8, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017ECF8, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017E7E4, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_80180270, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017F48C, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017D8AC, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017DA58, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017F620, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017DBFC, { .model = NULL } },
-    { 0, 192, func_acropolis_plaza_8017FF18, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_80180054, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017DFE0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017E9A8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017ECF8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017E7E4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_80180270, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017F48C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017D8AC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017DA58, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017F620, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017DBFC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017FF18, { .value = 0 } },
 };
 
 s32 D_acropolis_plaza_801838B4 = 800;

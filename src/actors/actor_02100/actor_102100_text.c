@@ -314,7 +314,7 @@ Actor02100Fn02924Widths Actor02100_D03DD8[5] = {
 
 s16 Actor02100_D03E00[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
 
-TaskDesc Actor02100_D03E10 = { TASK_BODY_TMD, 0x60, Actor02100_Fn03168, { .model = &Actor02100_D03D40 } };
+TaskDesc Actor02100_D03E10 = { { { TASK_BODY_TMD, 0x60 } }, Actor02100_Fn03168, { .model = &Actor02100_D03D40 } };
 
 Actor02100Fn02924Corners Actor02100_D03E1C[2] = {
     { { 0, 1, 2, 3 } },

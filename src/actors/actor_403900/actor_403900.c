@@ -1208,7 +1208,7 @@ s16 gStalkerBeamQuadCorners[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-TaskDesc D_actor_403900_801540E0 = { TASK_BODY_TMD, 96, func_actor_403900_80138344, { .model = &D_actor_403900_8013DBD8 } };
+TaskDesc D_actor_403900_801540E0 = { { { TASK_BODY_TMD, 96 } }, func_actor_403900_80138344, { .model = &D_actor_403900_8013DBD8 } };
 
 AnimationSet* D_actor_403900_801540EC[22] = {
     NULL,

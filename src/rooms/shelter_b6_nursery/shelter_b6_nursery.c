@@ -221,12 +221,12 @@ void func_shelter_b6_nursery_8017FBC0(Task*);
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskDesc D_shelter_b6_nursery_80185000 = { 0, 32, func_shelter_b6_nursery_8017FBC0, { .model = NULL } };
+TaskDesc D_shelter_b6_nursery_80185000 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b6_nursery_8017FBC0, { .value = 0 } };
 
 s32 func_shelter_b6_nursery_8017FA54(Task*, s32, s32, s32);
 s32 func_shelter_b6_nursery_8017FDCC(void);

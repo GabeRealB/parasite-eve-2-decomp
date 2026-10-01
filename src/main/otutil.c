@@ -56,7 +56,7 @@ static void Display_ResetHeapFromSession(void);
 
 static void Display_FlipOtAlt(void);
 
-static TaskDesc Display_MenuTaskDesc = { 0, 0xC0, Gp_MenuRootTask };
+static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, Gp_MenuRootTask };
 
 s32 Display_FrameFlipDraw(GpuOtBuf* otBufs, s32 frameStart, s32 unused3)
 {

@@ -296,13 +296,13 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
         UiObject*     _uiSpawnResult;                                                                                           \
         s32           _uiSpawnDescriptorArg;                                                                                    \
                                                                                                                                 \
-        _uiSpawnResult             = NULL;                                                                                      \
-        _uiSpawnTaskDesc.flags     = _uiSpawnDescriptor->field_10;                                                              \
-        _uiSpawnTaskDesc.priority  = _uiSpawnDescriptor->field_12;                                                              \
-        _uiSpawnDescriptorArg      = _uiSpawnDescriptor->field_18;                                                              \
-        _uiSpawnTaskDesc.callback  = Ui_DispatchObjectState;                                                                    \
-        _uiSpawnTaskDesc.arg.value = _uiSpawnDescriptorArg;                                                                     \
-        _uiSpawnTask               = Task_SpawnFromTable(&_uiSpawnTaskDesc, 0, _uiSpawnPayload, _uiSpawnResult);                \
+        _uiSpawnResult                          = NULL;                                                                         \
+        _uiSpawnTaskDesc.header.fields.flags    = _uiSpawnDescriptor->field_10;                                                 \
+        _uiSpawnTaskDesc.header.fields.priority = _uiSpawnDescriptor->field_12;                                                 \
+        _uiSpawnDescriptorArg                   = _uiSpawnDescriptor->field_18;                                                 \
+        _uiSpawnTaskDesc.callback               = Ui_DispatchObjectState;                                                       \
+        _uiSpawnTaskDesc.data.value             = _uiSpawnDescriptorArg;                                                        \
+        _uiSpawnTask                            = Task_SpawnFromTable(&_uiSpawnTaskDesc, 0, _uiSpawnPayload, _uiSpawnResult);   \
         if (_uiSpawnTask != NULL) {                                                                                             \
             _uiSpawnResult = memCalloc(sizeof(*_uiSpawnResult), 0);                                                             \
             if (_uiSpawnResult != NULL) {                                                                                       \
@@ -355,57 +355,57 @@ static void Ui_DrawDialogLine(UiList* list, UiObject* object);
 static void Ui_ListTaskCallback(Task* task);
 
 TaskDesc D_800670D0[] = {
-    { 0x0, 0xC0, taskKill },
-    { 0x0, 0xC0, taskKill },
-    { 0x0, 0xC0, taskKill },
-    { 0x0, 0xC0, taskKill },
-    { 0x0, 0xC0, func_80714A48 },
-    { TASK_BODY_TMD, 0xC0, func_80707534, { &D_8075BED4 } },
-    { TASK_BODY_COORD, 0xC0, func_807075A0 },
-    { TASK_BODY_TMD, 0xC0, func_807077C0, { &D_8075BED4 } },
-    { TASK_BODY_COORD, 0xC0, func_807080C8 },
-    { TASK_BODY_COORD, 0xC0, func_80707870 },
-    { 0x0, 0xC0, func_80707980 },
-    { 0x0, 0x60, Gp_EnemyDispatch },
-    { TASK_BODY_TMD, 0x40, func_807077C0, { &D_8075BED4 } },
-    { 0x0, 0xC0, taskKill },
-    { 0x0, 0xC0, taskKill },
-    { 0x0, 0x41, Gp_UpdateRoomCoords },
-    { 0x0, 0x51, func_800D96C8 },
-    { TASK_BODY_COORD, 0xC0, taskKill },
-    { 0x0, 0xC0, func_807146AC },
-    { TASK_BODY_TMD, 0xC0, func_8071473C, { &D_8075BED4 } },
-    { TASK_BODY_COORD, 0xC0, func_8071489C, { &D_8072C8F0 } },
-    { 0x0, 0x0, NULL },
-    { 0x0, 0x0, NULL },
-    { TASK_BODY_TMD, 0xC0, func_807149F0, { &D_8075BED4 } },
-    { 0x0, 0xC0, func_80707B14 },
-    { 0x0, 0x2F, func_800B2910 },
-    { TASK_BODY_COORD, 0x60, taskKill },
-    { 0x0, 0xC0, func_80707C38 },
-    { TASK_BODY_TMD, 0xC0, func_80707F84, { &D_8075BED4 } },
-    { TASK_BODY_COORD, 0xC0, func_80708070 },
-    { 0x0, 0xC0, taskKill },
-    { 0x0, 0x0, NULL },
-    { 0x0, 0x0, NULL },
-    { 0x0, 0xC0, Tmd_DispatchTask },
-    { 0x0, 0xC0, Tmd_AllocNodeBuffers },
-    { 0x0, 0x60, func_800B5DB8 },
-    { 0x0, 0xC0, Ui_NoOpTask },
-    { 0x0, 0x70, func_800CFD78 },
-    { 0x0, 0xC0, func_800CE22C },
-    { 0x0, 0xC2, Gp_FadeTileTask },
-    { 0x0, 0xC0, taskKill },
-    { 0x0, 0xC0, func_807127A8 },
-    { 0x0, 0x0, NULL },
-    { 0x0, 0x70, taskKill },
-    { 0x0, 0xC0, func_800B65B0 },
-    { 0x0, 0xC0, func_800B60C0 },
-    { 0x0, 0xC0, func_800D9CC8 },
-    { 0x0, 0xC0, func_8070A6E8 },
-    { 0x0, 0xC0, func_80708778 },
-    { 0x0, 0x2F, Gp_FadeWorkTask },
-    { TASK_BODY_TMD, 0x70, Gp_EffAttachTask37 },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80714A48 },
+    { { { TASK_BODY_TMD, 0xC0 } }, func_80707534, { &D_8075BED4 } },
+    { { { TASK_BODY_COORD, 0xC0 } }, func_807075A0 },
+    { { { TASK_BODY_TMD, 0xC0 } }, func_807077C0, { &D_8075BED4 } },
+    { { { TASK_BODY_COORD, 0xC0 } }, func_807080C8 },
+    { { { TASK_BODY_COORD, 0xC0 } }, func_80707870 },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80707980 },
+    { { { TASK_BODY_NONE, 0x60 } }, Gp_EnemyDispatch },
+    { { { TASK_BODY_TMD, 0x40 } }, func_807077C0, { &D_8075BED4 } },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0x41 } }, Gp_UpdateRoomCoords },
+    { { { TASK_BODY_NONE, 0x51 } }, func_800D96C8 },
+    { { { TASK_BODY_COORD, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_807146AC },
+    { { { TASK_BODY_TMD, 0xC0 } }, func_8071473C, { &D_8075BED4 } },
+    { { { TASK_BODY_COORD, 0xC0 } }, func_8071489C, { &D_8072C8F0 } },
+    { { { TASK_BODY_NONE, 0x0 } }, NULL },
+    { { { TASK_BODY_NONE, 0x0 } }, NULL },
+    { { { TASK_BODY_TMD, 0xC0 } }, func_807149F0, { &D_8075BED4 } },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80707B14 },
+    { { { TASK_BODY_NONE, 0x2F } }, func_800B2910 },
+    { { { TASK_BODY_COORD, 0x60 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80707C38 },
+    { { { TASK_BODY_TMD, 0xC0 } }, func_80707F84, { &D_8075BED4 } },
+    { { { TASK_BODY_COORD, 0xC0 } }, func_80708070 },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0x0 } }, NULL },
+    { { { TASK_BODY_NONE, 0x0 } }, NULL },
+    { { { TASK_BODY_NONE, 0xC0 } }, Tmd_DispatchTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, Tmd_AllocNodeBuffers },
+    { { { TASK_BODY_NONE, 0x60 } }, func_800B5DB8 },
+    { { { TASK_BODY_NONE, 0xC0 } }, Ui_NoOpTask },
+    { { { TASK_BODY_NONE, 0x70 } }, func_800CFD78 },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_800CE22C },
+    { { { TASK_BODY_NONE, 0xC2 } }, Gp_FadeTileTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_807127A8 },
+    { { { TASK_BODY_NONE, 0x0 } }, NULL },
+    { { { TASK_BODY_NONE, 0x70 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_800B65B0 },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_800B60C0 },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_800D9CC8 },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_8070A6E8 },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80708778 },
+    { { { TASK_BODY_NONE, 0x2F } }, Gp_FadeWorkTask },
+    { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37 },
 };
 
 static u8 McLocation_WhereAmI[]               = "Where am I?";

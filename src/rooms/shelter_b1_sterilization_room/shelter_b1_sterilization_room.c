@@ -226,9 +226,9 @@ TmdSource D_shelter_b1_sterilization_room_80184DF8 = {
 };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
@@ -240,7 +240,7 @@ ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_shelter_b1_sterilization_room_80184E70 = { 0, 192, func_shelter_b1_sterilization_room_80180188, { .model = NULL } };
+TaskDesc D_shelter_b1_sterilization_room_80184E70 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80180188, { .value = 0 } };
 
 s32 D_shelter_b1_sterilization_room_80184E7C = 0x11004;
 
@@ -425,15 +425,15 @@ AnimationSet D_shelter_b1_sterilization_room_801884DC = {
 };
 
 TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
-    { 0, 192, func_shelter_b1_sterilization_room_801811E0, { .model = NULL } },
-    { 0, 192, func_shelter_b1_sterilization_room_801813A0, { .model = NULL } },
-    { 0, 192, func_shelter_b1_sterilization_room_80180D74, { .model = NULL } },
-    { 0, 192, func_shelter_b1_sterilization_room_801814FC, { .model = NULL } },
-    { 0, 192, func_shelter_b1_sterilization_room_80181588, { .model = NULL } },
-    { 0, 192, func_shelter_b1_sterilization_room_80180F74, { .model = NULL } },
-    { 0, 192, func_shelter_b1_sterilization_room_80181634, { .model = NULL } },
-    { 0, 192, func_shelter_b1_sterilization_room_801816E0, { .model = NULL } },
-    { 0, 192, func_shelter_b1_sterilization_room_801817EC, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801811E0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801813A0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80180D74, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801814FC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80181588, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80180F74, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80181634, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801816E0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801817EC, { .value = 0 } },
 };
 
 AnimationSet* D_shelter_b1_sterilization_room_80188570[8] = {

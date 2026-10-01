@@ -1112,9 +1112,9 @@ Actor00400RecoveredMsgEntry Actor00400_D16010[3] = {
 };
 
 TaskDesc Actor00400_D16028[3] = {
-    { TASK_BODY_TMD, 96, Actor00400_Fn08948, { .model = &Actor00400_D0DD54 } },
-    { TASK_BODY_COORD, 96, Actor00400_Fn08004, { .model = NULL } },
-    { TASK_BODY_COORD, 96, Actor00400_Fn076E8, { .model = NULL } },
+    { { { TASK_BODY_TMD, 96 } }, Actor00400_Fn08948, { .model = &Actor00400_D0DD54 } },
+    { { { TASK_BODY_COORD, 96 } }, Actor00400_Fn08004, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, Actor00400_Fn076E8, { .value = 0 } },
 };
 
 AnimationSet* Actor00400_D1604C[20] = {

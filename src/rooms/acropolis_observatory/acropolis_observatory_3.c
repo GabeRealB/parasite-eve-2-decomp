@@ -117,7 +117,7 @@ s16 D_acropolis_observatory_8017FE68[2] = {
     1,
 };
 
-TaskDesc D_acropolis_observatory_8017FE6C = { 0, 192, func_acropolis_observatory_8017E19C, { .model = NULL } };
+TaskDesc D_acropolis_observatory_8017FE6C = { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017E19C, { .value = 0 } };
 
 SVECTOR D_acropolis_observatory_8017FE78[8] = {
     { -6832, -6250, -1216, 0 },

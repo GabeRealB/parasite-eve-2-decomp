@@ -169,8 +169,8 @@ void func_neo_ark_observatory_8017FB1C(Task*);
 #include "../../shared/planar_reflection_data.inc.c"
 
 TaskDesc D_neo_ark_observatory_80180DBC[2] = {
-    { 0, 112, func_neo_ark_observatory_8017F3FC, { .model = NULL } },
-    { 0, 112, Reflection_HeldObjectTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 112 } }, func_neo_ark_observatory_8017F3FC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)
@@ -178,7 +178,7 @@ static inline TaskDesc* Reflection_GetTasks(void)
     return D_neo_ark_observatory_80180DBC;
 }
 
-TaskDesc D_neo_ark_observatory_80180DD4 = { 0, 32, roomDepartureTask, { .model = NULL } };
+TaskDesc D_neo_ark_observatory_80180DD4 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
 AnimationPackedPose D_neo_ark_observatory_80180DE0[6] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
@@ -202,7 +202,7 @@ AnimationSet D_neo_ark_observatory_80181184 = {
     { NULL, D_neo_ark_observatory_80180DE0, NULL, NULL, D_neo_ark_observatory_80180E28, NULL, NULL, NULL },
 };
 
-TaskDesc D_neo_ark_observatory_801811AC = { 0, 192, func_neo_ark_observatory_8017FB1C, { .model = NULL } };
+TaskDesc D_neo_ark_observatory_801811AC = { { { TASK_BODY_NONE, 192 } }, func_neo_ark_observatory_8017FB1C, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_observatory_801811B8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_observatory_8017FBE8 },

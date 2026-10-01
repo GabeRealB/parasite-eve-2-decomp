@@ -15,7 +15,6 @@
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
-#include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -329,12 +328,12 @@ static GpEnemyDesc D_map_dryfield_full_8017A41C[1] = {
 };
 
 static GpEnemyDesc D_map_dryfield_full_8017A42C[2] = {
-    { 0x82, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_dryfield_night_trailer_coach_80184CA0 } } },
+    { 0x82, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &D_dryfield_night_trailer_coach_80184CA0 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_dryfield_full_8017A44C[2] = {
-    { 0x117, { 0 }, { TASK_BODY_TMD, 0x62, Gp_WaitItemFlag2, { &D_dryfield_night_motel_loft_8017EAF8 } } },
+    { 0x117, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_WaitItemFlag2, { &D_dryfield_night_motel_loft_8017EAF8 } } },
     { 0xFFFF },
 };
 
@@ -381,40 +380,40 @@ GpBit2List D_map_dryfield_full_8017A46C[40] = {
     { { .sentinel = -1 }, NULL },
 };
 
-GpTaskDesc D_map_dryfield_full_8017A5AC[] = {
-    { { 0, 0x20, func_dryfield_night_gas_station_8017FB70, { .value = GP_TASK_LOC_KEY(3, 1, 0) } } },
-    { { 0, 0x20, func_dryfield_night_main_street_8017E0C0, { .value = GP_TASK_LOC_KEY(3, 2, 0) } } },
-    { { 0, 0x20, func_dryfield_night_general_store_8017DE88, { .value = GP_TASK_LOC_KEY(3, 3, 0) } } },
-    { { 0, 0x20, func_dryfield_night_back_street_8017D788, { .value = GP_TASK_LOC_KEY(3, 5, 0) } } },
-    { { 0, 0x20, func_dryfield_night_souvenir_shop_8017D65C, { .value = GP_TASK_LOC_KEY(3, 6, 0) } } },
-    { { 0, 0x20, func_dryfield_night_warehouse_8017D65C, { .value = GP_TASK_LOC_KEY(3, 7, 0) } } },
-    { { 0, 0x20, func_dryfield_night_dilapidated_house_8017DA18, { .value = GP_TASK_LOC_KEY(3, 9, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_room_1_8017D6DC, { .value = GP_TASK_LOC_KEY(3, 11, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_room_2_8017D6BC, { .value = GP_TASK_LOC_KEY(3, 12, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_room_3_8017D6E0, { .value = GP_TASK_LOC_KEY(3, 13, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_room_4_8017D6BC, { .value = GP_TASK_LOC_KEY(3, 14, 0) } } },
-    { { 0, 0x20, func_dryfield_night_parking_lot_8017DC30, { .value = GP_TASK_LOC_KEY(3, 15, 0) } } },
-    { { 0, 0x20, func_dryfield_night_toilet_8017D724, { .value = GP_TASK_LOC_KEY(3, 16, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_lobby_8017FE38, { .value = GP_TASK_LOC_KEY(3, 17, 0) } } },
-    { { 0, 0x20, func_dryfield_night_saloon_g_r_8017E050, { .value = GP_TASK_LOC_KEY(3, 18, 0) } } },
-    { { 0, 0x20, func_dryfield_night_g_r_kitchen_8017D9A4, { .value = GP_TASK_LOC_KEY(3, 19, 0) } } },
-    { { 0, 0x20, func_dryfield_night_water_tower_8017DB28, { .value = GP_TASK_LOC_KEY(3, 20, 0) } } },
-    { { 0, 0x20, func_dryfield_night_water_tank_8017D984, { .value = GP_TASK_LOC_KEY(3, 21, 0) } } },
-    { { 0, 0x20, func_dryfield_night_breezeway_8017D680, { .value = GP_TASK_LOC_KEY(3, 22, 0) } } },
-    { { 0, 0x20, factoryNightEntryTask, { .value = GP_TASK_LOC_KEY(3, 23, 0) } } },
-    { { 0, 0x20, func_dryfield_night_garage_801803BC, { .value = GP_TASK_LOC_KEY(3, 24, 0) } } },
-    { { 0, 0x20, func_dryfield_night_driveway_8017DD8C, { .value = GP_TASK_LOC_KEY(3, 25, 0) } } },
-    { { 0, 0x20, func_dryfield_night_junk_yard_8017D960, { .value = GP_TASK_LOC_KEY(3, 26, 0) } } },
-    { { 0, 0x20, func_dryfield_night_trailer_coach_801828CC, { .value = GP_TASK_LOC_KEY(3, 27, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_room_5_8017D6D0, { .value = GP_TASK_LOC_KEY(3, 28, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_balcony_8017DD78, { .value = GP_TASK_LOC_KEY(3, 29, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_room_6_80181C80, { .value = GP_TASK_LOC_KEY(3, 30, 0) } } },
-    { { 0, 0x20, func_dryfield_night_motel_loft_8017D964, { .value = GP_TASK_LOC_KEY(3, 31, 0) } } },
-    { { 0, 0x20, func_dryfield_night_water_hole_8017DE30, { .value = GP_TASK_LOC_KEY(3, 32, 0) } } },
-    { { 0, 0x20, func_dryfield_night_cellar_8017D748, { .value = GP_TASK_LOC_KEY(3, 34, 0) } } },
-    { { 0, 0x20, func_dryfield_night_underpass_8017D95C, { .value = GP_TASK_LOC_KEY(3, 38, 0) } } },
-    { { 0, 0x20, func_dryfield_night_r08_8017D6C0, { .value = GP_TASK_LOC_KEY(3, 8, 0) } } },
-    { { 0xFFFF, 0x20, NULL, { 0 } } },
+TaskDesc D_map_dryfield_full_8017A5AC[] = {
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_gas_station_8017FB70, { .value = GP_TASK_LOC_KEY(3, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_main_street_8017E0C0, { .value = GP_TASK_LOC_KEY(3, 2, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_general_store_8017DE88, { .value = GP_TASK_LOC_KEY(3, 3, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_back_street_8017D788, { .value = GP_TASK_LOC_KEY(3, 5, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_souvenir_shop_8017D65C, { .value = GP_TASK_LOC_KEY(3, 6, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_warehouse_8017D65C, { .value = GP_TASK_LOC_KEY(3, 7, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_dilapidated_house_8017DA18, { .value = GP_TASK_LOC_KEY(3, 9, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_room_1_8017D6DC, { .value = GP_TASK_LOC_KEY(3, 11, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_room_2_8017D6BC, { .value = GP_TASK_LOC_KEY(3, 12, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_room_3_8017D6E0, { .value = GP_TASK_LOC_KEY(3, 13, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_room_4_8017D6BC, { .value = GP_TASK_LOC_KEY(3, 14, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_parking_lot_8017DC30, { .value = GP_TASK_LOC_KEY(3, 15, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_toilet_8017D724, { .value = GP_TASK_LOC_KEY(3, 16, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_lobby_8017FE38, { .value = GP_TASK_LOC_KEY(3, 17, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_saloon_g_r_8017E050, { .value = GP_TASK_LOC_KEY(3, 18, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_g_r_kitchen_8017D9A4, { .value = GP_TASK_LOC_KEY(3, 19, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_water_tower_8017DB28, { .value = GP_TASK_LOC_KEY(3, 20, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_water_tank_8017D984, { .value = GP_TASK_LOC_KEY(3, 21, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_breezeway_8017D680, { .value = GP_TASK_LOC_KEY(3, 22, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, factoryNightEntryTask, { .value = GP_TASK_LOC_KEY(3, 23, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_garage_801803BC, { .value = GP_TASK_LOC_KEY(3, 24, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_driveway_8017DD8C, { .value = GP_TASK_LOC_KEY(3, 25, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_junk_yard_8017D960, { .value = GP_TASK_LOC_KEY(3, 26, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_trailer_coach_801828CC, { .value = GP_TASK_LOC_KEY(3, 27, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_room_5_8017D6D0, { .value = GP_TASK_LOC_KEY(3, 28, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_balcony_8017DD78, { .value = GP_TASK_LOC_KEY(3, 29, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_room_6_80181C80, { .value = GP_TASK_LOC_KEY(3, 30, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_motel_loft_8017D964, { .value = GP_TASK_LOC_KEY(3, 31, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_water_hole_8017DE30, { .value = GP_TASK_LOC_KEY(3, 32, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_cellar_8017D748, { .value = GP_TASK_LOC_KEY(3, 34, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_underpass_8017D95C, { .value = GP_TASK_LOC_KEY(3, 38, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_night_r08_8017D6C0, { .value = GP_TASK_LOC_KEY(3, 8, 0) } },
+    { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };
 
 u16 D_map_dryfield_full_8017A738[30] = {

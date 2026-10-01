@@ -72,11 +72,11 @@ void func_actor_143000_80133EE4(Task*);
 void func_actor_143000_801342F8(s32 x, s32 y, const u16* codes, s32 index, s32 active);
 
 TaskDesc D_actor_143000_801350B0[2] = {
-    { 0, 192, taskKill, { .model = NULL } },
-    { 0, 32, func_actor_143000_80133EE4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_actor_143000_80133EE4, { .value = 0 } },
 };
 
-TaskDesc D_actor_143000_801350C8 = { 0, 32, func_actor_143000_80133CF0, { .model = NULL } };
+TaskDesc D_actor_143000_801350C8 = { { { TASK_BODY_NONE, 32 } }, func_actor_143000_80133CF0, { .value = 0 } };
 
 Actor143000AnimStorage50D4 D_actor_143000_801350D4 = { .data = { { &D_actor_143000_80134840, &D_actor_143000_80134AEC, &D_actor_143000_80134D08, &D_actor_143000_80134EB0, &D_actor_143000_80135068 }, { { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE } } } };
 

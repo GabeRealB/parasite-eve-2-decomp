@@ -723,7 +723,7 @@ ActorHeightClamp Actor01900_D172CC[3] = {
 
 s16 Actor01900_D172FC = 0;
 
-TaskDesc Actor01900_D17300 = { TASK_BODY_TMD, 96, Actor01900_Fn0ABE4, { .model = &Actor01900_D102C8 } };
+TaskDesc Actor01900_D17300 = { { { TASK_BODY_TMD, 96 } }, Actor01900_Fn0ABE4, { .model = &Actor01900_D102C8 } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -3024,17 +3024,17 @@ static void Actor01900_Fn08724(Task* arg0)
     work->field_6++;
     switch (work->field_6) {
         case 3:
-            D_80114B34[5].arg.model = &Actor01900_D10B68;
-            vec.vz                  = 0x64;
-            vec.vy                  = 0;
-            vec.vx                  = 0;
-            eff                     = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
+            D_80114B34[5].data.model = &Actor01900_D10B68;
+            vec.vz                   = 0x64;
+            vec.vy                   = 0;
+            vec.vx                   = 0;
+            eff                      = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
             goto body;
         case 4:
-            D_80114B34[5].arg.model = &Actor01900_D10B68;
-            vec.vy                  = 0;
-            vec.vx                  = 0;
-            eff                     = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec);
+            D_80114B34[5].data.model = &Actor01900_D10B68;
+            vec.vy                   = 0;
+            vec.vx                   = 0;
+            eff                      = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec);
         body:
             if (eff != NULL) {
                 actorTintTask(eff->task, enemy);
@@ -3083,16 +3083,16 @@ static void Actor01900_Fn0892C(Task* arg0)
             Actor01900_StepForwardHead(arg0->extra.tmd->coords, 0xA);
             ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC);
             if (work->field_6 == 3) {
-                D_80114B34[5].arg.model = &Actor01900_D10B68;
-                vec.vz                  = 0x64;
-                vec.vy                  = 0;
-                vec.vx                  = 0;
-                eff                     = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
+                D_80114B34[5].data.model = &Actor01900_D10B68;
+                vec.vz                   = 0x64;
+                vec.vy                   = 0;
+                vec.vx                   = 0;
+                eff                      = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec);
                 actorTintEffect(eff, enemy);
             }
             if (work->field_6 == 5) {
-                D_80114B34[5].arg.model = &Actor01900_D10B68;
-                eff                     = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL);
+                D_80114B34[5].data.model = &Actor01900_D10B68;
+                eff                      = Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL);
                 actorTintEffect(eff, enemy);
             }
             break;

@@ -637,10 +637,10 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_135600_8013B0C4[4] = {
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_135600_80132D64, { .model = &D_actor_135600_80137E94 } },
-    { TASK_BODY_TMD, 192, func_actor_135600_801329E0, { .model = &D_actor_135600_801387D8 } },
-    { TASK_BODY_TMD, 192, func_actor_135600_801329E0, { .model = &D_actor_135600_801382E8 } },
-    { TASK_BODY_TMD, 192, func_actor_135600_80132ABC, { .model = &D_actor_135600_80138AE8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_135600_80132D64, { .model = &D_actor_135600_80137E94 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_135600_801329E0, { .model = &D_actor_135600_801387D8 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_135600_801329E0, { .model = &D_actor_135600_801382E8 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_135600_80132ABC, { .model = &D_actor_135600_80138AE8 } },
 };
 
 Actor135600MsgEntry D_actor_135600_8013B0F4[6] = {

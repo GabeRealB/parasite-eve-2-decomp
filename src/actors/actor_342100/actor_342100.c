@@ -269,8 +269,8 @@ AnimationSet D_actor_342100_801648B4 = {
 };
 
 TaskDesc D_actor_342100_801648DC[2] = {
-    { 0, 192, screenWaveGridTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
@@ -368,11 +368,11 @@ EvsCommand D_actor_342100_801649C8[18] = {
 };
 
 TaskDesc D_actor_342100_80164B78[5] = {
-    { 0, 192, func_actor_342100_801630A4, { .model = NULL } },
-    { 0, 192, taskKill, { .model = NULL } },
-    { 0, 192, blazeFadeTask, { .model = NULL } },
-    { 0, 192, blazeBodyFireTask, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_actor_342100_80162AB0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_342100_801630A4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, blazeFadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, blazeBodyFireTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_342100_80162AB0, { .value = 0 } },
 };
 
 OverlayWaveCtx* gScreenWaveCtx = NULL;

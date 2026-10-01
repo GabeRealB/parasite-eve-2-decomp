@@ -219,11 +219,11 @@ AnimationSet D_actor_341300_801651E0 = {
 };
 
 TaskDesc D_actor_341300_80165208[2] = {
-    { TASK_BODY_COORD, 192, func_actor_341300_80162478, { .model = NULL } },
-    { 0, 192, func_actor_341300_80162278, { .model = NULL } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_341300_80162478, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_341300_80162278, { .value = 0 } },
 };
 
-TaskDesc D_actor_341300_80165220 = { 0, 192, Gp_EnemyTaskExit, { .model = NULL } };
+TaskDesc D_actor_341300_80165220 = { { { TASK_BODY_NONE, 192 } }, Gp_EnemyTaskExit, { .value = 0 } };
 
 AnimationSet* D_actor_341300_8016522C[6] = {
     NULL,
@@ -363,13 +363,13 @@ void func_actor_341300_80163028(Task*);
 void func_actor_341300_801631D4(Task*);
 
 TaskDesc D_actor_341300_80165A68[4] = {
-    { 0, 192, func_actor_341300_80162698, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_actor_341300_80162878, { .model = NULL } },
-    { 0, 192, func_actor_341300_80163028, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_actor_341300_801631D4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_341300_80162698, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_341300_80162878, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_341300_80163028, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_341300_801631D4, { .value = 0 } },
 };
 
-TaskDesc D_actor_341300_80165A98 = { 0, 192, func_actor_341300_80163A10, { .model = NULL } };
+TaskDesc D_actor_341300_80165A98 = { { { TASK_BODY_NONE, 192 } }, func_actor_341300_80163A10, { .value = 0 } };
 
 Task* D_actor_341300_80165AA4 = NULL;
 

@@ -95,9 +95,9 @@ static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
     },
 };
 
-static TaskDesc D_shelter_r47_8018760C = { 0, 192, func_shelter_r47_8018580C, { .model = NULL } };
+static TaskDesc D_shelter_r47_8018760C = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_8018580C, { .value = 0 } };
 
-TaskDesc D_shelter_r47_80187618 = { 0, 192, func_shelter_r47_80185214, { .model = NULL } };
+TaskDesc D_shelter_r47_80187618 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80185214, { .value = 0 } };
 
 static SVECTOR D_shelter_r47_80187624[10] = {
     { 0x3098, -2480, 7430, 0 },

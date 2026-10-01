@@ -640,7 +640,7 @@ EvsCommand D_acropolis_sanctuary_801821C8[5] = {
     { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-TaskDesc D_acropolis_sanctuary_80182240 = { 0, 192, func_acropolis_sanctuary_8017DA40, { .model = NULL } };
+TaskDesc D_acropolis_sanctuary_80182240 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_sanctuary_8017DA40, { .value = 0 } };
 
 SVECTOR D_acropolis_sanctuary_8018224C[4] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_normals.inc"

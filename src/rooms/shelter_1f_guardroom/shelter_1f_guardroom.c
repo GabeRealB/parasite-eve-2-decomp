@@ -71,9 +71,9 @@ GpMsgEntry D_shelter_1f_guardroom_8017DA30[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_shelter_1f_guardroom_8017DA60 = { 0, 32, func_shelter_1f_guardroom_8017D5E8, { .model = NULL } };
+TaskDesc D_shelter_1f_guardroom_8017DA60 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_guardroom_8017D5E8, { .value = 0 } };
 
-TaskDesc D_shelter_1f_guardroom_8017DA6C = { 0, 192, func_shelter_1f_guardroom_8017D8D8, { .model = NULL } };
+TaskDesc D_shelter_1f_guardroom_8017DA6C = { { { TASK_BODY_NONE, 192 } }, func_shelter_1f_guardroom_8017D8D8, { .value = 0 } };
 
 GpRoomObjRec D_shelter_1f_guardroom_8017DA78[1] = {
     { D_shelter_1f_guardroom_8017DBF0, D_shelter_1f_guardroom_8017DE3C, D_shelter_1f_guardroom_8017DED4, NULL },

@@ -102,8 +102,8 @@ void func_neo_ark_altar_8017DA40(Task*);
 void func_neo_ark_altar_8017DBF0(Task*);
 
 TaskDesc D_neo_ark_altar_8017EFC0[2] = {
-    { 0, 192, func_neo_ark_altar_8017DBF0, { .model = NULL } },
-    { 0, 192, func_neo_ark_altar_8017DA40, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_neo_ark_altar_8017DBF0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_neo_ark_altar_8017DA40, { .value = 0 } },
 };
 
 NeoArkAltarTile D_neo_ark_altar_8017EFD8[5] = {
@@ -157,7 +157,7 @@ s16 D_neo_ark_altar_8017F068[16] = {
 };
 
 TaskDesc D_neo_ark_altar_8017F088[1] = {
-    { 0, 32, func_neo_ark_altar_8017ECE0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_altar_8017ECE0, { .value = 0 } },
 };
 
 GpRoomObjRec D_neo_ark_altar_8017F094[3] = {

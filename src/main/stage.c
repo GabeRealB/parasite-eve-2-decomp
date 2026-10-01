@@ -135,14 +135,14 @@ static void Mdec_StripCallback(void);
 
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx            = &Stage_Context;
-static TaskDesc  Display_ModeTaskDesc = { 0, 0, Display_DispatchTaskTable };
+static TaskDesc  Display_ModeTaskDesc = { { { TASK_BODY_NONE, 0 } }, Display_DispatchTaskTable };
 PadRemapState*   Pad_RemapState       = &Pad_DefaultRemapState;
 TaskDesc         D_800626AC[]         = {
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, Task_KillMaybeSpawn },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, func_80701470 },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, Task_KillMaybeSpawn },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80701470 },
 };
 
 static const TaskFuncTable6 Display_TaskStates = { {

@@ -68,7 +68,7 @@ GpMsgEntry D_shelter_b2_breeding_room_80180414[6] = {
 };
 
 TaskDesc D_shelter_b2_breeding_room_80180444[1] = {
-    { 0, 32, func_shelter_b2_breeding_room_8017D7A8, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_breeding_room_8017D7A8, { .value = 0 } },
 };
 
 static void func_shelter_b2_breeding_room_8017D7EC(Task* arg0);

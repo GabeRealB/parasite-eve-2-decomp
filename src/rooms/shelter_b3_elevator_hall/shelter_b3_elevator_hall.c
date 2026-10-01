@@ -82,10 +82,10 @@ s32  func_shelter_b3_elevator_hall_8017DD88(Task*, s32, TaskMessageArg, TaskMess
 s32  func_shelter_b3_elevator_hall_8017DD90(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b3_elevator_hall_8017DD98(Task*, s32, s32, TaskMessageArg);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskDesc D_shelter_b3_elevator_hall_80182A2C[1] = {
-    { 0, 32, shelterElevatorTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } },
 };
 
 GpMsgEntry D_shelter_b3_elevator_hall_80182A38[6] = {
@@ -98,7 +98,7 @@ GpMsgEntry D_shelter_b3_elevator_hall_80182A38[6] = {
 };
 
 TaskDesc D_shelter_b3_elevator_hall_80182A68[1] = {
-    { 0, 32, func_shelter_b3_elevator_hall_8017DAF0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b3_elevator_hall_8017DAF0, { .value = 0 } },
 };
 
 SVECTOR D_shelter_b3_elevator_hall_80182A74[8] = {

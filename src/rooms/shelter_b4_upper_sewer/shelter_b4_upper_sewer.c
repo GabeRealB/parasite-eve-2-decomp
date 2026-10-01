@@ -156,8 +156,8 @@ GpMsgEntry D_shelter_b4_upper_sewer_801862D0[6] = {
 };
 
 TaskDesc D_shelter_b4_upper_sewer_80186300[2] = {
-    { 0, 32, func_shelter_b4_upper_sewer_8017D660, { .model = NULL } },
-    { 0, 32, func_shelter_b4_upper_sewer_8017D80C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_upper_sewer_8017D660, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_upper_sewer_8017D80C, { .value = 0 } },
 };
 
 EvsCommand D_shelter_b4_upper_sewer_80186318[12] = {
@@ -178,7 +178,7 @@ EvsCommand D_shelter_b4_upper_sewer_80186318[12] = {
 s16 D_shelter_b4_upper_sewer_80186438 = -1600;
 
 TaskDesc D_shelter_b4_upper_sewer_8018643C[1] = {
-    { 0, 96, func_shelter_b4_upper_sewer_8017E4F4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_upper_sewer_8017E4F4, { .value = 0 } },
 };
 
 ShelterB4UpperSewerSurface D_shelter_b4_upper_sewer_80186448[1] = {

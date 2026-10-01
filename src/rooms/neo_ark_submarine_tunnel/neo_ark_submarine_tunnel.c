@@ -87,9 +87,9 @@ extern GpCopyArg            D_neo_ark_submarine_tunnel_80181A80;
 void                        func_neo_ark_submarine_tunnel_8017F318(s32);
 void                        func_neo_ark_submarine_tunnel_8017F398(s32);
 
-TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { 0, 192, waterRefractionTask, { .model = NULL } };
+TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_submarine_tunnel_801810F0 = { 0, 192, waterDistortBandTask, { .model = NULL } };
+TaskDesc D_neo_ark_submarine_tunnel_801810F0 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 AnimationPackedPose D_neo_ark_submarine_tunnel_801810FC[6] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank1.inc"
@@ -136,8 +136,8 @@ AnimationSet D_neo_ark_submarine_tunnel_80181A0C = {
 };
 
 TaskDesc D_neo_ark_submarine_tunnel_80181A34[2] = {
-    { 0, 192, screenWaveTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;

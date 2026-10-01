@@ -97,7 +97,7 @@ void func_shelter_1f_bulwark_8017DA60(Task*);
 void func_shelter_1f_bulwark_8017DC78(Task*);
 void func_shelter_1f_bulwark_8017DE04(Task*);
 
-TaskDesc D_shelter_1f_bulwark_80180320 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_1f_bulwark_80180320 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_1f_bulwark_8018032C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_bulwark_8017D7B4 },
@@ -107,11 +107,11 @@ GpMsgEntry D_shelter_1f_bulwark_8018032C[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_shelter_1f_bulwark_80180354 = { 0, 32, func_shelter_1f_bulwark_8017DA60, { .model = NULL } };
+TaskDesc D_shelter_1f_bulwark_80180354 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_bulwark_8017DA60, { .value = 0 } };
 
 TaskDesc D_shelter_1f_bulwark_80180360[2] = {
-    { 0, 192, func_shelter_1f_bulwark_8017DE04, { .model = NULL } },
-    { 0, 192, func_shelter_1f_bulwark_8017DC78, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_1f_bulwark_8017DE04, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_1f_bulwark_8017DC78, { .value = 0 } },
 };
 
 SVECTOR D_shelter_1f_bulwark_80180378[4] = {

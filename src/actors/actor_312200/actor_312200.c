@@ -315,7 +315,7 @@ Actor312200MessageEntry D_actor_312200_80169F5C[4] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_312200_80169F7C = { (TASK_BODY_TMD | 0x100), 96, func_actor_312200_80163854, { .model = &D_actor_312200_80168148 } };
+TaskDesc D_actor_312200_80169F7C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_312200_80163854, { .model = &D_actor_312200_80168148 } };
 
 SVECTOR ActorContact_ScratchPosition;
 

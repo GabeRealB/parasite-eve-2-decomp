@@ -120,9 +120,9 @@ static void func_shelter_r47_8017FCC0(Task* task);
 #include "../../shared/telephone_data.inc.c"
 
 static TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 static GpMsgEntry D_shelter_r47_80186F2C[6] = {
@@ -137,14 +137,14 @@ static GpMsgEntry D_shelter_r47_80186F2C[6] = {
 static AnimationPlayRequest D_shelter_r47_80186F5C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 static TaskDesc D_shelter_r47_80186F70[3] = {
-    { 0, 192, func_shelter_r47_80180714, { .model = NULL } },
-    { 0, 192, func_shelter_r47_80180324, { .model = NULL } },
-    { 0, 192, func_shelter_r47_80180650, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80180714, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80180324, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80180650, { .value = 0 } },
 };
 
 static TaskDesc D_shelter_r47_80186F94[2] = {
-    { 0, 192, func_shelter_r47_8018080C, { .model = NULL } },
-    { 0, 192, func_shelter_r47_801808D4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_8018080C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_801808D4, { .value = 0 } },
 };
 
 u8 D_shelter_r47_80186FAC[5] = {
@@ -167,7 +167,7 @@ static OverlayHotspot D_shelter_r47_80186FB4[9] = {
     { 0, 0, 0, 0, -1, 0, 0 },
 };
 
-static TaskDesc D_shelter_r47_80187020 = { 0, 192, func_shelter_r47_80182B18, { .model = NULL } };
+static TaskDesc D_shelter_r47_80187020 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80182B18, { .value = 0 } };
 
 static ShelterR47SpritePart D_shelter_r47_8018702C[2] = {
     { 32, 255, 0, 0, 120, 160, 72, 24 },
@@ -308,7 +308,7 @@ static ShelterR47SpritePart* D_shelter_r47_8018729C[21] = {
     D_shelter_r47_80187284,
 };
 
-static TaskDesc D_shelter_r47_801872F0 = { 0, 192, func_shelter_r47_80183234, { .model = NULL } };
+static TaskDesc D_shelter_r47_801872F0 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80183234, { .value = 0 } };
 
 u8 D_shelter_r47_801872FC[8] = {
     0,

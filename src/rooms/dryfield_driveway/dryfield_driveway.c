@@ -104,12 +104,12 @@ AnimationSet D_dryfield_driveway_8017E2C8 = {
     { NULL, D_dryfield_driveway_8017DE80, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
 };
 
-TaskDesc gRoomEventStagedTaskDesc = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskDesc gDrivewayCutsceneTasks[3] = {
-    { 0, 32, drivewayBlackoutTask, { .model = NULL } },
-    { 0, 32, drivewayCutsceneTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, drivewayBlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, drivewayCutsceneTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationSet* D_dryfield_driveway_8017E320[2] = {

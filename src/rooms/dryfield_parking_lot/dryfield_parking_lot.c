@@ -83,7 +83,7 @@ s32                   func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessage
 s32                   func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                   func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_parking_lot_8017DC04[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_parking_lot_8017D8BC },

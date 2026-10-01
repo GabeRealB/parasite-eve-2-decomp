@@ -804,8 +804,8 @@ SVECTOR D_mine_forked_tunnel_801819C4[54] = {
 void func_mine_forked_tunnel_8017DDE8(Task*);
 
 TaskDesc D_mine_forked_tunnel_80181B74[2] = {
-    { TASK_BODY_TMD, 192, func_mine_forked_tunnel_8017DBE4, { .model = &D_mine_forked_tunnel_801807B4 } },
-    { TASK_BODY_TMD, 192, func_mine_forked_tunnel_8017DDE8, { .model = &D_mine_forked_tunnel_80180AA0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DBE4, { .model = &D_mine_forked_tunnel_801807B4 } },
+    { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DDE8, { .model = &D_mine_forked_tunnel_80180AA0 } },
 };
 
 s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, ActorCommand* msg);
@@ -920,8 +920,8 @@ AnimationSet D_mine_forked_tunnel_801830DC = {
 };
 
 TaskDesc D_mine_forked_tunnel_80183104[2] = {
-    { 0, 192, func_mine_forked_tunnel_8017E2E0, { .model = NULL } },
-    { 0, 192, func_mine_forked_tunnel_8017E38C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_forked_tunnel_8017E2E0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_forked_tunnel_8017E38C, { .value = 0 } },
 };
 
 AnimationSet* D_mine_forked_tunnel_8018311C[4] = {

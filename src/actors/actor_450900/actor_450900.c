@@ -471,12 +471,12 @@ void func_actor_450900_8013235C(Task*);
 void func_actor_450900_80132548(Task*);
 
 TaskDesc D_actor_450900_80135E78[6] = {
-    { 0, 192, taskKill, { .model = NULL } },
-    { 0, 192, func_actor_450900_80131E38, { .model = NULL } },
-    { 0, 192, func_actor_450900_8013207C, { .model = NULL } },
-    { 0, 192, func_actor_450900_8013223C, { .model = NULL } },
-    { 0, 192, func_actor_450900_8013235C, { .model = NULL } },
-    { 0, 97, func_actor_450900_80132548, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_450900_80131E38, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_450900_8013207C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_450900_8013223C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_450900_8013235C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_actor_450900_80132548, { .value = 0 } },
 };
 
 Actor450900AnimStorage5EC0 D_actor_450900_80135EC0 = { .data = { { &D_actor_450900_80133F0C, &D_actor_450900_80134248, &D_actor_450900_80134410, &D_actor_450900_80134850, &D_actor_450900_80134F14, &D_actor_450900_80135E48, &D_actor_450900_80135158, &D_actor_450900_80135558, &D_actor_450900_80135754, &D_actor_450900_80135A90, &D_actor_450900_80132DA0, &D_actor_450900_801330F8, &D_actor_450900_8013358C, &D_actor_450900_80133754, &D_actor_450900_80133970, &D_actor_450900_80133B24 }, { { { .words = &D_actor_450900_80135EC0.words[10] }, 32 }, { { .words = D_actor_450900_80135EC0.words }, 32 } }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };

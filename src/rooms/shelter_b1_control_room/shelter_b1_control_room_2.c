@@ -54,8 +54,8 @@ void func_shelter_b1_control_room_8017EF24(Task*);
 void func_shelter_b1_control_room_8017F100(Task*);
 
 TaskDesc D_shelter_b1_control_room_80181BBC[2] = {
-    { 0, 192, func_shelter_b1_control_room_8017F100, { .model = NULL } },
-    { 0, 192, func_shelter_b1_control_room_8017EF24, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_control_room_8017F100, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_control_room_8017EF24, { .value = 0 } },
 };
 
 SVECTOR D_shelter_b1_control_room_80181BD4[18] = {

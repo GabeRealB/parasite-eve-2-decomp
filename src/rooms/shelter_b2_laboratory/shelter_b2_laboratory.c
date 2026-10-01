@@ -253,12 +253,12 @@ TmdSource D_shelter_b2_laboratory_801829E4 = {
 };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b2_laboratory_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_laboratory_801800FC },
@@ -272,9 +272,9 @@ GpMsgEntry D_shelter_b2_laboratory_80182A38[6] = {
 Task* D_shelter_b2_laboratory_80182A68 = NULL;
 
 TaskDesc D_shelter_b2_laboratory_80182A6C[3] = {
-    { 0, 32, func_shelter_b2_laboratory_80180290, { .model = NULL } },
-    { 0, 32, func_shelter_b2_laboratory_8017FEB8, { .model = NULL } },
-    { 0, 32, func_shelter_b2_laboratory_80180350, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_laboratory_80180290, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_laboratory_8017FEB8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_laboratory_80180350, { .value = 0 } },
 };
 
 s8 D_shelter_b2_laboratory_80182A90[16] = {

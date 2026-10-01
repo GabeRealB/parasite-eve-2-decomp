@@ -250,8 +250,8 @@ MineCavernMessageEntry D_mine_cavern_80183C6C[7] = {
 };
 
 TaskDesc D_mine_cavern_80183CA4[2] = {
-    { 0, 32, func_mine_cavern_8017DD6C, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_mine_cavern_8017DD6C, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPackedPose D_mine_cavern_80183CBC[6] = {
@@ -606,7 +606,7 @@ AnimationSet D_mine_cavern_8018794C = {
     { NULL, D_mine_cavern_80187504, NULL, NULL, D_mine_cavern_8018757C, NULL, NULL, NULL },
 };
 
-TaskDesc D_mine_cavern_80187974 = { 0, 192, func_mine_cavern_8017E18C, { .model = NULL } };
+TaskDesc D_mine_cavern_80187974 = { { { TASK_BODY_NONE, 192 } }, func_mine_cavern_8017E18C, { .value = 0 } };
 
 AnimationSet* D_mine_cavern_80187980[17] = {
     NULL,

@@ -217,11 +217,11 @@ extern SpriteSource D_dryfield_night_main_street_80186CCC[53];
 extern SpriteSource D_dryfield_night_main_street_80187128[57];
 extern TaskDesc     D_8014D8A4;
 
-TaskDesc gMainStreetEventTaskDesc = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc gMainStreetPlayTimeTaskDesc = { 0, 32, mainStreetPlayTimeTask, { .model = NULL } };
+TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, mainStreetPlayTimeTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_night_main_street_801820B0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },

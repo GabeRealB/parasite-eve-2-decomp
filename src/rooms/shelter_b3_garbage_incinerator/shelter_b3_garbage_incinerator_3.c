@@ -1752,8 +1752,8 @@ GpAreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13] = {
 };
 
 TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2] = {
-    { 0, 192, func_shelter_b3_garbage_incinerator_80184D84, { .model = NULL } },
-    { 0, 192, func_shelter_b3_garbage_incinerator_80184ECC, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_80184D84, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_80184ECC, { .value = 0 } },
 };
 
 GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1] = {

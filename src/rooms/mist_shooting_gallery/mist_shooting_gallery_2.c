@@ -188,11 +188,11 @@ void func_mist_shooting_gallery_801849BC(Task*);
 void func_mist_shooting_gallery_80184B10(Task*);
 
 TaskDesc D_mist_shooting_gallery_801856B8[2] = {
-    { 0, 192, func_mist_shooting_gallery_801849BC, { .model = NULL } },
-    { 0, 192, func_mist_shooting_gallery_80184B10, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_801849BC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80184B10, { .value = 0 } },
 };
 
-TaskDesc D_mist_shooting_gallery_801856D0 = { 0, 192, func_mist_shooting_gallery_80184C0C, { .model = NULL } };
+TaskDesc D_mist_shooting_gallery_801856D0 = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80184C0C, { .value = 0 } };
 
 MistShootingGallerySpawn D_mist_shooting_gallery_801856DC[60] = {
     { 0, 10, 0, 0, 0, 3000 },

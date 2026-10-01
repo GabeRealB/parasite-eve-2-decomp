@@ -1295,11 +1295,11 @@ EvsCommand D_actor_120300_80141A34[13] = {
 };
 
 TaskDesc D_actor_120300_80141B6C[5] = {
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_120300_801337C4, { .model = &D_actor_120300_80139A04 } },
-    { 0, 192, func_actor_120300_80133F14, { .model = NULL } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_120300_80132004, { .model = &D_actor_120300_80139EDC } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_120300_801321C8, { .model = &D_actor_120300_8013A4D0 } },
-    { 0, 192, screenFadeOutTask, { .model = NULL } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_120300_801337C4, { .model = &D_actor_120300_80139A04 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_120300_80133F14, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_120300_80132004, { .model = &D_actor_120300_80139EDC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_120300_801321C8, { .model = &D_actor_120300_8013A4D0 } },
+    { { { TASK_BODY_NONE, 192 } }, screenFadeOutTask, { .value = 0 } },
 };
 
 Task* D_actor_120300_80141BA8;

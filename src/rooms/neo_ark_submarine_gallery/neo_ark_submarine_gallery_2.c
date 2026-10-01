@@ -68,9 +68,9 @@ extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858D4[1];
 extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858DC[1];
 extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858E4[1];
 
-TaskDesc D_neo_ark_submarine_gallery_8018186C = { 0, 192, waterRefractionTask, { .model = NULL } };
+TaskDesc D_neo_ark_submarine_gallery_8018186C = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_submarine_gallery_80181878 = { 0, 192, waterDistortBandTask, { .model = NULL } };
+TaskDesc D_neo_ark_submarine_gallery_80181878 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_submarine_gallery_80181884[5] = {
     { 5102, func_neo_ark_submarine_gallery_8017EA0C },
@@ -80,12 +80,12 @@ GpMsgEntry D_neo_ark_submarine_gallery_80181884[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_neo_ark_submarine_gallery_801818AC = { 0, 32, func_neo_ark_submarine_gallery_8017E86C, { .model = NULL } };
+TaskDesc D_neo_ark_submarine_gallery_801818AC = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_submarine_gallery_8017E86C, { .value = 0 } };
 
 s16 D_neo_ark_submarine_gallery_801818B8 = 0;
 
 TaskDesc D_neo_ark_submarine_gallery_801818BC[1] = {
-    { TASK_BODY_COORD, 96, func_neo_ark_submarine_gallery_8017EF94, { .model = NULL } },
+    { { { TASK_BODY_COORD, 96 } }, func_neo_ark_submarine_gallery_8017EF94, { .value = 0 } },
 };
 
 SVECTOR D_neo_ark_submarine_gallery_801818C8[40] = {

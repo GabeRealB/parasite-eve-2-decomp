@@ -42,10 +42,10 @@ void func_acropolis_observatory_8017E0D4(Task*);
 void func_acropolis_observatory_8017E134(Task*);
 
 TaskDesc D_acropolis_observatory_8017E7DC[4] = {
-    { 0, 192, func_acropolis_observatory_8017D9A8, { .model = NULL } },
-    { 0, 192, func_acropolis_observatory_8017DD3C, { .model = NULL } },
-    { 0, 192, func_acropolis_observatory_8017E0D4, { .model = NULL } },
-    { 0, 192, func_acropolis_observatory_8017E134, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017D9A8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017DD3C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017E0D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017E134, { .value = 0 } },
 };
 
 SVECTOR D_acropolis_observatory_8017E80C[300] = {

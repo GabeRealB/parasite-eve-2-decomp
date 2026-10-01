@@ -75,7 +75,7 @@ GpMsgEntry D_shelter_b4_lower_sewer_80181E44[5] = {
 s16 D_shelter_b4_lower_sewer_80181E6C = -1700;
 
 TaskDesc D_shelter_b4_lower_sewer_80181E70[1] = {
-    { 0, 96, func_shelter_b4_lower_sewer_8017E2D4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_lower_sewer_8017E2D4, { .value = 0 } },
 };
 
 _Surface D_shelter_b4_lower_sewer_80181E7C[2] = {

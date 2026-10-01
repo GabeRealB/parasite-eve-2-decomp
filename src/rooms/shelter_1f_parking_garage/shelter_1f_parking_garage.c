@@ -95,9 +95,9 @@ s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, TaskMessageArg, TaskMes
 s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 void func_shelter_1f_parking_garage_8017DAF0(Task*);
 
-TaskDesc D_shelter_1f_parking_garage_80180BA0 = { 0, 32, roomDepartureTask, { .model = NULL } };
+TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
-TaskDesc D_shelter_1f_parking_garage_80180BAC = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_1f_parking_garage_80180BAC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_1f_parking_garage_80180BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_parking_garage_8017DCF4 },
@@ -107,7 +107,7 @@ GpMsgEntry D_shelter_1f_parking_garage_80180BB8[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_shelter_1f_parking_garage_80180BE0 = { 0, 32, func_shelter_1f_parking_garage_8017DAF0, { .model = NULL } };
+TaskDesc D_shelter_1f_parking_garage_80180BE0 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_parking_garage_8017DAF0, { .value = 0 } };
 
 SVECTOR D_shelter_1f_parking_garage_80180BEC[2] = {
     { 400, -3090, 1790, 0 },

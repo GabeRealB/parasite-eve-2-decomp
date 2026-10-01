@@ -1165,9 +1165,9 @@ SVECTOR* Actor00300_D16278[15][2] = {
 };
 
 TaskDesc Actor00300_D162F0[3] = {
-    { TASK_BODY_TMD, 96, Actor00300_Fn04770, { .model = &Actor00300_D09E84 } },
-    { TASK_BODY_TMD, 96, Actor00300_Fn05138, { .model = &Actor00300_D0A120 } },
-    { TASK_BODY_COORD, 96, Actor00300_Fn0521C, { .model = NULL } },
+    { { { TASK_BODY_TMD, 96 } }, Actor00300_Fn04770, { .model = &Actor00300_D09E84 } },
+    { { { TASK_BODY_TMD, 96 } }, Actor00300_Fn05138, { .model = &Actor00300_D0A120 } },
+    { { { TASK_BODY_COORD, 96 } }, Actor00300_Fn0521C, { .value = 0 } },
 };
 
 Actor00300RecoveredMsgEntry Actor00300_D16314[5] = {

@@ -32,7 +32,7 @@ GpMsgEntry D_mist_r21_8017D770[] = {
 /// The one task the room task spawns on entry; its callback is the empty
 /// `func_mist_r21_8017D760`.
 TaskDesc D_mist_r21_8017D798[] = {
-    { 0, 0xC0, func_mist_r21_8017D760, { .value = 0 } },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_mist_r21_8017D760, { .value = 0 } },
 };
 
 static void func_mist_r21_8017D61C(Task* task);

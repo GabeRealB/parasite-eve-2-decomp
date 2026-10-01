@@ -67,11 +67,11 @@ void func_mist_parking_80184624(s32);
 void func_mist_parking_801846A4(s32);
 
 TaskDesc D_mist_parking_80190824[5] = {
-    { 0, 192, func_mist_parking_8018451C, { .model = NULL } },
-    { 0, 97, func_mist_parking_80183D58, { .model = NULL } },
-    { 0, 192, func_mist_parking_80184668, { .model = NULL } },
-    { 0, 192, func_mist_parking_80183EAC, { .model = NULL } },
-    { 0, 192, func_mist_parking_801842DC, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018451C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_mist_parking_80183D58, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80184668, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80183EAC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801842DC, { .value = 0 } },
 };
 
 AnimationSet* D_mist_parking_80190860[4] = {

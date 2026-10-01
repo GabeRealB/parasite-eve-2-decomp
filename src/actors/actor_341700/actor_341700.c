@@ -789,13 +789,13 @@ Actor341700MessageEntry gHopperMsgTable[3] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_341700_80174D58 = { TASK_BODY_TMD, 96, func_actor_341700_8016852C, { .model = &D_actor_341700_80171864 } };
+TaskDesc D_actor_341700_80174D58 = { { { TASK_BODY_TMD, 96 } }, func_actor_341700_8016852C, { .model = &D_actor_341700_80171864 } };
 
-TaskDesc D_actor_341700_80174D64 = { (TASK_BODY_TMD | 0x100), 96, func_actor_341700_801684A8, { .model = &D_actor_341700_80171864 } };
+TaskDesc D_actor_341700_80174D64 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_341700_801684A8, { .model = &D_actor_341700_80171864 } };
 
-TaskDesc D_actor_341700_80174D70 = { TASK_BODY_COORD, 96, taskKill, { .model = NULL } };
+TaskDesc D_actor_341700_80174D70 = { { { TASK_BODY_COORD, 96 } }, taskKill, { .value = 0 } };
 
-TaskDesc D_actor_341700_80174D7C = { TASK_BODY_TMD, 96, func_actor_341700_801684A8, { .model = &D_actor_341700_80171864 } };
+TaskDesc D_actor_341700_80174D7C = { { { TASK_BODY_TMD, 96 } }, func_actor_341700_801684A8, { .model = &D_actor_341700_80171864 } };
 
 u8 gHopperAnimStance[20] = {
     0,

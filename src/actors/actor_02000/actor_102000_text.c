@@ -1417,8 +1417,8 @@ u16* Actor02000_D15FB8[6] = {
 };
 
 TaskDesc Actor02000_D15FD0[2] = {
-    { TASK_BODY_TMD, 96, Actor02000_Fn03728, { .model = &Actor02000_D08AA8 } },
-    { TASK_BODY_TMD, 96, Actor02000_Fn035E8, { .model = &Actor02000_D08FEC } },
+    { { { TASK_BODY_TMD, 96 } }, Actor02000_Fn03728, { .model = &Actor02000_D08AA8 } },
+    { { { TASK_BODY_TMD, 96 } }, Actor02000_Fn035E8, { .model = &Actor02000_D08FEC } },
 };
 
 AnimationSet* Actor02000_D15FE8[31] = {

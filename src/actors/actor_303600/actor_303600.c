@@ -202,10 +202,10 @@ EvsCommand D_actor_303600_80162DD8[8] = {
 };
 
 TaskDesc D_actor_303600_80162E98[4] = {
-    { 0, 192, func_actor_303600_8016216C, { .model = NULL } },
-    { 0, 192, func_actor_303600_801622E8, { .model = NULL } },
-    { 0, 192, func_actor_303600_801623CC, { .model = NULL } },
-    { 0, 192, func_actor_303600_80161E60, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_303600_8016216C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_303600_801622E8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_303600_801623CC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_303600_80161E60, { .value = 0 } },
 };
 
 TmdBone D_actor_303600_80162EC8[1] = {
@@ -16840,8 +16840,8 @@ u8 D_actor_303600_8016A408[16480] = {
 };
 
 TaskDesc D_actor_303600_8016E468[2] = {
-    { TASK_BODY_COORD, 192, func_actor_303600_80162A7C, { .model = NULL } },
-    { TASK_BODY_TMD, 192, func_actor_303600_801628E4, { .model = &D_actor_303600_8016A3E4 } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_303600_80162A7C, { .value = 0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_303600_801628E4, { .model = &D_actor_303600_8016A3E4 } },
 };
 
 Actor303600MsgEntry D_actor_303600_8016E480[2] = {

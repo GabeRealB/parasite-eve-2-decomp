@@ -465,8 +465,8 @@ AnimationSet D_actor_460200_80135DCC = {
 };
 
 TaskDesc D_actor_460200_80135DF4[2] = {
-    { 0, 32, func_actor_460200_80131E24, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_actor_460200_80131E24, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 RECT D_actor_460200_80135E0C = { 0, 0, 320, 240 };
@@ -576,7 +576,7 @@ ActorTransform D_actor_460200_8013627C = { { -1000, 0, 4490, 0 }, { 0, -1024, 0,
 
 ActorTransform D_actor_460200_80136294 = { { -1300, 0, 3300, 0 }, { 0, -568, 0, 0 } };
 
-TaskDesc D_actor_460200_801362AC = { 0, 32, func_actor_460200_80132090, { .model = NULL } };
+TaskDesc D_actor_460200_801362AC = { { { TASK_BODY_NONE, 32 } }, func_actor_460200_80132090, { .value = 0 } };
 
 EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1302,7 +1302,7 @@ Actor460200MessageEntry gPacedWalkMsgTable[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_460200_8013FC80 = { TASK_BODY_TMD, 96, func_actor_460200_801327B4, { .model = &D_actor_460200_8013D77C } };
+TaskDesc D_actor_460200_8013FC80 = { { { TASK_BODY_TMD, 96 } }, func_actor_460200_801327B4, { .model = &D_actor_460200_8013D77C } };
 
 AnimationSet* gPacedWalkAnimBank[16] = {
     NULL,
@@ -1654,8 +1654,8 @@ Actor460200MessageEntry gStrideWalkMessages[6] = {
 };
 
 TaskDesc gStrideWalkTasks[2] = {
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_460200_801330C8, { .model = &D_actor_460200_80145E28 } },
-    { (TASK_BODY_TMD | 0x100), 96, strideWalkSubModelTask, { .model = &D_actor_460200_801406F8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_460200_801330C8, { .model = &D_actor_460200_80145E28 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, strideWalkSubModelTask, { .model = &D_actor_460200_801406F8 } },
 };
 
 u8 gStrideWalkAnimParams[48] = {
@@ -2124,7 +2124,7 @@ Actor460200MessageEntry D_actor_460200_801514FC[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_460200_8015152C = { TASK_BODY_TMD, 96, func_actor_460200_8013386C, { .model = &D_actor_460200_8014DB94 } };
+TaskDesc D_actor_460200_8015152C = { { { TASK_BODY_TMD, 96 } }, func_actor_460200_8013386C, { .model = &D_actor_460200_8014DB94 } };
 
 s32 D_actor_460200_80151538 = 0;
 

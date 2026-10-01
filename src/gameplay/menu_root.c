@@ -233,7 +233,7 @@ u8* D_8010E7C0[]       = {
     Gp_StrFlash,
 };
 
-TaskDesc D_8010E7E8 = { 0, 32, Gp_MenuExitCallback, { NULL } };
+TaskDesc D_8010E7E8 = { { { TASK_BODY_NONE, 32 } }, Gp_MenuExitCallback, { NULL } };
 
 AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 

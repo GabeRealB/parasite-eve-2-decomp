@@ -408,7 +408,7 @@ GpSndMaskRec Gp_SndMaskTable[7] = {
     { 32, -0x80000000 },
     { 0, 0 },
 };
-TaskDesc D_8010D1FC = { 0, 192, func_800B06F0, { NULL } };
+TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, func_800B06F0, { NULL } };
 
 static const char           D_80093A44[];
 static const TaskFuncTable3 Gp_StageLoadStates;
@@ -3265,10 +3265,10 @@ void Gp_ApplyAreaTmdFlags(void)
                     limit = AREA_PLACEMENT_END;
                     do {
                         if (id == place->entryId) {
-                            flags = entry->field_8->flags;
+                            flags = entry->field_8->header.fields.flags;
                             if (flags == TASK_BODY_TMD) {
                                 extra->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                            } else if (flags == (TASK_BODY_TMD | 0x100)) {
+                            } else if (flags == (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER)) {
                                 extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             }
                             break;

@@ -89,7 +89,7 @@ AnimationSet D_dryfield_night_parking_lot_8017EC2C = {
     { NULL, D_dryfield_night_parking_lot_8017E7E4, NULL, NULL, D_dryfield_night_parking_lot_8017E85C, NULL, NULL, NULL },
 };
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6] = {
     { 5102, func_dryfield_night_parking_lot_8017D8D0 },

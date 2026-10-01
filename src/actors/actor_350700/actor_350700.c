@@ -273,7 +273,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_350700_80169CF8,
 };
 
-TaskDesc D_actor_350700_80169D10 = { (TASK_BODY_TMD | 0x100), 192, func_actor_350700_80162398, { .model = &D_actor_350700_801686C8 } };
+TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_350700_80162398, { .model = &D_actor_350700_801686C8 } };
 
 Actor350700MsgEntry gReverseWalkMessages[6] = {
     { 2003, { .call1 = actorMotionPlayAnim19 } },
@@ -536,10 +536,10 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_350700_801708DC[4] = {
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_350700_80163350, { .model = &D_actor_350700_8016E86C } },
-    { TASK_BODY_TMD, 192, func_actor_350700_80163274, { .model = &D_actor_350700_8016F1B0 } },
-    { TASK_BODY_TMD, 192, func_actor_350700_80163274, { .model = &D_actor_350700_8016ECC0 } },
-    { TASK_BODY_TMD, 192, func_actor_350700_80163274, { .model = &D_actor_350700_8016F5F4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_350700_80163350, { .model = &D_actor_350700_8016E86C } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &D_actor_350700_8016F1B0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &D_actor_350700_8016ECC0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &D_actor_350700_8016F5F4 } },
 };
 
 Actor350700MsgEntry D_actor_350700_8017090C[6] = {

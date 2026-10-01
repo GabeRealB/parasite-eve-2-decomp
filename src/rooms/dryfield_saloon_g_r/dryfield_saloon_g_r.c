@@ -88,7 +88,7 @@ extern SpriteBatch  D_dryfield_saloon_g_r_8017FC0C[4];
 extern SpriteSource D_dryfield_saloon_g_r_8017F988[17];
 extern SpriteSource D_dryfield_saloon_g_r_8017FAF4[14];
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },

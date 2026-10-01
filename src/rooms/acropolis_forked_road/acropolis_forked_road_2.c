@@ -124,11 +124,11 @@ extern SpriteSource D_acropolis_forked_road_80183AE8[58];
 extern SpriteSource D_acropolis_forked_road_80183FC0[62];
 
 TaskDesc D_acropolis_forked_road_80180F44[5] = {
-    { 0, 192, func_acropolis_forked_road_8017DA24, { .model = NULL } },
-    { 0, 192, NULL, { .model = NULL } },
-    { 0, 192, func_acropolis_forked_road_8017DD60, { .model = NULL } },
-    { 0, 192, func_acropolis_forked_road_8017E1C0, { .model = NULL } },
-    { 0, 192, func_acropolis_forked_road_8017E220, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017DA24, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017DD60, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017E1C0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017E220, { .value = 0 } },
 };
 
 SVECTOR D_acropolis_forked_road_80180F80[300] = {

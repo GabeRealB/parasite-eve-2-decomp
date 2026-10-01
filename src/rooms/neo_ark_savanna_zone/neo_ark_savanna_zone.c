@@ -82,7 +82,7 @@ s32                               func_neo_ark_savanna_zone_8017D8F0(Task*, s32,
 s32                               func_neo_ark_savanna_zone_8017D8F8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_neo_ark_savanna_zone_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_savanna_zone_8017D77C },

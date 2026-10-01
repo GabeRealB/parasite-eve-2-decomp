@@ -59,7 +59,7 @@ extern GpObj4C D_dryfield_night_dilapidated_house_801892A0[8];
 void func_dryfield_night_dilapidated_house_8017DB20(Task*);
 void func_dryfield_night_dilapidated_house_8017DCE0(Task*);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
     { 5102, func_dryfield_night_dilapidated_house_8017D8DC },
@@ -1175,8 +1175,8 @@ EvsCommand D_dryfield_night_dilapidated_house_80187134[16] = {
 };
 
 TaskDesc D_dryfield_night_dilapidated_house_801872B4[2] = {
-    { 0, 192, func_dryfield_night_dilapidated_house_8017DCE0, { .model = NULL } },
-    { 0, 192, func_dryfield_night_dilapidated_house_8017DB20, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_dilapidated_house_8017DCE0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_dilapidated_house_8017DB20, { .value = 0 } },
 };
 
 SVECTOR gGlowPrismCorners[24] = {

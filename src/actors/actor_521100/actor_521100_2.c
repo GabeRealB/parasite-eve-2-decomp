@@ -385,8 +385,8 @@ Actor5211002MessageEntry D_actor_521100_8016A358[6] = {
 };
 
 TaskDesc D_actor_521100_8016A388[2] = {
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_521100_80136604, { .model = &D_actor_521100_80164EBC } },
-    { 0, 192, func_actor_521100_80136404, { .model = NULL } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_521100_80136604, { .model = &D_actor_521100_80164EBC } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_521100_80136404, { .value = 0 } },
 };
 
 AnimationSet* D_actor_521100_8016A3A0[11] = {

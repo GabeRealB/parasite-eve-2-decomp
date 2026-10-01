@@ -73,7 +73,7 @@ GpMsgEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_shelter_b1_sleeping_quarters_80180540 = { 0, 192, func_shelter_b1_sleeping_quarters_8017D778, { .model = NULL } };
+TaskDesc D_shelter_b1_sleeping_quarters_80180540 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sleeping_quarters_8017D778, { .value = 0 } };
 
 static void func_shelter_b1_sleeping_quarters_8017D83C(Task* task);
 static void func_shelter_b1_sleeping_quarters_8017D880(Task* task);

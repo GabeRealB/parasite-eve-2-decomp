@@ -194,7 +194,7 @@ s32 func_dryfield_night_garage_801803A4(Task*, s32, TaskMessageArg, TaskMessageA
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_dryfield_night_garage_80181C2C = { 0, 192, Shop_SessionTask, { .model = NULL } };
+TaskDesc D_dryfield_night_garage_80181C2C = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_night_garage_80181C38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_garage_80180360 },

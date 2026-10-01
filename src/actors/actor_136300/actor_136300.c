@@ -160,8 +160,8 @@ void func_actor_136300_801328E0(s32);
 void func_actor_136300_80132910(s32);
 
 TaskDesc D_actor_136300_80132AC4[2] = {
-    { 0, 192, screenWaveTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
@@ -1070,9 +1070,9 @@ AnimationSet D_actor_136300_8013B0F4 = {
 
 Actor136300RetainedTaskSeed D_actor_136300_8013B11C = { 0, 192, Gp_DestroyEnemy, NULL };
 
-TaskDesc D_actor_136300_8013B128 = { 0, 32, func_actor_136300_8013267C, { .model = NULL } };
+TaskDesc D_actor_136300_8013B128 = { { { TASK_BODY_NONE, 32 } }, func_actor_136300_8013267C, { .value = 0 } };
 
-TaskDesc D_actor_136300_8013B134 = { 0, 32, func_actor_136300_80132854, { .model = NULL } };
+TaskDesc D_actor_136300_8013B134 = { { { TASK_BODY_NONE, 32 } }, func_actor_136300_80132854, { .value = 0 } };
 
 Actor136300AnimCopyB140 D_actor_136300_8013B140 = { .data = { { &D_actor_136300_80132D34, &D_actor_136300_80132F0C, &D_actor_136300_80133328, &D_actor_136300_801334E4, &D_actor_136300_801336CC, &D_actor_136300_80133988, &D_actor_136300_80133B68, &D_actor_136300_80133FC0, &D_actor_136300_801345D8, &D_actor_136300_80134F84, &D_actor_136300_801352CC, &D_actor_136300_80135508, &D_actor_136300_80135818, &D_actor_136300_80135E94, &D_actor_136300_80136478 }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE } } } };
 

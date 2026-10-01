@@ -217,8 +217,8 @@ Actor202900MessageEntry D_actor_202900_80156E0C[3] = {
 };
 
 TaskDesc D_actor_202900_80156E24[2] = {
-    { TASK_BODY_TMD, 192, func_actor_202900_8014A02C, { .model = &D_actor_202900_801559A8 } },
-    { TASK_BODY_TMD, 192, func_actor_202900_8014A088, { .model = &D_actor_202900_80155B48 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A02C, { .model = &D_actor_202900_801559A8 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A088, { .model = &D_actor_202900_80155B48 } },
 };
 
 u8 D_actor_202900_80156E3C[24] = {

@@ -212,8 +212,8 @@ AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
 };
 
 TaskDesc D_acropolis_promenade_80180EA4[2] = {
-    { TASK_BODY_TMD, 192, func_acropolis_promenade_8017D988, { .model = &D_acropolis_promenade_80180E50 } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_TMD, 192 } }, func_acropolis_promenade_8017D988, { .model = &D_acropolis_promenade_80180E50 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPlayRequest D_acropolis_promenade_80180EBC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -258,11 +258,11 @@ s32 D_acropolis_promenade_80181140 = 0;
 s32 D_acropolis_promenade_80181144 = 0;
 
 TaskDesc D_acropolis_promenade_80181148[5] = {
-    { 0, 192, NULL, { .model = NULL } },
-    { 0, 192, NULL, { .model = NULL } },
-    { 0, 192, func_acropolis_promenade_8017DB9C, { .model = NULL } },
-    { 0, 192, func_acropolis_promenade_8017DF74, { .model = NULL } },
-    { 0, 192, func_acropolis_promenade_8017DFD4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DB9C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DF74, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DFD4, { .value = 0 } },
 };
 
 SVECTOR D_acropolis_promenade_80181184[300] = {

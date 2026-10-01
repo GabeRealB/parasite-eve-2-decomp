@@ -234,9 +234,9 @@ void func_shelter_1f_heliport_80180594(Task*);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_shelter_1f_heliport_80181188 = { 0, 192, Shop_SessionTask, { .model = NULL } };
+TaskDesc D_shelter_1f_heliport_80181188 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
-TaskDesc D_shelter_1f_heliport_80181194 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_1f_heliport_80181194 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_1f_heliport_801811A0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_801800A0 },
@@ -246,7 +246,7 @@ GpMsgEntry D_shelter_1f_heliport_801811A0[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_shelter_1f_heliport_801811C8 = { 0, 32, func_shelter_1f_heliport_80180594, { .model = NULL } };
+TaskDesc D_shelter_1f_heliport_801811C8 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_heliport_80180594, { .value = 0 } };
 
 u8 D_shelter_1f_heliport_801811D4[12][4] = {
     { 2, 2, 2, 2 },

@@ -259,8 +259,8 @@ Actor05300Clip gPodHitPulse[4] = {
 };
 
 TaskDesc D_actor_105300_8013D3FC[2] = {
-    { TASK_BODY_TMD, 96, func_actor_105300_801339A4, { .model = &D_actor_105300_8013C794 } },
-    { TASK_BODY_COORD, 96, func_actor_105300_801337DC, { .model = NULL } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_105300_801339A4, { .model = &D_actor_105300_8013C794 } },
+    { { { TASK_BODY_COORD, 96 } }, func_actor_105300_801337DC, { .value = 0 } },
 };
 
 AnimationSet* D_actor_105300_8013D414[4] = {

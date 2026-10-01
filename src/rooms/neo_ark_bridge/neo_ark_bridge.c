@@ -44,9 +44,9 @@ s32 func_neo_ark_bridge_8017E834(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_bridge_8017E878(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_bridge_8017E880(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc D_neo_ark_bridge_80181F18 = { 0, 192, waterRefractionTask, { .model = NULL } };
+TaskDesc D_neo_ark_bridge_80181F18 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_bridge_80181F24 = { 0, 192, waterDistortBandTask, { .model = NULL } };
+TaskDesc D_neo_ark_bridge_80181F24 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_bridge_80181F30[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_bridge_8017E834 },

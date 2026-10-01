@@ -143,8 +143,8 @@ GpMsgEntry D_dryfield_night_water_tank_8017DFE8[5] = {
 };
 
 TaskDesc D_dryfield_night_water_tank_8017E010[2] = {
-    { 0, 32, func_dryfield_night_water_tank_8017D5D0, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_water_tank_8017D5D0, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 SVECTOR D_dryfield_night_water_tank_8017E028[2] = {
@@ -204,8 +204,8 @@ TmdSource D_dryfield_night_water_tank_8017EE04 = {
 };
 
 TaskDesc D_dryfield_night_water_tank_8017EE28[2] = {
-    { TASK_BODY_TMD, 192, func_dryfield_night_water_tank_8017DB8C, { .model = &D_dryfield_night_water_tank_8017EE04 } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_TMD, 192 } }, func_dryfield_night_water_tank_8017DB8C, { .model = &D_dryfield_night_water_tank_8017EE04 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 D_dryfield_night_water_tank_8017EE40 = 0;

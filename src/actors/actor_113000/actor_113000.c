@@ -1122,7 +1122,7 @@ AnimationSet** D_actor_113000_8013ABB0[1] = {
     D_actor_113000_8013AB8C,
 };
 
-TaskDesc D_actor_113000_8013ABB4 = { TASK_BODY_TMD, 192, func_actor_113000_80131F38, { .model = &D_actor_113000_801378E0 } };
+TaskDesc D_actor_113000_8013ABB4 = { { { TASK_BODY_TMD, 192 } }, func_actor_113000_80131F38, { .model = &D_actor_113000_801378E0 } };
 
 Actor113000MessageEntry D_actor_113000_8013ABC0[5] = {
     { 2003, { .call0 = func_actor_113000_80132208 } },

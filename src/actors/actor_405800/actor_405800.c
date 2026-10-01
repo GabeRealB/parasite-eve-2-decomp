@@ -1454,11 +1454,11 @@ Actor405800MessageEntry D_actor_405800_8015149C[3] = {
 };
 
 TaskDesc D_actor_405800_801514B4[2] = {
-    { TASK_BODY_TMD, 96, func_actor_405800_801388D4, { .model = &D_actor_405800_8013F2C4 } },
-    { TASK_BODY_TMD, 96, func_actor_405800_801388DC, { .model = &D_actor_405800_8013F04C } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_405800_801388D4, { .model = &D_actor_405800_8013F2C4 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_405800_801388DC, { .model = &D_actor_405800_8013F04C } },
 };
 
-TaskDesc D_actor_405800_801514CC = { TASK_BODY_TMD, 96, func_actor_405800_80138634, { .model = &D_actor_405800_8013EDFC } };
+TaskDesc D_actor_405800_801514CC = { { { TASK_BODY_TMD, 96 } }, func_actor_405800_80138634, { .model = &D_actor_405800_8013EDFC } };
 
 u8 D_actor_405800_801514D8[35] = { 26, 26, 26, 27, 27, 15, 15, 26, 26, 26, 26, 27, 27, 15, 15, 26, 26, 27, 27, 30, 27, 26, 26, 26, 26, 26, 15, 15, 15, 15, 15, 15, 15, 15, 15 };
 

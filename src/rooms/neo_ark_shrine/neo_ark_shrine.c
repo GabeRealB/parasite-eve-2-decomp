@@ -69,8 +69,8 @@ GpMsgEntry D_neo_ark_shrine_80181E34[5] = {
 };
 
 TaskDesc D_neo_ark_shrine_80181E5C[2] = {
-    { 0, 32, func_neo_ark_shrine_8017D84C, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_shrine_8017D84C, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 D_neo_ark_shrine_80181E74 = 2;
@@ -132,7 +132,7 @@ TmdSource D_neo_ark_shrine_801823E0 = {
 };
 
 TaskDesc D_neo_ark_shrine_80182404[1] = {
-    { 0, 192, func_neo_ark_shrine_8017EA70, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_neo_ark_shrine_8017EA70, { .value = 0 } },
 };
 
 u16 D_neo_ark_shrine_80182410[16] = {
@@ -176,9 +176,9 @@ OverlayHotspot D_neo_ark_shrine_80182430[18] = {
 };
 
 TaskDesc D_neo_ark_shrine_80182508[3] = {
-    { 0, 192, func_neo_ark_shrine_8017EAE0, { .model = NULL } },
-    { TASK_BODY_TMD, 192, func_neo_ark_shrine_8017EB54, { .model = &D_neo_ark_shrine_80182150 } },
-    { TASK_BODY_TMD, 192, func_neo_ark_shrine_8017EBB8, { .model = &D_neo_ark_shrine_801823E0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_neo_ark_shrine_8017EAE0, { .value = 0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EB54, { .model = &D_neo_ark_shrine_80182150 } },
+    { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EBB8, { .model = &D_neo_ark_shrine_801823E0 } },
 };
 
 NeoArkShrineSlot D_neo_ark_shrine_8018252C[16] = {

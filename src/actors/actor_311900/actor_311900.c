@@ -221,9 +221,9 @@ u8 D_actor_311900_8016EBF4[12] = {
     0,
 };
 
-TaskDesc D_actor_311900_8016EC00 = { TASK_BODY_TMD, 96, func_actor_311900_8016249C, { .model = &D_actor_311900_8016DF4C } };
+TaskDesc D_actor_311900_8016EC00 = { { { TASK_BODY_TMD, 96 } }, func_actor_311900_8016249C, { .model = &D_actor_311900_8016DF4C } };
 
-TaskDesc D_actor_311900_8016EC0C = { TASK_BODY_TMD, 96, func_actor_311900_8016222C, { .model = &D_actor_311900_80168784 } };
+TaskDesc D_actor_311900_8016EC0C = { { { TASK_BODY_TMD, 96 } }, func_actor_311900_8016222C, { .model = &D_actor_311900_80168784 } };
 
 u16 D_actor_311900_8016EC18[4][256];
 

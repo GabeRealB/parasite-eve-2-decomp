@@ -215,7 +215,7 @@ AnimationSet D_dryfield_night_water_hole_801805C4 = {
     { NULL, D_dryfield_night_water_hole_80180220, NULL, NULL, D_dryfield_night_water_hole_80180268, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_night_water_hole_801805EC = { 0, 32, roomDepartureTask, { .model = NULL } };
+TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_night_water_hole_801805F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_hole_8017DADC },
@@ -283,7 +283,7 @@ EvsCommand D_dryfield_night_water_hole_801807FC[15] = {
 };
 
 TaskDesc D_dryfield_night_water_hole_80180964[1] = {
-    { 0, 192, func_dryfield_night_water_hole_8017E630, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_water_hole_8017E630, { .value = 0 } },
 };
 
 DnwhSurface D_dryfield_night_water_hole_80180970[3] = {

@@ -64,9 +64,9 @@ extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F8[1];
 extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184900[1];
 extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_80184908[1];
 
-TaskDesc D_neo_ark_woodland_path_80181638 = { 0, 192, waterRefractionTask, { .model = NULL } };
+TaskDesc D_neo_ark_woodland_path_80181638 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_woodland_path_80181644 = { 0, 192, waterDistortBandTask, { .model = NULL } };
+TaskDesc D_neo_ark_woodland_path_80181644 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_woodland_path_80181650[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_woodland_path_8017E890 },

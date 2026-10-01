@@ -349,10 +349,10 @@ AnimationSet D_actor_335800_80164DB8 = {
 };
 
 TaskDesc D_actor_335800_80164DE0[4] = {
-    { TASK_BODY_COORD, 192, func_actor_335800_80161E88, { .model = NULL } },
-    { 0, 192, func_actor_335800_801624DC, { .model = NULL } },
-    { 0, 192, func_actor_335800_80162364, { .model = NULL } },
-    { 0, 192, func_actor_335800_80162588, { .model = NULL } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_335800_80161E88, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_335800_801624DC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_335800_80162364, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_335800_80162588, { .value = 0 } },
 };
 
 AnimationSet* D_actor_335800_80164E10[5] = {
@@ -845,9 +845,9 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_335800_8016EADC[3] = {
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
-    { TASK_BODY_TMD, 192, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C0CC } },
-    { TASK_BODY_TMD, 192, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C6C0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C0CC } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C6C0 } },
 };
 
 Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
@@ -922,7 +922,7 @@ AnimationSet** D_actor_335800_80172E98[1] = {
     D_actor_335800_80172E90,
 };
 
-TaskDesc D_actor_335800_80172E9C = { (TASK_BODY_TMD | 0x100), 192, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
+TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
 
 Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
     { 2003, { .call1 = actorMotionPlayAnim19 } },

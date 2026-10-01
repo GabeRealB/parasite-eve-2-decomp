@@ -279,7 +279,7 @@ static const char D_actor_548100_80131E5C[5];
 static const char D_actor_548100_80131E64[5];
 static void       func_actor_548100_801347F8(Task*);
 
-TaskDesc D_actor_548100_801351B4 = { 0, 192, func_actor_548100_80134728, { .model = NULL } };
+TaskDesc D_actor_548100_801351B4 = { { { TASK_BODY_NONE, 192 } }, func_actor_548100_80134728, { .value = 0 } };
 
 Actor548100MsgEntry D_actor_548100_801351C0[2] = {
     { 5105, { .call0 = func_actor_548100_80134778 } },
@@ -487,7 +487,7 @@ Actor548100CoefficientRow D_actor_548100_801358A8[3] = {
     { { &D_actor_548100_8013588A, &D_actor_548100_8013588B, D_actor_548100_8013588C }, D_actor_548100_80131E54 },
 };
 
-TaskDesc D_actor_548100_801358D8 = { 0, 192, func_actor_548100_801347F8, { .model = NULL } };
+TaskDesc D_actor_548100_801358D8 = { { { TASK_BODY_NONE, 192 } }, func_actor_548100_801347F8, { .value = 0 } };
 
 DVECTOR D_actor_548100_801358E4[82] = {
     { 0, 0 },

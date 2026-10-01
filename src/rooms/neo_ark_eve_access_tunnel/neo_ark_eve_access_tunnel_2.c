@@ -43,7 +43,7 @@ extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[];
 
 extern GpGridParams D_neo_ark_eve_access_tunnel_8017F05C[1];
 
-TaskDesc D_neo_ark_eve_access_tunnel_8017EA88 = { 0, 32, roomDepartureTask, { .model = NULL } };
+TaskDesc D_neo_ark_eve_access_tunnel_8017EA88 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_eve_access_tunnel_8017EA94[6] = {
     { 5102, func_neo_ark_eve_access_tunnel_8017DC6C },
@@ -55,9 +55,9 @@ GpMsgEntry D_neo_ark_eve_access_tunnel_8017EA94[6] = {
 };
 
 TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[3] = {
-    { 0, 32, func_neo_ark_eve_access_tunnel_8017D980, { .model = NULL } },
-    { 0, 32, func_neo_ark_eve_access_tunnel_8017DB18, { .model = NULL } },
-    { 0, 32, func_neo_ark_eve_access_tunnel_8017DED0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_eve_access_tunnel_8017D980, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_eve_access_tunnel_8017DB18, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_eve_access_tunnel_8017DED0, { .value = 0 } },
 };
 
 SVECTOR D_neo_ark_eve_access_tunnel_8017EAE8[4] = {

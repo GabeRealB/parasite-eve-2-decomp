@@ -697,7 +697,7 @@ UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1,
 
 UiObjectDesc D_mist_shooting_gallery_80184F70 = { 2, 0xFFF8, 0, 144, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017E090, 0 };
 
-TaskDesc D_mist_shooting_gallery_80184F8C = { 0, 192, Gp_MenuRootTask, { .model = NULL } };
+TaskDesc D_mist_shooting_gallery_80184F8C = { { { TASK_BODY_NONE, 192 } }, Gp_MenuRootTask, { .value = 0 } };
 
 MistShootingGalleryTarget D_mist_shooting_gallery_80184F98[13] = {
     { 600, D_mist_shooting_gallery_8017D650 },
@@ -733,9 +733,9 @@ UiObjectDesc D_mist_shooting_gallery_8018507C[3] = {
     { 2, 0xFF70, 0xFFEA, 288, 73, 20, 0, 0, 192, func_mist_shooting_gallery_8017F128, 0 },
 };
 
-TaskDesc D_mist_shooting_gallery_801850D0 = { 0, 192, func_mist_shooting_gallery_8017F6C8, { .model = NULL } };
+TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_8017F6C8, { .value = 0 } };
 
-TaskDesc D_mist_shooting_gallery_801850DC = { 0, 192, func_mist_shooting_gallery_8017FDD0, { .model = NULL } };
+TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_8017FDD0, { .value = 0 } };
 
 GpMsgEntry D_mist_shooting_gallery_801850E8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_shooting_gallery_8017FEB8 },
@@ -866,12 +866,12 @@ UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1,
 
 UiObjectDesc gJukeboxPanelDesc = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_mist_shooting_gallery_80180728, 0 };
 
-TaskDesc D_mist_shooting_gallery_80185378 = { 0, 192, jukeboxHostTask, { .model = NULL } };
+TaskDesc D_mist_shooting_gallery_80185378 = { { { TASK_BODY_NONE, 192 } }, jukeboxHostTask, { .value = 0 } };
 
 TaskDesc D_mist_shooting_gallery_80185384[3] = {
-    { 0, 192, func_mist_shooting_gallery_801810D8, { .model = NULL } },
-    { 0, 192, func_mist_shooting_gallery_80180F2C, { .model = NULL } },
-    { 0, 192, func_mist_shooting_gallery_80180B64, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_801810D8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80180F2C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80180B64, { .value = 0 } },
 };
 
 GpRoomObjRec D_mist_shooting_gallery_801853A8[1] = {

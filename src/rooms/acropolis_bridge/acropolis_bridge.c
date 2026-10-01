@@ -426,9 +426,9 @@ GpMsgEntry D_acropolis_bridge_80188E4C[6] = {
 };
 
 TaskDesc D_acropolis_bridge_80188E7C[3] = {
-    { TASK_BODY_TMD, 192, func_acropolis_bridge_8017D878, { .model = D_acropolis_bridge_80188E28 } },
-    { 0, 192, func_acropolis_bridge_8017D8D0, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_TMD, 192 } }, func_acropolis_bridge_8017D878, { .model = D_acropolis_bridge_80188E28 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_bridge_8017D8D0, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPlayRequest D_acropolis_bridge_80188EA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -478,7 +478,7 @@ EvsCommand D_acropolis_bridge_8018912C[11] = {
     { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-TaskDesc D_acropolis_bridge_80189234 = { 0, 192, func_acropolis_bridge_8017DEE4, { .model = NULL } };
+TaskDesc D_acropolis_bridge_80189234 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_bridge_8017DEE4, { .value = 0 } };
 
 SVECTOR D_acropolis_bridge_80189240[190] = {
     { -0x2710, 1200, -2000, 0 },
@@ -673,7 +673,7 @@ SVECTOR D_acropolis_bridge_80189240[190] = {
     { -0x2710, -800, -2000, 0 },
 };
 
-TaskDesc D_acropolis_bridge_80189830 = { 0, 192, func_acropolis_bridge_8017F280, { .model = NULL } };
+TaskDesc D_acropolis_bridge_80189830 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_bridge_8017F280, { .value = 0 } };
 
 OverlayHotspot D_acropolis_bridge_8018983C[12] = {
     { 20, -41, 20, 21, 1, 0, 0 },
@@ -2456,7 +2456,7 @@ void (*D_acropolis_bridge_8019175C[9])(Task*) = {
     func_acropolis_bridge_80186BBC,
 };
 
-AcropolisBridgeStorage1780 D_acropolis_bridge_80191780 = { { TASK_BODY_TMD, 96, func_acropolis_bridge_80187D80, { .model = &D_acropolis_bridge_8019119C } }, { 0 } };
+AcropolisBridgeStorage1780 D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, func_acropolis_bridge_80187D80, { .model = &D_acropolis_bridge_8019119C } }, { 0 } };
 
 Task* D_acropolis_bridge_80191794 = NULL;
 

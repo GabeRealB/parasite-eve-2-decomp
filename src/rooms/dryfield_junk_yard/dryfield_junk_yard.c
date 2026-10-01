@@ -137,8 +137,8 @@ GpMsgEntry D_dryfield_junk_yard_8017DD20[5] = {
 };
 
 TaskDesc D_dryfield_junk_yard_8017DD48[2] = {
-    { 0, 32, func_dryfield_junk_yard_8017D848, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_junk_yard_8017D848, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPlayRequest D_dryfield_junk_yard_8017DD60 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };

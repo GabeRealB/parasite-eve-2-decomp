@@ -59,9 +59,9 @@ extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[];
 /// Offsets from the anchor of the two points the smoke trail follows. The
 /// second is also reached under its own name.
 
-TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
     { 5102, func_shelter_b2_north_maintenance_walkway_8017DA88 },

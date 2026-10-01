@@ -127,7 +127,7 @@ void                        func_dryfield_night_driveway_8017DC6C(s32);
 void                        func_dryfield_night_driveway_8017DC78(s16);
 void                        func_dryfield_night_driveway_8017DC88(u8);
 
-TaskDesc gRoomEventStagedTaskDesc = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 AnimationPackedPose D_dryfield_night_driveway_8017E684[10] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank1.inc"
@@ -218,9 +218,9 @@ AnimationSet D_dryfield_night_driveway_8017F324 = {
 };
 
 TaskDesc gDrivewayCutsceneTasks[3] = {
-    { 0, 32, drivewayBlackoutTask, { .model = NULL } },
-    { 0, 32, drivewayCutsceneTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, drivewayBlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, drivewayCutsceneTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationSet* D_dryfield_night_driveway_8017F370[2] = {

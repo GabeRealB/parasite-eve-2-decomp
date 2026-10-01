@@ -141,9 +141,9 @@ static UiObjectDesc Telephone_Data_80181C90;
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 func_dryfield_night_motel_lobby_8017FB00(void);
@@ -161,8 +161,8 @@ DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
 };
 
 TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
-    { 0, 32, func_dryfield_night_motel_lobby_8017FD10, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_motel_lobby_8017FD10, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 static void func_dryfield_night_motel_lobby_8017FD9C(Task* task);

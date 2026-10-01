@@ -5,9 +5,9 @@ static void CapCaption_CancelableTask(Task* task);
 
 static void CapCaption_TimedTask(Task* task);
 
-static TaskDesc CapCaption_Data_801544FC = { 0, 32, CapCaption_TimedTask, { .model = NULL } };
+static TaskDesc CapCaption_Data_801544FC = { { { TASK_BODY_NONE, 32 } }, CapCaption_TimedTask, { .value = 0 } };
 
-static TaskDesc CapCaption_Data_80154508 = { 0, 32, CapCaption_CancelableTask, { .model = NULL } };
+static TaskDesc CapCaption_Data_80154508 = { { { TASK_BODY_NONE, 32 } }, CapCaption_CancelableTask, { .value = 0 } };
 
 static OverlayCapWindow CapCaption_Data_80154514[13] = {
     { 300, 295, 16, 5 },

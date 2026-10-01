@@ -401,7 +401,7 @@ s16 D_actor_300700_8016939C[8] = {
     16,
 };
 
-TaskDesc D_actor_300700_801693AC = { TASK_BODY_TMD, 96, func_actor_300700_80164CE0, { .model = &D_actor_300700_80167400 } };
+TaskDesc D_actor_300700_801693AC = { { { TASK_BODY_TMD, 96 } }, func_actor_300700_80164CE0, { .model = &D_actor_300700_80167400 } };
 
 u32 D_actor_300700_801693B8 = 0;
 

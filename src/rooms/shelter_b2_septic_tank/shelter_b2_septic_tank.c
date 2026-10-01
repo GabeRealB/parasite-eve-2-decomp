@@ -146,7 +146,7 @@ AnimationSet D_shelter_b2_septic_tank_80182F18 = {
     { NULL, D_shelter_b2_septic_tank_80182B74, NULL, NULL, D_shelter_b2_septic_tank_80182BBC, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b2_septic_tank_80182F40 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b2_septic_tank_80182F40 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_septic_tank_8017D7B4 },
@@ -222,7 +222,7 @@ EvsCommand D_shelter_b2_septic_tank_8018310C[18] = {
 s16 D_shelter_b2_septic_tank_801832BC = 150;
 
 TaskDesc D_shelter_b2_septic_tank_801832C0[1] = {
-    { 0, 96, func_shelter_b2_septic_tank_8017EA50, { .model = NULL } },
+    { { { TASK_BODY_NONE, 96 } }, func_shelter_b2_septic_tank_8017EA50, { .value = 0 } },
 };
 
 RoomWaterSurface D_shelter_b2_septic_tank_801832CC[3] = {

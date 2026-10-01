@@ -279,11 +279,11 @@ static s32          CdStream_LastTransferSpuAddress = 0;
 static s32          D_80068B74                      = 0;
 static u16          D_80068B78                      = 0;
 TaskDesc            D_80068B7C[]                    = {
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, func_80725BB8 },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80725BB8 },
 };
 u16 Spu_SemitonePitchTable[] = {
     0x0010,

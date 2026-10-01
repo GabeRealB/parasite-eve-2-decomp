@@ -603,8 +603,8 @@ AnimationSet D_actor_160900_8013F154 = {
 };
 
 TaskDesc D_actor_160900_8013F17C[2] = {
-    { 0, 192, screenWaveTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
@@ -936,14 +936,14 @@ EvsCommand D_actor_160900_8013FAA8[7] = {
 };
 
 TaskDesc D_actor_160900_8013FB50[8] = {
-    { 0, 192, func_actor_160900_8013418C, { .model = NULL } },
-    { 0, 192, func_actor_160900_801344D8, { .model = NULL } },
-    { 0, 192, func_actor_160900_801343E4, { .model = NULL } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132C08, { .model = &D_actor_160900_801393B8 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
-    { TASK_BODY_COORD, 192, func_actor_160900_80132E80, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_160900_8013418C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_160900_801344D8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_160900_801343E4, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132C08, { .model = &D_actor_160900_801393B8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_160900_80132E80, { .value = 0 } },
 };
 
 OverlayWaveCtx* gScreenWaveCtx;

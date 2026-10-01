@@ -100,16 +100,16 @@ static TaskIdPair* Stage_CountdownMusicTables[] = {
 };
 static u8 Stage_MusicRowLengths[]  = { 8, 7, 0xB, 0xC, 0xA };
 static u8 Stage_SceneEventLimits[] = { 9, 8, 0xC, 9, 0x14 };
-TaskDesc  Stage_MusicTaskDesc      = { 0, 0xC0, Stage_DispatchTaskTable };
+TaskDesc  Stage_MusicTaskDesc      = { { { TASK_BODY_NONE, 0xC0 } }, Stage_DispatchTaskTable };
 TaskDesc  D_80062780[]             = {
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, func_80704BC8 },
-    { 0, 0xC0, func_80703FE8 },
-    { 0, 0xC0, func_80704A78 },
-    { TASK_BODY_TMD, 0xC0, func_80704AD0, { &D_80725F44 } },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80704BC8 },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80703FE8 },
+    { { { TASK_BODY_NONE, 0xC0 } }, func_80704A78 },
+    { { { TASK_BODY_TMD, 0xC0 } }, func_80704AD0, { &D_80725F44 } },
 };
 
 static const TaskFuncTable4 Stage_TaskStates = { {

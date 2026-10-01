@@ -419,7 +419,7 @@ extern TaskDesc   D_8014D8A4;
 extern s16*       D_dryfield_water_tower_80183584[16];
 void              func_dryfield_water_tower_8017F808(Task*, s32, ActorCommand* msg);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7] = {
     { 5102, { .call1 = func_dryfield_water_tower_8017DAF8 } },
@@ -432,8 +432,8 @@ DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7] = {
 };
 
 TaskDesc D_dryfield_water_tower_801803D8[2] = {
-    { 0, 32, func_dryfield_water_tower_8017D948, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_water_tower_8017D948, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 TmdBone D_dryfield_water_tower_801803F0[1] = {
@@ -673,9 +673,9 @@ DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80182374[2] = {
 };
 
 TaskDesc D_dryfield_water_tower_80182384[3] = {
-    { 0, 192, func_dryfield_water_tower_8017F128, { .model = NULL } },
-    { (TASK_BODY_TMD | 0x100), 192, func_dryfield_water_tower_8017E764, { .model = &D_dryfield_water_tower_80180DC8 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_dryfield_water_tower_8017E1DC, { .model = &D_dryfield_water_tower_80181A1C } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tower_8017F128, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E764, { .model = &D_dryfield_water_tower_80180DC8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_dryfield_water_tower_8017E1DC, { .model = &D_dryfield_water_tower_80181A1C } },
 };
 
 ActorTransform D_dryfield_water_tower_801823A8 = { { -700, -1, -4500, 0 }, { 0, 3072, 0, 0 } };
@@ -737,9 +737,9 @@ EvsCommand D_dryfield_water_tower_80182674[11] = {
 };
 
 TaskDesc D_dryfield_water_tower_8018277C[3] = {
-    { 0, 192, func_dryfield_water_tower_8017FD64, { .model = NULL } },
-    { 0, 192, screenFadeOutTask, { .model = NULL } },
-    { 0, 192, screenFadeInTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tower_8017FD64, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, screenFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
 };
 
 u16 D_dryfield_water_tower_801827A0[22] = {

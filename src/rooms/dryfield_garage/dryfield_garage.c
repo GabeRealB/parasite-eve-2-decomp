@@ -91,7 +91,7 @@ s32                               func_dryfield_garage_8017DA18(Task*, s32, s32,
 s32                               func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, TaskMessageArg);
 void                              func_dryfield_garage_8017DAA0(Task*);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_garage_8017DC7C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
@@ -103,8 +103,8 @@ GpMsgEntry D_dryfield_garage_8017DC7C[6] = {
 };
 
 TaskDesc D_dryfield_garage_8017DCAC[2] = {
-    { 0, 32, func_dryfield_garage_8017DAA0, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_garage_8017DAA0, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 ActorTransform D_dryfield_garage_8017DCC4 = { { 1680, 0, 6170, 0 }, { 0, 2048, 0, 0 } };

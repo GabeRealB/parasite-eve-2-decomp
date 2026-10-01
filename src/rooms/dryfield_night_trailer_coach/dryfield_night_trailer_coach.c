@@ -177,7 +177,7 @@ void func_dryfield_night_trailer_coach_80182864(void);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_dryfield_night_trailer_coach_801846D0 = { 0, 192, Shop_SessionTask, { .model = NULL } };
+TaskDesc D_dryfield_night_trailer_coach_801846D0 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
 TmdBone D_dryfield_night_trailer_coach_801846DC[3] = {
 #include "assets/dryfield_night_trailer_coach_model_076E0_skeleton.inc"
@@ -214,9 +214,9 @@ TmdSource D_dryfield_night_trailer_coach_80184CA0 = {
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPackedPose D_dryfield_night_trailer_coach_80185008[3] = {
@@ -470,7 +470,7 @@ DryfieldNightTrailerCoachMessageEntry D_dryfield_night_trailer_coach_8018794C[6]
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_dryfield_night_trailer_coach_8018797C = { 0, 32, func_dryfield_night_trailer_coach_8018243C, { .model = NULL } };
+TaskDesc D_dryfield_night_trailer_coach_8018797C = { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_trailer_coach_8018243C, { .value = 0 } };
 
 ActorTransform D_dryfield_night_trailer_coach_80187988 = { { 4870, 0, -900, 0 }, { 0, -1536, 0, 0 } };
 

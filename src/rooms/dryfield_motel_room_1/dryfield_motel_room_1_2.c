@@ -234,7 +234,7 @@ EvsCommand D_dryfield_motel_room_1_8017E340[13] = {
     { EVENT_SCRIPT_OPCODE_END, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_motel_room_1_8017E478 = { 0, 192, func_dryfield_motel_room_1_8017DD3C, { .model = NULL } };
+TaskDesc D_dryfield_motel_room_1_8017E478 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_motel_room_1_8017DD3C, { .value = 0 } };
 
 GpRoomObjRec D_dryfield_motel_room_1_8017E484[2] = {
     { D_dryfield_motel_room_1_8017EABC, D_dryfield_motel_room_1_80180CFC, D_dryfield_motel_room_1_80180F5C, D_dryfield_motel_room_1_801811BC },

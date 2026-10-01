@@ -146,7 +146,7 @@ void                        func_actor_535700_80131F2C(void);
 
 void func_actor_535700_80131E24(Task*);
 
-TaskDesc D_actor_535700_8013346C = { 0, 192, func_actor_535700_80131E24, { .model = NULL } };
+TaskDesc D_actor_535700_8013346C = { { { TASK_BODY_NONE, 192 } }, func_actor_535700_80131E24, { .value = 0 } };
 
 AnimationPlayRequest D_actor_535700_80133478 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -751,7 +751,7 @@ Actor535700MsgEntry gFootstepWalkMsgTable[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_535700_8013DADC = { TASK_BODY_TMD, 192, func_actor_535700_80132478, { .model = &D_actor_535700_80139A6C } };
+TaskDesc D_actor_535700_8013DADC = { { { TASK_BODY_TMD, 192 } }, func_actor_535700_80132478, { .model = &D_actor_535700_80139A6C } };
 
 u8 gFootstepWalkAnims[140] = {
     0,
@@ -1080,8 +1080,8 @@ Actor535700MsgEntry gPairWalkMessages[6] = {
 };
 
 TaskDesc gPairWalkTasks[2] = {
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_535700_80132F20, { .model = &D_actor_535700_80142E58 } },
-    { (TASK_BODY_TMD | 0x100), 96, pairWalkSubModelTask, { .model = &D_actor_535700_8014339C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_535700_80132F20, { .model = &D_actor_535700_80142E58 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &D_actor_535700_8014339C } },
 };
 
 u8 gPairWalkAnimParams[24] = {

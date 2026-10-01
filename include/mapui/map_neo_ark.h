@@ -10,7 +10,6 @@
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
-#include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -49,7 +48,7 @@ extern GpBit2List D_map_neo_ark_8017A6EC[];
 
 /// This stage's `D_8010FABC` entry: the task each room starts, keyed by
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
-extern GpTaskDesc D_map_neo_ark_8017A804[];
+extern TaskDesc D_map_neo_ark_8017A804[];
 
 /// This stage's flag table for `Gp_LookupStageFlag`.
 extern u16 D_map_neo_ark_8017A9A0[];

@@ -114,9 +114,9 @@ s32 func_shelter_b1_main_corridor_8017DCF4(Task*, s32, TaskMessageArg, TaskMessa
 s32 func_shelter_b1_main_corridor_8017DCFC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_main_corridor_8017DD04(Task*, s32, s32, s32);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b1_main_corridor_80183098 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b1_main_corridor_80183098 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b1_main_corridor_801830A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_main_corridor_8017DA8C },

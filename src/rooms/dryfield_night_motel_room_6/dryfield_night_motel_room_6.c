@@ -185,8 +185,8 @@ void                  func_dryfield_night_motel_room_6_8018189C(Task*);
 #include "../../shared/planar_reflection_data.inc.c"
 
 TaskDesc D_dryfield_night_motel_room_6_80182E74[2] = {
-    { 0, 112, func_dryfield_night_motel_room_6_801811A0, { .model = NULL } },
-    { 0, 112, Reflection_HeldObjectTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 112 } }, func_dryfield_night_motel_room_6_801811A0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)
@@ -195,9 +195,9 @@ static inline TaskDesc* Reflection_GetTasks(void)
 }
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
@@ -209,9 +209,9 @@ GpMsgEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_dryfield_night_motel_room_6_80182EE0 = { 0, 32, func_dryfield_night_motel_room_6_8018189C, { .model = NULL } };
+TaskDesc D_dryfield_night_motel_room_6_80182EE0 = { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_motel_room_6_8018189C, { .value = 0 } };
 
-TaskDesc D_dryfield_night_motel_room_6_80182EEC = { 0, 192, func_dryfield_night_motel_room_6_8018189C, { .model = NULL } };
+TaskDesc D_dryfield_night_motel_room_6_80182EEC = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_room_6_8018189C, { .value = 0 } };
 
 SVECTOR D_dryfield_night_motel_room_6_80182EF8[1] = {
     { 550, -850, 5170, 0 },

@@ -147,8 +147,8 @@ GpMsgEntry D_dryfield_water_tank_8017F324[5] = {
 };
 
 TaskDesc D_dryfield_water_tank_8017F34C[2] = {
-    { 0, 32, func_dryfield_water_tank_8017D948, { .model = NULL } },
-    { 0, 32, func_dryfield_water_tank_8017D618, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_water_tank_8017D948, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_water_tank_8017D618, { .value = 0 } },
 };
 
 TmdBone D_dryfield_water_tank_8017F364[1] = {
@@ -231,8 +231,8 @@ EvsCommand D_dryfield_water_tank_8017FEC8[8] = {
 };
 
 TaskDesc D_dryfield_water_tank_8017FF88[2] = {
-    { 0, 192, func_dryfield_water_tank_8017DEA4, { .model = NULL } },
-    { (TASK_BODY_TMD | 0x100), 192, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017DEA4, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
 };
 
 AnimationPackedPose D_dryfield_water_tank_8017FFA0[2] = {
@@ -318,13 +318,13 @@ EvsCommand D_dryfield_water_tank_8018068C[9] = {
 };
 
 TaskDesc D_dryfield_water_tank_80180764[4] = {
-    { 0, 192, NULL, { .model = NULL } },
-    { 0, 192, func_dryfield_water_tank_8017E568, { .model = NULL } },
-    { 0, 192, func_dryfield_water_tank_8017E220, { .model = NULL } },
-    { 0, 192, func_dryfield_water_tank_8017E3C4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E568, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E220, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E3C4, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_water_tank_80180794 = { 0, 192, func_dryfield_water_tank_8017E9F8, { .model = NULL } };
+TaskDesc D_dryfield_water_tank_80180794 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E9F8, { .value = 0 } };
 
 AnimationPackedPose D_dryfield_water_tank_801807A0[6] = {
 #include "assets/dryfield_water_tank_animation_034BC_bank1.inc"

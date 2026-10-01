@@ -227,7 +227,7 @@ static void func_actor_403600_80140B4C(struct Enemy* arg0, Task* arg1);
 static void func_actor_403600_80141F58(GfxCoord* arg0, s32 arg1);
 
 extern TaskDesc D_80162E98;
-/// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`.
+/// Models effect 0x80005 spawns, set in `D_800626EC[5].data.model`.
 extern Task* D_actor_403600_801606B4;
 
 extern TaskDesc             D_8016E468;
@@ -299,9 +299,9 @@ Actor4036002MessageEntry D_actor_403600_80160504[2] = {
 };
 
 TaskDesc D_actor_403600_80160514[3] = {
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_403600_80141180, { .model = &D_actor_403600_80149818 } },
-    { TASK_BODY_TMD, 96, func_actor_403600_80141BE0, { .model = &D_actor_403600_80150E78 } },
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_403600_80141CD4, { .value = -0x7FE96F5C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_403600_80141180, { .model = &D_actor_403600_80149818 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403600_80141BE0, { .model = &D_actor_403600_80150E78 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_403600_80141CD4, { .model = &D_actor_303600_801690A4 } },
 };
 
 AnimationSet* D_actor_403600_80160538[12] = {
@@ -953,23 +953,23 @@ static void func_actor_403600_801396F8(Task* arg0)
                 sp10.vy = 0x64;
                 Gp_SpawnEff(0x6009C, &arg0->extra.tmd->coords[1], 3, &sp10);
                 func_actor_403600_80141954(1);
-                D_800626EC[5].arg.model = &D_shelter_b2_pod_bottom_80187B10;
-                temp_v0_5               = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
+                D_800626EC[5].data.model = &D_shelter_b2_pod_bottom_80187B10;
+                temp_v0_5                = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_5 != NULL) {
                     func_actor_403600_801419E8(temp_v0_5->task);
                 }
-                D_800626EC[5].arg.model = &D_shelter_b2_pod_bottom_80187E14;
-                temp_v0_6               = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
+                D_800626EC[5].data.model = &D_shelter_b2_pod_bottom_80187E14;
+                temp_v0_6                = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_6 != NULL) {
                     func_actor_403600_801419E8(temp_v0_6->task);
                 }
-                D_800626EC[5].arg.model = &D_shelter_b2_pod_bottom_80188264;
-                temp_v0_7               = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
+                D_800626EC[5].data.model = &D_shelter_b2_pod_bottom_80188264;
+                temp_v0_7                = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_7 != NULL) {
                     func_actor_403600_801419E8(temp_v0_7->task);
                 }
-                D_800626EC[5].arg.model = &D_shelter_b2_pod_bottom_8018864C;
-                temp_v0_8               = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
+                D_800626EC[5].data.model = &D_shelter_b2_pod_bottom_8018864C;
+                temp_v0_8                = Gp_SpawnEff(0x80005, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_8 != NULL) {
                     func_actor_403600_801419E8(temp_v0_8->task);
                 }

@@ -217,8 +217,8 @@ extern GpRoomCoordSet             D_acropolis_square_80186468[1];
 #include "../../shared/planar_reflection_data.inc.c"
 
 static TaskDesc D_acropolis_square_80183468[2] = {
-    { 0, 112, func_acropolis_square_8017F41C, { .model = NULL } },
-    { 0, 112, Reflection_HeldObjectTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 112 } }, func_acropolis_square_8017F41C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)
@@ -229,9 +229,9 @@ static inline TaskDesc* Reflection_GetTasks(void)
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_acropolis_square_801837C4[6] = {
@@ -246,9 +246,9 @@ GpMsgEntry D_acropolis_square_801837C4[6] = {
 AnimationPlayRequest D_acropolis_square_801837F4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 TaskDesc D_acropolis_square_80183808[3] = {
-    { 0, 32, func_acropolis_square_80181AEC, { .model = NULL } },
-    { 0, 32, func_acropolis_square_80182148, { .model = NULL } },
-    { 0, 192, func_acropolis_square_80181DD0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_square_80181AEC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_square_80182148, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_square_80181DD0, { .value = 0 } },
 };
 
 s32 D_acropolis_square_8018382C = 0;

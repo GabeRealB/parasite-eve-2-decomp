@@ -10,7 +10,7 @@
 
 /// One area resource entry, in a list ended by `AREA_PLACEMENT_END`.
 /// The CD loader uses field_2/field_4; spawning uses field_5/field_8.
-/// TaskDesc.flags also controls the model flags.
+/// TaskDesc.header.fields.flags also controls the model flags.
 typedef struct _GpAreaTmdRec {
     u16       field_0;
     u16       field_2;

@@ -75,7 +75,7 @@ extern GpObj4C        D_shelter_b2_pod_access_tunnel_80185108[3];
 extern GpObj4C        D_shelter_b2_pod_access_tunnel_801851EC[3];
 extern GpRoomCoordSet D_shelter_b2_pod_access_tunnel_80184FC0[1];
 
-TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
     { 5102, func_shelter_b2_pod_access_tunnel_8017D7C4 },
@@ -86,7 +86,7 @@ GpMsgEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC = { 0, 32, func_shelter_b2_pod_access_tunnel_8017D9A8, { .model = NULL } };
+TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC = { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_pod_access_tunnel_8017D9A8, { .value = 0 } };
 
 SVECTOR D_shelter_b2_pod_access_tunnel_80183C08[8] = {
     { 920, 200, -0x29D6, 0 },

@@ -261,8 +261,8 @@ ActorTransform D_dryfield_water_tank_80184DC4 = { { 2530, -0x2EE0, -640, 0 }, { 
 ActorTransform D_dryfield_water_tank_80184DDC = { { 2530, -0x2EE0, 0x2710, 0 }, { 0, 0, 0, 0 } };
 
 TaskDesc D_dryfield_water_tank_80184DF4[2] = {
-    { 0, 192, func_dryfield_water_tank_8017EC6C, { .model = NULL } },
-    { 0, 192, func_dryfield_water_tank_8017ED30, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017EC6C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017ED30, { .value = 0 } },
 };
 
 EvsCommand D_dryfield_water_tank_80184E0C[126] = {
@@ -444,8 +444,8 @@ TmdSource D_dryfield_water_tank_80186880 = {
 };
 
 TaskDesc D_dryfield_water_tank_801868A4[2] = {
-    { TASK_BODY_TMD, 192, func_dryfield_water_tank_8017EDF4, { .model = &D_dryfield_water_tank_80186880 } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_TMD, 192 } }, func_dryfield_water_tank_8017EDF4, { .model = &D_dryfield_water_tank_80186880 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 D_dryfield_water_tank_801868BC = 0;

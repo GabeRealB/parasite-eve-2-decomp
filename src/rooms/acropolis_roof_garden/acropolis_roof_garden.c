@@ -227,10 +227,10 @@ GpMsgEntry D_acropolis_roof_garden_80183BDC[6] = {
 Task* D_acropolis_roof_garden_80183C0C = NULL;
 
 TaskDesc D_acropolis_roof_garden_80183C10[4] = {
-    { 0, 32, func_acropolis_roof_garden_8017D5D4, { .model = NULL } },
-    { 0, 32, func_acropolis_roof_garden_8017D970, { .model = NULL } },
-    { 0, 32, func_acropolis_roof_garden_8017DA48, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_roof_garden_8017D5D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_roof_garden_8017D970, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_roof_garden_8017DA48, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 ActorCommand D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };

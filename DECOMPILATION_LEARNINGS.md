@@ -17913,25 +17913,25 @@ the call was standing in for this (func_actor_401000_80133274).
 
 When building a stack `TaskDesc` whose first two halfwords come from a source
 struct and whose `callback` is a function address, assign the trailing word
-(`field_8`) into a local **before** writing `callback`:
+(`data.value`) into a local **before** writing `callback`:
 
 ```c
 TaskDesc desc;
-s32      field_8;
+s32      descriptorData;
 
-desc.flags   = src->field_10;
-desc.field_2 = src->field_12;
-field_8      = src->field_18;       /* load first */
+desc.header.fields.flags    = src->field_10;
+desc.header.fields.priority = src->field_12;
+descriptorData      = src->field_18;       /* load first */
 desc.callback = SomeFunc;
-desc.field_8  = field_8;
+desc.data.value = descriptorData;
 task = Task_SpawnFromTable(&desc, ...);
 ```
 
 Without the temp, GCC 2.8.1 hoists `lui %hi(SomeFunc)` ahead of the second
-halfword load/store, uses `$v1` for that halfword, and puts the `field_8` load
+halfword load/store, uses `$v1` for that halfword, and puts the `descriptorData` load
 in `$v0` after the callback `sw`. The target wants both halfword copies to
-finish (reusing `$v0`), then `lui`/`lw $v1,field_8`/`addiu`/`sw callback` with
-`sw field_8` in the `jal` delay slot.
+finish (reusing `$v0`), then `lui`/`lw $v1,descriptorData`/`addiu`/`sw callback` with
+`sw descriptorData` in the `jal` delay slot.
 
 `volatile TaskDesc` restores halfword order but blocks the delay-slot store.
 The local-temp form matches both.
@@ -19278,13 +19278,13 @@ flags_a2 = (u32)temp > 0;
 
 ## Keep `u16` fields that other TUs store with `sh`
 
-Narrowing `TaskDesc::field_2` from `u16` to `u8` made `Task_SpawnFromDesc`
-emit `lbu`, but broke already-matched `Ui_SpawnFromDesc` (`desc.field_2 =
+Narrowing `TaskDesc::header.fields.priority` from `u16` to `u8` made `Task_SpawnFromDesc`
+emit `lbu`, but broke already-matched `Ui_SpawnFromDesc` (`desc.header.fields.priority =
 arg0->field_12` became `lbu`/`sb` instead of `lhu`/`sh`). Keep the wider type
 and force the byte load where needed:
 
 ```c
-priority = *(u8*)&desc->field_2; /* lbu, not lhu */
+priority = *(u8*)&desc->header.fields.priority; /* lbu, not lhu */
 ```
 
 ## Hand the insert slot the walker's register, as its own `TaskNode**`
@@ -30906,7 +30906,7 @@ if (swap == 0) {
 
 ## Loop-invariant `0xFFFF` can steal `$a1` from a live location key
 
-A `TaskDesc` walk that compares `arg.value` with a precomputed location
+A `TaskDesc` walk that compares `data.value` with a precomputed location
 key (`stage * 10000 + room * 100`) wants that key in `$a1` after the
 table pointer is consumed:
 
@@ -45691,8 +45691,8 @@ lw   a1,8(v0)
 
 *after* the `sw` to the bare scalar `D_80062730`, and reaches that scalar
 through `%lo(D_80062730)` - so the aggregate and owning-struct forms are both
-excluded by the bytes (`D_80062730` is `D_800626EC[5].arg.model`, and the sibling
-`Actor01600_Fn0646C` in the same build compiles `D_800626EC[5].arg.model = x` to
+excluded by the bytes (`D_80062730` is `D_800626EC[5].data.model`, and the sibling
+`Actor01600_Fn0646C` in the same build compiles `D_800626EC[5].data.model = x` to
 `lui $v0,%hi(D_800626EC); addiu $s1,$v0,%lo(D_800626EC); … sw $v0,0x44($s1)`).
 Writing the field as a typed member - `index->field_2C->field_8 + 3` - scores
 93.291%, with those loads floated above the `sw`; `SOFT_BARRIER()` after the
@@ -144366,7 +144366,7 @@ the last entry's string lands at the lowest address. A string pool that sits in
 table order is therefore a run of named arrays, `static char s0[] = "...";`
 defined in order before the table, each word-aligned like the original pool.
 In a union member of an initializer, GCC 2.8 accepts a designator
-(`{ .value = 20100 }`), which initialises a `TaskDesc`'s integer argument
+(`{ .value = 20100 }`), which initialises a `TaskDesc`'s integer metadata
 without casting it to the union's first, pointer, member.
 ## `lh` then `lhu` of one `s16` global before a branch is one plain read, not `volatile` (Fade_StepIn, 2026-09-26)
 
@@ -145247,13 +145247,13 @@ the work-pointer touch is still needed for allocation.
 
 ### A table declared as one struct makes `(&sym)[k].field` pick `sym + k*size` as the base (func_actor_403200_8013B740, 2026-09-27)
 
-A spawn table declared `extern TaskDesc tbl;` and indexed as `(&tbl)[4].arg.model`
+A spawn table declared `extern TaskDesc tbl;` and indexed as `(&tbl)[4].data.model`
 (or through a `desc = &tbl` local) is pointer arithmetic: the front end builds
 `&tbl + 0x30` and then adds the field, so CSE/loop hoist `%lo(tbl+0x30)` as the
 invariant and the call that also passes the table becomes `addiu $a0,$s4,-0x30`.
 The target kept `tbl` in the register (`move $a0,$s4`, `sw $v0,0x38($s4)`).
 Declaring the object as what it is - `extern TaskDesc tbl[];`, used as
-`tbl[4].arg.model` and `Gp_SpawnEnemyFromTable(tbl, 4, ...)` - makes the store a
+`tbl[4].data.model` and `Gp_SpawnEnemyFromTable(tbl, 4, ...)` - makes the store a
 single constant address `tbl+0x38`, so the plain symbol is the shared base. The
 previous source reached the same bytes with a `desc` local, a hand-rolled goto
 loop and a `SOFT_USE_REG`; all three went away with the declaration.

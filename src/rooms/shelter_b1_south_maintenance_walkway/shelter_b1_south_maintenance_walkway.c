@@ -93,7 +93,7 @@ s32                   func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, 
 s32                   func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                   func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b1_south_maintenance_walkway_80182308[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_south_maintenance_walkway_8017D790 },

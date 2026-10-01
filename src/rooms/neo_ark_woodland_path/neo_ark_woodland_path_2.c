@@ -287,8 +287,8 @@ s16 D_neo_ark_woodland_path_80184A3C[4] = {
 };
 
 TaskDesc D_neo_ark_woodland_path_80184A44[2] = {
-    { 0, 32, func_neo_ark_woodland_path_801815D4, { .model = NULL } },
-    { 0, 32, func_neo_ark_woodland_path_801814E8, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_woodland_path_801815D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_woodland_path_801814E8, { .value = 0 } },
 };
 
 ActorCommand gRoamerCommand = { { .loc = { 0, 0 } }, 0 };

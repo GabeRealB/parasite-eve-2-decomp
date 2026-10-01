@@ -1104,7 +1104,7 @@ Actor160600MessageEntry gPacedWalkMsgTable[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_160600_8013DFA0 = { TASK_BODY_TMD, 96, func_actor_160600_801321B4, { .model = &D_actor_160600_8013BA9C } };
+TaskDesc D_actor_160600_8013DFA0 = { { { TASK_BODY_TMD, 96 } }, func_actor_160600_801321B4, { .model = &D_actor_160600_8013BA9C } };
 
 u8 gPacedWalkAnimBank[64] = {
     0,

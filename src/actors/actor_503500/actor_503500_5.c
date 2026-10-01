@@ -899,7 +899,7 @@ s32 D_actor_503500_80171464[2] = {
     5,
 };
 
-TaskDesc D_actor_503500_8017146C = { 0, 192, func_actor_503500_80143AC0, { .model = NULL } };
+TaskDesc D_actor_503500_8017146C = { { { TASK_BODY_NONE, 192 } }, func_actor_503500_80143AC0, { .value = 0 } };
 
 SVECTOR D_actor_503500_80171478 = { 0 };
 
@@ -1117,7 +1117,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_503500_80176514,
 };
 
-TaskDesc D_actor_503500_80176524 = { (TASK_BODY_TMD | 0x100), 192, func_actor_503500_801463C0, { .model = &D_actor_503500_80175DC8 } };
+TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_503500_801463C0, { .model = &D_actor_503500_80175DC8 } };
 
 Actor5035005MsgEntry D_actor_503500_80176530[5] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },

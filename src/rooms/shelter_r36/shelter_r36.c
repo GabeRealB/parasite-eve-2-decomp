@@ -149,8 +149,8 @@ AnimationPlayRequest D_shelter_r36_8017DEE8 = { { .index = 1 }, 18, ANIMATION_BL
 ActorTransform D_shelter_r36_8017DEFC = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
 
 TaskDesc D_shelter_r36_8017DF14[2] = {
-    { 0, 32, func_shelter_r36_8017D5E8, { .model = NULL } },
-    { 0, 32, func_shelter_r36_8017D7B4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_r36_8017D5E8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_r36_8017D7B4, { .value = 0 } },
 };
 
 EvsCommand D_shelter_r36_8017DF2C[69] = {
@@ -284,8 +284,8 @@ GpMsgEntry D_shelter_r36_8017E97C[5] = {
 };
 
 TaskDesc D_shelter_r36_8017E9A4[2] = {
-    { 0, 192, func_shelter_r36_8017DBC0, { .model = NULL } },
-    { 0, 192, func_shelter_r36_8017DA34, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r36_8017DBC0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r36_8017DA34, { .value = 0 } },
 };
 
 u8* D_shelter_r36_8017E9BC[1] = {

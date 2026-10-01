@@ -122,7 +122,7 @@ void func_dryfield_night_motel_lobby_80180D08(Task*);
 void func_dryfield_night_motel_lobby_80180D58(Task*);
 
 TaskDesc D_dryfield_night_motel_lobby_80182814[1] = {
-    { 0, 192, func_dryfield_night_motel_lobby_80180D08, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_lobby_80180D08, { .value = 0 } },
 };
 
 OverlayHotspot D_dryfield_night_motel_lobby_80182820[15] = {
@@ -143,7 +143,7 @@ OverlayHotspot D_dryfield_night_motel_lobby_80182820[15] = {
     { 0, 0, 0, 0, -1, 0, 0 },
 };
 
-TaskDesc D_dryfield_night_motel_lobby_801828D4 = { 0, 192, func_dryfield_night_motel_lobby_80180D58, { .model = NULL } };
+TaskDesc D_dryfield_night_motel_lobby_801828D4 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_lobby_80180D58, { .value = 0 } };
 
 SVECTOR D_dryfield_night_motel_lobby_801828E0[5] = {
     { 4430, -1130, 2380, 0 },

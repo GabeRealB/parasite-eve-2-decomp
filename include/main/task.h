@@ -20,7 +20,7 @@
 extern TaskNode gTaskDefaultList;
 
 /// Six task descriptors. Entry 5 is a model descriptor whose model is not
-/// fixed: callers store the model in its `arg` just before spawning effect
+/// fixed: callers store the model in its `data.model` just before spawning effect
 /// 0x80005, which spawns its task from that entry.
 extern TaskDesc D_800626EC[6];
 

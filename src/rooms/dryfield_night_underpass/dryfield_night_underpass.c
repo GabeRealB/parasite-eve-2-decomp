@@ -58,8 +58,8 @@ extern GpRoomCoordSet D_dryfield_night_underpass_8017FFF4[1];
 extern GpRoomCoordSet D_dryfield_night_underpass_8018024C[1];
 
 TaskDesc gUnderpassSwitchTaskDesc[2] = {
-    { 0, 32, underpassSwitchTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, underpassSwitchTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_dryfield_night_underpass_8017DCF0[6] = {

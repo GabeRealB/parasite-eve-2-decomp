@@ -118,7 +118,7 @@ s32 func_shelter_b1_control_room_8017EE24(Task*, s32, TaskMessageArg, TaskMessag
 
 void func_shelter_b1_control_room_8017D7B8(Task*);
 
-TaskDesc D_shelter_b1_control_room_80181B88 = { 0, 112, func_shelter_b1_control_room_8017D7B8, { .model = NULL } };
+TaskDesc D_shelter_b1_control_room_80181B88 = { { { TASK_BODY_NONE, 112 } }, func_shelter_b1_control_room_8017D7B8, { .value = 0 } };
 
 GpMsgEntry D_shelter_b1_control_room_80181B94[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_8017ECD4 },

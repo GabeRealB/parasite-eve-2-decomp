@@ -95,8 +95,8 @@ static char* Title_MenuLabels[] = {
 s32 Title_MenuSpawnIds[] = { 6, 6, 3, 4, 5, 6 };
 
 TaskDesc Title_TaskDescs[] = {
-    { 0, 0xC0, Title_BootTask },
-    { 0, 0xC0, Title_DemoStreamTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, Title_BootTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, Title_DemoStreamTask },
 };
 
 /// Overlay state is stored in the loaded image; the loader does not clear BSS.

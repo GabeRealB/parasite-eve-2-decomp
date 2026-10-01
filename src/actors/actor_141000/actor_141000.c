@@ -534,9 +534,9 @@ SVECTOR D_actor_141000_801348A8[6] = {
 };
 
 TaskDesc D_actor_141000_801348D8[3] = {
-    { TASK_BODY_TMD, 192, func_actor_141000_80132C24, { .model = &D_actor_141000_80134204 } },
-    { TASK_BODY_COORD, 192, func_actor_141000_801331AC, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_actor_141000_801330C0, { .model = NULL } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_141000_80132C24, { .model = &D_actor_141000_80134204 } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_141000_801331AC, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_actor_141000_801330C0, { .value = 0 } },
 };
 
 TmdBone D_actor_141000_801348FC[19] = {
@@ -1879,7 +1879,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_141000_8013D74C,
 };
 
-TaskDesc D_actor_141000_8013D77C = { (TASK_BODY_TMD | 0x100), 192, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
+TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
 
 Actor141000MsgEntry D_actor_141000_8013D788[7] = {
     { 2003, { .call0 = actorMotionPlayAnim19 } },
@@ -2147,7 +2147,7 @@ static void func_actor_141000_80132C7C(Task* task)
     obj->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     func_actor_141000_80132FD0(coord, 0);
     func_actor_141000_8013308C(coord, 0);
-    Task_SpawnFromTable(&D_actor_141000_801348D8, 1, 0, task);
+    Task_SpawnFromTable(D_actor_141000_801348D8, 1, 0, task);
     task->exitCallback = func_actor_141000_80132E04;
     task->state       += 1;
 }

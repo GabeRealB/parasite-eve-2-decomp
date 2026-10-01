@@ -178,11 +178,11 @@ s32                                      func_dryfield_main_street_8017E05C(Task
 void                                     func_dryfield_main_street_8017E1C0(Task*);
 void                                     func_dryfield_main_street_8017E3A8(Task*);
 
-TaskDesc gMainStreetEventTaskDesc = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc gMainStreetPlayTimeTaskDesc = { 0, 32, mainStreetPlayTimeTask, { .model = NULL } };
+TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, mainStreetPlayTimeTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_main_street_80180EA0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
@@ -240,8 +240,8 @@ AnimationSet D_dryfield_main_street_80181544 = {
 };
 
 TaskDesc D_dryfield_main_street_8018156C[2] = {
-    { 0, 192, func_dryfield_main_street_8017E1C0, { .model = NULL } },
-    { 0, 192, func_dryfield_main_street_8017E3A8, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_main_street_8017E1C0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_main_street_8017E3A8, { .value = 0 } },
 };
 
 DryfieldMainStreetAnimStorage1584 D_dryfield_main_street_80181584 = { .data = { { NULL, &D_dryfield_main_street_801811B0, &D_dryfield_main_street_80181544 }, { { .words = D_dryfield_main_street_80181584.words }, 4 } } };

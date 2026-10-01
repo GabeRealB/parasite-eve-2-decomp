@@ -1175,15 +1175,15 @@ AnimationSet D_actor_206100_80158AC8 = {
 };
 
 TaskDesc D_actor_206100_80158AF0[2] = {
-    { 0, 192, screenWaveTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
 
 TaskDesc D_actor_206100_80158B0C[2] = {
-    { TASK_BODY_TMD, 96, func_actor_206100_8014F428, { .model = &D_actor_206100_801530C8 } },
-    { TASK_BODY_COORD, 96, func_actor_206100_8014F134, { .model = NULL } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_206100_8014F428, { .model = &D_actor_206100_801530C8 } },
+    { { { TASK_BODY_COORD, 96 } }, func_actor_206100_8014F134, { .value = 0 } },
 };
 
 AnimationSet* D_actor_206100_80158B24[17] = {

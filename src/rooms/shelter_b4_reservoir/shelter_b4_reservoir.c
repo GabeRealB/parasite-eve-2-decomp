@@ -211,8 +211,8 @@ void func_shelter_b4_reservoir_8017E780(s32);
 void func_shelter_b4_reservoir_8017E7A8(void);
 
 TaskDesc D_shelter_b4_reservoir_80184724[2] = {
-    { 0, 192, screenWaveTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
@@ -255,16 +255,16 @@ GpMsgEntry D_shelter_b4_reservoir_801848BC[6] = {
 };
 
 TaskDesc D_shelter_b4_reservoir_801848EC[4] = {
-    { 0, 32, func_shelter_b4_reservoir_8017DE8C, { .model = NULL } },
-    { 0, 32, func_shelter_b4_reservoir_8017E400, { .model = NULL } },
-    { 0, 32, func_shelter_b4_reservoir_8017E4B0, { .model = NULL } },
-    { 0, 32, func_shelter_b4_reservoir_8017E0AC, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017DE8C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017E400, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017E4B0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017E0AC, { .value = 0 } },
 };
 
 ActorCommand D_shelter_b4_reservoir_8018491C = { { .loc = { 4, 45 } }, 6 };
 
 TaskDesc D_shelter_b4_reservoir_80184920[1] = {
-    { (TASK_BODY_TMD | 0x100), 32, func_shelter_b4_reservoir_8017E558, { .model = &D_shelter_b4_reservoir_80184898 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 32 } }, func_shelter_b4_reservoir_8017E558, { .model = &D_shelter_b4_reservoir_80184898 } },
 };
 
 Task* D_shelter_b4_reservoir_8018492C = 0;
@@ -358,7 +358,7 @@ s16 D_shelter_b4_reservoir_80184F80 = -2000;
 s16 D_shelter_b4_reservoir_80184F82 = 0;
 
 TaskDesc D_shelter_b4_reservoir_80184F84[1] = {
-    { 0, 96, func_shelter_b4_reservoir_8017FADC, { .model = NULL } },
+    { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_reservoir_8017FADC, { .value = 0 } },
 };
 
 RoomWaterSurface D_shelter_b4_reservoir_80184F90[2] = {

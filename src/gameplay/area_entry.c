@@ -51,8 +51,8 @@ UiObjectDesc D_8010CA78[] = {
     { 3, -80, 16, 160, 20, 28, 0, 0, 0xC0, Gp_DrawItemObtained, 0 },
     { 3, 16, 24, 160, 20, 24, 0, 0, 0xC0, Gp_DrawItemObtained, 0 },
 };
-TaskDesc D_8010CAB0 = { 0, 0xC0, Gp_EndingTask };
-TaskDesc D_8010CABC = { 0, 0xC0, Gp_AreaEnterTask };
+TaskDesc D_8010CAB0 = { { { TASK_BODY_NONE, 0xC0 } }, Gp_EndingTask };
+TaskDesc D_8010CABC = { { { TASK_BODY_NONE, 0xC0 } }, Gp_AreaEnterTask };
 
 void Gp_AreaEnterTask(Task* arg0)
 {

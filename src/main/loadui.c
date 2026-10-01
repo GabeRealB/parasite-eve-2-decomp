@@ -54,12 +54,12 @@ static const GBytes4 D_80013F18;
 
 u8       D_800626E8    = 0;
 TaskDesc D_800626EC[6] = {
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { 0, 0xC0, taskKill },
-    { TASK_BODY_TMD, 0x70, Gp_EffAttachTask37 },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37 },
 };
 
 void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)

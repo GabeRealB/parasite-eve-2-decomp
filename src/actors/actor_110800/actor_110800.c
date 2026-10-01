@@ -244,8 +244,8 @@ Actor110800MsgEntry gViewFigureMessages[3] = {
 };
 
 TaskDesc gViewFigureTasks[2] = {
-    { TASK_BODY_TMD, 192, func_actor_110800_801322A0, { .model = &D_actor_110800_80137D94 } },
-    { TASK_BODY_TMD, 192, func_actor_110800_801322FC, { .model = &D_actor_110800_80138048 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_110800_801322A0, { .model = &D_actor_110800_80137D94 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_110800_801322FC, { .model = &D_actor_110800_80138048 } },
 };
 
 u8 gViewFigureAnimSets[28] = {

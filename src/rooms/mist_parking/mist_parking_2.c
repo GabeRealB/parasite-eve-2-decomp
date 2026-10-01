@@ -92,15 +92,15 @@ void func_mist_parking_8018357C(Task*);
 void func_mist_parking_80183600(void);
 
 TaskDesc D_mist_parking_8018D75C[9] = {
-    { TASK_BODY_TMD, 192, func_mist_parking_80183B40, { .model = &D_mist_parking_80187294 } },
-    { 0, 192, func_mist_parking_801832AC, { .model = NULL } },
-    { 0, 192, func_mist_parking_8018345C, { .model = NULL } },
-    { 0, 192, func_mist_parking_8018357C, { .model = NULL } },
-    { 0, 97, func_mist_parking_801828F0, { .model = NULL } },
-    { 0, 192, func_mist_parking_801836CC, { .model = NULL } },
-    { 0, 192, func_mist_parking_801834D4, { .model = NULL } },
-    { 0, 192, func_mist_parking_80182A44, { .model = NULL } },
-    { 0, 192, func_mist_parking_80182F60, { .model = NULL } },
+    { { { TASK_BODY_TMD, 192 } }, func_mist_parking_80183B40, { .model = &D_mist_parking_80187294 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801832AC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018345C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018357C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_mist_parking_801828F0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801836CC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801834D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80182A44, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80182F60, { .value = 0 } },
 };
 
 AnimationSet* D_mist_parking_8018D7C8[25] = {

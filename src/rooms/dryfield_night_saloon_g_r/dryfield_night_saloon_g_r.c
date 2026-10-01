@@ -229,7 +229,7 @@ s32  func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
 s32  func_dryfield_night_saloon_g_r_8017DE68(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 void func_dryfield_night_saloon_g_r_8017DB74(Task*);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
@@ -240,7 +240,7 @@ GpMsgEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
 };
 
 TaskDesc D_dryfield_night_saloon_g_r_8017F940[1] = {
-    { 0, 192, func_dryfield_night_saloon_g_r_8017DB74, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_saloon_g_r_8017DB74, { .value = 0 } },
 };
 
 AnimationPackedPose D_dryfield_night_saloon_g_r_8017F94C[6] = {
@@ -1009,7 +1009,7 @@ UiList D_dryfield_night_saloon_g_r_80185028 = { D_dryfield_night_saloon_g_r_8018
 
 UiObjectDesc gJukeboxPanelDesc = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_dryfield_night_saloon_g_r_8017E28C, 0 };
 
-TaskDesc D_dryfield_night_saloon_g_r_80185068 = { 0, 192, jukeboxHostTask, { .model = NULL } };
+TaskDesc D_dryfield_night_saloon_g_r_80185068 = { { { TASK_BODY_NONE, 192 } }, jukeboxHostTask, { .value = 0 } };
 
 SVECTOR gSaloonLightPoints[28] = {
     { 4915, -1870, -727, 0 },

@@ -155,8 +155,8 @@ extern GpRoomCoordSet                   D_acropolis_west_elevator_hall_801869E4[
 #include "../../shared/planar_reflection_data.inc.c"
 
 static TaskDesc D_acropolis_west_elevator_hall_801802A8[2] = {
-    { 0, 112, func_acropolis_west_elevator_hall_8017F304, { .model = NULL } },
-    { 0, 112, Reflection_HeldObjectTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 112 } }, func_acropolis_west_elevator_hall_8017F304, { .value = 0 } },
+    { { { TASK_BODY_NONE, 112 } }, Reflection_HeldObjectTask, { .value = 0 } },
 };
 
 static inline TaskDesc* Reflection_GetTasks(void)
@@ -243,9 +243,9 @@ AnimationSet D_acropolis_west_elevator_hall_80184540 = {
 };
 
 TaskDesc D_acropolis_west_elevator_hall_80184568[3] = {
-    { TASK_BODY_TMD, 192, func_acropolis_west_elevator_hall_8017F418, { .model = &D_acropolis_west_elevator_hall_8018050C } },
-    { TASK_BODY_TMD, 192, func_acropolis_west_elevator_hall_8017F418, { .model = &D_acropolis_west_elevator_hall_8018077C } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_TMD, 192 } }, func_acropolis_west_elevator_hall_8017F418, { .model = &D_acropolis_west_elevator_hall_8018050C } },
+    { { { TASK_BODY_TMD, 192 } }, func_acropolis_west_elevator_hall_8017F418, { .model = &D_acropolis_west_elevator_hall_8018077C } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationSet* D_acropolis_west_elevator_hall_8018458C[1] = {

@@ -891,8 +891,8 @@ Actor260400MessageEntry D_actor_260400_80154BE8[6] = {
 };
 
 TaskDesc D_actor_260400_80154C18[2] = {
-    { TASK_BODY_TMD, 192, func_actor_260400_8014A550, { .model = &D_actor_260400_80154BC0 } },
-    { TASK_BODY_TMD, 192, func_actor_260400_8014A6F8, { .model = &D_actor_260400_8014F7F0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_260400_8014A550, { .model = &D_actor_260400_80154BC0 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_260400_8014A6F8, { .model = &D_actor_260400_8014F7F0 } },
 };
 
 u8 D_actor_260400_80154C30[64] = {

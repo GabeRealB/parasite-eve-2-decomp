@@ -1124,7 +1124,7 @@ Actor04000RecoveredMsgEntry Actor04000_D0C6B0[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor04000_D0C6E0 = { TASK_BODY_TMD, 96, Actor04000_Fn06E4C, { .model = &Actor04000_D08718 } };
+TaskDesc Actor04000_D0C6E0 = { { { TASK_BODY_TMD, 96 } }, Actor04000_Fn06E4C, { .model = &Actor04000_D08718 } };
 
 TaskFunc Actor04000_D0C6EC[4] = {
     Actor04000_Fn06EA8,
@@ -1133,7 +1133,7 @@ TaskFunc Actor04000_D0C6EC[4] = {
     taskKill,
 };
 
-TaskDesc Actor04000_D0C6FC = { 0, 96, Actor04000_Fn0703C, { .model = NULL } };
+TaskDesc Actor04000_D0C6FC = { { { TASK_BODY_NONE, 96 } }, Actor04000_Fn0703C, { .value = 0 } };
 
 SVECTOR ActorContact_ScratchPosition;
 

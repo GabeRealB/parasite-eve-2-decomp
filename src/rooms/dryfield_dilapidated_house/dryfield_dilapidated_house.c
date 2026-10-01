@@ -303,15 +303,15 @@ void                              func_dryfield_dilapidated_house_801812E8(Task*
 void                              func_dryfield_dilapidated_house_8018145C(Task*);
 
 TaskDesc D_dryfield_dilapidated_house_80183E48[2] = {
-    { 0, 192, screenWaveTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
 
 TaskDesc D_dryfield_dilapidated_house_80183E64[2] = {
-    { 0, 32, func_dryfield_dilapidated_house_8017DE88, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_dilapidated_house_8017DE88, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 RECT D_dryfield_dilapidated_house_80183E7C = { 0, 0, 320, 240 };
@@ -327,15 +327,15 @@ GpMsgEntry D_dryfield_dilapidated_house_80183E8C[5] = {
 };
 
 TaskDesc D_dryfield_dilapidated_house_80183EB4[4] = {
-    { 0, 97, func_dryfield_dilapidated_house_8017E6DC, { .model = NULL } },
-    { 0, 192, func_dryfield_dilapidated_house_8017E780, { .model = NULL } },
-    { 0, 192, func_dryfield_dilapidated_house_8017E144, { .model = NULL } },
-    { 0, 192, func_dryfield_dilapidated_house_8017E2B0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 97 } }, func_dryfield_dilapidated_house_8017E6DC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E780, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E144, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E2B0, { .value = 0 } },
 };
 
 TaskDesc D_dryfield_dilapidated_house_80183EE4[2] = {
-    { 0, 192, func_dryfield_dilapidated_house_8017E858, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E858, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 D_dryfield_dilapidated_house_80183EFC = 0;
@@ -923,10 +923,10 @@ SVECTOR D_dryfield_dilapidated_house_80186844[2] = {
 };
 
 TaskDesc D_dryfield_dilapidated_house_80186854[4] = {
-    { TASK_BODY_TMD, 192, func_dryfield_dilapidated_house_80180F04, { .model = &D_dryfield_dilapidated_house_80186000 } },
-    { TASK_BODY_TMD, 192, func_dryfield_dilapidated_house_80181134, { .model = &D_dryfield_dilapidated_house_80186578 } },
-    { TASK_BODY_COORD, 192, func_dryfield_dilapidated_house_801812E8, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_dryfield_dilapidated_house_8018145C, { .model = NULL } },
+    { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80180F04, { .model = &D_dryfield_dilapidated_house_80186000 } },
+    { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80181134, { .model = &D_dryfield_dilapidated_house_80186578 } },
+    { { { TASK_BODY_COORD, 192 } }, func_dryfield_dilapidated_house_801812E8, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_dryfield_dilapidated_house_8018145C, { .value = 0 } },
 };
 
 SVECTOR D_dryfield_dilapidated_house_80186884[24] = {

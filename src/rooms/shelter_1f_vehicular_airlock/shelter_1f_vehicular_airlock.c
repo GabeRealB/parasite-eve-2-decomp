@@ -132,7 +132,7 @@ TmdSource D_shelter_1f_vehicular_airlock_80182004 = {
     D_shelter_1f_vehicular_airlock_80181018,
 };
 
-TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_vehicular_airlock_8017D7DC },

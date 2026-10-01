@@ -126,8 +126,8 @@ s32 func_shelter_b6_corridor_8017E020(Task*, s32, TaskMessageArg, TaskMessageArg
 s32 func_shelter_b6_corridor_8017E028(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
-    { 0, 192, screenWaveGridTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;

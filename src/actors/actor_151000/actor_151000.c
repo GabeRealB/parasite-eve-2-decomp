@@ -169,7 +169,7 @@ AnimationSet D_actor_151000_80133338 = {
     { NULL, D_actor_151000_801330E8, NULL, NULL, D_actor_151000_8013310C, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_151000_80133360 = { 0, 192, func_actor_151000_80131E24, { .model = NULL } };
+TaskDesc D_actor_151000_80133360 = { { { TASK_BODY_NONE, 192 } }, func_actor_151000_80131E24, { .value = 0 } };
 
 Actor151000AnimStorage336C D_actor_151000_8013336C = { .data = { { &D_actor_151000_80132CF8, &D_actor_151000_801330C0, &D_actor_151000_80133338 }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
 
@@ -663,7 +663,7 @@ Actor151000MsgEntry gFootstepWalkMsgTable[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_151000_8013D2E0 = { TASK_BODY_TMD, 192, func_actor_151000_801323F4, { .model = &D_actor_151000_80139270 } };
+TaskDesc D_actor_151000_8013D2E0 = { { { TASK_BODY_TMD, 192 } }, func_actor_151000_801323F4, { .model = &D_actor_151000_80139270 } };
 
 u8 gFootstepWalkAnims[140] = {
     0,

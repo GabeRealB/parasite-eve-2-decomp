@@ -150,7 +150,7 @@ void func_shelter_b4_water_supply_8017ED28(Task*);
 
 extern TaskDesc D_80147E48;
 
-TaskDesc D_shelter_b4_water_supply_801825E4 = { 0, 32, roomDepartureTask, { .model = NULL } };
+TaskDesc D_shelter_b4_water_supply_801825E4 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b4_water_supply_801825F0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_water_supply_8017D978 },
@@ -162,14 +162,14 @@ GpMsgEntry D_shelter_b4_water_supply_801825F0[6] = {
 };
 
 TaskDesc D_shelter_b4_water_supply_80182620[2] = {
-    { 0, 32, func_shelter_b4_water_supply_8017DC28, { .model = NULL } },
-    { 0, 32, func_shelter_b4_water_supply_8017D7C0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_water_supply_8017DC28, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_water_supply_8017D7C0, { .value = 0 } },
 };
 
 s16 D_shelter_b4_water_supply_80182638 = -2500;
 
 TaskDesc D_shelter_b4_water_supply_8018263C[1] = {
-    { 0, 96, func_shelter_b4_water_supply_8017ED28, { .model = NULL } },
+    { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_water_supply_8017ED28, { .value = 0 } },
 };
 
 ShelterB4WaterSupplySurface D_shelter_b4_water_supply_80182648[2] = {

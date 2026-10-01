@@ -45,9 +45,9 @@
 /// `func_neo_ark_island_80180600` records.
 /// The second of those offsets, which the recording frames read by name.
 
-TaskDesc D_neo_ark_island_80181B30 = { 0, 192, waterRefractionTask, { .model = NULL } };
+TaskDesc D_neo_ark_island_80181B30 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_island_80181B3C = { 0, 192, waterDistortBandTask, { .model = NULL } };
+TaskDesc D_neo_ark_island_80181B3C = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_island_80181B48[6] = {
     { 5102, func_neo_ark_island_8017E968 },
@@ -58,7 +58,7 @@ GpMsgEntry D_neo_ark_island_80181B48[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_neo_ark_island_80181B78 = { 0, 32, func_neo_ark_island_8017E844, { .model = NULL } };
+TaskDesc D_neo_ark_island_80181B78 = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_island_8017E844, { .value = 0 } };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 

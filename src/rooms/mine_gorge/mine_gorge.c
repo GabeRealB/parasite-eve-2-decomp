@@ -95,8 +95,8 @@ GpMsgEntry D_mine_gorge_8017E280[6] = {
 };
 
 TaskDesc D_mine_gorge_8017E2B0[2] = {
-    { 0, 32, func_mine_gorge_8017D828, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_mine_gorge_8017D828, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPlayRequest D_mine_gorge_8017E2C8 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

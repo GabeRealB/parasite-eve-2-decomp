@@ -141,7 +141,7 @@ GpMsgEntry D_dryfield_water_hole_8017FC5C[6] = {
 };
 
 TaskDesc D_dryfield_water_hole_8017FC8C[1] = {
-    { 0, 192, func_dryfield_water_hole_8017DFA0, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_hole_8017DFA0, { .value = 0 } },
 };
 
 _DryfieldWaterHoleSurface D_dryfield_water_hole_8017FC98[3] = {

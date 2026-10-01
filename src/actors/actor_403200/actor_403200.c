@@ -2664,13 +2664,13 @@ AnimationSet* gIncinBossCaughtAnimSets[7] = {
 };
 
 TaskDesc D_actor_403200_8015E72C[7] = {
-    { TASK_BODY_TMD, 96, func_actor_403200_80141430, { .model = &D_actor_403200_80148FF4 } },
-    { TASK_BODY_TMD, 96, func_actor_403200_80141430, { .model = &D_actor_403200_80147838 } },
-    { TASK_BODY_TMD, 96, func_actor_403200_80141430, { .model = &D_actor_403200_80144EF8 } },
-    { TASK_BODY_TMD, 96, func_actor_403200_80141430, { .model = &D_actor_403200_8014607C } },
-    { TASK_BODY_TMD, 96, func_actor_403200_80141430, { .model = &D_actor_403200_8014A384 } },
-    { TASK_BODY_TMD, 96, func_actor_403200_80141430, { .model = &D_actor_403200_8014ACB8 } },
-    { TASK_BODY_TMD, 96, func_actor_403200_8014148C, { .model = &D_actor_403200_8014A858 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_80148FF4 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_80147838 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_80144EF8 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_8014607C } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_8014A384 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141430, { .model = &D_actor_403200_8014ACB8 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_8014148C, { .model = &D_actor_403200_8014A858 } },
 };
 
 SVECTOR gIncinBossRainLaunchOffsets[8] = {
@@ -2710,11 +2710,11 @@ u8 gIncinBossRainPointIndex[3][8] = {
 };
 
 TaskDesc D_actor_403200_8015E858[5] = {
-    { TASK_BODY_TMD, 96, func_actor_403200_80141564, { .model = &D_actor_403200_8014C1AC } },
-    { TASK_BODY_COORD, 96, func_actor_403200_80141778, { .model = NULL } },
-    { TASK_BODY_COORD, 96, func_actor_403200_801414E8, { .model = NULL } },
-    { TASK_BODY_TMD, 96, func_actor_403200_80141670, { .model = &D_actor_403200_8014E048 } },
-    { TASK_BODY_TMD, 96, func_actor_403200_80141868, { .model = &D_actor_403200_8014B588 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141564, { .model = &D_actor_403200_8014C1AC } },
+    { { { TASK_BODY_COORD, 96 } }, func_actor_403200_80141778, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, func_actor_403200_801414E8, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141670, { .model = &D_actor_403200_8014E048 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80141868, { .model = &D_actor_403200_8014B588 } },
 };
 
 AnimationPackedPose D_actor_403200_8015E894[7] = {
@@ -2843,7 +2843,7 @@ typedef struct {
 } Actor403200StorageF8D0;
 STATIC_ASSERT_SIZEOF(Actor403200StorageF8D0, 16);
 
-Actor403200StorageF8D0 D_actor_403200_8015F8D0 = { { TASK_BODY_TMD, 96, func_actor_403200_80140E6C, { .model = &D_actor_403200_80144150 } }, { 0 } };
+Actor403200StorageF8D0 D_actor_403200_8015F8D0 = { { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80140E6C, { .model = &D_actor_403200_80144150 } }, { 0 } };
 
 // Retain seven zero bytes after the accessed state byte.
 // Their original role as spare storage or alignment remains unresolved.
@@ -5379,9 +5379,9 @@ static void func_actor_403200_8013B740(Task* arg0)
     }
 
     for (i = 0; i < 9; i++) {
-        D_actor_403200_8015E858[4].arg.model = D_actor_403200_8015F888[i].model;
-        enemy                                = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 4, D_actor_403200_8015F888[i].spawnArg, NULL);
-        work->field_EF0                      = enemy;
+        D_actor_403200_8015E858[4].data.model = D_actor_403200_8015F888[i].model;
+        enemy                                 = Gp_SpawnEnemyFromTable(D_actor_403200_8015E858, 4, D_actor_403200_8015F888[i].spawnArg, NULL);
+        work->field_EF0                       = enemy;
         if (enemy == NULL) {
             break;
         }

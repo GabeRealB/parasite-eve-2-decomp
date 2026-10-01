@@ -59,7 +59,7 @@ s32  func_shelter_b1_north_maintenance_walkway_8017DA34(Task*, s32, TaskMessageA
 s32  func_shelter_b1_north_maintenance_walkway_8017DA3C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b1_north_maintenance_walkway_8017DA44(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
@@ -70,7 +70,7 @@ GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
 };
 
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184AAC[1] = {
-    { 0, 32, func_shelter_b1_north_maintenance_walkway_8017D918, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_north_maintenance_walkway_8017D918, { .value = 0 } },
 };
 
 SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[10] = {

@@ -45,12 +45,12 @@ s32 func_dryfield_night_general_store_8017DDF0(Task*, s32, s32, s32);
 s32 func_dryfield_night_general_store_8017DE24(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_general_store_8017DE2C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskDesc gStoreTaskDescs[3] = {
-    { 0, 32, storeToggleTask, { .model = NULL } },
-    { 0, 32, storeCutsceneTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, storeToggleTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, storeCutsceneTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_dryfield_night_general_store_8017E7BC[6] = {

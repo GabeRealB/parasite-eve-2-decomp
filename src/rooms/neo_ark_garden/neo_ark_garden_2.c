@@ -62,9 +62,9 @@ extern GpObj4C        D_neo_ark_garden_8018270C[6];
 extern GpObj4C        D_neo_ark_garden_801828D4[7];
 extern GpRoomCoordSet D_neo_ark_garden_801826F4[1];
 
-TaskDesc D_neo_ark_garden_80181398 = { 0, 192, waterRefractionTask, { .model = NULL } };
+TaskDesc D_neo_ark_garden_80181398 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_garden_801813A4 = { 0, 192, waterDistortBandTask, { .model = NULL } };
+TaskDesc D_neo_ark_garden_801813A4 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_garden_801813B0[5] = {
     { 5102, func_neo_ark_garden_8017E848 },

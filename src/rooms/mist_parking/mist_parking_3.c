@@ -38,8 +38,8 @@ void func_mist_parking_801837B8(Task*);
 void func_mist_parking_8018397C(Task*);
 
 TaskDesc D_mist_parking_8018FC24[2] = {
-    { 0, 192, func_mist_parking_8018397C, { .model = NULL } },
-    { 0, 192, func_mist_parking_801837B8, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018397C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801837B8, { .value = 0 } },
 };
 
 ActorTransform D_mist_parking_8018FC3C = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };

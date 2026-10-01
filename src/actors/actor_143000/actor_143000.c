@@ -104,9 +104,9 @@ extern const char D_actor_143000_80131E54[14];
 extern const char D_actor_143000_80131E64[14];
 extern const char D_actor_143000_80131E74[14];
 
-TaskDesc D_actor_143000_80134558 = { 0, 192, func_actor_143000_80133578, { .model = NULL } };
+TaskDesc D_actor_143000_80134558 = { { { TASK_BODY_NONE, 192 } }, func_actor_143000_80133578, { .value = 0 } };
 
-TaskDesc D_actor_143000_80134564 = { 0, 32, func_actor_143000_801335C8, { .model = NULL } };
+TaskDesc D_actor_143000_80134564 = { { { TASK_BODY_NONE, 32 } }, func_actor_143000_801335C8, { .value = 0 } };
 
 u8 D_actor_143000_80134570[16] = {
     0,

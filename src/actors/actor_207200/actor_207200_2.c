@@ -126,7 +126,7 @@ typedef struct Actor207200DmgScratch {
 STATIC_ASSERT_SIZEOF(Actor207200DmgScratch, 0x48);
 
 /// The records closing three of the overlay's model streams, handed to the
-/// spawned effect as its model through `D_800626EC[5].arg.model`.
+/// spawned effect as its model through `D_800626EC[5].data.model`.
 extern TmdSource D_actor_207200_80150BCC;
 extern TmdSource D_actor_207200_80151074;
 extern TmdSource D_actor_207200_801517F8;
@@ -556,7 +556,7 @@ AnimationSet D_actor_207200_80153EA0 = {
     { NULL, D_actor_207200_80153E2C, NULL, NULL, D_actor_207200_80153E44, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_207200_80153EC8 = { TASK_BODY_TMD, 96, func_actor_207200_8014D280, { .model = &D_actor_207200_80150A04 } };
+TaskDesc D_actor_207200_80153EC8 = { { { TASK_BODY_TMD, 96 } }, func_actor_207200_8014D280, { .model = &D_actor_207200_80150A04 } };
 
 AnimationSet* D_actor_207200_80153ED4[13] = {
     NULL,
@@ -1434,8 +1434,8 @@ static void func_actor_207200_8014CFEC(Task* arg0)
 
     Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 0, NULL);
     func_800DA6E8(&ctx->node, ctx->hp - 1, 0);
-    D_800626EC[5].arg.model = &D_actor_207200_801517F8;
-    effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 3, 0, NULL);
+    D_800626EC[5].data.model = &D_actor_207200_801517F8;
+    effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 3, 0, NULL);
     if (effect != NULL) {
         func_actor_207200_8014DAF8(effect->task, arg0);
     }
@@ -1462,22 +1462,22 @@ static void func_actor_207200_8014D128(Task* arg0)
     switch (r) {
         case 0:
         case 1:
-            D_800626EC[5].arg.model = &D_actor_207200_801517F8;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 3, 0, NULL);
+            D_800626EC[5].data.model = &D_actor_207200_801517F8;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 3, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }
             break;
         case 2:
-            D_800626EC[5].arg.model = &D_actor_207200_80151074;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 5, 0, NULL);
+            D_800626EC[5].data.model = &D_actor_207200_80151074;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 5, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }
             break;
         case 3:
-            D_800626EC[5].arg.model = &D_actor_207200_80150BCC;
-            effect                  = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 2, 0, NULL);
+            D_800626EC[5].data.model = &D_actor_207200_80150BCC;
+            effect                   = Gp_SpawnEff(0x80005, arg0->extra.tmd->coords + 2, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }

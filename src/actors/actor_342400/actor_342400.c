@@ -105,10 +105,10 @@ void func_actor_342400_80162824(Task*);
 void func_actor_342400_80162888(Task*);
 
 TaskDesc D_actor_342400_8016BFE0[4] = {
-    { 0, 32, func_actor_342400_80162748, { .model = NULL } },
-    { 0, 97, func_actor_342400_801627C0, { .model = NULL } },
-    { 0, 97, func_actor_342400_80162824, { .model = NULL } },
-    { 0, 97, func_actor_342400_80162888, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_actor_342400_80162748, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_actor_342400_801627C0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_actor_342400_80162824, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_actor_342400_80162888, { .value = 0 } },
 };
 
 Actor342400Limit D_actor_342400_8016C010[17] = {

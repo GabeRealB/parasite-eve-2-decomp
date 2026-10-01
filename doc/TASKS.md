@@ -71,17 +71,26 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 spawnArg1, s32 spawnArg2, TaskNode*
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `flags` | Low byte = spawn type (0/1/2). Bit `0x100` is a type-1 setup flag |
-| 0x2 | `priority` | Low byte copied to `Task::priority` |
+| 0x0 | `header.fields.flags` | Low byte = body kind (0/1/2); `TASK_DESC_SKIP_MODEL_BUFFER` disables automatic TMD primitive-buffer allocation |
+| 0x2 | `header.fields.priority` | Low byte copied to `Task::priority`; equal priorities retain spawn order |
 | 0x4 | `callback` | Per-frame entry (`Task::callback`) |
-| 0x8 | `arg.model` / `arg.value` | Type-1 only, the `TmdSource*` for `Gp_AttachTmdFlags`; the descriptor's own value otherwise |
+| 0x8 | `data.model` / `data.value` | Type-1 only, the `TmdSource*` for `Gp_AttachTmdFlags`; metadata ignored by ordinary spawning for other body kinds |
 
-Spawn type (low byte of `flags`, stored as `Task::bodyKind`) is the body:
+`header.word` reads both complete halfwords as one little-endian word, with
+flags in the low half and priority in the high half. Location-table selection
+compares that word with priority 32/body kind 0, then matches `data.value`
+against `stage * 10000 + area * 100 + room` or the area key with room 0.
+Its walk ends when the complete flags halfword is `TASK_DESC_END`.
+
+The descriptor is read synchronously; no descriptor pointer is retained in the
+new task. Its data word is separate from the two call-supplied spawn payloads.
+
+Spawn type (low byte of `header.fields.flags`, stored as `Task::bodyKind`) is the body:
 
 | Type | Attach (`Task::extra`) | Kill teardown |
 |------|------------------------|---------------|
 | 0 | none | free the `Task` |
-| 1 (`TASK_BODY_TMD`) | `Gp_AttachTmdFlags(task, arg.model, flags)` — `extra.tmd` | unlink + free TMD (normal teardown waits two countdown-callback dispatches) |
+| 1 (`TASK_BODY_TMD`) | `Gp_AttachTmdFlags(task, data.model, flags)` — `extra.tmd` | unlink + free TMD (normal teardown waits two countdown-callback dispatches) |
 | 2 | `gpAttachDisp2d(task)` — `extra.coordBody` | unlink + free coordinate body immediately |
 
 `TaskBody` holds one allocation pointer. Select its typed member using
@@ -203,7 +212,7 @@ NULL.
 | 4 | `D_800676A8` | 9 | Stubs + TMD / overlay |
 | 5 | `D_800626AC` | 5 | Stubs + `Task_KillMaybeSpawn` + one overlay |
 | 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
-| 7 | `D_800678F4` | 164 | Equipped TMD attaches (`func_8010B610` + per-item `arg.model`) |
+| 7 | `D_800678F4` | 164 | Equipped TMD attaches (`func_8010B610` + per-item `data.model`) |
 | 8 | `D_800626EC` | 6 | Stubs + shared `Gp_EffAttachTask37` |
 | 9 | `D_80067734` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
 | 10 | `0x80114B34` | 6 | Stubs + `Gp_EffAttachTask37` (splat-merged into `Gp_CollectedIds`) |
@@ -317,7 +326,7 @@ Payload structs live with their sole consumers: `GpEndWait` in
 Named / matched: `Gp_EnemyDispatch` (`0xB`), `Gp_UpdateRoomCoords` (`0xF`),
 `Tmd_DispatchTask` (`0x21`), `Tmd_AllocNodeBuffers` (`0x22`),
 `Gp_FadeTileTask` (`0x27`). The rest is `taskKill`, `func_*`, or
-`0x807xxxxx` (many type-1 with `arg.model = 0x8075BED4`).
+`0x807xxxxx` (many type-1 with `data.model = 0x8075BED4`).
 
 `Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a `Enemy*`
 hung off `spawnArg2` (`Gp_AllocEnemy`). Exit path is `Gp_EnemyTaskExit`.
@@ -335,7 +344,7 @@ decompiling the overlay it points at.
 ### Bank 7 — equipped TMD attaches
 
 ~80 `taskKill` stubs; the rest are type 1, priority `0x50`/`0x52`, callback
-usually `func_8010B610` (gameplay-resident), `arg.model` a `TmdSource*` in
+usually `func_8010B610` (gameplay-resident), `data.model` a `TmdSource*` in
 weapon / actor overlay RAM (`0x8011xxxx`, `0x8016xxxx`, `0x8018xxxx`).
 
 `src/gameplay/player_actor.c` spawns these as `Task_Spawn(7, type, …)` when attaching

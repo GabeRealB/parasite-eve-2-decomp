@@ -819,7 +819,7 @@ AnimationSet D_actor_161500_80136CB4 = {
     { NULL, D_actor_161500_80136AA8, NULL, NULL, D_actor_161500_80136ACC, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_161500_80136CDC = { 0, 32, func_actor_161500_801321B4, { .model = NULL } };
+TaskDesc D_actor_161500_80136CDC = { { { TASK_BODY_NONE, 32 } }, func_actor_161500_801321B4, { .value = 0 } };
 
 ActorTransform D_actor_161500_80136CE8 = { { 850, 0, 4400, 0 }, { 0, 568, 0, 0 } };
 
@@ -1353,8 +1353,8 @@ Actor161500MessageEntry gStrideWalkMessages[6] = {
 };
 
 TaskDesc gStrideWalkTasks[2] = {
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_161500_801326E8, { .model = &D_actor_161500_8013DEC0 } },
-    { (TASK_BODY_TMD | 0x100), 96, strideWalkSubModelTask, { .model = &D_actor_161500_80138790 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_161500_801326E8, { .model = &D_actor_161500_8013DEC0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, strideWalkSubModelTask, { .model = &D_actor_161500_80138790 } },
 };
 
 AnimationSet* gStrideWalkAnimParams[12] = {

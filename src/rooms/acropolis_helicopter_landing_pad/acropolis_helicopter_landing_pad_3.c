@@ -464,15 +464,15 @@ EvsCommand D_acropolis_helicopter_landing_pad_80184CF4[7] = {
 s32 D_acropolis_helicopter_landing_pad_80184D9C = 0;
 
 TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[9] = {
-    { 0, 32, func_acropolis_helicopter_landing_pad_8017DA9C, { .model = NULL } },
-    { 0, 32, func_acropolis_helicopter_landing_pad_8017E76C, { .model = NULL } },
-    { 0, 32, func_acropolis_helicopter_landing_pad_8017E81C, { .model = NULL } },
-    { 0, 32, func_acropolis_helicopter_landing_pad_8017DE78, { .model = NULL } },
-    { 0, 32, func_acropolis_helicopter_landing_pad_8017E974, { .model = NULL } },
-    { 0, 32, func_acropolis_helicopter_landing_pad_8017DFCC, { .model = NULL } },
-    { 0, 32, func_acropolis_helicopter_landing_pad_8017E0F8, { .model = NULL } },
-    { 0, 97, func_acropolis_helicopter_landing_pad_8017E270, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017DA9C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017E76C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017E81C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017DE78, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017E974, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017DFCC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017E0F8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_acropolis_helicopter_landing_pad_8017E270, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 D_acropolis_helicopter_landing_pad_80184E0C = 0;
@@ -493,8 +493,8 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C = { { .index = 
 ActorTransform D_acropolis_helicopter_landing_pad_80184E50 = { { -6801, 0, -1998, 0 }, { 0, 1024, 0, 0 } };
 
 TaskDesc D_acropolis_helicopter_landing_pad_80184E68[2] = {
-    { 0, 192, func_acropolis_helicopter_landing_pad_8017ED00, { .model = NULL } },
-    { 0, 192, func_acropolis_helicopter_landing_pad_8017EB58, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_helicopter_landing_pad_8017ED00, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_helicopter_landing_pad_8017EB58, { .value = 0 } },
 };
 
 SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12] = {

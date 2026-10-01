@@ -899,9 +899,9 @@ Actor420700MessageEntry D_actor_420700_8013EF48[4] = {
 };
 
 TaskDesc D_actor_420700_8013EF68[3] = {
-    { TASK_BODY_TMD, 192, func_actor_420700_80132340, { .model = &D_actor_420700_8013B68C } },
-    { TASK_BODY_TMD, 192, func_actor_420700_801323D8, { .model = &D_actor_420700_8013BB64 } },
-    { TASK_BODY_TMD, 192, func_actor_420700_801327EC, { .model = &D_actor_420700_8013C028 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_420700_80132340, { .model = &D_actor_420700_8013B68C } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_420700_801323D8, { .model = &D_actor_420700_8013BB64 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_420700_801327EC, { .model = &D_actor_420700_8013C028 } },
 };
 
 u8 D_actor_420700_8013EF8C[84] = {

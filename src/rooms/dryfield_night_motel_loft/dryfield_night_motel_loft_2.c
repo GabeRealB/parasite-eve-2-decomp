@@ -111,7 +111,7 @@ GpMsgEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
 };
 
 TaskDesc D_dryfield_night_motel_loft_8017EB4C[1] = {
-    { 0, 32, func_dryfield_night_motel_loft_8017D6F8, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_motel_loft_8017D6F8, { .value = 0 } },
 };
 
 AnimationPlayRequest D_dryfield_night_motel_loft_8017EB58 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };

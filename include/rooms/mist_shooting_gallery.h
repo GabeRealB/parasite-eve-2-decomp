@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/tmd_types.h"
+
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
 #include "gameplay/room.h"
@@ -89,5 +91,43 @@ void func_mist_shooting_gallery_801811EC(Task* unused);
 void func_mist_shooting_gallery_80182064(Task* task);
 
 void func_mist_shooting_gallery_8018018C(Task* task);
+
+extern TmdSource D_mist_shooting_gallery_80186AE0;
+
+extern TmdSource D_mist_shooting_gallery_80186CD0;
+
+extern TmdSource D_mist_shooting_gallery_80186EC0;
+
+extern TmdSource D_mist_shooting_gallery_801870B0;
+
+extern TmdSource D_mist_shooting_gallery_801872A0;
+
+extern TmdSource D_mist_shooting_gallery_80187490;
+
+extern TmdSource D_mist_shooting_gallery_80187680;
+
+extern TmdSource D_mist_shooting_gallery_80187870;
+
+extern TmdSource D_mist_shooting_gallery_80187A60;
+
+extern TmdSource D_mist_shooting_gallery_80187C50;
+
+extern TmdSource D_mist_shooting_gallery_80188034;
+
+extern TmdSource D_mist_shooting_gallery_80188198;
+
+extern TmdSource D_mist_shooting_gallery_801882FC;
+
+extern TmdSource D_mist_shooting_gallery_80188460;
+
+extern TmdSource D_mist_shooting_gallery_801885C4;
+
+extern TmdSource D_mist_shooting_gallery_801887B4;
+
+extern TmdSource D_mist_shooting_gallery_801889A4;
+
+extern TmdSource D_mist_shooting_gallery_80188B94;
+
+extern TmdSource D_mist_shooting_gallery_80188D84;
 
 #endif // INCLUDE_ROOMS_MIST_SHOOTING_GALLERY_H

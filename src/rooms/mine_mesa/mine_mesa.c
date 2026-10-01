@@ -291,7 +291,7 @@ s32 func_mine_mesa_8017DA7C(Task*, s32, s32, TaskMessageArg);
 s32 func_mine_mesa_8017DABC(Task*, s32, DirectionActionRequest* msg, s32);
 s32 func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
 
-TaskDesc D_mine_mesa_801818F8 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_mine_mesa_801818F8 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_mine_mesa_80181904[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_mesa_8017D8F8 },
@@ -322,11 +322,11 @@ EvsCommand D_mine_mesa_80181960[2] = {
 };
 
 TaskDesc D_mine_mesa_80181990[2] = {
-    { 0, 192, func_mine_mesa_8017E024, { .model = NULL } },
-    { 0, 192, func_mine_mesa_8017DE38, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E024, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017DE38, { .value = 0 } },
 };
 
-TaskDesc D_mine_mesa_801819A8 = { 0, 192, func_mine_mesa_8017DFC4, { .model = NULL } };
+TaskDesc D_mine_mesa_801819A8 = { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017DFC4, { .value = 0 } };
 
 AnimationPackedPose D_mine_mesa_801819B4[6] = {
 #include "assets/mine_mesa_animation_046D0_bank1.inc"
@@ -605,12 +605,12 @@ void func_mine_mesa_8017E7B0(Task*);
 void func_mine_mesa_8017E978(Task*);
 
 TaskDesc D_mine_mesa_801842F4[6] = {
-    { 0, 192, func_mine_mesa_8017E074, { .model = NULL } },
-    { 0, 192, func_mine_mesa_8017E15C, { .model = NULL } },
-    { 0, 192, func_mine_mesa_8017E2A4, { .model = NULL } },
-    { 0, 192, func_mine_mesa_8017E7B0, { .model = NULL } },
-    { 0, 192, func_mine_mesa_8017E3E0, { .model = NULL } },
-    { 0, 192, func_mine_mesa_8017E978, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E074, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E15C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E2A4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E7B0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E3E0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E978, { .value = 0 } },
 };
 
 AnimationSet* D_mine_mesa_8018433C[2] = {
@@ -2543,7 +2543,7 @@ GpMsgEntry D_mine_mesa_80189B1C[2] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_mine_mesa_80189B2C = { 0, 32, func_mine_mesa_80181894, { .model = NULL } };
+TaskDesc D_mine_mesa_80189B2C = { { { TASK_BODY_NONE, 32 } }, func_mine_mesa_80181894, { .value = 0 } };
 
 RoomFadeStorage gRoomEventFade = { 0 };
 

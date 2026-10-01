@@ -113,11 +113,11 @@ extern GpRoomCoordSet D_neo_ark_pavilion_8018756C[1];
 
 extern TaskDesc D_80147E48;
 
-TaskDesc D_neo_ark_pavilion_8018384C = { 0, 192, waterRefractionTask, { .model = NULL } };
+TaskDesc D_neo_ark_pavilion_8018384C = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_pavilion_80183858 = { 0, 192, waterDistortBandTask, { .model = NULL } };
+TaskDesc D_neo_ark_pavilion_80183858 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_pavilion_80183864 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_neo_ark_pavilion_80183864 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_pavilion_80183870[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pavilion_8017E9F4 },

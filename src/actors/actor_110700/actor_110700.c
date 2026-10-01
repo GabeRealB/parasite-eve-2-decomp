@@ -198,7 +198,7 @@ AnimationSet D_actor_110700_8013BF6C = {
     { NULL, D_actor_110700_8013A55C, NULL, NULL, D_actor_110700_8013A7C0, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_110700_8013BF94 = { TASK_BODY_TMD, 96, func_actor_110700_80131E24, { .model = &D_actor_110700_801377C8 } };
+TaskDesc D_actor_110700_8013BF94 = { { { TASK_BODY_TMD, 96 } }, func_actor_110700_80131E24, { .model = &D_actor_110700_801377C8 } };
 
 Actor110700MsgEntry D_actor_110700_8013BFA0[4] = {
     { 2003, { .call0 = func_actor_110700_8013201C } },

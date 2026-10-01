@@ -723,18 +723,18 @@ EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80188BC8[5] = {
-    { 0, 192, func_shelter_b3_dumping_hole_8017F820, { .model = NULL } },
-    { 0, 192, func_shelter_b3_dumping_hole_8017FBA0, { .model = NULL } },
-    { (TASK_BODY_TMD | 0x100), 192, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_801877F4 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187A70 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187D74 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017F820, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017FBA0, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_801877F4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187A70 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &D_shelter_b3_dumping_hole_80187D74 } },
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80188C04[4] = {
-    { TASK_BODY_COORD, 192, func_shelter_b3_dumping_hole_8017DCFC, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_shelter_b3_dumping_hole_8017DF90, { .model = NULL } },
-    { TASK_BODY_COORD, 192, NULL, { .model = NULL } },
-    { TASK_BODY_COORD, 192, func_shelter_b3_dumping_hole_8017E440, { .model = NULL } },
+    { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8017DCFC, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8017DF90, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8017E440, { .value = 0 } },
 };
 
 TmdBone D_shelter_b3_dumping_hole_80188C34[4] = {
@@ -831,8 +831,8 @@ EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
-    { (TASK_BODY_TMD | 0x100), 192, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
-    { TASK_BODY_COORD, 192, func_shelter_b3_dumping_hole_8018005C, { .model = NULL } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
+    { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8018005C, { .value = 0 } },
 };
 
 AnimationPackedPose D_shelter_b3_dumping_hole_80189AF4[6] = {
@@ -911,7 +911,7 @@ PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2] = {
     { 0, 0, 9, 0 },
 };
 
-TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { 0, 192, func_shelter_b3_dumping_hole_80181A48, { .model = NULL } };
+TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_80181A48, { .value = 0 } };
 
 ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8 = { .data = { { NULL, &D_shelter_b3_dumping_hole_80189DD0, &D_shelter_b3_dumping_hole_8018A274, &D_shelter_b3_dumping_hole_8018AF84 }, { { .words = D_shelter_b3_dumping_hole_8018AFC8.words }, 5 } } };
 
@@ -997,7 +997,7 @@ EvsCommand D_shelter_b3_dumping_hole_8018B428[14] = {
 static void CapCaption_RunSchedule(Task* task);
 
 TaskDesc D_shelter_b3_dumping_hole_8018B57C[1] = {
-    { 0, 32, CapCaption_RunSchedule, { .value = 0 } }
+    { { { TASK_BODY_NONE, 32 } }, CapCaption_RunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"
@@ -1063,10 +1063,10 @@ OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[16] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_8018B83C[4] = {
-    { 0, 32, func_shelter_b3_dumping_hole_80183550, { .model = NULL } },
-    { 0, 97, func_shelter_b3_dumping_hole_801835C8, { .model = NULL } },
-    { 0, 97, func_shelter_b3_dumping_hole_80183620, { .model = NULL } },
-    { 0, 97, func_shelter_b3_dumping_hole_80183678, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b3_dumping_hole_80183550, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_shelter_b3_dumping_hole_801835C8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_shelter_b3_dumping_hole_80183620, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, func_shelter_b3_dumping_hole_80183678, { .value = 0 } },
 };
 
 // Lighting task indexes a shared pool through entry 40; interior bases also address entries in the same pool. The final existing eight-point view ends at entry 43.

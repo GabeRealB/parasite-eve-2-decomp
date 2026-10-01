@@ -41,7 +41,7 @@ s32  func_neo_ark_r31_8017D8FC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_r31_8017D904(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_neo_ark_r31_8017D5D0(Task*);
 
-TaskDesc D_neo_ark_r31_8017D9E8 = { 0, 192, func_neo_ark_r31_8017D5D0, { .model = NULL } };
+TaskDesc D_neo_ark_r31_8017D9E8 = { { { TASK_BODY_NONE, 192 } }, func_neo_ark_r31_8017D5D0, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_r31_8017D9F4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r31_8017D8B8 },

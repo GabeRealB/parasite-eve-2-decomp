@@ -427,16 +427,16 @@ EvsCommand D_actor_341900_80163FB0[20] = {
 };
 
 TaskDesc D_actor_341900_80164190[10] = {
-    { 0, 192, func_actor_341900_80162EFC, { .model = NULL } },
-    { 0, 192, func_actor_341900_80163148, { .model = NULL } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_80162708, { .value = -0x7FEB9098 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB41F4 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB59B0 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB82F0 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB716C } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB2A04 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_80162200, { .value = -0x7FEB0200 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_80162200, { .value = -0x7FEAFE90 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_341900_80162EFC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_341900_80163148, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_80162708, { .model = &D_actor_444000_80146F68 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014BE0C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014A650 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_80147D10 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_80148E94 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &D_actor_444000_8014D5FC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_80162200, { .model = &D_actor_444000_8014FE00 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_341900_80162200, { .model = &D_actor_444000_80150170 } },
 };
 
 Task* D_actor_341900_80164208;

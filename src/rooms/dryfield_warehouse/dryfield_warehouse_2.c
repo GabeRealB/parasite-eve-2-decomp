@@ -101,8 +101,8 @@ GpMsgEntry D_dryfield_warehouse_8017F554[3] = {
 };
 
 TaskDesc D_dryfield_warehouse_8017F56C[2] = {
-    { 0, 32, func_dryfield_warehouse_8017D8D4, { .model = NULL } },
-    { 0, 32, func_dryfield_warehouse_8017D5E8, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_warehouse_8017D8D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_warehouse_8017D5E8, { .value = 0 } },
 };
 
 AnimationPackedPose D_dryfield_warehouse_8017F584[2] = {
@@ -170,9 +170,9 @@ EvsCommand D_dryfield_warehouse_8017FA00[11] = {
 };
 
 TaskDesc D_dryfield_warehouse_8017FB08[3] = {
-    { 0, 192, func_dryfield_warehouse_8017E090, { .model = NULL } },
-    { 0, 192, func_dryfield_warehouse_8017E308, { .model = NULL } },
-    { 0, 192, screenFadeInTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_warehouse_8017E090, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_warehouse_8017E308, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
 };
 
 SVECTOR gGlowPrismCorners[16] = {

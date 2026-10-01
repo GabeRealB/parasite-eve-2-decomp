@@ -102,17 +102,17 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
         return NULL;
     }
 
-    flags = desc->flags;
-    switch (flags & 0xFF) {
+    flags = desc->header.fields.flags;
+    switch (flags & TASK_DESC_BODY_KIND_MASK) {
         case TASK_BODY_TMD:
             attachFlags = 0;
-            if (flags & 0x100) {
+            if (flags & TASK_DESC_SKIP_MODEL_BUFFER) {
                 attachFlags = 1;
             }
             if (D_8005ED8C != 0) {
                 attachFlags |= 2;
             }
-            extra.tmd = Gp_AttachTmdFlags(task, desc->arg.model, attachFlags);
+            extra.tmd = Gp_AttachTmdFlags(task, desc->data.model, attachFlags);
             break;
         case TASK_BODY_COORD:
             extra.coordBody = gpAttachDisp2d(task);
@@ -124,12 +124,12 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
     }
 
     // A descriptor that asks for a body gets no task when the body cannot be attached.
-    if ((desc->flags & 0xFF) == TASK_BODY_NONE || extra.allocation != NULL) {
+    if ((desc->header.fields.flags & TASK_DESC_BODY_KIND_MASK) == TASK_BODY_NONE || extra.allocation != NULL) {
         task->callback     = desc->callback;
-        priority           = desc->priority;
+        priority           = desc->header.fields.priority;
         task->exitCallback = taskKill;
         task->priority     = priority;
-        kind               = desc->flags & 0xFF;
+        kind               = desc->header.fields.flags & TASK_DESC_BODY_KIND_MASK;
         task->extra        = extra;
         task->spawnArg1    = arg1;
         task->spawnArg2    = arg2;

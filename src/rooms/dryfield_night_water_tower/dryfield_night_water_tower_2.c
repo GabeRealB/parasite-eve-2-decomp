@@ -57,7 +57,7 @@ extern GpRoomCoordSet D_dryfield_night_water_tower_801823F8[1];
 
 extern TaskDesc D_80142604;
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_night_water_tower_8017E6EC[6] = {
     { 5102, func_dryfield_night_water_tower_8017D8E0 },

@@ -317,7 +317,7 @@ extern AnimationSet D_actor_401800_80155124;
 /// each spawn in `func_actor_401800_8013BB10`.
 
 /// The records closing three of the overlay's model streams, which
-/// `func_actor_401800_8013BB10` points `D_80114B34[5].arg.model` at before spawning: the
+/// `func_actor_401800_8013BB10` points `D_80114B34[5].data.model` at before spawning: the
 /// 0x60030 debris burst, then the 0xA0005 fan the step counter trips at 3 and 5
 /// and the two 0xA0005 bursts at 7 and 9.
 extern TmdSource D_actor_401800_80143E9C;
@@ -1306,7 +1306,7 @@ Actor401800MessageEntry D_actor_401800_80155A80[8] = {
 
 u16 D_actor_401800_80155AC0 = 0;
 
-TaskDesc D_actor_401800_80155AC4 = { (TASK_BODY_TMD | 0x100), 96, func_actor_401800_8013E68C, { .model = &D_actor_401800_80143918 } };
+TaskDesc D_actor_401800_80155AC4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_401800_8013E68C, { .model = &D_actor_401800_80143918 } };
 
 static SVECTOR ActorContact_ScratchPosition;
 
@@ -3871,24 +3871,24 @@ static void func_actor_401800_8013BB10(Task* arg0)
     next          = work->field_6 + 1;
     work->field_6 = next;
     if ((s16)next == 3) {
-        D_80114B34[5].arg.model = &D_actor_401800_80143E9C;
-        vec.vz                  = 0x64;
-        vec.vy                  = 0;
-        vec.vx                  = 0;
+        D_80114B34[5].data.model = &D_actor_401800_80143E9C;
+        vec.vz                   = 0x64;
+        vec.vy                   = 0;
+        vec.vx                   = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
     if (work->field_6 == 5) {
-        D_80114B34[5].arg.model = &D_actor_401800_80144434;
-        vec.vy                  = 0;
-        vec.vx                  = 0;
+        D_80114B34[5].data.model = &D_actor_401800_80144434;
+        vec.vy                   = 0;
+        vec.vx                   = 0;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->field_6 == 7) {
-        D_80114B34[5].arg.model = &D_actor_401800_80143E9C;
+        D_80114B34[5].data.model = &D_actor_401800_80143E9C;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->field_6 == 9) {
-        D_80114B34[5].arg.model = &D_actor_401800_80144F24;
+        D_80114B34[5].data.model = &D_actor_401800_80144F24;
         actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->field_6 >= 0x3D) {
@@ -3945,18 +3945,18 @@ static void func_actor_401800_8013BF48(Task* arg0)
             }
             ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC);
             if (work->field_6 == 3) {
-                D_80114B34[5].arg.model = &D_actor_401800_80143E9C;
-                vec.vz                  = 0x64;
-                vec.vy                  = 0;
-                vec.vx                  = 0;
+                D_80114B34[5].data.model = &D_actor_401800_80143E9C;
+                vec.vz                   = 0x64;
+                vec.vy                   = 0;
+                vec.vx                   = 0;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
             }
             if (work->field_6 == 5) {
-                D_80114B34[5].arg.model = &D_actor_401800_80143E9C;
+                D_80114B34[5].data.model = &D_actor_401800_80143E9C;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
             }
             if (work->field_6 == 6) {
-                D_80114B34[5].arg.model = &D_actor_401800_80144F24;
+                D_80114B34[5].data.model = &D_actor_401800_80144F24;
                 actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
             }
             break;

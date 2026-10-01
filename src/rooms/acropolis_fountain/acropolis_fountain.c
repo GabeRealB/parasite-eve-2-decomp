@@ -45,8 +45,8 @@ GpMsgEntry D_acropolis_fountain_8017E764[5] = {
 };
 
 TaskDesc D_acropolis_fountain_8017E78C[2] = {
-    { 0, 32, func_acropolis_fountain_8017D868, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_fountain_8017D868, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 /// Message gate for the fountain's hotspot: copies the incoming record to the

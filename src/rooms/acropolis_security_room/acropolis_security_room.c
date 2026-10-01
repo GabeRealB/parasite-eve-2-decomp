@@ -347,12 +347,12 @@ AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[5] = {
 AnimationPlayRequest D_acropolis_security_room_80182604 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 TaskDesc D_acropolis_security_room_80182618[3] = {
-    { 0, 32, func_acropolis_security_room_8017D77C, { .model = NULL } },
-    { 0, 32, func_acropolis_security_room_8017D834, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_security_room_8017D77C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_security_room_8017D834, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskDesc D_acropolis_security_room_8018263C = { 0, 192, func_acropolis_security_room_8017E9D8, { .model = NULL } };
+TaskDesc D_acropolis_security_room_8018263C = { { { TASK_BODY_NONE, 192 } }, func_acropolis_security_room_8017E9D8, { .value = 0 } };
 
 OverlayHotspot D_acropolis_security_room_80182648[9] = {
     { -30, 81, 12, 11, 8, 1, 0 },
@@ -376,7 +376,7 @@ s16 D_acropolis_security_room_801826B4[6] = {
 };
 
 TaskDesc D_acropolis_security_room_801826C0[1] = {
-    { 0, 192, func_acropolis_security_room_8017F9C8, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_security_room_8017F9C8, { .value = 0 } },
 };
 
 GpMsgEntry D_acropolis_security_room_801826CC[2] = {
@@ -391,8 +391,8 @@ OverlayHotspot D_acropolis_security_room_801826DC[3] = {
 };
 
 TaskDesc D_acropolis_security_room_80182700[2] = {
-    { 0, 192, func_acropolis_security_room_80180368, { .model = NULL } },
-    { 0, 192, func_acropolis_security_room_801804CC, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_security_room_80180368, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_security_room_801804CC, { .value = 0 } },
 };
 
 u16 D_acropolis_security_room_80182718[256] = { 0 };

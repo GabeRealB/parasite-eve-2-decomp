@@ -1502,11 +1502,11 @@ u8 D_actor_400500_80153CC0[136] = {
 };
 
 TaskDesc D_actor_400500_80153D48[2] = {
-    { TASK_BODY_TMD, 96, func_actor_400500_8013DF64, { .model = &D_actor_400500_801430E8 } },
-    { TASK_BODY_TMD, 96, func_actor_400500_8013DF6C, { .model = &D_actor_400500_80142E70 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_400500_8013DF64, { .model = &D_actor_400500_801430E8 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_400500_8013DF6C, { .model = &D_actor_400500_80142E70 } },
 };
 
-TaskDesc D_actor_400500_80153D60 = { TASK_BODY_TMD, 96, func_actor_400500_8013DE98, { .model = &D_actor_400500_80142C20 } };
+TaskDesc D_actor_400500_80153D60 = { { { TASK_BODY_TMD, 96 } }, func_actor_400500_8013DE98, { .model = &D_actor_400500_80142C20 } };
 
 ActorZone D_actor_400500_80153D6C[7] = {
     { -1700, -0x27D8, 1700, 3200, 4 },

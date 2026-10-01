@@ -216,9 +216,9 @@ void func_actor_215100_8014AE90(s16);
 void func_actor_215100_8014AEB4(s16);
 
 TaskDesc D_actor_215100_8014E13C[3] = {
-    { 0, 32, func_actor_215100_8014ABAC, { .model = NULL } },
-    { 0, 32, func_actor_215100_80149F2C, { .model = NULL } },
-    { 0, 32, func_actor_215100_8014AD50, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_actor_215100_8014ABAC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_actor_215100_80149F2C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_actor_215100_8014AD50, { .value = 0 } },
 };
 
 Actor215100AnimStorageE160 D_actor_215100_8014E160 = { .data = { { &D_actor_215100_8014D304, &D_actor_215100_8014D574, &D_actor_215100_8014D7CC, &D_actor_215100_8014D968, &D_actor_215100_8014DBB8, &D_actor_215100_8014DE10, NULL, NULL, NULL, NULL, &D_actor_215100_8014E114 }, { { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 20, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 21, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
@@ -1144,7 +1144,7 @@ EvsCommand D_actor_215100_801543E4[11] = {
 static void CapCaption_RunSchedule(Task* task);
 
 static TaskDesc D_actor_215100_801544F0[1] = {
-    { 0, 32, CapCaption_RunSchedule, { .value = 0 } }
+    { { { TASK_BODY_NONE, 32 } }, CapCaption_RunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"
@@ -1707,8 +1707,8 @@ Actor2151002MsgEntry D_actor_215100_8015E5A0[6] = {
 };
 
 TaskDesc D_actor_215100_8015E5D0[2] = {
-    { TASK_BODY_TMD, 96, func_actor_215100_8014CA2C, { .model = &D_actor_215100_8015A7E4 } },
-    { TASK_BODY_TMD, 192, func_actor_215100_8014CEF8, { .model = &D_actor_215100_8015A9E0 } },
+    { { { TASK_BODY_TMD, 96 } }, func_actor_215100_8014CA2C, { .model = &D_actor_215100_8015A7E4 } },
+    { { { TASK_BODY_TMD, 192 } }, func_actor_215100_8014CEF8, { .model = &D_actor_215100_8015A9E0 } },
 };
 
 AnimationSet* D_actor_215100_8015E5E8[25] = {

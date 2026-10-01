@@ -108,9 +108,9 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task*, s32, TaskMessageAr
 
 extern TaskDesc D_80142604;
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b2_south_maintenance_walkway_80182544 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b2_south_maintenance_walkway_80182544 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b2_south_maintenance_walkway_80182550[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_south_maintenance_walkway_8017DA7C },

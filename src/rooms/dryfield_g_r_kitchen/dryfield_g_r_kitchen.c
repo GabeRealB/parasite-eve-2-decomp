@@ -87,7 +87,7 @@ extern GpObj4C        D_dryfield_g_r_kitchen_8017F038[2];
 extern GpObj4C        D_dryfield_g_r_kitchen_8017F0D0[7];
 extern GpRoomCoordSet D_dryfield_g_r_kitchen_8017F464[1];
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_g_r_kitchen_8017D8C4 },

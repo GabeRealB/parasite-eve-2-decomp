@@ -123,11 +123,11 @@ GpMsgEntry D_acropolis_cafeteria_80182AA8[6] = {
 };
 
 TaskDesc D_acropolis_cafeteria_80182AD8[4] = {
-    { 0, 32, func_acropolis_cafeteria_8017D8F8, { .model = NULL } },
-    { 0, 32, func_acropolis_cafeteria_8017DD1C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017D8F8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017DD1C, { .value = 0 } },
 
-    { 0, 32, func_acropolis_cafeteria_8017DF68, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017DF68, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPlayRequest D_acropolis_cafeteria_80182B08 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -475,9 +475,9 @@ RECT D_acropolis_cafeteria_80184168 = { 704, 0, 64, 256 };
 RECT D_acropolis_cafeteria_80184170 = { 0, 271, 256, 1 };
 
 TaskDesc D_acropolis_cafeteria_80184178[3] = {
-    { 0, 192, func_acropolis_cafeteria_8017E6B8, { .model = NULL } },
-    { 0, 192, func_acropolis_cafeteria_8017E658, { .model = NULL } },
-    { 0, 192, func_acropolis_cafeteria_8017E47C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E6B8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E658, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E47C, { .value = 0 } },
 };
 
 AnimationPackedPose D_acropolis_cafeteria_8018419C[23] = {

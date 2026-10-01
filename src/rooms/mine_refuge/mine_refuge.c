@@ -191,9 +191,9 @@ void                              func_mine_refuge_8017FDBC(Task*);
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_mine_refuge_80181884[6] = {
@@ -206,9 +206,9 @@ GpMsgEntry D_mine_refuge_80181884[6] = {
 };
 
 TaskDesc D_mine_refuge_801818B4[3] = {
-    { 0, 32, func_mine_refuge_8017FA08, { .model = NULL } },
-    { 0, 31, func_mine_refuge_8017FDBC, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_mine_refuge_8017FA08, { .value = 0 } },
+    { { { TASK_BODY_NONE, 31 } }, func_mine_refuge_8017FDBC, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 SVECTOR D_mine_refuge_801818D8[2] = {

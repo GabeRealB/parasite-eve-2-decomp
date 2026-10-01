@@ -123,8 +123,8 @@ SVECTOR D_acropolis_fountain_8017E7F0 = { 4000, -688, -6300, 0 };
 s16 D_acropolis_fountain_8017E7F8 = 0;
 
 TaskDesc D_acropolis_fountain_8017E7FC[2] = {
-    { 0, 192, func_acropolis_fountain_8017E3D4, { .model = NULL } },
-    { 0, 192, func_acropolis_fountain_8017E72C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_fountain_8017E3D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_acropolis_fountain_8017E72C, { .value = 0 } },
 };
 
 GpRoomObjRec D_acropolis_fountain_8017E814[2] = {

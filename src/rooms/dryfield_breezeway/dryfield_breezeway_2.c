@@ -269,7 +269,7 @@ s32  func_dryfield_breezeway_8017FBC8(Task*, s32, s32, s32);
 void func_dryfield_breezeway_8017FA80(Task*);
 void func_dryfield_breezeway_8017FC38(Task*);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 GpMsgEntry D_dryfield_breezeway_80181DE0[6] = {
     { 5102, func_dryfield_breezeway_8017D940 },
@@ -281,8 +281,8 @@ GpMsgEntry D_dryfield_breezeway_80181DE0[6] = {
 };
 
 TaskDesc D_dryfield_breezeway_80181E10[2] = {
-    { 0, 32, func_dryfield_breezeway_8017DC3C, { .model = NULL } },
-    { 0, 32, func_dryfield_breezeway_8017DCE4, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_breezeway_8017DC3C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_dryfield_breezeway_8017DCE4, { .value = 0 } },
 };
 
 ActorTransform D_dryfield_breezeway_80181E28 = { { 0x4268, 0, 3000, 0 }, { 0, 2560, 0, 0 } };
@@ -323,11 +323,11 @@ EvsCommand D_dryfield_breezeway_80181F90[12] = {
 };
 
 TaskDesc D_dryfield_breezeway_801820B0[2] = {
-    { 0, 192, func_dryfield_breezeway_8017E010, { .model = NULL } },
-    { 0, 192, func_dryfield_breezeway_8017E114, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017E010, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017E114, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_breezeway_801820C8 = { 0, 192, taskKill, { .model = NULL } };
+TaskDesc D_dryfield_breezeway_801820C8 = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
 
 TmdBone D_dryfield_breezeway_801820D4[1] = {
 #include "assets/dryfield_breezeway_model_057DC_skeleton.inc"
@@ -361,7 +361,7 @@ TmdSource D_dryfield_breezeway_80182D9C = {
     D_dryfield_breezeway_8018244C,
 };
 
-TaskDesc D_dryfield_breezeway_80182DC0 = { 0, 192, func_dryfield_breezeway_8017FA80, { .model = NULL } };
+TaskDesc D_dryfield_breezeway_80182DC0 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017FA80, { .value = 0 } };
 
 GpMsgEntry D_dryfield_breezeway_80182DCC[2] = {
     { 5105, func_dryfield_breezeway_8017FBC8 },
@@ -379,7 +379,7 @@ OverlayHotspot D_dryfield_breezeway_80182E00[2] = {
     { 0, 0, 0, 0, -1, 0, 0 },
 };
 
-TaskDesc D_dryfield_breezeway_80182E18 = { TASK_BODY_TMD, 192, func_dryfield_breezeway_8017FC38, { .model = &D_dryfield_breezeway_80182D9C } };
+TaskDesc D_dryfield_breezeway_80182E18 = { { { TASK_BODY_TMD, 192 } }, func_dryfield_breezeway_8017FC38, { .model = &D_dryfield_breezeway_80182D9C } };
 
 u_long D_dryfield_breezeway_80182E24[64] = {
     0,

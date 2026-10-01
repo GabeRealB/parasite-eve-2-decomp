@@ -1504,7 +1504,7 @@ Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { 0x7FFFFFFF, { .command = NULL } },
 };
 
-TaskDesc Actor00100_D1BA84 = { (TASK_BODY_TMD | 0x100), 96, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };
+TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };
 
 SVECTOR Actor00100_D1BA90;
 
@@ -4897,11 +4897,11 @@ static void Actor00100_Fn09310(Task* arg0)
     if ((s16)next == 2) {
         obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_FreeBuffers(obj);
-        D_80114B34[5].arg.model = &Actor00100_D10D60;
-        vector.vz               = 0x64;
-        vector.vy               = 0;
-        vector.vx               = 0;
-        effect                  = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[9], 0x200, &vector);
+        D_80114B34[5].data.model = &Actor00100_D10D60;
+        vector.vz                = 0x64;
+        vector.vy                = 0;
+        vector.vx                = 0;
+        effect                   = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[9], 0x200, &vector);
         if (effect != NULL) {
             task                               = effect->task;
             task->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
@@ -4913,10 +4913,10 @@ static void Actor00100_Fn09310(Task* arg0)
             }
         }
         if ((s16)work->field_6 == 2) {
-            D_80114B34[5].arg.model = &Actor00100_D11234;
-            vector.vy               = 0;
-            vector.vx               = 0;
-            effect2                 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[12], 0x200, &vector);
+            D_80114B34[5].data.model = &Actor00100_D11234;
+            vector.vy                = 0;
+            vector.vx                = 0;
+            effect2                  = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[12], 0x200, &vector);
             if (effect2 != NULL) {
                 task2                               = effect2->task;
                 task2->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
@@ -4930,8 +4930,8 @@ static void Actor00100_Fn09310(Task* arg0)
         }
     }
     if ((s16)work->field_6 == 4) {
-        D_80114B34[5].arg.model = &Actor00100_D12470;
-        effect3                 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[1], 0x200, NULL);
+        D_80114B34[5].data.model = &Actor00100_D12470;
+        effect3                  = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[1], 0x200, NULL);
         if (effect3 != NULL) {
             task3                               = effect3->task;
             task3->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
@@ -4944,8 +4944,8 @@ static void Actor00100_Fn09310(Task* arg0)
         }
     }
     if ((s16)work->field_6 == 5) {
-        D_80114B34[5].arg.model = &Actor00100_D11F90;
-        effect4                 = Gp_SpawnEff(0xA0000 | 5, &arg0->extra.tmd->coords[3], 0x200, NULL);
+        D_80114B34[5].data.model = &Actor00100_D11F90;
+        effect4                  = Gp_SpawnEff(0xA0000 | 5, &arg0->extra.tmd->coords[3], 0x200, NULL);
         if (effect4 != NULL) {
             task4                               = effect4->task;
             task4->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;

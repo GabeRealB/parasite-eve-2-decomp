@@ -1270,8 +1270,8 @@ u16 D_801132BC[33][2] = {
     { 43, 6 }
 };
 TaskDesc D_80113340[2] = {
-    { 0, 192, func_8010B3F8, { NULL } },
-    { 0, 192, func_8010B520, { NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_8010B3F8, { NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_8010B520, { NULL } },
 };
 EffectSpawnArg D_80113358       = { NULL, 512, 3 };
 u16            Gp_AllyIdBase[4] = {

@@ -189,15 +189,15 @@ u16* D_actor_205200_8014CA34[4] = {
 };
 
 TaskDesc D_actor_205200_8014CA44[2] = {
-    { 0, 192, screenWaveGridTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
 
 TaskDesc D_actor_205200_8014CA60[2] = {
-    { TASK_BODY_COORD, 96, func_actor_205200_8014B8C0, { .model = NULL } },
-    { TASK_BODY_COORD, 96, func_actor_205200_8014B978, { .model = NULL } },
+    { { { TASK_BODY_COORD, 96 } }, func_actor_205200_8014B8C0, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, func_actor_205200_8014B978, { .value = 0 } },
 };
 
 Actor205200MessageEntry D_actor_205200_8014CA78[2] = {

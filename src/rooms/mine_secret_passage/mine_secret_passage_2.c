@@ -80,7 +80,7 @@ GpMsgEntry D_mine_secret_passage_80180E8C[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_mine_secret_passage_80180EBC = { 0, 32, func_mine_secret_passage_8017D60C, { .model = NULL } };
+TaskDesc D_mine_secret_passage_80180EBC = { { { TASK_BODY_NONE, 32 } }, func_mine_secret_passage_8017D60C, { .value = 0 } };
 
 SVECTOR D_mine_secret_passage_80180EC8[2] = {
     { 80, -3140, 0x3692, 0 },

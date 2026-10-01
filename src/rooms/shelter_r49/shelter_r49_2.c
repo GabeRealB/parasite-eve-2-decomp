@@ -40,8 +40,8 @@ void                  func_shelter_r49_8017D71C(Task*);
 void                  func_shelter_r49_8017D8D8(Task*);
 
 TaskDesc D_shelter_r49_8017DA00[2] = {
-    { 0, 192, func_shelter_r49_8017D8D8, { .model = NULL } },
-    { 0, 192, func_shelter_r49_8017D71C, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r49_8017D8D8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_r49_8017D71C, { .value = 0 } },
 };
 
 GpRoomObjRec D_shelter_r49_8017DA18[1] = {

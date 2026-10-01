@@ -497,8 +497,8 @@ AnimationSet D_actor_121300_8013BBA4 = {
 };
 
 TaskDesc D_actor_121300_8013BBCC[2] = {
-    { 0, 192, screenWaveTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 s32 gScreenWaveRamp = 256;
@@ -1703,17 +1703,17 @@ EvsCommand D_actor_121300_8013D2E8[7] = {
 };
 
 TaskDesc D_actor_121300_8013D390[11] = {
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_80133D98, { .model = &D_actor_121300_80139B80 } },
-    { 0, 192, func_actor_121300_801326EC, { .model = NULL } },
-    { 0, 192, func_actor_121300_8013400C, { .model = NULL } },
-    { 0, 192, func_actor_121300_80133064, { .model = NULL } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_80139DE4 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A050 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A2AC } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A494 } },
-    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A67C } },
-    { 0, 192, func_actor_121300_801340F0, { .model = NULL } },
-    { 0, 192, func_actor_121300_8013322C, { .model = NULL } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_80133D98, { .model = &D_actor_121300_80139B80 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_121300_801326EC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_121300_8013400C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_121300_80133064, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_80139DE4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A050 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A2AC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A494 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 192 } }, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A67C } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_121300_801340F0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_actor_121300_8013322C, { .value = 0 } },
 };
 
 OverlayWaveCtx* gScreenWaveCtx = NULL;

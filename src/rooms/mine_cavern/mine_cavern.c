@@ -84,7 +84,7 @@ MineCavernTint D_mine_cavern_8018E3E0[5] = {
     { 0, 9, 11, 0 },
 };
 
-TaskDesc D_mine_cavern_8018E3F4 = { 0, 96, func_mine_cavern_80182DC8, { .model = NULL } };
+TaskDesc D_mine_cavern_8018E3F4 = { { { TASK_BODY_NONE, 96 } }, func_mine_cavern_80182DC8, { .value = 0 } };
 
 TmdBone D_mine_cavern_8018E400[1] = {
 #include "assets/mine_cavern_model_11100_skeleton.inc"
@@ -203,8 +203,8 @@ SVECTOR D_mine_cavern_8018EB18[4] = {
 };
 
 TaskDesc D_mine_cavern_8018EB38[2] = {
-    { TASK_BODY_TMD, 96, func_mine_cavern_80183A68, { .model = &D_mine_cavern_8018E6C0 } },
-    { TASK_BODY_TMD, 96, func_mine_cavern_80183C10, { .model = &D_mine_cavern_8018EABC } },
+    { { { TASK_BODY_TMD, 96 } }, func_mine_cavern_80183A68, { .model = &D_mine_cavern_8018E6C0 } },
+    { { { TASK_BODY_TMD, 96 } }, func_mine_cavern_80183C10, { .model = &D_mine_cavern_8018EABC } },
 };
 
 s32 D_mine_cavern_8018EB54;

@@ -104,9 +104,9 @@ s32 func_shelter_b1_access_tunnel_8017DCA4(Task*, s32, TaskMessageArg, TaskMessa
 s32 func_shelter_b1_access_tunnel_8017DCAC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_access_tunnel_8017DCB4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b1_access_tunnel_8017E710 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_shelter_b1_access_tunnel_8017E710 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_access_tunnel_8017DA68 },

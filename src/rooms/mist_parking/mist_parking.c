@@ -149,14 +149,14 @@ void func_mist_parking_801827A0(s32);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_mist_parking_8018668C = { 0, 192, Shop_SessionTask, { .model = NULL } };
+TaskDesc D_mist_parking_8018668C = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
 
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 AnimationPackedPose D_mist_parking_801869DC[2] = {

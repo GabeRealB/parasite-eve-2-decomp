@@ -13,7 +13,7 @@ enum {
     TASK_BODY_NONE = 0,
     /// Body kind for an owned runtime TMD model in `Task::extra.tmd`.
     ///
-    /// Value 1 occupies the low byte of `TaskDesc::flags` at spawn and is
+    /// Value 1 occupies the low byte of `TaskDesc::header.fields.flags` at spawn and is
     /// stored in the byte-sized `Task::bodyKind` after successful attachment.
     /// The model owns its part coordinates and any primitive buffer, while
     /// borrowing its `TmdSource`. A missing buffer does not change this kind.
@@ -21,7 +21,7 @@ enum {
     TASK_BODY_TMD = 1,
     /// Body kind for an owned single-coordinate body in `Task::extra.coordBody`.
     ///
-    /// Value 2 occupies the low byte of `TaskDesc::flags` at spawn and is
+    /// Value 2 occupies the low byte of `TaskDesc::header.fields.flags` at spawn and is
     /// stored in the byte-sized `Task::bodyKind` after successful attachment.
     /// The body embeds one `GfxCoord`, refreshed by the model draw passes;
     /// it supplies a transform without a TMD source or primitive buffer.
@@ -227,25 +227,43 @@ typedef struct Task {
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
 
-/// One entry of a task table: what a spawn helper turns into a running `Task`.
+/// Encoding of a task descriptor's body selection, model option and list terminator.
+enum {
+    TASK_DESC_BODY_KIND_MASK    = 0xFF,
+    TASK_DESC_SKIP_MODEL_BUFFER = 0x100, // TMD body: disable automatic primitive-buffer allocation and recovery
+    TASK_DESC_END               = 0xFFFF // Complete flags halfword ending a walked descriptor table; never spawn it
+};
+
+/// A 12-byte spawn recipe supplying a task's body, execution priority and initial callback.
 ///
-/// The shared tables are reached by name — `gTaskDescBanks[bank][type]` for the
-/// banks, a package's own table for its rooms and actors — and every spawn path
-/// ends in `Task_SpawnFromDesc`, which reads these four fields and nothing else.
-/// A table that is walked rather than indexed ends on an entry whose `flags` is
-/// all ones.
+/// Bank spawns index a descriptor table; direct spawns accept an entry or a table
+/// plus an index. Indices must address live entries, excluding any terminator.
+/// Walked location tables end at `TASK_DESC_END` in `header.fields.flags`.
+/// The little-endian `header.word` view compares both complete halfwords at once:
+/// flags occupy bits 0..15 and priority occupies bits 16..31.
 ///
-/// The argument is the descriptor's own: a kind-1 descriptor names the model its
-/// task attaches, and one that attaches no model keeps whatever it needs there.
+/// Spawning reads the descriptor synchronously and retains no pointer to it.
+/// The callback's code and any attached model's borrowed geometry must outlive
+/// their use by the task. Model attachment failure aborts the spawn; the model
+/// body and any buffer it allocates belong to the new task.
+///
+/// `data` is descriptor metadata, separate from the two payload words copied
+/// into `Task::spawnArg1` and `Task::spawnArg2`. The spawner reads `data.model`
+/// only for a TMD body and ignores this word for other body kinds. Location
+/// tables use `data.value` as a decimal stage/area/room key before spawning.
 typedef struct {
-    u16      flags;         // Body kind in the low byte (0 none, 1 TMD model, 2 coordinate body), plus bit 8 to attach the model without allocating its buffer
-    u16      priority;      // List position the spawned task takes; its low byte is what `Task::priority` gets
-    TaskFunc callback;      // Per-frame entry point the spawned task runs
     union {
-        TmdSource* model;   // Kind 1: the model the task attaches
-        void*      storage; // Other kinds may pass a pointer to their own data
-        s32        value;   // The descriptor's own value, where it attaches no model
-    } arg;
+        struct {
+            u16 flags;    // Low byte: body kind (0 none, 1 TMD model, 2 coordinate body); bit 8: skip automatic model-buffer allocation
+            u16 priority; // Low byte sets ascending execution order; equal priorities retain spawn order
+        } fields;
+        s32 word;         // Both complete halfwords, used for descriptor selection; priority in the upper half
+    } header;
+    TaskFunc callback;    // Initial per-frame handler; receives the spawned task when dispatched
+    union {
+        TmdSource* model; // TASK_BODY_TMD: borrowed source for the newly attached model
+        s32        value; // Descriptor-specific metadata; location key = stage * 10000 + area * 100 + room (room 0 selects the area)
+    } data;
 } TaskDesc;
 STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 

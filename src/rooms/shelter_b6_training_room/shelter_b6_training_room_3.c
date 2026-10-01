@@ -193,7 +193,7 @@ AnimationSet D_shelter_b6_training_room_80183980 = {
     { NULL, D_shelter_b6_training_room_801837A0, NULL, NULL, D_shelter_b6_training_room_801837B8, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b6_training_room_801839A8 = { 0, 96, func_shelter_b6_training_room_8017D9C8, { .model = NULL } };
+TaskDesc D_shelter_b6_training_room_801839A8 = { { { TASK_BODY_NONE, 96 } }, func_shelter_b6_training_room_8017D9C8, { .value = 0 } };
 
 AnimationSet* D_shelter_b6_training_room_801839B4[5] = {
     NULL,
@@ -344,8 +344,8 @@ EvsCommand D_shelter_b6_training_room_80184274[7] = {
 };
 
 TaskDesc D_shelter_b6_training_room_8018431C[2] = {
-    { 0, 192, func_shelter_b6_training_room_8017DD98, { .model = NULL } },
-    { 0, 192, func_shelter_b6_training_room_8017DBBC, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b6_training_room_8017DD98, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b6_training_room_8017DBBC, { .value = 0 } },
 };
 
 SVECTOR D_shelter_b6_training_room_80184334[25] = {

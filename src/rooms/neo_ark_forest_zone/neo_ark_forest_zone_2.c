@@ -173,7 +173,7 @@ AnimationSet D_neo_ark_forest_zone_80181D94 = {
     { NULL, D_neo_ark_forest_zone_8018194C, NULL, NULL, D_neo_ark_forest_zone_801819C4, NULL, NULL, NULL },
 };
 
-TaskDesc D_neo_ark_forest_zone_80181DBC = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc D_neo_ark_forest_zone_80181DBC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 GpMsgEntry D_neo_ark_forest_zone_80181DC8[6] = {
     { 5102, func_neo_ark_forest_zone_8017D7E4 },
@@ -588,9 +588,9 @@ s16 D_neo_ark_forest_zone_80182E10[4] = {
     0x7FFF,
 };
 
-TaskDesc D_neo_ark_forest_zone_80182E18 = { 0, 32, func_neo_ark_forest_zone_8018151C, { .model = NULL } };
+TaskDesc D_neo_ark_forest_zone_80182E18 = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_forest_zone_8018151C, { .value = 0 } };
 
-TaskDesc D_neo_ark_forest_zone_80182E24 = { 0, 32, func_neo_ark_forest_zone_80181430, { .model = NULL } };
+TaskDesc D_neo_ark_forest_zone_80182E24 = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_forest_zone_80181430, { .value = 0 } };
 
 static void func_neo_ark_forest_zone_80180D24(Task* arg0);
 

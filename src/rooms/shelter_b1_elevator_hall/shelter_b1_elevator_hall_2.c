@@ -73,7 +73,7 @@ extern GpObj4C        D_shelter_b1_elevator_hall_80184288[10];
 extern GpObj4C        D_shelter_b1_elevator_hall_80184580[6];
 extern GpRoomCoordSet D_shelter_b1_elevator_hall_80184270[1];
 
-TaskDesc D_shelter_b1_elevator_hall_80182CAC = { 0, 32, shelterElevatorTask, { .model = NULL } };
+TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
 GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
     { 5102, func_shelter_b1_elevator_hall_8017D810 },
@@ -84,7 +84,7 @@ GpMsgEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-TaskDesc D_shelter_b1_elevator_hall_80182CE8 = { 0, 32, func_shelter_b1_elevator_hall_8017D99C, { .model = NULL } };
+TaskDesc D_shelter_b1_elevator_hall_80182CE8 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_elevator_hall_8017D99C, { .value = 0 } };
 
 SVECTOR D_shelter_b1_elevator_hall_80182CF4[28] = {
     { -8833, -620, -1755, 0 },

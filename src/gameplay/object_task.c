@@ -7,7 +7,6 @@
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
-#include "gameplay/scene_tasks.h"
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
@@ -38,11 +37,11 @@ typedef struct {
 u8 D_80115598;
 
 /// Per-stage task descriptor tables searched by `func_800E31E8`.
-extern GpTaskDesc* D_8010FABC[];
+extern TaskDesc* D_8010FABC[];
 
 extern GpLocationMsgEntry D_8010FAD4[];
 
-GpTaskDesc* D_8010FABC[6] = {
+TaskDesc* D_8010FABC[6] = {
     NULL,
     D_map_akropolis_8017A8AC,
     D_map_dryfield_8017A6A4,
@@ -59,14 +58,16 @@ GpLocationMsgEntry D_8010FAD4[3] = {
 
 void func_800E31E8(Task* arg0)
 {
-    s32         flag;
-    s32         index;
-    s32         area;
-    s32         room;
-    s32         base;
-    s32         kind;
-    GpTaskDesc* table;
-    GpTaskDesc* desc;
+    enum { TASK_DESC_LOCATION_TASK_HEADER = (0x20 << 16) | TASK_BODY_NONE };
+
+    s32       flag;
+    s32       index;
+    s32       area;
+    s32       room;
+    s32       base;
+    s32       kind;
+    TaskDesc* table;
+    TaskDesc* desc;
 
     gGameSession->eventState = 0;
     gGameSession->hideHud    = 0;
@@ -91,15 +92,15 @@ void func_800E31E8(Task* arg0)
     table = D_8010FABC[gGameSession->location.loc.stage];
     area  = base;
     desc  = table;
-    kind  = 0x200000;
+    kind  = TASK_DESC_LOCATION_TASK_HEADER;
 loop:
-    if (desc->flagsAndPriority == kind &&
-        (desc->task.arg.value == room || desc->task.arg.value == area)) {
-        Task_SpawnFromTable(&table->task, index, 0, 0);
+    if (desc->header.word == kind &&
+        (desc->data.value == room || desc->data.value == area)) {
+        Task_SpawnFromTable(table, index, 0, 0);
         arg0->state++;
         return;
     }
-    if ((u16)(desc++)->flagsAndPriority != 0xFFFF) {
+    if ((u16)(desc++)->header.word != TASK_DESC_END) {
         index++;
         goto loop;
     }

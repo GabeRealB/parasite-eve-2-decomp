@@ -13,7 +13,6 @@
 #include "gameplay/items.h"
 #include "gameplay/map.h"
 #include "gameplay/room.h"
-#include "gameplay/scene_tasks.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -484,18 +483,18 @@ static GpEnemyDesc D_map_akropolis_8017A66C[1] = {
 };
 
 static GpEnemyDesc D_map_akropolis_8017A67C[3] = {
-    { 4, { 0 }, { (TASK_BODY_TMD | 0x100), 0x62, func_acropolis_cafeteria_8018286C, { &D_acropolis_cafeteria_8018D230 } } },
-    { 0x107, { 0 }, { (TASK_BODY_TMD | 0x100), 0x62, func_acropolis_cafeteria_801827C4, { &D_acropolis_cafeteria_8018D57C } } },
+    { 4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_8018286C, { &D_acropolis_cafeteria_8018D230 } } },
+    { 0x107, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_801827C4, { &D_acropolis_cafeteria_8018D57C } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_akropolis_8017A6AC[2] = {
-    { 0x701, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_acropolis_security_room_80185584 } } },
+    { 0x701, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &D_acropolis_security_room_80185584 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_akropolis_8017A6CC[2] = {
-    { 0x104, { 0 }, { TASK_BODY_TMD, 0x62, func_acropolis_hallway_8017E120, { &D_acropolis_hallway_8017F85C } } },
+    { 0x104, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_hallway_8017E120, { &D_acropolis_hallway_8017F85C } } },
     { 0xFFFF },
 };
 
@@ -516,13 +515,13 @@ static GpEnemyDesc D_map_akropolis_8017A71C[1] = {
 };
 
 static GpEnemyDesc D_map_akropolis_8017A72C[3] = {
-    { 0x103, { 0 }, { (TASK_BODY_TMD | 0x100), 0x62, func_acropolis_sanctuary_80180264, { &D_acropolis_sanctuary_80186C68 } } },
-    { 0x702, { 0 }, { (TASK_BODY_TMD | 0x100), 0x62, Gp_ItemPickupTilt, { &D_acropolis_sanctuary_80186A08 } } },
+    { 0x103, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, func_acropolis_sanctuary_80180264, { &D_acropolis_sanctuary_80186C68 } } },
+    { 0x702, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &D_acropolis_sanctuary_80186A08 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_akropolis_8017A75C[2] = {
-    { 0x105, { 0 }, { TASK_BODY_TMD, 0x62, func_acropolis_roof_garden_80180160, { &D_acropolis_roof_garden_80186E70 } } },
+    { 0x105, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_roof_garden_80180160, { &D_acropolis_roof_garden_80186E70 } } },
     { 0xFFFF },
 };
 
@@ -544,8 +543,8 @@ static GpBit2Rec D_map_akropolis_8017A7AC[2] = {
 };
 
 static GpEnemyDesc D_map_akropolis_8017A7CC[3] = {
-    { 0x204, { 0 }, { TASK_BODY_TMD, 0x62, func_acropolis_helicopter_landing_pad_8017D964, { &D_acropolis_helicopter_landing_pad_801836EC } } },
-    { 0xA4, { 0 }, { (TASK_BODY_TMD | 0x100), 0x62, func_acropolis_helicopter_landing_pad_801822B0, { &D_acropolis_helicopter_landing_pad_80187F50 } } },
+    { 0x204, { 0 }, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_helicopter_landing_pad_8017D964, { &D_acropolis_helicopter_landing_pad_801836EC } } },
+    { 0xA4, { 0 }, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 0x62 } }, func_acropolis_helicopter_landing_pad_801822B0, { &D_acropolis_helicopter_landing_pad_80187F50 } } },
     { 0xFFFF },
 };
 
@@ -574,28 +573,28 @@ GpBit2List D_map_akropolis_8017A7FC[22] = {
     { { .sentinel = -1 }, NULL },
 };
 
-GpTaskDesc D_map_akropolis_8017A8AC[] = {
-    { { 0, 0x20, func_acropolis_square_80182308, { .value = GP_TASK_LOC_KEY(1, 1, 0) } } },
-    { { 0, 0x20, func_acropolis_east_elevator_hall_8017F55C, { .value = GP_TASK_LOC_KEY(1, 2, 0) } } },
-    { { 0, 0x20, func_acropolis_patio_8017DF8C, { .value = GP_TASK_LOC_KEY(1, 3, 0) } } },
-    { { 0, 0x20, func_acropolis_cafeteria_8017E424, { .value = GP_TASK_LOC_KEY(1, 4, 0) } } },
-    { { 0, 0x20, func_acropolis_security_room_8017D984, { .value = GP_TASK_LOC_KEY(1, 6, 0) } } },
-    { { 0, 0x20, func_acropolis_hallway_8017D7D0, { .value = GP_TASK_LOC_KEY(1, 7, 0) } } },
-    { { 0, 0x20, func_acropolis_fountain_8017D9C4, { .value = GP_TASK_LOC_KEY(1, 8, 0) } } },
-    { { 0, 0x20, func_acropolis_forked_road_8017D9CC, { .value = GP_TASK_LOC_KEY(1, 9, 0) } } },
-    { { 0, 0x20, func_acropolis_observatory_8017D950, { .value = GP_TASK_LOC_KEY(1, 10, 0) } } },
-    { { 0, 0x20, func_acropolis_promenade_8017DA4C, { .value = GP_TASK_LOC_KEY(1, 11, 0) } } },
-    { { 0, 0x20, func_acropolis_sanctuary_8017D9E8, { .value = GP_TASK_LOC_KEY(1, 12, 0) } } },
-    { { 0, 0x20, func_acropolis_roof_garden_8017DC74, { .value = GP_TASK_LOC_KEY(1, 13, 0) } } },
-    { { 0, 0x20, func_acropolis_bridge_8017DA0C, { .value = GP_TASK_LOC_KEY(1, 14, 0) } } },
-    { { 0, 0x20, func_acropolis_fire_escape_8017FF24, { .value = GP_TASK_LOC_KEY(1, 15, 0) } } },
-    { { 0, 0x20, func_acropolis_helicopter_landing_pad_8017EB00, { .value = GP_TASK_LOC_KEY(1, 16, 0) } } },
-    { { 0, 0x20, func_acropolis_west_elevator_hall_8017F5F4, { .value = GP_TASK_LOC_KEY(1, 17, 1) } } },
-    { { 0, 0x20, func_mist_r18_8017ED64, { .value = GP_TASK_LOC_KEY(1, 18, 1) } } },
-    { { 0, 0x20, func_mist_parking_80182898, { .value = GP_TASK_LOC_KEY(1, 19, 0) } } },
-    { { 0, 0x20, func_mist_shooting_gallery_8018018C, { .value = GP_TASK_LOC_KEY(1, 20, 0) } } },
-    { { 0, 0x20, func_mist_r21_8017D708, { .value = GP_TASK_LOC_KEY(1, 21, 0) } } },
-    { { 0xFFFF, 0x20, NULL, { 0 } } },
+TaskDesc D_map_akropolis_8017A8AC[] = {
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_square_80182308, { .value = GP_TASK_LOC_KEY(1, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_east_elevator_hall_8017F55C, { .value = GP_TASK_LOC_KEY(1, 2, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_patio_8017DF8C, { .value = GP_TASK_LOC_KEY(1, 3, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_cafeteria_8017E424, { .value = GP_TASK_LOC_KEY(1, 4, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_security_room_8017D984, { .value = GP_TASK_LOC_KEY(1, 6, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_hallway_8017D7D0, { .value = GP_TASK_LOC_KEY(1, 7, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_fountain_8017D9C4, { .value = GP_TASK_LOC_KEY(1, 8, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_forked_road_8017D9CC, { .value = GP_TASK_LOC_KEY(1, 9, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_observatory_8017D950, { .value = GP_TASK_LOC_KEY(1, 10, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_promenade_8017DA4C, { .value = GP_TASK_LOC_KEY(1, 11, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_sanctuary_8017D9E8, { .value = GP_TASK_LOC_KEY(1, 12, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_roof_garden_8017DC74, { .value = GP_TASK_LOC_KEY(1, 13, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_bridge_8017DA0C, { .value = GP_TASK_LOC_KEY(1, 14, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_fire_escape_8017FF24, { .value = GP_TASK_LOC_KEY(1, 15, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_helicopter_landing_pad_8017EB00, { .value = GP_TASK_LOC_KEY(1, 16, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_west_elevator_hall_8017F5F4, { .value = GP_TASK_LOC_KEY(1, 17, 1) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mist_r18_8017ED64, { .value = GP_TASK_LOC_KEY(1, 18, 1) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mist_parking_80182898, { .value = GP_TASK_LOC_KEY(1, 19, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mist_shooting_gallery_8018018C, { .value = GP_TASK_LOC_KEY(1, 20, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, func_mist_r21_8017D708, { .value = GP_TASK_LOC_KEY(1, 21, 0) } },
+    { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };
 
 /// Which key-item row the panel last had selected.
@@ -646,7 +645,7 @@ static UiObjectDesc D_map_akropolis_8017A9E4 = {
 };
 
 /// The display-mode task `Display_InitModeObj` seeds for this map.
-static TaskDesc D_map_akropolis_8017AA00 = { 0, 0xC0, func_map_akropolis_80179E8C, 0 };
+static TaskDesc D_map_akropolis_8017AA00 = { { { TASK_BODY_NONE, 0xC0 } }, func_map_akropolis_80179E8C, 0 };
 
 u16 D_map_akropolis_8017AA0C[14] = {
     0x1F7,

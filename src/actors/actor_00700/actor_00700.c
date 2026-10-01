@@ -593,7 +593,7 @@ s16 Actor00700_D06E50[8] = {
     16,
 };
 
-TaskDesc Actor00700_D06E60 = { TASK_BODY_TMD, 96, Actor00700_Fn01830, { .model = &Actor00700_D04EB4 } };
+TaskDesc Actor00700_D06E60 = { { { TASK_BODY_TMD, 96 } }, Actor00700_Fn01830, { .model = &Actor00700_D04EB4 } };
 
 AnimationSet* Actor00700_D06E6C[11] = {
     NULL,
@@ -693,7 +693,7 @@ s16 Actor00700_D07598[8] = {
     36,
 };
 
-TaskDesc Actor00700_D075A8 = { TASK_BODY_TMD, 96, Actor00700_Fn034BC, { .model = &Actor00700_D074E4 } };
+TaskDesc Actor00700_D075A8 = { { { TASK_BODY_TMD, 96 } }, Actor00700_Fn034BC, { .model = &Actor00700_D074E4 } };
 
 AnimationSet* Actor00700_D075B4[2] = {
     NULL,

@@ -419,14 +419,14 @@ extern SpriteSource D_shelter_b1_underground_parking_80189C14[32];
 
 #include "../../shared/shop_panels.inc.c"
 
-ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0 = { { 0, 192, Shop_SessionTask, { .model = NULL } }, { 0 } };
+ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0 = { { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } }, { 0 } };
 
-TaskDesc D_shelter_b1_underground_parking_80187200 = { 0, 32, roomDepartureTask, { .model = NULL } };
+TaskDesc D_shelter_b1_underground_parking_80187200 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
-    { 0xFFFF, 0, NULL, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_shelter_b1_underground_parking_80187230[6] = {
@@ -439,17 +439,17 @@ GpMsgEntry D_shelter_b1_underground_parking_80187230[6] = {
 };
 
 TaskDesc D_shelter_b1_underground_parking_80187260[1] = {
-    { 0, 32, func_shelter_b1_underground_parking_80183410, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80183410, { .value = 0 } },
 };
 
 TaskDesc D_shelter_b1_underground_parking_8018726C[7] = {
-    { 0, 32, func_shelter_b1_underground_parking_801834D4, { .model = NULL } },
-    { 0, 32, func_shelter_b1_underground_parking_80183560, { .model = NULL } },
-    { 0, 32, func_shelter_b1_underground_parking_8018363C, { .model = NULL } },
-    { 0, 32, func_shelter_b1_underground_parking_80182DB4, { .model = NULL } },
-    { 0, 32, func_shelter_b1_underground_parking_801836D8, { .model = NULL } },
-    { 0, 32, func_shelter_b1_underground_parking_80182FC8, { .model = NULL } },
-    { 0, 192, func_shelter_b1_underground_parking_80183714, { .model = NULL } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_801834D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80183560, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_8018363C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80182DB4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_801836D8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80182FC8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_underground_parking_80183714, { .value = 0 } },
 };
 
 ActorTransform D_shelter_b1_underground_parking_801872C0 = { { 3155, 0, -247, 0 }, { 0, -1024, 0, 0 } };
@@ -512,10 +512,10 @@ RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[9] = {
 };
 
 TaskDesc D_shelter_b1_underground_parking_80187664[1] = {
-    { 0, 192, func_shelter_b1_underground_parking_80184234, { .model = NULL } },
+    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_underground_parking_80184234, { .value = 0 } },
 };
 
-TaskDesc D_shelter_b1_underground_parking_80187670 = { 0, 32, func_shelter_b1_underground_parking_80184284, { .model = NULL } };
+TaskDesc D_shelter_b1_underground_parking_80187670 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80184284, { .value = 0 } };
 
 OverlayHotspot D_shelter_b1_underground_parking_8018767C[6] = {
     { -78, 77, 16, 16, 8, 1, 0 },
