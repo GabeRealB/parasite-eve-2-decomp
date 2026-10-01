@@ -157,14 +157,17 @@ typedef struct {
 } RoomEventStartStorage;
 STATIC_ASSERT_SIZEOF(RoomEventStartStorage, 8);
 
-/// A room's `gRoomEventReq` when that symbol is thirty-two bytes.
+/// Latched room-event request with twelve bytes of unidentified trailing storage.
 ///
-/// `request` is the record the gate latches and the event task reads. The
-/// twelve bytes after it are zero wherever this extent occurs. Their role
-/// is unproven.
+/// The room owns this storage. Starting an event copies only the twenty-byte
+/// `request`, preserving the caller's stack-built request for the event task's
+/// later CAP command and sound playback. Queries do not replace the request;
+/// it remains latched until another event starts or the room is unloaded.
+/// The trailing bytes are zero in the room image and have no recovered access.
+/// Their role and grouping are unproven.
 typedef struct {
-    RoomEventReq request;     // Request the gate latched for the event task
-    u8           unknown[12]; // Role unproven; zero, with no recovered access
+    RoomEventReq request;     // Complete request copied when an event starts
+    u8           unknown[12]; // Unidentified trailing bytes; role and grouping unproven
 } RoomEventReqStorage;
 STATIC_ASSERT_SIZEOF(RoomEventReqStorage, 0x20);
 
