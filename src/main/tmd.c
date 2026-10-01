@@ -421,7 +421,7 @@ void tmdProcessStream(TmdObject* obj)
     for (;;) {
         switch (id) {
             case 0x4038:
-                handler = gpStreamPrimGt3Base;
+                handler = tmdBuildStreamGt3LayeredBase;
                 if (flag != 0) {
                     handler = gpStreamPrimGt3OffsetLayer;
                 }

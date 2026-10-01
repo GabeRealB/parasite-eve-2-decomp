@@ -510,20 +510,32 @@ u32* modelLightingStreamPrimF3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// along with the semi-transparency rate it blends at.
 u32* gpStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's layered textured-triangle records (`0x4038`) whose layer
-/// is the transform pass's to texture: each element contributes two triangles to
-/// the buffer half's second region, with the element's texture words written into
-/// the base.
+/// Initializes the opaque base texture in each layered gouraud triangle pair.
 ///
-/// The record is not pre-transformed, so its triangles are built in the region the
-/// draw pass transforms. `0x4000` asks for two primitives per element — the base the
-/// model is drawn from, and the semi-transparent layer drawn over it — and this
-/// command writes the base alone: it takes the element's texture words and adds the
-/// model's own texture page and CLUT, which are stored relative to the model. The
-/// layer's texture words are the transform pass's, worked out from the triangle it
-/// draws. `gpStreamPrimGt3OffsetLayer` is the walk's other choice, taken where the
-/// layer is textured from the element as well.
-u32* gpStreamPrimGt3Base(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Construction selects this callback for `0x4038` outside the areas that use
+/// `gpStreamPrimGt3OffsetLayer`. `elements` starts after the three-word record
+/// header. The caller supplies `workspace->elemCount` (0..65535) and `elemStride`
+/// in u32 words, at least six per element. The first three words pack three
+/// vertex and three normal references; words 3 and 4 pack unsigned byte U/V
+/// texel coordinates with encoded CLUT and texture-page settings. Word 5's low
+/// half packs U2/V2; its high half is ignored.
+///
+/// `primWrite` must address two writable, four-byte-aligned `POLY_GT3` slots per
+/// element in the selected buffer half's second region. The first slot is left
+/// untouched for the draw pass's semi-transparent environment layer. Only the
+/// second slot's texture fields are initialized here: page and CLUT sums wrap
+/// in their u16 fields after adding the workspace's signed encoded displacements,
+/// `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128, 64 per
+/// palette row). Its tag, colours/command, positions and pad fields are preserved
+/// for drawing.
+///
+/// Advances `primWrite` by two 40-byte packets per element and returns the cursor
+/// advanced by the initial `elemCount * elemStride` words, leaving any terminator
+/// unconsumed. The count is consumed to -1 even for an empty record. `objectFlags`
+/// is the shared callback argument, passed as zero during construction and ignored
+/// here. The caller must provide the full element strides and packet capacity;
+/// the workspace and storage are borrowed, with no pointer retained.
+u32* tmdBuildStreamGt3LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Handler of a stream's layered textured-quad records (`0x4078`) whose
 /// semi-transparent layer takes its texture page from the object: each element

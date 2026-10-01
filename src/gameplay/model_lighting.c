@@ -2317,25 +2317,22 @@ u32* gpStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3Base(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt3LayeredBase(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
+    POLY_GT3* triangle;
 
-    poly = (POLY_GT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
+    triangle = (POLY_GT3*)workspace->primWrite;
+    if (workspace->elemCount-- > 0) {
         do {
-            poly++;
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
-            *(u16*)&poly->u2                    = (u16)stream[5];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Leave the first packet for the environment layer; texture the opaque base.
+            triangle++;
+            _tmdInitGt3Texture(triangle, elements, workspace);
+            triangle++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* gpStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
