@@ -48,9 +48,9 @@ void generatorBodyHit(Task* arg0)
             damage /= 10;
         } else if (Gp_RollEnemyChance(enemy, work->rec18[i].key.value, 0) != 0) {
             damage     *= 4;
-            scr->ofs.vx = gGeneratorHitEffectOffsets[work->field_334].vx;
-            scr->ofs.vy = gGeneratorHitEffectOffsets[work->field_334].vy;
-            scr->ofs.vz = gGeneratorHitEffectOffsets[work->field_334].vz;
+            scr->ofs.vx = gGeneratorHitEffectOffsets[work->kind].vx;
+            scr->ofs.vy = gGeneratorHitEffectOffsets[work->kind].vy;
+            scr->ofs.vz = gGeneratorHitEffectOffsets[work->kind].vz;
             Gp_SpawnEff(0x6009C, coord, 0, &scr->ofs);
         }
         func_800DA6E8(&enemy->node, damage, 0);
@@ -74,9 +74,9 @@ void generatorBodyHit(Task* arg0)
         if (lastId != work->rec18[i].key.value) {
             lastId      = work->rec18[i].key.value;
             val         = Gp_GetIdParam1(lastId) & 0xFFFF;
-            scr->ofs.vx = gGeneratorHitEffectOffsets[work->field_334].vx;
-            scr->ofs.vy = gGeneratorHitEffectOffsets[work->field_334].vy;
-            scr->ofs.vz = gGeneratorHitEffectOffsets[work->field_334].vz;
+            scr->ofs.vx = gGeneratorHitEffectOffsets[work->kind].vx;
+            scr->ofs.vy = gGeneratorHitEffectOffsets[work->kind].vy;
+            scr->ofs.vz = gGeneratorHitEffectOffsets[work->kind].vz;
             if (val == 3) {
                 Gp_SpawnEff(0x6007F, coord, work->field_2F4.spawnArgLo | (work->field_2F4.spawnArgHi << 16), &scr->ofs);
             } else {

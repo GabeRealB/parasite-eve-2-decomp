@@ -1,17 +1,17 @@
 // Overlay-local symbols for actor_105400.
 generatorIsAlive = 0x80133990; // type:func
 gGeneratorPulseSoundId = 0x8013CE5C; // size:0x4 defined:True
-D_actor_105400_8013CE60 = 0x8013CE60; // size:0x4 defined:True
+gGeneratorSpawnSound = 0x8013CE60; // size:0x4 defined:True
 gGeneratorViewSound = 0x8013CE64; // size:0x20 defined:True
 gGeneratorIdlePulse = 0x8013CE84; // size:0xC defined:True
 gGeneratorHitPulse = 0x8013CE90; // size:0x10 defined:True
-D_actor_105400_8013CEA0 = 0x8013CEA0; // size:0x18 defined:True
-D_actor_105400_8013CEB8 = 0x8013CEB8; // size:0x10 defined:True
-D_actor_105400_80133A00 = 0x80133A00; // size:0x18 defined:True
+gGeneratorTasks = 0x8013CEA0; // size:0x18 defined:True
+gGeneratorAnimSets = 0x8013CEB8; // size:0x10 defined:True
+gGeneratorMessages = 0x80133A00; // size:0x18 defined:True
 gGeneratorPoseStartFrames = 0x80133A18; // size:0x8 defined:True
 gGeneratorLifeSupportPos = 0x80133A20; // size:0xC defined:True
 gGeneratorReleaseIds = 0x80133A2C; // size:0x4 defined:True
-D_actor_105400_80133A30 = 0x80133A30; // size:0x10 defined:True
+gGeneratorSpawnOffsets = 0x80133A30; // size:0x10 defined:True
 gGeneratorHitEffectOffsets = 0x80133A40; // size:0x10 defined:True
 D_actor_105400_80133A50 = 0x80133A50; // size:0x168 defined:True
 D_actor_105400_80133BB8 = 0x80133BB8; // size:0x28 defined:True
@@ -34,7 +34,7 @@ D_actor_105400_8013CAA8 = 0x8013CAA8; // size:0x154 defined:True
 D_actor_105400_8013CBFC = 0x8013CBFC; // size:0x1F8 defined:True
 D_actor_105400_8013CDF4 = 0x8013CDF4; // size:0x14 defined:True
 D_actor_105400_8013CE08 = 0x8013CE08; // size:0x28 defined:True
-D_actor_105400_8013CE30 = 0x8013CE30; // size:0x10 defined:True
+gGeneratorParams = 0x8013CE30; // size:0x10 defined:True
 gGeneratorLifeSupportParams = 0x8013CE40; // size:0x10 defined:True
 gGeneratorSoundIds = 0x8013CE50; // size:0xC defined:True
 

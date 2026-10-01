@@ -21,6 +21,25 @@
 
 #include "main/task_types.h"
 
+/* Each package builds the library for one kind, selected before this header
+ * is included; the kind also indexes the per-kind tables. */
+#define GENERATOR_BETA  0
+#define GENERATOR_PROTO 1
+#ifndef GENERATOR_KIND
+#error "define GENERATOR_KIND (GENERATOR_BETA or GENERATOR_PROTO) before including generator.h"
+#endif
+#define GENERATOR_COLLISION_KEY (0x30035 + GENERATOR_KIND)
+
+typedef struct GeneratorMsgEntry {
+    s32 id;
+    union {
+        s16 (*call0)(Task*);
+        s32 (*call1)(Task*, s32, ActorCommand* request);
+    } handler;
+} GeneratorMsgEntry;
+
+extern GeneratorMsgEntry gGeneratorMessages[];
+
 /// Work block of the enemy whose code both actor_105300 and actor_105400
 /// carry, kept at `Task::work`: the animation context with its slots and
 /// poses, the collision nodes and records, and the state the per-frame
@@ -47,7 +66,7 @@ typedef struct GeneratorWork {
     u16                   field_32E;
     u16                   field_330;
     s16                   field_332;
-    s16                   field_334;
+    s16                   kind;
     s16                   field_336;
     s16                   field_338;
     s16                   field_33A;
@@ -104,6 +123,7 @@ typedef struct GeneratorSndRow {
 } GeneratorSndRow;
 STATIC_ASSERT_SIZEOF(GeneratorSndRow, 0x4);
 
+void generatorSpawn(Enemy* arg0, Task* arg1);
 void generatorBodyHit(Task* arg0);
 void generatorPulse(Task* arg0);
 void generatorDeathState(Enemy* arg0, Task* arg1);

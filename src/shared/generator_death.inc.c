@@ -64,7 +64,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
             Gp_UnlinkObj(&work->node0);
             Gp_UnlinkObj(&work->node1);
             Gp_SetLightMode(arg0, 1);
-            if (work->field_334 == 0) {
+            if (work->kind == 0) {
                 work->field_328 = 0;
                 work->field_32C = 0;
                 work->field_32E = 1;
@@ -193,7 +193,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
             break;
     }
     if ((s16)work->field_330 == 0) {
-        Gp_ReleaseStateF0Add(arg1, gGeneratorReleaseIds[work->field_334]);
+        Gp_ReleaseStateF0Add(arg1, gGeneratorReleaseIds[work->kind]);
         work->field_330 = 1;
         Gp_ClearAreaFlag4(&gGameSession->location.loc);
     }

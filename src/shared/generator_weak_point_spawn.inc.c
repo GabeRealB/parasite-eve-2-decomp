@@ -26,9 +26,9 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     }
     arg1->work          = part;
     coord->parent       = &gGfxViewCoord;
-    coord->coord.t[0]   = gGeneratorLifeSupportPos[work->field_334].x;
-    coord->coord.t[1]   = gGeneratorLifeSupportPos[work->field_334].y;
-    coord->coord.t[2]   = gGeneratorLifeSupportPos[work->field_334].z;
+    coord->coord.t[0]   = gGeneratorLifeSupportPos[work->kind].x;
+    coord->coord.t[1]   = gGeneratorLifeSupportPos[work->kind].y;
+    coord->coord.t[2]   = gGeneratorLifeSupportPos[work->kind].z;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
@@ -55,7 +55,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     Gp_LinkObj(2, &part->obj);
     Gp_InitRec18Table(rec18, 1, 0);
     part->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    type             = (u16)work->field_334;
+    type             = (u16)work->kind;
     part->field_46   = type;
     if ((type << 0x10) == 0) {
         func_neo_ark_power_plant_2_8017FD88(1);

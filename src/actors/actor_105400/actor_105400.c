@@ -47,16 +47,8 @@
 
 #include "rooms/neo_ark_power_plant_2.h"
 #include "../../shared/model_placement.h"
+#define GENERATOR_KIND GENERATOR_PROTO
 #include "../../shared/generator.h"
-
-/// Spawn offsets at `D_actor_105400_80133A30`: the spawn reads only the second
-/// vector, `field_8`, into the enemy's body position and the second list
-/// node's position.
-typedef struct Actor05400Pose {
-    /* 0x0 */ SVECTOR field_0;
-    /* 0x8 */ SVECTOR field_8;
-} Actor05400Pose;
-STATIC_ASSERT_SIZEOF(Actor05400Pose, 0x10);
 
 extern EnemyParams       gGeneratorLifeSupportParams;
 extern GeneratorSpawnPos gGeneratorLifeSupportPos[2];
@@ -67,21 +59,13 @@ extern s32               gGeneratorSoundIds[3];
 extern SVECTOR           gGeneratorHitEffectOffsets[];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
-typedef struct {
-    s32 id;
-    union {
-        s16 (*call0)(Task*);
-        s32 (*call1)(Task*, s32, ActorCommand* request);
-    } handler;
-} Actor105400MsgEntry;
-STATIC_ASSERT_SIZEOF(Actor105400MsgEntry, 8);
+STATIC_ASSERT_SIZEOF(GeneratorMsgEntry, 8);
 
-extern Actor105400MsgEntry D_actor_105400_80133A00[];
-extern Actor05400Pose      D_actor_105400_80133A30;
-extern EnemyParams         D_actor_105400_8013CE30;
-extern u32                 D_actor_105400_8013CE60;
-extern AnimationSet*       D_actor_105400_8013CEB8[];
-extern TaskDesc            D_actor_105400_8013CEA0[2];
+extern SVECTOR       gGeneratorSpawnOffsets[2];
+extern EnemyParams   gGeneratorParams;
+extern u32           gGeneratorSpawnSound;
+extern AnimationSet* gGeneratorAnimSets[];
+extern TaskDesc      gGeneratorTasks[2];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -95,7 +79,7 @@ extern AnimationSet D_actor_105400_8013CA20;
 extern AnimationSet D_actor_105400_8013CE08;
 extern TmdSource    D_actor_105400_8013C46C;
 
-Actor105400MsgEntry D_actor_105400_80133A00[3] = {
+GeneratorMsgEntry gGeneratorMessages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = generatorSetReleaseBits } },
     { 2006, { .call0 = generatorIsAlive } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -118,7 +102,7 @@ s16 gGeneratorReleaseIds[2] = {
     54,
 };
 
-Actor05400Pose D_actor_105400_80133A30 = { { 0, -500, 1000, 0 }, { 0, -1000, 1500, 0 } };
+SVECTOR gGeneratorSpawnOffsets[2] = { { 0, -500, 1000, 0 }, { 0, -1000, 1500, 0 } };
 
 SVECTOR gGeneratorHitEffectOffsets[2] = {
     { 0, -500, 1400, 0 },
@@ -223,7 +207,7 @@ AnimationSet D_actor_105400_8013CE08 = {
     { NULL, D_actor_105400_8013CA48, NULL, NULL, D_actor_105400_8013CAA8, NULL, NULL, NULL },
 };
 
-EnemyParams D_actor_105400_8013CE30 = { NULL, 250, 200, 100, 100, 100, 0, 0, 0 };
+EnemyParams gGeneratorParams = { NULL, 250, 200, 100, 100, 100, 0, 0, 0 };
 
 EnemyParams gGeneratorLifeSupportParams = { NULL, 250, 0, 0, 0, 100, 0, 0, 0 };
 
@@ -235,7 +219,7 @@ s32 gGeneratorSoundIds[3] = {
 
 u32 gGeneratorPulseSoundId = 0x55110008;
 
-u32 D_actor_105400_8013CE60 = 0x55110009;
+u32 gGeneratorSpawnSound = 0x55110009;
 
 GeneratorSndRow gGeneratorViewSound[8] = {
     { 0, 0, 0, 0 },
@@ -261,19 +245,17 @@ GeneratorClip gGeneratorHitPulse[4] = {
     { 1, 4224 },
 };
 
-TaskDesc D_actor_105400_8013CEA0[2] = {
+TaskDesc gGeneratorTasks[2] = {
     { { { TASK_BODY_TMD, 96 } }, generatorTask, { .model = &D_actor_105400_8013C46C } },
     { { { TASK_BODY_COORD, 96 } }, generatorLifeSupportTask, { .value = 0 } },
 };
 
-AnimationSet* D_actor_105400_8013CEB8[4] = {
+AnimationSet* gGeneratorAnimSets[4] = {
     NULL,
     &D_actor_105400_8013C5E0,
     &D_actor_105400_8013CA20,
     &D_actor_105400_8013CE08,
 };
-
-static void func_actor_105400_8013310C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/generator_body_hit.inc.c"
 
@@ -287,119 +269,7 @@ static void func_actor_105400_8013310C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/generator_weak_point_hit.inc.c"
 
-/// Spawn/setup handler. It allocates the 0x340-byte work block and hangs it on
-/// the task, points the model's coordinate and its two matrices (0x244 colour,
-/// 0x264 light) at the block, and seeds the enemy's local position and the
-/// second `WorldCollisionBody` from the spawn offsets.
-///
-/// The block's 0x14 prefix becomes the `AnimationContext`: `func_800B3F84` loads the
-/// animation bank into it over the ten `AnimationSlot`s and slots 1..9 are reset.
-/// The two `WorldCollisionBody` nodes at 0x284 / 0x2A4 are linked onto list 2 with their two
-/// `WorldCollisionContact` records (`Gp_InitRec18Table`), each carrying the "last element"
-/// flag 0x8000. A child enemy is spawned from `D_actor_105400_8013CEA0` and its
-/// model pointed at the placement record's texture page and CLUT row, then the
-/// task moves to the tick handler (`state` 1).
-///
-/// A failed allocation tears the enemy down instead and leaves the task on this
-/// handler.
-static void func_actor_105400_8013310C(Enemy* arg0, Task* arg1)
-{
-    TmdObject*       obj;
-    TmdObject*       model;
-    GfxCoord*        coord;
-    GeneratorWork*   work;
-    GameLocationKey  key;
-    GpAreaVariant*   rec;
-    AreaPlacement*   place;
-    GameLocationKey* sessionKey;
-    Actor05400Pose*  pose;
-    Actor05400Pose*  pose2;
-    s32              idx;
-    s32              sound;
-    s32              i;
-
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(GeneratorWork), 0);
-    if (work == NULL) {
-        Gp_DestroyEnemy(arg0, arg1);
-        return;
-    }
-    arg1->work          = work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->field_264;
-    obj->colorMtx       = &work->field_244;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    Gp_LinkNode(&arg0->node);
-    arg0->coord                = coord;
-    pose                       = &D_actor_105400_80133A30;
-    arg0->bodyPos.vx           = pose->field_8.vx;
-    arg0->bodyPos.vy           = pose->field_8.vy;
-    arg0->bodyPos.vz           = pose->field_8.vz;
-    arg0->param                = &D_actor_105400_8013CE30;
-    arg0->recs                 = work->rec18;
-    arg0->hp                   = D_actor_105400_8013CE30.hpMax;
-    work->field_2F4.coord      = coord;
-    work->field_2F4.spawnArgLo = 0x500;
-    work->field_2F4.spawnArgHi = 3;
-    func_800B3F84(&work->anim, D_actor_105400_8013CEB8, obj, work->poses,
-                  work->slots);
-    for (i = 1; i < 0xA; i++) {
-        Gp_AnimResetSlot(&work->anim, i, 1);
-    }
-    (Gp_IncStateF0Ref)(0);
-    work->field_334              = 1;
-    work->field_326              = 0x1000;
-    work->field_2FC              = coord->coord;
-    work->field_338              = 1;
-    work->field_33C              = D_actor_105400_8013CE30.hpMax;
-    work->node0.coord            = coord;
-    work->node0.context.contacts = work->rec18;
-    work->node0.pos.vx           = 0;
-    work->node0.pos.vy           = 0;
-    work->node0.pos.vz           = 0;
-    work->node0.key              = 0x30036;
-    work->node0.radius           = 0x5DC;
-    work->node0.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->node0);
-    Gp_InitRec18Table(work->rec18, 2, 0);
-    work->node1.coord            = coord;
-    work->node1.context.contacts = work->rec18;
-    work->node0.flags            = (u16)(work->node0.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    pose2                        = &D_actor_105400_80133A30;
-    work->node1.pos.vx           = pose2->field_8.vx;
-    work->node1.pos.vy           = pose2->field_8.vy;
-    work->node1.pos.vz           = pose2->field_8.vz;
-    work->node1.key              = 0x30036;
-    work->node1.radius           = 0x12C;
-    work->node1.flags            = WORLD_COLLISION_BODY_SPHERE;
-    Gp_LinkObj(2, &work->node1);
-    work->node1.flags = (u16)(work->node1.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    model             = Gp_SpawnEnemyFromTable(D_actor_105400_8013CEA0, 1, 0, arg0)->task->extra.tmd;
-    idx               = arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    sessionKey        = &gGameSession->location.loc;
-    key.stage         = sessionKey->stage;
-    key.area          = sessionKey->area;
-    key.room          = sessionKey->room;
-    key.view          = sessionKey->view;
-    areaSyncLocationVariant(&key);
-    rec                      = Gp_GetNestedAreaRec(&key);
-    place                    = gpAreaPlaceAt(rec->field_0, idx);
-    model->texturePageOffset = place->texturePageOffset;
-    model->clutRowOffset     = place->clutRowOffset;
-    if (model->buffer != NULL) {
-        tmdProcessStream(model);
-        tmdProcessStream(model);
-    }
-    sound           = D_actor_105400_8013CE60 | ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-    work->field_31C = sound;
-    SndEvt_EnqueueType6(sound, gGeneratorViewSound[gGameSession->location.loc.view].field_0,
-                        gGeneratorViewSound[gGameSession->location.loc.view].field_2);
-    arg1->msgTable = D_actor_105400_80133A00;
-    arg1->state    = 1;
-}
+#include "../../shared/generator_spawn.inc.c"
 
 #include "../../shared/generator_tick.inc.c"
 
@@ -433,7 +303,7 @@ static const GpEnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
 /// tick and death.
 static const GpEnemyTaskFuncTable3 gGeneratorTaskStates = {
     {
-        func_actor_105400_8013310C,
+        generatorSpawn,
         generatorTickState,
         generatorDeathState,
     },
