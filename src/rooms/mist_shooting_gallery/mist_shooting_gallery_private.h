@@ -22,6 +22,9 @@ extern WorldCoordRoomLights gMistShootingGalleryDefaultRoomLights;
 
 extern WorldCoordRoomLights D_mist_shooting_gallery_8018DF38;
 
+/// Number of per-view colour entries in the gallery's ambient-light table.
+///
+/// Excludes entry zero, which stores this count; valid view indices are 1..18.
 enum { MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT = 18 };
 
 /// Minimum ambient model-shading colours for the gallery's 18 views.
