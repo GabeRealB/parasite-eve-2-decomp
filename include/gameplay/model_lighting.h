@@ -247,7 +247,7 @@ u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// tag), the element's colour and the opaque flat-quad code (`0x28`). The
 /// colour is the element's third word and includes the command byte, so the
 /// code is stored after it. The record's draw handler
-/// (`gpDrawStreamPrimF4PreXform`) reads four depth-cache offsets from the
+/// (`tmdDrawStreamPrimF4PreXform`) reads four depth-cache offsets from the
 /// element's leading halfwords, culls from the screen coordinates already
 /// stored in the packet, and links a quad the cull accepts. That handler
 /// leaves this length, code and colour unchanged.

@@ -33863,14 +33863,14 @@ Assigning `xy` only once without incrementing it (or recomputing
 ## POLY_F4 SXY FIFO from `&x3` plus `goto draw` for the 4th-vertex nclip
 
 The quad sibling of the POLY_F3 OT insert (`tmdDrawStreamPrimF3PreXform`)
-points `xy` at `&poly->x3` so the first nclip loads `x0`/`x1`/`x2` as
+points its XY cursor at `&packet->x3` so the first nclip loads `x0`/`x1`/`x2` as
 `lw -12/-8/-4` / `mtc2 $15`. A 4th `lw 0(xy)` / nclip only runs when the
-first OPZ is `<= 0`; `if (opz > 0) goto draw;` then
-`if (opz < 0) { draw: ... }` emits `bgtz` to the SZ/OT body and `bgez`
-over it. Pin `opz` to `$t1`
+first OPZ is `<= 0`; `if (workspace->gteResult > 0) goto draw;` then
+`if (workspace->gteResult < 0) { draw: ... }` emits `bgtz` to the SZ/OT body and `bgez`
+over it. Pin `gteResultDestination` to `$t1`
 and `mask` to `$t2` (swapped vs the F3 handler). Do not name the SZ3
 load `gte_ldsz3` — PsyQ already uses that for the 3-arg SZ1/SZ2/SZ3
-macro. `gpDrawStreamPrimF4PreXform` is the example.
+macro. `tmdDrawStreamPrimF4PreXform` is the example.
 
 ## Delay-slot copy plus in-`if` `asm("" : "+r"(n))` so `i = n` is not CSE'd
 
@@ -35725,7 +35725,7 @@ is `-8` (`x3`).
 
 ## Dual-packet GT4 = F4 nclip-goto + paired GT3 OT link
 
-`gpDrawStreamPrimGt4PreXformOffsetLayer` stacks `gpDrawStreamPrimF4PreXform`'s four-vertex
+`gpDrawStreamPrimGt4PreXformOffsetLayer` stacks `tmdDrawStreamPrimF4PreXform`'s four-vertex
 nclip with `gpDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
 
 ```c
@@ -134460,13 +134460,13 @@ is a `POLY_F4`'s 24 bytes and the one that writes a single colour into it stamps
 
 The overlay's stream handlers open with the frame pointer copied out of the
 argument register — `addu $a1, $a0, $zero`, which is what a body carrying the
-m2c `TmdStreamWorkspace* ws; ... ws = index;` pair compiles to. The instruction
+m2c `TmdStreamWorkspace* workspace; ... workspace = index;` pair compiles to. The instruction
 does not date from that local, and naming the parameter does not disturb it: it
 is where the allocator moves a parameter whose own register is reused inside the
-body. `gpDrawStreamPrimF4PreXform` is the case in point — `$a0` becomes the
+body. `tmdDrawStreamPrimF4PreXform` is the case in point — `$a0` becomes the
 screen-Z table's base inside the loop (`lw $a0, 0x10($a1)`), so the frame has to
 live elsewhere whatever the source calls it, and deleting the local (which naming
-the parameter to `ws` forces, the two spellings would shadow) leaves the copy and
+the parameter to `workspace` forces, the two spellings would shadow) leaves the copy and
 every other instruction in place.
 
 So read the copy against the parameter's register before treating it as the

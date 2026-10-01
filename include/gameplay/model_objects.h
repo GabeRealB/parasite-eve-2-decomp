@@ -99,27 +99,36 @@ void modelObjectFreeCoordBody(ModelObjectCoordBody* body);
 
 void Gp_DrawDisp2dOt(struct Task* unused);
 
-/// Draw handler of a stream's pre-transformed flat-quad records (`0x45`): each
-/// element contributes one untextured quad whose corners are already in screen
-/// space, and links its packet into the ordering table at the depth those corners
-/// measured.
+/// Culls and links pre-transformed flat quads from TMD stream opcode `0x45`.
 ///
-/// Nothing is projected or lit here. A transform record has already written the
-/// element's projected corners into the packet this command files, and their
-/// depths into the per-vertex screen-Z cache, which is why the element names its
-/// corners in that cache rather than in the vertex array. What is left is what a
-/// transform cannot settle: whether the quad survives its facing tests — one per
-/// half the diagonal cuts it into, both taken from the coordinates the packet
-/// already carries — which ordering-table slot the corners' average depth puts it
-/// in, and the packet's link word. An element whose cached depth carries the
-/// transform's error mark, or whose quad the facing tests reject, is passed over
-/// — its packet slot is stepped over either way, which is what keeps the packets
-/// in step with the elements that named them.
+/// `elements` starts after the record header; `workspace->elemCount` is 0..65535
+/// and `elemStride` counts u32 words. The first four u16 values of each element
+/// are depth-cache byte references. Clearing bits 0..1 and dividing by four
+/// selects `szTable` entries. Each index must be below 1024 and initialized by
+/// an earlier projection in this draw walk; masking does not check bounds.
+/// The low bits' meaning and full element extent are unproven. Construction
+/// reads colour from word 2, so each element must contain at least three words.
 ///
-/// The record's other half is the build pass's command (`modelLightingStreamPrimF4PreXform`),
-/// which laid the packet out and gave it its length, its primitive code and the
-/// element's colour; this command writes none of the three.
-u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `preXformWrite` addresses one word-aligned `POLY_F4` per element in the chosen
+/// buffer half's first region. Construction supplies its length, code and colour;
+/// projection commands must supply all four screen-coordinate pairs in pixels.
+/// Positive NCLIP area for vertices 0,1,2 accepts the facing test. Otherwise,
+/// negative area for vertices 1,2,3 accepts it. `objectFlags` is unused, including
+/// `TMD_OBJECT_REVERSE_CULLING`. Any corner with `TMD_VERTEX_DEPTH_INVALID`
+/// rejects the quad. Only the packet's DMA link is changed; its length, code,
+/// colour and coordinates are preserved.
+///
+/// Loads the four cached depths into SZ0..SZ3 and runs AVSZ4 with the current
+/// ZSF4 scale. Unsigned OTZ is scaled by `gDisplayState.otDepthShift`, divided
+/// by 16 and wrapped to 0..1023 relative to `workspace->ot`, which already
+/// includes the model's signed offset. The selected OT must contain that entry.
+///
+/// Returns `elements + initial elemCount * elemStride` and advances
+/// `preXformWrite` by that count of packets even when culled. Leaves `elemCount`
+/// at -1 and reuses `gteResult` for facing and OTZ. Workspace, payload and depth
+/// cache are borrowed for this draw walk. Linked packets and the OT must remain
+/// alive until the GPU finishes consuming them.
+u32* tmdDrawStreamPrimF4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Culls and links pre-transformed flat triangles from TMD stream opcode `0x5`.
 ///

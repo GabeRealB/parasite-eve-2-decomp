@@ -179,7 +179,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                     handler = tmdDrawStreamPrimF3PreXform;
                     break;
                 case 0x45:
-                    handler = gpDrawStreamPrimF4PreXform;
+                    handler = tmdDrawStreamPrimF4PreXform;
                     break;
                 case 0x21:
                 case 0x121:

@@ -218,6 +218,23 @@ static inline void _tmdStoreFlatTriangleFacing(const POLY_F3* packet, s32* facin
     gte_stopz(facingArea);
 }
 
+/// Stores the signed screen-space area of a flat quad's first triangle.
+///
+/// Reads word-aligned packed XY pairs 0..2 from `packet`, in signed pixel
+/// coordinates. `facingArea` addresses one word-aligned writable s32 and
+/// receives NCLIP's signed double area in square pixels; positive values
+/// accept this half. Leaves vertices 0..2 in SXY0..SXY2, so pushing vertex 3
+/// next tests vertices 1..3. All coordinate reads precede the result store;
+/// the buffers may overlap. Performs no projection and clobbers MAC0/FLAG.
+static inline void _tmdStoreFlatQuadFirstTriangleFacing(const POLY_F4* packet, s32* facingArea)
+{
+    gte_ldSXYP(*(const u32*)&packet->x0);
+    gte_ldSXYP(*(const u32*)&packet->x1);
+    gte_ldSXYP(*(const u32*)&packet->x2);
+    gte_nclip();
+    gte_stopz(facingArea);
+}
+
 static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2)
 {
     s32  prev;
@@ -525,69 +542,77 @@ void Gp_DrawDisp2dOt(Task* unused)
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
 }
 
-u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdDrawStreamPrimF4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_F4*      poly;
-    s32*          opz;
-    DisplayState* ds;
-    u32           clipMask;
-    u16*          rec;
-    s32           sz;
-    s32           idx;
-    s32*          szTable;
+    enum {
+        // Four-byte depth-cache offsets; the cleared low bits have unproven meaning.
+        TMD_F4_PRE_XFORM_DEPTH_REFERENCE_MASK = 0xFFFC,
+        // Sixteen scaled OTZ units per tag, before wrapping to the OT's ten index bits.
+        TMD_F4_PRE_XFORM_OT_INDEX_SHIFT = 4
+    };
+    POLY_F4*            packet;
+    s32*                gteResultDestination;
+    const DisplayState* displayState;
+    u32                 invalidDepthMask;
+    const u16*          depthRefs;
+    s32                 cachedDepth;
+    u32                 depthByteOffset;
+    const s32*          vertexDepths;
 
-    poly = (POLY_F4*)ws->preXformWrite;
-    if (ws->elemCount-- > 0) {
-        opz      = &ws->gteResult;
-        clipMask = TMD_VERTEX_DEPTH_INVALID;
-        ds       = &gDisplayState;
+    packet = (POLY_F4*)workspace->preXformWrite;
+    if (workspace->elemCount-- > 0) {
+        gteResultDestination = &workspace->gteResult;
+        invalidDepthMask     = TMD_VERTEX_DEPTH_INVALID;
+        displayState         = &gDisplayState;
         do {
-            rec = (u16*)stream;
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
-            gte_nclip();
-            gte_stopz(opz);
-            if (ws->gteResult > 0) {
+            depthRefs = (const u16*)elements;
+            // Either triangle may accept the quad; their winding signs are opposite.
+            _tmdStoreFlatQuadFirstTriangleFacing(packet, gteResultDestination);
+            if (workspace->gteResult > 0) {
                 goto draw;
             }
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 3));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 3));
             gte_nclip();
-            gte_stopz(opz);
-            if (ws->gteResult < 0) {
+            gte_stopz(gteResultDestination);
+            if (workspace->gteResult < 0) {
             draw:
-                szTable = ws->szTable;
-                idx     = rec[0] & 0xFFFC;
-                sz      = szTable[(u32)idx / sizeof(*szTable)];
-                if ((sz & clipMask) == 0) {
-                    gte_ldSZ0(sz);
-                    idx = rec[1] & 0xFFFC;
-                    sz  = szTable[(u32)idx / sizeof(*szTable)];
-                    if ((sz & clipMask) == 0) {
-                        gte_ldSZ1(sz);
-                        idx = rec[2] & 0xFFFC;
-                        sz  = szTable[(u32)idx / sizeof(*szTable)];
-                        if ((sz & clipMask) == 0) {
-                            gte_ldSZ2(sz);
-                            idx = rec[3] & 0xFFFC;
-                            sz  = szTable[(u32)idx / sizeof(*szTable)];
-                            if ((sz & clipMask) == 0) {
-                                gte_ldSZ3(sz);
+                // Reject failed projections before averaging all four cached depths.
+                vertexDepths    = workspace->szTable;
+                depthByteOffset = depthRefs[0] & TMD_F4_PRE_XFORM_DEPTH_REFERENCE_MASK;
+                cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                if ((cachedDepth & invalidDepthMask) == 0) {
+                    gte_ldSZ0(cachedDepth);
+                    depthByteOffset = depthRefs[1] & TMD_F4_PRE_XFORM_DEPTH_REFERENCE_MASK;
+                    cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                    if ((cachedDepth & invalidDepthMask) == 0) {
+                        gte_ldSZ1(cachedDepth);
+                        depthByteOffset = depthRefs[2] & TMD_F4_PRE_XFORM_DEPTH_REFERENCE_MASK;
+                        cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                        if ((cachedDepth & invalidDepthMask) == 0) {
+                            gte_ldSZ2(cachedDepth);
+                            depthByteOffset = depthRefs[3] & TMD_F4_PRE_XFORM_DEPTH_REFERENCE_MASK;
+                            cachedDepth     = vertexDepths[depthByteOffset / sizeof(*vertexDepths)];
+                            if ((cachedDepth & invalidDepthMask) == 0) {
+                                gte_ldSZ3(cachedDepth);
                                 gte_avsz4();
-                                gte_stotz(opz);
-                                gte_stotz(opz);
-                                addPrim(&ws->ot[((u32)ws->gteResult << ds->otDepthShift) >> 4 & 0x3FF], poly);
+                                gte_stotz(gteResultDestination);
+                                gte_stotz(gteResultDestination);
+                                addPrim(&workspace->ot[((u32)workspace->gteResult << displayState->otDepthShift) >>
+                                                           TMD_F4_PRE_XFORM_OT_INDEX_SHIFT &
+                                                       (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*workspace->ot))],
+                                        packet);
                             }
                         }
                     }
                 }
             }
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+            // Culled elements still consume their construction pass's packet slot.
+            packet++;
+            elements += workspace->elemStride;
+        } while (workspace->elemCount-- > 0);
     }
-    ws->preXformWrite = (u8*)poly;
-    return stream;
+    workspace->preXformWrite = (u8*)packet;
+    return elements;
 }
 
 u32* tmdDrawStreamPrimF3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
