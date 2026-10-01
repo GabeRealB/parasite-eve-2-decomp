@@ -2447,7 +2447,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
         cost = (cost * 2) / 5;
     }
-    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, 3, 2);
+    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
 
     y += 0xF;
 
@@ -2474,7 +2474,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     col2     = ((id + 1) & 0xC) >> 2;
     lvl2     = (id + 1) & 3;
     Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].field[bonusIdx]),
-                    0x606060, 3, 2);
+                    0x606060, 3, TEXT_ALIGNMENT_RIGHT);
 
     if (arg0->firstChild != NULL) {
         child = arg0->firstChild;

@@ -32,7 +32,16 @@ enum {
     /// X moves two pixels right. The selector stays set; restore the X anchor
     /// before applying alignment again.
     TEXT_ALIGNMENT_CENTER = 1,
-    TEXT_ALIGNMENT_RIGHT  = 2,
+    /// Anchors the measured UI-text line's right edge at its initial X coordinate.
+    ///
+    /// Stored in `TextDrawReq::alignment`. Alignment subtracts the full measured
+    /// width in pixels from X, retaining the selector. Measurement uses the
+    /// initial glyph table and pair kerning, omitting the final glyph's extra
+    /// pen advance; inline font and position commands do not change that width.
+    /// With no measured glyph, width is -4 and X moves four pixels right.
+    /// The result is stored in signed 16-bit X; restore the anchor before another
+    /// alignment call. `Text_MeasureWidth` uses X=0 and returns the negated X.
+    TEXT_ALIGNMENT_RIGHT = 2,
 };
 
 /// Glyph drawing paths selected by `TextDrawReq::drawMode`.

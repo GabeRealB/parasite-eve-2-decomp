@@ -1496,7 +1496,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req1.alignment  = TEXT_ALIGNMENT_LEFT;
     req1.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req1, "HP");
-    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
+    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, TEXT_ALIGNMENT_RIGHT);
 
     y     = top + 0x1E;
     val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].field_4;
@@ -1513,7 +1513,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req2, "MP");
-    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, 2);
+    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), color, 3, TEXT_ALIGNMENT_RIGHT);
 
     y      = top + 0x2D;
     rawExp = D_mist_shooting_gallery_8018E0BC;
@@ -1545,7 +1545,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req3.alignment  = TEXT_ALIGNMENT_LEFT;
     req3.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req3, "EXP");
-    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
+    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
 
     y    += 0xF;
     rawBp = D_mist_shooting_gallery_8018E0C0;
@@ -1577,7 +1577,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     req4.alignment  = TEXT_ALIGNMENT_LEFT;
     req4.drawMode   = TEXT_DRAW_OUTLINED;
     Text_DrawString(&req4, "BP");
-    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, 2);
+    Text_DrawPrompt(obj, -xOff, y, Text_ItoaSigned(buf, val), 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
 }
 static const MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
 

@@ -733,7 +733,7 @@ static void func_options_801D4D0C(Task* task)
     y    = yHdr;
     x    = obj->panel.contentRight.signedValue - 4;
     one3 = 1;
-    Text_DrawPrompt(obj, x, y, D_options_801D5C5C, color2, one3, two);
+    Text_DrawPrompt(obj, x, y, D_options_801D5C5C, color2, one3, TEXT_ALIGNMENT_RIGHT);
     y            += 0xB;
     textAlignment = TEXT_ALIGNMENT_RIGHT;
     if (type == 0) {

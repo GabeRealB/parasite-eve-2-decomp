@@ -304,7 +304,8 @@ static inline void _replayBonusDrawItemRow(UiList* prompt, UiObject* obj, s32 id
 
     Gp_SetItemSeenBit(id, 1);
     Gp_DrawItemLabel(obj, prompt->field_18, prompt->field_1A, id, 0x606060, 0);
-    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, Text_ItoaSigned(buf, replayBonusItemBp(id)), 0x606060, 3, 2);
+    Text_DrawPrompt(obj, -prompt->field_18, prompt->field_1A, Text_ItoaSigned(buf, replayBonusItemBp(id)), 0x606060, 3,
+                    TEXT_ALIGNMENT_RIGHT);
 }
 
 void func_replay_bonus_801176A8(UiList* prompt, UiObject* obj)

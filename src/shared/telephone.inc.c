@@ -85,7 +85,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A20);
             Text_FormatTime(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 1: {
@@ -103,7 +103,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             Text_DrawString(&req, Telephone_Data_80181A50);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount);
             Text_Strcat(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 2: {
@@ -121,7 +121,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             Text_DrawString(&req, Telephone_Data_80181A28);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon);
             Text_Strcat(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 3: {
@@ -139,7 +139,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             Text_DrawString(&req, Telephone_Data_80181A2C);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped);
             Text_Strcat(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 4: {
@@ -187,7 +187,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             }
             q[1] = 0x2E;
             Text_Strcat(p, Telephone_Data_80181A78);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 5: {
@@ -240,7 +240,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             }
             q[1] = 0x2E;
             Text_Strcat(p, Telephone_Data_80181A78);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             Ui_DrawHBar(&(arg1)->panel, arg1->panel.contentLeft.signedValue, arg1->panel.contentRight.signedValue, arg0->field_1A + 3);
             arg0->field_1A = (u16)arg0->field_1A + 5;
             break;
@@ -260,7 +260,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             Text_DrawString(&req, Telephone_Data_80181A58);
             Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount);
             Text_Strcat(p, Telephone_Data_80181A70);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 7: {
@@ -276,7 +276,8 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A60);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp),
+                            arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             break;
         }
         case 8: {
@@ -292,7 +293,8 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A68);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp),
+                            arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
             break;
         }
     }
@@ -357,7 +359,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     }
     limit = 1;
     if (value >= 10000) {
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Telephone_Data_8017D61C, arg0->field_1C, 3, 2);
+        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Telephone_Data_8017D61C, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
     } else {
         for (i = 2; i > 0; i--) {
             limit *= 10;
@@ -384,7 +386,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         }
         q[1] = '.';
         Text_Strcat(p, Telephone_Data_80181A78);
-        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
+        Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, TEXT_ALIGNMENT_RIGHT);
     }
 
     base  = arg1->panel.contentLeft.signedValue + 0x80;

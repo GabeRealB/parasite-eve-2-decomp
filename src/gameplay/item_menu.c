@@ -1138,9 +1138,10 @@ void func_800BDF6C(Task* task)
     panelY      = obj->panel.contentTop.signedValue;
     splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + state->dstQty)) + 1;
     textY       = panelY + 0x20;
-    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, 1, 2);
+    Text_DrawPrompt(obj, obj->panel.contentLeft.signedValue + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, 1,
+                    TEXT_ALIGNMENT_RIGHT);
     Text_DrawPrompt(obj, obj->panel.contentRight.signedValue - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, 1,
-                    2);
+                    TEXT_ALIGNMENT_RIGHT);
     caretY    = panelY + 0x16;
     negWidth  = -width;
     halfWidth = (s32)(negWidth + ((u32)negWidth >> 0x1F)) >> 1;

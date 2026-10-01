@@ -541,7 +541,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     Text_DrawString(&req3, D_replay_bonus_8011579C);
 
     sum = _replayBonusTotalBp(list, obj);
-    Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, 3, 2);
+    Text_DrawPrompt(obj, -xOff, yOff, Text_ItoaUnsigned(buf, (u32)sum), 0x606060, 3, TEXT_ALIGNMENT_RIGHT);
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
@@ -597,7 +597,7 @@ void func_replay_bonus_801166AC(Task* arg0)
         value = D_replay_bonus_8011927C;
     }
     negX = -xOff;
-    Text_DrawPrompt(obj, negX, -2, Text_ItoaSigned(buf, value), color, 3, 2);
+    Text_DrawPrompt(obj, negX, -2, Text_ItoaSigned(buf, value), color, 3, TEXT_ALIGNMENT_RIGHT);
     req2.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req2.y          = obj->panel.contentOriginY.unsignedValue + 0xB;
     ot2             = obj->panel.otIndex.signedValue;
@@ -611,7 +611,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     if (arg0->spawnArg1.value == 1) {
         value = D_replay_bonus_80119274.field_C;
     }
-    Text_DrawPrompt(obj, negX, 0x11, Text_ItoaSigned(buf, value), color, 3, 2);
+    Text_DrawPrompt(obj, negX, 0x11, Text_ItoaSigned(buf, value), color, 3, TEXT_ALIGNMENT_RIGHT);
     if (arg0->state == 1) {
         remaining           = (u16)arg0->killCountdown - 1;
         arg0->killCountdown = remaining;
@@ -795,7 +795,7 @@ void func_replay_bonus_80116D68(Task* arg0)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     req.otIndex    = ot + 1;
     Text_DrawString(&req, D_replay_bonus_801157C8);
-    Text_DrawPrompt(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, 3, 2);
+    Text_DrawPrompt(obj, -xOff, 6, Text_ItoaSigned(buf, bonus), color, 3, TEXT_ALIGNMENT_RIGHT);
     remaining           = (u16)arg0->killCountdown - 1;
     arg0->killCountdown = remaining;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

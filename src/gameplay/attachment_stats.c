@@ -835,7 +835,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
         ret   = getAttachWheelLevel(Gp_StateC08.field_B);
         color = 0x606060;
         func_800C2538(&s.obj, -0xB, 0x28, ret, color);
-        Text_DrawPrompt(&s.obj, 0x8E, 0x28, Text_ItoaSigned(s.u.text.buf, param), color, 3, 2);
+        Text_DrawPrompt(&s.obj, 0x8E, 0x28, Text_ItoaSigned(s.u.text.buf, param), color, 3, TEXT_ALIGNMENT_RIGHT);
 
         s.rect.x = arg1;
         s.rect.y = arg2 + 0x17;
