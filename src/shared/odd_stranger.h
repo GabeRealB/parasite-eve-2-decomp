@@ -23,7 +23,7 @@
 #define ODD_STRANGER_CLIP2_STEP_B      0x1B                     /* second footstep cue frame of clip 2 */
 #define ODD_STRANGER_BODY_RADIUS       0x1AE                    /* body collision sphere radius */
 #define ODD_STRANGER_SWING_RADIUS      0xD7                     /* body sphere radius in the chase and sidestep states */
-#define ODD_STRANGER_REARM_BODY2_GRID  1                        /* whether some states set (1) or clear (0) bit 0x4000 of the second body's flags */
+#define ODD_STRANGER_BODY2_GRID        1                        /* whether some states enable (1) or disable (0) the second body's grid collision */
 #define ODD_STRANGER_SIGHT_COOLDOWN    field_C1B                /* work member holding the sight cooldown */
 #define ODD_STRANGER_WALK_STEP         0xA                      /* forward step while walking */
 #define ODD_STRANGER_PATROL_TURN_CLAMP 0x20                     /* per-frame turn clamp toward the patrol waypoint */
@@ -43,7 +43,7 @@
 #define ODD_STRANGER_CLIP2_STEP_B      0x16
 #define ODD_STRANGER_BODY_RADIUS       0x12C
 #define ODD_STRANGER_SWING_RADIUS      0x96
-#define ODD_STRANGER_REARM_BODY2_GRID  0
+#define ODD_STRANGER_BODY2_GRID        0
 #define ODD_STRANGER_SIGHT_COOLDOWN    field_8CA
 #define ODD_STRANGER_WALK_STEP         7
 #define ODD_STRANGER_PATROL_TURN_CLAMP 0x18
@@ -346,6 +346,21 @@ void oddStrangerDrive(Task* arg0);
 s32  oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 
 s32 oddStrangerAnimEvent(OddStrangerRigWork* work);
+
+void oddStrangerExit(Task* task);
+s32  oddStrangerApplyCommand(Task* arg0, s32 arg1, u16* arg2);
+void oddStrangerGrabRelease(Task* arg0);
+void oddStrangerBackOff(Task* arg0);
+void oddStrangerSidestep(Task* arg0);
+void oddStrangerAdvance(Task* arg0);
+void oddStrangerFacePlayer(Task* arg0);
+void oddStrangerScriptPose8(Task* arg0);
+void oddStrangerScriptPoseD(Task* arg0);
+void oddStrangerScriptPose3(Task* arg0);
+void oddStrangerScriptPoseB(Task* arg0);
+void oddStrangerScriptPose2(Task* arg0);
+void oddStrangerDie(Task* arg0);
+void oddStrangerHoldAim(Task* arg0);
 
 /* Defined by each package. */
 s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count);

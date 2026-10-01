@@ -57,7 +57,7 @@
 
 static const OddStrangerStateTable gOddStrangerStates;
 
-/// Payload of the `0x3FF` message `func_actor_401800_80138F5C` sends: the same
+/// Payload of the `0x3FF` message `oddStrangerGrabHold` sends: the same
 /// 0x14-byte animation record other actors keep as `AnimationPlayRequest` data
 /// (`D_actor_356100_80173244` and friends); `field_4` is the animation id.
 extern AnimationPlayRequest gOddStrangerPlayerAnim;
@@ -65,7 +65,7 @@ extern AnimationPlayRequest gOddStrangerPlayerAnim;
 extern AnimationSet* D_actor_401800_801559F8[];
 extern AnimationSet* D_actor_401800_801559F0[];
 
-/// Twelve `SVECTOR` hit positions `func_actor_401800_801348A8` picks from by
+/// Twelve `SVECTOR` hit positions `oddStrangerSpawnHitEffect` picks from by
 /// damage magnitude: the low four when the hit is light, the high two when it
 /// is heavy, and the last four on the `arg1 > 0` / `arg1 <= 0` split in
 /// between. The fourth halfword (`pad`, unused by the effect itself) is the
@@ -105,7 +105,7 @@ STATIC_ASSERT_SIZEOF(Actor401800MessageEntry, 8);
 
 extern Actor401800MessageEntry D_actor_401800_80155A80[8];
 
-/// Payload `func_actor_401800_80138C28` fills and sends with message 0x3E9.
+/// Payload `oddStrangerGrab` fills and sends with message 0x3E9.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -116,7 +116,7 @@ extern Actor401800MessageEntry D_actor_401800_80155A80[8];
 /// for actor 01900.
 extern u16 gOddStrangerChaseDistance;
 
-/// The block `func_actor_401800_8013A034` posts into `gOddStrangerAnimSets[16]`
+/// The block `oddStrangerDormant` posts into `gOddStrangerAnimSets[16]`
 /// when the actor's live flag is set, taking over the animation the actor had
 /// been running. Same pair `Actor401300` keeps as `D_actor_401300_80158878` /
 /// `D_actor_401300_80152BB8`.
@@ -135,18 +135,12 @@ extern TmdSource gOddStrangerBurstModelC;
 
 #include "../../shared/actor_contacts.h"
 
-static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2);
+static void oddStrangerSpawnHitEffect(Task* arg0, s16 arg1, s32 arg2);
 
 static void func_actor_401800_8013423C(Enemy* enemy, Task* actor);
-static void func_actor_401800_8013E0A0(Task* task);
 static void func_actor_401800_8013E138(Task* arg0);
-static void func_actor_401800_8013E194(Task* arg0);
-static void func_actor_401800_8013E23C(Task* arg0);
-static void func_actor_401800_8013E2E8(Task* arg0);
-static void func_actor_401800_8013E394(Task* arg0);
-static void func_actor_401800_8013E44C(Task* arg0);
 static void func_actor_401800_8013E4F0(Task* arg0);
-static void func_actor_401800_8013E5A4(Task* arg0);
+static void oddStrangerIdle(Task* arg0);
 static void func_actor_401800_801381E4(Task* arg0);
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
@@ -169,7 +163,7 @@ extern AnimationSet D_actor_401800_80151C0C;
 extern AnimationSet D_actor_401800_8015256C;
 
 extern TmdSource D_actor_401800_80143918;
-s32              func_actor_401800_8013DF80(Task*, s32, u16*);
+s32              oddStrangerApplyCommand(Task*, s32, u16*);
 void             func_actor_401800_8013DCB4(void);
 void             func_actor_401800_8013E68C(Task*);
 
@@ -1106,7 +1100,7 @@ Actor401800MessageEntry D_actor_401800_80155A80[8] = {
     { 2006, { .call0 = actorMsgIsPresent } },
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = actorMsgReleaseHold } },
-    { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = func_actor_401800_8013DF80 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = oddStrangerApplyCommand } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -1126,36 +1120,29 @@ OddStrangerTransformStorage gOddStrangerGrabTransform;
 GpDelayArg D_actor_401800_80155AF8;
 
 static __inline__ void Actor401800_BindMatrices(Task* actor);
-static void            func_actor_401800_80134C94(Task* arg0);
-static void            func_actor_401800_80135DAC(Task* arg0);
-static void            func_actor_401800_80135F58(Task* arg0);
+static void            oddStrangerTakeHit(Task* arg0);
+static void            oddStrangerStunned(Task* arg0);
 static __inline__ s32  Actor401800_OutOfRange(SVECTOR* d, s16 r);
 static __inline__ s32  Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r);
 static void            func_actor_401800_80136560(Task* arg0);
-static void            func_actor_401800_80136EAC(Task* arg0);
-static void            func_actor_401800_80137714(Task* arg0);
-static void            func_actor_401800_80137DDC(Task* arg0);
+static void            oddStrangerChase(Task* arg0);
+static void            oddStrangerTurnAround(Task* arg0);
 static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECTOR* dir);
 static __inline__ void Actor401800_SetGrabAnim(void);
-static void            func_actor_401800_80138C28(Task* arg0);
-static void            func_actor_401800_80138F5C(Task* arg0);
-static void            func_actor_401800_80139118(Task* arg0);
+static void            oddStrangerGrab(Task* arg0);
+static void            oddStrangerGrabHold(Task* arg0);
 static void            func_actor_401800_8013945C(Task* arg0);
 static void            func_actor_401800_8013971C(Task* arg0);
 static void            func_actor_401800_80139870(Task* arg0);
 static void            func_actor_401800_801399C4(Task* arg0);
-static void            func_actor_401800_80139B18(Task* arg0);
 static void            func_actor_401800_80139D60(Task* arg0);
-static void            func_actor_401800_8013A034(Task* arg0);
-static void            func_actor_401800_8013A2E8(Task* arg0);
-static void            func_actor_401800_8013AB64(Task* arg0);
-static void            func_actor_401800_8013AF1C(Task* arg0);
-static void            func_actor_401800_8013B444(Task* arg0);
+static void            oddStrangerDormant(Task* arg0);
+static void            oddStrangerPatrol(Task* arg0);
 static void            func_actor_401800_8013B784(Task* arg0);
 static void            func_actor_401800_8013BB10(Task* arg0);
-static void            func_actor_401800_8013BF48(Task* arg0);
-static void            func_actor_401800_8013CD98(Task* arg0);
-static void            func_actor_401800_8013D64C(Enemy* arg0, Task* arg1);
+static void            oddStrangerWalkingDeath(Task* arg0);
+static void            oddStrangerStalk(Task* arg0);
+static void            oddStrangerTick(Enemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1209,7 +1196,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
         return;
     }
     (Gp_IncStateF0Ref)(0);
-    actor->exitCallback = func_actor_401800_8013E0A0;
+    actor->exitCallback = oddStrangerExit;
     Actor401800_BindMatrices(actor);
     enemy->field_4    = &actor->extra.tmd->coords->coord;
     enemy->field_48   = 0;
@@ -1357,7 +1344,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 /// Scale 0x300 and count 2 are the effect's; the record's coordinate comes from
 /// `TmdObject.coords[sc->pad]`, so the effect follows the part the table entry
 /// names. Same body as `Actor00100_Fn03340` (actors/lib/actor_400100_damage.c).
-static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2)
+static void oddStrangerSpawnHitEffect(Task* arg0, s16 arg1, s32 arg2)
 {
     SVECTOR*         sc;
     s32              mag;
@@ -1420,7 +1407,7 @@ static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-static void func_actor_401800_80134C94(Task* arg0)
+static void oddStrangerTakeHit(Task* arg0)
 {
     PlayerStatus*    config = &gPlayerStatus;
     OddStrangerWork* work;
@@ -1485,7 +1472,7 @@ static void func_actor_401800_80134C94(Task* arg0)
             coord     = arg0->extra.tmd->coords;
             s->yaw    = yaw - ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
             s->yaw    = actorNormalizeYaw(s->yaw);
-            func_actor_401800_801348A8(arg0, s->yaw, s->id);
+            oddStrangerSpawnHitEffect(arg0, s->yaw, s->id);
             work->field_8B0 = 0;
             work->field_8AE = 0;
             s->effect       = -1;
@@ -1791,7 +1778,7 @@ static void func_actor_401800_80134C94(Task* arg0)
 /// flag, halve `field_8A2` with the 1 / -1 wrap, and once `Gp_TickObjFlag2`
 /// reports 1 clear the enemy's node bit 1 and move to state 0x11.
 /// Same body as `func_actor_401300_80135DDC`.
-static void func_actor_401800_80135DAC(Task* arg0)
+static void oddStrangerStunned(Task* arg0)
 {
     OddStrangerWork* work  = arg0->work;
     Enemy*           enemy = arg0->spawnArg2.pointer;
@@ -1835,57 +1822,7 @@ static void func_actor_401800_80135DAC(Task* arg0)
     }
 }
 
-/// Aim the actor at the player and rescale its root coordinate. On the live
-/// flag it resets the model buffers and hands back the pose the actor was
-/// running; otherwise it takes a 0x10 scratch for the player offset and the
-/// clamped turn, folds the turn into the coordinate's Y rotation and rebuilds
-/// the matrix from the new yaw at scale 0x1194.
-/// Same body as `Actor01900_Fn080A8`, with the aim and rescale helpers inlined.
-static void func_actor_401800_80135F58(Task* arg0)
-{
-    OddStrangerWork*   work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    ActorChaseScratch* aim;
-
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898        = 1;
-        work->field_8A2        = 0x10;
-        work->field_89E        = 9;
-        work->field_89A        = 0;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
-        work->field_8D0.radius = 0x12C;
-        Gp_ArmStateF0(1);
-        return;
-    }
-    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
-    aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & 1) {
-        work->field_0 = 7;
-    }
-    aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
-    work->field_8AE = aim->turn;
-    if (aim->turn > 0x10) {
-        aim->turn = 0x10;
-    }
-    if (aim->turn < -0x10) {
-        aim->turn = -0x10;
-    }
-    coord      = arg0->extra.tmd->coords;
-    aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    oddStrangerDrive(arg0);
-    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
-}
+#include "../../shared/odd_stranger_face_player.inc.c"
 
 /// Push the root coordinate out of a `WorldCollisionContact` table: take a 0x34 scratch, seed
 /// its position from the second coordinate, then walk the records until `count`
@@ -2103,7 +2040,7 @@ static void func_actor_401800_80136560(Task* arg0)
 /// 0 the fifth `field_6` frame picks `field_0` from the yaw offset to the
 /// player. Same step ramp as `Actor01900_Fn04D14`, with the aim and the step
 /// helper inlined.
-static void func_actor_401800_80136EAC(Task* arg0)
+static void oddStrangerChase(Task* arg0)
 {
     OddStrangerWork*   work;
     ActorChaseScratch* head;
@@ -2238,7 +2175,7 @@ static void func_actor_401800_80136EAC(Task* arg0)
 /// actor 0x28 / 0x14 along its local Z while `detectPlayerOutOfReach`
 /// reports the path clear. Same body as `func_actor_401300_801376E4` /
 /// `Actor01900_Fn0551C`, with the step helper's clear-path test added.
-static void func_actor_401800_80137714(Task* arg0)
+static void oddStrangerTurnAround(Task* arg0)
 {
     OddStrangerWork*   work;
     ActorChaseScratch* head;
@@ -2322,113 +2259,7 @@ static void func_actor_401800_80137714(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// Live-actor swing. On the live flag it resets the model buffers, takes the
-/// swing side `field_C08` from `gRandomLcgState`, offsets the player bearing in
-/// `field_BF0` by +-0x171 on the first frame and stores the 0x15 / 0x14 state
-/// the walk body runs. The `field_BF0` yaw is then rebuilt into a direction and
-/// GPF-scaled by `field_C0A` into the offset added to the root coordinate while
-/// `field_6` sits in 0xC..0x15 — halving the scale once the `field_A30` contact
-/// test fires. The step counter moves the actor to state 7 at 0x1E; a kind
-/// 0x10 actor reloads 0x1E instead. Same body as `Actor01900_Fn05B4C`, with the
-/// position delta inlined.
-static void func_actor_401800_80137DDC(Task* arg0)
-{
-    OddStrangerWork*   work;
-    ActorChaseScratch* head;
-    ActorChaseScratch* aim;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    SVECTOR*           dir;
-    MATRIX             mat;
-    u16                angle;
-    s32                kind;
-
-    kind = (arg0->spawnArg1.value >> 16);
-    work = arg0->work;
-    if ((kind & 0xF0) == 0x10) {
-        work->field_0 = 0x1E;
-        return;
-    }
-    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
-    aim                                     = head - 1;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x96;
-        work->field_6          = 0;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
-        aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
-        if (work->field_C08 == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
-                work->field_C08 = 1;
-            } else {
-                work->field_C08 = -1;
-            }
-        }
-        if (work->field_C08 == 1) {
-            work->field_89E = 0x15;
-            if (work->field_C26 == 0) {
-                angle     = aim->turn + 0x171;
-                aim->turn = work->field_C12 + angle;
-            } else {
-                aim->turn += work->field_C12;
-            }
-            work->field_C08 = -1;
-        } else {
-            work->field_89E = 0x14;
-            if (work->field_C26 == 0) {
-                angle     = aim->turn - 0x171;
-                aim->turn = angle - work->field_C12;
-            } else {
-                aim->turn -= work->field_C12;
-            }
-            work->field_C08 = 1;
-        }
-        work->field_898 = 1;
-        work->field_8A2 = 0xC;
-        work->field_89A = 0;
-        oddStrangerDrive(arg0);
-        gfxRotMatrixY(&mat, aim->turn, 1);
-        dir = &work->field_BF0;
-        Gfx_MatrixCol2(&mat, dir);
-        VectorNormalSS(dir, dir);
-        work->field_C0A = 0xDE;
-        work->field_C26++;
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    oddStrangerDrive(arg0);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_89A == 0) {
-        gte_lddp(work->field_C0A);
-        gte_ldsv(&work->field_BF0);
-        gte_gpf12();
-        gte_stsv(aim);
-    } else {
-        gte_lddp(work->field_C0A >> 1);
-        gte_ldsv(&work->field_BF0);
-        gte_gpf12();
-        gte_stsv(aim);
-    }
-    if ((u32)((u16)work->field_6 - 0xC) < 0xAU) {
-        coord              = arg0->extra.tmd->coords;
-        coord->coord.t[0] += aim->delta.vx;
-        coord              = arg0->extra.tmd->coords;
-        coord->coord.t[2] += aim->delta.vz;
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1) {
-            work->field_C0A >>= 1;
-        }
-    }
-    if (++work->field_6 >= 0x1E) {
-        work->field_0 = 7;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
-}
+#include "../../shared/odd_stranger_sidestep.inc.c"
 
 static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECTOR* dir)
 {
@@ -2601,7 +2432,7 @@ static void func_actor_401800_801381E4(Task* arg0)
 /// and spawns the 0xC/8/0x8F pad-lerp. On work flag bit 0 while `field_89E` is
 /// 5, restarts the actor's model (`field_0 = 0xD`, the 0x8B8 effect record for
 /// the second coordinate). Same shape as `func_actor_401300_80138800`.
-static void func_actor_401800_80138C28(Task* arg0)
+static void oddStrangerGrab(Task* arg0)
 {
     SVECTOR          dir;
     OddStrangerWork* work  = arg0->work;
@@ -2663,7 +2494,7 @@ static void func_actor_401800_80138C28(Task* arg0)
 /// actor's model (`field_0 = 0xE`, the 0x8B8 effect record for the second
 /// coordinate) and finally copies the `field_5A` clip id into `field_894` and
 /// rebuilds the four coordinate parts the actor draws from.
-static void func_actor_401800_80138F5C(Task* arg0)
+static void oddStrangerGrabHold(Task* arg0)
 {
     OddStrangerWork*      work;
     Enemy*                enemy;
@@ -2700,71 +2531,7 @@ static void func_actor_401800_80138F5C(Task* arg0)
     Gp_UpdateCoord(&arg0->extra.tmd->coords[2]);
 }
 
-/// Per-frame body of the live actor while it walks: on work flag bit 0 it
-/// raises the `0x10`/7/2 render slots, re-sends the `0x3FF` animation record
-/// with clip 3 to the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task and seeds the walk step
-/// `field_C0C` to -0x78; otherwise, while the `field_5A` clip is one of
-/// `0x10..0x16`, it advances the actor along its own local Z by `field_C0C`
-/// once `detectPlayerOutOfReach` says the path is still clear and halves
-/// that step each time the `field_A30` contact fires. Both paths then tick the
-/// animation, and — on work bit 0 — pick `field_0` from the enemy's state byte
-/// (`6`, or `0xA` when the enemy is not the one `detectSightBlocked`
-/// reports) and release the `0x3F1` message once.
-static void func_actor_401800_80139118(Task* arg0)
-{
-    OddStrangerWork* work;
-    Enemy*           enemy;
-    PlayerStatus*    config;
-    u8               kind;
-
-    work   = arg0->work;
-    enemy  = arg0->spawnArg2.pointer;
-    config = &gPlayerStatus;
-    if (work->field_4 != 0) {
-        work->field_8A2 = 0x10;
-        work->field_89E = 7;
-        work->field_898 = 2;
-        oddStrangerDrive(arg0);
-        gOddStrangerPlayerAnim.animationId = 3;
-        if (config->hp > 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
-        }
-        work->field_C0C        = -0x78;
-        work->field_6          = 0;
-        work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        return;
-    }
-    if ((Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) && (config->hp > 0) && (work->field_C28 == 1)) {
-        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
-        work->field_C28 = 0;
-    }
-    if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7) {
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C0C) != 0) {
-            actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_C0C);
-        }
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1) {
-            work->field_C0C = work->field_C0C / 2;
-        }
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    oddStrangerDrive(arg0);
-    if (work->flags_68.half & 1) {
-        kind = enemy->node.state.parts.targeted;
-        if (kind == 1) {
-            if (detectSightBlocked(arg0) == kind) {
-                work->field_0 = 6;
-            } else {
-                work->field_0 = 0xA;
-            }
-        } else {
-            work->field_0 = 6;
-        }
-        if ((config->hp > 0) && (work->field_C28 == 1)) {
-            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
-            work->field_C28 = 0;
-        }
-    }
-}
+#include "../../shared/odd_stranger_grab_release.inc.c"
 
 /// Per-frame body of the live actor armed into state 1: raises the same
 /// animation slots as `func_actor_401800_8013971C` but leaves `field_89E = 0xA`
@@ -2950,56 +2717,7 @@ static void func_actor_401800_801399C4(Task* arg0)
     }
 }
 
-/// Grow-and-settle body of the live actor: while its flag is set it clears the
-/// `field_C` overlay, drops the two `WorldCollisionBody` flag bits the previous body raised,
-/// marks the enemy node live and restarts the step counter. The counter then
-/// runs to 0x401, firing the light-mode and `0x600A5` effect cues as it crosses
-/// steps 0x18, 0x1D, 0x29, 0x2F and 0x3F, and from step 0x1A on rebuilds the
-/// root coordinate's Y rotation from its current yaw at scale 0x1194 with the
-/// Y component shedding 0xB a step. Same body as `Actor01900_Fn06904` with the
-/// `Gp_ReleaseStateF0Add` argument and the actor types changed.
-static void func_actor_401800_80139B18(Task* arg0)
-{
-    OddStrangerWork* work;
-    Enemy*           enemy;
-    TmdObject*       obj;
-    s16              cur;
-
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        obj->flags                    = 0;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_6                 = 0;
-    }
-    if (work->field_6 < 0x401) {
-        switch ((s16)(work->field_6++ - 0x18)) {
-            case 0:
-                Gp_ReleaseStateF0Add(arg0, 0xA);
-                break;
-            case 5:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 3, NULL);
-                break;
-            case 23:
-                arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                break;
-            case 17:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
-                break;
-            case 39:
-                arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                break;
-        }
-        cur = work->field_6;
-        if (cur >= 0x1A) {
-            actorRescaleYawY(arg0->extra.tmd->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
-        }
-    }
-}
+#include "../../shared/odd_stranger_die.inc.c"
 
 /// Countdown body: on the live-actor flag re-allocates the model's buffers,
 /// copies the root coordinate over its `field_BC8` home and restarts the step
@@ -3009,7 +2727,7 @@ static void func_actor_401800_80139B18(Task* arg0)
 /// `field_C16` and arm `gSceneCombatState` state 6 on a miss — bit 0x50000 there arms
 /// it the same way. After the shared per-frame tick the body flips between
 /// states 0xE and 0xF, one LCG draw per attempt, on the two `flags_68` mask
-/// bits. Same shape as `func_actor_401800_8013A034`.
+/// bits. Same shape as `oddStrangerDormant`.
 static void func_actor_401800_80139D60(Task* arg0)
 {
     OddStrangerWork* work;
@@ -3087,7 +2805,7 @@ static void func_actor_401800_80139D60(Task* arg0)
 /// `field_C16`, the actor plays 0x51030008 and arms `gSceneCombatState` in state 6 —
 /// bit 0x50000 of `gSceneCombatState` arms it the same way. Same shape as
 /// `Actor01900_Fn06B4C` and `func_actor_401300_801397F8`.
-static void func_actor_401800_8013A034(Task* arg0)
+static void oddStrangerDormant(Task* arg0)
 {
     OddStrangerWork* work;
     Enemy*           enemy;
@@ -3156,7 +2874,7 @@ static void func_actor_401800_8013A034(Task* arg0)
 /// `Actor01900_Fn06F40` / `func_actor_401300_80139AB0`, with the aim and step
 /// helpers inlined. The waypoint delta is written twice; the retail build keeps
 /// both sets of stores.
-static void func_actor_401800_8013A2E8(Task* arg0)
+static void oddStrangerPatrol(Task* arg0)
 {
     OddStrangerWork*  work;
     TmdObject*        obj;
@@ -3252,197 +2970,15 @@ static void func_actor_401800_8013A2E8(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
-/// Aim the actor at the player, fold the clamped turn into the root
-/// coordinate's Y rotation, then step it along its own local Z while
-/// `detectPlayerOutOfReach` says the path is clear — reloading
-/// `field_0 = 9` once the `field_C04` step countdown runs out. Same body as
-/// `func_actor_401300_8013A208`, with the aim and step helpers inlined.
-static void func_actor_401800_8013AB64(Task* arg0)
-{
-    OddStrangerWork*  work;
-    Enemy*            enemy;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    ActorTurnScratch* turn;
-    u16               next;
+#include "../../shared/odd_stranger_advance.inc.c"
 
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        enemy           = arg0->spawnArg2.pointer;
-        obj             = arg0->extra.tmd;
-        work->field_89E = 0x12;
-        work->field_898 = 1;
-        obj->flags      = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_8D0.radius        = 0x12C;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.parts.flags = 0;
-        work->field_8B0               = 0;
-        work->field_8A2               = 0x1E;
-    }
-    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    turn->angle     = actorPositionYaw(arg0, &turn->delta, &gPlayerStatus);
-    work->field_8AE = turn->angle;
-    if (turn->angle > 0x40) {
-        turn->angle = 0x40;
-    }
-    if (turn->angle < -0x40) {
-        turn->angle = -0x40;
-    }
-    coord        = arg0->extra.tmd->coords;
-    turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-        oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
-    }
-    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C04) != 0) {
-        actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_C04);
-    }
-    if (work->field_C04 > 0) {
-        next            = work->field_C04 - 0xA;
-        work->field_C04 = next;
-        if ((s16)next < 0) {
-            work->field_C04 = 0;
-        }
-    }
-    oddStrangerDrive(arg0);
-    if ((work->flags_68.half & 1) || work->field_C04 == 0) {
-        work->field_0 = 9;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
-}
+#include "../../shared/odd_stranger_back_off.inc.c"
 
-/// Aim the actor at the player and rebuild its root coordinate from the new
-/// yaw at scale 0x1194, clamping the turn it adds to +-0x80 and halving it
-/// when it is not below -0x80. Once the aim state reaches 0x11 it counts
-/// frames in `field_6`, steps the actor along its own local Z while
-/// `detectPlayerOutOfReach` says the path is clear, re-seeds the
-/// `field_A30` contact record and past 0x13 frames turns the actor away from
-/// the side the player is on by +-0x4B0. On the live flag it resets the model
-/// buffers and arms the state 2 the aim test promotes to 0x11 within 0x80.
-/// Same body as `Actor01900_Fn080A8` / `func_actor_401300_8013A5C0`, with the
-/// aim, rescale and step helpers inlined.
-static void func_actor_401800_8013AF1C(Task* arg0)
-{
-    OddStrangerWork*   work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    ActorChaseScratch* aim;
-
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x12C;
-        work->field_898        = 1;
-        work->field_8A2        = 0x16;
-        work->field_89E        = 2;
-        work->field_89A        = 0;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
-        return;
-    }
-    oddStrangerDrive(arg0);
-    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
-    aim             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
-    work->field_8AE = aim->turn;
-    if (ABS(aim->turn) <= 0x80 && work->field_89E == 2) {
-        work->field_8A2 = 0x16;
-        work->field_89E = 0x11;
-        work->field_898 = 1;
-        work->field_6   = 0;
-        oddStrangerDrive(arg0);
-    }
-    if (aim->turn > 0x80) {
-        aim->turn = 0x80;
-    }
-    if (aim->turn < -0x80) {
-        aim->turn = -0x80;
-    } else {
-        aim->turn = aim->turn >> 1;
-    }
-    coord      = arg0->extra.tmd->coords;
-    aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->field_89E == 0x11) {
-        work->field_6++;
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x10) != 0) {
-            actorStepForward(arg0->extra.tmd->coords, -0x10);
-        }
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
-            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
-        }
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (work->field_6 >= 0x13) {
-            if (work->field_8AE <= 0) {
-                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x4B0, 0);
-            } else {
-                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x4B0, 0);
-            }
-            work->field_0 = 7;
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
-}
-
-static void func_actor_401800_8013B444(Task* arg0)
-{
-    OddStrangerWork*   work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    ActorChaseScratch* aim;
-
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x12C;
-        work->field_898        = 1;
-        work->field_8A2        = 0x10;
-        work->field_89E        = 9;
-        work->field_89A        = 0;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        oddStrangerDrive(arg0);
-        work->field_6 = 0;
-        return;
-    }
-    work->field_6++;
-    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
-    aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->flags_68.half & 1) {
-        work->field_0 = 7;
-    }
-    aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
-    work->field_8AE = aim->turn;
-    if (aim->turn > 0) {
-        aim->turn = 0;
-    }
-    if (aim->turn < 0) {
-        aim->turn = 0;
-    }
-    coord      = arg0->extra.tmd->coords;
-    aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    oddStrangerDrive(arg0);
-    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
-}
+#include "../../shared/odd_stranger_hold_aim.inc.c"
 
 /// Aim the actor at the player and rescale its root coordinate, turning the
 /// stored yaw toward the target by at most 0x28 a frame instead of the hard
-/// clamp `func_actor_401800_80135F58` uses. On the live flag it resets the
+/// clamp `oddStrangerFacePlayer` uses. On the live flag it resets the
 /// model buffers and re-arms the step countdown; otherwise it hands the
 /// player offset and the new yaw to the actor's state body and rebuilds the
 /// matrix at scale 0x1194.
@@ -3565,7 +3101,7 @@ static void func_actor_401800_8013BB10(Task* arg0)
 /// state runs its light/state table and folds the countdown into the root
 /// coordinate's Y scale; the nine body coordinates from +2 to +10 are then
 /// rebuilt at unit scale.
-static void func_actor_401800_8013BF48(Task* arg0)
+static void oddStrangerWalkingDeath(Task* arg0)
 {
     SVECTOR          vec;
     OddStrangerWork* work;
@@ -3670,7 +3206,7 @@ static void func_actor_401800_8013BF48(Task* arg0)
 /// `detectPlayerOutOfReach` says the path is clear. On the `func_actor_
 /// 401800_80133918` hit it clears the stride, picks a side from the LCG and
 /// flips it every 0xF1 frames instead. Same body as `Actor01900_Fn042BC`.
-static void func_actor_401800_8013CD98(Task* arg0)
+static void oddStrangerStalk(Task* arg0)
 {
     OddStrangerWork*   work;
     TmdObject*         obj;
@@ -3786,42 +3322,42 @@ static void func_actor_401800_8013CD98(Task* arg0)
 
 static const OddStrangerStateTable gOddStrangerStates = { {
     func_actor_401800_8013E138,
-    func_actor_401800_8013E194,
-    func_actor_401800_8013E23C,
-    func_actor_401800_8013E2E8,
-    func_actor_401800_80135DAC,
-    func_actor_401800_8013E394,
-    func_actor_401800_80135F58,
+    oddStrangerScriptPose2,
+    oddStrangerScriptPose3,
+    oddStrangerScriptPoseB,
+    oddStrangerStunned,
+    oddStrangerScriptPoseD,
+    oddStrangerFacePlayer,
     func_actor_401800_80136560,
-    func_actor_401800_80136EAC,
-    func_actor_401800_80137714,
-    func_actor_401800_80137DDC,
+    oddStrangerChase,
+    oddStrangerTurnAround,
+    oddStrangerSidestep,
     func_actor_401800_801381E4,
-    func_actor_401800_80138C28,
-    func_actor_401800_80138F5C,
-    func_actor_401800_80139118,
-    func_actor_401800_8013E44C,
+    oddStrangerGrab,
+    oddStrangerGrabHold,
+    oddStrangerGrabRelease,
+    oddStrangerScriptPose8,
     func_actor_401800_8013E4F0,
-    func_actor_401800_8013E5A4,
+    oddStrangerIdle,
     NULL,
     func_actor_401800_8013945C,
     func_actor_401800_801399C4,
-    func_actor_401800_80139B18,
+    oddStrangerDie,
     func_actor_401800_80139D60,
-    func_actor_401800_8013A034,
-    func_actor_401800_8013A2E8,
-    func_actor_401800_8013AF1C,
-    func_actor_401800_8013AB64,
-    func_actor_401800_8013B444,
+    oddStrangerDormant,
+    oddStrangerPatrol,
+    oddStrangerBackOff,
+    oddStrangerAdvance,
+    oddStrangerHoldAim,
     func_actor_401800_8013B784,
     func_actor_401800_8013BB10,
-    func_actor_401800_8013CD98,
+    oddStrangerStalk,
     func_actor_401800_8013971C,
     func_actor_401800_80139870,
-    func_actor_401800_8013BF48,
+    oddStrangerWalkingDeath,
 } };
 
-static void func_actor_401800_8013D64C(Enemy* arg0, Task* arg1)
+static void oddStrangerTick(Enemy* arg0, Task* arg1)
 {
     VECTOR                pos;
     OddStrangerStateTable states;
@@ -3881,7 +3417,7 @@ static void func_actor_401800_8013D64C(Enemy* arg0, Task* arg1)
     if (work->field_BE8 > 0) {
         work->field_BE8 = (s16)((u16)work->field_BE8 - 1);
     } else {
-        func_actor_401800_80134C94(arg1);
+        oddStrangerTakeHit(arg1);
     }
     if (work->field_2 != work->field_0) {
         if ((work->field_2 == 0xB) || (work->field_2 == 0xD)) {
@@ -3950,7 +3486,7 @@ void func_actor_401800_8013DCB4(void)
 /// the enemy down.
 static const GpEnemyTaskFuncTable3 D_actor_401800_80132064 = { {
     func_actor_401800_8013423C,
-    func_actor_401800_8013D64C,
+    oddStrangerTick,
     Gp_DestroyEnemy,
 } };
 
@@ -3964,81 +3500,9 @@ static const GpEnemyTaskFuncTable3 D_actor_401800_80132064 = { {
 
 #include "../../shared/actor_messages_release_hold.inc.c"
 
-/// Room request handler: copies the request's three leading bytes into the work
-/// block, then dispatches on the request's room id and state pair.
-///
-/// Room `0x301` only accepts state `1` (mount); room `0x1002` accepts `0`
-/// (reset) or `2`, which parks the actor's root coordinate at
-/// (-0x595, 0, -0x5B1) and rebuilds its Y rotation from -0x400, clearing `composeStamp`
-/// so the coordinate tree recomputes. Anything else returns 0, leaving the work
-/// block's `field_0` state alone. Same body as `Actor01900_Fn0A5A4`, which
-/// takes the same record and dispatches on the same two room ids.
-s32 func_actor_401800_8013DF80(Task* arg0, s32 arg1, u16* arg2)
-{
-    OddStrangerWork* work;
-    u16              room;
-    u16              state;
-    u16              state2;
+#include "../../shared/odd_stranger_apply_command.inc.c"
 
-    work = arg0->work;
-
-    work->field_C18[0] = ((u8*)arg2)[0];
-    work->field_C18[1] = ((u8*)arg2)[1];
-    work->field_C18[2] = ((u8*)arg2)[2];
-
-    room = arg2[0];
-    if (room == 0x301) {
-        state = arg2[1];
-        switch (state) {
-            case 1:
-                work->field_0 = 0x17;
-                return 1;
-            default:
-                return 0;
-        }
-    } else if (room == 0x1002) {
-        state2 = arg2[1];
-        switch (state2) {
-            case 0:
-                work->field_0 = 0;
-                return 1;
-            case 2:
-                work->field_0                       = 0x1C;
-                arg0->extra.tmd->coords->coord.t[0] = -0x595;
-                arg0->extra.tmd->coords->coord.t[1] = 0;
-                arg0->extra.tmd->coords->coord.t[2] = -0x5B1;
-                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
-                arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                return 1;
-            default:
-                return 0;
-        }
-    } else {
-        return 0;
-    }
-}
-
-static void func_actor_401800_8013E0A0(Task* task)
-{
-    OddStrangerWork* work;
-    Enemy*           enemy;
-
-    work  = (OddStrangerWork*)task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
-    if (work != NULL) {
-        if (work->field_C1C != NULL) {
-            taskKill(work->field_C1C);
-        }
-        if (work->field_C20 != NULL) {
-            taskKill(work->field_C20);
-        }
-        Gp_UnlinkObj(&work->field_B50);
-        Gp_UnlinkObj(&work->field_8D0);
-        Gp_UnlinkObj(&work->field_A10);
-        enemy->recs = 0;
-    }
-    Gp_DestroyEnemy(enemy, task);
-}
+#include "../../shared/odd_stranger_exit.inc.c"
 
 static void func_actor_401800_8013E138(Task* arg0)
 {
@@ -4055,127 +3519,15 @@ static void func_actor_401800_8013E138(Task* arg0)
     }
 }
 
-static void func_actor_401800_8013E194(Task* arg0)
-{
-    TmdObject*       obj;
-    OddStrangerWork* work;
+#include "../../shared/odd_stranger_script_pose_2.inc.c"
 
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898       = 2;
-        work->field_8A2       = 0x10;
-        work->field_89E       = 2;
-        work->field_89A       = 0;
-        work->field_B50.flags = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_A10.flags = (u16)(work->field_A10.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        oddStrangerDrive(arg0);
-    } else {
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        oddStrangerDrive(arg0);
-    }
-}
+#include "../../shared/odd_stranger_script_pose_3.inc.c"
 
-static void func_actor_401800_8013E23C(Task* arg0)
-{
-    TmdObject*       obj;
-    OddStrangerWork* work;
+#include "../../shared/odd_stranger_script_pose_b.inc.c"
 
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898       = 2;
-        work->field_8A2       = 0x10;
-        work->field_89E       = 3;
-        work->field_89A       = 0;
-        work->field_B50.flags = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_A10.flags = (u16)(work->field_A10.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        oddStrangerDrive(arg0);
-    } else {
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        oddStrangerDrive(arg0);
-    }
-}
+#include "../../shared/odd_stranger_script_pose_d.inc.c"
 
-static void func_actor_401800_8013E2E8(Task* arg0)
-{
-    TmdObject*       obj;
-    OddStrangerWork* work;
-
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898       = 2;
-        work->field_8A2       = 0x10;
-        work->field_89E       = 0xB;
-        work->field_89A       = 0;
-        work->field_B50.flags = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_A10.flags = (u16)(work->field_A10.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        oddStrangerDrive(arg0);
-    } else {
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        oddStrangerDrive(arg0);
-    }
-}
-
-static void func_actor_401800_8013E394(Task* arg0)
-{
-    TmdObject*       obj;
-    OddStrangerWork* work;
-
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_898       = 2;
-        work->field_8A2       = 0x12;
-        work->field_89E       = 0xD;
-        work->field_89A       = 0;
-        work->field_B50.flags = (u16)(work->field_B50.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_A10.flags = (u16)(work->field_A10.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    oddStrangerDrive(arg0);
-    if (work->flags_68.half & 1) {
-        work->field_0 = 7;
-    }
-}
-
-static void func_actor_401800_8013E44C(Task* arg0)
-{
-    OddStrangerWork* work;
-    Enemy*           enemy;
-
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->field_8D0.radius        = 0x12C;
-        work->field_B50.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.parts.flags = 0;
-        work->field_898               = 2;
-        work->field_89E               = 8;
-        work->field_8B0               = 0;
-        work->field_8AE               = 0;
-        work->field_8A2               = work->field_8A4;
-    }
-    oddStrangerDrive(arg0);
-    if (work->flags_68.half & 1) {
-        work->field_0 = 7;
-    }
-}
+#include "../../shared/odd_stranger_script_pose_8.inc.c"
 
 static void func_actor_401800_8013E4F0(Task* arg0)
 {
@@ -4210,7 +3562,7 @@ static void func_actor_401800_8013E4F0(Task* arg0)
 /// `field_0` (0xF for states 11/23, 0x10 for 12/24/25); a target with no HP
 /// left forces 0x15 over that. Same body as `func_actor_401300_80141DF4`,
 /// whose counterpart masks the LCG draw with 0xF instead of 7.
-static void func_actor_401800_8013E5A4(Task* arg0)
+static void oddStrangerIdle(Task* arg0)
 {
     OddStrangerWork* work;
     Enemy*           enemy;
