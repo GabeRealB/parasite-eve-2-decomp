@@ -1,6 +1,8 @@
 /* Drawing of the Shelter rooms' animated effect sprites: one frame of a ten-
  * cell 48x48 sprite sheet, drawn as a textured quad at a coordinate's world
  * position, rotated and scaled by depth.
+ * effectSpriteRiseTask is the plainer rising sprite of the pod rooms: eight
+ * cells drawn through gameplay's Gp_DrawFxQuad in one of six random CLUTs.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -30,5 +32,7 @@ void effectSpriteDrawBillboard(GfxCoord* arg0, s32 arg1, s32 arg2);
 void effectSpriteDriftTask(Task* task);
 void effectSpriteDriftTaskAimed(Task* task);
 void effectSpriteDebrisTask(Task* task);
+
+void effectSpriteRiseTask(Task* task);
 
 #endif /* SRC_SHARED_EFFECT_SPRITE_H */
