@@ -179,9 +179,15 @@ static inline void _taskCollectImmediately(Task* task)
 /// signed counter is zero. Keep the store and decrement as separate operations.
 static inline void _taskStopForInlineBodyRelease(Task* task)
 {
-    enum { TASK_INLINE_BODY_RELEASE_TICKS = 1 };
+    /// Initial countdown for non-model body teardown completed within the same call.
+    ///
+    /// Stored in the signed 16-bit `Task::killCountdown`, then decremented once
+    /// after both callbacks become inert. The resulting zero permits coordinate
+    /// body release or bodyless-task marking before `taskKill` returns; it counts
+    /// that synchronous decrement rather than future scheduler dispatches.
+    enum { TASK_SYNCHRONOUS_BODY_RELEASE_COUNTDOWN = 1 };
 
-    task->killCountdown = TASK_INLINE_BODY_RELEASE_TICKS;
+    task->killCountdown = TASK_SYNCHRONOUS_BODY_RELEASE_COUNTDOWN;
     task->callback      = taskNoopCallback;
     task->exitCallback  = taskNoopCallback;
     task->killCountdown--;
