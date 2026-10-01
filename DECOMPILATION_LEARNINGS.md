@@ -19696,14 +19696,14 @@ register s32 t_sh asm("a0");
 register s32 t_vz asm("v1");
 register s32 t_sh2 asm("a1");
 
-t_vy = block->vy;
+t_vy = scratch->direction.vy;
 __asm__ volatile("" :: "r"(t_vy));   /* force vy load first */
-t_sh = block->lzc_min;
-t_vz = block->vz;
+t_sh = scratch->scaleBits;
+t_vz = scratch->direction.vz;
 t_sh2 = t_sh;
 __asm__ volatile("" : "+r"(t_sh2));  /* keep move a1,a0; block CSE */
-block->vy = t_vy >> t_sh;
-block->vz = t_vz >> t_sh2;
+scratch->direction.vy = t_vy >> t_sh;
+scratch->direction.vz = t_vz >> t_sh2;
 ```
 
 Without the first barrier, `lw a0,0x10` wins the schedule. Without the second,

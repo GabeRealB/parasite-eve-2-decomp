@@ -10,13 +10,18 @@
 
 #include "main/scratch.h"
 
-/// Gfx_NormalizeLightDir's scratch-pad block: the direction being scaled down
-/// to fit VectorNormalS, and the leading-zero counts of its components.
+/// Scratch workspace for scaling a light direction before normalization.
+///
+/// The input copy preserves the caller's direction while `VectorNormalS` uses
+/// its reduced components. GTE counts include the sign bit: leading zeros for
+/// nonnegative components and leading ones for negative components.
+/// Owned by one scratch-stack reservation and released after normalization.
 typedef struct {
-    VECTOR v;
-    s32    lzc_min; // fewest leading zeros among the components, then the shift applied
-    s32    lzc_tmp; // leading zeros of the component just counted
-} ScratchNormBlock;
+    VECTOR direction;         // Input direction, uniformly reduced if needed; fourth word copied but unused
+    s32    scaleBits;         // Minimum leading sign bits (1..32), reused as the common right shift (1..17)
+    s32    componentSignBits; // Leading sign bits of the Y or Z component just counted (1..32)
+} _GfxLightDirectionScratch;
+STATIC_ASSERT_SIZEOF(_GfxLightDirectionScratch, 0x18);
 
 /// Temporary matrix and trigonometric values for a rotation about one axis.
 ///
@@ -430,34 +435,39 @@ void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag)
 
 void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
 {
-    ScratchNormBlock* block;
+    enum { GRAPHICS_NORMALIZE_MIN_SIGN_BITS = 18 };
 
-    block    = SCRATCH_STACK_RESERVE_BLOCK(ScratchNormBlock);
-    block->v = *light;
+    _GfxLightDirectionScratch* scratch;
 
-    gte_Lzc(block->v.vx, &block->lzc_min);
-    gte_Lzc(block->v.vy, &block->lzc_tmp);
+    scratch            = SCRATCH_STACK_RESERVE_BLOCK(_GfxLightDirectionScratch);
+    scratch->direction = *light;
 
-    if (block->lzc_min > block->lzc_tmp) {
-        block->lzc_min = block->lzc_tmp;
+    // Find the component with the least sign-extension headroom.
+    gte_Lzc(scratch->direction.vx, &scratch->scaleBits);
+    gte_Lzc(scratch->direction.vy, &scratch->componentSignBits);
+
+    if (scratch->scaleBits > scratch->componentSignBits) {
+        scratch->scaleBits = scratch->componentSignBits;
     }
 
-    gte_Lzc(block->v.vz, &block->lzc_tmp);
+    gte_Lzc(scratch->direction.vz, &scratch->componentSignBits);
 
-    if (block->lzc_min > block->lzc_tmp) {
-        block->lzc_min = block->lzc_tmp;
+    if (scratch->scaleBits > scratch->componentSignBits) {
+        scratch->scaleBits = scratch->componentSignBits;
     }
 
-    if (block->lzc_min < 18) {
-        block->lzc_min = 18 - block->lzc_min;
-        block->v.vx  >>= block->lzc_min;
-        block->v.vy  >>= block->lzc_min;
-        block->v.vz  >>= block->lzc_min;
+    // Limit components to [-16384, 16383] so their squared sum fits s32.
+    // The count word becomes the shared arithmetic right-shift amount.
+    if (scratch->scaleBits < GRAPHICS_NORMALIZE_MIN_SIGN_BITS) {
+        scratch->scaleBits      = GRAPHICS_NORMALIZE_MIN_SIGN_BITS - scratch->scaleBits;
+        scratch->direction.vx >>= scratch->scaleBits;
+        scratch->direction.vy >>= scratch->scaleBits;
+        scratch->direction.vz >>= scratch->scaleBits;
     }
 
-    VectorNormalS(&block->v, out);
+    VectorNormalS(&scratch->direction, out);
 
-    SCRATCH_STACK_RELEASE_BLOCK(ScratchNormBlock);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxLightDirectionScratch);
 }
 
 /// Builds a rotation from two axes: `arg2` and `arg1` become rows 1 and 2 of a
