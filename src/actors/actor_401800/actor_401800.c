@@ -1129,7 +1129,6 @@ static void            func_actor_401800_801399C4(Task* arg0);
 static void            func_actor_401800_80139D60(Task* arg0);
 static void            func_actor_401800_8013B784(Task* arg0);
 static void            func_actor_401800_8013BB10(Task* arg0);
-static void            oddStrangerWalkingDeath(Task* arg0);
 
 #include "../../shared/actor_contacts.h"
 
@@ -2440,110 +2439,7 @@ static void func_actor_401800_8013BB10(Task* arg0)
     }
 }
 
-/// Step-driven aim-and-rescale body: while the spawn flag is set the actor
-/// pitches its 0x8C8 node to the 0x12C walk animation, sets the 0xA08 flags bit
-/// 0x4000, plays the 0x60030 burst and arms the 2/0x1A state pair; the step
-/// counter then steps the actor along its facing while
-/// `detectPlayerOutOfReach` reports the path clear, re-seeds the
-/// `field_A30` contact and fires the 0xA0005 effects at 3, 5 and 6. The 0x1A
-/// state runs its light/state table and folds the countdown into the root
-/// coordinate's Y scale; the nine body coordinates from +2 to +10 are then
-/// rebuilt at unit scale.
-static void oddStrangerWalkingDeath(Task* arg0)
-{
-    SVECTOR          vec;
-    OddStrangerWork* work;
-    Enemy*           enemy;
-    u16              next;
-    s16              cur;
-
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->field_4 != 0) {
-        work->field_8D0.radius        = 0x12C;
-        work->field_A10.flags         = (u16)(work->field_A10.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->field_8AE               = 0;
-        work->field_6                 = 0U;
-        vec.vx                        = 0x64;
-        vec.vz                        = 0;
-        vec.vy                        = 0;
-        work->field_89E               = 2;
-        work->field_898               = 1;
-        work->field_8A2               = 0x10;
-        Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
-        work->field_6 = 0U;
-    }
-    next          = work->field_6 + 1;
-    work->field_6 = next;
-    switch (work->field_89E) {
-        case 2:
-            if ((s16)next >= 0x10 && (work->flags_68.half & 2)) {
-                work->field_89E = 0x1A;
-                work->field_898 = 2;
-                work->field_8A2 = 0x10;
-                work->field_89A = 0;
-            }
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 7) != 0) {
-                actorStepForward(arg0->extra.tmd->coords, 7);
-            }
-            ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC);
-            if (work->field_6 == 3) {
-                D_80114B34[5].data.model = &gOddStrangerBurstModelA;
-                vec.vz                   = 0x64;
-                vec.vy                   = 0;
-                vec.vx                   = 0;
-                actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
-            }
-            if (work->field_6 == 5) {
-                D_80114B34[5].data.model = &gOddStrangerBurstModelA;
-                actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
-            }
-            if (work->field_6 == 6) {
-                D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-                actorTintEffect(Gp_SpawnEff(0xA0005, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
-            }
-            break;
-        case 0x1A:
-            if (!(work->flags_68.half & 0x100)) {
-                work->field_6 = 0;
-            }
-            switch ((s16)(work->field_6 - 0x19)) {
-                case 0:
-                    Gp_ReleaseStateF0Add(arg0, 0xA);
-                    break;
-                case 5:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 2, NULL);
-                    break;
-                case 23:
-                    arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                    break;
-                case 17:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
-                    break;
-                case 39:
-                    arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    work->field_0          = 0;
-                    break;
-            }
-            cur = work->field_6;
-            if (cur >= 0x1A) {
-                actorRescaleYawY(arg0->extra.tmd->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
-            }
-            break;
-    }
-    oddStrangerDrive(arg0);
-    actorResetYaw(arg0->extra.tmd->coords + 2);
-    actorResetYaw(arg0->extra.tmd->coords + 3);
-    actorResetYaw(arg0->extra.tmd->coords + 4);
-    actorResetYaw(arg0->extra.tmd->coords + 5);
-    actorResetYaw(arg0->extra.tmd->coords + 6);
-    actorResetYaw(arg0->extra.tmd->coords + 7);
-    actorResetYaw(arg0->extra.tmd->coords + 8);
-    actorResetYaw(arg0->extra.tmd->coords + 9);
-    actorResetYaw(arg0->extra.tmd->coords + 10);
-}
+#include "../../shared/odd_stranger_walking_death.inc.c"
 
 #include "../../shared/odd_stranger_stalk.inc.c"
 
