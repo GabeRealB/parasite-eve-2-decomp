@@ -2225,7 +2225,15 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
 
 void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination, void* encodedDestination)
 {
-    // Encoding 2 reports a diagnostic; its pose layout is unproven.
+    /// Unsupported track encoding that reports an error instead of producing a pose.
+    ///
+    /// The initial keyframe's low flags nibble supplies this selector. Playback
+    /// still processes timing and resolves both endpoints before reporting the
+    /// error; it neither decodes pose bytes nor writes the model coordinate or
+    /// either destination. Bank endpoints select bank 2 and use four-byte word
+    /// offsets, so their set and record indices must still be valid. Buffered
+    /// endpoints use the slot's existing entry. No pose layout or encoded byte
+    /// extent is established for this encoding.
     enum { ANIMATION_POSE_UNSUPPORTED = 2 };
 
     _AnimationTickScratch* scratch;
