@@ -362,7 +362,7 @@ directions.
 |---|---|---|---|
 | `tmdDrawStreamPrimG3CornerNormals` | `0x8`, `0x10`, `0x18` | `POLY_G3` | triangle |
 | `tmdDrawStreamGt3` | `0x8`, `0x14`, `0x20` | `POLY_GT3` | triangle |
-| `tmdDrawStreamPrimG4CornerNormals` | `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
+| `tmdDrawStreamPrimG4CornerNormals` | `0x8`, `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
 | `tmdDrawStreamGt4` | `0x8`, `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 | `tmdDrawStreamPrimGt4OneNormal` | `0x8`, `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 
@@ -615,7 +615,7 @@ transform, a cull, a packet's filing and its ordering-table link.
 | `0x21` | `tmdDrawStreamPrimG3PreXform` | 2 | 2 | pre-transformed opaque `POLY_G3`: three u16 byte offsets address the depth cache; positive winding and depths without `TMD_VERTEX_DEPTH_INVALID` permit an `AVSZ3` OT link. Every element consumes 28 packet bytes; object blend/reverse-culling flags are ignored — **solved**, §3.5 |
 | `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | per-corner-lit `POLY_G3`; the element's RGB/code word supplies blending, and drawing consumes one packet slot per element despite skipped construction |
 | `0x61` | `tmdDrawStreamPrimG4PreXform` | — | — | the pre-transformed untextured quad — face-tested, coded and linked into the ordering table — **solved**, §3.2 |
-| `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | ? |
+| `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | per-corner-lit `POLY_G4`: four u16 vertex byte offsets, four u16 normal byte offsets, then one RGB/code word; shares the `0x60` draw body. The material command byte supplies blending. Drawing consumes 36 packet bytes per element despite skipped construction, including rejected quads |
 | `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
 | `0xC4` | `gpXformStreamVertsUnlit` | — | — | the `0xC8` pre-pass with the lighting dropped; never seen in data — **solved**, §3.5 |
 | `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |

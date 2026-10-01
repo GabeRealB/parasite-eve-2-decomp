@@ -172,26 +172,49 @@ u32* tmdDrawStreamPrimG4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 /// positive winding is always required.
 u32* tmdDrawStreamPrimG3CornerNormals(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Draw handler of a stream's untextured gouraud-quad records (`0x60`): each
-/// element is one `POLY_G4` in the buffer half's second region, built whole here
-/// as the record is transformed.
+/// Transforms and lights untextured quads using one normal per corner and one material colour.
 ///
-/// The record is the `0x40` quad's with one normal per corner in place of the one
-/// it lights the whole face from: the element names a vertex and a normal per
-/// corner, and the one colour word the quad is lit from. The corners are
-/// projected, and the quad is dropped where either projection raises a GTE error
-/// or the facing tests reject it; what survives is lit corner by corner — three
-/// corners in one lighting step and the fourth in a step of its own, so each
-/// corner of the packet carries the colour its own normal gives — and it is
-/// linked into the ordering table at the depth it came out at. A dropped quad
-/// still consumes its packet's room, because the room was reserved for every
-/// element by the process pass (`modelLightingReserveStreamPrimG4`), whose cursor this one stays in
-/// step with.
+/// Stream resolution selects this handler for `0x60` and `0x62`. `elements`
+/// starts after the three-word record header. Words 0 and 1 pack four unsigned
+/// u16 vertex byte offsets, in corner order; words 2 and 3 pack the four normal
+/// byte offsets in the same order. Word 4 supplies RGB and the GPU command byte,
+/// which NCCT/NCCS preserve in all four independently lit corner colours.
+/// Each offset must address a complete, word-aligned eight-byte vector in the
+/// borrowed `workspace->verts` or `workspace->normals` array. Their complete
+/// extents are not supplied here. `elemCount` and `elemStride` are decoded
+/// unsigned halfwords (0..65535); stride counts u32 words and must be at least
+/// five for a nonempty record. The stream must contain count * stride payload
+/// words and remain valid for the call.
 ///
-/// The packet's primitive code is the top byte of that same colour word, which is
-/// all the record's `0x62` form — the semi-transparent one — differs in. The two
-/// share this body, so `flags` has no variant to select and goes unread.
-u32* tmdDrawStreamPrimG4CornerNormals(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The caller supplies the part's GTE transform, lighting and four-depth
+/// averaging scale. Vertex 3 is projected first, followed by vertices 2, 1, 0.
+/// When vertex 3 equals the preceding element's vertex 0 offset, its screen XY
+/// and depth are reused. A projection with GTE FLAG bit 31 set rejects the
+/// quad and invalidates reuse; a facing rejection retains it. Facing keeps
+/// `NCLIP(2,1,0) < 0` or, if that fails, `NCLIP(2,1,3) > 0`.
+///
+/// The word-aligned `workspace->primWrite` cursor must have count complete
+/// 36-byte `POLY_G4` slots in the selected buffer half's second region.
+/// Construction reserves these slots for `0x60` through
+/// `modelLightingReserveStreamPrimG4`, but skips `0x62`; drawing still consumes
+/// a slot for every element of either opcode. Buffer capacity and later packet
+/// cursors must accommodate that walk. Rejected quads may leave partial
+/// coordinate writes. Accepted packets receive all coordinates, four lit
+/// RGB/command words and an eight-word DMA length. They prepend to
+/// `workspace->ot` at bucket
+/// `(((u32)OTZ << (workspace->otDepthShift & 31)) & 0x3FFF) >> 4`, using AVSZ4.
+/// Normal drawing supplies shifts 0..3. The OT base already includes the
+/// object's signed entry displacement; every resulting bucket (0..1023) must
+/// fit the selected table. DMA links retain 24 address bits. Capacities are
+/// unchecked; packet and OT storage must remain valid until GPU use finishes.
+///
+/// Returns `elements + elemCount * elemStride`, leaving the next record or
+/// marker unconsumed, and updates only `workspace->primWrite` among workspace
+/// fields. Counts, saved GTE results and the first-region cursor are unchanged.
+/// An empty record reads no payload and advances neither cursor. `objectFlags`
+/// is ignored, including blend and reverse-culling bits; neither opcode forces
+/// a GPU command byte, and the facing signs above always apply.
+u32* tmdDrawStreamPrimG4CornerNormals(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Draw handler of a stream's transform pre-pass records that carry a colour of
 /// their own (`0xC0`): `tmdXformStreamVerts`'s pass with the element's colour

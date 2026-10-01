@@ -156,7 +156,56 @@ glabel tmdDrawStreamPrimG3CornerNormals
 endlabel tmdDrawStreamPrimG3CornerNormals
 .purgem TMD_DRAW_STREAM_G3_CORNER_NORMALS_LINK_PACKET
 
+/* POLY_G4 includes its DMA tag; the GPU length excludes that word. */
+.equ TMD_DRAW_STREAM_G4_CORNER_NORMALS_PACKET_BYTES, 36
+.equ TMD_DRAW_STREAM_G4_CORNER_NORMALS_PACKET_WORDS, (TMD_DRAW_STREAM_G4_CORNER_NORMALS_PACKET_BYTES / 4) - 1
+/* Wrap scaled depth to 14 bits, then quantize by 16 into 1024 OT buckets. */
+.equ TMD_DRAW_STREAM_G4_CORNER_NORMALS_DEPTH_MASK, 0x3FFF
+.equ TMD_DRAW_STREAM_G4_CORNER_NORMALS_DEPTH_SHIFT, 4
+.equ TMD_DRAW_STREAM_G4_CORNER_NORMALS_DMA_ADDRESS_BITS, 24
+/* Outside the unsigned u16 vertex-offset domain; forces a fresh projection. */
+.equ TMD_DRAW_STREAM_G4_CORNER_NORMALS_NO_PREVIOUS_VERTEX, 0x0FFF0000
+
+/*
+ * Light all four corners and prepend the completed G4 packet to its OT bucket.
+ * Inputs: t8 packet, t7 displaced OT base, a1 depth shift, t4 normal 3,
+ * GTE V0..2 normals 0..2, RGBC material word and OTZ from AVSZ4.
+ * Clobbers t0..t2, GTE V0, IR/MAC/FLAG and RGB FIFO; writes four
+ * RGB/command words, the DMA tag with eight payload words and OT head.
+ * Preserves v0 (vertex 0 XY), v1
+ * (vertex 0 byte offset) and the SZ FIFO for the next element's reuse.
+ * Fixed registers belong to this handler; expansion emits no call.
+ * The colour stores must precede NCCS, which shifts NCCT's RGB FIFO.
+ * Link arithmetic overlaps NCCS; keep the instruction schedule intact.
+ */
+.macro TMD_DRAW_STREAM_G4_CORNER_NORMALS_LIGHT_AND_LINK_PACKET
+    sll         $t1, $t8, (32 - TMD_DRAW_STREAM_G4_CORNER_NORMALS_DMA_ADDRESS_BITS)
+    srl         $t1, $t1, (32 - TMD_DRAW_STREAM_G4_CORNER_NORMALS_DMA_ADDRESS_BITS)
+    ncct
+    lwc2        $0, 0x0($t4)
+    lwc2        $1, 0x4($t4)
+    mfc2        $t2, $7
+    swc2        $20, 0x4($t8)
+    swc2        $21, 0xC($t8)
+    swc2        $22, 0x14($t8)
+    sllv        $t2, $t2, $a1
+    andi        $t2, $t2, TMD_DRAW_STREAM_G4_CORNER_NORMALS_DEPTH_MASK
+    srl         $t2, $t2, TMD_DRAW_STREAM_G4_CORNER_NORMALS_DEPTH_SHIFT
+    sll         $t2, $t2, 2
+    nccs
+    addu        $t2, $t2, $t7
+    lw          $t0, 0x0($t2)
+    sw          $t1, 0x0($t2)
+    sll         $t0, $t0, (32 - TMD_DRAW_STREAM_G4_CORNER_NORMALS_DMA_ADDRESS_BITS)
+    lui         $t1, (TMD_DRAW_STREAM_G4_CORNER_NORMALS_PACKET_WORDS << 8)
+    srl         $t0, $t0, (32 - TMD_DRAW_STREAM_G4_CORNER_NORMALS_DMA_ADDRESS_BITS)
+    or          $t0, $t1, $t0
+    sw          $t0, 0x0($t8)
+    swc2        $22, 0x1C($t8)
+.endm
+
 glabel tmdDrawStreamPrimG4CornerNormals
+    /* a0 workspace, a1 ignored object flags, a2 first element word. */
     /* 13F4 80010BF4 */  lw          $t9, 0x18($a0)
     /* 13F8 80010BF8 */  lw          $a3, 0x1C($a0)
     /* 13FC 80010BFC */  lw          $t8, 0x0($a0)
@@ -164,19 +213,21 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 1404 80010C04 */  lw          $t6, 0x8($a0)
     /* 1408 80010C08 */  lw          $t5, 0xC($a0)
     /* 140C 80010C0C */  sll         $t9, $t9, 2
-    /* 1410 80010C10 */  lui         $v1, 0xFFF
-    /* 1414 80010C14 */  j           .L80010C28
+    /* 1410 80010C10 */  lui         $v1, (TMD_DRAW_STREAM_G4_CORNER_NORMALS_NO_PREVIOUS_VERTEX >> 16)
+    /* 1414 80010C14 */  j           .LtmdG4CornerNormalsLoop
     /* 1418 80010C18 */  lw          $a1, 0x84($a0)
-  .L80010C1C:
-    /* 141C 80010C1C */  lui         $v1, 0xFFF
-  .L80010C20:
-    /* 1420 80010C20 */  addiu       $t8, $t8, 0x24
-  .L80010C24:
+  .LtmdG4CornerNormalsProjectionRejected:
+    /* A failed projection must not seed the next element's reuse. */
+    /* 141C 80010C1C */  lui         $v1, (TMD_DRAW_STREAM_G4_CORNER_NORMALS_NO_PREVIOUS_VERTEX >> 16)
+  .LtmdG4CornerNormalsAdvance:
+    /* Every element consumes a packet slot, even when rejected. */
+    /* 1420 80010C20 */  addiu       $t8, $t8, TMD_DRAW_STREAM_G4_CORNER_NORMALS_PACKET_BYTES
     /* 1424 80010C24 */  addu        $a2, $t9, $a2
-  .L80010C28:
-    /* 1428 80010C28 */  beq         $zero, $a3, .L80010E0C
+  .LtmdG4CornerNormalsLoop:
+    /* 1428 80010C28 */  beq         $zero, $a3, .LtmdG4CornerNormalsDone
     /* 142C 80010C2C */  nop
     /* 1430 80010C30 */  addiu       $a3, $a3, -0x1
+    /* Project vertex 3 first, unless the preceding vertex 0 supplies XY and SZ. */
     /* 1434 80010C34 */  lui         $at, 0x0
     /* 1438 80010C38 */  addu        $at, $at, $a2
     /* 143C 80010C3C */  lw          $t3, 0x4($at)
@@ -184,13 +235,13 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 1444 80010C44 */  addu        $at, $at, $a2
     /* 1448 80010C48 */  lw          $t1, 0x0($at)
     /* 144C 80010C4C */  srl         $t4, $t3, 16
-    /* 1450 80010C50 */  beq         $t4, $v1, .L80010CA4
+    /* 1450 80010C50 */  beq         $t4, $v1, .LtmdG4CornerNormalsReuseVertex3
     /* 1454 80010C54 */  addu        $t4, $t6, $t4
     /* 1458 80010C58 */  lwc2        $0, 0x0($t4)
     /* 145C 80010C5C */  lwc2        $1, 0x4($t4)
     /* 1460 80010C60 */  sll         $t3, $t3, 16
     /* 1464 80010C64 */  srl         $t3, $t3, 16
-    /* 1468 80010C68 */  .word 0x4A180001
+    /* 1468 80010C68 */  rtps
     /* 146C 80010C6C */  addu        $t3, $t6, $t3
     /* 1470 80010C70 */  srl         $t2, $t1, 16
     /* 1474 80010C74 */  addu        $t2, $t6, $t2
@@ -200,14 +251,13 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 1484 80010C84 */  addu        $t1, $t6, $t1
     /* 1488 80010C88 */  cfc2        $t0, $31
     /* 148C 80010C8C */  nop
-    /* 1490 80010C90 */  bltz        $t0, .L80010C1C
+    /* 1490 80010C90 */  bltz        $t0, .LtmdG4CornerNormalsProjectionRejected
     /* 1494 80010C94 */  nop
     /* 1498 80010C98 */  swc2        $14, 0x20($t8)
-    /* 149C 80010C9C */  j           .L80010CCC
+    /* 149C 80010C9C */  j           .LtmdG4CornerNormalsProjectOtherCorners
     /* 14A0 80010CA0 */  nop
-  .L80010CA4:
+  .LtmdG4CornerNormalsReuseVertex3:
     /* 14A4 80010CA4 */  sll         $t3, $t3, 16
-  .L80010CA8:
     /* 14A8 80010CA8 */  srl         $t3, $t3, 16
     /* 14AC 80010CAC */  addu        $t3, $t6, $t3
     /* 14B0 80010CB0 */  srl         $t2, $t1, 16
@@ -217,7 +267,8 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 14C0 80010CC0 */  addu        $v1, $t1, $zero
     /* 14C4 80010CC4 */  addu        $t1, $t6, $t1
     /* 14C8 80010CC8 */  sw          $v0, 0x20($t8)
-  .L80010CCC:
+  .LtmdG4CornerNormalsProjectOtherCorners:
+    /* RTPT(2,1,0) shifts vertex 3's depth into SZ0 for the later AVSZ4. */
     /* 14CC 80010CCC */  lwc2        $0, 0x0($t3)
     /* 14D0 80010CD0 */  lwc2        $1, 0x4($t3)
     /* 14D4 80010CD4 */  lwc2        $2, 0x0($t2)
@@ -226,7 +277,8 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 14E0 80010CE0 */  lwc2        $5, 0x4($t1)
     /* 14E4 80010CE4 */  nop
     /* 14E8 80010CE8 */  nop
-    /* 14EC 80010CEC */  .word 0x4A280030
+    /* 14EC 80010CEC */  rtpt
+    /* Decode the four normal byte offsets while projection completes. */
     /* 14F0 80010CF0 */  lui         $at, 0x0
     /* 14F4 80010CF4 */  addu        $at, $at, $a2
     /* 14F8 80010CF8 */  lw          $t1, 0x8($at)
@@ -240,32 +292,33 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 1518 80010D18 */  addu        $t1, $t5, $t1
     /* 151C 80010D1C */  cfc2        $t0, $31
     /* 1520 80010D20 */  srl         $t4, $t3, 16
-    /* 1524 80010D24 */  bltz        $t0, .L80010C1C
+    /* 1524 80010D24 */  bltz        $t0, .LtmdG4CornerNormalsProjectionRejected
     /* 1528 80010D28 */  nop
     /* 152C 80010D2C */  addu        $t4, $t5, $t4
     /* 1530 80010D30 */  sll         $t3, $t3, 16
-    /* 1534 80010D34 */  .word 0x4B400006
+    /* Keep either forward-facing triangle and cache vertex 0 XY for reuse. */
+    /* 1534 80010D34 */  nclip
     /* 1538 80010D38 */  mfc2        $v0, $14
     /* 153C 80010D3C */  swc2        $12, 0x18($t8)
     /* 1540 80010D40 */  swc2        $13, 0x10($t8)
     /* 1544 80010D44 */  sw          $v0, 0x8($t8)
     /* 1548 80010D48 */  mfc2        $t0, $24
     /* 154C 80010D4C */  nop
-    /* 1550 80010D50 */  bltz        $t0, .L80010D78
+    /* 1550 80010D50 */  bltz        $t0, .LtmdG4CornerNormalsLightAndLink
     /* 1554 80010D54 */  nop
     /* 1558 80010D58 */  lwc2        $14, 0x20($t8)
     /* 155C 80010D5C */  nop
     /* 1560 80010D60 */  nop
-    /* 1564 80010D64 */  .word 0x4B400006
+    /* 1564 80010D64 */  nclip
     /* 1568 80010D68 */  mfc2        $t0, $24
     /* 156C 80010D6C */  nop
-    /* 1570 80010D70 */  blez        $t0, .L80010C20
+    /* 1570 80010D70 */  blez        $t0, .LtmdG4CornerNormalsAdvance
     /* 1574 80010D74 */  nop
-  .L80010D78:
+  .LtmdG4CornerNormalsLightAndLink:
     /* 1578 80010D78 */  srl         $t3, $t3, 16
-  .L80010D7C:
     /* 157C 80010D7C */  addu        $t3, $t5, $t3
-    /* 1580 80010D80 */  .word 0x4B68002E
+    /* Average all four depths and load the material colour and first three normals. */
+    /* 1580 80010D80 */  avsz4
     /* 1584 80010D84 */  lui         $at, 0x0
     /* 1588 80010D88 */  addu        $at, $at, $a2
     /* 158C 80010D8C */  lwc2        $6, 0x10($at)
@@ -275,37 +328,16 @@ glabel tmdDrawStreamPrimG4CornerNormals
     /* 159C 80010D9C */  lwc2        $3, 0x4($t2)
     /* 15A0 80010DA0 */  lwc2        $4, 0x0($t3)
     /* 15A4 80010DA4 */  lwc2        $5, 0x4($t3)
-    /* 15A8 80010DA8 */  sll         $t1, $t8, 8
-    /* 15AC 80010DAC */  srl         $t1, $t1, 8
-    /* 15B0 80010DB0 */  .word 0x4B18043F
-    /* 15B4 80010DB4 */  lwc2        $0, 0x0($t4)
-    /* 15B8 80010DB8 */  lwc2        $1, 0x4($t4)
-    /* 15BC 80010DBC */  mfc2        $t2, $7
-    /* 15C0 80010DC0 */  swc2        $20, 0x4($t8)
-    /* 15C4 80010DC4 */  swc2        $21, 0xC($t8)
-    /* 15C8 80010DC8 */  swc2        $22, 0x14($t8)
-    /* 15CC 80010DCC */  sllv        $t2, $t2, $a1
-    /* 15D0 80010DD0 */  andi        $t2, $t2, 0x3FFF
-    /* 15D4 80010DD4 */  srl         $t2, $t2, 4
-    /* 15D8 80010DD8 */  sll         $t2, $t2, 2
-    /* 15DC 80010DDC */  .word 0x4B08041B
-    /* 15E0 80010DE0 */  addu        $t2, $t2, $t7
-    /* 15E4 80010DE4 */  lw          $t0, 0x0($t2)
-    /* 15E8 80010DE8 */  sw          $t1, 0x0($t2)
-    /* 15EC 80010DEC */  sll         $t0, $t0, 8
-    /* 15F0 80010DF0 */  lui         $t1, 0x800
-    /* 15F4 80010DF4 */  srl         $t0, $t0, 8
-    /* 15F8 80010DF8 */  or          $t0, $t1, $t0
-    /* 15FC 80010DFC */  sw          $t0, 0x0($t8)
-    /* 1600 80010E00 */  swc2        $22, 0x1C($t8)
-    /* 1604 80010E04 */  j           .L80010C20
+    /* 15A8..1600 80010DA8..80010E00 */  TMD_DRAW_STREAM_G4_CORNER_NORMALS_LIGHT_AND_LINK_PACKET
+    /* 1604 80010E04 */  j           .LtmdG4CornerNormalsAdvance
     /* 1608 80010E08 */  nop
-  .L80010E0C:
+  .LtmdG4CornerNormalsDone:
     /* 160C 80010E0C */  sw          $t8, 0x0($a0)
-  .L80010E10:
     /* 1610 80010E10 */  addu        $v0, $zero, $a2
     /* 1614 80010E14 */  jr          $ra
     /* 1618 80010E18 */  nop
+endlabel tmdDrawStreamPrimG4CornerNormals
+.purgem TMD_DRAW_STREAM_G4_CORNER_NORMALS_LIGHT_AND_LINK_PACKET
 glabel tmdXformStreamVertsElemColor
     /* 161C 80010E1C */  lw          $t9, 0x18($a0)
     /* 1620 80010E20 */  lw          $a3, 0x1C($a0)
