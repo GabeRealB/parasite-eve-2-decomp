@@ -2705,18 +2705,24 @@ void func_800B3F84(AnimationContext* context, void* arg1, TmdObject* arg2, void*
     Gp_AnimInitCtxSlots(context, arg1, arg2, arg3, arg4);
 }
 
-/// Primes normal-rate playback on a same-numbered track and model coordinate.
+/// Primes a slot's rate, time and endpoint sets for a model-part track restart.
 ///
-/// The caller installs the track start as the next endpoint. The zero current
-/// record and remaining time defer segment selection to the first forward tick.
-static inline void _animationPrimeSlotTrack(AnimationSlot* slot, s32 slotIndex, s32 setIndex)
+/// `slot` is writable. `partIndex` selects both the source track and destination
+/// coordinate and must fit their arrays. `setIndex` is a loaded set-table index,
+/// including zero, excluding `ANIMATION_SET_BUFFERED_POSE`.
+///
+/// The caller must bind the set table, install the track start as the next
+/// record, select its pose encoding and clear the boundary state before ticking.
+/// Zero remaining time makes the first forward tick begin its segment walk
+/// from that track start; the zero current record is replaced before pose lookup.
+static inline void _animationPrimeSlotTrack(AnimationSlot* slot, u8 partIndex, u16 setIndex)
 {
     slot->rate                            = ANIMATION_RATE_ONE;
     slot->timeLeft                        = 0;
     slot->currentPose.indices.setIndex    = setIndex;
     slot->currentPose.indices.recordIndex = 0;
-    slot->coordIndex                      = slotIndex;
-    slot->trackIndex                      = slotIndex;
+    slot->coordIndex                      = partIndex;
+    slot->trackIndex                      = partIndex;
     slot->nextPose.indices.setIndex       = setIndex;
 }
 
