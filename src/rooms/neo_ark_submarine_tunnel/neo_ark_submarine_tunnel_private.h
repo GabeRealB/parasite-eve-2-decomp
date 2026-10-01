@@ -13,6 +13,6 @@ extern OverlayWaveRec6 gScreenWaveColumns[13];
 
 extern OverlayWaveRec6 gScreenWaveRows[32];
 
-extern OverlayWaveCtx D_neo_ark_submarine_tunnel_80187A20;
+extern OverlayWaveCtx gScreenWaveSpawnCtx;
 
 #endif // SRC_ROOMS_NEO_ARK_SUBMARINE_TUNNEL_NEO_ARK_SUBMARINE_TUNNEL_PRIVATE_H

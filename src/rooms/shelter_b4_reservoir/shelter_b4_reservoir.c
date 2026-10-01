@@ -111,8 +111,8 @@ typedef struct {
 /// Spawn table of the screen-wave task, and the context it is spawned with.
 /// The context's mode word is written through its own symbol, which is how the
 /// original reached it.
-extern TaskDesc       D_shelter_b4_reservoir_80184724[];
-extern OverlayWaveCtx D_shelter_b4_reservoir_80187624;
+extern TaskDesc       gScreenWaveTaskDesc[];
+extern OverlayWaveCtx gScreenWaveSpawnCtx;
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
@@ -203,13 +203,12 @@ void func_shelter_b4_reservoir_8017E0AC(Task*);
 void func_shelter_b4_reservoir_8017E400(Task*);
 void func_shelter_b4_reservoir_8017E4B0(Task*);
 void func_shelter_b4_reservoir_8017E558(Task*);
-void func_shelter_b4_reservoir_8017E610(s32);
 void func_shelter_b4_reservoir_8017E690(s32);
 void func_shelter_b4_reservoir_8017E770(s32);
 void func_shelter_b4_reservoir_8017E780(s32);
 void func_shelter_b4_reservoir_8017E7A8(void);
 
-TaskDesc D_shelter_b4_reservoir_80184724[2] = {
+TaskDesc gScreenWaveTaskDesc[2] = {
     { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -277,7 +276,7 @@ EvsCommand D_shelter_b4_reservoir_80184948[48] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b4_reservoir_8017E7A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E610 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = screenWaveRun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E770 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E770 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -295,7 +294,7 @@ EvsCommand D_shelter_b4_reservoir_80184948[48] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b4_reservoir_8017E7A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E610 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = screenWaveRun }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542D0005 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -329,7 +328,7 @@ EvsCommand D_shelter_b4_reservoir_80184DC8[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E610 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = screenWaveRun }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -977,7 +976,7 @@ OverlayWaveRec6 gScreenWaveColumns[13] = { 0 };
 
 OverlayWaveRec6 gScreenWaveRows[32] = { 0 };
 
-OverlayWaveCtx D_shelter_b4_reservoir_80187624 = { 0 };
+OverlayWaveCtx gScreenWaveSpawnCtx = { 0 };
 
 u8* D_shelter_b4_reservoir_80187630 = NULL;
 
@@ -1218,28 +1217,7 @@ void func_shelter_b4_reservoir_8017E558(Task* arg0)
     }
 }
 
-/// Event callback that runs the screen wave. Called with zero or less, it sets
-/// the MDEC decode mode to 2, fills the wave's context (peak 0x60 reached in
-/// one step, tinted 0x40/0x80/0x80) and spawns the wave task with it; called
-/// with a positive value, it stores that value as the running wave's mode, so
-/// 1 fades it out and 2 ends it.
-void func_shelter_b4_reservoir_8017E610(s32 arg0)
-{
-    CdCmdQueue* queue = &gCdCmdQueue;
-
-    if (arg0 <= 0) {
-        queue->imageMdecMode                  = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-        D_shelter_b4_reservoir_80187624.span  = 1;
-        D_shelter_b4_reservoir_80187624.scale = 0x60;
-        D_shelter_b4_reservoir_80187624.r     = 0x40;
-        D_shelter_b4_reservoir_80187624.blend = ANIMATION_BLEND_INTERPOLATE;
-        D_shelter_b4_reservoir_80187624.g     = 0x80;
-        D_shelter_b4_reservoir_80187624.b     = 0x80;
-        Task_SpawnFromTable(D_shelter_b4_reservoir_80184724, 0, 0, &D_shelter_b4_reservoir_80187624);
-        return;
-    }
-    D_shelter_b4_reservoir_80187624.state = arg0;
-}
+#include "../../shared/screen_wave_run.inc.c"
 
 void func_shelter_b4_reservoir_8017E690(s32 arg0)
 {

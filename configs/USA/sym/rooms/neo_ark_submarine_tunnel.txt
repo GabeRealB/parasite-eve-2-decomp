@@ -1,7 +1,7 @@
 // Overlay-local symbols for neo_ark_submarine_tunnel.
 gScreenWaveRamp = 0x80181A4C; // size:0x4 defined:True
 D_neo_ark_submarine_tunnel_80181A50 = 0x80181A50; // size:0x28 defined:True
-D_neo_ark_submarine_tunnel_80181A34 = 0x80181A34; // size:0x18 defined:True
+gScreenWaveTaskDesc = 0x80181A34; // size:0x18 defined:True
 D_neo_ark_submarine_tunnel_80181A78 = 0x80181A78; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_80181A80 = 0x80181A80; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_80181A88 = 0x80181A88; // size:0x14 defined:True
@@ -90,7 +90,7 @@ D_neo_ark_submarine_tunnel_80181AD0 = 0x80181AD0; // size:0x18 defined:True
 D_neo_ark_submarine_tunnel_80181AE8 = 0x80181AE8; // size:0x6 defined:True
 D_neo_ark_submarine_tunnel_80181AF0 = 0x80181AF0; // size:0x300 defined:True
 gScreenWaveRows = 0x80187960; // size:0xC0 defined:True
-D_neo_ark_submarine_tunnel_80187A20 = 0x80187A20; // size:0xC defined:True
+gScreenWaveSpawnCtx = 0x80187A20; // size:0xC defined:True
 
 func_neo_ark_submarine_tunnel_8017F4DC = 0x8017F4DC; // type:func
 
@@ -107,3 +107,4 @@ RoomFx_DrawGround2Quad = 0x80180D6C; // type:func
 screenWaveTask = 0x8017E828; // type:func
 waterDistortBandTask = 0x8017E288; // type:func
 waterRefractionTask = 0x8017D634; // type:func
+screenWaveRun = 0x8017F318; // type:func

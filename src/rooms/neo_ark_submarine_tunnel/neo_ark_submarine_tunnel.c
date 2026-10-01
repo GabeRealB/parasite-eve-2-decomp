@@ -56,7 +56,7 @@ extern s32 D_80136108;
 /// Spawn table of the screen-wave task, and the context it is spawned with.
 /// The context's mode word is written through its own symbol, which is how the
 /// original reached it.
-extern TaskDesc D_neo_ark_submarine_tunnel_80181A34[];
+extern TaskDesc gScreenWaveTaskDesc[];
 
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
@@ -83,7 +83,6 @@ extern AnimationSet D_neo_ark_submarine_tunnel_80181A0C;
 extern AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A88;
 extern AnimationPlayRequest D_neo_ark_submarine_tunnel_80181A9C;
 extern GpCopyArg            D_neo_ark_submarine_tunnel_80181A80;
-void                        func_neo_ark_submarine_tunnel_8017F318(s32);
 void                        func_neo_ark_submarine_tunnel_8017F398(s32);
 
 TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
@@ -134,7 +133,7 @@ AnimationSet D_neo_ark_submarine_tunnel_80181A0C = {
     { NULL, D_neo_ark_submarine_tunnel_801814C8, NULL, NULL, D_neo_ark_submarine_tunnel_80181540, NULL, NULL, NULL },
 };
 
-TaskDesc D_neo_ark_submarine_tunnel_80181A34[2] = {
+TaskDesc gScreenWaveTaskDesc[2] = {
     { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -182,7 +181,7 @@ EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_submarine_tunnel_80181AD0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_neo_ark_submarine_tunnel_8017F318 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = screenWaveRun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181A9C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -199,7 +198,7 @@ EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_neo_ark_submarine_tunnel_80181AB8 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181ABC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_neo_ark_submarine_tunnel_8017F318 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = screenWaveRun }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_neo_ark_submarine_tunnel_8017F398 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -292,27 +291,7 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 
     return 0;
 }
 
-/// Starts or steers the screen wave. A non-positive `arg0` sets the CD
-/// queue's `field_22A` to 2, fills the wave context (ramp length 1, peak 0x60,
-/// tinted 0x40/0x80/0x80) and spawns the wave task with it; a positive one is
-/// written to the context's mode, where 1 ramps the running wave back down.
-void func_neo_ark_submarine_tunnel_8017F318(s32 arg0)
-{
-    CdCmdQueue* queue = &gCdCmdQueue;
-
-    if (arg0 <= 0) {
-        queue->imageMdecMode                      = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-        D_neo_ark_submarine_tunnel_80187A20.span  = 1;
-        D_neo_ark_submarine_tunnel_80187A20.scale = 0x60;
-        D_neo_ark_submarine_tunnel_80187A20.r     = 0x40;
-        D_neo_ark_submarine_tunnel_80187A20.blend = ANIMATION_BLEND_INTERPOLATE;
-        D_neo_ark_submarine_tunnel_80187A20.g     = 0x80;
-        D_neo_ark_submarine_tunnel_80187A20.b     = 0x80;
-        Task_SpawnFromTable(D_neo_ark_submarine_tunnel_80181A34, 0, 0, &D_neo_ark_submarine_tunnel_80187A20);
-        return;
-    }
-    D_neo_ark_submarine_tunnel_80187A20.state = arg0;
-}
+#include "../../shared/screen_wave_run.inc.c"
 
 void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
 {

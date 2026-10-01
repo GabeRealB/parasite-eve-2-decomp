@@ -6,7 +6,8 @@
  * corners.
  *
  * Include this header in the prologue and screen_wave.inc.c or
- * screen_wave_grid.inc.c at the task's position. The task's state belongs to
+ * screen_wave_grid.inc.c at the task's position; screen_wave_run.inc.c, the
+ * event callback that starts and steers the wave, goes at its own position. The task's state belongs to
  * the package, which declares and defines it at its own positions under these
  * names - declaring it here would move it, since bss is laid out in
  * first-declaration order:
@@ -16,6 +17,8 @@
  *   OverlayWaveRec6  gScreenWaveColumns[]  per-column phase, offset and speed
  *   OverlayWaveRec6  gScreenWaveRows[]     per-row phase, offset and speed
  *   POLY_FT4         gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
+ *   OverlayWaveCtx   gScreenWaveSpawnCtx   the context screenWaveRun fills
+ *   TaskDesc         gScreenWaveTaskDesc[] the wave task screenWaveRun spawns
  *
  * The grid task's records are OverlayWaveRec rather than OverlayWaveRec6.
  * `SCREEN_WAVE_GRID` is the quad array the grid task indexes, as
@@ -47,5 +50,7 @@
 
 void screenWaveTask(Task* arg0);
 void screenWaveGridTask(Task* arg0);
+
+void screenWaveRun(s32 arg0);
 
 #endif /* SRC_SHARED_SCREEN_WAVE_H */
