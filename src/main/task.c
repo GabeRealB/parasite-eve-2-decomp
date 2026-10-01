@@ -146,31 +146,40 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
     return task;
 }
 
-/// Unlinks a task and releases its primary-heap allocation during teardown.
+/// Collects a torn-down task immediately instead of leaving it to a list walker.
 ///
-/// Its work and body must already be released. A task with no successor must
-/// belong to `gTaskDefaultList`, whose tail is updated regardless of the selected
-/// list. The previous selection is restored after release.
+/// `task` must be non-NULL, live, allocated from the primary heap and still
+/// linked in an execution list. The caller must finish child/parent teardown
+/// and release its work and body first; their pointer slots need not be cleared.
+/// This helper repairs execution-list links and frees only the task allocation,
+/// without dispatching callbacks or setting the deferred-collection marker.
+///
+/// A task with no successor must belong to `gTaskDefaultList`: that head is
+/// selected for collection regardless of the previous selection. The predecessor
+/// may be a bare head or an embedded task node. The previous list selection is
+/// restored after release; the caller must not access the freed task.
 static inline void _taskCollectImmediately(Task* task)
 {
-    TaskNode*  previousList;
+    TaskNode*  savedListHead;
     Task*      nextTask;
-    TaskNode** previousLink;
-    TaskNode*  previousNode;
+    TaskNode** backlinkSlot;
+    TaskNode*  predecessorNode;
 
-    previousList     = _gTaskActiveList;
+    savedListHead    = _gTaskActiveList;
     nextTask         = task->node.next;
     _gTaskActiveList = &gTaskDefaultList;
+
+    // Repair the successor's back link, or the selected default head's tail link.
     if (nextTask == NULL) {
-        previousLink = &gTaskDefaultList.prev;
+        backlinkSlot = &_gTaskActiveList->prev;
     } else {
-        previousLink = &nextTask->node.prev;
+        backlinkSlot = &nextTask->node.prev;
     }
-    previousNode       = task->node.prev;
-    *previousLink      = previousNode;
-    previousNode->next = task->node.next;
+    predecessorNode       = task->node.prev;
+    *backlinkSlot         = predecessorNode;
+    predecessorNode->next = task->node.next;
     memFree(task);
-    _gTaskActiveList = previousList;
+    _gTaskActiveList = savedListHead;
 }
 
 /// Stops task callbacks and consumes the sole countdown tick within teardown.
