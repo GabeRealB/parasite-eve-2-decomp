@@ -156,6 +156,13 @@ if [[ $ninja_failed -eq 0 ]]; then
             echo "BUILD HAS FAILED. Matched C bodies have reverted to INCLUDE_ASM - recover them from their matching commits before committing."
             exit 1
         fi
+        # A function renamed in C but not in its image's symbol map keeps splat's
+        # default name in the expected objects, so objdiff (and the naming pass)
+        # cannot pair it - again with the checksum still matching.
+        if ! "$PYTHON" tools/check_sym_coverage.py; then
+            echo "BUILD HAS FAILED. C function names are missing from their symbol maps - add them before committing."
+            exit 1
+        fi
     fi
     echo "$SUCCESS"
 else

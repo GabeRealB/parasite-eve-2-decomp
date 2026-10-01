@@ -319,6 +319,12 @@ overlay.
   about the overlays it skipped, which for a header change is the thing you
   have to check, so finish unscoped. `--clean` wipes `asm/`, `linkers/` and
   `build/` and splits everything, as every run used to.
+- `python3 tools/check_sym_coverage.py [IMAGE ...]` fail when a C function's
+  name is not in its image's symbol maps (`symbol_addrs_path`). splat names an
+  unmapped function `func_<segment>_<ADDR>` in the expected objects, so a
+  function renamed in C but not in the map cannot be paired by objdiff or the
+  naming pass's verifier, while the checksum still matches. The unscoped
+  `build-and-verify.sh` runs it; when it fails, add `name = 0xADDR; // type:func`.
 - `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
 - `./tools/claude [--bootstrap-only] [--no-bootstrap] [--id ID] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. It builds the environment and nothing else - the agent is launched by whatever called it. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
 - `python3 tools/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.
