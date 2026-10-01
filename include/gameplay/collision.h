@@ -46,11 +46,31 @@ STATIC_ASSERT_SIZEOF(DamageAttack, 0x4);
 /// require sphere overlap on the negative side of the plane; kind 2 also
 /// requires facing against `facingNormal`. Kind 4 accepts a centre distance
 /// below 500 game units, otherwise requiring facing toward the origin and
-/// quad overlap. All tests first apply the broad-phase radius check.
+/// quad overlap. All tests apply the broad-phase radius check.
 /// Bits 3 and 4 have no observed consumers and are cleared along with list
 /// state on unlink. Enabling/disabling a trigger does not clear its hit latch.
 enum {
-    WORLD_COLLISION_TRIGGER_KIND_MASK     = 0x07,
+    WORLD_COLLISION_TRIGGER_KIND_MASK = 0x07,
+    /// Identifies a directed quad requesting a view change within the current room.
+    ///
+    /// Value 1 occupies the kind bits of `WorldCollisionTrigger::flags`.
+    /// Place the records in the room's view-boundary array, ending with LAST.
+    /// Room setup binds their coordinate, links them to the view list and enables
+    /// them. List membership selects the directed test; this kind adds no gate.
+    /// The scan requires a motion sphere with PAIR_ENABLED and VIEW_TRIGGER_ENABLED
+    /// set, and the session's view-trigger suppression must be clear.
+    ///
+    /// An enabled boundary latches a hit when the player moves against `normal`,
+    /// passes the radius check about the origin and overlaps the quad's negative
+    /// side. The sphere centre must project strictly inside all four edges, with
+    /// computed signed plane distance in [-body radius, 0). The test uses current
+    /// overlap and movement direction. Positions and radii use game units;
+    /// normals use 4096 per unit.
+    ///
+    /// `parameter0` and `parameter1` are valid 1-based source and destination
+    /// views in that room. `control` and `facingNormal` are unused by the view test.
+    /// Consuming a hit clears its latch and, when the source matches the current
+    /// session view, requests the destination in the live save's location.
     WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY = 1,
     /// An action quad requiring the body to face against its configured normal.
     ///
