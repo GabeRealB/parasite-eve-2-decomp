@@ -203,10 +203,16 @@ typedef struct {
 } _AnimationBlendScratch;
 STATIC_ASSERT_SIZEOF(_AnimationBlendScratch, 0x80);
 
-/// Scratch reservation for advancing a slot and dispatching its pose blend.
+/// Scratch-stack reservation holding one slot tick's pose-blend request.
+///
+/// The word-aligned block is reserved uninitialized for the tick. All request
+/// fields are populated before synchronous pose dispatch; the endpoints and
+/// destinations are borrowed only until dispatch returns. Decoders reserve
+/// their workspace below this live block and release it before the tick releases
+/// this reservation. The leading bytes are untouched and have no proven role.
 typedef struct {
-    s32                    field_0; // Not accessed by playback; role unproven
-    _AnimationBlendRequest request; // Inputs and destinations for this tick
+    u8                     field_0[4]; // Uninterpreted leading storage; role unproven
+    _AnimationBlendRequest request;    // Borrowed endpoints, outputs and buffered-rotation refresh request
 } _AnimationTickScratch;
 STATIC_ASSERT_SIZEOF(_AnimationTickScratch, 0x18);
 
