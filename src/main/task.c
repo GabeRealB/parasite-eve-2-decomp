@@ -440,11 +440,17 @@ void Task_DetachFromParent(Task* task)
     task->parent = NULL;
 }
 
-/// Removes a task from its parent's child ring before attaching it elsewhere.
+/// Detaches a task from its parent's circular child ring while keeping it live.
 ///
-/// A parentless task is left unchanged. A linked task must belong to a live,
-/// closed ring; removal clears its parent and restores its sibling self-link.
-/// This helper is used only by `taskReparent`.
+/// `task` must be non-NULL and live throughout the call. If it has a parent,
+/// that live parent's `firstChild` must head a closed ring containing `task`,
+/// with live siblings whose `parent` identifies that owner. Removal preserves
+/// the remaining siblings' order and advances the head only when removing it;
+/// removing an only child clears the head. The detached task has `parent == NULL`
+/// and `nextSibling == task`.
+///
+/// A parentless task is left unchanged, including its sibling link. The task
+/// keeps its children, execution-list links and resources; no handlers run.
 static inline void _taskDetachForReparent(Task* task)
 {
     Task* oldParent;
@@ -460,11 +466,10 @@ static inline void _taskDetachForReparent(Task* task)
             if (oldParent->firstChild == task) {
                 oldParent->firstChild = nextSibling;
             }
+            // The child ring has only forward links, so locate the predecessor.
             predecessor = task;
-            if (task->nextSibling != task) {
-                do {
-                    predecessor = predecessor->nextSibling;
-                } while (predecessor->nextSibling != task);
+            while (predecessor->nextSibling != task) {
+                predecessor = predecessor->nextSibling;
             }
             predecessor->nextSibling = task->nextSibling;
             task->nextSibling        = task;
