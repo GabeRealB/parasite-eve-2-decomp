@@ -1108,7 +1108,50 @@ glabel tmdDrawStreamPrimG3
     /* 1FB8 800117B8 */  nop
 .purgem TMD_DRAW_STREAM_PRIM_G3_LINK_PACKET
 
+/* POLY_G4 includes its DMA tag; the GPU length excludes that word. */
+.equ TMD_DRAW_STREAM_PRIM_G4_PACKET_BYTES, 36
+.equ TMD_DRAW_STREAM_PRIM_G4_PACKET_WORDS, (TMD_DRAW_STREAM_PRIM_G4_PACKET_BYTES / 4) - 1
+/* Wrap scaled depth to 14 bits, then quantize by 16 into 1024 OT buckets. */
+.equ TMD_DRAW_STREAM_PRIM_G4_DEPTH_MASK, 0x3FFF
+.equ TMD_DRAW_STREAM_PRIM_G4_DEPTH_SHIFT, 4
+.equ TMD_DRAW_STREAM_PRIM_G4_DMA_ADDRESS_BITS, 24
+/* Outside the unsigned u16 vertex-offset domain; forces a fresh projection. */
+.equ TMD_DRAW_STREAM_PRIM_G4_NO_PREVIOUS_VERTEX, 0x0FFF0000
+
+/*
+ * Prepend a G4 packet and repeat the lit face colour at all four corners.
+ * Inputs: t8 packet, t7 displaced OT base, a1 depth shift, GTE OTZ from
+ * AVSZ4 and pending RGB2 from NCCS. Clobbers t0..t3; writes the OT head,
+ * eight-word DMA tag and four RGB/command words. Preserves v0 (vertex 0 XY)
+ * and v1 (vertex 0 offset) for the next element's vertex-3 reuse.
+ * Fixed registers belong to this handler. Link arithmetic overlaps NCCS;
+ * preserve the instruction schedule without adding calls or delays.
+ */
+.macro TMD_DRAW_STREAM_PRIM_G4_LINK_PACKET
+    sll         $t1, $t8, (32 - TMD_DRAW_STREAM_PRIM_G4_DMA_ADDRESS_BITS)
+    mfc2        $t2, $7
+    srl         $t1, $t1, (32 - TMD_DRAW_STREAM_PRIM_G4_DMA_ADDRESS_BITS)
+    sllv        $t2, $t2, $a1
+    andi        $t2, $t2, TMD_DRAW_STREAM_PRIM_G4_DEPTH_MASK
+    srl         $t2, $t2, TMD_DRAW_STREAM_PRIM_G4_DEPTH_SHIFT
+    sll         $t2, $t2, 2
+    addu        $t2, $t2, $t7
+    lw          $t0, 0x0($t2)
+    sw          $t1, 0x0($t2)
+    sll         $t0, $t0, (32 - TMD_DRAW_STREAM_PRIM_G4_DMA_ADDRESS_BITS)
+    lui         $t1, (TMD_DRAW_STREAM_PRIM_G4_PACKET_WORDS << 8)
+    srl         $t0, $t0, (32 - TMD_DRAW_STREAM_PRIM_G4_DMA_ADDRESS_BITS)
+    or          $t0, $t1, $t0
+    mfc2        $t3, $22
+    sw          $t0, 0x0($t8)
+    sw          $t3, 0x4($t8)
+    sw          $t3, 0xC($t8)
+    sw          $t3, 0x14($t8)
+    sw          $t3, 0x1C($t8)
+.endm
+
 glabel tmdDrawStreamPrimG4
+    /* a0 workspace, a1 ignored object flags, a2 first element word. */
     /* 1FBC 800117BC */  lw          $t9, 0x18($a0)
     /* 1FC0 800117C0 */  lw          $a3, 0x1C($a0)
     /* 1FC4 800117C4 */  lw          $t8, 0x0($a0)
@@ -1116,29 +1159,31 @@ glabel tmdDrawStreamPrimG4
     /* 1FCC 800117CC */  lw          $t6, 0x8($a0)
     /* 1FD0 800117D0 */  lw          $t5, 0xC($a0)
     /* 1FD4 800117D4 */  sll         $t9, $t9, 2
-    /* 1FD8 800117D8 */  lui         $v1, 0xFFF
-    /* 1FDC 800117DC */  j           .L800117F0
+    /* 1FD8 800117D8 */  lui         $v1, (TMD_DRAW_STREAM_PRIM_G4_NO_PREVIOUS_VERTEX >> 16)
+    /* 1FDC 800117DC */  j           .LtmdG4Loop
     /* 1FE0 800117E0 */  lw          $a1, 0x84($a0)
-  .L800117E4:
-    /* 1FE4 800117E4 */  lui         $v1, 0xFFF
-  .L800117E8:
-    /* 1FE8 800117E8 */  addiu       $t8, $t8, 0x24
-  .L800117EC:
+  .LtmdG4ProjectionRejected:
+    /* A failed projection must not seed the next element's reuse. */
+    /* 1FE4 800117E4 */  lui         $v1, (TMD_DRAW_STREAM_PRIM_G4_NO_PREVIOUS_VERTEX >> 16)
+  .LtmdG4Advance:
+    /* Every element consumes a packet slot, even when rejected. */
+    /* 1FE8 800117E8 */  addiu       $t8, $t8, TMD_DRAW_STREAM_PRIM_G4_PACKET_BYTES
     /* 1FEC 800117EC */  addu        $a2, $t9, $a2
-  .L800117F0:
-    /* 1FF0 800117F0 */  beq         $zero, $a3, .L80011984
+  .LtmdG4Loop:
+    /* 1FF0 800117F0 */  beq         $zero, $a3, .LtmdG4Done
     /* 1FF4 800117F4 */  nop
     /* 1FF8 800117F8 */  addiu       $a3, $a3, -0x1
+    /* Project vertex 3 first, unless the preceding vertex 0 supplies XY and SZ. */
     /* 1FFC 800117FC */  lw          $t3, 0x4($a2)
     /* 2000 80011800 */  lw          $t1, 0x0($a2)
     /* 2004 80011804 */  srl         $t4, $t3, 16
-    /* 2008 80011808 */  beq         $t4, $v1, .L8001185C
+    /* 2008 80011808 */  beq         $t4, $v1, .LtmdG4ReuseVertex3
     /* 200C 8001180C */  addu        $t4, $t6, $t4
     /* 2010 80011810 */  lwc2        $0, 0x0($t4)
     /* 2014 80011814 */  lwc2        $1, 0x4($t4)
     /* 2018 80011818 */  sll         $t3, $t3, 16
     /* 201C 8001181C */  srl         $t3, $t3, 16
-    /* 2020 80011820 */  .word 0x4A180001
+    /* 2020 80011820 */  rtps
     /* 2024 80011824 */  addu        $t3, $t6, $t3
     /* 2028 80011828 */  srl         $t2, $t1, 16
     /* 202C 8001182C */  addu        $t2, $t6, $t2
@@ -1148,14 +1193,13 @@ glabel tmdDrawStreamPrimG4
     /* 203C 8001183C */  addu        $t1, $t6, $t1
     /* 2040 80011840 */  cfc2        $t0, $31
     /* 2044 80011844 */  nop
-    /* 2048 80011848 */  bltz        $t0, .L800117E4
+    /* 2048 80011848 */  bltz        $t0, .LtmdG4ProjectionRejected
     /* 204C 8001184C */  nop
     /* 2050 80011850 */  swc2        $14, 0x20($t8)
-    /* 2054 80011854 */  j           .L80011884
+    /* 2054 80011854 */  j           .LtmdG4ProjectOtherCorners
     /* 2058 80011858 */  nop
-  .L8001185C:
+  .LtmdG4ReuseVertex3:
     /* 205C 8001185C */  sll         $t3, $t3, 16
-  .L80011860:
     /* 2060 80011860 */  srl         $t3, $t3, 16
     /* 2064 80011864 */  addu        $t3, $t6, $t3
     /* 2068 80011868 */  srl         $t2, $t1, 16
@@ -1165,7 +1209,8 @@ glabel tmdDrawStreamPrimG4
     /* 2078 80011878 */  addu        $v1, $t1, $zero
     /* 207C 8001187C */  addu        $t1, $t6, $t1
     /* 2080 80011880 */  sw          $v0, 0x20($t8)
-  .L80011884:
+  .LtmdG4ProjectOtherCorners:
+    /* RTPT(2,1,0) shifts vertex 3's depth into SZ0 for the later AVSZ4. */
     /* 2084 80011884 */  lwc2        $0, 0x0($t3)
     /* 2088 80011888 */  lwc2        $1, 0x4($t3)
     /* 208C 8001188C */  lwc2        $2, 0x0($t2)
@@ -1174,70 +1219,54 @@ glabel tmdDrawStreamPrimG4
     /* 2098 80011898 */  lwc2        $5, 0x4($t1)
     /* 209C 8001189C */  nop
     /* 20A0 800118A0 */  nop
-    /* 20A4 800118A4 */  .word 0x4A280030
+    /* 20A4 800118A4 */  rtpt
+    /* The face-normal reference uses all 32 bits of the byte-offset word. */
     /* 20A8 800118A8 */  lw          $t1, 0x8($a2)
     /* 20AC 800118AC */  nop
     /* 20B0 800118B0 */  addu        $t1, $t5, $t1
     /* 20B4 800118B4 */  cfc2        $t0, $31
     /* 20B8 800118B8 */  nop
-    /* 20BC 800118BC */  bltz        $t0, .L800117E4
+    /* 20BC 800118BC */  bltz        $t0, .LtmdG4ProjectionRejected
     /* 20C0 800118C0 */  nop
-    /* 20C4 800118C4 */  .word 0x4B400006
+    /* Keep a quad if either triangle faces forward; preserve vertex 0 XY for reuse. */
+    /* 20C4 800118C4 */  nclip
     /* 20C8 800118C8 */  mfc2        $v0, $14
     /* 20CC 800118CC */  swc2        $12, 0x18($t8)
     /* 20D0 800118D0 */  swc2        $13, 0x10($t8)
     /* 20D4 800118D4 */  sw          $v0, 0x8($t8)
     /* 20D8 800118D8 */  mfc2        $t0, $24
     /* 20DC 800118DC */  nop
-    /* 20E0 800118E0 */  bltz        $t0, .L80011908
+    /* 20E0 800118E0 */  bltz        $t0, .LtmdG4LightAndLink
     /* 20E4 800118E4 */  nop
     /* 20E8 800118E8 */  lwc2        $14, 0x20($t8)
     /* 20EC 800118EC */  nop
     /* 20F0 800118F0 */  nop
-    /* 20F4 800118F4 */  .word 0x4B400006
+    /* 20F4 800118F4 */  nclip
     /* 20F8 800118F8 */  mfc2        $t0, $24
     /* 20FC 800118FC */  nop
-    /* 2100 80011900 */  blez        $t0, .L800117E8
+    /* 2100 80011900 */  blez        $t0, .LtmdG4Advance
     /* 2104 80011904 */  nop
-  .L80011908:
+  .LtmdG4LightAndLink:
     /* 2108 80011908 */  nop
-  .L8001190C:
     /* 210C 8001190C */  nop
-    /* 2110 80011910 */  .word 0x4B68002E
+    /* Average all four depths and light the element's material with its face normal. */
+    /* 2110 80011910 */  avsz4
     /* 2114 80011914 */  lwc2        $6, 0xC($a2)
     /* 2118 80011918 */  lwc2        $0, 0x0($t1)
     /* 211C 8001191C */  lwc2        $1, 0x4($t1)
     /* 2120 80011920 */  nop
     /* 2124 80011924 */  nop
-    /* 2128 80011928 */  .word 0x4B08041B
-    /* 212C 8001192C */  sll         $t1, $t8, 8
-    /* 2130 80011930 */  mfc2        $t2, $7
-    /* 2134 80011934 */  srl         $t1, $t1, 8
-    /* 2138 80011938 */  sllv        $t2, $t2, $a1
-    /* 213C 8001193C */  andi        $t2, $t2, 0x3FFF
-    /* 2140 80011940 */  srl         $t2, $t2, 4
-    /* 2144 80011944 */  sll         $t2, $t2, 2
-    /* 2148 80011948 */  addu        $t2, $t2, $t7
-    /* 214C 8001194C */  lw          $t0, 0x0($t2)
-    /* 2150 80011950 */  sw          $t1, 0x0($t2)
-    /* 2154 80011954 */  sll         $t0, $t0, 8
-    /* 2158 80011958 */  lui         $t1, 0x800
-    /* 215C 8001195C */  srl         $t0, $t0, 8
-    /* 2160 80011960 */  or          $t0, $t1, $t0
-    /* 2164 80011964 */  mfc2        $t3, $22
-    /* 2168 80011968 */  sw          $t0, 0x0($t8)
-    /* 216C 8001196C */  sw          $t3, 0x4($t8)
-    /* 2170 80011970 */  sw          $t3, 0xC($t8)
-    /* 2174 80011974 */  sw          $t3, 0x14($t8)
-    /* 2178 80011978 */  sw          $t3, 0x1C($t8)
-    /* 217C 8001197C */  j           .L800117E8
+    /* 2128 80011928 */  nccs
+    /* 212C..2178 8001192C..80011978 */  TMD_DRAW_STREAM_PRIM_G4_LINK_PACKET
+    /* 217C 8001197C */  j           .LtmdG4Advance
     /* 2180 80011980 */  nop
-  .L80011984:
+  .LtmdG4Done:
     /* 2184 80011984 */  sw          $t8, 0x0($a0)
-  .L80011988:
     /* 2188 80011988 */  addu        $v0, $zero, $a2
     /* 218C 8001198C */  jr          $ra
     /* 2190 80011990 */  nop
+endlabel tmdDrawStreamPrimG4
+.purgem TMD_DRAW_STREAM_PRIM_G4_LINK_PACKET
 alabel tmdDrawStreamPrimGt3OneNormalSemiTrans
     /* 2194 80011994 */  lui         $t0, 0x3680
     /* 2198 80011998 */  ori         $t0, $t0, 0x8080

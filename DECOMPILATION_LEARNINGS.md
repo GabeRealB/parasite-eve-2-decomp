@@ -134262,12 +134262,14 @@ one order draws the primitive where a body that loads them reversed skips it.
 `tmdDrawStreamPrimG4` (`0x40`, one untextured `POLY_G4` per element) is the worked
 example. Its `RTPT` loads the three shared corners in the reverse of the order it
 stores them, which leaves the packet holding the corners in element order all the
-same (`SXY0` lands in the third corner's slot), while its first facing test
-branches `bltz` where the twin of the same record (`func_8009E4A0`) branches on
-`> 0`, and its second branches `blez` where that twin branches on `< 0`. Neither
-is a different rule: both draw the quad when either half faces the viewer.
+same (`SXY0` lands in the third corner's slot). It accepts `NCLIP(2,1,0) < 0`
+or, if that fails, `NCLIP(2,1,3) > 0`. The gameplay corner-colour handler
+`func_8009E4A0` accepts `NCLIP(0,1,2) > 0` or `NCLIP(1,2,3) < 0` instead.
+These are the same facing rule with different corner orders: both draw the quad
+when either half faces the viewer. That handler serves `0x160`, a distinct
+record with four normals and four colour words; it is not the `0x40` record's twin.
 
-So compare a hasm body with its C twin by the cyclic order each gives the corners,
+So compare a hasm body's facing tests with a C handler's by the cyclic corner order,
 not by the branch each takes - and read the converse too, since two bodies
 branching alike may still be testing different triangles.
 ## A dual-entry handler's bare name is the opaque entry, wherever the entry sits
