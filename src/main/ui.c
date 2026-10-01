@@ -1806,6 +1806,10 @@ static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
         /// U=104 on the 4-bit page at VRAM word X=896, row Y=256. The quad's
         /// opposite edge is U=111; both values fit its unsigned 8-bit U fields.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U = 0x68,
+        /// Top edge of the horizontal separator's texture region, in page-relative texels.
+        ///
+        /// V=80 on the 4-bit page beginning at VRAM row 256. The quad's
+        /// opposite edge is V=87; both values fit its unsigned 8-bit V fields.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V = 0x50,
         /// Packed GPU texture-page selector for the horizontal separator's atlas.
         ///
