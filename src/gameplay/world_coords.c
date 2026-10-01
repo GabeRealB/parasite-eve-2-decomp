@@ -1398,6 +1398,12 @@ s32 worldCoordGetOriginAudioDepth(const GfxCoord* coord)
         /// farther origins from wrapping when stored in a sound event's signed byte.
         WORLD_COORDINATE_AUDIO_DEPTH_MAX = 0x7FFF,
 
+        /// Right-shift count converting projection-plane-relative Z to spatial sound depth.
+        ///
+        /// After clamping to [-32767, 32767] game-coordinate units, the arithmetic
+        /// shift yields [-128, 127], fitting the sound event's signed attenuation
+        /// byte. One depth unit spans 256 game-coordinate units; negative values
+        /// round down, so division by 256 would change their quantization.
         WORLD_COORDINATE_AUDIO_DEPTH_SHIFT = 8
     };
     s32 depthFromPlane;
