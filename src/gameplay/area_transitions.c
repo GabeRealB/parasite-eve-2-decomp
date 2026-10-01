@@ -403,7 +403,7 @@ const TaskFuncTable3 Gp_DirTaskStates = { {
 } };
 
 const GpDirActionTable Gp_DirActionFns = { {
-    Gp_DirAction0,
+    [WORLD_COLLISION_TRIGGER_ACTION_WARP] = Gp_DirAction0,
     Gp_DirAction1,
     Gp_PostDirIfCapIdle,
     Gp_RunDirAction,

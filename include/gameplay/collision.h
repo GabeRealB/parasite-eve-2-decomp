@@ -87,7 +87,19 @@ enum {
 /// action 3. AUTOMATIC bypasses the interaction-button requirement;
 /// OUTSIDE_BATTLE rejects activation during an engaged battle.
 enum {
-    WORLD_COLLISION_TRIGGER_ACTION_MASK       = 0xFF,
+    WORLD_COLLISION_TRIGGER_ACTION_MASK = 0xFF,
+    /// Requests a room-resolved warp within the active stage.
+    ///
+    /// This zero-valued selector occupies the low byte of
+    /// `WorldCollisionTrigger::control`; activation gates may be ORed into
+    /// the upper byte. A latched hit supplies the request.
+    /// `parameter0` requests a 1-based destination area. `parameter1` packs
+    /// a 1-based current-area warp descriptor slot in the high nibble and a
+    /// 1-based destination arrival slot in the low nibble (each 1..15).
+    /// Both slots must exist in their respective area's warp table.
+    /// The current-area descriptor supplies departure facing, sounds and an
+    /// optional event flag. The room handler first receives a query and may
+    /// block the warp, redirect its destination or run a deferred room event.
     WORLD_COLLISION_TRIGGER_ACTION_WARP       = 0,
     WORLD_COLLISION_TRIGGER_ACTION_FACING     = 1,
     WORLD_COLLISION_TRIGGER_ACTION_CAP        = 2,
@@ -124,8 +136,8 @@ enum { WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE = 0xFF };
 /// the destination view; control is unused. A hit changes the saved view
 /// only when the source equals the current view, then clears the latch.
 /// On the action list, the first hit supplies control and both full bytes:
-/// - WARP: destination area, then a 1-based descriptor slot in the high nibble
-///   and a warp entry (0..15) in the low nibble.
+/// - WARP: requested area and packed departure/arrival descriptor slots, as
+///   documented by `WORLD_COLLISION_TRIGGER_ACTION_WARP`.
 /// - FACING: packed surface/facing selector, then yaw in 16-angle-unit steps
 ///   (256 steps per turn); selector bit 7 chooses indexed surface data.
 /// - CAP / CAP_WEAPON: CAP command ID and presentation flags, or the room
