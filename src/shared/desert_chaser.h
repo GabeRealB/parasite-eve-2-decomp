@@ -52,10 +52,22 @@ typedef struct DesertChaserWaypoint {
 STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
+/* The armed builds. DESERT_CHASER_RUN_SEQUENCE is the Water Tower run: one
+ * more state ahead of the turn states, hits that only reply to the player
+ * while the chaser lives and rumble the pad, and the hit effect offset built on
+ * the stack. The regular build instead keeps the effect offset in the work
+ * block, checks the Mine region before backing off, and tells the scene when
+ * it starts its lunge. */
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#define DESERT_CHASER_CONTACTS 5
+#define DESERT_CHASER_CONTACTS         5
+#define DESERT_CHASER_RUN_SEQUENCE     0
+#define DESERT_CHASER_STATE_TURN_RIGHT 8
+#define DESERT_CHASER_STATE_TURN_LEFT  9
 #else
-#define DESERT_CHASER_CONTACTS 12
+#define DESERT_CHASER_CONTACTS         12
+#define DESERT_CHASER_RUN_SEQUENCE     1
+#define DESERT_CHASER_STATE_TURN_RIGHT 9
+#define DESERT_CHASER_STATE_TURN_LEFT  10
 #endif
 
 /// Sphere body and the contact table supplied by its owner.
