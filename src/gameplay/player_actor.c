@@ -5567,7 +5567,7 @@ have_task:
     return NULL;
 
 have_actor:
-    Game_SetPtrSlot(task, 3);
+    Game_SetPtrSlot(task, GAME_TASK_SLOT_PLAYER);
     task->work = actor;
     Mem_Set(actor, 0, sizeof(*actor));
     actor->actionArgument = arg3->field_0;

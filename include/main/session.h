@@ -66,7 +66,14 @@ void Game_SetPtrSlot(void* ptr, s32 index);
 /// their first task tick. The room and room-effect registrations select the
 /// current room's controllers. Unlisted indices have no established role.
 enum {
-    GAME_TASK_SLOT_VIEW_GATE   = 1,
+    GAME_TASK_SLOT_VIEW_GATE = 1,
+    /// Session task-table index for the spawned player actor.
+    ///
+    /// A successful spawn registers the task before its first tick, with a
+    /// TMD body and `GameActor` work. This borrowed registration is replaced
+    /// by the next successful spawn and cleared by `Game_ClearPtrSlots`;
+    /// task exit does not clear it. Use it only while that task remains alive.
+    /// `gPlayerActorTasks` publishes the player separately during its first tick.
     GAME_TASK_SLOT_PLAYER      = 3,
     GAME_TASK_SLOT_SCENE       = 4,
     GAME_TASK_SLOT_ROOM_EFFECT = 5,
