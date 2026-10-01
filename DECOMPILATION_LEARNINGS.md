@@ -10896,7 +10896,7 @@ beqz  a3,end                     move  t2,t0
 ```
 
 Pin the early registers and emit a multi-output empty asm *after* the moves so
-nothing that follows can be scheduled before them (`Text_MeasureGlyphWidth`):
+nothing that follows can be scheduled before them (`_textMeasureLineWidth`):
 
 ```c
 register TextDrawReq* ctx asm("t5");
@@ -10925,7 +10925,7 @@ beq  v0, a3, ...
 
 writing `end_flag = 1; ch = *value;` is not enough: CSE knows the load is
 redundant. Defeat it with a memory clobber between the store-to-reg and the
-reload (`Text_MeasureGlyphWidth`):
+reload (`_textMeasureLineWidth`):
 
 ```c
 if (ch != 0 && ch != nl) {
@@ -65818,7 +65818,7 @@ order: global `jlabel` targets produced seven PC16 branch penalties, and local
 jump / table relocation names produced seventeen register penalties. The
 documented scratch-local-label repair plus recognizing `D_8001381C` as a jump
 table gives 100%. Preserve the original target and validate with the actual build.
-All four generated tables belong after `Text_MeasureGlyphWidth` in `textdraw`
+All four generated tables belong after `_textMeasureLineWidth` in `textdraw`
 rodata; move the plain `textdraw_1` rodata cut from 0x3E1C to 0x40BC, where the
 number-formatting strings begin.
 

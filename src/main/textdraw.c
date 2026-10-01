@@ -124,7 +124,7 @@ void func_807011D8(Task* arg0);
 
 void func_80701400(Task* arg0);
 
-static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, const _FontGlyph* table);
+static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, const _FontGlyph* glyphTable);
 
 static void Text_DrawGlyphDualSprtA(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
@@ -294,61 +294,95 @@ void taskNoopCallback(Task* unusedTask)
         }                                                                      \
     } while (0)
 
-static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, const _FontGlyph* table)
+/// Measures one encoded UI-text line for horizontal alignment, in pixels.
+///
+/// Borrows `request`, `text` and `glyphTable` for this call without modifying them.
+/// Only `request->glyphTable` is read, selecting one-pixel pair tightening for the
+/// small face and two pixels otherwise. The supplied metrics stay fixed even
+/// across inline font commands; color, style and position commands are skipped.
+/// NUL, LF and a case-insensitive \n command end the measurement; CR does not.
+/// The result is the final glyph's rightmost-pixel X relative to the starting pen,
+/// including pair kerning and omitting its extra pen advance. With no measured
+/// glyph it is minus `glyphTable[0].advanceExtraX` (-4 for all resident faces).
+///
+/// `text` must be readable through the line terminator. Each \B, \C, \D, \S,
+/// \U or \W command (either case) needs a readable operand byte followed by
+/// another readable byte. Every byte that reaches glyph indexing must be in
+/// 0x20..0xFF for medium/large metrics or 0x20..0x7A for small metrics; there is
+/// no range check. An unrecognized escape drops its backslash and measures the
+/// following byte; consecutive backslashes continue the command scan.
+static s32 _textMeasureLineWidth(const TextDrawReq* request, const u8* text, const _FontGlyph* glyphTable)
 {
+    enum { TEXT_LINE_STYLE_COMMAND_BYTES = 2 }; // Command letter and one operand.
+
+    /// Skips adjacent commands, setting `endLine` on NUL, LF or a line command.
+    ///
+    /// `cursor` is a const u8* lvalue pointing at a backslash; `escapeByte` is
+    /// that stable byte and `endLine` is a flag initially false, never cleared.
+    /// All arguments are evaluated repeatedly and must be simple local lvalues.
+    /// Uses this function's `TEXT_LINE_STYLE_COMMAND_BYTES`; applies no drawing
+    /// effects and leaves an unknown command's letter for glyph indexing.
+#define TEXT_SKIP_LINE_WIDTH_COMMANDS(cursor, escapeByte, endLine) \
+    do {                                                           \
+        do {                                                       \
+            (cursor)++;                                            \
+            switch (*(cursor)) {                                   \
+                case 'B':                                          \
+                case 'C':                                          \
+                case 'D':                                          \
+                case 'S':                                          \
+                case 'U':                                          \
+                case 'W':                                          \
+                case 'b':                                          \
+                case 'c':                                          \
+                case 'd':                                          \
+                case 's':                                          \
+                case 'u':                                          \
+                case 'w':                                          \
+                    (cursor) += TEXT_LINE_STYLE_COMMAND_BYTES;     \
+                    break;                                         \
+                case 'N':                                          \
+                case 'n':                                          \
+                    (endLine) = true;                              \
+                    break;                                         \
+            }                                                      \
+            if (*(cursor) == '\0' || *(cursor) == '\n') {          \
+                (endLine) = true;                                  \
+            }                                                      \
+        } while (*(cursor) == (escapeByte));                       \
+    } while (0)
+
     s32               width;
     const _FontGlyph* glyph;
     u8                previousRightKerningClass;
-    s32               stop;
-    u8                c;
-    s32               idx;
+    s32               endLine;
+    u8                leadingByte;
+    s32               glyphIndex;
 
     width                     = 0;
-    glyph                     = table;
+    glyph                     = glyphTable;
     previousRightKerningClass = FONT_KERNING_CLASS_NEUTRAL;
-    for (c = *str; c != 0; c = *str) {
-        if (c == '\n') {
+    for (leadingByte = *text; leadingByte != '\0'; leadingByte = *text) {
+        if (leadingByte == '\n') {
             break;
         }
-        stop = 0;
-        if (c == '\\') {
-            do {
-                str++;
-                switch (*str) {
-                    case 'B':
-                    case 'C':
-                    case 'D':
-                    case 'S':
-                    case 'U':
-                    case 'W':
-                    case 'b':
-                    case 'c':
-                    case 'd':
-                    case 's':
-                    case 'u':
-                    case 'w':
-                        str += 2;
-                        break;
-                    case 'N':
-                    case 'n':
-                        stop = 1;
-                        break;
-                }
-                if (*str == 0 || *str == '\n') {
-                    stop = 1;
-                }
-            } while (*str == c);
+        // Consume adjacent commands without applying their drawing side effects.
+        endLine = false;
+        if (leadingByte == '\\') {
+            TEXT_SKIP_LINE_WIDTH_COMMANDS(text, leadingByte, endLine);
+#undef TEXT_SKIP_LINE_WIDTH_COMMANDS
         }
-        if (stop) {
+        if (endLine) {
             break;
         }
-        idx   = *str - ' ';
-        glyph = &table[idx];
-        TEXT_APPLY_KERNING(width, previousRightKerningClass, glyph, req);
-        str++;
+        glyphIndex = *text - ' ';
+        glyph      = &glyphTable[glyphIndex];
+        TEXT_APPLY_KERNING(width, previousRightKerningClass, glyph, request);
+        text++;
         previousRightKerningClass = glyph->rightKerningClass;
         width                    += glyph->widthMinusOne + glyph->advanceExtraX + glyph->xOffset;
     }
+    // Alignment omits trailing spacing, retaining the space record for empty lines.
     return width - glyph->advanceExtraX;
 }
 
@@ -492,11 +526,11 @@ void Text_DrawString(TextDrawReq* request, u8* text)
     }
     switch (request->alignment) {
         case TEXT_ALIGNMENT_CENTER:
-            width       = Text_MeasureGlyphWidth(request, text, table);
+            width       = _textMeasureLineWidth(request, text, table);
             request->x -= width >> 1;
             break;
         case TEXT_ALIGNMENT_RIGHT:
-            width       = Text_MeasureGlyphWidth(request, text, table);
+            width       = _textMeasureLineWidth(request, text, table);
             request->x -= width;
             break;
     }
@@ -853,11 +887,11 @@ void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
 
     switch (request->alignment) {
         case TEXT_ALIGNMENT_CENTER:
-            width       = Text_MeasureGlyphWidth(request, arg1, table);
+            width       = _textMeasureLineWidth(request, arg1, table);
             request->x -= width >> 1;
             break;
         case TEXT_ALIGNMENT_RIGHT:
-            width       = Text_MeasureGlyphWidth(request, arg1, table);
+            width       = _textMeasureLineWidth(request, arg1, table);
             request->x -= width;
             break;
     }
