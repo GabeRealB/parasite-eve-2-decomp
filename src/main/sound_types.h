@@ -291,12 +291,22 @@ STATIC_ASSERT_SIZEOF(SndEvtArgs, 0x10);
 /// of that attenuation. Key off releases script voices in bank types 1 and 5
 /// during stage changes.
 enum {
-    SOUND_EVENT_NO_OP                      = 0,
-    SOUND_EVENT_MIDI_START                 = 1,
-    SOUND_EVENT_MIDI_STOP                  = 2,
-    SOUND_EVENT_MIDI_MUTE                  = 3,
-    SOUND_EVENT_MIDI_UNMUTE                = 4,
-    SOUND_EVENT_MIDI_SET_VOLUME            = 5,
+    SOUND_EVENT_NO_OP           = 0,
+    SOUND_EVENT_MIDI_START      = 1,
+    SOUND_EVENT_MIDI_STOP       = 2,
+    SOUND_EVENT_MIDI_MUTE       = 3,
+    SOUND_EVENT_MIDI_UNMUTE     = 4,
+    SOUND_EVENT_MIDI_SET_VOLUME = 5,
+    /// Requests a sound-script instance for deferred audio playback.
+    ///
+    /// Reads `args.script.soundId`, `panOffset`, `level.attenuation`,
+    /// `bankSlot` and `entryControls`; `stopControl` is unused.
+    /// Dispatch chooses one of eight script slots using the entry's priority,
+    /// instance limit and retrigger policy. A rejected request is silently
+    /// dropped; an accepted one starts the interpreter, whose commands allocate
+    /// SPU voices. Queueing alone does not guarantee playback.
+    /// The borrowed bank slot must remain stable, and its script image and
+    /// sample tables must remain loaded through queued dispatch and execution.
     SOUND_EVENT_SCRIPT_START               = 6,
     SOUND_EVENT_SCRIPT_STOP                = 7,
     SOUND_EVENT_SCRIPT_MUTE                = 8,
