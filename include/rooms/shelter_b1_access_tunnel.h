@@ -29,9 +29,9 @@ extern GpSprtRec D_shelter_b1_access_tunnel_8017F6A0[];
 
 extern WorldCoordRoomLights D_shelter_b1_access_tunnel_8017FA1C;
 
-extern GpObj4A D_shelter_b1_access_tunnel_8017FA34[];
+extern WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FA34[];
 
-extern GpObj4A D_shelter_b1_access_tunnel_8017FBFC[];
+extern WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FBFC[];
 
 extern GpObj3A D_shelter_b1_access_tunnel_8017FD2C[];
 

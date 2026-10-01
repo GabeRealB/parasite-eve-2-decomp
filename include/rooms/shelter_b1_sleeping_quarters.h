@@ -32,11 +32,11 @@ extern GpSprtRec D_shelter_b1_sleeping_quarters_80182E70[];
 
 extern WorldCoordRoomLights D_shelter_b1_sleeping_quarters_80183234;
 
-extern GpObj4A D_shelter_b1_sleeping_quarters_8018324C[];
+extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_8018324C[];
 
 extern GpObj3A D_shelter_b1_sleeping_quarters_801837A4[];
 
-extern GpObj4A D_shelter_b1_sleeping_quarters_801838D0[];
+extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_801838D0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_sleeping_quarters_801840B0[];
 

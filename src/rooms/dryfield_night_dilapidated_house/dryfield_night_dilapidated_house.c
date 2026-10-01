@@ -49,19 +49,19 @@ WorldCoordRoomLights D_dryfield_night_dilapidated_house_80189B60[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80189500), D_dryfield_night_dilapidated_house_80189500, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80189800.active), D_dryfield_night_dilapidated_house_80189800.active },
 };
 
-GpObj4C D_dryfield_night_dilapidated_house_80189B78[12] = {
-    { NULL, NULL, NULL, { 1712, -48, -2768, 0 }, { { -624, 0, -304, 0 }, { 624, 0, -304, 0 }, { -624, 0, 304, 0 }, { 624, 0, 304, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 692, 0, 5, 20, 2, 0 },
-    { NULL, NULL, NULL, { -5680, -63, 192, 0 }, { { 304, 0, -624, 0 }, { 304, 0, 624, 0 }, { -304, 0, -624, 0 }, { -304, 0, 624, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 692, 0, 7, 34, 2, 0 },
-    { NULL, NULL, NULL, { -4688, -64, 352, 0 }, { { -512, 0, -608, 0 }, { 512, 0, -608, 0 }, { -512, 0, 608, 0 }, { 512, 0, 608, 0 } }, { 0, 4101, 0, 0 }, { -4091, 0, 201, 0 }, 794, 0x4002, 2, 0, 2, 0 },
-    { NULL, NULL, NULL, { -4704, -64, -944, 0 }, { { -512, 0, -560, 0 }, { 512, 0, -560, 0 }, { -512, 0, 560, 0 }, { 512, 0, 560, 0 } }, { 0, 4110, 0, 0 }, { -4091, 0, 201, 0 }, 757, 0x4002, 3, 0, 2, 0 },
-    { NULL, NULL, NULL, { -3472, -64, -496, 0 }, { { -336, 0, -928, 0 }, { 1456, 0, -928, 0 }, { -336, 0, 928, 0 }, { 1136, 0, 928, 0 } }, { 0, 4107, 0, 0 }, { -4091, 0, 201, 0 }, 1722, 0x4002, 5, 0, 4, 0 },
-    { NULL, NULL, NULL, { -1104, -64, -2800, 0 }, { { -1264, 0, -288, 0 }, { 912, 0, -288, 0 }, { -1264, 0, 1024, 0 }, { 912, 0, 1024, 0 } }, { 0, 4105, 0, 0 }, { -4091, 0, 201, 0 }, 1624, 0x4002, 18, 0, 4, 0 },
-    { NULL, NULL, NULL, { -5280, -64, 704, 0 }, { { -624, 0, -224, 0 }, { 624, 0, -224, 0 }, { -624, 0, 224, 0 }, { 624, 0, 224, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 662, 0x4002, 17, 0, 2, 0 },
-    { NULL, NULL, NULL, { -5120, -64, -2720, 0 }, { { -720, 0, -288, 0 }, { 720, 0, -288, 0 }, { -720, 0, 288, 0 }, { 720, 0, 288, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 773, 0x4002, 23, 0, 2, 0 },
-    { NULL, NULL, NULL, { -2448, -64, 2688, 0 }, { { -544, 0, -288, 0 }, { 544, 0, -288, 0 }, { -544, 0, 288, 0 }, { 544, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 613, 2, 21, 0, 2, 0 },
-    { NULL, NULL, NULL, { 1072, -64, 2688, 0 }, { { -576, 0, -288, 0 }, { 576, 0, -288, 0 }, { -576, 0, 288, 0 }, { 576, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 643, 2, 21, 0, 2, 0 },
-    { NULL, NULL, NULL, { -2400, -64, -2752, 0 }, { { -720, 0, -288, 0 }, { 720, 0, -288, 0 }, { -720, 0, 288, 0 }, { 720, 0, 288, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 773, 2, 22, 0, 2, 0 },
-    { NULL, NULL, NULL, { -928, -64, 2688, 0 }, { { -544, 0, -288, 0 }, { 544, 0, -288, 0 }, { -544, 0, 288, 0 }, { 544, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 613, 2, 21, 0, 130, 0 },
+WorldCollisionTrigger D_dryfield_night_dilapidated_house_80189B78[12] = {
+    { NULL, NULL, NULL, { 1712, -48, -2768, 0 }, { { -624, 0, -304, 0 }, { 624, 0, -304, 0 }, { -624, 0, 304, 0 }, { 624, 0, 304, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 692, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5680, -63, 192, 0 }, { { 304, 0, -624, 0 }, { 304, 0, 624, 0 }, { -304, 0, -624, 0 }, { -304, 0, 624, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 692, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4688, -64, 352, 0 }, { { -512, 0, -608, 0 }, { 512, 0, -608, 0 }, { -512, 0, 608, 0 }, { 512, 0, 608, 0 } }, { 0, 4101, 0, 0 }, { -4091, 0, 201, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4704, -64, -944, 0 }, { { -512, 0, -560, 0 }, { 512, 0, -560, 0 }, { -512, 0, 560, 0 }, { 512, 0, 560, 0 } }, { 0, 4110, 0, 0 }, { -4091, 0, 201, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3472, -64, -496, 0 }, { { -336, 0, -928, 0 }, { 1456, 0, -928, 0 }, { -336, 0, 928, 0 }, { 1136, 0, 928, 0 } }, { 0, 4107, 0, 0 }, { -4091, 0, 201, 0 }, 1722, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1104, -64, -2800, 0 }, { { -1264, 0, -288, 0 }, { 912, 0, -288, 0 }, { -1264, 0, 1024, 0 }, { 912, 0, 1024, 0 } }, { 0, 4105, 0, 0 }, { -4091, 0, 201, 0 }, 1624, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 18, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5280, -64, 704, 0 }, { { -624, 0, -224, 0 }, { 624, 0, -224, 0 }, { -624, 0, 224, 0 }, { 624, 0, 224, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 662, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5120, -64, -2720, 0 }, { { -720, 0, -288, 0 }, { 720, 0, -288, 0 }, { -720, 0, 288, 0 }, { 720, 0, 288, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 773, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 23, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2448, -64, 2688, 0 }, { { -544, 0, -288, 0 }, { 544, 0, -288, 0 }, { -544, 0, 288, 0 }, { 544, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 613, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1072, -64, 2688, 0 }, { { -576, 0, -288, 0 }, { 576, 0, -288, 0 }, { -576, 0, 288, 0 }, { 576, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 643, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2400, -64, -2752, 0 }, { { -720, 0, -288, 0 }, { 720, 0, -288, 0 }, { -720, 0, 288, 0 }, { 720, 0, 288, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 773, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -928, -64, 2688, 0 }, { { -544, 0, -288, 0 }, { 544, 0, -288, 0 }, { -544, 0, 288, 0 }, { 544, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 613, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpObj3A D_dryfield_night_dilapidated_house_80189F08[1] = {

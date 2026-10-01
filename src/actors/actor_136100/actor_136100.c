@@ -2027,8 +2027,8 @@ static s32 func_actor_136100_80133904(Task* task)
 
     ready = 0;
     if (Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
-        if (!((s16)evtId & 0x8000)) {
-            if ((evtId & 0x7FFF) == 5) {
+        if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC)) {
+            if ((evtId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
                 ready = gPlayerStatus.interactionPressed != 0;
             }
         }
@@ -2115,7 +2115,7 @@ static void func_actor_136100_80133A88(Task* task)
 static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* evtSub)
 {
     if (Gp_TakePendingObj4C(evtId, evtKind, evtSub) != 0) {
-        if ((*evtId & 0x7FFF) == 5) {
+        if ((*evtId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
             if ((s8)*evtKind == 0x10) {
                 return 1;
             }

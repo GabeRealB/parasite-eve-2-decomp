@@ -160,7 +160,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaSceneWork, 0x34);
 ///
 /// 0x14..0x1D belong to `func_acropolis_plaza_8017FB50`, the scene stepper:
 /// `step` is its own state machine, `evtId`/`evtKind`/`evtSub` latch the
-/// pending `GpObj4C` event `Gp_TakePendingObj4C` hands it, `streamFrame`
+/// pending `WorldCollisionTrigger` event `Gp_TakePendingObj4C` hands it, `streamFrame`
 /// snapshots `gCdCmdQueue.sceneFrame` when the event arrives, and `variant`
 /// counts how many times the entry-6 scene has run (capped at 2) so each pass
 /// spawns it with the next `Task_SpawnFromTable` arg2.
@@ -259,16 +259,16 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaTailMsg, 0x1C);
 
 extern s16 D_acropolis_plaza_801987E0[];
 
-/// Gate `func_acropolis_plaza_8017FB50` applies to a pending `GpObj4C` event
+/// Gate `func_acropolis_plaza_8017FB50` applies to a pending `WorldCollisionTrigger` event
 /// whose id has the sign bit clear; a main-executable global with no module
 /// header yet.
 
-/// The three scene `GpObj4A` nodes the plaza unlinks: `..._801991F0` when the
+/// The three scene `WorldCollisionTrigger` nodes the plaza unlinks: `..._801991F0` when the
 /// opening stream hands over, and `..._801991A4` / `..._8019923C` depending on
 /// which event kind ended the scene.
-extern GpObj4A D_acropolis_plaza_801991A4;
-extern GpObj4A D_acropolis_plaza_801991F0;
-extern GpObj4A D_acropolis_plaza_8019923C[4];
+extern WorldCollisionTrigger D_acropolis_plaza_801991A4;
+extern WorldCollisionTrigger D_acropolis_plaza_801991F0;
+extern WorldCollisionTrigger D_acropolis_plaza_8019923C[4];
 
 /// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
@@ -2695,15 +2695,15 @@ WorldCollisionGrid D_acropolis_plaza_80199180[1] = {
     { NULL, D_acropolis_plaza_80198AA0, D_acropolis_plaza_80198B90, D_acropolis_plaza_80198E10, D_acropolis_plaza_80199110, 0, 0, 7, 4, 4000, 32 },
 };
 
-GpObj4C D_acropolis_plaza_801991A4 = { NULL, NULL, NULL, { 5744, -112, 8227, 0 }, { { 2736, 0, 3200, 0 }, { -3471, 0, -2304, 0 }, { 3471, 0, 2305, 0 }, { -2736, 0, -3199, 0 } }, { 0, 4113, 0, 0 }, { 2106, 0, -3513, 0 }, 4190, 0x8004, 0, 119, 3, 0 };
+WorldCollisionTrigger D_acropolis_plaza_801991A4 = { NULL, NULL, NULL, { 5744, -112, 8227, 0 }, { { 2736, 0, 3200, 0 }, { -3471, 0, -2304, 0 }, { 3471, 0, 2305, 0 }, { -2736, 0, -3199, 0 } }, { 0, 4113, 0, 0 }, { 2106, 0, -3513, 0 }, 4190, WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 119, WORLD_COLLISION_TRIGGER_QUAD, 0 };
 
-GpObj4C D_acropolis_plaza_801991F0 = { NULL, NULL, NULL, { 0x4336, -32, 3038, 0 }, { { 1967, 0, 3691, 0 }, { -3037, 0, -2925, 0 }, { 3036, 0, 2925, 0 }, { -1968, 0, -3691, 0 } }, { 0, 4098, 0, 0 }, { 2106, 0, -3513, 0 }, 4190, 0x8004, 1, 0, 3, 0 };
+WorldCollisionTrigger D_acropolis_plaza_801991F0 = { NULL, NULL, NULL, { 0x4336, -32, 3038, 0 }, { { 1967, 0, 3691, 0 }, { -3037, 0, -2925, 0 }, { 3036, 0, 2925, 0 }, { -1968, 0, -3691, 0 } }, { 0, 4098, 0, 0 }, { 2106, 0, -3513, 0 }, 4190, WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 };
 
-GpObj4C D_acropolis_plaza_8019923C[4] = {
-    { NULL, NULL, NULL, { 928, -16, 0x3370, 0 }, { { 2575, 0, 3297, 0 }, { -3632, 0, -2207, 0 }, { 3632, 0, 2208, 0 }, { -2575, 0, -3296, 0 } }, { 0, 4107, 0, 0 }, { 2106, 0, -3513, 0 }, 4222, 0x8004, 2, 0, 3, 0 },
-    { NULL, NULL, NULL, { 0x352F, 0, 5313, 0 }, { { 573, 0, 1873, 0 }, { -1312, 0, -558, 0 }, { 1601, 0, 143, 0 }, { -860, 0, -1457, 0 } }, { 0, 4106, 0, 0 }, { 2910, 0, -2886, 0 }, 1958, 4, 3, 0, 2, 0 },
-    { NULL, NULL, NULL, { 0x4C3F, -32, 574, 0 }, { { 1781, 0, -112, 0 }, { -480, 0, 1609, 0 }, { 481, 0, -1607, 0 }, { -1748, 0, 1137, 0 } }, { 0, 4108, 0, 0 }, { 2106, 0, -3513, 0 }, 2079, 4, 6, 0, 4, 0 },
-    { NULL, NULL, NULL, { 0x5AA0, -32, 2048, 0 }, { { 2418, 0, 652, 0 }, { -2420, 0, 505, 0 }, { 2419, 0, -506, 0 }, { -2419, 0, -653, 0 } }, { 0, 4096, 0, 0 }, { -201, 0, -4092, 0 }, 2495, 4, 7, 0, 130, 0 },
+WorldCollisionTrigger D_acropolis_plaza_8019923C[4] = {
+    { NULL, NULL, NULL, { 928, -16, 0x3370, 0 }, { { 2575, 0, 3297, 0 }, { -3632, 0, -2207, 0 }, { 3632, 0, 2208, 0 }, { -2575, 0, -3296, 0 } }, { 0, 4107, 0, 0 }, { 2106, 0, -3513, 0 }, 4222, WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x352F, 0, 5313, 0 }, { { 573, 0, 1873, 0 }, { -1312, 0, -558, 0 }, { 1601, 0, 143, 0 }, { -860, 0, -1457, 0 } }, { 0, 4106, 0, 0 }, { 2910, 0, -2886, 0 }, 1958, WORLD_COLLISION_TRIGGER_ACTION_CLEAR, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4C3F, -32, 574, 0 }, { { 1781, 0, -112, 0 }, { -480, 0, 1609, 0 }, { 481, 0, -1607, 0 }, { -1748, 0, 1137, 0 } }, { 0, 4108, 0, 0 }, { 2106, 0, -3513, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CLEAR, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x5AA0, -32, 2048, 0 }, { { 2418, 0, 652, 0 }, { -2420, 0, 505, 0 }, { 2419, 0, -506, 0 }, { -2419, 0, -653, 0 } }, { 0, 4096, 0, 0 }, { -201, 0, -4092, 0 }, 2495, WORLD_COLLISION_TRIGGER_ACTION_CLEAR, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_acropolis_plaza_8019936C[3] = {
@@ -4094,14 +4094,14 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
 
 /// Steps the plaza's streamed scene, returning zero while it is still running.
 ///
-/// Seven steps driven by the pending `GpObj4C` event `Gp_TakePendingObj4C`
+/// Seven steps driven by the pending `WorldCollisionTrigger` event `Gp_TakePendingObj4C`
 /// reports. `ready` is that event's "take it" flag, qualified by `gPlayerStatus.interactionPressed`
 /// so an event that arrives with the id's sign bit clear is only acted on when
 /// that global is set. Steps 0 and 2 latch the event into the work block and
 /// pick a table entry from its kind byte; steps 1, 3 and 4..6 wait on the task
 /// the previous step spawned (`Task_PollKill`) and respawn the entry-1 stream
 /// watcher over `field_10`. Step 3 is the only exit: it unlinks the scene's
-/// `GpObj4A` and returns 1 when the latched kind is 2.
+/// `WorldCollisionTrigger` and returns 1 when the latched kind is 2.
 static u16 func_acropolis_plaza_8017FB50(Task* task)
 {
     CdCmdQueue*         q    = &gCdCmdQueue;
@@ -4119,7 +4119,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
     u16                 latchedKind16;
 
     ready = Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub);
-    if (!((s16)evtId & 0x8000) && (ready != 0)) {
+    if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC) && (ready != 0)) {
         ready = gPlayerStatus.interactionPressed != 0;
     }
 

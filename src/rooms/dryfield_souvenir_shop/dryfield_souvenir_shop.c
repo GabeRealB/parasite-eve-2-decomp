@@ -50,10 +50,10 @@ s32 func_dryfield_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg
 s32 func_dryfield_souvenir_shop_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_souvenir_shop_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid   D_dryfield_souvenir_shop_8017E5DC[1];
-extern GpObj4C              D_dryfield_souvenir_shop_8017EEF4[2];
-extern GpObj4C              D_dryfield_souvenir_shop_8017EF8C[12];
-extern WorldCoordRoomLights D_dryfield_souvenir_shop_8017F55C[1];
+extern WorldCollisionGrid    D_dryfield_souvenir_shop_8017E5DC[1];
+extern WorldCollisionTrigger D_dryfield_souvenir_shop_8017EEF4[2];
+extern WorldCollisionTrigger D_dryfield_souvenir_shop_8017EF8C[12];
+extern WorldCoordRoomLights  D_dryfield_souvenir_shop_8017F55C[1];
 
 GpMsgEntry D_dryfield_souvenir_shop_8017E014[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_souvenir_shop_8017D5D8 },
@@ -273,24 +273,24 @@ GpSprtRec D_dryfield_souvenir_shop_8017EED0[3] = {
     { { .elements = D_dryfield_souvenir_shop_8017EA5C }, D_dryfield_souvenir_shop_8017EE80, NULL },
 };
 
-GpObj4C D_dryfield_souvenir_shop_8017EEF4[2] = {
-    { NULL, NULL, NULL, { 2879, -1440, -1969, 0 }, { { 147, -1824, -2190, 0 }, { -146, -1824, 2191, 0 }, { 147, 1824, -2190, 0 }, { -146, 1824, 2191, 0 } }, { 4087, 0, 272, 0 }, { 0, 0, 4096, 0 }, 2850, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { 3039, -1536, -2017, 0 }, { { -146, -1888, 2191, 0 }, { 147, -1888, -2190, 0 }, { -146, 1888, 2191, 0 }, { 147, 1888, -2190, 0 } }, { -4087, 0, -275, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 2, 3, 129, 0 },
+WorldCollisionTrigger D_dryfield_souvenir_shop_8017EEF4[2] = {
+    { NULL, NULL, NULL, { 2879, -1440, -1969, 0 }, { { 147, -1824, -2190, 0 }, { -146, -1824, 2191, 0 }, { 147, 1824, -2190, 0 }, { -146, 1824, 2191, 0 } }, { 4087, 0, 272, 0 }, { 0, 0, 4096, 0 }, 2850, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3039, -1536, -2017, 0 }, { { -146, -1888, 2191, 0 }, { 147, -1888, -2190, 0 }, { -146, 1888, 2191, 0 }, { 147, 1888, -2190, 0 } }, { -4087, 0, -275, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_dryfield_souvenir_shop_8017EF8C[12] = {
-    { NULL, NULL, NULL, { 1920, -57, -3760, 0 }, { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 593, 0, 5, 18, 2, 0 },
-    { NULL, NULL, NULL, { 2832, -64, -704, 0 }, { { -1088, 0, -272, 0 }, { 1088, 0, -272, 0 }, { -1088, 0, 272, 0 }, { 1088, 0, 272, 0 } }, { 0, 4109, 0, 0 }, { -201, 0, -4091, 0 }, 1115, 2, 4, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4176, -64, -3296, 0 }, { { -1520, 0, -272, 0 }, { 1520, 0, -272, 0 }, { -1520, 0, 272, 0 }, { 1520, 0, 272, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1541, 2, 1, 0, 2, 0 },
-    { NULL, NULL, NULL, { 5296, -64, -752, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 201, 0 }, 1039, 2, 3, 0, 2, 0 },
-    { NULL, NULL, NULL, { 1023, -64, -1728, 0 }, { { -336, 0, -640, 0 }, { 336, 0, -640, 0 }, { -336, 0, 640, 0 }, { 336, 0, 640, 0 } }, { 0, 4098, 0, 0 }, { 4095, 0, 0, 0 }, 721, 2, 2, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4560, -64, -1232, 0 }, { { -880, 0, -352, 0 }, { 880, 0, -352, 0 }, { -880, 0, 352, 0 }, { 880, 0, 352, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 947, 2, 9, 0, 2, 0 },
-    { NULL, NULL, NULL, { 2736, -64, -1696, 0 }, { { -848, 0, -176, 0 }, { 848, 0, -176, 0 }, { -848, 0, 176, 0 }, { 848, 0, 176, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 865, 2, 5, 0, 2, 0 },
-    { NULL, NULL, NULL, { 2720, -64, -2624, 0 }, { { -848, 0, -176, 0 }, { 848, 0, -176, 0 }, { -848, 0, 176, 0 }, { 848, 0, 176, 0 } }, { 0, 4098, 0, 0 }, { -201, 0, -4091, 0 }, 865, 2, 5, 0, 2, 0 },
-    { NULL, NULL, NULL, { 1056, -64, -3104, 0 }, { { -320, 0, -464, 0 }, { 320, 0, -464, 0 }, { -320, 0, 464, 0 }, { 320, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 3973, 0, 995, 0 }, 561, 2, 6, 0, 2, 0 },
-    { NULL, NULL, NULL, { 1392, -64, -736, 0 }, { { -576, 0, -176, 0 }, { 576, 0, -176, 0 }, { -576, 0, 176, 0 }, { 576, 0, 176, 0 } }, { 0, 4097, 0, 0 }, { -201, 0, -4091, 0 }, 600, 2, 7, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4720, -64, -448, 0 }, { { -784, 0, -176, 0 }, { 784, 0, -176, 0 }, { -784, 0, 176, 0 }, { 784, 0, 176, 0 } }, { 0, 4099, 0, 0 }, { 200, 0, -4091, 0 }, 801, 2, 7, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4192, -64, -1824, 0 }, { { -1072, 0, 0, 0 }, { 880, 0, -32, 0 }, { -656, 0, 672, 0 }, { 880, 0, 672, 0 } }, { 0, 4113, 0, 0 }, { 0, 0, 4096, 0 }, 1101, 2, 9, 0, 132, 0 },
+WorldCollisionTrigger D_dryfield_souvenir_shop_8017EF8C[12] = {
+    { NULL, NULL, NULL, { 1920, -57, -3760, 0 }, { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 593, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2832, -64, -704, 0 }, { { -1088, 0, -272, 0 }, { 1088, 0, -272, 0 }, { -1088, 0, 272, 0 }, { 1088, 0, 272, 0 } }, { 0, 4109, 0, 0 }, { -201, 0, -4091, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4176, -64, -3296, 0 }, { { -1520, 0, -272, 0 }, { 1520, 0, -272, 0 }, { -1520, 0, 272, 0 }, { 1520, 0, 272, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1541, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5296, -64, -752, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1023, -64, -1728, 0 }, { { -336, 0, -640, 0 }, { 336, 0, -640, 0 }, { -336, 0, 640, 0 }, { 336, 0, 640, 0 } }, { 0, 4098, 0, 0 }, { 4095, 0, 0, 0 }, 721, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4560, -64, -1232, 0 }, { { -880, 0, -352, 0 }, { 880, 0, -352, 0 }, { -880, 0, 352, 0 }, { 880, 0, 352, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 947, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2736, -64, -1696, 0 }, { { -848, 0, -176, 0 }, { 848, 0, -176, 0 }, { -848, 0, 176, 0 }, { 848, 0, 176, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2720, -64, -2624, 0 }, { { -848, 0, -176, 0 }, { 848, 0, -176, 0 }, { -848, 0, 176, 0 }, { 848, 0, 176, 0 } }, { 0, 4098, 0, 0 }, { -201, 0, -4091, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1056, -64, -3104, 0 }, { { -320, 0, -464, 0 }, { 320, 0, -464, 0 }, { -320, 0, 464, 0 }, { 320, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 3973, 0, 995, 0 }, 561, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1392, -64, -736, 0 }, { { -576, 0, -176, 0 }, { 576, 0, -176, 0 }, { -576, 0, 176, 0 }, { 576, 0, 176, 0 } }, { 0, 4097, 0, 0 }, { -201, 0, -4091, 0 }, 600, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4720, -64, -448, 0 }, { { -784, 0, -176, 0 }, { 784, 0, -176, 0 }, { -784, 0, 176, 0 }, { 784, 0, 176, 0 } }, { 0, 4099, 0, 0 }, { 200, 0, -4091, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4192, -64, -1824, 0 }, { { -1072, 0, 0, 0 }, { 880, 0, -32, 0 }, { -656, 0, 672, 0 }, { 880, 0, 672, 0 } }, { 0, 4113, 0, 0 }, { 0, 0, 4096, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_souvenir_shop_8017F31C[6] = {

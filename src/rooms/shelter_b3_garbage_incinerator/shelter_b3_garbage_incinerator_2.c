@@ -861,8 +861,8 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             if (Gp_TakePendingObj4C(&id, (u8*)&kind, &arg) == 0) {
                 break;
             }
-            t    = id & 0x7FFF;
-            want = 5;
+            t    = id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC);
+            want = WORLD_COLLISION_TRIGGER_ACTION_ROOM;
             if (t != want) {
                 break;
             }

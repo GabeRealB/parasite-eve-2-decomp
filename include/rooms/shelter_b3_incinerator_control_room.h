@@ -29,11 +29,11 @@ extern GpSprtRec D_shelter_b3_incinerator_control_room_80182140[];
 
 extern WorldCoordRoomLights D_shelter_b3_incinerator_control_room_801824A0;
 
-extern GpObj4A D_shelter_b3_incinerator_control_room_801824B8[];
+extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801824B8[];
 
-extern GpObj4A D_shelter_b3_incinerator_control_room_80182668[];
+extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_80182668[];
 
-extern GpObj4A D_shelter_b3_incinerator_control_room_801827E4[];
+extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801827E4[];
 
 extern GpObj3A D_shelter_b3_incinerator_control_room_801829AC[];
 

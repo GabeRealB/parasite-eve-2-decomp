@@ -25037,7 +25037,7 @@ Two other pieces have to stay wide:
   `lw v0` / `move v1, v0` in the delay slot, then `sw` / `li a1`.
 
 `Gp_ClearObj3AList` is the example (sibling `Gp_ClearObj4AList` is the same shape
-on `GpObj4A` / `Gp_Obj4ALists`).
+on `WorldCollisionTrigger` / `Gp_Obj4ALists`).
 
 ## Chained `r = g = b` plus the `<= 0` arm first for CVECTOR stores
 
@@ -26573,27 +26573,27 @@ computes `&table[index]` first, then interleaves `lbu flags` with `lw head`.
 Loading the head *inside* the `!(flags & 0x20)` arm delays that work until
 after `bnez` and also inverts the empty-list `beqz`.
 
-Load the head first, then split `head->next` through a temp so the empty
+Load the head first, then split `*head` through a temp so the empty
 check is `lw v0` / `beqz` / `move v1, v0` (same temp trick as
 `Gp_ClearObj3AList`). Put the non-empty walk first so `beqz` goes to the
 empty insert:
 
 ```c
 head  = Gp_Obj4ALists[arg0];
-flags = arg1->field_4A;
+flags = arg1->flags;
 if (!(flags & 0x20)) {
-    arg1->field_4A = flags | 0x20;
-    temp           = head->next;
+    arg1->flags = flags | 0x20;
+    temp           = *head;
     if (temp != NULL) {
         node = temp;
         while (node->next != NULL) {
             node = node->next;
         }
         node->next = arg1;
-        arg1->prev = node;
+        arg1->prevLink = &node->next;
     } else {
-        head->next = arg1;
-        arg1->prev = head;
+        *head = arg1;
+        arg1->prevLink = head;
     }
     arg1->next = NULL;
 }
@@ -42547,7 +42547,7 @@ reload has to stay, because the store is what forces it.
 ## Two elements of a global array: derive a second base pointer, don't index
 
 Touching two fixed elements of an extern array with the field at a small
-offset, `arr[0].field_4A |= 0x40; arr[1].field_4A &= 0xBF;` folds both
+offset, `arr[0].flags |= 0x40; arr[1].flags &= 0xBF;` folds both
 addresses onto one register:
 
 ```
@@ -42572,8 +42572,8 @@ register, and the two `lbu`/`sb` pairs each use `0x4a(reg)`:
 ```c
 base = arr;
 obj  = base + 1;
-base->field_4A |= 0x40;
-obj->field_4A &= 0xBF;
+base->flags |= 0x40;
+obj->flags &= 0xBF;
 ```
 
 Order matters: writing `obj = arr + 1;` first anchors CSE on `arr + 0x98` and
@@ -53257,8 +53257,8 @@ CSE'd register form:
 s32 mask;
 
 mask = ~0x40;
-p0->field_4A &= mask;
-p3->field_4A &= mask;
+p0->flags &= mask;
+p3->flags &= mask;
 /* ... */
 ```
 
@@ -53266,7 +53266,7 @@ Assign `mask` before the pointer locals to get its register allocated first.
 
 ## Explicit pointer locals stop element offsets folding into the mem operand
 
-`arr[3].field_4A &= mask;` on an `extern T arr[]` folds the whole displacement
+`arr[3].flags &= mask;` on an `extern T arr[]` folds the whole displacement
 into the memory operand (`lbu v0,0x12e(v1)`), because the address stays a
 `symbol + const` inside each mem. The target instead computing
 `addiu a2,a0,0xe4` / `lbu v0,0x4a(a2)` / `sb v0,0x4a(a2)` means the address was
@@ -53275,7 +53275,7 @@ both. Write one pointer local per element:
 
 ```c
 p3 = &D_acropolis_sanctuary_80183CAC[3];
-p3->field_4A &= mask;
+p3->flags &= mask;
 ```
 
 This also fixes the instruction scheduling for free: GCC then interleaves the
@@ -92541,16 +92541,16 @@ form has a bare `(symbol_ref:SI ("D_"))` and the displacement in the memory
 operand.
 
 No pointer local is needed for the fix here. A member access on a global whose
-*type* has the field - `extern GpObj4A D_x;` then `D_x.field_4A &= 0xBF;` -
+*type* has the field - `extern WorldCollisionTrigger D_x;` then `D_x.flags &= 0xBF;` -
 leaves the symbol bare and puts the displacement in the memory operand. That is
 what the sibling rooms do for the same clear (`func_acropolis_fire_escape_8017FECC`,
 `func_dryfield_night_motel_loft_8017D8B0`, `func_acropolis_helicopter_landing_pad_8017EA6C`,
-all `extern GpObj4A`), so it is also the shape the original source had. One
+all `extern WorldCollisionTrigger`), so it is also the shape the original source had. One
 build, 100.000%, all penalties zero.
 
 Inputs: `base.i` (m2c `M2C_FIELD`, 98.150%)
 `4a0937e33621fb506cfb700cc3a9c7882ce11f0df6debf9ae01b361983e4e071`, `base_1.i`
-(`GpObj4A` member access, 100.000%)
+(`WorldCollisionTrigger` member access, 100.000%)
 `99d91b4e338522d4ec70ce2d8b83357275fd4a5d710408ca6aa2941bef565dc3`, `base_2.i`
 (Task-typed host spelling, 100.000%, same object)
 `c32a2b4118c521c4909348491cbddec9f203966b0e6650f53baf88b14edd48e5`.
@@ -144293,7 +144293,7 @@ without them loop.c strength-reduced `vec4`'s field addresses into a second
 pointer and hoisted `&block[5]`/`&block[6]`/`&block[7]`. The target's
 pointers (`a0` over the corners, `t3` over the edge table, `off` added to the
 object) are loop.c's own reductions of `for (i = 1; i < N; i++)` loops over
-`&other->field_14[i]`, `&block->verts[i]` and `Gp_FaceEdgePairs[i]`. Written that
+`&other->vertices[i]`, `&block->verts[i]` and `Gp_FaceEdgePairs[i]`. Written that
 way, and with the scratch block as a struct, the body matched outright. The
 preceding function in the unit ran the same quad test hack-free, and its body
 was the template: check neighbours for the same algorithm before steering loops.

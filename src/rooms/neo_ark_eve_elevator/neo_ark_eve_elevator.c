@@ -43,9 +43,9 @@ s32 func_neo_ark_eve_elevator_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*)
 s32 func_neo_ark_eve_elevator_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_eve_elevator_8017D670(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid   D_neo_ark_eve_elevator_8017DA2C[1];
-extern GpObj4C              D_neo_ark_eve_elevator_8017DBC8[1];
-extern WorldCoordRoomLights D_neo_ark_eve_elevator_8017DBB0[1];
+extern WorldCollisionGrid    D_neo_ark_eve_elevator_8017DA2C[1];
+extern WorldCollisionTrigger D_neo_ark_eve_elevator_8017DBC8[1];
+extern WorldCoordRoomLights  D_neo_ark_eve_elevator_8017DBB0[1];
 
 GpMsgEntry D_neo_ark_eve_elevator_8017D724[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_eve_elevator_8017D5D8 },
@@ -143,8 +143,8 @@ WorldCoordRoomLights D_neo_ark_eve_elevator_8017DBB0[1] = {
     { 0, NULL, ARRAY_SIZE(D_neo_ark_eve_elevator_8017DB50), D_neo_ark_eve_elevator_8017DB50, 0, NULL },
 };
 
-GpObj4C D_neo_ark_eve_elevator_8017DBC8[1] = {
-    { NULL, NULL, NULL, { -240, -48, 48, 0 }, { { -304, 0, -976, 0 }, { 304, 0, -976, 0 }, { -304, 0, 976, 0 }, { 304, 0, 976, 0 } }, { 0, 4109, 0, 0 }, { -4096, 0, 0, 0 }, 1021, 0, 24, 17, 130, 0 },
+WorldCollisionTrigger D_neo_ark_eve_elevator_8017DBC8[1] = {
+    { NULL, NULL, NULL, { -240, -48, 48, 0 }, { { -304, 0, -976, 0 }, { 304, 0, -976, 0 }, { -304, 0, 976, 0 }, { 304, 0, 976, 0 } }, { 0, 4109, 0, 0 }, { -4096, 0, 0, 0 }, 1021, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_eve_elevator_8017DC14 = {

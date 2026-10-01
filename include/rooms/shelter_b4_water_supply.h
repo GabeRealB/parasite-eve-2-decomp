@@ -31,9 +31,9 @@ extern GpSprtRec D_shelter_b4_water_supply_80183F90[];
 
 extern WorldCoordRoomLights D_shelter_b4_water_supply_801843D4;
 
-extern GpObj4A D_shelter_b4_water_supply_801843EC[];
+extern WorldCollisionTrigger D_shelter_b4_water_supply_801843EC[];
 
-extern GpObj4A D_shelter_b4_water_supply_80184944[];
+extern WorldCollisionTrigger D_shelter_b4_water_supply_80184944[];
 
 extern GpObj3A D_shelter_b4_water_supply_80184D04[];
 

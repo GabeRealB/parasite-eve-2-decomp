@@ -25,7 +25,7 @@ extern TaskDesc D_dryfield_night_dilapidated_house_801872B4[];
 
 extern WorldCoordRoomLights D_dryfield_night_dilapidated_house_80189B60[1];
 
-extern GpObj4C D_dryfield_night_dilapidated_house_80189B78[12];
+extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_80189B78[12];
 
 extern GpObj3A D_dryfield_night_dilapidated_house_80189F08[1];
 

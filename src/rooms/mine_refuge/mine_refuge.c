@@ -175,8 +175,8 @@ static void func_mine_refuge_8017FF4C(Task* task);
 static void func_mine_refuge_8017FFAC(Task* task);
 
 extern WorldCollisionGrid         D_mine_refuge_80181BA4[1];
-extern GpObj4C                    D_mine_refuge_80182778[2];
-extern GpObj4C                    D_mine_refuge_80182810[6];
+extern WorldCollisionTrigger      D_mine_refuge_80182778[2];
+extern WorldCollisionTrigger      D_mine_refuge_80182810[6];
 extern WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8];
 extern WorldCoordRoomLights       D_mine_refuge_80182760[1];
 s32                               func_mine_refuge_8017FBB4(Task*, s32, s32, s32);
@@ -456,18 +456,18 @@ WorldCoordRoomLights D_mine_refuge_80182760[1] = {
     { 0, NULL, ARRAY_SIZE(D_mine_refuge_801826A0), D_mine_refuge_801826A0, 0, NULL },
 };
 
-GpObj4C D_mine_refuge_80182778[2] = {
-    { NULL, NULL, NULL, { 2048, -1600, 2790, 0 }, { { -1888, -1904, 176, 0 }, { 1888, -1904, -176, 0 }, { -1888, 1904, 176, 0 }, { 1888, 1904, -176, 0 } }, { -382, 0, -4086, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { 2017, -1568, 2734, 0 }, { { 1792, -1904, -176, 0 }, { -1792, -1904, 176, 0 }, { 1792, 1904, -176, 0 }, { -1792, 1904, 176, 0 } }, { 399, 0, 4075, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 3, 2, 129, 0 },
+WorldCollisionTrigger D_mine_refuge_80182778[2] = {
+    { NULL, NULL, NULL, { 2048, -1600, 2790, 0 }, { { -1888, -1904, 176, 0 }, { 1888, -1904, -176, 0 }, { -1888, 1904, 176, 0 }, { 1888, 1904, -176, 0 } }, { -382, 0, -4086, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2017, -1568, 2734, 0 }, { { 1792, -1904, -176, 0 }, { -1792, -1904, 176, 0 }, { 1792, 1904, -176, 0 }, { -1792, 1904, 176, 0 } }, { 399, 0, 4075, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_mine_refuge_80182810[6] = {
-    { NULL, NULL, NULL, { 1504, -48, 208, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 701, 0, 5, 18, 2, 0 },
-    { NULL, NULL, NULL, { 2368, -64, 4257, 0 }, { { -448, 0, -880, 0 }, { 448, 0, -880, 0 }, { -448, 0, 880, 0 }, { 448, 0, 880, 0 } }, { 0, 4105, 0, 0 }, { -4091, 0, -201, 0 }, 987, 5, 1, 0, 2, 0 },
-    { NULL, NULL, NULL, { 1024, -64, 4544, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, -201, 0 }, 701, 2, 3, 0, 2, 0 },
-    { NULL, NULL, NULL, { 1024, -64, 2416, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4095, 0, 0, 0 }, 814, 2, 1, 255, 2, 0 },
-    { NULL, NULL, NULL, { 2592, -64, 1808, 0 }, { { -576, 0, -704, 0 }, { 576, 0, -704, 0 }, { -576, 0, 704, 0 }, { 576, 0, 704, 0 } }, { 0, 4097, 0, 0 }, { -4095, 0, 0, 0 }, 909, 2, 2, 0, 2, 0 },
-    { NULL, NULL, NULL, { 2464, -64, 2944, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 701, 2, 11, 0, 130, 0 },
+WorldCollisionTrigger D_mine_refuge_80182810[6] = {
+    { NULL, NULL, NULL, { 1504, -48, 208, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2368, -64, 4257, 0 }, { { -448, 0, -880, 0 }, { 448, 0, -880, 0 }, { -448, 0, 880, 0 }, { 448, 0, 880, 0 } }, { 0, 4105, 0, 0 }, { -4091, 0, -201, 0 }, 987, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1024, -64, 4544, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, -201, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1024, -64, 2416, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4095, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2592, -64, 1808, 0 }, { { -576, 0, -704, 0 }, { 576, 0, -704, 0 }, { -576, 0, 704, 0 }, { 576, 0, 704, 0 } }, { 0, 4097, 0, 0 }, { -4095, 0, 0, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2464, -64, 2944, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_mine_refuge_801829D8[2] = {

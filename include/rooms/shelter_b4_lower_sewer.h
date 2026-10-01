@@ -39,9 +39,9 @@ extern GpSprtRec D_shelter_b4_lower_sewer_80182E80[];
 
 extern WorldCoordRoomLights D_shelter_b4_lower_sewer_8018342C;
 
-extern GpObj4A D_shelter_b4_lower_sewer_80183444[];
+extern WorldCollisionTrigger D_shelter_b4_lower_sewer_80183444[];
 
-extern GpObj4A D_shelter_b4_lower_sewer_801837D4[];
+extern WorldCollisionTrigger D_shelter_b4_lower_sewer_801837D4[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b4_lower_sewer_80183DF4[];
 

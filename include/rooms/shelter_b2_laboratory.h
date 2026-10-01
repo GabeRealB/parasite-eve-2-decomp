@@ -37,9 +37,9 @@ extern GpSprtRec D_shelter_b2_laboratory_801854D0[];
 
 extern WorldCoordRoomLights D_shelter_b2_laboratory_80185944;
 
-extern GpObj4A D_shelter_b2_laboratory_8018595C[];
+extern WorldCollisionTrigger D_shelter_b2_laboratory_8018595C[];
 
-extern GpObj4A D_shelter_b2_laboratory_80185D84[];
+extern WorldCollisionTrigger D_shelter_b2_laboratory_80185D84[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b2_laboratory_801863B8[];
 

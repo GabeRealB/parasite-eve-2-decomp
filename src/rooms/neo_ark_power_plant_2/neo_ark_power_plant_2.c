@@ -94,10 +94,10 @@ extern GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3];
 extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3];
 extern GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2];
 
-extern WorldCollisionGrid   D_neo_ark_power_plant_2_80180DC4[1];
-extern GpObj4C              D_neo_ark_power_plant_2_801828C0[8];
-extern GpObj4C              D_neo_ark_power_plant_2_80182B20[8];
-extern WorldCoordRoomLights D_neo_ark_power_plant_2_801828A8[1];
+extern WorldCollisionGrid    D_neo_ark_power_plant_2_80180DC4[1];
+extern WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8];
+extern WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8];
+extern WorldCoordRoomLights  D_neo_ark_power_plant_2_801828A8[1];
 
 s32  func_neo_ark_power_plant_2_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_power_plant_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -633,26 +633,26 @@ WorldCoordRoomLights D_neo_ark_power_plant_2_801828A8[1] = {
     { 0, NULL, ARRAY_SIZE(D_neo_ark_power_plant_2_801820C8), D_neo_ark_power_plant_2_801820C8, 0, NULL },
 };
 
-GpObj4C D_neo_ark_power_plant_2_801828C0[8] = {
-    { NULL, NULL, NULL, { 3040, -7040, 128, 0 }, { { 3, -2256, -1209, 0 }, { -2, -2256, 1209, 0 }, { 3, 2256, -1209, 0 }, { -2, 2256, 1209, 0 } }, { 4099, 0, 7, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { 3135, -7104, 96, 0 }, { { -2, -2256, 1209, 0 }, { 3, -2256, -1209, 0 }, { -2, 2256, 1209, 0 }, { 3, 2256, -1209, 0 } }, { -4102, 0, -10, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { 4096, -7104, -2272, 0 }, { { -2, -2256, 1209, 0 }, { 3, -2256, -1209, 0 }, { -2, 2256, 1209, 0 }, { 3, 2256, -1209, 0 } }, { -4102, 0, -10, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 3, 4, 1, 0 },
-    { NULL, NULL, NULL, { 3967, -7040, -2240, 0 }, { { 3, -2256, -1209, 0 }, { -2, -2256, 1209, 0 }, { 3, 2256, -1209, 0 }, { -2, 2256, 1209, 0 } }, { 4099, 0, 7, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { 6304, -7104, -2336, 0 }, { { 3, -2256, -1209, 0 }, { -2, -2256, 1209, 0 }, { 3, 2256, -1209, 0 }, { -2, 2256, 1209, 0 } }, { 4099, 0, 7, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 5, 4, 1, 0 },
-    { NULL, NULL, NULL, { 6382, -7104, -2272, 0 }, { { -2, -2256, 1209, 0 }, { 3, -2256, -1209, 0 }, { -2, 2256, 1209, 0 }, { 3, 2256, -1209, 0 } }, { -4102, 0, -10, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 4, 5, 1, 0 },
-    { NULL, NULL, NULL, { 7887, -7072, -4785, 0 }, { { 2024, -2256, 142, 0 }, { -2023, -2256, -142, 0 }, { 2024, 2256, 142, 0 }, { -2023, 2256, -142, 0 } }, { -288, 0, 4090, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 5, 6, 1, 0 },
-    { NULL, NULL, NULL, { 7839, -7040, -4705, 0 }, { { -2024, -2256, -139, 0 }, { 2024, -2256, 140, 0 }, { -2024, 2256, -139, 0 }, { 2024, 2256, 140, 0 } }, { 281, 0, -4092, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 6, 5, 129, 0 },
+WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8] = {
+    { NULL, NULL, NULL, { 3040, -7040, 128, 0 }, { { 3, -2256, -1209, 0 }, { -2, -2256, 1209, 0 }, { 3, 2256, -1209, 0 }, { -2, 2256, 1209, 0 } }, { 4099, 0, 7, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3135, -7104, 96, 0 }, { { -2, -2256, 1209, 0 }, { 3, -2256, -1209, 0 }, { -2, 2256, 1209, 0 }, { 3, 2256, -1209, 0 } }, { -4102, 0, -10, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4096, -7104, -2272, 0 }, { { -2, -2256, 1209, 0 }, { 3, -2256, -1209, 0 }, { -2, 2256, 1209, 0 }, { 3, 2256, -1209, 0 } }, { -4102, 0, -10, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3967, -7040, -2240, 0 }, { { 3, -2256, -1209, 0 }, { -2, -2256, 1209, 0 }, { 3, 2256, -1209, 0 }, { -2, 2256, 1209, 0 } }, { 4099, 0, 7, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6304, -7104, -2336, 0 }, { { 3, -2256, -1209, 0 }, { -2, -2256, 1209, 0 }, { 3, 2256, -1209, 0 }, { -2, 2256, 1209, 0 } }, { 4099, 0, 7, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6382, -7104, -2272, 0 }, { { -2, -2256, 1209, 0 }, { 3, -2256, -1209, 0 }, { -2, 2256, 1209, 0 }, { 3, 2256, -1209, 0 } }, { -4102, 0, -10, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7887, -7072, -4785, 0 }, { { 2024, -2256, 142, 0 }, { -2023, -2256, -142, 0 }, { 2024, 2256, 142, 0 }, { -2023, 2256, -142, 0 } }, { -288, 0, 4090, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7839, -7040, -4705, 0 }, { { -2024, -2256, -139, 0 }, { 2024, -2256, 140, 0 }, { -2024, 2256, -139, 0 }, { 2024, 2256, 140, 0 } }, { 281, 0, -4092, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_neo_ark_power_plant_2_80182B20[8] = {
-    { NULL, NULL, NULL, { 3744, -64, -1616, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 590, 1, 5, 64, 2, 0 },
-    { NULL, NULL, NULL, { 4064, -5056, -480, 0 }, { { -336, 0, -496, 0 }, { 336, 0, -496, 0 }, { -336, 0, 496, 0 }, { 336, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 596, 257, 37, 64, 2, 0 },
-    { NULL, NULL, NULL, { 4607, -769, -1600, 0 }, { { -16, -1391, -496, 0 }, { 17, 1392, -496, 0 }, { -16, -1391, 496, 0 }, { 17, 1392, 496, 0 } }, { -4101, 42, 0, 0 }, { -4096, 0, 0, 0 }, 1476, 0x8005, 2, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4927, -4673, -480, 0 }, { { -17, 1392, 496, 0 }, { 16, -1391, 496, 0 }, { -17, 1392, -496, 0 }, { 16, -1391, -496, 0 } }, { -4101, -49, 0, 0 }, { -4096, 0, 0, 0 }, 1476, 0x8000, 33, 18, 2, 0 },
-    { NULL, NULL, NULL, { 256, -48, -1120, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 590, 0, 15, 18, 2, 0 },
-    { NULL, NULL, NULL, { 6720, -5152, -7600, 0 }, { { -320, 0, -896, 0 }, { 320, 0, -896, 0 }, { -320, 0, 896, 0 }, { 320, 0, 896, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 951, 2, 3, 255, 2, 0 },
-    { NULL, NULL, NULL, { 4288, -5152, -2160, 0 }, { { -2720, 0, -368, 0 }, { 2720, 0, -368, 0 }, { -2720, 0, 368, 0 }, { 2720, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 2733, 2, 2, 255, 2, 0 },
-    { NULL, NULL, NULL, { 6864, -5120, -4256, 0 }, { { -400, 0, -2352, 0 }, { 400, 0, -2352, 0 }, { -400, 0, 2352, 0 }, { 400, 0, 2352, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 2374, 2, 2, 255, 130, 0 },
+WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8] = {
+    { NULL, NULL, NULL, { 3744, -64, -1616, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 590, WORLD_COLLISION_TRIGGER_ACTION_FACING, 5, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4064, -5056, -480, 0 }, { { -336, 0, -496, 0 }, { 336, 0, -496, 0 }, { -336, 0, 496, 0 }, { 336, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 596, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 37, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4607, -769, -1600, 0 }, { { -16, -1391, -496, 0 }, { 17, 1392, -496, 0 }, { -16, -1391, 496, 0 }, { 17, 1392, 496, 0 } }, { -4101, 42, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4927, -4673, -480, 0 }, { { -17, 1392, 496, 0 }, { 16, -1391, 496, 0 }, { -17, 1392, -496, 0 }, { 16, -1391, -496, 0 } }, { -4101, -49, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 33, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 256, -48, -1120, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 590, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6720, -5152, -7600, 0 }, { { -320, 0, -896, 0 }, { 320, 0, -896, 0 }, { -320, 0, 896, 0 }, { 320, 0, 896, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 951, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4288, -5152, -2160, 0 }, { { -2720, 0, -368, 0 }, { 2720, 0, -368, 0 }, { -2720, 0, 368, 0 }, { 2720, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 2733, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6864, -5120, -4256, 0 }, { { -400, 0, -2352, 0 }, { 400, 0, -2352, 0 }, { -400, 0, 2352, 0 }, { 400, 0, 2352, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 2374, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3] = {

@@ -170,21 +170,21 @@ EvsCommand D_mine_gorge_8017E610[14] = {
 };
 
 /// Answers message `0x13F1` with argument `0x11F`: while flag nibble `0xA4` is
-/// clear and a pending `GpObj4C` of kind 5 with `field_48 == 0xFF` and a
-/// non-zero `field_4B` is queued, raises the nibble, spawns the cutscene task
+/// clear and a room-action `WorldCollisionTrigger` with `parameter0 == 0xFF` and a
+/// non-zero `hit` is queued, raises the nibble, spawns the cutscene task
 /// `D_mine_gorge_8017E2B0`, moves the session to room 2 with the HUD hidden and
 /// the room objects dirty, and starts the session event. Returns 1 when it
 /// did so, 0 otherwise.
 s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
-    GpObj4C* node;
-    s32      found;
+    WorldCollisionTrigger* node;
+    s32                    found;
 
     if (arg2 == 0x11F) {
         if (GameFlag_GetNibble(0xA4) == 0) {
             node = Gp_PendingObj4C;
             while (node != NULL) {
-                if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+                if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
                     found = 1;
                     goto check;
                 }

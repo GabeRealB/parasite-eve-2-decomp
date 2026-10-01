@@ -60,8 +60,8 @@ extern GpMsgEntry D_dryfield_garage_8017DC7C[];
 /// entry.
 extern TaskDesc D_dryfield_garage_8017DCAC[];
 
-extern ActorTransform D_dryfield_garage_8017DCC4;
-extern GpObj4A        D_dryfield_garage_8017FD1C[11];
+extern ActorTransform        D_dryfield_garage_8017DCC4;
+extern WorldCollisionTrigger D_dryfield_garage_8017FD1C[11];
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -79,8 +79,8 @@ static void func_dryfield_garage_8017DC08(Task* task);
 extern TaskDesc D_8014D8A4;
 
 extern WorldCollisionGrid         D_dryfield_garage_8017E64C[1];
-extern GpObj4C                    D_dryfield_garage_8017F69C[14];
-extern GpObj4C                    D_dryfield_garage_8017FD1C[11];
+extern WorldCollisionTrigger      D_dryfield_garage_8017F69C[14];
+extern WorldCollisionTrigger      D_dryfield_garage_8017FD1C[11];
 extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
 extern WorldCoordRoomLights       D_dryfield_garage_8017FD04[1];
 s32                               func_dryfield_garage_8017D8BC(Task*, s32, s32, TaskMessageArg);
@@ -455,21 +455,21 @@ GpSprtRec D_dryfield_garage_8017F5E8[15] = {
     { { .elements = D_dryfield_garage_8017F3FC }, D_dryfield_garage_8017F5C8, NULL },
 };
 
-GpObj4C D_dryfield_garage_8017F69C[14] = {
-    { NULL, NULL, NULL, { 1455, -1648, 1775, 0 }, { { -1960, -2672, -1625, 0 }, { 1960, -2672, 1624, 0 }, { -1960, 2672, -1625, 0 }, { 1960, 2672, 1624, 0 } }, { 2615, 0, -3157, 0 }, { 0, 0, 4096, 0 }, 3683, 0, 15, 2, 1, 0 },
-    { NULL, NULL, NULL, { 1566, -1584, 1614, 0 }, { { 1960, -2608, 1673, 0 }, { -1960, -2608, -1673, 0 }, { 1960, 2608, 1673, 0 }, { -1960, 2608, -1673, 0 } }, { -2662, 0, 3116, 0 }, { 0, 0, 4096, 0 }, 3665, 0, 2, 15, 1, 0 },
-    { NULL, NULL, NULL, { 991, -1664, 4894, 0 }, { { 2101, -2688, -1181, 0 }, { -2101, -2688, 1181, 0 }, { 2101, 2688, -1181, 0 }, { -2101, 2688, 1181, 0 } }, { 2010, 0, 3577, 0 }, { 0, 0, 4096, 0 }, 3602, 0, 6, 2, 1, 0 },
-    { NULL, NULL, NULL, { 1024, -1600, 5023, 0 }, { { -2101, -2624, 1181, 0 }, { 2101, -2624, -1181, 0 }, { -2101, 2624, 1181, 0 }, { 2101, 2624, -1181, 0 } }, { -2011, 0, -3577, 0 }, { 0, 0, 4096, 0 }, 3556, 0, 2, 6, 1, 0 },
-    { NULL, NULL, NULL, { 7827, -1552, 5066, 0 }, { { -435, -2576, 52, 0 }, { 436, -2576, -51, 0 }, { -435, 2576, 52, 0 }, { 436, 2576, -51, 0 } }, { -484, 0, -4077, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 3, 4, 1, 0 },
-    { NULL, NULL, NULL, { 7817, -1760, 4954, 0 }, { { 491, -2784, -59, 0 }, { -490, -2784, 60, 0 }, { 491, 2784, -59, 0 }, { -490, 2784, 60, 0 } }, { 491, 0, 4066, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { 7326, -1536, 2718, 0 }, { { 1076, -2560, 2157, 0 }, { -1076, -2560, -2156, 0 }, { 1076, 2560, 2157, 0 }, { -1076, 2560, -2156, 0 } }, { -3672, 0, 1831, 0 }, { 0, 0, 4096, 0 }, 3510, 0, 3, 5, 1, 0 },
-    { NULL, NULL, NULL, { 7199, -1728, 2782, 0 }, { { -1076, -2752, -2156, 0 }, { 1076, -2752, 2157, 0 }, { -1076, 2752, -2156, 0 }, { 1076, 2752, 2157, 0 } }, { 3664, 0, -1829, 0 }, { 0, 0, 4096, 0 }, 3656, 0, 5, 3, 1, 0 },
-    { NULL, NULL, NULL, { 9680, -1840, 4735, 0 }, { { -1379, -2864, 332, 0 }, { 1379, -2864, -332, 0 }, { -1379, 2864, 332, 0 }, { 1379, 2864, -332, 0 } }, { -960, 0, -3984, 0 }, { 0, 0, 4096, 0 }, 3187, 0, 5, 4, 1, 0 },
-    { NULL, NULL, NULL, { 9664, -1792, 4640, 0 }, { { 1379, -2816, -332, 0 }, { -1379, -2816, 332, 0 }, { 1379, 2816, -332, 0 }, { -1379, 2816, 332, 0 } }, { 958, 0, 3982, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 4, 5, 1, 0 },
-    { NULL, NULL, NULL, { 6315, -1792, 6411, 0 }, { { 1136, -2784, -1556, 0 }, { -1136, -2784, 1556, 0 }, { 1136, 2784, -1556, 0 }, { -1136, 2784, 1556, 0 } }, { 3318, 0, 2422, 0 }, { 0, 0, 4096, 0 }, 3376, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { 6427, -1760, 6490, 0 }, { { -1047, -2784, 1415, 0 }, { 1047, -2784, -1414, 0 }, { -1047, 2784, 1415, 0 }, { 1047, 2784, -1414, 0 } }, { -3299, 0, -2442, 0 }, { 0, 0, 4096, 0 }, 3288, 0, 3, 4, 1, 0 },
-    { NULL, NULL, NULL, { 4465, -1664, 1695, 0 }, { { 148, -2672, -2050, 0 }, { -163, -2672, 2041, 0 }, { 148, 2672, -2050, 0 }, { -163, 2672, 2041, 0 } }, { 4088, 0, 310, 0 }, { 0, 0, 4096, 0 }, 3367, 0, 3, 15, 1, 0 },
-    { NULL, NULL, NULL, { 4592, -1760, 1648, 0 }, { { -175, -2672, 1978, 0 }, { 162, -2672, -1987, 0 }, { -175, 2672, 1978, 0 }, { 162, 2672, -1987, 0 } }, { -4098, 0, -349, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 15, 3, 129, 0 },
+WorldCollisionTrigger D_dryfield_garage_8017F69C[14] = {
+    { NULL, NULL, NULL, { 1455, -1648, 1775, 0 }, { { -1960, -2672, -1625, 0 }, { 1960, -2672, 1624, 0 }, { -1960, 2672, -1625, 0 }, { 1960, 2672, 1624, 0 } }, { 2615, 0, -3157, 0 }, { 0, 0, 4096, 0 }, 3683, 0, 15, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1566, -1584, 1614, 0 }, { { 1960, -2608, 1673, 0 }, { -1960, -2608, -1673, 0 }, { 1960, 2608, 1673, 0 }, { -1960, 2608, -1673, 0 } }, { -2662, 0, 3116, 0 }, { 0, 0, 4096, 0 }, 3665, 0, 2, 15, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 991, -1664, 4894, 0 }, { { 2101, -2688, -1181, 0 }, { -2101, -2688, 1181, 0 }, { 2101, 2688, -1181, 0 }, { -2101, 2688, 1181, 0 } }, { 2010, 0, 3577, 0 }, { 0, 0, 4096, 0 }, 3602, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1024, -1600, 5023, 0 }, { { -2101, -2624, 1181, 0 }, { 2101, -2624, -1181, 0 }, { -2101, 2624, 1181, 0 }, { 2101, 2624, -1181, 0 } }, { -2011, 0, -3577, 0 }, { 0, 0, 4096, 0 }, 3556, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7827, -1552, 5066, 0 }, { { -435, -2576, 52, 0 }, { 436, -2576, -51, 0 }, { -435, 2576, 52, 0 }, { 436, 2576, -51, 0 } }, { -484, 0, -4077, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7817, -1760, 4954, 0 }, { { 491, -2784, -59, 0 }, { -490, -2784, 60, 0 }, { 491, 2784, -59, 0 }, { -490, 2784, 60, 0 } }, { 491, 0, 4066, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7326, -1536, 2718, 0 }, { { 1076, -2560, 2157, 0 }, { -1076, -2560, -2156, 0 }, { 1076, 2560, 2157, 0 }, { -1076, 2560, -2156, 0 } }, { -3672, 0, 1831, 0 }, { 0, 0, 4096, 0 }, 3510, 0, 3, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7199, -1728, 2782, 0 }, { { -1076, -2752, -2156, 0 }, { 1076, -2752, 2157, 0 }, { -1076, 2752, -2156, 0 }, { 1076, 2752, 2157, 0 } }, { 3664, 0, -1829, 0 }, { 0, 0, 4096, 0 }, 3656, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9680, -1840, 4735, 0 }, { { -1379, -2864, 332, 0 }, { 1379, -2864, -332, 0 }, { -1379, 2864, 332, 0 }, { 1379, 2864, -332, 0 } }, { -960, 0, -3984, 0 }, { 0, 0, 4096, 0 }, 3187, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9664, -1792, 4640, 0 }, { { 1379, -2816, -332, 0 }, { -1379, -2816, 332, 0 }, { 1379, 2816, -332, 0 }, { -1379, 2816, 332, 0 } }, { 958, 0, 3982, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6315, -1792, 6411, 0 }, { { 1136, -2784, -1556, 0 }, { -1136, -2784, 1556, 0 }, { 1136, 2784, -1556, 0 }, { -1136, 2784, 1556, 0 } }, { 3318, 0, 2422, 0 }, { 0, 0, 4096, 0 }, 3376, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6427, -1760, 6490, 0 }, { { -1047, -2784, 1415, 0 }, { 1047, -2784, -1414, 0 }, { -1047, 2784, 1415, 0 }, { 1047, 2784, -1414, 0 } }, { -3299, 0, -2442, 0 }, { 0, 0, 4096, 0 }, 3288, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4465, -1664, 1695, 0 }, { { 148, -2672, -2050, 0 }, { -163, -2672, 2041, 0 }, { 148, 2672, -2050, 0 }, { -163, 2672, 2041, 0 } }, { 4088, 0, 310, 0 }, { 0, 0, 4096, 0 }, 3367, 0, 3, 15, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4592, -1760, 1648, 0 }, { { -175, -2672, 1978, 0 }, { 162, -2672, -1987, 0 }, { -175, 2672, 1978, 0 }, { 162, 2672, -1987, 0 } }, { -4098, 0, -349, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 15, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_garage_8017FAC4[6] = {
@@ -485,18 +485,18 @@ WorldCoordRoomLights D_dryfield_garage_8017FD04[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_garage_8017FAC4), D_dryfield_garage_8017FAC4, 0, NULL },
 };
 
-GpObj4C D_dryfield_garage_8017FD1C[11] = {
-    { NULL, NULL, NULL, { 3552, -64, 2384, 0 }, { { -1728, 0, -1392, 0 }, { 2048, 0, -1392, 0 }, { -1792, 0, 944, 0 }, { 2016, 0, 944, 0 } }, { 0, 4116, 0, 0 }, { 0, 0, 4096, 0 }, 2468, 5, 1, 0, 4, 0 },
-    { NULL, NULL, NULL, { 656, -48, 7376, 0 }, { { -976, 0, -256, 0 }, { 976, 0, -256, 0 }, { -976, 0, 256, 0 }, { 976, 0, 256, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1007, 0, 26, 33, 2, 0 },
-    { NULL, NULL, NULL, { 608, -48, 2960, 0 }, { { 272, 0, -976, 0 }, { 272, 0, 976, 0 }, { -272, 0, -976, 0 }, { -272, 0, 976, 0 } }, { 0, 4111, 0, 0 }, { 4096, 0, 0, 0 }, 1011, 0, 23, 19, 2, 0 },
-    { NULL, NULL, NULL, { 2192, -64, 5344, 0 }, { { -512, 0, -2880, 0 }, { 512, 0, -2880, 0 }, { -512, 0, 2880, 0 }, { 512, 0, 2880, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 2918, 5, 2, 0, 2, 0 },
-    { NULL, NULL, NULL, { 5024, -64, 5312, 0 }, { { -512, 0, -2880, 0 }, { 512, 0, -2880, 0 }, { -512, 0, 2880, 0 }, { 512, 0, 2880, 0 } }, { 0, 4104, 0, 0 }, { 4091, 0, -201, 0 }, 2918, 5, 2, 0, 2, 0 },
-    { NULL, NULL, NULL, { 9600, -64, 6368, 0 }, { { 688, 0, -1552, 0 }, { 688, 0, 1552, 0 }, { -688, 0, -1552, 0 }, { -688, 0, 1552, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 1693, 0x4002, 16, 255, 2, 0 },
-    { NULL, NULL, NULL, { 9680, -64, 1696, 0 }, { { 1088, 0, -624, 0 }, { 1088, 0, 624, 0 }, { -1088, 0, -624, 0 }, { -1088, 0, 624, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1254, 2, 17, 0, 2, 0 },
-    { NULL, NULL, NULL, { 8335, -64, 4895, 0 }, { { 23, 0, -1493, 0 }, { 1494, 0, -22, 0 }, { -1493, 0, 23, 0 }, { -22, 0, 1494, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1492, 2, 18, 0, 4, 0 },
-    { NULL, NULL, NULL, { 976, -64, 1792, 0 }, { { 784, 0, -720, 0 }, { 784, 0, 48, 0 }, { -784, 0, -48, 0 }, { -784, 0, 720, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 1063, 2, 20, 0, 2, 0 },
-    { NULL, NULL, NULL, { 6752, -64, 1312, 0 }, { { 1088, 0, -464, 0 }, { 1088, 0, 464, 0 }, { -1088, 0, -464, 0 }, { -1088, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1180, 2, 21, 0, 2, 0 },
-    { NULL, NULL, NULL, { 3624, -64, 2944, 0 }, { { -1864, 0, -1552, 0 }, { 1912, 0, -1552, 0 }, { -1928, 0, 1008, 0 }, { 1880, 0, 1008, 0 } }, { 0, 4119, 0, 0 }, { 201, 0, -4091, 0 }, 2455, 5, 2, 0, 132, 0 },
+WorldCollisionTrigger D_dryfield_garage_8017FD1C[11] = {
+    { NULL, NULL, NULL, { 3552, -64, 2384, 0 }, { { -1728, 0, -1392, 0 }, { 2048, 0, -1392, 0 }, { -1792, 0, 944, 0 }, { 2016, 0, 944, 0 } }, { 0, 4116, 0, 0 }, { 0, 0, 4096, 0 }, 2468, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 656, -48, 7376, 0 }, { { -976, 0, -256, 0 }, { 976, 0, -256, 0 }, { -976, 0, 256, 0 }, { 976, 0, 256, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1007, WORLD_COLLISION_TRIGGER_ACTION_WARP, 26, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 608, -48, 2960, 0 }, { { 272, 0, -976, 0 }, { 272, 0, 976, 0 }, { -272, 0, -976, 0 }, { -272, 0, 976, 0 } }, { 0, 4111, 0, 0 }, { 4096, 0, 0, 0 }, 1011, WORLD_COLLISION_TRIGGER_ACTION_WARP, 23, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2192, -64, 5344, 0 }, { { -512, 0, -2880, 0 }, { 512, 0, -2880, 0 }, { -512, 0, 2880, 0 }, { 512, 0, 2880, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 2918, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5024, -64, 5312, 0 }, { { -512, 0, -2880, 0 }, { 512, 0, -2880, 0 }, { -512, 0, 2880, 0 }, { 512, 0, 2880, 0 } }, { 0, 4104, 0, 0 }, { 4091, 0, -201, 0 }, 2918, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9600, -64, 6368, 0 }, { { 688, 0, -1552, 0 }, { 688, 0, 1552, 0 }, { -688, 0, -1552, 0 }, { -688, 0, 1552, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 1693, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 16, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9680, -64, 1696, 0 }, { { 1088, 0, -624, 0 }, { 1088, 0, 624, 0 }, { -1088, 0, -624, 0 }, { -1088, 0, 624, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8335, -64, 4895, 0 }, { { 23, 0, -1493, 0 }, { 1494, 0, -22, 0 }, { -1493, 0, 23, 0 }, { -22, 0, 1494, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 976, -64, 1792, 0 }, { { 784, 0, -720, 0 }, { 784, 0, 48, 0 }, { -784, 0, -48, 0 }, { -784, 0, 720, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6752, -64, 1312, 0 }, { { 1088, 0, -464, 0 }, { 1088, 0, 464, 0 }, { -1088, 0, -464, 0 }, { -1088, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3624, -64, 2944, 0 }, { { -1864, 0, -1552, 0 }, { 1912, 0, -1552, 0 }, { -1928, 0, 1008, 0 }, { 1880, 0, 1008, 0 } }, { 0, 4119, 0, 0 }, { 201, 0, -4091, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_dryfield_garage_80180060[2] = {
@@ -724,7 +724,7 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
 /// the task in pointer slot 7, sends message 0x3E9 with
 /// `D_dryfield_garage_8017DCC4` to the task in pointer slot 0xA when arriving
 /// by warp 2, moves nibble 0x155 from 1 to 2 (clearing nibble 3), clears bit 6
-/// of `D_dryfield_garage_8017FD1C[0].field_4A` outside place 1, and advances to
+/// of `D_dryfield_garage_8017FD1C[0].flags` outside place 1, and advances to
 /// the idle state.
 static void func_dryfield_garage_8017DB18(Task* arg0)
 {
@@ -738,7 +738,7 @@ static void func_dryfield_garage_8017DB18(Task* arg0)
         GameFlag_SetNibble(0x155, 2);
     }
     if (gGameSession->location.loc.variant != 1) {
-        D_dryfield_garage_8017FD1C[0].field_4A &= 0xBF;
+        D_dryfield_garage_8017FD1C[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     arg0->state = arg0->state + 1;
 }

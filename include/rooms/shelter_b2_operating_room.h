@@ -29,11 +29,11 @@ extern GpSprtRec D_shelter_b2_operating_room_80183184[];
 
 extern WorldCoordRoomLights D_shelter_b2_operating_room_80183718;
 
-extern GpObj4A D_shelter_b2_operating_room_80183730[];
+extern WorldCollisionTrigger D_shelter_b2_operating_room_80183730[];
 
 extern GpObj3A D_shelter_b2_operating_room_80183A28[];
 
-extern GpObj4A D_shelter_b2_operating_room_80183ADC[];
+extern WorldCollisionTrigger D_shelter_b2_operating_room_80183ADC[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b2_operating_room_80184184[];
 

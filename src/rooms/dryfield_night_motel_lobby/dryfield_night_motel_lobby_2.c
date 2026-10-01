@@ -113,8 +113,8 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
 
 // Indexed views below share one contiguous table.
 extern WorldCollisionGrid         D_dryfield_night_motel_lobby_80182DB4[1];
-extern GpObj4C                    D_dryfield_night_motel_lobby_80184034[4];
-extern GpObj4C                    D_dryfield_night_motel_lobby_80184164[8];
+extern WorldCollisionTrigger      D_dryfield_night_motel_lobby_80184034[4];
+extern WorldCollisionTrigger      D_dryfield_night_motel_lobby_80184164[8];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8];
 extern WorldCoordRoomLights       D_dryfield_night_motel_lobby_8018401C[1];
 
@@ -461,22 +461,22 @@ WorldCoordRoomLights D_dryfield_night_motel_lobby_8018401C[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_night_motel_lobby_80183D7C), D_dryfield_night_motel_lobby_80183D7C, 0, NULL },
 };
 
-GpObj4C D_dryfield_night_motel_lobby_80184034[4] = {
-    { NULL, NULL, NULL, { 2241, -896, 3011, 0 }, { { -1888, 1024, 0, 0 }, { 1888, 1024, 0, 0 }, { -1888, -1024, 0, 0 }, { 1888, -1024, 0, 0 } }, { 0, 0, 4100, 0 }, { 0, 0, 4096, 0 }, 2141, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { 2144, -864, 3392, 0 }, { { 1888, 1024, 0, 0 }, { -1888, 1024, 0, 0 }, { 1888, -1024, 0, 0 }, { -1888, -1024, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 2141, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { 4000, -896, 5264, 0 }, { { 0, 1024, 848, 0 }, { 0, 1024, -848, 0 }, { 0, -1024, 848, 0 }, { 0, -1024, -848, 0 } }, { 4102, 0, 0, 0 }, { 0, 0, 4096, 0 }, 1324, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { 4095, -896, 5248, 0 }, { { 2, 1024, -848, 0 }, { -1, 1024, 848, 0 }, { 2, -1024, -848, 0 }, { -1, -1024, 848, 0 } }, { -4103, 0, -10, 0 }, { 0, 0, 4096, 0 }, 1324, 0, 3, 4, 129, 0 },
+WorldCollisionTrigger D_dryfield_night_motel_lobby_80184034[4] = {
+    { NULL, NULL, NULL, { 2241, -896, 3011, 0 }, { { -1888, 1024, 0, 0 }, { 1888, 1024, 0, 0 }, { -1888, -1024, 0, 0 }, { 1888, -1024, 0, 0 } }, { 0, 0, 4100, 0 }, { 0, 0, 4096, 0 }, 2141, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2144, -864, 3392, 0 }, { { 1888, 1024, 0, 0 }, { -1888, 1024, 0, 0 }, { 1888, -1024, 0, 0 }, { -1888, -1024, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 2141, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4000, -896, 5264, 0 }, { { 0, 1024, 848, 0 }, { 0, 1024, -848, 0 }, { 0, -1024, 848, 0 }, { 0, -1024, -848, 0 } }, { 4102, 0, 0, 0 }, { 0, 0, 4096, 0 }, 1324, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4095, -896, 5248, 0 }, { { 2, 1024, -848, 0 }, { -1, 1024, 848, 0 }, { 2, -1024, -848, 0 }, { -1, -1024, 848, 0 } }, { -4103, 0, -10, 0 }, { 0, 0, 4096, 0 }, 1324, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_dryfield_night_motel_lobby_80184164[8] = {
-    { NULL, NULL, NULL, { 2992, -48, 320, 0 }, { { -848, 0, -256, 0 }, { 848, 0, -256, 0 }, { -848, 0, 256, 0 }, { 848, 0, 256, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 884, 0, 15, 18, 2, 0 },
-    { NULL, NULL, NULL, { 5872, -64, 3104, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4091, 0, 201, 0 }, 523, 2, 5, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4656, -64, 2280, 0 }, { { -1200, 0, -744, 0 }, { 816, 0, -712, 0 }, { -432, 0, 728, 0 }, { 816, 0, 728, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1408, 2, 3, 255, 4, 0 },
-    { NULL, NULL, NULL, { 4016, -64, 3504, 0 }, { { -816, 0, -464, 0 }, { 816, 0, -464, 0 }, { -816, 0, 464, 0 }, { 816, 0, 464, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 938, 2, 4, 0, 4, 0 },
-    { NULL, NULL, NULL, { 5808, -64, 976, 0 }, { { -320, 0, -880, 0 }, { 320, 0, -880, 0 }, { -320, 0, 880, 0 }, { 320, 0, 880, 0 } }, { 0, 4119, 0, 0 }, { -4096, 0, 0, 0 }, 936, 2, 6, 0, 2, 0 },
-    { NULL, NULL, NULL, { 5312, -64, 4928, 0 }, { { -320, 0, -624, 0 }, { 320, 0, -624, 0 }, { -320, 0, 624, 0 }, { 320, 0, 624, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 701, 2, 2, 0, 2, 0 },
-    { NULL, NULL, NULL, { 5888, -64, 3984, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, 2, 1, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4497, -64, 4464, 0 }, { { -608, 0, -496, 0 }, { 608, 0, -496, 0 }, { -608, 0, 496, 0 }, { 608, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 4091, 0, -201, 0 }, 783, 5, 1, 0, 130, 0 },
+WorldCollisionTrigger D_dryfield_night_motel_lobby_80184164[8] = {
+    { NULL, NULL, NULL, { 2992, -48, 320, 0 }, { { -848, 0, -256, 0 }, { 848, 0, -256, 0 }, { -848, 0, 256, 0 }, { 848, 0, 256, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 884, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5872, -64, 3104, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4091, 0, 201, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4656, -64, 2280, 0 }, { { -1200, 0, -744, 0 }, { 816, 0, -712, 0 }, { -432, 0, 728, 0 }, { 816, 0, 728, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1408, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4016, -64, 3504, 0 }, { { -816, 0, -464, 0 }, { 816, 0, -464, 0 }, { -816, 0, 464, 0 }, { 816, 0, 464, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 938, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5808, -64, 976, 0 }, { { -320, 0, -880, 0 }, { 320, 0, -880, 0 }, { -320, 0, 880, 0 }, { 320, 0, 880, 0 } }, { 0, 4119, 0, 0 }, { -4096, 0, 0, 0 }, 936, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5312, -64, 4928, 0 }, { { -320, 0, -624, 0 }, { 320, 0, -624, 0 }, { -320, 0, 624, 0 }, { 320, 0, 624, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5888, -64, 3984, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4497, -64, 4464, 0 }, { { -608, 0, -496, 0 }, { 608, 0, -496, 0 }, { -608, 0, 496, 0 }, { 608, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 4091, 0, -201, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaVariant D_dryfield_night_motel_lobby_801843C4[11] = { 0 };

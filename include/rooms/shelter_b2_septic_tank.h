@@ -39,9 +39,9 @@ extern GpSprtRec D_shelter_b2_septic_tank_801866F4[];
 
 extern WorldCoordRoomLights D_shelter_b2_septic_tank_80186A3C;
 
-extern GpObj4A D_shelter_b2_septic_tank_80186A54[];
+extern WorldCollisionTrigger D_shelter_b2_septic_tank_80186A54[];
 
-extern GpObj4A D_shelter_b2_septic_tank_80186C1C[];
+extern WorldCollisionTrigger D_shelter_b2_septic_tank_80186C1C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_septic_tank_80187014[];
 

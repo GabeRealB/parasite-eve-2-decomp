@@ -30,9 +30,9 @@ extern GpSprtRec D_shelter_b2_breeding_room_801833D4[];
 
 extern WorldCoordRoomLights D_shelter_b2_breeding_room_801837AC;
 
-extern GpObj4A D_shelter_b2_breeding_room_801837C4[];
+extern WorldCollisionTrigger D_shelter_b2_breeding_room_801837C4[];
 
-extern GpObj4A D_shelter_b2_breeding_room_80183F9C[];
+extern WorldCollisionTrigger D_shelter_b2_breeding_room_80183F9C[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b2_breeding_room_80184624[];
 

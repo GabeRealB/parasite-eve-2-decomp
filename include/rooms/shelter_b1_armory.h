@@ -31,9 +31,9 @@ extern GpSprtRec D_shelter_b1_armory_80184220[];
 
 extern WorldCoordRoomLights D_shelter_b1_armory_80184AFC;
 
-extern GpObj4A D_shelter_b1_armory_80184B14[];
+extern WorldCollisionTrigger D_shelter_b1_armory_80184B14[];
 
-extern GpObj4A D_shelter_b1_armory_80184E0C[];
+extern WorldCollisionTrigger D_shelter_b1_armory_80184E0C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[];
 

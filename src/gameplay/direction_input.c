@@ -116,17 +116,17 @@ void func_800AD6BC(void)
                 }
                 Gp_DirPhase = 0;
                 flags       = Gp_DirFlags;
-                mask        = flags & 0x8000;
+                mask        = flags & WORLD_COLLISION_TRIGGER_AUTOMATIC;
                 if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
                     if (mask && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && !(gGameSession->padPressed & 0x10)) {
-                        if (!(flags & 0x4000)) {
+                        if (!(flags & WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE)) {
                             D_80114CF8 = 1;
                         } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                             D_80114CF8 = 1;
                         }
                     } else if (cfg->interactionPressed != 0) {
                         if (!(gGameSession->padPressed & 0x10)) {
-                            if (!(Gp_DirFlags & 0x4000)) {
+                            if (!(Gp_DirFlags & WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE)) {
                                 if (D_80114D08 == 0) {
                                     D_80114CF8 = 1;
                                     D_80114D08 = 0xA;
@@ -147,7 +147,7 @@ void func_800AD6BC(void)
     if (D_80114CF8 != 0) {
         gGameSession->dirActionBusy = 1;
         action                      = (u8)Gp_DirFlags;
-        if (action != 0xFF) {
+        if (action != WORLD_COLLISION_TRIGGER_ACTION_CANCEL) {
             funcs.funcs[action]();
         } else {
             Gp_DirNibble    = 0;

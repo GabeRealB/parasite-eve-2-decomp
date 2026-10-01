@@ -68,12 +68,12 @@ extern SVECTOR D_shelter_b2_pod_access_tunnel_80183CC8[];
 /// reaches `[1]` under its own name,
 /// `RoomFx_TrailOffsets[1]`.
 
-extern WorldCollisionGrid   D_shelter_b2_pod_access_tunnel_801841B4[1];
-extern GpObj3A              D_shelter_b2_pod_access_tunnel_80185664[1];
-extern GpObj4C              D_shelter_b2_pod_access_tunnel_80184FD8[4];
-extern GpObj4C              D_shelter_b2_pod_access_tunnel_80185108[3];
-extern GpObj4C              D_shelter_b2_pod_access_tunnel_801851EC[3];
-extern WorldCoordRoomLights D_shelter_b2_pod_access_tunnel_80184FC0[1];
+extern WorldCollisionGrid    D_shelter_b2_pod_access_tunnel_801841B4[1];
+extern GpObj3A               D_shelter_b2_pod_access_tunnel_80185664[1];
+extern WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_80184FD8[4];
+extern WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_80185108[3];
+extern WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_801851EC[3];
+extern WorldCoordRoomLights  D_shelter_b2_pod_access_tunnel_80184FC0[1];
 
 TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -429,23 +429,23 @@ WorldCoordRoomLights D_shelter_b2_pod_access_tunnel_80184FC0[1] = {
     { 0, NULL, ARRAY_SIZE(D_shelter_b2_pod_access_tunnel_80184CC0), D_shelter_b2_pod_access_tunnel_80184CC0, 0, NULL },
 };
 
-GpObj4C D_shelter_b2_pod_access_tunnel_80184FD8[4] = {
-    { NULL, NULL, NULL, { 1760, -1648, -4513, 0 }, { { -1824, -2224, 64, 0 }, { 1824, -2224, -64, 0 }, { -1824, 2224, 64, 0 }, { 1824, 2224, -64, 0 } }, { -144, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { 1744, -1632, -4625, 0 }, { { 1808, -2224, -80, 0 }, { -1808, -2224, 80, 0 }, { 1808, 2224, -80, 0 }, { -1808, 2224, 80, 0 } }, { 180, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 2862, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { 3520, -1632, -1360, 0 }, { { -285, -2224, -1838, 0 }, { 254, -2224, 1809, 0 }, { -285, 2224, -1838, 0 }, { 254, 2224, 1809, 0 } }, { 4054, 0, -601, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { 3606, -1664, -1488, 0 }, { { 250, -2224, 1567, 0 }, { -271, -2224, -1585, 0 }, { 250, 2224, 1567, 0 }, { -271, 2224, -1585, 0 } }, { -4049, 0, 668, 0 }, { 0, 0, 4096, 0 }, 2733, 0, 3, 4, 129, 0 },
+WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_80184FD8[4] = {
+    { NULL, NULL, NULL, { 1760, -1648, -4513, 0 }, { { -1824, -2224, 64, 0 }, { 1824, -2224, -64, 0 }, { -1824, 2224, 64, 0 }, { 1824, 2224, -64, 0 } }, { -144, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1744, -1632, -4625, 0 }, { { 1808, -2224, -80, 0 }, { -1808, -2224, 80, 0 }, { 1808, 2224, -80, 0 }, { -1808, 2224, 80, 0 } }, { 180, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 2862, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3520, -1632, -1360, 0 }, { { -285, -2224, -1838, 0 }, { 254, -2224, 1809, 0 }, { -285, 2224, -1838, 0 }, { 254, 2224, 1809, 0 } }, { 4054, 0, -601, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3606, -1664, -1488, 0 }, { { 250, -2224, 1567, 0 }, { -271, -2224, -1585, 0 }, { 250, 2224, 1567, 0 }, { -271, 2224, -1585, 0 } }, { -4049, 0, 668, 0 }, { 0, 0, 4096, 0 }, 2733, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_shelter_b2_pod_access_tunnel_80185108[3] = {
-    { NULL, NULL, NULL, { 1728, -48, -0x28CF, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, 0, 34, 18, 2, 0 },
-    { NULL, NULL, NULL, { 5856, -48, -1728, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, 0, 48, 33, 2, 0 },
-    { NULL, NULL, NULL, { 4592, -64, -2784, 0 }, { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1047, 2, 1, 255, 130, 0 },
+WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_80185108[3] = {
+    { NULL, NULL, NULL, { 1728, -48, -0x28CF, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 34, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5856, -48, -1728, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 48, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4592, -64, -2784, 0 }, { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_shelter_b2_pod_access_tunnel_801851EC[3] = {
-    { NULL, NULL, NULL, { 1728, -48, -0x28CF, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, 0, 34, 18, 2, 0 },
-    { NULL, NULL, NULL, { 5856, -48, -1728, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, 0, 48, 33, 2, 0 },
-    { NULL, NULL, NULL, { 4592, -64, -2784, 0 }, { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1047, 2, 1, 255, 130, 0 },
+WorldCollisionTrigger D_shelter_b2_pod_access_tunnel_801851EC[3] = {
+    { NULL, NULL, NULL, { 1728, -48, -0x28CF, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 34, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5856, -48, -1728, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 48, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4592, -64, -2784, 0 }, { { -944, 0, -464, 0 }, { 944, 0, -464, 0 }, { -944, 0, 464, 0 }, { 944, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_shelter_b2_pod_access_tunnel_801852D0[3] = {

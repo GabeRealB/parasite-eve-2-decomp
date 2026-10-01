@@ -93,10 +93,10 @@ static s16  func_neo_ark_altar_8017EC34(NeoArkAltarTile* table, s16 x, s16 z);
 static s16  func_neo_ark_altar_8017E260(Task* task);
 static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
 
-extern WorldCollisionGrid   D_neo_ark_altar_8017F57C[1];
-extern GpObj4C              D_neo_ark_altar_8017FF08[4];
-extern WorldCoordRoomLights D_neo_ark_altar_8017FEF0[1];
-void                        func_neo_ark_altar_8017ECE0(Task*);
+extern WorldCollisionGrid    D_neo_ark_altar_8017F57C[1];
+extern WorldCollisionTrigger D_neo_ark_altar_8017FF08[4];
+extern WorldCoordRoomLights  D_neo_ark_altar_8017FEF0[1];
+void                         func_neo_ark_altar_8017ECE0(Task*);
 
 void func_neo_ark_altar_8017DA40(Task*);
 void func_neo_ark_altar_8017DBF0(Task*);
@@ -414,11 +414,11 @@ WorldCoordRoomLights D_neo_ark_altar_8017FEF0[1] = {
     { ARRAY_SIZE(D_neo_ark_altar_8017FE98), D_neo_ark_altar_8017FE98, 0, NULL, 0, NULL },
 };
 
-GpObj4C D_neo_ark_altar_8017FF08[4] = {
-    { NULL, NULL, NULL, { 7645, -3808, -7473, 0 }, { { 14, -5344, -974, 0 }, { -13, -5344, 975, 0 }, { 14, 5344, -974, 0 }, { -13, 5344, 975, 0 } }, { 4109, 0, 56, 0 }, { 4076, 0, -401, 0 }, 5418, 0x8000, 32, 18, 2, 0 },
-    { NULL, NULL, NULL, { 8656, -4256, -7488, 0 }, { { 208, 14, -974, 0 }, { 208, -13, 975, 0 }, { -208, 14, -974, 0 }, { -208, -13, 975, 0 } }, { 0, 4103, 41, 0 }, { 4096, 0, 0, 0 }, 995, 257, 74, 192, 2, 0 },
-    { NULL, NULL, NULL, { 7216, -3804, -7488, 0 }, { { 688, -2, -974, 0 }, { 688, 3, 975, 0 }, { -688, -2, -974, 0 }, { -688, 3, 975, 0 } }, { 0, 4104, -13, 0 }, { -4096, 0, -5, 0 }, 1187, 0x8001, 67, 64, 2, 0 },
-    { NULL, NULL, NULL, { 0x2FC0, -4256, -7552, 0 }, { { 416, 14, -974, 0 }, { 416, -13, 975, 0 }, { -416, 14, -974, 0 }, { -416, -13, 975, 0 } }, { 0, 4099, 51, 0 }, { -4096, 0, 0, 0 }, 1055, 5, 1, 0, 130, 0 },
+WorldCollisionTrigger D_neo_ark_altar_8017FF08[4] = {
+    { NULL, NULL, NULL, { 7645, -3808, -7473, 0 }, { { 14, -5344, -974, 0 }, { -13, -5344, 975, 0 }, { 14, 5344, -974, 0 }, { -13, 5344, 975, 0 } }, { 4109, 0, 56, 0 }, { 4076, 0, -401, 0 }, 5418, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 32, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8656, -4256, -7488, 0 }, { { 208, 14, -974, 0 }, { 208, -13, 975, 0 }, { -208, 14, -974, 0 }, { -208, -13, 975, 0 } }, { 0, 4103, 41, 0 }, { 4096, 0, 0, 0 }, 995, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 74, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7216, -3804, -7488, 0 }, { { 688, -2, -974, 0 }, { 688, 3, 975, 0 }, { -688, -2, -974, 0 }, { -688, 3, 975, 0 } }, { 0, 4104, -13, 0 }, { -4096, 0, -5, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_FACING | WORLD_COLLISION_TRIGGER_AUTOMATIC, 67, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2FC0, -4256, -7552, 0 }, { { 416, 14, -974, 0 }, { 416, -13, 975, 0 }, { -416, 14, -974, 0 }, { -416, -13, 975, 0 } }, { 0, 4099, 51, 0 }, { -4096, 0, 0, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_neo_ark_altar_80180038 = {

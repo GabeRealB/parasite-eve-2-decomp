@@ -133,16 +133,16 @@ extern SpriteSource   D_acropolis_helicopter_landing_pad_80187654[3];
 extern SpriteSource   D_acropolis_helicopter_landing_pad_801876A8[4];
 extern SpriteSource   D_acropolis_helicopter_landing_pad_80187730[6];
 
-GpObj4C D_acropolis_helicopter_landing_pad_80185E7C[9] = {
-    { NULL, NULL, NULL, { -6528, -32, -6208, 0 }, { { -384, 0, -192, 0 }, { 384, 0, -192, 0 }, { -384, 0, 192, 0 }, { 384, 0, 192, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 429, 259, 0, 0, 2, 0 },
-    { NULL, NULL, NULL, { -5274, -131, -1840, 0 }, { { -800, 0, -688, 0 }, { 800, 0, -688, 0 }, { -800, 0, 688, 0 }, { 800, 0, 688, 0 } }, { 0, 4107, 0, 0 }, { 201, 0, -4091, 0 }, 1047, 2, 4, 0, 2, 0 },
-    { NULL, NULL, NULL, { 1055, -128, -6657, 0 }, { { 73, 0, -1674, 0 }, { 1007, 0, -1340, 0 }, { -1006, 0, 1339, 0 }, { -73, 0, 1673, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1673, 0x8005, 0, 0, 3, 0 },
-    { NULL, NULL, NULL, { -6650, 472, -5301, 0 }, { { -496, 0, -240, 0 }, { 496, 0, -240, 0 }, { -496, 0, 240, 0 }, { 496, 0, 240, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 550, 0x8001, 51, 128, 2, 0 },
-    { NULL, NULL, NULL, { -6160, -128, -1824, 0 }, { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, -4091, 0 }, 1015, 0x8005, 1, 0, 3, 0 },
-    { NULL, NULL, NULL, { 5648, -32, 1184, 0 }, { { -224, 0, -1344, 0 }, { 1440, 0, -1344, 0 }, { -224, 0, 1344, 0 }, { 1440, 0, 1344, 0 } }, { 0, 4117, 0, 0 }, { 4091, 0, 201, 0 }, 1966, 2, 6, 0, 4, 0 },
-    { NULL, NULL, NULL, { -800, -64, 5568, 0 }, { { 1760, 0, -864, 0 }, { 1760, 0, 1760, 0 }, { -1760, 0, -864, 0 }, { -1760, 0, 1760, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, 4095, 0 }, 2482, 2, 7, 0, 4, 0 },
-    { NULL, NULL, NULL, { -5536, -64, 544, 0 }, { { 864, 0, 1472, 0 }, { -1984, 0, 1472, 0 }, { 864, 0, -1472, 0 }, { -1984, 0, -1472, 0 } }, { 0, 4101, 0, 0 }, { -4091, 0, -201, 0 }, 2468, 2, 8, 0, 4, 0 },
-    { NULL, NULL, NULL, { -6144, -64, -1824, 0 }, { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } }, { 0, 4098, 0, 0 }, { -4052, 0, -601, 0 }, 1015, 2, 10, 0, 130, 0 },
+WorldCollisionTrigger D_acropolis_helicopter_landing_pad_80185E7C[9] = {
+    { NULL, NULL, NULL, { -6528, -32, -6208, 0 }, { { -384, 0, -192, 0 }, { 384, 0, -192, 0 }, { -384, 0, 192, 0 }, { 384, 0, 192, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 429, WORLD_COLLISION_TRIGGER_ACTION_CALLBACK | 0x100, 0, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5274, -131, -1840, 0 }, { { -800, 0, -688, 0 }, { 800, 0, -688, 0 }, { -800, 0, 688, 0 }, { 800, 0, 688, 0 } }, { 0, 4107, 0, 0 }, { 201, 0, -4091, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1055, -128, -6657, 0 }, { { 73, 0, -1674, 0 }, { 1007, 0, -1340, 0 }, { -1006, 0, 1339, 0 }, { -73, 0, 1673, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1673, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -6650, 472, -5301, 0 }, { { -496, 0, -240, 0 }, { 496, 0, -240, 0 }, { -496, 0, 240, 0 }, { 496, 0, 240, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 550, WORLD_COLLISION_TRIGGER_ACTION_FACING | WORLD_COLLISION_TRIGGER_AUTOMATIC, 51, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6160, -128, -1824, 0 }, { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, -4091, 0 }, 1015, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 5648, -32, 1184, 0 }, { { -224, 0, -1344, 0 }, { 1440, 0, -1344, 0 }, { -224, 0, 1344, 0 }, { 1440, 0, 1344, 0 } }, { 0, 4117, 0, 0 }, { 4091, 0, 201, 0 }, 1966, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -800, -64, 5568, 0 }, { { 1760, 0, -864, 0 }, { 1760, 0, 1760, 0 }, { -1760, 0, -864, 0 }, { -1760, 0, 1760, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, 4095, 0 }, 2482, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5536, -64, 544, 0 }, { { 864, 0, 1472, 0 }, { -1984, 0, 1472, 0 }, { 864, 0, -1472, 0 }, { -1984, 0, -1472, 0 } }, { 0, 4101, 0, 0 }, { -4091, 0, -201, 0 }, 2468, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6144, -64, -1824, 0 }, { { -560, 0, -848, 0 }, { 560, 0, -848, 0 }, { -560, 0, 848, 0 }, { 560, 0, 848, 0 } }, { 0, 4098, 0, 0 }, { -4052, 0, -601, 0 }, 1015, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpObj3A D_acropolis_helicopter_landing_pad_80186128[2] = {
@@ -1096,13 +1096,12 @@ s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, TaskMe
 /// `DIRECTION_MESSAGE_ROOM_ACTION` handler. On action 0, once the room session flag
 /// `D_acropolis_helicopter_landing_pad_80184E0C` is up and the phase is
 /// still 0, starts the helicopter sequence: flags the session, loads the
-/// bank pair, moves to phase 1 and swaps the visible `GpObj4A` from element
-/// 4 to element 0. Action 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
+/// bank pair, moves to phase 1, enables trigger 4 and disables trigger 8. Action 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
 s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, DirectionActionRequest* msg, TaskMessageArg arg3)
 {
-    u8       actionId;
-    GpObj4A* obj;
-    GpObj4A* obj2;
+    u8                     actionId;
+    WorldCollisionTrigger* obj;
+    WorldCollisionTrigger* obj2;
 
     if ((msg->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
@@ -1111,8 +1110,8 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, Direct
         D_acropolis_helicopter_landing_pad_80184D9C = 1;
         obj                                         = (D_acropolis_helicopter_landing_pad_80185E7C + 4);
         obj2                                        = obj + 4;
-        obj->field_4A                              |= 0x40;
-        obj2->field_4A                             &= 0xBF;
+        obj->flags                                 |= WORLD_COLLISION_TRIGGER_ENABLED;
+        obj2->flags                                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     actionId = msg->actionId;
     if (actionId == 1) {
@@ -1274,8 +1273,8 @@ static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
     D_acropolis_helicopter_landing_pad_80184E0C = 0;
     task->state++;
     func_800E8614(D_acropolis_helicopter_landing_pad_80183A04, 1);
-    D_acropolis_helicopter_landing_pad_80187F80                    = Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
-    (D_acropolis_helicopter_landing_pad_80185E7C + 4)[0].field_4A &= 0xBF;
+    D_acropolis_helicopter_landing_pad_80187F80                 = Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
+    (D_acropolis_helicopter_landing_pad_80185E7C + 4)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
 }
 
 /// The room's script task: runs the state handler

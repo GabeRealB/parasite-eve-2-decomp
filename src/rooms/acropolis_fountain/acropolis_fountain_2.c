@@ -50,7 +50,7 @@
 
 #include "rooms/room_common.h"
 
-extern GpObj4C D_acropolis_fountain_8017F9C0[9];
+extern WorldCollisionTrigger D_acropolis_fountain_8017F9C0[9];
 
 /// Work block the fountain's splash task keeps at `Task::spawnArg2`.
 /// `func_acropolis_fountain_8017E014` latches the camera the splash effect was
@@ -76,20 +76,20 @@ typedef struct AcropolisFountainSndWork {
     /* 0x2 */ u16 started;
 } AcropolisFountainSndWork;
 
-extern GpObj4A  D_acropolis_fountain_8017E7A4;
-extern SVECTOR  D_acropolis_fountain_8017E7F0;
-extern s16      D_acropolis_fountain_8017E7F8;
-extern TaskDesc D_acropolis_fountain_8017E7FC[];
-extern Task*    D_acropolis_fountain_80183BB4;
+extern WorldCollisionTrigger D_acropolis_fountain_8017E7A4;
+extern SVECTOR               D_acropolis_fountain_8017E7F0;
+extern s16                   D_acropolis_fountain_8017E7F8;
+extern TaskDesc              D_acropolis_fountain_8017E7FC[];
+extern Task*                 D_acropolis_fountain_80183BB4;
 
 static void func_acropolis_fountain_8017E15C(Task* task, s32 view);
 
 void func_acropolis_fountain_8017E3D4(Task*);
 void func_acropolis_fountain_8017E72C(Task*);
 
-extern WorldCollisionGrid   D_acropolis_fountain_8017F60C[1];
-extern GpObj4C              D_acropolis_fountain_8017F630[12];
-extern WorldCoordRoomLights D_acropolis_fountain_8017FF34[1];
+extern WorldCollisionGrid    D_acropolis_fountain_8017F60C[1];
+extern WorldCollisionTrigger D_acropolis_fountain_8017F630[12];
+extern WorldCoordRoomLights  D_acropolis_fountain_8017FF34[1];
 
 extern SpriteBatch  D_acropolis_fountain_8017FF4C[2];
 extern SpriteBatch  D_acropolis_fountain_8017FF5C[2];
@@ -116,7 +116,7 @@ extern SpriteSource D_acropolis_fountain_80182834[92];
 extern SpriteSource D_acropolis_fountain_80182FDC[39];
 extern SpriteSource D_acropolis_fountain_80183328[8];
 
-GpObj4A D_acropolis_fountain_8017E7A4 = { NULL, NULL, NULL, { 2447, -24, -4713, 0 }, { { -699, 0, -405, 0 }, { 750, 0, 93, 0 }, { -749, 0, -108, 0 }, { 700, 0, 422, 0 } }, { 0, 4100, 0, 0 }, { -995, 0, 3973, 0 }, 817, 3, 0, 0, 2, 0 };
+WorldCollisionTrigger D_acropolis_fountain_8017E7A4 = { NULL, NULL, NULL, { 2447, -24, -4713, 0 }, { { -699, 0, -405, 0 }, { 750, 0, 93, 0 }, { -749, 0, -108, 0 }, { 700, 0, 422, 0 } }, { 0, 4100, 0, 0 }, { -995, 0, 3973, 0 }, 817, WORLD_COLLISION_TRIGGER_ACTION_CALLBACK, 0, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 };
 
 SVECTOR D_acropolis_fountain_8017E7F0 = { 4000, -688, -6300, 0 };
 
@@ -208,31 +208,31 @@ WorldCollisionGrid D_acropolis_fountain_8017F60C[1] = {
     { NULL, D_acropolis_fountain_8017E980, D_acropolis_fountain_8017EA80, D_acropolis_fountain_8017F028, D_acropolis_fountain_8017F5CC, 6000, 8530, 4, 4, 4000, 66 },
 };
 
-GpObj4C D_acropolis_fountain_8017F630[12] = {
-    { NULL, NULL, NULL, { -3940, -641, -353, 0 }, { { -2214, 2717, -19, 0 }, { 2209, 2724, 16, 0 }, { -2208, -2723, -15, 0 }, { 2215, -2716, 20, 0 } }, { -33, 2, 4104, 0 }, { 0, 4096, 0, 0 }, 3500, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { -1762, -832, -3849, 0 }, { { -84, 2813, 1788, 0 }, { 82, 2628, -1783, 0 }, { -83, -2627, 1783, 0 }, { 85, -2812, -1788, 0 } }, { 4114, 0, 190, 0 }, { 0, 4096, 0, 0 }, 3328, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { -1570, -800, -3778, 0 }, { { 85, 2813, -1708, 0 }, { -101, 2628, 1675, 0 }, { 84, -2627, -1705, 0 }, { -105, -2812, 1682, 0 } }, { -4096, 0, -226, 0 }, { 0, 4096, 0, 0 }, 3278, 0, 3, 4, 1, 0 },
-    { NULL, NULL, NULL, { 3359, -1152, -5074, 0 }, { { -1802, 2813, -614, 0 }, { 1798, 2628, 609, 0 }, { -1798, -2627, -610, 0 }, { 1802, -2812, 615, 0 } }, { -1320, 1, 3883, 0 }, { 0, 4096, 0, 0 }, 3396, 0, 5, 7, 1, 0 },
-    { NULL, NULL, NULL, { 3404, -1120, -4872, 0 }, { { 1836, 2813, 590, 0 }, { -1878, 2628, -631, 0 }, { 1831, -2627, 586, 0 }, { -1884, -2812, -636, 0 } }, { 1283, 1, -3907, 0 }, { 0, 4096, 0, 0 }, 3425, 0, 7, 5, 1, 0 },
-    { NULL, NULL, NULL, { 1790, -1184, -3860, 0 }, { { -331, 2718, -1824, 0 }, { 330, 2723, 1818, 0 }, { -330, -2722, -1818, 0 }, { 332, -2717, 1824, 0 } }, { -4035, 0, 731, 0 }, { 0, 4096, 0, 0 }, 3288, 0, 4, 5, 1, 0 },
-    { NULL, NULL, NULL, { 1373, -1152, -3877, 0 }, { { 300, 2718, 1860, 0 }, { -299, 2723, -1853, 0 }, { 301, -2722, 1855, 0 }, { -299, -2717, -1859, 0 } }, { 4046, 0, -654, 0 }, { 0, 4096, 0, 0 }, 3298, 0, 5, 4, 1, 0 },
-    { NULL, NULL, NULL, { 4732, -960, -100, 0 }, { { 3295, 2718, -60, 0 }, { -3363, 2723, 24, 0 }, { 3292, -2722, -59, 0 }, { -3368, -2717, 29, 0 } }, { -53, -1, -4112, 0 }, { 0, 4096, 0, 0 }, 4283, 0, 5, 6, 1, 0 },
-    { NULL, NULL, NULL, { 4829, -1152, -579, 0 }, { { -3354, 2718, 33, 0 }, { 3312, 2723, -54, 0 }, { -3349, -2722, 32, 0 }, { 3319, -2717, -56, 0 } }, { 53, -1, 4116, 0 }, { 0, 4096, 0, 0 }, 4283, 0, 6, 5, 1, 0 },
-    { NULL, NULL, NULL, { -3969, -1056, 31, 0 }, { { 2211, 2717, 128, 0 }, { -2205, 2724, -124, 0 }, { 2205, -2723, 124, 0 }, { -2211, -2716, -128, 0 } }, { 233, 2, -4099, 0 }, { 0, 4096, 0, 0 }, 3500, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { 2478, -896, -7177, 0 }, { { -1531, 2813, -306, 0 }, { 1527, 2628, 301, 0 }, { -1526, -2627, -300, 0 }, { 1531, -2812, 306, 0 } }, { -800, 2, 4029, 0 }, { 0, 4096, 0, 0 }, 3207, 0, 7, 8, 1, 0 },
-    { NULL, NULL, NULL, { 2510, -896, -7050, 0 }, { { 1458, 2813, 294, 0 }, { -1516, 2628, -326, 0 }, { 1453, -2627, 288, 0 }, { -1518, -2812, -327, 0 } }, { 835, 3, -4012, 0 }, { 0, 4096, 0, 0 }, 3197, 0, 8, 7, 129, 0 },
+WorldCollisionTrigger D_acropolis_fountain_8017F630[12] = {
+    { NULL, NULL, NULL, { -3940, -641, -353, 0 }, { { -2214, 2717, -19, 0 }, { 2209, 2724, 16, 0 }, { -2208, -2723, -15, 0 }, { 2215, -2716, 20, 0 } }, { -33, 2, 4104, 0 }, { 0, 4096, 0, 0 }, 3500, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1762, -832, -3849, 0 }, { { -84, 2813, 1788, 0 }, { 82, 2628, -1783, 0 }, { -83, -2627, 1783, 0 }, { 85, -2812, -1788, 0 } }, { 4114, 0, 190, 0 }, { 0, 4096, 0, 0 }, 3328, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1570, -800, -3778, 0 }, { { 85, 2813, -1708, 0 }, { -101, 2628, 1675, 0 }, { 84, -2627, -1705, 0 }, { -105, -2812, 1682, 0 } }, { -4096, 0, -226, 0 }, { 0, 4096, 0, 0 }, 3278, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3359, -1152, -5074, 0 }, { { -1802, 2813, -614, 0 }, { 1798, 2628, 609, 0 }, { -1798, -2627, -610, 0 }, { 1802, -2812, 615, 0 } }, { -1320, 1, 3883, 0 }, { 0, 4096, 0, 0 }, 3396, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3404, -1120, -4872, 0 }, { { 1836, 2813, 590, 0 }, { -1878, 2628, -631, 0 }, { 1831, -2627, 586, 0 }, { -1884, -2812, -636, 0 } }, { 1283, 1, -3907, 0 }, { 0, 4096, 0, 0 }, 3425, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1790, -1184, -3860, 0 }, { { -331, 2718, -1824, 0 }, { 330, 2723, 1818, 0 }, { -330, -2722, -1818, 0 }, { 332, -2717, 1824, 0 } }, { -4035, 0, 731, 0 }, { 0, 4096, 0, 0 }, 3288, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1373, -1152, -3877, 0 }, { { 300, 2718, 1860, 0 }, { -299, 2723, -1853, 0 }, { 301, -2722, 1855, 0 }, { -299, -2717, -1859, 0 } }, { 4046, 0, -654, 0 }, { 0, 4096, 0, 0 }, 3298, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4732, -960, -100, 0 }, { { 3295, 2718, -60, 0 }, { -3363, 2723, 24, 0 }, { 3292, -2722, -59, 0 }, { -3368, -2717, 29, 0 } }, { -53, -1, -4112, 0 }, { 0, 4096, 0, 0 }, 4283, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4829, -1152, -579, 0 }, { { -3354, 2718, 33, 0 }, { 3312, 2723, -54, 0 }, { -3349, -2722, 32, 0 }, { 3319, -2717, -56, 0 } }, { 53, -1, 4116, 0 }, { 0, 4096, 0, 0 }, 4283, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3969, -1056, 31, 0 }, { { 2211, 2717, 128, 0 }, { -2205, 2724, -124, 0 }, { 2205, -2723, 124, 0 }, { -2211, -2716, -128, 0 } }, { 233, 2, -4099, 0 }, { 0, 4096, 0, 0 }, 3500, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2478, -896, -7177, 0 }, { { -1531, 2813, -306, 0 }, { 1527, 2628, 301, 0 }, { -1526, -2627, -300, 0 }, { 1531, -2812, 306, 0 } }, { -800, 2, 4029, 0 }, { 0, 4096, 0, 0 }, 3207, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2510, -896, -7050, 0 }, { { 1458, 2813, 294, 0 }, { -1516, 2628, -326, 0 }, { 1453, -2627, 288, 0 }, { -1518, -2812, -327, 0 } }, { 835, 3, -4012, 0 }, { 0, 4096, 0, 0 }, 3197, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_acropolis_fountain_8017F9C0[9] = {
-    { NULL, NULL, NULL, { -4000, -16, 3616, 0 }, { { -1024, 0, -1024, 0 }, { 1024, 0, -1024, 0 }, { -1024, 0, 1024, 0 }, { 1024, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1448, 0, 3, 18, 2, 0 },
-    { NULL, NULL, NULL, { 3968, -16, 3552, 0 }, { { -1024, 0, -1024, 0 }, { 1024, 0, -1024, 0 }, { -1024, 0, 1024, 0 }, { 1024, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1448, 0, 9, 35, 2, 0 },
-    { NULL, NULL, NULL, { -5408, -16, -5088, 0 }, { { -736, 0, -704, 0 }, { 736, 0, -704, 0 }, { -736, 0, 704, 0 }, { 736, 0, 704, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1017, 0, 7, 49, 2, 0 },
-    { NULL, NULL, NULL, { -4817, -96, -3521, 0 }, { { -459, 0, -1316, 0 }, { 1206, 0, -486, 0 }, { -1205, 0, 487, 0 }, { 460, 0, 1317, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1390, 2, 2, 0, 4, 0 },
-    { NULL, NULL, NULL, { 16, -96, -2848, 0 }, { { -1680, 0, -656, 0 }, { 80, 0, -1424, 0 }, { -48, 0, 304, 0 }, { 1648, 0, -656, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -4096, 0 }, 1801, 6, 3, 255, 4, 0 },
-    { NULL, NULL, NULL, { 2415, -24, -4681, 0 }, { { -859, 0, -725, 0 }, { 1070, 0, -67, 0 }, { -1069, 0, 52, 0 }, { 860, 0, 742, 0 } }, { 0, 4100, 0, 0 }, { -995, 0, 3973, 0 }, 1130, 2, 4, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4229, -256, -6624, 0 }, { { -1360, 0, -1312, 0 }, { 176, 0, -1312, 0 }, { -1360, 0, 640, 0 }, { 176, 0, 640, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 1885, 6, 5, 0, 4, 0 },
-    { NULL, NULL, NULL, { 3264, -64, -6816, 0 }, { { -400, 0, -832, 0 }, { 400, 0, -832, 0 }, { -400, 0, 832, 0 }, { 400, 0, 832, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 923, 6, 5, 0, 2, 0 },
-    { NULL, NULL, NULL, { 3792, -64, -7536, 0 }, { { -544, 0, -368, 0 }, { 544, 0, -368, 0 }, { -544, 0, 368, 0 }, { 544, 0, 368, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 655, 6, 5, 0, 130, 0 },
+WorldCollisionTrigger D_acropolis_fountain_8017F9C0[9] = {
+    { NULL, NULL, NULL, { -4000, -16, 3616, 0 }, { { -1024, 0, -1024, 0 }, { 1024, 0, -1024, 0 }, { -1024, 0, 1024, 0 }, { 1024, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1448, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3968, -16, 3552, 0 }, { { -1024, 0, -1024, 0 }, { 1024, 0, -1024, 0 }, { -1024, 0, 1024, 0 }, { 1024, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1448, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 35, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5408, -16, -5088, 0 }, { { -736, 0, -704, 0 }, { 736, 0, -704, 0 }, { -736, 0, 704, 0 }, { 736, 0, 704, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1017, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4817, -96, -3521, 0 }, { { -459, 0, -1316, 0 }, { 1206, 0, -486, 0 }, { -1205, 0, 487, 0 }, { 460, 0, 1317, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1390, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 16, -96, -2848, 0 }, { { -1680, 0, -656, 0 }, { 80, 0, -1424, 0 }, { -48, 0, 304, 0 }, { 1648, 0, -656, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -4096, 0 }, 1801, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2415, -24, -4681, 0 }, { { -859, 0, -725, 0 }, { 1070, 0, -67, 0 }, { -1069, 0, 52, 0 }, { 860, 0, 742, 0 } }, { 0, 4100, 0, 0 }, { -995, 0, 3973, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4229, -256, -6624, 0 }, { { -1360, 0, -1312, 0 }, { 176, 0, -1312, 0 }, { -1360, 0, 640, 0 }, { 176, 0, 640, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 1885, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3264, -64, -6816, 0 }, { { -400, 0, -832, 0 }, { 400, 0, -832, 0 }, { -400, 0, 832, 0 }, { 400, 0, 832, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 923, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3792, -64, -7536, 0 }, { { -544, 0, -368, 0 }, { 544, 0, -368, 0 }, { -544, 0, 368, 0 }, { 544, 0, 368, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 655, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_acropolis_fountain_8017FC6C[2] = {
@@ -1270,9 +1270,9 @@ static void func_acropolis_fountain_8017DC6C(Task* arg0);
 void func_acropolis_fountain_8017DA1C(void)
 {
     Gp_UnlinkObj4A(0, &D_acropolis_fountain_8017F9C0[5]);
-    D_acropolis_fountain_8017E7A4.field_8 = &gGfxViewCoord;
+    D_acropolis_fountain_8017E7A4.coord = &gGfxViewCoord;
     Gp_LinkObj4A(0, &D_acropolis_fountain_8017E7A4);
-    D_acropolis_fountain_8017E7A4.field_4A |= 0x40;
+    D_acropolis_fountain_8017E7A4.flags |= WORLD_COLLISION_TRIGGER_ENABLED;
 }
 
 void func_acropolis_fountain_8017DA78(s32 unused0, s32 unused1)

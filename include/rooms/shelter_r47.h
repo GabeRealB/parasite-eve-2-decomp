@@ -28,7 +28,7 @@ extern GpViewCountRec D_shelter_r47_80187678[];
 
 extern GpWarpRec D_shelter_r47_8018767C[];
 
-extern GpObj4A D_shelter_r47_801876B4[];
+extern WorldCollisionTrigger D_shelter_r47_801876B4[];
 
 extern GpViewRec D_shelter_r47_801882B0[];
 
@@ -38,7 +38,7 @@ extern WorldCoordRoomLights D_shelter_r47_8018A5BC;
 
 extern WorldCollisionSurfaceProperties* D_shelter_r47_8018A618[];
 
-extern GpObj4C D_shelter_r47_8018787C[13];
+extern WorldCollisionTrigger D_shelter_r47_8018787C[13];
 
 void func_shelter_r47_801807B4(Task* task);
 

@@ -28,7 +28,7 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
 
 s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 
-extern GpObj4C* Gp_PendingObj4C;
+extern WorldCollisionTrigger* Gp_PendingObj4C;
 
 s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
 
@@ -51,9 +51,9 @@ void Gp_LinkObj(s32 arg0, WorldCollisionBody* arg1);
 
 void Gp_UnlinkObj(WorldCollisionBody* node);
 
-void Gp_LinkObj4A(s32 arg0, GpObj4A* arg1);
+void Gp_LinkObj4A(s32 arg0, WorldCollisionTrigger* arg1);
 
-void Gp_UnlinkObj4A(s32 arg0, GpObj4A* arg1);
+void Gp_UnlinkObj4A(s32 arg0, WorldCollisionTrigger* arg1);
 
 /// Clears and initializes the complete caller-owned contact table.
 ///

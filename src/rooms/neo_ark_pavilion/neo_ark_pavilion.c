@@ -103,12 +103,12 @@ s32 func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, TaskMessageArg);
 s32 func_neo_ark_pavilion_8017EB78(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid   D_neo_ark_pavilion_801841E4[1];
-extern GpObj3A              D_neo_ark_pavilion_8018798C[1];
-extern GpObj4C              D_neo_ark_pavilion_80187584[2];
-extern GpObj4C              D_neo_ark_pavilion_8018772C[4];
-extern GpObj4C              D_neo_ark_pavilion_8018785C[4];
-extern WorldCoordRoomLights D_neo_ark_pavilion_8018756C[1];
+extern WorldCollisionGrid    D_neo_ark_pavilion_801841E4[1];
+extern GpObj3A               D_neo_ark_pavilion_8018798C[1];
+extern WorldCollisionTrigger D_neo_ark_pavilion_80187584[2];
+extern WorldCollisionTrigger D_neo_ark_pavilion_8018772C[4];
+extern WorldCollisionTrigger D_neo_ark_pavilion_8018785C[4];
+extern WorldCoordRoomLights  D_neo_ark_pavilion_8018756C[1];
 
 extern TaskDesc D_80147E48;
 
@@ -967,9 +967,9 @@ WorldCoordRoomLights D_neo_ark_pavilion_8018756C[1] = {
     { ARRAY_SIZE(D_neo_ark_pavilion_8018740C), D_neo_ark_pavilion_8018740C, 0, NULL, 0, NULL },
 };
 
-GpObj4C D_neo_ark_pavilion_80187584[2] = {
-    { NULL, NULL, NULL, { -323, -1568, 9452, 0 }, { { -4, -1904, -3817, 0 }, { 4, -1904, 3818, 0 }, { -4, 1904, -3817, 0 }, { 4, 1904, 3818, 0 } }, { 4096, 0, -5, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { -57, -1600, 9531, 0 }, { { -1, -1904, 3908, 0 }, { 1, -1904, -3908, 0 }, { -1, 1904, 3908, 0 }, { 1, 1904, -3908, 0 } }, { -4101, 0, -2, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 3, 2, 129, 0 },
+WorldCollisionTrigger D_neo_ark_pavilion_80187584[2] = {
+    { NULL, NULL, NULL, { -323, -1568, 9452, 0 }, { { -4, -1904, -3817, 0 }, { 4, -1904, 3818, 0 }, { -4, 1904, -3817, 0 }, { 4, 1904, 3818, 0 } }, { 4096, 0, -5, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -57, -1600, 9531, 0 }, { { -1, -1904, 3908, 0 }, { 1, -1904, -3908, 0 }, { -1, 1904, 3908, 0 }, { 1, 1904, -3908, 0 } }, { -4101, 0, -2, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_neo_ark_pavilion_8018761C[2] = {
@@ -1020,18 +1020,18 @@ GpAreaVariant D_neo_ark_pavilion_801876C4[13] = {
     { NULL, NULL },
 };
 
-GpObj4C D_neo_ark_pavilion_8018772C[4] = {
-    { NULL, NULL, NULL, { 2240, -48, 9504, 0 }, { { -320, 0, -480, 0 }, { 320, 0, -480, 0 }, { -320, 0, 480, 0 }, { 320, 0, 480, 0 } }, { 0, 4116, 0, 0 }, { -4096, 0, 0, 0 }, 576, 0, 12, 18, 2, 0 },
-    { NULL, NULL, NULL, { -3488, -48, 7456, 0 }, { { -1088, 0, -288, 0 }, { 1088, 0, -288, 0 }, { -1088, 0, 288, 0 }, { 1088, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 1123, 0, 27, 33, 2, 0 },
-    { NULL, NULL, NULL, { 2896, -48, 7456, 0 }, { { -1072, 0, -256, 0 }, { 1072, 0, -256, 0 }, { -1072, 0, 256, 0 }, { 1072, 0, 256, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1101, 2, 3, 1, 2, 0 },
-    { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 814, 2, 1, 255, 130, 0 },
+WorldCollisionTrigger D_neo_ark_pavilion_8018772C[4] = {
+    { NULL, NULL, NULL, { 2240, -48, 9504, 0 }, { { -320, 0, -480, 0 }, { 320, 0, -480, 0 }, { -320, 0, 480, 0 }, { 320, 0, 480, 0 } }, { 0, 4116, 0, 0 }, { -4096, 0, 0, 0 }, 576, WORLD_COLLISION_TRIGGER_ACTION_WARP, 12, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3488, -48, 7456, 0 }, { { -1088, 0, -288, 0 }, { 1088, 0, -288, 0 }, { -1088, 0, 288, 0 }, { 1088, 0, 288, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2896, -48, 7456, 0 }, { { -1072, 0, -256, 0 }, { 1072, 0, -256, 0 }, { -1072, 0, 256, 0 }, { 1072, 0, 256, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_neo_ark_pavilion_8018785C[4] = {
-    { NULL, NULL, NULL, { 2240, -48, 9504, 0 }, { { -320, 0, -480, 0 }, { 320, 0, -480, 0 }, { -320, 0, 480, 0 }, { 320, 0, 480, 0 } }, { 0, 4116, 0, 0 }, { -4096, 0, 0, 0 }, 576, 0, 12, 18, 2, 0 },
-    { NULL, NULL, NULL, { -3472, -48, 7456, 0 }, { { -1136, 0, -288, 0 }, { 1136, 0, -288, 0 }, { -1136, 0, 288, 0 }, { 1136, 0, 288, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 1166, 2, 2, 0, 2, 0 },
-    { NULL, NULL, NULL, { 3008, -48, 7456, 0 }, { { -1024, 0, -256, 0 }, { 1024, 0, -256, 0 }, { -1024, 0, 256, 0 }, { 1024, 0, 256, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1055, 0, 14, 49, 2, 0 },
-    { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 814, 2, 1, 255, 130, 0 },
+WorldCollisionTrigger D_neo_ark_pavilion_8018785C[4] = {
+    { NULL, NULL, NULL, { 2240, -48, 9504, 0 }, { { -320, 0, -480, 0 }, { 320, 0, -480, 0 }, { -320, 0, 480, 0 }, { 320, 0, 480, 0 } }, { 0, 4116, 0, 0 }, { -4096, 0, 0, 0 }, 576, WORLD_COLLISION_TRIGGER_ACTION_WARP, 12, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3472, -48, 7456, 0 }, { { -1136, 0, -288, 0 }, { 1136, 0, -288, 0 }, { -1136, 0, 288, 0 }, { 1136, 0, 288, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3008, -48, 7456, 0 }, { { -1024, 0, -256, 0 }, { 1024, 0, -256, 0 }, { -1024, 0, 256, 0 }, { 1024, 0, 256, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_WARP, 14, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4400, -64, 0x2BA0, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpObj3A D_neo_ark_pavilion_8018798C[1] = {

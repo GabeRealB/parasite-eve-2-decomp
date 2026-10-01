@@ -36,7 +36,7 @@ extern s32 D_acropolis_helicopter_landing_pad_80184E0C;
 /// to slot 3.
 extern s32 D_acropolis_helicopter_landing_pad_80187F84;
 
-extern GpObj4C D_acropolis_helicopter_landing_pad_80185E7C[9];
+extern WorldCollisionTrigger D_acropolis_helicopter_landing_pad_80185E7C[9];
 
 extern GpObj3A D_acropolis_helicopter_landing_pad_80186128[2];
 

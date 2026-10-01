@@ -7198,7 +7198,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
     Actor403200Work*        dying;
     Actor403200Work*        vis;
     Actor403200TickScratch* scratch;
-    GpObj4C*                pending;
+    WorldCollisionTrigger*  pending;
     TmdObject*              tmd;
     TmdObject*              escortTmd;
     Task*                   player;
@@ -7382,11 +7382,11 @@ after_mode:
         work->field_0                = 0x12;
         gSceneCombatState.battleRefs = 1;
         // Dumping Hole room variant 1 installs ten contiguous pending quads.
-        pending               = Gp_PendingObj4C;
-        pending[9].field_C.vx = arg1->extra.tmd->coords->coord.t[0] + 0xFA0;
-        pendingPos            = &pending[9].field_C;
-        pendingPos->vy        = arg1->extra.tmd->coords->coord.t[1] - 0x64;
-        pendingPos->vz        = arg1->extra.tmd->coords->coord.t[2];
+        pending              = Gp_PendingObj4C;
+        pending[9].origin.vx = arg1->extra.tmd->coords->coord.t[0] + 0xFA0;
+        pendingPos           = &pending[9].origin;
+        pendingPos->vy       = arg1->extra.tmd->coords->coord.t[1] - 0x64;
+        pendingPos->vz       = arg1->extra.tmd->coords->coord.t[2];
         SndEvt_EnqueueType7((((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000A, 1);
         SndEvt_EnqueueType7((((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000D, 1);
     }

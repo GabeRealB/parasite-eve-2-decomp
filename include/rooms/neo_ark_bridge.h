@@ -43,9 +43,9 @@ extern GpSprtRec D_neo_ark_bridge_80184564[];
 
 extern WorldCoordRoomLights D_neo_ark_bridge_8018470C;
 
-extern GpObj4A D_neo_ark_bridge_80184724[];
+extern WorldCollisionTrigger D_neo_ark_bridge_80184724[];
 
-extern GpObj4A D_neo_ark_bridge_80184AB8[];
+extern WorldCollisionTrigger D_neo_ark_bridge_80184AB8[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[];
 

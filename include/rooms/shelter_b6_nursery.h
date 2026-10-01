@@ -32,9 +32,9 @@ extern GpSprtRec D_shelter_b6_nursery_80186FD0[];
 
 extern WorldCoordRoomLights D_shelter_b6_nursery_80187294;
 
-extern GpObj4A D_shelter_b6_nursery_801872AC[];
+extern WorldCollisionTrigger D_shelter_b6_nursery_801872AC[];
 
-extern GpObj4A D_shelter_b6_nursery_8018750C[];
+extern WorldCollisionTrigger D_shelter_b6_nursery_8018750C[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b6_nursery_8018789C[];
 

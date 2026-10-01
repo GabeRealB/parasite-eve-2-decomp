@@ -29,9 +29,9 @@ extern GpSprtRec D_shelter_b2_north_maintenance_walkway_80185B04[];
 
 extern WorldCoordRoomLights D_shelter_b2_north_maintenance_walkway_80185D44;
 
-extern GpObj4A D_shelter_b2_north_maintenance_walkway_80185D5C[];
+extern WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185D5C[];
 
-extern GpObj4A D_shelter_b2_north_maintenance_walkway_80185F24[];
+extern WorldCollisionTrigger D_shelter_b2_north_maintenance_walkway_80185F24[];
 
 extern GpObj3A D_shelter_b2_north_maintenance_walkway_80186308[];
 

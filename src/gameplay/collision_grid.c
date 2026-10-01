@@ -18,6 +18,12 @@
 #include "main/session.h"
 #include "main/task_types.h"
 
+/// Q24 facing cutoff: at least 3/4 alignment opposite the tested normal.
+enum { WORLD_COLLISION_TRIGGER_FACING_DOT_MAX = -(ONE * ONE * 3 / 4) };
+
+/// Inclusive squared-distance cutoff for the strict 500-game-unit near test.
+enum { WORLD_COLLISION_TRIGGER_NEAR_DISTANCE_SQUARED_MAX = 500 * 500 - 1 };
+
 /// 0x40-byte scratch from the scratch stack used by `func_800DEAFC`.
 /// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;
 /// `out` is that transform; `pos0` / `pos1` are the 16-bit grid-space
@@ -148,7 +154,7 @@ u8 D_80115450[256];
 
 GpObj3A* D_80115550;
 
-GpObj4C* Gp_Obj4CList;
+WorldCollisionTrigger* Gp_Obj4CList;
 
 #include "gameplay/world_collision.h"
 
@@ -642,7 +648,7 @@ done_search:
     SCRATCH_STACK_RELEASE_BLOCK(GpNormScratch);
 }
 
-void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
+void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other)
 {
     GpQuadHitScratch* block;
     s32               distSq;
@@ -657,59 +663,60 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
     SCRATCH_STACK_RESERVE_BLOCK(GpQuadHitScratch);
     block = SCRATCH_STACK_CURSOR(GpQuadHitScratch);
     Gp_ObjWorldPosInline(node, &block->nodePos);
-    gte_SetRotMatrix(&other->field_8->workm);
-    gte_ldv0(&other->field_C);
+    gte_SetRotMatrix(&other->coord->workm);
+    gte_ldv0(&other->origin);
     gte_rtv0();
     gte_stlvnl(&block->world);
-    block->world.vx += other->field_8->workm.t[0];
-    block->world.vy += other->field_8->workm.t[1];
-    block->world.vz += other->field_8->workm.t[2];
+    block->world.vx += other->coord->workm.t[0];
+    block->world.vy += other->coord->workm.t[1];
+    block->world.vz += other->coord->workm.t[2];
 
     block->delta.vx = block->world.vx - block->nodePos.vx;
     block->delta.vy = block->world.vy - block->nodePos.vy;
     block->delta.vz = block->world.vz - block->nodePos.vz;
     distSq          = block->delta.vx * block->delta.vx + block->delta.vy * block->delta.vy +
              block->delta.vz * block->delta.vz;
-    tmp = other->field_44 + node->radius;
+    tmp = other->radius + node->radius;
     if (tmp * tmp < distSq) {
         SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
         return;
     }
 
-    kind = other->field_4A & 7;
-    if (kind == 2) {
+    // Apply the action trigger's facing or proximity gate before the quad test.
+    kind = other->flags & WORLD_COLLISION_TRIGGER_KIND_MASK;
+    if (kind == WORLD_COLLISION_TRIGGER_FACING_QUAD) {
         GfxCoord* c;
         s32       m0, m1, m2, a;
 
         c    = node->coord;
-        a    = other->field_3C.vx;
+        a    = other->facingNormal.vx;
         m0   = a * c->coord.m[0][2];
-        a    = other->field_3C.vy;
+        a    = other->facingNormal.vy;
         m1   = a * c->coord.m[1][2];
-        a    = other->field_3C.vz;
+        a    = other->facingNormal.vz;
         m2   = a * c->coord.m[2][2];
         dot  = m0 + m1;
         dot += m2;
-        if (dot > -0xC00000) {
+        if (dot > WORLD_COLLISION_TRIGGER_FACING_DOT_MAX) {
             SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
             return;
         }
-    } else if (kind == 4) {
-        if (distSq <= 0x3D08F) {
-            other->field_4B = 1;
+    } else if (kind == WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD) {
+        if (distSq <= WORLD_COLLISION_TRIGGER_NEAR_DISTANCE_SQUARED_MAX) {
+            other->hit = 1;
             SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
             return;
         }
-        block->local.vx = other->field_C.vx;
+        block->local.vx = other->origin.vx;
         block->local.vy = node->coord->coord.t[1] + node->pos.vy;
-        block->local.vz = other->field_C.vz;
-        gte_SetRotMatrix(&other->field_8->workm);
+        block->local.vz = other->origin.vz;
+        gte_SetRotMatrix(&other->coord->workm);
         gte_ldv0(&block->local);
         gte_rtv0();
         gte_stlvnl(&block->delta);
-        block->delta.vx = block->nodePos.vx - (block->delta.vx + other->field_8->workm.t[0]);
-        block->delta.vy = block->nodePos.vy - (block->delta.vy + other->field_8->workm.t[1]);
-        block->delta.vz = block->nodePos.vz - (block->delta.vz + other->field_8->workm.t[2]);
+        block->delta.vx = block->nodePos.vx - (block->delta.vx + other->coord->workm.t[0]);
+        block->delta.vy = block->nodePos.vy - (block->delta.vy + other->coord->workm.t[1]);
+        block->delta.vz = block->nodePos.vz - (block->delta.vz + other->coord->workm.t[2]);
         VectorNormal(&block->delta, &block->delta);
         {
             GfxCoord* c;
@@ -722,20 +729,21 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
             dot  = n0 + n1;
             dot += n2;
         }
-        if (dot > -0xC00000) {
+        if (dot > WORLD_COLLISION_TRIGGER_FACING_DOT_MAX) {
             SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
             return;
         }
     }
 
-    gte_ldv0(&other->field_14[0]);
+    // Test the sphere against the transformed quad's one-sided plane and edges.
+    gte_ldv0(&other->vertices[0]);
     gte_rtv0();
     gte_stlvnl(&block->verts[0]);
     block->verts[0].vx += block->world.vx;
     block->verts[0].vy += block->world.vy;
     block->verts[0].vz += block->world.vz;
 
-    gte_ldv0(&other->field_34);
+    gte_ldv0(&other->normal);
     gte_rtv0();
     gte_stlvnl(&block->normal);
 
@@ -751,8 +759,8 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
         return;
     }
 
-    for (i = 1; i < 4; i++) {
-        gte_ldv0(&other->field_14[i]);
+    for (i = 1; i < (s32)ARRAY_SIZE(other->vertices); i++) {
+        gte_ldv0(&other->vertices[i]);
         gte_rtv0();
         gte_stlvnl(&block->verts[i]);
         block->verts[i].vx += block->world.vx;
@@ -760,7 +768,7 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
         block->verts[i].vz += block->world.vz;
     }
 
-    for (i = 1; i < 5; i++) {
+    for (i = 1; i < (s32)ARRAY_SIZE(other->vertices) + 1; i++) {
         va              = &block->verts[(u16)Gp_FaceEdgePairs[i].field_0];
         vb              = &block->verts[(u16)Gp_FaceEdgePairs[i].field_2];
         block->delta.vx = va->vx - vb->vx;
@@ -780,11 +788,11 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
         }
     }
 
-    other->field_4B = 1;
+    other->hit = 1;
     SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
 }
 
-void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
+void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTOR3* from)
 {
     _GpQuadDirScratch* block;
     s32                dist;
@@ -800,39 +808,40 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
     block->dir.vz = node->coord->coord.t[2] - from->vz;
     SquareRoot0(block->dir.vx * block->dir.vx + block->dir.vy * block->dir.vy + block->dir.vz * block->dir.vz);
     VectorNormal(&block->dir, &block->dir);
-    if (other->field_34.vx * block->dir.vx + other->field_34.vy * block->dir.vy + other->field_34.vz * block->dir.vz >=
+    // A view boundary accepts only movement against its room-space normal.
+    if (other->normal.vx * block->dir.vx + other->normal.vy * block->dir.vy + other->normal.vz * block->dir.vz >=
         0) {
         SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
         return;
     }
 
     Gp_ObjWorldPosInline(node, &block->quad.nodePos);
-    gte_SetRotMatrix(&other->field_8->workm);
-    gte_ldv0(&other->field_C);
+    gte_SetRotMatrix(&other->coord->workm);
+    gte_ldv0(&other->origin);
     gte_rtv0();
     gte_stlvnl(&block->quad.world);
-    block->quad.world.vx += other->field_8->workm.t[0];
-    block->quad.world.vy += other->field_8->workm.t[1];
-    block->quad.world.vz += other->field_8->workm.t[2];
+    block->quad.world.vx += other->coord->workm.t[0];
+    block->quad.world.vy += other->coord->workm.t[1];
+    block->quad.world.vz += other->coord->workm.t[2];
 
     block->quad.delta.vx = block->quad.world.vx - block->quad.nodePos.vx;
     block->quad.delta.vy = block->quad.world.vy - block->quad.nodePos.vy;
     block->quad.delta.vz = block->quad.world.vz - block->quad.nodePos.vz;
-    tmp                  = other->field_44 + node->radius;
+    tmp                  = other->radius + node->radius;
     if (tmp * tmp < block->quad.delta.vx * block->quad.delta.vx + block->quad.delta.vy * block->quad.delta.vy +
                         block->quad.delta.vz * block->quad.delta.vz) {
         SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
         return;
     }
 
-    gte_ldv0(&other->field_14[0]);
+    gte_ldv0(&other->vertices[0]);
     gte_rtv0();
     gte_stlvnl(&block->quad.verts[0]);
     block->quad.verts[0].vx += block->quad.world.vx;
     block->quad.verts[0].vy += block->quad.world.vy;
     block->quad.verts[0].vz += block->quad.world.vz;
 
-    gte_ldv0(&other->field_34);
+    gte_ldv0(&other->normal);
     gte_rtv0();
     gte_stlvnl(&block->quad.normal);
 
@@ -848,8 +857,8 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
         return;
     }
 
-    for (i = 1; i < 4; i++) {
-        gte_ldv0(&other->field_14[i]);
+    for (i = 1; i < (s32)ARRAY_SIZE(other->vertices); i++) {
+        gte_ldv0(&other->vertices[i]);
         gte_rtv0();
         gte_stlvnl(&block->quad.verts[i]);
         block->quad.verts[i].vx += block->quad.world.vx;
@@ -857,7 +866,7 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
         block->quad.verts[i].vz += block->quad.world.vz;
     }
 
-    for (i = 1; i < 5; i++) {
+    for (i = 1; i < (s32)ARRAY_SIZE(other->vertices) + 1; i++) {
         va                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].field_0];
         vb                   = &block->quad.verts[(u16)Gp_FaceEdgePairs[i].field_2];
         block->quad.delta.vx = va->vx - vb->vx;
@@ -877,7 +886,7 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
         }
     }
 
-    other->field_4B = 1;
+    other->hit = 1;
     SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
 }
 

@@ -29,9 +29,9 @@ extern GpSprtRec D_shelter_b1_golem_freezer_1_8017EDB0[];
 
 extern WorldCoordRoomLights D_shelter_b1_golem_freezer_1_8017EE64;
 
-extern GpObj4A D_shelter_b1_golem_freezer_1_8017EE7C[];
+extern WorldCollisionTrigger D_shelter_b1_golem_freezer_1_8017EE7C[];
 
-extern GpObj4A D_shelter_b1_golem_freezer_1_8017EFAC[];
+extern WorldCollisionTrigger D_shelter_b1_golem_freezer_1_8017EFAC[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b1_golem_freezer_1_8017F234[];
 

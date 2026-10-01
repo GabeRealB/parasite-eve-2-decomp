@@ -99,13 +99,13 @@ void func_acropolis_forked_road_8017DD60(Task*);
 void func_acropolis_forked_road_8017E1C0(Task*);
 void func_acropolis_forked_road_8017E220(Task*);
 
-extern AnimationPlayRequest D_acropolis_forked_road_8018207C;
-extern GpCopyArg            D_acropolis_forked_road_80182060;
-extern WorldCollisionGrid   D_acropolis_forked_road_80182BF0[1];
-extern GpObj4C              D_acropolis_forked_road_80182C14[6];
-extern GpObj4C              D_acropolis_forked_road_80182DDC[7];
-extern WorldCoordRoomLights D_acropolis_forked_road_80184E70[1];
-void                        func_acropolis_forked_road_8017E288(void);
+extern AnimationPlayRequest  D_acropolis_forked_road_8018207C;
+extern GpCopyArg             D_acropolis_forked_road_80182060;
+extern WorldCollisionGrid    D_acropolis_forked_road_80182BF0[1];
+extern WorldCollisionTrigger D_acropolis_forked_road_80182C14[6];
+extern WorldCollisionTrigger D_acropolis_forked_road_80182DDC[7];
+extern WorldCoordRoomLights  D_acropolis_forked_road_80184E70[1];
+void                         func_acropolis_forked_road_8017E288(void);
 
 extern SpriteBatch  D_acropolis_forked_road_80183284[2];
 extern SpriteBatch  D_acropolis_forked_road_80183938[12];
@@ -633,23 +633,23 @@ WorldCollisionGrid D_acropolis_forked_road_80182BF0[1] = {
     { NULL, D_acropolis_forked_road_801823A0, D_acropolis_forked_road_80182430, D_acropolis_forked_road_801827E0, D_acropolis_forked_road_80182B90, 0x303E, 6900, 6, 4, 4000, 38 },
 };
 
-GpObj4C D_acropolis_forked_road_80182C14[6] = {
-    { NULL, NULL, NULL, { -1905, 0, -353, 0 }, { { -509, 3168, 2239, 0 }, { 510, 3168, -2238, 0 }, { -509, -3168, 2239, 0 }, { 510, -3168, -2238, 0 } }, { 3996, 0, 909, 0 }, { 0, 0, 4096, 0 }, 3907, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { -1712, 0, -149, 0 }, { { 526, 3168, -2286, 0 }, { -525, 3168, 2287, 0 }, { 526, -3168, -2286, 0 }, { -525, -3168, 2287, 0 } }, { -4002, 0, -920, 0 }, { 0, 0, 4096, 0 }, 3941, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { -6711, 0, -2121, 0 }, { { 1938, 3168, 482, 0 }, { -1937, 3168, -481, 0 }, { 1938, -3168, 482, 0 }, { -1937, -3168, -481, 0 } }, { 989, 0, -3983, 0 }, { 0, 0, 4096, 0 }, 3736, 0, 4, 2, 1, 0 },
-    { NULL, NULL, NULL, { -6668, 0, -2514, 0 }, { { -1920, 3168, -512, 0 }, { 1920, 3168, 513, 0 }, { -1920, -3168, -512, 0 }, { 1920, -3168, 513, 0 } }, { -1058, 0, 3959, 0 }, { 0, 0, 4096, 0 }, 3736, 0, 2, 4, 1, 0 },
-    { NULL, NULL, NULL, { -3905, 0, -3010, 0 }, { { -943, 3168, 1067, 0 }, { 943, 3168, -1066, 0 }, { -943, -3168, 1067, 0 }, { 943, -3168, -1066, 0 } }, { 3088, 0, 2731, 0 }, { 0, 0, 4096, 0 }, 3472, 0, 2, 4, 1, 0 },
-    { NULL, NULL, NULL, { -3575, 0, -2822, 0 }, { { 1290, 3168, -1366, 0 }, { -1290, 3168, 1367, 0 }, { 1290, -3168, -1366, 0 }, { -1290, -3168, 1367, 0 } }, { -2990, 0, -2822, 0 }, { 0, 0, 4096, 0 }, 3683, 0, 4, 2, 129, 0 },
+WorldCollisionTrigger D_acropolis_forked_road_80182C14[6] = {
+    { NULL, NULL, NULL, { -1905, 0, -353, 0 }, { { -509, 3168, 2239, 0 }, { 510, 3168, -2238, 0 }, { -509, -3168, 2239, 0 }, { 510, -3168, -2238, 0 } }, { 3996, 0, 909, 0 }, { 0, 0, 4096, 0 }, 3907, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1712, 0, -149, 0 }, { { 526, 3168, -2286, 0 }, { -525, 3168, 2287, 0 }, { 526, -3168, -2286, 0 }, { -525, -3168, 2287, 0 } }, { -4002, 0, -920, 0 }, { 0, 0, 4096, 0 }, 3941, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6711, 0, -2121, 0 }, { { 1938, 3168, 482, 0 }, { -1937, 3168, -481, 0 }, { 1938, -3168, 482, 0 }, { -1937, -3168, -481, 0 } }, { 989, 0, -3983, 0 }, { 0, 0, 4096, 0 }, 3736, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6668, 0, -2514, 0 }, { { -1920, 3168, -512, 0 }, { 1920, 3168, 513, 0 }, { -1920, -3168, -512, 0 }, { 1920, -3168, 513, 0 } }, { -1058, 0, 3959, 0 }, { 0, 0, 4096, 0 }, 3736, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3905, 0, -3010, 0 }, { { -943, 3168, 1067, 0 }, { 943, 3168, -1066, 0 }, { -943, -3168, 1067, 0 }, { 943, -3168, -1066, 0 } }, { 3088, 0, 2731, 0 }, { 0, 0, 4096, 0 }, 3472, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3575, 0, -2822, 0 }, { { 1290, 3168, -1366, 0 }, { -1290, 3168, 1367, 0 }, { 1290, -3168, -1366, 0 }, { -1290, -3168, 1367, 0 } }, { -2990, 0, -2822, 0 }, { 0, 0, 4096, 0 }, 3683, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_acropolis_forked_road_80182DDC[7] = {
-    { NULL, NULL, NULL, { -5024, -64, -4192, 0 }, { { -896, 0, -768, 0 }, { 896, 0, -768, 0 }, { -896, 0, 768, 0 }, { 896, 0, 768, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1180, 0, 8, 50, 2, 0 },
-    { NULL, NULL, NULL, { -192, -96, 1440, 0 }, { { -768, 0, -736, 0 }, { 768, 0, -736, 0 }, { -768, 0, 736, 0 }, { 768, 0, 736, 0 } }, { 0, 4106, 0, 0 }, { -4096, 0, 0, 0 }, 1063, 0, 10, 36, 2, 0 },
-    { NULL, NULL, NULL, { -3905, -128, 1039, 0 }, { { -433, 0, -633, 0 }, { 721, 0, -218, 0 }, { -720, 0, 219, 0 }, { 434, 0, 634, 0 } }, { 0, 4114, 0, 0 }, { 1189, 0, -3920, 0 }, 768, 1, 68, 244, 2, 0 },
-    { NULL, NULL, NULL, { 1049, -96, -712, 0 }, { { -1285, 0, 644, 0 }, { -1287, 0, -1365, 0 }, { 232, 0, 613, 0 }, { 231, 0, -468, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1872, 6, 4, 0, 4, 0 },
-    { NULL, NULL, NULL, { -3922, -656, 1150, 0 }, { { -1191, -1520, -451, 0 }, { 1192, -1520, 452, 0 }, { -1191, 1520, -451, 0 }, { 1192, 1520, 452, 0 } }, { 1451, 0, -3834, 0 }, { 1380, 0, -3857, 0 }, 1982, 0x8000, 1, 22, 2, 0 },
-    { NULL, NULL, NULL, { -4113, -512, 1439, 0 }, { { -983, 0, -519, 0 }, { 1087, 0, 270, 0 }, { -1087, 0, -270, 0 }, { 983, 0, 519, 0 } }, { 0, 4098, 0, 0 }, { -1568, 0, 3784, 0 }, 1115, 0x8101, 66, 112, 2, 0 },
-    { NULL, NULL, NULL, { -2336, -96, -512, 0 }, { { -256, 0, -2624, 0 }, { 1344, 0, -1600, 0 }, { -1344, 0, 1600, 0 }, { 256, 0, 2624, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 2635, 0x8005, 1, 0, 131, 0 },
+WorldCollisionTrigger D_acropolis_forked_road_80182DDC[7] = {
+    { NULL, NULL, NULL, { -5024, -64, -4192, 0 }, { { -896, 0, -768, 0 }, { 896, 0, -768, 0 }, { -896, 0, 768, 0 }, { 896, 0, 768, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_WARP, 8, 50, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -192, -96, 1440, 0 }, { { -768, 0, -736, 0 }, { 768, 0, -736, 0 }, { -768, 0, 736, 0 }, { 768, 0, 736, 0 } }, { 0, 4106, 0, 0 }, { -4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, 10, 36, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3905, -128, 1039, 0 }, { { -433, 0, -633, 0 }, { 721, 0, -218, 0 }, { -720, 0, 219, 0 }, { 434, 0, 634, 0 } }, { 0, 4114, 0, 0 }, { 1189, 0, -3920, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_FACING, 68, 244, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1049, -96, -712, 0 }, { { -1285, 0, 644, 0 }, { -1287, 0, -1365, 0 }, { 232, 0, 613, 0 }, { 231, 0, -468, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1872, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3922, -656, 1150, 0 }, { { -1191, -1520, -451, 0 }, { 1192, -1520, 452, 0 }, { -1191, 1520, -451, 0 }, { 1192, 1520, 452, 0 } }, { 1451, 0, -3834, 0 }, { 1380, 0, -3857, 0 }, 1982, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 22, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4113, -512, 1439, 0 }, { { -983, 0, -519, 0 }, { 1087, 0, 270, 0 }, { -1087, 0, -270, 0 }, { 983, 0, 519, 0 } }, { 0, 4098, 0, 0 }, { -1568, 0, 3784, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 66, 112, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2336, -96, -512, 0 }, { { -256, 0, -2624, 0 }, { 1344, 0, -1600, 0 }, { -1344, 0, 1600, 0 }, { 256, 0, 2624, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 2635, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80182FF0[2] = {

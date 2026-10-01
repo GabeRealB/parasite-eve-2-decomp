@@ -29,7 +29,7 @@ extern GpSprtRec D_shelter_r36_8017F318[];
 
 extern WorldCoordRoomLights D_shelter_r36_8017F6DC;
 
-extern GpObj4A D_shelter_r36_8017F6F4[];
+extern WorldCollisionTrigger D_shelter_r36_8017F6F4[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_r36_8017FAE4[];
 

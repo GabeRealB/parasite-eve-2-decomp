@@ -176,8 +176,8 @@ extern EvsCommand D_dryfield_night_garage_80181C7C[];
 extern WorldCollisionGrid D_dryfield_night_garage_80181D7C;
 extern WorldCollisionGrid D_dryfield_night_garage_80181E40;
 
-/// The room's display nodes; bit 0x40 of a node's `field_4A` shows it. The
-/// room toggles the first node and the third.
+/// The room's action triggers; `flags` bit 0x40 enables collision testing.
+/// The room switches the enabled state of entries 3 and 5.
 
 static void func_dryfield_night_garage_80180604(s32 arg0);
 
@@ -360,18 +360,18 @@ static void       func_dryfield_night_garage_801803AC(Task* task);
 
 /// State 0 of this room's message task, run when the garage scene starts.
 /// Publishes the room's message table in `Task::msgTable` and the task itself
-/// in pointer slot 7, clears the display bit on the first object entry, then
+/// in pointer slot 7, disables action-trigger entry 3, then
 /// hands off to the player actor through messages 0x3E9 / 0x3E8.
 static void func_dryfield_night_garage_8017FF2C(Task* task)
 {
-    GpObj4A* base;
-    GpObj4A* obj;
-    Task*    player;
+    WorldCollisionTrigger* base;
+    WorldCollisionTrigger* obj;
+    Task*                  player;
 
     task->msgTable = D_dryfield_night_garage_80181C38;
     Game_SetPtrSlot(task, 7);
-    (D_dryfield_night_garage_80186D7C + 3)->field_4A &= 0xBF;
-    player                                            = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    (D_dryfield_night_garage_80186D7C + 3)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+    player                                         = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (gGameSession->location.loc.variant == 3 && player != NULL) {
         Gp_DispatchMsgPtr(player, 0x3E9, &D_8013B570, 0);
         Gp_AllyAnimId(&D_dryfield_night_garage_80181C68.source.index);
@@ -390,18 +390,18 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
         if (GameFlag_GetNibble(0x6C) == 1) {
             GameFlag_SetNibble(0x6C, 2);
         }
-        base            = (D_dryfield_night_garage_80186D7C + 3);
-        obj             = base + 2;
-        base->field_4A |= 0x40;
-        obj->field_4A  &= 0xBF;
+        base         = (D_dryfield_night_garage_80186D7C + 3);
+        obj          = base + 2;
+        base->flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+        obj->flags  &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     task->state = (s32)(task->state + 1);
 }
 
 s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
-    GpObj4A* base;
-    GpObj4A* obj;
+    WorldCollisionTrigger* base;
+    WorldCollisionTrigger* obj;
 
     if (msg->actionId == 6) {
         if (gGameSession->location.loc.variant == 2) {
@@ -416,10 +416,10 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, DirectionActionRe
                     Gp_MsgPlayerWeapon(0);
                     Task_SpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
                 } else if (GameFlag_GetNibble(0x6C) == 0) {
-                    base            = (D_dryfield_night_garage_80186D7C + 3);
-                    obj             = base + 2;
-                    base->field_4A |= 0x40;
-                    obj->field_4A  &= 0xBF;
+                    base         = (D_dryfield_night_garage_80186D7C + 3);
+                    obj          = base + 2;
+                    base->flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+                    obj->flags  &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
                     func_800E8634(D_dryfield_night_garage_80182DF8, 0,
                                   D_dryfield_night_garage_801831B8);
                     GameFlag_SetNibble(0x6C, 1);

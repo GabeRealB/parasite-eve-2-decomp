@@ -15,11 +15,11 @@
 /// the one that ramps them down from 0xFF.
 extern TaskDesc D_dryfield_warehouse_8017FB08[];
 
-extern GpObj4C D_dryfield_warehouse_801816A4[4];
+extern WorldCollisionTrigger D_dryfield_warehouse_801816A4[4];
 
-extern GpObj4C D_dryfield_warehouse_801817D4[13];
+extern WorldCollisionTrigger D_dryfield_warehouse_801817D4[13];
 
-extern GpObj4C D_dryfield_warehouse_80181BB0[10];
+extern WorldCollisionTrigger D_dryfield_warehouse_80181BB0[10];
 
 extern WorldCoordRoomLights D_dryfield_warehouse_801820E8[1];
 

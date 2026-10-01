@@ -29,9 +29,9 @@ extern GpSprtRec D_shelter_b1_main_corridor_80185128[];
 
 extern WorldCoordRoomLights D_shelter_b1_main_corridor_801853E0;
 
-extern GpObj4A D_shelter_b1_main_corridor_801853F8[];
+extern WorldCollisionTrigger D_shelter_b1_main_corridor_801853F8[];
 
-extern GpObj4A D_shelter_b1_main_corridor_801858B8[];
+extern WorldCollisionTrigger D_shelter_b1_main_corridor_801858B8[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_main_corridor_80185D04[];
 

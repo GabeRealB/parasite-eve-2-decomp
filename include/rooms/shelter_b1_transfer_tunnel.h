@@ -29,9 +29,9 @@ extern GpSprtRec D_shelter_b1_transfer_tunnel_80182BE0[];
 
 extern WorldCoordRoomLights D_shelter_b1_transfer_tunnel_80182D90;
 
-extern GpObj4A D_shelter_b1_transfer_tunnel_80182DA8[];
+extern WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182DA8[];
 
-extern GpObj4A D_shelter_b1_transfer_tunnel_80182ED8[];
+extern WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182ED8[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_transfer_tunnel_80183184[];
 

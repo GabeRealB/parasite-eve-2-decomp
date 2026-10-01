@@ -543,7 +543,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
         }
     }
     if (GameFlag_GetNibble(0xEA) != 1) {
-        (D_shelter_b1_sterilization_room_8018B8A8 + 22)[0].field_4A &= 0xBF;
+        (D_shelter_b1_sterilization_room_8018B8A8 + 22)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     if (gGameSession->location.loc.variant == 1) {
         Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 6, 0, 0);

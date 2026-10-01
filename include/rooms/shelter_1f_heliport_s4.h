@@ -26,7 +26,7 @@ extern GpSprtRec D_shelter_1f_heliport_s4_8017DAF0[];
 
 extern WorldCoordRoomLights D_shelter_1f_heliport_s4_8017DE6C;
 
-extern GpObj4A D_shelter_1f_heliport_s4_8017DE84[];
+extern WorldCollisionTrigger D_shelter_1f_heliport_s4_8017DE84[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_heliport_s4_8017E060[];
 

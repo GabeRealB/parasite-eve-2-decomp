@@ -259,13 +259,13 @@ void Gp_AllocSprtLists(void)
 
 static void Gp_LinkRoomObjects(Task* task)
 {
-    GameLocationKey*    sess;
-    GpRoomObjRec*       recs;
-    WorldCollisionGrid* grid;
-    GpObj4A*            list1;
-    GpObj4A*            list2;
-    GpObj3A*            list3;
-    s32                 i;
+    GameLocationKey*       sess;
+    GpRoomObjRec*          recs;
+    WorldCollisionGrid*    grid;
+    WorldCollisionTrigger* list1;
+    WorldCollisionTrigger* list2;
+    GpObj3A*               list3;
+    s32                    i;
 
     sess = &gGameSession->location.loc;
     Gp_LoadStageView();
@@ -286,20 +286,20 @@ static void Gp_LinkRoomObjects(Task* task)
         }
         if (list1 != NULL) {
             for (i = 0;; i++) {
-                list1[i].field_8 = &gGfxViewCoord;
+                list1[i].coord = &gGfxViewCoord;
                 Gp_LinkObj4A(1, &list1[i]);
-                list1[i].field_4A |= 0x40;
-                if (list1[i].field_4A & 0x80) {
+                list1[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+                if (list1[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
                 }
             }
         }
         if (list2 != NULL) {
             for (i = 0;; i++) {
-                list2[i].field_8 = &gGfxViewCoord;
+                list2[i].coord = &gGfxViewCoord;
                 Gp_LinkObj4A(0, &list2[i]);
-                list2[i].field_4A |= 0x40;
-                if (list2[i].field_4A & 0x80) {
+                list2[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+                if (list2[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
                 }
             }

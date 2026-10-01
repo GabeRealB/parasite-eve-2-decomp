@@ -187,8 +187,8 @@ TmdSource D_shelter_b2_pod_bottom_8018864C = {
     D_shelter_b2_pod_bottom_80188408,
 };
 
-GpObj4C D_shelter_b2_pod_bottom_80188670[1] = {
-    { NULL, NULL, NULL, { -2336, -2176, 6848, 0 }, { { -576, 0, -1024, 0 }, { 576, 0, -1024, 0 }, { -576, 0, 1024, 0 }, { 576, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1173, 0, 35, 18, 130, 0 },
+WorldCollisionTrigger D_shelter_b2_pod_bottom_80188670[1] = {
+    { NULL, NULL, NULL, { -2336, -2176, 6848, 0 }, { { -576, 0, -1024, 0 }, { 576, 0, -1024, 0 }, { -576, 0, 1024, 0 }, { 576, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_WARP, 35, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_shelter_b2_pod_bottom_801886BC[17] = {

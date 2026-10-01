@@ -538,11 +538,11 @@ static void func_shelter_r47_8017FB94(Task* task)
     func_shelter_r47_80183210();
     Task_SpawnFromTable(D_shelter_r47_80186F70, 1, 0, 0);
     if (GameFlag_GetNibble(0x83) == 1 || GameFlag_GetNibble(0x80) == 1) {
-        (D_shelter_r47_8018787C + 3)[0].field_4A &= 0xBF;
+        (D_shelter_r47_8018787C + 3)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     } else {
         {
-            GpObj4C* object   = &D_shelter_r47_8018787C[12];
-            object->field_4A &= 0xBF;
+            WorldCollisionTrigger* object = &D_shelter_r47_8018787C[12];
+            object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
         }
     }
     task->state++;
@@ -591,17 +591,17 @@ static void func_shelter_r47_8017FCC0(Task* task)
 
 static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
 {
-    Task*    spawned_p;
-    Task*    spawned_p6;
-    Task*    spawned_a;
-    Task*    spawned_a0;
-    Task*    spawned_a1;
-    s32      flag_a;
-    s32      flag_b;
-    s32      kind;
-    u8       field9;
-    GpObj4A* p;
-    GpObj4A* q;
+    Task*                  spawned_p;
+    Task*                  spawned_p6;
+    Task*                  spawned_a;
+    Task*                  spawned_a0;
+    Task*                  spawned_a1;
+    s32                    flag_a;
+    s32                    flag_b;
+    s32                    kind;
+    u8                     field9;
+    WorldCollisionTrigger* p;
+    WorldCollisionTrigger* q;
 
     field9 = gGameSession->location.loc.variant;
     if (field9 == 1) {
@@ -672,10 +672,10 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
                 set_and_toggle:
                     GameFlag_SetNibble(flag_a, flag_b);
                 toggle_only:
-                    p            = (D_shelter_r47_8018787C + 3);
-                    q            = p + 9;
-                    p->field_4A &= 0xBF;
-                    q->field_4A |= 0x40;
+                    p         = (D_shelter_r47_8018787C + 3);
+                    q         = p + 9;
+                    p->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+                    q->flags |= WORLD_COLLISION_TRIGGER_ENABLED;
                 }
             } else {
                 spawned_a0             = Task_SpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);

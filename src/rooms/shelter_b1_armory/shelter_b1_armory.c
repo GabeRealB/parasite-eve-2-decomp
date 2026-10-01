@@ -288,17 +288,17 @@ void func_shelter_b1_armory_8018034C(Task* task)
     }
 }
 
-/// Answers 1 and spawns the armory task when a pending mode-5 object with
-/// `field_48` 0xFF exists and `arg2` is 0x105, 0x121 or 0x122. Event nibble
+/// Answers 1 and spawns the armory task when a hit room-action trigger with
+/// `parameter0` 0xFF exists and `arg2` is 0x105, 0x121 or 0x122. Event nibble
 /// 0xF0 selects the task's parameter; on 0x105 a first visit also sets it.
 s32 func_shelter_b1_armory_80180468(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
-    GpObj4C* node;
-    s32      found;
+    WorldCollisionTrigger* node;
+    s32                    found;
 
     node = Gp_PendingObj4C;
     while (node != NULL) {
-        if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+        if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
             found = 1;
             goto check;
         }

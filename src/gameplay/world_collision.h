@@ -32,7 +32,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0);
 
 s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg3);
 
-extern GpObj4C* Gp_Obj4CList;
+extern WorldCollisionTrigger* Gp_Obj4CList;
 
 void func_800DD940(WorldCollisionBody* arg0);
 
@@ -40,9 +40,9 @@ void func_800DDDF8(WorldCollisionBody* obj);
 
 void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
-void func_800DEF80(WorldCollisionBody* node, GpObj4C* other);
+void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other);
 
-void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from);
+void func_800DF6AC(WorldCollisionBody* node, WorldCollisionTrigger* other, VECTOR3* from);
 
 struct Enemy;
 

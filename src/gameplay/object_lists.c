@@ -87,7 +87,7 @@ typedef struct _GpDirMatScratch {
 STATIC_ASSERT_SIZEOF(GpDirMatScratch, 0x4C);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-GpObj4C* Gp_PendingObj4C;
+WorldCollisionTrigger* Gp_PendingObj4C;
 
 WorldCollisionBody* Gp_ObjList0;
 
@@ -113,9 +113,9 @@ WorldCollisionBody* Gp_ObjList8;
 /// `Gp_LinkObj` appends to `Gp_ObjLists[index]`; `Gp_UnlinkObj` unlinks.
 extern WorldCollisionBody** Gp_ObjLists[9];
 
-/// Two-entry table of `GpObj4A` list heads. `Gp_LinkObj4A` appends to
+/// Two-entry table of `WorldCollisionTrigger` list heads. `Gp_LinkObj4A` appends to
 /// `Gp_Obj4ALists[index]`; `Gp_ClearObj4AList` walks and clears that list.
-extern GpObj4A** Gp_Obj4ALists[2];
+extern WorldCollisionTrigger** Gp_Obj4ALists[2];
 
 /// One-entry table of `GpObj3A` list heads. `Gp_LinkObj3A` appends to
 /// `Gp_Obj3ALists[index]`; `Gp_ClearObj3AList` walks and clears that list.
@@ -138,7 +138,7 @@ WorldCollisionBody** Gp_ObjLists[9] = {
     &Gp_ObjList7,
     &Gp_ObjList8,
 };
-GpObj4A** Gp_Obj4ALists[2] = {
+WorldCollisionTrigger** Gp_Obj4ALists[2] = {
     &Gp_PendingObj4C,
     &Gp_Obj4CList,
 };
@@ -260,13 +260,13 @@ void Gp_CollideListGrid(WorldCollisionBody* node)
 
 void func_800E0608(WorldCollisionBody* node, s32 mask, s32 match)
 {
-    GpObj4C* other;
+    WorldCollisionTrigger* other;
 
     other = Gp_PendingObj4C;
     for (; node != NULL; node = node->next) {
         if ((node->flags & mask) == (u16)match) {
             for (; other != NULL; other = other->next) {
-                if (other->field_4A & 0x40) {
+                if (other->flags & WORLD_COLLISION_TRIGGER_ENABLED) {
                     func_800DEF80(node, other);
                 }
             }
@@ -276,11 +276,11 @@ void func_800E0608(WorldCollisionBody* node, s32 mask, s32 match)
 
 void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match)
 {
-    GpObj4C*   other;
-    GameActor* actor;
-    s32        idx;
-    s32        msk;
-    u16        mch;
+    WorldCollisionTrigger* other;
+    GameActor*             actor;
+    s32                    idx;
+    s32                    msk;
+    u16                    mch;
 
     other = Gp_Obj4CList;
     idx   = GAME_TASK_SLOT_PLAYER;
@@ -290,7 +290,7 @@ void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match)
     for (; node != NULL; node = node->next) {
         if ((node->flags & msk) == mch) {
             for (; other != NULL; other = other->next) {
-                if (other->field_4A & 0x40) {
+                if (other->flags & WORLD_COLLISION_TRIGGER_ENABLED) {
                     func_800DF6AC(node, other, &actor->previousPosition);
                 }
             }
@@ -379,11 +379,11 @@ void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
 
 void Gp_ClearPendingObj4C(void)
 {
-    GpObj4C* node;
+    WorldCollisionTrigger* node;
 
     for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
-        if (node->field_4B != 0) {
-            node->field_4B = 0;
+        if (node->hit != 0) {
+            node->hit = 0;
         }
     }
 }
@@ -693,76 +693,76 @@ void Gp_UnlinkObj(WorldCollisionBody* node)
     }
 }
 
-void Gp_LinkObj4A(s32 arg0, GpObj4A* arg1)
+void Gp_LinkObj4A(s32 arg0, WorldCollisionTrigger* arg1)
 {
-    u8        flags;
-    GpObj4A** head;
-    GpObj4A*  node;
-    GpObj4A*  temp;
+    u8                      flags;
+    WorldCollisionTrigger** head;
+    WorldCollisionTrigger*  node;
+    WorldCollisionTrigger*  temp;
 
     head  = Gp_Obj4ALists[arg0];
-    flags = arg1->field_4A;
-    if (!(flags & 0x20)) {
-        arg1->field_4A = flags | 0x20;
-        temp           = *head;
+    flags = arg1->flags;
+    if (!(flags & WORLD_COLLISION_TRIGGER_LINKED)) {
+        arg1->flags = flags | WORLD_COLLISION_TRIGGER_LINKED;
+        temp        = *head;
         if (temp != NULL) {
             node = temp;
             while (node->next != NULL) {
                 node = node->next;
             }
-            node->next = arg1;
-            arg1->prev = &node->next;
+            node->next     = arg1;
+            arg1->prevLink = &node->next;
         } else {
-            *head      = arg1;
-            arg1->prev = head;
+            *head          = arg1;
+            arg1->prevLink = head;
         }
         arg1->next = NULL;
     }
 }
 
-void Gp_UnlinkObj4A(s32 arg0, GpObj4A* arg1)
+void Gp_UnlinkObj4A(s32 arg0, WorldCollisionTrigger* arg1)
 {
-    u8        flags;
-    GpObj4A*  next;
-    GpObj4A** prev;
+    u8                      flags;
+    WorldCollisionTrigger*  next;
+    WorldCollisionTrigger** prev;
 
-    flags = arg1->field_4A;
-    if (flags & 0x20) {
-        next           = arg1->next;
-        arg1->field_4A = flags & 0x87;
-        prev           = arg1->prev;
+    flags = arg1->flags;
+    if (flags & WORLD_COLLISION_TRIGGER_LINKED) {
+        next        = arg1->next;
+        arg1->flags = flags & WORLD_COLLISION_TRIGGER_PERSISTENT_FLAGS;
+        prev        = arg1->prevLink;
         if (next != NULL) {
-            *prev      = next;
-            next->prev = arg1->prev;
-            arg1->next = NULL;
+            *prev          = next;
+            next->prevLink = arg1->prevLink;
+            arg1->next     = NULL;
         } else {
             *prev = NULL;
         }
-        arg1->prev = NULL;
+        arg1->prevLink = NULL;
     }
 }
 
 void Gp_ClearObj4AList(s32 arg0)
 {
-    GpObj4A** head;
-    GpObj4A*  node;
-    GpObj4A*  next;
-    GpObj4A*  temp;
-    s32       flags;
-    s32       mask;
+    WorldCollisionTrigger** head;
+    WorldCollisionTrigger*  node;
+    WorldCollisionTrigger*  next;
+    WorldCollisionTrigger*  temp;
+    s32                     flags;
+    s32                     mask;
 
     head = Gp_Obj4ALists[arg0];
     temp = *head;
     if (temp != NULL) {
         node  = temp;
         *head = NULL;
-        mask  = ~0x78;
+        mask  = ~(0xFF ^ WORLD_COLLISION_TRIGGER_PERSISTENT_FLAGS);
     loop:
-        flags          = node->field_4A;
+        flags          = node->flags;
         next           = node->next;
-        node->prev     = NULL;
+        node->prevLink = NULL;
         flags         &= mask;
-        node->field_4A = flags;
+        node->flags    = flags;
         if (next != NULL) {
             node->next = NULL;
             node       = next;
@@ -962,13 +962,13 @@ s32 func_800E1B24(s32 arg0)
 
 void Gp_CommitObj4CSave(void)
 {
-    GpObj4C* node;
+    WorldCollisionTrigger* node;
 
     for (node = Gp_Obj4CList; node != NULL; node = node->next) {
-        if (node->field_4B != 0) {
-            node->field_4B = 0;
-            if (gGameSession->location.loc.view == node->field_48) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = node->field_49;
+        if (node->hit != 0) {
+            node->hit = 0;
+            if (gGameSession->location.loc.view == node->parameter0) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = node->parameter1;
             }
         }
     }
@@ -976,14 +976,14 @@ void Gp_CommitObj4CSave(void)
 
 s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2)
 {
-    GpObj4C* node;
+    WorldCollisionTrigger* node;
 
     for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
-        if (node->field_4B != 0) {
+        if (node->hit != 0) {
             Gp_PendingObj4CFlag = 1;
-            *arg0               = node->field_46;
-            *arg1               = node->field_48;
-            *arg2               = node->field_49;
+            *arg0               = node->control;
+            *arg1               = node->parameter0;
+            *arg2               = node->parameter1;
             return 1;
         }
     }

@@ -40,44 +40,99 @@ STATIC_ASSERT_SIZEOF(DamageAttack, 0x4);
 /// Packed attack identity's contact category: 4 in the high halfword.
 #define DAMAGE_ATTACK_CATEGORY 0x40000
 
-/// A trigger quad on the `Gp_PendingObj4C` / `Gp_Obj4CList` lists.
-/// `next` and signed `field_4B` are the `Gp_PendingObj4C` list walked by
-/// `Gp_ClearPendingObj4C`, which clears a non-zero `field_4B`. `Gp_TakePendingObj4C`
-/// walks the same list and, on a pending `field_4B`, copies `field_46` /
-/// `field_48` / `field_49` to its out-params and sets `Gp_PendingObj4CFlag`. The
-/// same node type is the `Gp_Obj4CList` list walked by `Gp_CommitObj4CSave`: a
-/// pending `field_4B` copies `field_49` into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` when
-/// `field_48` matches `gGameSession->location.loc.view`.
-/// `func_800DF6AC` tests an object against the quad at `field_14`, using
-/// `field_C` as its local origin, `field_34` as its normal, and `field_44`
-/// as its bounding radius. `field_8` supplies the coordinate matrices.
-/// `func_800DEF80` also tests `field_3C` against the object's forward axis
-/// when the low three bits of `field_4A` are 2. Room resources store these
-/// contiguously at stride 0x4C; field_4A bit 7 marks the final record.
-typedef struct _GpObj4C {
-    /* 0x00 */ struct _GpObj4C*  next;
-    /* 0x04 */ struct _GpObj4C** prev;
-    /* 0x08 */ GfxCoord*         field_8;
-    /* 0x0C */ SVECTOR           field_C;
-    /* 0x14 */ SVECTOR           field_14[4];
-    /* 0x34 */ SVECTOR           field_34;
-    /* 0x3C */ SVECTOR           field_3C;
-    /* 0x44 */ u16               field_44;
-    /* 0x46 */ u16               field_46;
-    /* 0x48 */ u8                field_48;
-    /* 0x49 */ u8                field_49;
-    /* 0x4A */ u8                field_4A;
-    /* 0x4B */ s8                field_4B;
-} GpObj4C;
+/// Geometry kinds and list state in `WorldCollisionTrigger::flags`.
+///
+/// View boundaries require movement against the face normal. Action quads
+/// require sphere overlap on the negative side of the plane; kind 2 also
+/// requires facing against `facingNormal`. Kind 4 accepts a centre distance
+/// below 500 game units, otherwise requiring facing toward the origin and
+/// quad overlap. All tests first apply the broad-phase radius check.
+/// Bits 3 and 4 have no observed consumers and are cleared along with list
+/// state on unlink. Enabling/disabling a trigger does not clear its hit latch.
+enum {
+    WORLD_COLLISION_TRIGGER_KIND_MASK           = 0x07,
+    WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY       = 1,
+    WORLD_COLLISION_TRIGGER_FACING_QUAD         = 2,
+    WORLD_COLLISION_TRIGGER_QUAD                = 3,
+    WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD = 4,
+    WORLD_COLLISION_TRIGGER_LINKED              = 0x20,
+    WORLD_COLLISION_TRIGGER_ENABLED             = 0x40,
+    WORLD_COLLISION_TRIGGER_LAST                = 0x80,
+    WORLD_COLLISION_TRIGGER_PERSISTENT_FLAGS    = WORLD_COLLISION_TRIGGER_KIND_MASK | WORLD_COLLISION_TRIGGER_LAST,
+};
 
-/// 0x4C list node appended to `Gp_Obj4ALists[index]` by `Gp_LinkObj4A` and
-/// unlinked by `Gp_UnlinkObj4A`. `Gp_ClearObj4AList` empties the whole list.
-/// `field_4A` bit 0x20 means the node is on that list (cleared on unlink,
-/// keeping bits 0x87); bit 0x80 marks the last element of an array walked
-/// at +0x4C. Callers also store `gGfxViewCoord` at +0x8 and OR bit 0x40 into
-/// `field_4A`.
-typedef GpObj4C GpObj4A;
-STATIC_ASSERT_SIZEOF(GpObj4A, 0x4C);
+/// Direction-action selectors and activation gates in a trigger's control word.
+///
+/// The low byte selects an action (0..6, or 255 to cancel). Bits 8..13 are
+/// action-specific settings; bit 8 selects alternate facing/surface data for
+/// action 1, and the upper byte masked with 0x7F selects callback 0 or 1 for
+/// action 3. AUTOMATIC bypasses the interaction-button requirement;
+/// OUTSIDE_BATTLE rejects activation during an engaged battle.
+enum {
+    WORLD_COLLISION_TRIGGER_ACTION_MASK       = 0xFF,
+    WORLD_COLLISION_TRIGGER_ACTION_WARP       = 0,
+    WORLD_COLLISION_TRIGGER_ACTION_FACING     = 1,
+    WORLD_COLLISION_TRIGGER_ACTION_CAP        = 2,
+    WORLD_COLLISION_TRIGGER_ACTION_CALLBACK   = 3,
+    WORLD_COLLISION_TRIGGER_ACTION_CLEAR      = 4,
+    WORLD_COLLISION_TRIGGER_ACTION_ROOM       = 5,
+    WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON = 6,
+    WORLD_COLLISION_TRIGGER_ACTION_CANCEL     = 0xFF,
+    WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE    = 0x4000,
+    WORLD_COLLISION_TRIGGER_AUTOMATIC         = 0x8000,
+};
+
+/// Room-event region ID in parameter0 for an unflagged room-action trigger.
+enum { WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID = 0xFF };
+
+/// CAP parameter1 value that routes parameter0 to room message 0x13F0.
+enum { WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE = 0xFF };
+
+/// A linked room quad that latches an action contact or a view transition.
+///
+/// Storage is borrowed and mutable: keep the records and `coord` alive while
+/// linked. Room setup binds `coord` to `gGfxViewCoord`. Contiguous resource
+/// arrays end at the record with LAST set; the runtime list instead ends at a
+/// null `next`. A node belongs to at most one list and `prevLink` addresses
+/// either the list head or the preceding node's `next`.
+///
+/// The composed coordinate matrix maps the origin and its relative vertices
+/// into collision query space. Positions and radius use game coordinates;
+/// normals use 4096 per unit. The four corners have strip order: the boundary
+/// walks 1, 0, 2, 3, 1. `facingNormal` is compared directly with the querying
+/// body's local forward axis for FACING_QUAD.
+///
+/// On the view-boundary list, parameter0 is the source view and parameter1
+/// the destination view; control is unused. A hit changes the saved view
+/// only when the source equals the current view, then clears the latch.
+/// On the action list, the first hit supplies control and both full bytes:
+/// - WARP: destination area, then a 1-based descriptor slot in the high nibble
+///   and a warp entry (0..15) in the low nibble.
+/// - FACING: packed surface/facing selector, then yaw in 16-angle-unit steps
+///   (256 steps per turn); selector bit 7 chooses indexed surface data.
+/// - CAP / CAP_WEAPON: CAP command ID and presentation flags, or the room
+///   message sentinel above. CAP_WEAPON includes a weapon-animation sequence.
+/// - CALLBACK: two bytes passed to the selected callback.
+/// - CLEAR / CANCEL: parameters unused.
+/// - ROOM: room action ID and its full-byte argument, as in `DirectionActionRequest`.
+/// Action hits remain latched until the action list is cleared; taking a hit
+/// requests that clear on the next collision pass.
+typedef struct WorldCollisionTrigger {
+    struct WorldCollisionTrigger*  next;         // Next linked trigger, or NULL
+    struct WorldCollisionTrigger** prevLink;     // Link that points to this node; NULL when unlinked
+    GfxCoord*                      coord;        // Borrowed transform into collision query space; NULL before room binding
+    SVECTOR                        origin;       // Quad origin in coordinate-local game units
+    SVECTOR                        vertices[4];  // Corner offsets from origin, in strip order
+    SVECTOR                        normal;       // Coordinate-local plane normal, 4096 per unit
+    SVECTOR                        facingNormal; // Local facing-test normal for kind 2, 4096 per unit
+    u16                            radius;       // Broad-phase radius about origin, in game units
+    u16                            control;      // Action selector and gates above; unused for view boundaries
+    u8                             parameter0;   // Source view or action-specific first byte, as listed above
+    u8                             parameter1;   // Destination view or action-specific second byte, as listed above
+    u8                             flags;        // Kind (1 view, 2 facing quad, 3 quad, 4 near/facing), LINKED, ENABLED, LAST
+    s8                             hit;          // Latched contact (0 none, 1 hit), cleared by the list's consumer
+} WorldCollisionTrigger;
+STATIC_ASSERT_SIZEOF(WorldCollisionTrigger, 0x4C);
 
 /// 0x3C list node appended to `Gp_Obj3ALists[index]` by `Gp_LinkObj3A` and
 /// unlinked by `Gp_UnlinkObj3A`. `Gp_ClearObj3AList` empties the whole list.
@@ -85,7 +140,7 @@ STATIC_ASSERT_SIZEOF(GpObj4A, 0x4C);
 /// keeping bits 0x87). Bit 0x40 is the active filter used by
 /// `func_800E0308` before it calls `func_800DFCCC`. Bit 0x80 marks the last
 /// element of an array walked at +0x3C (`Gp_LinkRoomObjects`). Same link/flag
-/// layout as `GpObj4A`, with the flag byte at 0x3A instead of 0x4A.
+/// layout as `WorldCollisionTrigger`, with the flag byte at 0x3A instead of 0x4A.
 /// `func_800DFCCC` transforms the origin, four vertices and face normal
 /// into view space to test a segment against the quad.
 typedef struct _GpObj3A {

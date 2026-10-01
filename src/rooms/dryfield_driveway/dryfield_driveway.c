@@ -67,20 +67,20 @@ extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-extern AnimationPlayRequest D_dryfield_driveway_8017E330;
-extern AnimationPlayRequest D_dryfield_driveway_8017E358;
-extern GpCopyArg            D_dryfield_driveway_8017E328;
-extern WorldCollisionGrid   D_dryfield_driveway_8017ED74[1];
-extern GpObj4C              D_dryfield_driveway_8017FC98[6];
-extern GpObj4C              D_dryfield_driveway_801802F8[11];
-extern WorldCoordRoomLights D_dryfield_driveway_801802E0[1];
-extern TaskDesc             D_8014D8A4;
-s32                         func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
-s32                         func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
-s32                         func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
-void                        func_dryfield_driveway_8017DC48(s32);
-void                        func_dryfield_driveway_8017DC54(s16);
-void                        func_dryfield_driveway_8017DC64(u8);
+extern AnimationPlayRequest  D_dryfield_driveway_8017E330;
+extern AnimationPlayRequest  D_dryfield_driveway_8017E358;
+extern GpCopyArg             D_dryfield_driveway_8017E328;
+extern WorldCollisionGrid    D_dryfield_driveway_8017ED74[1];
+extern WorldCollisionTrigger D_dryfield_driveway_8017FC98[6];
+extern WorldCollisionTrigger D_dryfield_driveway_801802F8[11];
+extern WorldCoordRoomLights  D_dryfield_driveway_801802E0[1];
+extern TaskDesc              D_8014D8A4;
+s32                          func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
+s32                          func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
+s32                          func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
+void                         func_dryfield_driveway_8017DC48(s32);
+void                         func_dryfield_driveway_8017DC54(s16);
+void                         func_dryfield_driveway_8017DC64(u8);
 
 AnimationPackedPose D_dryfield_driveway_8017DE80[10] = {
 #include "assets/dryfield_driveway_animation_00D08_bank1.inc"
@@ -535,13 +535,13 @@ GpSprtRec D_dryfield_driveway_8017FC44[7] = {
     { { .elements = D_dryfield_driveway_8017F724 }, D_dryfield_driveway_8017FBD4, NULL },
 };
 
-GpObj4C D_dryfield_driveway_8017FC98[6] = {
-    { NULL, NULL, NULL, { -6369, -1536, -1504, 0 }, { { 0, -2560, 1024, 0 }, { 0, -2560, -1024, 0 }, { 0, 2560, 1024, 0 }, { 0, 2560, -1024, 0 } }, { -4095, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2757, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { -6816, -1472, -1568, 0 }, { { 0, -2496, -1024, 0 }, { 0, -2496, 1024, 0 }, { 0, 2496, -1024, 0 }, { 0, 2496, 1024, 0 } }, { 4096, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2697, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { -2770, -1600, -856, 0 }, { { -1521, -2624, 0, 0 }, { 1522, -2624, 1, 0 }, { -1521, 2624, 0, 0 }, { 1522, 2624, 1, 0 } }, { 1, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 3, 4, 1, 0 },
-    { NULL, NULL, NULL, { -2675, -1376, -1017, 0 }, { { 1554, -2400, 1, 0 }, { -1553, -2400, 0, 0 }, { 1554, 2400, 1, 0 }, { -1553, 2400, 0, 0 } }, { -3, 0, 4097, 0 }, { 0, 0, 4096, 0 }, 2850, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { 294, -1520, 1474, 0 }, { { -435, -2544, 2215, 0 }, { 435, -2544, -2214, 0 }, { -435, 2544, 2215, 0 }, { 435, 2544, -2214, 0 } }, { -4034, 0, -793, 0 }, { 0, 0, 4096, 0 }, 3396, 0, 4, 5, 1, 0 },
-    { NULL, NULL, NULL, { -26, -1488, 1301, 0 }, { { 435, -2512, -2213, 0 }, { -435, -2512, 2214, 0 }, { 435, 2512, -2213, 0 }, { -435, 2512, 2214, 0 } }, { 4031, 0, 792, 0 }, { 0, 0, 4096, 0 }, 3367, 0, 5, 4, 129, 0 },
+WorldCollisionTrigger D_dryfield_driveway_8017FC98[6] = {
+    { NULL, NULL, NULL, { -6369, -1536, -1504, 0 }, { { 0, -2560, 1024, 0 }, { 0, -2560, -1024, 0 }, { 0, 2560, 1024, 0 }, { 0, 2560, -1024, 0 } }, { -4095, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2757, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6816, -1472, -1568, 0 }, { { 0, -2496, -1024, 0 }, { 0, -2496, 1024, 0 }, { 0, 2496, -1024, 0 }, { 0, 2496, 1024, 0 } }, { 4096, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2697, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2770, -1600, -856, 0 }, { { -1521, -2624, 0, 0 }, { 1522, -2624, 1, 0 }, { -1521, 2624, 0, 0 }, { 1522, 2624, 1, 0 } }, { 1, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2675, -1376, -1017, 0 }, { { 1554, -2400, 1, 0 }, { -1553, -2400, 0, 0 }, { 1554, 2400, 1, 0 }, { -1553, 2400, 0, 0 } }, { -3, 0, 4097, 0 }, { 0, 0, 4096, 0 }, 2850, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 294, -1520, 1474, 0 }, { { -435, -2544, 2215, 0 }, { 435, -2544, -2214, 0 }, { -435, 2544, 2215, 0 }, { 435, 2544, -2214, 0 } }, { -4034, 0, -793, 0 }, { 0, 0, 4096, 0 }, 3396, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -26, -1488, 1301, 0 }, { { 435, -2512, -2213, 0 }, { -435, -2512, 2214, 0 }, { 435, 2512, -2213, 0 }, { -435, 2512, 2214, 0 } }, { 4031, 0, 792, 0 }, { 0, 0, 4096, 0 }, 3367, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCoordPointLight D_dryfield_driveway_8017FE60[12] = {
@@ -563,18 +563,18 @@ WorldCoordRoomLights D_dryfield_driveway_801802E0[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_driveway_8017FE60), D_dryfield_driveway_8017FE60, 0, NULL },
 };
 
-GpObj4C D_dryfield_driveway_801802F8[11] = {
-    { NULL, NULL, NULL, { -3680, -48, 480, 0 }, { { -352, 0, -640, 0 }, { 352, 0, -640, 0 }, { -352, 0, 640, 0 }, { 352, 0, 640, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 729, 0, 23, 17, 2, 0 },
-    { NULL, NULL, NULL, { -1488, -48, 2400, 0 }, { { -1104, 0, -1120, 0 }, { 1104, 0, -1120, 0 }, { -1104, 0, 1120, 0 }, { 1104, 0, 1120, 0 } }, { 0, 4117, 0, 0 }, { 4096, 0, 0, 0 }, 1567, 0, 32, 33, 4, 0 },
-    { NULL, NULL, NULL, { -9664, -48, -1440, 0 }, { { -352, 0, -352, 0 }, { 352, 0, -352, 0 }, { -352, 0, 352, 0 }, { 352, 0, 352, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 497, 0, 2, 55, 2, 0 },
-    { NULL, NULL, NULL, { 5984, -64, 1296, 0 }, { { -352, 0, -1072, 0 }, { 352, 0, -1072, 0 }, { -352, 0, 1072, 0 }, { 352, 0, 1072, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1123, 2, 7, 0, 2, 0 },
-    { NULL, NULL, NULL, { -2208, -64, 2720, 0 }, { { -400, 0, -832, 0 }, { 400, 0, -832, 0 }, { -400, 0, 832, 0 }, { 400, 0, 832, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 923, 0, 32, 33, 2, 0 },
-    { NULL, NULL, NULL, { -768, -64, 2720, 0 }, { { -400, 0, -800, 0 }, { 400, 0, -800, 0 }, { -400, 0, 800, 0 }, { 400, 0, 800, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 893, 0, 32, 33, 2, 0 },
-    { NULL, NULL, NULL, { -1456, -64, 1648, 0 }, { { -672, 0, -400, 0 }, { 672, 0, -400, 0 }, { -672, 0, 400, 0 }, { 672, 0, 400, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 781, 0, 32, 33, 2, 0 },
-    { NULL, NULL, NULL, { -1504, -64, 1632, 0 }, { { -1072, 0, -1008, 0 }, { 1104, 0, -1008, 0 }, { -1104, 0, 400, 0 }, { 1072, 0, 400, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1492, 5, 255, 0, 2, 0 },
-    { NULL, NULL, NULL, { -2208, -64, 2512, 0 }, { { -1040, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -1072, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 1481, 5, 255, 0, 2, 0 },
-    { NULL, NULL, NULL, { -768, -64, 2464, 0 }, { { -400, 0, -1024, 0 }, { 912, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 912, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1366, 5, 255, 0, 2, 0 },
-    { NULL, NULL, NULL, { -1504, -64, 2400, 0 }, { { -1744, 0, -1760, 0 }, { 1712, 0, -1760, 0 }, { -1744, 0, 1120, 0 }, { 1712, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 2468, 5, 255, 0, 132, 0 },
+WorldCollisionTrigger D_dryfield_driveway_801802F8[11] = {
+    { NULL, NULL, NULL, { -3680, -48, 480, 0 }, { { -352, 0, -640, 0 }, { 352, 0, -640, 0 }, { -352, 0, 640, 0 }, { 352, 0, 640, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_WARP, 23, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1488, -48, 2400, 0 }, { { -1104, 0, -1120, 0 }, { 1104, 0, -1120, 0 }, { -1104, 0, 1120, 0 }, { 1104, 0, 1120, 0 } }, { 0, 4117, 0, 0 }, { 4096, 0, 0, 0 }, 1567, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 33, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -9664, -48, -1440, 0 }, { { -352, 0, -352, 0 }, { 352, 0, -352, 0 }, { -352, 0, 352, 0 }, { 352, 0, 352, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 497, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 55, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5984, -64, 1296, 0 }, { { -352, 0, -1072, 0 }, { 352, 0, -1072, 0 }, { -352, 0, 1072, 0 }, { 352, 0, 1072, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2208, -64, 2720, 0 }, { { -400, 0, -832, 0 }, { 400, 0, -832, 0 }, { -400, 0, 832, 0 }, { 400, 0, 832, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 923, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -768, -64, 2720, 0 }, { { -400, 0, -800, 0 }, { 400, 0, -800, 0 }, { -400, 0, 800, 0 }, { 400, 0, 800, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1456, -64, 1648, 0 }, { { -672, 0, -400, 0 }, { 672, 0, -400, 0 }, { -672, 0, 400, 0 }, { 672, 0, 400, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 781, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1504, -64, 1632, 0 }, { { -1072, 0, -1008, 0 }, { 1104, 0, -1008, 0 }, { -1104, 0, 400, 0 }, { 1072, 0, 400, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2208, -64, 2512, 0 }, { { -1040, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -1072, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 1481, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -768, -64, 2464, 0 }, { { -400, 0, -1024, 0 }, { 912, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 912, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1366, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1504, -64, 2400, 0 }, { { -1744, 0, -1760, 0 }, { 1712, 0, -1760, 0 }, { -1744, 0, 1120, 0 }, { 1712, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 2468, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_dryfield_driveway_8018063C = {
@@ -653,20 +653,20 @@ void func_dryfield_driveway_8017DC64(u8 arg0)
 #include "../../shared/dryfield_driveway_script_sound.inc.c"
 
 /// Message handler for message 0x114: while flag nibble 0x3A is 1, looks for a
-/// pending object of kind 5 with `field_48` 0xFF and a non-zero `field_4B`;
+/// room-action trigger with `parameter0` 0xFF and a non-zero `hit`;
 /// when one exists it advances the nibble to 2, spawns the first cutscene task
 /// of `gDrivewayCutsceneTasks`, moves the session to room 2 with the HUD
 /// hidden and an event running, and reports the message handled.
 s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    GpObj4C* node;
-    s32      found;
+    WorldCollisionTrigger* node;
+    s32                    found;
 
     if (arg2 == 0x114) {
         if (GameFlag_GetNibble(0x3A) == 1) {
             node = Gp_PendingObj4C;
             while (node != NULL) {
-                if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+                if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
                     found = 1;
                     goto check;
                 }

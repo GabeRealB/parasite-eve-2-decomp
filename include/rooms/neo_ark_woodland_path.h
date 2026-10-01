@@ -31,9 +31,9 @@ extern GpSprtRec D_neo_ark_woodland_path_80183C6C[];
 
 extern WorldCoordRoomLights D_neo_ark_woodland_path_80183F84;
 
-extern GpObj4A D_neo_ark_woodland_path_80183F9C[];
+extern WorldCollisionTrigger D_neo_ark_woodland_path_80183F9C[];
 
-extern GpObj4A D_neo_ark_woodland_path_8018445C[];
+extern WorldCollisionTrigger D_neo_ark_woodland_path_8018445C[];
 
 extern WorldCoordRoomAmbientEntry D_neo_ark_woodland_path_8018477C[];
 

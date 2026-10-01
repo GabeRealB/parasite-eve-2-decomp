@@ -345,11 +345,11 @@ void func_acropolis_bridge_8017DEE4(Task*);
 void func_acropolis_bridge_8017F280(Task*);
 s32  func_acropolis_bridge_801820A0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-extern WorldCollisionGrid D_acropolis_bridge_8018A89C[1];
-extern WorldCollisionGrid D_acropolis_bridge_8018B694[1];
-extern GpObj4C            D_acropolis_bridge_8018B6B8[4];
-extern GpObj4C            D_acropolis_bridge_8018B7E8[7];
-extern GpObj4C            D_acropolis_bridge_8018B9FC[7];
+extern WorldCollisionGrid    D_acropolis_bridge_8018A89C[1];
+extern WorldCollisionGrid    D_acropolis_bridge_8018B694[1];
+extern WorldCollisionTrigger D_acropolis_bridge_8018B6B8[4];
+extern WorldCollisionTrigger D_acropolis_bridge_8018B7E8[7];
+extern WorldCollisionTrigger D_acropolis_bridge_8018B9FC[7];
 
 extern WorldCoordRoomLights      D_acropolis_bridge_80190A0C[1];
 extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
@@ -914,31 +914,31 @@ WorldCollisionGrid D_acropolis_bridge_8018B694[1] = {
     { NULL, D_acropolis_bridge_8018A8C0, D_acropolis_bridge_8018A948, D_acropolis_bridge_8018AFB0, D_acropolis_bridge_8018B630, 0x3E94, 8470, 5, 5, 4000, 93 },
 };
 
-GpObj4C D_acropolis_bridge_8018B6B8[4] = {
-    { NULL, NULL, NULL, { -7584, 0, -1984, 0 }, { { 0, -4175, -2304, 0 }, { 0, -4209, 2304, 0 }, { 0, 4209, -2304, 0 }, { 0, 4175, 2304, 0 } }, { 4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 6, 7, 1, 0 },
-    { NULL, NULL, NULL, { -7040, 0, -1984, 0 }, { { 0, -4175, 2304, 0 }, { 0, -4209, -2304, 0 }, { 0, 4209, 2304, 0 }, { 0, 4175, -2304, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 7, 6, 1, 0 },
-    { NULL, NULL, NULL, { -0x2E00, 0, -1984, 0 }, { { 0, -4175, 2304, 0 }, { 0, -4209, -2304, 0 }, { 0, 4209, 2304, 0 }, { 0, 4175, -2304, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 2, 7, 1, 0 },
-    { NULL, NULL, NULL, { -0x301F, 0, -1983, 0 }, { { 0, -4175, -2304, 0 }, { 0, -4209, 2304, 0 }, { 0, 4209, -2304, 0 }, { 0, 4175, 2304, 0 } }, { 4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 7, 2, 129, 0 },
+WorldCollisionTrigger D_acropolis_bridge_8018B6B8[4] = {
+    { NULL, NULL, NULL, { -7584, 0, -1984, 0 }, { { 0, -4175, -2304, 0 }, { 0, -4209, 2304, 0 }, { 0, 4209, -2304, 0 }, { 0, 4175, 2304, 0 } }, { 4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -7040, 0, -1984, 0 }, { { 0, -4175, 2304, 0 }, { 0, -4209, -2304, 0 }, { 0, 4209, 2304, 0 }, { 0, 4175, -2304, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -0x2E00, 0, -1984, 0 }, { { 0, -4175, 2304, 0 }, { 0, -4209, -2304, 0 }, { 0, 4209, 2304, 0 }, { 0, 4175, -2304, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 2, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -0x301F, 0, -1983, 0 }, { { 0, -4175, -2304, 0 }, { 0, -4209, 2304, 0 }, { 0, 4209, -2304, 0 }, { 0, 4175, 2304, 0 } }, { 4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 7, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_acropolis_bridge_8018B7E8[7] = {
-    { NULL, NULL, NULL, { -2995, -144, -2076, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1070, 0, 11, 21, 2, 0 },
-    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, 2, 7, 0, 2, 0 },
-    { NULL, NULL, NULL, { -5009, -64, -2432, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, 257, 133, 192, 2, 0 },
-    { NULL, NULL, NULL, { -6176, 992, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 200, 0 }, 1039, 1, 133, 64, 2, 0 },
-    { NULL, NULL, NULL, { -0x33C0, 928, -2048, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, 1, 133, 192, 2, 0 },
-    { NULL, NULL, NULL, { -0x38E0, -64, -1984, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1039, 257, 133, 64, 2, 0 },
-    { NULL, NULL, NULL, { -0x3D00, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, 0, 15, 33, 130, 0 },
+WorldCollisionTrigger D_acropolis_bridge_8018B7E8[7] = {
+    { NULL, NULL, NULL, { -2995, -144, -2076, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5009, -64, -2432, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 133, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6176, 992, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 200, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, 133, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x33C0, 928, -2048, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, 133, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x38E0, -64, -1984, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 133, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x3D00, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_acropolis_bridge_8018B9FC[7] = {
-    { NULL, NULL, NULL, { -2979, -112, -1404, 0 }, { { -288, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -288, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1063, 0, 11, 21, 2, 0 },
-    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, 2, 7, 0, 2, 0 },
-    { NULL, NULL, NULL, { -4893, -64, -2624, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, 1, 69, 192, 2, 0 },
-    { NULL, NULL, NULL, { -6113, -992, -2016, 0 }, { { -367, 0, -1024, 0 }, { 368, 0, -1024, 0 }, { -367, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1086, 257, 69, 64, 2, 0 },
-    { NULL, NULL, NULL, { -0x33D0, -1056, -2048, 0 }, { { -256, 0, -1024, 0 }, { 256, 0, -1024, 0 }, { -256, 0, 1024, 0 }, { 256, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4091, 0, 201, 0 }, 1055, 257, 69, 192, 2, 0 },
-    { NULL, NULL, NULL, { -0x38C0, -64, -1984, 0 }, { { -240, 0, -1024, 0 }, { 240, 0, -1024, 0 }, { -240, 0, 1024, 0 }, { 240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1047, 1, 69, 64, 2, 0 },
-    { NULL, NULL, NULL, { -0x3DA0, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, 0, 15, 33, 130, 0 },
+WorldCollisionTrigger D_acropolis_bridge_8018B9FC[7] = {
+    { NULL, NULL, NULL, { -2979, -112, -1404, 0 }, { { -288, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -288, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4893, -64, -2624, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, 69, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6113, -992, -2016, 0 }, { { -367, 0, -1024, 0 }, { 368, 0, -1024, 0 }, { -367, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 69, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x33D0, -1056, -2048, 0 }, { { -256, 0, -1024, 0 }, { 256, 0, -1024, 0 }, { -256, 0, 1024, 0 }, { 256, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4091, 0, 201, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 69, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x38C0, -64, -1984, 0 }, { { -240, 0, -1024, 0 }, { 240, 0, -1024, 0 }, { -240, 0, 1024, 0 }, { 240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_FACING, 69, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x3DA0, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 SpriteBatch D_acropolis_bridge_8018BC10[2] = {

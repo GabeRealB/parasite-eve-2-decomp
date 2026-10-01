@@ -66,11 +66,11 @@ extern GpAreaTmdRec D_dryfield_breezeway_80184268[3];
 extern GpAreaTmdRec D_dryfield_breezeway_8018428C[2];
 extern GpAreaTmdRec D_dryfield_breezeway_801842A4[3];
 
-extern WorldCollisionGrid   D_dryfield_breezeway_80183628[1];
-extern GpObj4C              D_dryfield_breezeway_80183DE4[4];
-extern GpObj4C              D_dryfield_breezeway_80183F14[5];
-extern WorldCoordRoomLights D_dryfield_breezeway_80184250[1];
-extern TaskDesc             D_8014D8A4;
+extern WorldCollisionGrid    D_dryfield_breezeway_80183628[1];
+extern WorldCollisionTrigger D_dryfield_breezeway_80183DE4[4];
+extern WorldCollisionTrigger D_dryfield_breezeway_80183F14[5];
+extern WorldCoordRoomLights  D_dryfield_breezeway_80184250[1];
+extern TaskDesc              D_8014D8A4;
 
 u_long D_dryfield_breezeway_80182F44[128] = {
     0x430000,
@@ -405,19 +405,19 @@ GpSprtRec D_dryfield_breezeway_80183D9C[6] = {
     { { .elements = D_dryfield_breezeway_80183A8C }, D_dryfield_breezeway_80183D84, NULL },
 };
 
-GpObj4C D_dryfield_breezeway_80183DE4[4] = {
-    { NULL, NULL, NULL, { 0x2E60, -2880, 1440, 0 }, { { 0, -3568, -1024, 0 }, { 0, -3568, 1024, 0 }, { 0, 3568, -1024, 0 }, { 0, 3568, 1024, 0 } }, { 4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3709, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { 0x2F20, -2816, 1472, 0 }, { { 0, -3280, 1024, 0 }, { 0, -3280, -1024, 0 }, { 0, 3280, 1024, 0 }, { 0, 3280, -1024, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3434, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { 0x3E6D, -2848, 2218, 0 }, { { -235, -3632, 1596, 0 }, { 223, -3632, -1607, 0 }, { -235, 3632, 1596, 0 }, { 223, 3632, -1607, 0 } }, { -4064, 0, -582, 0 }, { 0, 0, 4096, 0 }, 3974, 0, 3, 4, 1, 0 },
-    { NULL, NULL, NULL, { 0x3E0D, -3120, 2186, 0 }, { { 211, -3392, -1637, 0 }, { -225, -3392, 1627, 0 }, { 211, 3392, -1637, 0 }, { -225, 3392, 1627, 0 } }, { 4067, 0, 543, 0 }, { 0, 0, 4096, 0 }, 3762, 0, 4, 3, 129, 0 },
+WorldCollisionTrigger D_dryfield_breezeway_80183DE4[4] = {
+    { NULL, NULL, NULL, { 0x2E60, -2880, 1440, 0 }, { { 0, -3568, -1024, 0 }, { 0, -3568, 1024, 0 }, { 0, 3568, -1024, 0 }, { 0, 3568, 1024, 0 } }, { 4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3709, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2F20, -2816, 1472, 0 }, { { 0, -3280, 1024, 0 }, { 0, -3280, -1024, 0 }, { 0, 3280, 1024, 0 }, { 0, 3280, -1024, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3434, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3E6D, -2848, 2218, 0 }, { { -235, -3632, 1596, 0 }, { 223, -3632, -1607, 0 }, { -235, 3632, 1596, 0 }, { 223, 3632, -1607, 0 } }, { -4064, 0, -582, 0 }, { 0, 0, 4096, 0 }, 3974, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3E0D, -3120, 2186, 0 }, { { 211, -3392, -1637, 0 }, { -225, -3392, 1627, 0 }, { 211, 3392, -1637, 0 }, { -225, 3392, 1627, 0 } }, { 4067, 0, 543, 0 }, { 0, 0, 4096, 0 }, 3762, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_dryfield_breezeway_80183F14[5] = {
-    { NULL, NULL, NULL, { 6416, -48, 1680, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 807, 0, 20, 18, 2, 0 },
-    { NULL, NULL, NULL, { 0x4580, -64, 1760, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 201, 0 }, 807, 0, 23, 34, 2, 0 },
-    { NULL, NULL, NULL, { 0x42B0, -64, 3584, 0 }, { { -992, 0, -560, 0 }, { 992, 0, -560, 0 }, { -992, 0, 560, 0 }, { 992, 0, 560, 0 } }, { 0, 4115, 0, 0 }, { 4096, 0, 0, 0 }, 1137, 2, 3, 255, 3, 0 },
-    { NULL, NULL, NULL, { 0x4580, -64, 3024, 0 }, { { -368, 0, -512, 0 }, { 368, 0, -512, 0 }, { -368, 0, 512, 0 }, { 368, 0, 512, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 630, 2, 1, 255, 2, 0 },
-    { NULL, NULL, NULL, { 0x3C5B, -64, 1807, 0 }, { { 32, 0, -1792, 0 }, { 608, 0, -1792, 0 }, { -608, 0, 1792, 0 }, { -32, 0, 1792, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1889, 0x8005, 1, 0, 131, 0 },
+WorldCollisionTrigger D_dryfield_breezeway_80183F14[5] = {
+    { NULL, NULL, NULL, { 6416, -48, 1680, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4580, -64, 1760, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 201, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, 23, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x42B0, -64, 3584, 0 }, { { -992, 0, -560, 0 }, { 992, 0, -560, 0 }, { -992, 0, 560, 0 }, { 992, 0, 560, 0 } }, { 0, 4115, 0, 0 }, { 4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4580, -64, 3024, 0 }, { { -368, 0, -512, 0 }, { 368, 0, -512, 0 }, { -368, 0, 512, 0 }, { 368, 0, 512, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 630, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3C5B, -64, 1807, 0 }, { { 32, 0, -1792, 0 }, { 608, 0, -1792, 0 }, { -608, 0, 1792, 0 }, { -32, 0, 1792, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1889, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCoordLight D_dryfield_breezeway_80184090[4] = {

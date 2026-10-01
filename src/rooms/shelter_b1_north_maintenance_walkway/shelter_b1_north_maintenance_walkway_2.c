@@ -207,13 +207,13 @@ WorldCoordPointLight D_shelter_b1_north_maintenance_walkway_801853F4[5] = {
 
 WorldCoordRoomLights D_shelter_b1_north_maintenance_walkway_801855D4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_north_maintenance_walkway_801853F4), D_shelter_b1_north_maintenance_walkway_801853F4, 0, NULL };
 
-GpObj4C D_shelter_b1_north_maintenance_walkway_801855EC[6] = {
-    { NULL, NULL, NULL, { 2080, -1584, -576, 0 }, { { -1376, -1904, 192, 0 }, { 1376, -1904, -192, 0 }, { -1376, 1904, 192, 0 }, { 1376, 1904, -192, 0 } }, { -569, 0, -4074, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 5, 4, 1, 0 },
-    { NULL, NULL, NULL, { 2048, -1600, -672, 0 }, { { 1408, -1904, -192, 0 }, { -1408, -1904, 192, 0 }, { 1408, 1904, -192, 0 }, { -1408, 1904, 192, 0 } }, { 554, 0, 4067, 0 }, { 0, 0, 4096, 0 }, 2374, 0, 4, 5, 1, 0 },
-    { NULL, NULL, NULL, { 2240, -1504, 3200, 0 }, { { 1536, -1904, 256, 0 }, { -1536, -1904, -256, 0 }, { 1536, 1904, 256, 0 }, { -1536, 1904, -256, 0 } }, { -676, 0, 4053, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 3, 4, 1, 0 },
-    { NULL, NULL, NULL, { 2176, -1505, 3280, 0 }, { { -1536, -1904, -272, 0 }, { 1536, -1904, 272, 0 }, { -1536, 1904, -272, 0 }, { 1536, 1904, 272, 0 } }, { 714, 0, -4039, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { -608, -1568, 4016, 0 }, { { 96, -1904, -1312, 0 }, { -96, -1904, 1312, 0 }, { 96, 1904, -1312, 0 }, { -96, 1904, 1312, 0 } }, { 4090, 0, 298, 0 }, { 0, 0, 4096, 0 }, 2304, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { -496, -1600, 3984, 0 }, { { -80, -1904, 1328, 0 }, { 80, -1904, -1328, 0 }, { -80, 1904, 1328, 0 }, { 80, 1904, -1328, 0 } }, { -4097, 0, -248, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 2, 3, 129, 0 },
+WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_801855EC[6] = {
+    { NULL, NULL, NULL, { 2080, -1584, -576, 0 }, { { -1376, -1904, 192, 0 }, { 1376, -1904, -192, 0 }, { -1376, 1904, 192, 0 }, { 1376, 1904, -192, 0 } }, { -569, 0, -4074, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2048, -1600, -672, 0 }, { { 1408, -1904, -192, 0 }, { -1408, -1904, 192, 0 }, { 1408, 1904, -192, 0 }, { -1408, 1904, 192, 0 } }, { 554, 0, 4067, 0 }, { 0, 0, 4096, 0 }, 2374, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2240, -1504, 3200, 0 }, { { 1536, -1904, 256, 0 }, { -1536, -1904, -256, 0 }, { 1536, 1904, 256, 0 }, { -1536, 1904, -256, 0 } }, { -676, 0, 4053, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2176, -1505, 3280, 0 }, { { -1536, -1904, -272, 0 }, { 1536, -1904, 272, 0 }, { -1536, 1904, -272, 0 }, { 1536, 1904, 272, 0 } }, { 714, 0, -4039, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -608, -1568, 4016, 0 }, { { 96, -1904, -1312, 0 }, { -96, -1904, 1312, 0 }, { 96, 1904, -1312, 0 }, { -96, 1904, 1312, 0 } }, { 4090, 0, 298, 0 }, { 0, 0, 4096, 0 }, 2304, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -496, -1600, 3984, 0 }, { { -80, -1904, 1328, 0 }, { 80, -1904, -1328, 0 }, { -80, 1904, 1328, 0 }, { 80, 1904, -1328, 0 } }, { -4097, 0, -248, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpObj3A D_shelter_b1_north_maintenance_walkway_801857B4[1] = {
@@ -305,9 +305,9 @@ GpAreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12] = {
     { D_shelter_b1_north_maintenance_walkway_801859D8, D_shelter_b1_north_maintenance_walkway_80185874 },
 };
 
-GpObj4C D_shelter_b1_north_maintenance_walkway_80185A98[2] = {
-    { NULL, NULL, NULL, { -2128, -48, 3344, 0 }, { { -720, 0, -400, 0 }, { 720, 0, -400, 0 }, { -720, 0, 400, 0 }, { 720, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 822, 0, 14, 18, 2, 0 },
-    { NULL, NULL, NULL, { 1984, -48, -4560, 0 }, { { -1024, 0, -448, 0 }, { 1024, 0, -448, 0 }, { -1024, 0, 448, 0 }, { 1024, 0, 448, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1115, 0, 11, 35, 130, 0 },
+WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_80185A98[2] = {
+    { NULL, NULL, NULL, { -2128, -48, 3344, 0 }, { { -720, 0, -400, 0 }, { 720, 0, -400, 0 }, { -720, 0, 400, 0 }, { 720, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 822, WORLD_COLLISION_TRIGGER_ACTION_WARP, 14, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1984, -48, -4560, 0 }, { { -1024, 0, -448, 0 }, { 1024, 0, -448, 0 }, { -1024, 0, 448, 0 }, { 1024, 0, 448, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 35, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCollisionFootstepSounds D_shelter_b1_north_maintenance_walkway_80185B30 = {

@@ -27,13 +27,13 @@ extern WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018DCF0[1];
 
 extern WorldCoordRoomLights D_shelter_b3_garbage_incinerator_8018E598[1];
 
-extern GpObj4C D_shelter_b3_garbage_incinerator_8018E5B0[22];
+extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018E5B0[22];
 
-extern GpObj4C D_shelter_b3_garbage_incinerator_8018EC38[20];
+extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018EC38[20];
 
-extern GpObj4C D_shelter_b3_garbage_incinerator_8018F228[17];
+extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F228[17];
 
-extern GpObj4C D_shelter_b3_garbage_incinerator_8018F734[6];
+extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F734[6];
 
 extern GpObj3A D_shelter_b3_garbage_incinerator_8018FAD8[1];
 

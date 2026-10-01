@@ -29,11 +29,11 @@ extern GpSprtRec D_shelter_b2_elevator_hall_80184120[];
 
 extern WorldCoordRoomLights D_shelter_b2_elevator_hall_801846B4;
 
-extern GpObj4A D_shelter_b2_elevator_hall_801846CC[];
+extern WorldCollisionTrigger D_shelter_b2_elevator_hall_801846CC[];
 
 extern GpObj3A D_shelter_b2_elevator_hall_8018492C[];
 
-extern GpObj4A D_shelter_b2_elevator_hall_80184968[];
+extern WorldCollisionTrigger D_shelter_b2_elevator_hall_80184968[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_elevator_hall_80184D5C[];
 

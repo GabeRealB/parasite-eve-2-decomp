@@ -8,9 +8,9 @@
 
 extern WorldCollisionGrid D_mist_shooting_gallery_80189968;
 
-extern GpObj4C D_mist_shooting_gallery_8018BDE8[28];
+extern WorldCollisionTrigger D_mist_shooting_gallery_8018BDE8[28];
 
-extern GpObj4C D_mist_shooting_gallery_8018C638[21];
+extern WorldCollisionTrigger D_mist_shooting_gallery_8018C638[21];
 
 extern WorldCoordRoomLights D_mist_shooting_gallery_8018D1B4;
 

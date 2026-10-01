@@ -257,8 +257,8 @@ extern GpCopyArg                  D_dryfield_night_gas_station_801888E8;
 extern GpCopyArg                  D_dryfield_night_gas_station_80188A10;
 extern WorldCollisionGrid         D_dryfield_night_gas_station_8018ABBC;
 extern WorldCollisionGrid         D_dryfield_night_gas_station_8018B75C[1];
-extern GpObj4C                    D_dryfield_night_gas_station_8018FD90[11];
-extern GpObj4C                    D_dryfield_night_gas_station_801900D4[16];
+extern WorldCollisionTrigger      D_dryfield_night_gas_station_8018FD90[11];
+extern WorldCollisionTrigger      D_dryfield_night_gas_station_801900D4[16];
 extern GpOverrideArg              D_dryfield_night_gas_station_801889DC;
 extern WorldCoordRoomAmbientEntry D_dryfield_night_gas_station_80190684[22];
 extern WorldCoordRoomLights       D_dryfield_night_gas_station_8018FAC0[1];
@@ -2368,37 +2368,37 @@ WorldCoordRoomLights D_dryfield_night_gas_station_8018FD78[1] = {
     { 0, NULL, ARRAY_SIZE(D_dryfield_night_gas_station_8018FAD8), D_dryfield_night_gas_station_8018FAD8, 0, NULL },
 };
 
-GpObj4C D_dryfield_night_gas_station_8018FD90[11] = {
-    { NULL, NULL, NULL, { 5791, -2544, -3505, 0 }, { { 147, -3568, 2869, 0 }, { -146, -3568, -2868, 0 }, { 147, 3568, 2869, 0 }, { -146, 3568, -2868, 0 } }, { -4101, 0, 209, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 4, 3, 1, 0 },
-    { NULL, NULL, NULL, { 5503, -2544, -3521, 0 }, { { -146, -3568, -2868, 0 }, { 147, -3568, 2869, 0 }, { -146, 3568, -2868, 0 }, { 147, 3568, 2869, 0 } }, { 4100, 0, -210, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 3, 4, 1, 0 },
-    { NULL, NULL, NULL, { 4319, -2544, -1009, 0 }, { { -210, -3568, -804, 0 }, { 211, -3568, 805, 0 }, { -210, 3568, -804, 0 }, { 211, 3568, 805, 0 } }, { 3963, 0, -1038, 0 }, { 0, 0, 4096, 0 }, 3656, 0, 4, 6, 1, 0 },
-    { NULL, NULL, NULL, { 2752, -2528, -1264, 0 }, { { -1410, -3552, 524, 0 }, { 1411, -3552, -523, 0 }, { -1410, 3552, 524, 0 }, { 1411, 3552, -523, 0 } }, { -1432, 0, -3857, 0 }, { 0, 0, 4096, 0 }, 3857, 0, 4, 6, 1, 0 },
-    { NULL, NULL, NULL, { 2623, -2608, -1345, 0 }, { { 1716, -3632, -661, 0 }, { -1716, -3632, 662, 0 }, { 1716, 3632, -661, 0 }, { -1716, 3632, 662, 0 } }, { 1474, 0, 3824, 0 }, { 0, 0, 4096, 0 }, 4063, 0, 6, 4, 1, 0 },
-    { NULL, NULL, NULL, { 4431, -2624, -1297, 0 }, { { 283, -3648, 1064, 0 }, { -283, -3648, -1064, 0 }, { 283, 3648, 1064, 0 }, { -283, 3648, -1064, 0 } }, { -3966, 0, 1054, 0 }, { 0, 0, 4096, 0 }, 3805, 0, 6, 4, 1, 0 },
-    { NULL, NULL, NULL, { 0x28FF, -2608, -1952, 0 }, { { -933, -3632, -2562, 0 }, { 911, -3632, 2537, 0 }, { -933, 3632, -2562, 0 }, { 911, 3632, 2537, 0 } }, { 3855, 0, -1395, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { 0x2A06, -2592, -1961, 0 }, { { 875, -3616, 2397, 0 }, { -875, -3616, -2396, 0 }, { 875, 3616, 2397, 0 }, { -875, 3616, -2396, 0 } }, { -3858, 0, 1407, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { 0x361F, -2624, -2482, 0 }, { { 857, -3616, -1637, 0 }, { -856, -3616, 1638, 0 }, { 857, 3616, -1637, 0 }, { -856, 3616, 1638, 0 } }, { 3633, 0, 1900, 0 }, { 0, 0, 4096, 0 }, 4055, 0, 5, 2, 1, 0 },
-    { NULL, NULL, NULL, { 0x29DD, -2624, -5092, 0 }, { { -867, -3616, 888, 0 }, { 867, -3616, -888, 0 }, { -867, 3616, 888, 0 }, { 867, 3616, -888, 0 } }, { -2937, 0, -2867, 0 }, { 0, 0, 4096, 0 }, 3822, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { 0x28AD, -2688, -5043, 0 }, { { 899, -3616, -888, 0 }, { -899, -3616, 888, 0 }, { 899, 3616, -888, 0 }, { -899, 3616, 888, 0 } }, { 2895, 0, 2931, 0 }, { 0, 0, 4096, 0 }, 3822, 0, 2, 3, 129, 0 },
+WorldCollisionTrigger D_dryfield_night_gas_station_8018FD90[11] = {
+    { NULL, NULL, NULL, { 5791, -2544, -3505, 0 }, { { 147, -3568, 2869, 0 }, { -146, -3568, -2868, 0 }, { 147, 3568, 2869, 0 }, { -146, 3568, -2868, 0 } }, { -4101, 0, 209, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5503, -2544, -3521, 0 }, { { -146, -3568, -2868, 0 }, { 147, -3568, 2869, 0 }, { -146, 3568, -2868, 0 }, { 147, 3568, 2869, 0 } }, { 4100, 0, -210, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4319, -2544, -1009, 0 }, { { -210, -3568, -804, 0 }, { 211, -3568, 805, 0 }, { -210, 3568, -804, 0 }, { 211, 3568, 805, 0 } }, { 3963, 0, -1038, 0 }, { 0, 0, 4096, 0 }, 3656, 0, 4, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2752, -2528, -1264, 0 }, { { -1410, -3552, 524, 0 }, { 1411, -3552, -523, 0 }, { -1410, 3552, 524, 0 }, { 1411, 3552, -523, 0 } }, { -1432, 0, -3857, 0 }, { 0, 0, 4096, 0 }, 3857, 0, 4, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2623, -2608, -1345, 0 }, { { 1716, -3632, -661, 0 }, { -1716, -3632, 662, 0 }, { 1716, 3632, -661, 0 }, { -1716, 3632, 662, 0 } }, { 1474, 0, 3824, 0 }, { 0, 0, 4096, 0 }, 4063, 0, 6, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4431, -2624, -1297, 0 }, { { 283, -3648, 1064, 0 }, { -283, -3648, -1064, 0 }, { 283, 3648, 1064, 0 }, { -283, 3648, -1064, 0 } }, { -3966, 0, 1054, 0 }, { 0, 0, 4096, 0 }, 3805, 0, 6, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x28FF, -2608, -1952, 0 }, { { -933, -3632, -2562, 0 }, { 911, -3632, 2537, 0 }, { -933, 3632, -2562, 0 }, { 911, 3632, 2537, 0 } }, { 3855, 0, -1395, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2A06, -2592, -1961, 0 }, { { 875, -3616, 2397, 0 }, { -875, -3616, -2396, 0 }, { 875, 3616, 2397, 0 }, { -875, 3616, -2396, 0 } }, { -3858, 0, 1407, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x361F, -2624, -2482, 0 }, { { 857, -3616, -1637, 0 }, { -856, -3616, 1638, 0 }, { 857, 3616, -1637, 0 }, { -856, 3616, 1638, 0 } }, { 3633, 0, 1900, 0 }, { 0, 0, 4096, 0 }, 4055, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x29DD, -2624, -5092, 0 }, { { -867, -3616, 888, 0 }, { 867, -3616, -888, 0 }, { -867, 3616, 888, 0 }, { 867, 3616, -888, 0 } }, { -2937, 0, -2867, 0 }, { 0, 0, 4096, 0 }, 3822, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x28AD, -2688, -5043, 0 }, { { 899, -3616, -888, 0 }, { -899, -3616, 888, 0 }, { 899, 3616, -888, 0 }, { -899, 3616, 888, 0 } }, { 2895, 0, 2931, 0 }, { 0, 0, 4096, 0 }, 3822, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_dryfield_night_gas_station_801900D4[16] = {
-    { NULL, NULL, NULL, { 2528, -108, -332, 0 }, { { -1024, 0, -384, 0 }, { 1024, 0, -384, 0 }, { -1024, 0, 384, 0 }, { 1024, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1093, 0, 3, 49, 2, 0 },
-    { NULL, NULL, NULL, { 192, -80, -3616, 0 }, { { 384, 0, -1024, 0 }, { 384, 0, 1024, 0 }, { -384, 0, -1024, 0 }, { -384, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1093, 0, 2, 33, 2, 0 },
-    { NULL, NULL, NULL, { 0x3430, -96, -224, 0 }, { { -1776, 0, -384, 0 }, { 1776, 0, -384, 0 }, { -1776, 0, 384, 0 }, { 1776, 0, 384, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 1814, 2, 5, 255, 2, 0 },
-    { NULL, NULL, NULL, { 0x33D2, -96, -5400, 0 }, { { -1173, 0, 517, 0 }, { 466, 0, -1005, 0 }, { -594, 0, 1118, 0 }, { 1301, 0, -628, 0 } }, { 0, 4096, 0, 0 }, { -3290, 0, -2441, 0 }, 1442, 2, 30, 0, 2, 0 },
-    { NULL, NULL, NULL, { 7552, -64, -1296, 0 }, { { -1776, 0, -624, 0 }, { 1776, 0, -624, 0 }, { -1776, 0, 624, 0 }, { 1776, 0, 624, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -4096, 0 }, 1881, 2, 25, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4400, -96, 240, 0 }, { { -736, 0, -1392, 0 }, { 736, 0, -1392, 0 }, { -736, 0, -272, 0 }, { 736, 0, -272, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 1572, 2, 1, 255, 4, 0 },
-    { NULL, NULL, NULL, { 0x367F, -64, -3585, 0 }, { { -756, 0, -780, 0 }, { 1209, 0, 1140, 0 }, { -1432, 0, 333, 0 }, { -331, 0, 1261, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1659, 2, 15, 0, 4, 0 },
-    { NULL, NULL, NULL, { 0x4120, -64, 0, 0 }, { { -736, 0, -624, 0 }, { 736, 0, -624, 0 }, { -736, 0, 624, 0 }, { 736, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 964, 2, 6, 0, 2, 0 },
-    { NULL, NULL, NULL, { 0x366F, -64, 191, 0 }, { { 1312, 0, -2172, 0 }, { 1289, 0, 271, 0 }, { -1368, 0, -2173, 0 }, { -1365, 0, 272, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 2560, 5, 14, 0, 4, 0 },
-    { NULL, NULL, NULL, { 0x31E9, -64, -4760, 0 }, { { -685, 0, -131, 0 }, { -70, 0, -693, 0 }, { 54, 0, 694, 0 }, { 701, 0, 132, 0 } }, { 0, 4102, 0, 0 }, { -2752, 0, 3034, 0 }, 712, 2, 30, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4608, -96, -4960, 0 }, { { -1024, 0, -1120, 0 }, { 1024, 0, -1120, 0 }, { -1024, 0, 1120, 0 }, { 1024, 0, 1120, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, -4096, 0 }, 1514, 2, 23, 255, 3, 0 },
-    { NULL, NULL, NULL, { 0x3C4F, -64, -1537, 0 }, { { -365, 0, -1008, 0 }, { 960, 0, 522, 0 }, { -959, 0, -521, 0 }, { 366, 0, 1009, 0 } }, { 0, 4099, 0, 0 }, { -3290, 0, 2440, 0 }, 1086, 2, 24, 0, 2, 0 },
-    { NULL, NULL, NULL, { 543, -64, -1793, 0 }, { { -1401, 0, -1255, 0 }, { 1880, 0, 103, 0 }, { -1879, 0, -102, 0 }, { 1402, 0, 1256, 0 } }, { 0, 4108, 0, 0 }, { 2751, 0, -3035, 0 }, 1881, 2, 27, 0, 2, 0 },
-    { NULL, NULL, NULL, { 0x31C0, -64, -384, 0 }, { { -2416, 0, -704, 0 }, { 2416, 0, -704, 0 }, { -2416, 0, 704, 0 }, { 2416, 0, 704, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 2508, 5, 255, 0, 2, 0 },
-    { NULL, NULL, NULL, { 0x3660, -64, -1152, 0 }, { { -1024, 0, -624, 0 }, { 1088, 0, -624, 0 }, { -736, 0, 624, 0 }, { 736, 0, 624, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, -4096, 0 }, 1254, 5, 14, 0, 2, 0 },
-    { NULL, NULL, NULL, { 4384, -64, -608, 0 }, { { -480, 0, -560, 0 }, { 480, 0, -560, 0 }, { -480, 0, 560, 0 }, { 480, 0, 560, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 735, 2, 1, 255, 130, 0 },
+WorldCollisionTrigger D_dryfield_night_gas_station_801900D4[16] = {
+    { NULL, NULL, NULL, { 2528, -108, -332, 0 }, { { -1024, 0, -384, 0 }, { 1024, 0, -384, 0 }, { -1024, 0, 384, 0 }, { 1024, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 192, -80, -3616, 0 }, { { 384, 0, -1024, 0 }, { 384, 0, 1024, 0 }, { -384, 0, -1024, 0 }, { -384, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3430, -96, -224, 0 }, { { -1776, 0, -384, 0 }, { 1776, 0, -384, 0 }, { -1776, 0, 384, 0 }, { 1776, 0, 384, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 1814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x33D2, -96, -5400, 0 }, { { -1173, 0, 517, 0 }, { 466, 0, -1005, 0 }, { -594, 0, 1118, 0 }, { 1301, 0, -628, 0 } }, { 0, 4096, 0, 0 }, { -3290, 0, -2441, 0 }, 1442, WORLD_COLLISION_TRIGGER_ACTION_CAP, 30, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7552, -64, -1296, 0 }, { { -1776, 0, -624, 0 }, { 1776, 0, -624, 0 }, { -1776, 0, 624, 0 }, { 1776, 0, 624, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -4096, 0 }, 1881, WORLD_COLLISION_TRIGGER_ACTION_CAP, 25, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4400, -96, 240, 0 }, { { -736, 0, -1392, 0 }, { 736, 0, -1392, 0 }, { -736, 0, -272, 0 }, { 736, 0, -272, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 1572, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x367F, -64, -3585, 0 }, { { -756, 0, -780, 0 }, { 1209, 0, 1140, 0 }, { -1432, 0, 333, 0 }, { -331, 0, 1261, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1659, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4120, -64, 0, 0 }, { { -736, 0, -624, 0 }, { 736, 0, -624, 0 }, { -736, 0, 624, 0 }, { 736, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x366F, -64, 191, 0 }, { { 1312, 0, -2172, 0 }, { 1289, 0, 271, 0 }, { -1368, 0, -2173, 0 }, { -1365, 0, 272, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 14, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x31E9, -64, -4760, 0 }, { { -685, 0, -131, 0 }, { -70, 0, -693, 0 }, { 54, 0, 694, 0 }, { 701, 0, 132, 0 } }, { 0, 4102, 0, 0 }, { -2752, 0, 3034, 0 }, 712, WORLD_COLLISION_TRIGGER_ACTION_CAP, 30, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4608, -96, -4960, 0 }, { { -1024, 0, -1120, 0 }, { 1024, 0, -1120, 0 }, { -1024, 0, 1120, 0 }, { 1024, 0, 1120, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, -4096, 0 }, 1514, WORLD_COLLISION_TRIGGER_ACTION_CAP, 23, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3C4F, -64, -1537, 0 }, { { -365, 0, -1008, 0 }, { 960, 0, 522, 0 }, { -959, 0, -521, 0 }, { 366, 0, 1009, 0 } }, { 0, 4099, 0, 0 }, { -3290, 0, 2440, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_CAP, 24, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 543, -64, -1793, 0 }, { { -1401, 0, -1255, 0 }, { 1880, 0, 103, 0 }, { -1879, 0, -102, 0 }, { 1402, 0, 1256, 0 } }, { 0, 4108, 0, 0 }, { 2751, 0, -3035, 0 }, 1881, WORLD_COLLISION_TRIGGER_ACTION_CAP, 27, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x31C0, -64, -384, 0 }, { { -2416, 0, -704, 0 }, { 2416, 0, -704, 0 }, { -2416, 0, 704, 0 }, { 2416, 0, 704, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 2508, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3660, -64, -1152, 0 }, { { -1024, 0, -624, 0 }, { 1088, 0, -624, 0 }, { -736, 0, 624, 0 }, { 736, 0, 624, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, -4096, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4384, -64, -608, 0 }, { { -480, 0, -560, 0 }, { 480, 0, -560, 0 }, { -480, 0, 560, 0 }, { 480, 0, 560, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 735, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 GpAreaTmdRec D_dryfield_night_gas_station_80190594[2] = {
@@ -2571,19 +2571,19 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 #include "../../shared/gas_station_sounds_cue.inc.c"
 
 /// Message handler for msg 0x117: walks the `Gp_PendingObj4C` list looking for
-/// an object in mode 5 whose `field_48` is 0xFF and which is still pending, and
+/// a room-action trigger whose `parameter0` is 0xFF and whose `hit` is set, and
 /// on a hit flips `gGameSession->eventState` / `field_68` and spawns the night gas
 /// station cutscene task. Answers 1 only when it found one.
 s32 func_dryfield_night_gas_station_8017F7E0(s32 arg0, s32 arg1, s32 arg2)
 {
-    GpObj4C* node;
-    s32      found;
+    WorldCollisionTrigger* node;
+    s32                    found;
 
     if (arg2 == 0x117) {
         found = 0;
         node  = Gp_PendingObj4C;
         while (node != NULL) {
-            if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
+            if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
                 found = 1;
                 break;
             }

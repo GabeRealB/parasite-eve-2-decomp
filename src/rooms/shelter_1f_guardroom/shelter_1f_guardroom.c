@@ -50,8 +50,8 @@ static const TaskFuncTable3 D_shelter_1f_guardroom_8017D5C4 = {
 };
 
 extern WorldCollisionGrid         D_shelter_1f_guardroom_8017DBF0[1];
-extern GpObj4C                    D_shelter_1f_guardroom_8017DE3C[2];
-extern GpObj4C                    D_shelter_1f_guardroom_8017DED4[3];
+extern WorldCollisionTrigger      D_shelter_1f_guardroom_8017DE3C[2];
+extern WorldCollisionTrigger      D_shelter_1f_guardroom_8017DED4[3];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4];
 extern WorldCoordRoomLights       D_shelter_1f_guardroom_8017DE24[1];
 s32                               func_shelter_1f_guardroom_8017D73C(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -164,15 +164,15 @@ WorldCoordRoomLights D_shelter_1f_guardroom_8017DE24[1] = {
     { 0, NULL, ARRAY_SIZE(D_shelter_1f_guardroom_8017DD04), D_shelter_1f_guardroom_8017DD04, 0, NULL },
 };
 
-GpObj4C D_shelter_1f_guardroom_8017DE3C[2] = {
-    { NULL, NULL, NULL, { -7645, -1408, -3616, 0 }, { { 75, -1872, -1898, 0 }, { -87, -1872, 1885, 0 }, { 75, 1872, -1898, 0 }, { -87, 1872, 1885, 0 } }, { 4098, 0, 175, 0 }, { 0, 0, 4096, 0 }, 2660, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { -7472, -1440, -3600, 0 }, { { -78, -1840, 1851, 0 }, { 62, -1840, -1863, 0 }, { -78, 1840, 1851, 0 }, { 62, 1840, -1863, 0 } }, { -4095, 0, -155, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 2, 3, 129, 0 },
+WorldCollisionTrigger D_shelter_1f_guardroom_8017DE3C[2] = {
+    { NULL, NULL, NULL, { -7645, -1408, -3616, 0 }, { { 75, -1872, -1898, 0 }, { -87, -1872, 1885, 0 }, { 75, 1872, -1898, 0 }, { -87, 1872, 1885, 0 } }, { 4098, 0, 175, 0 }, { 0, 0, 4096, 0 }, 2660, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -7472, -1440, -3600, 0 }, { { -78, -1840, 1851, 0 }, { 62, -1840, -1863, 0 }, { -78, 1840, 1851, 0 }, { 62, 1840, -1863, 0 } }, { -4095, 0, -155, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_shelter_1f_guardroom_8017DED4[3] = {
-    { NULL, NULL, NULL, { -9360, -48, -3520, 0 }, { { -656, 0, -224, 0 }, { 656, 0, -224, 0 }, { -656, 0, 224, 0 }, { 656, 0, 224, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, -4096, 0 }, 692, 0, 2, 18, 2, 0 },
-    { NULL, NULL, NULL, { -7488, -64, -3136, 0 }, { { -656, 0, -224, 0 }, { 656, 0, -224, 0 }, { -656, 0, 224, 0 }, { 656, 0, 224, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, -4096, 0 }, 692, 2, 1, 0, 2, 0 },
-    { NULL, NULL, NULL, { -6960, -64, -3728, 0 }, { { -288, 0, -816, 0 }, { 288, 0, -816, 0 }, { -288, 0, 816, 0 }, { 288, 0, 816, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 863, 2, 2, 255, 130, 0 },
+WorldCollisionTrigger D_shelter_1f_guardroom_8017DED4[3] = {
+    { NULL, NULL, NULL, { -9360, -48, -3520, 0 }, { { -656, 0, -224, 0 }, { 656, 0, -224, 0 }, { -656, 0, 224, 0 }, { 656, 0, 224, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, -4096, 0 }, 692, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7488, -64, -3136, 0 }, { { -656, 0, -224, 0 }, { 656, 0, -224, 0 }, { -656, 0, 224, 0 }, { 656, 0, 224, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, -4096, 0 }, 692, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6960, -64, -3728, 0 }, { { -288, 0, -816, 0 }, { 288, 0, -816, 0 }, { -288, 0, 816, 0 }, { 288, 0, 816, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 863, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4] = {

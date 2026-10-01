@@ -13,9 +13,9 @@
 
 extern WorldCoordRoomLights D_neo_ark_eve_access_tunnel_801802D4[1];
 
-extern GpObj4C D_neo_ark_eve_access_tunnel_801802EC[6];
+extern WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801802EC[6];
 
-extern GpObj4C D_neo_ark_eve_access_tunnel_801804B4[6];
+extern WorldCollisionTrigger D_neo_ark_eve_access_tunnel_801804B4[6];
 
 extern GpObj3A D_neo_ark_eve_access_tunnel_80180720[1];
 

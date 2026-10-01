@@ -29,11 +29,11 @@ extern GpSprtRec D_shelter_b1_pod_access_tunnel_8018462C[];
 
 extern WorldCoordRoomLights D_shelter_b1_pod_access_tunnel_80184734;
 
-extern GpObj4A D_shelter_b1_pod_access_tunnel_8018474C[];
+extern WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_8018474C[];
 
 extern GpObj3A D_shelter_b1_pod_access_tunnel_8018487C[];
 
-extern GpObj4A D_shelter_b1_pod_access_tunnel_801848B8[];
+extern WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_801848B8[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_pod_access_tunnel_80184CDC[];
 

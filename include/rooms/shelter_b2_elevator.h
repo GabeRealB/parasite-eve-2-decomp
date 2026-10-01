@@ -32,9 +32,9 @@ extern GpSprtRec D_shelter_b2_elevator_8017E7BC[];
 
 extern WorldCoordRoomLights D_shelter_b2_elevator_8017E840;
 
-extern GpObj4A D_shelter_b2_elevator_8017E858[];
+extern WorldCollisionTrigger D_shelter_b2_elevator_8017E858[];
 
-extern GpObj4A D_shelter_b2_elevator_8017E8F0[];
+extern WorldCollisionTrigger D_shelter_b2_elevator_8017E8F0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_elevator_8017E9D8[];
 

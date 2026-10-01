@@ -30,9 +30,9 @@ extern GpSprtRec D_shelter_b6_training_room_80184D78[];
 
 extern WorldCoordRoomLights D_shelter_b6_training_room_80185768;
 
-extern GpObj4A D_shelter_b6_training_room_80185780[];
+extern WorldCollisionTrigger D_shelter_b6_training_room_80185780[];
 
-extern GpObj4A D_shelter_b6_training_room_80185A44[];
+extern WorldCollisionTrigger D_shelter_b6_training_room_80185A44[];
 
 extern WorldCoordRoomAmbientEntry D_shelter_b6_training_room_80185BC0[];
 

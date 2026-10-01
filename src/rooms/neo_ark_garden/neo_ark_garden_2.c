@@ -57,10 +57,10 @@ extern SVECTOR D_neo_ark_garden_801813D8;
 
 static void func_neo_ark_garden_8017F42C(SVECTOR* arg0);
 
-extern WorldCollisionGrid   D_neo_ark_garden_801816C4[1];
-extern GpObj4C              D_neo_ark_garden_8018270C[6];
-extern GpObj4C              D_neo_ark_garden_801828D4[7];
-extern WorldCoordRoomLights D_neo_ark_garden_801826F4[1];
+extern WorldCollisionGrid    D_neo_ark_garden_801816C4[1];
+extern WorldCollisionTrigger D_neo_ark_garden_8018270C[6];
+extern WorldCollisionTrigger D_neo_ark_garden_801828D4[7];
+extern WorldCoordRoomLights  D_neo_ark_garden_801826F4[1];
 
 TaskDesc D_neo_ark_garden_80181398 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
@@ -381,23 +381,23 @@ WorldCoordRoomLights D_neo_ark_garden_801826F4[1] = {
     { ARRAY_SIZE(D_neo_ark_garden_80182594), D_neo_ark_garden_80182594, 0, NULL, 0, NULL },
 };
 
-GpObj4C D_neo_ark_garden_8018270C[6] = {
-    { NULL, NULL, NULL, { -5313, -1089, -0x3FC1, 0 }, { { -171, -1904, -3345, 0 }, { 158, -1904, 3331, 0 }, { -171, 1904, -3345, 0 }, { 158, 1904, 3331, 0 } }, { 4093, 0, -202, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 2, 3, 1, 0 },
-    { NULL, NULL, NULL, { -5185, -993, -0x3EE1, 0 }, { { 180, -1904, 3750, 0 }, { -190, -1904, -3760, 0 }, { 180, 1904, 3750, 0 }, { -190, 1904, -3760, 0 } }, { -4095, 0, 201, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 3, 2, 1, 0 },
-    { NULL, NULL, NULL, { -353, -800, -0x4671, 0 }, { { -460, -1904, -2051, 0 }, { 461, -1904, 2052, 0 }, { -460, 1904, -2051, 0 }, { 461, 1904, 2052, 0 } }, { 3996, 0, -899, 0 }, { 0, 0, 4096, 0 }, 2827, 0, 4, 2, 1, 0 },
-    { NULL, NULL, NULL, { -225, -928, -0x46C2, 0 }, { { 425, -1904, 1829, 0 }, { -424, -1904, -1828, 0 }, { 425, 1904, 1829, 0 }, { -424, 1904, -1828, 0 } }, { -4000, 0, 928, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 2, 4, 1, 0 },
-    { NULL, NULL, NULL, { 1663, -1024, -0x3BE1, 0 }, { { -1640, -1904, -913, 0 }, { 1640, -1904, 914, 0 }, { -1640, 1904, -913, 0 }, { 1640, 1904, 914, 0 } }, { 1997, 0, -3588, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 4, 2, 1, 0 },
-    { NULL, NULL, NULL, { 1696, -1024, -0x3C81, 0 }, { { 1640, -1904, 914, 0 }, { -1640, -1904, -913, 0 }, { 1640, 1904, 914, 0 }, { -1640, 1904, -913, 0 } }, { -1999, 0, 3586, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 2, 4, 129, 0 },
+WorldCollisionTrigger D_neo_ark_garden_8018270C[6] = {
+    { NULL, NULL, NULL, { -5313, -1089, -0x3FC1, 0 }, { { -171, -1904, -3345, 0 }, { 158, -1904, 3331, 0 }, { -171, 1904, -3345, 0 }, { 158, 1904, 3331, 0 } }, { 4093, 0, -202, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5185, -993, -0x3EE1, 0 }, { { 180, -1904, 3750, 0 }, { -190, -1904, -3760, 0 }, { 180, 1904, 3750, 0 }, { -190, 1904, -3760, 0 } }, { -4095, 0, 201, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -353, -800, -0x4671, 0 }, { { -460, -1904, -2051, 0 }, { 461, -1904, 2052, 0 }, { -460, 1904, -2051, 0 }, { 461, 1904, 2052, 0 } }, { 3996, 0, -899, 0 }, { 0, 0, 4096, 0 }, 2827, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -225, -928, -0x46C2, 0 }, { { 425, -1904, 1829, 0 }, { -424, -1904, -1828, 0 }, { 425, 1904, 1829, 0 }, { -424, 1904, -1828, 0 } }, { -4000, 0, 928, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1663, -1024, -0x3BE1, 0 }, { { -1640, -1904, -913, 0 }, { 1640, -1904, 914, 0 }, { -1640, 1904, -913, 0 }, { 1640, 1904, 914, 0 } }, { 1997, 0, -3588, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1696, -1024, -0x3C81, 0 }, { { 1640, -1904, 914, 0 }, { -1640, -1904, -913, 0 }, { 1640, 1904, 914, 0 }, { -1640, 1904, -913, 0 } }, { -1999, 0, 3586, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-GpObj4C D_neo_ark_garden_801828D4[7] = {
-    { NULL, NULL, NULL, { -2928, -48, -0x3130, 0 }, { { -1392, 0, -560, 0 }, { 1392, 0, -560, 0 }, { -1392, 0, 560, 0 }, { 1392, 0, 560, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1498, 0, 27, 18, 2, 0 },
-    { NULL, NULL, NULL, { 1360, -59, -0x44A1, 0 }, { { 432, 0, -688, 0 }, { 432, 0, 688, 0 }, { -432, 0, -688, 0 }, { -432, 0, 688, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 812, 0, 33, 33, 2, 0 },
-    { NULL, NULL, NULL, { -736, -64, -0x48A0, 0 }, { { -1520, 0, -832, 0 }, { 1520, 0, -832, 0 }, { -1520, 0, 832, 0 }, { 1520, 0, 832, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1731, 2, 4, 255, 2, 0 },
-    { NULL, NULL, NULL, { -7456, -64, -0x48E0, 0 }, { { -1520, 0, -704, 0 }, { 1520, 0, -704, 0 }, { -1520, 0, 704, 0 }, { 1520, 0, 704, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 1673, 2, 5, 255, 2, 0 },
-    { NULL, NULL, NULL, { -8304, -64, -0x42C0, 0 }, { { -896, 0, -1280, 0 }, { 896, 0, -1280, 0 }, { -896, 0, 1280, 0 }, { 896, 0, 1280, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1562, 2, 3, 0, 2, 0 },
-    { NULL, NULL, NULL, { 1376, -64, -0x3FC0, 0 }, { { 432, 0, -464, 0 }, { 432, 0, 592, 0 }, { -432, 0, -464, 0 }, { -432, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 732, 2, 8, 0, 2, 0 },
-    { NULL, NULL, NULL, { -4896, -64, -0x4920, 0 }, { { 1008, 0, -592, 0 }, { 1008, 0, 592, 0 }, { -1008, 0, -592, 0 }, { -1008, 0, 592, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1166, 2, 7, 255, 130, 0 },
+WorldCollisionTrigger D_neo_ark_garden_801828D4[7] = {
+    { NULL, NULL, NULL, { -2928, -48, -0x3130, 0 }, { { -1392, 0, -560, 0 }, { 1392, 0, -560, 0 }, { -1392, 0, 560, 0 }, { 1392, 0, 560, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1360, -59, -0x44A1, 0 }, { { 432, 0, -688, 0 }, { 432, 0, 688, 0 }, { -432, 0, -688, 0 }, { -432, 0, 688, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 812, WORLD_COLLISION_TRIGGER_ACTION_WARP, 33, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -736, -64, -0x48A0, 0 }, { { -1520, 0, -832, 0 }, { 1520, 0, -832, 0 }, { -1520, 0, 832, 0 }, { 1520, 0, 832, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1731, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7456, -64, -0x48E0, 0 }, { { -1520, 0, -704, 0 }, { 1520, 0, -704, 0 }, { -1520, 0, 704, 0 }, { 1520, 0, 704, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 1673, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8304, -64, -0x42C0, 0 }, { { -896, 0, -1280, 0 }, { 896, 0, -1280, 0 }, { -896, 0, 1280, 0 }, { 896, 0, 1280, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1562, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1376, -64, -0x3FC0, 0 }, { { 432, 0, -464, 0 }, { 432, 0, 592, 0 }, { -432, 0, -464, 0 }, { -432, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4896, -64, -0x4920, 0 }, { { 1008, 0, -592, 0 }, { 1008, 0, 592, 0 }, { -1008, 0, -592, 0 }, { -1008, 0, 592, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Garden ambience task tick. On its first tick it installs three effect ids

@@ -50,9 +50,9 @@ extern GpSprtRec D_neo_ark_submarine_gallery_80184D10[];
 
 extern WorldCoordRoomLights D_neo_ark_submarine_gallery_80185284;
 
-extern GpObj4A D_neo_ark_submarine_gallery_8018529C[];
+extern WorldCollisionTrigger D_neo_ark_submarine_gallery_8018529C[];
 
-extern GpObj4A D_neo_ark_submarine_gallery_801854FC[];
+extern WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[];
 

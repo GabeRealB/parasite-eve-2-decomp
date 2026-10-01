@@ -13,9 +13,9 @@
 
 #include "main/task_types.h"
 
-extern GpObj4C D_dryfield_factory_80189694[14];
+extern WorldCollisionTrigger D_dryfield_factory_80189694[14];
 
-extern GpObj4C D_dryfield_factory_80189ABC[20];
+extern WorldCollisionTrigger D_dryfield_factory_80189ABC[20];
 
 extern WorldCoordRoomLights D_dryfield_factory_8018A28C[1];
 
