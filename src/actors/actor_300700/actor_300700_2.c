@@ -5,8 +5,6 @@
 
 #include "types.h"
 
-#include "actor_300700_spawn2_private.h"
-
 #include "actors/actor.h"
 
 #include "gameplay/actor_render.h"

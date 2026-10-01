@@ -9,8 +9,6 @@
 #include "common.h"
 #include "gte.h"
 
-#include "actor_300700_spawn2_private.h"
-
 #include "actors/actor.h"
 
 #include "gameplay/actor.h"
