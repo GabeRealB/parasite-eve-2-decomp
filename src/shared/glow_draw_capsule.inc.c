@@ -5,7 +5,10 @@
 /// projection flags an error. Each end gets a half-disc of gouraud wedges of
 /// radius `(s16)arg1 * 64` over its depth, joined by quads across the bar. The
 /// lit vertices take the colour packed in `arg2`, one nibble per channel in
-/// the high nibble, with bit 3 following the animation frame.
+/// the high nibble, with bit 3 following the animation frame. A unit that
+/// defines GLOW_DRAW_CAPSULE_PULL draws each end beyond depth 0x50 that much
+/// nearer, over what it lights; GLOW_DRAW_CAPSULE_SHIFTED_FLICKER adds the
+/// frame bit shifted by the colour's top nibble instead of setting bit 3.
 void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     OverlayPointPairScratch* block;
@@ -24,9 +27,12 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
     s32                      tg;
     s32                      scaled;
     s32                      side;
-    u8                       r;
-    u8                       g;
-    u8                       b;
+#ifdef GLOW_DRAW_CAPSULE_PULL
+    s32 otz;
+#endif
+    u8 r;
+    u8 g;
+    u8 b;
 
     p1    = arg0 + 1;
     block = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
@@ -39,25 +45,52 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
+#ifdef GLOW_DRAW_CAPSULE_PULL
+        otz = block->otz0;
+        if (otz > 0x50) {
+            block->otz0 = otz - GLOW_DRAW_CAPSULE_PULL;
+        }
+#endif
         gte_ldv0(p1);
         gte_rtps();
         gte_stsxy(&block->sx1);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz1);
+#ifdef GLOW_DRAW_CAPSULE_PULL
+            otz = block->otz1;
+            if (otz > 0x50) {
+                block->otz1 = otz - GLOW_DRAW_CAPSULE_PULL;
+            }
+#endif
             scaled    = (s16)arg1 * 64;
             block->r0 = scaled / block->otz0;
             block->r1 = scaled / block->otz1;
             ang       = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
             ds        = &gDisplayState;
-            ang       = (s16)ang;
-            blend     = ((u8)ds->animFrame & 1) * 8;
-            packed    = arg2 << 16;
-            tr        = (packed >> 20) & 0xF0;
-            tg        = (packed >> 16) & 0xF0;
-            r         = blend | tr;
-            g         = blend | tg;
-            b         = blend | ((arg2 & 0xF) << 4);
+#ifdef GLOW_DRAW_CAPSULE_SHIFTED_FLICKER
+            /* the flicker bit, shifted by the colour word's top nibble, is
+               added to each channel */
+            blend  = ds->animFrame;
+            packed = arg2 << 16;
+            blend  = blend & 1;
+            ang    = (s16)ang;
+            blend  = blend << (packed >> 28);
+            tr     = (packed >> 20) & 0xF0;
+            tg     = (packed >> 16) & 0xF0;
+            r      = blend + tr;
+            g      = blend + tg;
+            b      = blend + ((arg2 & 0xF) << 4);
+#else
+            ang    = (s16)ang;
+            blend  = ((u8)ds->animFrame & 1) * 8;
+            packed = arg2 << 16;
+            tr     = (packed >> 20) & 0xF0;
+            tg     = (packed >> 16) & 0xF0;
+            r      = blend | tr;
+            g      = blend | tg;
+            b      = blend | ((arg2 & 0xF) << 4);
+#endif
             if (ang < ang + 0x800) {
                 angStart = ang;
                 limit    = ang + 0x800;
@@ -131,3 +164,6 @@ void glowDrawCapsule(SVECTOR* arg0, s32 arg1, s32 arg2)
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }
+
+#undef GLOW_DRAW_CAPSULE_PULL
+#undef GLOW_DRAW_CAPSULE_SHIFTED_FLICKER
