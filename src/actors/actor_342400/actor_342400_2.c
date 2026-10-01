@@ -83,37 +83,15 @@ extern u8                       gMadChaserSettleAnims[]; // per animation id (1-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static void func_actor_342400_801640B0(Task* arg0);
-static void func_actor_342400_80165FC0(Task* arg0);
-static void func_actor_342400_8016666C(Task* arg0);
-static void func_actor_342400_801670C0(Task* arg0);
 static void func_actor_342400_80168394(Task* arg0);
-static void func_actor_342400_80168F14(Task* arg0);
-static void func_actor_342400_801690FC(Task* arg0);
-static void func_actor_342400_80169408(Task* arg0);
-void        func_actor_342400_8016978C(Task* arg0);
-void        func_actor_342400_80169810(Task* arg0);
 static void func_actor_342400_80169880(Task* arg0);
-static void func_actor_342400_80169968(Task* arg0);
 static void func_actor_342400_8016997C(Task* arg0);
 static void func_actor_342400_80169990(Task* arg0);
-static void func_actor_342400_801699A4(Task* arg0);
-static void func_actor_342400_80169A2C(Task* arg0);
 static void func_actor_342400_80169A98(Task* arg0);
-static void func_actor_342400_80169B04(Task* arg0);
 static void func_actor_342400_80169B58(Task* arg0);
 static void func_actor_342400_80169BAC(Task* arg0);
-static void func_actor_342400_80169C00(Task* arg0);
-static void func_actor_342400_80169C84(Task* arg0);
-static void func_actor_342400_80169CF8(Task* arg0);
-static void func_actor_342400_8016A240(Task* arg0);
-static void func_actor_342400_8016A4FC(Task* arg0);
-static void func_actor_342400_8016A9AC(Task* arg0);
-static void func_actor_342400_8016A9C4(Task* arg0);
-static void func_actor_342400_8016AA9C(Task* arg0);
 static void func_actor_342400_8016AE24(Task* arg0);
 static void func_actor_342400_8016AEAC(Task* arg0);
-static void func_actor_342400_8016AFA8(Task* arg0);
 static void func_actor_342400_8016B038(Task* arg0);
 static void func_actor_342400_8016BAF4(Task* arg0);
 static void func_actor_342400_8016BBD0(Task* arg0);
@@ -122,63 +100,63 @@ static void func_actor_342400_8016BD3C(Task* arg0);
 static void func_actor_342400_8016BED8(Task* arg0);
 
 /// Six task-state handlers of the first enemy form, dispatched by
-/// `func_actor_342400_80169810` on `Task::state`.
-static const TaskFuncTable6 D_actor_342400_80161E68 = { {
+/// `madChaserTask` on `Task::state`.
+static const TaskFuncTable6 gMadChaserTaskStates = { {
     madChaserSpawn,
-    func_actor_342400_8016666C,
+    madChaserLurkTick,
     madChaserDangleFrame,
-    func_actor_342400_801640B0,
-    func_actor_342400_80165FC0,
+    madChaserCombatTick,
+    madChaserDeathTick,
     func_actor_342400_80169880,
 } };
 
 /// Ten task-state handlers of the second enemy form, dispatched by
-/// `func_actor_342400_8016978C` on `Task::state`.
-static const TaskFuncTable10 D_actor_342400_80161E80 = { {
+/// `madChaserHiddenTask` on `Task::state`.
+static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     madChaserSpawnHidden,
-    func_actor_342400_8016666C,
+    madChaserLurkTick,
     madChaserDangleFrame,
-    func_actor_342400_801640B0,
-    func_actor_342400_80165FC0,
+    madChaserCombatTick,
+    madChaserDeathTick,
     func_actor_342400_80169880,
-    func_actor_342400_801670C0,
-    func_actor_342400_80169408,
-    func_actor_342400_80168F14,
-    func_actor_342400_801690FC,
+    madChaserEmergeTick,
+    madChaserVanishState,
+    madChaserDropDeathTick,
+    madChaserShrinkDeathTick,
 } };
 
 /// Eleven state handlers, indexed by `Actor341700Work::field_420`; copied to
 /// the stack before dispatch.
-static const TaskFuncTable11 D_actor_342400_80161EA8 = { {
-    func_actor_342400_80169968,
+static const TaskFuncTable11 gMadChaserCombatStates = { {
+    madChaserToAlertState,
     func_actor_342400_8016997C,
     func_actor_342400_80169990,
-    func_actor_342400_801699A4,
-    func_actor_342400_80169A2C,
+    madChaserWalkState,
+    madChaserLeapState,
     func_actor_342400_80169A98,
-    func_actor_342400_80169B04,
+    madChaserRecoilLightState,
     func_actor_342400_80169B58,
     func_actor_342400_80169BAC,
-    func_actor_342400_80169C00,
-    func_actor_342400_80169C84,
+    madChaserKnockdownState,
+    madChaserPullState,
 } };
 
-/// Sub-state handlers `func_actor_342400_80169C00` dispatches by `field_422`.
-static const TaskFuncTable3 D_actor_342400_80161ED4 = { {
+/// Sub-state handlers `madChaserKnockdownState` dispatches by `field_422`.
+static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
     madChaserKnockdownStart,
     madChaserKnockdownRise,
     madChaserKnockdownEnd,
 } };
 
-/// Sub-state handlers `func_actor_342400_801699A4` dispatches by `field_422`.
-static const TaskFuncTable3 D_actor_342400_80161EE0 = { {
+/// Sub-state handlers `madChaserWalkState` dispatches by `field_422`.
+static const TaskFuncTable3 gMadChaserWalkSteps = { {
     madChaserWalkStart,
     madChaserWalkApproach,
     madChaserWalkFinish,
 } };
 
-/// Sub-state handlers `func_actor_342400_80169A2C` dispatches by `field_422`.
-static const TaskFuncTable5 D_actor_342400_80161EEC = { {
+/// Sub-state handlers `madChaserLeapState` dispatches by `field_422`.
+static const TaskFuncTable5 gMadChaserLeapSteps = { {
     madChaserStartLeap,
     madChaserLeapAttack,
     madChaserLeapTurnAway,
@@ -189,24 +167,19 @@ static const TaskFuncTable5 D_actor_342400_80161EEC = { {
 /// Sub-state handlers `func_actor_342400_80169A98` dispatches by `field_422`.
 static const TaskFuncTable5 D_actor_342400_80161F00 = { {
     madChaserAlertCry,
-    func_actor_342400_8016A240,
+    madChaserAlertWait,
     madChaserAlertRelease,
     madChaserAlertCrouch,
     madChaserAlertSidestep,
 } };
 
 /// Sub-state handlers `madChaserDangleState` dispatches by `field_422`.
-static const TaskFuncTable4 D_actor_342400_80161F14 = { {
-    func_actor_342400_8016A4FC,
+static const TaskFuncTable4 gMadChaserDangleSteps = { {
+    madChaserDangleStart,
     madChaserDangleSway,
     madChaserDangleFall,
     madChaserDangleLand,
 } };
-
-void func_actor_342400_8016978C(Task*);
-void func_actor_342400_80169810(Task*);
-
-void func_actor_342400_80169620(Task*, s16, VECTOR3*);
 
 AnimationPackedPose D_actor_342400_80170598[6] = {
 #include "assets/actor_342400_animation_0E9A4_bank1.inc"
@@ -714,19 +687,19 @@ u8 gMadChaserAnimBank[84] = {
 };
 
 Actor3424002MessageEntry gMadChaserMsgTable[3] = {
-    { 2004, { .call0 = func_actor_342400_80169620 } },
+    { 2004, { .call0 = madChaserMsgPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = madChaserCommandMsg } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
 TaskDesc D_actor_342400_80173A54[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_342400_80169810, { .model = &D_actor_342400_80170560 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } },
+    { { { TASK_BODY_TMD, 96 } }, madChaserTask, { .model = &D_actor_342400_80170560 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, madChaserHiddenTask, { .model = &D_actor_342400_80170560 } },
 };
 
 TaskDesc D_actor_342400_80173A6C = { { { TASK_BODY_COORD, 96 } }, taskKill, { .value = 0 } };
 
-TaskDesc D_actor_342400_80173A78 = { { { TASK_BODY_TMD, 96 } }, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } };
+TaskDesc D_actor_342400_80173A78 = { { { TASK_BODY_TMD, 96 } }, madChaserHiddenTask, { .model = &D_actor_342400_80170560 } };
 
 u8 gMadChaserAnimStance[20] = {
     0,
@@ -867,62 +840,7 @@ static __inline__ void update_rotation(Task* arg0)
     dst->m[2][2] = m->m[2][2];
 }
 
-/// Per-frame callback for the main enemy, the eleven-state counterpart of
-/// `func_actor_342400_801670C0`. In mode 0 it aims at the nearest actor
-/// (`madChaserTrackPlayer`), lets a pending hit (`take_hit`) replace the state
-/// handler, eases `field_424` toward zero, rebuilds the root rotation, and
-/// then picks the next state: the `field_448` request once dead, state 4 when
-/// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
-static void func_actor_342400_801640B0(Task* arg0)
-{
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable11  sp    = D_actor_342400_80161EA8;
-    s32              cur;
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
-            madChaserTrackPlayer(arg0);
-            if (take_hit(arg0) == 0) {
-                sp.funcs[(s16)work->field_420](arg0);
-            }
-            madChaserTickAnim(arg0);
-            cur             = (u16)work->field_424;
-            work->field_424 = cur + ((s16)(-(cur * 16)) >> 9);
-            madChaserTwistSpine(arg0);
-            if (work->field_432 == 1) {
-                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
-            }
-            update_rotation(arg0);
-            madChaserApplyContacts(arg0, 0);
-            if (work->field_44A != 0) {
-                work->field_44A--;
-            }
-            if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                madChaserEnterState(arg0, work->field_448);
-            }
-            if (work->field_438 == 0 && enemy->hp <= 0) {
-                madChaserEnterState(arg0, 4);
-            } else if (work->field_44C == 4 && work->field_438 == 0) {
-                madChaserEnterState(arg0, 8);
-            } else if (work->field_44C == 5 && work->field_438 == 0) {
-                madChaserEnterState(arg0, 9);
-            }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-            madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-            madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
-            return;
-    }
-}
+#include "../../shared/mad_chaser_combat_tick.inc.c"
 
 #include "../../shared/mad_chaser_walk_start.inc.c"
 
@@ -948,47 +866,19 @@ static void func_actor_342400_801640B0(Task* arg0)
 
 /// Nine state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
-static const TaskFuncTable9 D_actor_342400_80161F50 = { {
+static const TaskFuncTable9 gMadChaserDeathStates = { {
     madChaserDeathCry,
     madChaserDeathSettle,
     madChaserDeathWaitAnim,
     madChaserBeginDeath,
     madChaserDeathTurnTranslucent,
     madChaserShrinkWithDust,
-    func_actor_342400_8016A9AC,
-    func_actor_342400_8016A9C4,
+    madChaserStartDespawn,
+    madChaserDeathPause,
     madChaserBurst,
 } };
 
-/// Per-frame callback of the main enemy. `gSceneCombatState.actorControl` 2 hides the model,
-/// 0 runs the current state handler (then colours it), 1 only colours it.
-/// Unless `field_451` is set, it then runs `madChaserDrawLimbShadow` for
-/// three part pairs.
-static void func_actor_342400_80165FC0(Task* arg0)
-{
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable9   sp    = D_actor_342400_80161F50;
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
-            sp.funcs[(s16)work->field_420](arg0);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            if (work->field_451 == 0) {
-                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
-            }
-            return;
-    }
-}
+#include "../../shared/mad_chaser_death_tick.inc.c"
 
 #include "../../shared/mad_chaser_shrink_dust.inc.c"
 
@@ -999,62 +889,15 @@ static void func_actor_342400_80165FC0(Task* arg0)
 /// The five state handlers of the second enemy form, indexed by
 /// `Actor341700Work::field_420`; copied to the stack before dispatch. It sits
 /// between `madChaserRecoilRecover`'s jump table and this function's own.
-static const TaskFuncTable5 D_actor_342400_80161F8C = { {
+static const TaskFuncTable5 gMadChaserLurkStates = { {
     func_actor_342400_8016AE24,
     func_actor_342400_8016AEAC,
     madChaserLurkRiseState,
-    func_actor_342400_8016AFA8,
+    madChaserLurkAlertState,
     func_actor_342400_8016B038,
 } };
 
-/// Per-frame callback for the second enemy form, the five-state counterpart
-/// of `func_actor_342400_801640B0`: in mode 0 it aims (`madChaserTrackPlayer`),
-/// lets a pending hit replace the state handler, rebuilds the root rotation,
-/// then picks the next state - 4 when dead, 8 / 9 for messages 4 / 5, and
-/// state 3 after a consumed `field_448` request. Mode 1 only recolours; both
-/// clear bit 0x80 of the model's `field_C`, which mode 2 sets.
-static void func_actor_342400_8016666C(Task* arg0)
-{
-    TmdObject*       obj   = arg0->extra.tmd;
-    Enemy*           enemy = arg0->spawnArg2.pointer;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable5   sp    = D_actor_342400_80161F8C;
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
-            madChaserTrackPlayer(arg0);
-            if (take_hit(arg0) == 0) {
-                sp.funcs[(s16)work->field_420](arg0);
-            }
-            madChaserTickAnim(arg0);
-            madChaserTwistSpine(arg0);
-            update_rotation(arg0);
-            madChaserApplyContacts(arg0, 0);
-            if (work->field_438 == 0 && enemy->hp <= 0) {
-                madChaserEnterState(arg0, 4);
-            } else if (work->field_44C == 4 && work->field_438 == 0) {
-                madChaserEnterState(arg0, 8);
-            } else if (work->field_44C == 5 && work->field_438 == 0) {
-                madChaserEnterState(arg0, 9);
-            } else if (madChaserTakeRequest(arg0)) {
-                work->field_438 = 0;
-                madChaserEnterState(arg0, 3);
-            }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-            madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-            madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-    }
-}
+#include "../../shared/mad_chaser_lurk_tick.inc.c"
 
 /// Sub-state handlers `func_actor_342400_8016AE24` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FB4 = { {
@@ -1071,7 +914,7 @@ static const TaskFuncTable3 D_actor_342400_80161FC0 = { {
 } };
 
 /// Sub-state handlers `madChaserLurkRiseState` dispatches by `field_422`.
-static const TaskFuncTable3 D_actor_342400_80161FCC = { {
+static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     madChaserStartAlert,
     madChaserLurkBrace,
     madChaserLurkSidestepToCombat,
@@ -1087,7 +930,7 @@ static const TaskFuncTable4 D_actor_342400_80161FD8 = { {
 
 /// Ten state handlers, indexed by `Actor341700Work::field_420`; copied to the
 /// stack before dispatch.
-static const TaskFuncTable10 D_actor_342400_80161FE8 = { {
+static const TaskFuncTable10 gMadChaserEmergeStates = { {
     madChaserEmergeAtSpot,
     madChaserEmergeBackflip,
     madChaserEmergeHopForward,
@@ -1100,8 +943,8 @@ static const TaskFuncTable10 D_actor_342400_80161FE8 = { {
     func_actor_342400_80168394,
 } };
 
-/// Sub-state handlers `func_actor_342400_80169C84` dispatches by `field_422`.
-static const TaskFuncTable6 D_actor_342400_80162010 = { {
+/// Sub-state handlers `madChaserPullState` dispatches by `field_422`.
+static const TaskFuncTable6 gMadChaserPullSteps = { {
     madChaserPullStart,
     madChaserPullReact,
     madChaserPulledStruggle,
@@ -1112,7 +955,7 @@ static const TaskFuncTable6 D_actor_342400_80162010 = { {
 
 /// Five state handlers, indexed by `Actor341700Work::field_420`; copied to
 /// the stack before dispatch.
-static const TaskFuncTable5 D_actor_342400_80162028 = { {
+static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathCryUnlink,
     madChaserDeathSettleQuiet,
     func_actor_342400_8016BAF4,
@@ -1122,7 +965,7 @@ static const TaskFuncTable5 D_actor_342400_80162028 = { {
 
 /// Seven state handlers, indexed by `Actor341700Work::field_420`; copied to
 /// the stack before dispatch.
-static const TaskFuncTable7 D_actor_342400_8016203C = { {
+static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     func_actor_342400_8016BBD8,
     madChaserDeathSettleQuiet,
     func_actor_342400_8016BAF4,
@@ -1162,40 +1005,7 @@ static __inline__ s16 take_hit_nibble3(Task* arg0)
     return hit;
 }
 
-/// Per-frame callback, the ten-state counterpart of
-/// `func_actor_342400_80165FC0`: in mode 0 a pending hit (`take_hit_nibble3`) replaces
-/// the state handler, and the root rotation is rebuilt from 0x78..0x7C before
-/// `madChaserApplyContacts`.
-static void func_actor_342400_801670C0(Task* arg0)
-{
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable10  sp    = D_actor_342400_80161FE8;
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
-            if (take_hit_nibble3(arg0) == 0) {
-                sp.funcs[(s16)work->field_420](arg0);
-            }
-            madChaserTickAnim(arg0);
-            update_rotation(arg0);
-            madChaserApplyContacts(arg0, 0);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            if (work->field_451 == 0) {
-                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
-            }
-            return;
-    }
-}
+#include "../../shared/mad_chaser_emerge_tick.inc.c"
 
 /// `madChaserSetStateS16` with an `s16` state. The narrower parameter is load-bearing:
 /// with the `s32` one, `madChaserEmergeAtSpot` no longer matches. Each
@@ -1238,95 +1048,15 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_pulled_limp.inc.c"
 
-/// Per-frame callback, the five-state counterpart of
-/// `func_actor_342400_801690FC`; unlike it, clears bit 0x80 of `field_C` on
-/// the way out of modes 0 and 1.
-static void func_actor_342400_80168F14(Task* arg0)
-{
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable5   sp    = D_actor_342400_80162028;
+#include "../../shared/mad_chaser_drop_death_tick.inc.c"
 
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
-            sp.funcs[(s16)work->field_420](arg0);
-            if (!(work->field_442 & 0x1F)) {
-                func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
-            }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            if (work->field_451 == 0) {
-                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
-            }
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-    }
-}
-
-/// Per-frame callback, the seven-state counterpart of
-/// `func_actor_342400_80165FC0`: in mode 0 it also spawns effect 3 on the
-/// model's second coord part every 32 frames.
-static void func_actor_342400_801690FC(Task* arg0)
-{
-    TmdObject*       obj   = arg0->extra.tmd;
-    Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GfxCoord*        coord = obj->coords;
-    TaskFuncTable7   sp    = D_actor_342400_8016203C;
-
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            return;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            work->field_442++;
-            sp.funcs[(s16)work->field_420](arg0);
-            if (!(work->field_442 & 0x1F)) {
-                func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->eff_3FC);
-            }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            if (work->field_451 == 0) {
-                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
-            }
-            return;
-    }
-}
+#include "../../shared/mad_chaser_shrink_death_tick.inc.c"
 
 #include "../../shared/mad_chaser_sound_bank.inc.c"
 
-static void func_actor_342400_80169408(Task* arg0)
-{
-    Actor341700Work* work                = (Actor341700Work*)arg0->work;
-    void             (*states[2])(Task*) = {
-        madChaserVanish,
-        madChaserVanishFree,
-    };
+#include "../../shared/mad_chaser_vanish_state.inc.c"
 
-    states[(s16)work->field_420](arg0);
-}
-
-/// Once bit 7 of `gSceneCombatState.madChaserAlertOwner` is set, puts the task in state 3 with
-/// the state machine at state 5 and returns 1; otherwise returns 0.
-s16 madChaserJoinAlert(Task* arg0)
-{
-    if ((s8)gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_ALERT_CLAIMED) {
-        madChaserEnterState(arg0, 3);
-        madChaserSetStateS16(arg0, 5);
-        return 1;
-    }
-    return 0;
-}
+#include "../../shared/mad_chaser_join_alert.inc.c"
 
 #include "../../shared/mad_chaser_alert_hold.inc.c"
 
@@ -1334,197 +1064,77 @@ s16 madChaserJoinAlert(Task* arg0)
 
 #include "../../shared/mad_chaser_command_msg.inc.c"
 
-/// Moves the model: writes `pos` into the root part's translation and marks
-/// the coordinate dirty. `part` is accepted but unused.
-void func_actor_342400_80169620(Task* task, s16 part, VECTOR3* pos)
-{
-    GfxCoord* coord;
-
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = pos->vx;
-    coord->coord.t[1]   = pos->vy;
-    coord->coord.t[2]   = pos->vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
+#include "../../shared/mad_chaser_msg_place.inc.c"
 
 #include "../../shared/mad_chaser_pin_part.inc.c"
 
-/// Scales `arg1` by the animation speed `field_41C`, in 1/16 units.
-s32 madChaserScaleBySpeed(Task* arg0, s16 arg1)
-{
-    return (s32)((((Actor341700Work*)arg0->work)->field_41C * arg1) << 0xC) >> 0x10;
-}
+#include "../../shared/mad_chaser_scale_by_speed.inc.c"
 
-/// Returns 1 when the hit flags are set - bit 0 of the flag halfword or bits
-/// 0x102 of the word - and 0 otherwise.
-s16 madChaserAnimEnded(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+#include "../../shared/mad_chaser_anim_ended.inc.c"
 
-    if ((work->flags_EC.half & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->flags_EC.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        return 1;
-    }
-    return 0;
-}
+#include "../../shared/mad_chaser_hidden_task.inc.c"
 
-void func_actor_342400_8016978C(Task* arg0)
-{
-    TaskFuncTable10 sp;
+#include "../../shared/mad_chaser_task.inc.c"
 
-    sp = D_actor_342400_80161E80;
-    sp.funcs[arg0->state](arg0);
-}
-
-/// Runs the handler for the task's `Task::state` from the six-entry table.
-void func_actor_342400_80169810(Task* arg0)
-{
-    TaskFuncTable6 sp;
-
-    sp = D_actor_342400_80161E68;
-    sp.funcs[arg0->state](arg0);
-}
-
-static void func_actor_342400_80169880(Task* arg0)
-{
-    Actor341700Work* work                = (Actor341700Work*)arg0->work;
-    void             (*states[2])(Task*) = {
-        func_actor_342400_8016AA9C,
-        madChaserDespawn,
-    };
-
-    states[(s16)work->field_420](arg0);
-}
+/// A further copy, under this file's own name.
+#define madChaserVanishState func_actor_342400_80169880
+#define madChaserVanish      madChaserAdvanceState
+#define madChaserVanishFree  madChaserDespawn
+#include "../../shared/mad_chaser_vanish_state.inc.c"
+#undef madChaserVanishState
+#undef madChaserVanish
+#undef madChaserVanishFree
 
 #include "../../shared/mad_chaser_turn_to_player.inc.c"
 
-static void func_actor_342400_80169968(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+#include "../../shared/mad_chaser_to_alert.inc.c"
 
-    work->field_420 = 5;
-    work->field_422 = 0;
-}
+/// A further copy, under this file's own name.
+#define madChaserToAlertState func_actor_342400_8016997C
+#include "../../shared/mad_chaser_to_alert.inc.c"
+#undef madChaserToAlertState
 
-static void func_actor_342400_8016997C(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+/// A further copy, under this file's own name.
+#define madChaserToAlertState func_actor_342400_80169990
+#include "../../shared/mad_chaser_to_alert.inc.c"
+#undef madChaserToAlertState
 
-    work->field_420 = 5;
-    work->field_422 = 0;
-}
+#include "../../shared/mad_chaser_walk_state.inc.c"
 
-static void func_actor_342400_80169990(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
+#include "../../shared/mad_chaser_leap_state.inc.c"
 
-    work->field_420 = 5;
-    work->field_422 = 0;
-}
+/// A further copy, under this file's own name.
+#define madChaserLeapState  func_actor_342400_80169A98
+#define gMadChaserLeapSteps D_actor_342400_80161F00
+#include "../../shared/mad_chaser_leap_state.inc.c"
+#undef madChaserLeapState
+#undef gMadChaserLeapSteps
 
-/// Unless `madChaserTakeHitRequest` consumes a pending request, runs the
-/// sub-state handler for `field_422` from a three-entry table.
-static void func_actor_342400_801699A4(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable3   sp;
+#include "../../shared/mad_chaser_recoil_light_state.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161EE0;
-    if ((madChaserTakeHitRequest(arg0) << 0x10) == 0) {
-        sp.funcs[(s16)work->field_422](arg0);
-    }
-}
+/// A further copy, under this file's own name.
+#define madChaserRecoilLightState func_actor_342400_80169B58
+#define madChaserRecoilLight      madChaserRecoilHeavy
+#define madChaserRecoilRecover    madChaserRecoilHeavyEnd
+#include "../../shared/mad_chaser_recoil_light_state.inc.c"
+#undef madChaserRecoilLightState
+#undef madChaserRecoilLight
+#undef madChaserRecoilRecover
 
-/// Runs the sub-state handler for `field_422` from a five-entry table.
-static void func_actor_342400_80169A2C(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable5   sp;
+/// A further copy, under this file's own name.
+#define madChaserRecoilLightState func_actor_342400_80169BAC
+#define madChaserRecoilLight      madChaserStatusHoldStart
+#define madChaserRecoilRecover    madChaserStatusHold
+#include "../../shared/mad_chaser_recoil_light_state.inc.c"
+#undef madChaserRecoilLightState
+#undef madChaserRecoilLight
+#undef madChaserRecoilRecover
 
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161EEC;
-    sp.funcs[(s16)work->field_422](arg0);
-}
+#include "../../shared/mad_chaser_knockdown_state.inc.c"
 
-/// Runs the sub-state handler for `field_422` from another five-entry table.
-static void func_actor_342400_80169A98(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable5   sp;
+#include "../../shared/mad_chaser_pull_state.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161F00;
-    sp.funcs[(s16)work->field_422](arg0);
-}
-
-static void func_actor_342400_80169B04(Task* arg0)
-{
-    Actor341700Work* work                = (Actor341700Work*)arg0->work;
-    void             (*states[2])(Task*) = {
-        madChaserRecoilLight,
-        madChaserRecoilRecover,
-    };
-
-    states[(s16)work->field_422](arg0);
-}
-
-static void func_actor_342400_80169B58(Task* arg0)
-{
-    Actor341700Work* work                = (Actor341700Work*)arg0->work;
-    void             (*states[2])(Task*) = {
-        madChaserRecoilHeavy,
-        madChaserRecoilHeavyEnd,
-    };
-
-    states[(s16)work->field_422](arg0);
-}
-
-static void func_actor_342400_80169BAC(Task* arg0)
-{
-    Actor341700Work* work                = (Actor341700Work*)arg0->work;
-    void             (*states[2])(Task*) = {
-        func_actor_342400_80169CF8,
-        madChaserStatusHold,
-    };
-
-    states[(s16)work->field_422](arg0);
-}
-
-static void func_actor_342400_80169C00(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable3   sp;
-
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161ED4;
-    sp.funcs[(s16)work->field_422](arg0);
-    if (work->field_44F == 1) {
-        madChaserTakeKnockdownRequest(arg0);
-    }
-}
-
-static void func_actor_342400_80169C84(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable6   sp;
-
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80162010;
-    sp.funcs[(s16)work->field_422](arg0);
-}
-
-/// Requests animation 0xC and advances the sub-state.
-static void func_actor_342400_80169CF8(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-
-    work->field_426 = 8;
-    work->field_41C = 0x10;
-    work->field_418 = 0xC;
-    work->field_414 = 1;
-    work->field_422 = work->field_422 + 1;
-}
+#include "../../shared/mad_chaser_status_hold_start.inc.c"
 
 #include "../../shared/mad_chaser_status_hold.inc.c"
 
@@ -1542,19 +1152,7 @@ static void func_actor_342400_80169CF8(Task* arg0)
 
 #include "../../shared/mad_chaser_alert_cry.inc.c"
 
-/// Advances the sub-state once the frame counter has passed 0x50.
-static void func_actor_342400_8016A240(Task* arg0)
-{
-    u16              ticks;
-    Actor341700Work* work;
-
-    work            = (Actor341700Work*)arg0->work;
-    ticks           = work->field_412;
-    work->field_412 = ticks + 1;
-    if ((s16)ticks >= 0x51) {
-        work->field_422 = work->field_422 + 1;
-    }
-}
+#include "../../shared/mad_chaser_alert_wait.inc.c"
 
 #include "../../shared/mad_chaser_alert_release.inc.c"
 
@@ -1562,31 +1160,9 @@ static void func_actor_342400_8016A240(Task* arg0)
 
 #include "../../shared/mad_chaser_alert_sidestep.inc.c"
 
-/// Runs the sub-state handler for `field_422` from a four-entry table.
-void madChaserDangleState(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable4   sp;
+#include "../../shared/mad_chaser_dangle_state.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161F14;
-    sp.funcs[(s16)work->field_422](arg0);
-}
-
-/// Sets `field_432`, requests animation 7 and advances the sub-state.
-static void func_actor_342400_8016A4FC(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-
-    work             = (Actor341700Work*)arg0->work;
-    work->field_432  = 1;
-    work2            = (Actor341700Work*)arg0->work;
-    work2->field_41C = 0x10;
-    work2->field_418 = 7;
-    work2->field_414 = 2;
-    work->field_422  = work->field_422 + 1;
-}
+#include "../../shared/mad_chaser_dangle_start.inc.c"
 
 #include "../../shared/mad_chaser_dangle_sway.inc.c"
 
@@ -1600,40 +1176,13 @@ static void func_actor_342400_8016A4FC(Task* arg0)
 
 #include "../../shared/mad_chaser_death_translucent.inc.c"
 
-static void func_actor_342400_8016A9AC(Task* arg0)
-{
-    Actor341700Work* work;
+#include "../../shared/mad_chaser_start_despawn.inc.c"
 
-    work            = (Actor341700Work*)arg0->work;
-    arg0->state     = 5;
-    work->field_420 = 0;
-    work->field_422 = 0;
-}
-
-/// Advances the state after two frames.
-static void func_actor_342400_8016A9C4(Task* arg0)
-{
-    u16              ticks;
-    Actor341700Work* work;
-
-    work            = (Actor341700Work*)arg0->work;
-    ticks           = work->field_412 + 1;
-    work->field_412 = ticks;
-    if ((s16)ticks >= 2) {
-        work->field_420 = work->field_420 + 1;
-    }
-}
+#include "../../shared/mad_chaser_death_pause.inc.c"
 
 #include "../../shared/mad_chaser_burst.inc.c"
 
-static void func_actor_342400_8016AA9C(Task* arg0)
-{
-    Actor341700Work* work;
-
-    work            = (Actor341700Work*)arg0->work;
-    work->field_412 = 0;
-    work->field_420 = work->field_420 + 1;
-}
+#include "../../shared/mad_chaser_advance_state.inc.c"
 
 #include "../../shared/mad_chaser_despawn.inc.c"
 
@@ -1643,56 +1192,34 @@ static void func_actor_342400_8016AA9C(Task* arg0)
 
 #include "../../shared/mad_chaser_recoil_heavy_end.inc.c"
 
-static void func_actor_342400_8016AE24(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable3   sp;
+/// A further copy, under this file's own name.
+#define madChaserWalkState      func_actor_342400_8016AE24
+#define gMadChaserWalkSteps     D_actor_342400_80161FB4
+#define madChaserTakeHitRequest madChaserJoinAlert
+#include "../../shared/mad_chaser_walk_state.inc.c"
+#undef madChaserWalkState
+#undef gMadChaserWalkSteps
+#undef madChaserTakeHitRequest
 
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161FB4;
-    if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
-        sp.funcs[(s16)work->field_422](arg0);
-    }
-}
-
-static void func_actor_342400_8016AEAC(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable3   sp;
-
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161FC0;
-    if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
-        sp.funcs[(s16)work->field_422](arg0);
-    }
-}
+/// A further copy, under this file's own name.
+#define madChaserWalkState      func_actor_342400_8016AEAC
+#define gMadChaserWalkSteps     D_actor_342400_80161FC0
+#define madChaserTakeHitRequest madChaserJoinAlert
+#include "../../shared/mad_chaser_walk_state.inc.c"
+#undef madChaserWalkState
+#undef gMadChaserWalkSteps
+#undef madChaserTakeHitRequest
 
 #include "../../shared/mad_chaser_lurk_rise_state.inc.c"
 
-static void func_actor_342400_8016AFA8(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable3   sp;
+#include "../../shared/mad_chaser_lurk_alert_state.inc.c"
 
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161FCC;
-    if ((madChaserJoinAlert(arg0) << 0x10) != 0) {
-        work->field_438 = 0;
-        return;
-    }
-    sp.funcs[(s16)work->field_422](arg0);
-}
-
-/// Runs the sub-state handler for `field_422` from a four-entry table.
-static void func_actor_342400_8016B038(Task* arg0)
-{
-    Actor341700Work* work;
-    TaskFuncTable4   sp;
-
-    work = (Actor341700Work*)arg0->work;
-    sp   = D_actor_342400_80161FD8;
-    sp.funcs[(s16)work->field_422](arg0);
-}
+/// A further copy, under this file's own name.
+#define madChaserDangleState  func_actor_342400_8016B038
+#define gMadChaserDangleSteps D_actor_342400_80161FD8
+#include "../../shared/mad_chaser_dangle_state.inc.c"
+#undef madChaserDangleState
+#undef gMadChaserDangleSteps
 
 #include "../../shared/mad_chaser_start_hold.inc.c"
 
@@ -1704,17 +1231,7 @@ static void func_actor_342400_8016B038(Task* arg0)
 
 #include "../../shared/mad_chaser_lurk_raise.inc.c"
 
-/// Requests animation 0xF and advances the sub-state.
-void madChaserLurkRiseStart(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-
-    work->field_426 = 4;
-    work->field_41C = 0x10;
-    work->field_418 = 0xF;
-    work->field_414 = 1;
-    work->field_422 = work->field_422 + 1;
-}
+#include "../../shared/mad_chaser_lurk_rise_start.inc.c"
 
 #include "../../shared/mad_chaser_lurk_rise_end.inc.c"
 
@@ -1764,14 +1281,9 @@ static void func_actor_342400_8016BBD0(Task* arg0)
 
 #include "../../shared/mad_chaser_shrink.inc.c"
 
-static void func_actor_342400_8016BED8(Task* arg0)
-{
-    Actor341700Work* work;
-
-    work            = (Actor341700Work*)arg0->work;
-    arg0->state     = 5;
-    work->field_420 = 0;
-    work->field_422 = 0;
-}
+/// A further copy, under this file's own name.
+#define madChaserStartDespawn func_actor_342400_8016BED8
+#include "../../shared/mad_chaser_start_despawn.inc.c"
+#undef madChaserStartDespawn
 
 #include "../../shared/mad_chaser_take_knockdown_request.inc.c"

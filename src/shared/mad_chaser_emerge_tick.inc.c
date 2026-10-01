@@ -1,0 +1,36 @@
+/* Part of the Mad Chaser library; see mad_chaser.h. */
+
+/// Per-frame callback, the ten-state counterpart of
+/// `madChaserDeathTick`: in mode 0 a pending hit (`take_hit_nibble3`) replaces
+/// the state handler, and the root rotation is rebuilt from 0x78..0x7C before
+/// `madChaserApplyContacts`.
+void madChaserEmergeTick(Task* arg0)
+{
+    TmdObject*       obj   = arg0->extra.tmd;
+    Actor341700Work* work  = (Actor341700Work*)arg0->work;
+    GfxCoord*        coord = obj->coords;
+    TaskFuncTable10  sp    = gMadChaserEmergeStates;
+
+    switch (gSceneCombatState.actorControl) {
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            work->field_442++;
+            if (take_hit_nibble3(arg0) == 0) {
+                sp.funcs[(s16)work->field_420](arg0);
+            }
+            madChaserTickAnim(arg0);
+            update_rotation(arg0);
+            madChaserApplyContacts(arg0, 0);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            if (work->field_451 == 0) {
+                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+            }
+            return;
+    }
+}
