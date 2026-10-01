@@ -66,6 +66,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "overlay.h"
 
 /* The Odd Stranger's work block. The two builds differ by one member: the hit
  * effect offset at 0x8C0, which only actor_401000's build has
@@ -371,6 +372,31 @@ void oddStrangerGrab(Task* arg0);
 void oddStrangerGrabHold(Task* arg0);
 void oddStrangerStunned(Task* arg0);
 void oddStrangerTurnAround(Task* arg0);
+
+void oddStrangerChase(Task* arg0);
+void oddStrangerPatrol(Task* arg0);
+
+/// Whether the XZ offset `d` reaches at least `r`: `overlayOutOfRange` with
+/// the scratch cursor published before the squares.
+static __inline__ s32 oddStrangerOutOfRange(SVECTOR* d, s16 r)
+{
+    u8*                  head;
+    OverlayRangeScratch* blk;
+    s32                  ret;
+
+    head                                      = SCRATCH_STACK_CURSOR(u8);
+    blk                                       = (OverlayRangeScratch*)(head - 0xC);
+    ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = blk;
+    blk->dz                                   = d->vz;
+    blk->r                                    = r;
+    ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
+    blk->dz                                  *= blk->dz;
+    blk->r                                   *= blk->r;
+    SCRATCH_STACK_CURSOR(u8)                  = head;
+    ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
+    return ret;
+}
 
 /* Defined by each package. */
 s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count);

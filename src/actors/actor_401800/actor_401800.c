@@ -1118,10 +1118,8 @@ GpDelayArg D_actor_401800_80155AF8;
 
 static __inline__ void Actor401800_BindMatrices(Task* actor);
 static void            oddStrangerTakeHit(Task* arg0);
-static __inline__ s32  Actor401800_OutOfRange(SVECTOR* d, s16 r);
 static __inline__ s32  Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r);
 static void            func_actor_401800_80136560(Task* arg0);
-static void            oddStrangerChase(Task* arg0);
 static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECTOR* dir);
 static __inline__ void Actor401800_SetGrabAnim(void);
 static void            func_actor_401800_8013945C(Task* arg0);
@@ -1129,7 +1127,6 @@ static void            func_actor_401800_8013971C(Task* arg0);
 static void            func_actor_401800_80139870(Task* arg0);
 static void            func_actor_401800_801399C4(Task* arg0);
 static void            func_actor_401800_80139D60(Task* arg0);
-static void            oddStrangerPatrol(Task* arg0);
 static void            func_actor_401800_8013B784(Task* arg0);
 static void            func_actor_401800_8013BB10(Task* arg0);
 static void            oddStrangerWalkingDeath(Task* arg0);
@@ -1755,27 +1752,6 @@ s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
     return s->hit;
 }
 
-/// Nonzero when the XZ offset `d` lies outside radius `r`; squares in a scratch block.
-static __inline__ s32 Actor401800_OutOfRange(SVECTOR* d, s16 r)
-{
-    u8*                  head;
-    OverlayRangeScratch* blk;
-    s32                  ret;
-
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    blk                                       = (OverlayRangeScratch*)(head - 0xC);
-    ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = blk;
-    blk->dz                                   = d->vz;
-    blk->r                                    = r;
-    ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
-    blk->dz                                  *= blk->dz;
-    blk->r                                   *= blk->r;
-    SCRATCH_STACK_CURSOR(u8)                  = head;
-    ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
-    return ret;
-}
-
 static __inline__ s32 Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r)
 {
     u8*                  head;
@@ -1902,142 +1878,7 @@ static void func_actor_401800_80136560(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// Chase body that steers the actor along its own local Z while the step
-/// countdown runs: takes a 0x10 scratch for the player offset and the yaws, and
-/// on the live flag resets the model buffers, arms the walk state and seeds
-/// `field_C06` to 8. Otherwise it re-aims the actor at the player once
-/// `field_8` has run 7 frames, clamps the turn toward the player into
-/// `s->angle`, rebuilds the root coordinate at scale 0x1194 and steps the actor
-/// by `field_C04` (the step countdown, halved while `field_89A` is set, forced
-/// to 2 while `field_8` is live) while `detectPlayerOutOfReach` reports the
-/// path clear. `field_C06` then walks 8 -> -1 -> 0 against `field_8A2`, and at
-/// 0 the fifth `field_6` frame picks `field_0` from the yaw offset to the
-/// player. Same step ramp as `Actor01900_Fn04D14`, with the aim and the step
-/// helper inlined.
-static void oddStrangerChase(Task* arg0)
-{
-    OddStrangerWork*   work;
-    ActorChaseScratch* head;
-    ActorChaseScratch* s;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    GfxCoord*          facing;
-    s32                turn;
-    s32                diffPos;
-    s32                diffNeg;
-    s32                yaw;
-
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x96;
-        work->field_898        = 1;
-        work->field_89E        = 3;
-        work->field_89A        = 0;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
-        work->field_C06           = 8;
-        work->field_6             = 0;
-        work->field_8             = 0;
-        gOddStrangerChaseDistance = 0;
-        work->field_C24++;
-        return;
-    }
-    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
-    s                                       = head - 1;
-    arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
-    oddStrangerDrive(arg0);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 0) {
-        work->field_8++;
-    } else {
-        oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
-    }
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
-    if (work->field_8 >= 7) {
-        s->playerYaw  = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-        s->yaw        = ratan2(s->delta.vx, s->delta.vz) + 0x800;
-        s->yaw        = actorNormalizeYaw(s->yaw);
-        work->field_0 = 0x1A;
-    }
-    coord   = arg0->extra.tmd->coords;
-    s->turn = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    turn    = s->turn;
-    if (turn >= 0) {
-        diffPos = turn - 1000;
-        if (((diffPos < 0) ? -diffPos : diffPos) < 0x60) {
-            s->angle = s->turn - 1000;
-        } else if (diffPos > 0) {
-            s->angle = 0x60;
-        } else {
-            s->angle = -0x60;
-        }
-    } else {
-        diffNeg = turn + 1000;
-        if (((diffNeg < 0) ? -diffNeg : diffNeg) < 0x60) {
-            s->angle = s->turn + 1000;
-        } else if (diffNeg > 0) {
-            s->angle = 0x60;
-        } else {
-            s->angle = -0x60;
-        }
-    }
-    facing    = arg0->extra.tmd->coords;
-    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->angle, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    coord                                 = arg0->extra.tmd->coords;
-    work->field_8AE                       = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->field_C04                       = work->field_8A2 * 8;
-    if (work->field_89A != 0) {
-        work->field_C04 = work->field_C04 >> 1;
-    }
-    if (work->field_8 != 0) {
-        work->field_C04 = 2;
-    }
-    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->field_C04) != 0) {
-        actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_C04);
-    }
-    gOddStrangerChaseDistance += work->field_C04;
-    if (work->field_C06 == 8 && work->field_8A2 >= 0x18) {
-        work->field_C06 = -1;
-    }
-    if (work->field_C06 == -1 && work->field_8A2 == 0x12) {
-        work->field_C06 = 0;
-        work->field_6   = 0;
-    }
-    if (work->field_C06 == 0) {
-        if (++work->field_6 == 5) {
-            s->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                                  (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-            actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
-            s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
-            yaw    = actorNormalizeYaw(s->yaw);
-            s->yaw = yaw;
-            yaw    = yaw - s->playerYaw;
-            if (yaw < 0) {
-                yaw = -yaw;
-            }
-            if (yaw >= 0x401 && detectSightBlocked(arg0) != 1 && work->field_8CA == 0) {
-                work->field_0 = 0xB;
-            } else {
-                work->field_0 = 0x1A;
-                work->field_2 = -1;
-            }
-        }
-    }
-    work->field_8A2 += work->field_C06;
-    if (work->field_8CA != 0) {
-        work->field_8CA--;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
-}
+#include "../../shared/odd_stranger_chase.inc.c"
 
 #include "../../shared/odd_stranger_turn_around.inc.c"
 
@@ -2170,7 +2011,7 @@ static void func_actor_401800_801381E4(Task* arg0)
             ang = -ang;
         }
         if (ang < 0x20) {
-            if (!Actor401800_OutOfRange(&dir, 0x5DC)) {
+            if (!oddStrangerOutOfRange(&dir, 0x5DC)) {
                 Actor401800_SetGrabAnim();
                 D_actor_401800_80155AF8.field_14 = 8;
                 do {
@@ -2191,7 +2032,7 @@ static void func_actor_401800_801381E4(Task* arg0)
         dir.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         dir.vy = 0;
         dir.vz = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!Actor401800_OutOfRange(&dir, 0x578)) {
+        if (!oddStrangerOutOfRange(&dir, 0x578)) {
             VectorNormalSS(&dir, &dir);
             gte_lddp(0xA);
             gte_ldsv(&dir);
@@ -2450,7 +2291,7 @@ static void func_actor_401800_80139D60(Task* arg0)
     delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     d->vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (!Actor401800_OutOfRange(d, work->field_C16)) {
+    if (!oddStrangerOutOfRange(d, work->field_C16)) {
         work->field_0 = 6;
     }
     if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
@@ -2477,113 +2318,7 @@ static void func_actor_401800_80139D60(Task* arg0)
 
 #include "../../shared/odd_stranger_dormant.inc.c"
 
-/// Patrol state: walks toward the waypoint `field_14` selects, turning at most
-/// 0x18 per step and swapping waypoints once the waypoint is inside 0xA0 or
-/// `field_6` has run 0x15 frames. The turn is folded into the root coordinate,
-/// which is rebuilt at scale 0x1194, and the actor steps 7 units along its own
-/// local Z while `detectPlayerOutOfReach` reports the path clear. The
-/// `field_A30` / `field_8F0` contact records then decide whether `field_6`
-/// counts up or `oddStrangerPushContacts` re-seeds them. In the tail the
-/// `gPlayerStatus` offset arms state 6 within `field_C16`, or within 0xFA0 when
-/// the aim toward the player is under 0x300. Same body as
-/// `Actor01900_Fn06F40` / `func_actor_401300_80139AB0`, with the aim and step
-/// helpers inlined. The waypoint delta is written twice; the retail build keeps
-/// both sets of stores.
-static void oddStrangerPatrol(Task* arg0)
-{
-    OddStrangerWork*  work;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    GfxCoord*         facing;
-    ActorTurnScratch* s;
-
-    work = arg0->work;
-    if (work->field_4 != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        Tmd_AllocBuffers(obj);
-        work->field_8D0.radius = 0x12C;
-        work->field_898        = 1;
-        work->field_8A2        = 0x10;
-        work->field_89E        = 2;
-        work->field_89A        = 0;
-        work->field_B50.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A10.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
-        work->field_6 = 0;
-        if ((arg0->spawnArg1.value >> 16) == 0x10) {
-            work->field_8D0.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        }
-        return;
-    }
-    SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    s           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    s->delta.vx = work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0];
-    s->delta.vy = 0;
-    s->delta.vz = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
-    s->delta.vx = work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0];
-    s->delta.vy = 0;
-    s->delta.vz = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!Actor401800_OutOfRange(&s->delta, 0xA0) || work->field_6 >= 0x15) {
-        if (work->field_14 == 0) {
-            work->field_14 = 1;
-        } else {
-            work->field_14 = 0;
-        }
-        work->field_6 = 0;
-    }
-    oddStrangerDrive(arg0);
-    coord           = arg0->extra.tmd->coords;
-    s->angle        = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    work->field_8AE = s->angle;
-    if (s->angle > 0x18) {
-        s->angle = 0x18;
-    }
-    if (s->angle < -0x18) {
-        s->angle = -0x18;
-    }
-    facing    = arg0->extra.tmd->coords;
-    s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->angle, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
-    if (work->field_89A == 0 && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 7) != 0) {
-        actorStepForward(arg0->extra.tmd->coords, 7);
-    }
-    if ((arg0->spawnArg1.value >> 16) != 0x10) {
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1 &&
-            ABS(work->field_8AE) < 0x80) {
-            work->field_6++;
-        } else {
-            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
-        }
-    } else {
-        if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1 ||
-             ActorContact_PushContact(arg0->extra.tmd->coords, work->field_8F0, 0xC) == 1) &&
-            ABS(work->field_8AE) < 0x80) {
-            work->field_6++;
-        } else {
-            oddStrangerPushContacts(arg0, work->field_8F0, 0xC);
-        }
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (detectSightBlocked(arg0) != 1) {
-        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
-        if (!Actor401800_OutOfRange(&s->delta, work->field_C16)) {
-            work->field_0 = 6;
-        } else if (!Actor401800_OutOfRange(&s->delta, 0xFA0)) {
-            coord    = arg0->extra.tmd->coords;
-            s->angle = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-            if (ABS(s->angle) < 0x300) {
-                work->field_0 = 6;
-            }
-        }
-    }
-    if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_ATTACK_MASK) {
-        work->field_0 = 6;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
-}
+#include "../../shared/odd_stranger_patrol.inc.c"
 
 #include "../../shared/odd_stranger_advance.inc.c"
 
@@ -2874,7 +2609,7 @@ static void oddStrangerStalk(Task* arg0)
                                             ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = s->turn;
         if (s->turn < 0x200) {
-            if (!Actor401800_OutOfRange(&s->delta, 0x44C) && work->field_8CA == 0) {
+            if (!oddStrangerOutOfRange(&s->delta, 0x44C) && work->field_8CA == 0) {
                 work->field_0 = 0xB;
             }
         }

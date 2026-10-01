@@ -54,7 +54,7 @@ void oddStrangerTurnAround(Task* arg0)
     oddStrangerDrive(arg0);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     if (work->field_C00 == work->field_C02) {
-        if (work->field_C24 < 2 || overlayOutOfRange(&aim->delta, 0x384)
+        if (work->field_C24 < 2 || oddStrangerOutOfRange(&aim->delta, 0x384)
 #if ODD_STRANGER_SIGHT_TEST
             || detectSightBlocked(arg0) == 1
 #endif

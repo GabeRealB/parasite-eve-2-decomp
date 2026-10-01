@@ -48,7 +48,7 @@ void oddStrangerDormant(Task* arg0)
     delta.vx        = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     d->vy           = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (!overlayOutOfRange(d, work->field_C16)) {
+    if (!oddStrangerOutOfRange(d, work->field_C16)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         Gp_ArmStateF0(1);
         work->field_0 = 6;
