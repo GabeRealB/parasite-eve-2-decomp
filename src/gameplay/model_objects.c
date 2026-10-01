@@ -201,17 +201,21 @@ static u32* func_8009AC58(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
             : "$12", "$13", "$14", "$15", "$16", "memory");                                                           \
     } while (0)
 
-/// Stores the signed screen-space facing area of a projected flat triangle.
+/// Stores the signed screen-space area used to test a flat triangle's winding.
 ///
-/// `packet` supplies three word-aligned packed XY pairs; `result` addresses
-/// one writable s32. Pushes the pairs into SXY0..SXY2 and clobbers MAC0/FLAG.
-static inline void _tmdStoreFlatTriangleFacing(POLY_F3* packet, s32* result)
+/// Reads the three word-aligned packed XY pairs from `packet` in vertex order;
+/// their signed halves are pixel coordinates. `facingArea` must address one
+/// word-aligned writable s32 and receives NCLIP's signed double area in square
+/// pixels. Negative values pass the flat-triangle draw handler's facing test.
+/// All coordinate reads precede the result store, so the buffers may overlap.
+/// Performs no projection or clipping. Replaces SXY0..SXY2 and clobbers MAC0/FLAG.
+static inline void _tmdStoreFlatTriangleFacing(const POLY_F3* packet, s32* facingArea)
 {
-    gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 0));
-    gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 1));
-    gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 2));
+    gte_ldSXYP(*(const u32*)&packet->x0);
+    gte_ldSXYP(*(const u32*)&packet->x1);
+    gte_ldSXYP(*(const u32*)&packet->x2);
     gte_nclip();
-    gte_stopz(result);
+    gte_stopz(facingArea);
 }
 
 static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2)
