@@ -7,11 +7,8 @@ void desertChaserSteer(Task* arg0)
 #else
 #endif
     DesertChaserWork* work;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
-    Enemy* enemy;
-#endif
-    TmdObject* obj;
+    Enemy*            enemy;
+    TmdObject*        obj;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 #else
     GfxCoord*            coord;
@@ -27,17 +24,10 @@ void desertChaserSteer(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
-        enemy = arg0->spawnArg2.pointer;
-#endif
-        obj = arg0->extra.tmd;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+        enemy                                                     = arg0->spawnArg2.pointer;
+        obj                                                       = arg0->extra.tmd;
         ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-#else
-        enemy->node.state.parts.flags = 0;
-#endif
-        obj->flags = 0;
+        obj->flags                                                = 0;
         Tmd_AllocBuffers(obj);
         work->objs[0].obj.radius = 0x19C;
         work->field_828          = 2;

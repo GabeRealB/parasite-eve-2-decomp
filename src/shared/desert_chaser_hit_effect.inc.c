@@ -9,13 +9,9 @@ void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2)
     s32               mag;
     DesertChaserWork* work;
 
-    sc  = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    mag = (arg1 >= 0) ? arg1 : -arg1;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
+    mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = (DesertChaserWork*)((DesertChaserWork*)arg0->work);
-#else
-    work = arg0->work;
-#endif
     if (mag < 0x200) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
@@ -35,11 +31,7 @@ void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2)
                 *sc = gDesertChaserHitOffsets[4];
                 break;
         }
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     } else if (mag > 0x600) {
-#else
-    } else if (mag >= 0x601) {
-#endif
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:

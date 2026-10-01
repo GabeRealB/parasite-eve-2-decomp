@@ -52,21 +52,13 @@ void desertChaserApproach(Task* arg0)
         work->capsuleBody.shape.ends[1].vz = 0x26C;
         return;
     }
-    head    = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    scratch = (SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    move = (DesertChaserWork*)work;
-#else
-    move = work;
-#endif
+    head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    scratch           = (SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1);
+    move              = (DesertChaserWork*)work;
     head[-1].delta.vx = move->field_C[move->field_14].x - arg0->extra.tmd->coords->coord.t[0];
     scratch->delta.vy = 0;
     scratch->delta.vz = move->field_C[move->field_14].z - arg0->extra.tmd->coords->coord.t[2];
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    if (!actorOutsideRadius(&scratch->delta, 0xA0) || work->field_6 >= 0x15) {
-#else
     if (!actorOutsideRadius(&scratch->delta, 0xA0) || (s16)work->field_6 >= 0x15) {
-#endif
         if (move->field_14 == 0)
             move->field_14 = 1;
         else
@@ -107,11 +99,7 @@ void desertChaserApproach(Task* arg0)
 #endif
         magnitude = abs((s16)work->field_840);
         if (magnitude < 0x80)
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
             work->field_6 = (u16)work->field_6 + 1;
-#else
-            work->field_6 = work->field_6 + 1;
-#endif
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR

@@ -43,25 +43,16 @@ void desertChaserPursue(Task* arg0)
     s16 temp_s0_18;
 #endif
     s16 temp_s0_22;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 
-#else
-#endif
     s16 temp_s0_6;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 #else
     s16 temp_s0_9;
 #endif
     s16 temp_v0_4;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 
-#else
-#endif
     s32 temp_v1_3;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 
-#else
-#endif
     s32 var_v0_19;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     s16 var_v0_21;
@@ -75,10 +66,7 @@ void desertChaserPursue(Task* arg0)
 #endif
     s32 var_v0_30;
     s32 var_v0_31;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 
-#else
-#endif
     s16 var_v1_2;
     s16 var_v1_4;
     s16 var_v1_5;
@@ -110,15 +98,9 @@ void desertChaserPursue(Task* arg0)
 #else
 #endif
     s32 temp_v0;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 
-#else
-#endif
     s32 spawnEffect;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 
-#else
-#endif
     s32 var_a1_4;
     s32 effectFlags;
     s32 effectJoint;
@@ -187,11 +169,7 @@ void desertChaserPursue(Task* arg0)
     if (work->field_4 != 0) {
         obj              = arg0->extra.tmd;
         initialDelta.pad = actorPositionYaw(arg0, &initialDelta, config);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        temp_v0 = (s16)initialDelta.pad;
-#else
-        temp_v0 = initialDelta.pad;
-#endif
+        temp_v0          = (s16)initialDelta.pad;
         if (temp_v0 > 0x300) {
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
             work->field_0 = 8;
@@ -213,41 +191,24 @@ void desertChaserPursue(Task* arg0)
         work->field_828          = 1;
         work->field_82A          = 0;
         work->field_83E          = 0;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-#else
-        work->objs[2].obj.flags = (u16)(work->objs[2].obj.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-#endif
-        work->field_832 = work->field_834;
+        work->field_832          = work->field_834;
         desertChaserArmedAnimTick(arg0);
         work->capsuleBody.shape.ends[1].vz = 0x320;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        work->field_6 = 0;
-        work->field_8 = 0;
-#else
-        work->field_6 = 0U;
-        work->field_8 = 0U;
-#endif
-        work->distance                    = 0;
-        work->field_840                   = 0;
-        work->broadcast.context.loc.stage = 9;
-        work->broadcast.context.loc.area  = 1;
-        work->broadcast.command           = 1;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+        work->field_6                      = 0;
+        work->field_8                      = 0;
+        work->distance                     = 0;
+        work->field_840                    = 0;
+        work->broadcast.context.loc.stage  = 9;
+        work->broadcast.context.loc.area   = 1;
+        work->broadcast.command            = 1;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, (&work->broadcast), ACTOR_COMMAND_MESSAGE_APPLY);
 
-#else
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->broadcast, ACTOR_COMMAND_MESSAGE_APPLY);
-#endif
         return;
     }
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFacingScratch);
     if (work->field_82E == 3) {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
         work->field_6 += 1;
-#else
-        work->field_6 = (u16)(work->field_6 + 1);
-#endif
     }
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 
@@ -259,25 +220,16 @@ void desertChaserPursue(Task* arg0)
         scratch->distanceSquared = distanceSquared;
         scratch->distanceSquared = (u32)(distanceSquared + (ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz));
         temp_s0_4                = arg0->extra.tmd->coords;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        temp_s0_5 = ratan2((s32)ActorContact_ScratchPosition.vx, (s32)ActorContact_ScratchPosition.vz);
-        temp_s0_6 = temp_s0_5 - ratan2((s32)-temp_s0_4->coord.m[2][0], (s32)temp_s0_4->coord.m[2][2]);
-#else
-        temp_s0_5 = ratan2(ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
-        temp_s0_6 = temp_s0_5 - ratan2(-temp_s0_4->coord.m[2][0], temp_s0_4->coord.m[2][2]);
-
-#endif
-        var_v1_2 = actorNormalizeYaw(temp_s0_6);
-        var_v0_5 = var_v1_2 << 0x10;
+        temp_s0_5                = ratan2((s32)ActorContact_ScratchPosition.vx, (s32)ActorContact_ScratchPosition.vz);
+        temp_s0_6                = temp_s0_5 - ratan2((s32)-temp_s0_4->coord.m[2][0], (s32)temp_s0_4->coord.m[2][2]);
+        var_v1_2                 = actorNormalizeYaw(temp_s0_6);
+        var_v0_5                 = var_v1_2 << 0x10;
 
         var_v0_6 = var_v0_5 >> 0x10;
         if (var_v0_6 < 0) {
             var_v0_6 = -var_v0_6;
         }
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 
-#else
-#endif
         if ((var_v0_6 >= 0x601) && ((u32)scratch->distanceSquared >= 0xE11U)) {
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
             if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && Actor00100_InRegion(arg0)) {
@@ -299,27 +251,15 @@ void desertChaserPursue(Task* arg0)
     if ((desertChaserAvoidWalk(arg0->extra.tmd->coords, work->objs[0].contacts, 0xC, (SVECTOR*)scratch) << 0x10) != 0) {
 #endif
         if ((work->field_82E == 3) && (playerWork->mode != GAME_ACTOR_MODE_SCRIPTED)) {
-            work->queryMode = 0x80;
-            temp_a1_2       = arg0->extra.tmd->coords;
-            scratch->vx     = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a1_2->coord.t[0]);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-            scratch->vy = gPlayerStatus.coordMtx->t[1] - temp_a1_2->coord.t[1];
-#else
-            scratch->vy = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a1_2->coord.t[1]);
-#endif
-            temp_v0_4   = gPlayerStatus.coordMtx->t[2] - temp_a1_2->coord.t[2];
-            scratch->vz = temp_v0_4;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
+            work->queryMode     = 0x80;
+            temp_a1_2           = arg0->extra.tmd->coords;
+            scratch->vx         = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a1_2->coord.t[0]);
+            scratch->vy         = gPlayerStatus.coordMtx->t[1] - temp_a1_2->coord.t[1];
+            temp_v0_4           = gPlayerStatus.coordMtx->t[2] - temp_a1_2->coord.t[2];
+            scratch->vz         = temp_v0_4;
             scratch->contactYaw = ratan2((s32)scratch->vx, (s32)temp_v0_4);
-#else
-            scratch->contactYaw = ratan2(scratch->vx, temp_v0_4);
-#endif
-            temp_v0_5 = arg0->extra.tmd->coords;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-            temp_v1_2 = scratch->contactYaw - ratan2((s32)-temp_v0_5->coord.m[2][0], (s32)temp_v0_5->coord.m[2][2]);
-#else
-            temp_v1_2 = scratch->contactYaw - ratan2(-temp_v0_5->coord.m[2][0], temp_v0_5->coord.m[2][2]);
-#endif
+            temp_v0_5           = arg0->extra.tmd->coords;
+            temp_v1_2           = scratch->contactYaw - ratan2((s32)-temp_v0_5->coord.m[2][0], (s32)temp_v0_5->coord.m[2][2]);
             var_a0              = temp_v1_2;
             scratch->contactYaw = temp_v1_2;
 
@@ -337,11 +277,7 @@ void desertChaserPursue(Task* arg0)
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, work->replyBuf, 0) == 0) {
 #endif
                     Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-                    temp_v0_6 = ratan2((s32)scratch->vx, (s32)scratch->vz) + 0x800;
-#else
-                    temp_v0_6 = ratan2(scratch->vx, scratch->vz) + 0x800;
-#endif
+                    temp_v0_6           = ratan2((s32)scratch->vx, (s32)scratch->vz) + 0x800;
                     var_v1_3            = temp_v0_6;
                     scratch->contactYaw = temp_v0_6;
 
@@ -402,11 +338,7 @@ void desertChaserPursue(Task* arg0)
                     work->playerPlacement.pos.vx = (s32)player->extra.tmd->coords->coord.t[0];
                     work->playerPlacement.pos.vy = (s32)player->extra.tmd->coords->coord.t[1];
                     work->playerPlacement.pos.vz = (s32)player->extra.tmd->coords->coord.t[2];
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
                     TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, (&work->playerPlacement), 0);
-#else
-                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &work->playerPlacement, 0);
-#endif
                     if (work->distance < 0x3E8) {
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
 #else
@@ -496,11 +428,7 @@ void desertChaserPursue(Task* arg0)
             }
             temp_a2_2   = arg0->extra.tmd->coords;
             scratch->vx = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a2_2->coord.t[0]);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
             scratch->vy = gPlayerStatus.coordMtx->t[1] - temp_a2_2->coord.t[1];
-#else
-            scratch->vy = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a2_2->coord.t[1]);
-#endif
             temp_a1_3   = gPlayerStatus.coordMtx->t[2] - temp_a2_2->coord.t[2];
             scratch->vz = temp_a1_3;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
@@ -524,11 +452,7 @@ void desertChaserPursue(Task* arg0)
     updatePlayerYaw:
         temp_a2_3   = arg0->extra.tmd->coords;
         scratch->vx = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a2_3->coord.t[0]);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
         scratch->vy = gPlayerStatus.coordMtx->t[1] - temp_a2_3->coord.t[1];
-#else
-        scratch->vy = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a2_3->coord.t[1]);
-#endif
         temp_a1_4   = gPlayerStatus.coordMtx->t[2] - temp_a2_3->coord.t[2];
         scratch->vz = temp_a1_4;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
@@ -559,22 +483,12 @@ void desertChaserPursue(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     temp_s0_20                            = arg0->extra.tmd->coords;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    temp_s0_21 = ratan2((s32)work->playerDelta.vx, (s32)work->playerDelta.vz);
-    temp_s0_22 = temp_s0_21 - ratan2((s32)-temp_s0_20->coord.m[2][0], (s32)temp_s0_20->coord.m[2][2]);
-#else
-    temp_s0_21 = ratan2(work->playerDelta.vx, work->playerDelta.vz);
-    temp_s0_22 = temp_s0_21 - ratan2(-temp_s0_20->coord.m[2][0], temp_s0_20->coord.m[2][2]);
-
-#endif
-    var_v1_8 = actorNormalizeYaw(temp_s0_22);
+    temp_s0_21                            = ratan2((s32)work->playerDelta.vx, (s32)work->playerDelta.vz);
+    temp_s0_22                            = temp_s0_21 - ratan2((s32)-temp_s0_20->coord.m[2][0], (s32)temp_s0_20->coord.m[2][2]);
+    var_v1_8                              = actorNormalizeYaw(temp_s0_22);
 
     scratch->turnYaw = var_v1_8;
     desertChaserArmedAnimTick(arg0);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
-    var_a1_4 = 0;
-#endif
     if (work->field_82E == 2) {
         if (scratch->turnYaw >= 0x41) {
             scratch->turnYaw = 0x40;
@@ -582,18 +496,10 @@ void desertChaserPursue(Task* arg0)
         if (scratch->turnYaw < -0x40) {
             scratch->turnYaw = -0x40;
         }
-        temp_v0_7 = arg0->extra.tmd->coords;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        temp_a1_5 = (u16)scratch->turnYaw + ratan2((s32)-temp_v0_7->coord.m[2][0], (s32)temp_v0_7->coord.m[2][2]);
-#else
-        temp_a1_5 = (u16)scratch->turnYaw + ratan2(-temp_v0_7->coord.m[2][0], temp_v0_7->coord.m[2][2]);
-#endif
+        temp_v0_7        = arg0->extra.tmd->coords;
+        temp_a1_5        = (u16)scratch->turnYaw + ratan2((s32)-temp_v0_7->coord.m[2][0], (s32)temp_v0_7->coord.m[2][2]);
         scratch->turnYaw = temp_a1_5;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)temp_a1_5, 1);
-#else
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, temp_a1_5, 1);
-#endif
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
         var_a1_4 = desertChaserCapsuleTouchesGrid(arg0);
@@ -619,17 +525,9 @@ void desertChaserPursue(Task* arg0)
 #endif
     }
     if (work->field_82E == 2) {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
         work->field_8 = (u16)work->field_8 + 1;
-#else
-        work->field_8 = (u16)(work->field_8 + 1);
-#endif
     }
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    if (work->field_8 > work->poseVy) {
-#else
     if (work->field_8 > (s16)work->poseVy) {
-#endif
         temp_v1_3 = work->field_82E;
         if (temp_v1_3 == 2) {
             var_v0_30 = scratch->targetYaw;
@@ -638,12 +536,8 @@ void desertChaserPursue(Task* arg0)
             }
             if ((var_v0_30 < 0x80) || (work->slots[1].flags & 0x100)) {
                 work->field_82E = 3;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
                 work->field_828 = (u16)temp_v1_3;
-#else
-                work->field_828 = temp_v1_3;
-#endif
-                pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+                pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
                 SndEvt_EnqueueType6(0x40010006, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
                 work->broadcast.context.loc.stage = 9;

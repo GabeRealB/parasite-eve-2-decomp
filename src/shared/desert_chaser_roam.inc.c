@@ -2,11 +2,8 @@
 
 void desertChaserRoam(Task* arg0)
 {
-    s32 radius = 0x5DC;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    Enemy* ctx;
-#else
-#endif
+    s32                    radius = 0x5DC;
+    Enemy*                 ctx;
     DesertChaserWork*      work;
     WorldCollisionContact* record;
     GfxCoord*              coord;
@@ -58,10 +55,7 @@ void desertChaserRoam(Task* arg0)
     s32                    yawDifference;
     u16                    unsignedDelta;
     work = arg0->work;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    ctx = arg0->spawnArg2.pointer;
-#else
-#endif
+    ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
         head    = SCRATCH_STACK_CURSOR(ActorMoveScratch);
         obj     = arg0->extra.tmd;
@@ -140,11 +134,7 @@ void desertChaserRoam(Task* arg0)
     target              = &head2[-1].target;
     target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    if (!actorOutsideRadius(&scratch->vec, 0xA0) || work->field_6 >= 0x15) {
-#else
     if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
-#endif
         facing2  = arg0->extra.tmd->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
         delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
@@ -223,11 +213,7 @@ void desertChaserRoam(Task* arg0)
     unsignedDelta     = (u16)scratch->delta;
     magnitude         = abs(scratch->delta);
     if (magnitude >= 0x601) {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        targetDelta = work->field_840;
-#else
-        targetDelta = (s16)work->field_840;
-#endif
+        targetDelta     = work->field_840;
         targetMagnitude = abs(targetDelta);
         if ((targetMagnitude >= 0x101) && ((targetDelta * delta) < 0)) {
             adjustedDelta = unsignedDelta - 0x1000;

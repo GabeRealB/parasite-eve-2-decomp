@@ -32,10 +32,7 @@ void desertChaserSpawnAim(Task* arg0)
     s32 sound;
     s32 pan;
     s32 eventPan;
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-#else
     s32 state;
-#endif
     u16 tick;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     Task* player;
@@ -97,11 +94,7 @@ void desertChaserSpawnAim(Task* arg0)
     tick          = work->field_6 + 1;
     work->field_6 = tick;
     if (((s16)tick == 0xF) && (work->poseId == 7)) {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        sound = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000A;
-#else
-        sound = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000A;
-#endif
+        sound    = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000A;
         eventPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, (s32)eventPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {

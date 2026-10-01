@@ -2,10 +2,7 @@
 
 void desertChaserFlinch(Task* arg0)
 {
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-    Enemy* ctx;
-#else
-#endif
+    Enemy*            ctx;
     DesertChaserWork* work;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
     TmdObject* obj;
