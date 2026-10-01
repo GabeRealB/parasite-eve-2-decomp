@@ -300,23 +300,23 @@ extern AnimationSet D_actor_105100_80140B44;
 extern AnimationSet D_actor_105100_80141358;
 
 TmdBone D_actor_105100_801367CC[19] = {
-#include "assets/stinger_brain_puppet_body_skeleton.inc"
+#include "assets/stinger_body_skeleton.inc"
 };
 
 u32 D_actor_105100_80136A78[19] = {
-#include "assets/stinger_brain_puppet_body_partVerts.inc"
+#include "assets/stinger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_105100_80136AC4[250] = {
-#include "assets/stinger_brain_puppet_body_verts.inc"
+#include "assets/stinger_body_verts.inc"
 };
 
 SVECTOR D_actor_105100_80137294[257] = {
-#include "assets/stinger_brain_puppet_body_normals.inc"
+#include "assets/stinger_body_normals.inc"
 };
 
 u32 D_actor_105100_80137A9C[3520] = {
-#include "assets/stinger_brain_puppet_body_stream.inc"
+#include "assets/stinger_body_stream.inc"
 };
 
 TmdSource D_actor_105100_8013B19C = {

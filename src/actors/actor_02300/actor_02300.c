@@ -193,23 +193,23 @@ TmdSource Actor02300_D08E50 = {
 };
 
 TmdBone Actor02300_D08E74[1] = {
-#include "assets/golem_pawn_rook_beam_sword_skeleton.inc"
+#include "assets/golem_beam_sword_skeleton.inc"
 };
 
 u32 Actor02300_D08E98[1] = {
-#include "assets/golem_pawn_rook_beam_sword_partVerts.inc"
+#include "assets/golem_beam_sword_partVerts.inc"
 };
 
 SVECTOR Actor02300_D08E9C[29] = {
-#include "assets/golem_pawn_rook_beam_sword_verts.inc"
+#include "assets/golem_beam_sword_verts.inc"
 };
 
 SVECTOR Actor02300_D08F84[24] = {
-#include "assets/golem_pawn_rook_beam_sword_normals.inc"
+#include "assets/golem_beam_sword_normals.inc"
 };
 
 u32 Actor02300_D09044[212] = {
-#include "assets/golem_pawn_rook_beam_sword_stream.inc"
+#include "assets/golem_beam_sword_stream.inc"
 };
 
 TmdSource Actor02300_D09394 = {

@@ -272,23 +272,23 @@ TmdSource Actor01900_D102C8 = {
 };
 
 TmdBone Actor01900_D102EC[3] = {
-#include "assets/stranger_grinning_odd_burst_hand_skeleton.inc"
+#include "assets/stranger_burst_hand_skeleton.inc"
 };
 
 u32 Actor01900_D10358[3] = {
-#include "assets/stranger_grinning_odd_burst_hand_partVerts.inc"
+#include "assets/stranger_burst_hand_partVerts.inc"
 };
 
 SVECTOR Actor01900_D10364[33] = {
-#include "assets/stranger_grinning_odd_burst_hand_verts.inc"
+#include "assets/stranger_burst_hand_verts.inc"
 };
 
 SVECTOR Actor01900_D1046C[45] = {
-#include "assets/stranger_grinning_odd_burst_hand_normals.inc"
+#include "assets/stranger_burst_hand_normals.inc"
 };
 
 u32 Actor01900_D105D4[357] = {
-#include "assets/stranger_grinning_odd_burst_hand_stream.inc"
+#include "assets/stranger_burst_hand_stream.inc"
 };
 
 TmdSource Actor01900_D10B68 = {

@@ -276,23 +276,23 @@ void                Actor00300_Fn05138(Task*);
 void                Actor00300_Fn0521C(Task*);
 
 TmdBone Actor00300_D054B4[19] = {
-#include "assets/stinger_brain_puppet_body_skeleton.inc"
+#include "assets/stinger_body_skeleton.inc"
 };
 
 u32 Actor00300_D05760[19] = {
-#include "assets/stinger_brain_puppet_body_partVerts.inc"
+#include "assets/stinger_body_partVerts.inc"
 };
 
 SVECTOR Actor00300_D057AC[250] = {
-#include "assets/stinger_brain_puppet_body_verts.inc"
+#include "assets/stinger_body_verts.inc"
 };
 
 SVECTOR Actor00300_D05F7C[257] = {
-#include "assets/stinger_brain_puppet_body_normals.inc"
+#include "assets/stinger_body_normals.inc"
 };
 
 u32 Actor00300_D06784[3520] = {
-#include "assets/stinger_brain_puppet_body_stream.inc"
+#include "assets/stinger_body_stream.inc"
 };
 
 TmdSource Actor00300_D09E84 = {

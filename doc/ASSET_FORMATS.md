@@ -833,11 +833,15 @@ The generated initializers a C unit includes for a model it owns
 (`build/include/assets/<name>_{skeleton,partVerts,verts,normals,stream}.inc`)
 take the same name, so a source reads `desert_chaser_body_stream.inc` and every
 package carrying the mesh shares one set of files. A model missing from the
-manifest stops the build until `dump_asset_db.py` adds it. A handful of streams
-are shared by meshes whose vertices differ (the Gray, Ivory and Zebra Stalkers'
-burst arms); the first keeps the name and each further one adds its package,
-or its record offset within one package (`tools/gen_model_inc.py`,
-`include_names`).
+manifest stops the build until `dump_asset_db.py` adds it.
+
+A model carried unchanged by several enemy types has a coarse name, the
+family's common word (`stalker_burst_torso`, `golem_beam_sword`,
+`stinger_body`), not every type's. A handful of streams are shared by meshes
+whose vertices differ (the Gray, Ivory and Zebra Stalkers' burst arms): those
+are not duplicates, so each version's includes take its own type's name
+(`gray_stalker_burst_arm_left`), and a second version within one package adds
+its record offset (`tools/gen_model_inc.py`, `include_names`).
 
 572 streams are located across 212 packages; SHA-1 dedup in the store collapses
 them to **298 unique** files, so 274 are meshes shared between packages. (Both

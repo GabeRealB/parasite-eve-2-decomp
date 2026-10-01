@@ -116,23 +116,23 @@ void                func_actor_311500_80163334(Task*);
 void                func_actor_311500_801636A0(Task*, s32, s32, u32*);
 
 TmdBone D_actor_311500_801636B4[19] = {
-#include "assets/stranger_boss_lesser_odd_body_skeleton.inc"
+#include "assets/stranger_body_skeleton.inc"
 };
 
 u32 D_actor_311500_80163960[19] = {
-#include "assets/stranger_boss_lesser_odd_body_partVerts.inc"
+#include "assets/stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_311500_801639AC[311] = {
-#include "assets/stranger_boss_lesser_odd_body_verts.inc"
+#include "assets/stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_311500_80164364[309] = {
-#include "assets/stranger_boss_lesser_odd_body_normals.inc"
+#include "assets/stranger_body_normals.inc"
 };
 
 u32 D_actor_311500_80164D0C[4027] = {
-#include "assets/stranger_boss_lesser_odd_body_stream.inc"
+#include "assets/stranger_body_stream.inc"
 };
 
 TmdSource D_actor_311500_80168BF8 = {

@@ -208,23 +208,23 @@ ActorSpawnParamRow D_actor_401000_8013E0AC[3] = {
 };
 
 TmdBone D_actor_401000_8013E0D0[19] = {
-#include "assets/stranger_boss_lesser_odd_body_skeleton.inc"
+#include "assets/stranger_body_skeleton.inc"
 };
 
 u32 D_actor_401000_8013E37C[19] = {
-#include "assets/stranger_boss_lesser_odd_body_partVerts.inc"
+#include "assets/stranger_body_partVerts.inc"
 };
 
 SVECTOR D_actor_401000_8013E3C8[311] = {
-#include "assets/stranger_boss_lesser_odd_body_verts.inc"
+#include "assets/stranger_body_verts.inc"
 };
 
 SVECTOR D_actor_401000_8013ED80[309] = {
-#include "assets/stranger_boss_lesser_odd_body_normals.inc"
+#include "assets/stranger_body_normals.inc"
 };
 
 u32 D_actor_401000_8013F728[4027] = {
-#include "assets/stranger_boss_lesser_odd_body_stream.inc"
+#include "assets/stranger_body_stream.inc"
 };
 
 TmdSource D_actor_401000_80143614 = {
@@ -240,23 +240,23 @@ TmdSource D_actor_401000_80143614 = {
 };
 
 TmdBone D_actor_401000_80143638[3] = {
-#include "assets/stranger_grinning_odd_burst_hand_skeleton.inc"
+#include "assets/stranger_burst_hand_skeleton.inc"
 };
 
 u32 D_actor_401000_801436A4[3] = {
-#include "assets/stranger_grinning_odd_burst_hand_partVerts.inc"
+#include "assets/stranger_burst_hand_partVerts.inc"
 };
 
 SVECTOR D_actor_401000_801436B0[33] = {
-#include "assets/stranger_grinning_odd_burst_hand_verts.inc"
+#include "assets/stranger_burst_hand_verts.inc"
 };
 
 SVECTOR D_actor_401000_801437B8[45] = {
-#include "assets/stranger_grinning_odd_burst_hand_normals.inc"
+#include "assets/stranger_burst_hand_normals.inc"
 };
 
 u32 D_actor_401000_80143920[357] = {
-#include "assets/stranger_grinning_odd_burst_hand_stream.inc"
+#include "assets/stranger_burst_hand_stream.inc"
 };
 
 TmdSource gOddStrangerBurstModelA = {

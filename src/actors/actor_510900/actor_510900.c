@@ -224,23 +224,23 @@ TmdSource D_actor_510900_80142480 = {
 };
 
 TmdBone D_actor_510900_801424A4[1] = {
-#include "assets/golem_no9_pawn_rook_grenade_skeleton.inc"
+#include "assets/golem_grenade_skeleton.inc"
 };
 
 u32 D_actor_510900_801424C8[1] = {
-#include "assets/golem_no9_pawn_rook_grenade_partVerts.inc"
+#include "assets/golem_grenade_partVerts.inc"
 };
 
 SVECTOR D_actor_510900_801424CC[12] = {
-#include "assets/golem_no9_pawn_rook_grenade_verts.inc"
+#include "assets/golem_grenade_verts.inc"
 };
 
 SVECTOR D_actor_510900_8014252C[28] = {
-#include "assets/golem_no9_pawn_rook_grenade_normals.inc"
+#include "assets/golem_grenade_normals.inc"
 };
 
 u32 D_actor_510900_8014260C[104] = {
-#include "assets/golem_no9_pawn_rook_grenade_stream.inc"
+#include "assets/golem_grenade_stream.inc"
 };
 
 TmdSource D_actor_510900_801427AC = {

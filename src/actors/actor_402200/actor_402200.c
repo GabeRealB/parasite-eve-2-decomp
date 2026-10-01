@@ -270,23 +270,23 @@ s32 gGolemKnightBishopStrikeCue = 0x40160010;
 s32 gGolemKnightBishopHoldCue = 0x40160011;
 
 TmdBone D_actor_402200_80138478[19] = {
-#include "assets/golem_bishop_knight_body_skeleton.inc"
+#include "assets/golem_body_skeleton.inc"
 };
 
 u32 D_actor_402200_80138724[19] = {
-#include "assets/golem_bishop_knight_body_partVerts.inc"
+#include "assets/golem_body_partVerts.inc"
 };
 
 SVECTOR D_actor_402200_80138770[363] = {
-#include "assets/golem_bishop_knight_body_verts.inc"
+#include "assets/golem_body_verts.inc"
 };
 
 SVECTOR D_actor_402200_801392C8[345] = {
-#include "assets/golem_bishop_knight_body_normals.inc"
+#include "assets/golem_body_normals.inc"
 };
 
 u32 D_actor_402200_80139D90[3985] = {
-#include "assets/golem_bishop_knight_body_stream.inc"
+#include "assets/golem_body_stream.inc"
 };
 
 TmdSource D_actor_402200_8013DBD4 = {

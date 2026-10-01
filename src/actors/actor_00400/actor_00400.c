@@ -442,23 +442,23 @@ void                Actor00400_Fn08354(Task*, s32, s32);
 void                Actor00400_Fn08948(Task*);
 
 TmdBone Actor00400_D0AB0C[15] = {
-#include "assets/diver_bog_sea_body_skeleton.inc"
+#include "assets/diver_body_skeleton.inc"
 };
 
 u32 Actor00400_D0AD28[15] = {
-#include "assets/diver_bog_sea_body_partVerts.inc"
+#include "assets/diver_body_partVerts.inc"
 };
 
 SVECTOR Actor00400_D0AD64[145] = {
-#include "assets/diver_bog_sea_body_verts.inc"
+#include "assets/diver_body_verts.inc"
 };
 
 SVECTOR Actor00400_D0B1EC[142] = {
-#include "assets/diver_bog_sea_body_normals.inc"
+#include "assets/diver_body_normals.inc"
 };
 
 u32 Actor00400_D0B65C[2494] = {
-#include "assets/diver_bog_sea_body_stream.inc"
+#include "assets/diver_body_stream.inc"
 };
 
 TmdSource Actor00400_D0DD54 = {
@@ -474,23 +474,23 @@ TmdSource Actor00400_D0DD54 = {
 };
 
 TmdBone Actor00400_D0DD78[1] = {
-#include "assets/diver_bog_sea_burst_head_skeleton.inc"
+#include "assets/diver_burst_head_skeleton.inc"
 };
 
 u32 Actor00400_D0DD9C[1] = {
-#include "assets/diver_bog_sea_burst_head_partVerts.inc"
+#include "assets/diver_burst_head_partVerts.inc"
 };
 
 SVECTOR Actor00400_D0DDA0[35] = {
-#include "assets/diver_bog_sea_burst_head_verts.inc"
+#include "assets/diver_burst_head_verts.inc"
 };
 
 SVECTOR Actor00400_D0DEB8[44] = {
-#include "assets/diver_bog_sea_burst_head_normals.inc"
+#include "assets/diver_burst_head_normals.inc"
 };
 
 u32 Actor00400_D0E018[360] = {
-#include "assets/diver_bog_sea_burst_head_stream.inc"
+#include "assets/diver_burst_head_stream.inc"
 };
 
 TmdSource Actor00400_D0E5B8 = {
@@ -506,23 +506,23 @@ TmdSource Actor00400_D0E5B8 = {
 };
 
 TmdBone Actor00400_D0E5DC[1] = {
-#include "assets/diver_bog_sea_burst_arm_right_skeleton.inc"
+#include "assets/diver_burst_arm_right_skeleton.inc"
 };
 
 u32 Actor00400_D0E600[1] = {
-#include "assets/diver_bog_sea_burst_arm_right_partVerts.inc"
+#include "assets/diver_burst_arm_right_partVerts.inc"
 };
 
 SVECTOR Actor00400_D0E604[14] = {
-#include "assets/diver_bog_sea_burst_arm_right_verts.inc"
+#include "assets/diver_burst_arm_right_verts.inc"
 };
 
 SVECTOR Actor00400_D0E674[24] = {
-#include "assets/diver_bog_sea_burst_arm_right_normals.inc"
+#include "assets/diver_burst_arm_right_normals.inc"
 };
 
 u32 Actor00400_D0E734[143] = {
-#include "assets/diver_bog_sea_burst_arm_right_stream.inc"
+#include "assets/diver_burst_arm_right_stream.inc"
 };
 
 TmdSource Actor00400_D0E970 = {
@@ -538,23 +538,23 @@ TmdSource Actor00400_D0E970 = {
 };
 
 TmdBone Actor00400_D0E994[1] = {
-#include "assets/diver_bog_sea_burst_arm_left_1_skeleton.inc"
+#include "assets/diver_burst_arm_left_1_skeleton.inc"
 };
 
 u32 Actor00400_D0E9B8[1] = {
-#include "assets/diver_bog_sea_burst_arm_left_1_partVerts.inc"
+#include "assets/diver_burst_arm_left_1_partVerts.inc"
 };
 
 SVECTOR Actor00400_D0E9BC[14] = {
-#include "assets/diver_bog_sea_burst_arm_left_1_verts.inc"
+#include "assets/diver_burst_arm_left_1_verts.inc"
 };
 
 SVECTOR Actor00400_D0EA2C[24] = {
-#include "assets/diver_bog_sea_burst_arm_left_1_normals.inc"
+#include "assets/diver_burst_arm_left_1_normals.inc"
 };
 
 u32 Actor00400_D0EAEC[143] = {
-#include "assets/diver_bog_sea_burst_arm_left_1_stream.inc"
+#include "assets/diver_burst_arm_left_1_stream.inc"
 };
 
 TmdSource Actor00400_D0ED28 = {
@@ -570,23 +570,23 @@ TmdSource Actor00400_D0ED28 = {
 };
 
 TmdBone Actor00400_D0ED4C[1] = {
-#include "assets/diver_bog_sea_burst_leg_right_skeleton.inc"
+#include "assets/diver_burst_leg_right_skeleton.inc"
 };
 
 u32 Actor00400_D0ED70[1] = {
-#include "assets/diver_bog_sea_burst_leg_right_partVerts.inc"
+#include "assets/diver_burst_leg_right_partVerts.inc"
 };
 
 SVECTOR Actor00400_D0ED74[19] = {
-#include "assets/diver_bog_sea_burst_leg_right_verts.inc"
+#include "assets/diver_burst_leg_right_verts.inc"
 };
 
 SVECTOR Actor00400_D0EE0C[33] = {
-#include "assets/diver_bog_sea_burst_leg_right_normals.inc"
+#include "assets/diver_burst_leg_right_normals.inc"
 };
 
 u32 Actor00400_D0EF14[210] = {
-#include "assets/diver_bog_sea_burst_leg_right_stream.inc"
+#include "assets/diver_burst_leg_right_stream.inc"
 };
 
 TmdSource Actor00400_D0F25C = {
@@ -602,23 +602,23 @@ TmdSource Actor00400_D0F25C = {
 };
 
 TmdBone Actor00400_D0F280[1] = {
-#include "assets/diver_bog_sea_burst_arm_left_2_skeleton.inc"
+#include "assets/diver_burst_arm_left_2_skeleton.inc"
 };
 
 u32 Actor00400_D0F2A4[1] = {
-#include "assets/diver_bog_sea_burst_arm_left_2_partVerts.inc"
+#include "assets/diver_burst_arm_left_2_partVerts.inc"
 };
 
 SVECTOR Actor00400_D0F2A8[19] = {
-#include "assets/diver_bog_sea_burst_arm_left_2_verts.inc"
+#include "assets/diver_burst_arm_left_2_verts.inc"
 };
 
 SVECTOR Actor00400_D0F340[33] = {
-#include "assets/diver_bog_sea_burst_arm_left_2_normals.inc"
+#include "assets/diver_burst_arm_left_2_normals.inc"
 };
 
 u32 Actor00400_D0F448[210] = {
-#include "assets/diver_bog_sea_burst_arm_left_2_stream.inc"
+#include "assets/diver_burst_arm_left_2_stream.inc"
 };
 
 TmdSource Actor00400_D0F790 = {
@@ -634,23 +634,23 @@ TmdSource Actor00400_D0F790 = {
 };
 
 TmdBone Actor00400_D0F7B4[1] = {
-#include "assets/diver_bog_sea_energy_ball_skeleton.inc"
+#include "assets/diver_energy_ball_skeleton.inc"
 };
 
 u32 Actor00400_D0F7D8[1] = {
-#include "assets/diver_bog_sea_energy_ball_partVerts.inc"
+#include "assets/diver_energy_ball_partVerts.inc"
 };
 
 SVECTOR Actor00400_D0F7DC[24] = {
-#include "assets/diver_bog_sea_energy_ball_verts.inc"
+#include "assets/diver_energy_ball_verts.inc"
 };
 
 SVECTOR Actor00400_D0F89C[25] = {
-#include "assets/diver_bog_sea_energy_ball_normals.inc"
+#include "assets/diver_energy_ball_normals.inc"
 };
 
 u32 Actor00400_D0F964[270] = {
-#include "assets/diver_bog_sea_energy_ball_stream.inc"
+#include "assets/diver_energy_ball_stream.inc"
 };
 
 TmdSource Actor00400_D0FD9C = {

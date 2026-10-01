@@ -69,18 +69,44 @@ def initializer(data: bytes, component: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _enemy_kinds() -> dict[str, set[str]]:
+    import re
+    root = Path(__file__).resolve().parents[1]
+    kinds: dict[str, set[str]] = {}
+    for block in (root / "configs/USA/enemies.toml").read_text().split("[[enemy]]")[1:]:
+        p = re.search(r'package = "([^"]+)"', block); n = re.search(r'name = "([^"]+)"', block)
+        if p and n:
+            kinds.setdefault(p.group(1), set()).add(n.group(1))
+    return kinds
+
+
+def owned(base: str, package: str) -> str:
+    """`base` for the one enemy type `package` carries: a stream shared by several
+    types' meshes is named coarsely (`stalker_burst_arm_left`), and each type's
+    own vertices take the type's name (`zebra_stalker_burst_arm_left`)."""
+    import re
+    slug = lambda t: re.sub(r"_+", "_", re.sub(r"[^a-z0-9]+", "_", t.lower())).strip("_")
+    ks = sorted(_enemy_kinds().get(package, ()))
+    if re.search(r"_model_[0-9A-F]{5}$", base):   # unnamed: keep the positional id
+        return base
+    if len(ks) != 1:
+        return f"{base}_{package}"
+    kind = slug(ks[0])
+    family = base.split("_")[0]
+    return kind + base[len(family):] if kind.endswith(family) or family in kind.split("_") else f"{kind}_{base}"
+
+
 def include_names(models: list[dict], read) -> dict[tuple[str, int], str]:
     """(package, record) -> the name its generated includes carry.
 
-    The name is the model's entry in the asset manifest. That entry is keyed by
-    the display stream's SHA-1, and a few streams are shared by meshes whose
-    vertices differ; the first such mesh keeps the name and each further one
-    adds its package (or, within one package, its record offset).
+    The name is the model's entry in the asset manifest, keyed by the display
+    stream's SHA-1. A few streams are shared by meshes whose vertices differ;
+    then each version takes the name of the enemy type carrying it (or keeps
+    the coarse name when several types carry that same version), and a second
+    version within one package adds its record offset.
     """
     import hashlib
-    names: dict[tuple[str, int], str] = {}
-    variants: dict[str, dict[str, str]] = {}
-    packages: dict[str, set[str]] = {}
+    rows = []
     for m in models:
         data = read(m["package"])
         base = pkg_model.catalogue_name(data, m["load"], m["source"])
@@ -89,18 +115,25 @@ def include_names(models: list[dict], read) -> dict[tuple[str, int], str]:
                              "run tools/peassets/dump_asset_db.py")
         content = hashlib.sha1(b"".join(data[p["offset"]:p["offset"] + p["size"]]
                                          for p in components(data, m["load"], m["source"]))).hexdigest()
-        seen = variants.setdefault(base, {})
-        if content not in seen:
-            if not seen:
-                seen[content] = base
-            elif m["package"] in packages.setdefault(base, set()):
-                seen[content] = f"{base}_{m['source']:05X}"
-            else:
-                seen[content] = f"{base}_{m['package']}"
-        packages.setdefault(base, set()).add(m["package"])
-        names[(m["package"], m["source"])] = seen[content]
-    return names
-
+        rows.append((m["package"], m["source"], base, content))
+    versions: dict[str, dict[str, list[tuple[str, int]]]] = {}
+    for package, source, base, content in rows:
+        versions.setdefault(base, {}).setdefault(content, []).append((package, source))
+    kinds = _enemy_kinds()
+    named: dict[tuple[str, str], str] = {}
+    for base, by_content in versions.items():
+        if len(by_content) == 1:
+            named[(base, next(iter(by_content)))] = base
+            continue
+        used: dict[str, int] = {}
+        for content, places in by_content.items():
+            types = {k for p, _ in places for k in kinds.get(p, ())}
+            name = owned(base, places[0][0]) if len(types) == 1 else base
+            if name in used.values() or name in named.values():
+                name = f"{name}_{places[0][1]:05X}"
+            used[content] = name
+            named[(base, content)] = name
+    return {(p, s): named[(b, c)] for p, s, b, c in rows}
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)

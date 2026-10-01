@@ -654,23 +654,23 @@ EnemyParams D_actor_403000_8013DA00 = { D_actor_403000_8013D9E0, 500, 300, 200, 
 EnemyParams D_actor_403000_8013DA10 = { D_actor_403000_8013D9F0, 2500, 500, 300, 30, 100, 3, 100, 20 };
 
 TmdBone D_actor_403000_8013DA20[24] = {
-#include "assets/blizzard_chaser_zombie_body_skeleton.inc"
+#include "assets/blizzard_chaser_body_skeleton.inc"
 };
 
 u32 D_actor_403000_8013DD80[24] = {
-#include "assets/blizzard_chaser_zombie_body_partVerts.inc"
+#include "assets/blizzard_chaser_body_partVerts.inc"
 };
 
 SVECTOR D_actor_403000_8013DDE0[398] = {
-#include "assets/blizzard_chaser_zombie_body_verts.inc"
+#include "assets/blizzard_chaser_body_verts.inc"
 };
 
 SVECTOR D_actor_403000_8013EA50[410] = {
-#include "assets/blizzard_chaser_zombie_body_normals.inc"
+#include "assets/blizzard_chaser_body_normals.inc"
 };
 
 u32 D_actor_403000_8013F720[5889] = {
-#include "assets/blizzard_chaser_zombie_body_stream.inc"
+#include "assets/blizzard_chaser_body_stream.inc"
 };
 
 TmdSource D_actor_403000_80145324 = {

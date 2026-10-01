@@ -175,23 +175,23 @@ TmdSource Actor05700_D0A3D8 = {
 };
 
 TmdBone Actor05700_D0A3FC[1] = {
-#include "assets/golem_pawn_rook_grenade_launcher_skeleton.inc"
+#include "assets/golem_grenade_launcher_skeleton.inc"
 };
 
 u32 Actor05700_D0A420[1] = {
-#include "assets/golem_pawn_rook_grenade_launcher_partVerts.inc"
+#include "assets/golem_grenade_launcher_partVerts.inc"
 };
 
 SVECTOR Actor05700_D0A424[24] = {
-#include "assets/golem_pawn_rook_grenade_launcher_verts.inc"
+#include "assets/golem_grenade_launcher_verts.inc"
 };
 
 SVECTOR Actor05700_D0A4E4[24] = {
-#include "assets/golem_pawn_rook_grenade_launcher_normals.inc"
+#include "assets/golem_grenade_launcher_normals.inc"
 };
 
 u32 Actor05700_D0A5A4[160] = {
-#include "assets/golem_pawn_rook_grenade_launcher_stream.inc"
+#include "assets/golem_grenade_launcher_stream.inc"
 };
 
 TmdSource Actor05700_D0A824 = {
@@ -239,23 +239,23 @@ TmdSource Actor05700_D0AB4C = {
 };
 
 TmdBone Actor05700_D0AB70[1] = {
-#include "assets/golem_no9_pawn_rook_grenade_skeleton.inc"
+#include "assets/golem_grenade_skeleton.inc"
 };
 
 u32 Actor05700_D0AB94[1] = {
-#include "assets/golem_no9_pawn_rook_grenade_partVerts.inc"
+#include "assets/golem_grenade_partVerts.inc"
 };
 
 SVECTOR Actor05700_D0AB98[12] = {
-#include "assets/golem_no9_pawn_rook_grenade_verts.inc"
+#include "assets/golem_grenade_verts.inc"
 };
 
 SVECTOR Actor05700_D0ABF8[28] = {
-#include "assets/golem_no9_pawn_rook_grenade_normals.inc"
+#include "assets/golem_grenade_normals.inc"
 };
 
 u32 Actor05700_D0ACD8[104] = {
-#include "assets/golem_no9_pawn_rook_grenade_stream.inc"
+#include "assets/golem_grenade_stream.inc"
 };
 
 TmdSource Actor05700_D0AE78 = {
