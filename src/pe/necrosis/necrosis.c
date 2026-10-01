@@ -34,6 +34,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define SPRITE_QUAD_FRAME_T s16
+#include "../../shared/sprite_quad.h"
 
 /// One 4-byte row of `D_necrosis_801306BC`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
@@ -70,7 +72,6 @@ static NecrosisStep D_necrosis_801306BC[] = {
 /// The `SndEvt_EnqueueType6` id for each `D_necrosis_801306BC` row.
 static s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
 
-static void func_necrosis_8012F6EC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_necrosis_8012FE64(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
@@ -242,7 +243,7 @@ void func_necrosis_8012F52C(Task* arg0)
         arg0->state     = 1;
     }
     Gp_UpdateCoord(coord);
-    func_necrosis_8012F6EC(coord, mem->age % 6, mem->scale, mem->angle);
+    spriteQuadDraw(coord, mem->age % 6, mem->scale, mem->angle);
     mem->scale = mem->scale - mem->step;
     if (mem->scale < mem->step) {
         effectKillTask(mem, arg0);
@@ -256,69 +257,12 @@ void func_necrosis_8012F52C(Task* arg0)
     }
 }
 
-/// Draws one frame of the necrosis spray sprite. `arg0`'s world position is
-/// projected through `GsWSMATRIX` by a single `RTPS` and the quad is dropped
-/// when that sets a negative `gte_stflg`. `arg1` picks one of the 0x28-wide
-/// texture frames on tpage 0x2A (CLUT 0x428F), `arg3` spins the quad and
-/// `arg2` sizes it: the corners sit `arg2 * 39 / otz` from the projected
-/// centre along `arg3` and `arg3 + 0x400`, so the sprite shrinks with depth.
-/// Same shape as `Gp_DrawFxQuad` with a wider texture cell and no CLUT table.
-static void func_necrosis_8012F6EC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
-{
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              u1;
-    s32              ang2;
-    u16              vz;
-
-    head                                      = SCRATCH_STACK_CURSOR(u8);
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setSemiTrans(prim, 1);
-        setShadeTex(prim, 1);
-        prim->tpage = 0x2A;
-        prim->clut  = 0x428F;
-        u0          = arg1 * 0x28;
-        u1          = u0 + 0x27;
-        setUV4(prim, u0, 0x38, u1, 0x38, u0, 0x5F, u1, 0x5F);
-        block->dx = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
-        block->dy = (((arg2 * 39) / block->otz) * rcos(arg3)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = arg3 + 0x400;
-        block->dx = (((arg2 * 39) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 39) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#define SPRITE_QUAD_CLUT   0x428F
+#define SPRITE_QUAD_CELL_W 0x28
+#define SPRITE_QUAD_V0     0x38
+#define SPRITE_QUAD_V1     0x5F
+#define SPRITE_QUAD_SCALE  39
+#include "../../shared/sprite_quad_draw.inc.c"
 
 void func_necrosis_8012FAF8(Task* arg0)
 {
@@ -409,7 +353,7 @@ void func_necrosis_8012FAF8(Task* arg0)
 /// bit 0x1000 swaps the pale tpage/CLUT pair (0x2A / 0x428F) for the dark one
 /// (0x4A / 0x42C2). `arg3` spins the quad and `arg2` sizes it: the corners sit
 /// `arg2 * 31 / otz` from the projected centre along `arg3` and `arg3 + 0x400`,
-/// so the puff shrinks with depth. Same shape as `func_necrosis_8012F6EC`.
+/// so the puff shrinks with depth. Same shape as `spriteQuadDraw`.
 static void func_necrosis_8012FE64(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     GpFxQuadScratch* block;

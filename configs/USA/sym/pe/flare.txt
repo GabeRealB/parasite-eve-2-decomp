@@ -2,4 +2,4 @@
 gFlareId = 0x8012EF30;
 flareEffectTask = 0x8012EF34; // type:func
 flareSparkTask = 0x8012F0B8; // type:func
-flareDrawSparkQuad = 0x8012F304; // type:func
+spriteQuadDraw = 0x8012F304; // type:func
