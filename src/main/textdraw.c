@@ -599,10 +599,15 @@ static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontG
         TEXT_SINGLE_ENTRY_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
         /// Raw subtractive outline palette at VRAM word X=1008, row Y=511.
         TEXT_SINGLE_ENTRY_GLYPH_OUTLINE_CLUT = getClut(0x3F0, 0x1FF),
-        /// Fill draw mode on the 4bpp font page at VRAM word X=960, Y=256.
+        /// Complete GPU draw-mode word for the opaque fill in one OT entry.
         ///
-        /// Enables dithering and disables drawing into the display area.
-        /// The opaque fill ignores the additive blend selection.
+        /// Encodes 0xE100023F: the 4bpp font page at VRAM word X=960, Y=256,
+        /// additive blending, dithering on and drawing into the display area off.
+        /// Store in `DR_TPAGE::code[0]` with a one-word payload, executing after
+        /// the subtractive outline and before the fill. The fill sprite disables
+        /// semitransparency, so it draws opaquely despite the additive selection.
+        /// This draw mode remains active until replaced; the font page and the
+        /// `TEXT_SINGLE_ENTRY_GLYPH_FILL_CLUT` palette must already be resident.
         TEXT_SINGLE_ENTRY_GLYPH_FILL_PAGE_COMMAND =
             _get_mode(false, true, getTPage(TEXT_SINGLE_ENTRY_GLYPH_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 0x3C0, 0x100)),
         /// Raw outline's subtractive draw mode on the same font page.
