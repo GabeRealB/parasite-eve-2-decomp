@@ -1,7 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Per-frame callback, the ten-state counterpart of
-/// `madChaserDeathTick`: in mode 0 a pending hit (`take_hit_nibble3`) replaces
+/// `madChaserDeathTick`: in mode 0 a pending hit (`madChaserTakeHitNibble3`) replaces
 /// the state handler, and the root rotation is rebuilt from 0x78..0x7C before
 /// `madChaserApplyContacts`.
 void madChaserEmergeTick(Task* arg0)
@@ -17,11 +17,11 @@ void madChaserEmergeTick(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
-            if (take_hit_nibble3(arg0) == 0) {
+            if (madChaserTakeHitNibble3(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
             madChaserTickAnim(arg0);
-            update_rotation(arg0);
+            madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:

@@ -2,7 +2,7 @@
 
 /// Per-frame callback for the main enemy, the eleven-state counterpart of
 /// `madChaserEmergeTick`. In mode 0 it aims at the nearest actor
-/// (`madChaserTrackPlayer`), lets a pending hit (`take_hit`) replace the state
+/// (`madChaserTrackPlayer`), lets a pending hit (`madChaserTakeHit`) replace the state
 /// handler, eases `field_424` toward zero, rebuilds the root rotation, and
 /// then picks the next state: the `field_448` request once dead, state 4 when
 /// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
@@ -22,7 +22,7 @@ void madChaserCombatTick(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
             madChaserTrackPlayer(arg0);
-            if (take_hit(arg0) == 0) {
+            if (madChaserTakeHit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
             madChaserTickAnim(arg0);
@@ -32,7 +32,7 @@ void madChaserCombatTick(Task* arg0)
             if (work->field_432 == 1) {
                 madChaserPinPart(arg0, 6, (SVECTOR3*)&work->field_98);
             }
-            update_rotation(arg0);
+            madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             if (work->field_44A != 0) {
                 work->field_44A--;

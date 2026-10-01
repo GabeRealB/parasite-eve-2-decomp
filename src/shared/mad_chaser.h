@@ -151,4 +151,8 @@ void madChaserAdvanceState(Task* arg0);
 void madChaserStartDespawn(Task* arg0);
 void madChaserToAlertState(Task* arg0);
 
+static __inline__ s16  madChaserTakeHit(Task* arg0);
+static __inline__ void madChaserUpdateRotation(Task* arg0);
+static __inline__ s16  madChaserTakeHitNibble3(Task* arg0);
+
 #endif /* SRC_SHARED_MAD_CHASER_H */

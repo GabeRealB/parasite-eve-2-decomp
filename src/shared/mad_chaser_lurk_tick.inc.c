@@ -21,12 +21,12 @@ void madChaserLurkTick(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->field_442++;
             madChaserTrackPlayer(arg0);
-            if (take_hit(arg0) == 0) {
+            if (madChaserTakeHit(arg0) == 0) {
                 sp.funcs[(s16)work->field_420](arg0);
             }
             madChaserTickAnim(arg0);
             madChaserTwistSpine(arg0);
-            update_rotation(arg0);
+            madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             if (work->field_438 == 0 && enemy->hp <= 0) {
                 madChaserEnterState(arg0, 4);
