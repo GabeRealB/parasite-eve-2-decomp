@@ -531,3 +531,4 @@ gluttonSetQuadHeights = 0x80140FD4; // type:func
 gluttonSetShakeLevel = 0x801410F0; // type:func
 gluttonSetSpinnersReleased = 0x80141108; // type:func
 gluttonGetSpinnersReleased = 0x80141114; // type:func
+actorMsgIsPresent = 0x80141974; // type:func

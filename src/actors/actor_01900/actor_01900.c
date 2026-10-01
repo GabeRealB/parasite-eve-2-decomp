@@ -214,7 +214,6 @@ static void Actor01900_Fn0A7C0(Task* arg0);
 static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord);
 s32         Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 s32         Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2);
-s32         Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2);
 
 /* Inline bodies behind `Actor01900_Fn080A8`. Same shapes as
  * `actor_400100_facing.h` and `ActorsShared80135a60`; inlining is what keeps
@@ -222,8 +221,6 @@ s32         Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2);
 
 extern TmdSource Actor01900_D102C8;
 s32              Actor01900_Fn0A31C(Task*, s32, AnimationPlayRequest*);
-s32              Actor01900_Fn0A38C(Task*, s32, s32);
-s32              Actor01900_Fn0A44C(Task*);
 s32              Actor01900_Fn0A59C(void);
 s32              Actor01900_Fn0A5A4(Task*, s32, u16*);
 void             Actor01900_Fn0A314(void);
@@ -707,8 +704,8 @@ SVECTOR Actor01900_D1722C[12] = {
 Actor01900RecoveredMsgEntry Actor01900_D1728C[8] = {
     { 2015, { .call6 = Actor01900_Fn0A314 } },
     { 2003, { .call2 = Actor01900_Fn0A31C } },
-    { 2005, { .call4 = Actor01900_Fn0A38C } },
-    { 2006, { .call1 = Actor01900_Fn0A44C } },
+    { 2005, { .call4 = actorMsgSetVisibility } },
+    { 2006, { .call1 = actorMsgIsPresent } },
     { 2004, { .call3 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = Actor01900_Fn0A59C } },
     { 2011, { .call5 = Actor01900_Fn0A5A4 } },
@@ -3457,50 +3454,9 @@ s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     return 0;
 }
 
-s32 Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2)
-{
-    TmdObject*      obj  = arg0->extra.tmd;
-    Actor01900Work* work = arg0->work;
+#include "../../shared/actor_messages_visibility.inc.c"
 
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0;
-            break;
-        case 1:
-            obj->flags = 0;
-            Tmd_AllocBuffers(obj);
-            work->field_0 = 0x18;
-            break;
-        case 2:
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->field_0 = 0;
-            break;
-        case 3:
-            obj->flags    = 0;
-            work->field_0 = 0;
-            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-    }
-    return 0;
-}
-
-s32 Actor01900_Fn0A44C(Task* task)
-{
-    u16 flags;
-
-    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
-        flags = task->extra.tmd->flags;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            return 0;
-        }
-        if (flags & 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_is_present.inc.c"
 
 #include "../../shared/actor_messages_place_yaw.inc.c"
 

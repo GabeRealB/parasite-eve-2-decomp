@@ -371,7 +371,6 @@ void                func_actor_403200_8014148C(Task*);
 
 s32  func_actor_403200_80138468(Task*, s32, s32);
 s32  func_actor_403200_80138748(Task*, s32, ActorCommand* msg);
-s32  func_actor_403200_80141974(Task*);
 s32  func_actor_403200_80141A94(Task*, s32, s32);
 s32  func_actor_403200_80141B30(void);
 void func_actor_403200_80140E6C(Task*);
@@ -2802,7 +2801,7 @@ AnimationSet D_actor_403200_8015F748 = {
 Actor403200MessageEntry D_actor_403200_8015F770[8] = {
     { 2015, { .call5 = func_actor_403200_8014196C } },
     { 2005, { .call4 = func_actor_403200_80138468 } },
-    { 2006, { .call1 = func_actor_403200_80141974 } },
+    { 2006, { .call1 = actorMsgIsPresent } },
     { 2004, { .call3 = actorMsgPlace } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403200_80138748 } },
     { 5108, { .call4 = func_actor_403200_80141A94 } },
@@ -7798,24 +7797,7 @@ void func_actor_403200_8014196C(void)
 {
 }
 
-/// Whether the actor should keep acting: 1 while its enemy still has HP. Once
-/// the enemy is down, 0 if the model carries flag 0x80 or flag 2, and 1
-/// otherwise.
-s32 func_actor_403200_80141974(Task* task)
-{
-    u16 flags;
-
-    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
-        flags = task->extra.tmd->flags;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            return 0;
-        }
-        if (flags & 2) {
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/actor_messages_is_present.inc.c"
 
 #include "../../shared/actor_messages_place.inc.c"
 
