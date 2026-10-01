@@ -67,7 +67,17 @@ static void Gfx_TransposeRot(MATRIX* arg0, MATRIX* arg1);
 
 /* 0x44 */
 
-/// Reduces a copied light direction so its three squared components fit in s32.
+/// Reduces a copied light direction for safe signed sum-of-squares normalization.
+///
+/// `scratch` is a live, writable workspace with `direction`'s xyz initialized. Its
+/// xyz components end in [-16384, 16383]. Components outside that range cause a
+/// common arithmetic right shift of 1..17 bits, rounding negative values down.
+/// Already bounded directions, including zero, and the fourth word are unchanged.
+///
+/// Overwrites both count fields: `scaleBits` holds the minimum input sign-bit
+/// count (18..32) if no shift was needed, or the shift amount (1..17) otherwise.
+/// `componentSignBits` holds the input Z count (1..32). Changes the GTE leading
+/// sign-bit-count state. The caller owns and releases the workspace.
 static __inline__ void _gfxReduceLightDirection(_GfxLightDirectionScratch* scratch)
 {
     /// Minimum leading sign-bit count for safe three-component normalization.
@@ -78,7 +88,7 @@ static __inline__ void _gfxReduceLightDirection(_GfxLightDirectionScratch* scrat
     /// three -32768 components, whose squared sum overflows those additions.
     enum { GRAPHICS_NORMALIZE_MIN_SIGN_BITS = 18 };
 
-    // Find the component with the least sign-extension headroom.
+    // Select the least sign-extension headroom across xyz.
     gte_Lzc(scratch->direction.vx, &scratch->scaleBits);
     gte_Lzc(scratch->direction.vy, &scratch->componentSignBits);
 
@@ -92,7 +102,7 @@ static __inline__ void _gfxReduceLightDirection(_GfxLightDirectionScratch* scrat
         scratch->scaleBits = scratch->componentSignBits;
     }
 
-    // The count word becomes the shared arithmetic right-shift amount.
+    // Retain the count when already bounded; otherwise reuse it for the shift.
     if (scratch->scaleBits < GRAPHICS_NORMALIZE_MIN_SIGN_BITS) {
         scratch->scaleBits      = GRAPHICS_NORMALIZE_MIN_SIGN_BITS - scratch->scaleBits;
         scratch->direction.vx >>= scratch->scaleBits;
