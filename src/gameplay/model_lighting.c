@@ -233,51 +233,34 @@ static inline void _modelLightingInitFt3Texture(POLY_FT3* triangle, const u32* e
     triangle->clut                         += workspace->encodedClutOffset;
 }
 
-/// Initializes one flat textured quad's persistent UVs and encoded GPU addresses.
+/// Initializes one flat textured quad's persistent texture coordinates and GPU addresses.
 ///
-/// Borrows a writable, four-byte-aligned packet, a word-aligned element with at
-/// least five readable words, and a workspace with construction offsets set.
-/// Element words exclude the three-word record header. Packed U/V values are
-/// unsigned texel coordinates; signed page and CLUT displacements wrap in the
-/// packet's u16 address fields. One CLUT row contributes 64 encoded units.
-/// Leaves the tag, colour/command, screen positions, pad1/pad2 and all workspace
-/// cursors and counters untouched.
+/// `quad` is a writable, four-byte-aligned `POLY_FT4`. `elementWords` points to
+/// a four-byte-aligned element of a `0x5C`/`0x5E` stream record, past its
+/// three-word header, with at least five readable u32 words. Words 2 and 3 pack
+/// unsigned byte U/V texel coordinates with encoded CLUT and texture-page
+/// settings; word 4 packs U2/V2 in its low half and U3/V3 in its high half.
+///
+/// The construction workspace supplies signed displacements in encoded address
+/// units: `texturePageOffset` (-128..127) and `encodedClutOffset` (-8192..8128,
+/// 64 per palette row). Each sum wraps in its u16 field without changing U/V.
+/// The packet's tag, colour/command, screen positions and pad1/pad2 remain
+/// untouched. All three objects are borrowed for the call; no cursor or count
+/// is changed and no pointer is retained.
 static inline void _modelLightingInitFt4Texture(POLY_FT4* quad, const u32* elementWords, const TmdStreamWorkspace* workspace)
 {
+    // Word indices within the element, excluding the record header.
     enum {
-        /// Element-word index of vertex 0's packed texture coordinates and CLUT.
-        ///
-        /// Zero-based u32-word index after the three-word `0x5C`/`0x5E` record
-        /// header. Bits 0..7 hold unsigned U and bits 8..15 unsigned V, in texels;
-        /// bits 16..31 hold the encoded CLUT before `encodedClutOffset` is added
-        /// modulo 65536. One palette row contributes 64 encoded units.
-        MODEL_LIGHTING_FT4_UV0_CLUT_WORD = 2,
-        /// Element-word index of vertex 1's packed UV and texture-page settings.
-        ///
-        /// Zero-based u32-word index after the three-word `0x5C`/`0x5E` record
-        /// header. Bits 0..7 hold unsigned U and bits 8..15 unsigned V, in texels;
-        /// bits 16..31 hold the encoded GPU page location, colour depth and
-        /// semi-transparency mode. Construction copies the complete word into
-        /// `POLY_FT4.u1`, `v1` and `tpage`, then adds the signed encoded-page
-        /// displacement `texturePageOffset` to `tpage` modulo 65536, leaving
-        /// both texture coordinates unchanged.
-        MODEL_LIGHTING_FT4_UV1_TPAGE_WORD = 3,
-        /// Element-word index of vertices 2 and 3's packed texture coordinates.
-        ///
-        /// Zero-based u32-word index after the three-word `0x5C`/`0x5E` record
-        /// header; requires at least five readable words per element. Bits
-        /// 0..7, 8..15, 16..23 and 24..31 hold unsigned U2, V2, U3 and V3 in
-        /// texels. Little-endian halfword copies write each U/V pair into the
-        /// packet without overwriting `POLY_FT4.pad1` or `POLY_FT4.pad2`.
-        /// Neither pair is changed by texture-page or CLUT displacements.
-        MODEL_LIGHTING_FT4_UV2_UV3_WORD = 4
+        MODEL_LIGHTING_FT4_UV0_CLUT_WORD  = 2, // U0/V0 in low half, CLUT address in high half
+        MODEL_LIGHTING_FT4_UV1_TPAGE_WORD = 3, // U1/V1 in low half, texture-page settings in high half
+        MODEL_LIGHTING_FT4_UV2_UV3_WORD   = 4  // U2/V2 in low half, U3/V3 in high half
     };
 
     MODEL_LIGHTING_UV0_CLUT_WORD(quad)  = elementWords[MODEL_LIGHTING_FT4_UV0_CLUT_WORD];
     MODEL_LIGHTING_UV1_TPAGE_WORD(quad) = elementWords[MODEL_LIGHTING_FT4_UV1_TPAGE_WORD];
     // Halfword stores copy each U/V pair without overwriting the SDK pad fields.
     *(u16*)&quad->u2 = (u16)elementWords[MODEL_LIGHTING_FT4_UV2_UV3_WORD];
-    *(u16*)&quad->u3 = ((const u16*)&elementWords[MODEL_LIGHTING_FT4_UV2_UV3_WORD])[1];
+    *(u16*)&quad->u3 = (u16)(elementWords[MODEL_LIGHTING_FT4_UV2_UV3_WORD] >> 16);
     quad->tpage     += workspace->texturePageOffset;
     quad->clut      += workspace->encodedClutOffset;
 }
