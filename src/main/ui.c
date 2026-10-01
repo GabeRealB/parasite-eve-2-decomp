@@ -1794,43 +1794,37 @@ static void Ui_UpdateListRows(UiList* list, UiPanel* panel, s32 animate)
     }
 }
 
-/// Initializes a textured quad with the horizontal UI separator's unmodulated texture.
+/// Initializes the texture and GPU command for a horizontal UI separator quad.
 ///
-/// Uses the 4-bit atlas at VRAM (896, 256) and the palette at (48, 240).
-/// Leaves screen vertices unchanged; raw-texture drawing ignores colour bytes.
+/// `separator` borrows one writable `POLY_FT4`. Sets UVs, texture page, CLUT and
+/// the nine-word DMA payload length. Raw-texture drawing ignores the untouched
+/// RGB bytes, and semitransparency is disabled. Screen vertices and the DMA link
+/// are preserved for the caller to set before submitting the packet.
+/// Drawing requires the 4-bit texture page at VRAM (896, 256) and its palette
+/// at (48, 240); this helper neither allocates storage nor loads the texture.
 static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
 {
     enum {
-        /// Left edge of the horizontal separator's texture region, in page-relative texels.
-        ///
-        /// U=104 on the 4-bit page at VRAM word X=896, row Y=256. The quad's
-        /// opposite edge is U=111; both values fit its unsigned 8-bit U fields.
+        // Page-relative texture coordinates, in texels.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U = 0x68,
-        /// Top edge of the horizontal separator's texture region, in page-relative texels.
-        ///
-        /// V=80 on the 4-bit page beginning at VRAM row 256. The quad's
-        /// opposite edge is V=87; both values fit its unsigned 8-bit V fields.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V = 0x50,
-        /// Packed GPU texture-page selector for the horizontal separator's atlas.
-        ///
-        /// Depth 0 selects 4-bit texels at VRAM word X=896, row Y=256;
-        /// U/V index texels relative to that origin. Blend selector 0 encodes
-        /// half-background + half-foreground, ignored by this opaque quad.
-        /// The encoded value 0x001E fits the packet's unsigned 16-bit tpage.
+        // Difference between the texture endpoints on both axes, in texels.
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN = 7,
+        // 4-bit page at VRAM word X=896, row Y=256; blending is disabled.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE = getTPage(0, 0, 0x380, 0x100),
-        /// GPU CLUT ID for the separator's 4-bit texture palette at VRAM (48, 240).
-        ///
-        /// Bits 0..5 hold the VRAM word X coordinate divided by 16; bits 6..14
-        /// hold the row. The encoded value (0x3C03) fits the packet's 16-bit clut.
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID = getClut(0x30, 0xF0)
+        // Palette selector for VRAM word X=48, row Y=240.
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID     = getClut(0x30, 0xF0),
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_RAW_TEXTURE = 1
     };
 
     setUVWH(separator, USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_U,
-            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V, 7, 7);
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_V,
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN,
+            USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_SPAN);
     separator->tpage = USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE;
     separator->clut  = USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID;
     setPolyFT4(separator);
-    setShadeTex(separator, 1);
+    setShadeTex(separator, USER_INTERFACE_HORIZONTAL_SEPARATOR_RAW_TEXTURE);
 }
 
 void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 centerY)
