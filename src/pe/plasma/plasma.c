@@ -27,6 +27,7 @@
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/glow_draw.h"
 
 /// Per-ring radius scale for `func_plasma_8012F568`, indexed by ring number
 /// (0..2). `rInner` widens the inner radius (`EffectWork::angle`), `rExtra`
@@ -43,8 +44,6 @@ STATIC_ASSERT_SIZEOF(PlasmaRingScale, 0x6);
 /// slot, distinct across all 448, with the families in contiguous blocks.
 
 static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2);
-
-static void func_plasma_8012FB10(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Per-level geometry for the plasma ring: rows are PE levels 1-3. `rInner` is
 /// the inner radius, `yOff` the height above the caster, `rExtra` how far the
@@ -71,7 +70,7 @@ static s16 D_plasma_8012FF54[3][16] = { 0 };
 /// State 0 seeds brightness, the combo index, and three 16-entry LCG columns
 /// in `D_plasma_8012FF54`, plays the combo-indexed cue, and starts a pad
 /// lerp. States 1 and 2 decay brightness and draw three rings via
-/// `func_plasma_8012FB10` (the third only when `index != 0`) after
+/// `glowDrawHalo` (the third only when `index != 0`) after
 /// `func_plasma_8012F568` has applied each jitter column. State 1 is the
 /// weaker combo (`index < 2`). Either state releases once brightness
 /// drops below 9.
@@ -146,18 +145,18 @@ void func_plasma_8012EF34(Task* arg0)
             rgb[0] = rgb[1]    = mem->scale;
             rgb[2]             = mem->scale * 3 / 2;
             coord->workm.t[1] -= mem->age * 64;
-            func_plasma_8012FB10(coord, (s16)(mem->age * 64), (s16)(mem->index * 128 + 0x100), rgb);
+            glowDrawHalo(coord, (s16)(mem->age * 64), (s16)(mem->index * 128 + 0x100), rgb);
             rgb[0]           >>= 1;
             rgb[1]           >>= 1;
             rgb[2]           >>= 1;
             coord->workm.t[1] -= mem->age * 64;
-            func_plasma_8012FB10(coord, (s16)(mem->age * 128), (s16)(mem->index * 128 + 0x100), rgb);
+            glowDrawHalo(coord, (s16)(mem->age * 128), (s16)(mem->index * 128 + 0x100), rgb);
             if (mem->index != 0) {
                 rgb[0]           >>= 1;
                 rgb[1]           >>= 1;
                 rgb[2]           >>= 1;
                 coord->workm.t[1] -= mem->age * 64;
-                func_plasma_8012FB10(coord, (s16)(mem->age * 192), (s16)(mem->index * 128 + 0x100), rgb);
+                glowDrawHalo(coord, (s16)(mem->age * 192), (s16)(mem->index * 128 + 0x100), rgb);
             }
             return;
         case 2:
@@ -183,20 +182,20 @@ void func_plasma_8012EF34(Task* arg0)
             rgb[2]             = mem->scale * 3 / 2;
             coord->workm.t[1] -= mem->age * 128;
             span               = mem->age * 64;
-            func_plasma_8012FB10(coord, span, span, rgb);
+            glowDrawHalo(coord, span, span, rgb);
             rgb[0]           >>= 1;
             rgb[1]           >>= 1;
             rgb[2]           >>= 1;
             coord->workm.t[1] -= mem->age * 128;
             span               = mem->age * 128;
-            func_plasma_8012FB10(coord, span, span, rgb);
+            glowDrawHalo(coord, span, span, rgb);
             if (mem->index != 0) {
                 rgb[0]           >>= 1;
                 rgb[1]           >>= 1;
                 rgb[2]           >>= 1;
                 coord->workm.t[1] -= mem->age * 128;
                 span               = mem->age * 192;
-                func_plasma_8012FB10(coord, span, span, rgb);
+                glowDrawHalo(coord, span, span, rgb);
             }
             return;
     }
@@ -303,59 +302,4 @@ static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2)
     SCRATCH_STACK_RELEASE_BYTES(0x118);
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that
-/// form a ring. `arg1` is the inner half-extent and `arg2` the extra outer
-/// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
-/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
-/// so each wedge fades to a black outer rim. Byte-identical to the rooms
-/// family's `Room_Draw07` (src/lib/room_draw07.c).
-static void func_plasma_8012FB10(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
-{
-    GpArcScratch* block;
-    POLY_G4*      prim;
-    s32           ang;
-    s32           next;
-    s32           outer;
-
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpArcScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    outer         = arg1 + arg2;
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->inner = ((s16)arg1 * 64) / block->otz;
-        block->outer = ((s16)outer * 64) / block->otz;
-        for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->sx + ((block->inner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->inner * rcos(ang)) >> 12);
-            next     = ang + 0x100;
-            prim->x1 = block->sx + ((block->inner * rsin(next)) >> 12);
-            prim->y1 = block->sy + ((block->inner * rcos(next)) >> 12);
-            prim->x2 = block->sx + ((block->outer * rsin(ang)) >> 12);
-            prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->outer * rsin(next)) >> 12);
-            prim->y3 = block->sy + ((block->outer * rcos(next)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
-}
+#include "../../shared/glow_draw_halo.inc.c"

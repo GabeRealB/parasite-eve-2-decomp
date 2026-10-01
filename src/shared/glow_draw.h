@@ -57,6 +57,7 @@ void glowDrawWideDiamond(SVECTOR* arg0, s32 arg1, s32 arg2);
 void glowDrawPrism(GfxCoord* coord, s16 arg1);
 void glowDrawTaperedBeam(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 void glowDrawWedge(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+void glowDrawHalo(GfxCoord* coord, s32 inner, s32 width, u8* rgb);
 void glowDrawFlare(SVECTOR* arg0, s32 arg1, s32 arg2);
 void glowDrawFlareClipped(SVECTOR* arg0, s32 arg1, s32 arg2);
 void glowDrawFlareLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);

@@ -30,6 +30,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/glow_draw.h"
 
 /// 0x28-byte scratch block `func_apobiosis_80130630` takes from
 /// the scratch stack to draw one burst shard. `v0` is the effect coordinate's
@@ -73,7 +74,6 @@ typedef struct ApobiosisStep {
 STATIC_ASSERT_SIZEOF(ApobiosisStep, 0x8);
 
 static void func_apobiosis_8012F808(s16 bright);
-static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Per-level tuning for the apobiosis pulse, one row per PE level 1-3,
 /// weakest first.
@@ -171,9 +171,9 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 func_apobiosis_8013017C(
                     &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1], mem->age,
                     D_apobiosis_80130B5C[mem->index].field_2, 0);
-                func_apobiosis_8012F9D0(coord, mem->scale, 0x80, rgb);
+                glowDrawHalo(coord, mem->scale, 0x80, rgb);
                 if (mem->age & 1) {
-                    func_apobiosis_8012F9D0(coord, 0x80, mem->scale, rgb);
+                    glowDrawHalo(coord, 0x80, mem->scale, rgb);
                 }
                 for (i = 0; i < D_apobiosis_80130B5C[mem->index].field_0; i++) {
                     gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -303,68 +303,8 @@ static void func_apobiosis_8012F808(s16 bright)
     gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, 0x30);
 }
 
-/// Projects `arg0`'s world position through `GsWSMATRIX` and, when the GTE
-/// flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that form a
-/// ring around it. The projected depth is pulled 0x40 towards the eye (never
-/// nearer than 0x10) and both on-screen radii divide by it: `inner` is
-/// `(s16)arg1 * 64 / otz` and `outer` is `(s16)(arg1 + arg2) * 64 / otz`, so
-/// the ring is an annulus `arg2` wide. `rgb` tints the outer rim of every
-/// wedge while its inner rim stays black. Each wedge is linked into the OT
-/// bucket its own depth names and then handed to `gpuSetPrimitiveBlendMode`. Same
-/// shape as `func_plasma_8012FB10`, which grows its ring from `otz + 1`
-/// instead.
-static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
-{
-    GpArcScratch* block;
-    POLY_G4*      prim;
-    s32           ang;
-    s32           next;
-    s32           outer;
-
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpArcScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    outer         = arg1 + arg2;
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz -= 0x40;
-        if (block->otz < 0x10) {
-            block->otz = 0x10;
-        }
-        block->inner = ((s16)arg1 * 64) / block->otz;
-        block->outer = ((s16)outer * 64) / block->otz;
-        for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->sx + ((block->inner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->inner * rcos(ang)) >> 12);
-            next     = ang + 0x100;
-            prim->x1 = block->sx + ((block->inner * rsin(next)) >> 12);
-            prim->y1 = block->sy + ((block->inner * rcos(next)) >> 12);
-            prim->x2 = block->sx + ((block->outer * rsin(ang)) >> 12);
-            prim->y2 = block->sy + ((block->outer * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->outer * rsin(next)) >> 12);
-            prim->y3 = block->sy + ((block->outer * rcos(next)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
-}
+#define GLOW_DRAW_HALO_PULL 0x40
+#include "../../shared/glow_draw_halo.inc.c"
 
 /// One shard of the apobiosis burst. Every frame it ticks the shard's life
 /// counter `EffectWork.age` and bails out - handing the work block back -
