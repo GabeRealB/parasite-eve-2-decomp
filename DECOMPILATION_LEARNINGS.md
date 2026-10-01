@@ -29696,7 +29696,7 @@ if (flags & 3) {
     req.y = ...;
     req.otIndex = (s16)obj->drawOrder + 1;
     req.colorRgb = prompt->field_1C;
-    req.glyphTable = 0;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment = 0;
     req.drawMode = TEXT_DRAW_OUTLINED;
     func_8002E53C(&req, Gp_StrStrengthen);
@@ -29705,7 +29705,7 @@ if (flags & 3) {
     req.y = ...;
     req.otIndex = (s16)obj->drawOrder + 1;
     req.colorRgb = prompt->field_1C;
-    req.glyphTable = 0;
+    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment = 0;
     req.drawMode = TEXT_DRAW_OUTLINED;
     func_8002E53C(&req, Gp_StrRevive);

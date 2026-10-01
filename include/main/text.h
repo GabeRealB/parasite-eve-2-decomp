@@ -7,6 +7,14 @@
 
 /// Glyph-table selectors; every selector except medium and small uses large metrics.
 enum {
+    /// Selects the medium UI face for initial drawing and line measurement.
+    ///
+    /// Stored as 0 in `TextDrawReq::glyphTable`. Glyph bytes 0x20..0xFF index
+    /// the metrics by subtracting space; drawing adds 38 texels to texture V
+    /// modulo 256.
+    /// Eligible kerning pairs tighten by two pixels. Inline font commands
+    /// change the drawing face and V bias without changing this selector, so
+    /// pair tightening remains two pixels and measurement keeps medium metrics.
     TEXT_GLYPH_TABLE_MEDIUM          = 0,
     TEXT_GLYPH_TABLE_LARGE_ALTERNATE = 2,
     TEXT_GLYPH_TABLE_LARGE           = 4,
