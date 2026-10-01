@@ -39123,8 +39123,8 @@ the target emits `lb` in one and `lbu; sll 24; sra 24` in the other. The signed 
 identical in both; what differs is the assignment:
 
 ```c
-decrementedTime = slot->timeLeft - 1;              /* lhu, then lb  for rate */
-slot->timeLeft = decrementedTime - ((slot->rate - 1) >> 1);
+timeLeftMinusOne = slot->timeLeft - 1;              /* lhu, then lb  for rate */
+slot->timeLeft = timeLeftMinusOne - ((slot->rate - 1) >> 1);
 ...
 slot->timeLeft -= slot->rate;               /* lbu; sll 24; sra 24 */
 ```

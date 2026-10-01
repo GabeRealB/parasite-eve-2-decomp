@@ -114,15 +114,44 @@ STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 
 /// Advances one playback slot and writes its interpolated pose.
 ///
-/// `slotIndex` must name a slot in the context's per-part array. With
-/// `unpackedDestination == NULL`, playback updates the slot's model coordinate;
-/// otherwise it writes that pose and leaves the coordinate unchanged.
-/// Rotation-only tracks leave the destination's translation unchanged.
-/// `encodedDestination` is optional and must hold the slot's encoding:
-/// `AnimationPackedPose` (12 bytes) or `AnimationPackedRotation` (4 bytes). Either output
-/// is borrowed for this call only; a zero-duration segment writes neither.
-/// Banks and encoded outputs must be word-aligned. The encoded output may
-/// alias the current slot's 16-byte buffer entry, which is read before writing.
+/// Clears the slot's result flags, consumes its signed `rate` in sixteenths of
+/// a frame, and crosses as many segments as needed. Death playback consumes
+/// half that rate, rounded toward positive infinity. Forward playback follows
+/// control jumps and stops; reverse playback steps contiguous records toward
+/// the track start. A boundary latches `atEnd` and reports
+/// `ANIMATION_SLOT_SETTLED`. A tick that starts with this latch does not consume
+/// time: equal endpoint keys retain the hold, and unequal keys release it.
+///
+/// `slotIndex` must fit the context's slot and pose-buffer arrays; the slot's
+/// coordinate and track indices must fit their respective arrays. Borrowed
+/// sets, records and banks must remain loaded. Every visited keyframe must have
+/// a positive duration, and control walks must reach a keyframe or stop. Time
+/// walking requires a bank-backed next endpoint when advancing and a bank-backed
+/// current endpoint when reversing; the buffered set sentinel is only resolved
+/// during pose lookup. Reverse stepping must not wrap the unsigned record index
+/// or enter a control record, and the segment duration must be positive. The
+/// encoding must fit the set's eight-entry bank table, even when unsupported.
+/// Playback stores and checks no array lengths.
+///
+/// Encodings 1 and 4 produce translation/rotation and rotation-only poses.
+/// With `unpackedDestination == NULL`, the result updates the slot's model
+/// coordinate and marks it dirty; otherwise it writes the unpacked pose and
+/// leaves the coordinate unchanged. Rotation-only output preserves translation.
+/// The independent optional `encodedDestination` must hold a word-aligned
+/// `AnimationPackedPose` (12 bytes) or `AnimationPackedRotation` (4 bytes),
+/// according to the slot's encoding. It may alias either encoded endpoint,
+/// including this slot's 16-byte buffer entry; both are decoded before writing.
+/// Banks must cover the complete 12-byte or 4-byte pose at each word offset.
+/// The unpacked output must be separate from encoded endpoint storage. All
+/// outputs are borrowed for this call only; zero `timeSpan` skips pose writes.
+///
+/// Encoding 2 processes playback state and resolves both endpoint addresses,
+/// including bank-2 word offsets, then reports an unsupported-encoding error
+/// without decoding or writing a pose. Its indices and bank addresses must still
+/// be valid. Other unsupported encodings likewise write no pose, without a
+/// diagnostic. Pose banks must be word-aligned. The shared scratch stack must
+/// be initialized with room for the tick, pose blend and nested matrix conversion;
+/// all reservations are released before returning. Pose blending clobbers the GTE.
 void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination,
                            void* encodedDestination);
 

@@ -2307,7 +2307,6 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     GfxCoord*              coord;
     AnimationSet*          set;
     const AnimationRecord* records;
-    const AnimationRecord* record;
     const u8*              poseBytes;
     u16                    nextRecordIndex;
     u16                    previousRecordIndex;
@@ -2317,12 +2316,41 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
     u16                    segmentDuration;
     s16                    remainingTime;
     s32                    poseEncoding;
-    u16                    decrementedTime;
+    u16                    timeLeftMinusOne;
 
-    slot  = &context->slots[slotIndex];
-    coord = &context->coords[slot->coordIndex];
-    SCRATCH_STACK_RESERVE_BLOCK(_AnimationTickScratch);
-    scratch     = SCRATCH_STACK_CURSOR(_AnimationTickScratch);
+    /// Resolves this tick's forward control chain, accumulating flags on `playbackSlot`.
+    ///
+    /// `candidateIndex` must be a writable u16 absolute-index lvalue. `recordArray`
+    /// borrows the selected set's records; all visited indices must fit, and the
+    /// chain must terminate at a keyframe or stop. A stop retains the slot's prior
+    /// next record; a jump to that record reports a boundary as well as a jump.
+    /// Arguments are evaluated repeatedly and must be stable and free of side
+    /// effects. Only the index and slot flags change; no caller locals are captured.
+    /// The internal break exits only the control walk, and flags are not cleared.
+    /// Negated-index subtraction preserves the compiler's address-add operand order.
+#define ANIMATION_RESOLVE_TICK_NEXT_RECORD(playbackSlot, recordArray, candidateIndex)   \
+    do {                                                                                \
+        const AnimationRecord* controlRecord;                                           \
+                                                                                        \
+        while ((s8)(recordArray)[(candidateIndex)].flags < 0) {                         \
+            controlRecord = (recordArray) - -(s32)(candidateIndex);                     \
+            if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {                \
+                (candidateIndex) = controlRecord->wordOffset;                           \
+                if ((candidateIndex) == (playbackSlot)->nextPose.indices.recordIndex) { \
+                    (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;           \
+                }                                                                       \
+                (playbackSlot)->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;                  \
+            } else {                                                                    \
+                (candidateIndex)       = (playbackSlot)->nextPose.indices.recordIndex;  \
+                (playbackSlot)->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;               \
+                break;                                                                  \
+            }                                                                           \
+        }                                                                               \
+    } while (0)
+
+    slot        = &context->slots[slotIndex];
+    coord       = &context->coords[slot->coordIndex];
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(_AnimationTickScratch);
     slot->flags = 0;
     // A latched hold whose endpoints still agree reports only the hold and does not step time.
     if (slot->atEnd == 1) {
@@ -2333,8 +2361,9 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
         }
     } else {
         if (gGameSession->deathVariant != 0) {
-            decrementedTime = slot->timeLeft - 1;
-            slot->timeLeft  = decrementedTime - ((slot->rate - 1) >> 1);
+            // Keep the halfword truncation before the signed half-rate subtraction.
+            timeLeftMinusOne = slot->timeLeft - 1;
+            slot->timeLeft   = timeLeftMinusOne - ((slot->rate - 1) >> 1);
         } else {
             slot->timeLeft -= slot->rate;
         }
@@ -2349,20 +2378,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             nextRecordIndex       = slot->nextPose.indices.recordIndex + 1;
             nextSetIndex          = slot->nextPose.indices.setIndex;
             records               = slot->sets[nextSetIndex]->records;
-            while ((s8)records[nextRecordIndex].flags < 0) {
-                record = records - -(s32)nextRecordIndex;
-                if (record->flags < ANIMATION_RECORD_END_THRESHOLD) {
-                    nextRecordIndex = record->wordOffset;
-                    if (nextRecordIndex == slot->nextPose.indices.recordIndex) {
-                        slot->flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
-                    }
-                    slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
-                } else {
-                    nextRecordIndex = slot->nextPose.indices.recordIndex;
-                    slot->flags    |= ANIMATION_SLOT_REACHED_BOUNDARY;
-                    break;
-                }
-            }
+            ANIMATION_RESOLVE_TICK_NEXT_RECORD(slot, records, nextRecordIndex);
             slot->nextPose.indices.setIndex    = nextSetIndex;
             slot->nextPose.indices.recordIndex = nextRecordIndex;
             records                            = slot->sets[slot->nextPose.indices.setIndex]->records;
@@ -2378,6 +2394,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             slot->atEnd = 0;
         }
     } else if (slot->timeSpan < remainingTime) {
+        // Reverse traversal uses physical predecessor records, without following controls.
         slot->field_A = 0;
         while (slot->timeLeft > slot->timeSpan) {
             slot->timeLeft     -= slot->timeSpan;
@@ -2403,6 +2420,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPo
             slot->atEnd = 0;
         }
     }
+#undef ANIMATION_RESOLVE_TICK_NEXT_RECORD
 
     // Preserve the previous buffered-endpoint flag in the request byte while resolving this tick's endpoints.
     // Bank offsets count words; buffered entries reserve four words per slot.
