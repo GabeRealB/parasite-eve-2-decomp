@@ -49,7 +49,6 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 extern TmdSource D_actor_207200_8014E4C8;
-void             func_actor_207200_8014AC9C(Task*);
 
 DamageAttack D_actor_207200_8014DBB8[1] = { 0 };
 
@@ -131,7 +130,7 @@ AnimationSet D_actor_207200_8014E77C = {
     { NULL, D_actor_207200_8014E550, NULL, NULL, D_actor_207200_8014E670, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, func_actor_207200_8014AC9C, { .model = &D_actor_207200_8014E4C8 } };
+TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, skullStalkerTask, { .model = &D_actor_207200_8014E4C8 } };
 
 u8 gSkullStalkerAnimSets[12] = {
     0,
@@ -165,18 +164,12 @@ DamageAttack D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
 #include "../../shared/skull_stalker_death_state.inc.c"
 
 /// The small enemy's state handlers - spawn, live tick and dying tick - which
-/// `func_actor_207200_8014AC9C` dispatches through by task state.
-static const GpEnemyTaskFuncTable3 D_actor_207200_80149E24 = {
+/// `skullStalkerTask` dispatches through by task state.
+static const GpEnemyTaskFuncTable3 gSkullStalkerTaskStates = {
     { skullStalkerSpawnState, skullStalkerUpdateState, skullStalkerDeathState }
 };
 
-void func_actor_207200_8014AC9C(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = D_actor_207200_80149E24;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/skull_stalker_task.inc.c"
 
 #include "../../shared/skull_stalker_update_state.inc.c"
 
@@ -184,37 +177,12 @@ void func_actor_207200_8014AC9C(Task* arg0)
 
 #include "../../shared/skull_stalker_reaction_dispatch.inc.c"
 
-/// Drives animation slots 1 and 2 from the work's animation id `field_28C`.
-/// When it differs from the remembered `field_28E` it is remembered, the
-/// frame counter restarts and both slots switch to it with a blend of 8;
-/// otherwise the counter ticks and both slots advance.
-void skullStalkerAnimate(Task* arg0)
-{
-    skullStalkerTickAnim(arg0);
-}
+#include "../../shared/skull_stalker_animate.inc.c"
 
-/// Colours the actor from the *second* attach coordinate of its model: takes a
-/// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
-/// world position and hands it to `Gp_UpdateActorColor` with no blend
-/// parameters. `arg0` is the colour target, passed straight through.
-void skullStalkerColour(Enemy* arg0, Task* task)
-{
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
-
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
-}
+/// The Skull Stalker's colour helper is the Sucklerceph's.
+#define sucklercephColour skullStalkerColour
+#include "../../shared/sucklerceph_colour.inc.c"
+#undef sucklercephColour
 
 #include "../../shared/skull_stalker_light_ramp.inc.c"
 

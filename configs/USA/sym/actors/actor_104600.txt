@@ -6,7 +6,7 @@
 gSucklercephTaskStates = 0x80131E24;
 gSucklercephDropTaskStates = 0x80131E30;
 Actor04600_Jt00024 = 0x80131E44;
-Actor04600_D0003C = 0x80131E5C;
+gSkullStalkerTaskStates = 0x80131E5C;
 sucklercephSpawnState = 0x80131E68;
 sucklercephReactionDispatch = 0x801321F4;
 sucklercephDormantTick = 0x801323D0;
@@ -36,7 +36,7 @@ skullStalkerSpawnState = 0x80134B88;
 skullStalkerIdleTick = 0x80134EC8;
 skullStalkerHits = 0x8013528C;
 skullStalkerDeathState = 0x80135778;
-Actor04600_Fn03B80 = 0x801359A0;
+skullStalkerTask = 0x801359A0;
 skullStalkerUpdateState = 0x801359FC;
 skullStalkerReactionFlags = 0x80135B0C;
 skullStalkerReactionDispatch = 0x80135B74;

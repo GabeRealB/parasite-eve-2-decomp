@@ -1,7 +1,8 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Colours the first enemy from the world position of its model's second
-/// coordinate, staged in a `VECTOR` taken off the scratch stack.
+/// Colours the enemy from the world position of its model's second
+/// coordinate, staged in a `VECTOR` taken off the scratch stack. The Skull
+/// Stalker includes it as its skullStalkerColour.
 void sucklercephColour(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;

@@ -125,3 +125,4 @@ skullStalkerFlatten = 0x8014B128; // type:func
 skullStalkerExit = 0x8014B21C; // type:func
 skullStalkerAnimate = 0x8014AF2C; // type:func
 skullStalkerColour = 0x8014AFDC; // type:func
+skullStalkerTask = 0x8014AC9C; // type:func

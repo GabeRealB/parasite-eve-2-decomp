@@ -102,7 +102,6 @@ extern AnimationSet Actor04600_D05554;
 extern AnimationSet Actor04600_D0569C;
 extern AnimationSet Actor04600_D05840;
 extern TmdSource    Actor04600_D05200;
-void                Actor04600_Fn03B80(Task*);
 
 DamageAttack gSucklercephAttack = { 30, 7 };
 
@@ -318,7 +317,7 @@ AnimationSet Actor04600_D06474 = {
     { NULL, Actor04600_D06248, NULL, NULL, Actor04600_D06368, NULL, NULL, NULL },
 };
 
-TaskDesc Actor04600_D0649C = { { { TASK_BODY_TMD, 96 } }, Actor04600_Fn03B80, { .model = &Actor04600_D061C0 } };
+TaskDesc Actor04600_D0649C = { { { TASK_BODY_TMD, 96 } }, skullStalkerTask, { .model = &Actor04600_D061C0 } };
 
 AnimationSet* gSkullStalkerAnimSets[3] = {
     NULL,
@@ -405,22 +404,13 @@ static const GpEnemyTaskFuncTable4 gSucklercephDropTaskStates = {
 
 #include "../../shared/skull_stalker_death_state.inc.c"
 
-/// Task states of the second enemy as `Actor04600_Fn03B80` dispatches them:
+/// Task states of the second enemy as `skullStalkerTask` dispatches them:
 /// spawn, per-frame update and the dying tick.
-static const GpEnemyTaskFuncTable3 Actor04600_D0003C = {
+static const GpEnemyTaskFuncTable3 gSkullStalkerTaskStates = {
     { skullStalkerSpawnState, skullStalkerUpdateState, skullStalkerDeathState },
 };
 
-/// Task handler of the second enemy: runs the entry of `Actor04600_D0003C` for
-/// the task's state with the enemy and the task, from a copy of the table on
-/// the stack.
-void Actor04600_Fn03B80(Task* arg0)
-{
-    GpEnemyTaskFuncTable3 sp;
-
-    sp = Actor04600_D0003C;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/skull_stalker_task.inc.c"
 
 #include "../../shared/skull_stalker_update_state.inc.c"
 
@@ -428,12 +418,7 @@ void Actor04600_Fn03B80(Task* arg0)
 
 #include "../../shared/skull_stalker_reaction_dispatch.inc.c"
 
-/// The second enemy's animation rebind, `skullStalkerTickAnim`, as an
-/// out-of-line function.
-void skullStalkerAnimate(Task* arg0)
-{
-    skullStalkerTickAnim(arg0);
-}
+#include "../../shared/skull_stalker_animate.inc.c"
 
 /// A further copy, under this file's own name.
 #define sucklercephColour skullStalkerColour
