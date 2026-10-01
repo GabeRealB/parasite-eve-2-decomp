@@ -662,7 +662,7 @@ void func_dryfield_breezeway_8017E390(void)
     buf.msg.context.loc.stage = gGameSession->location.loc.stage;
     buf.msg.context.loc.area  = gGameSession->location.loc.area;
     buf.msg.command           = 2;
-    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &buf, 0x7DB);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &buf, ACTOR_COMMAND_MESSAGE_APPLY);
     Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }
 

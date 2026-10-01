@@ -328,7 +328,7 @@ ActorTransform D_actor_341900_80163A60 = { { -3000, 0, -2450, 0 }, { 0, 1024, 0,
 Actor341900MessageEntry D_actor_341900_80163A78[4] = {
     { 2005, { .call3 = actorMsgSetDrawMode } },
     { 2004, { .call2 = actorMsgPlaceYawPitchRoll } },
-    { 2011, { .call0 = func_actor_341900_8016332C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_341900_8016332C } },
     { 2003, { .call1 = func_actor_341900_80161FD0 } },
 };
 

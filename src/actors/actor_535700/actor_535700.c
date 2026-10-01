@@ -1075,7 +1075,7 @@ Actor535700MsgEntry gPairWalkMessages[6] = {
     { 2003, { .call1 = pairWalkPlay } },
     { 2005, { .call7 = pairWalkSetVisibility } },
     { 2004, { .call4 = pairWalkPlace } },
-    { 2011, { .call0 = func_actor_535700_8013332C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_535700_8013332C } },
     { 2013, { .call5 = pairWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };

@@ -647,7 +647,7 @@ Actor135600MsgEntry D_actor_135600_8013B0F4[6] = {
     { 2004, { .call3 = actorMsgPlaceEuler } },
     { 2005, { .call4 = func_actor_135600_80133240 } },
     { 2013, { .call2 = actorMotionStartWalk } },
-    { 2011, { .call0 = func_actor_135600_8013336C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_135600_8013336C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 

@@ -3107,7 +3107,7 @@ STATIC_ASSERT_SIZEOF(Actor403100MessageEntry, 8);
 
 Actor403100MessageEntry D_actor_403100_801556EC[4] = {
     { 2014, { .call0 = func_actor_403100_8013D5F4 } },
-    { 2011, { .call2 = func_actor_403100_8013D564 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_403100_8013D564 } },
     { 2005, { .call1 = func_actor_403100_8013D608 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };

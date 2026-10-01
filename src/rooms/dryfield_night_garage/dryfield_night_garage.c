@@ -605,7 +605,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
     switch (temp_v1) {
         case 0:
             Gp_StartCapSlot((s16)arg0->spawnArg1.value, 0, 0);
-            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE0, 0);
+            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
             goto block_12;
         case 1:
             if (Gp_CapBusy() == 0) {
@@ -626,7 +626,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
                 break;
             }
             Gp_MsgPlayerWeapon(1);
-            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE4, 0);
+            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
         default:
             taskKill(arg0);
             break;

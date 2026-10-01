@@ -1249,7 +1249,7 @@ Actor146300MsgEntry D_actor_146300_801427A0[5] = {
     { 2003, { .call1 = func_actor_146300_8013299C } },
     { 2005, { .call3 = actorMsgSetPairVisibility } },
     { 2004, { .call2 = scriptedWalkPlace } },
-    { 2011, { .call0 = func_actor_146300_80132B14 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_146300_80132B14 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 

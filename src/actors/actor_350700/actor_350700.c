@@ -546,7 +546,7 @@ Actor350700MsgEntry D_actor_350700_8017090C[6] = {
     { 2004, { .call3 = func_actor_350700_801637C4 } },
     { 2005, { .call5 = func_actor_350700_80163840 } },
     { 2013, { .call4 = actorMotionStartWalk } },
-    { 2011, { .call0 = func_actor_350700_8016395C } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_350700_8016395C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 }; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table
 #include "../../shared/reversing_walker_update.inc.c"

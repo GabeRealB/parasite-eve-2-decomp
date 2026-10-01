@@ -229,6 +229,19 @@ enum {
 
 /// Actor-command delivery and the scene manager's general actor-message broadcast.
 enum {
+    /// Applies a borrowed `ActorCommand` in the receiver's command namespace.
+    ///
+    /// The first argument addresses the command; initialize the context and
+    /// command components that the selected handler reads and keep them live
+    /// through synchronous dispatch. The second argument is receiver-specific:
+    /// usually zero, but placement commands can require an `ActorTransform*`.
+    /// Actions, valid command values and the signed result are receiver-specific;
+    /// zero does not distinguish an ignored command from one that was applied.
+    ///
+    /// To broadcast, send `SCENE_MESSAGE_BROADCAST_TO_ACTORS` to the scene manager
+    /// with the command as its first argument and this ID as its second. It
+    /// forwards the command to type-9 children with a zero second argument and
+    /// returns zero, discarding their results.
     ACTOR_COMMAND_MESSAGE_APPLY       = 0x7DB,
     SCENE_MESSAGE_BROADCAST_TO_ACTORS = 0x7DA,
 };

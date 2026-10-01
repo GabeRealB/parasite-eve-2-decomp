@@ -1350,7 +1350,7 @@ DamageAttack D_actor_400500_80153C84[3] = {
 EnemyParams D_actor_400500_80153C90 = { D_actor_400500_80153C84, 450, 500, 200, 15, 100, 8, 100, 10 };
 
 Actor400500MessageEntry D_actor_400500_80153CA0[2] = {
-    { 2011, { .call0 = func_actor_400500_8013DAE4 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_400500_8013DAE4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 

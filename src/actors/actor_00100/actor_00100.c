@@ -3071,7 +3071,7 @@ static void Actor00100_Fn0375C(Task* arg0)
                 work->field_904 = 9;
                 work->field_905 = 1;
                 work->field_906 = 4;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_904, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_904, ACTOR_COMMAND_MESSAGE_APPLY);
                 if ((Gp_GetIdParam0(scratch->field_20) & 0xFFFF) == 4) {
                     work->field_0 = 3;
                 } else {
@@ -3446,7 +3446,7 @@ static void Actor00100_Fn0503C(Task* arg0)
         work->pad_8EB[0x19]                      = 9;
         work->pad_8EB[0x1A]                      = 1;
         ((Actor00100FacingWork*)work)->field_906 = 1;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (&work->pad_8EB[0x19]), 0x7DB);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (&work->pad_8EB[0x19]), ACTOR_COMMAND_MESSAGE_APPLY);
 
         return;
     }
@@ -3678,7 +3678,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                 work->pad_8EB[0x19]                      = 9;
                 work->pad_8EB[0x1A]                      = 1;
                 ((Actor00100FacingWork*)work)->field_906 = 4;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->pad_8EB[0x19], 0x7DB);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->pad_8EB[0x19], ACTOR_COMMAND_MESSAGE_APPLY);
             }
         }
     }

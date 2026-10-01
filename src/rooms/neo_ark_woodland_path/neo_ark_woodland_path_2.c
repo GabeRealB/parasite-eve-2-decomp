@@ -248,7 +248,7 @@ s16 gRoamerReleasePending = 0;
 NeoArkWoodlandPath2MsgEntry gRoamerMsgTableA[4] = {
     { 5103, { .call0 = roamerLatchRequest } },
     { 5108, { .call2 = roamerBankRetreat } },
-    { 2011, { .call0 = func_neo_ark_woodland_path_80181474 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_neo_ark_woodland_path_80181474 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 

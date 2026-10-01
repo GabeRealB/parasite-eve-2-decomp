@@ -3489,7 +3489,7 @@ Actor403000MessageEntry D_actor_403000_80158CA8[7] = {
     { 2005, { .call4 = func_actor_403000_8013D268 } },
     { 2006, { .call0 = func_actor_403000_8013D324 } },
     { 2004, { .call3 = func_actor_403000_8013D364 } },
-    { 2011, { .call1 = func_actor_403000_801324EC } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_403000_801324EC } },
     { 2003, { .call2 = func_actor_403000_8013D464 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };

@@ -2578,7 +2578,7 @@ Actor450800MsgEntry gPairWalkMessages[6] = {
     { 2003, { .call1 = pairWalkPlay } },
     { 2005, { .call6 = pairWalkSetVisibility } },
     { 2004, { .call3 = pairWalkPlace } },
-    { 2011, { .call0 = func_actor_450800_80133670 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_450800_80133670 } },
     { 2013, { .call4 = pairWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };

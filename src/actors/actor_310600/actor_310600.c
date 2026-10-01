@@ -520,9 +520,9 @@ static void func_actor_310600_80161FA0(Task* task)
                             case 2:
                                 if ((s16)work->field_47A++ < 5) {
                                     Gp_SpawnEff(0x6006A, coord, 9, NULL);
-                                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_actor_310600_8017969C, 0);
+                                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
                                 } else {
-                                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_actor_310600_801796A0, 0);
+                                    Gp_DispatchMsgPtr(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_801796A0, 0);
                                     Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 2, 0, 0);
                                 }
                                 break;

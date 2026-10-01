@@ -1248,7 +1248,7 @@ Actor401300MessageEntry D_actor_401300_80158988[8] = {
     { 2006, { .call0 = func_actor_401300_801415C4 } },
     { 2004, { .call3 = func_actor_401300_80141614 } },
     { 2014, { .call0 = func_actor_401300_80141714 } },
-    { 2011, { .call1 = func_actor_401300_80132554 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_401300_80132554 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 

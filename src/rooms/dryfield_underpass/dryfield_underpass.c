@@ -842,7 +842,7 @@ static void func_dryfield_underpass_8017D970(Task* arg0)
     arg0->msgTable = D_dryfield_underpass_8017E830;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_underpass_8017E89C, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_underpass_8017E89C, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     arg0->state = arg0->state + 1;
 }

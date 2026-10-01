@@ -1019,13 +1019,13 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
     switch (temp_v1) {
         case 0:
             Gp_RunCapCmd(arg0->spawnArg1.value, 0);
-            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE0, 0);
+            Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
             arg0->state = arg0->state + 1;
             return;
         case 1:
             if (Gp_CapBusy() == 0) {
                 Gp_MsgPlayerWeapon(1);
-                Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), 0x7DB, &D_dryfield_night_garage_80182DE4, 0);
+                Gp_DispatchMsgPtr(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
                 break;
             }
             return;

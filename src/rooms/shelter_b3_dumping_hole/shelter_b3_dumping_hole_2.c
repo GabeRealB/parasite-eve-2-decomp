@@ -2603,7 +2603,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     area                      = gGameSession->location.loc.area;
                     msg.loc.command           = 1;
                     msg.loc.context.loc.area  = area;
-                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &msg, 0x7DB);
+                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                     work->field_34 = 0;
                     work->field_32++;
                     return;

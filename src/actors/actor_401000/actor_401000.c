@@ -1299,7 +1299,7 @@ Actor401000MessageEntry D_actor_401000_80154F90[8] = {
     { 2006, { .call0 = func_actor_401000_8013D7C4 } },
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = func_actor_401000_8013D914 } },
-    { 2011, { .call4 = func_actor_401000_8013D958 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = func_actor_401000_8013D958 } },
     { 2147483647, { .call0 = NULL } },
 };
 

@@ -3627,7 +3627,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                 work->field_8E8 = 9;
                 work->field_8E9 = 1;
                 work->field_8EA = 3;
-                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_8E8, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_8E8, ACTOR_COMMAND_MESSAGE_APPLY);
             } else {
                 if ((s16)totalDamage >= 0x47) {
                     hurtState = work->field_0;
@@ -4315,7 +4315,7 @@ static void func_actor_421600_801373D4(Task* arg0)
         work->field_8E8            = 9;
         work->field_8E9            = 1;
         work->field_8EA            = 1;
-        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_8E8, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_8E8, ACTOR_COMMAND_MESSAGE_APPLY);
         return;
     }
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFacingScratch);

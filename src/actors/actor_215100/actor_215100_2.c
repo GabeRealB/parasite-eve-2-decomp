@@ -1700,7 +1700,7 @@ Actor2151002MsgEntry D_actor_215100_8015E5A0[6] = {
     { 2003, { .call1 = func_actor_215100_8014CCE0 } },
     { 2005, { .call3 = func_actor_215100_8014CD4C } },
     { 2004, { .call2 = pacedWalkPlace } },
-    { 2011, { .call0 = func_actor_215100_8014CE28 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_actor_215100_8014CE28 } },
     { 2013, { .call2 = pacedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };

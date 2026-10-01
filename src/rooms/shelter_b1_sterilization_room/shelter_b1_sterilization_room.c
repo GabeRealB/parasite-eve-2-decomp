@@ -539,7 +539,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     if (gGameSession->location.loc.variant == 5) {
         target = Gp_LookupSlot4(0);
         if (target != NULL) {
-            Gp_DispatchMsgPtr(target, 0x7DB, &D_shelter_b1_sterilization_room_80184E7C, 0);
+            Gp_DispatchMsgPtr(target, ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b1_sterilization_room_80184E7C, 0);
         }
     }
     if (GameFlag_GetNibble(0xEA) != 1) {

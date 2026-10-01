@@ -186,7 +186,7 @@ ActorTransform D_dryfield_water_tank_8017FD60[2] = {
 
 DryfieldWaterTankMessageEntry D_dryfield_water_tank_8017FD90[3] = {
     { 2004, { .call1 = actorMsgPlaceYawPitchRoll } },
-    { 2011, { .call0 = func_dryfield_water_tank_8017E174 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call0 = func_dryfield_water_tank_8017E174 } },
     { 2005, { .call2 = func_dryfield_water_tank_8017E0B4 } },
 };
 

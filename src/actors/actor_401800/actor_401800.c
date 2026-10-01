@@ -1300,7 +1300,7 @@ Actor401800MessageEntry D_actor_401800_80155A80[8] = {
     { 2006, { .call0 = func_actor_401800_8013DDEC } },
     { 2004, { .call2 = actorMsgPlaceRecordYaw } },
     { 2014, { .call0 = func_actor_401800_8013DF3C } },
-    { 2011, { .call4 = func_actor_401800_8013DF80 } },
+    { ACTOR_COMMAND_MESSAGE_APPLY, { .call4 = func_actor_401800_8013DF80 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 

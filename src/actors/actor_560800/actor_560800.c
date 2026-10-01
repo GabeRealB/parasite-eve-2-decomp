@@ -4800,7 +4800,7 @@ void func_actor_560800_80133204(void)
         Actor560800Work* w = (Actor560800Work*)D_actor_560800_8017578C->work;
 
         ((SVECTOR*)&pos)->vy = 0;
-        Gp_DispatchMsgPtr(w->field_20, 0x7DB, &pos, 0);
+        Gp_DispatchMsgPtr(w->field_20, ACTOR_COMMAND_MESSAGE_APPLY, &pos, 0);
     }
 }
 
