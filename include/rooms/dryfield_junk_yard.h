@@ -30,7 +30,7 @@ extern GpWarpRec D_dryfield_junk_yard_8017ED24[];
 
 extern GpViewRec D_dryfield_junk_yard_8017F5C0[];
 
-extern GpSprtRec D_dryfield_junk_yard_80180C28[];
+extern SpriteView D_dryfield_junk_yard_80180C28[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_junk_yard_80181C28[];
 

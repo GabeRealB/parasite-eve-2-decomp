@@ -678,7 +678,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80181B90[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_pod_service_gantry_80181BA0[46] = {
+SpriteView D_shelter_b1_pod_service_gantry_80181BA0[46] = {
     { { .elements = D_shelter_b1_pod_service_gantry_80180860 }, D_shelter_b1_pod_service_gantry_80180A2C, NULL },
     { { .elements = D_shelter_b1_pod_service_gantry_80180A4C }, D_shelter_b1_pod_service_gantry_80180AEC, NULL },
     { { .elements = D_shelter_b1_pod_service_gantry_80180B04 }, D_shelter_b1_pod_service_gantry_80180BF4, D_shelter_b1_pod_service_gantry_80180C14 },

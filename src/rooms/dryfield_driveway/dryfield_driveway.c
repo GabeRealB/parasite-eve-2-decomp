@@ -524,7 +524,7 @@ SpriteBatch D_dryfield_driveway_8017FBD4[14] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_driveway_8017FC44[7] = {
+SpriteView D_dryfield_driveway_8017FC44[7] = {
     { { .empty = D_dryfield_driveway_8017EF28 }, D_dryfield_driveway_8017EF28, NULL },
     { { .elements = D_dryfield_driveway_8017EF38 }, D_dryfield_driveway_8017EFEC, NULL },
     { { .elements = D_dryfield_driveway_8017F00C }, D_dryfield_driveway_8017F160, D_dryfield_driveway_8017F198 },

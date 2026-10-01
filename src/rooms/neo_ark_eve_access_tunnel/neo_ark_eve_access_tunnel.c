@@ -315,7 +315,7 @@ SpriteBatch D_neo_ark_eve_access_tunnel_80180090[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_eve_access_tunnel_801800A0[7] = {
+SpriteView D_neo_ark_eve_access_tunnel_801800A0[7] = {
     { { .empty = D_neo_ark_eve_access_tunnel_8017F17C }, D_neo_ark_eve_access_tunnel_8017F17C, NULL },
     { { .elements = D_neo_ark_eve_access_tunnel_8017F18C }, D_neo_ark_eve_access_tunnel_8017F6F0, NULL },
     { { .elements = D_neo_ark_eve_access_tunnel_8017F720 }, D_neo_ark_eve_access_tunnel_8017FAE0, NULL },

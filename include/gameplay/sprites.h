@@ -16,9 +16,9 @@ enum { SPRITE_BATCH_END = 0xFFFF };
 
 /// A contiguous range of source sprites in a view's drawing list.
 ///
-/// Room tables own these mutable, eight-byte records. `GpSprtRec.field_4`
+/// Room tables own these mutable, eight-byte records. `SpriteView.batches`
 /// points to a list ending with `firstSprite == SPRITE_BATCH_END`. Each
-/// nonterminal range indexes that view's `GpSprtRec.field_0.elements`; its
+/// nonterminal range indexes that view's `SpriteView.sources.elements`; its
 /// start plus count must fit the source array.
 ///
 /// The first record's count also selects background presentation: zero requests
@@ -47,7 +47,7 @@ enum {
 
 /// Mutable texture rectangle and sorting depth for a room-view sprite.
 ///
-/// Room overlays own arrays referenced by `GpSprtRec.field_0.elements`;
+/// Room overlays own arrays referenced by `SpriteView.sources.elements`;
 /// `SpriteBatch` selects ranges in elements, with no sentinel in the source
 /// array itself. The selected overlay and each range must remain valid while
 /// allocating packets or linking them for drawing.
@@ -94,7 +94,7 @@ enum { SPRITE_DRAW_AREA_END = 0xFFFF };
 
 /// A view clipping rectangle and the sorting depth that restores full-screen drawing.
 ///
-/// Room overlays own lists referenced by `GpSprtRec.field_8`; NULL selects no
+/// Room overlays own lists referenced by `SpriteView.drawAreas`; NULL selects no
 /// clipping commands. Lists end with `restoreDepth == SPRITE_DRAW_AREA_END`;
 /// the renderer emits no command for the terminal record. The overlay and list
 /// must remain valid while building drawing commands. Frame capture consults
@@ -112,24 +112,33 @@ typedef struct {
 } SpriteDrawArea;
 STATIC_ASSERT_SIZEOF(SpriteDrawArea, 0xA);
 
-/// 12-byte per-view record in tables pointed to by `Gp_SprtTables`.
-/// Indexed 1-based by the `Gp_ViewIndexTables` camera / view byte.
-/// `Gp_GetViewSprtExtra` returns `field_8`. `Gp_ViewSprtCmdEmpty` reads `field_4`.
-typedef struct _GpSprtRec {
-    /* 0x0 */ union {
-        SpriteSource* elements;
-        // Empty lists retain the command-table address here; no sprite is read.
-        SpriteBatch* empty;
-    } field_0;
-    /* 0x4 */ SpriteBatch*    field_4;
-    /* 0x8 */ SpriteDrawArea* field_8;
-} GpSprtRec;
-STATIC_ASSERT_SIZEOF(GpSprtRec, 0xC);
+/// Borrowed sprite sources, drawing batches and clipping areas for one room view.
+///
+/// Room overlays own arrays selected through `Gp_SprtTables` by stage and area.
+/// The 1-based byte from `Gp_ViewIndexTables` selects an element in that area's
+/// array; it must be nonzero and within the array's extent. The descriptor and
+/// its referenced lists must remain valid while allocating or drawing sprites.
+///
+/// Nonterminal batches index `sources.elements` in source elements, with each
+/// start plus count within that array. Views without source sprites may store
+/// NULL or retain their batch-list address as `sources.empty`; neither supplies
+/// source elements. Batch lists always include a terminal record, whose count
+/// can still select background presentation. `drawAreas` is independently
+/// nullable and clips depth-sorted scene drawing as well as sprites.
+typedef struct {
+    union {
+        SpriteSource* elements; // Mutable source array, or NULL when no source elements are selected
+        SpriteBatch*  empty;    // Retained batch-list address for a view with no source sprites
+    } sources;                  // Alternative source-slot interpretations; empty is never dereferenced as sprites
+    SpriteBatch*    batches;    // Mutable range list ending with firstSprite == SPRITE_BATCH_END
+    SpriteDrawArea* drawAreas;  // Borrowed clip list ending with restoreDepth == SPRITE_DRAW_AREA_END, or NULL
+} SpriteView;
+STATIC_ASSERT_SIZEOF(SpriteView, 0xC);
 
-/// Per-stage wrapper. `field_0` is an array of `GpSprtRec*`, indexed
+/// Per-stage wrapper. `field_0` is an array of `SpriteView*`, indexed
 /// 1-based by `GameSession.location.loc.area` / `GameLocationKey.area`.
 typedef struct _GpSprtTbl {
-    /* 0x0 */ GpSprtRec** field_0;
+    /* 0x0 */ SpriteView** field_0;
 } GpSprtTbl;
 
 /// Halfword UV and word size transfers used when building GPU sprites.

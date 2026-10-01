@@ -1308,7 +1308,7 @@ SpriteBatch D_mine_forked_tunnel_80184D54[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_forked_tunnel_80184D64[7] = {
+SpriteView D_mine_forked_tunnel_80184D64[7] = {
     { { .empty = D_mine_forked_tunnel_80183E90 }, D_mine_forked_tunnel_80183E90, NULL },
     { { .elements = D_mine_forked_tunnel_80183EA0 }, D_mine_forked_tunnel_8018415C, NULL },
     { { .elements = D_mine_forked_tunnel_80184184 }, D_mine_forked_tunnel_80184454, NULL },
@@ -1966,7 +1966,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
 static void func_mine_forked_tunnel_8017E48C(s32 arg0)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     view4Batches;
     SpriteBatch*     view5Batches;
 
@@ -1974,15 +1974,15 @@ static void func_mine_forked_tunnel_8017E48C(s32 arg0)
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
 
     if (!(arg0 & 0xFF)) {
-        view4Batches           = rec[3].field_4;
+        view4Batches           = rec[3].batches;
         view4Batches[5].hidden = 0;
-        view5Batches           = rec[4].field_4;
+        view5Batches           = rec[4].batches;
         view5Batches[3].hidden = 0;
         return;
     }
-    view4Batches           = rec[3].field_4;
+    view4Batches           = rec[3].batches;
     view4Batches[5].hidden = 1;
-    view5Batches           = rec[4].field_4;
+    view5Batches           = rec[4].batches;
     view5Batches[3].hidden = 1;
 }
 

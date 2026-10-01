@@ -579,7 +579,7 @@ SpriteBatch D_neo_ark_bridge_8018454C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_bridge_80184564[6] = {
+SpriteView D_neo_ark_bridge_80184564[6] = {
     { { .empty = D_neo_ark_bridge_80182910 }, D_neo_ark_bridge_80182910, NULL },
     { { .elements = D_neo_ark_bridge_80182920 }, D_neo_ark_bridge_80182BC8, NULL },
     { { .elements = D_neo_ark_bridge_80182BE0 }, D_neo_ark_bridge_801832D4, NULL },

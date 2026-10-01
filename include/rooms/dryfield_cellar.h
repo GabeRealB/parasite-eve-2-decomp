@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_cellar_8017DC20[];
 
 extern GpViewRec D_dryfield_cellar_8017DF78[];
 
-extern GpSprtRec D_dryfield_cellar_8017FE40[];
+extern SpriteView D_dryfield_cellar_8017FE40[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[];
 

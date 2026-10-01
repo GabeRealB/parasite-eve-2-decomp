@@ -33,7 +33,7 @@ extern WorldCollisionGrid D_shelter_b2_laboratory_8018355C;
 
 extern GpViewRec D_shelter_b2_laboratory_80183580[];
 
-extern GpSprtRec D_shelter_b2_laboratory_801854D0[];
+extern SpriteView D_shelter_b2_laboratory_801854D0[];
 
 extern WorldCoordRoomLights D_shelter_b2_laboratory_80185944;
 

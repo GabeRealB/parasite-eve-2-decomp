@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_night_dilapidated_house_801873AC[];
 
 extern GpViewRec D_dryfield_night_dilapidated_house_80187D68[];
 
-extern GpSprtRec D_dryfield_night_dilapidated_house_8018921C[];
+extern SpriteView D_dryfield_night_dilapidated_house_8018921C[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_dilapidated_house_8018A0E4[];
 

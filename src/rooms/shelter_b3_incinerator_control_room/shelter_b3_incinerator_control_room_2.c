@@ -214,7 +214,7 @@ SpriteBatch D_shelter_b3_incinerator_control_room_80182130[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b3_incinerator_control_room_80182140[8] = {
+SpriteView D_shelter_b3_incinerator_control_room_80182140[8] = {
     { { .empty = D_shelter_b3_incinerator_control_room_80181E04 }, D_shelter_b3_incinerator_control_room_80181E04, NULL },
     { { .empty = D_shelter_b3_incinerator_control_room_80181E14 }, D_shelter_b3_incinerator_control_room_80181E14, NULL },
     { { .elements = D_shelter_b3_incinerator_control_room_80181E24 }, D_shelter_b3_incinerator_control_room_80181F28, NULL },

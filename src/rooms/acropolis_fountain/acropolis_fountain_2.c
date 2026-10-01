@@ -1165,7 +1165,7 @@ SpriteBatch D_acropolis_fountain_8018374C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_fountain_8018375C[22] = {
+SpriteView D_acropolis_fountain_8018375C[22] = {
     { { .empty = D_acropolis_fountain_8017FF4C }, D_acropolis_fountain_8017FF4C, NULL },
     { { .empty = D_acropolis_fountain_8017FF5C }, D_acropolis_fountain_8017FF5C, NULL },
     { { .elements = D_acropolis_fountain_8017FF6C }, D_acropolis_fountain_801806D8, NULL },

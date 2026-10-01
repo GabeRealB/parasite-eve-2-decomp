@@ -437,7 +437,7 @@ SpriteBatch D_mine_refuge_8018263C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_refuge_8018264C[7] = {
+SpriteView D_mine_refuge_8018264C[7] = {
     { { .empty = D_mine_refuge_80181CC4 }, D_mine_refuge_80181CC4, NULL },
     { { .elements = D_mine_refuge_80181CD4 }, D_mine_refuge_80182300, NULL },
     { { .elements = D_mine_refuge_80182340 }, D_mine_refuge_801825D4, NULL },

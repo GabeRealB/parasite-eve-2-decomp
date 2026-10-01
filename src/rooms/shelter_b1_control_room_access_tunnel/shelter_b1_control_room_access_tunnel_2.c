@@ -102,7 +102,7 @@ SpriteBatch D_shelter_b1_control_room_access_tunnel_80182120[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_control_room_access_tunnel_80182130[3] = {
+SpriteView D_shelter_b1_control_room_access_tunnel_80182130[3] = {
     { { .empty = D_shelter_b1_control_room_access_tunnel_80182100 }, D_shelter_b1_control_room_access_tunnel_80182100, NULL },
     { { .empty = D_shelter_b1_control_room_access_tunnel_80182110 }, D_shelter_b1_control_room_access_tunnel_80182110, NULL },
     { { .empty = D_shelter_b1_control_room_access_tunnel_80182120 }, D_shelter_b1_control_room_access_tunnel_80182120, NULL },

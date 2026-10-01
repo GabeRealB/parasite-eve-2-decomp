@@ -31,7 +31,7 @@ extern GpWarpRec D_dryfield_night_motel_balcony_80182EAC[];
 
 extern GpViewRec D_dryfield_night_motel_balcony_80184004[];
 
-extern GpSprtRec D_dryfield_night_motel_balcony_8018D078[];
+extern SpriteView D_dryfield_night_motel_balcony_8018D078[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_balcony_8018F2AC[];
 

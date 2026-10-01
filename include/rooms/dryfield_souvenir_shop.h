@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_souvenir_shop_8017E0DC[];
 
 extern GpViewRec D_dryfield_souvenir_shop_8017E600[];
 
-extern GpSprtRec D_dryfield_souvenir_shop_8017EED0[];
+extern SpriteView D_dryfield_souvenir_shop_8017EED0[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_souvenir_shop_8017F640[];
 

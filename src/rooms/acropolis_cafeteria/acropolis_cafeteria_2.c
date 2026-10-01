@@ -658,7 +658,7 @@ SpriteBatch D_acropolis_cafeteria_8018C474[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_cafeteria_8018C48C[24] = {
+SpriteView D_acropolis_cafeteria_8018C48C[24] = {
     { { .empty = D_acropolis_cafeteria_8018AA30 }, D_acropolis_cafeteria_8018AA30, NULL },
     { { .elements = D_acropolis_cafeteria_8018AA40 }, D_acropolis_cafeteria_8018AD60, NULL },
     { { .elements = D_acropolis_cafeteria_8018ADB0 }, D_acropolis_cafeteria_8018B2EC, NULL },

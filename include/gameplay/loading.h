@@ -38,7 +38,7 @@ extern GpSprtTbl* Gp_SprtTables[];
 void Gp_LinkViewSprts(void);
 
 /// Alloc dual-buffer merged `DR_TPAGE`+`SPRT` lists into `Gp_SprtLists`
-/// from the current view's `GpSprtRec` records. Byte size is the sum of
+/// from the current view's `SpriteView` records. Byte size is the sum of
 /// each batch's `spriteCount`, times two 0x1C slots. Packet initialization
 /// skips batches with `skipCachedPackets` set. RGB is `0x8000`; SPRT code is `0x65`.
 void Gp_AllocSprtLists(void);

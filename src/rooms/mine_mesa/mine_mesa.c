@@ -1529,7 +1529,7 @@ SpriteBatch D_mine_mesa_80188734[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_mesa_80188744[11] = {
+SpriteView D_mine_mesa_80188744[11] = {
     { { .empty = D_mine_mesa_801871BC }, D_mine_mesa_801871BC, NULL },
     { { .elements = D_mine_mesa_801871CC }, D_mine_mesa_8018758C, NULL },
     { { .elements = D_mine_mesa_801875C4 }, D_mine_mesa_801878D0, NULL },

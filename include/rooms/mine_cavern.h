@@ -26,7 +26,7 @@ extern GpWarpRec D_mine_cavern_80189074[];
 
 extern GpViewRec D_mine_cavern_80189840[];
 
-extern GpSprtRec D_mine_cavern_8018CD10[];
+extern SpriteView D_mine_cavern_8018CD10[];
 
 extern WorldCollisionSurfaceProperties* D_mine_cavern_8018E30C[];
 

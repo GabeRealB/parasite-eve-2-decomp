@@ -1104,7 +1104,7 @@ void func_actor_335800_801622C0(s32 arg0)
 {
     GameSession*     g;
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
 
     g    = gGameSession;
@@ -1112,12 +1112,12 @@ void func_actor_335800_801622C0(s32 arg0)
     rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
     switch (arg0) {
         case 0:
-            batches           = rec[38].field_4;
+            batches           = rec[38].batches;
             batches[2].hidden = 0;
             batches[3].hidden = 0;
             break;
         case 1:
-            batches           = rec[38].field_4;
+            batches           = rec[38].batches;
             batches[2].hidden = arg0;
             batches[3].hidden = arg0;
             GameFlag_SetNibble(0x7F, 1);

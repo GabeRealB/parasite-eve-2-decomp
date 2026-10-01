@@ -436,7 +436,7 @@ SpriteBatch D_dryfield_garage_8017F5C8[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_garage_8017F5E8[15] = {
+SpriteView D_dryfield_garage_8017F5E8[15] = {
     { { .empty = D_dryfield_garage_8017E88C }, D_dryfield_garage_8017E88C, NULL },
     { { .elements = D_dryfield_garage_8017E89C }, D_dryfield_garage_8017EBD0, NULL },
     { { .elements = D_dryfield_garage_8017EBF0 }, D_dryfield_garage_8017EE20, NULL },

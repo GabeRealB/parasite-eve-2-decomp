@@ -403,7 +403,7 @@ SpriteBatch D_shelter_b2_pod_access_tunnel_80184C5C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_pod_access_tunnel_80184C6C[7] = {
+SpriteView D_shelter_b2_pod_access_tunnel_80184C6C[7] = {
     { { .empty = D_shelter_b2_pod_access_tunnel_801842D4 }, D_shelter_b2_pod_access_tunnel_801842D4, NULL },
     { { .empty = D_shelter_b2_pod_access_tunnel_801842E4 }, D_shelter_b2_pod_access_tunnel_801842E4, NULL },
     { { .elements = D_shelter_b2_pod_access_tunnel_801842F4 }, D_shelter_b2_pod_access_tunnel_801847A4, NULL },

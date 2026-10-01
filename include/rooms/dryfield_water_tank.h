@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_water_tank_80186900[];
 
 extern GpViewRec D_dryfield_water_tank_80186EE0[];
 
-extern GpSprtRec D_dryfield_water_tank_80187F80[];
+extern SpriteView D_dryfield_water_tank_80187F80[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_water_tank_80188CFC[];
 

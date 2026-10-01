@@ -27,7 +27,7 @@ extern WorldCollisionGrid D_shelter_b4_water_supply_80182E3C;
 
 extern GpViewRec D_shelter_b4_water_supply_80182E60[];
 
-extern GpSprtRec D_shelter_b4_water_supply_80183F90[];
+extern SpriteView D_shelter_b4_water_supply_80183F90[];
 
 extern WorldCoordRoomLights D_shelter_b4_water_supply_801843D4;
 

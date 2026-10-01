@@ -29,7 +29,7 @@ extern GpWarpRec D_dryfield_night_parking_lot_8017EE58[];
 
 extern GpViewRec D_dryfield_night_parking_lot_8017FAF4[];
 
-extern GpSprtRec D_dryfield_night_parking_lot_801805AC[];
+extern SpriteView D_dryfield_night_parking_lot_801805AC[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_parking_lot_8018153C[];
 

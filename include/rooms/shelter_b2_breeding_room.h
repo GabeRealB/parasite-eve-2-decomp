@@ -26,7 +26,7 @@ extern WorldCollisionGrid D_shelter_b2_breeding_room_801810F4;
 
 extern GpViewRec D_shelter_b2_breeding_room_80181118[];
 
-extern GpSprtRec D_shelter_b2_breeding_room_801833D4[];
+extern SpriteView D_shelter_b2_breeding_room_801833D4[];
 
 extern WorldCoordRoomLights D_shelter_b2_breeding_room_801837AC;
 

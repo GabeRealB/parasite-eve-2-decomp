@@ -588,7 +588,7 @@ SpriteBatch D_shelter_b4_water_supply_80183F80[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b4_water_supply_80183F90[11] = {
+SpriteView D_shelter_b4_water_supply_80183F90[11] = {
     { { .empty = D_shelter_b4_water_supply_80182FEC }, D_shelter_b4_water_supply_80182FEC, NULL },
     { { .empty = D_shelter_b4_water_supply_80182FFC }, D_shelter_b4_water_supply_80182FFC, NULL },
     { { .empty = D_shelter_b4_water_supply_8018300C }, D_shelter_b4_water_supply_8018300C, NULL },

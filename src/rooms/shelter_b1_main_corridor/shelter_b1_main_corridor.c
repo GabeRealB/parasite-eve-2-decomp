@@ -504,7 +504,7 @@ SpriteBatch D_shelter_b1_main_corridor_80185110[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_main_corridor_80185128[10] = {
+SpriteView D_shelter_b1_main_corridor_80185128[10] = {
     { { .empty = D_shelter_b1_main_corridor_8018427C }, D_shelter_b1_main_corridor_8018427C, NULL },
     { { .empty = D_shelter_b1_main_corridor_8018428C }, D_shelter_b1_main_corridor_8018428C, NULL },
     { { .empty = D_shelter_b1_main_corridor_8018429C }, D_shelter_b1_main_corridor_8018429C, NULL },

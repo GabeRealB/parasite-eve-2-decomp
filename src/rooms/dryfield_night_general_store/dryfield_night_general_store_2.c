@@ -1236,7 +1236,7 @@ SpriteBatch D_dryfield_night_general_store_80184268[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_general_store_80184278[16] = {
+SpriteView D_dryfield_night_general_store_80184278[16] = {
     { { .empty = D_dryfield_night_general_store_8017F6E8 }, D_dryfield_night_general_store_8017F6E8, NULL },
     { { .elements = D_dryfield_night_general_store_8017F6F8 }, D_dryfield_night_general_store_8017FEC8, NULL },
     { { .elements = D_dryfield_night_general_store_8017FF20 }, D_dryfield_night_general_store_80180754, NULL },

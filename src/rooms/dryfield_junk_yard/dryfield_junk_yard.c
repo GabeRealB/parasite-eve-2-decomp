@@ -735,7 +735,7 @@ SpriteBatch D_dryfield_junk_yard_80180C00[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_junk_yard_80180C28[7] = {
+SpriteView D_dryfield_junk_yard_80180C28[7] = {
     { { .empty = D_dryfield_junk_yard_8017F6BC }, D_dryfield_junk_yard_8017F6BC, NULL },
     { { .elements = D_dryfield_junk_yard_8017F6CC }, D_dryfield_junk_yard_8017F924, NULL },
     { { .elements = D_dryfield_junk_yard_8017F95C }, D_dryfield_junk_yard_8017FE0C, NULL },

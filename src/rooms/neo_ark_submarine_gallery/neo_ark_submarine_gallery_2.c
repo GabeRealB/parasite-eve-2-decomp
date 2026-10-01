@@ -808,7 +808,7 @@ SpriteBatch D_neo_ark_submarine_gallery_80184CF0[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_submarine_gallery_80184D10[7] = {
+SpriteView D_neo_ark_submarine_gallery_80184D10[7] = {
     { { .empty = D_neo_ark_submarine_gallery_801824BC }, D_neo_ark_submarine_gallery_801824BC, NULL },
     { { .elements = D_neo_ark_submarine_gallery_801824CC }, D_neo_ark_submarine_gallery_80183070, NULL },
     { { .elements = D_neo_ark_submarine_gallery_801830A0 }, D_neo_ark_submarine_gallery_801836B8, NULL },

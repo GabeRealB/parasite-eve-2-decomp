@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_acropolis_forked_road_80182270[];
 
 extern GpWarpRec D_acropolis_forked_road_80182288[];
 
-extern GpSprtRec D_acropolis_forked_road_801844E0[];
+extern SpriteView D_acropolis_forked_road_801844E0[];
 
 extern GpViewRec D_acropolis_forked_road_80184E88[];
 

@@ -1436,7 +1436,7 @@ SpriteBatch D_dryfield_dilapidated_house_80188BFC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_dilapidated_house_80188C0C[21] = {
+SpriteView D_dryfield_dilapidated_house_80188C0C[21] = {
     { { .empty = D_dryfield_dilapidated_house_801875FC }, D_dryfield_dilapidated_house_801875FC, NULL },
     { { .elements = D_dryfield_dilapidated_house_8018760C }, D_dryfield_dilapidated_house_80187B48, NULL },
     { { .elements = D_dryfield_dilapidated_house_80187B70 }, D_dryfield_dilapidated_house_8018805C, NULL },

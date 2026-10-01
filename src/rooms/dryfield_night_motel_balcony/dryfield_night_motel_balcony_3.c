@@ -1085,14 +1085,14 @@ void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
 {
     GameSession*     g    = gGameSession;
     GameLocationKey* sess = &g->location.loc;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
 
     rec = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
 
     switch (sess->view) {
         case 17:
-            batches = rec[16].field_4;
+            batches = rec[16].batches;
             if (arg0 == 0) {
                 batches[2].hidden = 1;
             } else {
@@ -1100,7 +1100,7 @@ void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
             }
             break;
         case 18:
-            batches            = rec[17].field_4;
+            batches            = rec[17].batches;
             batches[6].hidden  = 0;
             batches[7].hidden  = 0;
             batches[8].hidden  = 0;
@@ -1108,14 +1108,14 @@ void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
             batches[10].hidden = 0;
             break;
         case 19:
-            batches = rec[18].field_4;
+            batches = rec[18].batches;
             if (arg0 == 0) {
                 batches[2].hidden = 0;
             } else {
                 batches[1].hidden = 0;
             }
         case 22:
-            batches = rec[21].field_4;
+            batches = rec[21].batches;
             if (arg0 == 1) {
                 batches[1].hidden = 0;
                 batches[2].hidden = 1;
@@ -1133,18 +1133,18 @@ void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
 void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
     u8*              p;
 
     p       = D_dryfield_night_motel_balcony_80182C3C[arg0][arg1];
     sess    = &gGameSession->location.loc;
     rec     = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    batches = rec[p[0]].field_4;
+    batches = rec[p[0]].batches;
     if (p[0] != 0xFF) {
         do {
             if (p[1] == 0xFF) {
-                batches = rec[p[0]].field_4;
+                batches = rec[p[0]].batches;
                 p      += 2;
             }
             batches[p[0]].hidden = p[1];
@@ -1199,27 +1199,27 @@ void func_dryfield_night_motel_balcony_8017E4B8(void)
 {
     GameSession*     g    = gGameSession;
     GameLocationKey* sess = &g->location.loc;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
 
     rec = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
 
-    batches           = rec[16].field_4;
+    batches           = rec[16].batches;
     batches[2].hidden = 0;
     batches[3].hidden = 0;
 
-    batches            = rec[17].field_4;
+    batches            = rec[17].batches;
     batches[6].hidden  = 1;
     batches[7].hidden  = 1;
     batches[8].hidden  = 1;
     batches[9].hidden  = 1;
     batches[10].hidden = 1;
 
-    batches           = rec[18].field_4;
+    batches           = rec[18].batches;
     batches[1].hidden = 1;
     batches[2].hidden = 1;
 
-    batches           = rec[21].field_4;
+    batches           = rec[21].batches;
     batches[1].hidden = 1;
     batches[2].hidden = 1;
 }

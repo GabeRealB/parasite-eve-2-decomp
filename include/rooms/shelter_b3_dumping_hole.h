@@ -39,7 +39,7 @@ extern GpWarpRec D_shelter_b3_dumping_hole_8018B6A4[];
 
 extern GpViewRec D_shelter_b3_dumping_hole_8018C410[];
 
-extern GpSprtRec D_shelter_b3_dumping_hole_8018E050[];
+extern SpriteView D_shelter_b3_dumping_hole_8018E050[];
 
 extern WorldCoordRoomLights D_shelter_b3_dumping_hole_8018E3DC;
 

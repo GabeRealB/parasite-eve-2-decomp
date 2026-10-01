@@ -57351,11 +57351,11 @@ function loses ~16% on `insert`/`delete`/`regs` at once.
 
 ```c
 /* duplicated lw 0x10(a0) in both arms */
-if ((flags & 0xFF) == 0) rec[1].field_4[11].hidden = 0;
-else                     rec[1].field_4[11].hidden = 1;
+if ((flags & 0xFF) == 0) rec[1].batches[11].hidden = 0;
+else                     rec[1].batches[11].hidden = 1;
 
 /* single lw 0x10(a0) ahead of the branch, as the target has */
-cmd = rec[1].field_4;
+cmd = rec[1].batches;
 if ((flags & 0xFF) == 0) cmd[11].hidden = 0;
 else                     cmd[11].hidden = 1;
 ```
@@ -57380,12 +57380,12 @@ computation and the scheduler emits it in the first slot after the `jal`:
 /* andi lands immediately after the jal's delay slot */
 view = Gp_GetViewIndex() & 0xFF;
 rec  = Gp_SprtTables[...][...].field_0[...];
-rec[view - 1].field_4[35].field_4 = 1;
+rec[view - 1].batches[35].hidden = 1;
 
 /* andi sinks into the table walk, as the target has */
 view = Gp_GetViewIndex();
 rec  = Gp_SprtTables[...][...].field_0[...];
-rec[(u8)view - 1].field_4[35].field_4 = 1;
+rec[(u8)view - 1].batches[35].hidden = 1;
 ```
 
 With the cast at the use, the `andi` is an ordinary insn of the indexing
@@ -93743,18 +93743,18 @@ where the target has `multu`, the original operand was unsigned, and a `(u32)`
 cast (or the project's own matched spelling) is the fix. Do not hand-write the
 magic constant, and do not chase the operand's register home — it follows.
 
-## A displacement past the struct's own size is an array index: `rec[16].field_4` reads as `0xC4` (func_dryfield_night_motel_balcony_8017E4B8, 2026-09-16)
+## A displacement past the struct's own size is an array index: `rec[16].batches` reads as `0xC4` (func_dryfield_night_motel_balcony_8017E4B8, 2026-09-16)
 
 The room sprite idiom `Gp_SprtTables[sess->field_3 - 1][g->spriteVariant - 1].field_0[sess->field_2 - 1]`
-yields a `GpSprtRec*` (`GpSprtRec` is 0xC bytes), but the m2c seed then loaded
+yields a `SpriteView*` (`SpriteView` is 0xC bytes), but the m2c seed then loaded
 four "fields" of it — `M2C_FIELD(temp_v1, void **, 0xC4)`, `0xD0`, `0xDC`,
 `0x100` — none of which exists. Each is a subscript:
 
 ```
-k = (disp - field_offset) / sizeof(rec)
+k = (disp - field_offset) / sizeof(*rec)
 ```
 
-`0xC4 = 0xC * 16 + 4` → `rec[16].field_4`, `0xD0` → `rec[17]`, `0xDC` →
+`0xC4 = 0xC * 16 + 4` → `rec[16].batches`, `0xD0` → `rec[17]`, `0xDC` →
 `rec[18]`, `0x100` → `rec[21]`. All four divide exactly, and the member name is
 what confirms it: the writes off each loaded pointer land on
 `SpriteBatch.hidden` (`cmd[2].hidden = 0` at `0x14`, `cmd[3]` at `0x1C`,
@@ -93767,7 +93767,7 @@ the function touches four sprites of that view, not a contiguous run.
 ```c
 rec = Gp_SprtTables[sess->field_3 - 1][g->spriteVariant - 1].field_0[sess->field_2 - 1];
 
-cmd            = rec[16].field_4;
+cmd            = rec[16].batches;
 cmd[2].hidden = 0;
 cmd[3].hidden = 0;
 ```
@@ -94684,12 +94684,12 @@ Example: `func_dryfield_r08_8017F3B8`. Inputs: `base_1.i`
 `a52724021c0d0dda203a0eeb4f64bfd499c6166bfff7ef0f670c12663c891609`, `base_2.i`
 `903b36038e9083a05163d6128012ef49c9a553305e84a96d80c5821b10de87f4`.
 
-## The sprite-table record is longer than `GpSprtRec`: `rec[N].field_4` is `lw ...,12*N+4`, and an 8-scaled index at `0xC` is `cmd[idx + 1].hidden`
+## A room's sprite table is an array of `SpriteView`: `rec[N].batches` is `lw ...,12*N+4`, and an 8-scaled index at `0xC` is `cmd[idx + 1].hidden`
 
-`Gp_SprtTables[stage - 1]->field_0[room - 1]` is typed `GpSprtRec*`, but the
-record a room stores there is longer than that 0xC-byte prefix, and the
-per-view `SpriteBatch*` lists past it keep the *same* 0xC stride the element type
-would index with. So a `lw r, 0x28(v0)` on that record is `rec[3].field_4`
+`Gp_SprtTables[stage - 1]->field_0[area - 1]` is a `SpriteView*` pointing to
+that area's array of 0xC-byte view descriptors. The per-view `SpriteBatch*`
+lists occupy the same member in consecutive elements, preserving the 0xC
+array stride. So a `lw r, 0x28(v0)` on that table is `rec[3].batches`
 (3 * 0xC + 4) and not a field of some wider struct: write the index and the
 displacement falls out, with no cast and no private record type.
 
@@ -94698,7 +94698,7 @@ landing at displacement 0xC addresses the *next* record's `hidden` off a base
 of `cmd`:
 
 ```c
-cmd = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1][3].field_4;
+cmd = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1][3].batches;
 cmd[arg0 + 1].hidden = 1;   /* sll v0,a0,3 ; addu v0,v0,a1 ; sb ...,0xC(v0) */
 ```
 
@@ -95140,7 +95140,7 @@ store to the variable because the `sb` names it.
 What differs between such near-copies is only the index and the displacement:
 the brief's "Similar matched bodies" put `func_shelter_b6_nursery_80180038` at
 shape 1.00 - the same 26 instructions with `0x94`/`0xC` where this one has
-`0x40`/`0x14` (`rec[12].field_4` / `cmd[1].hidden` against `rec[5].field_4` /
+`0x40`/`0x14` (`rec[12].batches` / `cmd[1].hidden` against `rec[5].batches` /
 `cmd[2].hidden`). Porting that already-matched body's source form, indices
 adjusted, was one build to 100%. Read the shape-1.00 neighbour before
 reconstructing control flow from the asm.
@@ -98552,9 +98552,9 @@ rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area -
 Keeping `g` for `g->spriteVariant` matters as much as taking `sess` for the two
 bytes -- the halfword load stays on the un-adjusted base (`lhu $v1,0x74($a0)`),
 which is what pins `$a0` to `gGameSession` and frees `$a2` for the argument.
-The record itself is declared `GpSprtRec*` by the table but is far larger, so
-the tail pointer at 0x1CC needs the private overlay-local cast the room family
-already uses (`DwtwSprtRec`, `MineForkedTunnelSprtRec`).
+The table points to an array of `SpriteView`, so the pointer at 0x1CC is
+`rec[38].batches` (38 * 0xC + 4). Indexing the array expresses the access
+without a private overlay-local cast or a wider record type.
 
 ## A constant in a branch's delay slot means it was live in a register from an earlier block
 
@@ -119392,7 +119392,7 @@ local b2 q2 [84]:  refs=7 span=14 priority=10000 -> $v1     /* third load */
 The constant's range spans the arm, so the third load must avoid `$v0`; the two
 before it do not overlap it and take `$v0` unopposed. The target's answer is that
 the *whole* function reads through one variable, as the matched room bodies do
-(`func_dryfield_night_motel_balcony_8017E4B8` writes `cmd = rec[16].field_4;
+(`func_dryfield_night_motel_balcony_8017E4B8` writes `cmd = rec[16].batches;
 cmd[2].hidden = 0;` five times over). One name is one pseudo, and a pseudo with
 a definition in *both* arms is not block-local at all -- it goes to
 `global_alloc`, which homes every one of its ranges in a single register and
@@ -119401,11 +119401,11 @@ cannot pick `$v0`, because the branch constant has it over an overlapping range.
 ```c
     rec = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1];
     if (GameFlag_GetNibble(0xD9) == 0) {
-        cmd            = rec[3].field_4;
+        cmd            = rec[3].batches;
         cmd[1].hidden = 1;
-        cmd            = rec[6].field_4;
+        cmd            = rec[6].batches;
         cmd[1].hidden = 1;
-        cmd            = rec[4].field_4;
+        cmd            = rec[4].batches;
         cmd[1].hidden = 0;
         cmd[2].hidden = 1;
         ...
@@ -120893,8 +120893,8 @@ delay slot (`addiu $v0,$zero,1`), with both arms' pointer temps in `$v1`:
 ```c
     if (sess->field_3 == 2) {
         rec = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
-        if (!(arg0 & 0xFF)) { rec[2].field_4[3].hidden = 0; rec[7].field_4[1].hidden = 1; return; }
-        rec[2].field_4[3].hidden = 1;  rec[7].field_4[1].hidden = 0;
+        if (!(arg0 & 0xFF)) { rec[2].batches[3].hidden = 0; rec[7].batches[1].hidden = 1; return; }
+        rec[2].batches[3].hidden = 1;  rec[7].batches[1].hidden = 0;
     }
 ```
 
@@ -120917,12 +120917,12 @@ Writing every use through **one** variable fixes it:
     SpriteBatch* batches;
     ...
         if (!(arg0 & 0xFF)) {
-            batches = rec[2].field_4; batches[3].hidden = 0;
-            batches = rec[7].field_4; batches[1].hidden = 1;
+            batches = rec[2].batches; batches[3].hidden = 0;
+            batches = rec[7].batches; batches[1].hidden = 1;
             return;
         }
-        batches = rec[2].field_4; batches[3].hidden = 1;
-        batches = rec[7].field_4; batches[1].hidden = 0;
+        batches = rec[2].batches; batches[3].hidden = 1;
+        batches = rec[7].batches; batches[1].hidden = 0;
 ```
 
 The variable is set and used in two blocks, so `REG_BASIC_BLOCK` is -1 and it

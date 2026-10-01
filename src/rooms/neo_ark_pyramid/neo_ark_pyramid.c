@@ -347,7 +347,7 @@ SpriteBatch D_neo_ark_pyramid_80180E08[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_pyramid_80180E18[8] = {
+SpriteView D_neo_ark_pyramid_80180E18[8] = {
     { { .empty = D_neo_ark_pyramid_80180408 }, D_neo_ark_pyramid_80180408, NULL },
     { { .empty = D_neo_ark_pyramid_80180418 }, D_neo_ark_pyramid_80180418, NULL },
     { { .elements = D_neo_ark_pyramid_80180428 }, D_neo_ark_pyramid_80180518, NULL },

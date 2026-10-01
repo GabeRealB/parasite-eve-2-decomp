@@ -43,7 +43,7 @@ extern WorldCoordRoomLighting D_acropolis_cafeteria_801875C4[];
 
 extern GpWarpRec D_acropolis_cafeteria_801875E4[];
 
-extern GpSprtRec D_acropolis_cafeteria_8018C48C[];
+extern SpriteView D_acropolis_cafeteria_8018C48C[];
 
 extern GpViewRec D_acropolis_cafeteria_8018C5AC[];
 

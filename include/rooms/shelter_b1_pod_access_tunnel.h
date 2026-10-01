@@ -25,7 +25,7 @@ extern WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24;
 
 extern GpViewRec D_shelter_b1_pod_access_tunnel_80183C48[];
 
-extern GpSprtRec D_shelter_b1_pod_access_tunnel_8018462C[];
+extern SpriteView D_shelter_b1_pod_access_tunnel_8018462C[];
 
 extern WorldCoordRoomLights D_shelter_b1_pod_access_tunnel_80184734;
 

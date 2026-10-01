@@ -254,17 +254,17 @@ void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
 static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
     s32              mode;
 
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     mode = arg0 & 0xFF;
     if (mode == 0) {
-        batches           = rec[2].field_4;
+        batches           = rec[2].batches;
         batches[2].hidden = 1;
     } else if (mode == 1) {
-        batches           = rec[2].field_4;
+        batches           = rec[2].batches;
         batches[2].hidden = 0;
     }
 }

@@ -59,7 +59,7 @@ SpriteBatch D_dryfield_night_motel_loft_8017FBD4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_motel_loft_8017FBE4[14] = {
+SpriteView D_dryfield_night_motel_loft_8017FBE4[14] = {
     { { .empty = D_dryfield_night_motel_loft_8017F2D0 }, D_dryfield_night_motel_loft_8017F2D0, NULL },
     { { .empty = D_dryfield_night_motel_loft_8017F2E0 }, D_dryfield_night_motel_loft_8017F2E0, NULL },
     { { .elements = D_dryfield_night_motel_loft_8017F2F0 }, D_dryfield_night_motel_loft_8017F390, NULL },

@@ -250,7 +250,7 @@ SpriteBatch D_dryfield_night_warehouse_8017F454[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_warehouse_8017F46C[4] = {
+SpriteView D_dryfield_night_warehouse_8017F46C[4] = {
     { { .empty = D_dryfield_night_warehouse_8017F04C }, D_dryfield_night_warehouse_8017F04C, NULL },
     { { .elements = D_dryfield_night_warehouse_8017F05C }, D_dryfield_night_warehouse_8017F228, NULL },
     { { .elements = D_dryfield_night_warehouse_8017F258 }, D_dryfield_night_warehouse_8017F410, NULL },

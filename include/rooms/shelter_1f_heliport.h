@@ -28,7 +28,7 @@ extern GpWarpRec D_shelter_1f_heliport_801812F0[];
 
 extern GpViewRec D_shelter_1f_heliport_80181998[];
 
-extern GpSprtRec D_shelter_1f_heliport_80181EC0[];
+extern SpriteView D_shelter_1f_heliport_80181EC0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_heliport_80182C78[];
 

@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_night_underpass_8017DE60[];
 
 extern GpViewRec D_dryfield_night_underpass_8017E6F8[];
 
-extern GpSprtRec D_dryfield_night_underpass_8017F420[];
+extern SpriteView D_dryfield_night_underpass_8017F420[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_underpass_80180374[];
 

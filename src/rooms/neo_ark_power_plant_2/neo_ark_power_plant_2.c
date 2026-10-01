@@ -592,7 +592,7 @@ SpriteBatch D_neo_ark_power_plant_2_80182044[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_power_plant_2_8018205C[9] = {
+SpriteView D_neo_ark_power_plant_2_8018205C[9] = {
     { { .empty = D_neo_ark_power_plant_2_80180F2C }, D_neo_ark_power_plant_2_80180F2C, NULL },
     { { .elements = D_neo_ark_power_plant_2_80180F3C }, D_neo_ark_power_plant_2_8018143C, NULL },
     { { .elements = D_neo_ark_power_plant_2_8018148C }, D_neo_ark_power_plant_2_80181A04, NULL },
@@ -966,7 +966,7 @@ void func_neo_ark_power_plant_2_8017FD88(s32 arg0)
     SpriteBatch*     batches;
     s32              mode;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][5].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][5].batches;
     mode    = arg0 & 0xFF;
     if (mode == 0) {
         batches[2].hidden = 0;

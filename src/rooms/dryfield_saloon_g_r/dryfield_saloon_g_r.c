@@ -572,7 +572,7 @@ SpriteBatch D_dryfield_saloon_g_r_80180E1C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_saloon_g_r_80180E2C[13] = {
+SpriteView D_dryfield_saloon_g_r_80180E2C[13] = {
     { { .empty = D_dryfield_saloon_g_r_8017F978 }, D_dryfield_saloon_g_r_8017F978, NULL },
     { { .elements = D_dryfield_saloon_g_r_8017F988 }, D_dryfield_saloon_g_r_8017FADC, NULL },
     { { .elements = D_dryfield_saloon_g_r_8017FAF4 }, D_dryfield_saloon_g_r_8017FC0C, NULL },

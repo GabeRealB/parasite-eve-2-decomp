@@ -1458,7 +1458,7 @@ SpriteBatch D_acropolis_patio_80186348[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_patio_80186360[19] = {
+SpriteView D_acropolis_patio_80186360[19] = {
     { { .empty = D_acropolis_patio_80184AF0 }, D_acropolis_patio_80184AF0, NULL },
     { { .elements = D_acropolis_patio_80184B00 }, D_acropolis_patio_80184D1C, NULL },
     { { .elements = D_acropolis_patio_80184D54 }, D_acropolis_patio_801850D8, NULL },

@@ -93,7 +93,7 @@ SpriteBatch D_shelter_r37_8017D9D0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_r37_8017D9E0[3] = {
+SpriteView D_shelter_r37_8017D9E0[3] = {
     { { .empty = D_shelter_r37_8017D9B0 }, D_shelter_r37_8017D9B0, NULL },
     { { .empty = D_shelter_r37_8017D9C0 }, D_shelter_r37_8017D9C0, NULL },
     { { .empty = D_shelter_r37_8017D9D0 }, D_shelter_r37_8017D9D0, NULL },

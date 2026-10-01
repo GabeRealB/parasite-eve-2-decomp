@@ -2653,7 +2653,7 @@ SpriteBatch D_acropolis_plaza_80198A00[1] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_plaza_80198A08[8] = {
+SpriteView D_acropolis_plaza_80198A08[8] = {
     { { .elements = NULL }, D_acropolis_plaza_80198A00, NULL },
     { { .elements = NULL }, D_acropolis_plaza_801989F8, NULL },
     { { .elements = NULL }, D_acropolis_plaza_80198A00, NULL },

@@ -712,7 +712,7 @@ static GpRoomObjRec* D_map_akropolis_8017AA78[20] = {
 
 GpRoomObjTbl D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA78 };
 
-static GpSprtRec* D_map_akropolis_8017AACC[20] = {
+static SpriteView* D_map_akropolis_8017AACC[20] = {
     D_acropolis_square_8018857C,
     D_acropolis_east_elevator_hall_80187870,
     D_acropolis_patio_80186360,

@@ -1567,7 +1567,7 @@ SpriteBatch D_dryfield_water_tower_80186550[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_water_tower_80186560[21] = {
+SpriteView D_dryfield_water_tower_80186560[21] = {
     { { .empty = D_dryfield_water_tower_801838B8 }, D_dryfield_water_tower_801838B8, NULL },
     { { .empty = D_dryfield_water_tower_801838C8 }, D_dryfield_water_tower_801838C8, NULL },
     { { .elements = D_dryfield_water_tower_801838D8 }, D_dryfield_water_tower_80183BD0, NULL },
@@ -3144,7 +3144,7 @@ void func_dryfield_water_tower_801802D8(u8 arg0)
 
     sess = &gGameSession->location.loc;
     if (sess->stage == 2) {
-        batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][18].field_4;
+        batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][18].batches;
         if (!(arg0 & 0xFF)) {
             batches[1].hidden = 1;
             return;

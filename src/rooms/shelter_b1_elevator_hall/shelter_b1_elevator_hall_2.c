@@ -339,7 +339,7 @@ SpriteBatch D_shelter_b1_elevator_hall_80183CB4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_elevator_hall_80183CC4[9] = {
+SpriteView D_shelter_b1_elevator_hall_80183CC4[9] = {
     { { .empty = D_shelter_b1_elevator_hall_8018357C }, D_shelter_b1_elevator_hall_8018357C, NULL },
     { { .elements = D_shelter_b1_elevator_hall_8018358C }, D_shelter_b1_elevator_hall_80183938, NULL },
     { { .empty = D_shelter_b1_elevator_hall_80183960 }, D_shelter_b1_elevator_hall_80183960, NULL },

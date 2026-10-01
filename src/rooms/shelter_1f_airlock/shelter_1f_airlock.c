@@ -295,7 +295,7 @@ SpriteDrawArea D_shelter_1f_airlock_8017F068[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_shelter_1f_airlock_8017F07C[5] = {
+SpriteView D_shelter_1f_airlock_8017F07C[5] = {
     { { .empty = D_shelter_1f_airlock_8017E910 }, D_shelter_1f_airlock_8017E910, NULL },
     { { .empty = D_shelter_1f_airlock_8017E920 }, D_shelter_1f_airlock_8017E920, NULL },
     { { .elements = D_shelter_1f_airlock_8017E930 }, D_shelter_1f_airlock_8017EB10, D_shelter_1f_airlock_8017EB30 },

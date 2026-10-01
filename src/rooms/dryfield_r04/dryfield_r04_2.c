@@ -25,7 +25,7 @@ static SpriteBatch D_dryfield_r04_8017E270[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0 } },
 };
 
-GpSprtRec D_dryfield_r04_8017E280[2] = {
+SpriteView D_dryfield_r04_8017E280[2] = {
     { { .empty = D_dryfield_r04_8017E260 }, D_dryfield_r04_8017E260, NULL },
     { { .empty = D_dryfield_r04_8017E270 }, D_dryfield_r04_8017E270, NULL },
 };

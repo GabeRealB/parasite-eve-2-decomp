@@ -1027,7 +1027,7 @@ SpriteBatch D_acropolis_square_8018856C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_square_8018857C[15] = {
+SpriteView D_acropolis_square_8018857C[15] = {
     { { .empty = D_acropolis_square_80186500 }, D_acropolis_square_80186500, NULL },
     { { .empty = D_acropolis_square_80186510 }, D_acropolis_square_80186510, NULL },
     { { .elements = D_acropolis_square_80186520 }, D_acropolis_square_80186AD4, NULL },

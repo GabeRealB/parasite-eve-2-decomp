@@ -792,7 +792,7 @@ SpriteDrawArea D_dryfield_night_driveway_8018185C[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_dryfield_night_driveway_80181870[10] = {
+SpriteView D_dryfield_night_driveway_80181870[10] = {
     { { .empty = D_dryfield_night_driveway_80180D98 }, D_dryfield_night_driveway_80180D98, NULL },
     { { .elements = D_dryfield_night_driveway_80180DA8 }, D_dryfield_night_driveway_80180E5C, NULL },
     { { .elements = D_dryfield_night_driveway_80180E7C }, D_dryfield_night_driveway_80180FD0, D_dryfield_night_driveway_80181008 },

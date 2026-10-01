@@ -1770,7 +1770,7 @@ SpriteBatch D_acropolis_security_room_80184BD8[15] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_security_room_80184C50[16] = {
+SpriteView D_acropolis_security_room_80184C50[16] = {
     { { .empty = D_acropolis_security_room_801841E0 }, D_acropolis_security_room_801841E0, NULL },
     { { .elements = D_acropolis_security_room_801841F0 }, D_acropolis_security_room_80184358, NULL },
     { { .empty = D_acropolis_security_room_80184370 }, D_acropolis_security_room_80184370, NULL },
@@ -2814,7 +2814,7 @@ static void func_acropolis_security_room_8017FD64(s32 flags)
     GameLocationKey* sess = &g->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][5].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][5].batches;
     switch (flags & 0xFF) {
         case 0:
             batches[1].hidden = 1;

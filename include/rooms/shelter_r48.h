@@ -31,7 +31,7 @@ extern GpWarpRec D_shelter_r48_80183034[];
 
 extern GpViewRec D_shelter_r48_80183F10[];
 
-extern GpSprtRec D_shelter_r48_80189FB4[];
+extern SpriteView D_shelter_r48_80189FB4[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_r48_8018BE10[];
 

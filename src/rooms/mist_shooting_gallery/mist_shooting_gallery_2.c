@@ -1808,7 +1808,7 @@ SpriteBatch D_mist_shooting_gallery_8018BD00[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mist_shooting_gallery_8018BD10[18] = {
+SpriteView D_mist_shooting_gallery_8018BD10[18] = {
     { { .empty = D_mist_shooting_gallery_80189C14 }, D_mist_shooting_gallery_80189C14, NULL },
     { { .empty = D_mist_shooting_gallery_80189C24 }, D_mist_shooting_gallery_80189C24, NULL },
     { { .empty = D_mist_shooting_gallery_80189C34 }, D_mist_shooting_gallery_80189C34, NULL },

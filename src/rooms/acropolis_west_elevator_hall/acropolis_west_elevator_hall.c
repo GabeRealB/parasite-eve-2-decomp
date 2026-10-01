@@ -876,7 +876,7 @@ SpriteBatch D_acropolis_west_elevator_hall_801863F0[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_west_elevator_hall_80186408[5] = {
+SpriteView D_acropolis_west_elevator_hall_80186408[5] = {
     { { .empty = D_acropolis_west_elevator_hall_801855CC }, D_acropolis_west_elevator_hall_801855CC, NULL },
     { { .elements = D_acropolis_west_elevator_hall_801855DC }, D_acropolis_west_elevator_hall_801857E4, NULL },
     { { .elements = D_acropolis_west_elevator_hall_80185804 }, D_acropolis_west_elevator_hall_80185CF0, NULL },

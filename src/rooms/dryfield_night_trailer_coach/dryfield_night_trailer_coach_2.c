@@ -715,7 +715,7 @@ SpriteBatch D_dryfield_night_trailer_coach_8018B63C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_trailer_coach_8018B64C[8] = {
+SpriteView D_dryfield_night_trailer_coach_8018B64C[8] = {
     { { .empty = D_dryfield_night_trailer_coach_80189B64 }, D_dryfield_night_trailer_coach_80189B64, NULL },
     { { .elements = D_dryfield_night_trailer_coach_80189B74 }, D_dryfield_night_trailer_coach_8018A358, NULL },
     { { .elements = D_dryfield_night_trailer_coach_8018A380 }, D_dryfield_night_trailer_coach_8018B000, NULL },

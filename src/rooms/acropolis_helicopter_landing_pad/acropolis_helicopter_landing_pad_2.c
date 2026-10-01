@@ -570,7 +570,7 @@ SpriteDrawArea D_acropolis_helicopter_landing_pad_80187810[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_acropolis_helicopter_landing_pad_80187824[27] = {
+SpriteView D_acropolis_helicopter_landing_pad_80187824[27] = {
     { { .empty = D_acropolis_helicopter_landing_pad_80186B00 }, D_acropolis_helicopter_landing_pad_80186B00, NULL },
     { { .elements = D_acropolis_helicopter_landing_pad_80186B10 }, D_acropolis_helicopter_landing_pad_80186C64, NULL },
     { { .empty = D_acropolis_helicopter_landing_pad_80186C7C }, D_acropolis_helicopter_landing_pad_80186C7C, D_acropolis_helicopter_landing_pad_80186C8C },

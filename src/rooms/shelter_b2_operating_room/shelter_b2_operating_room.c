@@ -688,7 +688,7 @@ SpriteBatch D_shelter_b2_operating_room_80183154[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_operating_room_80183184[7] = {
+SpriteView D_shelter_b2_operating_room_80183184[7] = {
     { { .empty = D_shelter_b2_operating_room_80181538 }, D_shelter_b2_operating_room_80181538, NULL },
     { { .elements = D_shelter_b2_operating_room_80181548 }, D_shelter_b2_operating_room_8018173C, NULL },
     { { .elements = D_shelter_b2_operating_room_8018175C }, D_shelter_b2_operating_room_801818B0, NULL },

@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_breezeway_8018318C[];
 
 extern GpViewRec D_dryfield_breezeway_8018364C[];
 
-extern GpSprtRec D_dryfield_breezeway_80183D9C[];
+extern SpriteView D_dryfield_breezeway_80183D9C[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_breezeway_8018437C[];
 

@@ -1496,7 +1496,7 @@ SpriteDrawArea D_shelter_b3_garbage_incinerator_8018D0EC[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_shelter_b3_garbage_incinerator_8018D100[40] = {
+SpriteView D_shelter_b3_garbage_incinerator_8018D100[40] = {
     { { .empty = D_shelter_b3_garbage_incinerator_8018894C }, D_shelter_b3_garbage_incinerator_8018894C, NULL },
     { { .empty = D_shelter_b3_garbage_incinerator_8018895C }, D_shelter_b3_garbage_incinerator_8018895C, NULL },
     { { .empty = D_shelter_b3_garbage_incinerator_8018896C }, D_shelter_b3_garbage_incinerator_8018896C, NULL },

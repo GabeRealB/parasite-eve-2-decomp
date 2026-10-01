@@ -273,7 +273,7 @@ SpriteBatch D_dryfield_night_souvenir_shop_8017EEF8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_souvenir_shop_8017EF08[4] = {
+SpriteView D_dryfield_night_souvenir_shop_8017EF08[4] = {
     { { .empty = D_dryfield_night_souvenir_shop_8017E6B8 }, D_dryfield_night_souvenir_shop_8017E6B8, NULL },
     { { .elements = D_dryfield_night_souvenir_shop_8017E6C8 }, D_dryfield_night_souvenir_shop_8017EA4C, NULL },
     { { .elements = D_dryfield_night_souvenir_shop_8017EA84 }, D_dryfield_night_souvenir_shop_8017EEA8, NULL },

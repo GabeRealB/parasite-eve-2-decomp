@@ -852,7 +852,7 @@ SpriteBatch D_neo_ark_shrine_80185268[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_shrine_80185280[18] = {
+SpriteView D_neo_ark_shrine_80185280[18] = {
     { { .empty = D_neo_ark_shrine_80183944 }, D_neo_ark_shrine_80183944, NULL },
     { { .empty = D_neo_ark_shrine_80183954 }, D_neo_ark_shrine_80183954, NULL },
     { { .elements = D_neo_ark_shrine_80183964 }, D_neo_ark_shrine_80183DD8, NULL },

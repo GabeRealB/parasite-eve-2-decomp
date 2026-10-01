@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_driveway_8017E7C8[];
 
 extern GpViewRec D_dryfield_driveway_8017EE2C[];
 
-extern GpSprtRec D_dryfield_driveway_8017FC44[];
+extern SpriteView D_dryfield_driveway_8017FC44[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_driveway_80180660[];
 

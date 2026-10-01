@@ -180,7 +180,7 @@ SpriteBatch D_dryfield_night_g_r_kitchen_8017E698[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_g_r_kitchen_8017E6A8[3] = {
+SpriteView D_dryfield_night_g_r_kitchen_8017E6A8[3] = {
     { { .empty = D_dryfield_night_g_r_kitchen_8017E5E4 }, D_dryfield_night_g_r_kitchen_8017E5E4, NULL },
     { { .elements = D_dryfield_night_g_r_kitchen_8017E5F4 }, D_dryfield_night_g_r_kitchen_8017E680, NULL },
     { { .empty = D_dryfield_night_g_r_kitchen_8017E698 }, D_dryfield_night_g_r_kitchen_8017E698, NULL },

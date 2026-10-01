@@ -29,7 +29,7 @@ extern WorldCoordRoomLighting D_acropolis_sanctuary_80182804[];
 
 extern GpWarpRec D_acropolis_sanctuary_8018280C[];
 
-extern GpSprtRec D_acropolis_sanctuary_801860C8[];
+extern SpriteView D_acropolis_sanctuary_801860C8[];
 
 extern GpViewRec D_acropolis_sanctuary_80186188[];
 

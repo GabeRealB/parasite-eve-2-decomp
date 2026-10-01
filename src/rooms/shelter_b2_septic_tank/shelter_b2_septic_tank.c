@@ -997,7 +997,7 @@ SpriteBatch D_shelter_b2_septic_tank_801866E4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_septic_tank_801866F4[6] = {
+SpriteView D_shelter_b2_septic_tank_801866F4[6] = {
     { { .empty = D_shelter_b2_septic_tank_80183F08 }, D_shelter_b2_septic_tank_80183F08, NULL },
     { { .elements = D_shelter_b2_septic_tank_80183F18 }, D_shelter_b2_septic_tank_80184594, NULL },
     { { .elements = D_shelter_b2_septic_tank_801845C4 }, D_shelter_b2_septic_tank_80184FB0, NULL },

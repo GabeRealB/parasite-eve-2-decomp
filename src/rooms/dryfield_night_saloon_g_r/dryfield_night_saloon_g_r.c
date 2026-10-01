@@ -1670,7 +1670,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_80187FB8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_saloon_g_r_80187FC8[13] = {
+SpriteView D_dryfield_night_saloon_g_r_80187FC8[13] = {
     { { .empty = D_dryfield_night_saloon_g_r_80185D48 }, D_dryfield_night_saloon_g_r_80185D48, NULL },
     { { .elements = D_dryfield_night_saloon_g_r_80185D58 }, D_dryfield_night_saloon_g_r_80185EAC, NULL },
     { { .elements = D_dryfield_night_saloon_g_r_80185EC4 }, D_dryfield_night_saloon_g_r_80185FDC, NULL },

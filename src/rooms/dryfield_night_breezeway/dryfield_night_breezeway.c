@@ -393,7 +393,7 @@ SpriteBatch D_dryfield_night_breezeway_8017FCF8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_breezeway_8017FD10[6] = {
+SpriteView D_dryfield_night_breezeway_8017FD10[6] = {
     { { .empty = D_dryfield_night_breezeway_8017ECC0 }, D_dryfield_night_breezeway_8017ECC0, NULL },
     { { .elements = D_dryfield_night_breezeway_8017ECD0 }, D_dryfield_night_breezeway_8017F450, NULL },
     { { .elements = D_dryfield_night_breezeway_8017F470 }, D_dryfield_night_breezeway_8017F808, NULL },

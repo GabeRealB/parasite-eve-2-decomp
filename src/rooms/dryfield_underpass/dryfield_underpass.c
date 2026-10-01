@@ -657,7 +657,7 @@ SpriteBatch D_dryfield_underpass_80180240[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_underpass_80180250[26] = {
+SpriteView D_dryfield_underpass_80180250[26] = {
     { { .empty = D_dryfield_underpass_8017F8D0 }, D_dryfield_underpass_8017F8D0, NULL },
     { { .empty = D_dryfield_underpass_8017F8E0 }, D_dryfield_underpass_8017F8E0, NULL },
     { { .elements = D_dryfield_underpass_8017F8F0 }, D_dryfield_underpass_8017FA30, NULL },

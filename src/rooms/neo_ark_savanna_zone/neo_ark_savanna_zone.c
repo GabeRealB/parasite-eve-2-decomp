@@ -273,7 +273,7 @@ SpriteBatch D_neo_ark_savanna_zone_801803CC[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_savanna_zone_801803F4[4] = {
+SpriteView D_neo_ark_savanna_zone_801803F4[4] = {
     { { .empty = D_neo_ark_savanna_zone_8017FC84 }, D_neo_ark_savanna_zone_8017FC84, NULL },
     { { .elements = D_neo_ark_savanna_zone_8017FC94 }, D_neo_ark_savanna_zone_8017FE74, NULL },
     { { .elements = D_neo_ark_savanna_zone_8017FEA4 }, D_neo_ark_savanna_zone_80180160, NULL },

@@ -601,7 +601,7 @@ SpriteBatch D_neo_ark_woodland_path_80183C44[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_woodland_path_80183C6C[10] = {
+SpriteView D_neo_ark_woodland_path_80183C6C[10] = {
     { { .empty = D_neo_ark_woodland_path_80181EE8 }, D_neo_ark_woodland_path_80181EE8, NULL },
     { { .elements = D_neo_ark_woodland_path_80181EF8 }, D_neo_ark_woodland_path_801820EC, NULL },
     { { .elements = D_neo_ark_woodland_path_80182104 }, D_neo_ark_woodland_path_801821E0, NULL },

@@ -27,7 +27,7 @@ extern WorldCollisionGrid D_neo_ark_woodland_path_80181D5C;
 
 extern GpViewRec D_neo_ark_woodland_path_80181D80[];
 
-extern GpSprtRec D_neo_ark_woodland_path_80183C6C[];
+extern SpriteView D_neo_ark_woodland_path_80183C6C[];
 
 extern WorldCoordRoomLights D_neo_ark_woodland_path_80183F84;
 

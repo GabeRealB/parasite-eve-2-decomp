@@ -105,7 +105,7 @@ SpriteBatch D_shelter_1f_heliport_s4_8017DAE0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_1f_heliport_s4_8017DAF0[5] = {
+SpriteView D_shelter_1f_heliport_s4_8017DAF0[5] = {
     { { .empty = D_shelter_1f_heliport_s4_8017DAA0 }, D_shelter_1f_heliport_s4_8017DAA0, NULL },
     { { .empty = D_shelter_1f_heliport_s4_8017DAB0 }, D_shelter_1f_heliport_s4_8017DAB0, NULL },
     { { .empty = D_shelter_1f_heliport_s4_8017DAC0 }, D_shelter_1f_heliport_s4_8017DAC0, NULL },

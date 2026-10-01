@@ -843,7 +843,7 @@ SpriteBatch D_mine_gorge_801827E8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_gorge_801827F8[11] = {
+SpriteView D_mine_gorge_801827F8[11] = {
     { { .empty = D_mine_gorge_8017FBA0 }, D_mine_gorge_8017FBA0, NULL },
     { { .elements = D_mine_gorge_8017FBB0 }, D_mine_gorge_80180268, NULL },
     { { .elements = D_mine_gorge_801802A0 }, D_mine_gorge_80180854, NULL },

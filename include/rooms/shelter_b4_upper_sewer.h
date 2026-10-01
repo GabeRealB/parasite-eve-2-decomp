@@ -35,7 +35,7 @@ extern WorldCollisionGrid D_shelter_b4_upper_sewer_80186EF8;
 
 extern GpViewRec D_shelter_b4_upper_sewer_80186F1C[];
 
-extern GpSprtRec D_shelter_b4_upper_sewer_801879BC[];
+extern SpriteView D_shelter_b4_upper_sewer_801879BC[];
 
 extern WorldCoordRoomLights D_shelter_b4_upper_sewer_80188184;
 

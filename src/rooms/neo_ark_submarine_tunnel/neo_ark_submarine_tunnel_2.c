@@ -1134,7 +1134,7 @@ SpriteBatch D_neo_ark_submarine_tunnel_80186B68[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_submarine_tunnel_80186B78[10] = {
+SpriteView D_neo_ark_submarine_tunnel_80186B78[10] = {
     { { .empty = D_neo_ark_submarine_tunnel_80182668 }, D_neo_ark_submarine_tunnel_80182668, NULL },
     { { .elements = D_neo_ark_submarine_tunnel_80182678 }, D_neo_ark_submarine_tunnel_80183190, NULL },
     { { .elements = D_neo_ark_submarine_tunnel_801831C0 }, D_neo_ark_submarine_tunnel_80183D00, NULL },

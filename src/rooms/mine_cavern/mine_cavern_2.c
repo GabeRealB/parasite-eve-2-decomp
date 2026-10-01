@@ -1931,7 +1931,7 @@ SpriteBatch D_mine_cavern_8018CD00[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_cavern_8018CD10[25] = {
+SpriteView D_mine_cavern_8018CD10[25] = {
     { { .empty = D_mine_cavern_80189BC4 }, D_mine_cavern_80189BC4, NULL },
     { { .elements = D_mine_cavern_80189BD4 }, D_mine_cavern_80189FA8, NULL },
     { { .elements = D_mine_cavern_80189FC8 }, D_mine_cavern_8018A4C8, NULL },
@@ -2199,7 +2199,7 @@ void func_mine_cavern_8017E394(void)
 void func_mine_cavern_8017E3A0(s32 arg0)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     s32              v;
 
     sess = &gGameSession->location.loc;
@@ -2207,19 +2207,19 @@ void func_mine_cavern_8017E3A0(s32 arg0)
     v    = arg0 & 0xFF;
 
     if (v == 1) {
-        rec[3].field_4[5].hidden  = v;
-        rec[4].field_4[6].hidden  = v;
-        rec[21].field_4[5].hidden = v;
-        rec[22].field_4[3].hidden = v;
-        rec[23].field_4[4].hidden = v;
+        rec[3].batches[5].hidden  = v;
+        rec[4].batches[6].hidden  = v;
+        rec[21].batches[5].hidden = v;
+        rec[22].batches[3].hidden = v;
+        rec[23].batches[4].hidden = v;
         return;
     }
     if (v == 0) {
-        rec[3].field_4[5].hidden  = 0;
-        rec[4].field_4[6].hidden  = 0;
-        rec[21].field_4[5].hidden = 0;
-        rec[22].field_4[3].hidden = 0;
-        rec[23].field_4[4].hidden = 0;
+        rec[3].batches[5].hidden  = 0;
+        rec[4].batches[6].hidden  = 0;
+        rec[21].batches[5].hidden = 0;
+        rec[22].batches[3].hidden = 0;
+        rec[23].batches[4].hidden = 0;
     }
 }
 

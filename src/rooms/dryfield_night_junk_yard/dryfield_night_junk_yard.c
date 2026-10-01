@@ -241,7 +241,7 @@ void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
     GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][6].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][6].batches;
     if (arg0 == 0) {
         batches[5].hidden = 0;
     } else {

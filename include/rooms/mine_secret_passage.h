@@ -26,7 +26,7 @@ extern GpWarpRec D_mine_secret_passage_80180FBC[];
 
 extern GpViewRec D_mine_secret_passage_80181604[];
 
-extern GpSprtRec D_mine_secret_passage_80182994[];
+extern SpriteView D_mine_secret_passage_80182994[];
 
 extern WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[];
 

@@ -440,7 +440,7 @@ SpriteBatch D_dryfield_night_parking_lot_8018059C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_parking_lot_801805AC[11] = {
+SpriteView D_dryfield_night_parking_lot_801805AC[11] = {
     { { .empty = D_dryfield_night_parking_lot_8017FC80 }, D_dryfield_night_parking_lot_8017FC80, NULL },
     { { .elements = D_dryfield_night_parking_lot_8017FC90 }, D_dryfield_night_parking_lot_8017FD58, D_dryfield_night_parking_lot_8017FD78 },
     { { .elements = D_dryfield_night_parking_lot_8017FD8C }, D_dryfield_night_parking_lot_8017FF6C, NULL },

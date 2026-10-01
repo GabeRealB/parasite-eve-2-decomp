@@ -28,7 +28,7 @@ extern WorldCollisionGrid D_shelter_b6_nursery_801858A0;
 
 extern GpViewRec D_shelter_b6_nursery_801858C4[];
 
-extern GpSprtRec D_shelter_b6_nursery_80186FD0[];
+extern SpriteView D_shelter_b6_nursery_80186FD0[];
 
 extern WorldCoordRoomLights D_shelter_b6_nursery_80187294;
 

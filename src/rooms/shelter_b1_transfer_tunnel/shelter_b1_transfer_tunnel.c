@@ -186,7 +186,7 @@ SpriteBatch D_shelter_b1_transfer_tunnel_80182BD0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_transfer_tunnel_80182BE0[4] = {
+SpriteView D_shelter_b1_transfer_tunnel_80182BE0[4] = {
     { { .empty = D_shelter_b1_transfer_tunnel_80182BA0 }, D_shelter_b1_transfer_tunnel_80182BA0, NULL },
     { { .empty = D_shelter_b1_transfer_tunnel_80182BB0 }, D_shelter_b1_transfer_tunnel_80182BB0, NULL },
     { { .empty = D_shelter_b1_transfer_tunnel_80182BC0 }, D_shelter_b1_transfer_tunnel_80182BC0, NULL },

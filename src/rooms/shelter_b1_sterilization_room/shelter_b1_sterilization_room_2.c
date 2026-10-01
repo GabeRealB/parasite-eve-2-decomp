@@ -718,7 +718,7 @@ SpriteBatch D_shelter_b1_sterilization_room_8018AFFC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_sterilization_room_8018B00C[24] = {
+SpriteView D_shelter_b1_sterilization_room_8018B00C[24] = {
     { { .empty = D_shelter_b1_sterilization_room_8018A1C8 }, D_shelter_b1_sterilization_room_8018A1C8, NULL },
     { { .empty = D_shelter_b1_sterilization_room_8018A1D8 }, D_shelter_b1_sterilization_room_8018A1D8, NULL },
     { { .empty = D_shelter_b1_sterilization_room_8018A1E8 }, D_shelter_b1_sterilization_room_8018A1E8, NULL },

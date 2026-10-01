@@ -29,7 +29,7 @@ extern GpWarpRec D_mine_forked_tunnel_80183654[];
 
 extern GpViewRec D_mine_forked_tunnel_80183D94[];
 
-extern GpSprtRec D_mine_forked_tunnel_80184D64[];
+extern SpriteView D_mine_forked_tunnel_80184D64[];
 
 extern WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[];
 

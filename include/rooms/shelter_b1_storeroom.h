@@ -26,7 +26,7 @@ extern GpWarpRec D_shelter_b1_storeroom_80184B70[];
 
 extern GpViewRec D_shelter_b1_storeroom_801850FC[];
 
-extern GpSprtRec D_shelter_b1_storeroom_80186090[];
+extern SpriteView D_shelter_b1_storeroom_80186090[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[];
 

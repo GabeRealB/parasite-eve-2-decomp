@@ -26,7 +26,7 @@ extern GpWarpRec D_shelter_b1_south_maintenance_walkway_80182414[];
 
 extern GpViewRec D_shelter_b1_south_maintenance_walkway_801827DC[];
 
-extern GpSprtRec D_shelter_b1_south_maintenance_walkway_80182E18[];
+extern SpriteView D_shelter_b1_south_maintenance_walkway_80182E18[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_south_maintenance_walkway_80183614[];
 

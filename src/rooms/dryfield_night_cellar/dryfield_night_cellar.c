@@ -578,7 +578,7 @@ SpriteBatch D_dryfield_night_cellar_8017FAA8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_cellar_8017FAB8[11] = {
+SpriteView D_dryfield_night_cellar_8017FAB8[11] = {
     { { .empty = D_dryfield_night_cellar_8017E010 }, D_dryfield_night_cellar_8017E010, NULL },
     { { .elements = D_dryfield_night_cellar_8017E020 }, D_dryfield_night_cellar_8017E4A8, NULL },
     { { .elements = D_dryfield_night_cellar_8017E4E0 }, D_dryfield_night_cellar_8017E8B4, NULL },

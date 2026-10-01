@@ -364,7 +364,7 @@ SpriteBatch D_shelter_b1_access_tunnel_8017F690[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_access_tunnel_8017F6A0[5] = {
+SpriteView D_shelter_b1_access_tunnel_8017F6A0[5] = {
     { { .empty = D_shelter_b1_access_tunnel_8017EBFC }, D_shelter_b1_access_tunnel_8017EBFC, NULL },
     { { .elements = D_shelter_b1_access_tunnel_8017EC0C }, D_shelter_b1_access_tunnel_8017EDC4, NULL },
     { { .elements = D_shelter_b1_access_tunnel_8017EDEC }, D_shelter_b1_access_tunnel_8017F3B4, NULL },

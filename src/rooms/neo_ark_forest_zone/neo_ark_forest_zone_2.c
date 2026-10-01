@@ -358,7 +358,7 @@ SpriteBatch D_neo_ark_forest_zone_80182584[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_forest_zone_80182594[6] = {
+SpriteView D_neo_ark_forest_zone_80182594[6] = {
     { { .empty = D_neo_ark_forest_zone_80182370 }, D_neo_ark_forest_zone_80182370, NULL },
     { { .elements = D_neo_ark_forest_zone_80182380 }, D_neo_ark_forest_zone_801823D0, NULL },
     { { .elements = D_neo_ark_forest_zone_801823E8 }, D_neo_ark_forest_zone_8018244C, NULL },

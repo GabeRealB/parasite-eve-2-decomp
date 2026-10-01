@@ -189,7 +189,7 @@ SpriteBatch D_dryfield_back_street_8018046C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_back_street_80180484[5] = {
+SpriteView D_dryfield_back_street_80180484[5] = {
     { { .empty = D_dryfield_back_street_8018035C }, D_dryfield_back_street_8018035C, NULL },
     { { .empty = D_dryfield_back_street_8018036C }, D_dryfield_back_street_8018036C, NULL },
     { { .empty = D_dryfield_back_street_8018037C }, D_dryfield_back_street_8018037C, NULL },

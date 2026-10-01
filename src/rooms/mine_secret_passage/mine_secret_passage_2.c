@@ -482,7 +482,7 @@ SpriteBatch D_mine_secret_passage_80182984[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_secret_passage_80182994[8] = {
+SpriteView D_mine_secret_passage_80182994[8] = {
     { { .empty = D_mine_secret_passage_80181748 }, D_mine_secret_passage_80181748, NULL },
     { { .empty = D_mine_secret_passage_80181758 }, D_mine_secret_passage_80181758, NULL },
     { { .elements = D_mine_secret_passage_80181768 }, D_mine_secret_passage_80181B28, NULL },

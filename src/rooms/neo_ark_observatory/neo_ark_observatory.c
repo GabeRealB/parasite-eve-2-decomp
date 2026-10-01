@@ -1383,7 +1383,7 @@ SpriteBatch D_neo_ark_observatory_801860D8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_observatory_801860E8[21] = {
+SpriteView D_neo_ark_observatory_801860E8[21] = {
     { { .empty = D_neo_ark_observatory_801822BC }, D_neo_ark_observatory_801822BC, NULL },
     { { .empty = D_neo_ark_observatory_801822CC }, D_neo_ark_observatory_801822CC, NULL },
     { { .elements = D_neo_ark_observatory_801822DC }, D_neo_ark_observatory_80182480, NULL },

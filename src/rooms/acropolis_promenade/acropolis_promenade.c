@@ -1407,7 +1407,7 @@ SpriteBatch D_acropolis_promenade_80185FA4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_promenade_80185FB4[13] = {
+SpriteView D_acropolis_promenade_80185FB4[13] = {
     { { .empty = D_acropolis_promenade_80183A20 }, D_acropolis_promenade_80183A20, NULL },
     { { .elements = D_acropolis_promenade_80183A30 }, D_acropolis_promenade_80183FF8, NULL },
     { { .elements = D_acropolis_promenade_80184050 }, D_acropolis_promenade_801841A4, NULL },

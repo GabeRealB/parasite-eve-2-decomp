@@ -1676,7 +1676,7 @@ SpriteBatch D_shelter_b3_dumping_hole_8018E040[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b3_dumping_hole_8018E050[37] = {
+SpriteView D_shelter_b3_dumping_hole_8018E050[37] = {
     { { .empty = D_shelter_b3_dumping_hole_8018C944 }, D_shelter_b3_dumping_hole_8018C944, NULL },
     { { .empty = D_shelter_b3_dumping_hole_8018C954 }, D_shelter_b3_dumping_hole_8018C954, NULL },
     { { .empty = D_shelter_b3_dumping_hole_8018C964 }, D_shelter_b3_dumping_hole_8018C964, NULL },
@@ -3606,7 +3606,7 @@ void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 {
     GameLocationKey* g4      = &gGameSession->location.loc;
-    SpriteBatch*     batches = Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1][13].field_4;
+    SpriteBatch*     batches = Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1][13].batches;
 
     if (arg0 == 0) {
         batches[1].hidden = 1;

@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_acropolis_promenade_80181BCC[];
 
 extern GpWarpRec D_acropolis_promenade_80181BDC[];
 
-extern GpSprtRec D_acropolis_promenade_80185FB4[];
+extern SpriteView D_acropolis_promenade_80185FB4[];
 
 extern GpViewRec D_acropolis_promenade_80186050[];
 

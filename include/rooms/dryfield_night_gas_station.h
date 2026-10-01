@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_night_gas_station_80189E88[];
 
 extern GpViewRec D_dryfield_night_gas_station_8018B780[];
 
-extern GpSprtRec D_dryfield_night_gas_station_8018F6C4[];
+extern SpriteView D_dryfield_night_gas_station_8018F6C4[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_gas_station_80190780[];
 

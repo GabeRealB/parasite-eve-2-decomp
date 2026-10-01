@@ -2315,7 +2315,7 @@ SpriteBatch D_dryfield_night_gas_station_8018F6B4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_gas_station_8018F6C4[21] = {
+SpriteView D_dryfield_night_gas_station_8018F6C4[21] = {
     { { .empty = D_dryfield_night_gas_station_8018BA74 }, D_dryfield_night_gas_station_8018BA74, NULL },
     { { .elements = D_dryfield_night_gas_station_8018BA84 }, D_dryfield_night_gas_station_8018BFFC, NULL },
     { { .elements = D_dryfield_night_gas_station_8018C01C }, D_dryfield_night_gas_station_8018C1D4, NULL },
@@ -3242,7 +3242,7 @@ static void func_dryfield_night_gas_station_80180C20(void)
 void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
     s32              flag;
 
@@ -3252,31 +3252,31 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 
     switch (flag) {
         case 0:
-            batches           = rec[4].field_4;
+            batches           = rec[4].batches;
             batches[6].hidden = 0;
-            batches           = rec[12].field_4;
-            batches[6].hidden = 0;
-            batches[7].hidden = 0;
-            batches           = rec[13].field_4;
+            batches           = rec[12].batches;
             batches[6].hidden = 0;
             batches[7].hidden = 0;
-            batches           = rec[14].field_4;
+            batches           = rec[13].batches;
+            batches[6].hidden = 0;
             batches[7].hidden = 0;
-            batches           = rec[16].field_4;
+            batches           = rec[14].batches;
+            batches[7].hidden = 0;
+            batches           = rec[16].batches;
             batches[7].hidden = 0;
             break;
         case 1:
-            batches           = rec[4].field_4;
+            batches           = rec[4].batches;
             batches[6].hidden = flag;
-            batches           = rec[12].field_4;
-            batches[6].hidden = flag;
-            batches[7].hidden = flag;
-            batches           = rec[13].field_4;
+            batches           = rec[12].batches;
             batches[6].hidden = flag;
             batches[7].hidden = flag;
-            batches           = rec[14].field_4;
+            batches           = rec[13].batches;
+            batches[6].hidden = flag;
             batches[7].hidden = flag;
-            batches           = rec[16].field_4;
+            batches           = rec[14].batches;
+            batches[7].hidden = flag;
+            batches           = rec[16].batches;
             batches[7].hidden = flag;
             break;
     }
@@ -3289,17 +3289,17 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 static void func_dryfield_night_gas_station_80180D1C(void)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    GpSprtRec*       view = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
+    SpriteView*      view = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     s32              flag = GameFlag_GetNibble(0x8D);
 
     switch (flag) {
         case 0:
-            view[10].field_4[6].hidden = 0;
-            view[19].field_4[6].hidden = 0;
+            view[10].batches[6].hidden = 0;
+            view[19].batches[6].hidden = 0;
             break;
         case 1:
-            view[10].field_4[6].hidden = flag;
-            view[19].field_4[6].hidden = flag;
+            view[10].batches[6].hidden = flag;
+            view[19].batches[6].hidden = flag;
             break;
     }
 }
@@ -3312,34 +3312,34 @@ static void func_dryfield_night_gas_station_80180D1C(void)
 static void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    GpSprtRec*       rec =
+    SpriteView*      rec =
         Gp_SprtTables[sess->stage - 1][0]
             .field_0[sess->area - 1];
     SpriteBatch* batches;
 
     switch (arg0) {
         case 0:
-            batches            = rec[13].field_4;
+            batches            = rec[13].batches;
             batches[8].hidden  = 1;
             batches[9].hidden  = 1;
-            batches            = rec[14].field_4;
+            batches            = rec[14].batches;
             batches[8].hidden  = 1;
             batches[9].hidden  = 1;
             batches[10].hidden = 1;
-            batches            = rec[16].field_4;
+            batches            = rec[16].batches;
             batches[8].hidden  = 1;
             batches[9].hidden  = 1;
             batches[10].hidden = 1;
             break;
         case 1:
-            batches            = rec[13].field_4;
+            batches            = rec[13].batches;
             batches[8].hidden  = 0;
             batches[9].hidden  = 0;
-            batches            = rec[14].field_4;
+            batches            = rec[14].batches;
             batches[8].hidden  = 0;
             batches[9].hidden  = 0;
             batches[10].hidden = 0;
-            batches            = rec[16].field_4;
+            batches            = rec[16].batches;
             batches[8].hidden  = 0;
             batches[9].hidden  = 0;
             batches[10].hidden = 0;

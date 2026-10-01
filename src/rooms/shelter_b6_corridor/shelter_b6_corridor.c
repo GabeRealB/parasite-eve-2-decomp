@@ -411,7 +411,7 @@ SpriteBatch D_shelter_b6_corridor_8018003C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b6_corridor_8018004C[5] = {
+SpriteView D_shelter_b6_corridor_8018004C[5] = {
     { { .empty = D_shelter_b6_corridor_8017FB68 }, D_shelter_b6_corridor_8017FB68, NULL },
     { { .elements = D_shelter_b6_corridor_8017FB78 }, D_shelter_b6_corridor_8017FE34, NULL },
     { { .elements = D_shelter_b6_corridor_8017FE54 }, D_shelter_b6_corridor_8018000C, NULL },
@@ -764,7 +764,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
 void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    SpriteView*      rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;
     s32              flag;
@@ -772,40 +772,40 @@ void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
     if (run == 0) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            batches           = rec[1].field_4;
+            batches           = rec[1].batches;
             batches[1].hidden = 1;
             return;
         }
         if (flag == 1) {
-            batches           = rec[1].field_4;
+            batches           = rec[1].batches;
             batches[1].hidden = 0;
             return;
         }
     } else if (run == 1) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            batches           = rec[1].field_4;
+            batches           = rec[1].batches;
             batches[2].hidden = run;
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[2].hidden = run;
             return;
         }
         if (flag == run) {
-            batches           = rec[1].field_4;
+            batches           = rec[1].batches;
             batches[2].hidden = 0;
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[2].hidden = 0;
             return;
         }
     } else if (run == 2) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[1].hidden = 1;
             return;
         }
         if (flag == 1) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[1].hidden = 0;
         }
     }

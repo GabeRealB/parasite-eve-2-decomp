@@ -26,7 +26,7 @@ extern GpWarpRec D_neo_ark_power_plant_2_801806B0[];
 
 extern GpViewRec D_neo_ark_power_plant_2_80180DE8[];
 
-extern GpSprtRec D_neo_ark_power_plant_2_8018205C[];
+extern SpriteView D_neo_ark_power_plant_2_8018205C[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_power_plant_2_80182F50[];
 

@@ -790,7 +790,7 @@ SpriteBatch D_dryfield_water_tank_80187F70[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_water_tank_80187F80[10] = {
+SpriteView D_dryfield_water_tank_80187F80[10] = {
     { { .empty = D_dryfield_water_tank_80187048 }, D_dryfield_water_tank_80187048, NULL },
     { { .elements = D_dryfield_water_tank_80187058 }, D_dryfield_water_tank_801872C4, NULL },
     { { .elements = D_dryfield_water_tank_801872E4 }, D_dryfield_water_tank_801879C4, NULL },

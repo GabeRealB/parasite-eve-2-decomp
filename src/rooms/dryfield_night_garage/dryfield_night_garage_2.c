@@ -808,7 +808,7 @@ SpriteBatch D_dryfield_night_garage_80186240[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_garage_80186258[15] = {
+SpriteView D_dryfield_night_garage_80186258[15] = {
     { { .empty = D_dryfield_night_garage_80184614 }, D_dryfield_night_garage_80184614, NULL },
     { { .elements = D_dryfield_night_garage_80184624 }, D_dryfield_night_garage_80184A5C, NULL },
     { { .elements = D_dryfield_night_garage_80184A7C }, D_dryfield_night_garage_80184E8C, NULL },

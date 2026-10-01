@@ -510,7 +510,7 @@ SpriteBatch D_shelter_b2_north_maintenance_walkway_80185ADC[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b2_north_maintenance_walkway_80185B04[8] = {
+SpriteView D_shelter_b2_north_maintenance_walkway_80185B04[8] = {
     { { .empty = D_shelter_b2_north_maintenance_walkway_80184160 }, D_shelter_b2_north_maintenance_walkway_80184160, NULL },
     { { .empty = D_shelter_b2_north_maintenance_walkway_80184170 }, D_shelter_b2_north_maintenance_walkway_80184170, NULL },
     { { .elements = D_shelter_b2_north_maintenance_walkway_80184180 }, D_shelter_b2_north_maintenance_walkway_801843B0, NULL },

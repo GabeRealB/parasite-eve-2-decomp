@@ -478,7 +478,7 @@ SpriteBatch D_shelter_r36_8017F308[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_r36_8017F318[11] = {
+SpriteView D_shelter_r36_8017F318[11] = {
     { { .empty = D_shelter_r36_8017EC60 }, D_shelter_r36_8017EC60, NULL },
     { { .elements = D_shelter_r36_8017EC70 }, D_shelter_r36_8017F148, NULL },
     { { .elements = D_shelter_r36_8017F168 }, D_shelter_r36_8017F280, NULL },

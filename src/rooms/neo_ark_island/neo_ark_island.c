@@ -444,7 +444,7 @@ SpriteBatch D_neo_ark_island_80183B04[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_island_80183B14[5] = {
+SpriteView D_neo_ark_island_80183B14[5] = {
     { { .empty = D_neo_ark_island_801827A0 }, D_neo_ark_island_801827A0, NULL },
     { { .elements = D_neo_ark_island_801827B0 }, D_neo_ark_island_80182A44, NULL },
     { { .elements = D_neo_ark_island_80182A64 }, D_neo_ark_island_80182FB4, NULL },

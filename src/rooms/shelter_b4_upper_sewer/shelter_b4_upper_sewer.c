@@ -553,7 +553,7 @@ SpriteBatch D_shelter_b4_upper_sewer_801879AC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b4_upper_sewer_801879BC[14] = {
+SpriteView D_shelter_b4_upper_sewer_801879BC[14] = {
     { { .empty = D_shelter_b4_upper_sewer_80187114 }, D_shelter_b4_upper_sewer_80187114, NULL },
     { { .elements = D_shelter_b4_upper_sewer_80187124 }, D_shelter_b4_upper_sewer_80187174, NULL },
     { { .elements = D_shelter_b4_upper_sewer_8018718C }, D_shelter_b4_upper_sewer_801871F0, NULL },
@@ -1171,7 +1171,7 @@ static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
     GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].batches;
     if ((arg0 & 0xFF) == 0) {
         batches[1].hidden = 0;
     } else {

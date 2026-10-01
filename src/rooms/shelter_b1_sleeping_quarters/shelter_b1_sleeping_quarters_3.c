@@ -537,7 +537,7 @@ SpriteBatch D_shelter_b1_sleeping_quarters_80182E60[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_sleeping_quarters_80182E70[11] = {
+SpriteView D_shelter_b1_sleeping_quarters_80182E70[11] = {
     { { .empty = D_shelter_b1_sleeping_quarters_80181260 }, D_shelter_b1_sleeping_quarters_80181260, NULL },
     { { .empty = D_shelter_b1_sleeping_quarters_80181270 }, D_shelter_b1_sleeping_quarters_80181270, NULL },
     { { .elements = D_shelter_b1_sleeping_quarters_80181280 }, D_shelter_b1_sleeping_quarters_801812E4, NULL },

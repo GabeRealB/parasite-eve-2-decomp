@@ -24,7 +24,7 @@ extern WorldCoordRoomLighting D_acropolis_east_elevator_hall_80186338[];
 
 extern GpWarpRec D_acropolis_east_elevator_hall_80186340[];
 
-extern GpSprtRec D_acropolis_east_elevator_hall_80187870[];
+extern SpriteView D_acropolis_east_elevator_hall_80187870[];
 
 extern GpViewRec D_acropolis_east_elevator_hall_80187A5C[];
 

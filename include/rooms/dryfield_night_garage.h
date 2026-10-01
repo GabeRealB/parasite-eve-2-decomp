@@ -30,7 +30,7 @@ extern GpWarpRec D_dryfield_night_garage_80183440[];
 
 extern GpViewRec D_dryfield_night_garage_801843F8[];
 
-extern GpSprtRec D_dryfield_night_garage_80186258[];
+extern SpriteView D_dryfield_night_garage_80186258[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_garage_801875B8[];
 

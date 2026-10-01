@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_water_hole_8017FDBC[];
 
 extern GpViewRec D_dryfield_water_hole_80180284[];
 
-extern GpSprtRec D_dryfield_water_hole_80181634[];
+extern SpriteView D_dryfield_water_hole_80181634[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_water_hole_801828AC[];
 

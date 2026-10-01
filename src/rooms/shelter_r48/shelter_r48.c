@@ -1560,7 +1560,7 @@ SpriteBatch D_shelter_r48_80189F7C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_r48_80189FB4[18] = {
+SpriteView D_shelter_r48_80189FB4[18] = {
     { { .empty = D_shelter_r48_80184198 }, D_shelter_r48_80184198, NULL },
     { { .elements = D_shelter_r48_801841A8 }, D_shelter_r48_80184720, NULL },
     { { .elements = D_shelter_r48_80184748 }, D_shelter_r48_8018510C, NULL },
@@ -2217,51 +2217,51 @@ void func_shelter_r48_8017E224(Task* task)
 void func_shelter_r48_8017E27C(u8 arg0)
 {
     GameLocationKey* loc = &gGameSession->location.loc;
-    GpSprtRec*       rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
+    SpriteView*      rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
     SpriteBatch*     batches;
 
     if (arg0 == 0) {
-        batches           = rec[1].field_4;
+        batches           = rec[1].batches;
         batches[1].hidden = 1;
         batches[3].hidden = 1;
-        batches           = rec[2].field_4;
+        batches           = rec[2].batches;
         batches[1].hidden = 1;
         batches[4].hidden = 1;
-        batches           = rec[3].field_4;
+        batches           = rec[3].batches;
         batches[1].hidden = 1;
         batches[4].hidden = 1;
-        batches           = rec[5].field_4;
+        batches           = rec[5].batches;
         batches[2].hidden = 1;
         batches[3].hidden = 1;
-        batches           = rec[6].field_4;
+        batches           = rec[6].batches;
         batches[1].hidden = 1;
         batches[4].hidden = 1;
-        batches           = rec[7].field_4;
+        batches           = rec[7].batches;
         batches[1].hidden = 1;
         batches[5].hidden = 1;
-        batches           = rec[17].field_4;
+        batches           = rec[17].batches;
         batches[1].hidden = 1;
         batches[5].hidden = 1;
     } else if (arg0 == 1) {
-        batches           = rec[1].field_4;
+        batches           = rec[1].batches;
         batches[1].hidden = 0;
         batches[3].hidden = 0;
-        batches           = rec[2].field_4;
+        batches           = rec[2].batches;
         batches[1].hidden = 0;
         batches[4].hidden = 0;
-        batches           = rec[3].field_4;
+        batches           = rec[3].batches;
         batches[1].hidden = 0;
         batches[4].hidden = 0;
-        batches           = rec[5].field_4;
+        batches           = rec[5].batches;
         batches[2].hidden = 0;
         batches[3].hidden = 0;
-        batches           = rec[6].field_4;
+        batches           = rec[6].batches;
         batches[1].hidden = 0;
         batches[4].hidden = 0;
-        batches           = rec[7].field_4;
+        batches           = rec[7].batches;
         batches[1].hidden = 0;
         batches[5].hidden = 0;
-        batches           = rec[17].field_4;
+        batches           = rec[17].batches;
         batches[1].hidden = 0;
         batches[5].hidden = 0;
     }

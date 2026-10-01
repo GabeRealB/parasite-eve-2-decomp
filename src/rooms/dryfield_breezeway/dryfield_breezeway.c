@@ -395,7 +395,7 @@ SpriteBatch D_dryfield_breezeway_80183D84[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_breezeway_80183D9C[6] = {
+SpriteView D_dryfield_breezeway_80183D9C[6] = {
     { { .empty = D_dryfield_breezeway_80183724 }, D_dryfield_breezeway_80183724, NULL },
     { { .elements = D_dryfield_breezeway_80183734 }, D_dryfield_breezeway_801837C0, NULL },
     { { .elements = D_dryfield_breezeway_801837E0 }, D_dryfield_breezeway_80183A4C, NULL },

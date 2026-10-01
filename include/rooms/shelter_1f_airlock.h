@@ -26,7 +26,7 @@ extern GpWarpRec D_shelter_1f_airlock_8017E5BC[];
 
 extern GpViewRec D_shelter_1f_airlock_8017E85C[];
 
-extern GpSprtRec D_shelter_1f_airlock_8017F07C[];
+extern SpriteView D_shelter_1f_airlock_8017F07C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[];
 

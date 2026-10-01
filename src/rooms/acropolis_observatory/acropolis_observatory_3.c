@@ -807,7 +807,7 @@ SpriteBatch D_acropolis_observatory_801832B0[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_observatory_80183300[8] = {
+SpriteView D_acropolis_observatory_80183300[8] = {
     { { .empty = D_acropolis_observatory_80181794 }, D_acropolis_observatory_80181794, NULL },
     { { .elements = D_acropolis_observatory_801817A4 }, D_acropolis_observatory_80181B78, NULL },
     { { .elements = D_acropolis_observatory_80181BB0 }, D_acropolis_observatory_80182074, NULL },

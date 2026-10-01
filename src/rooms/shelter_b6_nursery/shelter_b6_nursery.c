@@ -737,7 +737,7 @@ SpriteBatch D_shelter_b6_nursery_80186FC0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b6_nursery_80186FD0[19] = {
+SpriteView D_shelter_b6_nursery_80186FD0[19] = {
     { { .empty = D_shelter_b6_nursery_80185B70 }, D_shelter_b6_nursery_80185B70, NULL },
     { { .empty = D_shelter_b6_nursery_80185B80 }, D_shelter_b6_nursery_80185B80, NULL },
     { { .elements = D_shelter_b6_nursery_80185B90 }, D_shelter_b6_nursery_80185D70, NULL },
@@ -1067,7 +1067,7 @@ void func_shelter_b6_nursery_80180038(s32 arg0)
     SpriteBatch*     batches;
     s32              mode;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].batches;
     mode    = arg0 & 0xFF;
     if (mode == 0) {
         batches[1].hidden = 0;

@@ -1078,7 +1078,7 @@ SpriteBatch D_acropolis_forked_road_801844D0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_acropolis_forked_road_801844E0[12] = {
+SpriteView D_acropolis_forked_road_801844E0[12] = {
     { { .empty = D_acropolis_forked_road_80183284 }, D_acropolis_forked_road_80183284, NULL },
     { { .elements = D_acropolis_forked_road_80183294 }, D_acropolis_forked_road_80183938, NULL },
     { { .elements = D_acropolis_forked_road_80183998 }, D_acropolis_forked_road_80183A10, NULL },

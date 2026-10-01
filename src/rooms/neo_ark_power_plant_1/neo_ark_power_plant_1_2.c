@@ -646,7 +646,7 @@ SpriteBatch D_neo_ark_power_plant_1_801814E0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_power_plant_1_801814F0[9] = {
+SpriteView D_neo_ark_power_plant_1_801814F0[9] = {
     { { .empty = D_neo_ark_power_plant_1_801801F8 }, D_neo_ark_power_plant_1_801801F8, NULL },
     { { .elements = D_neo_ark_power_plant_1_80180208 }, D_neo_ark_power_plant_1_801803E8, NULL },
     { { .elements = D_neo_ark_power_plant_1_80180408 }, D_neo_ark_power_plant_1_801806D8, NULL },
@@ -881,7 +881,7 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
 void func_neo_ark_power_plant_1_8017E524(s32 arg0)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
     s32              v;
 
@@ -890,16 +890,16 @@ void func_neo_ark_power_plant_1_8017E524(s32 arg0)
     v    = arg0 & 0xFF;
 
     if (v == 0) {
-        batches           = rec[5].field_4;
+        batches           = rec[5].batches;
         batches[1].hidden = 0;
-        batches           = rec[6].field_4;
+        batches           = rec[6].batches;
         batches[1].hidden = 0;
         return;
     }
     if (v == 1) {
-        batches           = rec[5].field_4;
+        batches           = rec[5].batches;
         batches[1].hidden = v;
-        batches           = rec[6].field_4;
+        batches           = rec[6].batches;
         batches[1].hidden = v;
     }
 }

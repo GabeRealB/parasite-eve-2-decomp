@@ -205,7 +205,7 @@ SpriteBatch D_shelter_1f_bulwark_80180798[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_1f_bulwark_801807B0[3] = {
+SpriteView D_shelter_1f_bulwark_801807B0[3] = {
     { { .empty = D_shelter_1f_bulwark_801806D8 }, D_shelter_1f_bulwark_801806D8, NULL },
     { { .empty = D_shelter_1f_bulwark_801806E8 }, D_shelter_1f_bulwark_801806E8, NULL },
     { { .elements = D_shelter_1f_bulwark_801806F8 }, D_shelter_1f_bulwark_80180798, NULL },

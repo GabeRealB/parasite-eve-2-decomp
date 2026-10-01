@@ -1256,7 +1256,7 @@ SpriteBatch D_dryfield_trailer_coach_801891C0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_trailer_coach_801891D0[11] = {
+SpriteView D_dryfield_trailer_coach_801891D0[11] = {
     { { .empty = D_dryfield_trailer_coach_801878E4 }, D_dryfield_trailer_coach_801878E4, NULL },
     { { .elements = D_dryfield_trailer_coach_801878F4 }, D_dryfield_trailer_coach_801880D8, NULL },
     { { .elements = D_dryfield_trailer_coach_80188100 }, D_dryfield_trailer_coach_80188D80, NULL },

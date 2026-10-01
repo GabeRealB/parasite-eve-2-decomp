@@ -1042,7 +1042,7 @@ SpriteBatch D_mist_r18_80186B50[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mist_r18_80186B60[10] = {
+SpriteView D_mist_r18_80186B60[10] = {
     { { .empty = D_mist_r18_80186884 }, D_mist_r18_80186884, NULL },
     { { .empty = D_mist_r18_80186894 }, D_mist_r18_80186894, NULL },
     { { .empty = D_mist_r18_801868B4 }, D_mist_r18_801868B4, NULL },

@@ -35,7 +35,7 @@ extern WorldCollisionGrid D_shelter_b2_septic_tank_80183E0C;
 
 extern GpViewRec D_shelter_b2_septic_tank_80183E30[];
 
-extern GpSprtRec D_shelter_b2_septic_tank_801866F4[];
+extern SpriteView D_shelter_b2_septic_tank_801866F4[];
 
 extern WorldCoordRoomLights D_shelter_b2_septic_tank_80186A3C;
 

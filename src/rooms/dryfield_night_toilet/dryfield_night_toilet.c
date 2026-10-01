@@ -363,7 +363,7 @@ SpriteBatch D_dryfield_night_toilet_8017EC30[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_toilet_8017EC40[9] = {
+SpriteView D_dryfield_night_toilet_8017EC40[9] = {
     { { .empty = D_dryfield_night_toilet_8017DEF0 }, D_dryfield_night_toilet_8017DEF0, NULL },
     { { .elements = D_dryfield_night_toilet_8017DF00 }, D_dryfield_night_toilet_8017E25C, NULL },
     { { .elements = D_dryfield_night_toilet_8017E27C }, D_dryfield_night_toilet_8017E740, NULL },

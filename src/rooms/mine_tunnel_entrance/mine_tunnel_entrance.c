@@ -313,7 +313,7 @@ SpriteBatch D_mine_tunnel_entrance_8017EA34[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mine_tunnel_entrance_8017EA4C[6] = {
+SpriteView D_mine_tunnel_entrance_8017EA4C[6] = {
     { { .empty = D_mine_tunnel_entrance_8017E1BC }, D_mine_tunnel_entrance_8017E1BC, NULL },
     { { .elements = D_mine_tunnel_entrance_8017E1CC }, D_mine_tunnel_entrance_8017E2D0, NULL },
     { { .elements = D_mine_tunnel_entrance_8017E2E8 }, D_mine_tunnel_entrance_8017E5F4, NULL },

@@ -236,7 +236,7 @@ SpriteBatch D_shelter_b1_golem_freezer_1_8017EDA0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_shelter_b1_golem_freezer_1_8017EDB0[7] = {
+SpriteView D_shelter_b1_golem_freezer_1_8017EDB0[7] = {
     { { .empty = D_shelter_b1_golem_freezer_1_8017EAE0 }, D_shelter_b1_golem_freezer_1_8017EAE0, NULL },
     { { .elements = D_shelter_b1_golem_freezer_1_8017EAF0 }, D_shelter_b1_golem_freezer_1_8017ED48, NULL },
     { { .empty = D_shelter_b1_golem_freezer_1_8017ED60 }, D_shelter_b1_golem_freezer_1_8017ED60, NULL },

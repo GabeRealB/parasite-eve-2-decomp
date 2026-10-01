@@ -295,7 +295,7 @@ SpriteBatch D_neo_ark_north_promenade_80182C84[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_neo_ark_north_promenade_80182CA4[6] = {
+SpriteView D_neo_ark_north_promenade_80182CA4[6] = {
     { { .empty = D_neo_ark_north_promenade_801824E8 }, D_neo_ark_north_promenade_801824E8, NULL },
     { { .empty = D_neo_ark_north_promenade_801824F8 }, D_neo_ark_north_promenade_801824F8, NULL },
     { { .empty = D_neo_ark_north_promenade_80182508 }, D_neo_ark_north_promenade_80182508, NULL },

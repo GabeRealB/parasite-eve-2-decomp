@@ -29,7 +29,7 @@ extern GpWarpRec D_shelter_b1_sterilization_room_801893E0[];
 
 extern GpViewRec D_shelter_b1_sterilization_room_80189E68[];
 
-extern GpSprtRec D_shelter_b1_sterilization_room_8018B00C[];
+extern SpriteView D_shelter_b1_sterilization_room_8018B00C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_sterilization_room_8018C314[];
 

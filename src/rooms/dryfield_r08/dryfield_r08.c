@@ -415,7 +415,7 @@ SpriteBatch D_dryfield_r08_80180900[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_r08_80180918[6] = {
+SpriteView D_dryfield_r08_80180918[6] = {
     { { .empty = D_dryfield_r08_8017FC94 }, D_dryfield_r08_8017FC94, NULL },
     { { .elements = D_dryfield_r08_8017FCA4 }, D_dryfield_r08_80180348, NULL },
     { { .elements = D_dryfield_r08_80180368 }, D_dryfield_r08_80180458, NULL },
@@ -1009,7 +1009,7 @@ void func_dryfield_r08_8017F334(s32 arg0)
 /// Sets the skip-OT-link byte (`SpriteBatch.hidden`) of command record
 /// `arg0` + 1 in this room's sprite-table command list: non-zero leaves that
 /// record's prims out of the ordering table. `arg0` is a view index below
-/// 0xB; the record the table yields is larger than its `GpSprtRec` prefix,
+/// 0xB; the record the table yields is larger than its `SpriteView` prefix,
 /// so `[3].field_4` reaches the command list its tail holds there.
 void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 {
@@ -1018,7 +1018,7 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 
     sess = &gGameSession->location.loc;
     if ((u32)(arg0 & 0xFF) < 0xBU) {
-        batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].field_4;
+        batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].batches;
         if (arg1 & 0xFF) {
             batches[arg0 + 1].hidden = 1;
             return;
@@ -1030,16 +1030,16 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
 
     sess = &gGameSession->location.loc;
     if ((u32)(arg0 & 0xFF) < 3U) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if ((u32)(arg0 & 0xFF) == 0U) {
-            batches = rec[1].field_4;
+            batches = rec[1].batches;
         } else {
-            batches = rec[2].field_4;
+            batches = rec[2].batches;
         }
         if (arg1 & 0xFF) {
             batches[1].hidden = 1;

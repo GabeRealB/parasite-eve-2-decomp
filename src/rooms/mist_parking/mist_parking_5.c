@@ -623,7 +623,7 @@ SpriteBatch D_mist_parking_8019398C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_mist_parking_8019399C[20] = {
+SpriteView D_mist_parking_8019399C[20] = {
     { { .empty = D_mist_parking_801924F8 }, D_mist_parking_801924F8, NULL },
     { { .elements = D_mist_parking_80192508 }, D_mist_parking_801926AC, NULL },
     { { .empty = D_mist_parking_801926C4 }, D_mist_parking_801926C4, NULL },

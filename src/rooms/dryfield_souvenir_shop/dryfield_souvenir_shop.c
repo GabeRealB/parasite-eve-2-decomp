@@ -266,7 +266,7 @@ SpriteBatch D_dryfield_souvenir_shop_8017EE80[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_souvenir_shop_8017EED0[3] = {
+SpriteView D_dryfield_souvenir_shop_8017EED0[3] = {
     { { .empty = D_dryfield_souvenir_shop_8017E690 }, D_dryfield_souvenir_shop_8017E690, NULL },
     { { .elements = D_dryfield_souvenir_shop_8017E6A0 }, D_dryfield_souvenir_shop_8017EA24, NULL },
     { { .elements = D_dryfield_souvenir_shop_8017EA5C }, D_dryfield_souvenir_shop_8017EE80, NULL },

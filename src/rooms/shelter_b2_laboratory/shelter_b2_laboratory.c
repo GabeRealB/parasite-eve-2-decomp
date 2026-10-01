@@ -873,7 +873,7 @@ SpriteDrawArea D_shelter_b2_laboratory_801854BC[2] = {
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-GpSprtRec D_shelter_b2_laboratory_801854D0[15] = {
+SpriteView D_shelter_b2_laboratory_801854D0[15] = {
     { { .empty = D_shelter_b2_laboratory_8018379C }, D_shelter_b2_laboratory_8018379C, NULL },
     { { .elements = D_shelter_b2_laboratory_801837AC }, D_shelter_b2_laboratory_80183BA8, NULL },
     { { .elements = D_shelter_b2_laboratory_80183BD0 }, D_shelter_b2_laboratory_80183D60, NULL },

@@ -1327,22 +1327,22 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
 void func_dryfield_water_tank_8017EFF4(s32 arg0)
 {
     GameLocationKey* sess;
-    GpSprtRec*       rec;
+    SpriteView*      rec;
     SpriteBatch*     batches;
 
     sess = &gGameSession->location.loc;
     if (sess->stage == 2) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if (!(arg0 & 0xFF)) {
-            batches           = rec[2].field_4;
+            batches           = rec[2].batches;
             batches[3].hidden = 0;
-            batches           = rec[7].field_4;
+            batches           = rec[7].batches;
             batches[1].hidden = 1;
             return;
         }
-        batches           = rec[2].field_4;
+        batches           = rec[2].batches;
         batches[3].hidden = 1;
-        batches           = rec[7].field_4;
+        batches           = rec[7].batches;
         batches[1].hidden = 0;
     }
 }

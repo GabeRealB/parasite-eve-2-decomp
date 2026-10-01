@@ -26,7 +26,7 @@ extern GpWarpRec D_dryfield_night_g_r_kitchen_8017E2DC[];
 
 extern GpViewRec D_dryfield_night_g_r_kitchen_8017E578[];
 
-extern GpSprtRec D_dryfield_night_g_r_kitchen_8017E6A8[];
+extern SpriteView D_dryfield_night_g_r_kitchen_8017E6A8[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_g_r_kitchen_8017EC04[];
 

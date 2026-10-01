@@ -29,7 +29,7 @@ extern GpWarpRec D_dryfield_night_water_hole_80180AAC[];
 
 extern GpViewRec D_dryfield_night_water_hole_80180F74[];
 
-extern GpSprtRec D_dryfield_night_water_hole_80182384[];
+extern SpriteView D_dryfield_night_water_hole_80182384[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_water_hole_801835F8[];
 

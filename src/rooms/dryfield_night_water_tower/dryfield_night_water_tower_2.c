@@ -778,7 +778,7 @@ SpriteBatch D_dryfield_night_water_tower_80182020[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtRec D_dryfield_night_water_tower_80182040[10] = {
+SpriteView D_dryfield_night_water_tower_80182040[10] = {
     { { .empty = D_dryfield_night_water_tower_8017F580 }, D_dryfield_night_water_tower_8017F580, NULL },
     { { .elements = D_dryfield_night_water_tower_8017F590 }, D_dryfield_night_water_tower_8017FA18, NULL },
     { { .elements = D_dryfield_night_water_tower_8017FA48 }, D_dryfield_night_water_tower_8017FE08, NULL },

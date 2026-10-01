@@ -28,7 +28,7 @@ extern GpWarpRec D_mist_parking_801915E8[];
 
 extern GpViewRec D_mist_parking_80192228[];
 
-extern GpSprtRec D_mist_parking_8019399C[];
+extern SpriteView D_mist_parking_8019399C[];
 
 extern WorldCollisionSurfaceProperties* D_mist_parking_801952F0[];
 
