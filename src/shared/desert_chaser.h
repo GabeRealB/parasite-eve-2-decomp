@@ -63,11 +63,19 @@ STATIC_ASSERT_SIZEOF(DesertChaserWaypoint, 0x4);
 #define DESERT_CHASER_RUN_SEQUENCE     0
 #define DESERT_CHASER_STATE_TURN_RIGHT 8
 #define DESERT_CHASER_STATE_TURN_LEFT  9
+#define DESERT_CHASER_CLIP_STAGGER     0x10
+#define DESERT_CHASER_CLIP_COLLAPSE    0x13
+#define DESERT_CHASER_CLIP_STUNNED     0x15
+#define DESERT_CHASER_SLOT_RATE(work)  ((work)->field_834) /* the chaser's own speed */
 #else
 #define DESERT_CHASER_CONTACTS         12
 #define DESERT_CHASER_RUN_SEQUENCE     1
 #define DESERT_CHASER_STATE_TURN_RIGHT 9
 #define DESERT_CHASER_STATE_TURN_LEFT  10
+#define DESERT_CHASER_CLIP_STAGGER     0x13 /* three more clips before these */
+#define DESERT_CHASER_CLIP_COLLAPSE    0x16
+#define DESERT_CHASER_CLIP_STUNNED     0x18
+#define DESERT_CHASER_SLOT_RATE(work)  0x10 /* every runner alike */
 #endif
 
 /// Sphere body and the contact table supplied by its owner.

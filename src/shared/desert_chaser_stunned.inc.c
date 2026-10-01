@@ -15,11 +15,7 @@ void desertChaserStunned(Task* arg0)
         ctx->node.state.parts.flags = 0;
         obj->flags                  = 0;
         Tmd_AllocBuffers(obj);
-#if DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR
-        work->field_82E = 0x15;
-#else
-        work->field_82E = 0x18;
-#endif
+        work->field_82E          = DESERT_CHASER_CLIP_STUNNED;
         work->field_828          = 2;
         work->field_832          = 0x10;
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
