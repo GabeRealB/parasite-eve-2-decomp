@@ -375,6 +375,12 @@ textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its
 configuration macros use `EFFECT_SPRITE_` and select declarations matching each
 carrier's drawer signatures.
 
+The included Dryfield factory room code shares the lift, hatch, operator panel,
+entry task and scenes between the day and night packages. Its interface is
+`src/shared/factory_lift.h`; configuration macros use `FACTORY_ROOM_` and select
+the compiled instance's function bindings independently of runtime stage
+selection.
+
 ## Documentation
 
 [`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before

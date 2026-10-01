@@ -54,8 +54,12 @@
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
-#define FACTORY_NIGHT
+/// Selects the night package's function bindings in `factory_lift.h`.
+///
+/// A presence-only marker, scoped to the header include; omission selects day.
+#define FACTORY_ROOM_NIGHT_INSTANCE
 #include "../../shared/factory_lift.h"
+#undef FACTORY_ROOM_NIGHT_INSTANCE
 
 extern TaskDesc gRoomEventTaskDesc;
 

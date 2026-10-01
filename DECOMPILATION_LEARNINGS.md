@@ -146215,7 +146215,7 @@ follow:
   arms have to call two names, `factoryDayShowView9Sprite` and
   `factoryNightShowView9Sprite`, one defined and one absolute in each package.
   The fragment defines `factoryShowView9Sprite`, which the library header maps
-  to the build's own name under `FACTORY_NIGHT`.
+  to the build's own name under `FACTORY_ROOM_NIGHT_INSTANCE`.
 - An absolute address of the other build can coincide with an unrelated own
   object. Night's reference to the day panel descriptor (0x80186E94) is the
   address of night's own prompt descriptor, so splat printed one name for both

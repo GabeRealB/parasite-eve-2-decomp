@@ -155,9 +155,7 @@ extern FactoryControlMessageEntry gFactoryPanelMsgTable[2];
 /* The room is built once per stage, day (stage 2) and night, from the same
  * source. Each build defines its own spawn table, collision grid, jolt script,
  * panel descriptor and view-sprite routines, and names the other build's by
- * address; the code picks between the two by stage. FACTORY_NIGHT, defined by
- * the night package before it includes this header, selects which routines a
- * build defines. */
+ * address; the code picks between the two by stage. */
 extern TaskDesc                  gFactoryDaySpawnTable[];
 extern TaskDesc                  gFactoryNightSpawnTable[];
 extern TaskDesc                  gFactoryDayPanelDesc[];
@@ -174,7 +172,12 @@ void factoryNightShowView9Sprite(s32 show);
 void factoryDayShowView11Sprite(s32 show);
 void factoryNightShowView11Sprite(s32 show);
 
-#ifdef FACTORY_NIGHT
+// `FACTORY_ROOM_NIGHT_INSTANCE` selects the night image's entry-task and
+// view-sprite function bindings. Both dryfield_night_factory TUs define this
+// empty marker before including the header, then undefine it. Both
+// dryfield_factory TUs omit it to select day. The aliases remain available to
+// the included function fragments; runtime stage selection is independent.
+#ifdef FACTORY_ROOM_NIGHT_INSTANCE
 #define factoryShowView9Sprite  factoryNightShowView9Sprite
 #define factoryShowView11Sprite factoryNightShowView11Sprite
 #define factoryEntryTask        factoryNightEntryTask
