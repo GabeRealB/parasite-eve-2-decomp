@@ -99,32 +99,43 @@ u32* tmdDrawStreamPrimG3PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
 
 u32* Tmd_StreamHandler_Prim3A(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Draw-pass handler of a stream's pre-transformed untextured quad records
-/// (`0x61`, `0x161`): each element completes one `POLY_G4` in the buffer half's
-/// first region, whose corners are already in screen space, and links it into the
-/// ordering table at the depth they average to.
+/// Culls and links pre-transformed untextured Gouraud quads as opaque `POLY_G4` packets.
 ///
-/// Nothing is projected or lit here. The pass that projects the stream's vertices
-/// (`tmdXformStreamVerts`) has written each corner's screen coordinates and lit
-/// colour into the packet, and its depth into the screen-Z table, so an element
-/// names its corners in that table rather than in the vertex array. What a frame
-/// adds is the quad's filing: the facing comes from the coordinates the packet
-/// already carries, the cached depths are averaged for the ordering-table link,
-/// and the packet's tag and primitive code are written.
+/// Draw resolution selects this entry for `0x61` and `0x161`. `elements`
+/// starts after the three-word record header; `workspace->elemCount` supplies
+/// 0..65535 elements and `elemStride` their stride in u32 words, at least two
+/// for a nonempty record. The first two words pack four unsigned u16 depth-cache
+/// byte offsets: corners 0/1 in word 0's low/high halves, corners 2/3 in word 1's
+/// low/high halves. Further words are ignored. Each offset must be a multiple
+/// of four in 0..4092, naming a complete entry in the draw pass's borrowed
+/// 1024-entry `workspace->szTable`. Those entries must already hold the vertices'
+/// screen Z (0..65535), with `TMD_VERTEX_DEPTH_INVALID` on failed projections.
 ///
-/// The facing test is taken first, on the quad's first three corners; where it
-/// turns them away, the fourth corner is put through the test as well, and only a
-/// quad that both tests reject is left unlinked. The depths are read after that,
-/// and an element naming a corner the pre-pass marked as failed is not linked
-/// either. Either way the element consumes its packet's room: the first region's
-/// cursor advances by one packet per element, which is what keeps the packets in
-/// step with the elements that named them.
+/// The word-aligned `workspace->preXformWrite` must have one complete 36-byte
+/// `POLY_G4` slot per element in the selected buffer half's first region.
+/// Earlier projection records must have filled each slot's screen XY and corner
+/// RGB. This handler neither projects nor lights: it keeps `NCLIP(0,1,2) > 0`
+/// or, if that fails, `NCLIP(1,2,3) < 0`, and rejects any negative cached depth.
+/// Every element consumes its packet slot, including rejected quads; rejection
+/// changes neither the packet nor the OT. Accepted packets retain XY and RGB,
+/// receive opaque GPU code 0x38 and an eight-word DMA length, and prepend to
+/// `workspace->ot` using `AVSZ4` depth.
 ///
-/// The record has no variant for `flags` to select: the primitive code is this
-/// entry's own constant, and the body's other entry
-/// (`Tmd_StreamHandler_Prim3A`) stamps the blended one, which no opcode resolves
-/// to.
-u32* tmdDrawStreamPrimG4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The GTE's four-depth averaging scale must already be set. The OT bucket is
+/// `(((u32)OTZ << (workspace->otDepthShift & 31)) & 0x3FFF) >> 4`, wrapping
+/// into 0..1023; normal drawing supplies shifts 0..3. The OT base already
+/// includes the object's signed entry displacement, and every resulting bucket
+/// must fit the selected table. DMA links retain 24 address bits. Stream, cache,
+/// packet and OT capacities are unchecked; all storage is borrowed, and packets
+/// and OT storage must remain valid until GPU consumption finishes.
+///
+/// Returns `elements + elemCount * elemStride`, leaving the next record or
+/// marker unconsumed, and updates only `workspace->preXformWrite` among workspace
+/// fields. Counts, saved GTE results and the second-region cursor are unchanged.
+/// An empty record reads no payload and advances neither cursor. `objectFlags`
+/// is ignored, including blend and reverse-culling bits;
+/// `Tmd_StreamHandler_Prim3A` is the separate semi-transparent entry.
+u32* tmdDrawStreamPrimG4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 // Draw-pass handlers, one per record family: the early image's in
 // Tmd_StreamHandlers_Ops.s, the gameplay overlay's in that overlay's own units.
