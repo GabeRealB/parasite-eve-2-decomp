@@ -1813,7 +1813,12 @@ static inline void _uiInitHorizontalSeparatorPacket(POLY_FT4* separator)
         // 4-bit page at VRAM word X=896, row Y=256; blending is disabled.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_TEXTURE_PAGE = getTPage(0, 0, 0x380, 0x100),
         // Palette selector for VRAM word X=48, row Y=240.
-        USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID     = getClut(0x30, 0xF0),
+        USER_INTERFACE_HORIZONTAL_SEPARATOR_CLUT_ID = getClut(0x30, 0xF0),
+
+        /// Selects unmodulated texture colour for the horizontal separator.
+        ///
+        /// A nonzero `setShadeTex` selector sets command bit 0, so the packet's
+        /// untouched RGB bytes do not affect drawing.
         USER_INTERFACE_HORIZONTAL_SEPARATOR_RAW_TEXTURE = 1
     };
 
