@@ -258,17 +258,112 @@ GpAreaVariant D_acropolis_fountain_8017FC9C[11] = {
     { NULL, NULL },
 };
 
-WorldCoordPointLight D_acropolis_fountain_8017FCF4[6] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4000, -200, 1560 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2785, 2621 }, { 0, 0 } }, 10, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3010, -200, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2785, 2621 }, { 0, 0 } }, 10, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 10, -200, -4360 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2785, 2621 }, { 0, 0 } }, 10, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3830, -200, -2200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2785, 2621 }, { 0, 0 } }, 10, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3990, -200, 1620 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2785, 2621 }, { 0, 0 } }, 10, 8000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3840, -980, -6510 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2703, 2785, 2621 }, { 0, 0 } }, 10, 7500 },
+/// Point lights for model shading and light queries in both fountain room variants.
+///
+/// All six contribute in every view. Positions and falloff radii use world units;
+/// RGB intensities use 12 fractional bits. The loaded overlay owns these mutable
+/// records; coordinate updates and lighting queries replace their cached state.
+static WorldCoordPointLight _gAcropolisFountainPointLights[] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = {
+                                          .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } },
+                                          .t = { -4000, -200, 1560 },
+                               },
+                               .composed = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                               .viewId   = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                           } },
+            .color     = { 2867, 2785, 2621 },
+        },
+        .inner = 10,
+        .outer = 8000,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = {
+                                          .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } },
+                                          .t = { -3010, -200, -3000 },
+                               },
+                               .composed = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                               .viewId   = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                           } },
+            .color     = { 2867, 2785, 2621 },
+        },
+        .inner = 10,
+        .outer = 8000,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = {
+                                          .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } },
+                                          .t = { 10, -200, -4360 },
+                               },
+                               .composed = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                               .viewId   = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                           } },
+            .color     = { 2867, 2785, 2621 },
+        },
+        .inner = 10,
+        .outer = 8000,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = {
+                                          .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } },
+                                          .t = { 3830, -200, -2200 },
+                               },
+                               .composed = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                               .viewId   = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                           } },
+            .color     = { 2867, 2785, 2621 },
+        },
+        .inner = 10,
+        .outer = 8000,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = {
+                                          .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } },
+                                          .t = { 3990, -200, 1620 },
+                               },
+                               .composed = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                               .viewId   = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                           } },
+            .color     = { 2867, 2785, 2621 },
+        },
+        .inner = 10,
+        .outer = 8000,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = {
+                                          .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } },
+                                          .t = { 3840, -980, -6510 },
+                               },
+                               .composed = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
+                               .viewId   = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                           } },
+            .color     = { 2703, 2785, 2621 },
+        },
+        .inner = 10,
+        .outer = 7500,
+    },
 };
 
 WorldCoordRoomLights D_acropolis_fountain_8017FF34[1] = {
-    { 0, NULL, ARRAY_SIZE(D_acropolis_fountain_8017FCF4), D_acropolis_fountain_8017FCF4, 0, NULL },
+    { 0, NULL, ARRAY_SIZE(_gAcropolisFountainPointLights), _gAcropolisFountainPointLights, 0, NULL },
 };
 
 SpriteBatch D_acropolis_fountain_8017FF4C[2] = {
