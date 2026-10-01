@@ -134102,22 +134102,23 @@ renaming a glabel leaves the alabel's note - a line naming the sibling it enters
 pointing at a name that is no longer in the file. Those entries are aligned in
 columns, so a rewritten line has to be re-aligned by hand or the table stops being
 readable.
-## A guard whose constant is wider than the field it tests cannot fire
+## A wide initial guard can become a previous-element key
 
 An arm of a handler is evidence of a rule only where the arm is reachable, and
-a compare against a field can be dead on its face. `tmdDrawStreamGt4`'s element
-loop guards its fourth corner with `beq` against a constant loaded whole
-(`lui $v1, 0xFFF`, so `0x0FFF0000`) while the value it compares was extracted
-from an element word (`srl $t4, $t3, 16`, a ref of 16 bits, since element refs
-pack two to a word). The two can never be equal, so the arm guarded that way is
-unreachable and the `0xFFF` ref it appears to special-case is not behaviour the
-handler has.
+a compare against a field must be read across the register's whole live range.
+`tmdDrawStreamGt4` initializes `$v1` with `lui $v1, 0xFFF`, so `0x0FFF0000`,
+outside the u16 byte-offset domain. Its fourth-corner test extracts vertex 3
+with `srl $t4, $t3, 16` and compares it with that register. The first comparison
+cannot match, but each element replaces `$v1` with its vertex-0 offset; after
+successful projection, `$v0` holds that vertex's screen XY and the GTE depth
+FIFO holds its depth. A later element whose vertex 3 equals the preceding
+vertex 0 reuses those results instead of projecting vertex 3 again.
 
-Read the constant's width against the compared field's before recording any
-rule from an arm, and check the value against the data as a second opinion. No
-element carries that ref in any case: a ref is a byte offset into the vertex or
-normal array with its low three bits used as flags, so `0xFFF` is not one
-(`doc/TMD_FORMAT.md` §3.1 checks every ref of the family).
+The wide value, now `TMD_DRAW_STREAM_GT4_NO_PREVIOUS_VERTEX`, means no preceding
+vertex, not a special encoded ref or an unreachable branch. The ordinary walk
+reloads it after either projection fails; the reversed-facing walk retains the
+key on those failures. Check both writes to the key and the error exits before
+assigning a sentinel's meaning or claiming that a cache is always invalidated.
 ## A draw-path stream handler is named from its process-path twin
 
 Every model stream opcode selects two handlers: the draw path's, a `glabel` in
@@ -134347,19 +134348,23 @@ family the record belongs to rather than against the step that named it.
 A body in `Tmd_StreamHandlers_Ops.s` can carry a second copy of its own element
 loop, entered from its head on a bit of the `flags` it is dispatched with, and the
 two copies cull opposite ways - so a polarity read out of one arm is that arm's,
-not the record's rule. `tmdDrawStreamGt4`'s head tests `flags & 0x10` and jumps
-about 0x440 bytes ahead, past other bodies' code, into a copy of its loop; each
-copy runs `NCLIP` twice and branches on `MAC0`, and the copy's two tests (`bgtz`,
-`bgez`) are the exact inverses of the first's (`bltz`, `blez`), so every quad one
-arm draws the other steps over.
+not the record's rule. `tmdDrawStreamGt4`'s head tests
+`objectFlags & TMD_OBJECT_REVERSE_CULLING` and branches from `0x800110DC` to
+`0x80011E98`, past other bodies' code, into a copy of its loop. Each walk tests
+`NCLIP(2,1,0)` and, if needed, `NCLIP(2,1,3)`. The ordinary walk accepts a
+negative first area or a positive second area; the reversed walk accepts a
+positive first area or a negative second area. Both reject two zero areas.
+The selected strict signs reverse, but the walks are not complementary for
+every quad: opposite facing of its two component triangles can let both walks
+accept it.
 
 That copy is not a function of its own even though it sits among others: it
-consumes `$v1`, the `0xFFF` ref guard the entry set before branching, and nothing
+consumes `$v1`, the previous-vertex key initialized by the entry, and nothing
 else jumps to it, so reading bodies off their addresses in this file attributes it
-to the wrong symbol. No decompiled C writes that bit to a `TmdObject`, so which
-models take the arm is unproven; the settled part is that a `flags` test at an
-entry is where a second arm announces itself, and that neither arm's cull is the
-record's rule on its own.
+to the wrong symbol. The planar-reflection implementation sets
+`TMD_OBJECT_REVERSE_CULLING` on mirrored `TmdObject` instances. An object-flag
+test at an entry is where a second walk announces itself; neither walk's cull
+is the record's rule on its own.
 ## A constant in a register the loop reloads every iteration is a sentinel, not a dead guard
 
 The transform pre-pass handlers guard their caching arm with a compare whose

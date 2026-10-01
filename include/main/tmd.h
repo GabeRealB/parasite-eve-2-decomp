@@ -106,28 +106,48 @@ void Tmd_DrawActiveNodes(TmdObject* node);
 /// is retained. Keep the packet storage alive until the GPU finishes using it.
 u32* tmdDrawStreamGt3(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-/// Draw handler of a stream's gouraud textured-quad records (`0x78`): each
-/// element contributes one quad, projected and lit into the buffer slot the build
-/// pass laid out for it, and linked into the ordering table at its own depth.
+/// Projects, lights and links a stream record's gouraud textured quads.
 ///
-/// The element names a vertex and a normal per corner, so the quad is lit corner
-/// by corner: three corners in one lighting step and the fourth in a step of its
-/// own, each corner's colour being what its own normal gives under the model's
-/// light. A corner the GTE reports off screen, or a quad the facing tests reject,
-/// is not drawn — the packet is left out of the ordering table and the walk moves
-/// on to the next element. The body carries a second copy of that walk for the
-/// `0x10` bit of the object's flags, with the facing tests inverted, so a quad the
-/// copy culls is one this one draws; what the object sets that bit for is not
-/// established.
+/// This is the ordinary `0x78` draw handler. `objectFlags` is `TmdObject.flags`:
+/// `TMD_OBJECT_SEMI_TRANS` selects GPU code 0x3E instead of 0x3C, and
+/// `TMD_OBJECT_REVERSE_CULLING` reverses facing for mirrored geometry.
+/// A projection reporting `TMD_GTE_ERROR_FLAG` is rejected independently of
+/// facing. With screen corners numbered as in the packet, ordinary facing keeps
+/// `NCLIP(2,1,0) < 0` or `NCLIP(2,1,3) > 0`; reversed facing keeps the opposite
+/// strict signs. The second triangle is tested only if the first is not kept;
+/// two zero areas are rejected. The `0x7A` entry, `tmdDrawStreamGt4SemiTrans`,
+/// shares these walks and always selects code 0x3E.
 ///
-/// The packet's texture words, page and CLUT are the build pass's
-/// (`gpStreamPrimGt4`); this pass writes the half a frame produces — the corner
-/// coordinates, the corner colours, and the packet's length and primitive code.
-/// That code is the semi-transparent one where the drawing object's flags ask for
-/// it, which is what this handler reads `flags` for: the `0x7A` record's handler,
-/// `tmdDrawStreamGt4SemiTrans`, shares this body and takes that code whatever the
-/// flags say.
-u32* tmdDrawStreamGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// `elements` starts after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `workspace->elemStride` in u32 words,
+/// at least four words per element. Those words pack eight u16 byte offsets:
+/// vertices 0..3, then normals 0..3. Each must name a complete eight-byte
+/// `SVECTOR` in its borrowed array. Standard records have three more texture
+/// words, initialized by `gpStreamPrimGt4`; drawing does not read them.
+///
+/// The GTE must already hold the part transform, light/colour matrices and
+/// background colour. Lighting uses one normal per corner and fixed RGB
+/// (128,128,128), with three normals processed together and the fourth separately.
+/// Vertex 3 is projected first, then vertices 2, 1, 0. When vertex 3 matches the
+/// preceding element's vertex 0, its screen XY and depth are reused. The ordinary
+/// walk invalidates that reuse after a failed projection; the reversed walk
+/// retains the comparison key, even on failure.
+///
+/// `workspace->primWrite` must address `elemCount` consecutive `POLY_GT4` slots
+/// in the selected buffer half's second region, with UVs, page and CLUT already
+/// built. Every element consumes one 52-byte slot, including rejected quads;
+/// rejected slots may contain partial coordinate writes. Accepted packets receive
+/// screen coordinates, lit colours and a twelve-word DMA length, and are prepended
+/// to `workspace->ot` at bucket
+/// `(((u32)OTZ << workspace->otDepthShift) & 0x3FFF) >> 4`, using `AVSZ4` depth.
+/// This is a wrapped 0..1023 index relative to an OT base already displaced by the
+/// model's offset; the resulting entry must fit the backing table. Normal draw
+/// supplies shifts 0..3. Geometry, stream and packet capacities are not checked.
+///
+/// Returns `elements + elemCount * elemStride` and advances `primWrite` past all
+/// packet slots; workspace counts and saved GTE results are unchanged. No pointer
+/// is retained. Keep the packet storage alive until the GPU finishes using it.
+u32* tmdDrawStreamGt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Handler of a stream's transform pre-pass records (`0xC8`): each element
 /// contributes one transformed vertex to the buffer half, and the record builds

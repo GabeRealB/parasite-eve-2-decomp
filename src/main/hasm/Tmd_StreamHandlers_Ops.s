@@ -482,6 +482,45 @@ glabel tmdDrawStreamGt3
     /* 1880 80011080 */  addu        $v0, $zero, $a2
     /* 1884 80011084 */  jr          $ra
     /* 1888 80011088 */  nop
+/* POLY_GT4 storage includes its DMA tag; the length excludes that tag. */
+.equ TMD_DRAW_STREAM_GT4_PACKET_BYTES, 52
+.equ TMD_DRAW_STREAM_GT4_PACKET_WORDS, (TMD_DRAW_STREAM_GT4_PACKET_BYTES / 4) - 1
+/* GPU command 0x3C and neutral RGB for per-corner texture lighting. */
+.equ TMD_DRAW_STREAM_GT4_COLOR, 0x3C808080
+/* Outside the u16 vertex-offset domain; replaced with each element's vertex 0. */
+.equ TMD_DRAW_STREAM_GT4_NO_PREVIOUS_VERTEX, 0x0FFF0000
+/* Keep 14 scaled depth bits, then quantize by 16 into 1024 OT entries. */
+.equ TMD_DRAW_STREAM_GT4_DEPTH_MASK, 0x3FFF
+.equ TMD_DRAW_STREAM_GT4_DEPTH_SHIFT, 4
+.equ TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS, 24
+
+/*
+ * Light corner 3 and prepend one GT4 packet to its wrapped depth bucket.
+ * Inputs: t8 packet, t1 its 24-bit DMA address, t7 displaced OT base,
+ * t2 AVSZ4 OTZ, a1 depth shift; GTE V0 holds normal 3 and RGB the material.
+ * NCCT colours for corners 0..2 must already be stored in the packet.
+ * Clobbers t0, t1, t2 and the NCCS GTE results; writes the OT head, packet
+ * tag and corner-3 colour. v0/v1 retain the vertex-0 screen XY/cache key.
+ * Both facing walks use this expansion. Keep NCCS interleaved with DMA
+ * insertion: the intervening instructions provide its result latency.
+ */
+.macro TMD_DRAW_STREAM_GT4_LINK_PACKET
+    sllv        $t2, $t2, $a1
+    andi        $t2, $t2, TMD_DRAW_STREAM_GT4_DEPTH_MASK
+    srl         $t2, $t2, TMD_DRAW_STREAM_GT4_DEPTH_SHIFT
+    sll         $t2, $t2, 2
+    nccs
+    addu        $t2, $t2, $t7
+    lw          $t0, 0x0($t2)
+    sw          $t1, 0x0($t2)
+    sll         $t0, $t0, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    lui         $t1, (TMD_DRAW_STREAM_GT4_PACKET_WORDS << (TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS - 16))
+    srl         $t0, $t0, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    or          $t0, $t1, $t0
+    sw          $t0, 0x0($t8)
+    swc2        $22, 0x28($t8)
+.endm
+
 alabel tmdDrawStreamGt4SemiTrans
     /* 188C 8001108C */  lui         $t0, 0x3E80
   .L80011090:
@@ -490,13 +529,15 @@ alabel tmdDrawStreamGt4SemiTrans
     /* 1898 80011098 */  j           .L800110B8
     /* 189C 8001109C */  nop
 glabel tmdDrawStreamGt4
-    /* 18A0 800110A0 */  andi        $t0, $a1, 0x2
+    /* a0 workspace, a1 object flags, a2 first element word. */
+    /* 18A0 800110A0 */  andi        $t0, $a1, TMD_OBJECT_SEMI_TRANS
     /* 18A4 800110A4 */  bnez        $t0, tmdDrawStreamGt4SemiTrans
     /* 18A8 800110A8 */  nop
-    /* 18AC 800110AC */  lui         $t0, 0x3C80
-    /* 18B0 800110B0 */  ori         $t0, $t0, 0x8080
+    /* 18AC 800110AC */  lui         $t0, (TMD_DRAW_STREAM_GT4_COLOR >> 16)
+    /* 18B0 800110B0 */  ori         $t0, $t0, (TMD_DRAW_STREAM_GT4_COLOR & 0xFFFF)
     /* 18B4 800110B4 */  mtc2        $t0, $6
   .L800110B8:
+    /* t9 stride bytes, a3 remaining elements, t8 packet, t7 OT, t6/t5 geometry. */
     /* 18B8 800110B8 */  lw          $t9, 0x18($a0)
     /* 18BC 800110BC */  lw          $a3, 0x1C($a0)
     /* 18C0 800110C0 */  lw          $t8, 0x0($a0)
@@ -504,16 +545,18 @@ glabel tmdDrawStreamGt4
     /* 18C8 800110C8 */  lw          $t6, 0x8($a0)
     /* 18CC 800110CC */  lw          $t5, 0xC($a0)
     /* 18D0 800110D0 */  sll         $t9, $t9, 2
-    /* 18D4 800110D4 */  lui         $v1, 0xFFF
-    /* 18D8 800110D8 */  andi        $t1, $a1, 0x10
+    /* 18D4 800110D4 */  lui         $v1, (TMD_DRAW_STREAM_GT4_NO_PREVIOUS_VERTEX >> 16)
+    /* 18D8 800110D8 */  andi        $t1, $a1, TMD_OBJECT_REVERSE_CULLING
     /* 18DC 800110DC */  bnez        $t1, .L80011E98
     /* 18E0 800110E0 */  lw          $a1, 0x84($a0)
     /* 18E4 800110E4 */  j           .L800110F8
     /* 18E8 800110E8 */  nop
   .L800110EC:
-    /* 18EC 800110EC */  lui         $v1, 0xFFF
+    /* Failed projection invalidates the ordinary walk's vertex-reuse key. */
+    /* 18EC 800110EC */  lui         $v1, (TMD_DRAW_STREAM_GT4_NO_PREVIOUS_VERTEX >> 16)
   .L800110F0:
-    /* 18F0 800110F0 */  addiu       $t8, $t8, 0x34
+    /* Rejection still consumes a packet slot and the element's word stride. */
+    /* 18F0 800110F0 */  addiu       $t8, $t8, TMD_DRAW_STREAM_GT4_PACKET_BYTES
   .L800110F4:
     /* 18F4 800110F4 */  addu        $a2, $t9, $a2
   .L800110F8:
@@ -526,6 +569,7 @@ glabel tmdDrawStreamGt4
     /* 1910 80011110 */  lui         $at, 0x0
     /* 1914 80011114 */  addu        $at, $at, $a2
     /* 1918 80011118 */  lw          $t1, 0x0($at)
+    /* Reuse vertex 3 when it is the preceding element's vertex 0 (v1 key, v0 XY). */
     /* 191C 8001111C */  srl         $t4, $t3, 16
     /* 1920 80011120 */  beq         $t4, $v1, .L80011174
     /* 1924 80011124 */  addu        $t4, $t6, $t4
@@ -533,7 +577,7 @@ glabel tmdDrawStreamGt4
     /* 192C 8001112C */  lwc2        $1, 0x4($t4)
     /* 1930 80011130 */  sll         $t3, $t3, 16
     /* 1934 80011134 */  srl         $t3, $t3, 16
-    /* 1938 80011138 */  .word 0x4A180001
+    /* 1938 80011138 */  rtps
     /* 193C 8001113C */  addu        $t3, $t6, $t3
     /* 1940 80011140 */  srl         $t2, $t1, 16
     /* 1944 80011144 */  addu        $t2, $t6, $t2
@@ -541,6 +585,7 @@ glabel tmdDrawStreamGt4
     /* 194C 8001114C */  srl         $t1, $t1, 16
     /* 1950 80011150 */  addu        $v1, $t1, $zero
     /* 1954 80011154 */  addu        $t1, $t6, $t1
+    /* Signed FLAG tests reject the full TMD_GTE_ERROR_FLAG projection summary. */
     /* 1958 80011158 */  cfc2        $t0, $31
     /* 195C 8001115C */  nop
     /* 1960 80011160 */  bltz        $t0, .L800110EC
@@ -561,6 +606,7 @@ glabel tmdDrawStreamGt4
     /* 1994 80011194 */  addu        $t1, $t6, $t1
     /* 1998 80011198 */  sw          $v0, 0x2C($t8)
   .L8001119C:
+    /* Project vertices 2, 1, 0; the depth FIFO retains vertex 3 for AVSZ4. */
     /* 199C 8001119C */  lwc2        $0, 0x0($t3)
     /* 19A0 800111A0 */  lwc2        $1, 0x4($t3)
     /* 19A4 800111A4 */  lwc2        $2, 0x0($t2)
@@ -569,7 +615,7 @@ glabel tmdDrawStreamGt4
     /* 19B0 800111B0 */  lwc2        $5, 0x4($t1)
     /* 19B4 800111B4 */  nop
     /* 19B8 800111B8 */  nop
-    /* 19BC 800111BC */  .word 0x4A280030
+    /* 19BC 800111BC */  rtpt
     /* 19C0 800111C0 */  lui         $at, 0x0
     /* 19C4 800111C4 */  addu        $at, $at, $a2
     /* 19C8 800111C8 */  lw          $t1, 0x8($at)
@@ -587,7 +633,8 @@ glabel tmdDrawStreamGt4
     /* 19F8 800111F8 */  nop
     /* 19FC 800111FC */  addu        $t4, $t5, $t4
     /* 1A00 80011200 */  sll         $t3, $t3, 16
-    /* 1A04 80011204 */  .word 0x4B400006
+    /* Test triangle (2,1,0), then (2,1,3) only if the first is not kept. */
+    /* 1A04 80011204 */  nclip
     /* 1A08 80011208 */  mfc2        $v0, $14
     /* 1A0C 8001120C */  swc2        $12, 0x20($t8)
     /* 1A10 80011210 */  swc2        $13, 0x14($t8)
@@ -598,7 +645,7 @@ glabel tmdDrawStreamGt4
     /* 1A24 80011224 */  lwc2        $14, 0x2C($t8)
     /* 1A28 80011228 */  nop
     /* 1A2C 8001122C */  nop
-    /* 1A30 80011230 */  .word 0x4B400006
+    /* 1A30 80011230 */  nclip
     /* 1A34 80011234 */  mfc2        $t0, $24
     /* 1A38 80011238 */  nop
     /* 1A3C 8001123C */  blez        $t0, .L800110F0
@@ -607,36 +654,24 @@ glabel tmdDrawStreamGt4
     /* 1A44 80011244 */  srl         $t3, $t3, 16
   .L80011248:
     /* 1A48 80011248 */  addu        $t3, $t5, $t3
-    /* 1A4C 8001124C */  .word 0x4B68002E
+    /* Average four depths and light normals 0..2 together, then normal 3. */
+    /* 1A4C 8001124C */  avsz4
     /* 1A50 80011250 */  lwc2        $0, 0x0($t1)
     /* 1A54 80011254 */  lwc2        $1, 0x4($t1)
     /* 1A58 80011258 */  lwc2        $2, 0x0($t2)
     /* 1A5C 8001125C */  lwc2        $3, 0x4($t2)
     /* 1A60 80011260 */  lwc2        $4, 0x0($t3)
     /* 1A64 80011264 */  lwc2        $5, 0x4($t3)
-    /* 1A68 80011268 */  sll         $t1, $t8, 8
-    /* 1A6C 8001126C */  srl         $t1, $t1, 8
-    /* 1A70 80011270 */  .word 0x4B18043F
+    /* 1A68 80011268 */  sll         $t1, $t8, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    /* 1A6C 8001126C */  srl         $t1, $t1, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    /* 1A70 80011270 */  ncct
     /* 1A74 80011274 */  lwc2        $0, 0x0($t4)
     /* 1A78 80011278 */  lwc2        $1, 0x4($t4)
     /* 1A7C 8001127C */  mfc2        $t2, $7
     /* 1A80 80011280 */  swc2        $20, 0x4($t8)
     /* 1A84 80011284 */  swc2        $21, 0x10($t8)
     /* 1A88 80011288 */  swc2        $22, 0x1C($t8)
-    /* 1A8C 8001128C */  sllv        $t2, $t2, $a1
-    /* 1A90 80011290 */  andi        $t2, $t2, 0x3FFF
-    /* 1A94 80011294 */  srl         $t2, $t2, 4
-    /* 1A98 80011298 */  sll         $t2, $t2, 2
-    /* 1A9C 8001129C */  .word 0x4B08041B
-    /* 1AA0 800112A0 */  addu        $t2, $t2, $t7
-    /* 1AA4 800112A4 */  lw          $t0, 0x0($t2)
-    /* 1AA8 800112A8 */  sw          $t1, 0x0($t2)
-    /* 1AAC 800112AC */  sll         $t0, $t0, 8
-    /* 1AB0 800112B0 */  lui         $t1, 0xC00
-    /* 1AB4 800112B4 */  srl         $t0, $t0, 8
-    /* 1AB8 800112B8 */  or          $t0, $t1, $t0
-    /* 1ABC 800112BC */  sw          $t0, 0x0($t8)
-    /* 1AC0 800112C0 */  swc2        $22, 0x28($t8)
+    /* 1A8C..1AC0 8001128C..800112C0 */  TMD_DRAW_STREAM_GT4_LINK_PACKET
     /* 1AC4 800112C4 */  j           .L800110F0
     /* 1AC8 800112C8 */  nop
   .L800112CC:
@@ -1469,7 +1504,8 @@ glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 2688 80011E88 */  jr          $ra
     /* 268C 80011E8C */  nop
   .L80011E90:
-    /* 2690 80011E90 */  addiu       $t8, $t8, 0x34
+    /* Reversed-facing walk retains the reuse key even after projection failure. */
+    /* 2690 80011E90 */  addiu       $t8, $t8, TMD_DRAW_STREAM_GT4_PACKET_BYTES
   .L80011E94:
     /* 2694 80011E94 */  addu        $a2, $t9, $a2
   .L80011E98:
@@ -1486,7 +1522,7 @@ glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 26BC 80011EBC */  lwc2        $1, 0x4($t4)
     /* 26C0 80011EC0 */  sll         $t3, $t3, 16
     /* 26C4 80011EC4 */  srl         $t3, $t3, 16
-    /* 26C8 80011EC8 */  .word 0x4A180001
+    /* 26C8 80011EC8 */  rtps
     /* 26CC 80011ECC */  addu        $t3, $t6, $t3
     /* 26D0 80011ED0 */  srl         $t2, $t1, 16
     /* 26D4 80011ED4 */  addu        $t2, $t6, $t2
@@ -1522,7 +1558,7 @@ glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 2740 80011F40 */  lwc2        $5, 0x4($t1)
     /* 2744 80011F44 */  nop
     /* 2748 80011F48 */  nop
-    /* 274C 80011F4C */  .word 0x4A280030
+    /* 274C 80011F4C */  rtpt
     /* 2750 80011F50 */  lw          $t1, 0x8($a2)
     /* 2754 80011F54 */  lw          $t3, 0xC($a2)
     /* 2758 80011F58 */  srl         $t2, $t1, 16
@@ -1536,7 +1572,8 @@ glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 2778 80011F78 */  nop
     /* 277C 80011F7C */  addu        $t4, $t5, $t4
     /* 2780 80011F80 */  sll         $t3, $t3, 16
-    /* 2784 80011F84 */  .word 0x4B400006
+    /* Same triangles as the ordinary walk, with the accepted MAC0 signs reversed. */
+    /* 2784 80011F84 */  nclip
     /* 2788 80011F88 */  mfc2        $v0, $14
     /* 278C 80011F8C */  swc2        $12, 0x20($t8)
     /* 2790 80011F90 */  swc2        $13, 0x14($t8)
@@ -1547,7 +1584,7 @@ glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 27A4 80011FA4 */  lwc2        $14, 0x2C($t8)
     /* 27A8 80011FA8 */  nop
     /* 27AC 80011FAC */  nop
-    /* 27B0 80011FB0 */  .word 0x4B400006
+    /* 27B0 80011FB0 */  nclip
     /* 27B4 80011FB4 */  mfc2        $t0, $24
     /* 27B8 80011FB8 */  nop
     /* 27BC 80011FBC */  bgez        $t0, .L80011E90
@@ -1556,36 +1593,23 @@ glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 27C4 80011FC4 */  srl         $t3, $t3, 16
   .L80011FC8:
     /* 27C8 80011FC8 */  addu        $t3, $t5, $t3
-    /* 27CC 80011FCC */  .word 0x4B68002E
+    /* 27CC 80011FCC */  avsz4
     /* 27D0 80011FD0 */  lwc2        $0, 0x0($t1)
     /* 27D4 80011FD4 */  lwc2        $1, 0x4($t1)
     /* 27D8 80011FD8 */  lwc2        $2, 0x0($t2)
     /* 27DC 80011FDC */  lwc2        $3, 0x4($t2)
     /* 27E0 80011FE0 */  lwc2        $4, 0x0($t3)
     /* 27E4 80011FE4 */  lwc2        $5, 0x4($t3)
-    /* 27E8 80011FE8 */  sll         $t1, $t8, 8
-    /* 27EC 80011FEC */  srl         $t1, $t1, 8
-    /* 27F0 80011FF0 */  .word 0x4B18043F
+    /* 27E8 80011FE8 */  sll         $t1, $t8, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    /* 27EC 80011FEC */  srl         $t1, $t1, (32 - TMD_DRAW_STREAM_GT4_DMA_ADDRESS_BITS)
+    /* 27F0 80011FF0 */  ncct
     /* 27F4 80011FF4 */  lwc2        $0, 0x0($t4)
     /* 27F8 80011FF8 */  lwc2        $1, 0x4($t4)
     /* 27FC 80011FFC */  mfc2        $t2, $7
     /* 2800 80012000 */  swc2        $20, 0x4($t8)
     /* 2804 80012004 */  swc2        $21, 0x10($t8)
     /* 2808 80012008 */  swc2        $22, 0x1C($t8)
-    /* 280C 8001200C */  sllv        $t2, $t2, $a1
-    /* 2810 80012010 */  andi        $t2, $t2, 0x3FFF
-    /* 2814 80012014 */  srl         $t2, $t2, 4
-    /* 2818 80012018 */  sll         $t2, $t2, 2
-    /* 281C 8001201C */  .word 0x4B08041B
-    /* 2820 80012020 */  addu        $t2, $t2, $t7
-    /* 2824 80012024 */  lw          $t0, 0x0($t2)
-    /* 2828 80012028 */  sw          $t1, 0x0($t2)
-    /* 282C 8001202C */  sll         $t0, $t0, 8
-    /* 2830 80012030 */  lui         $t1, 0xC00
-    /* 2834 80012034 */  srl         $t0, $t0, 8
-    /* 2838 80012038 */  or          $t0, $t1, $t0
-    /* 283C 8001203C */  sw          $t0, 0x0($t8)
-    /* 2840 80012040 */  swc2        $22, 0x28($t8)
+    /* 280C..2840 8001200C..80012040 */  TMD_DRAW_STREAM_GT4_LINK_PACKET
     /* 2844 80012044 */  j           .L80011E90
     /* 2848 80012048 */  nop
   .L8001204C:
@@ -1594,6 +1618,7 @@ glabel tmdDrawStreamPrimGt4OneNormalSemiTrans
     /* 2850 80012050 */  addu        $v0, $zero, $a2
     /* 2854 80012054 */  jr          $ra
     /* 2858 80012058 */  nop
+.purgem TMD_DRAW_STREAM_GT4_LINK_PACKET
   .L8001205C:
     /* Reversed-facing walk: same payload, slots and lighting; keep MAC0 < 0. */
     /* 285C 8001205C */  addiu       $t8, $t8, TMD_DRAW_STREAM_GT3_PACKET_BYTES

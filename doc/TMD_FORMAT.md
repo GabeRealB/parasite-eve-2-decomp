@@ -362,11 +362,11 @@ directions.
 | `tmdDrawStreamPrimG3CornerNormals` | `0x8`, `0x10`, `0x18` | `POLY_G3` | triangle |
 | `tmdDrawStreamGt3` | `0x8`, `0x14`, `0x20` | `POLY_GT3` | triangle |
 | `tmdDrawStreamPrimG4CornerNormals` | `0x10`, `0x18`, `0x20` | `POLY_G4` | quad |
-| `tmdDrawStreamGt4` | `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
+| `tmdDrawStreamGt4` | `0x8`, `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 | `tmdDrawStreamPrimGt4OneNormal` | `0x8`, `0x14`, `0x20`, `0x2C` | `POLY_GT4` | quad |
 
-The quad handlers store three coordinates because the fourth is written on a
-second pass.
+`tmdDrawStreamGt4` writes corner 3 before projecting corners 2, 1, 0. When
+corner 3 is the preceding element's corner 0, it reuses that projection instead.
 
 Each handler's primitive advance equals the primitive size exactly, which
 cross-checks the whole table:
