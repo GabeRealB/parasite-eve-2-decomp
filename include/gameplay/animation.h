@@ -56,11 +56,6 @@ typedef struct {
 } AnimationPackedRotation;
 STATIC_ASSERT_SIZEOF(AnimationPackedRotation, 4);
 
-/// Pose encodings selected by a track's initial keyframe.
-enum {
-    ANIMATION_POSE_PACKED_ROTATION = 4 // One word: packed Euler angles
-};
-
 /// Masks for the encoding, caller-defined cues and control commands in `AnimationRecord.flags`.
 enum {
     ANIMATION_RECORD_POSE_KIND_MASK = 0x0F,

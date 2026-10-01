@@ -115,6 +115,18 @@ enum {
 /// pose writes translation only for this encoding.
 enum { ANIMATION_POSE_TRANSLATION_ROTATION = 1 };
 
+/// Track encoding that supplies packed Euler rotation without translation.
+///
+/// The initial keyframe's low flags nibble selects bank 4. Each
+/// `AnimationRecord.wordOffset` addresses one complete, word-aligned
+/// `AnimationPackedRotation`: signed X/Y/Z angles in 11/10/11 bits, with
+/// eight 1/4096-turn angle units per stored step. The loaded bank must cover
+/// that entire four-byte word. Buffered endpoints and optional encoded outputs
+/// use the same format; a buffered pose occupies the start of its slot's
+/// 16-byte entry. Applying this encoding preserves the model coordinate's or
+/// unpacked destination's local translation.
+enum { ANIMATION_POSE_PACKED_ROTATION = 4 };
+
 /// Packed saved placement key: high nibble placement, next nibble stage, low byte area.
 enum {
     AREA_PLACEMENT_INDEX_SHIFT     = 12,
