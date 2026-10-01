@@ -13,6 +13,22 @@
 #ifndef SRC_SHARED_ODD_STRANGER_H
 #define SRC_SHARED_ODD_STRANGER_H
 
+/* The Odd Stranger ships in two builds of the same source: actor_401000
+ * (variant 1) and actor_401800 (variant 2). Each package defines
+ * ODD_STRANGER_VARIANT before including this header; the differences between
+ * the builds follow from it. */
+#if ODD_STRANGER_VARIANT == 1
+#define ODD_STRANGER_HIT_FX_OFFSET 1    /* the work block keeps the hit effect offset */
+#define ODD_STRANGER_CLIP2_STEP_A  0x11 /* first footstep cue frame of clip 2 */
+#define ODD_STRANGER_CLIP2_STEP_B  0x1B /* second footstep cue frame of clip 2 */
+#elif ODD_STRANGER_VARIANT == 2
+#define ODD_STRANGER_HIT_FX_OFFSET 0
+#define ODD_STRANGER_CLIP2_STEP_A  0x10
+#define ODD_STRANGER_CLIP2_STEP_B  0x16
+#else
+#error "ODD_STRANGER_VARIANT must be 1 or 2"
+#endif
+
 #include "common.h"
 
 #include "actors/actor.h"
@@ -284,12 +300,5 @@ void oddStrangerDrive(Task* arg0);
 s32  oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2);
 
 s32 oddStrangerAnimEvent(OddStrangerRigWork* work);
-
-/* The two packages animate the first footstep clip (2) with its cues on
- * different frames. Each defines them before including this header:
- *
- *   ODD_STRANGER_CLIP2_STEP_A   frame of the first step cue (0x400A0002)
- *   ODD_STRANGER_CLIP2_STEP_B   frame of the second step cue (0x400A0001)
- */
 
 #endif /* SRC_SHARED_ODD_STRANGER_H */

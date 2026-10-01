@@ -51,12 +51,8 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
-// The cue frames of the first footstep clip (2), which this build animates
-// differently.
-#define ODD_STRANGER_CLIP2_STEP_A 0x11
-#define ODD_STRANGER_CLIP2_STEP_B 0x1B
-// Whether this build keeps the hit effect offset in the work block.
-#define ODD_STRANGER_HIT_FX_OFFSET 1
+// Which of the two Odd Stranger builds this package is (odd_stranger.h).
+#define ODD_STRANGER_VARIANT 1
 #include "../../shared/odd_stranger.h"
 
 /// Animation view of `OddStrangerWork`'s prefix. `func_800B3F84` is handed the

@@ -51,12 +51,8 @@
 #include "overlay.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
-// The cue frames of the first footstep clip (2), which this build animates
-// differently.
-#define ODD_STRANGER_CLIP2_STEP_A 0x10
-#define ODD_STRANGER_CLIP2_STEP_B 0x16
-// Whether this build keeps the hit effect offset in the work block.
-#define ODD_STRANGER_HIT_FX_OFFSET 0
+// Which of the two Odd Stranger builds this package is (odd_stranger.h).
+#define ODD_STRANGER_VARIANT 2
 #include "../../shared/odd_stranger.h"
 
 /// The 34 state handlers copied to the frame before the per-frame dispatch.
