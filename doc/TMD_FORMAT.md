@@ -612,14 +612,14 @@ transform, a cull, a packet's filing and its ordering-table link.
 
 | Opcode | Init handler | Stride | Elements | Role |
 |---|---|---:|---:|---|
-| `0x21` | `tmdDrawStreamPrimG3PreXform` | 2 | 2 | pre-transformed `POLY_G3`: the vertex pass already placed the corners, so the handler culls the triangle, averages the cached depths and links the packet — **solved**, §3.5 |
+| `0x21` | `tmdDrawStreamPrimG3PreXform` | 2 | 2 | pre-transformed opaque `POLY_G3`: three u16 byte offsets address the depth cache; positive winding and depths without `TMD_VERTEX_DEPTH_INVALID` permit an `AVSZ3` OT link. Every element consumes 28 packet bytes; object blend/reverse-culling flags are ignored — **solved**, §3.5 |
 | `0x22` | `tmdDrawStreamPrimG3CornerNormals` | 4 | 8 | per-corner-lit `POLY_G3`; the element's RGB/code word supplies blending, and drawing consumes one packet slot per element despite skipped construction |
 | `0x61` | `tmdDrawStreamPrimG4PreXform` | — | — | the pre-transformed untextured quad — face-tested, coded and linked into the ordering table — **solved**, §3.2 |
 | `0x62` | `tmdDrawStreamPrimG4CornerNormals` | 5 | 26 | ? |
 | `0xC0` | `tmdXformStreamVertsElemColor` | 3 | 6 | vertex transform + lighting pre-pass, colour per element — **solved**, §3.5 |
 | `0xC4` | `gpXformStreamVertsUnlit` | — | — | the `0xC8` pre-pass with the lighting dropped; never seen in data — **solved**, §3.5 |
 | `0xC8` | `tmdXformStreamVerts` | 2 | 30262 | vertex transform + lighting pre-pass — **solved**, §3.5 |
-| `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | the `0x21` triangle in the opcode form that names a colour per corner; the colour is the vertex pass's business, so the two forms resolve to one body |
+| `0x121` | `tmdDrawStreamPrimG3PreXform` | — | — | resolves to the same opaque `0x21` handler: both retain the corner RGB already written by the vertex pass and read only the three depth-cache offsets |
 | `0x122` | `D_8009E274` | — | — | ? |
 | `0x161` | `tmdDrawStreamPrimG4PreXform` | — | — | the `0x61` record with the per-corner colour bit; the two opcodes resolve to one body |
 | `0x162` | `gpDrawStreamPrimG4CornerColorsSemiTrans` | — | — | the `0x60` quad's record with the per-corner colour bit, in its semi-transparent form: a vertex, a normal and a colour per corner, so each corner is lit from the pair it names — read from the handler, never seen in data |
