@@ -18,13 +18,45 @@
  * ODD_STRANGER_VARIANT before including this header; the differences between
  * the builds follow from it. */
 #if ODD_STRANGER_VARIANT == 1
-#define ODD_STRANGER_HIT_FX_OFFSET 1    /* the work block keeps the hit effect offset */
-#define ODD_STRANGER_CLIP2_STEP_A  0x11 /* first footstep cue frame of clip 2 */
-#define ODD_STRANGER_CLIP2_STEP_B  0x1B /* second footstep cue frame of clip 2 */
+#define ODD_STRANGER_HIT_FX_OFFSET     1                        /* the work block keeps the hit effect offset */
+#define ODD_STRANGER_CLIP2_STEP_A      0x11                     /* first footstep cue frame of clip 2 */
+#define ODD_STRANGER_CLIP2_STEP_B      0x1B                     /* second footstep cue frame of clip 2 */
+#define ODD_STRANGER_BODY_RADIUS       0x1AE                    /* body collision sphere radius */
+#define ODD_STRANGER_SWING_RADIUS      0xD7                     /* body sphere radius in the chase and sidestep states */
+#define ODD_STRANGER_REARM_BODY2_GRID  1                        /* whether some states set (1) or clear (0) bit 0x4000 of the second body's flags */
+#define ODD_STRANGER_SIGHT_COOLDOWN    field_C1B                /* work member holding the sight cooldown */
+#define ODD_STRANGER_WALK_STEP         0xA                      /* forward step while walking */
+#define ODD_STRANGER_PATROL_TURN_CLAMP 0x20                     /* per-frame turn clamp toward the patrol waypoint */
+#define ODD_STRANGER_STALK_RATE        0x24                     /* body slot rate the stalk state starts with */
+#define ODD_STRANGER_STALK_TURN_BIAS   0x300                    /* turn bias of the stalk state */
+#define ODD_STRANGER_STALK_STEP        0x16                     /* forward step of the stalk state */
+#define ODD_STRANGER_HOLD_AIM_CLIP     0x13                     /* clip of the hold-aim state */
+#define ODD_STRANGER_PART1_FX_SCALE    0x100                    /* scale of the effect at part 1 when dormant */
+#define ODD_STRANGER_GRAB_FX_PART      5                        /* model part of the effect at the end of the grab */
+#define ODD_STRANGER_IDLE_JITTER_MASK  0xF                      /* mask on the random idle countdown */
+#define ODD_STRANGER_STAGGER_DAMAGE    0x4C                     /* accumulated damage that forces a stagger */
+#define ODD_STRANGER_DEATH_RELEASE_ARG 2                        /* argument of the 0x3F1 message on death */
+#define ODD_STRANGER_BURST_MODEL_5     &gOddStrangerBurstModelB /* model of the frame-5 burst of the walking death */
 #elif ODD_STRANGER_VARIANT == 2
-#define ODD_STRANGER_HIT_FX_OFFSET 0
-#define ODD_STRANGER_CLIP2_STEP_A  0x10
-#define ODD_STRANGER_CLIP2_STEP_B  0x16
+#define ODD_STRANGER_HIT_FX_OFFSET     0
+#define ODD_STRANGER_CLIP2_STEP_A      0x10
+#define ODD_STRANGER_CLIP2_STEP_B      0x16
+#define ODD_STRANGER_BODY_RADIUS       0x12C
+#define ODD_STRANGER_SWING_RADIUS      0x96
+#define ODD_STRANGER_REARM_BODY2_GRID  0
+#define ODD_STRANGER_SIGHT_COOLDOWN    field_8CA
+#define ODD_STRANGER_WALK_STEP         7
+#define ODD_STRANGER_PATROL_TURN_CLAMP 0x18
+#define ODD_STRANGER_STALK_RATE        0x30
+#define ODD_STRANGER_STALK_TURN_BIAS   0x400
+#define ODD_STRANGER_STALK_STEP        0x15
+#define ODD_STRANGER_HOLD_AIM_CLIP     9
+#define ODD_STRANGER_PART1_FX_SCALE    0x200
+#define ODD_STRANGER_GRAB_FX_PART      1
+#define ODD_STRANGER_IDLE_JITTER_MASK  7
+#define ODD_STRANGER_STAGGER_DAMAGE    0x38
+#define ODD_STRANGER_DEATH_RELEASE_ARG 0
+#define ODD_STRANGER_BURST_MODEL_5     &gOddStrangerBurstModelA
 #else
 #error "ODD_STRANGER_VARIANT must be 1 or 2"
 #endif
