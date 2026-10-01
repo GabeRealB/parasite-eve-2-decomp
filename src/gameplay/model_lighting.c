@@ -2114,13 +2114,21 @@ u32* gpStreamPrimGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 
 u32* tmdBuildStreamGt3ElemColor(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    enum { TMD_GT3_ELEM_COLOR_TEXTURE_WORD = 4 };
+    /// Index of the first texture word in a GT3 element with one material colour.
+    ///
+    /// Counts u32 words from the element base, after the three-word record
+    /// header. Opcode `0x30` stores three geometry-reference words followed by
+    /// one material-colour word. This word packs U0/V0 in bits 0..15 and the
+    /// encoded CLUT in bits 16..31; the next two words supply U1/V1/texture-page
+    /// settings and U2/V2 in the last low half. Seven readable words are needed,
+    /// without establishing the element's full extent or the last high half's role.
+    enum { MODEL_LIGHTING_GT3_ELEMENT_COLOR_UV0_CLUT_WORD = 4 };
     POLY_GT3* triangle;
 
     triangle = (POLY_GT3*)workspace->primWrite;
     // Seed texture data for the draw pass that lights the element's material colour.
     while (workspace->elemCount-- > 0) {
-        _tmdInitGt3TextureWords(triangle, elements, TMD_GT3_ELEM_COLOR_TEXTURE_WORD, workspace);
+        _tmdInitGt3TextureWords(triangle, elements, MODEL_LIGHTING_GT3_ELEMENT_COLOR_UV0_CLUT_WORD, workspace);
         triangle++;
         elements += workspace->elemStride;
     }
