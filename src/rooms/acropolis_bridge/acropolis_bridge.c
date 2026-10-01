@@ -94,6 +94,7 @@
 #undef EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
 
 #include "../../shared/boss_stranger.h"
+#include "../../shared/bridge_model.h"
 
 /// Work block this room's script tasks keep at `Task::work`
 /// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
@@ -244,7 +245,6 @@ extern s32   D_acropolis_bridge_801917A0;
 
 static void func_acropolis_bridge_8017D98C(Task* task);
 static void func_acropolis_bridge_8017D9FC(Task* task);
-static void func_acropolis_bridge_8017DA64(Task* task);
 static void func_acropolis_bridge_8017DB08(Task* task);
 static void func_acropolis_bridge_8017DB60(Task* task);
 static void func_acropolis_bridge_8017DBA0(Task* task);
@@ -270,13 +270,6 @@ static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2);
 static void func_acropolis_bridge_8018581C(Task* task);
 static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task);
 static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task);
-
-/// Work block of the bridge model task, stored at `Task::work`; it is exactly
-/// the `memCalloc(4, 0)` the setup state allocates.
-typedef struct _AcropolisBridgeModelWork {
-    s32 field_0;
-} _AcropolisBridgeModelWork;
-STATIC_ASSERT_SIZEOF(_AcropolisBridgeModelWork, 0x4);
 
 /// Work block the bridge enemy's task keeps at `Task::work`. `field_4` is the
 /// live flag every state handler of the enemy gates on. `body` and `hit` are
@@ -2771,7 +2764,7 @@ static const TaskFuncTable3 D_acropolis_bridge_8017D5C4 = {
 
 /// State handlers of the bridge model task.
 static const TaskFuncTable3 D_acropolis_bridge_8017D5D0 = {
-    { func_acropolis_bridge_8017DA64, func_acropolis_bridge_8017DB08, taskKill }
+    { bridgeModelSetup, func_acropolis_bridge_8017DB08, taskKill }
 };
 
 /// Three-state dispatcher of the bridge model task: setup, per-frame update,
@@ -2840,32 +2833,7 @@ void func_acropolis_bridge_8017DA0C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// First state of the bridge model task: allocates its work block, parks the
-/// model at (-0x23F0, 0x12C, -0xAF0) and parents it to the room's view
-/// coordinate system. The task is killed if the allocation fails.
-static void func_acropolis_bridge_8017DA64(Task* task)
-{
-    TmdObject*                 extra;
-    GfxCoord*                  coord;
-    _AcropolisBridgeModelWork* work;
-
-    extra = task->extra.tmd;
-    coord = extra->coords;
-    work  = memCalloc(sizeof(_AcropolisBridgeModelWork), 0);
-    if (work == NULL) {
-        taskKill(task);
-        return;
-    }
-    task->work          = work;
-    work->field_0       = 0;
-    extra->flags        = 0;
-    coord->parent       = &gGfxViewCoord;
-    coord->coord.t[0]   = -0x23F0;
-    coord->coord.t[1]   = 0x12C;
-    coord->coord.t[2]   = -0xAF0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    task->state++;
-}
+#include "../../shared/bridge_model_setup.inc.c"
 
 /// Per-frame state of the bridge model task: raises bit 0x80 of the object's
 /// flags on camera views 8..10 and clears them elsewhere, then clears the root

@@ -67,6 +67,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/bridge_model.h"
 
 #define D_acropolis_promenade_80181AFC (D_acropolis_promenade_80181AF4 + 1)
 
@@ -80,13 +81,6 @@ typedef struct ApmGlowCorner {
     /* 0x2 */ s16 y;
 } ApmGlowCorner;
 STATIC_ASSERT_SIZEOF(ApmGlowCorner, 0x4);
-
-/// Work block of the prop task, at `Task::work`. The task allocates it with
-/// `memCalloc(4, 0)` and clears its one word; nothing else in the room reads it.
-typedef struct {
-    s32 field_0;
-} ApmPropWork;
-STATIC_ASSERT_SIZEOF(ApmPropWork, 0x4);
 
 extern EvsCommand   D_acropolis_promenade_80180F00[];
 extern EvsCommand   D_acropolis_promenade_80181068[];
@@ -130,7 +124,6 @@ extern u16 D_acropolis_promenade_80181B76;
 extern u16 D_acropolis_promenade_80181B78[];
 
 static void func_acropolis_promenade_8017D9E0(Task* arg0);
-static void func_acropolis_promenade_8017DAA4(Task* task);
 static void func_acropolis_promenade_8017DB48(Task* task);
 
 void func_acropolis_promenade_8017DB9C(Task*);
@@ -1665,10 +1658,10 @@ static const TaskFuncTable3 D_acropolis_promenade_8017D5C4 = {
 
 /// State table of the prop task, run by `func_acropolis_promenade_8017D988`.
 static const TaskFuncTable3 D_acropolis_promenade_8017D5D0 = {
-    { func_acropolis_promenade_8017DAA4, func_acropolis_promenade_8017DB48, taskKill },
+    { bridgeModelSetup, func_acropolis_promenade_8017DB48, taskKill },
 };
 
-/// Runs the prop task's current state (`func_acropolis_promenade_8017DAA4`,
+/// Runs the prop task's current state (`bridgeModelSetup`,
 /// `func_acropolis_promenade_8017DB48`, then `taskKill`) through a copy of its
 /// handler table on the stack.
 void func_acropolis_promenade_8017D988(Task* task)
@@ -1699,33 +1692,7 @@ void func_acropolis_promenade_8017DA4C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// First state of the prop task whose model sits under the room's view
-/// coordinate system (`D_acropolis_promenade_8017D5D0`): allocates its work
-/// block, shows the model, places it at (-0x23F0, 0x12C, -0xAF0) under
-/// `gGfxViewCoord` and moves to the next state.
-static void func_acropolis_promenade_8017DAA4(Task* task)
-{
-    TmdObject*   extra;
-    GfxCoord*    coord;
-    ApmPropWork* work;
-
-    extra = task->extra.tmd;
-    coord = extra->coords;
-    work  = memCalloc(sizeof(ApmPropWork), 0);
-    if (work == NULL) {
-        taskKill(task);
-        return;
-    }
-    task->work          = work;
-    work->field_0       = 0;
-    extra->flags        = 0;
-    coord->parent       = &gGfxViewCoord;
-    coord->coord.t[0]   = -0x23F0;
-    coord->coord.t[1]   = 0x12C;
-    coord->coord.t[2]   = -0xAF0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    task->state++;
-}
+#include "../../shared/bridge_model_setup.inc.c"
 
 static void func_acropolis_promenade_8017DB48(Task* task)
 {

@@ -190,3 +190,4 @@ bossStrangerApplyGroundStep = 0x80184908; // type:func
 bossStrangerAvoidContacts = 0x80184B94; // type:func
 bossStrangerTurnToward = 0x80185104; // type:func
 bossStrangerTick = 0x8018532C; // type:func
+bridgeModelSetup = 0x8017DA64; // type:func
