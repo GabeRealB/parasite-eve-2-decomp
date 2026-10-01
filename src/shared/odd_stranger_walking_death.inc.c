@@ -8,7 +8,7 @@
 #define ODD_STRANGER_FX_OFFSET vec
 #endif
 
-/// State-2 clip body and its 0x1A successor, the 401000 twin of
+/// State-2 clip body and its 0x1A successor, as in the Horned Stranger's
 /// `func_actor_401300_8013BB30` and `Actor01900_Fn0892C`. On the live-actor flag
 /// it arms the effect node, seeds the 0x8C0 spawn offset and the animation
 /// slots, and spawns clip 0x60030. `field_6` then counts up under `field_89E`:

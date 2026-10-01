@@ -403,6 +403,8 @@ void oddStrangerTick(Enemy* enemy, Task* actor);
 
 void oddStrangerWalkingDeath(Task* arg0);
 
+void oddStrangerTakeHit(Task* arg0);
+
 /* Defined by each package. */
 s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count);
 
