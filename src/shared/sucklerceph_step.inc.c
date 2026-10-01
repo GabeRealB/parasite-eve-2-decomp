@@ -6,10 +6,10 @@
 void sucklercephStep(Task* task)
 {
     GfxCoord*        coord;
-    Actor104600Work* work;
+    SucklercephWork* work;
 
     coord              = &task->extra.tmd->coords[0];
-    work               = (Actor104600Work*)task->work;
+    work               = (SucklercephWork*)task->work;
     work->field_274.vx = coord->coord.t[0];
     work->field_274.vy = coord->coord.t[1];
     work->field_274.vz = coord->coord.t[2];

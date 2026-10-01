@@ -11,7 +11,7 @@
 /// re-streams it twice.
 void sucklercephSpawnState(Enemy* arg0, Task* arg1)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     TmdObject*       obj;
     GfxCoord*        coord;
     GfxCoord*        part;

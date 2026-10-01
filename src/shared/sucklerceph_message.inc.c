@@ -11,7 +11,7 @@
 /// disarms the bodies, resets the root and returns the task to state 3.
 s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
@@ -27,14 +27,14 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request)
     obj   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
     state = arg0->state;
-    work  = (Actor104600Work*)arg0->work;
+    work  = (SucklercephWork*)arg0->work;
     coord = obj->coords;
     if (state == 1) {
         mode = request->command;
         if (mode == 4) {
             Gp_SpawnEff(0x60080, coord, 0x400, &gSucklercephCollapseFxOffset);
             work->field_2B8 = 1;
-            Actor04600_TickAnim(arg0);
+            sucklercephTickAnim(arg0);
             work->field_2BC = 0;
             work->field_2B2 = 4;
             return 0;
@@ -42,7 +42,7 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request)
         if (mode == 5) {
             Gp_SpawnEff(0x60080, coord, 0x400, &gSucklercephCollapseFxOffset);
             work->field_2B8 = 1;
-            Actor04600_TickAnim(arg0);
+            sucklercephTickAnim(arg0);
             work->field_2BC = 0;
             work->field_2D4 = 0;
             work->field_2B2 = 4;

@@ -7,7 +7,7 @@
 /// scratch stack.
 void sucklercephTurnToPlayer(Task* arg0)
 {
-    Actor104600Work*  work;
+    SucklercephWork*  work;
     GfxCoord*         coord;
     ActorFaceScratch* sc;
     s16               cur;
@@ -19,7 +19,7 @@ void sucklercephTurnToPlayer(Task* arg0)
     s32               current;
 
     coord        = arg0->extra.tmd->coords;
-    work         = (Actor104600Work*)arg0->work;
+    work         = (SucklercephWork*)arg0->work;
     sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;

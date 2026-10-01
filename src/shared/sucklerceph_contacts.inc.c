@@ -25,12 +25,12 @@ void sucklercephContacts(Task* arg0)
     s16                    hitCooldown;
     s32                    distance;
     u32                    damage;
-    Actor104600Work*       work;
+    SucklercephWork*       work;
     GfxCoord*              coord;
     ActorContactFrame*     scratch;
     s32                    i;
 
-    work     = (Actor104600Work*)arg0->work;
+    work     = (SucklercephWork*)arg0->work;
     scratch  = (ActorContactFrame*)SCRATCH_STACK_RESERVE_BYTES(0x4C);
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;

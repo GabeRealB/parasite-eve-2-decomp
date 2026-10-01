@@ -9,7 +9,7 @@ void sucklercephScalePart(Task* arg0, GfxCoord* arg1)
     ActorScratchStack* scratch;
     SVECTOR*           vec;
     MATRIX*            matrix;
-    Actor104600Work*   work;
+    SucklercephWork*   work;
 
     scratch = (ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT;
     vec     = scratch->head;

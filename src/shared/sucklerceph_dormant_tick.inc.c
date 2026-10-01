@@ -12,14 +12,14 @@
 /// step. Eight bytes of the scratch stack are held across the whole arm.
 void sucklercephDormantTick(Task* arg0)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     GfxCoord*        coord;
     u16              countdown;
     s32              soundId;
     u32              rng;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor104600Work*)arg0->work;
+    work  = (SucklercephWork*)arg0->work;
     SCRATCH_STACK_RESERVE_BYTES(8);
     if (Gp_CountRec18Hi(&work->rec11C, 0x10000) != 0) {
         work->field_2D8 = 1;

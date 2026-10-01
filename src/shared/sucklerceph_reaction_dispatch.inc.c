@@ -12,11 +12,11 @@
 /// end by suppressing the rebind.
 void sucklercephReactionDispatch(Task* arg0)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     Enemy*           enemy;
     u16              frames;
 
-    work = (Actor104600Work*)arg0->work;
+    work = (SucklercephWork*)arg0->work;
     switch (work->field_2B2) {
         case 0:
             sucklercephDormantTick(arg0);

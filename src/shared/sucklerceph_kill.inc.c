@@ -10,7 +10,7 @@
 /// the sound set either way.
 void sucklercephKill(Task* arg0, u8 arg1)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
@@ -18,7 +18,7 @@ void sucklercephKill(Task* arg0, u8 arg1)
 
     obj             = arg0->extra.tmd;
     enemy           = arg0->spawnArg2.pointer;
-    work            = (Actor104600Work*)arg0->work;
+    work            = (SucklercephWork*)arg0->work;
     coord           = obj->coords;
     enemy->hp       = 0;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

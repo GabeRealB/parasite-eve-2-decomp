@@ -10,7 +10,7 @@ void sucklercephFlatten(Task* arg0)
     GfxCoord*          coord;
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
-    Actor104600Work*   work;
+    SucklercephWork*   work;
 
     head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
     work                                    = arg0->work;

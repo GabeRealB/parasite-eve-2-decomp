@@ -8,14 +8,14 @@
 /// expires.
 void sucklercephReactionFlags(Task* arg0)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     Enemy*           enemy;
     s32              tick;
     u8               flags;
 
     enemy = arg0->spawnArg2.pointer;
     flags = enemy->reactionFlags;
-    work  = (Actor104600Work*)arg0->work;
+    work  = (SucklercephWork*)arg0->work;
     if (flags != 0) {
         if (flags & 1) {
             work->field_2D4 += 1;

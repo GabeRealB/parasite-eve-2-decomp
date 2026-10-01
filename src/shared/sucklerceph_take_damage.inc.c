@@ -7,7 +7,7 @@
 /// re-arms `field_2CC`, and while animation 1 plays latches `field_2D8`.
 void sucklercephTakeDamage(Task* arg0, s32 arg1)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
@@ -17,7 +17,7 @@ void sucklercephTakeDamage(Task* arg0, s32 arg1)
     enemy      = arg0->spawnArg2.pointer;
     obj        = arg0->extra.tmd;
     coord      = obj->coords;
-    work       = (Actor104600Work*)arg0->work;
+    work       = (SucklercephWork*)arg0->work;
     enemy->hp -= arg1;
     func_800DA6E8(&enemy->node, arg1, 0);
     if (enemy->hp < 0) {

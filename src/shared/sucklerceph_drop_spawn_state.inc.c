@@ -9,7 +9,7 @@
 /// 3, the drop.
 void sucklercephDropSpawnState(Enemy* arg0, Task* arg1)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     GfxCoord*        coord;
     GfxCoord*        part;
     TmdObject*       obj;

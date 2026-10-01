@@ -12,7 +12,7 @@
 /// phase reset, the task put into the stage's state and the HP cleared.
 void sucklercephAwakeTick(Task* arg0)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     Enemy*           enemy;
     GfxCoord*        coord;
     u16              countdown;
@@ -21,7 +21,7 @@ void sucklercephAwakeTick(Task* arg0)
     u32              rng;
 
     coord = arg0->extra.tmd->coords;
-    work  = (Actor104600Work*)arg0->work;
+    work  = (SucklercephWork*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     mode  = work->field_2C8;
     switch (mode) {

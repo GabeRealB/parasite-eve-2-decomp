@@ -52,58 +52,6 @@
 #include "../../shared/sucklerceph.h"
 #include "../../shared/skull_stalker.h"
 
-/// The 0x2E4-byte work block of the package's first enemy, which both of its
-/// spawn handlers allocate with `memCalloc` and park in `Task::work`. After the
-/// animation context and its three slots come the colour and light matrices the
-/// model is pointed at, then four `WorldCollisionBody` bodies, each followed by the
-/// `WorldCollisionContact` table its `context.contacts` names.
-typedef struct Actor104600Work {
-    /* 0x000 */ AnimationContext      context;
-    /* 0x014 */ AnimationSlot         slots[3];
-    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
-    /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
-    /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ WorldCollisionBody    objFC;
-    /* 0x11C */ WorldCollisionContact rec11C;
-    /* 0x134 */ WorldCollisionBody    obj134;
-    /* 0x154 */ WorldCollisionContact rec154[4]; // the body's contact table; also the enemy's `recs`
-    /* 0x1B4 */ WorldCollisionBody    obj1B4;
-    /* 0x1D4 */ WorldCollisionContact rec1D4;
-    /* 0x1EC */ WorldCollisionBody    obj1EC;
-    /* 0x20C */ WorldCollisionContact rec20C;
-    /* 0x224 */ byte                  pad_224[0x50];
-    /* 0x274 */ VECTOR3               field_274; // root translation before the last step
-    /* 0x280 */ byte                  pad_280[4];
-    /* 0x284 */ EffectSpawnArg        field_284; // hit-effect coordinate and parameters
-    /* 0x28C */ MATRIX                field_28C; // root transform saved when the enemy dies
-    /* 0x2AC */ s32                   field_2AC; // scale factor of the model's second part
-    /* 0x2B0 */ s16                   field_2B0; // heading, stepped 0x20 a frame toward the player
-    /* 0x2B2 */ s16                   field_2B2; // reaction state the per-frame dispatch switches on
-    /* 0x2B4 */ s16                   field_2B4; // phase of the death sequence
-    /* 0x2B6 */ s16                   field_2B6; // frames spent in the death phase
-    /* 0x2B8 */ s16                   field_2B8; // animation id the work is playing
-    /* 0x2BA */ s16                   field_2BA; // id the two helper slots last saw
-    /* 0x2BC */ u16                   field_2BC; // frames spent on the current id
-    /* 0x2BE */ s16                   field_2BE; // step length along the facing
-    /* 0x2C0 */ byte                  pad_2C0[6];
-    /* 0x2C6 */ s16                   field_2C6;
-    /* 0x2C8 */ s16                   field_2C8; // live stage: 1 alive, 2 dying
-    /* 0x2CA */ s16                   field_2CA; // Y scale folded onto the saved transform
-    /* 0x2CC */ s16                   field_2CC;
-    /* 0x2CE */ s16                   field_2CE; // remaining hit cooldown
-    /* 0x2D0 */ u16                   field_2D0; // frames until the next idle sound
-    /* 0x2D2 */ s16                   field_2D2; // non-zero: the animation rebind is suppressed
-    /* 0x2D4 */ u16                   field_2D4; // frame or event counter of the dying stages
-    /* 0x2D6 */ s16                   field_2D6; // spawn arg's low half; picks the sound set
-    /* 0x2D8 */ s16                   field_2D8; // latched once the dormant enemy is touched
-    /* 0x2DA */ s16                   field_2DA; // non-zero: the death spawns a final effect
-    /* 0x2DC */ s16                   field_2DC; // spawn arg's high half
-    /* 0x2DE */ s16                   field_2DE; // fall speed while dropping into place
-    /* 0x2E0 */ s16                   field_2E0; // non-zero once the drop has hit something
-    /* 0x2E2 */ s16                   field_2E2; // non-zero: the drop has been armed
-} Actor104600Work;
-STATIC_ASSERT_SIZEOF(Actor104600Work, 0x2E4);
-
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 /// The first enemy's attack row, packed into its third body's key, and the
@@ -384,31 +332,7 @@ SVECTOR gSkullStalkerSparkOffset = { 0, -100, 0, 0 };
 
 SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
 
-static __inline__ void Actor04600_TickAnim(Task* task);
-
-/// Rebinds the first enemy's animation id to its two helper slots unless
-/// `field_2D2` suppresses it: a changed id is remembered, its frame count
-/// restarts and both slots switch to it; otherwise the count ticks and the
-/// slots advance.
-static __inline__ void Actor04600_TickAnim(Task* task)
-{
-    Actor104600Work* work = (Actor104600Work*)task->work;
-    s32              i;
-    if (work->field_2D2 == 0) {
-        if (work->field_2B8 != work->field_2BA) {
-            work->field_2BA = work->field_2B8;
-            work->field_2BC = 0;
-            for (i = 1; i < 3; i++) {
-                func_800B4114(&work->context, i, work->field_2B8, 0, 0);
-            }
-        } else {
-            work->field_2BC++;
-            for (i = 1; i < 3; i++) {
-                Gp_AnimTickIndex(&work->context, i);
-            }
-        }
-    }
-}
+#include "../../shared/sucklerceph_inlines.inc.c"
 
 #include "../../shared/sucklerceph_spawn_state.inc.c"
 
@@ -466,11 +390,11 @@ void Actor04600_Fn024A4(Task* arg0)
 
 #include "../../shared/sucklerceph_step.inc.c"
 
-/// The first enemy's animation rebind, `Actor04600_TickAnim`, as an
+/// The first enemy's animation rebind, `sucklercephTickAnim`, as an
 /// out-of-line function.
 void sucklercephAnimate(Task* arg0)
 {
-    Actor04600_TickAnim(arg0);
+    sucklercephTickAnim(arg0);
 }
 
 /// Colours the first enemy from the world position of its model's second

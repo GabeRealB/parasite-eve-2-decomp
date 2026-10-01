@@ -5,11 +5,11 @@
 /// task exit.
 void sucklercephExit(Task* task)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     Enemy*           enemy;
 
     enemy = task->spawnArg2.pointer;
-    work  = (Actor104600Work*)task->work;
+    work  = (SucklercephWork*)task->work;
 
     enemy->recs = 0;
     Gp_UnlinkNode(&enemy->node);

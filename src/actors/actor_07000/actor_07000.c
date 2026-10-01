@@ -51,6 +51,7 @@
 #include "rooms/shelter_b3_dumping_hole.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
+#include "../../shared/sucklerceph.h"
 
 /// Work block the carriers hang off their context's 0x1C slot (the task's
 /// `Task::work`, which is not a `TaskIdMap` here). The three `WorldCollisionBody`s are the
@@ -235,12 +236,12 @@ STATIC_ASSERT_SIZEOF(Actor07000RecoveredMsgEntry, 8);
 /// alongside it.
 ///
 /// `field_28C`/`field_2CA` are the same pair as `Actor207200Work`'s
-/// `field_264`/`field_2A0`: the transform `Actor07000_Fn02BB8` folds onto the
+/// `field_264`/`field_2A0`: the transform `sucklercephFlatten` folds onto the
 /// model, and the angle it is scaled by.
 typedef struct Actor107000Work {
     /* 0x000 */ byte                  pad_0[0x11A];
-    /* 0x11A */ u16                   field_11A; // flag word of the render node at 0xFC, `Actor107000SpawnWork::objFC.flags`
-    /* 0x11C */ WorldCollisionContact field_11C; // that node's collision table, `Actor107000SpawnWork::rec11C`
+    /* 0x11A */ u16                   field_11A; // flag word of the render node at 0xFC, `SucklercephWork::objFC.flags`
+    /* 0x11C */ WorldCollisionContact field_11C; // that node's collision table, `SucklercephWork::rec11C`
     /* 0x134 */ byte                  pad_134[0x1E];
     /* 0x152 */ u16                   field_152;
     /* 0x154 */ WorldCollisionContact field_154[4];
@@ -295,58 +296,6 @@ typedef struct Actor107000Work {
     /* 0x392 */ u16                   field_392; // spawns so far; the cue fires at 5
     /* 0x394 */ u16                   field_394; // non-zero: this frame has spent its reaction (see ActorShared80136288Work)
 } Actor107000Work;
-
-/// The same 0x2E4-byte work block as its spawn handler builds it, seen from the
-/// side that names the collision bodies: four `WorldCollisionBody`s at 0xFC / 0x134 / 0x1B4 /
-/// 0x1EC, each followed by the `WorldCollisionContact` collision table its `context.contacts` points
-/// at, `node + 0x20` (`&work->rec11C` and friends, handed to
-/// `Gp_InitRec18Table`), then the transform node at 0x27C whose coordinate the
-/// handler only wires up through `field_284`.
-///
-/// The record table seeded at 0x20C overlaps `Actor107000Work::field_214`: the
-/// handler view starts that run eight bytes later, and the matched
-/// `Actor07000_Fn046B8` keeps its own spelling, so the two views cannot
-/// be merged without moving one of the two offsets.
-typedef struct Actor107000SpawnWork {
-    /* 0x000 */ AnimationContext      context;
-    /* 0x014 */ AnimationSlot         slots[3];
-    /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
-    /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
-    /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
-    /* 0x0FC */ WorldCollisionBody    objFC;
-    /* 0x11C */ WorldCollisionContact rec11C;
-    /* 0x134 */ WorldCollisionBody    obj134;
-    /* 0x154 */ WorldCollisionContact rec154[4];
-    /* 0x1B4 */ WorldCollisionBody    obj1B4;
-    /* 0x1D4 */ WorldCollisionContact rec1D4;
-    /* 0x1EC */ WorldCollisionBody    obj1EC;
-    /* 0x20C */ WorldCollisionContact rec20C;
-    /* 0x224 */ byte                  pad_224[0x58];
-    /* 0x27C */ byte                  field_27C[8];
-    /* 0x284 */ void*                 field_284; // render node at 0x27C: its coordinate
-    /* 0x288 */ u16                   field_288;
-    /* 0x28A */ u16                   field_28A;
-    /* 0x28C */ byte                  pad_28C[0x20];
-    /* 0x2AC */ s32                   field_2AC;
-    /* 0x2B0 */ byte                  pad_2B0[4];
-    /* 0x2B4 */ s16                   field_2B4; // cleared by the spawn handler, as Actor107000Work::field_2B4
-    /* 0x2B6 */ byte                  pad_2B6[2];
-    /* 0x2B8 */ s16                   field_2B8;
-    /* 0x2BA */ s16                   field_2BA;
-    /* 0x2BC */ byte                  pad_2BC[0x10];
-    /* 0x2CC */ s16                   field_2CC;
-    /* 0x2CE */ s16                   field_2CE;
-    /* 0x2D0 */ byte                  pad_2D0[2];
-    /* 0x2D2 */ s16                   field_2D2;
-    /* 0x2D4 */ u16                   field_2D4;
-    /* 0x2D6 */ s16                   field_2D6;
-    /* 0x2D8 */ byte                  pad_2D8[2];
-    /* 0x2DA */ s16                   field_2DA;
-    /* 0x2DC */ s16                   field_2DC;
-    /* 0x2DE */ byte                  pad_2DE[4];
-    /* 0x2E2 */ s16                   field_2E2;
-} Actor107000SpawnWork;
-STATIC_ASSERT_SIZEOF(Actor107000SpawnWork, 0x2E4);
 
 void ActorsShared801349d8(Task*);
 
@@ -928,14 +877,14 @@ TaskDesc Actor07000_D0D7D0[2] = {
 TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_MODEL_BUFFER), 96 } }, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
 
 /// The 0x39C-byte work block the actor's *other* spawn handler
-/// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:
+/// (`Actor07000_Fn05068`) allocates, next to `SucklercephWork`:
 /// the same `AnimationContext`, seven animation slots instead of three, then three
 /// `WorldCollisionBody` collision bodies where that one has four.
 ///
 /// Node 1's `context.capsule` is not a record table but the `WorldCollisionCapsule` at 0x1FC -
 /// the shape `CompanionWork` keeps, where the record's own `contacts` points at the
 /// `WorldCollisionContact` run beside it (here the single record at 0x214). Nodes 2 and 3
-/// hold plain tables of four and one, the way `Actor107000SpawnWork`'s do.
+/// hold plain tables of four and one, the way `SucklercephWork`'s do.
 ///
 /// The tail from 0x360 is the same run `Actor107000Work` names from 0x360:
 /// `field_370`/`field_372` are its animation id and the id the six helper slots
@@ -1045,47 +994,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 static void Actor07000_Fn000EC(Enemy* arg0, Task* arg1);
 
-static void Actor07000_Fn00478(Task* arg0);
-
-static void Actor07000_Fn00654(Task* arg0);
-
-static void Actor07000_Fn00854(Task* arg0);
-
-static void Actor07000_Fn00A1C(Task* arg0);
-
-static void Actor07000_Fn00F6C(Task* arg0, s32 arg1);
-
-static void Actor07000_Fn0107C(Task* arg0);
-
-static void Actor07000_Fn011B4(Enemy* enemy, Task* task);
-
-static void Actor07000_Fn016A8(Task* arg0, u8 arg1);
-
 static void Actor07000_Fn01870(Enemy* arg0, Task* arg1);
-
-static void Actor07000_Fn01BA0(Enemy* arg0, Task* arg1);
-
-static void Actor07000_Fn01EB0(Task* arg0);
-
-static void Actor07000_Fn025A4(Enemy* arg0, Task* arg1);
-
-static void Actor07000_Fn026BC(Task* arg0);
-
-static void Actor07000_Fn027D0(Task* task);
-
-static void Actor07000_Fn02860(Task* arg0);
-
-static void Actor07000_Fn02914(Enemy* arg0, Task* task);
-
-static void Actor07000_Fn02984(Task* task);
-
-static void Actor07000_Fn029F0(Task* arg0, GfxCoord* arg1);
-
-static void Actor07000_Fn02BB8(Task* arg0);
-
-static void Actor07000_Fn02CAC(Task* task);
-
-static void Actor07000_Fn02D78(Task* task);
 
 static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1);
 
@@ -1187,21 +1096,21 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 /// Message dispatch table the caged specimen's spawn parks in `Task::msgTable`.
 
 /// Spawn handler of the specimen, the `GpEnemyTaskFunc` the task dispatch runs
-/// first: it allocates the `Actor107000SpawnWork` block, wires the enemy's four
+/// first: it allocates the `SucklercephWork` block, wires the enemy's four
 /// `WorldCollisionBody` collision bodies and their `WorldCollisionContact` tables into it and installs
-/// `Actor07000_Fn02CAC` as the exit callback. The spawn arg's high halfword is the variant
+/// `sucklercephExit` as the exit callback. The spawn arg's high halfword is the variant
 /// the model was spawned as - when it is 1 the specimen is killed instead, and
 /// the same halfword plus the low one seed `field_2DC`/`field_2D6`. Variant 1
 /// with a matching `bodyKind` is the one that carries a streamed model: its
 /// texture page and CLUT row are stepped before the model is re-streamed twice.
 static void Actor07000_Fn000EC(Enemy* arg0, Task* arg1)
 {
-    Actor107000SpawnWork* work;
-    TmdObject*            obj;
-    GfxCoord*             coord;
-    GfxCoord*             part;
-    u16                   v;
-    s32                   i;
+    SucklercephWork* work;
+    TmdObject*       obj;
+    GfxCoord*        coord;
+    GfxCoord*        part;
+    u16              v;
+    s32              i;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -1248,9 +1157,9 @@ static void Actor07000_Fn000EC(Enemy* arg0, Task* arg1)
     work->field_2D2              = 0;
     work->field_2CC              = 0;
     arg1->killCountdown          = 0;
-    work->field_284              = &arg1->extra.tmd->coords[1];
-    work->field_288              = 0x100;
-    work->field_28A              = 1;
+    work->field_284.coord        = &arg1->extra.tmd->coords[1];
+    work->field_284.spawnArgLo   = 0x100;
+    work->field_284.spawnArgHi   = 1;
     work->objFC.coord            = coord;
     work->objFC.context.contacts = &work->rec11C;
     work->objFC.pos.vx           = 0;
@@ -1307,41 +1216,41 @@ static void Actor07000_Fn000EC(Enemy* arg0, Task* arg1)
         }
     }
     work->field_2B4    = 0;
-    arg1->exitCallback = Actor07000_Fn02CAC;
+    arg1->exitCallback = sucklercephExit;
     arg1->state       += 1;
 }
 
 /// Task states of the caged specimen as `Actor07000_Fn02548` dispatches
 /// them: spawn, per-frame update and teardown.
 static const GpEnemyTaskFuncTable3 Actor07000_D00004 = {
-    { Actor07000_Fn000EC, Actor07000_Fn025A4, Actor07000_Fn011B4 },
+    { Actor07000_Fn000EC, sucklercephUpdateState, sucklercephDeathState },
 };
 
 /// Task states of the caged specimen as `Actor07000_Fn02D10` dispatches them:
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
 static const GpEnemyTaskFuncTable4 Actor07000_D00010 = {
-    { Actor07000_Fn01870, Actor07000_Fn025A4, Actor07000_Fn011B4, Actor07000_Fn01BA0 },
+    { Actor07000_Fn01870, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
 };
 
 /// Per-frame dispatch of the caged specimen, on the reaction state in
-/// `field_2B2`: 0 is the dormant arm `Actor07000_Fn00654` and 1 the
-/// live handler `Actor07000_Fn00854`. 3 is the arm the reaction
+/// `field_2B2`: 0 is the dormant arm `sucklercephDormantTick` and 1 the
+/// live handler `sucklercephAwakeTick`. 3 is the arm the reaction
 /// dispatch shoots when the enemy's `reactionFlags` carry buildup - it suppresses
 /// the rebind, waits out `Gp_TickObjFlag2` on the spawn arg and, once
 /// that expires, wakes the specimen: the rebind is released and
 /// `field_2B2`/`field_2C8` move to 1, the live stage. The arm ends in
-/// `Actor07000_Fn027D0` either way.
+/// `sucklercephStep` either way.
 ///
 /// 4 and 5 are the two collapse arms. Both drive the model's second coordinate
-/// through `Actor07000_Fn029F0`, count `field_2BC` up and spawn the
+/// through `sucklercephScalePart`, count `field_2BC` up and spawn the
 /// 0x60080 effect on the model's coordinate every 0x10 frames; 5 also counts
 /// `field_2D4` and, on the third count, writes the same death sequence the
 /// reaction dispatch does - a five-frame countdown, `field_2B4` cleared and the
 /// task moved to state 2 - with the spawn arg's `field_40` cleared alongside.
 /// Both arms end by re-suppressing the rebind, and the join the compiler builds
 /// from their two assignments is what the original binary shows.
-static void Actor07000_Fn00478(Task* arg0)
+void sucklercephReactionDispatch(Task* arg0)
 {
     Actor107000Work* work;
     Enemy*           enemy;
@@ -1350,10 +1259,10 @@ static void Actor07000_Fn00478(Task* arg0)
     work = (Actor107000Work*)arg0->work;
     switch (work->field_2B2) {
         case 0:
-            Actor07000_Fn00654(arg0);
+            sucklercephDormantTick(arg0);
             return;
         case 1:
-            Actor07000_Fn00854(arg0);
+            sucklercephAwakeTick(arg0);
             return;
         case 3:
             work->field_2D2 = 1;
@@ -1363,11 +1272,11 @@ static void Actor07000_Fn00478(Task* arg0)
                 work->field_2C8 = 1;
                 work->field_2BE = 0;
             }
-            Actor07000_Fn027D0(arg0);
+            sucklercephStep(arg0);
             return;
         case 4:
             work->field_2AC = 0x1000;
-            Actor07000_Fn029F0(arg0, &arg0->extra.tmd->coords[1]);
+            sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
@@ -1379,7 +1288,7 @@ static void Actor07000_Fn00478(Task* arg0)
             return;
         case 5:
             work->field_2AC = 0x1000;
-            Actor07000_Fn029F0(arg0, &arg0->extra.tmd->coords[1]);
+            sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
             frames          = work->field_2BC + 1;
             work->field_2BC = frames;
             if ((s16)frames >= 0x10) {
@@ -1400,145 +1309,11 @@ static void Actor07000_Fn00478(Task* arg0)
     }
 }
 
-/// Dormant arm of the caged specimen, the `field_2B2 == 0` arm of
-/// `Actor07000_Fn00478`. The collision record at `field_11C` is polled for an
-/// occupant of kind 0x10000; once one has been seen `field_2D8` stays latched,
-/// and a latched specimen moves `field_2B2`/`field_2C8` to the live stage,
-/// clears the 0x8000 bit of the render node's flag word and arms the global
-/// state through `Gp_ArmStateF0`. The record is released either way.
-///
-/// While the work plays animation 1 the arm also counts `field_2D0` down and,
-/// when it expires, re-rolls it from `gRandomLcgState` to between 0x50 and 0xB3
-/// frames and cues a sound event, `field_2D6` choosing between the two ids.
-/// `field_2BE` is then set from the frames spent on the animation - 0x14 in
-/// the first window, -0x14 in the second, 0 outside both - the frame count
-/// wraps at 0x63, and the root part takes one step through
-/// `Actor07000_Fn027D0`. Eight bytes of the scratch stack are held across the
-/// whole arm.
-static void Actor07000_Fn00654(Task* arg0)
-{
-    Actor107000Work* work;
-    GfxCoord*        coord;
-    u16              countdown;
-    s32              soundId;
-    u32              rng;
+#include "../../shared/sucklerceph_inlines.inc.c"
 
-    coord = arg0->extra.tmd->coords;
-    work  = (Actor107000Work*)arg0->work;
-    SCRATCH_STACK_RESERVE_BYTES(8);
-    if (Gp_CountRec18Hi(&work->field_11C, 0x10000) != 0) {
-        work->field_2D8 = 1;
-    }
-    if (work->field_2D8 != 0) {
-        work->field_2B2 = 1;
-        work->field_2C8 = 1;
-        work->field_11A = (u16)(work->field_11A & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        Gp_ArmStateF0(1);
-    }
-    Gp_ClearRec18Occupied(&work->field_11C);
-    if (work->field_2B8 == 1) {
-        countdown       = work->field_2D0 - 1;
-        work->field_2D0 = countdown;
-        if ((countdown << 16) <= 0) {
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng;
-            work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
-            if (work->field_2D6 != 0) {
-                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            } else {
-                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0001;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            }
-        }
-        work->field_2C6 = 1;
-        work->field_2BE = 0;
-        if ((u32)(work->field_2BC - 1) < 0x29) {
-            work->field_2BE = 0x14;
-        }
-        if ((u32)(work->field_2BC - 0x33) < 0x29) {
-            work->field_2BE = -0x14;
-        }
-        if ((s16)work->field_2BC >= 0x63) {
-            work->field_2BC = 0;
-        }
-        Actor07000_Fn027D0(arg0);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
+#include "../../shared/sucklerceph_dormant_tick.inc.c"
 
-/// Per-frame handler of the caged specimen, dispatched on the reaction stage in
-/// `field_2C8`: 1 is the live specimen, 2 the death throes. Every stage ends in
-/// the shared epilogue, so the switch's default is a jump straight there.
-///
-/// Stage 1 ticks `field_2D0` down and, when it runs out, re-rolls it from
-/// `gRandomLcgState` as `(state >> 16) % 100 + 0x50` frames - between 0x50 and 0xB3.
-/// The re-roll also cues a sound event: `field_2D6` picks between the two
-/// half-ids, the actor id in bits 12+ of the context's `field_8` supplies the
-/// sound bank, and the pan and depth of the model's coordinate are passed
-/// alongside. As in `Actor07000_Fn00F6C`, the whole assignment *and* its
-/// call are written out in both arms - the join the compiler builds from them is
-/// what the original binary shows. The stage then re-arms `field_2BE`, switches
-/// the animation to 2, runs the frame through `Actor07000_Fn0107C` and
-/// `Actor07000_Fn027D0`, and restarts `field_2BC` once it has spent 0x1D
-/// frames on the id.
-///
-/// Stage 2 counts `field_2D4` up and advances `field_2AC` by 0xC8 a frame; on
-/// the fifth frame the specimen is killed - `Actor07000_Fn016A8` runs
-/// with a zero argument, the kill countdown is armed to 5, the reaction flag
-/// `field_2B4` is cleared, the task state latches the stage it just ran, and the
-/// enemy's `hp` is zeroed.
-static void Actor07000_Fn00854(Task* arg0)
-{
-    Actor107000Work* work;
-    Enemy*           enemy;
-    GfxCoord*        coord;
-    u16              countdown;
-    s16              mode;
-    s32              soundId;
-    u32              rng;
-
-    coord = arg0->extra.tmd->coords;
-    work  = (Actor107000Work*)arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    mode  = work->field_2C8;
-    switch (mode) {
-        case 1:
-            countdown       = work->field_2D0 - 1;
-            work->field_2D0 = countdown;
-            if ((countdown << 16) <= 0) {
-                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng;
-                work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
-                if (work->field_2D6 != 0) {
-                    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;
-                    SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                } else {
-                    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0001;
-                    SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                }
-            }
-            work->field_2BE = 0x14;
-            work->field_2B8 = 2;
-            Actor07000_Fn0107C(arg0);
-            Actor07000_Fn027D0(arg0);
-            if ((s16)work->field_2BC >= 0x1D) {
-                work->field_2BC = 0;
-            }
-            break;
-        case 2:
-            work->field_2D4 = work->field_2D4 + 1;
-            work->field_2AC = work->field_2AC + 0xC8;
-            if ((s16)work->field_2D4 >= 5) {
-                Actor07000_Fn016A8(arg0, 0);
-                arg0->killCountdown = 5;
-                work->field_2B4     = 0;
-                arg0->state         = mode;
-                enemy->hp           = 0;
-            }
-            break;
-    }
-}
+#include "../../shared/sucklerceph_awake_tick.inc.c"
 
 /// `value`, or 0 where it is not positive.
 static inline s32 _actor07000ClampToZero(s32 value)
@@ -1549,379 +1324,15 @@ static inline s32 _actor07000ClampToZero(s32 value)
     return value;
 }
 
-static void Actor07000_Fn00A1C(Task* arg0)
-{
-    s32                    damageState;
-    Enemy*                 enemy;
-    WorldCollisionContact* effectRec;
-    VECTOR*                delta;
-    s16                    cooldown;
-    s32                    stage;
-    s32                    contactStage;
-    s32                    effect;
-    s32                    pushY;
-    s32                    movement;
-    s32                    dx;
-    s32                    dz;
-    s32                    wallDx;
-    s32                    wallDz;
-    s32                    hitCooldown;
-    s32                    distance;
-    s32                    z;
-    u32                    id;
-    u32                    damage;
-    Actor107000Work*       work;
-    GfxCoord*              coord;
-    ActorContactFrame*     scratch;
-    Actor107000Work*       contact;
+#include "../../shared/sucklerceph_contacts.inc.c"
 
-    work     = (Actor107000Work*)arg0->work;
-    coord    = arg0->extra.tmd->coords;
-    scratch  = (ActorContactFrame*)SCRATCH_STACK_RESERVE_BYTES(0x4C);
-    enemy    = arg0->spawnArg2.pointer;
-    movement = func_800E0C10(work->field_154, &scratch->delta, 4, &scratch->result);
-    switch (movement) {
-        case 0:
-            break;
-        case 1:
-            coord->coord.t[0] = (s32)(coord->coord.t[0] + scratch->delta.vx.halves.integer);
-            coord->coord.t[1] = (s32)(coord->coord.t[1] + scratch->delta.vy.halves.integer);
-            z                 = coord->coord.t[2] + scratch->delta.vz.halves.integer;
-            coord->coord.t[2] = z;
-            break;
-        case 2:
-            coord->coord.t[0] = (s32)work->field_274.vx;
-            coord->coord.t[1] = (s32)work->field_274.vy;
-            z                 = work->field_274.vz;
-            coord->coord.t[2] = z;
-            break;
-    }
-    if (work->field_2CE != 0) {
-        cooldown        = (u16)work->field_2CE - 1;
-        work->field_2CE = cooldown;
-        if ((cooldown << 0x10) <= 0) {
-            work->field_2CE = 0;
-        }
-    }
-    dx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    scratch->delta.vx.word = dx;
-    scratch->delta.vy.word = (s32)(gPlayerStatus.coordMtx->t[1] - coord->coord.t[1]);
-    dz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    scratch->delta.vz.word = dz;
-    distance               = SquareRoot0((dx * dx) + (dz * dz));
-    if (distance < 0x320) {
-        stage = work->field_2C8;
-        if (stage == 1) {
-            work->field_2D2 = stage;
-            work->field_2C8 = 2;
-        }
-    }
-    delta       = (VECTOR*)&scratch->delta;
-    damageState = 2;
-    /* The contact walk steps a work pointer one table record at a time and
-       reads the record through it, so the record's offset stays in the
-       displacement. Written as an indexed `for`, loop.c derives the same walk
-       but also hoists an invariant the ROM recomputes inside the loop. */
-    contact = work;
-contact_loop:
-    do {
-        id = contact->field_154[0].key.value;
-        switch (id & 0xFFFF0000) {
-            case 0x10000:
-                contactStage = work->field_2C8;
-                if (contactStage == 1) {
-                    work->field_2D2 = contactStage;
-                    work->field_2C8 = 2;
-                }
-                break;
-            case 0x20000:
-                if (work->field_2CE == 0) {
-                    damage = Gp_ComputeDamage(id, (u32)distance, 0, 0);
-                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, contact->field_154[0].key.value, 0) != 0) {
-                        Actor07000_Fn016A8(arg0, 1U);
-                        arg0->killCountdown = 5;
-                        arg0->state         = damageState;
-                        work->field_2B4     = 0;
-                        enemy->hp           = -1;
-                    } else {
-                        func_800E2C78(enemy, (s32)contact->field_154[0].key.value, (s32)damage, 0);
-                        Actor07000_Fn00F6C(arg0, (s32)damage);
-                        effect = Gp_GetIdParam0((s32)contact->field_154[0].key.value) & 0xFFFF;
-                        if (effect == damageState)
-                            goto effect_flag2;
-                        if (effect < 3) {
-                            if (effect == 1)
-                                goto effect_react;
-                        } else {
-                            if (effect == 3)
-                                goto effect_flag4;
-                            if (effect == 9)
-                                goto effect_flag2;
-                        }
-                        goto effect_done;
-                    effect_react:
-                        work->field_2D2 = effect;
-                        work->field_2C8 = damageState;
-                        goto effect_done;
-                    effect_flag4:
-                        Gp_SetObjFlag4(enemy, contact->field_154[0].key.value, 0);
-                        goto effect_done;
-                    effect_flag2:
-                        Gp_SetObjFlag2(enemy, contact->field_154[0].key.value, 0);
-                    effect_done:
-                        if (enemy->hp > 0) {
-                            func_800FDB18(Gp_GetIdParam1((s32)contact->field_154[0].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->field_284);
-                        }
-                        hitCooldown = Gp_GetIdParam2((s32)contact->field_154[0].key.value);
-                        if ((hitCooldown << 0x10) > 0) {
-                            work->field_2CE = (s16)hitCooldown;
-                        }
-                    }
-                }
-                break;
-            case 0x30000:
-                wallDx                 = coord->workm.t[0] - contact->field_154[0].point.vx;
-                scratch->delta.vy.word = 0;
-                scratch->delta.vx.word = wallDx;
-                wallDz                 = coord->workm.t[2] - contact->field_154[0].point.vz;
-                scratch->delta.vz.word = wallDz;
-                distance               = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                distance               = contact->field_154[0].distance - distance;
-                distance               = _actor07000ClampToZero(distance);
-                scratch->delta.vx.word = (s32)(coord->workm.t[0] - contact->field_154[0].point.vx);
-                scratch->delta.vy.word = (s32)(coord->workm.t[1] - contact->field_154[0].point.vy);
-                scratch->delta.vz.word = (s32)(coord->workm.t[2] - contact->field_154[0].point.vz);
-                VectorNormal(delta, &scratch->normal);
-                ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, delta);
-                if ((u32)((u16)work->field_2B8 - 1) < 2U) {
-                    coord->coord.t[0] = (s32)(coord->coord.t[0] + ((s32)(distance * scratch->delta.vx.word) >> 0xC));
-                    pushY             = distance * scratch->delta.vy.word;
-                    if (pushY < 0) {
-                        coord->coord.t[1] = (s32)(coord->coord.t[1] + (pushY >> 0xC));
-                    }
-                    coord->coord.t[2] = (s32)(coord->coord.t[2] + ((s32)(distance * scratch->delta.vz.word) >> 0xC));
-                }
-                break;
-        }
-        contact = (Actor107000Work*)((u8*)contact + 0x18);
-        if ((s32)contact < (s32)((u8*)work + 0x60))
-            goto contact_loop;
-    } while (0);
-    Gp_ClearRec18Occupied(work->field_154);
-    effectRec = &work->field_1D4;
-    if ((work->field_2C8 != 0) && (Gp_FindRec18(effectRec, 0) != 0)) {
-        work->field_1D2 = (u16)((u16)work->field_1D2 & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        Gp_ClearRec18Occupied(effectRec);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x4C);
-}
+#include "../../shared/sucklerceph_take_damage.inc.c"
 
-/// Damage reaction of the caged specimen. `arg1` is taken off the context's
-/// HP, the same amount is pushed through the lock-slot updater, and a depleted
-/// specimen switches the task to its death state (2) with a five-frame
-/// countdown while `field_2B4` is cleared on the work.
-///
-/// A live one cues a sound event instead: `field_2D6` picks between the two
-/// half-ids, the actor id in bits 12+ of the context's `field_8` supplies the
-/// sound bank, and the pan and depth of the model's coordinate are passed
-/// alongside. The same call statement is written out in both arms - the join
-/// the compiler builds from it is what the original binary shows.
-///
-/// `field_2CC` is then re-armed and, for the id the animation is playing
-/// (`field_2B8 == 1`), latched into `field_2D8`.
-static void Actor07000_Fn00F6C(Task* arg0, s32 arg1)
-{
-    Actor107000Work* work;
-    Enemy*           enemy;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    s32              anim;
-    s32              soundId;
+#include "../../shared/sucklerceph_turn_to_player.inc.c"
 
-    enemy      = arg0->spawnArg2.pointer;
-    obj        = arg0->extra.tmd;
-    coord      = obj->coords;
-    work       = (Actor107000Work*)arg0->work;
-    enemy->hp -= arg1;
-    func_800DA6E8(&enemy->node, arg1, 0);
-    if (enemy->hp < 0) {
-        Actor07000_Fn016A8(arg0, 0);
-        arg0->state         = 2;
-        arg0->killCountdown = 5;
-        work->field_2B4     = 0;
-        return;
-    }
-    if (work->field_2D6 != 0) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000A;
-        SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-    } else {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0002;
-        SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-    }
-    anim            = work->field_2B8;
-    work->field_2CC = 0xF;
-    if (anim == 1) {
-        work->field_2D8 = anim;
-    }
-}
+#include "../../shared/sucklerceph_death_state.inc.c"
 
-/// Turns the specimen toward the player by at most 0x20 a frame. The heading
-/// `field_2B0` is compared with the XZ direction from the model's coordinate
-/// to the player: within 0x20 it is taken outright, otherwise it is stepped
-/// 0x20 the short way round the 0x1000 circle. The coordinate's rotation is
-/// then rebuilt from that heading alone, in 0x18 bytes taken off the scratch
-/// stack.
-static void Actor07000_Fn0107C(Task* arg0)
-{
-    Actor107000Work*  work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s16               cur;
-    s32               want;
-    s16               diff;
-    s32               adiff;
-    s16               turn;
-    s16               wrap;
-    s32               current;
-
-    coord        = arg0->extra.tmd->coords;
-    work         = (Actor107000Work*)arg0->work;
-    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
-    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    sc->delta.vy = 0;
-    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-    cur          = work->field_2B0 & 0xFFF;
-    diff         = want - cur;
-    adiff        = diff >= 0 ? diff : -diff;
-    turn         = diff;
-    if (adiff < 0x21) {
-        work->field_2B0 = want;
-    } else {
-        if (adiff >= 0x801) {
-            wrap = diff - 0x1000;
-            if (diff <= 0) {
-                wrap = 0x1000 - diff;
-            }
-            turn = wrap;
-        }
-        current = work->field_2B0;
-        if (turn <= 0) {
-            cur = current - 0x20;
-        } else {
-            cur = current + 0x20;
-        }
-        work->field_2B0 = cur;
-    }
-    sc->rot.vx = 0;
-    sc->rot.vy = work->field_2B0;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
-
-/// Teardown handler of the caged specimen, run once the task has moved to its
-/// death state. `gSceneCombatState.actorControl` mode 2 hides the model and mode 1 does nothing;
-/// otherwise `field_2B4` steps the death through three phases. Phase 0 shrinks
-/// the model and counts the kill countdown down, cueing the death sound,
-/// releasing the global state and unlinking the enemy's node and the four
-/// render nodes when it runs out (with a final effect if `field_2DA` asked for
-/// one). Phase 1 folds the saved transform onto the model through
-/// `Actor07000_Fn02BB8` for up to 0x3D frames, and phase 2 destroys the enemy
-/// once the same count is spent. Outside the two collapse arms of `field_2B2`
-/// the first two phases also tick the animation, scale the model's second
-/// part, recompute it and re-colour the actor.
-static void Actor07000_Fn011B4(Enemy* enemy, Task* task)
-{
-    TmdObject*       model;
-    Actor107000Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    s32              soundId;
-
-    obj   = task->extra.tmd;
-    work  = (Actor107000Work*)task->work;
-    coord = obj->coords;
-    model = obj;
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            break;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            break;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-        default:
-            switch (work->field_2B4) {
-                case 0:
-                    work->field_20A &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    work->field_2AC -= 0x12C;
-                    task->killCountdown--;
-                    if ((u32)((u16)work->field_2B2 - 5) >= 2 && task->killCountdown == 3) {
-                        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    }
-                    if (work->field_2B2 == 6) {
-                        work->field_2B8 = 1;
-                        Actor107000_TickAnim(task);
-                    }
-                    if (task->killCountdown <= 0) {
-                        if (work->field_2D6 != 0) {
-                            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000D;
-                            SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                        } else {
-                            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0005;
-                            SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                        }
-                        task->killCountdown = 0;
-                        Gp_ReleaseStateF0Add(task, 0x2E);
-                        if (work->field_2DA != 0) {
-                            Gp_SpawnEff(0x6009E, task->extra.tmd->coords, 0, NULL);
-                        }
-                        work->field_2B4 = 1;
-                        work->field_2B6 = 0;
-                        work->field_2CA = 0x1000;
-                        work->field_28C = coord->coord;
-                        enemy->recs     = NULL;
-                        Gp_UnlinkNode(&enemy->node);
-                        Gp_UnlinkObj(&((Actor107000SpawnWork*)work)->objFC);
-                        Gp_UnlinkObj(&((Actor107000SpawnWork*)work)->obj134);
-                        Gp_UnlinkObj(&((Actor107000SpawnWork*)work)->obj1B4);
-                        Gp_UnlinkObj(&((Actor107000SpawnWork*)work)->obj1EC);
-                    }
-                    break;
-                case 1:
-                    if ((u32)((u16)work->field_2B2 - 5) >= 2) {
-                        work->field_2B4 = 2;
-                    }
-                    work->field_2B6++;
-                    if (work->field_2B6 >= 0x3D) {
-                        work->field_2B4 = 2;
-                    }
-                    Actor07000_Fn02BB8(task);
-                    if (work->field_2B6 == 0xA) {
-                        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                    }
-                    break;
-                case 2:
-                    work->field_2B6++;
-                    if (work->field_2B6 >= 0x3D) {
-                        Gp_DestroyEnemy(enemy, task);
-                    }
-                    return;
-            }
-            if ((u32)((u16)work->field_2B2 - 5) >= 2) {
-                Actor107000_TickAnim(task);
-                Actor07000_Fn029F0(task, &task->extra.tmd->coords[1]);
-                task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-                task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(&task->extra.tmd->coords[1]);
-                actorUpdateColor(enemy, &task->extra.tmd->coords[1]);
-            }
-            break;
-    }
-}
-
-static void Actor07000_Fn016A8(Task* arg0, u8 arg1)
+void sucklercephKill(Task* arg0, u8 arg1)
 {
     Actor107000Work* work;
     Enemy*           enemy;
@@ -1978,12 +1389,12 @@ static void Actor07000_Fn016A8(Task* arg0, u8 arg1)
 /// slots, slots 1 and 2 are reset, and the task moves to handler 3.
 static void Actor07000_Fn01870(Enemy* arg0, Task* arg1)
 {
-    Actor107000SpawnWork* work;
-    GfxCoord*             coord;
-    GfxCoord*             part;
-    TmdObject*            obj;
-    s32                   one;
-    s32                   i;
+    SucklercephWork* work;
+    GfxCoord*        coord;
+    GfxCoord*        part;
+    TmdObject*       obj;
+    s32              one;
+    s32              i;
 
     obj   = arg1->extra.tmd;
     coord = obj->coords;
@@ -2033,9 +1444,9 @@ static void Actor07000_Fn01870(Enemy* arg0, Task* arg1)
     work->field_2D2              = 0;
     work->field_2CC              = 0;
     arg1->killCountdown          = 0;
-    work->field_284              = &arg1->extra.tmd->coords[1];
-    work->field_288              = 0x100;
-    work->field_28A              = 1;
+    work->field_284.coord        = &arg1->extra.tmd->coords[1];
+    work->field_284.spawnArgLo   = 0x100;
+    work->field_284.spawnArgHi   = 1;
     work->objFC.coord            = coord;
     work->objFC.context.contacts = &work->rec11C;
     work->objFC.pos.vx           = 0;
@@ -2098,108 +1509,9 @@ static const GpEnemyTaskFuncTable5 Actor07000_D0004C = {
     { Actor07000_Fn05068, Actor07000_Fn03164, Actor07000_Fn04468, Gp_DestroyEnemy, Actor07000_Fn05400 },
 };
 
-/// Per-frame handler of the specimen while it drops into place, before it
-/// lands (the task state that follows `Actor07000_Fn01870`). `gSceneCombatState.actorControl`
-/// mode 1 only re-colours the actor and mode 2 hides the model; otherwise,
-/// once `field_2E2` has armed the drop, the root part is stepped along its
-/// facing and by the fall speed `field_2DE`, the collision response is
-/// applied, the animation ticks and the root is recomputed, with the step
-/// length `field_2BE` decaying by 2 a frame. When the root reaches the floor
-/// (Y at or above 0) the landing sound is cued, the root is pinned at 0 and
-/// the specimen moves to the live stage with animation 2 and task state 1;
-/// until then the fall speed grows by 10 a frame, or 20 once the collision
-/// response has latched `field_2E0`.
-static void Actor07000_Fn01BA0(Enemy* arg0, Task* arg1)
-{
-    Actor107000Work* work;
-    GfxCoord*        coord;
-    s32              soundId;
+#include "../../shared/sucklerceph_drop_state.inc.c"
 
-    work = (Actor107000Work*)arg1->work;
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
-            break;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            break;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-        default:
-            if (work->field_2E2 == 0) {
-                return;
-            }
-            Actor07000_Fn02D78(arg1);
-            Actor07000_Fn01EB0(arg1);
-            Actor107000_TickAnim(arg1);
-            actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
-            arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(arg1->extra.tmd->coords);
-            work->field_2BE -= 2;
-            if (work->field_2BE < 0) {
-                work->field_2BE = 0;
-            }
-            coord = arg1->extra.tmd->coords;
-            if (coord->coord.t[1] >= 0) {
-                soundId = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0008;
-                SndEvt_EnqueueType6(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                work->field_2B2                     = 1;
-                work->field_2C8                     = 1;
-                work->field_2BE                     = 0;
-                work->field_2DE                     = 0;
-                work->field_2B8                     = 2;
-                work->field_2BA                     = 0;
-                arg1->extra.tmd->coords->coord.t[1] = 0;
-                arg1->state                         = 1;
-            } else if (work->field_2E0 == 0) {
-                work->field_2DE += 10;
-            } else {
-                work->field_2DE += 20;
-            }
-            break;
-    }
-}
-
-/// Collision response of the dropping specimen: node 2's collision table is
-/// run through `func_800E0C10` with a 0x48-byte scratch. Response 1 adds the
-/// returned X and Z offsets to the root; only the first one also adds Y,
-/// latches `field_2E0`, sets the fall speed `field_2DE` to -0x64 and takes a
-/// quarter off the step length `field_2BE`. Response 2 puts the root back at
-/// the translation `Actor07000_Fn02D78` saved. The table is released either
-/// way.
-static void Actor07000_Fn01EB0(Task* arg0)
-{
-    ActorDeltaFrame48* scratch;
-    Actor107000Work*   work;
-    GfxCoord*          coord;
-    s32                movement;
-
-    work     = (Actor107000Work*)arg0->work;
-    scratch  = (ActorDeltaFrame48*)SCRATCH_STACK_RESERVE_BYTES(0x48);
-    coord    = arg0->extra.tmd->coords;
-    movement = func_800E0C10(&work->field_154[0], &scratch->delta, 4, NULL);
-    switch (movement) {
-        case 0:
-            break;
-        case 1:
-            if (work->field_2E0 == 0) {
-                coord->coord.t[1] += scratch->delta.vy.halves.integer;
-                work->field_2DE    = -0x64;
-                work->field_2BE    = (u16)work->field_2BE - work->field_2BE / 4;
-                work->field_2E0    = movement;
-            }
-            coord->coord.t[0] += scratch->delta.vx.halves.integer;
-            coord->coord.t[2] += scratch->delta.vz.halves.integer;
-            break;
-        case 2:
-            coord->coord.t[0] = work->field_274.vx;
-            coord->coord.t[1] = work->field_274.vy;
-            coord->coord.t[2] = work->field_274.vz;
-            break;
-    }
-    Gp_ClearRec18Occupied(&work->field_154[0]);
-    SCRATCH_STACK_RELEASE_BYTES(0x48);
-}
+#include "../../shared/sucklerceph_drop_collide.inc.c"
 
 s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, ActorCommand* request)
 {
@@ -2324,126 +1636,15 @@ void Actor07000_Fn02548(Task* task)
     sp.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Per-frame mode handler of the actor, shared with the other enemy actors that
-/// gate on `gSceneCombatState.actorControl`: mode 1 runs only the tail, mode 2 puts the model in
-/// its hidden pose and returns, mode 0 clears both flags before falling into
-/// the update, and any other mode updates directly. The update drives the
-/// actor's four handlers, clears the display flags of the model's first two
-/// coordinate parts and recomputes the second one's world matrix; the tail then
-/// colours the actor from that second part and draws its ground shadow.
-static void Actor07000_Fn025A4(Enemy* arg0, Task* arg1)
-{
-    s32 state;
-    s32 one;
+#include "../../shared/sucklerceph_update_state.inc.c"
 
-    state = gSceneCombatState.actorControl;
-    one   = 1;
-    if (state == one) {
-        goto case1;
-    }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    arg1->extra.tmd->flags       = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case2:
-    arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
-    Actor07000_Fn00478(arg1);
-    Actor07000_Fn026BC(arg1);
-    Actor07000_Fn00A1C(arg1);
-    Actor07000_Fn02860(arg1);
-    Actor07000_Fn029F0(arg1, &arg1->extra.tmd->coords[1]);
-    arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(&arg1->extra.tmd->coords[1]);
-case1:
-    Actor07000_Fn02914(arg0, arg1);
-    Actor07000_Fn02984(arg1);
-}
+#include "../../shared/sucklerceph_reaction_flags.inc.c"
 
-/// Per-frame reaction dispatch, gated on the enemy's `reactionFlags`: stagger runs
-/// the death countdown and, once `field_2D4` reaches 5, kills the actor and
-/// clears its HP; buildup arms the reaction sub-state and suppresses the
-/// animation rebind; and damage over time ticks `Gp_TickObjFlag4`, folding
-/// the damage it reports into `Actor07000_Fn00F6C` and clearing the
-/// bits once they expire.
-static void Actor07000_Fn026BC(Task* arg0)
-{
-    Actor107000Work* work;
-    Enemy*           enemy;
-    s32              tick;
-    u8               flags;
-
-    enemy = arg0->spawnArg2.pointer;
-    flags = enemy->reactionFlags;
-    work  = (Actor107000Work*)arg0->work;
-    if (flags != 0) {
-        if (flags & ENEMY_REACTION_STAGGER) {
-            work->field_2D4 += 1;
-            work->field_2AC += 0xC8;
-            if ((s16)work->field_2D4 >= 5) {
-                Actor07000_Fn016A8(arg0, 0);
-                arg0->killCountdown = 5;
-                work->field_2B4     = 0;
-                arg0->state         = 2;
-                enemy->hp           = 0;
-            }
-        }
-        if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-            work->field_2B2       = 3;
-            work->field_2B6       = 0;
-            work->field_2BE       = 0;
-            work->field_2D2       = 1;
-        }
-        if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            tick = Gp_TickObjFlag4(enemy);
-            if (tick != 0) {
-                Actor07000_Fn00F6C(arg0, tick);
-            }
-            if (Gp_ObjFlag4Expired(enemy) != 0) {
-                enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
-            }
-        }
-    }
-}
-
-/// Steps the specimen's root part one frame along its own facing: saves the
-/// current translation in `field_274` as the previous position, then advances
-/// X and Z along the rotation's Z column scaled by the step length
-/// `field_2BE`, and Y by a fixed 0x80.
-static void Actor07000_Fn027D0(Task* task)
-{
-    GfxCoord*        coord;
-    Actor107000Work* work;
-
-    coord              = &task->extra.tmd->coords[0];
-    work               = (Actor107000Work*)task->work;
-    work->field_274.vx = coord->coord.t[0];
-    work->field_274.vy = coord->coord.t[1];
-    work->field_274.vz = coord->coord.t[2];
-    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_2BE) >> 12;
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_2BE) >> 12;
-    coord->coord.t[1] += 0x80;
-}
+#include "../../shared/sucklerceph_step.inc.c"
 
 /// The specimen's animation rebind, `Actor107000_TickAnim`, as an
 /// out-of-line function.
-static void Actor07000_Fn02860(Task* arg0)
+void sucklercephAnimate(Task* arg0)
 {
     Actor107000_TickAnim(arg0);
 }
@@ -2451,7 +1652,7 @@ static void Actor07000_Fn02860(Task* arg0)
 /// Colours the caged specimen from the world position of the model's second
 /// coordinate, staged in a `VECTOR` taken off the scratch stack; `arg0` is the
 /// colour target.
-static void Actor07000_Fn02914(Enemy* arg0, Task* task)
+void sucklercephColour(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;
     void**    scratch;
@@ -2473,7 +1674,7 @@ static void Actor07000_Fn02914(Enemy* arg0, Task* task)
 /// Draws the specimen's ground shadow under the model root, at the world
 /// translation of the root part, staged in a `VECTOR3` taken off the scratch
 /// stack.
-static void Actor07000_Fn02984(Task* task)
+void sucklercephDrawShadow(Task* task)
 {
     GfxCoord* coord;
     VECTOR3*  vec;
@@ -2487,108 +1688,11 @@ static void Actor07000_Fn02984(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Scales the rotation of `arg1`'s matrix by the specimen's scale factor
-/// `field_2AC`, clamped first to 0x1000..0x13E8: each of the matrix's three
-/// columns is copied into an `SVECTOR` on the scratch stack, multiplied by the
-/// factor on the GTE and written back.
-static void Actor07000_Fn029F0(Task* arg0, GfxCoord* arg1)
-{
-    ActorScratchStack* scratch;
-    SVECTOR*           vec;
-    MATRIX*            matrix;
-    Actor107000Work*   work;
+#include "../../shared/sucklerceph_scale_part.inc.c"
 
-    scratch = (ActorScratchStack*)SCRATCH_STACK_CURSOR_SLOT;
-    vec     = scratch->head;
-    work    = arg0->work;
-    vec--;
-    scratch->head = vec;
-    if ((u32)work->field_2AC >= 0x13E8U) {
-        work->field_2AC = 0x13E8;
-    }
-    if ((u32)work->field_2AC < 0x1001U) {
-        work->field_2AC = 0x1000;
-    }
-    matrix = &arg1->coord;
+#include "../../shared/sucklerceph_flatten.inc.c"
 
-    gte_ReadMatrixColumn(matrix, 0, vec);
-    gte_lddp(work->field_2AC);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, matrix, 0);
-
-    gte_ReadMatrixColumn(matrix, 1, vec);
-    gte_lddp(work->field_2AC);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, matrix, 1);
-
-    gte_ReadMatrixColumn(matrix, 2, vec);
-    gte_lddp(work->field_2AC);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, matrix, 2);
-
-    SCRATCH_POP_AT(&scratch->head, SVECTOR);
-}
-
-/// Rebuilds the model's root coordinate from the transform saved in
-/// `field_28C`, scaled along Y by `field_2CA`, which decays by 0x50 a frame
-/// while it stays above 0x200. The scale matrix and its `VECTOR` live in 0x30
-/// bytes of the scratch stack; the node's `composeStamp` is cleared so the next
-/// `Gp_UpdateCoord` recomputes it.
-static void Actor07000_Fn02BB8(Task* arg0)
-{
-    GfxCoord*          coord;
-    ActorScaleScratch* head;
-    ActorScaleScratch* scratch;
-    Actor107000Work*   work;
-
-    head                       = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    work                       = arg0->work;
-    scratch                    = head - 1;
-    SCRATCH_STACK_CURSOR(void) = scratch;
-    coord                      = arg0->extra.tmd->coords;
-    if (work->field_2CA >= 0x201) {
-        work->field_2CA = (u16)work->field_2CA - 0x50;
-    }
-    scratch->scale.vx          = 0x1000;
-    scratch->scale.vy          = (s32)work->field_2CA;
-    scratch->scale.vz          = 0x1000;
-    coord->coord               = work->field_28C;
-    scratch->mat.ident.m00_m01 = 0x1000;
-    scratch->mat.ident.m02_m10 = 0;
-    scratch->mat.ident.m11_m12 = 0x1000;
-    scratch->mat.ident.m20_m21 = 0;
-    scratch->mat.ident.m22     = 0x1000;
-    ScaleMatrix(&scratch->mat.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->mat.mat);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
-}
-
-/// Exit callback of the caged specimen: takes the enemy's node and the four
-/// render nodes of the work block off their lists and runs the common enemy
-/// task exit.
-static void Actor07000_Fn02CAC(Task* task)
-{
-    Actor107000SpawnWork* work;
-    Enemy*                enemy;
-
-    enemy = task->spawnArg2.pointer;
-    work  = (Actor107000SpawnWork*)task->work;
-
-    enemy->recs = 0;
-    Gp_UnlinkNode(&enemy->node);
-    Gp_UnlinkObj(&work->objFC);
-    Gp_UnlinkObj(&work->obj134);
-    Gp_UnlinkObj(&work->obj1B4);
-    Gp_UnlinkObj(&work->obj1EC);
-    Gp_EnemyTaskExit(task);
-}
+#include "../../shared/sucklerceph_exit.inc.c"
 
 void Actor07000_Fn02D10(Task* arg0)
 {
@@ -2598,23 +1702,7 @@ void Actor07000_Fn02D10(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Steps the dropping specimen's root part one frame: saves the current
-/// translation in `field_274`, advances X and Z along the rotation's Z column
-/// scaled by the step length `field_2BE`, and Y by the fall speed `field_2DE`.
-static void Actor07000_Fn02D78(Task* task)
-{
-    GfxCoord*        coord;
-    Actor107000Work* work;
-
-    coord              = task->extra.tmd->coords;
-    work               = (Actor107000Work*)task->work;
-    work->field_274.vx = coord->coord.t[0];
-    work->field_274.vy = coord->coord.t[1];
-    work->field_274.vz = coord->coord.t[2];
-    coord->coord.t[0] += (coord->coord.m[0][2] * work->field_2BE) >> 12;
-    coord->coord.t[1] += work->field_2DE;
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->field_2BE) >> 12;
-}
+#include "../../shared/sucklerceph_fall_step.inc.c"
 
 /// Spawn handler of the specimen's second form, entry 0 of
 /// `Actor07000_D0003C`: allocates the 0x39C-byte `Actor107000Spawn2Work`,
@@ -2724,7 +1812,7 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
 }
 
 /// Per-frame mode handler of the specimen. The `gSceneCombatState.actorControl` switch is the same
-/// one `Actor07000_Fn025A4` runs: mode 1 skips to the tail, mode 2 puts
+/// one `sucklercephUpdateState` runs: mode 1 skips to the tail, mode 2 puts
 /// the model in its hidden pose and returns, mode 0 clears both flags and falls
 /// into the body. The body first dispatches the reaction sub-state `field_36A` -
 /// 0 and 1 hand the frame to their own handler, 3 counts `field_36E` out to 0xB

@@ -13,13 +13,13 @@
 void sucklercephDeathState(Enemy* enemy, Task* task)
 {
     TmdObject*       model;
-    Actor104600Work* work;
+    SucklercephWork* work;
     TmdObject*       obj;
     GfxCoord*        coord;
     s32              soundId;
 
     obj   = task->extra.tmd;
-    work  = (Actor104600Work*)task->work;
+    work  = (SucklercephWork*)task->work;
     coord = obj->coords;
     model = obj;
     switch (gSceneCombatState.actorControl) {
@@ -41,7 +41,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                     }
                     if (work->field_2B2 == 6) {
                         work->field_2B8 = 1;
-                        Actor04600_TickAnim(task);
+                        sucklercephTickAnim(task);
                     }
                     if (task->killCountdown <= 0) {
                         if (work->field_2D6 != 0) {
@@ -89,7 +89,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                     return;
             }
             if ((u32)((u16)work->field_2B2 - 5) >= 2) {
-                Actor04600_TickAnim(task);
+                sucklercephTickAnim(task);
                 sucklercephScalePart(task, &task->extra.tmd->coords[1]);
                 task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
                 task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;

@@ -11,11 +11,11 @@
 /// the drop has hit something.
 void sucklercephDropState(Enemy* arg0, Task* arg1)
 {
-    Actor104600Work* work;
+    SucklercephWork* work;
     GfxCoord*        coord;
     s32              soundId;
 
-    work = (Actor104600Work*)arg1->work;
+    work = (SucklercephWork*)arg1->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
@@ -31,7 +31,7 @@ void sucklercephDropState(Enemy* arg0, Task* arg1)
             }
             sucklercephFallStep(arg1);
             sucklercephDropCollide(arg1);
-            Actor04600_TickAnim(arg1);
+            sucklercephTickAnim(arg1);
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(arg1->extra.tmd->coords);
