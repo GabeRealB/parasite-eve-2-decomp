@@ -1502,8 +1502,8 @@ void func_actor_161500_80132210(void)
     GfxCoord* target;
     GfxCoord* player;
 
-    target = (gameGetPtrSlot(0xA))->extra.tmd->coords;
-    player = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
+    player = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     Gp_UpdateCoord(target);
     Gp_UpdateCoord(player);
     D_actor_161500_801376E0.rot.vy =
@@ -1519,7 +1519,7 @@ static void func_actor_161500_801322A0(void)
 {
     s32 temp_v0;
 
-    if (gameGetPtrSlot(0xA) != NULL) {
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         temp_v0 = GameFlag_GetNibble(0xE4);
         if (temp_v0 == 1) {
             if (Gp_GetCurBit2Flag(3) == temp_v0) {
@@ -1535,7 +1535,7 @@ static void func_actor_161500_8013230C(void)
 {
     s32 temp_v0;
 
-    if (gameGetPtrSlot(0xA) != NULL) {
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         temp_v0 = GameFlag_GetNibble(0xE4);
         switch (temp_v0) {
             case 0:

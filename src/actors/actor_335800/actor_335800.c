@@ -1034,7 +1034,7 @@ void func_actor_335800_80162114(void)
     TmdObject* extra;
     GfxCoord*  coord;
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (slot != NULL) {
         extra = slot->extra.tmd;
         coord = extra->coords;
@@ -1054,7 +1054,7 @@ void func_actor_335800_801621B4(s32 arg0)
     s32       lowIdx;
     s32       highIdx;
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (slot != NULL) {
         coord  = slot->extra.tmd->coords;
         lowIdx = 1;
@@ -1087,7 +1087,7 @@ void func_actor_335800_8016224C(void)
     Task* slot;
     s16   view;
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (slot != NULL) {
         view = 6;
         if (slot->extra.tmd->coords->coord.t[2] >= 0xC53) {
@@ -1180,7 +1180,7 @@ void func_actor_335800_801624DC(Task* arg0)
     Task* slot;
 
     if (gGameSession->battleResetPending != 0) {
-        slot = gameGetPtrSlot(3);
+        slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         Gp_PlayerWeaponId(&D_actor_335800_80164E7C.source.index);
         Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
         taskKill(arg0);

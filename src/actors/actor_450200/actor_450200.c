@@ -1185,7 +1185,7 @@ void func_actor_450200_80131E24(Task* task)
     GfxCoord* coord;
     s16       countdown;
 
-    slot  = gameGetPtrSlot(0xA);
+    slot  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     coord = &slot->extra.tmd->coords[D_actor_450200_8013885C[(rand() * 11) >> 15]];
     switch (task->state) {
         case 0:
@@ -1223,7 +1223,7 @@ void func_actor_450200_80131E24(Task* task)
 /// 0x100, state 1 ramps its `rate` up toward 0x1000 while `Task::spawnArg1` is
 /// set and back down toward 0 while it is not, then hands the record to
 /// `func_800B17D4` between the slot-3 task whose head turns and the
-/// `gameGetPtrSlot(0xA)` task it turns toward. A failed allocation, and every
+/// `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task it turns toward. A failed allocation, and every
 /// state past 1, kill the task; only the latter clears
 /// `D_actor_450200_801401E0`, which is why the two `taskKill` calls are
 /// distinct.
@@ -1233,7 +1233,7 @@ void func_actor_450200_80131FA8(Task* arg0)
     GpHeadAim* aim;
     u16        rate;
 
-    looker = gameGetPtrSlot(3);
+    looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (arg0->state) {
         case 0:
             aim = memCalloc(sizeof(GpHeadAim), false);
@@ -1261,7 +1261,7 @@ void func_actor_450200_80131FA8(Task* arg0)
                     aim->rate = 0;
                 }
             }
-            func_800B17D4(looker, gameGetPtrSlot(0xA), aim);
+            func_800B17D4(looker, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), aim);
             return;
         default:
             taskKill(arg0);
@@ -1300,15 +1300,15 @@ void func_actor_450200_8013217C(s32 arg0)
 }
 
 /// Stores in the yaw of `D_actor_450200_80137DC4` the heading, as a 12-bit
-/// angle, from the slot-3 task's root coordinate to the `gameGetPtrSlot(0xA)`
+/// angle, from the slot-3 task's root coordinate to the `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)`
 /// task's, refreshing both coordinates first so the X/Z offset is current.
 void func_actor_450200_8013219C(void)
 {
     GfxCoord* target;
     GfxCoord* looker;
 
-    target = (gameGetPtrSlot(0xA))->extra.tmd->coords;
-    looker = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
+    looker = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     Gp_UpdateCoord(target);
     Gp_UpdateCoord(looker);
     D_actor_450200_80137DC4.rot.vy =
@@ -1343,7 +1343,7 @@ static void func_actor_450200_801322F8(void)
     } else {
         func_neo_ark_observatory_8017FA98(0);
     }
-    if (gameGetPtrSlot(0xA) != NULL) {
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         D_actor_450200_801401E0 = Task_SpawnFromTable(D_actor_450200_80137A60, 2, 0, 0);
     }
 }

@@ -1800,7 +1800,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
     }
     if ((gDisplayState.debugMode != 0) && (Gp_LookupSlot4(1) != 0)) {
         func_80724608(Gp_LookupSlot4(1), -0x8C, 0xA, "AUNT");
-        func_80724608(gameGetPtrSlot(3), -0x8C, 0x14, "Player");
+        func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), -0x8C, 0x14, "Player");
     }
 }
 
@@ -2009,7 +2009,7 @@ void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
     Task* temp_a1;
     s32   temp_v1;
 
-    temp_s1 = gameGetPtrSlot(3);
+    temp_s1 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     temp_a1 = Gp_LookupSlot4(1);
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
@@ -2164,7 +2164,7 @@ void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
 {
     if (arg0 != 0) {
         D_dryfield_dilapidated_house_801857E8 =
-            Task_SpawnFromTable(D_dryfield_dilapidated_house_80186854, 0, 3, gameGetPtrSlot(3));
+            Task_SpawnFromTable(D_dryfield_dilapidated_house_80186854, 0, 3, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         return;
     }
     if (D_dryfield_dilapidated_house_801857E8 != NULL) {

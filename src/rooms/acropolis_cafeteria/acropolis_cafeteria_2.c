@@ -1392,7 +1392,7 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
     obj->flags          = 0;
     RotMatrix(&work->field_C4, &coord->coord);
     work->field_B0             = (rand() & 0xFFF) + 0x3000;
-    player                     = gameGetPtrSlot(3)->extra.tmd->coords;
+    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     coord->coord.t[0]          = player->coord.t[0];
     coord->coord.t[1]          = player->coord.t[1] - 0x800;
     coord->coord.t[2]          = player->coord.t[2] + 0x800;

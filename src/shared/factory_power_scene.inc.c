@@ -19,7 +19,7 @@ void factoryPowerScene(Task* task)
                 } else {
                     factoryNightShowView11Sprite(0);
                 }
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 0, 0);
             }
             task->state++;
             /* fallthrough */
@@ -52,7 +52,7 @@ void factoryPowerScene(Task* task)
         default:
             Gp_MsgPlayerWeapon(1);
             Gp_MsgAllyWeapon(1);
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F3, 1, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F3, 1, 0);
             taskKill(task);
             break;
     }

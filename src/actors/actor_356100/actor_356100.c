@@ -1524,8 +1524,8 @@ static void func_actor_356100_80164158(Task* arg0)
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_356100_80163508(arg0);
-    aim->target = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                         (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+    aim->target = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                         (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     yaw             = ratan2(aim->delta.vx, aim->delta.vz) + 0x800;
     aim->current    = yaw;
@@ -1576,7 +1576,7 @@ static void func_actor_356100_80164158(Task* arg0)
 /// chase scratch off the scratch stack and, on the live-actor flag, key the
 /// animation nodes, the frame counter and the `field_B4E` clip phase. Once
 /// `field_8` has counted 7 frames the arm aims at the player — the yaw toward
-/// `gameGetPtrSlot(3)` goes in `target`, the wrapped yaw toward
+/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` goes in `target`, the wrapped yaw toward
 /// `gPlayerStatus.coordMtx` in `current` — and the root is turned by the facing
 /// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
 /// `field_B4C` is the doubled frame parameter (halved while `field_97A` is
@@ -1638,8 +1638,8 @@ static void func_actor_356100_80164ACC(Task* arg0)
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     if (work->field_8 >= 7) {
-        s->target     = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                               (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+        s->target     = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
         s->current    = ratan2(s->delta.vx, s->delta.vz) + 0x800;
         s->current    = actorNormalizeYaw(s->current);
         work->field_0 = 0x1A;
@@ -1691,8 +1691,8 @@ static void func_actor_356100_80164ACC(Task* arg0)
     }
     if (work->field_B4E == 0) {
         if (++work->field_6 == 5) {
-            s->target = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                               (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+            s->target = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
             s->current = ratan2(s->delta.vx, s->delta.vz) + 0x800;
             yaw        = actorNormalizeYaw(s->current);
@@ -1929,7 +1929,7 @@ static void func_actor_356100_80166018(Task* arg0)
 
     enemy  = arg0->spawnArg2.pointer;
     work   = arg0->work;
-    player = (GameActor*)(gameGetPtrSlot(3))->work;
+    player = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
     config = &gPlayerStatus;
     if (work->field_4 != 0) {
         work->field_9BC               = 0x180;
@@ -1959,11 +1959,11 @@ static void func_actor_356100_80166018(Task* arg0)
                 D_actor_356100_80173244.source.sets = D_actor_356100_80173228;
             }
             D_actor_356100_801732D0.field_14 = 8;
-            if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_356100_801732D0, 0) == 0) {
+            if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_356100_801732D0, 0) == 0) {
                 work->field_0                       = 0xC;
                 work->field_B68                     = 1;
                 D_actor_356100_80173244.animationId = 1;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
             }
         }
     }
@@ -2001,7 +2001,7 @@ static void func_actor_356100_801666B4(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        player                                  = gameGetPtrSlot(3);
+        player                                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         work->field_9BC                         = 0x180;
         enemy->node.state.parts.flags           = 0;
         work->field_978                         = 1;
@@ -2071,12 +2071,12 @@ static void func_actor_356100_801668FC(Task* actor)
         func_actor_356100_80163508(actor);
         D_actor_356100_80173244.animationId = 3;
         if (playerStatus->hp > 0) {
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
         }
         work->field_6 = 0;
-    } else if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0 &&
+    } else if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0 &&
                playerStatus->hp > 0 && work->field_B68 == 1) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         work->field_B68 = 0;
     }
     if ((u32)(work->field_5A & 0x3FF) - 0x10 < 7U) {
@@ -2167,7 +2167,7 @@ static void func_actor_356100_801668FC(Task* actor)
         }
         work->field_0 = nextState;
         if (playerStatus->hp > 0 && work->field_B68 == 1) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             work->field_B68 = 0;
         }
     }
@@ -3261,7 +3261,7 @@ static void func_actor_356100_8016A468(Task* arg0)
     Actor356100Work*      work;
     Enemy*                enemy;
     AnimationPlayRequest* msg;
-    void*                 player;
+    Task*                 playerTask;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -3271,9 +3271,9 @@ static void func_actor_356100_8016A468(Task* arg0)
         work->field_978  = 2;
         msg              = &D_actor_356100_80173244;
         msg->animationId = 2;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
-        player = gameGetPtrSlot(3);
-        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
+        playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        Gp_DispatchMsg(playerTask, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
     }
     if (work->field_68 & 2) {
         work->field_0 = 0xE;

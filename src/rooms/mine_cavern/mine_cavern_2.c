@@ -3051,7 +3051,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     s32                    pan;
 
     work   = arg1->work;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

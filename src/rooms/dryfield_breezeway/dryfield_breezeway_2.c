@@ -69,7 +69,7 @@
 /// `func_dryfield_breezeway_8017E114`) allocates the block
 /// (`Mem_Malloc(0x14, 0)`), fills the three leading pointers and publishes the
 /// owning task in `D_dryfield_breezeway_801843C0`: the slot-3 game pointer
-/// (`gameGetPtrSlot(3)`), then `field_0` of the work `Gp_FindWorkById` finds
+/// (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`), then `field_0` of the work `Gp_FindWorkById` finds
 /// for the id formed from `gGameSession` bytes 6/7 and for that id OR'd with
 /// 0x1000. `field_8` is the dispatch slot
 /// `func_dryfield_breezeway_8017E390` hands to `Gp_DispatchMsg`.
@@ -505,7 +505,7 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
             Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_breezeway_80181E40[0], 0);
             Gp_DispatchMsgPtr(work->field_0, 0x3EE, &D_dryfield_breezeway_80181E40[1], 0);
@@ -519,7 +519,7 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             rec->blend                   = ANIMATION_BLEND_INTERPOLATE;
             rec->blendFrames             = 0xA;
             buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf, 0);
             break;
     }
     work->field_C = 0;
@@ -538,7 +538,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x14);
-                work->field_0                 = gameGetPtrSlot(3);
+                work->field_0                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_breezeway_801843C0 = arg0;
                 id                            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
                 work->field_4                 = Gp_FindWorkById(id)->field_0;
@@ -589,7 +589,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x14);
-                work->field_0                 = gameGetPtrSlot(3);
+                work->field_0                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_breezeway_801843C0 = arg0;
                 id                            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
                 work->field_4                 = Gp_FindWorkById(id)->field_0;
@@ -602,7 +602,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             buf.blend                = ANIMATION_BLEND_INTERPOLATE;
             buf.blendFrames          = 0xA;
             buf.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf, 0);
             func_800E8634(D_dryfield_breezeway_80181E70, 0, D_dryfield_breezeway_80181F90);
             arg0->state += 1;
             break;
@@ -625,7 +625,7 @@ void func_dryfield_breezeway_8017E2D4(void)
     msg.context.loc.stage = gGameSession->location.loc.stage;
     msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = 2;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }
 
@@ -656,13 +656,13 @@ void func_dryfield_breezeway_8017E390(void)
     buf.rec.blendFrames          = 0;
     buf.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     /* The message ABI carries this object address in one 32-bit word. */
-    Gp_DispatchMsg(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, (s32)&buf, 0);
+    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, (s32)&buf, 0);
 
     work                      = (DbwWork*)D_dryfield_breezeway_801843C0->work;
     buf.msg.context.loc.stage = gGameSession->location.loc.stage;
     buf.msg.context.loc.area  = gGameSession->location.loc.area;
     buf.msg.command           = 2;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf, 0x7DB);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &buf, 0x7DB);
     Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
 }
 
@@ -1405,7 +1405,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     mask   = 1 << gGameSession->location.loc.view;
     eff    = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
-    player = gameGetPtrSlot(3)->extra.tmd->coords;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     if (mask & 0x18) {
         func_dryfield_breezeway_8018034C(coord, D_dryfield_breezeway_80183164, 0x600, 0x80);
     } else if (mask & 0x20) {

@@ -11,9 +11,9 @@
 void roomDepartureTask(Task* arg0)
 {
     ActorTransform msg;
-    void*          slot;
+    Task*          playerTask;
 
-    slot = gameGetPtrSlot(3);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (arg0->state) {
         case 0:
             msg.rot.vy = ROOM_DEPARTURE.facing;
@@ -21,11 +21,11 @@ void roomDepartureTask(Task* arg0)
                 arg0->state = 2;
                 break;
             }
-            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
+            Gp_DispatchMsgPtr(playerTask, 0x3EE, &msg, 0);
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 1:
-            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
+            if (Gp_DispatchMsg(playerTask, 0x3F0, 0, 0) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;

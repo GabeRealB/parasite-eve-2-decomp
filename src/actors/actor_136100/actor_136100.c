@@ -56,7 +56,7 @@ extern ActorTransform D_actor_136100_8013F304[2];
 /// zeroes it with `Mem_Set` and parks the pointer in the task's `Task::work`
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor136100Work*)task->work`.  The same function publishes the task
-/// itself in `D_actor_136100_8014078C` and stores the `gameGetPtrSlot(3)`
+/// itself in `D_actor_136100_8014078C` and stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
 /// task in `field_4B4`.
 ///
 /// The block opens with the model's rig, whose slots 1..19 the animation
@@ -67,7 +67,7 @@ typedef struct Actor136100Work {
     /* 0x000 */ ActorAnimRig20 rig;
     /* 0x474 */ MATRIX         field_474; // light matrix, into TmdObject::lightMtx
     /* 0x494 */ MATRIX         field_494; // colour matrix, into TmdObject::colorMtx
-    /* 0x4B4 */ Task*          field_4B4; // gameGetPtrSlot(3) task
+    /* 0x4B4 */ Task*          field_4B4; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task
     /* 0x4B8 */ Task*          field_4B8; // task spawned from entry 2 of D_actor_136100_80140744
     /* 0x4BC */ Task*          field_4BC; // task spawned from entry 3 of D_actor_136100_80140744
     /* 0x4C0 */ Task*          field_4C0; // second dispatch task (NULL-checked senders)
@@ -2087,7 +2087,7 @@ static void func_actor_136100_80133A88(Task* task)
     }
     work = allocatedWork;
     Mem_Set(work, 0, sizeof(*work));
-    work->field_4B4         = gameGetPtrSlot(3);
+    work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_136100_8014078C = task;
     coord->parent           = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
@@ -2231,7 +2231,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 Mem_CopyUnaligned(&D_actor_136100_8013F2C4, D_dryfield_night_main_street_80183ACC, 0x30);
                 Mem_CopyUnaligned(&D_actor_136100_8013F244, D_dryfield_night_main_street_801834AC, 0x80);
             }
-            work->field_4C0 = gameGetPtrSlot(0xA);
+            work->field_4C0 = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
             arg0->state++;
             break;
         case 1:
@@ -2383,7 +2383,7 @@ void func_actor_136100_8013467C(void)
     rec.blend                = ANIMATION_BLEND_RESET;
     rec.blendFrames          = 0;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 /// Shows the task's model when `arg2` is non-zero and hides it (bit 0x80 of

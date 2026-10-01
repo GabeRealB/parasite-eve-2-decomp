@@ -1276,7 +1276,7 @@ void Actor05600_Fn01E1C(Task* arg0)
             break;
         case 2:
             work->field_6CE = work->field_6D0 > 0;
-            target          = &(gameGetPtrSlot(3))->extra.tmd->coords[2];
+            target          = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[2];
             delta->vx       = target->workm.t[0] - coord->workm.t[0];
             normal          = delta + 1;
             delta->vy       = target->workm.t[1] - coord->workm.t[1];
@@ -1321,7 +1321,7 @@ void Actor05600_Fn01E1C(Task* arg0)
             if (work->field_698 < 3) {
                 work->field_69E = 0;
             } else {
-                target    = &(gameGetPtrSlot(3))->extra.tmd->coords[2];
+                target    = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[2];
                 delta->vx = target->workm.t[0] - coord->workm.t[0];
                 normal2   = delta + 1;
                 delta->vy = target->workm.t[1] - coord->workm.t[1];

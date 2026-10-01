@@ -1146,7 +1146,7 @@ static void func_actor_800200_80162750(Task* arg0)
     s32            diff;
 
     coord                    = arg0->extra.tmd->coords;
-    target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     head                     = SCRATCH_STACK_CURSOR(u8);
     vec                      = (VECTOR3*)(head - 0x10);
     SCRATCH_STACK_CURSOR(u8) = head - 0x10;
@@ -1341,7 +1341,7 @@ static void func_actor_800200_80162E0C(Task* arg0)
     s32            delay;
 
     coord     = arg0->extra.tmd->coords;
-    target    = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     actor     = arg0->work;
     companion = actor->companionWork;
     switch (actor->stateAux) {
@@ -1924,7 +1924,7 @@ static void func_actor_800200_80163F5C(Task* arg0)
     s32            angle;
 
     coord  = arg0->extra.tmd->coords;
-    target = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     actor  = arg0->work;
     dist   = _actor800200GetContactDistance(coord, actor->companionWork->probe.contacts, NULL);
     if (dist != 0 && dist < 0x301) {
@@ -2016,7 +2016,7 @@ static void func_actor_800200_80164180(Task* arg0)
 
     actor                    = arg0->work;
     companion                = actor->companionWork;
-    target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     head                     = SCRATCH_STACK_CURSOR(u8);
     tmp                      = head - 0x10;
     SCRATCH_STACK_CURSOR(u8) = tmp;
@@ -2095,7 +2095,7 @@ static void func_actor_800200_8016436C(Task* arg0)
 
     actor                    = arg0->work;
     companion                = actor->companionWork;
-    target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     head                     = SCRATCH_STACK_CURSOR(u8);
     tmp                      = head - 0x10;
     SCRATCH_STACK_CURSOR(u8) = tmp;
@@ -2231,7 +2231,7 @@ static void func_actor_800200_801647A8(Task* arg0)
     s32              next;
     s32              initialState;
 
-    target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     head                     = SCRATCH_STACK_CURSOR(u8);
     tmp                      = head - 0x10;
     SCRATCH_STACK_CURSOR(u8) = tmp;
@@ -3017,7 +3017,7 @@ static void func_actor_800200_80165D44(Task* arg0)
     GfxCoord*  target;
 
     coord  = arg0->extra.tmd->coords;
-    target = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     actor  = arg0->work;
     switch (actor->statePhase) {
         case 1:

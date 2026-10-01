@@ -332,7 +332,7 @@ static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
 /// Later states of the room task: reads pointer slot 3 and discards it.
 static void func_neo_ark_submarine_tunnel_8017F414(Task* task)
 {
-    gameGetPtrSlot(3);
+    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 }
 
 /// Room task tick: copies the three-entry state table

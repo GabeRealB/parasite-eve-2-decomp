@@ -462,7 +462,7 @@ void Game_SetPtrSlot(void* ptr, s32 index)
     gGameSession->ptrSlots[index] = ptr;
 }
 
-struct Task* gameGetPtrSlot(s32 slot)
+struct Task* gameGetTaskSlot(s32 slot)
 {
     return gGameSession->ptrSlots[slot];
 }

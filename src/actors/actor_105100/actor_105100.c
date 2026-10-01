@@ -927,7 +927,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     Gp_LinkObj(2, &work->obj51C);
     Gp_InitRec18Table(records2, 1, 0);
     work->obj51C.flags            = (u16)(work->obj51C.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->obj4E4.coord            = (gameGetPtrSlot(3))->extra.tmd->coords;
+    work->obj4E4.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     records3                      = work->field_504;
     work->obj4E4.context.contacts = records3;
     work->obj4E4.pos.vx           = 0;
@@ -1617,7 +1617,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
     s32                 count;
 
     work                       = arg0->work;
-    player                     = gameGetPtrSlot(3);
+    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(ActorAttackScratch);
     scratch                    = SCRATCH_STACK_CURSOR(ActorAttackScratch);
@@ -1773,7 +1773,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
     obj    = actor->extra.tmd;
     work   = actor->work;
     coord  = obj->coords;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     state  = gSceneCombatState.actorControl;
     if (state == 1) {
         goto color_update;
@@ -1817,7 +1817,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             flag = work->field_5BA;
             if ((flag == 1) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != flag) &&
                 (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
                 work->field_5BA = 0;
             }
             if ((s16)work->field_592 == 0xB) {

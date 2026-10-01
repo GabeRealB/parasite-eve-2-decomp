@@ -14,7 +14,7 @@ void stalkerHoldCueTimer(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    slot  = gameGetPtrSlot(3);
+    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (work->field_718 != 0) {
         if (work->field_71A == 0x14) {
             sound = gStalkerHoldCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);

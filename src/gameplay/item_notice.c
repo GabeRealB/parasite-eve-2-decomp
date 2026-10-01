@@ -69,7 +69,7 @@ void func_800B65B0(Task* task)
                 break;
             case 8:
                 // Capture the root transform before presenting the save prompt.
-                coord         = (gameGetPtrSlot(3))->extra.tmd->coords;
+                coord         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
                 storedX       = (u16)coord->coord.t[0];
                 savedPos      = &gPlayerStatus.pos;
                 savedPos->x   = storedX;

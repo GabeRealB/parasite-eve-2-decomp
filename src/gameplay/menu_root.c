@@ -585,11 +585,11 @@ void Gp_MenuRootTask(Task* arg0)
                 *flag = 1;
                 Gp_SpawnWeaponEff();
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                    func_8010870C(gameGetPtrSlot(3), 5);
+                    func_8010870C(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 5);
                 }
                 if (arg0->spawnArg1.value == 0x44) {
                     Gp_PlayerWeaponId(&D_8010E7F4.source.index);
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
+                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
                 }
                 *flag = 0;
                 Task_SetActiveList(previousList);

@@ -1798,13 +1798,13 @@ static void func_actor_401800_80134C94(Task* arg0)
         }
         if (s->id != 0) {
             if (s->id & 0x8000) {
-                player       = gameGetPtrSlot(3);
+                player       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 s->hitPos.vx = player->extra.tmd->coords->workm.t[0];
                 s->hitPos.vy = player->extra.tmd->coords->workm.t[1];
                 s->hitPos.vz = player->extra.tmd->coords->workm.t[2];
             }
             if (work->field_C20 == 1) {
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
                 work->field_C20 = 0;
                 if ((u16)(work->field_0 - 0xB) < 4) {
                     work->field_0 = 0x13;
@@ -1896,7 +1896,7 @@ static void func_actor_401800_80134C94(Task* arg0)
                 SndEvt_EnqueueType7(0x51030008, 1);
             }
             if ((u16)(work->field_0 - 0xC) < 3 && config->hp > 0 && work->field_C20 == 1) {
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             }
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;
@@ -2104,7 +2104,7 @@ static void func_actor_401800_80134C94(Task* arg0)
                 }
             } else {
                 if (work->field_C20 == 1) {
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
                     work->field_C20 = 0;
                 }
                 state = work->field_0;
@@ -2377,8 +2377,8 @@ static void func_actor_401800_80136560(Task* arg0)
     s->delta.vz                                   = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     arg0->extra.tmd->coords->composeStamp         = GRAPHICS_COORD_DIRTY;
     blendRigDrive(arg0);
-    s->playerYaw                                  = ratan2(-gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][0],
-                                                           gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][2]);
+    s->playerYaw                                  = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
+                                                           gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
     coord                                         = arg0->extra.tmd->coords;
     ((ActorChaseScratch*)(head - 0x10))->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     s->delta.vy                                   = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
@@ -2488,8 +2488,8 @@ static void func_actor_401800_80136EAC(Task* arg0)
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     if (work->field_8 >= 7) {
-        s->playerYaw  = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                               (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+        s->playerYaw  = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
         s->yaw        = ratan2(s->delta.vx, s->delta.vz) + 0x800;
         s->yaw        = actorNormalizeYaw(s->yaw);
         work->field_0 = 0x1A;
@@ -2543,8 +2543,8 @@ static void func_actor_401800_80136EAC(Task* arg0)
     }
     if (work->field_BFE == 0) {
         if (++work->field_6 == 5) {
-            s->playerYaw = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                                  (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+            s->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                                  (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
             s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
             yaw    = actorNormalizeYaw(s->yaw);
@@ -2782,7 +2782,7 @@ static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECT
     s32*      flagp;
     Task*     player;
 
-    player                   = gameGetPtrSlot(3);
+    player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                     = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8) = head - 8;
     outp                     = (SVECTOR*)(head - 8);
@@ -2846,7 +2846,7 @@ static void func_actor_401800_801381E4(Task* arg0)
 
     enemy  = arg0->spawnArg2.pointer;
     work   = arg0->work;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gactor = (GameActor*)player->work;
     config = &gPlayerStatus;
     if (work->field_4 != 0) {
@@ -2901,11 +2901,11 @@ static void func_actor_401800_801381E4(Task* arg0)
                 Actor401800_SetGrabAnim();
                 D_actor_401800_80155AF8.field_14 = 8;
                 do {
-                    if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &D_actor_401800_80155AF8, 0) == 0) {
+                    if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &D_actor_401800_80155AF8, 0) == 0) {
                         work->field_0                       = 0xC;
                         work->field_C20                     = 1;
                         D_actor_401800_80155A0C.animationId = 1;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401800_80155A0C, 0);
+                        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401800_80155A0C, 0);
                     }
                 } while (0);
             }
@@ -2935,7 +2935,7 @@ static void func_actor_401800_801381E4(Task* arg0)
 }
 
 /// Live-actor body: arms the animation slots and the two `field_8C8` /
-/// `field_A08` nodes, then aims the actor at the `gameGetPtrSlot(3)` task's
+/// `field_A08` nodes, then aims the actor at the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task's
 /// root position — the XZ offset normalized by `VectorNormalSS` and GPF-scaled
 /// by 0x3E8, the heading taken through `ratan2` — sends it as message 0x3E9
 /// and spawns the 0xC/8/0x8F pad-lerp. On work flag bit 0 while `field_89E` is
@@ -2950,7 +2950,7 @@ static void func_actor_401800_80138C28(Task* arg0)
     SVECTOR*         pdir;
 
     if (work->field_4 != 0) {
-        player                                  = gameGetPtrSlot(3);
+        player                                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         work->field_8C8.radius                  = 0x12C;
         work->field_B48.flags                  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A08.flags                  |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -2998,7 +2998,7 @@ static void func_actor_401800_80138C28(Task* arg0)
 }
 
 /// On the live-actor flag, raises the three animation slots, sends the `0x3FF`
-/// animation record and the `0x3F9` object pair to the `gameGetPtrSlot(3)`
+/// animation record and the `0x3F9` object pair to the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
 /// task, then spawns the 5/0xFF/8 pad-lerp. On work flag bit 0, restarts the
 /// actor's model (`field_0 = 0xE`, the 0x8B8 effect record for the second
 /// coordinate) and finally copies the `field_5A` clip id into `field_894` and
@@ -3008,7 +3008,7 @@ static void func_actor_401800_80138F5C(Task* arg0)
     Actor401800Work*      work;
     Enemy*                enemy;
     AnimationPlayRequest* msg;
-    void*                 player;
+    Task*                 playerTask;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -3018,9 +3018,9 @@ static void func_actor_401800_80138F5C(Task* arg0)
         work->field_898  = 2;
         msg              = &D_actor_401800_80155A0C;
         msg->animationId = 2;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
-        player = gameGetPtrSlot(3);
-        Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
+        playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        Gp_DispatchMsg(playerTask, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
         Gp_SpawnPadLerp(5, 0xFF, 8);
     }
     if (work->field_68 & 1) {
@@ -3042,7 +3042,7 @@ static void func_actor_401800_80138F5C(Task* arg0)
 
 /// Per-frame body of the live actor while it walks: on work flag bit 0 it
 /// raises the `0x10`/7/2 render slots, re-sends the `0x3FF` animation record
-/// with clip 3 to the `gameGetPtrSlot(3)` task and seeds the walk step
+/// with clip 3 to the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task and seeds the walk step
 /// `field_C04` to -0x78; otherwise, while the `field_5A` clip is one of
 /// `0x10..0x16`, it advances the actor along its own local Z by `field_C04`
 /// once `detectPlayerOutOfReach` says the path is still clear and halves
@@ -3067,15 +3067,15 @@ static void func_actor_401800_80139118(Task* arg0)
         blendRigDrive(arg0);
         D_actor_401800_80155A0C.animationId = 3;
         if (config->hp > 0) {
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401800_80155A0C, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_401800_80155A0C, 0);
         }
         work->field_C04        = -0x78;
         work->field_6          = 0;
         work->field_A08.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         return;
     }
-    if ((Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) && (config->hp > 0) && (work->field_C20 == 1)) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+    if ((Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) && (config->hp > 0) && (work->field_C20 == 1)) {
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         work->field_C20 = 0;
     }
     if ((u32)((work->field_5A & 0x3FF) - 0x10) < 7) {
@@ -3100,7 +3100,7 @@ static void func_actor_401800_80139118(Task* arg0)
             work->field_0 = 6;
         }
         if ((config->hp > 0) && (work->field_C20 == 1)) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             work->field_C20 = 0;
         }
     }
@@ -4051,8 +4051,8 @@ static void func_actor_401800_8013CD98(Task* arg0)
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     blendRigDrive(arg0);
-    s->playerYaw = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                          (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+    s->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                          (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
     s->yaw = actorNormalizeYaw(s->yaw);

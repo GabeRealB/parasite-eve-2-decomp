@@ -2516,8 +2516,8 @@ static void func_actor_400600_80133FC0(Task* arg0)
         return;
     }
     query.field_14 = 8;
-    if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &query, 0) != 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+    if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &query, 0) != 0) {
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         if (work->field_768 == 0) {
             work3            = (Actor400600Work*)arg0->work;
             work3->field_71C = 2;
@@ -2540,7 +2540,7 @@ static void func_actor_400600_80133FC0(Task* arg0)
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     msg.animationId          = 1;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     work->obj_4B4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     work2                = (Actor400600Work*)arg0->work;
     work2->field_720     = 4;
@@ -2602,7 +2602,7 @@ static void func_actor_400600_80134218(Task* arg0)
             msg.blendFrames          = 8;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             msg.animationId          = 2;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
         }
         work2                = (Actor400600Work*)arg0->work;
         work2->field_720     = 8;
@@ -2626,7 +2626,7 @@ static void func_actor_400600_80134218(Task* arg0)
         sound2 = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 1), 0) != 0) {
+        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F9, Gp_PackObjPair(enemy, 1), 0) != 0) {
             work->field_764 = 1;
         }
         vec.vx = 0;
@@ -6010,9 +6010,9 @@ static void func_actor_400600_8013BE90(Task* arg0)
     Actor400600Work* work2;
 
     work->field_84 += -(s16)work->field_84 >> 2;
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
         if (work->field_764 == 0) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         }
         func_actor_400600_80138AF0(arg0, 0x3C);
         work->field_84   = 0;

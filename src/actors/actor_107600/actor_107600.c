@@ -793,7 +793,7 @@ static void func_actor_107600_80131F10(Task* arg0)
     obj                            = arg0->extra.tmd;
     enemy                          = arg0->spawnArg2.pointer;
     coord                          = obj->coords;
-    target                         = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target                         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     scratch                        = SCRATCH_HEAD_ADDR;
     head                           = SCRATCH_HEAD_AT(scratch, void);
     block                          = (VECTOR*)(head - 0x10);
@@ -1432,7 +1432,7 @@ static void func_actor_107600_80133024(Task* arg0)
 /// eases `field_50` down, alternates `field_50` for four frames and raises bit
 /// 0x20. From then on, while bit 0x20000000 is set, `field_166` counts frames:
 /// at 120 it switches the light mode, at 210 it spawns an effect on the
-/// `gameGetPtrSlot(3)` actor's fifth coordinate and updates that actor.
+/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` actor's fifth coordinate and updates that actor.
 static void func_actor_107600_801332D4(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
@@ -1514,7 +1514,7 @@ static void func_actor_107600_801332D4(Task* arg0)
             } else if ((s16)work->field_166 == 210) {
                 GfxCoord* c;
                 s32       p;
-                player          = gameGetPtrSlot(3);
+                player          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 c               = &player->extra.tmd->coords[4];
                 actor           = player->work;
                 work->field_166 = 0;

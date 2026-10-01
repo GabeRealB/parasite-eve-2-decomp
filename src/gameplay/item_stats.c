@@ -631,7 +631,7 @@ void Gp_UseKeyItemRow(Task* arg0)
 {
     UiObject* obj;
     UiList*   menu;
-    void*     slot;
+    Task*     roomTask;
     s32       item;
     s32       ret;
     s32       width;
@@ -643,10 +643,10 @@ void Gp_UseKeyItemRow(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
     if (arg0->state == 0) {
-        menu = &D_8010E960;
-        slot = gameGetPtrSlot(7);
-        item = Gp_NthCollectedId(menu->field_10, 0);
-        ret  = Gp_DispatchMsg(slot, 0x13F1, item, 0);
+        menu     = &D_8010E960;
+        roomTask = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
+        item     = Gp_NthCollectedId(menu->field_10, 0);
+        ret      = Gp_DispatchMsg(roomTask, 0x13F1, item, 0);
         if (ret == 1) {
             arg0->spawnArg1.value = item;
             width                 = Text_MeasureWidth(Gp_GetItemText(item, 0, 0)) + 0xB;

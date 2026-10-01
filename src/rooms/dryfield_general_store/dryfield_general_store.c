@@ -1623,7 +1623,7 @@ static void func_dryfield_general_store_8017DEAC(Task* arg0)
     arg0->msgTable = D_dryfield_general_store_8017E188;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x5E) == 0) {
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_general_store_8017E1B8, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_general_store_8017E1B8, 0x7DB);
     } else if (GameFlag_GetNibble(0x5E) == 1) {
         GameFlag_SetNibble(0x5E, 2);
     }
@@ -1654,7 +1654,7 @@ void func_dryfield_general_store_8017DFB4(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_general_store_8017E55C, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_general_store_8017E55C, 0x7DB);
             SndEvt_EnqueueType6(0x5203000F, 0, 0);
             arg0->killCountdown = 0x5A;
             arg0->state++;
@@ -1676,7 +1676,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_general_store_8017E560, 0x7DB);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_general_store_8017E560, 0x7DB);
             arg0->killCountdown = 0x5A;
             arg0->state++;
             return;
@@ -1684,7 +1684,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
             temp_v0             = (u16)arg0->killCountdown - 1;
             arg0->killCountdown = temp_v0;
             if (temp_v0 < 0) {
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_general_store_8017E564, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_general_store_8017E564, 0x7DB);
                 Gp_MsgPlayerWeapon(1);
                 taskKill(arg0);
             }

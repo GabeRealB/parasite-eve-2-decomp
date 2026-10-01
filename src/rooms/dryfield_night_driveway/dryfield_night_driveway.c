@@ -1000,7 +1000,7 @@ static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_driveway_8017F7A4;
     Game_SetPtrSlot(arg0, 7);
-    if ((gameGetPtrSlot(0xA) != 0) && (gGameSession->location.loc.warp == 4)) {
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) && (gGameSession->location.loc.warp == 4)) {
         func_800E8634(D_dryfield_night_driveway_8017FB00, 0, D_dryfield_night_driveway_8017F998);
     }
     arg0->state = (s32)(arg0->state + 1);

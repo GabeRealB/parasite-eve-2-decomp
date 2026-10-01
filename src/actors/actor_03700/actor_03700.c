@@ -1392,7 +1392,7 @@ static void Actor03700_Fn01550(Task* task)
 
     work                       = (Actor103700Work*)task->work;
     obj                        = task->extra.tmd->coords;
-    player                     = gameGetPtrSlot(3);
+    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = (u8*)head - 0x1C;
     arg                        = SCRATCH_STACK_CURSOR(AnimationPlayRequest);
@@ -1549,7 +1549,7 @@ static void Actor03700_Fn01C94(Task* task)
 
     work                       = (Actor103700Work*)task->work;
     obj                        = task->extra.tmd->coords;
-    player                     = gameGetPtrSlot(3);
+    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(AnimationPlayRequest);
     arg                        = SCRATCH_STACK_CURSOR(AnimationPlayRequest);
@@ -1776,7 +1776,7 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
     work   = (Actor103700Work*)task->work;
     obj    = task->extra.tmd->coords;
     model  = task->extra.tmd;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -2138,7 +2138,7 @@ static s32 Actor03700_Fn03130(Task* task)
     s32                     ret;
 
     work                       = (Actor103700Work*)task->work;
-    player                     = gameGetPtrSlot(3);
+    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(Actor103700HoldScratch);
     scratch                    = SCRATCH_STACK_CURSOR(Actor103700HoldScratch);

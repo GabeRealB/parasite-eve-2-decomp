@@ -3407,7 +3407,7 @@ static void func_actor_323400_801644C4(Enemy* enemy, Task* task)
     SVECTOR*                pos;
 
     work = (Actor323000Work*)task->work;
-    gameGetPtrSlot(3);
+    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     sp                                    = D_actor_323400_80161E24;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head                                  = SCRATCH_STACK_CURSOR(u8);

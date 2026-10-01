@@ -4025,7 +4025,7 @@ void func_dryfield_night_motel_balcony_8018257C(void)
     SVECTOR   sv;
     s32       i;
 
-    task  = gameGetPtrSlot(4);
+    task  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
     coord = task->firstChild->extra.tmd->coords + 3;
 
     for (i = 0; i < 8; i++) {
@@ -4060,7 +4060,7 @@ void func_dryfield_night_motel_balcony_80182730(void)
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
-        task            = gameGetPtrSlot(4);
+        task            = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         Gp_SpawnEff(0x6007E, task->firstChild->extra.tmd->coords + 3,
                     ((gRandomLcgState >> 16) & 0x1FF) + 0x80000100,

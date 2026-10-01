@@ -283,10 +283,10 @@ void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match)
     u16        mch;
 
     other = Gp_Obj4CList;
-    idx   = 3;
+    idx   = GAME_TASK_SLOT_PLAYER;
     msk   = mask;
     mch   = match;
-    actor = gameGetPtrSlot(idx)->work;
+    actor = gameGetTaskSlot(idx)->work;
     for (; node != NULL; node = node->next) {
         if ((node->flags & msk) == mch) {
             for (; other != NULL; other = other->next) {

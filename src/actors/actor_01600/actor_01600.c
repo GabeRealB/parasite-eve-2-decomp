@@ -3474,7 +3474,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
                     }
                     pad->field_6 |= 1;
                     Gp_PulseState1C();
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(7), 0x13F4, arg1, 0);
+                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, arg1, 0);
                     work->field_502         = 0xFF;
                     arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -4909,7 +4909,7 @@ static u8 Actor01600_Fn06F78(void)
     Task* head;
     Task* iter;
 
-    head = gameGetPtrSlot(4)->firstChild;
+    head = gameGetTaskSlot(GAME_TASK_SLOT_SCENE)->firstChild;
     if (head == NULL) {
         return 0xFF;
     }

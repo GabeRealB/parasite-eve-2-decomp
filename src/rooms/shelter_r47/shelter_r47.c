@@ -528,7 +528,7 @@ static void func_shelter_r47_8017FB94(Task* task)
 
     task->msgTable = D_shelter_r47_80186F2C;
     Game_SetPtrSlot(task, 7);
-    player = gameGetPtrSlot(0xA);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (player != NULL && GameFlag_GetNibble(0x80) == 0 && GameFlag_GetNibble(0xD1) == 1) {
         Gp_DispatchMsg(player, 0x3F3, 0, 0);
         Gp_AllyAnimId(&D_shelter_r47_80186F5C.source.index);
@@ -658,7 +658,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
         if (kind < 6) {
             if (kind < 4) {
                 if ((kind == 1) && (GameFlag_GetNibble(0x83) == 0) && (GameFlag_GetNibble(0x80) == 0)) {
-                    if (gameGetPtrSlot(0xA) != 0) {
+                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
                         func_800E8634(&D_801350BC, 0, &D_801359D4);
                     }
                     func_800E3FAC(0xA2, 0x2A);
@@ -683,7 +683,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
                 if (spawned_a0 != NULL) {
                     Gp_MsgPlayer3F3(0);
                     Gp_MsgPlayerWeapon(0);
-                    if (gameGetPtrSlot(0xA) != 0) {
+                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
                         Gp_MsgAlly3F3(0);
                         Gp_MsgAllyWeapon(0);
                     }
@@ -705,7 +705,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
                 if (spawned_a1 != NULL) {
                     Gp_MsgPlayer3F3(0);
                     Gp_MsgPlayerWeapon(0);
-                    if (gameGetPtrSlot(0xA) != 0) {
+                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
                         Gp_MsgAlly3F3(0);
                         Gp_MsgAllyWeapon(0);
                     }
@@ -719,7 +719,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
                 if (spawned_a != NULL) {
                     Gp_MsgPlayer3F3(0);
                     Gp_MsgPlayerWeapon(0);
-                    if (gameGetPtrSlot(0xA) != 0) {
+                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
                         Gp_MsgAlly3F3(0);
                         Gp_MsgAllyWeapon(0);
                     }
@@ -879,7 +879,7 @@ static void func_shelter_r47_80180714(Task* task)
         if (gGameSession->location.loc.variant == 1) {
             Gp_MsgSlot4Chain(0, 1);
         }
-        if (gameGetPtrSlot(0xA) != NULL) {
+        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             Gp_MsgAlly3F3(1);
             Gp_MsgAllyWeapon(1);
         }

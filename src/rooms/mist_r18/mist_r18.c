@@ -1573,7 +1573,7 @@ void func_mist_r18_8017E6D8(s32 idx)
     }
 
     if ((slot != NULL) && (*slot == NULL)) {
-        task  = Task_SpawnFromTable(D_mist_r18_80184F04, idx, 8, gameGetPtrSlot(3));
+        task  = Task_SpawnFromTable(D_mist_r18_80184F04, idx, 8, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         *slot = task;
         if (task != NULL) {
             task->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;

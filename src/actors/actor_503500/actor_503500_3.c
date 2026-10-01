@@ -533,11 +533,11 @@ static s32 func_actor_503500_80133684(Task* arg0)
          (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
          (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
          ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
-        if ((((GameActor*)(gameGetPtrSlot(3))->work)->mode != GAME_ACTOR_MODE_SCRIPTED) &&
+        if ((((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED) &&
             (gPlayerStatus.hp > 0) && (Gp_StateC08.field_A != 1)) {
             ret = 1;
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
                 work->field_774 |= 8;
                 /* `ret` has to be dead across the call for GCC to keep it in
                  * $a1: it is re-set on the way out of both arms. */
@@ -989,9 +989,9 @@ static void func_actor_503500_80134408(Task* arg0)
             break;
         case 1:
             if (++work->field_7BC >= 0x1F &&
-                ((GameActor*)(gameGetPtrSlot(3))->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
+                ((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
                 gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
                 SndEvt_EnqueueType7(0x40230010, 0x2D);
                 work->field_7DA = work->field_7DA + 1;
             }

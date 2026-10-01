@@ -402,8 +402,12 @@ an id supported by the receiver or a table with the dispatcher's
 `0x7FFFFFFF` terminator; some installed tables have no such terminating entry.
 The task borrows the table and never releases it.
 
-`Game_SetPtrSlot` / `gameGetPtrSlot` (`GameSession::ptrSlots`) is a parallel
-pointer table some tasks publish into; it is not the task list.
+`Game_SetPtrSlot` / `gameGetTaskSlot` (`GameSession::ptrSlots`) provides 16
+borrowed task registrations independent of the execution lists. Getter indices
+are elements in 0..15 and are unchecked. Empty registrations return `NULL`;
+registration does not keep a task alive or clear itself on task exit. Player
+and companion spawns register immediately, before their first tick publishes
+them in `gPlayerActorTasks`.
 
 ---
 

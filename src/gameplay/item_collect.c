@@ -347,7 +347,7 @@ void Gp_SavePlayerPos(void)
     McSaveData*   save;
 
     // Capture the root transform with each coordinate narrowed to 16 bits.
-    coord         = (gameGetPtrSlot(3))->extra.tmd->coords;
+    coord         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     storedX       = (u16)coord->coord.t[0];
     savedPos      = &gPlayerStatus.pos;
     savedPos->x   = storedX;

@@ -397,7 +397,7 @@ static void func_actor_317000_80161E68(Task* task)
             work->field_4C6 = 0;
         }
     }
-    func_actor_317000_801621F4(task, gameGetPtrSlot(3), 0x400, 0x200, work->field_4C6);
+    func_actor_317000_801621F4(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0x200, work->field_4C6);
     if (work->field_4C8 >= 0) {
         if (work->field_4C8 == 0) {
             Tmd_FreeBuffers(ext);
@@ -406,7 +406,7 @@ static void func_actor_317000_80161E68(Task* task)
     }
 }
 
-/// Step handler at index 3 of `D_actor_317000_80161E30`. The actor's own coordinate and the `gameGetPtrSlot(3)` task's
+/// Step handler at index 3 of `D_actor_317000_80161E30`. The actor's own coordinate and the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task's
 /// (the player) are normalised into `dir`, whose yaw `ratan2` takes over
 /// `dir.vz`, and the result is written as the roll/pitch-free facing
 /// `{ 0, yaw, 0 }` at `GfxCoord::param.rot`. The same yaw is then compared
@@ -429,7 +429,7 @@ static void func_actor_317000_801620BC(Task* task)
     s32              y;
 
     coord  = task->extra.tmd->coords;
-    target = ((gameGetPtrSlot(3))->extra.tmd)->coords;
+    target = ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd)->coords;
     work   = (Actor317000Work*)task->work;
 
     delta.vx = target->coord.t[0] - coord->coord.t[0];
@@ -464,7 +464,7 @@ static void func_actor_317000_801620BC(Task* task)
 }
 
 /// Aim body the per-frame tick `func_actor_317000_80161E68` calls with
-/// `gameGetPtrSlot(3)` (the player) as `targetTask`; it never reads the three
+/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` (the player) as `targetTask`; it never reads the three
 /// arguments after it (0x400, 0x200 and `Actor317000Work::field_4C6`). The delta from the actor's sixth coordinate
 /// (`coord[5]`) to the target's fifth is normalised, taken through the
 /// transpose of the actor's third coordinate's `workm`, and normalised again

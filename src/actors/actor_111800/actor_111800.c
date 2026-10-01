@@ -44,7 +44,7 @@ typedef struct Actor111800Work {
     /* 0x000 */ ActorAnimRig19 rig;
     /* 0x43C */ MATRIX         field_43C;
     /* 0x45C */ MATRIX         field_45C;
-    /* 0x47C */ void*          field_47C; // gameGetPtrSlot(3)
+    /* 0x47C */ void*          field_47C; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
     /* 0x480 */ MATRIX*        field_480; // gPlayerStatus.coordMtx, the player's coordinate matrix
     /* 0x484 */ u16            field_484; // sequence step the per-frame handler switches on
     /* 0x486 */ byte           pad_486[2];
@@ -374,7 +374,7 @@ static void func_actor_111800_80132390(Task* task)
     obj->flags    = 0;
     func_800B3F84(&work->rig.anim, D_actor_111800_8013A448, obj, work->rig.poses,
                   &work->rig.slots[0]);
-    work->field_47C  = gameGetPtrSlot(3);
+    work->field_47C  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work->field_480  = gPlayerStatus.coordMtx;
     i                = 1;
     work2            = (Actor111800Work*)task->work;

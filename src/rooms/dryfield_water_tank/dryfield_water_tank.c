@@ -79,7 +79,7 @@ extern WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11];
 /// `D_dryfield_water_tank_80188D4C`, which is how the sibling entry points
 /// `func_dryfield_water_tank_8017E194` and `..._8017E1B4` reach this block.
 ///
-/// `owner` is `gameGetPtrSlot(3)`, the task every `Gp_DispatchMsg` in the
+/// `owner` is `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`, the task every `Gp_DispatchMsg` in the
 /// driver targets; `child` is the task spawned from
 /// `D_dryfield_water_tank_8017FF88`, the one messages 0x7D4 / 0x7D5 / 0x7DB are
 /// sent to. `field_50` is a request the driver's per-frame switch consumes and
@@ -104,7 +104,7 @@ STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 /// the pair `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` /
 /// `Gp_DefaultMtx2`. The task parks the block in `Task::work` (0x1C), which is
 /// not a `TaskIdMap` here; `owner` is the slot-3 game task the same allocation
-/// is registered with (`gameGetPtrSlot(3)`).
+/// is registered with (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`).
 ///
 /// The same block carries the model task's script state: `field_4C` is the
 /// state `func_dryfield_water_tank_8017DB98` switches on (0 lowers the model,
@@ -117,7 +117,7 @@ STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 typedef struct DwtColorMtx {
     /* 0x00 */ MATRIX light; // TmdObject::lightMtx
     /* 0x20 */ MATRIX color; // TmdObject::colorMtx
-    /* 0x40 */ Task*  owner; // gameGetPtrSlot(3)
+    /* 0x40 */ Task*  owner; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
     /* 0x44 */ byte   pad_44[0x8];
     /* 0x4C */ u16    field_4C;
     /* 0x4E */ s16    field_4E;
@@ -1231,7 +1231,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(mtx, 0, 0x58);
-                mtx->owner    = gameGetPtrSlot(3);
+                mtx->owner    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 coord->parent = &gGfxViewCoord;
                 extra->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 Tmd_AllocBuffers(extra);
@@ -1284,7 +1284,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x58);
-                work->owner                    = gameGetPtrSlot(3);
+                work->owner                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tank_80188D4C = arg0;
             }
             work        = (DwtScriptWork*)arg0->work;

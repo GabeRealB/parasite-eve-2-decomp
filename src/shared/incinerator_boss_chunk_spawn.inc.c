@@ -25,7 +25,7 @@ void incinBossChunkSpawn(Enemy* enemy, Task* task)
     s32                  pan;
 
     owner  = task->parent->spawnArg2.pointer;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
     if (gIncinBossEnded == 1 ||
         (work = memCalloc(sizeof(Actor403200GrabWork), false), task->work = work, work == NULL)) {

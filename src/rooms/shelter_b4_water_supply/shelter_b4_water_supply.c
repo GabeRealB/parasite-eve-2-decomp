@@ -931,7 +931,7 @@ static void func_shelter_b4_water_supply_8017DB18(void)
     wp->room       = param.room;
     gRoomDeparture = work;
     Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
-    if (gameGetPtrSlot(0xA) != NULL && GameFlag_GetNibble(0xCF) == 0) {
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && GameFlag_GetNibble(0xCF) == 0) {
         GameFlag_SetNibble(0x4C, 6);
     }
 }
@@ -961,7 +961,7 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
         work.room      = param.room;
         gRoomDeparture = work;
         Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
-        if (gameGetPtrSlot(0xA) != NULL && GameFlag_GetNibble(0xCF) == 0) {
+        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && GameFlag_GetNibble(0xCF) == 0) {
             GameFlag_SetNibble(0x4C, 6);
         }
         taskKill(arg0);
@@ -1342,7 +1342,7 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
     u32                          rnd;
 
     splash    = arg0->spawnArg2.pointer;
-    ctl       = gameGetPtrSlot(3);
+    ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     ctlCoords = ctl->extra.tmd->coords;
     if (arg0->state == 0) {
         D_8011574C  = 0x60174;

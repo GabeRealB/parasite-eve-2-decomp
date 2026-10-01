@@ -24207,7 +24207,7 @@ GfxCoord* coords;
 EffectSpawnArg*      params;
 
 params          = &D_80113358;          /* before the call — pins $s0 */
-slot            = gameGetPtrSlot(3);
+slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 raw             = extra->coords;       /* extra local is required */
 params->spawnArgLo = 0xC0;
 coords             = &((GfxCoord*)raw)[3];
@@ -25717,17 +25717,17 @@ func(..., (s32)&a, 0);
 ```
 
 Use an array (or a 2-word struct) so both stores escape through the same
-pointer. Call `gameGetPtrSlot` (or any earlier call) into a temp first so
+pointer. Call `gameGetTaskSlot` (or any earlier call) into a temp first so
 the payload setup stays after that call:
 
 ```c
 s32   sp[2];
-void* slot;
+Task* playerTask;
 
-slot  = gameGetPtrSlot(3);
+playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 sp[0] = ...;
 sp[1] = ...;
-func(slot, cmd, (s32)sp, 0);
+func(playerTask, cmd, (s32)sp, 0);
 ```
 
 `Gp_MsgPlayer3EF` is the example.
@@ -26447,13 +26447,13 @@ poly++;
 
 `modelLightingStreamPrimF4` is the example (opcode 0x44 POLY_F4 header init).
 
-## NULL result before `gameGetPtrSlot`, `s32` key, goto-if-not-head
+## NULL result before `gameGetTaskSlot`, `s32` key, goto-if-not-head
 
 A circular `firstChild` / `nextSibling` search that returns the matching
 `spawnArg2` (or NULL) wants the result in `$s0` and the incoming `u16` id in
 `$s1`. Initializing `work = NULL` *after* the child load leaves the result in
 a caller-saved reg and drops the extra save. Assign it before the call so it
-is live across `gameGetPtrSlot` and pins `$s0`.
+is live across `gameGetTaskSlot` and pins `$s0`.
 
 `do { advance; if (iter == head) break; load; } while (id != key)` rotates:
 the back-edge becomes `bne iter, head` and the first `iter = head` is CSE'd
@@ -26463,7 +26463,7 @@ the `lhu` delay and `move v1, a1` survives:
 
 ```c
 work = NULL;
-head = gameGetPtrSlot(4)->firstChild;
+head = gameGetTaskSlot(GAME_TASK_SLOT_SCENE)->firstChild;
 if (head != NULL) {
     iter = head;
     work = iter->spawnArg2;
@@ -27220,7 +27220,7 @@ other = global;
 idx   = 3;          /* kills $a0; node already saved */
 msk   = mask;       /* want move s4, a1 first */
 mch   = match;      /* want move s3, a2 second */
-slot  = gameGetPtrSlot(idx);
+slot  = gameGetTaskSlot(idx);
 ```
 
 Pinning both with `register ... asm("s4")` / `asm("s3")` restores source
@@ -27246,7 +27246,7 @@ u16 mch;
 idx   = 3;
 msk   = mask;
 mch   = match;          /* u16 local: 100% */
-actor = gameGetPtrSlot(idx)->work;
+actor = gameGetTaskSlot(idx)->work;
 for (; node != NULL; node = node->next) {
     if ((node->flags & msk) == mch) {
 ```
@@ -27465,7 +27465,7 @@ register swap and `lbu a0`.
 
 A saved incoming arg (`move s0, a1`) is live on both the call-clobbered
 apply path and the no-call else path. The first bit test sits *after*
-`jal gameGetPtrSlot`, so it must read the saved copy (`andi v0, s0, 1`).
+`jal gameGetTaskSlot`, so it must read the saved copy (`andi v0, s0, 1`).
 The else is `field &= ~value` (`nor a0, zero, s0`).
 
 A new local `flags = value` copy-propagates back to `$a1` on the else
@@ -27477,7 +27477,7 @@ reused for the actor pointer:
 ```c
 mask = arg1;          /* move s2, s0 */
 if (arg0 == 0) {
-    work = gameGetPtrSlot(3);
+    work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (arg1 & 1) {   /* andi v0, s0, 1 — a1 is dead after jal */
         inner = work->actor;
         ...
@@ -43198,7 +43198,7 @@ the tail and a `break` — and let GCC 2.8.1 cross-jump the copies back together
 switch (task->state) {
     case 0:
         if (Gp_GetCurBit2Flag(3) == 1) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
             task->state = task->state + 1;      /* duplicated, not `goto` */
         } else {
             taskKill(task);                    /* duplicated, not `goto` */
@@ -46047,7 +46047,7 @@ path - once before a call, once again at a shared label after it:
 ```c
     var_a1 = 1;
     if (D_80071075 == 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
         f |= 8;
         goto block_27;
     }
@@ -46751,7 +46751,7 @@ The structure that *is* universal, and the better anchor:
 
 * `Task::msgTable` holds a `GpMsgEntry[]` -- `{s32 id; GpMsgHandler handler;}`,
   already defined in `include/gameplay/D4.h` -- terminated by `0x7FFFFFFF` with
-  one zero word after it. `Gp_DispatchMsg(gameGetPtrSlot(7), 0x13EE, ...)` in
+  one zero word after it. `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
   are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
   first did.
@@ -52327,7 +52327,7 @@ showed the `move`.
 ## Immediate stores to stack slots nothing reads are dead struct-field writes; their position fixes the statement, the frame fixes the padding
 
 `func_acropolis_helicopter_landing_pad_8017E270` stores `-0x249`, `0xB8` and
-`0` to `sp+0x28 / 0x30 / 0x2C` right after `gameGetPtrSlot` returns, never
+`0` to `sp+0x28 / 0x30 / 0x2C` right after `gameGetTaskSlot` returns, never
 reads them back, and reserves a 0x78 frame (0x50 bytes of locals) for a body
 that otherwise lives in registers. GCC 2.8.1 does not delete dead stores to
 memory, so this is the trace of a local aggregate the original code filled
@@ -55610,7 +55610,7 @@ coord = task->extra.coordBody->coord;
 base  = &Gp_RoomCoords[1];
 light = &base->light.head.transform.coord; /* not after the two `return`s */
 slot  = &base->light;
-if ((((TmdObject*)gameGetPtrSlot(3)->extra)->flags & 0x80) != 0) {
+if ((((TmdObject*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra)->flags & 0x80) != 0) {
     return;
 }
 if (gRoomEffectState->effectControl >= 2) {
@@ -60300,7 +60300,7 @@ pointer accesses (`rec.source.index = id; p->animationId = 1; …`), which is wh
 the compiler materialise `addiu $a1, $sp, 0x60` early — in the delay slot of
 the preceding `bne`, in the plaza's case. Whether that pointer lives in `$a1`
 or in a callee-saved register is decided by the *call* that follows: passing
-`(s32)p` keeps the pointer live across `jal gameGetPtrSlot`, so it is coloured
+`(s32)p` keeps the pointer live across `jal gameGetTaskSlot`, so it is coloured
 `$s0` and the argument becomes `move $a2, $s0`; passing `(s32)&buf.weapon.rec`
 ends the pointer's live range at its last store, so it stays in `$a1` and the
 argument is recomputed as `addiu $a2, $sp, 0x60`. That one substitution was the
@@ -60843,7 +60843,7 @@ from `Task::work`:
 ```c
 D_801153F4 = 2;                                  /* extern u8 */
 ((AfrStreamWork*)task->work)->mtx    = D_80073B8C;
-((AfrStreamWork*)task->work)->target = gameGetPtrSlot(3);
+((AfrStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 ```
 
 The target keeps source order — `lui/li/sb` for the flag, *then* the
@@ -63503,7 +63503,7 @@ sb    v0,0x11(sp)
 li    v0,3
 sw    ra,0x18(sp)      <- after two of the three payload stores
 sb    zero,0x10(sp)
-jal   gameGetPtrSlot
+jal   gameGetTaskSlot
  sh   v0,0x12(sp)
 ```
 
@@ -63519,7 +63519,7 @@ ActorCommand msg;
 msg.context.loc.stage = 0;
 msg.context.loc.area  = 0x2C;
 msg.command        = 3;
-Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (s32)&msg, 0x7DB);
 ```
 
 So the initializer / element-wise choice is a scheduling lever in both
@@ -83955,7 +83955,7 @@ reads like this in the m2c seed:
 ```c
 extern s32 D_actor_335800_80164E7C;                    /* wrong width */
 Gp_PlayerWeaponId(&D_actor_335800_80164E7C);
-Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, &D_actor_335800_80164E7C, 0);
+Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &D_actor_335800_80164E7C, 0);
 ```
 
 The payload is not an `s32`: it is the five-word `AnimationPlayRequest`
@@ -83978,9 +83978,9 @@ Two things the seed gets wrong beyond the type:
   declaration; delete the line once the header is in.
 * The call order is **source order**, and it varies between neighbours. The
   gameplay siblings (`src/gameplay/3CD8.c`, `3688.c`) inline the slot call —
-  `Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&rec, 0)` — so it evaluates
+  `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&rec, 0)` — so it evaluates
   after `Gp_PlayerWeaponId`. `func_actor_335800_801624DC` instead binds it first
-  (`slot = gameGetPtrSlot(3);`), which is why `$s1` holds the slot across the
+  (`slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);`), which is why `$s1` holds the slot across the
   `Gp_PlayerWeaponId` call. Both spellings match their own target; pick from the
   register that survives the call, not from the sibling.
 
@@ -85972,7 +85972,7 @@ the `rooms_shared_8017db84.c` idiom - is the accurate spelling, and it matches.
 Two checks confirm the reading on a raw splat dump: the record stride is 8 bytes
 with a code pointer at `+0x4`, and the last record's `id` is `0x7FFFFFFF`. The
 ids are message ids some gameplay dispatcher calls by name, which is the
-strongest confirmation: `Gp_DispatchMsg(gameGetPtrSlot(7), 0x13EF, ...)`
+strongest confirmation: `Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
 `Game_SetPtrSlot(task, 7)`.
 ## A lone `.word` code pointer in a room's data is a `GpMsgHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
@@ -89117,7 +89117,7 @@ u8 sp10; u8 sp11; s16 sp12;   /* msg payload at sp+0x10 / +0x11 / +0x12 */
 sp10 = gGameSession->location.loc.stage;
 sp12 = 2;
 sp11 = gGameSession->location.loc.area;
-Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, &sp10, 0x7DB);
+Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &sp10, 0x7DB);
 ```
 
 `sp11` and `sp12` are never read by any C expression - the callee is unknowable
@@ -90547,7 +90547,7 @@ lbu   $v1, 0x7($v0)     # the two id bytes ...
 sb    $v1, 0x10($sp)
 lbu   $v0, 0x6($v0)
 sh    $zero, 0x12($sp)  # ... and the halfword the receiver switches on
-jal   gameGetPtrSlot
+jal   gameGetTaskSlot
 sb    $v0, 0x11($sp)
 ```
 
@@ -91184,7 +91184,7 @@ into `$a1` before a compare chain is a global allocno") `find_free_reg` walks
 register numbers, so it lands on `$a1` only when it *conflicts* with `$a0`. That
 conflict is created by `record_one_conflict` when an insn sets `$a0` while the
 allocno is live - here the `(set (reg:SI 4 a0) (const_int 4))` setting up
-`gameGetPtrSlot(4)`. Whether that insn falls before the store that kills the
+`gameGetTaskSlot(GAME_TASK_SLOT_SCENE)`. Whether that insn falls before the store that kills the
 constant, inside the same block, is decided by sched1, and sched1 is fed the
 source statement order.
 
@@ -91280,7 +91280,7 @@ The `a0`/`a1` pair is the tell. The project declares
 
 ```c
 void  Game_SetPtrSlot(void* ptr, s32 index);   /* include/main/session.h */
-void* gameGetPtrSlot(s32 index);
+void* gameGetTaskSlot(s32 index);
 ```
 
 and m2c had emitted a one-parameter `extern` for it, so its call dropped `index`
@@ -91334,7 +91334,7 @@ value selection depends on:
 
 ```c
     var_a0 = 0x19;               /* live across the call below */
-    if (gameGetPtrSlot(0xA) != 0) {
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         var_a0 = 0x18;
     }
     Gp_SpawnIfCapIdle(var_a0, 0);
@@ -91344,7 +91344,7 @@ Name the call's result in a local of its own and the constant is born after
 it. Nothing else changes - same blocks, same predicates, same constants:
 
 ```c
-    slot = gameGetPtrSlot(0xA);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     arg  = 0x19;
     if (slot != 0) {
         arg = 0x18;
@@ -93449,7 +93449,7 @@ a single register, check whether retail stored it in a variable declared
 outside the `if` rather than in a fresh expression per arm.
 
 **The converse tells you the arms need separate scopes.** `func_actor_104900_801339B0`
-calls `gameGetPtrSlot(3)` in two arms of an `if`/`else if` chain, tests the raw
+calls `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` in two arms of an `if`/`else if` chain, tests the raw
 pointer for NULL and then loads `->work`. With one function-scope `player` (and
 one `actor`) both arms reach `global_alloc`, which colours the pair once for the
 whole function: `$v1` in *both* arms, and the arm that does not need the move
@@ -97218,7 +97218,7 @@ block below to 100%):
 ```c
 AnimationPlayRequest* msg = &D_actor_401000_80154F1C;
 msg->animationId   = 2;
-Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FF, (s32)msg, 0);
+Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FF, (s32)msg, 0);
 ```
 
 The fix came from the matched sibling `func_actor_356100_8016A468`
@@ -99095,7 +99095,7 @@ sp14 = 1;
 sp18 = 0;
 sp1C = 0;
 sp20 = 0;
-Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&sp10, 0);
+Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&sp10, 0);
 ```
 
 `.frame $sp,40,$31  # vars= 8` - the frame is two words, not five - and only
@@ -99114,7 +99114,7 @@ AnimationPlayRequest msg;
 msg.source.index = anim;   /* all five stores survive, in order */
 msg.animationId = 1;
 ...
-Gp_DispatchMsg(gameGetPtrSlot(3), 0x3E8, (s32)&msg, 0);
+Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&msg, 0);
 ```
 
 100% with no `delete` penalty (`func_actor_342000_8016439C`). Any aggregate
@@ -99827,7 +99827,7 @@ this family.
 
 The seed fills a 0x7DA payload out of three locals m2c emitted one per field —
 `u8 sp10; u8 sp11; s16 sp12;` — and passes only the first by address
-(`Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, &sp10, 0x7DB)`). It scores 78.114%
+(`Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &sp10, 0x7DB)`). It scores 78.114%
 with `regs=13 delete=6 insert=1`, and the object is missing `sb $v0,0x11($sp)`
 (0x7DB selector halfword) and `sh $s0,0x12($sp)`, plus the frame, both `$s0`/`$s1`
 saves and the `s1` home of the work pointer.
@@ -99845,7 +99845,7 @@ address-taken 4-byte struct, which is also what makes the payload's fields live:
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command        = 9;
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, (s32)&msg, 0x7DB);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (s32)&msg, 0x7DB);
         work->field_C = 9;
         work->field_E = 1;
     }
@@ -99856,7 +99856,7 @@ worth reading off the target together. `$s0` is the literal `9` — `addiu
 $s0,$zero,0x9` before the first `jal`, `sh $s0,0xC($s1)` after the second — and
 `$s1` is the work pointer: the payload field and the latched `work->field_C`
 are the *same constant*, so cse1 hands both stores one pseudo, that pseudo is
-live across the `gameGetPtrSlot` call, and local-alloc parks it in a
+live across the `gameGetTaskSlot` call, and local-alloc parks it in a
 callee-saved register. The 0x28 frame and the second save are that pseudo's
 cost, not a second source variable: unlike "A dispatch constant that is also
 stored *and* passed as a call argument must be one C variable"
@@ -101507,11 +101507,11 @@ Scratch `nonmatchings/func_actor_113000_80131F90-vacuum` (session `114148419da64
 ## A load the target places *after* a `jal` is proof of source order — m2c had hoisted it above the call (func_actor_450200_80131FA8, 2026-09-16)
 
 **Problem.** `func_actor_450200_80131FA8` is a `switch (task->state)` state
-machine whose body first calls `gameGetPtrSlot(3)`. The target reads the
+machine whose body first calls `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`. The target reads the
 selector *after* that call:
 
 ```
-jal    gameGetPtrSlot
+jal    gameGetTaskSlot
 sw     s0,0x10(sp)          <- delay slot
 lw     v1,0x30(s1)          <- the state, read after the call returns
 nop
@@ -101524,7 +101524,7 @@ produced, rendered that as an explicit hoist:
 
 ```c
 temp_v1  = arg0->state;             /* before the call */
-temp_s2  = gameGetPtrSlot(3);
+temp_s2  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 switch (temp_v1) { ... }
 ```
 
@@ -101540,7 +101540,7 @@ predicates and calls already matching (14/14 blocks, 75/74 instructions).
 after the call, with no local at all:
 
 ```c
-looker = gameGetPtrSlot(3);
+looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 switch (arg0->state) {
 ```
 
@@ -101790,7 +101790,7 @@ and the state in `$s1`.
 
 ```c
 temp_v1 = arg0->state;
-temp_s2 = gameGetPtrSlot(3);
+temp_s2 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 switch (temp_v1) {
 ```
 
@@ -101806,7 +101806,7 @@ one of the three callee-saved registers this body needs, and the pressure pushes
 **Fix.** Write the call first and switch on the field directly:
 
 ```c
-slot = gameGetPtrSlot(3);
+playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 switch (task->state) {
 ```
 
@@ -101819,7 +101819,7 @@ source with *only* the ordering reverted (`s32 state = task->state;` before the
 call). It scores 96.829% and its whole diff is the one register home:
 
 ```
-target:  li a0,3 / jal gameGetPtrSlot / [ds] sw s0,0x10(sp) / lw v1,0x30(s1) / beqz v1,...
+target:  li a0,3 / jal gameGetTaskSlot / [ds] sw s0,0x10(sp) / lw v1,0x30(s1) / beqz v1,...
 base_2:  lw s0,0x30(s1) / jal / [ds] li a0,3 / beqz s0,...
 ```
 
@@ -101833,7 +101833,7 @@ predict how many penalties it is worth.
 
 **The shortcut.** `BRIEF.md`'s similar-body list named `func_actor_361100_801627D4`
 at `fields` 0.96, and that matched body is this same 0xC head-aim record and
-state machine. It opens with `looker = gameGetPtrSlot(3);` **before** the
+state machine. It opens with `looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);` **before** the
 switch and writes the clamp as `if ((s16)rate < 0)`. Porting its statement
 order verbatim - call first, and the signed cast in place of m2c's `rate &
 0x8000` (the `andi`/`beqz` against `sll`/`bgez` rule already recorded above) -
@@ -108149,7 +108149,7 @@ expression `index->field_2C->field_8` to both calls instead leaves the target's
 
 **A helper argument is a register, and a definition that spans a call is
 callee-saved.** The walk helper's start order decides the whole function's
-allocation: `svp = &sv;` must precede the `gameGetPtrSlot(3)` call (so `svp`
+allocation: `svp = &sv;` must precede the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` call (so `svp`
 legitimately owns `$s1`), and the scratch pointer must be computed *after* it,
 so it never spans the call and stays in `$a`/`$v`. The first version computed
 the scratch first and cost a callee-saved register plus the frame slot
@@ -118143,16 +118143,16 @@ same tell as "A call's `a0` setup in the delay slot of the *preceding* `if`
 branch means the call is duplicated in both arms" above.
 ## Argument-register setup follows source order: swapping two arguments moves one `move`, and a 100% scratch score does not cover the port (func_mine_mesa_8017E2A4, 2026-09-17)
 
-Target tail: `jal gameGetPtrSlot; li a0,3; move a0,s2; move a1,v0; jal
+Target tail: `jal gameGetTaskSlot; li a0,3; move a0,s2; move a1,v0; jal
 func_800B17D4`. The two setup instructions are in that order, and the function
 scored 100.00% in the scratch env. Porting it, the two arguments were renamed
 and written swapped --
 
 ```c
-    looker = gameGetPtrSlot(0xA);              /* s2 */
+    looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);              /* s2 */
     ...
-    func_800B17D4(gameGetPtrSlot(3), target, aim);  /* WRONG */
-    func_800B17D4(looker, gameGetPtrSlot(3), aim);  /* matches */
+    func_800B17D4(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), target, aim);  /* WRONG */
+    func_800B17D4(looker, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);  /* matches */
 ```
 
 -- which emits `move a0,v0; move a1,s2` instead. Same mnemonics, same count,
@@ -119216,20 +119216,20 @@ body was instruction-for-instruction right.
 
 ```c
     temp_v1 = arg0->state;              /* m2c hoists this */
-    temp_a0 = gameGetPtrSlot(3);
+    temp_a0 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (temp_v1) {
 ```
 
-but the ROM loads the state *after* the call (`jal gameGetPtrSlot` / `li a0,3`
+but the ROM loads the state *after* the call (`jal gameGetTaskSlot` / `li a0,3`
 / `lw v1,0x30(s0)` / `move a0,v0`). GCC cannot move a load across a call it
 cannot prove does not alias, so with m2c's order the state value is live across
-`gameGetPtrSlot` and needs a home of its own — the extra callee-saved register
+`gameGetTaskSlot` and needs a home of its own — the extra callee-saved register
 the target does not have.
 
 **Fix.** Call first and let the switch read the field:
 
 ```c
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (arg0->state) {
 ```
 
@@ -119581,7 +119581,7 @@ middle three, `addiu $a1,$sp,0x18` in the case's first delay slot), and adding
 
 Where the pointer's *last use* sits decides the register. The message call
 passes `&buf`, which reload rematerialises from the frame pointer - so the
-pointer is dead before `gameGetPtrSlot` and local-alloc keeps it in `$a1`.
+pointer is dead before `gameGetTaskSlot` and local-alloc keeps it in `$a1`.
 Passing the pointer itself there (`(s32)rec` for `(s32)&buf`) keeps it live
 across that call, and the base becomes callee-saved instead of `$a1`: 97.1%.
 Same for moving the assignment after the first store it serves - CSE has no
@@ -126990,7 +126990,7 @@ different allocator would have made differently; it is a statement about where
 the source reads the field:
 
 ```c
-    temp_s0 = gameGetPtrSlot(0xA);             /* call */
+    temp_s0 = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);             /* call */
     temp_a0 = M2C_FIELD(arg0, s32 *, 0x30);     /* live across call 2 -> $s1 */
     temp_a1 = ... rand() ...;                   /* call */
     switch (temp_a0) {
@@ -127000,7 +127000,7 @@ Reading it at its use site instead puts the load after the last call, where the
 short range fits a caller-saved register and the prologue loses a save/restore:
 
 ```c
-    slot  = gameGetPtrSlot(0xA);
+    slot  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     coord = &((TmdObject*)slot->extra)->coords[table[(rand() * 11) >> 15]];
     switch (task->state) {                      /* load lands here -> $a0 */
 ```
@@ -128181,7 +128181,7 @@ call's own register and only copies afterwards.
 
 ## A bare `extern T*` global read next to a struct store needs the one-element-aggregate form to keep its true dependence
 
-`func_actor_111800_80132390` stores `gameGetPtrSlot(3)` and then `D_80073B8C`
+`func_actor_111800_80132390` stores `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` and then `D_80073B8C`
 into two words of its work block. The first store's MEM is in-struct with a PLUS
 address, so `rtx_addr_varies_p` is 1 for it; the global's load is a plain
 `(mem:SI (lo_sum (reg) (symbol_ref)))`, not in-struct, and `rtx_addr_varies_p` is
@@ -135203,7 +135203,7 @@ SOFT_TOUCH_REG(p) adds cursor references without changing the emitted walk.
 SOFT_USE_REG(svp) adds one reference on the successful view-hit exit, immediately
 before copying the transformed vector to outp. Keeping that use in the entry
 instead creates an implicitly volatile asm whose scheduler dependencies capture
-the dir address, forcing it before gameGetPtrSlot. Moving the use to the exit
+the dir address, forcing it before gameGetTaskSlot. Moving the use to the exit
 avoids those entry dependencies. The base_9 plan predicted both the remaining
 priority advantage and the restored entry schedule; both were observed.
 

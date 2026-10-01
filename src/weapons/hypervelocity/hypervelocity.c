@@ -304,7 +304,7 @@ void func_hypervelocity_8011D1E8(Task* task)
                 work->scale = work->scale - 0x20;
                 work->angle = work->angle - 0x20;
             }
-            player          = (gameGetPtrSlot(3))->extra.tmd->coords;
+            player          = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             Gp_SpawnEff(0x60054, &player[(((gRandomLcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
             if (work->age >= 0x6F || task->spawnArg1.value < 0) {
@@ -380,7 +380,7 @@ void func_hypervelocity_8011D830(Task* task)
                 return;
             }
             task->exitCallback         = func_hypervelocity_8011F11C;
-            player                     = (gameGetPtrSlot(3))->extra.tmd->coords;
+            player                     = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             dstm                       = (GpMtxWords*)&coord->coord;
             srcm                       = (GpMtxWords*)&player->coord;
             dstm->m00_m01              = srcm->m00_m01;
@@ -965,7 +965,7 @@ static void func_hypervelocity_8011F374(Task* arg0)
     s16         count;
 
     parent      = arg0->parent;
-    work        = gameGetPtrSlot(3);
+    work        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     extra       = arg0->extra.tmd;
     playerExtra = work->extra.tmd;
     coord       = extra->coords;

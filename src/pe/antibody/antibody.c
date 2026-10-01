@@ -574,7 +574,7 @@ static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
     s32                 ang2;
     u16                 vz;
 
-    player                                      = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
+    player                                      = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
     head                                        = SCRATCH_STACK_CURSOR(u8);
     ((AntibodyArcScratch*)(head - 0x28))->v0.vx = (u16)arg0->workm.t[0];
     block                                       = (AntibodyArcScratch*)(head - 0x28);

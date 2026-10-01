@@ -33,7 +33,7 @@ void incinBossRainSpawn(Enemy* enemy, Task* task)
     s32                  snd;
     s32                  pan;
 
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     owner  = task->parent->spawnArg2.pointer;
     parent = task->parent;
 

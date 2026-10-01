@@ -1083,7 +1083,7 @@ void func_actor_800100_80161F20(Task* task)
     base  = &Gp_RoomCoords[3];
     light = &base->light.head.transform.coord;
     slot  = &base->light;
-    if ((gameGetPtrSlot(10)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return;
     }
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
@@ -1791,7 +1791,7 @@ static void func_actor_800100_80163D54(Task* arg0)
 
     actor  = arg0->work;
     coord  = arg0->extra.tmd->coords;
-    target = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     flag   = (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
     if (((GameActor*)arg0->work)->companionWork->decisionTimer <= 0) {
         func_8010BF7C(arg0, 0xA, 0x1F);
@@ -1934,7 +1934,7 @@ static void func_actor_800100_80164184(Task* arg0)
     u16            timer;
 
     coord  = arg0->extra.tmd->coords;
-    target = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     actor  = arg0->work;
     flag   = (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
     dist   = _actor800100GetContactDistance(coord, actor->companionWork->probe.contacts, NULL);
@@ -2024,7 +2024,7 @@ static void func_actor_800100_801643F4(Task* arg0)
     s32              flag;
 
     actor                            = arg0->work;
-    extra                            = (gameGetPtrSlot(3))->extra.tmd;
+    extra                            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
     scratch                          = SCRATCH_HEAD_ADDR;
     head                             = SCRATCH_HEAD_AT(scratch, VECTOR);
     SCRATCH_HEAD_AT(scratch, VECTOR) = head - 1;
@@ -2352,7 +2352,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
     s32                     val;
 
     coord    = arg0->extra.tmd->coords;
-    target   = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     actor    = arg0->work;
     distance = _actor800100GetContactDistance(coord, actor->companionWork->probe.contacts, NULL);
     if (distance != 0 && distance < 0x301) {
@@ -2513,7 +2513,7 @@ static void func_actor_800100_80165010(Task* arg0)
     u16            angle;
 
     coord     = arg0->extra.tmd->coords;
-    target    = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     actor     = arg0->work;
     companion = actor->companionWork;
     dist      = _actor800100GetContactDistance(coord, companion->probe.contacts, NULL);

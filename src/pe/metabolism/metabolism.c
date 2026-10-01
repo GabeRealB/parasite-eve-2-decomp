@@ -101,7 +101,7 @@ void func_metabolism_8012EF34(Task* arg0)
     switch (arg0->state) {
         case 0:
             rot                 = (GpMtxWords*)&coord->coord;
-            coord->parent       = (gameGetPtrSlot(3))->extra.tmd->coords;
+            coord->parent       = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             rot->m00_m01        = 0x1000;
             rot->m02_m10        = 0;
             rot->m11_m12        = 0x1000;

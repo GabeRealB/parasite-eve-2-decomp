@@ -805,7 +805,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 2:
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
-                Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D9, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D9, 0, 0);
             }
             task->state += 1;
             break;
@@ -817,16 +817,16 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->state += 1;
             break;
         case 5:
-            Gp_DispatchMsgReply(gameGetPtrSlot(4), 0x7D8, 0x28, &spawned);
+            Gp_DispatchMsgReply(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D8, 0x28, &spawned);
             Gp_DispatchMsgPtr(spawned, 0x7D3, &D_acropolis_helicopter_landing_pad_80184E28, 0);
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
             D_acropolis_helicopter_landing_pad_80184E3C.animationId  = 9;
             D_acropolis_helicopter_landing_pad_80184E3C.source.index = gPlayerStatus.weapon + 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
             coord = spawned->extra.tmd->coords;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F5, coord, 0);
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F5, coord, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             task->state += 1;
             break;
         case 6:
@@ -955,7 +955,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
 /// the same registers as the original.
 void func_acropolis_helicopter_landing_pad_8017E0F8(Task* arg0)
 {
-    GameActor* actor = (GameActor*)(gameGetPtrSlot(3))->work;
+    GameActor* actor = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
     s32        wrapped;
     s32        tmp;
     s32        dist;
@@ -1029,7 +1029,7 @@ void func_acropolis_helicopter_landing_pad_8017E270(Task* task)
     MATRIX    unusedM;
     SVECTOR   unusedC;
 
-    coord  = &gameGetPtrSlot(3)->extra.tmd->coords[4];
+    coord  = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[4];
     dir.vx = -0x249;
     dir.vy = 0;
     dir.vz = 0xB8;
@@ -1153,7 +1153,7 @@ void func_acropolis_helicopter_landing_pad_8017E64C(void)
 void func_acropolis_helicopter_landing_pad_8017E67C(void)
 {
     if (D_acropolis_helicopter_landing_pad_80187F84 != 0) {
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &D_acropolis_helicopter_landing_pad_80184E50, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_80184E50, 0);
     }
 }
 
@@ -1189,11 +1189,11 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
         case 0:
             args.field_0 = 0xC;
             args.field_4 = 9;
-            Gp_DispatchMsgPtrs(gameGetPtrSlot(3), 0x3F2, &D_acropolis_helicopter_landing_pad_801837E0, &args);
+            Gp_DispatchMsgPtrs(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F2, &D_acropolis_helicopter_landing_pad_801837E0, &args);
             task->state++;
             break;
         case 1:
-            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
                 taskKill(task);
             }
             break;

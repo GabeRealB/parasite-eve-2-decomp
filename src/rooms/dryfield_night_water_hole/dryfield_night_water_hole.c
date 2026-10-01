@@ -1109,7 +1109,7 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_dryfield_night_water_hole_8018065C, 0);
         }
     }
-    if (gGameSession->location.loc.variant == 0xA && gameGetPtrSlot(0xA) != 0 && GameFlag_GetNibble(0xCF) == 0) {
+    if (gGameSession->location.loc.variant == 0xA && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && GameFlag_GetNibble(0xCF) == 0) {
         GameFlag_SetNibble(0xCF, 2);
         func_800E3FAC(0xA2, 0x25);
         Task_SpawnFromTable(D_801351FC, 1, 0, 0);
@@ -1470,7 +1470,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
     s32                            i;
     u32                            rnd;
 
-    ctl       = gameGetPtrSlot(3);
+    ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     splash    = arg0->spawnArg2.pointer;
     mask      = 1 << gGameSession->location.loc.view;
     ctlCoords = ctl->extra.tmd->coords;

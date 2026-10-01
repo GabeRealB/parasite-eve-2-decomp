@@ -15,10 +15,10 @@ void incinBossGlobHold(Enemy* enemy, Task* task)
     s32                  armed;
 
     work   = task->work;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gIncinBossEnded == 1) {
         if (work->field_1B2 == 1) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
             work->field_1B2 = 0;
         }
         Gp_DestroyEnemy(enemy, task);
@@ -43,7 +43,7 @@ void incinBossGlobHold(Enemy* enemy, Task* task)
     }
 
     if (work->field_1AC >= 9) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
         work->field_1B2 = 0;
         task->state++;
     }

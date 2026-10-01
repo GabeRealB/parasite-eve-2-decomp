@@ -297,7 +297,7 @@ void lungerHitTick(Task* arg0)
     }
     work->field_6B2 = 0;
     if (Gp_CountRec18Hi(work->field_4B4, 0x10000) != 0) {
-        part               = &(gameGetPtrSlot(3))->extra.tmd->coords[4];
+        part               = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4];
         scratch->effOfs.vx = part->workm.t[0];
         scratch->effOfs.vy = part->workm.t[1];
         scratch->effOfs.vz = part->workm.t[2];

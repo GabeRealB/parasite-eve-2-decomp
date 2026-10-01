@@ -324,7 +324,7 @@ static Task* Display_SpawnFromMode(void)
 
     block_case4:
         Stage_Ctx->field_11 = 2;
-        slot                = gameGetPtrSlot(3);
+        slot                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         obj                 = (GameActor*)slot->work;
         flag                = obj->collisionEnableMask & 1;
         ptr                 = slot->extra.tmd->coords;
@@ -357,7 +357,7 @@ block_default:
     Mem_InitAux();
     gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
-    slot                                    = gameGetPtrSlot(3);
+    slot                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     obj                                     = (GameActor*)slot->work;
     flag                                    = obj->collisionEnableMask & 1;
     ptr                                     = slot->extra.tmd->coords;
@@ -394,7 +394,7 @@ static void Display_TransitionTask(Task* task)
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
-                    (gameGetPtrSlot(1))->spawnArg1.value = gGameSession->location.loc.view;
+                    (gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE))->spawnArg1.value = gGameSession->location.loc.view;
                     ResetGraph(1);
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);

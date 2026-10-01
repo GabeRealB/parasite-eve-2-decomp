@@ -529,11 +529,11 @@ s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1)
 void func_800AEE8C(Task* arg0)
 {
     TaskFuncTable3 sp;
-    void*          slot;
+    Task*          playerTask;
 
-    slot = gameGetPtrSlot(3);
-    sp   = Gp_DirTaskStates;
-    if (slot != NULL) {
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    sp         = Gp_DirTaskStates;
+    if (playerTask != NULL) {
         sp.funcs[arg0->state](arg0);
     }
 }
@@ -586,15 +586,15 @@ static void Gp_ClearDirCursor(void)
 static void Gp_PostMsg13EF(void)
 {
     DirectionActionRequest request;
-    void*                  slot;
+    Task*                  roomTask;
 
     if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
             request.control  = Gp_DirFlags;
             request.actionId = Gp_DirByte;
             request.argument = Gp_DirNibble;
-            slot             = gameGetPtrSlot(7);
-            Gp_DispatchMsgPtr(slot, DIRECTION_MESSAGE_ROOM_ACTION, &request, 0);
+            roomTask         = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
+            Gp_DispatchMsgPtr(roomTask, DIRECTION_MESSAGE_ROOM_ACTION, &request, 0);
         }
     }
     Gp_DirNibble    = 0;
@@ -661,9 +661,9 @@ static void Gp_CommitSaveLoc(void)
 static void Gp_MsgPlayer3EE(void)
 {
     ActorTransform sp;
-    void*          slot;
+    Task*          playerTask;
 
-    slot = gameGetPtrSlot(3);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gGameSession->eventState != 0) {
         D_80114CF8      = 0;
         Gp_DirNibble    = 0;
@@ -677,14 +677,14 @@ static void Gp_MsgPlayer3EE(void)
         sp.rot.vx = 0;
         sp.rot.vz = 0;
         sp.rot.vy = Gp_DirNibble << 4;
-        Gp_DispatchMsgPtr(slot, 0x3EE, &sp, 0);
+        Gp_DispatchMsgPtr(playerTask, 0x3EE, &sp, 0);
         Gp_DirPhase++;
     }
 }
 
 static void Gp_MsgPlayer3F0(void)
 {
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         Gp_DirPhase++;
     }
 }
@@ -692,12 +692,12 @@ static void Gp_MsgPlayer3F0(void)
 static void Gp_MsgPlayer3EF(void)
 {
     GpFacingArg sp;
-    void*       slot;
+    Task*       playerTask;
 
-    slot       = gameGetPtrSlot(3);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     sp.field_0 = (Gp_DirFlags >> 8) & 1;
     sp.field_4 = Gp_DirByte & 0xF;
-    Gp_DispatchMsgPtr(slot, 0x3EF, &sp, 0);
+    Gp_DispatchMsgPtr(playerTask, 0x3EF, &sp, 0);
     Gp_DirAltNibble = 0;
     Gp_DirAlt       = 0;
     D_80114CD4      = 0;

@@ -143,21 +143,21 @@ void func_800CE22C(Task* arg0)
 
 void Gp_MenuExitCallback(Task* arg0)
 {
-    void* slot;
+    Task* playerTask;
 
-    slot = gameGetPtrSlot(3);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if ((Gp_PendingRelatedId != 0) && (Gp_RelatedPending != 0)) {
         if (Gp_IsStateF0Active() == 0) {
             Gp_PendingRelatedId = 0;
         } else if (Gp_PendingRelatedId > 0) {
-            func_801088D4(slot, 0, 1);
+            func_801088D4(playerTask, 0, 1);
         } else {
-            func_801088D4(slot, 1, 1);
+            func_801088D4(playerTask, 1, 1);
         }
         Gp_RelatedPending = 0;
     }
     if (Gp_HealPending == 1) {
-        Gp_DispatchMsg(slot, 0x402, 0, 0);
+        Gp_DispatchMsg(playerTask, 0x402, 0, 0);
         Gp_HealPending = 0;
     }
     if (Gp_UsedItemId != 0) {

@@ -319,7 +319,7 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
     s32                         i;
 
     obj   = task->spawnArg2.pointer;
-    owner = gameGetPtrSlot(3);
+    owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     root  = owner->extra.tmd->coords;
     if (task->state == 0) {
         D_8011574C  = 0x60058;
@@ -423,7 +423,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
     s16    j;
     s16    k;
 
-    gameGetPtrSlot(3);
+    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
         return;
     }

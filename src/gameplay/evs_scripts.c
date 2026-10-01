@@ -239,17 +239,17 @@ static void Gp_ScriptTaskState1(Task* arg0)
         switch (st->pc->opcode) {
             case EVENT_SCRIPT_OPCODE_SEND_MESSAGE:
                 if (st->pc->operand0.value == 4) {
-                    slot = gameGetPtrSlot(4);
+                    slot = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
                     if (st->pc->operand1.value != -1) {
                         Gp_DispatchMsgReply(slot, 0x7D0,
                                             (st->pc->operand1.value << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area,
                                             &slot);
                     }
                 } else if (st->pc->operand0.value == -1) {
-                    slot = gameGetPtrSlot(4);
+                    slot = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
                     Gp_DispatchMsgReply(slot, 0x7D8, st->pc->operand1.value, &slot);
                 } else {
-                    slot = gameGetPtrSlot(st->pc->operand0.value);
+                    slot = gameGetTaskSlot(st->pc->operand0.value);
                 }
                 if (slot != NULL) {
                     Gp_DispatchMsg(slot, st->pc->operand2.value, st->pc->operand3.message.value, st->pc->operand4.message.value);
@@ -264,7 +264,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 D_801156F4.sceneKey      = NULL;
                 gGameSession->eventState = 0;
                 if (arg0->spawnArg1.value == 0) {
-                    Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
+                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
                 }
                 arg0->state++;
                 Display_ReleaseRef();
@@ -300,7 +300,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_RESTORE_HUD:
-                Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA8, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA8, 0, 0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_EVENT_STATE:
@@ -314,19 +314,19 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 return;
 
             case EVENT_SCRIPT_OPCODE_WAIT_ANIMATION:
-                if (Gp_DispatchMsg(gameGetPtrSlot(st->pc->operand0.value), 0x3ED, 0, 0) == 0) {
+                if (Gp_DispatchMsg(gameGetTaskSlot(st->pc->operand0.value), 0x3ED, 0, 0) == 0) {
                     break;
                 }
                 return;
 
             case EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION:
-                if (Gp_DispatchMsg(gameGetPtrSlot(st->pc->operand0.value), 0x3F0, 0, 0) == 0) {
+                if (Gp_DispatchMsg(gameGetTaskSlot(st->pc->operand0.value), 0x3F0, 0, 0) == 0) {
                     break;
                 }
                 return;
 
             case EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION:
-                slot = gameGetPtrSlot(st->pc->operand0.value);
+                slot = gameGetTaskSlot(st->pc->operand0.value);
                 // Resolve the weapon bank in a copy of the borrowed request.
                 rec = *st->pc->operand3.animation;
                 if (st->pc->operand0.value == 3) {
@@ -345,7 +345,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_SELECT_SCENE:
                 D_801156F4.sceneKey = st->pc->operand0.sceneKey;
-                Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA6, D_801156F4.value, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA6, D_801156F4.value, 0);
                 if (D_801156F4.sceneKey != NULL) {
                     D_801156CA = 1;
                 }
@@ -413,12 +413,12 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_CLEANUP_SCENE:
                 if (arg0->spawnArg1.value == 0) {
-                    Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
+                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
                 }
                 arg0->spawnArg1.value = 1;
                 Gp_AbortCap();
                 Gp_MsgPlayer3F3(1);
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x401, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x401, 0, 0);
                 if (D_8010FBE0 != NULL) {
                     Task_CallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
@@ -565,7 +565,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 }
                 if ((u32)(mode - 1) < 2U) {
                     D_801156CE = 1;
-                    slot       = gameGetPtrSlot(0xA);
+                    slot       = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
                     if (slot != NULL) {
                         Gp_EndPlayerActorTask(slot);
                         Gp_MsgAllyWeapon(0);
@@ -705,7 +705,7 @@ Task* Gp_LookupSlot4(s32 arg0)
     Task* out;
 
     arg0 = (arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
-    Gp_DispatchMsgReply(gameGetPtrSlot(4), 0x7D0, arg0, &out);
+    Gp_DispatchMsgReply(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7D0, arg0, &out);
     return out;
 }
 
@@ -730,7 +730,7 @@ static void Gp_ScriptInit(Task* arg0)
     mem->script.field_0 = script;
     D_801156CA          = 0;
     if (arg0->spawnArg1.value == 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
     }
     D_801156CB    = 1;
     mem->field_2C = 0;

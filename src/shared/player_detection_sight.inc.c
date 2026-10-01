@@ -11,7 +11,7 @@ s32 detectSightBlocked(Task* arg0)
     SVECTOR*           v;
     SVECTOR*           out;
 
-    player                   = gameGetPtrSlot(3);
+    player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                     = SCRATCH_STACK_CURSOR(u8);
     local                    = (SVECTOR*)(head - 0xC);
     s                        = (ActorSightScratch*)(head - 0x1C);

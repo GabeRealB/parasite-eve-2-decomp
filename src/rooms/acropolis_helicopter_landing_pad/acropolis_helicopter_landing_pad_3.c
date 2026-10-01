@@ -718,7 +718,7 @@ void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 /// room's `RoomEventMsg`); advances on success, otherwise kills the task.
 static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
 {
-    Task* slot = gameGetPtrSlot(7);
+    Task* slot = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
     D_acropolis_helicopter_landing_pad_80187F90.field_4   = 1;
     D_acropolis_helicopter_landing_pad_80187F90.room      = 1;
@@ -738,7 +738,7 @@ static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
     ActorTransform msg;
     Task*          slot;
 
-    slot       = gameGetPtrSlot(3);
+    slot       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     msg.rot.vx = 0;
     msg.rot.vy = 0;
     msg.rot.vz = 0;
@@ -749,7 +749,7 @@ static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0)
 /// Task state step: advances the state once msg 0x3F0 to slot 3 returns 0.
 static void func_acropolis_helicopter_landing_pad_8017EE2C(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -759,7 +759,7 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
     GpFacingArg args;
     Task*       slot;
 
-    slot         = gameGetPtrSlot(3);
+    slot         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     args.field_0 = 1;
     args.field_4 = 3;
     Gp_DispatchMsgPtr(slot, 0x3EF, &args, 0);
@@ -768,7 +768,7 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;
@@ -786,7 +786,7 @@ void func_acropolis_helicopter_landing_pad_8017EF60(s32 unused0, s32 unused1)
 /// on the stack. Marks the player actor's `field_930` as 2 before every step.
 void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 {
-    GameActor* actor     = (GameActor*)(gameGetPtrSlot(3))->work;
+    GameActor* actor     = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
     TaskFunc   states[5] = {
         func_acropolis_helicopter_landing_pad_8017ED50,
         func_acropolis_helicopter_landing_pad_8017EDD4,

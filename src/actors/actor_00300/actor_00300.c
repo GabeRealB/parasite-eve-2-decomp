@@ -1654,7 +1654,7 @@ static void Actor00300_Fn00E54(Task* arg0)
     }
     work->field_6A2 = 0;
     if ((work->rec4A0[1].key.value & 0xFFFF0000) == 0x10000) {
-        other = &gameGetPtrSlot(3)->extra.tmd->coords[3];
+        other = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[3];
         _ACTOR00300_TEST_SIGHT_LINE(work, scratch, other, self);
     } else if (work->field_6A0 > 0) {
         work->field_6A0--;

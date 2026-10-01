@@ -720,9 +720,9 @@ static const char D_acropolis_east_elevator_hall_8017D5E0[8] = "Player\0\x0F";
 static void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
 {
     if (gDisplayState.debugMode != 0) {
-        func_807245E4(gameGetPtrSlot(3));
+        func_807245E4(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         if (gDisplayState.debugMode != 0) {
-            func_80724608(gameGetPtrSlot(3), -0x8C, -0x32, &D_acropolis_east_elevator_hall_8017D5E0);
+            func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), -0x8C, -0x32, &D_acropolis_east_elevator_hall_8017D5E0);
         }
     }
 }

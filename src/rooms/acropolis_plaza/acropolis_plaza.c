@@ -3299,7 +3299,7 @@ L_case1:
     if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
         goto L_tail;
     }
-    slot3       = gameGetPtrSlot(3);
+    slot3       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work->slot3 = slot3;
     work->actor = (GameActor*)slot3->work;
     SetDispMask(1);
@@ -3467,7 +3467,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetPtrSlot(3);
+            ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             place.pos.vx                                 = 0x3804;
             place.pos.vy                                 = 0;
             place.pos.vz                                 = 0xFC8;
@@ -3542,7 +3542,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetPtrSlot(3);
+            ((AcropolisPlazaWarpWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             place.pos.vx                                 = 0xF6E;
             place.pos.vy                                 = 0;
             place.pos.vz                                 = 0x2328;
@@ -3602,7 +3602,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
                 buf.weapon.rec.blend                = ANIMATION_BLEND_RESET;
                 rec->blendFrames                    = 0xA;
                 buf.weapon.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &buf.weapon.rec, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf.weapon.rec, 0);
 
                 coord            = ((AcropolisPlazaWarpWork*)task->work)->slot3->extra.tmd->coords;
                 buf.place.pos.vx = coord->coord.t[0];
@@ -3678,7 +3678,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             Mem_Set(newWork, 0, 8);
-            ((AcropolisPlazaOpeningWork*)task->work)->slot3 = gameGetPtrSlot(3);
+            ((AcropolisPlazaOpeningWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             place.pos.vx                                    = 0x3DE;
             place.pos.vy                                    = 0;
             place.pos.vz                                    = 0x33FE;
@@ -3935,7 +3935,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0xA;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
             task->state = task->state + 1;
             break;
         case 1:
@@ -3985,7 +3985,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0xA;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
             task->state = task->state + 1;
             break;
         case 1:
@@ -3997,7 +3997,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             }
             break;
         case 2:
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 1, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 1, 0);
             Task_RequestKill(task, 0);
             break;
     }
@@ -4297,7 +4297,7 @@ void func_acropolis_plaza_80180054(Task* task)
                 return;
             }
             Mem_Set(newWork, 0, 0x28);
-            ((AcropolisPlazaWork*)task->work)->slot3 = gameGetPtrSlot(3);
+            ((AcropolisPlazaWork*)task->work)->slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((AcropolisPlazaWork*)task->work)->field_C =
                 Task_SpawnFromTable(D_acropolis_plaza_80183824, 5, 0, 0);
             Gp_KillPlayerEffs();
@@ -4313,7 +4313,7 @@ void func_acropolis_plaza_80180054(Task* task)
             vec.vy = 0x370;
             vec.vz = 0x370;
             Gp_SetOverrideVec(&vec);
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             work->field_12 = 0;
             work->field_10 = 0;
             work->field_8  = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);

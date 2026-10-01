@@ -1474,7 +1474,7 @@ static void Actor01900_Fn02A50(Task* arg0)
         s->id = Actor01900_FindHit(&work->field_8E8, &head[-1].hitPos);
         if (s->id != 0) {
             if (s->id & 0x8000) {
-                player       = gameGetPtrSlot(3);
+                player       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 s->hitPos.vx = player->extra.tmd->coords->workm.t[0];
                 s->hitPos.vy = player->extra.tmd->coords->workm.t[1];
                 s->hitPos.vz = player->extra.tmd->coords->workm.t[2];
@@ -1562,7 +1562,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                 SndEvt_EnqueueType7(0x51030008, 1);
             }
             if ((work->field_0 == 0xC || work->field_0 == 0xD) && config->hp > 0 && work->field_C44 == 1) {
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             }
             if (enemy->hp <= 0) {
                 deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;
@@ -1784,7 +1784,7 @@ static __inline__ s32 Actor01900_ArmIfPlayerLevel(Task* arg0)
     Task* player;
     s32   dy;
 
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         dy = arg0->extra.tmd->coords->coord.t[1] - player->extra.tmd->coords->coord.t[1];
         if (ABS(dy) < 0x1F4) {
@@ -2056,8 +2056,8 @@ static void Actor01900_Fn042BC(Task* arg0)
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor01900_Fn01C94(arg0);
-    s->playerYaw = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                          (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+    s->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                          (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     s->yaw          = ratan2(s->delta.vx, s->delta.vz) + 0x800;
     s->yaw          = actorNormalizeYaw(s->yaw);
@@ -2177,8 +2177,8 @@ static void Actor01900_Fn04D14(Task* arg0)
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     if (work->field_8 >= 7) {
-        s->playerYaw  = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                               (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+        s->playerYaw  = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
         s->yaw        = ratan2(s->delta.vx, s->delta.vz) + 0x800;
         s->yaw        = actorNormalizeYaw(s->yaw);
         work->field_0 = 0x1A;
@@ -2230,8 +2230,8 @@ static void Actor01900_Fn04D14(Task* arg0)
     }
     if (work->field_C26 == 0) {
         if (++work->field_6 == 5) {
-            s->playerYaw = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
-                                  (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+            s->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                                  (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
             s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
             yaw    = actorNormalizeYaw(s->yaw);

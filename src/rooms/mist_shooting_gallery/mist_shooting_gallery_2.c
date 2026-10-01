@@ -2246,7 +2246,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     GameActor*               actor;
     MistShootingGalleryWork* work;
 
-    slot  = gameGetPtrSlot(3);
+    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor = slot->work;
 
     work       = memCalloc(0x24, 0);
@@ -2850,17 +2850,17 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                     func_800E9BDC(5, 0xA);
                     xform.rot.vy = 0xC00;
                     func_80104E00(
-                        gameGetPtrSlot(3), 0, &xform, 0);
+                        gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, &xform, 0);
                 }
                 work->field_20++;
             }
             break;
         case 6:
-            actor = gameGetPtrSlot(3)->work;
+            actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
             func_800E9BDC(5, 0xA);
             if (actor->scriptedMotionPending == 0) {
                 Gp_EnterActorMode2(
-                    gameGetPtrSlot(3), 0, 2, 0);
+                    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, 2, 0);
                 work->field_04++;
                 mode                 = 0x10;
                 Gp_StateC08.field_6 |= 0x10;
@@ -3115,7 +3115,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
     GameActor*               actor;
 
     work  = (MistShootingGalleryWork*)arg0->work;
-    actor = gameGetPtrSlot(3)->work;
+    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
 
     switch (work->field_04) {
         case 0:
@@ -3369,7 +3369,7 @@ static void func_mist_shooting_gallery_80184A80(Task* arg0)
 {
     GameActor* actor;
 
-    actor                                               = gameGetPtrSlot(3)->work;
+    actor                                               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     actor->movementInputDisabled                        = 0;
     actor->pendingCollisionUpdates                      = 7;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;

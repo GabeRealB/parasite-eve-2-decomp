@@ -54,7 +54,7 @@
 /// `func_actor_341900_801628B8` / `func_actor_341900_80162AD4` are handed the
 /// same task as their argument and index it identically.
 ///
-/// `field_0` is the `gameGetPtrSlot(3)` task the overlay's messages are aimed
+/// `field_0` is the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task the overlay's messages are aimed
 /// at (0x3E8 and 0x3F3), and `field_8` / `field_C` / `field_10` are child tasks
 /// the senders null-check first (0x7D5 goes to `field_8`);
 /// `func_actor_341900_80163488` disposes of `field_8` by killing it and clearing
@@ -72,7 +72,7 @@
 /// `Gp_KillPlayerEffs`) and `func_actor_341900_80163438` (calls
 /// `Gp_SpawnWeaponEff` while it is set, then clears it).
 typedef struct Actor341900Work {
-    /* 0x00 */ Task*          field_0; // gameGetPtrSlot(3)
+    /* 0x00 */ Task*          field_0; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
     /* 0x04 */ Task*          field_4; // Gp_FindWorkById(session slot)->field_0
     /* 0x08 */ Task*          field_8;
     /* 0x0C */ Task*          field_C;
@@ -753,7 +753,7 @@ static void func_actor_341900_801628B8(Task* arg0)
                 msg.blend                = ANIMATION_BLEND_RESET;
                 msg.blendFrames          = 0;
                 msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
             }
             break;
         case 2:
@@ -793,7 +793,7 @@ static void func_actor_341900_801628B8(Task* arg0)
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
         }
             Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_actor_341900_80163B10, 0);
             break;
@@ -948,7 +948,7 @@ void func_actor_341900_80162EFC(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0U, 0x70U);
-                work->field_0           = gameGetPtrSlot(3);
+                work->field_0           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_341900_80164208 = arg0;
                 work->field_4           = Gp_FindWorkById(
                                     gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))
@@ -958,7 +958,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             sessionIdLo               = gGameSession->location.loc.area;
             request.command           = 0;
             request.context.loc.area  = sessionIdLo;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
             seqWork          = (Actor341900Work*)arg0->work;
             seqWork->field_8 = Task_SpawnFromTable(D_actor_341900_80164190, 2, 0, arg0);
             for (var_s0 = 0; (u32)(var_s0 & 0xFFFF) < 5U; var_s0++) {
@@ -1043,7 +1043,7 @@ void func_actor_341900_80163334(s16 arg0)
     msg.context.loc.stage = gGameSession->location.loc.stage;
     msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = arg0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
 void func_actor_341900_80163388(s32 arg0)

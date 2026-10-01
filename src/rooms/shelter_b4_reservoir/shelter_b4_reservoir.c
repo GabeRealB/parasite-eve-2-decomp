@@ -1670,7 +1670,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     s32                      roll;
 
     work   = task->spawnArg2.pointer;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     root   = player->extra.tmd->coords;
     if (task->state == 0) {
         D_8011574C  = 0x60172;

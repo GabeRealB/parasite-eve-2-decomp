@@ -297,7 +297,7 @@ void func_energyball_8012F180(Task* arg0)
             return;
         case 2:
             if ((mem->age & 7) == 0) {
-                player = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
+                player = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
                 vec.vz = player->workm.t[2] - coord->workm.t[2];

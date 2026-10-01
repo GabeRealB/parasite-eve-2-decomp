@@ -101,7 +101,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     light = &base->light.head.transform.coord;
     slot  = &base->light;
 
-    if (((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
+    if (((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age = work->age + 1;
         switch (task->state) {
             case 0:

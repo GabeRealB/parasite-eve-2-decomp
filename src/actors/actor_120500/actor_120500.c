@@ -534,7 +534,7 @@ static void func_actor_120500_801322A0(Task* task)
     }
     work = allocatedWork;
     Mem_Set(work, 0, sizeof(*work));
-    work->field_4B4         = gameGetPtrSlot(3);
+    work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_120500_80138454 = task;
     coord->parent           = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_474;
@@ -606,7 +606,7 @@ void func_actor_120500_8013241C(Task* arg0)
                 args.msg.blend                = ANIMATION_BLEND_INTERPOLATE;
                 args.msg.blendFrames          = 10;
                 args.msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &args.msg, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &args.msg, 0);
                 func_800E3FAC(0xA2, 0xD);
                 func_800E8634(D_actor_120500_801380D8, 0, D_actor_120500_80138318);
                 arg0->state += 1;

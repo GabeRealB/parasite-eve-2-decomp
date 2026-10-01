@@ -710,8 +710,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                 taskKill(task);
                 break;
             }
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             weaponId                              = gPlayerStatus.weapon;
             rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -776,7 +776,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             break;
 
         case 4:
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
             func_800E9BDC(2, 0x9FF);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
@@ -820,8 +820,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                 taskKill(task);
                 break;
             }
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
+            ((RoomStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             weaponId                              = gPlayerStatus.weapon;
             rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -886,7 +886,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             break;
 
         case 4:
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA5, 0, 0);
             func_800E9BDC(2, 0x9FF);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);

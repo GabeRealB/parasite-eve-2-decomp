@@ -16,7 +16,7 @@ void roamerTickPoolA(Task* task)
     s16    j;
     s16    k;
 
-    gameGetPtrSlot(3);
+    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gRoamerArmCountsA[gGameSession->location.loc.variant] == 0) {
         return;
     }

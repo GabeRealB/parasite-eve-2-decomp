@@ -1285,7 +1285,7 @@ static void func_acropolis_fountain_8017DAA4(Task* arg0)
     ActorTransform msg;
     Task*          slot;
 
-    slot       = gameGetPtrSlot(3);
+    slot       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     msg.rot.vx = 0;
     msg.rot.vy = 0x800;
     msg.rot.vz = 0;
@@ -1295,7 +1295,7 @@ static void func_acropolis_fountain_8017DAA4(Task* arg0)
 
 static void func_acropolis_fountain_8017DB00(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -1305,7 +1305,7 @@ static void func_acropolis_fountain_8017DB54(Task* arg0)
     GpFacingArg args;
     Task*       slot;
 
-    slot         = gameGetPtrSlot(3);
+    slot         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     args.field_0 = 0;
     args.field_4 = 1;
     Gp_DispatchMsgPtr(slot, 0x3EF, &args, 0);
@@ -1314,7 +1314,7 @@ static void func_acropolis_fountain_8017DB54(Task* arg0)
 
 static void func_acropolis_fountain_8017DBAC(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F0, 0, 0) == 0) {
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -1324,8 +1324,8 @@ static void func_acropolis_fountain_8017DC00(Task* arg0)
     ActorTransform msg;
     Task*          slot;
 
-    gameGetPtrSlot(3);
-    slot       = gameGetPtrSlot(3);
+    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    slot       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     msg.pos.vx = 0xA27;
     msg.pos.vy = -0xC8;
     msg.pos.vz = -0x17A6;
@@ -1337,7 +1337,7 @@ static void func_acropolis_fountain_8017DC6C(Task* arg0)
 {
     Task* temp_v0;
 
-    temp_v0 = gameGetPtrSlot(3);
+    temp_v0 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (Gp_DispatchMsg(temp_v0, 0x3F0, 0, 0) == 0) {
         Gp_DispatchMsg(temp_v0, 0x3F1, 0, 0);
         taskKill(arg0);

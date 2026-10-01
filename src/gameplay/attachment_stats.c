@@ -1163,7 +1163,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     }
     if (Gp_StateC08.field_A == 1) {
         if (gGameSession->padPressed & 0x50) {
-            work = gameGetPtrSlot(3);
+            work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (work != NULL) {
                 ((GameActor*)work->work)->padHeld |= 0x40;
             }
@@ -1276,7 +1276,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     if (func_800A2104(arg0, x, y) != 0) {
         flag = 1;
     }
-    actor = gameGetPtrSlot(3)->work;
+    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     if ((Gp_StateC08.field_E != 0 && actor->mode == GAME_ACTOR_MODE_SCRIPTED) || (Gp_StateC08.field_6 & 1)) {
         Gp_StateC08.field_E = 0;
     }
@@ -1400,7 +1400,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         arg0->field_14 = 0;
     }
 
-    slot = gameGetPtrSlot(1);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     if (slot != NULL) {
         if (slot->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
             bad = 1;
@@ -1566,7 +1566,7 @@ after:
                 if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
                     goto inc1;
                 }
-                work = gameGetPtrSlot(3);
+                work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 func_80106350(work, gPlayerStatus.weapon, 0);
                 if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
                     Gp_MsgPlayerWeapon(0);
@@ -1611,7 +1611,7 @@ after:
                     combat->signals.bytes.endDelayFrames = c - 1;
                 }
             }
-            w = gameGetPtrSlot(3);
+            w = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (w == NULL) {
                 goto inc1;
             }
@@ -1629,7 +1629,7 @@ after:
             Task*             w;
             s32               c;
 
-            w      = gameGetPtrSlot(3);
+            w      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             hit    = 0;
             combat = &gSceneCombatState;
             c      = combat->signals.bytes.endDelayFrames;

@@ -110,7 +110,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     base  = &Gp_RoomCoords[1];
     light = &base->light.head.transform.coord;
     slot  = &base->light;
-    if ((gameGetPtrSlot(3)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return;
     }
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {

@@ -1791,7 +1791,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, ActorsShared80138efcWor
             flag = 1;
         }
     } else if (task->spawnArg1.value == 0x20000) {
-        Task*      player = gameGetPtrSlot(3);
+        Task*      player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         GameActor* actor;
 
         if (player != NULL) {
@@ -1801,7 +1801,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, ActorsShared80138efcWor
             }
         }
     } else {
-        Task*      player = gameGetPtrSlot(3);
+        Task*      player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         GameActor* actor;
 
         if (player != NULL) {
@@ -2477,7 +2477,7 @@ static __inline__ s32 _actor01100DistSqToPlayer(GfxCoord* self)
     SVECTOR*  vec;
     s32       dist;
 
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (player == NULL) {
         return 0x7FFFFFFF;
     }
@@ -2701,7 +2701,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, ActorsShared80138efcWor
         work->field_BA4 = 6;
         work->field_B8C = 0;
         work->field_BA8 = (u8)work->field_BA8 + 1;
-        player          = gameGetPtrSlot(3);
+        player          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (player == NULL) {
             work->field_B9E = 0;
         } else {
@@ -2843,7 +2843,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, ActorsShared80138efcWor
         work->field_BA4 = 7;
         work->field_B8C = 0;
         work->field_BA8 = (u8)work->field_BA8 + 1;
-        player          = gameGetPtrSlot(3);
+        player          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (player == NULL) {
             work->field_B9E = 0;
         } else {
@@ -3055,7 +3055,7 @@ static __inline__ void Actor104900_ScratchWrite(u8* p)
         GfxCoord* coord;                                              \
         Task*     slot;                                               \
                                                                       \
-        slot = gameGetPtrSlot(3);                                     \
+        slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);                \
         if (slot == NULL) {                                           \
             out = 0x7FFFFFFF;                                         \
         } else {                                                      \
@@ -3267,10 +3267,10 @@ static void Actor01100_Fn05678(
 
     extra = task->extra.tmd;
     if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
-        actor  = gameGetPtrSlot(3)->work;
+        actor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
         status = &gPlayerStatus;
         if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
-            Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, 0, 0);
             work->field_BC8 = 1;
         }
     }
@@ -3859,7 +3859,7 @@ static s32 Actor01100_Fn06AC8(GfxCoord* arg0)
     Task*     task;
     s32       ret;
 
-    task = gameGetPtrSlot(3);
+    task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (task != NULL) {
         coord                          = task->extra.tmd->coords;
         scratch                        = SCRATCH_HEAD_ADDR;

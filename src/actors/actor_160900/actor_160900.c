@@ -74,7 +74,7 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 ///
 /// `func_actor_160900_8013418C` allocates it with `Mem_Malloc(0x68, 0)` and
 /// zeroes all 0x68 bytes, so the size below is the allocation. That function
-/// fills `field_34` with `gameGetPtrSlot(3)` -- the task every `Gp_DispatchMsg`
+/// fills `field_34` with `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` -- the task every `Gp_DispatchMsg`
 /// in this overlay targets -- and 0x38/0x3C/0x40 with the tasks it spawns from
 /// `D_actor_160900_8013FB50` indices 3, 5 and 6.
 ///
@@ -88,7 +88,7 @@ STATIC_ASSERT_SIZEOF(Actor160900ChildWork, 0x20);
 typedef struct Actor160900Work {
     /* 0x00 */ OverlayWaveCtx wave;
     /* 0x0C */ Task*          field_C[10]; // child tasks, killed on death
-    /* 0x34 */ Task*          field_34;    // gameGetPtrSlot(3), Gp_DispatchMsg target
+    /* 0x34 */ Task*          field_34;    // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), Gp_DispatchMsg target
     /* 0x38 */ Task*          field_38;    // D_actor_160900_8013FB50[3]
     /* 0x3C */ Task*          field_3C;    // D_actor_160900_8013FB50[5]
     /* 0x40 */ Task*          field_40;    // D_actor_160900_8013FB50[6]
@@ -1472,7 +1472,7 @@ static void func_actor_160900_80133238(Task* arg0)
                 message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
 
                 // The message ABI carries this request address in a signed word.
-                Gp_DispatchMsg(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, (s32)&message.animation, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, (s32)&message.animation, 0);
                 Gp_DispatchMsgPtr(work->field_34, 0x3E9, D_actor_160900_8013F228, 0);
                 message.destination.vx = -0x7D0;
                 message.destination.vy = 0;
@@ -1916,7 +1916,7 @@ void func_actor_160900_8013418C(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x68);
-                work->field_34          = gameGetPtrSlot(3);
+                work->field_34          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_160900_8013FBB4 = arg0;
                 work->field_38          = Task_SpawnFromTable(D_actor_160900_8013FB50, 3, 0, arg0);
                 work->field_3C          = Task_SpawnFromTable(D_actor_160900_8013FB50, 5, 1, work->field_38);

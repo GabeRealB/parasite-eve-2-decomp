@@ -1982,7 +1982,7 @@ static void func_actor_120300_801335D8(Task* task)
     }
     work = allocatedWork;
     Mem_Set(work, 0, sizeof(*work));
-    work->field_4B4         = gameGetPtrSlot(3);
+    work->field_4B4         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_120300_80141BA8 = task;
     coord->parent           = &gGfxViewCoord;
     Tmd_AllocBuffers(tmd);
@@ -2070,7 +2070,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     scratch.rec.blend                = ANIMATION_BLEND_RESET;
                     scratch.rec.blendFrames          = 0;
                     scratch.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &scratch.rec, 0);
+                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.rec, 0);
                     GameFlag_SetNibble(0x2C, 1);
                     GameFlag_SetNibble(0x2D, 1);
                     func_800E3FAC(0xA2, 0xB);

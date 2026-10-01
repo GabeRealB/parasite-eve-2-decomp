@@ -2116,7 +2116,7 @@ static s32 func_actor_521100_80132C70(Task* arg0)
     s32              ret;
 
     work   = arg0->work;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     msg    = (GpDelayArg*)SCRATCH_STACK_RESERVE_BYTES(0x18);
 
     diff  = work->field_698 - work->field_696;
@@ -2586,7 +2586,7 @@ static void func_actor_521100_801339B0(Task* arg0)
 
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     SCRATCH_STACK_RESERVE_BYTES(0x54);
     sc = SCRATCH_STACK_CURSOR(Actor521100FireScratch);
 
@@ -2803,7 +2803,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             break;
         case 3:
             if ((s16)work->field_68A == 0x20) {
-                Gp_SpawnEff(0x60273, gameGetPtrSlot(3)->extra.tmd->coords + 0xC, 0, NULL);
+                Gp_SpawnEff(0x60273, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 0xC, 0, NULL);
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C000E;
                 SndEvt_EnqueueType6(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)worldCoordGetOriginAudioDepth(coord));
@@ -2837,7 +2837,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 sc->vec.vx                        = 0;
                 sc->vec.vy                        = -0x96;
                 sc->vec.vz                        = 0xC8;
-                func_800FDB18(1, gameGetPtrSlot(3)->extra.tmd->coords + 4, &sc->vec,
+                func_800FDB18(1, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 4, &sc->vec,
                               &D_actor_521100_8015F804);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);
@@ -2854,7 +2854,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                     }
                 }
             } else if ((CdCmd_IsIdle() & 0xFFFF) == state) {
-                coord = gameGetPtrSlot(3)->extra.tmd->coords;
+                coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                 SndEvt_EnqueueType6(0x70010001, (s8)worldCoordGetOriginAudioPan(coord),
                                     (s8)worldCoordGetOriginAudioDepth(coord));
                 work->field_68E = 2;

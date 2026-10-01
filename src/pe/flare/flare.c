@@ -109,7 +109,7 @@ void flareSparkTask(Task* arg0)
     coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
-        player              = (gameGetPtrSlot(3))->extra.tmd->coords;
+        player              = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
         dstm                = (GpMtxWords*)&coord->coord;
         srcm                = (GpMtxWords*)&player->coord;
         dstm->m00_m01       = srcm->m00_m01;

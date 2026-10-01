@@ -25,13 +25,13 @@ void incinBossGlobEngulf(Enemy* enemy, Task* task)
     s32                  shrink;
 
     work   = task->work;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor  = (GameActor*)player->work;
     cfg    = &gPlayerStatus;
 
     if (gIncinBossEnded == 1) {
         if (work->field_1B2 == 1) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
             work->field_1B2 = 0;
         }
         Gp_DestroyEnemy(enemy, task);
@@ -57,7 +57,7 @@ void incinBossGlobEngulf(Enemy* enemy, Task* task)
         if (actorOutOfReach(&gap) == 0 && actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
             cfg->hp > 0) {
             gIncinBossGrabQuery.value.field_14 = 0x28;
-            if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &gIncinBossGrabQuery.value, 0) == 0) {
+            if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, &gIncinBossGrabQuery.value, 0) == 0) {
                 gIncinBossGrabActive   = 1;
                 work->anim.source.sets = gIncinBossCaughtAnimSets;
                 work->anim.animationId = 1;

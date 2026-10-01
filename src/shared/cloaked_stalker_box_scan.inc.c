@@ -29,7 +29,7 @@ void stalkerBoxScanSeq(Task* arg0)
                         sc->out.vz = work->field_6B4[i].field_6 - gPlayerStatus.coordMtx->t[2];
                         if (SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < work->field_6B4[i].field_2) {
                             work->field_6CE = 1;
-                            coord           = gameGetPtrSlot(3)->extra.tmd->coords;
+                            coord           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                             work->field_6E6 = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
                             sc->in.vx       = 0;
                             sc->in.vy       = 0;

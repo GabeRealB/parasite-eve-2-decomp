@@ -1700,7 +1700,7 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
     s32        z;
     s32        facing;
 
-    task  = gameGetPtrSlot(3);
+    task  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor = (GameActor*)task->work;
     coord = task->extra.tmd->coords;
     if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_CapBusy() == 0) && (gGameSession->location.loc.room >= 7) &&

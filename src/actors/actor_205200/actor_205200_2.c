@@ -555,7 +555,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
     s32                 count;
 
     work                       = arg0->work;
-    player                     = gameGetPtrSlot(3);
+    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(ActorAttackScratch);
     scratch                    = SCRATCH_STACK_CURSOR(ActorAttackScratch);

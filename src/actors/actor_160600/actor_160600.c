@@ -1179,8 +1179,8 @@ u8 gPacedWalkEffectParts[11] = { 1, 3, 5, 6, 9, 14, 15, 16, 17, 18, 19 };
 /// `Task_CallExit` and empties the slot.
 void func_actor_160600_80131E24(void)
 {
-    if (gameGetPtrSlot(0xA) != NULL) {
-        Task_CallExit(gameGetPtrSlot(0xA));
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
+        Task_CallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
         Game_SetPtrSlot(NULL, 0xA);
     }
 }

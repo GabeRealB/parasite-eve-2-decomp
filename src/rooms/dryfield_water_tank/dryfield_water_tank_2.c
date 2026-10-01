@@ -51,7 +51,7 @@
 /// `owner` is written by that run, so the block's tail is outside its
 /// allocation. The layout is the one the same cutscene-task body has in
 /// `dryfield_gas_station` (`DgsWork`, which allocates the full 0x10):
-/// `owner` is the slot-3 game pointer (`gameGetPtrSlot(3)`) the task dispatches
+/// `owner` is the slot-3 game pointer (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`) the task dispatches
 /// its messages to, and the two shorts at 0x4 are the script command and its
 /// step counter, written together by `func_dryfield_water_tank_8017EB80`.
 typedef struct DwtWork {
@@ -1087,7 +1087,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     script.blend                = ANIMATION_BLEND_RESET;
                     script.blendFrames          = 0;
                     script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &script, 0);
+                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
                     gGameSession->viewDirty = 1;
                     break;
                 default:
@@ -1140,7 +1140,7 @@ L_case0:
             taskKill(task);
         } else {
             Mem_Set(work, 0, 0xC);
-            work->owner                    = gameGetPtrSlot(3);
+            work->owner                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             D_dryfield_water_tank_80188D50 = task;
         }
         weaponId                    = gPlayerStatus.weapon;
@@ -1150,7 +1150,7 @@ L_case0:
         script.blend                = ANIMATION_BLEND_INTERPOLATE;
         script.blendFrames          = 0xA;
         script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &script, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
         func_800E8634(D_dryfield_water_tank_8018050C, 0,
                       D_dryfield_water_tank_8018068C);
         goto advance;
@@ -1199,7 +1199,7 @@ void func_dryfield_water_tank_8017EBA0(void)
     rec.blend                = ANIMATION_BLEND_RESET;
     rec.blendFrames          = 0;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
     SetDispMask(1);
 }
 
@@ -1227,7 +1227,7 @@ void func_dryfield_water_tank_8017EC6C(Task* arg0)
     rec.rot.vy = -0x7FF;
     rec.rot.vz = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &rec, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
 }
 
 /// The tank's second run leg, the continuation of `func_dryfield_water_tank_8017EC6C`:
@@ -1250,7 +1250,7 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
     rec.rot.vy = 0x400;
     rec.rot.vz = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &rec, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
 }
 
 /// Per-frame model update for the tank: the callback word at 0x801868A8 in the

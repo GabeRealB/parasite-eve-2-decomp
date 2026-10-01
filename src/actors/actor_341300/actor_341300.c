@@ -435,7 +435,7 @@ static void func_actor_341300_80161E84(void)
     }
 }
 
-/// Per-frame task that turns the player (`gameGetPtrSlot(3)`, whose
+/// Per-frame task that turns the player (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`, whose
 /// `Task::work` is the `GameActor` block) to face the object the area work
 /// id resolves to, then kills itself once it is close enough.
 ///
@@ -461,7 +461,7 @@ void func_actor_341300_80162278(Task* task)
     s32        step;
     s32        wrapped;
 
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor  = (GameActor*)player->work;
     work   = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
     if ((work != NULL) && (gGameSession->eventState != 0)) {
@@ -584,7 +584,7 @@ static const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
 void func_actor_341300_801625AC(void)
 {
     SVECTOR   vec   = D_actor_341300_80161E64;
-    GfxCoord* coord = &(gameGetPtrSlot(3))->extra.tmd->coords[2];
+    GfxCoord* coord = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[2];
 
     Gp_SpawnEff(0x60055, coord, 0x10013300, &vec);
     Gp_SpawnEff(0x60055, coord, 0x10112280, &vec);

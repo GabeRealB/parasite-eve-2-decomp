@@ -28,7 +28,7 @@ void incinBossGlobSpawn(Enemy* enemy, Task* task)
 
     owner  = task->parent->spawnArg2.pointer;
     host   = owner->task->work;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
     if (gIncinBossEnded == 1) {
         Gp_DestroyEnemy(enemy, task);

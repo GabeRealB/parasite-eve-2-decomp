@@ -2586,7 +2586,7 @@ static void func_mine_mesa_8017D808(Task* task)
 
     if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (field9 = gGameSession->location.loc.variant, field9 == 1)) {
         if (GameFlag_GetNibble(0x90) == 0) {
-            if (gameGetPtrSlot(0xA) != NULL) {
+            if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 func_800E8634(D_mine_mesa_8018578C, 0, D_mine_mesa_801861DC);
             }
             func_800E3FAC(0xA2, 0x1B);
@@ -2666,7 +2666,7 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, DirectionActionRequest* msg, 
     switch (msg->actionId) {
         case 1:
             if (GameFlag_GetNibble(0x71) == 0) {
-                if (gameGetPtrSlot(0xA) != NULL) {
+                if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                     func_800E8614(D_mine_mesa_801850E4, 0);
                 }
                 func_800E3FAC(0xA2, 0x1C);
@@ -2677,11 +2677,11 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, DirectionActionRequest* msg, 
         case 2:
             if (GameFlag_GetNibble(0x71) <= 0) {
                 if (GameFlag_GetNibble(0x91) == 0) {
-                    if (gameGetPtrSlot(0xA) != NULL) {
+                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                         func_800E8634(D_mine_mesa_80184D9C, 1, D_mine_mesa_80184FF4);
                     }
                     GameFlag_SetNibble(0x91, 1);
-                } else if (gameGetPtrSlot(0xA) != NULL) {
+                } else if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                     func_800E8634(D_mine_mesa_801854BC, 1, D_mine_mesa_801856B4);
                 }
             }
@@ -2697,7 +2697,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     field9 = gGameSession->location.loc.variant;
     if (field9 == 1) {
         if (GameFlag_GetNibble(0xCD) == 0) {
-            if (gameGetPtrSlot(0xA) != NULL) {
+            if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 Gp_StateC08.field_6 |= 1;
                 Gp_PulseState1C();
                 D_mine_mesa_80189B50 = field9;
@@ -2715,7 +2715,7 @@ static void func_mine_mesa_8017DC80(Task* arg0)
     arg0->msgTable = D_mine_mesa_80181904;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x90) == 0) {
-        if (gameGetPtrSlot(0xA) != NULL) {
+        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 5;
             Task_SpawnFromTable(D_mine_mesa_80181990, 0, 0, 0);
         }
@@ -2875,7 +2875,7 @@ void func_mine_mesa_8017E074(Task* arg0)
     rec.rot.vy  = 0x311;
     rec.rot.vz  = 0;
     arg0->killCountdown++;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &rec, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
 }
 
 /// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:
@@ -2897,8 +2897,8 @@ void func_mine_mesa_8017E15C(Task* arg0)
     u16        rateUp;
     u16        rateDown;
 
-    turner = gameGetPtrSlot(3);
-    looker = gameGetPtrSlot(0xA);
+    turner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (D_801156F9 == 0) {
         if ((turner == NULL) || (looker == NULL)) {
             arg0->state = -1;
@@ -2941,12 +2941,12 @@ void func_mine_mesa_8017E15C(Task* arg0)
 }
 
 /// Head-aim state of the mesa's tracked task, run only while `D_801156F9` is
-/// clear: a missing `gameGetPtrSlot(0xA)` task parks the state machine on -1.
+/// clear: a missing `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task parks the state machine on -1.
 /// State 0 allocates the `GpHeadAim` record into `Task::work` and seeds
 /// its clamps to 0x300 yaw and 0x100 pitch; state 1 ramps its `rate` up toward
 /// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
 /// not, then hands the record to `func_800B17D4` between the
-/// `gameGetPtrSlot(0xA)` task whose head turns and the slot-3 task it turns
+/// `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task whose head turns and the slot-3 task it turns
 /// toward -- the reverse of `func_mine_mesa_8017E15C` and of
 /// `func_actor_450200_80131FA8`, which look from slot 3. Every other state
 /// kills the task and clears `D_mine_mesa_80189B58`, and a state-0 NULL
@@ -2957,7 +2957,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
     GpHeadAim* aim;
     u16        rate;
 
-    looker = gameGetPtrSlot(0xA);
+    looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (D_801156F9 == 0) {
         if (looker == NULL) {
             arg0->state = -1;
@@ -2986,7 +2986,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
                                 aim->rate = 0;
                             }
                         }
-                        func_800B17D4(looker, gameGetPtrSlot(3), aim);
+                        func_800B17D4(looker, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);
                         return;
                 }
                 /* fallthrough */
@@ -3141,14 +3141,14 @@ void func_mine_mesa_8017E760(void)
 /// task and clears the spawner's pointer (`func_mine_mesa_8017E760`).
 void func_mine_mesa_8017E7B0(Task* task)
 {
-    void* slot3;
-    void* slotA;
+    Task* playerTask;
+    Task* companionTask;
     u16   tick;
 
-    slot3 = gameGetPtrSlot(3);
-    slotA = gameGetPtrSlot(0xA);
+    playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (D_801156F9 == 0) {
-        if ((slot3 == NULL) || (slotA == NULL)) {
+        if ((playerTask == NULL) || (companionTask == NULL)) {
             task->state = -1;
         }
         if (task->state == 0) {
@@ -3165,7 +3165,7 @@ void func_mine_mesa_8017E7B0(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            func_800B0928(slot3, slotA, 0x300, 0x10, task->killCountdown);
+            func_800B0928(playerTask, companionTask, 0x300, 0x10, task->killCountdown);
             return;
         }
         taskKill(task);
@@ -3225,7 +3225,7 @@ void func_mine_mesa_8017EA24(void)
     if (GameFlag_GetNibble(0x4C) != 0) {
         GameFlag_SetNibble(0x4C, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
-        Task_CallExit(gameGetPtrSlot(0xA));
+        Task_CallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
         Game_SetPtrSlot(NULL, 0xA);
     }
 }
@@ -3246,7 +3246,7 @@ void func_mine_mesa_8017EAC0(void)
 {
     Task* slot;
 
-    slot = gameGetPtrSlot(0xA);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (slot != NULL) {
         Gp_SpawnEff(0x6002B, &slot->extra.tmd->coords[8], 0x21, NULL);
         SndEvt_EnqueueType6(0x40650001, 0, 0);

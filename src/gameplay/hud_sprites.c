@@ -595,7 +595,7 @@ void Gp_UpdateLinkXforms(void)
     GpXformScratch*  block;
 
     node = gWorldTargetListHead;
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (slot == NULL) {
         return;
     }

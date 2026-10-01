@@ -5,7 +5,7 @@
 /// Spawn task of the overlay's spawn table (`blazeFadeTask`'s
 /// neighbour entry, started with the encounter): each tick rolls the LCG and
 /// aims the overlay's effect record at one part of the player's model, taken
-/// from the coordinate array `gameGetPtrSlot(3)`'s display object owns.
+/// from the coordinate array `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`'s display object owns.
 ///
 /// State 0 fires unconditionally -- the wide pick, scale 0x100 -- and steps to
 /// state 1. State 1 fires only on a frame the `gDisplayState.animFrame` gate lets through,
@@ -26,7 +26,7 @@ void blazeBodyFireTask(Task* arg0)
     Task* slot;
     s32   idx;
 
-    slot            = gameGetPtrSlot(3);
+    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     idx             = gRandomLcgState >> 16;
 

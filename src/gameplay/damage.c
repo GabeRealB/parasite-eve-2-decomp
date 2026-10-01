@@ -307,7 +307,7 @@ s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
     s32            extra;
     s32            rand;
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (slot == NULL) {
         return 0;
     }

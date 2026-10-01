@@ -122,7 +122,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 mem->age = 0;
                 return;
             }
-            player              = (gameGetPtrSlot(3))->extra.tmd->coords;
+            player              = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             dstm                = (GpMtxWords*)&coord->coord;
             srcm                = (GpMtxWords*)&player->coord;
             dstm->m00_m01       = srcm->m00_m01;

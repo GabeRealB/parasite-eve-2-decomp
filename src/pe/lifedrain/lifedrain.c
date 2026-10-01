@@ -447,7 +447,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                     }
                 }
                 if (mem->age == 0xF) {
-                    player = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
+                    player = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
                     vec.vx = player->workm.t[0] - coord->workm.t[0];
                     vec.vy = player->workm.t[1] - coord->workm.t[1];
                     vec.vz = player->workm.t[2] - coord->workm.t[2];
@@ -493,7 +493,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                         }
                     }
                 }
-                player = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
+                player = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
                 vec.vx = player->workm.t[0] - coord->workm.t[0];
                 vec.vy = player->workm.t[1] - coord->workm.t[1];
                 vec.vz = player->workm.t[2] - coord->workm.t[2];

@@ -515,7 +515,7 @@ void func_shelter_b6_training_room_8017D9C8(Task* task)
                 }
             }
             work = Gp_FindWorkById(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x1000));
-            func_800B0928(gameGetPtrSlot(3), work->field_0, 0x200, 0x100, task->killCountdown);
+            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             taskKill(task);
         }

@@ -678,10 +678,10 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
     Task* task;
     Task* slotA;
 
-    task  = gameGetPtrSlot(0xA);
+    task  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     slotA = task;
     if (task == NULL) {
-        task = gameGetPtrSlot(3);
+        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
     if (slotA != NULL && GameFlag_GetNibble(0xE4) == 1) {
         D_shelter_1f_heliport_80181204.vy = 0;
@@ -696,7 +696,7 @@ s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, TaskMessag
     GpObj4C* node;
     s32      found;
 
-    if (arg2 == 0x124 && GameFlag_GetNibble(0xE4) == 1 && gameGetPtrSlot(0xA) != NULL) {
+    if (arg2 == 0x124 && GameFlag_GetNibble(0xE4) == 1 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         found = 0;
         node  = Gp_PendingObj4C;
         while (node != NULL) {
@@ -804,7 +804,7 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
     if (gGameSession->location.loc.variant == 2) {
         func_80149FA4();
     }
-    if (gameGetPtrSlot(0xA) != NULL) {
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         func_8013230C();
     }
     func_shelter_1f_heliport_801802AC(0);

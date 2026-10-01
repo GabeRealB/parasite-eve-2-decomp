@@ -123,7 +123,7 @@ STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 /// `D_actor_342000_80165070`, which is how the leaf helpers below reach it:
 /// `(Actor342000EventWork*)D_actor_342000_80165070->work`.
 ///
-/// `field_48` is the `gameGetPtrSlot(3)` task every `Gp_DispatchMsg` in the
+/// `field_48` is the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task every `Gp_DispatchMsg` in the
 /// overlay is aimed at; `field_50` / `field_5C` / `field_60` / `field_64` are
 /// spawned child tasks the teardown helpers kill. `field_7A` and `field_7C`
 /// are once-only latches guarding a sound cue and the fade-out setup.
@@ -788,7 +788,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
                         msg.blend                = ANIMATION_BLEND_RESET;
                         msg.blendFrames          = 0;
                         msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
                     }
                     return;
             }
@@ -800,7 +800,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 4:
             msg.source.sets          = D_actor_342000_801647E8;
@@ -808,7 +808,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 10;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 5: {
             s32 weaponId;
@@ -821,7 +821,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
         }
         case 6:
@@ -830,7 +830,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 10;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             break;
         case 7: {
             s32 weaponId;
@@ -843,7 +843,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 10;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
             break;
         }
         case 8:
@@ -852,7 +852,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             msg.blend                = ANIMATION_BLEND_RESET;
             msg.blendFrames          = 0;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             ev = (Actor342000EventWork*)D_actor_342000_80165070->work;
             if (ev->field_7A == 0) {
                 SndEvt_EnqueueType6(0x54280005, 0, 0);
@@ -1145,7 +1145,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(alloc, 0U, 0x80U);
-                alloc->field_48         = gameGetPtrSlot(3);
+                alloc->field_48         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_342000_80165070 = arg0;
                 alloc->field_4C         = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;
             }
@@ -1154,7 +1154,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 msg.context.loc.stage = gGameSession->location.loc.stage;
                 msg.context.loc.area  = gGameSession->location.loc.area;
                 msg.command           = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 work->field_5C = Task_SpawnFromTable(D_actor_342000_80164FF8, 8, 0, arg0);
                 work->field_60 = Task_SpawnFromTable(D_actor_342000_80164FF8, 9, 0, arg0);
                 goto next;
@@ -1233,7 +1233,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 msg.context.loc.stage = gGameSession->location.loc.stage;
                 msg.context.loc.area  = gGameSession->location.loc.area;
                 msg.command           = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 arg0->killCountdown = 0;
                 arg0->state++;
                 break;
@@ -1438,7 +1438,7 @@ void func_actor_342000_80164364(s32 arg0)
 /// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs
 /// the animation set the current weapon selects (`gPlayerStatus.weapon + 1` for the
 /// alternate block, `+ 0x22` for the base one, sent as 0x3E8 to the slot
-/// `gameGetPtrSlot(3)` returns), raises 0x3F3, kills the child in
+/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` returns), raises 0x3F3, kills the child in
 /// `field_64`, and cancels any pending CD command replacement.
 void func_actor_342000_8016439C(void)
 {
@@ -1457,7 +1457,7 @@ void func_actor_342000_8016439C(void)
     msg.blend                = ANIMATION_BLEND_RESET;
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
     Gp_DispatchMsg(((Actor342000EventWork*)D_actor_342000_80165070->work)->field_48, 0x3F3, 1, 0);
     if (work->field_64 != NULL) {
         taskKill(work->field_64);

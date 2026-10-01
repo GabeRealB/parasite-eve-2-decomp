@@ -1902,8 +1902,8 @@ static void func_actor_510900_80137868(Task* arg0)
             work->field_59C++;
             if (work->field_59C >= 6) {
                 work->field_59C               = 0;
-                D_actor_510900_80167B7C.coord = (gameGetPtrSlot(3))->extra.tmd->coords;
-                func_800FDB18(5, &(gameGetPtrSlot(3))->extra.tmd->coords[4], NULL,
+                D_actor_510900_80167B7C.coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+                func_800FDB18(5, &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4], NULL,
                               &D_actor_510900_80167B7C);
             }
             switch (work->field_5B6) {
@@ -1915,7 +1915,7 @@ static void func_actor_510900_80137868(Task* arg0)
                     break;
                 case 2:
                     if (CdCmd_IsIdle() == 1) {
-                        coord = (gameGetPtrSlot(3))->extra.tmd->coords;
+                        coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
                         SndEvt_EnqueueType6(0x70010001, (s8)worldCoordGetOriginAudioPan(coord),
                                             (s8)worldCoordGetOriginAudioDepth(coord));
                         work->field_5B6 = 0;
@@ -3063,7 +3063,7 @@ static void func_actor_510900_8013A310(Task* task)
 
     work                       = (Actor510900ChildFx*)task->work;
     parent                     = (Actor510900Work*)task->parent->work;
-    player                     = gameGetPtrSlot(3);
+    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(Actor510900HitScratch);
     scratch                    = SCRATCH_STACK_CURSOR(Actor510900HitScratch);

@@ -2,7 +2,7 @@
 
 /* Part of the cloaked stalker library; see cloaked_stalker.h. */
 
-/// Parks the actor's target position off the player (`gameGetPtrSlot(3)`).
+/// Parks the actor's target position off the player (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`).
 /// In state 3 it takes `field_6E6` from the player's heading and places the
 /// target 0x5AA behind the player, raising bit 0x4000 of `field_5BA` and
 /// `field_5DA`; in state 4 it rolls an angle from `gRandomLcgState` (anywhere, or
@@ -23,7 +23,7 @@ void stalkerPlaceTarget(Task* arg0)
     sc                       = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
     work                     = arg0->work;
     if (work->field_6CE == 3) {
-        coord           = gameGetPtrSlot(3)->extra.tmd->coords;
+        coord           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
         work->field_6E6 = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
         sc->in.vz       = -0x5AA;
         sc->in.vx       = 0;
@@ -56,7 +56,7 @@ void stalkerPlaceTarget(Task* arg0)
         work->field_5DC  = (u32)(rsin(work->field_6E6) * 0x7D) >> 8;
         work->field_5DE  = -0x3E8;
         work->field_5E0  = (u32)(rcos(work->field_6E6) * 0x7D) >> 8;
-        coord            = gameGetPtrSlot(3)->extra.tmd->coords;
+        coord            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
         work->field_6E6  = (work->field_6E6 + (ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF)) & 0xFFF;
         sc->in.vx        = (u32)(rsin(work->field_6E6) * 0x4B) >> 8;
         sc->in.vz        = (u32)(rcos(work->field_6E6) * 0x4B) >> 8;

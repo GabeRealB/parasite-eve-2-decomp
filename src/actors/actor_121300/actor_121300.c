@@ -60,7 +60,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 /// slot (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor121300Work*)task->work`.  The same function publishes the task
 /// itself in `D_actor_121300_8013D418` and stores the
-/// `gameGetPtrSlot(3)` task in `field_488`, which is the target of every
+/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in `field_488`, which is the target of every
 /// `Gp_DispatchMsg` the overlay sends.
 ///
 /// The block opens with the animation prefix `actor_105100` and `actor_136100`
@@ -74,7 +74,7 @@ typedef struct Actor121300Work {
     /* 0x43C */ MATRIX         field_43C; // light matrix, into TmdObject::lightMtx
     /* 0x45C */ MATRIX         field_45C; // colour matrix, into TmdObject::colorMtx
     /* 0x47C */ OverlayWaveCtx wave;      // ramp of the screen-wave task `screenWaveTask`
-    /* 0x488 */ Task*          field_488; // gameGetPtrSlot(3) task, the Gp_DispatchMsg target
+    /* 0x488 */ Task*          field_488; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task, the Gp_DispatchMsg target
     /* 0x48C */ Task*          field_48C;
     /* 0x490 */ byte           pad_490[0x8];
     /* 0x498 */ s16            field_498;         // set by func_actor_121300_80134250
@@ -2410,7 +2410,7 @@ static void func_actor_121300_80133BFC(Task* task)
     }
     work = allocatedWork;
     Mem_Set(work, 0, sizeof(*work));
-    work->field_488         = gameGetPtrSlot(3);
+    work->field_488         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_121300_8013D418 = task;
     coord->parent           = &gGfxViewCoord;
     tmd->lightMtx           = &work->field_43C;
@@ -2476,7 +2476,7 @@ void func_actor_121300_80133D98(Task* arg0)
                 scratch.msg.blend                = ANIMATION_BLEND_RESET;
                 scratch.msg.blendFrames          = 0;
                 scratch.msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &scratch.msg, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.msg, 0);
                 func_actor_121300_80133BFC(arg0);
                 arg0->state += 1;
                 break;

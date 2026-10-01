@@ -199,7 +199,7 @@ GpPairRule D_8010FA4C[4][4] = {
 
 void Gp_TickWorldCollision(Task* unused)
 {
-    if (gameGetPtrSlot(3) != NULL) {
+    if (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) != NULL) {
         Gp_UpdatePlayerMove();
         Gp_CollideListGrid(Gp_ObjList0);
         Gp_CollideListGrid(Gp_ObjList1);

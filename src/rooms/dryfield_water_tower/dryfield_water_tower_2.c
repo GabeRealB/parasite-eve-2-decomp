@@ -72,7 +72,7 @@ extern GpObj4C D_dryfield_water_tower_80186A84[24];
 /// `(DwtwWork*)task->work`.
 ///
 /// The first three fields are the tasks the room's script dispatches its
-/// messages to: `field_0` is the slot-3 game pointer (`gameGetPtrSlot(3)`),
+/// messages to: `field_0` is the slot-3 game pointer (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`),
 /// and `field_4` / `field_8` are `Gp_FindWorkById(...)->field_0` for two ids
 /// built from the session's `location.loc.area` / `location.loc.stage` bytes (the second id has
 /// 0x1000 OR'd in). `func_dryfield_water_tower_80180220` sends the 0x7D4 pair
@@ -87,7 +87,7 @@ extern GpObj4C D_dryfield_water_tower_80186A84[24];
 /// `field_E`'s meaning is not yet known. `field_14` is a 0/1 latch that lets
 /// `func_dryfield_water_tower_80180194` dispatch its one-shot message once.
 typedef struct DwtwWork {
-    /* 0x00 */ Task* field_0; // gameGetPtrSlot(3), Gp_DispatchMsg target
+    /* 0x00 */ Task* field_0; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), Gp_DispatchMsg target
     /* 0x04 */ Task* field_4; // Gp_FindWorkById(...)->field_0
     /* 0x08 */ Task* field_8; // Gp_FindWorkById(...)->field_0
     /* 0x0C */ s16   field_C;
@@ -136,7 +136,7 @@ STATIC_ASSERT_SIZEOF(DwtwViewVolume, 0x4);
 /// It opens with the light and colour matrices of the task's own model: setup
 /// points the model's `lightMtx` and `colorMtx` at them.
 ///
-/// `field_40` is the slot-3 game pointer (`gameGetPtrSlot(3)`), the task the
+/// `field_40` is the slot-3 game pointer (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`), the task the
 /// 0x3E9 player-placement messages go to. `field_44` / `field_48` are the two
 /// prop tasks `func_dryfield_water_tower_8017F128` spawns as types 1 and 2 of
 /// `D_..._80182384` -- the 0x7D4 (`actorMsgPlaceYawPitchRoll`)
@@ -175,7 +175,7 @@ STATIC_ASSERT_SIZEOF(DwtwViewVolume, 0x4);
 typedef struct DryfieldWaterTowerState {
     MATRIX           lightMtx;
     MATRIX           colorMtx;
-    /* 0x40 */ Task* field_40; // gameGetPtrSlot(3)
+    /* 0x40 */ Task* field_40; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
     /* 0x44 */ Task* field_44;
     /* 0x48 */ Task* field_48;
     /* 0x4C */ Task* field_4C;
@@ -1992,7 +1992,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                     taskKill(arg0);
                 } else {
                     Mem_Set(mem, 0, 0x7C);
-                    ((DryfieldWaterTowerState*)mem)->field_40 = gameGetPtrSlot(3);
+                    ((DryfieldWaterTowerState*)mem)->field_40 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     modelCoord->parent                        = &gGfxViewCoord;
                     model->flags                              = 0;
                     Tmd_AllocBuffers(model);
@@ -2229,7 +2229,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(state, 0, 0x7C);
-                state->field_40 = gameGetPtrSlot(3);
+                state->field_40 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 coord->parent   = &gGfxViewCoord;
                 tmp->flags      = 0;
                 Tmd_AllocBuffers(tmp);
@@ -2429,7 +2429,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 msg0.context.loc.stage = gGameSession->location.loc.stage;
                 msg0.context.loc.area  = gGameSession->location.loc.area;
                 msg0.command           = 9;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg0, ACTOR_COMMAND_MESSAGE_APPLY);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg0, ACTOR_COMMAND_MESSAGE_APPLY);
                 state->field_68 = Gp_FindViewIndex(7);
                 state->field_78 = 0;
                 func_800E8634(D_dryfield_water_tower_80181C78, 0, D_dryfield_water_tower_80181DC8);
@@ -2468,7 +2468,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             msg2.context.loc.stage = gGameSession->location.loc.stage;
             msg2.context.loc.area  = gGameSession->location.loc.area;
             msg2.command           = 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg2, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg2, ACTOR_COMMAND_MESSAGE_APPLY);
             D_dryfield_water_tower_801876A8 = 0;
             state->field_64                 = 2;
             GameFlag_SetNibble(0x55, 2);
@@ -2515,7 +2515,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 msg4.context.loc.stage = gGameSession->location.loc.stage;
                 msg4.context.loc.area  = gGameSession->location.loc.area;
                 msg4.command           = 3;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg4, ACTOR_COMMAND_MESSAGE_APPLY);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg4, ACTOR_COMMAND_MESSAGE_APPLY);
             }
             Mem_CopyUnaligned(D_dryfield_water_tower_80181C08, D_dryfield_water_tower_801829B4, 0x40);
             Mem_CopyUnaligned(D_dryfield_water_tower_80181BB8, D_dryfield_water_tower_801828CC, 0x10);
@@ -2541,7 +2541,7 @@ static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 2;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             work->field_58++;
             break;
         case 1:
@@ -2636,7 +2636,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x7C);
-                work->field_40                  = gameGetPtrSlot(3);
+                work->field_40                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tower_801876A4 = arg0;
                 arg0->msgTable                  = D_dryfield_water_tower_80182374;
             }
@@ -2771,7 +2771,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     rec.blend                = value != 0;
     rec.blendFrames          = value;
     rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
 }
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
@@ -3036,14 +3036,14 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.blendFrames          = 0xA;
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
             work       = (DwtwWork*)Mem_Malloc(0x18, 0);
             task->work = work;
             if (work == NULL) {
                 taskKill(task);
             } else {
                 Mem_Set(work, 0, 0x18);
-                work->field_0                   = gameGetPtrSlot(3);
+                work->field_0                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_dryfield_water_tower_801876AC = task;
                 id                              = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
                 work->field_4                   = Gp_FindWorkById(id)->field_0;
@@ -3112,7 +3112,7 @@ void func_dryfield_water_tower_80180194(void)
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_14 = 1;
     }
 }

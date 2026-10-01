@@ -1615,7 +1615,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                             D_actor_403600_801606A4.power = (u16)D_actor_403600_80150EA4;
                             func_actor_403600_8013E470(temp_s4_4, &sp10, &sp14);
                             if ((u32)(sp10 - 0xFA0) < 0x7D1U) {
-                                temp_v1_2                        = gameGetPtrSlot(3)->work;
+                                temp_v1_2                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
                                 D_actor_403600_801606A4.reaction = 0;
                                 D_actor_403600_801606A4.power    = (u16)((u16)D_actor_403600_801606A4.power >> 2);
                                 temp_v1_2->hitRegion             = 2;

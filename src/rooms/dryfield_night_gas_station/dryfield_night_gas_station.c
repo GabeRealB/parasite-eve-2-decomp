@@ -2547,10 +2547,10 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_gas_station_80184034;
     Game_SetPtrSlot(arg0, 7);
-    if ((GameFlag_GetNibble(0x63) >= 2) && (gameGetPtrSlot(0xA) != 0)) {
-        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
+    if ((GameFlag_GetNibble(0x63) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
         Gp_AllyAnimId(&D_dryfield_night_gas_station_80184098.source.index);
-        Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
         func_dryfield_night_gas_station_8017FBD4(0);
     }
     if (GameFlag_GetNibble(0xA0) == 0) {
@@ -2558,7 +2558,7 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
         func_800E3FAC(0xA2, 0x12);
         GameFlag_SetNibble(0x4C, 2);
         func_dryfield_night_gas_station_80180C20();
-        if (gameGetPtrSlot(0xA) != 0) {
+        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
             func_800E8634(D_dryfield_night_gas_station_801892E4, 0, D_dryfield_night_gas_station_80189A7C);
         }
     }
@@ -2636,7 +2636,7 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
 /// reached 2 and pointer slot 0xA is live.
 s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg)
 {
-    if ((msg->actionId == 0xE) && (gameGetPtrSlot(0xA) != NULL) && (GameFlag_GetNibble(0x63) >= 2)) {
+    if ((msg->actionId == 0xE) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (GameFlag_GetNibble(0x63) >= 2)) {
         func_800E8614(D_dryfield_night_gas_station_8018920C, 0);
     }
     return 0;
@@ -2922,7 +2922,7 @@ static void func_dryfield_night_gas_station_801802EC(s32 arg0)
     MATRIX_PAIR(m, 1, 1) = one;
     MATRIX_PAIR(m, 2, 0) = 0;
     m->m[2][2]           = one;
-    coord                = gameGetPtrSlot(0xA)->extra.tmd->coords;
+    coord                = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
     Gp_ComposeParentWorld(&coord[8], m, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;
@@ -3065,7 +3065,7 @@ void func_dryfield_night_gas_station_80180828(Task* task)
     Task* owner;
     u16   tick;
 
-    owner = gameGetPtrSlot(3);
+    owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (D_801156F9 == 0) {
         if (owner == 0) {
             task->state = -1;
@@ -3084,7 +3084,7 @@ void func_dryfield_night_gas_station_80180828(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            func_800B0928(owner, gameGetPtrSlot(0xA), 0x300, 0x10, task->killCountdown);
+            func_800B0928(owner, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x300, 0x10, task->killCountdown);
             return;
         }
         taskKill(task);

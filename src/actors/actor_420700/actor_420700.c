@@ -1083,7 +1083,7 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
 
     coords = task->extra.tmd->coords;
     part   = &coords[2];
-    player = gameGetPtrSlot(3)->extra.tmd->coords;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     Gp_UpdateCoord(part);
     pos.vx = part->workm.t[0];
     pos.vy = part->workm.t[1];
@@ -1109,13 +1109,13 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
             target[0].coord.t[2] = -0x733;
             func_800B0CF4(task, target, 0x200, 0x100, gScriptedWalkWork->st.field_8);
         } else {
-            func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, gScriptedWalkWork->st.field_8);
+            func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.field_8);
         }
     } else {
         if (gGameSession->eventState == 0) {
             dx    = coords->coord.t[0] - player->coord.t[0];
             dz    = coords->coord.t[2] - player->coord.t[2];
-            actor = (GameActor*)gameGetPtrSlot(3)->work;
+            actor = (GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
             c     = rcos(actor->rotation.vy);
             if (dx * rsin(actor->rotation.vy) + dz * c < 0) {
                 D_actor_420700_8013EFF0 = 0x40;
@@ -1135,7 +1135,7 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
         if (gScriptedWalkWork->st.field_8 < 0) {
             gScriptedWalkWork->st.field_8 = 0;
         }
-        func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, gScriptedWalkWork->st.field_8);
+        func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.field_8);
     }
     for (i = 1; i < 0x14; i++) {
         gScriptedWalkWork->rig.slots[i].rate = rate;

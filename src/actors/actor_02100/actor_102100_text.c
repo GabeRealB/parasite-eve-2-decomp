@@ -880,9 +880,9 @@ static void Actor02100_Fn00DCC(Task* arg0)
     blk                      = (Actor02100Sight*)(head - 0x20);
 
     if (work->field_178 == 4) {
-        target = &gameGetPtrSlot(3)->extra.tmd->coords[0];
+        target = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[0];
     } else {
-        target = &gameGetPtrSlot(3)->extra.tmd->coords[3];
+        target = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[3];
     }
     target->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(target);
@@ -904,7 +904,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
                 blk->to.vy   = self->workm.t[1];
                 blk->to.vz   = self->workm.t[2];
                 if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
-                    work->field_140 = gameGetPtrSlot(3);
+                    work->field_140 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     work->field_164 = dist;
                     work->field_180 = 1;
                 }
@@ -925,7 +925,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
             blk->to.vy   = self->workm.t[1];
             blk->to.vz   = self->workm.t[2];
             if (Actor02100_Fn0337C(&blk->from, &blk->to) == 0) {
-                work->field_140 = gameGetPtrSlot(3);
+                work->field_140 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 work->field_164 = 1;
                 work->field_180 = 1;
             }
@@ -970,7 +970,7 @@ static void Actor02100_Fn011C4(Task* arg0)
     u32                       index;
     u32                       dist;
 
-    list  = gameGetPtrSlot(4);
+    list  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
     coord = arg0->extra.tmd->coords;
     head  = list->firstChild;
     work  = arg0->work;

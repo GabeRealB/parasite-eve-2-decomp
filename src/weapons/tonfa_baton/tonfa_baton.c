@@ -180,9 +180,9 @@ static void func_tonfa_baton_8011DA74(Task* arg0)
 
     extra               = arg0->extra.tmd;
     coord               = extra->coords;
-    actor               = gameGetPtrSlot(3)->work;
+    actor               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = (gameGetPtrSlot(3))->extra.tmd->flags;
+    extra->flags        = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags;
 
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0x60;

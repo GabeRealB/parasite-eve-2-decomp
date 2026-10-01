@@ -61,7 +61,7 @@
 ///
 /// `func_actor_560800_80135BD8` allocates it with `Mem_Malloc(0x68, 0)`, so the
 /// size below is the allocation and not a guess, and fills the first slots with
-/// the sub-tasks from `gameGetPtrSlot(3)` and `D_actor_560800_801718F0`
+/// the sub-tasks from `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` and `D_actor_560800_801718F0`
 /// (`field_4` is filled later by `func_actor_560800_801366B0`). Slots 0x0-0x24
 /// are ten task pointers: `field_8` is handed to `field_10`/`field_14`/`field_18`
 /// as their spawn argument and `field_C` to `field_1C`.
@@ -76,7 +76,7 @@
 /// one of them, `func_actor_560800_8013631C` sends 0x7DB to `field_24`, and
 /// `func_actor_560800_801362E0` sends 0x7DB to `field_20`.
 typedef struct Actor560800Work {
-    /* 0x00 */ Task* field_0; // gameGetPtrSlot(3)
+    /* 0x00 */ Task* field_0; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
     /* 0x04 */ Task* field_4;
     /* 0x08 */ Task* field_8;
     /* 0x0C */ Task* field_C;
@@ -4975,7 +4975,7 @@ static inline void Actor560800_PlaySe(s16 arg4)
     msg[2] = 0;
     msg[3] = 0;
     msg[4] = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
 }
 
 static inline void Actor560800_PlaySeB(s32 arg4)
@@ -4989,7 +4989,7 @@ static inline void Actor560800_PlaySeB(s32 arg4)
     msg[2] = 1;
     msg[3] = 0xA;
     msg[4] = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
 }
 
 static inline void Actor560800_SpawnSparksA(Task* task)
@@ -5038,7 +5038,7 @@ static inline void Actor560800_SpawnSparksB(Task* task)
 
 /// Requests driven by `field_28`, cleared once handled: the inline helpers play
 /// an animation on the task at `field_0` (0x3F4), post a sound through
-/// `gameGetPtrSlot(3)` (0x3E8) or spawn the 0x60046 spark effects on its part
+/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` (0x3E8) or spawn the 0x60046 spark effects on its part
 /// coordinates. 18 and 35 are two-step sequences on `field_2A` / `field_2C`.
 ///
 /// Shape notes, all needed for the match: helpers take only the arguments that
@@ -5695,7 +5695,7 @@ static void func_actor_560800_80135BD8(Task* arg0)
         return;
     }
     Mem_Set(work, 0, 0x68);
-    work->field_0           = gameGetPtrSlot(3);
+    work->field_0           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_560800_8017578C = arg0;
     work->field_4           = Task_SpawnFromTable(D_actor_560800_801718F0, 4, 0, 0);
     sub5                    = Task_SpawnFromTable(D_actor_560800_801718F0, 5, 0, 0);
@@ -5731,7 +5731,7 @@ void func_actor_560800_80135D54(Task* arg0)
             func_800E6D4C(0x180, 0);
             arg0->state++;
         case 1:
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             func_800E8634(D_actor_560800_8016F5E0, 1, D_actor_560800_80171800);
             arg0->state++;
             break;
@@ -5745,7 +5745,7 @@ void func_actor_560800_80135D54(Task* arg0)
                 msg[2] = 0;
                 msg[3] = 0;
                 msg[4] = 0;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
                 Task_RequestKill(arg0, 0);
                 return;
             }

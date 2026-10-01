@@ -92,7 +92,7 @@ void func_800AD6BC(void)
 
     funcs = Gp_DirActionFns;
     cfg   = &gPlayerStatus;
-    slot  = gameGetPtrSlot(1);
+    slot  = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     if (slot != NULL) {
         if (slot->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
             func_800A7F24();
@@ -187,8 +187,8 @@ void Gp_SetupDirWarp(void)
     sess  = &gGameSession->location.loc;
     stage = sess->stage;
     room  = sess->area;
-    slot7 = gameGetPtrSlot(7);
-    slot3 = gameGetPtrSlot(3);
+    slot7 = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
+    slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     cfg   = &gPlayerStatus;
     actor = slot3->work;
 
@@ -300,10 +300,10 @@ void Gp_SetupDirWarp(void)
 
 void Gp_FadeDirWaitMsg(void)
 {
-    void* slot;
+    Task* playerTask;
     u8    fade;
 
-    slot = gameGetPtrSlot(3);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (*(s16*)&Gp_DirFadeLevel != 0) {
         fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
@@ -312,7 +312,7 @@ void Gp_FadeDirWaitMsg(void)
             Gp_DirFadeLevel = 0xFF;
         }
     }
-    if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
+    if (Gp_DispatchMsg(playerTask, 0x3F0, 0, 0) == 0) {
         if (D_80114CF4 != 0) {
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         }
@@ -330,9 +330,9 @@ void Gp_CommitWarp(void)
     RoomEventMsg*    loc;
     u8               fade;
 
-    slot3 = gameGetPtrSlot(3);
+    slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     cfg   = &gPlayerStatus;
-    slot7 = gameGetPtrSlot(7);
+    slot7 = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
     sess = &gGameSession->location.loc;
     rec  = Gp_WarpTables[sess->stage - 1][sess->area - 1][(Gp_DirNibble >> 4) - 1];

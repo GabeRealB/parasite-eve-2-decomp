@@ -47,7 +47,7 @@ typedef struct Actor310100Work {
     /* 0x45C */ MATRIX                 field_45C;
     /* 0x47C */ byte                   pad_47C[0x68];
     /* 0x4E4 */ Task*                  field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
-    /* 0x4E8 */ Task*                  field_4E8; // gameGetPtrSlot(3)
+    /* 0x4E8 */ Task*                  field_4E8; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
     /* 0x4EC */ const AnimationRecord* field_4EC; // record the frame handler last saw on slot 1
     /* 0x4F0 */ u16                    field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
     /* 0x4F2 */ byte                   pad_4F2[0x4];
@@ -905,7 +905,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     }
     work->field_508 = arg1;
     Mem_Set(task->work, 0U, 0x50CU);
-    work->field_4E8 = gameGetPtrSlot(3);
+    work->field_4E8 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     coord->parent   = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
     obj->lightMtx = &work->field_43C;
@@ -965,7 +965,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     }
     work->field_508 = arg1;
     Mem_Set(task->work, 0U, 0x50CU);
-    work->field_4E8 = gameGetPtrSlot(3);
+    work->field_4E8 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     coord->parent   = &gGfxViewCoord;
     Tmd_AllocBuffers(obj);
     obj->lightMtx = &work->field_43C;

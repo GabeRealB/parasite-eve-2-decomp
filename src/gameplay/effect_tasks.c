@@ -3186,7 +3186,7 @@ void Gp_EffSprTask53(Task* arg0)
     GfxCoord* coord;
     GfxCoord* parent;
 
-    slot  = gameGetPtrSlot(3);
+    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     coord = arg0->extra.coordBody->coord;
     if (slot != NULL) {
         if (arg0->state == 0) {

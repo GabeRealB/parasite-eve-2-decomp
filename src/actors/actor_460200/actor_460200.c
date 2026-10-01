@@ -2405,7 +2405,7 @@ void strideWalkExit(Task* task)
 #undef pacedWalkPlace
 
 /// Script opcode: set the work block's `turnUp`, which selects whether the
-/// per-frame state blends the model toward the `gameGetPtrSlot(3)` task or away
+/// per-frame state blends the model toward the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task or away
 /// from it, to the payload.
 s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args)
 {

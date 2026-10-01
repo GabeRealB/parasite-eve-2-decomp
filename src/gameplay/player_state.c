@@ -413,7 +413,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
 
     mask = arg1;
     if (arg0 == 0) {
-        work = gameGetPtrSlot(3);
+        work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (arg1 & PLAYER_STATUS_DARKNESS) {
             inner = work->work;
             if (func_800B9D80(0x101) == 0) {
@@ -678,7 +678,7 @@ s32 Gp_ApplyHpDamage(s16 arg0)
     if (func_800B9D80(0x200) != 0) {
         p = &gPlayerStatus;
         if (p->hp >= 5 && amount >= p->hp) {
-            slot   = gameGetPtrSlot(3);
+            slot   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             coords = slot->extra.tmd->coords;
             p->hp  = 1;
             Gp_SpawnEff(0x6009C, coords + 1, 5, 0);
@@ -1102,7 +1102,7 @@ void func_8010B3F8(Task* arg0)
     u16             count;
     s16             next;
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (arg0->state) {
         case 0:
             arg0->state         = 1;
@@ -1142,7 +1142,7 @@ void func_8010B520(Task* arg0)
     GfxCoord*       coords;
 
     params             = &D_80113358;
-    slot               = gameGetPtrSlot(3);
+    slot               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     extra              = slot->extra.tmd;
     raw                = extra->coords;
     params->spawnArgLo = 0xC0;
@@ -1251,7 +1251,7 @@ Task* Gp_SetupAllyWeapon(void)
     TmdObject*     extra;
     Task*          ret;
 
-    work  = gameGetPtrSlot(0xA);
+    work  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     actor = work->work;
     if (!work | !actor) {
         return 0;
@@ -1416,7 +1416,7 @@ s32 func_8010BC70(GfxCoord* arg0)
     TmdObject* extra;
     s32        ret;
 
-    extra                         = (gameGetPtrSlot(3))->extra.tmd;
+    extra                         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
     head                          = SCRATCH_STACK_CURSOR(u8);
     vec                           = (VECTOR3*)(head - 0x10);
     SCRATCH_STACK_CURSOR(VECTOR3) = vec;
@@ -1853,7 +1853,7 @@ s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp -= Gp_ScaleDamage(arg2, 0, 0, 1);
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
             ret = 1;
         }
     }

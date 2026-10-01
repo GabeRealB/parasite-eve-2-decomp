@@ -754,7 +754,7 @@ ge2:
 case0:
     Gp_ArmStateF0(1);
     if (work->field_33C == 0) {
-        work->field_33C = gameGetPtrSlot(3)->extra.tmd->coords;
+        work->field_33C = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     }
     target          = work->field_33C;
     vec->vx         = target->coord.t[0] - coord->coord.t[0];

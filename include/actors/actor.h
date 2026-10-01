@@ -2668,7 +2668,7 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 /// Tells the player task that `ctx` touched it, packing the pair with `mode`.
 static __inline__ s32 actorPlayerContactMessage(Enemy* ctx, s32 mode)
 {
-    Task* player = gameGetPtrSlot(3);
+    Task* player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
 }
 

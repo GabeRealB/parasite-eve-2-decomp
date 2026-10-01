@@ -809,7 +809,7 @@ static void Gp_ReloadFromSave(void)
     Task*       slot;
     McSaveData* save;
 
-    slot                  = gameGetPtrSlot(1);
+    slot                  = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     slot->spawnArg1.value = save->state.location.loc.view;
     ResetGraph(1);
@@ -826,7 +826,7 @@ static void Gp_ReloadAtLoc(s32 arg0)
 {
     Task* slot;
 
-    slot                                                       = gameGetPtrSlot(1);
+    slot                                                       = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = arg0;
     gGameSession->location.loc.view                            = arg0;
     slot->spawnArg1.value                                      = (u8)arg0;

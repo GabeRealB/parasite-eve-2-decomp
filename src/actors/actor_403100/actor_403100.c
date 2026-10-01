@@ -5690,7 +5690,7 @@ static void func_actor_403100_801376D8(Task* arg0)
             func_actor_403100_8013D1B8(5, 0x3F4);
             D_actor_403100_80155808->field_5F4 = 0x17;
             D_actor_403100_80155808->field_5F2 = 1;
-            task                               = gameGetPtrSlot(3);
+            task                               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
                 ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
             }
@@ -5754,7 +5754,7 @@ static void func_actor_403100_801379B4(Task* arg0)
             func_actor_403100_8013D1B8(5, 0x3F4);
             D_actor_403100_80155808->field_5F4 = 0x17;
             D_actor_403100_80155808->field_5F2 = 1;
-            task                               = gameGetPtrSlot(3);
+            task                               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
                 ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
             }
@@ -6102,7 +6102,7 @@ static void func_actor_403100_80138844(Task* arg0)
         func_actor_403100_8013D1B8(5, 0x3F4);
         D_actor_403100_80155808->field_5F4 = 0x17;
         D_actor_403100_80155808->field_5F2 = 1;
-        player                             = gameGetPtrSlot(3);
+        player                             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
             ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
         }
@@ -6148,7 +6148,7 @@ static void func_actor_403100_80138AB4(Task* task)
         func_actor_403100_8013D1B8(5, 0x3F4);
         D_actor_403100_80155808->field_5F4 = 0x17;
         D_actor_403100_80155808->field_5F2 = 1;
-        player                             = gameGetPtrSlot(3);
+        player                             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 0), 0) == 1) {
             ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
         }
@@ -6312,10 +6312,10 @@ static void func_actor_403100_80138F88(Task* arg0)
         D_actor_403100_80155808->field_65F             = 0;
         D_actor_403100_80155808->pad_660[0]            = 0;
         D_actor_403100_80155808->field_5E8             = 0;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, message, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
         D_actor_403100_80155808->field_656 = (u16)D_actor_403100_8015580C->hp;
     }
 }
@@ -6345,8 +6345,8 @@ static void func_actor_403100_8013922C(Task* arg0)
             random                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState                    = random;
             D_actor_403100_80155808->field_638 = (((random >> 0x10) & 0x1F) + 0x3C) * 3;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
             D_actor_403100_80155808->field_65F = 0;
         }
     } else {
@@ -6383,7 +6383,7 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->pad_660[0] = 0;
         func_actor_403100_8013D1B8(1, 0x3FF);
         message[5] = 0x28;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, message, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, message, 0);
         D_actor_403100_80155808->pad_65E[0] = (u8)D_actor_403100_80155808->pad_65E[0] + 1;
     }
     if (((u8)D_actor_403100_80155808->pad_65E[0] != 0) ||
@@ -6525,8 +6525,8 @@ static void func_actor_403100_80139818(Task* arg0)
     config     = &gPlayerStatus;
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         if ((u8)D_actor_403100_80155808->field_65F == 1) {
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
             D_actor_403100_80155808->field_65F = 0;
         }
     }
@@ -6569,7 +6569,7 @@ static void func_actor_403100_80139818(Task* arg0)
     if ((s16)D_actor_403100_80155808->field_5EC == 0x64) {
         func_8010B2A0(0, 3);
         func_actor_403100_8013D1B8(1, 0x3F4);
-        task = gameGetPtrSlot(3);
+        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 4), 0);
         if (config->hp <= 0) {
             sound2 = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531D000B;
@@ -6581,8 +6581,8 @@ static void func_actor_403100_80139818(Task* arg0)
             work->pad_670[0]                  = 1;
             work->field_654                   = 0;
             gGameSession->suppressDeathChecks = 1;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
             func_actor_403100_8013D1B8(6, 0x3FF);
         } else {
             sound3 = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
@@ -6727,7 +6727,7 @@ static void func_actor_403100_8013A064(Task* arg0)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x17;
         D_actor_403100_80155808->field_5FA                        += 1;
         func_actor_403100_8013D0B8(-0x1BBC, -0xC80, -0x4B0, 0x400);
-        task = gameGetPtrSlot(3);
+        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 5), 0) != 0) {
             gGameSession->suppressDeathChecks = 1;
             state                             = 7;
@@ -6782,13 +6782,13 @@ static void func_actor_403100_8013A254(Task* task)
     }
     D_actor_403100_80155808->field_65F = 0;
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
-        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             if (D_actor_403100_8015580C->hp > 0) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
             }
             D_actor_403100_80155808->field_632             = 0;
             D_actor_403100_80155808->field_668.b.field_668 = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             work                                = D_actor_403100_80155808;
             work->pad_670[3]                    = 0;
             work->field_47C.radius              = 0x400;
@@ -6993,7 +6993,7 @@ static void func_actor_403100_8013AC04(Task* task)
     D_actor_403100_80155808->field_5EC = (s16)((u16)D_actor_403100_80155808->field_5EC + 1);
     if ((completed = finished != 0)) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x14;
-        task                                                       = gameGetPtrSlot(3);
+        task                                                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 2), 0) != 0) {
             gGameSession->suppressDeathChecks   = 1;
             gGameSession->deathSoundCountdown   = GAME_SESSION_DEATH_SOUND_HOLD;
@@ -7059,9 +7059,9 @@ static void func_actor_403100_8013AE28(Task* task)
         }
     }
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
-        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             D_actor_403100_80155808->field_668.b.field_668 = 0;
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
             if (D_actor_403100_8015580C->hp > 0) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
             }
@@ -7177,7 +7177,7 @@ static void func_actor_403100_8013B3C4(Task* arg0)
         Gp_LinkNode(&D_actor_403100_8015580C->node);
         D_actor_403100_8015580C->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         gGameSession->hideHud                           = 0;
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
         coords->coord                                              = D_actor_403100_80155808->field_0.matrices.coord;
         *(SVECTOR*)&D_actor_403100_80155808->field_80              = D_actor_403100_80155808->savedRotation;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_actor_403100_80155808->field_622;
@@ -7606,7 +7606,7 @@ static void func_actor_403100_8013C214(Task* arg0)
             D_actor_403100_80155808->field_63A = next2;
             if (next2 >= 0xB4) {
                 D_actor_403100_80155808->field_63A = 0;
-                task                               = gameGetPtrSlot(3);
+                task                               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 3), 0) != 0) {
                     sound = (((u16)((Enemy*)(playerTask)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531D000B;
                     pan   = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
@@ -7617,7 +7617,7 @@ static void func_actor_403100_8013C214(Task* arg0)
                     work->pad_670[0]                  = 1;
                     work->field_654                   = 0;
                     gGameSession->suppressDeathChecks = 1;
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
+                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
                     func_actor_403100_8013D1B8(6, 0x3FF);
                 }
                 if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
@@ -7983,7 +7983,7 @@ static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
     msg.rot.vx = 0;
     msg.rot.vy = arg3;
     msg.rot.vz = 0;
-    Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9, &msg, 0);
+    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
 }
 static void func_actor_403100_8013D11C(Task* arg0)
 {
@@ -8022,9 +8022,9 @@ static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
     msg.enableWorldCollision           = ANIMATION_WORLD_COLLISION_DISABLE;
     D_actor_403100_80155808->field_65D = (s8)arg0;
     if (arg1 == 0x3FF) {
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
     } else if (arg1 == 0x3F4) {
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
     }
 }
 static void func_actor_403100_8013D24C(void)
@@ -8349,21 +8349,21 @@ static void func_actor_403100_8013E1E4(void)
 {
     AnimationPlayRequest sp;
 
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
         _gActor403100PlayerAnimationSets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
         sp.source.sets                      = _gActor403100PlayerAnimationSets;
         sp.blend                            = ANIMATION_BLEND_INTERPOLATE;
         sp.blendFrames                      = 3;
         sp.enableWorldCollision             = ANIMATION_WORLD_COLLISION_DISABLE;
         sp.animationId                      = 4;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
         D_actor_403100_80155808->field_5F2 = 3;
     }
 }
 static void func_actor_403100_8013E2BC(void)
 {
-    if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
         D_actor_403100_80155808->field_5F4             = 0;
         D_actor_403100_80155808->field_65D             = 0;
         D_actor_403100_80155808->field_668.b.field_668 = 0;

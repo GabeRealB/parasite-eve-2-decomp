@@ -1080,7 +1080,7 @@ static void Gp_DrawMapCursor(Task* arg0)
 
     obj   = arg0->spawnArg2.pointer;
     cfg   = &gPlayerStatus;
-    actor = gameGetPtrSlot(3)->work;
+    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     rec   = Gp_MapRecTables[gGameSession->location.loc.stage - 1];
     rec   = rec + gGameSession->location.loc.area;
     if (rec->field_C != (s8)Gp_MapRoomId) {

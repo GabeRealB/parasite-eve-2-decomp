@@ -83,7 +83,7 @@ void Gp_MsgPlayerDirFacing(void)
     s32        surfaceIndexBase;
     u8*        row;
 
-    actor = gameGetPtrSlot(3)->work;
+    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     flags = Gp_DirByte;
     if (flags & 0x80) {
         surfaceIndexBase = actor->scriptMotion.surfaceIndexBase;
@@ -98,7 +98,7 @@ void Gp_MsgPlayerDirFacing(void)
         actor->surfaceClass = (flags & 0x70) >> 4;
     }
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
         Gp_DispatchMsg(slot, 0x3F1, 0, 0);
         D_80114CF8      = 0;
@@ -123,7 +123,7 @@ void Gp_CommitDirWarp(void)
     RoomEventMsg* loc;
     McSaveData*   save;
 
-    slot = gameGetPtrSlot(7);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
     loc  = &Gp_WarpLoc;
 
     // The area selector is a byte; assigning the halfword clears its high byte.
@@ -155,7 +155,7 @@ void Gp_PostDirIfCapIdle(void)
     if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
             if (Gp_DirNibble == 0xFF) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F0, Gp_DirByte, 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, Gp_DirByte, 0);
             } else {
                 Gp_SpawnIfCapIdle(Gp_DirByte, Gp_DirNibble);
             }

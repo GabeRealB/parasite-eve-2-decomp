@@ -129,7 +129,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
     ret   = 0;
     flag  = 1;
     id    = arg0->itemId;
-    actor = gameGetPtrSlot(3)->work;
+    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     cfg   = &gPlayerStatus;
 
     if (id != 0) {

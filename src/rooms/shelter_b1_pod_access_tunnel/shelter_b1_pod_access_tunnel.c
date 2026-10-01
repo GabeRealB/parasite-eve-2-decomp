@@ -1241,7 +1241,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
                 rec.blend                = ANIMATION_BLEND_RESET;
                 rec.blendFrames          = 0;
                 rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
                 func_800E8614(D_shelter_b1_pod_access_tunnel_80181120, 0);
                 task->state = task->state + 1;
             }

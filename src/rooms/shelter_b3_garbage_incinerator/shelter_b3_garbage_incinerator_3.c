@@ -2544,7 +2544,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
             buf.msg[2] = 0;
             buf.msg[3] = 0;
             buf.msg[4] = 0;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E8, buf.msg, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, buf.msg, 0);
             arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_80164190, 0, 0, 0);
             arg0->state++;
             return;

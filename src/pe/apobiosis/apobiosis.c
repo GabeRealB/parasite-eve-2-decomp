@@ -169,7 +169,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 coord->workm.t[1] -= 0x400;
                 mem->scale         = mem->scale + D_apobiosis_80130B5C[mem->index].field_4;
                 func_apobiosis_8013017C(
-                    &(gameGetPtrSlot(3))->extra.tmd->coords[1], mem->age,
+                    &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1], mem->age,
                     D_apobiosis_80130B5C[mem->index].field_2, 0);
                 func_apobiosis_8012F9D0(coord, mem->scale, 0x80, rgb);
                 if (mem->age & 1) {

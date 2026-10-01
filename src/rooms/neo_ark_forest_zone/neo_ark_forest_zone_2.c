@@ -616,7 +616,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     s16    j;
     s16    k;
 
-    gameGetPtrSlot(3);
+    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
         return;
     }

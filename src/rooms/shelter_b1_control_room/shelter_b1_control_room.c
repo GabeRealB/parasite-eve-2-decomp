@@ -144,7 +144,7 @@ static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
 /// Fills in `cfg` for the current area key.
 ///
 /// Every field starts from a default that leaves the mirror inactive, with the
-/// player task (`gameGetPtrSlot(3)`) as its subject. Three places turn it on,
+/// player task (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`) as its subject. Three places turn it on,
 /// each for a set of views: area 7 of stage 5 while the session is in room 2,
 /// area 0x1E of stages 2 and 3, and area 0x12 of stage 4. In stage 4's area the
 /// subject becomes the `Gp_LookupSlot4(0)` task instead, and only when `place`
@@ -223,7 +223,7 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
             break;
     }
     if (cfg->field_10 == 1) {
-        cfg->subject = gameGetPtrSlot(3);
+        cfg->subject = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
 }
 

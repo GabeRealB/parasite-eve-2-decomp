@@ -6,12 +6,12 @@
 s32 storeActionMsg(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     s32   arg;
-    void* slot;
+    Task* companionTask;
 
     if (arg2 == 0x18) {
-        slot = gameGetPtrSlot(0xA);
-        arg  = 0x19;
-        if (slot != 0) {
+        companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+        arg           = 0x19;
+        if (companionTask != 0) {
             arg = 0x18;
         }
         Gp_SpawnIfCapIdle(arg, 0);

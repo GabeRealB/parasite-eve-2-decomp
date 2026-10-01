@@ -1400,7 +1400,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     m->m20_m21 = 0;
     m->m22     = 0x1000;
 
-    work->head.obj.coord            = (gameGetPtrSlot(3))->extra.tmd->coords;
+    work->head.obj.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     work->head.obj.context.contacts = &work->head.rec;
     work->head.obj.pos.vx           = D_actor_503500_801715D4.vx;
     work->head.obj.pos.vy           = D_actor_503500_801715D4.vy;

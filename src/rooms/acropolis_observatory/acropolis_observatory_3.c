@@ -56,7 +56,7 @@
 /// (`memCalloc(8, 0)` in state 0 of `func_acropolis_observatory_8017E19C`).
 ///
 /// `target` is the slot-3 task every message the scene sends is addressed to,
-/// captured once from `gameGetPtrSlot(3)`. `step` selects the follow-up
+/// captured once from `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`. `step` selects the follow-up
 /// record in `D_acropolis_observatory_8017FE68`: the calloc leaves it at 0,
 /// which is the `-1` entry that means "nothing to send".
 typedef struct AobSceneWork {
@@ -923,7 +923,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
                 taskKill(task);
             } else {
                 Mem_Set(blk, 0, 8);
-                blk->target = gameGetPtrSlot(3);
+                blk->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             }
             work = (AobSceneWork*)task->work;
             if (work->target != NULL) {

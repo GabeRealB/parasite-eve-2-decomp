@@ -1649,7 +1649,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
     s32                       i;
     u32                       rnd;
 
-    ctl       = gameGetPtrSlot(3);
+    ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     mask      = 1 << gGameSession->location.loc.view;
     splash    = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;

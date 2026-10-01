@@ -41,7 +41,7 @@
 /// it with `Mem_Set` and parks the pointer in the task's `Task::work` slot
 /// (0x1C) -- that slot is not a `TaskIdMap` here, so reach the block with
 /// `(Actor303600Work*)task->work`.  The same function publishes the task
-/// itself in `D_actor_303600_8016E4C0` and stores the `gameGetPtrSlot(3)` task
+/// itself in `D_actor_303600_8016E4C0` and stores the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task
 /// in `field_0`.
 ///
 /// `command` is the request the overlay's state machine dispatches on:
@@ -52,7 +52,7 @@
 /// `func_actor_303600_801624B0` / `func_actor_303600_8016253C` test before
 /// sending another.
 typedef struct Actor303600Work {
-    /* 0x0 */ Task* field_0; // gameGetPtrSlot(3) task
+    /* 0x0 */ Task* field_0; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) task
     /* 0x4 */ u16   command; // state-machine request, see jtbl_actor_303600_80161E24
     /* 0x6 */ s16   field_6; // cleared alongside command
     /* 0x8 */ byte  pad_8[0x4];
@@ -16910,7 +16910,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 1;
             break;
         case 2:
@@ -16918,7 +16918,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 2;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 2;
             break;
         case 3:
@@ -16926,7 +16926,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 3;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 3;
             break;
         case 4:
@@ -16934,7 +16934,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 4;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 4;
             if (D_actor_303600_8016E4C4 != NULL) {
                 taskKill(D_actor_303600_8016E4C4);
@@ -16947,7 +16947,7 @@ static void func_actor_303600_80161F40(Task* arg0)
             msg.context.loc.stage = gGameSession->location.loc.stage;
             msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 5;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 5;
             break;
         case 6:
@@ -16971,7 +16971,7 @@ static void func_actor_303600_80161F40(Task* arg0)
 /// Cutscene controller for the overlay. State 0 arms it once: a `Gp_StateC08.field_A` of
 /// 1 or a live `gDisplayState.pendingMode` both mean a cutscene is already up, so the state is
 /// left where it is and the task returns; otherwise it allocates the
-/// `Actor303600Work` block, zeroes it, parks the `gameGetPtrSlot(3)` task in
+/// `Actor303600Work` block, zeroes it, parks the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in
 /// `field_0` and publishes itself in `D_actor_303600_8016E4C0` with
 /// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
 /// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
@@ -16995,7 +16995,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x10);
-                work->field_0           = gameGetPtrSlot(3);
+                work->field_0           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_303600_8016E4C0 = arg0;
                 D_actor_303600_8016E4C4 = NULL;
             }
@@ -17113,7 +17113,7 @@ void func_actor_303600_801624B0(void)
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 9;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_C = 9;
         work->field_E = 1;
     }
@@ -17140,7 +17140,7 @@ void func_actor_303600_8016253C(void)
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 9;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_C = 9;
         work->field_E = 1;
     }

@@ -1063,7 +1063,7 @@ static void Gp_DebugPanTask(Task* arg0)
     s32                          i;
     s32                          val;
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     cfg  = &gPlayerStatus;
     if (slot == NULL) {
         return;
@@ -1741,7 +1741,7 @@ static void Gp_BindDefaultMtx(Task* arg0)
     GpRoomCoordSet* result;
     s32             i;
 
-    slot  = gameGetPtrSlot(3);
+    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     extra = slot->extra.tmd;
     if (slot != NULL) {
         result = Gp_GetRoomCoordSet(&gGameSession->location.loc);

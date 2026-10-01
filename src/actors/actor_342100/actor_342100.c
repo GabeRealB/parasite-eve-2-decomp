@@ -59,7 +59,7 @@
 /// the task in `D_actor_342100_80164BB8`. Every leaf helper reaches the block
 /// that way, `(Actor342100Work*)D_actor_342100_80164BB8->work`.
 ///
-/// `field_2C` is the `gameGetPtrSlot(3)` task the overlay aims its messages
+/// `field_2C` is the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task the overlay aims its messages
 /// at. `field_30` and `field_34` are further message targets, both sent
 /// 0x7DB, and `field_38` is a task the overlay spawns itself: with a non-zero
 /// argument `func_actor_342100_80163454` writes 1 into its
@@ -80,7 +80,7 @@
 typedef struct Actor342100Work {
     /* 0x00 */ byte           pad_0[0x20];
     /* 0x20 */ OverlayWaveCtx wave;
-    /* 0x2C */ Task*          field_2C; // gameGetPtrSlot(3)
+    /* 0x2C */ Task*          field_2C; // gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)
     /* 0x30 */ Task*          field_30;
     /* 0x34 */ Task*          field_34;
     /* 0x38 */ Task*          field_38;
@@ -606,7 +606,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_actor_342100_801649C8, 0);
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
             work->field_3E = work->field_3E + 1;
             break;
@@ -655,7 +655,7 @@ void func_actor_342100_801630A4(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(newWork, 0, 0x44);
-                newWork->field_2C       = gameGetPtrSlot(3);
+                newWork->field_2C       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_342100_80164BB8 = arg0;
             }
             Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
@@ -775,7 +775,7 @@ void func_actor_342100_80163454(s32 arg0)
         msg.context.loc.stage = 0;
         msg.command           = 4;
         // The message ABI carries the borrowed record's address in one word.
-        Gp_DispatchMsg(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, (s32)&msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, (s32)&msg, ACTOR_COMMAND_MESSAGE_APPLY);
         if (work->field_30 != NULL) {
             Gp_DispatchMsgPtr(work->field_30, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
         }

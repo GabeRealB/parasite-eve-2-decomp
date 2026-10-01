@@ -1011,7 +1011,7 @@ static void func_dryfield_main_street_8017E0D8(Task* task)
     Game_SetPtrSlot(task, 7);
     D_80115598 = 1;
     if (GameFlag_GetNibble(0x5F) == 0) {
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_main_street_80180ED0, 0x7DB);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &D_dryfield_main_street_80180ED0, 0x7DB);
     }
     task->state++;
 }
@@ -1032,7 +1032,7 @@ void func_dryfield_main_street_8017E168(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Per-frame task that turns the player (`gameGetPtrSlot(3)`, whose
+/// Per-frame task that turns the player (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`, whose
 /// `Task::work` is the `GameActor` block) to face the object the area work
 /// id resolves to, then kills itself once it is close enough.
 ///
@@ -1059,7 +1059,7 @@ void func_dryfield_main_street_8017E1C0(Task* task)
     s32        step;
     s32        wrapped;
 
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor  = (GameActor*)player->work;
     work   = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
     if ((work != NULL) && (gGameSession->eventState != 0)) {
@@ -1150,7 +1150,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
                 }
             }
             work = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-            func_800B0928(gameGetPtrSlot(3), work->field_0, 0x300, 0x200, task->killCountdown);
+            func_800B0928(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), work->field_0, 0x300, 0x200, task->killCountdown);
         } else {
             taskKill(task);
         }

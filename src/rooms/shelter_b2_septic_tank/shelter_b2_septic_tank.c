@@ -1260,7 +1260,7 @@ void func_shelter_b2_septic_tank_8017D9A0(void)
     GfxCoord* coords;
 
     target = Gp_LookupSlot4(0);
-    player = gameGetPtrSlot(3)->extra.tmd->coords;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     if (target != NULL) {
         coords = target->extra.tmd->coords;
         D_shelter_b2_septic_tank_80182FEC.rot.vy =

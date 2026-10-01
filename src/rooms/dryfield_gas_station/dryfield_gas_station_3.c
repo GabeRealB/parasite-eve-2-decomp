@@ -72,7 +72,7 @@ Task* D_dryfield_gas_station_80184BD4;
 /// Work block for the gas-station cutscene task, allocated as 0x10 zeroed bytes
 /// by `func_dryfield_gas_station_801807E0` and hung off `Task::work` (0x1C).
 ///
-/// `owner` is the slot-3 game pointer (`gameGetPtrSlot(3)`) the task dispatches
+/// `owner` is the slot-3 game pointer (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`) the task dispatches
 /// its messages to, and `playerEffActive` is the flag guarding
 /// `Gp_KillPlayerEffs` / `Gp_SpawnWeaponEff`. `field_4` is the script command
 /// `func_dryfield_gas_station_801803C0` carries out and clears once it is done,
@@ -731,7 +731,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     taskKill(task);
                 } else {
                     Mem_Set(work, 0, 0x10);
-                    work->owner                     = gameGetPtrSlot(3);
+                    work->owner                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_dryfield_gas_station_80184BD4 = task;
                 }
                 work2 = (DgsWork*)task->work;

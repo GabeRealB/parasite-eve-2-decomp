@@ -692,7 +692,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     msg[2] = 0;
                     msg[3] = 0;
                     msg[4] = 0;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
+                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
                 } else {
                     p = msg;
                     w = gPlayerStatus.weapon;
@@ -706,7 +706,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     p[2]   = 1;
                     p[3]   = 10;
                     msg[4] = 0;
-                    Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
+                    Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
                 }
                 arg0->killCountdown = 0;
                 arg0->state++;
@@ -830,7 +830,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 coord->parent                             = &gGfxViewCoord;
                 obj->flags                                = 0;
                 obj->otOffset                             = 0x1F;
-                work->field_40                            = gameGetPtrSlot(3);
+                work->field_40                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 obj->colorMtx                             = &work->colorMtx;
                 D_shelter_b3_garbage_incinerator_8018FC34 = task;
                 obj->lightMtx                             = &work->lightMtx;
@@ -1035,7 +1035,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.field_6 |= 1;
             func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
-            Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA4, 0, 0);
             work->field_34 = Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
             work->field_3A = work->field_3A + 1;
             break;
@@ -1051,7 +1051,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
 
 /// Does nothing while `gGameSession->sceneUpdatesPaused`, `Gp_StateC08.field_9`,
 /// `gSceneCombatState.actorControl` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
-/// fails), records `gameGetPtrSlot(3)` in `field_2C` and the task in
+/// fails), records `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` in `field_2C` and the task in
 /// `D_shelter_b3_garbage_incinerator_8018FC3C`, spawns the table entry and,
 /// with `spawnArg1` zero, queues sound event 0x54280005. State 1 advances once
 /// the scene clock has run out while the player is alive, unless
@@ -1078,7 +1078,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
                 taskKill(arg0);
             } else {
                 Mem_Set(work, 0, 0x40);
-                work->field_2C                            = gameGetPtrSlot(3);
+                work->field_2C                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
             }
             Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);

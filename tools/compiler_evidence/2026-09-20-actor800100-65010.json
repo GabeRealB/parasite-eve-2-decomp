@@ -509,7 +509,7 @@
       "failure": 0,
       "first_changed_pass": "rtl",
       "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
-      "hypothesis": "Archived callee spelling is stale; current symbol and declarations use gameGetPtrSlot",
+      "hypothesis": "Archived callee spelling is stale; current symbol and declarations use gameGetTaskSlot",
       "parent": "base.c",
       "pass_name": "rtl",
       "penalties": {
@@ -538,7 +538,7 @@
       "failure": 0,
       "first_changed_pass": "rtl",
       "flags": "-I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc | -O2 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp | --aspsx-version=2.77 --run-assembler --expand-div | -EL -I /home/gabriel/pe2-ov-actor_800100/include -I /home/gabriel/pe2-ov-actor_800100/build -I /home/gabriel/pe2-ov-actor_800100/include/psyq -I /home/gabriel/pe2-ov-actor_800100/include/decomp -I /home/gabriel/pe2-ov-actor_800100/tools/m2c -O2 -march=r3000 -mtune=r3000 -no-pad-sections",
-      "hypothesis": "Archived callee spelling is stale; current symbol and declarations use gameGetPtrSlot",
+      "hypothesis": "Archived callee spelling is stale; current symbol and declarations use gameGetTaskSlot",
       "parent": "base.c",
       "pass_name": "rtl",
       "penalties": {

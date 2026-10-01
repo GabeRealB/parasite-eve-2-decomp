@@ -2302,7 +2302,7 @@ static void Gp_EffTask07State1(Task* arg0)
     s32   spawnId;
     s32   idx;
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (slot == NULL) {
         return;
     }
@@ -2417,7 +2417,7 @@ void Gp_EffCtlTask32(Task* arg0)
             mem->move.vx    = (rcos(temp) * mem->step) >> 0xC;
             mem->move.vy    = ((rsin(mem->move.vz) * mem->step) >> 0xC) - 0x400;
             parent =
-                (gameGetPtrSlot(3))->extra.tmd->coords;
+                (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             one                  = ONE;
             *(s32*)&coord->coord = one;
             coord->parent        = parent;
@@ -2527,7 +2527,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
     switch (state) {
         case 0:
             parent =
-                (gameGetPtrSlot(3))->extra.tmd->coords;
+                (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             one                  = ONE;
             *(s32*)&coord->coord = one;
             coord->parent        = parent + 12;
@@ -2707,7 +2707,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING ||
-        ((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
@@ -2717,7 +2717,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     mem->age++;
     if (arg0->state == 0) {
         gRoomEffectState->peFxFlags |= ROOM_EFFECT_PE_ENERGY_SHOT_AURA;
-        slot                         = gameGetPtrSlot(3);
+        slot                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         parent                       = slot->extra.tmd->coords;
         coord->coord.t[0]            = 0;
         coord->coord.t[1]            = 0;
@@ -2752,7 +2752,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     if ((gRandomLcgState >> 16) & 3) {
         return;
     }
-    slot            = gameGetPtrSlot(3);
+    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     Gp_SpawnEff(0x600F4,
                 &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 1) * 3 + 15],
@@ -2827,7 +2827,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
         if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             goto kill;
         }
-        slot = gameGetPtrSlot(3);
+        slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (slot->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return;
         }
@@ -2887,7 +2887,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING ||
-        ((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
@@ -2897,7 +2897,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     mem->age++;
     if (arg0->state == 0) {
         gRoomEffectState->peFxFlags |= ROOM_EFFECT_PE_ANTIBODY_AURA;
-        slot                         = gameGetPtrSlot(3);
+        slot                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         parent                       = slot->extra.tmd->coords;
         coord->coord.t[0]            = 0;
         coord->coord.t[1]            = 0;
@@ -2955,7 +2955,7 @@ continue_fx:
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 3) == 0) {
-            slot            = gameGetPtrSlot(3);
+            slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             Gp_SpawnEff(0x600E0,
                         &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3],
@@ -2972,7 +2972,7 @@ continue_fx:
     if ((gRandomLcgState >> 16) & 1) {
         return;
     }
-    slot            = gameGetPtrSlot(3);
+    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     Gp_SpawnEff(0x600E0,
                 &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3],
@@ -3003,7 +3003,7 @@ void Gp_EffCtlTask0E(Task* arg0)
     mem->age++;
     if (arg0->state == 0) {
         gRoomEffectState->peFxFlags |= ROOM_EFFECT_PE_STATUS_BURST;
-        slot                         = gameGetPtrSlot(3);
+        slot                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         parent                       = slot->extra.tmd->coords;
         one                          = ONE;
         *(s32*)&coord->coord         = one;
@@ -3467,7 +3467,7 @@ void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3
     s16        id;
 
     id    = arg0;
-    actor = gameGetPtrSlot(3)->work;
+    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     if (arg3 == NULL) {
         arg3        = &D_80112C74;
         arg3->coord = arg1;
@@ -4782,7 +4782,7 @@ void Gp_UpdatePlayerMove(void)
     Task*              task;
     MATRIX*            mat;
 
-    work  = gameGetPtrSlot(3);
+    work  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor = work->work;
     SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     vec   = SCRATCH_STACK_CURSOR(SVECTOR);
@@ -5471,7 +5471,7 @@ Task* Gp_SpawnWeaponEff(void)
     GameActor*    inner;
     TmdObject*    anim;
 
-    work  = gameGetPtrSlot(3);
+    work  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor = work->work;
     if (!work | !actor) {
         return 0;
@@ -5858,7 +5858,7 @@ static GfxCoord* func_8010403C(s32 arg0)
     Task* slot;
     u8    idx;
 
-    slot = gameGetPtrSlot(3);
+    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     idx  = D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][arg0];
     return &slot->extra.tmd->coords[idx];
 }
@@ -5979,7 +5979,7 @@ s32 Gp_KillPlayerEffs(void)
     GameActor* actor;
     Task*      task;
 
-    work  = gameGetPtrSlot(3);
+    work  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor = work->work;
     if (!work | !actor) {
         return 0;
@@ -6833,7 +6833,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
         ret = Gp_ApplyHpDamage(Gp_ScaleDamage(arg2, 0, &out, 0));
         if (ret != 0) {
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
         } else if (actor->companionWork == 0) {
             func_8010A42C(arg0, (u8)out);
         }
@@ -6903,7 +6903,7 @@ void func_80105B74(VECTOR3* arg0)
 {
     GameActor* actor;
 
-    actor                         = gameGetPtrSlot(3)->work;
+    actor                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     actor->pendingDisplacement.vx = arg0->vx;
     actor->pendingDisplacement.vy = arg0->vy;
     actor->pendingDisplacement.vz = arg0->vz;
@@ -7123,7 +7123,7 @@ static void func_8010615C(Task* arg0)
 
 void func_801061F0(void)
 {
-    GameActor* actor = gameGetPtrSlot(3)->work;
+    GameActor* actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
 
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x20000 | (gPlayerStatus.weapon << 8) | gPlayerStatus.weaponSlotItem;
 }
@@ -8449,7 +8449,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
         inner->animationState = 0xA;
         mode                  = 0x14;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
-            func_80166E94(gameGetPtrSlot(0xA), 0);
+            func_80166E94(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0);
         }
     } else {
         if (arg2 == 1) {
@@ -8610,7 +8610,7 @@ void Gp_PlayerMode2State6(Task* arg0)
     if (inner->actionValue >= inner->stateTimer) {
         inner->recoveryTicks = 0x12;
         if (inner->statePhase == 0) {
-            Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
             inner->statePhase = 1;
         }
     } else if (inner->padPressed & 0xF0F0) {

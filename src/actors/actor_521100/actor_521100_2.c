@@ -668,7 +668,7 @@ void func_actor_521100_80136404(Task* task)
             D_actor_521100_8016A3E8.coord.t[1] -= 0xFA + (s32)((gRandomLcgState >> 16) - 0x8000) * 0xC8 / 0x10000;
             D_actor_521100_8016A3E8.coord.t[0] -= 0x32;
         } else {
-            D_actor_521100_8016A3E8             = gameGetPtrSlot(3)->extra.tmd->coords[0];
+            D_actor_521100_8016A3E8             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[0];
             D_actor_521100_8016A3E8.coord.t[1] -= 0x384;
             D_actor_521100_8016A3E8.coord.t[0] += 0x2BC;
         }

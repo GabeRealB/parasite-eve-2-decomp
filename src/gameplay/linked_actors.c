@@ -173,7 +173,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32              t;
     s32              pass;
 
-    slot   = gameGetPtrSlot(3);
+    slot   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     sc     = SCRATCH_STACK_RESERVE_BLOCK(GpCircleScratch);
     coord  = slot->extra.tmd->coords;
     sc->rx = arg1;

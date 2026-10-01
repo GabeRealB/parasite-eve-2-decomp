@@ -78,7 +78,7 @@ extern GpObj4C D_acropolis_sanctuary_80183AE4[17];
 /// `D_acropolis_sanctuary_80186C90`. Reach it with `(AcsCutsceneWork*)task->work`.
 ///
 /// `target` is the slot-3 task the block's messages are addressed to, captured
-/// once from `gameGetPtrSlot(3)`. `phase` is the script step the driver in
+/// once from `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`. `phase` is the script step the driver in
 /// `func_acropolis_sanctuary_8017DA40` runs -- it only acts on phase 2, and
 /// then only while `step` is still 0, bumping `step` once the scene has been
 /// dispatched so it fires exactly once.
@@ -1715,10 +1715,10 @@ void func_acropolis_sanctuary_8017D8CC(void)
 {
     if (gPlayerStatus.weapon == 2) {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.source.index);
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_801809F8, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_801809F8, 0);
     } else {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.source.index);
-        Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_80180A0C, 0);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_80180A0C, 0);
     }
 }
 
@@ -1791,7 +1791,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                     taskKill(arg0);
                 } else {
                     Mem_Set(work, 0, 0xC);
-                    work->target                   = gameGetPtrSlot(3);
+                    work->target                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_acropolis_sanctuary_80186C90 = arg0;
                 }
                 slot     = (AcsCutsceneWork*)arg0->work;

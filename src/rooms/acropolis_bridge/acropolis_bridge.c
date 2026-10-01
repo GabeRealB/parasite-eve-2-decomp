@@ -2687,7 +2687,7 @@ static void func_acropolis_bridge_8017DB60(Task* arg0)
 
 static void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
-    if (Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA3, 0, 0) == 0) {
+    if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA3, 0, 0) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
         gGameSession->hideHud                                      = 1;
         Gp_MsgPlayer3F3(0);
@@ -2716,7 +2716,7 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
             arg0->state                                                = (s32)(arg0->state + 1);
         } else {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 9;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             arg0->state = (s32)(arg0->state + 1);
         }
     }
@@ -2754,7 +2754,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
     s32 killed;
 
     if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
-        Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 1, 0x7D5);
+        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 1, 0x7D5);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
         gGameSession->location.loc.room                            = 2;
@@ -3350,7 +3350,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
     } else {
         ActorCommand msg = { { { 1, 0xE } }, 2 };
 
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         SndEvt_EnqueueType6(0x510E0009, 0, 0);
         task->state = 6;
     }
@@ -3432,7 +3432,7 @@ void func_acropolis_bridge_8017F868(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    owner = gameGetPtrSlot(3);
+    owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     part  = owner->extra.tmd->coords;
     view  = Gp_GetViewIndex();
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {

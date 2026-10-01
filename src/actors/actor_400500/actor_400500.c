@@ -3063,7 +3063,7 @@ static void func_actor_400500_80135770(Task* arg0)
     handshake = work->field_A48;
     switch (handshake) {
         case 1:
-            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 work->field_A48 = 2;
             }
             break;
@@ -3075,16 +3075,16 @@ static void func_actor_400500_80135770(Task* arg0)
             if (work->field_A4D != 0) {
                 msg.animationId = 3;
                 work->field_A48 = 4;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
             } else {
                 msg.animationId = handshake;
                 work->field_A48 = 3;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
             }
             break;
         case 3:
-            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-                Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
+            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 0, 0);
                 work->field_A48 = 0;
             }
             break;
@@ -4336,7 +4336,7 @@ static void func_actor_400500_8013771C(Task* arg0)
                 msg.blend                = ANIMATION_BLEND_RESET;
                 msg.blendFrames          = 0;
                 msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
                 work->field_A48      = 1;
                 Gp_StateC08.field_6 |= 1;
                 work->field_A18      = 1;

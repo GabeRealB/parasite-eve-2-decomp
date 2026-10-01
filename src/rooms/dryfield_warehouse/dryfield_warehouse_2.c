@@ -687,7 +687,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     taskKill(arg0);
                 } else {
                     Mem_Set(work, 0, 0x10);
-                    work->owner                   = gameGetPtrSlot(3);
+                    work->owner                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_dryfield_warehouse_801821BC = arg0;
                 }
                 weaponId                 = gPlayerStatus.weapon;
@@ -697,7 +697,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                 rec.blend                = ANIMATION_BLEND_RESET;
                 rec.blendFrames          = 0;
                 rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &rec, 0);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
                 D_dryfield_warehouse_801821C0 = NULL;
                 D_80115768                    = 1;
                 arg0->state                   = arg0->state + 1;

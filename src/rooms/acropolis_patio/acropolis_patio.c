@@ -1815,7 +1815,7 @@ void func_acropolis_patio_8017DE2C(Task* task)
     Task*        target;
     s32          offset;
 
-    target                = gameGetPtrSlot(3);
+    target                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work.coord.coord.t[0] = -0x1F40;
     work.coord.coord.t[1] = 0;
     work.coord.coord.t[2] = 0x384;
@@ -1901,7 +1901,7 @@ void func_acropolis_patio_8017E054(Task* task)
     GameActor* actor;
     s16        angle;
 
-    actor = gameGetPtrSlot(3)->work;
+    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
 
     switch (task->state) {
         case 0:

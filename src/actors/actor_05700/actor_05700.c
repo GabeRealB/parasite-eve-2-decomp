@@ -1596,7 +1596,7 @@ void lungerTakeHits(Task* arg0)
     }
     work->field_6B2 = 0;
     if (Gp_CountRec18Hi(work->field_4B4, 0x10000) != 0) {
-        part               = &(gameGetPtrSlot(3))->extra.tmd->coords[4];
+        part               = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4];
         scratch->effOfs.vx = part->workm.t[0];
         scratch->effOfs.vy = part->workm.t[1];
         scratch->effOfs.vz = part->workm.t[2];
@@ -1802,7 +1802,7 @@ void Actor05700_Fn01E28(Task* arg0)
             break;
         case 2:
             work->field_6CE = work->field_6D0 > 0;
-            target          = &(gameGetPtrSlot(3))->extra.tmd->coords[2];
+            target          = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[2];
             delta->vx       = target->workm.t[0] - coord->workm.t[0];
             normal          = delta + 1;
             delta->vy       = target->workm.t[1] - coord->workm.t[1];
@@ -1847,7 +1847,7 @@ void Actor05700_Fn01E28(Task* arg0)
             if (work->field_698 < 3) {
                 work->field_69E = 0;
             } else {
-                target    = &(gameGetPtrSlot(3))->extra.tmd->coords[2];
+                target    = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[2];
                 delta->vx = target->workm.t[0] - coord->workm.t[0];
                 normal2   = delta + 1;
                 delta->vy = target->workm.t[1] - coord->workm.t[1];

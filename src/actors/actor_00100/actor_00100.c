@@ -3071,7 +3071,7 @@ static void Actor00100_Fn0375C(Task* arg0)
                 work->field_904 = 9;
                 work->field_905 = 1;
                 work->field_906 = 4;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &work->field_904, 0x7DB);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->field_904, 0x7DB);
                 if ((Gp_GetIdParam0(scratch->field_20) & 0xFFFF) == 4) {
                     work->field_0 = 3;
                 } else {
@@ -3170,7 +3170,7 @@ static void Actor00100_Fn04270(Task* arg0)
     }
     if (work->field_6 >= 0x3D && work->field_C18 == 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
-            Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
         }
         arg0->state++;
         return;
@@ -3415,7 +3415,7 @@ static void Actor00100_Fn0503C(Task* arg0)
     GameActor* playerWork;
 
     work       = arg0->work;
-    player     = gameGetPtrSlot(3);
+    player     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerWork = (GameActor*)player->work;
     ctx        = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
@@ -3446,7 +3446,7 @@ static void Actor00100_Fn0503C(Task* arg0)
         work->pad_8EB[0x19]                      = 9;
         work->pad_8EB[0x1A]                      = 1;
         ((Actor00100FacingWork*)work)->field_906 = 1;
-        Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, (&work->pad_8EB[0x19]), 0x7DB);
+        Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, (&work->pad_8EB[0x19]), 0x7DB);
 
         return;
     }
@@ -3504,7 +3504,7 @@ static void Actor00100_Fn0503C(Task* arg0)
             var_v0_13           = abs(var_v0_13);
             if (var_v0_13 < 0x180) {
                 printf("EM01 PLAYER WORK %d, %d\n", playerWork->mode, playerWork->state);
-                if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, (&work->pad_8EB[1]), 0) == 0) {
+                if (Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F8, (&work->pad_8EB[1]), 0) == 0) {
                     Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, (SVECTOR*)scratch);
                     temp_v0_6           = ratan2((s32)scratch->vx, (s32)scratch->vz) + 0x800;
                     var_v1_3            = temp_v0_6;
@@ -3522,7 +3522,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                     scratch->vy      = 0;
                     scratch->vx      = (s16) - (s16)(u16)scratch->vx;
                     scratch->vz      = -(s16)(u16)scratch->vz;
-                    temp_s0_11       = (gameGetPtrSlot(3))->extra.tmd->coords;
+                    temp_s0_11       = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
                     temp_s0_12       = ratan2((s32)scratch->vx, (s32)scratch->vz);
                     temp_s0_13       = temp_s0_12 - ratan2((s32)-temp_s0_11->coord.m[2][0], (s32)temp_s0_11->coord.m[2][2]);
                     var_v1_5         = actorNormalizeYaw(temp_s0_13);
@@ -3678,7 +3678,7 @@ static void Actor00100_Fn0503C(Task* arg0)
                 work->pad_8EB[0x19]                      = 9;
                 work->pad_8EB[0x1A]                      = 1;
                 ((Actor00100FacingWork*)work)->field_906 = 4;
-                Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &work->pad_8EB[0x19], 0x7DB);
+                Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, &work->pad_8EB[0x19], 0x7DB);
             }
         }
     }
@@ -3803,7 +3803,7 @@ static void Actor00100_Fn06398(Task* arg0)
     Task*           player;
 
     work                          = arg0->work;
-    player                        = gameGetPtrSlot(3);
+    player                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     head                          = SCRATCH_STACK_CURSOR(SVECTOR);
     vec                           = head - 2;
     SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -4070,8 +4070,8 @@ static void Actor00100_Fn070DC(Task* arg0)
     firstDelta         = wrapped;
     scratch->delta     = firstDelta;
     work->field_840    = firstDelta;
-    playerX            = -(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0];
-    scratch->yaw       = ratan2((s32)playerX, (s32)(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+    playerX            = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
+    scratch->yaw       = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     coord2             = arg0->extra.tmd->coords;
     scratch->x         = (s16)(gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0]);
     scratch->y         = (s16)(gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1]);
@@ -4480,8 +4480,8 @@ static void Actor00100_Fn0782C(Task* arg0)
                 changeState:
                     work->field_0 = 0x1C;
                 }
-                playerX            = -(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0];
-                scratch->playerYaw = ratan2((s32)playerX, (s32)(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+                playerX            = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
+                scratch->playerYaw = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
                 targetYaw          = ratan2((s32)scratch->target.vx, (s32)scratch->target.vz) + 0x800;
                 wrappedYaw         = targetYaw;
                 scratch->yaw       = targetYaw;
@@ -4802,8 +4802,8 @@ static void Actor00100_Fn08E7C(Task* arg0)
     firstDelta         = wrapped;
     scratch->delta     = firstDelta;
     work->field_840    = firstDelta;
-    playerX            = -(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0];
-    scratch->yaw       = ratan2((s32)playerX, (s32)(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
+    playerX            = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
+    scratch->yaw       = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     coord2             = arg0->extra.tmd->coords;
     scratch->x         = (s16)(gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0]);
     scratch->y         = (s16)(gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1]);
@@ -4967,7 +4967,7 @@ static void Actor00100_Fn09310(Task* arg0)
     }
     if (((s16)work->field_6 >= 0x1F) && (work->field_C18 == 0) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
-            Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
         }
         arg0->state++;
     }
@@ -5123,7 +5123,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
                 finishedObj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             if (((s16)work->field_6 >= 0x79) && (work->field_C18 != 1) && (Gp_StateC08.field_A != 1) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
+                Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, (s32)(ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
                 work->field_C2A = 1;
                 arg0->state++;
             }
@@ -5215,7 +5215,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     void*                  nextMessage;
 
     work                                   = actor->work;
-    player                                 = gameGetPtrSlot(3);
+    player                                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     config                                 = &gPlayerStatus;
     states                                 = Actor00100_D000F0;
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5268,7 +5268,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     if (work->field_C18 == 1) {
         if ((state != excludedState) && (state != 0) && (state != 6) && (state != 3)) {
             actorWork = actor->work;
-            slot      = gameGetPtrSlot(3);
+            slot      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             if ((slot != NULL) && (actorWork->field_8E8 == 7)) {
                 playerCoord = slot->extra.tmd->coords;
                 actorcoord  = actor->extra.tmd->coords;
@@ -5313,7 +5313,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                         if (config->hp > 0) {
                             for (i = 0; i < 10; i++) {
                                 gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
-                                playerSlot                        = gameGetPtrSlot(3);
+                                playerSlot                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                                 if (Gp_DispatchMsg(playerSlot, 0x3F9, Gp_PackObjPair(enemy, 4), 0) == 1)
                                     break;
                             }
@@ -5397,12 +5397,12 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 break;
             case 5:
                 if ((config->hp > 0) && ((s16)work->field_C28 >= 7)) {
-                    Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+                    Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                     work->field_C18 = 0;
                 }
                 break;
         }
-        if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+        if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
             nextAction = work->field_BFC;
             switch (nextAction) {
                 case 1:
@@ -5434,7 +5434,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                 case 4:
                 case 7:
                     if (config->hp > 0) {
-                        Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
+                        Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F1, 2, 0);
                         work->field_C18 = 0;
                     }
                     break;
@@ -5886,7 +5886,7 @@ static void Actor00100_Fn0BC1C(Task* arg0)
     Task*           task;
 
     work = arg0->work;
-    task = gameGetPtrSlot(3);
+    task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if ((task != NULL) && (work->field_8E8 == 7)) {
         if (abs(task->extra.tmd->coords->coord.t[1] - arg0->extra.tmd->coords->coord.t[1]) > 800) {
             task->extra.tmd->coords->coord.t[1]   = arg0->extra.tmd->coords->coord.t[1];

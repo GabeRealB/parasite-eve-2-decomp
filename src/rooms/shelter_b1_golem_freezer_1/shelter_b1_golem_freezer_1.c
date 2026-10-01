@@ -427,7 +427,7 @@ static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
     s32   isNull = (slot == NULL);
 
     if (isNull) {
-        task = gameGetPtrSlot(3);
+        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
     if (slot != NULL) {
         if (gGameSession->location.loc.variant == 0x15) {

@@ -732,7 +732,7 @@ static void func_actor_135400_801322A8(Task* task)
                 work->headRate = 0;
             }
         }
-        func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, work->headRate);
+        func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->headRate);
     }
 }
 

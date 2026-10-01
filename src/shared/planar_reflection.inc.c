@@ -62,7 +62,7 @@ static void Reflection_InitPlayer(Task* task)
     Task*           spawned;
     s32             i;
 
-    owner = gameGetPtrSlot(3);
+    owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (Gp_AttachTmd(task, owner->extra.tmd->source) == NULL) {
         taskKill(task);
         return;
@@ -169,7 +169,7 @@ static void Reflection_UpdatePlayer(Task* task)
         width = 0x140;
     }
     if (work->configRev != status->weapon) {
-        actor           = gameGetPtrSlot(3)->work;
+        actor           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
         work->configRev = status->weapon;
         for (i = 0; i < 2; i++) {
             child = actor->equipmentTasks[i];
@@ -508,7 +508,7 @@ static void Reflection_UpdatePlayer(Task* task)
     extra->flags = work->field_C;
     if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && gGameSession->sceneUpdatesPaused == 0) {
         parts   = task->extra.tmd->coords;
-        owner   = gameGetPtrSlot(3);
+        owner   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         refPart = &parts[1];
         if (owner != NULL) {
             TmdObject* src       = owner->extra.tmd;
@@ -640,8 +640,8 @@ static void Reflection_UpdatePlayer(Task* task)
         GfxCoord*  ownParts;
         MATRIX     mtx;
 
-        ownerParts  = gameGetPtrSlot(3)->extra.tmd->coords;
-        ownerBody   = gameGetPtrSlot(3)->extra.tmd;
+        ownerParts  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+        ownerBody   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd;
         ownParts    = task->extra.tmd->coords;
         work->light = *ownerBody->lightMtx;
         work->color = *ownerBody->colorMtx;

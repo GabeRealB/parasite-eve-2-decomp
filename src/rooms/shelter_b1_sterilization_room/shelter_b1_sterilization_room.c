@@ -523,7 +523,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 0) {
         GameFlag_SetNibble(0xF4, 3);
         Gp_ApplyAreaRecs(D_shelter_b1_sterilization_room_8018C334);
-        if (gameGetPtrSlot(0xA) != NULL) {
+        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             GameFlag_SetNibble(0x116, 1);
             GameFlag_SetNibble(0xEA, 2);
             GameFlag_SetNibble(0x4B, 8);
@@ -705,14 +705,14 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
             func_800E6D4C(0x2C0, 0x100);
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 0, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
             task->state++;
             break;
         case 1:
             task->state++;
             break;
         case 2:
-            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 task->state++;
             }
             break;
@@ -726,14 +726,14 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             }
             break;
         case 5:
-            Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 1, 0);
+            Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
             task->state++;
             break;
         case 6:
             task->state++;
             break;
         case 7:
-            if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3ED, 0, 0) == 0) {
                 task->state++;
             }
             break;
@@ -754,7 +754,7 @@ static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
     s32   isNull = (slot == NULL);
 
     if (isNull) {
-        task = gameGetPtrSlot(3);
+        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
     if (slot != NULL) {
         if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 1) {
@@ -991,7 +991,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
             gGameSession->location.loc.view                            = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
             gGameSession->viewDirty                                    = 1;
-            Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9,
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9,
                               &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],
                               0);
             SndEvt_EnqueueType6(0x5410000B, 0, 0);
@@ -1027,7 +1027,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
         case 1:
             if (GameFlag_GetNibble(0x77) == 0) {
                 if (gGameSession->eventState == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                    player = gameGetPtrSlot(3);
+                    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     task->killCountdown++;
                     if (task->killCountdown == 0x78) {
                         Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);

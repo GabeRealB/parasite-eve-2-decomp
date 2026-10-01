@@ -1547,17 +1547,17 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
 {
     arg0->msgTable = D_dryfield_junk_yard_8017DD20;
     Game_SetPtrSlot(arg0, 7);
-    if (gameGetPtrSlot(0xA) != 0) {
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         if (GameFlag_GetNibble(0x38) == 0) {
-            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
             Gp_AllyAnimId(&D_dryfield_junk_yard_8017DD88.source.index);
-            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DD88, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DD88, 0);
         }
         if ((GameFlag_GetNibble(0x39) == 0) && (GameFlag_GetNibble(0x28) >= 2)) {
             GameFlag_SetNibble(0x39, 1);
             func_800E8634(D_dryfield_junk_yard_8017E490, 0, D_dryfield_junk_yard_8017E658);
         } else if (gGameSession->location.loc.warp == 2) {
-            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
         }
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -1587,27 +1587,27 @@ void func_dryfield_junk_yard_8017D848(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3EE, &D_dryfield_junk_yard_8017DE18, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3EE, &D_dryfield_junk_yard_8017DE18, 0);
             task->state = task->state + 1;
             return;
         case 4:
-            if (Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3F0, 0, 0) != 0) {
+            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3F0, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
         case 5:
-            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDD8, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDD8, 0);
             task->state = task->state + 1;
             return;
         case 6:
-            if (Gp_DispatchMsg(gameGetPtrSlot(0xA), 0x3ED, 0, 0) != 0) {
+            if (Gp_DispatchMsg(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3ED, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
         case 7:
-            Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDEC, 0);
+            Gp_DispatchMsgPtr(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDEC, 0);
             /* fallthrough */
         case 2:
             taskKill(task);
@@ -1699,7 +1699,7 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, DirectionActionReque
         }
     }
     if (msg->actionId == 2) {
-        player = gameGetPtrSlot(0xA);
+        player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
         if ((player != NULL) && (player->extra.tmd->coords->coord.t[0] >= 0x5209) &&
             (GameFlag_GetNibble(0x38) == 1)) {
             GameFlag_SetNibble(0x38, 2);
@@ -1721,8 +1721,8 @@ void func_dryfield_junk_yard_8017DC54(s8 arg0)
 /// state never advances, so it repeats every frame.
 static void func_dryfield_junk_yard_8017DC60(Task* task)
 {
-    if ((gDisplayState.debugMode != 0) && (gameGetPtrSlot(0xA) != 0)) {
-        func_80724608(gameGetPtrSlot(0xA), -0x8C, 0xA, D_dryfield_junk_yard_8017D5D0);
+    if ((gDisplayState.debugMode != 0) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
+        func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), -0x8C, 0xA, D_dryfield_junk_yard_8017D5D0);
     }
 }
 

@@ -1,6 +1,6 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
-/// Per-tick state 1 of this actor: faces the model toward the `gameGetPtrSlot(3)`
+/// Per-tick state 1 of this actor: faces the model toward the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`
 /// task. The root coordinate of the model is updated, a copy of its translation
 /// lifted by 0x320 is used as the look-at point, and the work block's
 /// `turnWeight` rate is stepped +0x200 or -0x200 per tick depending on
@@ -32,6 +32,6 @@ void strideWalkFrame(Enemy* enemy, Task* task)
             work->turnWeight = 0;
         }
     }
-    func_800B0928(task, gameGetPtrSlot(3), 0x200, 0x100, work->turnWeight);
+    func_800B0928(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
     walkerDrawShadow(task);
 }

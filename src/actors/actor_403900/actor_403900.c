@@ -1558,7 +1558,7 @@ void stalkerGrabSeq(Task* arg0)
 
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
-    player = gameGetPtrSlot(3);
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor402200GrabScratch));
     sc     = SCRATCH_STACK_CURSOR(Actor402200GrabScratch);
     pcoord = player->extra.tmd->coords;
@@ -1758,7 +1758,7 @@ void stalkerGrabSeq(Task* arg0)
                 sc->in.vy                         = -0x96;
                 sc->in.vx                         = 0;
                 sc->in.vz                         = 0xC8;
-                func_800FDB18(1, &gameGetPtrSlot(3)->extra.tmd->coords[4], &sc->in, &D_actor_403900_801540C8);
+                func_800FDB18(1, &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[4], &sc->in, &D_actor_403900_801540C8);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);
                 gPlayerStatus.hp = 0;
@@ -1782,7 +1782,7 @@ void stalkerGrabSeq(Task* arg0)
                     break;
                 case 1:
                     if ((CdCmd_IsIdle() & 0xFFFF) == 1) {
-                        coord = gameGetPtrSlot(3)->extra.tmd->coords;
+                        coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                         SndEvt_EnqueueType6(0x70010001, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                         work->field_6D4 = 2;
                     }
@@ -2264,7 +2264,7 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
             work->field_5EE  = 0x1F4;
             records4         = &work->field_5F4;
             work->field_5F0  = records4;
-            work->field_5A4  = gameGetPtrSlot(3)->extra.tmd->coords;
+            work->field_5A4  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
             work->field_5A8  = &work->field_5DC;
             work->field_5AC  = 0;
             work->field_5AE  = 0;
@@ -2275,7 +2275,7 @@ static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
             Gp_LinkObj(3, (WorldCollisionBody*)work->field_59C);
             Gp_InitRec18Table(records4, 1, 0);
             work->field_5BA &= 0xBFFF;
-            work->field_5C4  = gameGetPtrSlot(3)->extra.tmd->coords;
+            work->field_5C4  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
             work->field_5C8  = records4;
             work->field_5CC  = 0;
             work->field_5CE  = -0x320;

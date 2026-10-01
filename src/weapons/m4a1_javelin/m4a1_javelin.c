@@ -134,7 +134,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     s32                   t;
     u16                   rnd;
 
-    actor = gameGetPtrSlot(3)->work;
+    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     base  = &Gp_RoomCoords[1];
     slot  = &base->light;
     light = &base->light.head.transform.coord;

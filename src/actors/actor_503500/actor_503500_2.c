@@ -1891,7 +1891,7 @@ void func_actor_503500_80132DEC(void)
     GfxCoord* coord;
     SVECTOR*  rot;
 
-    slot3 = gameGetPtrSlot(3);
+    slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     coord = slot3->extra.tmd->coords;
 
     D_actor_503500_8017655C.pos.vx = coord->coord.t[0];
@@ -1912,7 +1912,7 @@ void func_actor_503500_80132E7C(void)
 {
     Task* slot3;
 
-    slot3 = gameGetPtrSlot(3);
+    slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if ((D_actor_503500_8017655C.pos.vx != 0) || (D_actor_503500_8017655C.pos.vy != 0) ||
         (D_actor_503500_8017655C.pos.vz != 0)) {
         Gp_DispatchMsgPtr(slot3, 0x3E9, &D_actor_503500_8017655C, 0);
@@ -1926,7 +1926,7 @@ void func_actor_503500_80132EE8(u8 arg0)
 
 void func_actor_503500_80132EF4(void)
 {
-    func_80106350(gameGetPtrSlot(3), gPlayerStatus.weapon, 0);
+    func_80106350(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), gPlayerStatus.weapon, 0);
 }
 
 void func_actor_503500_80132F28(void)

@@ -685,10 +685,10 @@ void func_actor_450900_80131E38(Task* task)
     s32       t;
     s8        pan;
     s8        depth;
-    void*     slot;
+    Task*     companionTask;
 
-    slot  = gameGetPtrSlot(0xA);
-    state = task->state;
+    companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    state         = task->state;
     switch (state) {
         case 0:
             D_actor_450900_80135E70 = 0;
@@ -712,7 +712,7 @@ void func_actor_450900_80131E38(Task* task)
             if (D_actor_450900_80135E74 == 0 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0 && t >= 0) {
                 D_actor_450900_80135E70 = state;
                 if (t % 210 == 0) {
-                    coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
+                    coord = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     if (rand() & 1) {
@@ -721,12 +721,12 @@ void func_actor_450900_80131E38(Task* task)
                         SndEvt_EnqueueType6(0x55170006, pan, depth);
                     }
                     Gp_AllyAnimId(&Actor450900AllyAnim.source.index);
-                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[0], 0);
-                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
-                    Gp_DispatchMsg(slot, 0x3F9, 0x40010, 0);
+                    Gp_DispatchMsgPtr(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.copies[0], 0);
+                    Gp_DispatchMsgPtr(companionTask, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
+                    Gp_DispatchMsg(companionTask, 0x3F9, 0x40010, 0);
                 } else if (t % 210 == 0x3C) {
                     Gp_AllyAnimId(&D_actor_450900_801360B4.source.index);
-                    Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_801360B4, 0);
+                    Gp_DispatchMsgPtr(companionTask, ANIMATION_MESSAGE_PLAY, &D_actor_450900_801360B4, 0);
                 }
             }
             break;
@@ -741,7 +741,7 @@ void func_actor_450900_8013207C(Task* task)
     s8        pan;
     s8        depth;
 
-    slot  = gameGetPtrSlot(3);
+    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     value = task->state;
     switch (value) {
         case 0:
@@ -751,7 +751,7 @@ void func_actor_450900_8013207C(Task* task)
         case 1:
             if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((D_8017A99C - 0x456) >= 0)) {
                 if ((D_8017A99C - 0x456) % 210 == 0) {
-                    coord = gameGetPtrSlot(3)->extra.tmd->coords;
+                    coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     if (rand() & 1) {
@@ -881,10 +881,10 @@ void func_actor_450900_80132518(s32 arg0)
 void func_actor_450900_80132548(Task* task)
 {
     GpHeadAim* aim;
-    void*      slot;
+    Task*      playerTask;
     u16        rate;
 
-    slot = gameGetPtrSlot(3);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (task->state) {
         case 0:
             aim = memCalloc(sizeof(GpHeadAim), false);
@@ -912,7 +912,7 @@ void func_actor_450900_80132548(Task* task)
                     aim->rate = 0;
                 }
             }
-            func_800B17D4(slot, gameGetPtrSlot(0xA), aim);
+            func_800B17D4(playerTask, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), aim);
             return;
         default:
             taskKill(task);
@@ -934,7 +934,7 @@ void func_actor_450900_80132684(s32 arg0)
     s8        pan;
     s8        depth;
 
-    coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
+    coord = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
     pan   = (s8)worldCoordGetOriginAudioPan(coord);
     depth = (s8)worldCoordGetOriginAudioDepth(coord);
     if (arg0 != 0) {
@@ -956,8 +956,8 @@ void func_actor_450900_80132724(void)
     GfxCoord* target;
     GfxCoord* origin;
 
-    target = (gameGetPtrSlot(0xA))->extra.tmd->coords;
-    origin = (gameGetPtrSlot(3))->extra.tmd->coords;
+    target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
+    origin = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     Gp_UpdateCoord(target);
     Gp_UpdateCoord(origin);
     D_actor_450900_80136458.rot.vy =
@@ -997,7 +997,7 @@ static void func_actor_450900_80132834(void)
 {
     GfxCoord* coord;
 
-    coord = (gameGetPtrSlot(0xA))->extra.tmd->coords;
+    coord = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
     if (coord->coord.t[2] < -0x76C) {
         Task_SpawnFromTable(D_actor_450900_80135E78, 4, 0, 0);
     } else {
