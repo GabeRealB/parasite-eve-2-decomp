@@ -184,14 +184,61 @@ GpAreaVariant D_acropolis_hallway_8017EA3C[13] = {
     { NULL, NULL },
 };
 
-WorldCoordPointLight D_acropolis_hallway_8017EAA4[3] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2374, -2432, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1360, 2384 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2384, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1360, 2384 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2297, -2384, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1360, 2384 },
+/// The hallway's three white point lights, contributing in every room view.
+///
+/// Positions and falloff radii use integer world units; RGB intensities use
+/// 12 fractional bits, initially `ONE` in each channel. Each light is at full
+/// strength within 1360 units and fades to zero at 2384 units. The loaded room
+/// overlay owns these writable records: coordinate updates parent and compose
+/// their transforms, and lighting queries overwrite attenuation. Borrowed
+/// pointers must not survive unloading the overlay.
+static WorldCoordPointLight _gAcropolisHallwayPointLights[] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2374, -2432, 0 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1360,
+        .outer = 2384,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2384, 0 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1360,
+        .outer = 2384,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2297, -2384, 0 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1360,
+        .outer = 2384,
+    },
 };
 
 WorldCoordRoomLights D_acropolis_hallway_8017EBC4[1] = {
-    { 0, NULL, ARRAY_SIZE(D_acropolis_hallway_8017EAA4), D_acropolis_hallway_8017EAA4, 0, NULL },
+    { 0, NULL, ARRAY_SIZE(_gAcropolisHallwayPointLights), _gAcropolisHallwayPointLights, 0, NULL },
 };
 
 SpriteBatch D_acropolis_hallway_8017EBDC[2] = {
