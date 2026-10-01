@@ -1424,6 +1424,9 @@ s32 worldCoordGetOriginAudioPan(const GfxCoord* coord)
 {
     // Screen-pixel limits and pixels per sound-event pan-offset unit.
     enum {
+        /// Inclusive screen-X floor in pixels before spatial audio pan scaling.
+        ///
+        /// With ten pixels per pan-offset unit, -160 caps the leftward offset at -16.
         WORLD_COORDINATE_AUDIO_PAN_MIN_X = -160,
 
         /// Inclusive screen-X ceiling in pixels before spatial audio pan scaling.
