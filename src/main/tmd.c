@@ -51,6 +51,14 @@ typedef union {
 STATIC_ASSERT_SIZEOF(TmdStreamWord, 4);
 
 enum {
+    /// Initial state of a shared TMD source whose draw-handler slots need resolution.
+    ///
+    /// Zero in `TmdSource.handlersResolved` makes creation overwrite each command's
+    /// handler slot using its opcode and the current location. The stream must be
+    /// writable and well formed; group markers have no handler slot. Reaching
+    /// `TMD_STREAM_END`, including at entry to an empty stream, changes the state
+    /// to `TMD_SOURCE_HANDLERS_RESOLVED`. Nonzero states skip this pass, so later
+    /// creations sharing the source reuse the handlers selected on the first pass.
     TMD_SOURCE_HANDLERS_UNRESOLVED = 0,
     /// Completion value for resolving a shared source's draw-handler slots.
     ///
