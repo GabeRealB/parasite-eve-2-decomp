@@ -1331,59 +1331,59 @@ def:
 
 void Gp_UpdateActorColor(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 {
-    TmdObject*      extra;
-    MATRIX*         colorMtx;
-    s32             mode;
-    GpColorScratch* block;
-    s32             i;
-    s32             w0;
-    s32             w1;
+    TmdObject*                   extra;
+    MATRIX*                      colorMtx;
+    s32                          mode;
+    WorldCoordActorColorScratch* block;
+    s32                          i;
+    s32                          w0;
+    s32                          w1;
 
     extra    = arg0->task->extra.tmd;
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & ENEMY_COLOR_MODE_MASK;
     if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != 1)) {
-        block = SCRATCH_STACK_RESERVE_BLOCK(GpColorScratch);
+        block = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordActorColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {
             Gp_RemapActorColor(arg0, colorMtx, mode);
         } else {
-            block->mtx.m[0][0] = colorMtx->m[0][0];
-            block->mtx.m[0][1] = colorMtx->m[0][1];
-            block->mtx.m[0][2] = colorMtx->m[0][2];
-            block->mtx.m[1][0] = colorMtx->m[1][0];
-            block->mtx.m[1][1] = colorMtx->m[1][1];
-            block->mtx.m[1][2] = colorMtx->m[1][2];
-            block->mtx.m[2][0] = colorMtx->m[2][0];
-            block->mtx.m[2][1] = colorMtx->m[2][1];
-            block->mtx.m[2][2] = colorMtx->m[2][2];
+            block->previousColor.m[0][0] = colorMtx->m[0][0];
+            block->previousColor.m[0][1] = colorMtx->m[0][1];
+            block->previousColor.m[0][2] = colorMtx->m[0][2];
+            block->previousColor.m[1][0] = colorMtx->m[1][0];
+            block->previousColor.m[1][1] = colorMtx->m[1][1];
+            block->previousColor.m[1][2] = colorMtx->m[1][2];
+            block->previousColor.m[2][0] = colorMtx->m[2][0];
+            block->previousColor.m[2][1] = colorMtx->m[2][1];
+            block->previousColor.m[2][2] = colorMtx->m[2][2];
             Gp_RemapActorColor(arg0, colorMtx, mode);
-            Gp_RemapActorColor(arg0, &block->mtx, (arg0->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
+            Gp_RemapActorColor(arg0, &block->previousColor, (arg0->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
             w0 = (s8)arg0->colorBlend << 8;
             w1 = 0x1000 - w0;
             for (i = 0; i < 3; i++) {
-                block->col0.vx = colorMtx->m[0][i];
-                block->col0.vy = colorMtx->m[1][i];
-                block->col0.vz = colorMtx->m[2][i];
-                block->col1.vx = block->mtx.m[0][i];
-                block->col1.vy = block->mtx.m[1][i];
-                block->col1.vz = block->mtx.m[2][i];
+                block->currentColumn.vx  = colorMtx->m[0][i];
+                block->currentColumn.vy  = colorMtx->m[1][i];
+                block->currentColumn.vz  = colorMtx->m[2][i];
+                block->previousColumn.vx = block->previousColor.m[0][i];
+                block->previousColumn.vy = block->previousColor.m[1][i];
+                block->previousColumn.vz = block->previousColor.m[2][i];
                 gte_lddp(w1);
-                gte_ldsv(&block->col0);
+                gte_ldsv(&block->currentColumn);
                 gte_gpf12();
                 gte_lddp(w0);
-                gte_ldsv(&block->col1);
+                gte_ldsv(&block->previousColumn);
                 gte_gpl12();
-                gte_stsv(&block->col0);
-                colorMtx->m[0][i] = block->col0.vx;
-                colorMtx->m[1][i] = block->col0.vy;
-                colorMtx->m[2][i] = block->col0.vz;
+                gte_stsv(&block->currentColumn);
+                colorMtx->m[0][i] = block->currentColumn.vx;
+                colorMtx->m[1][i] = block->currentColumn.vy;
+                colorMtx->m[2][i] = block->currentColumn.vz;
             }
             if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                 arg0->colorBlend--;
             }
         }
-        SCRATCH_STACK_RELEASE_BLOCK(GpColorScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(WorldCoordActorColorScratch);
     }
 }
 

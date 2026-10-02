@@ -6870,11 +6870,11 @@ instead of `addiu s0` / `sw s0`. Coalescing the temp into the live
 
 ```c
 register void**          scratch asm("v1");
-register GpColorScratch* tmp asm("v0");
+register WorldCoordActorColorScratch* tmp asm("v0");
 
 scratch  = SCRATCH_STACK_CURSOR_SLOT;
 head     = *scratch;
-tmp      = (GpColorScratch*)(head - 0x30);
+tmp      = (WorldCoordActorColorScratch*)(head - 0x30);
 block    = tmp;
 *scratch = tmp;
 ```
@@ -6938,11 +6938,11 @@ then `lhu -6(a0)`). A `+r` pin after each load keeps every access
 relative to the walking base (`lhu 0/6/0xc(a1)`):
 
 ```c
-block->col0.vx = src->x;
+block->currentColumn.vx = src->x;
 asm volatile("" : "+r"(src));
-block->col0.vy = src->y;
+block->currentColumn.vy = src->y;
 asm volatile("" : "+r"(src));
-block->col0.vz = src->z;
+block->currentColumn.vz = src->z;
 ```
 
 `Gp_UpdateActorColor` is the example.
@@ -143207,7 +143207,7 @@ steps by 2 and loads at `0`, `6` and `0xC`. Modelling that as a 14-byte
 both pointers to stop loop splitting each field into its own induction
 variable (`addiu v1,a1,0xc`, `lhu -0x6(v1)`). Plain indexing,
 `colorMtx->m[0][i]` … `m[2][i]` with a `for (i = 0; i < 3; i++)`, gives the
-single stepped pointer per matrix without help, and `&block->col0` for the GTE
+single stepped pointer per matrix without help, and `&block->currentColumn` for the GTE
 operand folds to the old head minus 0x10 on its own once the block is taken
 with `SCRATCH_STACK_RESERVE_BLOCK`.
 
