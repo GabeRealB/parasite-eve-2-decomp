@@ -1292,11 +1292,16 @@ static inline void _textInitOutlineGlyphSprite(SPRT* outline, const TextDrawReq*
 {
     /// Palette selector for the standalone subtractive glyph outline.
     enum {
-        /// Final 16-color font palette at VRAM word X=1008, row Y=511.
+        /// GPU CLUT selector for the subtractive outline-only glyph pass.
         ///
-        /// Indices 0..5 are transparent, 6..9 increase in gray, and 10..15
-        /// are white. All nonzero colors enable semi-transparency. Raw texture
-        /// colors darken the background when the page selects subtractive blending.
+        /// Encodes VRAM word X=1008, row Y=511 as 0x7FFF for `SPRT::clut`:
+        /// bits 0..5 store X / 16 and bits 6..14 store Y. The 16-color palette
+        /// uploaded there by `Text_LoadClutImages` must already be resident.
+        /// Indices 0..5 are transparent; 6..9 have RGB5 gray levels 1, 3, 6
+        /// and 9; 10..15 are white. Every nonzero color sets bit 15.
+        /// Raw, semitransparent sprites use these colors without RGB modulation.
+        /// The 4bpp font page must select `GPU_BLEND_SUBTRACT` to darken the
+        /// background; the CLUT selector itself carries no blend mode.
         TEXT_OUTLINE_ONLY_GLYPH_CLUT = getClut(0x3F0, 0x1FF),
     };
 
