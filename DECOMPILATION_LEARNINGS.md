@@ -134125,7 +134125,7 @@ triangle a normal per corner where `0x0` has one, so the two light it differentl
 share a body. The kind comes from the process arm, the modifier from the opcode's
 bit - `tmdDrawStreamPrimG3CornerNormals` beside `tmdDrawStreamPrimG3` for `0x20`
 and `0x0` - which is how the process-pass names read too
-(`gpStreamPrimGt3OneNormal` beside `tmdBuildStreamGt3CornerColors`).
+(`tmdBuildStreamGt3OneNormal` beside `tmdBuildStreamGt3CornerColors`).
 
 A draw body names its own packet without help from the twin: the primitive
 cursor's increment and the `lui` tag word give the packet's size and length, and
@@ -134322,7 +134322,7 @@ bare `tmdDrawStreamPrimG3` for the record carrying one normal and
 the quads read `tmdDrawStreamPrimG4` and `tmdDrawStreamPrimG4CornerNormals`.
 
 Not the textured families' `OneNormal`: that word names their single-normal arm
-from the family that carries three normals (`gpStreamPrimGt3OneNormal` beside
+from the family that carries three normals (`tmdBuildStreamGt3OneNormal` beside
 `tmdBuildStreamGt3`), so it reads as a different rule beside an untextured family
 whose base record already is the single-normal one.
 

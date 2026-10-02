@@ -525,7 +525,7 @@ u32* tmdDrawStreamPrimG4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* el
 /// or `workspace->normals` array; neither array's full extent is supplied here.
 /// `elemCount` and `elemStride` are decoded unsigned halfwords (0..65535);
 /// stride counts u32 words. Drawing reads two words per element, but construction
-/// requires at least five: `gpStreamPrimGt3OneNormal` initializes UVs, texture
+/// requires at least five: `tmdBuildStreamGt3OneNormal` initializes UVs, texture
 /// page and CLUT from words 2..4. The stream must contain count * stride payload
 /// words and remain valid for the call.
 ///
@@ -565,7 +565,7 @@ u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdStreamWorkspace* workspace, s32 o
 /// or `workspace->normals` array; neither array's full extent is supplied here.
 /// `elemCount` and `elemStride` are decoded unsigned halfwords (0..65535);
 /// stride counts u32 words. Drawing reads two words per element, but the
-/// complete record requires at least five because `gpStreamPrimGt3OneNormal`
+/// complete record requires at least five because `tmdBuildStreamGt3OneNormal`
 /// initializes the texture words from words 2..4. The stream must contain
 /// count * stride payload words and remain valid for the call.
 ///

@@ -475,7 +475,7 @@ void tmdProcessStream(TmdObject* obj)
                 break;
             case 0x18:
             case 0x1A:
-                handler = gpStreamPrimGt3OneNormal;
+                handler = tmdBuildStreamGt3OneNormal;
                 break;
             case 0x58:
             case 0x5A:

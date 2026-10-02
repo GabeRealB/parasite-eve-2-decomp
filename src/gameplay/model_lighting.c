@@ -2312,24 +2312,21 @@ u32* gpStreamPrimGt4CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* tmdBuildStreamGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    POLY_GT3* poly;
+    // Texture suffix follows three vertex references and one face-normal reference.
+    enum { TMD_GT3_ONE_NORMAL_UV0_CLUT_WORD_INDEX = 2 };
+    POLY_GT3* triangle;
 
-    poly = (POLY_GT3*)ws->primWrite;
-    if (ws->elemCount-- > 0) {
-        do {
-            MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
-            MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
-            *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->texturePageOffset;
-            poly->clut                         += ws->encodedClutOffset;
-            poly++;
-            stream += ws->elemStride;
-        } while (ws->elemCount-- > 0);
+    triangle = (POLY_GT3*)workspace->primWrite;
+    // Seed texture data for the draw pass that lights all corners from the face normal.
+    while (workspace->elemCount-- > 0) {
+        _modelLightingInitGt3TextureWords(triangle, elements, TMD_GT3_ONE_NORMAL_UV0_CLUT_WORD_INDEX, workspace);
+        triangle++;
+        elements += workspace->elemStride;
     }
-    ws->primWrite = (u8*)poly;
-    return stream;
+    workspace->primWrite = (u8*)triangle;
+    return elements;
 }
 
 u32* gpStreamPrimGt4OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream)

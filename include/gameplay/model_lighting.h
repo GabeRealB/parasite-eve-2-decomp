@@ -393,17 +393,34 @@ u32* gpStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// sit further into the record than `gpStreamPrimGt4`'s do.
 u32* gpStreamPrimGt4CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-/// Handler of a stream's one-normal textured-triangle records (`0x18`, `0x1A`):
-/// each element contributes one triangle to the buffer half's second region, with
-/// the element's texture words written into it.
+/// Initializes persistent texture fields for textured triangles lit from one face normal.
 ///
-/// The element names one normal for the whole triangle rather than one per corner
-/// as the `tmdBuildStreamGt3` family does, so its texture words begin a word
-/// earlier. The record is not pre-transformed, so its triangle is built in the
-/// region the draw pass transforms; this command writes only the polygon's `u`/`v`
-/// fields, and adds the model's texture page and CLUT to the primitive's own,
-/// which are stored relative to the model.
-u32* gpStreamPrimGt3OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// Construction selects this callback for opcodes `0x18` and `0x1A`. `elements`
+/// begins after the three-word record header. The caller supplies
+/// `workspace->elemCount` (0..65535) and `elemStride` in u32 words, at least five
+/// per element. Words 0/1 pack three vertex u16 byte offsets then one face-normal
+/// offset for drawing; construction does not read them or access geometry.
+/// Words 2/3 pack unsigned byte U/V texel coordinates with encoded CLUT and
+/// texture-page settings. Only word 4's low half supplies U2/V2; its high half
+/// is ignored. Five words is a minimum readable extent, not a fixed element size.
+///
+/// `primWrite` must address one writable, four-byte-aligned, 40-byte `POLY_GT3`
+/// slot per element in the selected buffer half's second region. The workspace
+/// supplies signed encoded-address displacements: `texturePageOffset`
+/// (-128..127) and `encodedClutOffset` (-8192..8128, 64 per palette row). Sums
+/// wrap modulo 65536 in the u16 packet fields. Drawing supplies positions, lit
+/// colours, length/code and links later; construction preserves those fields
+/// and all packet pad fields, including the halfword after U2/V2.
+///
+/// Advances `primWrite` by one packet per element and returns `elements`
+/// advanced by the original count times the word stride, leaving the next
+/// record or marker unconsumed. Consumes `elemCount` to -1 even for an empty
+/// record, which reads no payload and advances neither cursor. The first-region
+/// cursor and other workspace fields remain unchanged. `objectFlags` is the
+/// shared callback argument, passed as zero during construction and ignored
+/// here. Stream and packet capacities are unchecked caller obligations. All
+/// storage is borrowed for the call; no pointer is retained by this callback.
+u32* tmdBuildStreamGt3OneNormal(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Handler of a stream's one-normal textured-quad records (`0x58`, `0x5A`): each
 /// element contributes one quad to the buffer half's second region, with the
