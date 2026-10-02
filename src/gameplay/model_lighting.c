@@ -331,17 +331,28 @@ static inline void _tmdInitGt3OffsetLayerTexture(POLY_GT3* triangle, const u32* 
         /// word must be readable and four-byte aligned. This index does not
         /// define the element's stride or complete extent.
         MODEL_LIGHTING_GT3_OFFSET_LAYER_UV1_TPAGE_WORD_INDEX = 4,
-        TMD_GT3_LAYER_UV2_WORD                               = 5,      // U2/V2 in low half; high half is not copied
-        TMD_LAYER_TPAGE_ABR_LOW_BIT                          = 1 << 5, // Set ABR bit 5 without clearing bit 6
-        TMD_LAYER_CLUT_ROW_SHIFT                             = 6       // One signed palette row adds 64 encoded CLUT units
+        /// Index of vertex 2's packed texture-coordinate word for the offset layer.
+        ///
+        /// Counts u32 words from the element payload after the stream record's
+        /// three-word header. On the little-endian target, word 5 packs
+        /// unsigned texel coordinates U2 in bits 0..7 and V2 in bits 8..15.
+        /// Only the low half initializes the first `POLY_GT3` packet's u2/v2
+        /// bytes, preserving its adjacent `pad2`; the source high half is
+        /// ignored and its role is unproven. The selected word must be readable
+        /// and four-byte aligned. This index does not define the element's
+        /// stride or complete extent.
+        MODEL_LIGHTING_GT3_OFFSET_LAYER_UV2_WORD_INDEX = 5,
+        TMD_LAYER_TPAGE_ABR_LOW_BIT                    = 1 << 5, // Set ABR bit 5 without clearing bit 6
+        TMD_LAYER_CLUT_ROW_SHIFT                       = 6       // One signed palette row adds 64 encoded CLUT units
     };
     s32 layerTexturePage;
     s32 layerClutRowByte;
 
     MODEL_LIGHTING_UV0_CLUT_WORD(triangle)  = elementWords[MODEL_LIGHTING_GT3_OFFSET_LAYER_UV0_CLUT_WORD_INDEX];
     MODEL_LIGHTING_UV1_TPAGE_WORD(triangle) = elementWords[MODEL_LIGHTING_GT3_OFFSET_LAYER_UV1_TPAGE_WORD_INDEX];
-    *(u16*)&triangle->u2                    = (u16)elementWords[TMD_GT3_LAYER_UV2_WORD];
-    triangle->tpage                        += workspace->obj->layerTexturePageOffset;
+    // Copy the U/V byte pair without overwriting the adjacent packet pad2.
+    *(u16*)&triangle->u2 = (u16)elementWords[MODEL_LIGHTING_GT3_OFFSET_LAYER_UV2_WORD_INDEX];
+    triangle->tpage     += workspace->obj->layerTexturePageOffset;
     // Load the encoded row byte before reloading the truncated page sum.
     layerClutRowByte  = (u8)workspace->obj->layerClutRowOffset;
     layerTexturePage  = triangle->tpage;
