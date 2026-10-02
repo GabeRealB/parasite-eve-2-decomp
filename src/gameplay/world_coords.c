@@ -198,20 +198,24 @@ typedef struct _GpViewLightScratch {
 } GpViewLightScratch;
 STATIC_ASSERT_SIZEOF(GpViewLightScratch, 0x3C);
 
-/// Lighting override copied as a vector, then consumed component by component.
-/// The fourth halfword preserves the SVECTOR's unused final member.
-typedef union GpLightScaleOverride {
-    SVECTOR vector;
-    u16     components[4];
-} GpLightScaleOverride;
-STATIC_ASSERT_SIZEOF(GpLightScaleOverride, 8);
+/// Per-channel multipliers applied to the model light-colour matrix.
+///
+/// Scales have 12 fractional bits: zero suppresses a channel and `ONE` is unity.
+/// Each scale multiplies one RGB row of the 3x3 matrix; the ambient translation
+/// is preserved. The input is copied as an `SVECTOR`, then its scale halfwords
+/// are read unsigned for GTE GPF12. The copied final halfword is unused.
+typedef union {
+    SVECTOR inputVector;      // Copied RGB scales in vx/vy/vz, including the unused final halfword
+    u16     channelScales[3]; // Unsigned Q12 multipliers in red, green, blue order
+} _WorldCoordLightColorScaleOverride;
+STATIC_ASSERT_SIZEOF(_WorldCoordLightColorScaleOverride, 8);
 
 /* Define BSS before API headers to preserve first-declaration order. */
 WorldCoordTransientPointLight gWorldCoordTransientPointLights[WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT];
 
 u8 Gp_OverrideVec2Flag;
 
-GpLightScaleOverride Gp_OverrideVec2;
+_WorldCoordLightColorScaleOverride Gp_OverrideVec2;
 
 struct WorldTargetNode* D_80115260;
 
@@ -1033,28 +1037,29 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         }
     }
 
+    // Scale the three light-colour rows without changing the ambient term.
     if ((s8)Gp_OverrideVec2Flag == 1) {
-        u16*      ov;
-        SVECTOR3* row;
-        s32       j;
+        const u16* channelScale;
+        SVECTOR3*  row;
+        s32        channelIndex;
 
-        ov  = Gp_OverrideVec2.components;
-        j   = 0;
-        row = (SVECTOR3*)extra->colorMtx;
+        channelScale = Gp_OverrideVec2.channelScales;
+        channelIndex = 0;
+        row          = (SVECTOR3*)extra->colorMtx;
         do {
-            block->local.vx = row[j].vx;
-            block->local.vy = row[j].vy;
-            block->local.vz = row[j].vz;
-            gte_lddp(*ov);
+            block->local.vx = row[channelIndex].vx;
+            block->local.vy = row[channelIndex].vy;
+            block->local.vz = row[channelIndex].vz;
+            gte_lddp(*channelScale);
             gte_ldsv(&block->local);
             gte_gpf12();
             gte_stsv(&block->local);
-            row[j].vx = block->local.vx;
-            row[j].vy = block->local.vy;
-            row[j].vz = block->local.vz;
-            j++;
-            ov++;
-        } while (j < 3);
+            row[channelIndex].vx = block->local.vx;
+            row[channelIndex].vy = block->local.vy;
+            row[channelIndex].vz = block->local.vz;
+            channelIndex++;
+            channelScale++;
+        } while (channelIndex < (s32)ARRAY_SIZE(Gp_OverrideVec2.channelScales));
     }
 
     if (Pad_RemapState->diagnosticMode == GAME_DEBUG_DIAGNOSTIC_LIGHT_PROBE && D_80760618->field_1 == 1) {
@@ -1537,8 +1542,8 @@ void Gp_SetOverrideVec2(SVECTOR* arg0)
         Gp_OverrideVec2Flag = 0;
         return;
     }
-    Gp_OverrideVec2Flag    = 1;
-    Gp_OverrideVec2.vector = *arg0;
+    Gp_OverrideVec2Flag         = 1;
+    Gp_OverrideVec2.inputVector = *arg0;
 }
 
 void Gp_SetObjTrans(TmdObject* arg0, s16 arg1, s16 arg2, s16 arg3)
