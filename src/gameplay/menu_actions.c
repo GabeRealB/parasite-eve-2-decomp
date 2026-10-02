@@ -1722,7 +1722,7 @@ void Gp_DrawMapName(Task* arg0)
             req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
             req.alignment  = TEXT_ALIGNMENT_RIGHT;
             req.drawMode   = TEXT_DRAW_FILL_ONLY;
-            Text_MeasureAndCenter(&req, text);
+            textAlignLine(&req, text);
             width = -req.x + 4;
             Ui_UpdateLayoutSize(&(obj)->panel, width, Ui_Scale15(1));
             arg0->state = arg0->state + 1;

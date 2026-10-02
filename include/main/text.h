@@ -50,7 +50,7 @@ enum {
     /// Centers a measured UI-text line on the request's initial X coordinate.
     ///
     /// Stored in `TextDrawReq::alignment`. `Text_DrawString` and
-    /// `Text_MeasureAndCenter` subtract `width >> 1` pixels from X, so odd
+    /// `textAlignLine` subtract `width >> 1` pixels from X, so odd
     /// nonnegative widths use their rounded-down half. Measurement uses the
     /// initial glyph table and kerning even when inline commands change the
     /// drawing metrics or position. If no glyph is measured, width is -4 and
@@ -148,7 +148,7 @@ enum {
 
 /// Mutable placement and style for one encoded UI-text line.
 ///
-/// `Text_MeasureAndCenter` adjusts X for alignment; `Text_DrawString` also
+/// `textAlignLine` adjusts X for alignment; `Text_DrawString` also
 /// advances the X/Y pen and lets inline commands change drawMode and vBias.
 /// Reinitialize placement before drawing an independent line. Drawing initializes
 /// vBias, so callers need not set it. The request is borrowed only during a call.
@@ -185,7 +185,30 @@ STATIC_ASSERT_SIZEOF(TextGlyphCell, 0x4);
 /// Caption font cells shared with room title sequences.
 extern TextGlyphCell Caption_Glyphs[];
 
-void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1);
+/// Applies horizontal alignment to one encoded UI-text line's X anchor.
+///
+/// Borrows `request` and `text` for this call, retaining neither. Only `x`,
+/// `glyphTable` and `alignment` need initialization. X is in draw-environment
+/// pixels: center subtracts the measured width shifted right by one, right
+/// subtracts the full width, and other selectors skip measurement and leave X
+/// unchanged. The result narrows to signed 16-bit X; the selector stays set.
+/// Restore the anchor before another alignment call or `Text_DrawString`, which
+/// applies alignment again. No other request field or text byte is changed.
+///
+/// Width is the offset to the final glyph's rightmost pixel, including pair
+/// kerning and excluding its extra pen advance. Metrics and kerning use the
+/// initial `glyphTable`; inline font, position, color and style commands have
+/// no effect on alignment. With no measured glyph, width is -4, moving X two
+/// pixels right for center alignment or four for right alignment.
+///
+/// NUL, LF and a case-insensitive \\n command end measurement; CR does not.
+/// For center/right alignment, `text` must be readable through that terminator.
+/// Each \\B, \\C, \\D, \\S, \\U or \\W command (either case) needs a readable
+/// operand and a readable byte after it, even when the operand is NUL.
+/// Unrecognized escapes discard the backslash; adjacent backslashes continue
+/// scanning commands. Every byte reaching glyph indexing must be 0x20..0x7A
+/// for the small face or 0x20..0xFF otherwise; there is no range check.
+void textAlignLine(TextDrawReq* request, const u8* text);
 
 u8* Text_SkipLines(u8* arg0, s32 arg1);
 

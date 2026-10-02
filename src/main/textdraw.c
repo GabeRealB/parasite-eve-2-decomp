@@ -244,7 +244,7 @@ TaskDesc* gTaskDescBanks[15] = {
 
 /// Medium UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
 ///
-/// `Text_DrawString` and `Text_MeasureAndCenter` select this face when
+/// `Text_DrawString` and `textAlignLine` select this face when
 /// `glyphTable` is `TEXT_GLYPH_TABLE_MEDIUM`. Drawing also selects it for an
 /// `\sM` command, in either letter's case, and adds `TEXT_GLYPH_V_BIAS_MEDIUM`
 /// to each record's texture V. The initializer is the embedded `font_glyphs0`
@@ -255,7 +255,7 @@ static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
 
 /// Large UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
 ///
-/// `Text_DrawString` and `Text_MeasureAndCenter` select this face when
+/// `Text_DrawString` and `textAlignLine` select this face when
 /// `glyphTable` is neither `TEXT_GLYPH_TABLE_MEDIUM` nor
 /// `TEXT_GLYPH_TABLE_SMALL`. Named callers use `TEXT_GLYPH_TABLE_LARGE` and
 /// `TEXT_GLYPH_TABLE_LARGE_ALTERNATE`; any other selector takes this face too.
@@ -269,7 +269,7 @@ static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT] = {
 
 /// Small UI-font glyph metrics, one record per character byte from ' ' through 0x7A.
 ///
-/// `Text_DrawString` and `Text_MeasureAndCenter` select this face when
+/// `Text_DrawString` and `textAlignLine` select this face when
 /// `glyphTable` is `TEXT_GLYPH_TABLE_SMALL`. Drawing also selects it for an
 /// `\sS` command, in either letter's case, and adds `TEXT_GLYPH_V_BIAS_SMALL`
 /// to each record's texture V. The initializer is the embedded `font_glyphs2`
@@ -1050,30 +1050,31 @@ u8* Text_FormatTime(u8* arg0, u16 time)
     return ret;
 }
 
-void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
+void textAlignLine(TextDrawReq* request, const u8* text)
 {
-    const _FontGlyph* table;
+    const _FontGlyph* glyphTable;
     s32               width;
 
+    // Alignment keeps the initial face even when the line contains font commands.
     switch (request->glyphTable) {
         case TEXT_GLYPH_TABLE_MEDIUM:
-            table = _gFontGlyphsMedium;
+            glyphTable = _gFontGlyphsMedium;
             break;
         case TEXT_GLYPH_TABLE_SMALL:
-            table = _gFontGlyphsSmall;
+            glyphTable = _gFontGlyphsSmall;
             break;
         default:
-            table = _gFontGlyphsLarge;
+            glyphTable = _gFontGlyphsLarge;
             break;
     }
 
     switch (request->alignment) {
         case TEXT_ALIGNMENT_CENTER:
-            width       = _textMeasureLineWidth(request, arg1, table);
+            width       = _textMeasureLineWidth(request, text, glyphTable);
             request->x -= width >> 1;
             break;
         case TEXT_ALIGNMENT_RIGHT:
-            width       = _textMeasureLineWidth(request, arg1, table);
+            width       = _textMeasureLineWidth(request, text, glyphTable);
             request->x -= width;
             break;
     }

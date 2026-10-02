@@ -12014,21 +12014,21 @@ body). Sparse multi-way selection matches as a `switch` instead:
 
 ```c
 /* Target: beqz x, case0 / beq x,5,case5 / default then j continue */
-switch (arg0->field_C) {
-case 0:
-    table = _gFontGlyphsMedium;
+switch (request->glyphTable) {
+case TEXT_GLYPH_TABLE_MEDIUM:
+    glyphTable = _gFontGlyphsMedium;
     break;
-case 5:
-    table = _gFontGlyphsSmall;
+case TEXT_GLYPH_TABLE_SMALL:
+    glyphTable = _gFontGlyphsSmall;
     break;
 default:
-    table = _gFontGlyphsLarge;
+    glyphTable = _gFontGlyphsLarge;
     break;
 }
 ```
 
-`Text_MeasureAndCenter` is a pure example: two independent `switch`es (glyph table by
-`field_C`, centering by `field_D`) both needed this layout; the equivalent
+`textAlignLine` is a pure example: two independent `switch`es (glyph table by
+`glyphTable`, alignment by `alignment`) both needed this layout; the equivalent
 `if`/`else if` form scored ~67%.
 
 ## If/else branch polarity: `bnez` fall-through is the `== 0` body
