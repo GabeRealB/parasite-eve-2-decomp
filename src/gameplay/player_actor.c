@@ -96,16 +96,19 @@ typedef struct _GpScratch10 {
 } GpScratch10;
 STATIC_ASSERT_SIZEOF(GpScratch10, 0x10);
 
-/// 0xC-byte scratch from the scratch stack used by `func_80103E7C`.
-/// `field_0` / `field_4` / `field_8` are the wrap candidates
-/// `tgt - cur`, `tgt - cur + 0x1000`, and `tgt - cur - 0x1000`.
-/// The function returns the candidate with the smallest absolute value.
-typedef struct _GpAngleScratch {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s32 field_8;
-} GpAngleScratch;
-STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
+/// Scratch for choosing the shortest signed turn between two angles.
+///
+/// The three words are the raw target-minus-current difference and that
+/// difference shifted by one full turn in each direction. The caller keeps
+/// the candidate with the smallest absolute value. The block is reserved on
+/// the scratch stack for the comparison and released before the caller
+/// returns. Angles use 4096 units per turn.
+typedef struct {
+    s32 direct;    // Target minus current
+    s32 plusTurn;  // `direct` plus one full turn
+    s32 minusTurn; // `direct` minus one full turn
+} _PlayerActorShortestTurnScratch;
+STATIC_ASSERT_SIZEOF(_PlayerActorShortestTurnScratch, 0xC);
 
 /// 0x40-byte scratch from the scratch stack used by `Gp_StepPlayerMove`.
 /// `scale` is `D_80112E10[movementMode]` (signed, stored as a word). `angle`
@@ -5058,21 +5061,21 @@ void Gp_TurnPlayer(Task* arg0)
 /// shortest.
 static inline s16 _gpShortestTurn(s16 from, s16 to)
 {
-    GpAngleScratch* d;
+    _PlayerActorShortestTurnScratch* candidates;
 
-    SCRATCH_STACK_RESERVE_BLOCK(GpAngleScratch);
-    d          = SCRATCH_STACK_CURSOR(GpAngleScratch);
-    d->field_0 = to - from;
-    d->field_4 = d->field_0 + 0x1000;
-    d->field_8 = d->field_0 - 0x1000;
-    if (ABS(d->field_0) < ABS(d->field_4) && ABS(d->field_0) < ABS(d->field_8)) {
-        from = d->field_0;
-    } else if (ABS(d->field_4) < ABS(d->field_8)) {
-        from = d->field_4;
+    SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorShortestTurnScratch);
+    candidates            = SCRATCH_STACK_CURSOR(_PlayerActorShortestTurnScratch);
+    candidates->direct    = to - from;
+    candidates->plusTurn  = candidates->direct + ACTOR_TRANSFORM_ANGLE_TURN;
+    candidates->minusTurn = candidates->direct - ACTOR_TRANSFORM_ANGLE_TURN;
+    if (ABS(candidates->direct) < ABS(candidates->plusTurn) && ABS(candidates->direct) < ABS(candidates->minusTurn)) {
+        from = candidates->direct;
+    } else if (ABS(candidates->plusTurn) < ABS(candidates->minusTurn)) {
+        from = candidates->plusTurn;
     } else {
-        from = d->field_8;
+        from = candidates->minusTurn;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpAngleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorShortestTurnScratch);
     return from;
 }
 
@@ -5796,22 +5799,22 @@ s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
 
 s16 func_80103E7C(s16 arg0, s16 arg1)
 {
-    void**          head = SCRATCH_HEAD_ADDR;
-    GpAngleScratch* d;
+    void**                           head = SCRATCH_HEAD_ADDR;
+    _PlayerActorShortestTurnScratch* candidates;
 
-    SCRATCH_PUSH_AT(head, GpAngleScratch);
-    d          = SCRATCH_HEAD_AT(head, GpAngleScratch);
-    d->field_0 = arg1 - arg0;
-    d->field_4 = d->field_0 + 0x1000;
-    d->field_8 = d->field_0 - 0x1000;
-    if (ABS(d->field_0) < ABS(d->field_4) && ABS(d->field_0) < ABS(d->field_8)) {
-        arg0 = d->field_0;
-    } else if (ABS(d->field_4) < ABS(d->field_8)) {
-        arg0 = d->field_4;
+    SCRATCH_PUSH_AT(head, _PlayerActorShortestTurnScratch);
+    candidates            = SCRATCH_HEAD_AT(head, _PlayerActorShortestTurnScratch);
+    candidates->direct    = arg1 - arg0;
+    candidates->plusTurn  = candidates->direct + ACTOR_TRANSFORM_ANGLE_TURN;
+    candidates->minusTurn = candidates->direct - ACTOR_TRANSFORM_ANGLE_TURN;
+    if (ABS(candidates->direct) < ABS(candidates->plusTurn) && ABS(candidates->direct) < ABS(candidates->minusTurn)) {
+        arg0 = candidates->direct;
+    } else if (ABS(candidates->plusTurn) < ABS(candidates->minusTurn)) {
+        arg0 = candidates->plusTurn;
     } else {
-        arg0 = d->field_8;
+        arg0 = candidates->minusTurn;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(GpAngleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorShortestTurnScratch);
     return arg0;
 }
 
