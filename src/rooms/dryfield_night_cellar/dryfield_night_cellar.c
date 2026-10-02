@@ -107,7 +107,7 @@ GpViewCountRec D_dryfield_night_cellar_8017DB30[2] = {
 };
 
 GpWarpRec D_dryfield_night_cellar_8017DB34[1] = {
-    { { .words = { 2048, 5611, 3, 3945 } }, { 0, 0, 0, 0 }, { .words = { 2048, 5611, 3, 3945 } }, { 0, 0, 0, 0 }, 0x53220002, 0x53220001, 0, 2, 0, 463 },
+    { { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, 0x53220002, 0x53220001, 0, 2, 0, 463 },
 };
 
 static SVECTOR _gDryfieldNightCellarCollision008A0Normals[7] = {

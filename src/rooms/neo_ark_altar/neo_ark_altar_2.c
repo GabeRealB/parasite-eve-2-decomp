@@ -205,7 +205,7 @@ GpViewCountRec D_neo_ark_altar_8017F0F8[2] = {
 };
 
 GpWarpRec D_neo_ark_altar_8017F0FC[1] = {
-    { { .words = { 1024, 7533, -3600, -7520 } }, { 0, 0, 0, 0 }, { .words = { 2048, -2944, 0, -2035 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
+    { { { .word = 1024 }, 7533, -3600, -7520 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 1, 0 },
 };
 
 static SVECTOR _gNeoArkAltarCollision01FBCNormals[9] = {

@@ -125,7 +125,7 @@ GpViewCountRec D_shelter_b6_growth_room_8017F37C[1] = {
 };
 
 GpWarpRec D_shelter_b6_growth_room_8017F380[1] = {
-    { { .words = { 0, 4030, 0, -2950 } }, { 0, 0, 0, 0 }, { .words = { 0, 4030, 0, -2950 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 437 },
+    { { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 437 },
 };
 
 static SVECTOR _gShelterB6GrowthRoomCollision02530Normals[14] = {

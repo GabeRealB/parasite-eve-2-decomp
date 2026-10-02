@@ -55,7 +55,7 @@ TILE Gp_FadeTiles[2];
 
 DR_TPAGE Gp_FadeTpages[2];
 
-GpSpawnTransform D_80114CB0;
+ActorSpawnTransform D_80114CB0;
 
 static inline u16 _gpAdvanceAreaCd(void);
 
@@ -140,23 +140,23 @@ void func_800AA548(s32 arg0)
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     if (gDisplayState.control.flags.pendingPlayerPos == 1) {
         // Restore the captured signed coordinates instead of the warp's start.
-        savedPos                 = &(&gPlayerStatus)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
-        D_80114CB0.words.field_0 = savedPos->yaw;
-        D_80114CB0.words.field_4 = savedPos->x;
-        D_80114CB0.words.field_8 = savedPos->y;
-        D_80114CB0.words.field_C = savedPos->z;
-        flags.field_0            = 0x23;
-        flags.field_2            = 0;
-        Gp_SpawnPlayer(&D_80114CB0.actor, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &flags);
-        Gp_SetupCompanionActor(&rec.companion.actor, &flags.field_0);
+        savedPos            = &(&gPlayerStatus)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
+        D_80114CB0.yaw.word = savedPos->yaw;
+        D_80114CB0.x        = savedPos->x;
+        D_80114CB0.y        = savedPos->y;
+        D_80114CB0.z        = savedPos->z;
+        flags.field_0       = 0x23;
+        flags.field_2       = 0;
+        Gp_SpawnPlayer(&D_80114CB0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &flags);
+        Gp_SetupCompanionActor(&rec.companion, &flags.field_0);
         gDisplayState.control.flags.pendingPlayerPos = 0;
     } else {
         playerId      = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
         flags.field_0 = 1;
         flags.field_2 = rec.field_35 & 1;
-        Gp_SpawnPlayer(&rec.player.actor, (s8)playerId & 0xFFFF, 0, &flags);
+        Gp_SpawnPlayer(&rec.player, (s8)playerId & 0xFFFF, 0, &flags);
         flags.field_2 = 0;
-        Gp_SetupCompanionActor(&rec.companion.actor, &flags.field_0);
+        Gp_SetupCompanionActor(&rec.companion, &flags.field_0);
     }
     model                    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
     model->texturePageOffset = 6;

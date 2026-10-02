@@ -93,7 +93,7 @@ GpViewCountRec D_dryfield_night_toilet_8017DACC[1] = {
 };
 
 GpWarpRec D_dryfield_night_toilet_8017DAD0[1] = {
-    { { .words = { 2048, -1660, 0, 1653 } }, { 0, 0, 0, 0 }, { .words = { 2048, -1660, 0, 1653 } }, { 0, 0, 0, 0 }, 0x53100002, 0x53100001, 0, 2, 0, 480 },
+    { { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, 0x53100002, 0x53100001, 0, 2, 0, 480 },
 };
 
 static SVECTOR _gDryfieldNightToiletCollision007C8Normals[7] = {

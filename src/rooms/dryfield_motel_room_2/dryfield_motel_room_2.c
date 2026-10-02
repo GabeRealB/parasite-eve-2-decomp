@@ -64,7 +64,7 @@ WorldCoordRoomLighting D_dryfield_motel_room_2_8017D6FC[1] = {
 };
 
 GpWarpRec D_dryfield_motel_room_2_8017D704[1] = {
-    { { .words = { 3072, 4666, 0, 2610 } }, { 0, 0, 0, 0 }, { .words = { 3072, 4666, 0, 2610 } }, { 0, 0, 0, 0 }, 0x520C0002, 0x520C0001, 0, 2, 0, 485 },
+    { { { .word = 3072 }, 4666, 0, 2610 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4666, 0, 2610 }, { 0, 0, 0, 0 }, 0x520C0002, 0x520C0001, 0, 2, 0, 485 },
 };
 
 static SVECTOR _gDryfieldMotelRoom2Collision0084CNormals[13] = {

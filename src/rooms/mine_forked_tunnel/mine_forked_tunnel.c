@@ -1032,7 +1032,7 @@ GpViewCountRec D_mine_forked_tunnel_80183650[1] = {
 };
 
 GpWarpRec D_mine_forked_tunnel_80183654[1] = {
-    { { .words = { 2048, 2350, 0, 0x2904 } }, { 0, 0, 0, 0 }, { .words = { 2048, 2350, 0, 0x2904 } }, { 0, 0, 0, 0 }, 0x54070002, 0x54070001, 0, 3, 0, 0 },
+    { { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, 0x54070002, 0x54070001, 0, 3, 0, 0 },
 };
 
 static SVECTOR _gMineForkedTunnelCollision067B0Normals[33] = {

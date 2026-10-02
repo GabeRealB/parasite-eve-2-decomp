@@ -188,7 +188,7 @@ WorldCoordRoomLighting D_dryfield_toilet_80181144[1] = {
 };
 
 GpWarpRec D_dryfield_toilet_8018114C[1] = {
-    { { .words = { 2048, -1660, 0, 1653 } }, { 0, 0, 0, 0 }, { .words = { 2048, -1660, 0, 1653 } }, { 0, 0, 0, 0 }, 0x52100002, 0x52100001, 0, 2, 0, 480 },
+    { { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, 0x52100002, 0x52100001, 0, 2, 0, 480 },
 };
 
 static SVECTOR _gDryfieldToiletCollision03E44Normals[7] = {

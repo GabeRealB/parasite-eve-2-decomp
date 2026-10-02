@@ -1339,7 +1339,7 @@ void func_8010B9A4(Task* arg0)
     Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);
 }
 
-Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
+Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, u16* arg3)
 {
     Task*          task;
     GameActor*     actor;
@@ -1379,11 +1379,11 @@ have_actor:
     actor->companionWork = companion;
     Gp_PumpTmdStream(task);
     actor->actionArgument = *arg3;
-    actor->rotation.vy    = arg0->field_0;
+    actor->rotation.vy    = spawnTransform->yaw.angle;
     coord                 = task->extra.tmd->coords;
-    coord->coord.t[0]     = arg0->field_4;
-    coord->coord.t[1]     = arg0->field_8;
-    coord->coord.t[2]     = arg0->field_C;
+    coord->coord.t[0]     = spawnTransform->x;
+    coord->coord.t[1]     = spawnTransform->y;
+    coord->coord.t[2]     = spawnTransform->z;
     return task;
 }
 

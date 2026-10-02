@@ -337,7 +337,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `roomEffect` | Room effect state and tasks | `room_effects.c` | `include/gameplay/room_effects.h`, `src/gameplay/room_effects.h` |
 | `hud` | HUD sprites, numbers and tracking | `hud_sprites.c` | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
 | `padInput`, `padScript` | Gameplay input mapping, and scripted on/off and variable-intensity controller vibration | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
-| `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
+| `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `include/gameplay/actor_spawn_types.h` (player/companion spawn transforms), `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
 | `scene` | Scene tasks, actor-command routing, combat state and runtime coordination | `scene_runtime.c`, `world_targets.c` (combat state) | `include/gameplay/scene_runtime.h`, `include/gameplay/scene_combat.h`, `include/gameplay/world_state.h` (combat type), `include/gameplay/message.h` (`ActorCommand`), `src/gameplay/scene_runtime.h` |
 | `ending` | Ending sequence control | `ending.c` | `include/gameplay/ending.h`, `src/gameplay/ending.h` |
 

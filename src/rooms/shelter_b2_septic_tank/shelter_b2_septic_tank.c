@@ -338,8 +338,8 @@ GpViewCountRec D_shelter_b2_septic_tank_80183570[1] = {
 };
 
 GpWarpRec D_shelter_b2_septic_tank_80183574[2] = {
-    { { .words = { 0, -89, 0, -0x3395 } }, { 0, 0, 0, 0 }, { .words = { 3840, 400, 0, -0x3106 } }, { 0, 0, 0, 0 }, 0x54220002, 0x54220001, 0, 2, 0, 0 },
-    { { .words = { 2048, -89, 0, -112 } }, { 0, 0, 0, 0 }, { .words = { 2560, 800, 0, -300 } }, { 0, 0, 0, 0 }, 0x54220004, 0x54220003, 0, 5, 0, 0 },
+    { { { .word = 0 }, -89, 0, -0x3395 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 400, 0, -0x3106 }, { 0, 0, 0, 0 }, 0x54220002, 0x54220001, 0, 2, 0, 0 },
+    { { { .word = 2048 }, -89, 0, -112 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 800, 0, -300 }, { 0, 0, 0, 0 }, 0x54220004, 0x54220003, 0, 5, 0, 0 },
 };
 
 // Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.

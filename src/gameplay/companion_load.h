@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "gameplay/message.h"
+#include "gameplay/actor_spawn_types.h"
 
 #include "main/session_types.h"
 #include "main/task_types.h"
@@ -12,7 +12,7 @@ s32 Gp_PickCompanion(void);
 
 void Gp_ApplyNpcRoomSnd(void);
 
-void Gp_SetupCompanionActor(GpActorArg* arg0, u16* arg1);
+void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, u16* arg1);
 
 void Gp_MarkAreaVisited(GameLocationKey* arg0);
 

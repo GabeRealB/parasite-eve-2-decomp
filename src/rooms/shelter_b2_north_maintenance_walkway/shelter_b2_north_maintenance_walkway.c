@@ -93,8 +93,8 @@ GpViewCountRec D_shelter_b2_north_maintenance_walkway_80183C60[2] = {
 };
 
 GpWarpRec D_shelter_b2_north_maintenance_walkway_80183C64[2] = {
-    { { .words = { 0, 2000, 0, -4500 } }, { 0, 0, 0, 0 }, { .words = { 0, 2000, 0, -4500 } }, { 0, 0, 0, 0 }, 0x541E0002, 0x541E0001, 0x541E0007, 2, 0, 458 },
-    { { .words = { 0, -1839, 0, 3660 } }, { 0, 0, 0, 0 }, { .words = { 0, -1839, 0, 3660 } }, { 0, 0, 0, 0 }, 0x541E0005, 0x541E0004, 0, 5, 0, 0 },
+    { { { .word = 0 }, 2000, 0, -4500 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2000, 0, -4500 }, { 0, 0, 0, 0 }, 0x541E0002, 0x541E0001, 0x541E0007, 2, 0, 458 },
+    { { { .word = 0 }, -1839, 0, 3660 }, { 0, 0, 0, 0 }, { { .word = 0 }, -1839, 0, 3660 }, { 0, 0, 0, 0 }, 0x541E0005, 0x541E0004, 0, 5, 0, 0 },
 };
 
 static SVECTOR _gShelterB2NorthMaintenanceWalkwayCollision06A5CNormals[14] = {

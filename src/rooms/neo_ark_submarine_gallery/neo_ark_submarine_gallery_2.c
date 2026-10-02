@@ -138,7 +138,7 @@ GpViewCountRec D_neo_ark_submarine_gallery_80181A0C[1] = {
 };
 
 GpWarpRec D_neo_ark_submarine_gallery_80181A10[1] = {
-    { { .words = { 2304, 1300, 5000, 3100 } }, { 0, 0, 0, 0 }, { .words = { 2304, 1300, 5000, 3100 } }, { 0, 0, 0, 0 }, 0x551E0001, 0x551E0001, 0, 2, 2, 0 },
+    { { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 1300, 5000, 3100 }, { 0, 0, 0, 0 }, 0x551E0001, 0x551E0001, 0, 2, 2, 0 },
 };
 
 // Height override read by the shared waypoint actor.

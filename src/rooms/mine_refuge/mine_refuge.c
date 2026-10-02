@@ -218,7 +218,7 @@ GpViewCountRec D_mine_refuge_8018190C[1] = {
 };
 
 GpWarpRec D_mine_refuge_80181910[1] = {
-    { { .words = { 0, 1472, 0, 288 } }, { 0, 0, 0, 0 }, { .words = { 0, 1472, 0, 288 } }, { 0, 0, 0, 0 }, 0x54060002, 0x54060001, 0, 2, 0, 0 },
+    { { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, 0x54060002, 0x54060001, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gMineRefugeCollision045E4Normals[12] = {

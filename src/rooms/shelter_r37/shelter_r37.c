@@ -45,7 +45,7 @@ GpViewCountRec D_shelter_r37_8017D6FC[1] = {
 };
 
 GpWarpRec D_shelter_r37_8017D700[1] = {
-    { { .words = { 1024, 3756, 0, -197 } }, { 0, 0, 0, 0 }, { .words = { 1024, 3756, 0, -197 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 1024 }, 3756, 0, -197 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 3756, 0, -197 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gShelterR37Collision00360Normals[6] = {

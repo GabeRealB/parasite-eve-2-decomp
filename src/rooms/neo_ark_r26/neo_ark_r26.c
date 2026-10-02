@@ -225,7 +225,7 @@ GpViewCountRec D_neo_ark_r26_8017E0E8[1] = {
 };
 
 GpWarpRec D_neo_ark_r26_8017E0EC[1] = {
-    { { .words = { 2048, 0, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 2048, 0, 0, 0 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gNeoArkR26Collision00BDCNormals[1] = {

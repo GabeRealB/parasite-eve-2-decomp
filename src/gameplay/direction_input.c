@@ -278,13 +278,13 @@ void Gp_SetupDirWarp(void)
             }
             msg.rot.vx = 0;
             msg.rot.vz = 0;
-            msg.rot.vy = (rec.player.words.field_0 + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
-            if (rec.player.words.field_0 == 0x7800 || rec.player.words.field_0 == 0x7FFF) {
+            msg.rot.vy = (rec.player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (rec.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT || rec.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {
                 pos.vx     = -0x5C1;
                 pos.vy     = 0;
                 pos.vz     = 0x9C1;
                 msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos);
-            } else if (rec.player.words.field_0 == 0x7FFE) {
+            } else if (rec.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
                 msg.rot.vy = actor->rotation.vy;
             }
             TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3EE, &msg, 0);
@@ -320,13 +320,13 @@ void Gp_SetupDirWarp(void)
             }
             msg.rot.vx = 0;
             msg.rot.vz = 0;
-            msg.rot.vy = (rec.player.words.field_0 + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
-            if (rec.player.words.field_0 == 0x7800 || rec.player.words.field_0 == 0x7FFF) {
+            msg.rot.vy = (rec.player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (rec.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT || rec.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {
                 pos2.vx    = -0x5C1;
                 pos2.vy    = 0;
                 pos2.vz    = 0x9C1;
                 msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos2);
-            } else if (rec.player.words.field_0 == 0x7FFE) {
+            } else if (rec.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
                 msg.rot.vy = actor->rotation.vy;
             }
             TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3EE, &msg, 0);

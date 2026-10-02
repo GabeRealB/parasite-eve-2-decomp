@@ -71,7 +71,7 @@ GpViewCountRec D_neo_ark_eve_elevator_8017D768[1] = {
 };
 
 GpWarpRec D_neo_ark_eve_elevator_8017D76C[1] = {
-    { { .words = { 3072, -960, 0, 0 } }, { 0, 0, 0, 0 }, { .words = { 3072, -960, 0, 0 } }, { 0, 0, 0, 0 }, 0x55090002, 0x55090001, 0, 2, 0, 444 },
+    { { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, 0x55090002, 0x55090001, 0, 2, 0, 444 },
 };
 
 static SVECTOR _gNeoArkEveElevatorCollision0046CNormals[14] = {

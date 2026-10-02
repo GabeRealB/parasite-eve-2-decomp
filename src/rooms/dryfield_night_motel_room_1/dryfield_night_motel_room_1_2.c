@@ -89,7 +89,7 @@ GpViewCountRec D_dryfield_night_motel_room_1_8017DAA4[1] = {
 };
 
 GpWarpRec D_dryfield_night_motel_room_1_8017DAA8[1] = {
-    { { .words = { 3072, 4369, 0, 3388 } }, { 0, 0, 0, 0 }, { .words = { 3072, 4369, 0, 3388 } }, { 0, 0, 0, 0 }, 0x530B0002, 0x530B0001, 0, 2, 0, 487 },
+    { { { .word = 3072 }, 4369, 0, 3388 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4369, 0, 3388 }, { 0, 0, 0, 0 }, 0x530B0002, 0x530B0001, 0, 2, 0, 487 },
 };
 
 static SVECTOR _gDryfieldNightMotelRoom1Collision00AD8Normals[9] = {

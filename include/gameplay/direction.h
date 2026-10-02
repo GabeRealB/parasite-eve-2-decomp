@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "gameplay/view.h"
+#include "gameplay/actor_spawn_types.h"
 #include "gameplay/message.h"
 
 /// Requests a room-specific action from the current trigger.
@@ -32,16 +32,16 @@ enum {
 /// func_800AA548 uses the transforms at 0x00 / 0x14 to spawn the player /
 /// companion, field_28 as a sound event, and field_34 as the initial view.
 typedef struct _GpWarpRec {
-    /* 0x00 */ GpSpawnTransform player;
-    /* 0x10 */ byte             pad_10[4];
-    /* 0x14 */ GpSpawnTransform companion;
-    /* 0x24 */ byte             pad_24[4];
-    /* 0x28 */ s32              field_28;
-    /* 0x2C */ s32              field_2C;
-    /* 0x30 */ s32              field_30;
-    /* 0x34 */ u8               field_34;
-    /* 0x35 */ u8               field_35;
-    /* 0x36 */ u16              field_36;
+    /* 0x00 */ ActorSpawnTransform player;
+    /* 0x10 */ byte                pad_10[4];
+    /* 0x14 */ ActorSpawnTransform companion;
+    /* 0x24 */ byte                pad_24[4];
+    /* 0x28 */ s32                 field_28;
+    /* 0x2C */ s32                 field_2C;
+    /* 0x30 */ s32                 field_30;
+    /* 0x34 */ u8                  field_34;
+    /* 0x35 */ u8                  field_35;
+    /* 0x36 */ u16                 field_36;
 } GpWarpRec;
 STATIC_ASSERT_SIZEOF(GpWarpRec, 0x38);
 

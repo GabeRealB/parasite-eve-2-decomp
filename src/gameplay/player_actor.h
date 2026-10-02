@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "actor.h"
+#include "gameplay/actor_spawn_types.h"
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 #include "gameplay/message.h"
@@ -77,7 +78,7 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideA
 
 s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2);
 
-Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
+Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, GpActorFlags* arg3);
 
 void func_801061F0(void);
 

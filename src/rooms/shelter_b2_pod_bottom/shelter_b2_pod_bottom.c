@@ -107,7 +107,7 @@ GpViewCountRec D_shelter_b2_pod_bottom_80181D30[1] = {
 };
 
 GpWarpRec D_shelter_b2_pod_bottom_80181D34[1] = {
-    { { .words = { 1024, 1542, -1998, 7374 } }, { 0, 0, 0, 0 }, { .words = { 1024, 1542, -1998, 7374 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 449 },
+    { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 449 },
 };
 
 static SVECTOR _gShelterB2PodBottomCollision0559CNormals[40] = {

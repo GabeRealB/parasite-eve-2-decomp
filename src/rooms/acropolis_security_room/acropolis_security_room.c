@@ -1494,7 +1494,7 @@ WorldCoordRoomLighting D_acropolis_security_room_801839E8[1] = {
 };
 
 GpWarpRec D_acropolis_security_room_801839F0[1] = {
-    { { .words = { 0, -46, -935, -2877 } }, { 0, 0, 0, 0 }, { .words = { 0, -46, -935, -2877 } }, { 0, 0, 0, 0 }, 0x51060005, 0x51060004, 0, 2, 0, 498 },
+    { { { .word = 0 }, -46, -935, -2877 }, { 0, 0, 0, 0 }, { { .word = 0 }, -46, -935, -2877 }, { 0, 0, 0, 0 }, 0x51060005, 0x51060004, 0, 2, 0, 498 },
 };
 
 static SVECTOR _gAcropolisSecurityRoomCollision067D4Normals[11] = {

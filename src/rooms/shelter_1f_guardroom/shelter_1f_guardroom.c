@@ -91,7 +91,7 @@ GpViewCountRec D_shelter_1f_guardroom_8017DA94[1] = {
 };
 
 GpWarpRec D_shelter_1f_guardroom_8017DA98[1] = {
-    { { .words = { 2048, -9000, 0, -3620 } }, { 0, 0, 0, 0 }, { .words = { 2048, -9000, 0, -3620 } }, { 0, 0, 0, 0 }, 0x55060002, 0x55060001, 0, 2, 0, 0 },
+    { { { .word = 2048 }, -9000, 0, -3620 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -9000, 0, -3620 }, { 0, 0, 0, 0 }, 0x55060002, 0x55060001, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gShelter1fGuardroomCollision00630Normals[7] = {

@@ -168,7 +168,7 @@ WorldCoordRoomLighting D_dryfield_r08_8017F708[2] = {
 };
 
 GpWarpRec D_dryfield_r08_8017F718[1] = {
-    { { .words = { 1024, 3360, 0, 2976 } }, { 0, 0, 0, 0 }, { .words = { 1024, 3360, 0, 2976 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 1024 }, 3360, 0, 2976 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 3360, 0, 2976 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gDryfieldR08Collision025D8Normals[6] = {

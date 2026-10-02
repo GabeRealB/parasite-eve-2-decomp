@@ -111,7 +111,7 @@ GpViewCountRec D_dryfield_night_r08_80180698[1] = {
 };
 
 GpWarpRec D_dryfield_night_r08_8018069C[1] = {
-    { { .words = { 0, 0, 0, -0x4650 } }, { 0, 0, 0, 0 }, { .words = { 0, 0, 0, -0x4650 } }, { 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0 },
+    { { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, 0, 0, 0, 1, 0, 0 },
 };
 
 static SVECTOR _gDryfieldNightR08Collision03EB4Normals[34] = {

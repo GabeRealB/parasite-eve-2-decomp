@@ -6,8 +6,6 @@
 
 #include "common.h"
 
-#include "gameplay/message.h"
-
 /// Number of unsigned byte entries in `gViewIdentityMap`.
 ///
 /// Its capacity covers 1-based logical views 1 through this value; each room
@@ -63,18 +61,6 @@ typedef struct {
     u8*** viewMaps; // Area directories of per-room logical-view byte maps.
 } ViewIndexTable;
 STATIC_ASSERT_SIZEOF(ViewIndexTable, 4);
-
-/// Spawn coordinates written with a full-word yaw, consumed with a halfword yaw.
-typedef union _GpSpawnTransform {
-    struct {
-        s32 field_0;
-        s32 field_4;
-        s32 field_8;
-        s32 field_C;
-    } words;
-    GpActorArg actor;
-} GpSpawnTransform;
-STATIC_ASSERT_SIZEOF(GpSpawnTransform, 0x10);
 
 /// Camera orientation, origin and perspective distance for a gameplay view.
 ///

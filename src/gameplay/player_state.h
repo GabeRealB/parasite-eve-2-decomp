@@ -3,13 +3,13 @@
 
 #include "types.h"
 
-#include "gameplay/message.h"
+#include "gameplay/actor_spawn_types.h"
 
 #include "main/task_types.h"
 
 Task* Gp_SetupAllyWeapon(void);
 
-Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
+Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, u16* arg3);
 
 void func_80109FC4(Task* arg0);
 

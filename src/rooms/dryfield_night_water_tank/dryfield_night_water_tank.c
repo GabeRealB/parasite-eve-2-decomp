@@ -243,8 +243,8 @@ GpViewCountRec D_dryfield_night_water_tank_8017EE78[1] = {
 };
 
 GpWarpRec D_dryfield_night_water_tank_8017EE7C[2] = {
-    { { .words = { 512, -2327, -0x2EDF, 1143 } }, { 0, 0, 0, 0 }, { .words = { 512, -2327, -0x2EDF, 1143 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
-    { { .words = { 2560, 870, -0x4010, 934 } }, { 0, 0, 0, 0 }, { .words = { 2560, 870, -0x4010, 934 } }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
+    { { { .word = 512 }, -2327, -0x2EDF, 1143 }, { 0, 0, 0, 0 }, { { .word = 512 }, -2327, -0x2EDF, 1143 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 2560 }, 870, -0x4010, 934 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 870, -0x4010, 934 }, { 0, 0, 0, 0 }, 0, 0, 0, 4, 0, 0 },
 };
 
 static SVECTOR _gDryfieldNightWaterTankCollision01EF0Normals[16] = {

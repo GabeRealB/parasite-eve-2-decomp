@@ -48,8 +48,8 @@ GpViewCountRec D_shelter_b1_sleeping_quarters_8018065C[1] = {
 };
 
 GpWarpRec D_shelter_b1_sleeping_quarters_80180660[2] = {
-    { { .words = { 1024, 0, 0, -860 } }, { 0, 0, 0, 0 }, { .words = { 1024, 0, 0, -860 } }, { 0, 0, 0, 0 }, 0x540E0004, 0x540E0003, 0, 2, 0, 0 },
-    { { .words = { 2048, 0x2E2C, 0, 5980 } }, { 0, 0, 0, 0 }, { .words = { 2048, 0x2E2C, 0, 5980 } }, { 0, 0, 0, 0 }, 0x540E0002, 0x540E0001, 0, 9, 0, 435 },
+    { { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, -860 }, { 0, 0, 0, 0 }, 0x540E0004, 0x540E0003, 0, 2, 0, 0 },
+    { { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, 0x540E0002, 0x540E0001, 0, 9, 0, 435 },
 };
 
 static SVECTOR _gShelterB1SleepingQuartersCollision03B14Normals[7] = {

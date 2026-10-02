@@ -263,7 +263,7 @@ GpViewCountRec D_neo_ark_power_plant_1_8017F1E4[1] = {
 };
 
 GpWarpRec D_neo_ark_power_plant_1_8017F1E8[1] = {
-    { { .words = { 3072, 8680, 0, -0x2904 } }, { 0, 0, 0, 0 }, { .words = { 3072, 8680, 0, -0x2904 } }, { 0, 0, 0, 0 }, 0x55110002, 0x55110001, 0, 2, 0, 440 },
+    { { { .word = 3072 }, 8680, 0, -0x2904 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8680, 0, -0x2904 }, { 0, 0, 0, 0 }, 0x55110002, 0x55110001, 0, 2, 0, 440 },
 };
 
 WorldCoordPointLight D_neo_ark_power_plant_1_8017F220[25] = {

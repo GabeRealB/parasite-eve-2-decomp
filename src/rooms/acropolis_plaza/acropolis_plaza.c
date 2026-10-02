@@ -2665,7 +2665,7 @@ SpriteView D_acropolis_plaza_80198A08[8] = {
 };
 
 GpWarpRec D_acropolis_plaza_80198A68[1] = {
-    { { .words = { 3072, 0x5AA0, 0, 1800 } }, { 0, 0, 0, 0 }, { .words = { 3072, 0x5AA0, 0, 1800 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 3072 }, 0x5AA0, 0, 1800 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x5AA0, 0, 1800 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gAcropolisPlazaCollision1BBC0Normals[30] = {

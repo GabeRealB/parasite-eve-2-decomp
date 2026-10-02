@@ -5546,7 +5546,7 @@ join_50:
     return actor->equipmentTasks[1];
 }
 
-Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
+Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, GpActorFlags* arg3)
 {
     Task*      task;
     GameActor* actor;
@@ -5571,11 +5571,11 @@ have_actor:
     task->work = actor;
     memFillBytes(actor, 0, sizeof(*actor));
     actor->actionArgument = arg3->field_0;
-    actor->rotation.vy    = arg0->field_0;
+    actor->rotation.vy    = spawnTransform->yaw.angle;
     coord                 = task->extra.tmd->coords;
-    coord->coord.t[0]     = arg0->field_4;
-    coord->coord.t[1]     = arg0->field_8;
-    coord->coord.t[2]     = arg0->field_C;
+    coord->coord.t[0]     = spawnTransform->x;
+    coord->coord.t[1]     = spawnTransform->y;
+    coord->coord.t[2]     = spawnTransform->z;
     D_80115768            = 0;
     if (arg3->field_2 != 0) {
         actor->mode = GAME_ACTOR_MODE_SCRIPTED;

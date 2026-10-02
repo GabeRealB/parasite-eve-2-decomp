@@ -79,7 +79,7 @@ GpViewCountRec D_shelter_1f_tent_80181D48[1] = {
 };
 
 GpWarpRec D_shelter_1f_tent_80181D4C[1] = {
-    { { .words = { 3072, -638, 0, 4300 } }, { 0, 0, 0, 0 }, { .words = { 3072, -638, 0, 4300 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gShelter1fTentCollision04D30Normals[17] = {

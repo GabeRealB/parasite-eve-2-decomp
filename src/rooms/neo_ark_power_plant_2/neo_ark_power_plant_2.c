@@ -262,7 +262,7 @@ GpViewCountRec D_neo_ark_power_plant_2_801806AC[2] = {
 };
 
 GpWarpRec D_neo_ark_power_plant_2_801806B0[1] = {
-    { { .words = { 3072, 4000, -5000, -400 } }, { 0, 0, 0, 0 }, { .words = { 3072, 4000, -5000, -400 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gNeoArkPowerPlant2Collision03804Normals[11] = {

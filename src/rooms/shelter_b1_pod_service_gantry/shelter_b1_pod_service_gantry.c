@@ -83,7 +83,7 @@ GpViewCountRec D_shelter_b1_pod_service_gantry_8017FB20[1] = {
 };
 
 GpWarpRec D_shelter_b1_pod_service_gantry_8017FB24[1] = {
-    { { .words = { 1024, 2535, 0, 3220 } }, { 0, 0, 0, 0 }, { .words = { 1024, 2535, 0, 3220 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 1024 }, 2535, 0, 3220 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 2535, 0, 3220 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 AreaResource D_shelter_b1_pod_service_gantry_8017FB5C[5] = {

@@ -150,18 +150,6 @@ typedef struct {
 } TaskMessageEntry;
 STATIC_ASSERT_SIZEOF(TaskMessageEntry, 8);
 
-/// 0x10-byte spawn argument for `Gp_SpawnAlly` / `Gp_SpawnPlayer`. `field_0`
-/// is copied to `GameActor.rotation.vy`; `field_4` / `field_8` / `field_C` are
-/// copied to the extra coordinate translation.
-typedef struct _GpActorArg {
-    /* 0x0 */ u16  field_0;
-    /* 0x2 */ byte pad_2[2];
-    /* 0x4 */ s32  field_4;
-    /* 0x8 */ s32  field_8;
-    /* 0xC */ s32  field_C;
-} GpActorArg;
-STATIC_ASSERT_SIZEOF(GpActorArg, 0x10);
-
 /// Playback choices stored as signed words in an animation request.
 enum {
     /// Requests the selected clip's start without blending from the previous pose.

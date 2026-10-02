@@ -60,7 +60,7 @@ WorldCoordRoomLighting D_shelter_r49_8017DA30[1] = {
 };
 
 GpWarpRec D_shelter_r49_8017DA38[1] = {
-    { { .words = { 1024, 0, -0x2710, 0 } }, { 0, 0, 0, 0 }, { .words = { 1024, 0, 0, 0 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 1024 }, 0, -0x2710, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gShelterR49Collision004ECNormals[1] = {

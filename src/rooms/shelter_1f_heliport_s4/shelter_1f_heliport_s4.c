@@ -45,7 +45,7 @@ GpViewCountRec D_shelter_1f_heliport_s4_8017D6FC[1] = {
 };
 
 GpWarpRec D_shelter_1f_heliport_s4_8017D700[1] = {
-    { { .words = { 0, 8000, 0, 1632 } }, { 0, 0, 0, 0 }, { .words = { 0, 8000, 0, 1632 } }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
+    { { { .word = 0 }, 8000, 0, 1632 }, { 0, 0, 0, 0 }, { { .word = 0 }, 8000, 0, 1632 }, { 0, 0, 0, 0 }, 0, 0, 0, 2, 0, 0 },
 };
 
 static SVECTOR _gShelter1fHeliportS4Collision00408Normals[7] = {

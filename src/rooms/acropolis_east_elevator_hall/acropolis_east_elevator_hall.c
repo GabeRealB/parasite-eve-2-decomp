@@ -340,7 +340,7 @@ WorldCoordRoomLighting D_acropolis_east_elevator_hall_80186338[1] = {
 };
 
 GpWarpRec D_acropolis_east_elevator_hall_80186340[1] = {
-    { { .words = { 1024, -5248, -31, 1068 } }, { 0, 0, 0, 0 }, { .words = { 1024, -5248, -31, 1068 } }, { 0, 0, 0, 0 }, 0x51020002, 0x51020001, 0, 4, 0, 502 },
+    { { { .word = 1024 }, -5248, -31, 1068 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5248, -31, 1068 }, { 0, 0, 0, 0 }, 0x51020002, 0x51020001, 0, 4, 0, 502 },
 };
 
 static SVECTOR _gAcropolisEastElevatorHallCollision09278Normals[10] = {

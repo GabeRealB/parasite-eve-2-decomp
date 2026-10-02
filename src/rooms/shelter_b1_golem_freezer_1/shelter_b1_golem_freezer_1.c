@@ -130,7 +130,7 @@ GpViewCountRec D_shelter_b1_golem_freezer_1_8017E794[2] = {
 };
 
 GpWarpRec D_shelter_b1_golem_freezer_1_8017E798[1] = {
-    { { .words = { 3072, 6763, -80, 1000 } }, { 0, 0, 0, 0 }, { .words = { 3072, 6763, -80, 1000 } }, { 0, 0, 0, 0 }, 0x54150002, 0x54150001, 0, 5, 0, 433 },
+    { { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, 0x54150002, 0x54150001, 0, 5, 0, 433 },
 };
 
 static SVECTOR _gShelterB1GolemFreezer1Collision01400Normals[9] = {
