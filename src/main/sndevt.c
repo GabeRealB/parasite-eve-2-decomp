@@ -43,23 +43,37 @@ enum {
     SOUND_EVENT_SLOT_ALLOCATED = 1
 };
 
-/// Per-channel controls, indexed by the low nibble of the MIDI status byte.
+// Channel selection and the neutral offset shared by pan reset and mixing.
+enum {
+    MIDI_CHANNEL_STATUS_MASK = 0xF,
+    MIDI_CHANNEL_PAN_CENTER  = 64
+};
+
+/// Runtime controls shared by the notes playing on one MIDI channel.
+///
+/// A song owns sixteen entries, indexed by the status byte's low nibble (0..15).
+/// Slot initialization and sequence startup reset them. Controller and program
+/// bytes are retained without validation: MIDI gains and pan must be 0..127,
+/// and the program must be below the loaded bank's `groupCount`.
+/// Volume, expression and pan affect playing voices; program selects new notes.
+/// The signed wheel value is scaled by each sample layer's semitone bend range
+/// for both playing voices and new notes.
 typedef struct {
-    u8  noteEventsDisabled; // Nonzero suppresses note-on and note-off events
-    u8  volume;             // Controller 7; initialized to 64
-    u8  expression;         // Controller 11; initialized to 127
-    u8  pan;                // Controller 10; initialized to centre (64)
-    u8  program;            // Selected group in the sound bank
-    u8  unknown_5;
-    s16 pitchBend;          // Signed bend, with the input's 0x2000 centre removed
-} MidiChannel;
-STATIC_ASSERT_SIZEOF(MidiChannel, 0x8);
+    u8  noteEventsDisabled; // Note-event gate (0 enabled, nonzero suppresses on/off); reset 0
+    u8  volume;             // CC 7 gain (0 silent, 127 full); reset 64
+    u8  expression;         // CC 11 gain multiplying volume (0 silent, 127 full); reset 127
+    u8  pan;                // CC 10 offset from layer/group pan (64 unchanged); reset 64
+    u8  program;            // Bank program/group index for new notes; reset 0
+    u8  unknown_5;          // Zeroed on reset; no individual access, role unproven
+    s16 pitchBend;          // Signed wheel offset (-8192..8191, reset 0), before layer scaling
+} _MidiChannel;
+STATIC_ASSERT_SIZEOF(_MidiChannel, 0x8);
 
 /// The initializer writes the complete table as words; event handlers use
 /// individual channel controls. Both views cover exactly the same 0x80 bytes.
 typedef union {
-    MidiChannel entries[16];
-    u32         words[32];
+    _MidiChannel entries[16];
+    u32          words[32];
 } MidiChannelTable;
 STATIC_ASSERT_SIZEOF(MidiChannelTable, 0x80);
 
@@ -1292,7 +1306,7 @@ static void Midi_DriveTrack(MidiSong* song, MidiTrack* track)
             if (status & 0x80) {
                 track->field_3 = 0;
                 if ((status & 0xF0) != 0xF0) {
-                    track->field_2 = status & 0xF;
+                    track->field_2 = status & MIDI_CHANNEL_STATUS_MASK;
                 }
                 track->field_2C = Midi_EventFns[((status & 0xF0) >> 4) - 8](status, track->field_2C, song, track);
             } else {
@@ -1318,13 +1332,20 @@ end:
 
 static void Midi_UpdateVoiceVolumes(MidiSong* song)
 {
+    // The velocity curve reaches 16383; retain a 0..127 channel gain before
+    // combining it with the note's gain and the song's SPU volume.
+    enum {
+        MIDI_VELOCITY_GAIN_FULL   = 0x3FFF,
+        MIDI_CHANNEL_GAIN_DIVISOR = SOUND_EVENT_MIDI_VOLUME_FULL * MIDI_VELOCITY_GAIN_FULL,
+        MIDI_VOICE_GAIN_DIVISOR   = SOUND_EVENT_MIDI_VOLUME_FULL * SOUND_EVENT_MIDI_VOLUME_FULL
+    };
     SpuVoiceRef   sp10;
     s16           sp18[2];
     LinInterp*    interp;
     s32           volume;
     s32           i;
     MidiNoteSlot* slot;
-    MidiChannel*  entry;
+    _MidiChannel* channelControls;
     s32           product;
     u32           vol;
     s32           channel;
@@ -1348,11 +1369,11 @@ static void Midi_UpdateVoiceVolumes(MidiSong* song)
             channel = (u8)slot->channel;
             mask    = 1 << channel;
             if (song->volumeDirtyChannels & mask) {
-                entry   = &song->channels.entries[channel];
-                product = entry->volume * entry->expression * Snd_VelocityGainTable[slot->velocity];
-                product = product / 2080641;
-                vol     = (u32)(volume * slot->volumeScale * product) / 16129U;
-                pan     = entry->pan - 0x40;
+                channelControls = &song->channels.entries[channel];
+                product         = channelControls->volume * channelControls->expression * Snd_VelocityGainTable[slot->velocity];
+                product         = product / MIDI_CHANNEL_GAIN_DIVISOR;
+                vol             = (u32)(volume * slot->volumeScale * product) / (u32)MIDI_VOICE_GAIN_DIVISOR;
+                pan             = channelControls->pan - MIDI_CHANNEL_PAN_CENTER;
                 Spu_ApplyPanVolume(sp18, slot->pan + pan, vol);
                 Spu_GetVoiceRef(voice, &sp10);
                 if (D_800820E9 == 1 && song->sequenceId != 0x5A) {
@@ -1383,7 +1404,7 @@ static inline u8* _midiNoteOff(s32 status, u8* data, MidiSong* song)
     u8* ptr;
 
     ptr     = data;
-    channel = status & 0xF;
+    channel = status & MIDI_CHANNEL_STATUS_MASK;
     key     = ptr[1];
     if ((status & 0xF0) == 0x90) {
         ptr += 1;
@@ -1430,7 +1451,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
     if (velocity == 0) {
         arg1 = _midiNoteOff(arg0, arg1, song);
     } else {
-        channel = arg0 & 0xF;
+        channel = arg0 & MIDI_CHANNEL_STATUS_MASK;
         if (song->channels.entries[channel].noteEventsDisabled != 0) {
             return arg1 + 3;
         }
@@ -1506,12 +1527,17 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
 
 static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* track)
 {
+    enum {
+        MIDI_CHANNEL_CONTROL_VOLUME     = 7,
+        MIDI_CHANNEL_CONTROL_PAN        = 10,
+        MIDI_CHANNEL_CONTROL_EXPRESSION = 11
+    };
     u8  channel;
     u8  ctrl;
     s32 value;
     u8  status;
 
-    channel = arg0 & 0xF;
+    channel = arg0 & MIDI_CHANNEL_STATUS_MASK;
     ctrl    = arg1[1];
 
     switch (ctrl) {
@@ -1541,21 +1567,21 @@ static u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* track)
             }
             break;
 
-        case 7:
+        case MIDI_CHANNEL_CONTROL_VOLUME:
             song->channels.entries[channel].volume = arg1[2];
             song->volumeDirtyChannels             |= 1 << channel;
             break;
 
-        case 0xA:
+        case MIDI_CHANNEL_CONTROL_PAN:
             if (CdVol_GetMixMode() & 0xFF) {
                 song->channels.entries[channel].pan = arg1[2];
             } else {
-                song->channels.entries[channel].pan = 0x40;
+                song->channels.entries[channel].pan = MIDI_CHANNEL_PAN_CENTER;
             }
             song->volumeDirtyChannels |= 1 << channel;
             break;
 
-        case 0xB:
+        case MIDI_CHANNEL_CONTROL_EXPRESSION:
             song->channels.entries[channel].expression = arg1[2];
             song->volumeDirtyChannels                 |= 1 << channel;
             break;
@@ -1692,13 +1718,21 @@ static s32 Midi_ReadVlq(u8* arg0, u8* arg1)
 
 static void Midi_InitChannelTable(MidiChannelTable* channels)
 {
+    // Little-endian first word: note events enabled, volume 64, expression
+    // 127 and neutral pan. The second word resets program and bend to zero.
+    enum {
+        MIDI_CHANNEL_VOLUME_DEFAULT      = 64,
+        MIDI_CHANNEL_RESET_CONTROLS_WORD = (MIDI_CHANNEL_PAN_CENTER << 24) |
+                                           (SOUND_EVENT_MIDI_VOLUME_FULL << 16) |
+                                           (MIDI_CHANNEL_VOLUME_DEFAULT << 8)
+    };
     s32  i;
     u32* words;
 
     if (channels != NULL) {
         words = channels->words;
-        for (i = 0; i < 0x10; i++) {
-            *words++ = 0x407F4000;
+        for (i = 0; i < ARRAY_SIZE(channels->entries); i++) {
+            *words++ = MIDI_CHANNEL_RESET_CONTROLS_WORD;
             *words++ = 0;
         }
     }
@@ -1716,12 +1750,13 @@ static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unu
 
 static u8* Midi_SetProgram(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
 {
-    song->channels.entries[arg0 & 0xF].program = arg1[1];
+    song->channels.entries[arg0 & MIDI_CHANNEL_STATUS_MASK].program = arg1[1];
     return arg1 + 2;
 }
 
 static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
 {
+    enum { MIDI_PITCH_WHEEL_CENTER = 0x2000 };
     SpuVoiceRef   sp10;
     u8            channel;
     s32           i;
@@ -1732,9 +1767,9 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
     s16           pitch;
     SpuVoiceAttr* attr;
 
-    channel                                   = arg0 & 0xF;
+    channel                                   = arg0 & MIDI_CHANNEL_STATUS_MASK;
     i                                         = 0;
-    pitchBend                                 = (arg1[1] | (arg1[2] << 7)) - 0x2000;
+    pitchBend                                 = (arg1[1] | (arg1[2] << 7)) - MIDI_PITCH_WHEEL_CENTER;
     song->channels.entries[channel].pitchBend = pitchBend;
     do {
         slot = &song->voiceSlots[i];

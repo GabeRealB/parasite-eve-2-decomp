@@ -11416,7 +11416,7 @@ void init_slots(s32* arg0) {
 }
 ```
 
-`Midi_InitChannelTable` (init of `MidiOpcodeCtx::field_484[16]`) is the pure example.
+`Midi_InitChannelTable` (init of `MidiSong::channels.entries[16]`) is the pure example.
 
 ## Shared `return 0` via switch `break` (not early return)
 
@@ -16182,7 +16182,7 @@ andi  a0, v1, 0xff          /* delay of a later branch */
 sll   v0, a0, 3
 ...
 move  s0, a2
-lb    v0, 0x506(s0)         /* voiceSlots[i].field_2 */
+lb    v0, 0x506(s0)         /* voiceSlots[i].key */
 ...
 addiu s0, s0, 0xc
 ```
@@ -16195,7 +16195,7 @@ two codegen traps show up:
 
 ```c
 u8 t = arg0 & 0xF;
-/* later: field_484[t] / voiceSlots[i].field_1 == t  →  andi a0, v1, 0xff */
+/* later: channels.entries[t] / voiceSlots[i].channel == t  →  andi a0, v1, 0xff */
 ```
 
 2. **A mid-struct pointer rebases the walk.** `slot = arg2->voiceSlots; slot++`
@@ -16204,9 +16204,9 @@ u8 t = arg0 & 0xF;
 
 ```c
 for (i = 0; i < 0x12; i++) {
-    if (arg2->voiceSlots[i].field_2 == param &&
-        arg2->voiceSlots[i].field_1 == t) {
-        Spu_KeyOff(arg2->voiceSlots[i].field_0);
+    if (arg2->voiceSlots[i].key == param &&
+        arg2->voiceSlots[i].channel == t) {
+        Spu_KeyOff(arg2->voiceSlots[i].voice);
     }
 }
 ```
@@ -21752,20 +21752,20 @@ pin both names to the same register with non-overlapping live ranges:
 
 ```c
 register s32 channel asm("t0");
-register MidiOpcodeSlot* entry asm("t0");
+register _MidiChannel* channelControls asm("t0");
 
-channel = (u8)slot->field_1; /* lbu, not lb — cast the s8 field */
-if (obj->field_C & (one << channel)) {
-    entry = &obj->field_484[channel]; /* overwrites t0 in place */
+channel = (u8)slot->channel; /* lbu, not lb — cast the s8 field */
+if (obj->volumeDirtyChannels & (one << channel)) {
+    channelControls = &obj->channels.entries[channel]; /* overwrites t0 in place */
     ...
 }
 ```
 
 The `(u8)` cast on an `s8` channel field is required for `lbu`; a plain
-`s32 channel = slot->field_1` emits `lb`.
+`s32 channel = slot->channel` emits `lb`.
 
 The same dual-live pattern applies to `$v0`: pin an early multiply operand
-(`temp`) and a later pan temporary (`f3 = entry->field_3; f3 -= 0x40`) both to
+(`temp`) and a later pan temporary (`f3 = channelControls->pan; f3 -= 0x40`) both to
 `asm("v0")`. They must not be live at the same time.
 
 For the pan offset, prefer the two-step form so GCC emits `addiu …, -0x40`
@@ -21774,9 +21774,9 @@ instead of `ori …, 0xffc0; addu` (the latter appears when
 
 ```c
 register s32 f3 asm("v0");
-f3  = entry->field_3;
+f3  = channelControls->pan;
 f3 -= 0x40;
-Spu_ApplyPanVolume(sp18, slot->field_5 + f3, vol);
+Spu_ApplyPanVolume(sp18, slot->pan + f3, vol);
 ```
 
 Pair with `register s32 temp asm("v0"); register s32 scale asm("v1");` for the
