@@ -46,7 +46,6 @@ enum {
     /// or a negative counter invokes the task's exit callback. Until completion,
     /// drawing and the content callback still run with inactive input.
     USER_INTERFACE_PANEL_CLOSING = 3,
-    USER_INTERFACE_PANEL_HIDING  = 4,
     /// Retained panel with drawing suppressed and its content callback still running.
     ///
     /// Dispatch suspends input without releasing the panel or its owning task.

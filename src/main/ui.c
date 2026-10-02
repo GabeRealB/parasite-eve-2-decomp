@@ -29,6 +29,17 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
+/// Panel shrinking into the retained hidden state while its owning task stays alive.
+///
+/// Entry preserves `UiPanel.animationTicks` and the input control mode.
+/// Nonnegative counters advance by elapsed frame ticks. Reaching
+/// `USER_INTERFACE_PANEL_ANIMATION_TICKS` or a negative counter sets ticks
+/// to -1 and dispatches `USER_INTERFACE_PANEL_HIDDEN` in the same update.
+/// Until completion, drawing and the content callback continue with input
+/// temporarily suspended; control changes from the callback are preserved.
+/// Hidden dispatch can immediately reopen the panel if control is active.
+enum { USER_INTERFACE_PANEL_HIDING = 4 };
+
 /// Panel style selectors, list requests and integer scaling used by resident drawing.
 enum {
     USER_INTERFACE_PANEL_STYLE_MASK           = 0xF,
@@ -522,7 +533,7 @@ static const UiPanelFuncTable6 Ui_ObjectStates = { {
     Ui_DrawAndCallback,
     [USER_INTERFACE_PANEL_OPEN]    = Ui_LayoutDrawAndCallback,
     [USER_INTERFACE_PANEL_CLOSING] = Ui_TickAnimCounter,
-    Ui_AnimCloseStep,
+    [USER_INTERFACE_PANEL_HIDING]  = Ui_AnimCloseStep,
     Ui_ClipAndCallback,
 } };
 
